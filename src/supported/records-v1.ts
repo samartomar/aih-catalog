@@ -5,7 +5,6 @@ import {
   canonicalStrictJsonSha256V1,
   deepFreezeStrictJsonV1,
   parseCanonicalStrictJsonObjectV1,
-  parseStrictJsonObjectV1,
 } from "../contract/strict-json-v1.js";
 
 type JsonRecord = Record<string, unknown>;
@@ -111,6 +110,12 @@ function domainSha(domain: string, value: unknown): string {
   return canonicalStrictJsonSha256V1({ domain, value });
 }
 
+function codeUnitCompare(left: string, right: string): number {
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
+}
+
 function sortedUniqueStrings(value: unknown, label: string): string[] {
   if (!Array.isArray(value) || value.length === 0 || value.length > 4_096) fail(label);
   const parsed = value.map((entry) => text(entry, label));
@@ -159,7 +164,7 @@ function sourceSubject(value: unknown): SourceSubject {
       sha256: sha(item.sha256, "closure sha"),
     };
   });
-  parsed.sort((left, right) => left.path.localeCompare(right.path));
+  parsed.sort((left, right) => codeUnitCompare(left.path, right.path));
   if (new Set(parsed.map((member) => member.path)).size !== parsed.length)
     fail("duplicate closure member");
   return deepFreezeStrictJsonV1({
@@ -181,7 +186,7 @@ function platformRows(value: unknown): readonly Readonly<{ architecture: string;
     return { architecture, os };
   });
   parsed.sort((left, right) =>
-    `${left.os}/${left.architecture}`.localeCompare(`${right.os}/${right.architecture}`),
+    codeUnitCompare(`${left.os}/${left.architecture}`, `${right.os}/${right.architecture}`),
   );
   if (new Set(parsed.map((row) => `${row.os}/${row.architecture}`)).size !== parsed.length)
     fail("duplicate platform");
@@ -377,7 +382,7 @@ function descriptorRows(value: unknown): readonly JsonRecord[] {
       uri: assertSafeRelativePosixPathV1(text(item.uri, "annex uri", /^.{1,4096}$/), "annex uri"),
     };
   });
-  parsed.sort((left, right) => left.descriptorId.localeCompare(right.descriptorId));
+  parsed.sort((left, right) => codeUnitCompare(left.descriptorId, right.descriptorId));
   if (new Set(parsed.map((row) => row.descriptorId)).size !== parsed.length)
     fail("duplicate annex descriptor");
   return parsed;
@@ -395,7 +400,7 @@ function receiptRows(value: unknown): readonly JsonRecord[] {
       receiptSha256: sha(item.receiptSha256, "receipt"),
     };
   });
-  parsed.sort((left, right) => left.detectorId.localeCompare(right.detectorId));
+  parsed.sort((left, right) => codeUnitCompare(left.detectorId, right.detectorId));
   if (new Set(parsed.map((row) => row.detectorId)).size !== parsed.length)
     fail("duplicate detector receipt");
   return parsed;
@@ -505,7 +510,7 @@ export function createPromotionDecisionV1(value: unknown): PromotionDecisionV1 {
   );
   if (
     input.protocol !== "PromotionDecisionV1" ||
-    (input.result !== "accepted" && input.result !== "rejected")
+    !["promoted", "review-required", "blocked", "superseded"].includes(input.result as string)
   )
     fail("promotion protocol/result");
   const authority = text(input.authority, "authority");
@@ -537,19 +542,38 @@ export function createPromotionDecisionV1(value: unknown): PromotionDecisionV1 {
 }
 
 export function parsePromotionDecisionV1Json(text: string): PromotionDecisionV1 {
-  const parsed = parseStrictJsonObjectV1(text, "promotion decision");
-  const digest = parsed.promotionDecisionSha256;
-  delete parsed.promotionDecisionSha256;
-  const created = createPromotionDecisionV1(parsed);
-  if (created.promotionDecisionSha256 !== digest) fail("promotion decision digest");
-  return created;
+  return canonicalParser(
+    text,
+    "promotion decision",
+    "promotionDecisionSha256",
+    createPromotionDecisionV1,
+  ) as PromotionDecisionV1;
+}
+
+export function canonicalPromotionDecisionV1Bytes(value: unknown): Buffer {
+  return canonicalStrictJsonBytesV1(requireBrand(value as object, "promotion decision"));
 }
 
 function iso(value: unknown, label: string): string {
+  if (typeof value !== "string") fail(label);
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z$/);
+  if (match === null) fail(label);
+  const [, yearText, monthText, dayText, hourText, minuteText, secondText] = match;
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  const hour = Number(hourText);
+  const minute = Number(minuteText);
+  const second = Number(secondText);
+  if (month < 1 || month > 12 || day < 1 || hour > 23 || minute > 59 || second > 59) fail(label);
+  const date = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
   if (
-    typeof value !== "string" ||
-    !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(value) ||
-    Number.isNaN(Date.parse(value))
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day ||
+    date.getUTCHours() !== hour ||
+    date.getUTCMinutes() !== minute ||
+    date.getUTCSeconds() !== second
   )
     fail(label);
   return value;
@@ -628,6 +652,7 @@ export function parseCatalogHeadV1Json(text: string): CatalogHeadV1 {
 function standardBase64(value: unknown, label: string): string {
   if (
     typeof value !== "string" ||
+    value.length === 0 ||
     !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(value)
   )
     fail(label);
@@ -637,12 +662,50 @@ function standardBase64(value: unknown, label: string): string {
 }
 
 function statement(input: JsonRecord): JsonRecord {
+  const recordDigestSha256 = sha(input.recordDigestSha256, "statement digest");
+  const recordType = text(input.recordType, "statement type");
+  const signerIdentity = text(input.signerIdentity, "statement signer");
   return {
-    protocol: "SupportedRecordStatementV1",
-    recordDigestSha256: sha(input.recordDigestSha256, "statement digest"),
-    recordType: text(input.recordType, "statement type"),
-    signerIdentity: text(input.signerIdentity, "statement signer"),
+    _type: "https://in-toto.io/Statement/v1",
+    predicate: {
+      protocol: "SupportedRecordPredicateV1",
+      recordType,
+      signerIdentity,
+    },
+    predicateType: "https://aih.dev/SupportedRecordV1",
+    subject: [{ digest: { sha256: recordDigestSha256 }, name: `aih-supported/${recordType}` }],
   };
+}
+
+function statementBinding(
+  value: unknown,
+  label: string,
+): {
+  recordDigestSha256: string;
+  recordType: string;
+  signerIdentity: string;
+} {
+  const parsed = record(value, label);
+  keys(parsed, ["_type", "predicate", "predicateType", "subject"], `${label} fields`);
+  if (
+    parsed._type !== "https://in-toto.io/Statement/v1" ||
+    parsed.predicateType !== "https://aih.dev/SupportedRecordV1" ||
+    !Array.isArray(parsed.subject) ||
+    parsed.subject.length !== 1
+  )
+    fail(label);
+  const subject = record(parsed.subject[0], `${label} subject`);
+  keys(subject, ["digest", "name"], `${label} subject fields`);
+  const subjectDigest = record(subject.digest, `${label} subject digest`);
+  keys(subjectDigest, ["sha256"], `${label} subject digest fields`);
+  const predicate = record(parsed.predicate, `${label} predicate`);
+  keys(predicate, ["protocol", "recordType", "signerIdentity"], `${label} predicate fields`);
+  if (predicate.protocol !== "SupportedRecordPredicateV1") fail(label);
+  const recordDigestSha256 = sha(subjectDigest.sha256, `${label} digest`);
+  const recordType = text(predicate.recordType, `${label} record type`);
+  const signerIdentity = text(predicate.signerIdentity, `${label} signer`);
+  if (subject.name !== `aih-supported/${recordType}`) fail(label);
+  return { recordDigestSha256, recordType, signerIdentity };
 }
 
 export function createDsseEnvelopeV1(value: unknown): DsseEnvelopeV1 {
@@ -664,7 +727,7 @@ export function createDsseEnvelopeV1(value: unknown): DsseEnvelopeV1 {
     keys(item, ["keyid", "sig"], "DSSE signature fields");
     return { keyid: text(item.keyid, "key id"), sig: standardBase64(item.sig, "signature") };
   });
-  if (new Set(signatures.map((entry) => `${entry.keyid}:${entry.sig}`)).size !== signatures.length)
+  if (new Set(signatures.map((entry) => entry.keyid)).size !== signatures.length)
     fail("duplicate signature");
   const payload = canonicalStrictJsonBytesV1(statement(input)).toString("base64");
   return freeze({ payload, payloadType: input.payloadType, signatures }) as DsseEnvelopeV1;
@@ -687,11 +750,12 @@ export function parseDsseEnvelopeV1Json(text: string): DsseEnvelopeV1 {
   } catch {
     fail("DSSE statement");
   }
+  const binding = statementBinding(decoded, "DSSE statement");
   const envelope = createDsseEnvelopeV1({
     payloadType: input.payloadType,
-    recordDigestSha256: decoded.recordDigestSha256,
-    recordType: decoded.recordType,
-    signerIdentity: decoded.signerIdentity,
+    recordDigestSha256: binding.recordDigestSha256,
+    recordType: binding.recordType,
+    signerIdentity: binding.signerIdentity,
     signatures: input.signatures,
   });
   if (envelope.payload !== payload) fail("DSSE payload canonical");
@@ -722,23 +786,22 @@ export function verifyDsseEnvelopeV1(
   requireBrand(envelope, "DSSE envelope");
   const payload = Buffer.from(envelope.payload, "base64");
   const parsed = parseCanonicalStrictJsonObjectV1(payload.toString("utf8"), "DSSE statement");
-  keys(
-    parsed,
-    ["protocol", "recordDigestSha256", "recordType", "signerIdentity"],
-    "DSSE statement fields",
-  );
+  const binding = statementBinding(parsed, "DSSE statement");
   if (
-    parsed.protocol !== "SupportedRecordStatementV1" ||
-    parsed.recordDigestSha256 !== sha(input.expectedRecordDigestSha256, "expected digest") ||
-    parsed.recordType !== text(input.expectedRecordType, "expected type") ||
-    parsed.signerIdentity !== text(input.expectedSignerIdentity, "expected signer")
+    binding.recordDigestSha256 !== sha(input.expectedRecordDigestSha256, "expected digest") ||
+    binding.recordType !== text(input.expectedRecordType, "expected type") ||
+    binding.signerIdentity !== text(input.expectedSignerIdentity, "expected signer")
   )
     fail("DSSE statement binding");
+  const signatures = deepFreezeStrictJsonV1(
+    envelope.signatures.map((signature) => ({ keyid: signature.keyid, sig: signature.sig })),
+  );
   const request = Object.freeze({
     expectedRecordDigestSha256: input.expectedRecordDigestSha256,
     expectedRecordType: input.expectedRecordType,
     expectedSignerIdentity: input.expectedSignerIdentity,
     paeBytes: Buffer.from(pae(envelope.payloadType, payload)),
+    signatures,
   });
   if (!verifier.verifyCanonicalPae(request)) fail("DSSE verification");
   return envelope;
@@ -759,12 +822,14 @@ function headContext(value: unknown): HeadContext {
     "expectedPromotionDecisionSha256",
     "expectedQualificationBundleSha256",
     "expectedRecipeSha256",
+    "expectedSignerIdentity",
     "expectedWorkflowIdentity",
   ];
   keys(input, expected, "head context fields");
   for (const field of expected.filter((field) => field.endsWith("Sha256")))
     sha(input[field], field);
   text(input.expectedAuthority, "expected authority");
+  text(input.expectedSignerIdentity, "expected signer");
   text(input.expectedWorkflowIdentity, "expected workflow");
   return deepFreezeStrictJsonV1(input);
 }
@@ -780,6 +845,7 @@ export function verifyCatalogHeadV1(
   if (
     head.catalogSha256 !== context.expectedCatalogSha256 ||
     head.promotionDecisionSha256 !== context.expectedPromotionDecisionSha256 ||
+    head.signerIdentity !== context.expectedSignerIdentity ||
     !head.compatibleEffectVersions.includes("1") ||
     !head.compatibleSchemaVersions.includes("1")
   )
@@ -789,14 +855,14 @@ export function verifyCatalogHeadV1(
       envelope: input.envelope,
       expectedRecordDigestSha256: head.catalogHeadSha256,
       expectedRecordType: "CatalogHeadV1",
-      expectedSignerIdentity: head.signerIdentity,
+      expectedSignerIdentity: context.expectedSignerIdentity,
     },
     { verifyCanonicalPae: () => true },
   );
   const request = Object.freeze({
     context,
     envelope: input.envelope,
-    expectedSignerIdentity: head.signerIdentity,
+    expectedSignerIdentity: context.expectedSignerIdentity,
     headBytes: Buffer.from(canonicalCatalogHeadV1Bytes(head)),
   });
   if (!verifier.verifyCanonicalBytes(request)) fail("head verification");
@@ -820,7 +886,6 @@ export function resolveCatalogHeadV1(value: unknown): {
     if (
       next.sequence <= lastGood.sequence ||
       next.previousCatalogHeadSha256 !== lastGood.catalogHeadSha256 ||
-      next.catalogSha256 !== lastGood.catalogSha256 ||
       next.validUntil <= now ||
       next.validFrom > now
     )

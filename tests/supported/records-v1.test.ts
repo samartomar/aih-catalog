@@ -357,9 +357,9 @@ describe("QualificationBundleV1, PromotionDecisionV1, and CatalogHeadV1", () => 
         { ...firstRecord(bundleInput().detectorReceipts), detectorId: "detector._" },
       ],
       requiredPlatforms: [
-        { architecture: "a", os: "linux" },
-        { architecture: "Z", os: "linux" },
-        { architecture: "_", os: "linux" },
+        { architecture: "a-a", os: "linux" },
+        { architecture: "a.a", os: "linux" },
+        { architecture: "a_a", os: "linux" },
       ],
     });
     const sortedBundle = bundle as unknown as {
@@ -375,7 +375,7 @@ describe("QualificationBundleV1, PromotionDecisionV1, and CatalogHeadV1", () => 
     );
     expect(
       sortedBundle.requiredPlatforms.map((platform) => `${platform.os}/${platform.architecture}`),
-    ).toEqual(rawSort(["linux/a", "linux/Z", "linux/_"]));
+    ).toEqual(rawSort(["linux/a-a", "linux/a.a", "linux/a_a"]));
   });
 
   it("keeps promotion authority separate from catalog continuity and binds every decision field", () => {

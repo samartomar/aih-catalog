@@ -42,6 +42,24 @@ function record(value: unknown, label: string): JsonRecord {
   return structuredClone(value) as JsonRecord;
 }
 
+function outerRecord(value: unknown, label: string): JsonRecord {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) fail(label);
+  const prototype = Object.getPrototypeOf(value);
+  if (
+    (prototype !== Object.prototype && prototype !== null) ||
+    Object.getOwnPropertySymbols(value).length !== 0
+  )
+    fail(label);
+  for (const key of Object.keys(value)) ownData(value, key, label);
+  return value as JsonRecord;
+}
+
+function ownData(value: object, key: string, label: string): unknown {
+  const descriptor = Object.getOwnPropertyDescriptor(value, key);
+  if (descriptor === undefined || !("value" in descriptor)) fail(label);
+  return descriptor.value;
+}
+
 function keys(value: JsonRecord, expected: readonly string[], label: string): void {
   const actual = Object.keys(value).sort();
   const sorted = [...expected].sort();
@@ -63,12 +81,12 @@ function exceptionKey(row: JsonRecord): string {
   return createHash("sha256")
     .update(
       canonicalStrictJsonBytesV1({
-        closureMember: row.closureMember,
-        policyRevisionSha256: row.policyRevisionSha256,
-        profileSha256: row.profileSha256,
-        recipeSha256: row.recipeSha256,
-        reasonCode: "ECC_PREVIEW_DEPENDENCY_CLOSURE_UNQUALIFIED",
-        subjectSha256: row.subjectSha256,
+        domain: "aih-supported.exception-dedupe-v1",
+        value: {
+          policyRevisionSha256: row.policyRevisionSha256,
+          reasonCode: "ECC_PREVIEW_DEPENDENCY_CLOSURE_UNQUALIFIED",
+          subjectSha256: row.subjectSha256,
+        },
       }),
     )
     .digest("hex");
@@ -93,9 +111,9 @@ export function evaluateStaticPilotV1(value: unknown): SupportedPilotResultV1 {
   );
   if (input.protocol !== "SupportedStaticPilotV1" || input.evidenceRunId !== "31922381993")
     fail("pilot protocol/evidence");
-  sha(input.policyRevisionSha256, "policy");
-  sha(input.profileSha256, "profile");
-  sha(input.recipeSha256, "recipe");
+  const policyRevisionSha256 = sha(input.policyRevisionSha256, "policy");
+  const profileSha256 = sha(input.profileSha256, "profile");
+  const recipeSha256 = sha(input.recipeSha256, "recipe");
   if (!Array.isArray(input.sources) || input.sources.length !== 2) fail("sources");
   const sources = input.sources.map((source) => record(source, "source"));
   const ecc = sources.find(
@@ -188,6 +206,13 @@ export function evaluateStaticPilotV1(value: unknown): SupportedPilotResultV1 {
     sha(row.policyRevisionSha256, "exception policy");
     sha(row.profileSha256, "exception profile");
     sha(row.recipeSha256, "exception recipe");
+    if (
+      row.closureMember !== "js-yaml@4.3.1" ||
+      row.policyRevisionSha256 !== policyRevisionSha256 ||
+      row.profileSha256 !== profileSha256 ||
+      row.recipeSha256 !== recipeSha256
+    )
+      fail("exception evidence binding");
     const dedupeKeySha256 = exceptionKey(row);
     if (!exceptions.has(dedupeKeySha256)) {
       exceptions.set(dedupeKeySha256, {
@@ -221,7 +246,13 @@ export function evaluateStaticPilotV1(value: unknown): SupportedPilotResultV1 {
       newBlockedComponentIds: [],
       passed: 109,
     },
-    exceptions: [...exceptions.values()],
+    exceptions: [...exceptions.values()].sort((left, right) =>
+      (left.dedupeKeySha256 as string) < (right.dedupeKeySha256 as string)
+        ? -1
+        : (left.dedupeKeySha256 as string) > (right.dedupeKeySha256 as string)
+          ? 1
+          : 0,
+    ),
     superpowers: { passed: 15, passedComponentIds: [...SUPERPOWERS], total: 15 },
   }) as SupportedPilotResultV1;
 }
@@ -264,17 +295,20 @@ export function validateOfflineSourceRequestV1(value: unknown): Readonly<JsonRec
       sha256: sha(row.sha256, "member"),
     };
   });
+  if (new Set(members.map((member) => member.path)).size !== members.length)
+    fail("duplicate closure member");
   return deepFreezeStrictJsonV1({
     ...input,
-    closureMembers: members.sort((left, right) => left.path.localeCompare(right.path)),
+    closureMembers: members.sort((left, right) =>
+      left.path < right.path ? -1 : left.path > right.path ? 1 : 0,
+    ),
   });
 }
 
 export function createReadOnlyEvaluationV1(value: unknown): Readonly<JsonRecord> {
-  if (typeof value !== "object" || value === null || Array.isArray(value))
-    fail("read-only evaluation");
-  const input = value as JsonRecord;
+  const input = outerRecord(value, "read-only evaluation");
   keys(input, ["provider", "request"], "read-only evaluation fields");
-  validateOfflineSourceRequestV1(input.request);
+  validateOfflineSourceRequestV1(ownData(input, "request", "read-only evaluation"));
+  ownData(input, "provider", "read-only evaluation");
   return deepFreezeStrictJsonV1({ capabilities: { mutation: false, network: false } });
 }

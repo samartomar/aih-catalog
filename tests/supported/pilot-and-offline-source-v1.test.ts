@@ -143,12 +143,20 @@ describe("supported static pilot v1", () => {
         ...pilotInput.exceptionRows[0],
         [field]: sha(`changed:${field}`),
       };
-      const changed = evaluateStaticPilotV1({
-        ...pilotInput,
-        exceptionRows: [pilotInput.exceptionRows[0], row],
-      });
-      expect(changed.exceptions).toHaveLength(2);
-      expect(changed.exceptions[1]?.dedupeKeySha256).not.toBe(
+      const changed = evaluateStaticPilotV1(
+        field === "policyRevisionSha256"
+          ? {
+              ...pilotInput,
+              policyRevisionSha256: row.policyRevisionSha256,
+              exceptionRows: pilotInput.exceptionRows.map((entry) => ({
+                ...entry,
+                policyRevisionSha256: row.policyRevisionSha256,
+              })),
+            }
+          : { ...pilotInput, exceptionRows: [pilotInput.exceptionRows[0], row] },
+      );
+      expect(changed.exceptions).toHaveLength(field === "policyRevisionSha256" ? 1 : 2);
+      expect(changed.exceptions.at(-1)?.dedupeKeySha256).not.toBe(
         baseline.exceptions[0]?.dedupeKeySha256,
       );
     }
