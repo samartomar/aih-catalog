@@ -881,7 +881,7 @@ export function resolveCatalogHeadV1(value: unknown): {
   );
   const lastGood = requireBrand(input.lastGood as CatalogHeadV1, "last good head");
   try {
-    const next = input.next as CatalogHeadV1;
+    const next = requireBrand(input.next as CatalogHeadV1, "next head");
     const now = iso(input.now, "resolution now");
     if (
       next.sequence <= lastGood.sequence ||

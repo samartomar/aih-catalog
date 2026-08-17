@@ -698,6 +698,44 @@ describe("QualificationBundleV1, PromotionDecisionV1, and CatalogHeadV1", () => 
         }),
       ).toEqual({ kind: "last-good", head: lastGood });
 
+    let getterCalls = 0;
+    const accessorNext: Record<string, unknown> = {};
+    for (const [key, fieldValue] of Object.entries(next)) {
+      Object.defineProperty(accessorNext, key, {
+        enumerable: true,
+        get: () => {
+          getterCalls += 1;
+          return fieldValue;
+        },
+      });
+    }
+    const accessorVerifier = vi.fn(() => true);
+    expect(
+      resolveCatalogHeadV1({
+        context,
+        envelope,
+        lastGood,
+        next: accessorNext,
+        now: "2026-08-17T12:00:00Z",
+        verifier: { verifyCanonicalBytes: accessorVerifier },
+      }),
+    ).toEqual({ kind: "last-good", head: lastGood });
+    expect(getterCalls).toBe(0);
+    expect(accessorVerifier).not.toHaveBeenCalled();
+
+    const unbrandedVerifier = vi.fn(() => true);
+    expect(
+      resolveCatalogHeadV1({
+        context,
+        envelope,
+        lastGood,
+        next: { ...next },
+        now: "2026-08-17T12:00:00Z",
+        verifier: { verifyCanonicalBytes: unbrandedVerifier },
+      }),
+    ).toEqual({ kind: "last-good", head: lastGood });
+    expect(unbrandedVerifier).not.toHaveBeenCalled();
+
     const selfClaimedSigner = createCatalogHeadV1({
       ...headInput(),
       catalogSha256: next.catalogSha256,
