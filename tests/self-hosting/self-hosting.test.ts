@@ -4,7 +4,8 @@ import { describe, expect, it } from "vitest";
 
 const root = resolve(import.meta.dirname, "../..");
 const boundary = "Never run an installed aih-supported against this checkout.";
-const read = (path: string): string => readFileSync(resolve(root, path), "utf8").replace(/\r\n/g, "\n");
+const read = (path: string): string =>
+  readFileSync(resolve(root, path), "utf8").replace(/\r\n/g, "\n");
 
 function managedBody(text: string): string {
   const match = text.match(

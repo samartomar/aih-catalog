@@ -120,10 +120,32 @@ describe("aih-supported repository AI bootstrap", () => {
     expect(bootstrap.projection).toContain(`CBM_CACHE_DIR = ${JSON.stringify(resolve(override))}`);
     expect(bootstrap.projection).toContain(`CBM_ALLOWED_ROOT = ${JSON.stringify(root)}`);
     expect(bootstrap.commands).toEqual({
-      index: ["cli", "index_repository", "--repo-path", root, "--name", "aih-supported", "--mode", "moderate"],
+      index: [
+        "cli",
+        "index_repository",
+        "--repo-path",
+        root,
+        "--name",
+        "aih-supported",
+        "--mode",
+        "moderate",
+      ],
       list: ["cli", "list_projects"],
       status: ["cli", "index_status", "--project", "aih-supported"],
-      search: ["cli", "search_code", "--project", "aih-supported", "--pattern", "export", "--file-pattern", "index.ts", "--mode", "files", "--limit", "1"],
+      search: [
+        "cli",
+        "search_code",
+        "--project",
+        "aih-supported",
+        "--pattern",
+        "export",
+        "--file-pattern",
+        "index.ts",
+        "--mode",
+        "files",
+        "--limit",
+        "1",
+      ],
     });
     expect(launcher.inspectCodebaseMemoryBootstrap(override)).toEqual(bootstrap);
   });
@@ -131,17 +153,38 @@ describe("aih-supported repository AI bootstrap", () => {
   it("rejects unsafe CBM overrides and foreign project responses", async () => {
     const launcher = await tools();
     const filesystemRoot = parse(root).root;
-    for (const value of ["", "  ", "relative", "\u0000cache", filesystemRoot, root, join(root, "cache")])
-      expect(() => launcher.resolveCodebaseMemoryCacheDir(value), JSON.stringify(value)).toThrow(/CBM_CACHE_DIR/i);
+    for (const value of [
+      "",
+      "  ",
+      "relative",
+      "\u0000cache",
+      filesystemRoot,
+      root,
+      join(root, "cache"),
+    ])
+      expect(() => launcher.resolveCodebaseMemoryCacheDir(value), JSON.stringify(value)).toThrow(
+        /CBM_CACHE_DIR/i,
+      );
 
     const other = { name: "other", root_path: join(tmpdir(), "other"), nodes: 10, edges: 10 };
     const target = { name: "aih-supported", root_path: root, nodes: 10, edges: 10 };
     expect(launcher.findCodebaseMemoryProject([other, target])).toEqual(target);
     expect(() => launcher.findCodebaseMemoryProject([other])).toThrow(/aih-supported/i);
-    expect(() => launcher.assertCodebaseMemoryScopedResponse({ project: "aih-supported", root_path: root }, "status")).not.toThrow();
-    expect(() => launcher.assertCodebaseMemoryScopedResponse({ project: "other", root_path: root }, "status")).toThrow(/status/i);
-    expect(() => launcher.assertCodebaseMemorySearchResponse({ files: ["src/index.ts"] })).not.toThrow();
-    expect(() => launcher.assertCodebaseMemorySearchResponse({ files: ["../other/src/index.ts"] })).toThrow(/search/i);
+    expect(() =>
+      launcher.assertCodebaseMemoryScopedResponse(
+        { project: "aih-supported", root_path: root },
+        "status",
+      ),
+    ).not.toThrow();
+    expect(() =>
+      launcher.assertCodebaseMemoryScopedResponse({ project: "other", root_path: root }, "status"),
+    ).toThrow(/status/i);
+    expect(() =>
+      launcher.assertCodebaseMemorySearchResponse({ files: ["src/index.ts"] }),
+    ).not.toThrow();
+    expect(() =>
+      launcher.assertCodebaseMemorySearchResponse({ files: ["../other/src/index.ts"] }),
+    ).toThrow(/search/i);
   });
 
   it("does not commit an absolute override", () => {
