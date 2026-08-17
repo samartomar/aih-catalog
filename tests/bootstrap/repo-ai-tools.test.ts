@@ -43,6 +43,27 @@ function ignored(path: string): boolean {
 }
 
 describe("aih-supported repository AI bootstrap", () => {
+  it("keeps CI read-only, credential-free, and action-pinned", () => {
+    const workflow = readFileSync(join(root, ".github/workflows/verify.yml"), "utf8").replace(
+      /\r\n/g,
+      "\n",
+    );
+    expect(workflow).toContain("permissions:\n  contents: read\n");
+    expect(workflow).toContain(
+      "- uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683\n        with:\n          persist-credentials: false",
+    );
+    expect(workflow).toContain("actions/setup-node@820762786026740c76f36085b0efc47a31fe5020");
+    expect(workflow).not.toContain("repo:init");
+  });
+
+  it("tracks the local verification hook as executable", () => {
+    const stage = execFileSync("git", ["ls-files", "--stage", ".githooks/pre-commit"], {
+      cwd: root,
+      encoding: "utf8",
+    });
+    expect(stage).toMatch(/^100755\s/);
+  });
+
   it("pins the narrow public helper toolchain", () => {
     expect(commandJson("plan")).toMatchObject({
       pins: {
