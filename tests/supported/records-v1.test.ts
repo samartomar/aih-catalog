@@ -390,7 +390,18 @@ describe("QualificationBundleV1, PromotionDecisionV1, and CatalogHeadV1", () => 
       signerIdentity: head.signerIdentity,
       signatures: [{ keyid: "key.catalog.release", sig: "c2lnbmF0dXJl" }],
     });
+    exactKeys(envelope, ["payload", "payloadType", "signatures"]);
     expect(envelope.payload).toMatch(/^[A-Za-z0-9+/]*={0,2}$/);
+    const statement = {
+      protocol: "SupportedRecordStatementV1",
+      recordDigestSha256: head.catalogHeadSha256,
+      recordType: "CatalogHeadV1",
+      signerIdentity: head.signerIdentity,
+    };
+    const statementBytes = Buffer.from(JSON.stringify(statement), "utf8");
+    const decodedPayload = Buffer.from(envelope.payload, "base64");
+    expect(decodedPayload).toEqual(statementBytes);
+    expect(JSON.parse(decodedPayload.toString("utf8"))).toEqual(statement);
     expect(
       parseDsseEnvelopeV1Json(canonicalDsseEnvelopeV1Bytes(envelope).toString("utf8")),
     ).toEqual(envelope);
@@ -400,19 +411,57 @@ describe("QualificationBundleV1, PromotionDecisionV1, and CatalogHeadV1", () => 
         expectedRecordType: "CatalogHeadV1",
         expectedSignerIdentity: head.signerIdentity,
       });
-      expect(Buffer.isBuffer(request.paeBytes)).toBe(true);
+      expect(request.paeBytes).toEqual(
+        Buffer.concat([
+          Buffer.from(
+            `DSSEv1 ${String(Buffer.byteLength(envelope.payloadType, "utf8"))} ${envelope.payloadType} ${String(decodedPayload.length)} `,
+            "utf8",
+          ),
+          decodedPayload,
+        ]),
+      );
       return true;
     });
-    expect(verifyDsseEnvelopeV1(envelope, { verifyCanonicalPae })).toEqual(envelope);
+    const envelopeContext = {
+      expectedRecordDigestSha256: head.catalogHeadSha256,
+      expectedRecordType: "CatalogHeadV1",
+      expectedSignerIdentity: head.signerIdentity,
+    };
+    expect(verifyDsseEnvelopeV1({ envelope, ...envelopeContext }, { verifyCanonicalPae })).toEqual(
+      envelope,
+    );
     for (const changed of [
       { ...envelope, payload: "bm90LXRoaXMtc3RhdGVtZW50" },
       { ...envelope, payloadType: "application/json" },
       { ...envelope, signatures: [] },
-      { ...envelope, signatures: [envelope.signatures[0], envelope.signatures[0]] },
-      { ...envelope, statement: { ...envelope.statement, recordType: "CandidateV1" } },
-      { ...envelope, signerIdentity: "workflow:catalog-discovery-v1" },
+      {
+        ...envelope,
+        signatures: [
+          { keyid: "key.catalog.release", sig: "c2lnbmF0dXJl" },
+          { keyid: "key.catalog.release", sig: "c2lnbmF0dXJl" },
+        ],
+      },
+      {
+        ...envelope,
+        payload: Buffer.from(
+          JSON.stringify({ ...statement, recordType: "CandidateV1" }),
+          "utf8",
+        ).toString("base64"),
+      },
+      {
+        ...envelope,
+        payload: Buffer.from(
+          JSON.stringify({ ...statement, signerIdentity: "workflow:catalog-discovery-v1" }),
+          "utf8",
+        ).toString("base64"),
+      },
     ])
-      expect(() => verifyDsseEnvelopeV1(changed, { verifyCanonicalPae: () => true })).toThrow();
+      expect(() =>
+        verifyDsseEnvelopeV1(
+          { envelope: changed, ...envelopeContext },
+          { verifyCanonicalPae: () => true },
+        ),
+      ).toThrow();
     for (const malformed of [
       { ...headInput(), candidateSha256: sha("wrong-layer") },
       { ...headInput(), rollbackOf: sha("forbidden") },
@@ -446,18 +495,46 @@ describe("QualificationBundleV1, PromotionDecisionV1, and CatalogHeadV1", () => 
       expectedRecipeSha256: sha("recipe"),
       expectedWorkflowIdentity: "workflow:catalog-promote-v1",
     };
+    const envelope = createDsseEnvelopeV1({
+      payloadType: "application/vnd.in-toto+json",
+      recordDigestSha256: next.catalogHeadSha256,
+      recordType: "CatalogHeadV1",
+      signerIdentity: next.signerIdentity,
+      signatures: [{ keyid: "key.catalog.release", sig: "c2lnbmF0dXJl" }],
+    });
+    const verifyCanonicalBytes = vi.fn((request: Record<string, unknown>) => {
+      expect(request).toEqual({
+        context,
+        envelope,
+        expectedSignerIdentity: next.signerIdentity,
+        headBytes: canonicalCatalogHeadV1Bytes(next),
+      });
+      return true;
+    });
     expect(
-      verifyCatalogHeadV1({ head: next, context }, { verifyCanonicalBytes: () => true }),
+      verifyCatalogHeadV1({ envelope, head: next, context }, { verifyCanonicalBytes }),
     ).toEqual(next);
+    expect(verifyCanonicalBytes).toHaveBeenCalledOnce();
     expect(
       resolveCatalogHeadV1({
         context,
+        envelope,
         lastGood,
         next,
         now: "2026-08-17T12:00:00Z",
         verifier: { verifyCanonicalBytes: () => true },
       }),
     ).toEqual({ kind: "advanced", head: next });
+    expect(
+      resolveCatalogHeadV1({
+        context,
+        envelope,
+        lastGood,
+        next,
+        now: "2026-08-17T12:00:00Z",
+        verifier: { verifyCanonicalBytes: () => false },
+      }),
+    ).toEqual({ kind: "last-good", head: lastGood });
     for (const rejected of [
       { ...next, sequence: 1, validUntil: "2026-08-20T00:00:00Z" },
       { ...next, sequence: 0 },
@@ -470,6 +547,7 @@ describe("QualificationBundleV1, PromotionDecisionV1, and CatalogHeadV1", () => 
       expect(
         resolveCatalogHeadV1({
           context,
+          envelope,
           lastGood,
           next: rejected,
           now: "2026-08-17T12:00:00Z",
