@@ -110,6 +110,31 @@ describe("supported static pilot v1", () => {
       }),
     ]);
     expect(result.exceptions).toHaveLength(1);
+    const expectedDedupeKey = createHash("sha256")
+      .update(
+        Buffer.from(
+          JSON.stringify({
+            domain: "aih-supported.exception-dedupe-v1",
+            value: {
+              closureMember: "js-yaml@4.3.1",
+              policyRevisionSha256: sha("policy"),
+              profileSha256: sha("profile"),
+              reasonCode: "ECC_PREVIEW_DEPENDENCY_CLOSURE_UNQUALIFIED",
+              recipeSha256: sha("recipe"),
+              subjectSha256: sha("ecc-subject"),
+            },
+          }),
+          "utf8",
+        ),
+      )
+      .digest("hex");
+    expect(result.exceptions[0]?.dedupeKeySha256).toBe(expectedDedupeKey);
+    expect(
+      evaluateStaticPilotV1({
+        ...pilotInput,
+        exceptionRows: [...pilotInput.exceptionRows].reverse(),
+      }).exceptions,
+    ).toEqual(result.exceptions);
     expect(Object.isFrozen(result)).toBe(true);
   });
 
@@ -206,8 +231,59 @@ describe("offline source request and read-only evaluation v1", () => {
         ...valid,
         closureMembers: [{ path: "catalog/submodule", sha256: sha("member"), submodule: true }],
       },
+      {
+        ...valid,
+        closureMembers: [
+          { path: "catalog/component.json", sha256: sha("member") },
+          { path: "catalog/component.json", sha256: sha("member") },
+        ],
+      },
+      {
+        ...valid,
+        closureMembers: [
+          { path: "catalog/component.json", sha256: sha("member") },
+          { path: "catalog/component.json", sha256: sha("other-member") },
+        ],
+      },
       { ...valid, repository: "affaan-m/ecc\r\nHost: evil.invalid" },
     ])
       expect(() => validateOfflineSourceRequestV1(changed)).toThrow();
+  });
+
+  it("rejects hostile evaluation wrappers before touching opaque providers or requests", () => {
+    let getterCalls = 0;
+    const provider = { request: vi.fn() };
+    const request = validateOfflineSourceRequestV1({
+      protocol: "OfflineSourceRequestV1",
+      host: "github",
+      repository: "affaan-m/ecc",
+      commitSha256: sha("commit"),
+      treeSha256: sha("tree"),
+      closureSha256: sha("closure"),
+      closureMembers: [{ path: "catalog/component.json", sha256: sha("member") }],
+    });
+    const accessorWrapper = Object.create(null) as Record<string, unknown>;
+    Object.defineProperty(accessorWrapper, "request", {
+      enumerable: true,
+      get: () => {
+        getterCalls += 1;
+        return request;
+      },
+    });
+    Object.defineProperty(accessorWrapper, "provider", {
+      enumerable: true,
+      get: () => {
+        getterCalls += 1;
+        return provider;
+      },
+    });
+    for (const hostile of [
+      accessorWrapper,
+      Object.assign(Object.create({ provider, request }), {}),
+      { provider, request, [Symbol("hidden")]: true },
+    ])
+      expect(() => createReadOnlyEvaluationV1(hostile)).toThrow();
+    expect(getterCalls).toBe(0);
+    expect(provider.request).not.toHaveBeenCalled();
   });
 });

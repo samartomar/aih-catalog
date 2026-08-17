@@ -4,6 +4,7 @@ import {
   canonicalCandidateV1Bytes,
   canonicalCatalogHeadV1Bytes,
   canonicalDsseEnvelopeV1Bytes,
+  canonicalPromotionDecisionV1Bytes,
   canonicalQualificationBundleV1Bytes,
   canonicalSourceWatchPolicyV1Bytes,
   createCandidateV1,
@@ -127,7 +128,7 @@ function promotionInput(): Record<string, unknown> {
     protocol: "PromotionDecisionV1",
     qualificationBundleSha256: sha("bundle-record"),
     reasonCodes: ["QUALIFICATION_COMPLETE"],
-    result: "accepted",
+    result: "promoted",
     workflowIdentity: "workflow:catalog-promote-v1",
   };
 }
@@ -326,6 +327,57 @@ describe("QualificationBundleV1, PromotionDecisionV1, and CatalogHeadV1", () => 
       expect(() => createQualificationBundleV1(malformed)).toThrow();
   });
 
+  it("schema-sorts identity arrays by raw UTF-16 code units rather than locale collation", () => {
+    const rawSort = (values: readonly string[]): string[] =>
+      [...values].sort((left, right) => (left < right ? -1 : left > right ? 1 : 0));
+    const candidate = createCandidateV1({
+      ...candidateInput(),
+      subject: {
+        ...source(),
+        closureMembers: [
+          { path: "catalog/a", sha256: sha("lower") },
+          { path: "catalog/Z", sha256: sha("upper") },
+          { path: "catalog/_", sha256: sha("underscore") },
+        ],
+      },
+    });
+    expect(candidate.subject.closureMembers.map((member) => member.path)).toEqual(
+      rawSort(["catalog/a", "catalog/Z", "catalog/_"]),
+    );
+    const bundle = createQualificationBundleV1({
+      ...bundleInput(),
+      annexDescriptors: [
+        { ...firstRecord(bundleInput().annexDescriptors), descriptorId: "annex.a" },
+        { ...firstRecord(bundleInput().annexDescriptors), descriptorId: "annex.Z" },
+        { ...firstRecord(bundleInput().annexDescriptors), descriptorId: "annex._" },
+      ],
+      detectorReceipts: [
+        { ...firstRecord(bundleInput().detectorReceipts), detectorId: "detector.a" },
+        { ...firstRecord(bundleInput().detectorReceipts), detectorId: "detector.Z" },
+        { ...firstRecord(bundleInput().detectorReceipts), detectorId: "detector._" },
+      ],
+      requiredPlatforms: [
+        { architecture: "a", os: "linux" },
+        { architecture: "Z", os: "linux" },
+        { architecture: "_", os: "linux" },
+      ],
+    });
+    const sortedBundle = bundle as unknown as {
+      readonly annexDescriptors: readonly Readonly<{ descriptorId: string }>[];
+      readonly detectorReceipts: readonly Readonly<{ detectorId: string }>[];
+      readonly requiredPlatforms: readonly Readonly<{ architecture: string; os: string }>[];
+    };
+    expect(sortedBundle.annexDescriptors.map((descriptor) => descriptor.descriptorId)).toEqual(
+      rawSort(["annex.a", "annex.Z", "annex._"]),
+    );
+    expect(sortedBundle.detectorReceipts.map((receipt) => receipt.detectorId)).toEqual(
+      rawSort(["detector.a", "detector.Z", "detector._"]),
+    );
+    expect(
+      sortedBundle.requiredPlatforms.map((platform) => `${platform.os}/${platform.architecture}`),
+    ).toEqual(rawSort(["linux/a", "linux/Z", "linux/_"]));
+  });
+
   it("keeps promotion authority separate from catalog continuity and binds every decision field", () => {
     const decision = createPromotionDecisionV1(promotionInput());
     exactKeys(decision, [
@@ -363,6 +415,7 @@ describe("QualificationBundleV1, PromotionDecisionV1, and CatalogHeadV1", () => 
       { ...promotionInput(), reasonCodes: [] },
       { ...promotionInput(), workflowIdentity: "workflow:catalog-discovery-v1" },
       { ...promotionInput(), authority: "*" },
+      { ...promotionInput(), issuedAt: "2026-02-30T00:00:00Z" },
       { ...promotionInput(), enumeratedClosure: [{ sourceSha256: sha("source") }] },
       {
         ...promotionInput(),
@@ -372,7 +425,16 @@ describe("QualificationBundleV1, PromotionDecisionV1, and CatalogHeadV1", () => 
       },
     ])
       expect(() => createPromotionDecisionV1(malformed)).toThrow();
-    expect(parsePromotionDecisionV1Json(JSON.stringify(decision))).toEqual(decision);
+    const canonical = canonicalPromotionDecisionV1Bytes(decision).toString("utf8");
+    expect(parsePromotionDecisionV1Json(canonical)).toEqual(decision);
+    for (const text of [
+      `${canonical} `,
+      JSON.stringify(Object.fromEntries(Object.entries(JSON.parse(canonical)).reverse())),
+      canonical.replace("PromotionDecisionV1", "Promotion\\u0044ecisionV1"),
+    ])
+      expect(() => parsePromotionDecisionV1Json(text)).toThrow();
+    for (const result of ["accepted", "rejected", "pass"])
+      expect(() => createPromotionDecisionV1({ ...promotionInput(), result })).toThrow();
   });
 
   it("puts only continuity/version validity in the head and verifies an external DSSE envelope", () => {
@@ -404,10 +466,19 @@ describe("QualificationBundleV1, PromotionDecisionV1, and CatalogHeadV1", () => 
     exactKeys(envelope, ["payload", "payloadType", "signatures"]);
     expect(envelope.payload).toMatch(/^[A-Za-z0-9+/]*={0,2}$/);
     const statement = {
-      protocol: "SupportedRecordStatementV1",
-      recordDigestSha256: head.catalogHeadSha256,
-      recordType: "CatalogHeadV1",
-      signerIdentity: head.signerIdentity,
+      _type: "https://in-toto.io/Statement/v1",
+      predicate: {
+        protocol: "SupportedRecordPredicateV1",
+        recordType: "CatalogHeadV1",
+        signerIdentity: head.signerIdentity,
+      },
+      predicateType: "https://aih.dev/SupportedRecordV1",
+      subject: [
+        {
+          digest: { sha256: head.catalogHeadSha256 },
+          name: "aih-supported/CatalogHeadV1",
+        },
+      ],
     };
     const statementBytes = Buffer.from(JSON.stringify(statement), "utf8");
     const decodedPayload = Buffer.from(envelope.payload, "base64");
@@ -421,6 +492,7 @@ describe("QualificationBundleV1, PromotionDecisionV1, and CatalogHeadV1", () => 
         expectedRecordDigestSha256: head.catalogHeadSha256,
         expectedRecordType: "CatalogHeadV1",
         expectedSignerIdentity: head.signerIdentity,
+        signatures: envelope.signatures,
       });
       expect(request.paeBytes).toEqual(
         Buffer.concat([
@@ -441,30 +513,84 @@ describe("QualificationBundleV1, PromotionDecisionV1, and CatalogHeadV1", () => 
     expect(verifyDsseEnvelopeV1({ envelope, ...envelopeContext }, { verifyCanonicalPae })).toEqual(
       envelope,
     );
+    const changedSignature = {
+      ...envelope,
+      signatures: [{ keyid: "key.catalog.release", sig: "YWx0ZXJuYXRlLXNpZ25hdHVyZQ==" }],
+    };
+    const verifyChangedSignature = vi.fn(() => true);
+    expect(
+      verifyDsseEnvelopeV1(
+        { envelope: changedSignature, ...envelopeContext },
+        { verifyCanonicalPae: verifyChangedSignature },
+      ),
+    ).toEqual(changedSignature);
+    expect(verifyChangedSignature).toHaveBeenCalledWith(
+      expect.objectContaining({ signatures: changedSignature.signatures }),
+    );
     for (const changed of [
       { ...envelope, payload: "bm90LXRoaXMtc3RhdGVtZW50" },
       { ...envelope, payloadType: "application/json" },
       { ...envelope, signatures: [] },
+      { ...envelope, signatures: [{ keyid: "key.catalog.release", sig: "" }] },
       {
         ...envelope,
         signatures: [
           { keyid: "key.catalog.release", sig: "c2lnbmF0dXJl" },
-          { keyid: "key.catalog.release", sig: "c2lnbmF0dXJl" },
+          { keyid: "key.catalog.release", sig: "YW5vdGhlci1zaWc=" },
         ],
       },
       {
         ...envelope,
         payload: Buffer.from(
-          JSON.stringify({ ...statement, recordType: "CandidateV1" }),
+          JSON.stringify({
+            ...statement,
+            predicate: { ...statement.predicate, recordType: "CandidateV1" },
+          }),
           "utf8",
         ).toString("base64"),
       },
       {
         ...envelope,
         payload: Buffer.from(
-          JSON.stringify({ ...statement, signerIdentity: "workflow:catalog-discovery-v1" }),
+          JSON.stringify({
+            ...statement,
+            predicate: { ...statement.predicate, signerIdentity: "workflow:catalog-discovery-v1" },
+          }),
           "utf8",
         ).toString("base64"),
+      },
+      {
+        ...envelope,
+        payload: Buffer.from(
+          JSON.stringify({
+            ...statement,
+            subject: [{ ...statement.subject[0], name: "aih-supported/CandidateV1" }],
+          }),
+          "utf8",
+        ).toString("base64"),
+      },
+      {
+        ...envelope,
+        payload: Buffer.from(
+          JSON.stringify({
+            ...statement,
+            subject: [{ ...statement.subject[0], digest: { sha256: sha("wrong-subject") } }],
+          }),
+          "utf8",
+        ).toString("base64"),
+      },
+      {
+        ...envelope,
+        payload: Buffer.from(
+          JSON.stringify({ ...statement, predicateType: "https://aih.dev/OtherRecordV1" }),
+          "utf8",
+        ).toString("base64"),
+      },
+      {
+        ...envelope,
+        payload: Buffer.from(JSON.stringify({ ...statement, extra: true }), "utf8").toString(
+          "base64",
+        ),
       },
     ])
       expect(() =>
@@ -479,6 +605,7 @@ describe("QualificationBundleV1, PromotionDecisionV1, and CatalogHeadV1", () => 
       { ...headInput(), protocol: "CatalogHeadV2" },
       { ...headInput(), compatibleSchemaVersions: ["2"] },
       { ...headInput(), validFrom: "2026-08-19T00:00:00Z", validUntil: "2026-08-18T00:00:00Z" },
+      { ...headInput(), validFrom: "2026-02-30T00:00:00Z" },
     ])
       expect(() => createCatalogHeadV1(malformed)).toThrow();
   });
@@ -491,6 +618,7 @@ describe("QualificationBundleV1, PromotionDecisionV1, and CatalogHeadV1", () => 
     });
     const next = createCatalogHeadV1({
       ...headInput(),
+      catalogSha256: sha("catalog-next"),
       previousCatalogHeadSha256: lastGood.catalogHeadSha256,
     });
     const context = {
@@ -504,6 +632,7 @@ describe("QualificationBundleV1, PromotionDecisionV1, and CatalogHeadV1", () => 
       expectedPromotionDecisionSha256: next.promotionDecisionSha256,
       expectedQualificationBundleSha256: sha("bundle-record"),
       expectedRecipeSha256: sha("recipe"),
+      expectedSignerIdentity: "signer:catalog-release-v1",
       expectedWorkflowIdentity: "workflow:catalog-promote-v1",
     };
     const envelope = createDsseEnvelopeV1({
@@ -517,7 +646,7 @@ describe("QualificationBundleV1, PromotionDecisionV1, and CatalogHeadV1", () => 
       expect(request).toEqual({
         context,
         envelope,
-        expectedSignerIdentity: next.signerIdentity,
+        expectedSignerIdentity: context.expectedSignerIdentity,
         headBytes: canonicalCatalogHeadV1Bytes(next),
       });
       return true;
@@ -549,7 +678,7 @@ describe("QualificationBundleV1, PromotionDecisionV1, and CatalogHeadV1", () => 
     for (const rejected of [
       { ...next, sequence: 1, validUntil: "2026-08-20T00:00:00Z" },
       { ...next, sequence: 0 },
-      { ...next, catalogSha256: sha("mutated-catalog") },
+      { ...next, sequence: 2, catalogSha256: sha("mutated-catalog") },
       { ...next, previousCatalogHeadSha256: sha("broken") },
       { ...next, compatibleEffectVersions: ["2"] },
       { ...next, compatibleSchemaVersions: ["2"] },
@@ -562,8 +691,19 @@ describe("QualificationBundleV1, PromotionDecisionV1, and CatalogHeadV1", () => 
           lastGood,
           next: rejected,
           now: "2026-08-17T12:00:00Z",
-          verifier: { verifyCanonicalBytes: () => false },
+          verifier: { verifyCanonicalBytes: () => true },
         }),
       ).toEqual({ kind: "last-good", head: lastGood });
+
+    const selfClaimedSigner = createCatalogHeadV1({
+      ...next,
+      signerIdentity: "signer:self-claimed-v1",
+    });
+    expect(() =>
+      verifyCatalogHeadV1(
+        { envelope, head: selfClaimedSigner, context },
+        { verifyCanonicalBytes: () => true },
+      ),
+    ).toThrow();
   });
 });
