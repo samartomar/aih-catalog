@@ -3,20 +3,24 @@ import { describe, expect, it, vi } from "vitest";
 import {
   canonicalCandidateV1Bytes,
   canonicalCatalogHeadV1Bytes,
+  canonicalDsseEnvelopeV1Bytes,
   canonicalQualificationBundleV1Bytes,
   canonicalSourceWatchPolicyV1Bytes,
   createCandidateV1,
   createCatalogHeadV1,
+  createDsseEnvelopeV1,
   createPromotionDecisionV1,
   createQualificationBundleV1,
   createSourceWatchPolicyV1,
   parseCandidateV1Json,
   parseCatalogHeadV1Json,
+  parseDsseEnvelopeV1Json,
   parsePromotionDecisionV1Json,
   parseQualificationBundleV1Json,
   parseSourceWatchPolicyV1Json,
   resolveCatalogHeadV1,
   verifyCatalogHeadV1,
+  verifyDsseEnvelopeV1,
 } from "../../src/supported/records-v1.js";
 
 const sha = (label: string): string => createHash("sha256").update(label).digest("hex");
@@ -24,51 +28,55 @@ const digest = /^[a-f0-9]{64}$/;
 
 function source(label = "candidate"): Record<string, unknown> {
   return {
-    repository: "github.com/example/supported-catalog",
     commitSha256: sha(`${label}:commit`),
-    treeSha256: sha(`${label}:tree`),
-    closureSha256: sha(`${label}:closure`),
     closureMembers: [
       { path: "catalog/component.json", sha256: sha(`${label}:component`) },
       { path: "catalog/lock.json", sha256: sha(`${label}:lock`) },
     ],
+    closureSha256: sha(`${label}:closure`),
+    repository: "github.com/example/supported-catalog",
+    treeSha256: sha(`${label}:tree`),
+  };
+}
+
+function policyInput(): Record<string, unknown> {
+  return {
+    adapterIds: ["adapter.catalog", "adapter.license"],
+    immutableResolverId: "resolver.github-commit-v1",
+    licenseBoundary: { kind: "allowlist", licenseIds: ["Apache-2.0", "MIT"] },
+    policyRevisionSha256: sha("policy"),
+    promotionRule: { kind: "all-required-platforms" },
+    protocol: "SourceWatchPolicyV1",
+    provider: "github",
+    qualificationProfileSha256: sha("profile"),
+    releaseSelector: { branch: "main", kind: "branch" },
+    repository: "example/supported-catalog",
+    requiredPlatforms: [
+      { architecture: "amd64", os: "linux" },
+      { architecture: "arm64", os: "linux" },
+    ],
+    sourceId: "example-supported-catalog",
   };
 }
 
 function candidateInput(): Record<string, unknown> {
   return {
+    discoveredMetadata: {
+      event: "pull-request",
+      observedAt: "2026-08-17T00:00:00Z",
+      pullNumber: 42,
+    },
+    discoveryWorkflowIdentity: "workflow:catalog-discovery-v1",
     protocol: "CandidateV1",
+    sourceId: "example-supported-catalog",
+    sourceWatchPolicySha256: sha("source-policy"),
     subject: source(),
-    signerIdentity: "workflow:example/supported-catalog",
-    workflowIdentity: "workflow:catalog-verify-v1",
-    authority: "source-watch",
-    policyRevisionSha256: sha("policy"),
-    profileSha256: sha("profile"),
-    recipeSha256: sha("recipe"),
-    triggers: [{ kind: "pull-request", value: "42" }],
+    triggerMetadata: { kind: "schedule", value: "nightly" },
   };
 }
 
 function bundleInput(): Record<string, unknown> {
   return {
-    protocol: "QualificationBundleV1",
-    subject: source(),
-    candidateSha256: sha("candidate-record"),
-    profileSha256: sha("profile"),
-    recipeSha256: sha("recipe"),
-    requiredPlatforms: [{ architecture: "amd64", os: "linux" }],
-    detectorReceipts: [
-      {
-        coverageSha256: sha("coverage"),
-        detectorId: "detector.catalog",
-        receiptSha256: sha("receipt"),
-      },
-    ],
-    provenanceSha256: sha("provenance"),
-    licenseSha256: sha("license"),
-    sbomSha256: sha("sbom"),
-    compatibilitySha256: sha("compatibility"),
-    effectResultsSha256: sha("effects"),
     annexDescriptors: [
       {
         byteLength: 4,
@@ -78,36 +86,65 @@ function bundleInput(): Record<string, unknown> {
         uri: "annex/receipt.json",
       },
     ],
+    candidateSha256: sha("candidate-record"),
+    compatibilitySha256: sha("compatibility"),
+    detectorReceipts: [
+      {
+        coverageSha256: sha("coverage"),
+        detectorId: "detector.catalog",
+        receiptSha256: sha("receipt"),
+      },
+    ],
+    effectResultsSha256: sha("effects"),
+    licenseSha256: sha("license"),
+    profileSha256: sha("profile"),
+    protocol: "QualificationBundleV1",
+    provenanceSha256: sha("provenance"),
+    recipeSha256: sha("recipe"),
+    requiredPlatforms: [{ architecture: "amd64", os: "linux" }],
+    sbomSha256: sha("sbom"),
+    subject: source(),
   };
 }
 
 function promotionInput(): Record<string, unknown> {
   return {
-    protocol: "PromotionDecisionV1",
-    catalogId: "catalog.supported",
-    sequence: 2,
-    previousCatalogHeadSha256: sha("head-1"),
+    authority: "authority:catalog-promote-v1",
+    candidateIdentitySha256: sha("candidate-identity"),
     candidateSha256: sha("candidate-record"),
-    qualificationBundleSha256: sha("bundle-record"),
+    enumeratedClosure: [
+      {
+        componentSha256: sha("component"),
+        profileSha256: sha("profile"),
+        recipeSha256: sha("recipe"),
+        sourceSha256: sha("source"),
+      },
+    ],
+    evidenceReference: "evidence/promotion.json",
+    evidenceSha256: sha("evidence"),
+    issuedAt: "2026-08-17T00:00:00Z",
     policyRevisionSha256: sha("policy"),
-    createdAt: "2026-08-17T00:00:00Z",
-    expiresAt: "2026-08-18T00:00:00Z",
+    protocol: "PromotionDecisionV1",
+    qualificationBundleSha256: sha("bundle-record"),
+    reasonCodes: ["QUALIFICATION_COMPLETE"],
+    result: "accepted",
+    workflowIdentity: "workflow:catalog-promote-v1",
   };
 }
 
 function headInput(): Record<string, unknown> {
   return {
+    catalogSha256: sha("catalog"),
+    compatibleEffectVersions: ["1"],
+    compatibleSchemaVersions: ["1"],
+    previousCatalogHeadSha256: sha("head-1"),
+    promotionDecisionSha256: sha("promotion"),
     protocol: "CatalogHeadV1",
-    effectVersion: "1",
-    ...promotionInput(),
-    signerIdentity: "workflow:example/supported-catalog",
-    workflowIdentity: "workflow:catalog-promote-v1",
-    signature: { keyId: "test-key", payloadSha256: sha("payload"), signature: "test-signature" },
+    sequence: 2,
+    signerIdentity: "signer:catalog-release-v1",
+    validFrom: "2026-08-17T00:00:00Z",
+    validUntil: "2026-08-18T00:00:00Z",
   };
-}
-
-function exactKeys(value: object, expected: string[]): void {
-  expect(Object.keys(value).sort()).toEqual([...expected].sort());
 }
 
 function firstRecord(value: unknown): Record<string, unknown> {
@@ -121,202 +158,131 @@ function firstRecord(value: unknown): Record<string, unknown> {
   return value[0] as Record<string, unknown>;
 }
 
-describe("supported candidate and source-watch policy v1", () => {
-  it("binds exact immutable source, authority, and opaque profile/recipe digests", () => {
-    const policy = createSourceWatchPolicyV1({
-      protocol: "SourceWatchPolicyV1",
-      allowedRepositories: ["github.com/example/supported-catalog"],
-      allowedAuthorities: ["source-watch"],
-      policyRevisionSha256: sha("policy"),
-    });
-    expect(policy.policySha256).toMatch(digest);
+function exactKeys(value: object, expected: string[]): void {
+  expect(Object.keys(value).sort()).toEqual([...expected].sort());
+}
+
+describe("SourceWatchPolicyV1 and CandidateV1", () => {
+  it("models the full closed policy record and schema-sorts data-only arrays", () => {
+    const policy = createSourceWatchPolicyV1(policyInput());
+    exactKeys(policy, [
+      "adapterIds",
+      "immutableResolverId",
+      "licenseBoundary",
+      "policyRevisionSha256",
+      "policySha256",
+      "promotionRule",
+      "protocol",
+      "provider",
+      "qualificationProfileSha256",
+      "releaseSelector",
+      "repository",
+      "requiredPlatforms",
+      "sourceId",
+    ]);
+    expect(policy.requiredPlatforms).toEqual([
+      { architecture: "amd64", os: "linux" },
+      { architecture: "arm64", os: "linux" },
+    ]);
+    expect(Object.isFrozen(policy.requiredPlatforms)).toBe(true);
     expect(canonicalSourceWatchPolicyV1Bytes(policy)).toEqual(
       canonicalSourceWatchPolicyV1Bytes(policy),
     );
-    expect(Object.isFrozen(policy)).toBe(true);
+    for (const field of [
+      "immutableResolverId",
+      "policyRevisionSha256",
+      "qualificationProfileSha256",
+      "repository",
+      "sourceId",
+    ])
+      expect(
+        createSourceWatchPolicyV1({ ...policyInput(), [field]: `changed-${field}` }).policySha256,
+      ).not.toBe(policy.policySha256);
+    for (const malformed of [
+      {
+        protocol: "SourceWatchPolicyV1",
+        allowedRepositories: ["github.com/example/supported-catalog"],
+      },
+      { ...policyInput(), rollbackOf: sha("forbidden") },
+      { ...policyInput(), repository: "Example/supported-catalog" },
+      { ...policyInput(), adapterIds: ["adapter.catalog", "adapter.catalog"] },
+      { ...policyInput(), releaseSelector: { branch: "main", command: "run" } },
+      { ...policyInput(), licenseBoundary: { kind: "allowlist", prose: "not data" } },
+      { ...policyInput(), credential: "secret" },
+    ])
+      expect(() => createSourceWatchPolicyV1(malformed)).toThrow();
+  });
 
-    const candidate = createCandidateV1(candidateInput());
-    exactKeys(candidate, [
-      "authority",
+  it("keeps discovered metadata out of immutable identity and rejects authorization/signing fields", () => {
+    const baseline = createCandidateV1(candidateInput());
+    exactKeys(baseline, [
       "candidateIdentitySha256",
       "candidateSha256",
-      "policyRevisionSha256",
-      "profileSha256",
+      "discoveredMetadata",
+      "discoveryWorkflowIdentity",
       "protocol",
-      "recipeSha256",
-      "signerIdentity",
+      "sourceId",
+      "sourceWatchPolicySha256",
       "subject",
-      "triggers",
-      "workflowIdentity",
+      "triggerMetadata",
     ]);
-    expect(candidate.candidateIdentitySha256).toMatch(digest);
-    expect(Object.isFrozen(candidate)).toBe(true);
-    expect(Object.isFrozen(candidate.subject)).toBe(true);
-    expect(Object.isFrozen(candidate.subject.closureMembers)).toBe(true);
-    expect(JSON.stringify(candidate)).not.toMatch(/approve|accept|signature|head/i);
-  });
-
-  it("treats triggers as metadata but changes identity when any security field changes", () => {
-    const baseline = createCandidateV1(candidateInput());
-    const changedTrigger = createCandidateV1({
+    const metadataChanged = createCandidateV1({
       ...candidateInput(),
-      triggers: [{ kind: "manual", value: "operator-request" }],
+      discoveredMetadata: { event: "webhook", observedAt: "2026-08-17T01:00:00Z", pullNumber: 43 },
+      triggerMetadata: { kind: "manual", value: "operator" },
     });
-    expect(changedTrigger.candidateIdentitySha256).toBe(baseline.candidateIdentitySha256);
-
-    for (const field of [
-      "commitSha256",
-      "treeSha256",
-      "closureSha256",
-      "signerIdentity",
-      "workflowIdentity",
-      "authority",
-      "policyRevisionSha256",
-      "profileSha256",
-      "recipeSha256",
-    ]) {
-      const input = structuredClone(candidateInput()) as Record<string, unknown>;
-      if (
-        field.endsWith("Sha256") &&
-        ["commitSha256", "treeSha256", "closureSha256"].includes(field)
-      ) {
-        (input.subject as Record<string, unknown>)[field] = sha(`changed:${field}`);
-      } else input[field] = field.endsWith("Sha256") ? sha(`changed:${field}`) : `changed:${field}`;
-      expect(createCandidateV1(input).candidateIdentitySha256, field).not.toBe(
-        baseline.candidateIdentitySha256,
-      );
-    }
+    expect(metadataChanged.candidateIdentitySha256).toBe(baseline.candidateIdentitySha256);
+    expect(metadataChanged.candidateSha256).not.toBe(baseline.candidateSha256);
+    for (const field of ["commitSha256", "treeSha256", "closureSha256"])
+      expect(
+        createCandidateV1({
+          ...candidateInput(),
+          subject: { ...source(), [field]: sha(`changed:${field}`) },
+        }).candidateIdentitySha256,
+      ).not.toBe(baseline.candidateIdentitySha256);
+    for (const field of ["signerIdentity", "authority", "signature", "approval", "credential"])
+      expect(() => createCandidateV1({ ...candidateInput(), [field]: "forbidden" })).toThrow();
   });
 
-  it("rejects mutable aliases, invalid source facets, unknown fields, and forged candidates", () => {
-    for (const repository of [
-      "main",
-      "v1.2.3",
-      "latest",
-      "https://github.com/example/supported-catalog",
-      "github.com/EXAMPLE/supported-catalog",
-      "github.com/example/../supported-catalog",
+  it("rejects aliases/hash grammar and parses only canonical closed candidate/policy JSON", () => {
+    for (const subject of [
+      { ...source(), repository: "main" },
+      { ...source(), repository: "latest" },
+      { ...source(), repository: "github.com/EXAMPLE/supported-catalog" },
+      { ...source(), repository: "github.com/example/../supported-catalog" },
+      { ...source(), closureMembers: [{ path: "../escape", sha256: sha("x") }] },
     ])
+      expect(() => createCandidateV1({ ...candidateInput(), subject })).toThrow();
+    for (const value of [`sha256:${sha("prefix")}`, sha("upper").toUpperCase(), "a".repeat(63), {}])
       expect(() =>
-        createCandidateV1({ ...candidateInput(), subject: { ...source(), repository } }),
+        createCandidateV1({ ...candidateInput(), sourceWatchPolicySha256: value }),
       ).toThrow();
-
-    for (const input of [
-      { ...candidateInput(), accepted: true },
-      { ...candidateInput(), subject: { ...source(), ref: "refs/heads/main" } },
-      {
-        ...candidateInput(),
-        subject: { ...source(), closureMembers: [{ path: "../escape", sha256: sha("x") }] },
-      },
-      {
-        ...candidateInput(),
-        subject: {
-          ...source(),
-          closureMembers: [
-            { path: "catalog/a", sha256: sha("x") },
-            { path: "catalog/a", sha256: sha("y") },
-          ],
-        },
-      },
-    ])
-      expect(() => createCandidateV1(input)).toThrow();
-
     const candidate = createCandidateV1(candidateInput());
-    expect(() => canonicalCandidateV1Bytes({ ...candidate })).toThrow();
-    expect(() =>
-      parseCandidateV1Json('{"protocol":"CandidateV1","protocol":"CandidateV1"}'),
-    ).toThrow();
-    expect(() => parseCandidateV1Json(JSON.stringify({ ...candidate, extra: true }))).toThrow();
-  });
-
-  it("rejects sha256 grammar violations and typed security-field swaps", () => {
-    const baseline = createCandidateV1(candidateInput());
-    for (const value of [
-      `sha256:${sha("prefix")}`,
-      sha("uppercase").toUpperCase(),
-      "a".repeat(63),
-      "g".repeat(64),
-      { sha256: sha("object") },
-    ])
-      expect(() => createCandidateV1({ ...candidateInput(), profileSha256: value })).toThrow();
-    const swapped = createCandidateV1({
-      ...candidateInput(),
-      profileSha256: candidateInput().recipeSha256,
-      recipeSha256: candidateInput().profileSha256,
-    });
-    expect(swapped.candidateIdentitySha256).not.toBe(baseline.candidateIdentitySha256);
-  });
-
-  it("parses only canonical closed candidate/policy JSON", () => {
-    const policy = createSourceWatchPolicyV1({
-      protocol: "SourceWatchPolicyV1",
-      allowedRepositories: ["github.com/example/supported-catalog"],
-      allowedAuthorities: ["source-watch"],
-      policyRevisionSha256: sha("policy"),
-    });
-    const candidate = createCandidateV1(candidateInput());
-    expect(parseSourceWatchPolicyV1Json(JSON.stringify(policy))).toEqual(policy);
     expect(parseCandidateV1Json(canonicalCandidateV1Bytes(candidate).toString("utf8"))).toEqual(
       candidate,
     );
     for (const text of [
-      JSON.stringify({ ...policy, extra: true }),
+      JSON.stringify({ ...candidate, extra: true }),
       JSON.stringify({ ...candidate, subject: { ...candidate.subject, extra: true } }),
-      JSON.stringify({
-        ...candidate,
-        subject: {
-          ...candidate.subject,
-          closureMembers: [{ ...candidate.subject.closureMembers[0], extra: true }],
-        },
-      }),
       '{"protocol":"CandidateV1","protocol":"CandidateV1"}',
+      `${canonicalCandidateV1Bytes(candidate).toString("utf8")} `,
     ])
-      expect(() =>
-        text.includes("SourceWatch")
-          ? parseSourceWatchPolicyV1Json(text)
-          : parseCandidateV1Json(text),
-      ).toThrow();
+      expect(() => parseCandidateV1Json(text)).toThrow();
+    const policy = createSourceWatchPolicyV1(policyInput());
+    expect(
+      parseSourceWatchPolicyV1Json(canonicalSourceWatchPolicyV1Bytes(policy).toString("utf8")),
+    ).toEqual(policy);
   });
 });
 
-describe("qualification bundle, promotion decision, and catalog head v1", () => {
-  it("requires complete unambiguous immutable qualification facets", () => {
+describe("QualificationBundleV1, PromotionDecisionV1, and CatalogHeadV1", () => {
+  it("requires complete, closed qualification facets and binds each typed digest", () => {
     const bundle = createQualificationBundleV1(bundleInput());
-    exactKeys(bundle, [
-      "annexDescriptors",
-      "bundleSha256",
-      "candidateSha256",
-      "compatibilitySha256",
-      "detectorReceipts",
-      "effectResultsSha256",
-      "licenseSha256",
-      "profileSha256",
-      "protocol",
-      "provenanceSha256",
-      "recipeSha256",
-      "requiredPlatforms",
-      "sbomSha256",
-      "subject",
-    ]);
-    expect(
-      canonicalQualificationBundleV1Bytes(bundle).equals(
-        canonicalQualificationBundleV1Bytes(bundle),
-      ),
-    ).toBe(true);
+    expect(bundle.bundleSha256).toMatch(digest);
     expect(Object.isFrozen(bundle.detectorReceipts[0])).toBe(true);
-
-    const missing = structuredClone(bundleInput()) as Record<string, unknown>;
-    delete missing.sbomSha256;
-    expect(() => createQualificationBundleV1(missing)).toThrow();
-    for (const field of ["detectorReceipts", "requiredPlatforms", "annexDescriptors"])
-      expect(() => createQualificationBundleV1({ ...bundleInput(), [field]: [] })).toThrow();
-    expect(() =>
-      createQualificationBundleV1({
-        ...bundleInput(),
-        detectorReceipts: [bundleInput().detectorReceipts, bundleInput().detectorReceipts].flat(),
-      }),
-    ).toThrow();
-
+    expect(
+      parseQualificationBundleV1Json(canonicalQualificationBundleV1Bytes(bundle).toString("utf8")),
+    ).toEqual(bundle);
     for (const field of [
       "candidateSha256",
       "profileSha256",
@@ -326,18 +292,17 @@ describe("qualification bundle, promotion decision, and catalog head v1", () => 
       "sbomSha256",
       "compatibilitySha256",
       "effectResultsSha256",
-    ]) {
+    ])
       expect(
         createQualificationBundleV1({ ...bundleInput(), [field]: sha(`changed:${field}`) })
           .bundleSha256,
       ).not.toBe(bundle.bundleSha256);
-    }
     for (const malformed of [
+      { ...bundleInput(), sbomSha256: undefined },
+      { ...bundleInput(), detectorReceipts: [] },
+      { ...bundleInput(), requiredPlatforms: [] },
+      { ...bundleInput(), annexDescriptors: [] },
       { ...bundleInput(), extra: true },
-      {
-        ...bundleInput(),
-        requiredPlatforms: [{ architecture: "amd64", os: "linux", extra: true }],
-      },
       {
         ...bundleInput(),
         detectorReceipts: [{ ...firstRecord(bundleInput().detectorReceipts), extra: true }],
@@ -348,135 +313,168 @@ describe("qualification bundle, promotion decision, and catalog head v1", () => 
       },
     ])
       expect(() => createQualificationBundleV1(malformed)).toThrow();
-    expect(
-      parseQualificationBundleV1Json(canonicalQualificationBundleV1Bytes(bundle).toString("utf8")),
-    ).toEqual(bundle);
   });
 
-  it("binds promotion/head continuity, monotonicity, windows, and external signature verification", () => {
+  it("keeps promotion authority separate from catalog continuity and binds every decision field", () => {
     const decision = createPromotionDecisionV1(promotionInput());
-    const head = createCatalogHeadV1(headInput());
-    expect(decision.promotionDecisionSha256).toMatch(digest);
-    expect(head.catalogHeadSha256).toMatch(digest);
-    expect(canonicalCatalogHeadV1Bytes(head).equals(canonicalCatalogHeadV1Bytes(head))).toBe(true);
-    expect(Object.isFrozen(head.signature)).toBe(true);
-
-    const verifyCanonicalBytes = vi.fn((request: Record<string, unknown>) => {
-      expect(request).toMatchObject({
-        payloadDigestSha256: expect.stringMatching(digest),
-        recordType: "CatalogHeadV1",
-        signerIdentity: "workflow:example/supported-catalog",
-      });
-      expect(Buffer.isBuffer(request.payloadBytes)).toBe(true);
-      expect(request.payloadBytes).toEqual(canonicalCatalogHeadV1Bytes(head));
-      expect(request.payloadDigestSha256).toBe(
-        createHash("sha256").update(canonicalCatalogHeadV1Bytes(head)).digest("hex"),
-      );
-      return true;
-    });
-    expect(
-      verifyCatalogHeadV1(
-        {
-          expectedCandidateSha256: head.candidateSha256,
-          expectedCatalogId: "catalog.supported",
-          head,
-        },
-        { verifyCanonicalBytes },
-      ),
-    ).toEqual(head);
-    expect(verifyCanonicalBytes).toHaveBeenCalledOnce();
-    expect(() =>
-      verifyCatalogHeadV1(
-        {
-          expectedCandidateSha256: sha("wrong-candidate"),
-          expectedCatalogId: "catalog.supported",
-          head,
-        },
-        { verifyCanonicalBytes: () => true },
-      ),
-    ).toThrow();
-    expect(() =>
-      verifyCatalogHeadV1(
-        {
-          expectedCandidateSha256: head.candidateSha256,
-          expectedCatalogId: "catalog.supported",
-          head: { ...head, candidateSha256: sha("mutated") },
-        },
-        { verifyCanonicalBytes: () => true },
-      ),
-    ).toThrow();
-    expect(() =>
-      verifyCatalogHeadV1(
-        {
-          expectedCandidateSha256: head.candidateSha256,
-          expectedCatalogId: "catalog.supported",
-          head: { ...head, protocol: "CandidateV1" },
-        },
-        { verifyCanonicalBytes: () => true },
-      ),
-    ).toThrow();
-    expect(() =>
-      verifyCatalogHeadV1(
-        {
-          expectedCandidateSha256: head.candidateSha256,
-          expectedCatalogId: "catalog.supported",
-          head,
-        },
-        { verifyCanonicalBytes: () => false },
-      ),
-    ).toThrow();
-    for (const changed of [
-      { ...headInput(), sequence: 1 },
-      { ...headInput(), previousCatalogHeadSha256: sha("different") },
-      { ...headInput(), effectVersion: "2" },
-      { ...headInput(), protocol: "CatalogHeadV2" },
-      { ...headInput(), createdAt: "2026-08-19T00:00:00Z", expiresAt: "2026-08-18T00:00:00Z" },
-      { ...headInput(), expiresAt: "2020-01-01T00:00:00Z" },
-      { ...headInput(), rollbackOf: sha("forbidden") },
+    exactKeys(decision, [
+      "authority",
+      "candidateIdentitySha256",
+      "candidateSha256",
+      "enumeratedClosure",
+      "evidenceReference",
+      "evidenceSha256",
+      "issuedAt",
+      "policyRevisionSha256",
+      "promotionDecisionSha256",
+      "protocol",
+      "qualificationBundleSha256",
+      "reasonCodes",
+      "result",
+      "workflowIdentity",
+    ]);
+    for (const field of [
+      "candidateIdentitySha256",
+      "candidateSha256",
+      "qualificationBundleSha256",
+      "evidenceSha256",
+      "policyRevisionSha256",
+      "authority",
+      "workflowIdentity",
     ])
-      expect(() => createCatalogHeadV1(changed)).toThrow();
-    expect(
-      parseCatalogHeadV1Json(JSON.stringify({ ...headInput(), expiresAt: "2020-01-01T00:00:00Z" }))
-        .expiresAt,
-    ).toBe("2020-01-01T00:00:00Z");
+      expect(
+        createPromotionDecisionV1({ ...promotionInput(), [field]: sha(`changed:${field}`) })
+          .promotionDecisionSha256,
+      ).not.toBe(decision.promotionDecisionSha256);
+    for (const malformed of [
+      { ...promotionInput(), sequence: 2 },
+      { ...promotionInput(), catalogSha256: sha("wrong-layer") },
+      { ...promotionInput(), reasonCodes: [] },
+      { ...promotionInput(), workflowIdentity: "workflow:catalog-discovery-v1" },
+      { ...promotionInput(), authority: "*" },
+      { ...promotionInput(), enumeratedClosure: [{ sourceSha256: sha("source") }] },
+      {
+        ...promotionInput(),
+        enumeratedClosure: [
+          { ...firstRecord(promotionInput().enumeratedClosure), futureBytes: true },
+        ],
+      },
+    ])
+      expect(() => createPromotionDecisionV1(malformed)).toThrow();
     expect(parsePromotionDecisionV1Json(JSON.stringify(decision))).toEqual(decision);
   });
 
-  it("retains the last-good visible head when verification, expiry, or continuity rejects a next head", () => {
+  it("puts only continuity/version validity in the head and verifies an external DSSE envelope", () => {
+    const head = createCatalogHeadV1(headInput());
+    exactKeys(head, [
+      "catalogHeadSha256",
+      "catalogSha256",
+      "compatibleEffectVersions",
+      "compatibleSchemaVersions",
+      "previousCatalogHeadSha256",
+      "promotionDecisionSha256",
+      "protocol",
+      "sequence",
+      "signerIdentity",
+      "validFrom",
+      "validUntil",
+    ]);
+    expect(canonicalCatalogHeadV1Bytes(head)).toEqual(canonicalCatalogHeadV1Bytes(head));
+    expect(parseCatalogHeadV1Json(canonicalCatalogHeadV1Bytes(head).toString("utf8"))).toEqual(
+      head,
+    );
+    const envelope = createDsseEnvelopeV1({
+      payloadType: "application/vnd.in-toto+json",
+      recordDigestSha256: head.catalogHeadSha256,
+      recordType: "CatalogHeadV1",
+      signerIdentity: head.signerIdentity,
+      signatures: [{ keyid: "key.catalog.release", sig: "c2lnbmF0dXJl" }],
+    });
+    expect(envelope.payload).toMatch(/^[A-Za-z0-9+/]*={0,2}$/);
+    expect(
+      parseDsseEnvelopeV1Json(canonicalDsseEnvelopeV1Bytes(envelope).toString("utf8")),
+    ).toEqual(envelope);
+    const verifyCanonicalPae = vi.fn((request: Record<string, unknown>) => {
+      expect(request).toMatchObject({
+        expectedRecordDigestSha256: head.catalogHeadSha256,
+        expectedRecordType: "CatalogHeadV1",
+        expectedSignerIdentity: head.signerIdentity,
+      });
+      expect(Buffer.isBuffer(request.paeBytes)).toBe(true);
+      return true;
+    });
+    expect(verifyDsseEnvelopeV1(envelope, { verifyCanonicalPae })).toEqual(envelope);
+    for (const changed of [
+      { ...envelope, payload: "bm90LXRoaXMtc3RhdGVtZW50" },
+      { ...envelope, payloadType: "application/json" },
+      { ...envelope, signatures: [] },
+      { ...envelope, signatures: [envelope.signatures[0], envelope.signatures[0]] },
+      { ...envelope, statement: { ...envelope.statement, recordType: "CandidateV1" } },
+      { ...envelope, signerIdentity: "workflow:catalog-discovery-v1" },
+    ])
+      expect(() => verifyDsseEnvelopeV1(changed, { verifyCanonicalPae: () => true })).toThrow();
+    for (const malformed of [
+      { ...headInput(), candidateSha256: sha("wrong-layer") },
+      { ...headInput(), rollbackOf: sha("forbidden") },
+      { ...headInput(), protocol: "CatalogHeadV2" },
+      { ...headInput(), compatibleSchemaVersions: ["2"] },
+      { ...headInput(), validFrom: "2026-08-19T00:00:00Z", validUntil: "2026-08-18T00:00:00Z" },
+    ])
+      expect(() => createCatalogHeadV1(malformed)).toThrow();
+  });
+
+  it("uses typed verifier context to preserve last-good on replay, mutation, expiry, or DSSE failure", () => {
     const lastGood = createCatalogHeadV1({
       ...headInput(),
-      sequence: 1,
       previousCatalogHeadSha256: sha("genesis"),
+      sequence: 1,
     });
     const next = createCatalogHeadV1({
       ...headInput(),
       previousCatalogHeadSha256: lastGood.catalogHeadSha256,
     });
-    const accepted = resolveCatalogHeadV1({
-      lastGood,
-      next,
-      now: "2026-08-17T12:00:00Z",
-      verifier: { verifyCanonicalBytes: () => true },
-    });
-    expect(accepted).toEqual({ kind: "advanced", head: next });
+    const context = {
+      expectedAuthority: "authority:catalog-promote-v1",
+      expectedCandidateIdentitySha256: sha("candidate-identity"),
+      expectedCandidateSha256: sha("candidate-record"),
+      expectedCatalogSha256: next.catalogSha256,
+      expectedEvidenceSha256: sha("evidence"),
+      expectedPolicyRevisionSha256: sha("policy"),
+      expectedProfileSha256: sha("profile"),
+      expectedPromotionDecisionSha256: next.promotionDecisionSha256,
+      expectedQualificationBundleSha256: sha("bundle-record"),
+      expectedRecipeSha256: sha("recipe"),
+      expectedWorkflowIdentity: "workflow:catalog-promote-v1",
+    };
+    expect(
+      verifyCatalogHeadV1({ head: next, context }, { verifyCanonicalBytes: () => true }),
+    ).toEqual(next);
+    expect(
+      resolveCatalogHeadV1({
+        context,
+        lastGood,
+        next,
+        now: "2026-08-17T12:00:00Z",
+        verifier: { verifyCanonicalBytes: () => true },
+      }),
+    ).toEqual({ kind: "advanced", head: next });
     for (const rejected of [
-      { ...next, sequence: 1 },
-      { ...next, sequence: 1, expiresAt: "2026-08-20T00:00:00Z" },
+      { ...next, sequence: 1, validUntil: "2026-08-20T00:00:00Z" },
       { ...next, sequence: 0 },
-      { ...next, catalogId: "catalog.other" },
+      { ...next, catalogSha256: sha("mutated-catalog") },
       { ...next, previousCatalogHeadSha256: sha("broken") },
-      { ...next, expiresAt: "2026-08-17T12:01:00Z" },
-      { ...next, signature: { ...next.signature, signature: "forged" } },
-    ]) {
+      { ...next, compatibleEffectVersions: ["2"] },
+      { ...next, compatibleSchemaVersions: ["2"] },
+      { ...next, validUntil: "2026-08-17T12:01:00Z" },
+    ])
       expect(
         resolveCatalogHeadV1({
+          context,
           lastGood,
           next: rejected,
           now: "2026-08-17T12:00:00Z",
           verifier: { verifyCanonicalBytes: () => false },
         }),
       ).toEqual({ kind: "last-good", head: lastGood });
-    }
-    expect(() => parseCatalogHeadV1Json('{"protocol":"CatalogHeadV1",}')).toThrow();
   });
 });

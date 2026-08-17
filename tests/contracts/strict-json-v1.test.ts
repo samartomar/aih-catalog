@@ -6,6 +6,7 @@ import {
   canonicalStrictJsonBytesV1,
   canonicalStrictJsonSha256V1,
   deepFreezeStrictJsonV1,
+  parseCanonicalStrictJsonObjectV1,
   parseStrictJsonObjectV1,
   parseStrictJsonUtf8ObjectV1,
 } from "../../src/contract/strict-json-v1.js";
@@ -84,6 +85,32 @@ describe("supported strict JSON v1", () => {
       createHash("sha256").update(bytes).digest("hex"),
     );
     expect(canonicalStrictJsonSha256V1(left)).toMatch(/^[a-f0-9]{64}$/);
+    expect(
+      canonicalStrictJsonBytesV1({
+        "\uE000": "private",
+        "\u{10000}": "astral",
+        a: "latin",
+      }).toString("utf8"),
+    ).toBe('{"a":"latin","𐀀":"astral","":"private"}');
+  });
+
+  it("keeps permissive strict parsing separate from byte-exact canonical record parsing", () => {
+    const reordered = '{"z":1,"a":"\\u0061"}';
+    expect(parseStrictJsonObjectV1(reordered, "fixture")).toEqual({ a: "a", z: 1 });
+    expect(() => parseCanonicalStrictJsonObjectV1(reordered, "fixture")).toThrow(/canonical/i);
+    expect(parseCanonicalStrictJsonObjectV1('{"a":"a","z":1}', "fixture")).toEqual({
+      a: "a",
+      z: 1,
+    });
+    for (const text of [
+      `{"text":"${"a".repeat(131_073)}"}`,
+      `{${Array.from({ length: 4_097 }, (_, index) => `"k${String(index)}":true`).join(",")}}`,
+      `[${Array.from({ length: 4_097 }, () => "true").join(",")}]`,
+    ])
+      expect(
+        () => parseCanonicalStrictJsonObjectV1(text, "fixture"),
+        "bounded canonical input",
+      ).toThrow();
   });
 
   it("accepts only safe NFC relative POSIX paths", () => {

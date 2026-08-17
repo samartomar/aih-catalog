@@ -43,6 +43,22 @@ const pilotInput = {
     },
   ],
   evidenceRunId: "31922381993",
+  exceptionRows: [
+    {
+      closureMember: "js-yaml@4.3.1",
+      policyRevisionSha256: sha("policy"),
+      profileSha256: sha("profile"),
+      recipeSha256: sha("recipe"),
+      subjectSha256: sha("ecc-subject"),
+    },
+    {
+      closureMember: "js-yaml@4.3.1",
+      policyRevisionSha256: sha("policy"),
+      profileSha256: sha("profile"),
+      recipeSha256: sha("recipe"),
+      subjectSha256: sha("ecc-subject"),
+    },
+  ],
   ecc: {
     assembly: "blocked",
     blocked: 28,
@@ -84,18 +100,39 @@ describe("supported static pilot v1", () => {
         closureMember: "js-yaml@4.3.1",
         reasonCode: "ECC_PREVIEW_DEPENDENCY_CLOSURE_UNQUALIFIED",
         state: "acceptance-required",
+        evidenceRunId: "31922381993",
+        executedDuringPreview: false,
+        activePinChanged: false,
+        newMaliciousContentFinding: false,
+        lockChanged: false,
+        promoted: false,
+        projectionChanged: false,
       }),
     ]);
     expect(result.exceptions).toHaveLength(1);
     expect(Object.isFrozen(result)).toBe(true);
   });
 
-  it("deduplicates only the exact immutable exception key and never changes active pins or a catalog head", () => {
+  it("deduplicates exact rows only and never changes active pins, promotion, or projection", () => {
     const baseline = evaluateStaticPilotV1(pilotInput);
     expect(baseline.exceptions).toHaveLength(1);
-    for (const field of ["policyRevisionSha256", "profileSha256", "recipeSha256"] as const) {
-      const changed = evaluateStaticPilotV1({ ...pilotInput, [field]: sha(`changed:${field}`) });
-      expect(changed.exceptions[0]?.dedupeKeySha256).not.toBe(
+    for (const field of [
+      "subjectSha256",
+      "closureMember",
+      "policyRevisionSha256",
+      "profileSha256",
+      "recipeSha256",
+    ] as const) {
+      const row = {
+        ...pilotInput.exceptionRows[0],
+        [field]: field === "closureMember" ? "yaml@4.3.1" : sha(`changed:${field}`),
+      };
+      const changed = evaluateStaticPilotV1({
+        ...pilotInput,
+        exceptionRows: [pilotInput.exceptionRows[0], row],
+      });
+      expect(changed.exceptions).toHaveLength(2);
+      expect(changed.exceptions[1]?.dedupeKeySha256).not.toBe(
         baseline.exceptions[0]?.dedupeKeySha256,
       );
     }
