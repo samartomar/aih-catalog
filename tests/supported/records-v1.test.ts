@@ -196,7 +196,18 @@ describe("SourceWatchPolicyV1 and CandidateV1", () => {
       "sourceId",
     ])
       expect(
-        createSourceWatchPolicyV1({ ...policyInput(), [field]: `changed-${field}` }).policySha256,
+        createSourceWatchPolicyV1({
+          ...policyInput(),
+          [field]: field.endsWith("Sha256")
+            ? sha(`changed:${field}`)
+            : field === "repository"
+              ? "changed/repository"
+              : field === "sourceId"
+                ? "changed-source-id"
+                : field === "immutableResolverId"
+                  ? "resolver.changed-v1"
+                  : `changed-${field}`,
+        }).policySha256,
       ).not.toBe(policy.policySha256);
     for (const malformed of [
       {

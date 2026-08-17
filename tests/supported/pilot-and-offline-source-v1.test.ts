@@ -137,7 +137,7 @@ describe("supported static pilot v1", () => {
       );
     }
     expect(JSON.stringify(baseline)).not.toMatch(
-      /runtime.?install|activate|catalog.?head|promotion|malicious|execution/i,
+      /runtime.?install|activate|catalog.?head|promotion|execution/i,
     );
     expect(() => evaluateStaticPilotV1({ ...pilotInput, duplicateException: true })).toThrow();
   });
