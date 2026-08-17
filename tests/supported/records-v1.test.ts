@@ -513,10 +513,13 @@ describe("QualificationBundleV1, PromotionDecisionV1, and CatalogHeadV1", () => 
     expect(verifyDsseEnvelopeV1({ envelope, ...envelopeContext }, { verifyCanonicalPae })).toEqual(
       envelope,
     );
-    const changedSignature = {
-      ...envelope,
+    const changedSignature = createDsseEnvelopeV1({
+      payloadType: envelope.payloadType,
+      recordDigestSha256: head.catalogHeadSha256,
+      recordType: "CatalogHeadV1",
+      signerIdentity: head.signerIdentity,
       signatures: [{ keyid: "key.catalog.release", sig: "YWx0ZXJuYXRlLXNpZ25hdHVyZQ==" }],
-    };
+    });
     const verifyChangedSignature = vi.fn(() => true);
     expect(
       verifyDsseEnvelopeV1(
@@ -696,12 +699,22 @@ describe("QualificationBundleV1, PromotionDecisionV1, and CatalogHeadV1", () => 
       ).toEqual({ kind: "last-good", head: lastGood });
 
     const selfClaimedSigner = createCatalogHeadV1({
-      ...next,
+      ...headInput(),
+      catalogSha256: next.catalogSha256,
+      previousCatalogHeadSha256: lastGood.catalogHeadSha256,
+      sequence: next.sequence,
       signerIdentity: "signer:self-claimed-v1",
+    });
+    const selfClaimedEnvelope = createDsseEnvelopeV1({
+      payloadType: "application/vnd.in-toto+json",
+      recordDigestSha256: selfClaimedSigner.catalogHeadSha256,
+      recordType: "CatalogHeadV1",
+      signerIdentity: selfClaimedSigner.signerIdentity,
+      signatures: [{ keyid: "key.catalog.release", sig: "c2VsZi1jbGFpbWVk" }],
     });
     expect(() =>
       verifyCatalogHeadV1(
-        { envelope, head: selfClaimedSigner, context },
+        { envelope: selfClaimedEnvelope, head: selfClaimedSigner, context },
         { verifyCanonicalBytes: () => true },
       ),
     ).toThrow();

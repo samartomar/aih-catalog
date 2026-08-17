@@ -116,11 +116,8 @@ describe("supported static pilot v1", () => {
           JSON.stringify({
             domain: "aih-supported.exception-dedupe-v1",
             value: {
-              closureMember: "js-yaml@4.3.1",
               policyRevisionSha256: sha("policy"),
-              profileSha256: sha("profile"),
               reasonCode: "ECC_PREVIEW_DEPENDENCY_CLOSURE_UNQUALIFIED",
-              recipeSha256: sha("recipe"),
               subjectSha256: sha("ecc-subject"),
             },
           }),
@@ -141,16 +138,10 @@ describe("supported static pilot v1", () => {
   it("deduplicates exact rows only and never changes active pins, promotion, or projection", () => {
     const baseline = evaluateStaticPilotV1(pilotInput);
     expect(baseline.exceptions).toHaveLength(1);
-    for (const field of [
-      "subjectSha256",
-      "closureMember",
-      "policyRevisionSha256",
-      "profileSha256",
-      "recipeSha256",
-    ] as const) {
+    for (const field of ["subjectSha256", "policyRevisionSha256"] as const) {
       const row = {
         ...pilotInput.exceptionRows[0],
-        [field]: field === "closureMember" ? "yaml@4.3.1" : sha(`changed:${field}`),
+        [field]: sha(`changed:${field}`),
       };
       const changed = evaluateStaticPilotV1({
         ...pilotInput,
@@ -160,6 +151,15 @@ describe("supported static pilot v1", () => {
       expect(changed.exceptions[1]?.dedupeKeySha256).not.toBe(
         baseline.exceptions[0]?.dedupeKeySha256,
       );
+    }
+    for (const field of ["closureMember", "profileSha256", "recipeSha256"] as const) {
+      const value = field === "closureMember" ? "yaml@4.3.1" : sha(`inconsistent:${field}`);
+      expect(() =>
+        evaluateStaticPilotV1({
+          ...pilotInput,
+          exceptionRows: [{ ...pilotInput.exceptionRows[0], [field]: value }],
+        }),
+      ).toThrow();
     }
     expect(JSON.stringify(baseline)).not.toMatch(
       /runtime.?install|activate|catalog.?head|promotion|execution/i,
