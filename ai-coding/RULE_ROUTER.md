@@ -8,8 +8,10 @@ implementation. For repository helper tooling, also read
 ## Repository facts
 
 - TypeScript/Node.js, npm, ESM, Vitest, and Biome.
-- This is a private, publication-deferred bootstrap with no product API, CLI,
-  controller, provider integration, or signing behavior.
+- This is a publication-deferred bootstrap with internal strict contracts and
+  a capability-bounded provider-candidate controller. It has no public product
+  API or CLI, provider network authority, signing, publication, repository
+  write, Core-pin, or seat-runtime behavior.
 - Never run an installed aih-supported against this checkout.
 
 ## Verification

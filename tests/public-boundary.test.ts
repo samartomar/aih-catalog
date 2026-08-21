@@ -13,7 +13,7 @@ function sourceFiles(path = resolve(root, "src")): string[] {
 }
 
 describe("supported bootstrap public boundary", () => {
-  it("has no product entrypoint, CLI, publication, or controller surface", () => {
+  it("has no public product entrypoint, CLI, publication, or controller surface", () => {
     const packageJson = readFileSync(resolve(root, "package.json"), "utf8");
     expect(readFileSync(resolve(root, "src/index.ts"), "utf8").trim()).toBe("export {};");
     expect(packageJson).not.toContain('"bin"');
