@@ -234,7 +234,16 @@ describe("provider watcher v1", () => {
   });
 
   it("rejects ambiguous Git branch names before calling its resolver", async () => {
-    for (const name of ["a/../b", "a//b", "a/b.", "a/.lock/b", "a/b.lock", "main@{1}"]) {
+    for (const name of [
+      "a/../b",
+      "a//b",
+      "a/",
+      "a/./b",
+      "a/b.",
+      "a/.lock/b",
+      "a/b.lock",
+      "main@{1}",
+    ]) {
       const seam = resolver(resolution("github"));
       await expect(
         resolveProviderWatchV1({
