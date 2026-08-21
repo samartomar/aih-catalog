@@ -222,6 +222,45 @@ function configuration(value: unknown): ProviderWatchConfigurationV1 {
   }) as ProviderWatchConfigurationV1;
 }
 
+function maximumCandidateBytes(config: ProviderWatchConfigurationV1): number {
+  const candidateEnvelope = {
+    candidateIdentitySha256: "0".repeat(64),
+    candidateSha256: "0".repeat(64),
+    identity: {},
+    observedMetadata: {},
+    policySha256: config.policySha256,
+    protocol: "ProviderWatchCandidateV1",
+    provider: config.provider,
+    source: {},
+    sourceId: config.sourceId,
+    watchConfigurationSha256: config.watchConfigurationSha256,
+  };
+  const resolutionEnvelope = {
+    identity: {},
+    observedMetadata: {},
+    protocol: "ProviderWatchResolutionV1",
+    provider: config.provider,
+    source: {},
+    watchRef: config.watchRef,
+  };
+  return (
+    MAX_RESOLUTION_BYTES +
+    canonicalStrictJsonBytesV1(candidateEnvelope).length -
+    canonicalStrictJsonBytesV1(resolutionEnvelope).length
+  );
+}
+
+function boundedCandidateRecord(
+  value: unknown,
+  config: ProviderWatchConfigurationV1,
+  label: string,
+): JsonRecord {
+  const parsed = record(value, label);
+  if (canonicalStrictJsonBytesV1(parsed).length > maximumCandidateBytes(config))
+    fail(`${label} bound`);
+  return parsed;
+}
+
 function version(value: unknown, label: string): string {
   return text(value, label, SEMVER);
 }
@@ -355,7 +394,7 @@ function priorCandidate(
   value: unknown,
   config: ProviderWatchConfigurationV1,
 ): ProviderWatchCandidateV1 {
-  const input = boundedRecord(value, "prior candidate");
+  const input = boundedCandidateRecord(value, config, "prior candidate");
   keys(
     input,
     [
