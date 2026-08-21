@@ -186,7 +186,7 @@ function watchRefFor(providerName: ProviderV1, value: unknown, label: string): J
       name.includes("@{") ||
       name.endsWith(".") ||
       segments.some(
-        (segment) => segment.length === 0 || segment === "." || segment.endsWith(".lock"),
+        (segment) => segment.length === 0 || segment.startsWith(".") || segment.endsWith(".lock"),
       )
     ) {
       fail(label);
