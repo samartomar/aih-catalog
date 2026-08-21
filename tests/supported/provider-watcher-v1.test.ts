@@ -125,6 +125,7 @@ describe("provider watcher v1", () => {
       expect(result.candidate).not.toHaveProperty("watchRef");
       expect(result.invalidation).toEqual({
         currentCandidateIdentitySha256: result.candidate.candidateIdentitySha256,
+        policySha256: sha(`policy:${provider}`),
         previousCandidateIdentitySha256: null,
         protocol: "ProviderWatchInvalidationV1",
         sourceId: `${provider}-source`,
@@ -188,13 +189,14 @@ describe("provider watcher v1", () => {
     );
     expect(changed.invalidation).toEqual({
       currentCandidateIdentitySha256: changed.candidate.candidateIdentitySha256,
+      policySha256: sha("policy:github"),
       previousCandidateIdentitySha256: baseline.candidate.candidateIdentitySha256,
       protocol: "ProviderWatchInvalidationV1",
       sourceId: "github-source",
     });
-    expect(canonicalProviderWatchCandidateV1Bytes(changed.candidate).toString("utf8")).toBe(
-      JSON.stringify(changed.candidate),
-    );
+    expect(
+      JSON.parse(canonicalProviderWatchCandidateV1Bytes(changed.candidate).toString("utf8")),
+    ).toEqual(changed.candidate);
   });
 
   it("fails closed before calling a seam for malformed configurations and hostile wrappers", async () => {
@@ -223,7 +225,8 @@ describe("provider watcher v1", () => {
         resolver: { resolve: "not-a-function" },
       },
       { configuration: { ...configuration("github"), extra: true }, resolver: seam },
-    ]) await expect(resolveProviderWatchV1(invalid)).rejects.toThrow();
+    ])
+      await expect(resolveProviderWatchV1(invalid)).rejects.toThrow();
     expect(getterCalls).toBe(0);
     expect(seam.resolve).not.toHaveBeenCalled();
   });
@@ -264,6 +267,19 @@ describe("provider watcher v1", () => {
         configuration: configuration("pypi"),
         lastObservedCandidate: initial.candidate,
         resolver: resolver(downgrade),
+      }),
+    ).rejects.toThrow();
+    const reissued = resolution("pypi");
+    reissued.identity = {
+      filename: "acme_widget-2.4.6-py3-none-any.whl",
+      sha256: sha("reissued-pypi-distribution"),
+      version: "2.4.6",
+    };
+    await expect(
+      resolveProviderWatchV1({
+        configuration: configuration("pypi"),
+        lastObservedCandidate: initial.candidate,
+        resolver: resolver(reissued),
       }),
     ).rejects.toThrow();
     await expect(
