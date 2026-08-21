@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { describe, expect, it, vi } from "vitest";
+import { canonicalStrictJsonBytesV1 } from "../../src/contract/strict-json-v1.js";
 import {
   canonicalProviderWatchCandidateV1Bytes,
   resolveProviderWatchV1,
@@ -8,6 +9,7 @@ import {
 const sha = (label: string): string => createHash("sha256").update(label).digest("hex");
 const npmIntegrity = `sha512-${Buffer.alloc(64, 0x61).toString("base64")}`;
 const alternateNpmIntegrity = `sha512-${Buffer.alloc(64, 0x62).toString("base64")}`;
+const MAX_RESOLUTION_BYTES = 65_536;
 
 type Provider = "github" | "npm" | "pypi" | "oci";
 
@@ -166,6 +168,50 @@ describe("provider watcher v1", () => {
     expect(again).toEqual(next);
     expect(next).not.toHaveProperty("candidate");
     expect(next).not.toHaveProperty("invalidation");
+  });
+
+  it("round-trips an exact-bound resolution candidate without weakening the prior bound", async () => {
+    const exactBoundResolution = resolution("github");
+    exactBoundResolution.observedMetadata = { padding: "" };
+    const paddingLength =
+      MAX_RESOLUTION_BYTES - canonicalStrictJsonBytesV1(exactBoundResolution).length;
+    exactBoundResolution.observedMetadata = { padding: "x".repeat(paddingLength) };
+    expect(canonicalStrictJsonBytesV1(exactBoundResolution)).toHaveLength(MAX_RESOLUTION_BYTES);
+
+    const first = await resolveProviderWatchV1({
+      configuration: configuration("github"),
+      resolver: resolver(exactBoundResolution),
+    });
+    if (first.kind !== "changed") throw new Error("expected initial candidate");
+    expect(canonicalProviderWatchCandidateV1Bytes(first.candidate).length).toBeGreaterThan(
+      MAX_RESOLUTION_BYTES,
+    );
+    const storedCandidate = JSON.parse(JSON.stringify(first.candidate));
+    const seam = resolver(exactBoundResolution);
+    await expect(
+      resolveProviderWatchV1({
+        configuration: configuration("github"),
+        lastObservedCandidate: storedCandidate,
+        resolver: seam,
+      }),
+    ).resolves.toEqual({
+      candidateIdentitySha256: first.candidate.candidateIdentitySha256,
+      kind: "unchanged",
+    });
+    expect(seam.resolve).toHaveBeenCalledOnce();
+
+    const hostileSeam = resolver(exactBoundResolution);
+    await expect(
+      resolveProviderWatchV1({
+        configuration: configuration("github"),
+        lastObservedCandidate: {
+          ...storedCandidate,
+          observedMetadata: { padding: "x".repeat(MAX_RESOLUTION_BYTES) },
+        },
+        resolver: hostileSeam,
+      }),
+    ).rejects.toThrow();
+    expect(hostileSeam.resolve).not.toHaveBeenCalled();
   });
 
   it("emits one canonical candidate and precise invalidation inputs for an immutable change", async () => {
