@@ -6,6 +6,8 @@ import {
 } from "../../src/supported/provider-watcher-v1.js";
 
 const sha = (label: string): string => createHash("sha256").update(label).digest("hex");
+const npmIntegrity = `sha512-${Buffer.alloc(64, 0x61).toString("base64")}`;
+const alternateNpmIntegrity = `sha512-${Buffer.alloc(64, 0x62).toString("base64")}`;
 
 type Provider = "github" | "npm" | "pypi" | "oci";
 
@@ -65,7 +67,7 @@ function resolution(provider: Provider): Record<string, unknown> {
     case "npm":
       return {
         ...common,
-        identity: { integrity: "sha512-YWJjZA==", version: "2.4.6" },
+        identity: { integrity: npmIntegrity, version: "2.4.6" },
       };
     case "pypi":
       return {
@@ -231,6 +233,22 @@ describe("provider watcher v1", () => {
     expect(seam.resolve).not.toHaveBeenCalled();
   });
 
+  it("rejects ambiguous Git branch names before calling its resolver", async () => {
+    for (const name of ["a/../b", "a//b", "a/b.", "a/.lock/b", "a/b.lock", "main@{1}"]) {
+      const seam = resolver(resolution("github"));
+      await expect(
+        resolveProviderWatchV1({
+          configuration: {
+            ...configuration("github"),
+            watchRef: { kind: "branch", name },
+          },
+          resolver: seam,
+        }),
+      ).rejects.toThrow();
+      expect(seam.resolve).not.toHaveBeenCalled();
+    }
+  });
+
   it("fails closed for deleted, redirecting, mutable-only, inconsistent, and oversized resolutions", async () => {
     const valid = resolution("npm");
     for (const rejected of [
@@ -241,6 +259,8 @@ describe("provider watcher v1", () => {
       { ...valid, watchRef: { kind: "dist-tag", name: "next" } },
       { ...valid, observedMetadata: { note: "x".repeat(65_537) } },
       { ...valid, identity: { integrity: "sha512-not-a-real-integrity", version: "2.4.6" } },
+      { ...valid, identity: { integrity: "sha512-YWJjZA==", version: "2.4.6" } },
+      { ...valid, identity: { integrity: npmIntegrity.slice(0, -2), version: "2.4.6" } },
     ]) {
       const seam = resolver(rejected);
       await expect(
@@ -289,5 +309,32 @@ describe("provider watcher v1", () => {
         resolver: resolver(resolution("pypi")),
       }),
     ).rejects.toThrow();
+  });
+
+  it("compares arbitrarily large version components exactly for downgrades and reissues", async () => {
+    const initialResolution = resolution("npm");
+    initialResolution.identity = {
+      integrity: npmIntegrity,
+      version: "9007199254740993.0.0",
+    };
+    const initial = await resolveProviderWatchV1({
+      configuration: configuration("npm"),
+      resolver: resolver(initialResolution),
+    });
+    if (initial.kind !== "changed") throw new Error("expected initial candidate");
+    for (const identity of [
+      { integrity: alternateNpmIntegrity, version: "9007199254740992.0.0" },
+      { integrity: alternateNpmIntegrity, version: "9007199254740993.0.0" },
+    ]) {
+      const next = resolution("npm");
+      next.identity = identity;
+      await expect(
+        resolveProviderWatchV1({
+          configuration: configuration("npm"),
+          lastObservedCandidate: initial.candidate,
+          resolver: resolver(next),
+        }),
+      ).rejects.toThrow();
+    }
   });
 });
