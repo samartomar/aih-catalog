@@ -180,12 +180,14 @@ function watchRefFor(providerName: ProviderV1, value: unknown, label: string): J
   if (watchRef.kind !== expectedKind) fail(label);
   if (providerName === "github") {
     const name = text(watchRef.name, label, /^[a-z0-9][a-z0-9._/-]{0,255}$/);
+    const segments = name.split("/");
     if (
       name.includes("..") ||
-      name.includes("//") ||
       name.includes("@{") ||
       name.endsWith(".") ||
-      name.split("/").some((segment) => segment.endsWith(".lock"))
+      segments.some(
+        (segment) => segment.length === 0 || segment === "." || segment.endsWith(".lock"),
+      )
     ) {
       fail(label);
     }
