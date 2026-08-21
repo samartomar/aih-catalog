@@ -106,6 +106,14 @@ function sha(value: unknown, label: string): string {
   return text(value, label, DIGEST);
 }
 
+function npmIntegrity(value: unknown, label: string): string {
+  const integrity = text(value, label, INTEGRITY);
+  const encoded = integrity.slice("sha512-".length);
+  const decoded = Buffer.from(encoded, "base64");
+  if (decoded.length !== 64 || decoded.toString("base64") !== encoded) fail(label);
+  return integrity;
+}
+
 function exactJson(left: unknown, right: unknown): boolean {
   return canonicalStrictJsonBytesV1(left).equals(canonicalStrictJsonBytesV1(right));
 }
@@ -170,12 +178,20 @@ function watchRefFor(providerName: ProviderV1, value: unknown, label: string): J
           ? "project"
           : "tag";
   if (watchRef.kind !== expectedKind) fail(label);
-  const namePattern =
-    providerName === "github"
-      ? /^[a-z0-9][a-z0-9._/-]{0,255}$/
-      : providerName === "pypi"
-        ? /^latest$/
-        : /^[a-z0-9][a-z0-9._-]{0,255}$/;
+  if (providerName === "github") {
+    const name = text(watchRef.name, label, /^[a-z0-9][a-z0-9._/-]{0,255}$/);
+    if (
+      name.includes("..") ||
+      name.includes("//") ||
+      name.includes("@{") ||
+      name.endsWith(".") ||
+      name.split("/").some((segment) => segment.endsWith(".lock"))
+    ) {
+      fail(label);
+    }
+    return { kind: expectedKind, name };
+  }
+  const namePattern = providerName === "pypi" ? /^latest$/ : /^[a-z0-9][a-z0-9._-]{0,255}$/;
   return { kind: expectedKind, name: text(watchRef.name, label, namePattern) };
 }
 
@@ -220,7 +236,7 @@ function immutableIdentity(providerName: ProviderV1, value: unknown): ImmutableI
     case "npm":
       keys(identity, ["integrity", "version"], "npm identity fields");
       return {
-        integrity: text(identity.integrity, "npm integrity", INTEGRITY),
+        integrity: npmIntegrity(identity.integrity, "npm integrity"),
         version: version(identity.version, "npm version"),
       };
     case "pypi":
@@ -378,11 +394,15 @@ function priorCandidate(
 }
 
 function compareVersions(next: string, previous: string): number {
-  const nextParts = next.split(".").map(Number);
-  const previousParts = previous.split(".").map(Number);
+  const nextParts = next.split(".");
+  const previousParts = previous.split(".");
   for (let index = 0; index < 3; index += 1) {
-    const difference = (nextParts[index] ?? 0) - (previousParts[index] ?? 0);
-    if (difference !== 0) return difference;
+    const nextPart = nextParts[index];
+    const previousPart = previousParts[index];
+    if (nextPart === undefined || previousPart === undefined) fail("version identity");
+    if (nextPart.length !== previousPart.length)
+      return nextPart.length < previousPart.length ? -1 : 1;
+    if (nextPart !== previousPart) return nextPart < previousPart ? -1 : 1;
   }
   return 0;
 }
