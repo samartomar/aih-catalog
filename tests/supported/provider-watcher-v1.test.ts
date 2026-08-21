@@ -239,6 +239,8 @@ describe("provider watcher v1", () => {
       "a//b",
       "a/",
       "a/./b",
+      "a/.b",
+      "feature/.hidden/x",
       "a/b.",
       "a/.lock/b",
       "a/b.lock",
@@ -291,13 +293,15 @@ describe("provider watcher v1", () => {
       sha256: sha("old-pypi-distribution"),
       version: "2.4.5",
     };
+    const downgradeSeam = resolver(downgrade);
     await expect(
       resolveProviderWatchV1({
         configuration: configuration("pypi"),
         lastObservedCandidate: initial.candidate,
-        resolver: resolver(downgrade),
+        resolver: downgradeSeam,
       }),
     ).rejects.toThrow();
+    expect(downgradeSeam.resolve).toHaveBeenCalledOnce();
     const reissued = resolution("pypi");
     reissued.identity = {
       filename: "acme_widget-2.4.6-py3-none-any.whl",
@@ -311,13 +315,15 @@ describe("provider watcher v1", () => {
         resolver: resolver(reissued),
       }),
     ).rejects.toThrow();
+    const tamperedSeam = resolver(resolution("pypi"));
     await expect(
       resolveProviderWatchV1({
         configuration: configuration("pypi"),
         lastObservedCandidate: { ...initial.candidate, candidateSha256: sha("tampered") },
-        resolver: resolver(resolution("pypi")),
+        resolver: tamperedSeam,
       }),
     ).rejects.toThrow();
+    expect(tamperedSeam.resolve).not.toHaveBeenCalled();
   });
 
   it("compares arbitrarily large version components exactly for downgrades and reissues", async () => {
