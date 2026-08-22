@@ -568,6 +568,21 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(canonicalJson(verifiedHead as Json)).toBe(
       canonicalJson((statement.predicate as Record<string, unknown>).catalogHead as Json),
     );
+    const rootsAtLimit = [
+      fixture.catalogSignerRoot,
+      ...Array.from({ length: 63 }, () => signingFixture().catalogSignerRoot),
+    ];
+    expect(
+      publicApi.verifySignedCatalogV2({ ...verification, catalogSignerRoots: rootsAtLimit }),
+    ).toEqual(head);
+    expect(
+      publicApi.inspectSignedCatalogV2({ ...verification, catalogSignerRoots: rootsAtLimit }),
+    ).toEqual({ kind: "materializable", head });
+    const rootsOverLimit = [...rootsAtLimit, signingFixture().catalogSignerRoot];
+    for (const operation of [publicApi.verifySignedCatalogV2, publicApi.inspectSignedCatalogV2])
+      expect(() => operation({ ...verification, catalogSignerRoots: rootsOverLimit })).toThrow(
+        /64.*root|root.*64/i,
+      );
     const signatureByRootB = sign(
       null,
       dssePae(envelope.payloadType, payload),
@@ -1006,6 +1021,28 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(Object.keys(opaqueInspection).sort()).toEqual(["kind", "record"]);
     expect(opaqueInspection).not.toHaveProperty("head");
     expect(opaqueInspection).not.toHaveProperty("basis");
+    const replayIdentitiesAtLimit = Array.from(
+      { length: 4_096 },
+      (_, index) =>
+        `catalog-head:${sha(`replay-head:${index}`)}:${sha(`replay-candidate:${index}`)}`,
+    );
+    expect(
+      publicApi.inspectSignedCatalogV2({
+        ...request,
+        replay: { acceptedIdentities: replayIdentitiesAtLimit },
+      }),
+    ).toEqual(opaqueInspection);
+    const replayIdentitiesOverLimit = [
+      ...replayIdentitiesAtLimit,
+      `catalog-head:${sha("replay-head:over")}:${sha("replay-candidate:over")}`,
+    ];
+    for (const operation of [publicApi.verifySignedCatalogV2, publicApi.inspectSignedCatalogV2])
+      expect(() =>
+        operation({
+          ...request,
+          replay: { acceptedIdentities: replayIdentitiesOverLimit },
+        }),
+      ).toThrow(/4096.*replay|replay.*4096/i);
     expect(() => publicApi.verifySignedCatalogV2(request)).toThrow();
     for (const rejected of [
       { ...request, expectedClaims: { ...claims(), runId: "other" } },
@@ -1469,6 +1506,9 @@ describe("public signed catalog V2 acceptance contract", () => {
       const oversizedRootPath = resolve(temp, "oversized-root.json");
       const oversizedPrivateKeyPath = resolve(temp, "oversized-private-key.pem");
       const oversizedSignedCatalogPath = resolve(temp, "oversized-signed-catalog.json");
+      const oversizedSeedPath = resolve(temp, "oversized-seed.json");
+      const oversizedCandidatePath = resolve(temp, "oversized-candidate.json");
+      const mustNotReadPrivateKeyPath = resolve(temp, "must-not-read-private-key.pem");
       const candidateInputs = [
         "--valid-from",
         "2026-08-22T00:00:00Z",
@@ -2104,6 +2144,57 @@ describe("public signed catalog V2 acceptance contract", () => {
         oversizedPrivateKeySentinel,
         candidateText,
       ]);
+      const oversizedSeedSentinel = "OVERSIZED_SEED_SENTINEL";
+      const oversizedCandidateSentinel = "OVERSIZED_CANDIDATE_SENTINEL";
+      writeFileSync(oversizedSeedPath, `${oversizedSeedSentinel}${"x".repeat(8 * oneMiB)}`);
+      writeFileSync(
+        oversizedCandidatePath,
+        `${oversizedCandidateSentinel}${"x".repeat(8 * oneMiB)}`,
+      );
+      const rejectsOversizedSeedBeforeSignerParse = spawnSync(
+        process.execPath,
+        [
+          cliPath,
+          "generate-candidate",
+          "--seed",
+          oversizedSeedPath,
+          "--signer",
+          resolve(temp, "must-not-read-signer.json"),
+          "--claims",
+          claimsPath,
+          ...candidateInputs,
+          "--output",
+          resolve(temp, "oversized-seed-candidate.json"),
+        ],
+        { cwd: consumer, encoding: "utf8" },
+      );
+      expectSanitizedCliFailure(rejectsOversizedSeedBeforeSignerParse, [
+        oversizedSeedSentinel,
+        claimsText,
+      ]);
+      expect(rejectsOversizedSeedBeforeSignerParse.stderr).toMatch(/^error: seed-too-large\r?\n$/);
+      expect(existsSync(resolve(temp, "oversized-seed-candidate.json"))).toBe(false);
+      const rejectsOversizedCandidateBeforeKeyParse = spawnSync(
+        process.execPath,
+        [
+          cliPath,
+          "sign-candidate",
+          "--candidate",
+          oversizedCandidatePath,
+          "--private-key",
+          mustNotReadPrivateKeyPath,
+          "--output",
+          resolve(temp, "oversized-candidate-signed.json"),
+        ],
+        { cwd: consumer, encoding: "utf8" },
+      );
+      expectSanitizedCliFailure(rejectsOversizedCandidateBeforeKeyParse, [
+        oversizedCandidateSentinel,
+      ]);
+      expect(rejectsOversizedCandidateBeforeKeyParse.stderr).toMatch(
+        /^error: candidate-too-large\r?\n$/,
+      );
+      expect(existsSync(resolve(temp, "oversized-candidate-signed.json"))).toBe(false);
       const inspected = spawnSync(
         process.execPath,
         [
