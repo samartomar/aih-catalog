@@ -117,9 +117,19 @@ describe("default CatalogHead V2 evidence chain", () => {
       recipe: { identity: `artifact:${seed.artifacts.recipe}`, sha256: artifactDigests.recipe },
       subject: { source },
     });
+    const coldAdmin = JSON.parse(
+      readFileSync(resolve(root, "tests/contracts/cold-external-admin-v2.json"), "utf8"),
+    ) as { organizationAdmission: string };
     const qualificationBasis = api.deriveQualificationBasisV2({ entryId: seed.entryId, head });
-    const verificationMode = "cold-external-admin";
-    expect(qualificationBasis).toMatchObject({ kind: "aih-supported", subjectKind: "profile" });
-    expect(verificationMode).toBe("cold-external-admin");
+    expect(qualificationBasis).toEqual({
+      catalogDigest: `sha256:${head.catalogSha256}`,
+      catalogHeadDigest: `sha256:${head.catalogHeadSha256}`,
+      catalogMemberDigest: `sha256:${entry.memberSha256}`,
+      catalogSignerIdentity: signer.identity,
+      kind: "aih-supported",
+      subjectDigest: (entry.subject as Record<string, unknown>).subjectDigest,
+      subjectKind: "profile",
+    });
+    expect(coldAdmin.organizationAdmission).toBe("not-authoritative");
   });
 });

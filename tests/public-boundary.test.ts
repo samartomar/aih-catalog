@@ -96,8 +96,9 @@ describe("supported public V2 boundary", () => {
   it("keeps network/process/provider authority absent and confines cryptographic signing to one V2 module", () => {
     const signingModules: string[] = [];
     const forbiddenRuntimeAuthority =
-      /node:(child_process|http|https|net|tls|dgram)|\bprocess\.(?:spawn|exec|fork)\b|\bfetch\s*\(|(?<![\w.$])(?:spawn|exec|fork)\s*\(|provider\.(request|poll)/i;
-    expect("process.exec()".match(forbiddenRuntimeAuthority)).not.toBeNull();
+      /["'](?:node:)?(?:child_process|http|https|net|tls|dgram)["']|\bprocess\.(?:spawn|spawnSync|exec|execSync|execFile|execFileSync|fork)\b|\bfetch\s*\(|(?<![\w.$])(?:spawn|spawnSync|exec|execSync|execFile|execFileSync|fork)\s*\(|provider\.(request|poll)/i;
+    expect("process.spawnSync()".match(forbiddenRuntimeAuthority)).not.toBeNull();
+    expect("execFileSync()".match(forbiddenRuntimeAuthority)).not.toBeNull();
     expect("regex.exec()".match(forbiddenRuntimeAuthority)).toBeNull();
     for (const source of sourceFiles()) {
       const text = readFileSync(source, "utf8");

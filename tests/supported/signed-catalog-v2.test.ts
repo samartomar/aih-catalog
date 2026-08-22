@@ -349,7 +349,40 @@ function npmCli(): string {
   throw new Error("unable to resolve a local npm-cli.js");
 }
 
+function canCreateFileAndDirectorySymlinks(): boolean {
+  const probe = mkdtempSync(join(tmpdir(), "aih-supported-symlink-probe-"));
+  try {
+    const fileTarget = resolve(probe, "file-target");
+    const directoryTarget = resolve(probe, "directory-target");
+    writeFileSync(fileTarget, "probe");
+    mkdirSync(directoryTarget);
+    symlinkSync(fileTarget, resolve(probe, "file-link"), "file");
+    symlinkSync(
+      directoryTarget,
+      resolve(probe, "directory-link"),
+      process.platform === "win32" ? "junction" : "dir",
+    );
+    return existsSync(resolve(probe, "file-link")) && existsSync(resolve(probe, "directory-link"));
+  } catch {
+    return false;
+  } finally {
+    rmSync(probe, { force: true, recursive: true });
+  }
+}
+
 describe("public signed catalog V2 acceptance contract", () => {
+  it.skipIf(!canCreateFileAndDirectorySymlinks())(
+    "documents executable file and directory seed-link custody cases",
+    () => {
+      const source = readFileSync(
+        resolve(root, "tests/supported/signed-catalog-v2.test.ts"),
+        "utf8",
+      );
+      expect(source).toMatch(/symlinkSync\([^\n]+"file"/);
+      expect(source).toMatch(/process\.platform === "win32" \? "junction" : "dir"/);
+      expect(source).toMatch(/error: seed-artifact-not-regular/);
+    },
+  );
   it("exposes the public V2 package/CLI and a Core lock only for qualification-basis derivation", async () => {
     const publicApi = await api();
     const packageJson = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8")) as Record<
@@ -678,35 +711,47 @@ describe("public signed catalog V2 acceptance contract", () => {
       ).toThrow();
     for (const key of ["commit", "path", "repository", "type"])
       expect(() =>
-        publicApi.createCatalogHeadV2(
-          headInput(fixture.signer, {
-            entries: [
-              {
-                ...entry(),
-                subject: {
-                  ...subject(),
-                  source: without(subject().source as Record<string, unknown>, key),
+        (() => {
+          const reducedSource = without(subject().source as Record<string, unknown>, key);
+          const sourceDigest = coreSourceDigest(reducedSource);
+          return publicApi.createCatalogHeadV2(
+            headInput(fixture.signer, {
+              entries: [
+                {
+                  ...entry(),
+                  subject: {
+                    ...subject(),
+                    source: reducedSource,
+                    sourceDigest,
+                    subjectDigest: coreSubjectDigest("profile", "default-profile", sourceDigest),
+                  },
                 },
-              },
-            ],
-          }),
-        ),
+              ],
+            }),
+          );
+        })(),
       ).toThrow();
     for (const key of ["release", "revision", "type"])
       expect(() =>
-        publicApi.createCatalogHeadV2(
-          headInput(fixture.signer, {
-            entries: [
-              {
-                ...entry(),
-                subject: {
-                  ...aihSubject(),
-                  source: without(aihSubject().source as Record<string, unknown>, key),
+        (() => {
+          const reducedSource = without(aihSubject().source as Record<string, unknown>, key);
+          const sourceDigest = coreSourceDigest(reducedSource);
+          return publicApi.createCatalogHeadV2(
+            headInput(fixture.signer, {
+              entries: [
+                {
+                  ...entry(),
+                  subject: {
+                    ...aihSubject(),
+                    source: reducedSource,
+                    sourceDigest,
+                    subjectDigest: coreSubjectDigest("profile", "default-profile", sourceDigest),
+                  },
                 },
-              },
-            ],
-          }),
-        ),
+              ],
+            }),
+          );
+        })(),
       ).toThrow();
     for (const key of ["architecture", "os"])
       expect(() =>
@@ -1200,8 +1245,8 @@ describe("public signed catalog V2 acceptance contract", () => {
       ["signer", { signer: { ...fixture.signer, identity: "administrator:other" } }],
       ["validFrom", { validFrom: "2026-08-22T00:00:01Z" }],
       ["validUntil", { validUntil: "2026-08-23T00:00:01Z" }],
-      ["effectVersion", { effectVersion: 3 }],
-      ["schemaVersion", { schemaVersion: 3 }],
+      ["effectVersion", { effectVersion: "3" }],
+      ["schemaVersion", { schemaVersion: "3" }],
       ["catalogHeadSha256", { catalogHeadSha256: sha("predicate-mirror") }],
       ["replayIdentity", { replayIdentity: "catalog-head:predicate-mirror" }],
       ["candidateSha256", { candidateSha256: sha("wrong-candidate") }],
@@ -2365,7 +2410,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(existsSync(defaultEvidenceChainTest)).toBe(true);
     const defaultEvidenceChainSource = readFileSync(defaultEvidenceChainTest, "utf8");
     expect(defaultEvidenceChainSource).toMatch(/artifactDigests/);
-    expect(defaultEvidenceChainSource).toMatch(/cold-external-admin/);
+    expect(defaultEvidenceChainSource).toMatch(/tests\/contracts\/cold-external-admin-v2\.json/);
     expect(defaultEvidenceChainSource).toMatch(/qualificationBasis/);
     expect(defaultEvidenceChainSource).toMatch(/import\("\.\.\/\.\.\/src\/index\.js"\)/);
     expect(defaultEvidenceChainSource).toMatch(/createCatalogHeadV2/);
@@ -2462,11 +2507,14 @@ describe("public signed catalog V2 acceptance contract", () => {
       const linkedSignedCatalogOutputPath = resolve(temp, "linked-signed-catalog-output.json");
       const oversizedSignerPath = resolve(temp, "oversized-signer.json");
       const oversizedClaimsPath = resolve(temp, "oversized-claims.json");
+      const oversizedInspectClaimsPath = resolve(temp, "oversized-inspect-claims.json");
       const oversizedRootPath = resolve(temp, "oversized-root.json");
       const oversizedPrivateKeyPath = resolve(temp, "oversized-private-key.pem");
       const oversizedSignedCatalogPath = resolve(temp, "oversized-signed-catalog.json");
       const oversizedSeedPath = resolve(temp, "oversized-seed.json");
       const oversizedCandidatePath = resolve(temp, "oversized-candidate.json");
+      const oversizedLastAcceptedPath = resolve(temp, "oversized-last-accepted.json");
+      const oversizedReplayStatePath = resolve(temp, "oversized-replay-state.json");
       const mustNotReadPrivateKeyPath = resolve(temp, "must-not-read-private-key.pem");
       const successorCandidatePath = resolve(temp, "successor-candidate.json");
       const successorSignedCatalogPath = resolve(temp, "successor-signed-catalog.json");
@@ -2635,6 +2683,59 @@ describe("public signed catalog V2 acceptance contract", () => {
         );
         expectSanitizedCliFailure(rejectedLinkedArtifact, ["external artifact must not be read"]);
         expect(rejectedLinkedArtifact.stderr).toMatch(/^error: seed-artifact-not-regular\r?\n$/);
+      }
+      const directoryLinkedSeedDirectory = resolve(temp, "directory-linked-artifact-seed");
+      const outsideArtifactsDirectory = resolve(temp, "outside-linked-artifacts");
+      mkdirSync(directoryLinkedSeedDirectory, { recursive: true });
+      mkdirSync(outsideArtifactsDirectory, { recursive: true });
+      const directoryLinkedArtifacts = Object.fromEntries(
+        Object.entries(installedSeedCatalog.artifacts).map(([kind, installedPath]) => {
+          const relativePath = `artifacts/${kind}.json`;
+          writeFileSync(
+            resolve(outsideArtifactsDirectory, `${kind}.json`),
+            readFileSync(resolve(installedSeedDirectory, installedPath)),
+          );
+          return [kind, relativePath];
+        }),
+      );
+      let directoryLinkCreated = false;
+      try {
+        symlinkSync(
+          outsideArtifactsDirectory,
+          resolve(directoryLinkedSeedDirectory, "artifacts"),
+          process.platform === "win32" ? "junction" : "dir",
+        );
+        directoryLinkCreated = true;
+      } catch {
+        // The separate skipIf probe reports unavailable symlink support.
+      }
+      if (directoryLinkCreated) {
+        const directoryLinkedSeedPath = resolve(directoryLinkedSeedDirectory, "seed.json");
+        writeFileSync(
+          directoryLinkedSeedPath,
+          canonicalJson({ ...installedSeedCatalog, artifacts: directoryLinkedArtifacts } as Json),
+        );
+        const rejectedDirectoryLinkedArtifact = spawnSync(
+          process.execPath,
+          [
+            cliPath,
+            "generate-candidate",
+            "--seed",
+            directoryLinkedSeedPath,
+            "--signer",
+            signerPath,
+            "--claims",
+            claimsPath,
+            ...candidateInputs,
+            "--output",
+            resolve(temp, "directory-linked-artifact-output.json"),
+          ],
+          { cwd: consumer, encoding: "utf8" },
+        );
+        expectSanitizedCliFailure(rejectedDirectoryLinkedArtifact, ["outside-linked-artifacts"]);
+        expect(rejectedDirectoryLinkedArtifact.stderr).toMatch(
+          /^error: seed-artifact-not-regular\r?\n$/,
+        );
       }
       const externalSeedDirectory = resolve(temp, "external-organization-seed");
       const externalArtifactsDirectory = resolve(externalSeedDirectory, "artifacts");
@@ -3251,10 +3352,17 @@ describe("public signed catalog V2 acceptance contract", () => {
       const oneMiB = 1024 * 1024;
       const oversizedSignerSentinel = "OVERSIZED_SIGNER_SENTINEL";
       const oversizedClaimsSentinel = "OVERSIZED_CLAIMS_SENTINEL";
+      const oversizedInspectClaimsSentinel = "OVERSIZED_INSPECT_CLAIMS_SENTINEL";
       const oversizedRootSentinel = "OVERSIZED_ROOT_SENTINEL";
       const oversizedPrivateKeySentinel = "OVERSIZED_PRIVATE_KEY_SENTINEL";
+      const oversizedLastAcceptedSentinel = "OVERSIZED_LAST_ACCEPTED_SENTINEL";
+      const oversizedReplayStateSentinel = "OVERSIZED_REPLAY_STATE_SENTINEL";
       writeFileSync(oversizedSignerPath, `${oversizedSignerSentinel}${"x".repeat(oneMiB)}`);
       writeFileSync(oversizedClaimsPath, `${oversizedClaimsSentinel}${"x".repeat(oneMiB)}`);
+      writeFileSync(
+        oversizedInspectClaimsPath,
+        `${oversizedInspectClaimsSentinel}${"x".repeat(oneMiB)}`,
+      );
       writeFileSync(oversizedRootPath, `${oversizedRootSentinel}${"x".repeat(oneMiB)}`);
       writeFileSync(
         oversizedPrivateKeyPath,
@@ -3330,6 +3438,14 @@ describe("public signed catalog V2 acceptance contract", () => {
       writeFileSync(
         oversizedCandidatePath,
         `${oversizedCandidateSentinel}${"x".repeat(8 * oneMiB)}`,
+      );
+      writeFileSync(
+        oversizedLastAcceptedPath,
+        `${oversizedLastAcceptedSentinel}${"x".repeat(8 * oneMiB)}`,
+      );
+      writeFileSync(
+        oversizedReplayStatePath,
+        `${oversizedReplayStateSentinel}${"x".repeat(oneMiB)}`,
       );
       const rejectsOversizedSeedBeforeSignerParse = spawnSync(
         process.execPath,
@@ -3641,6 +3757,72 @@ describe("public signed catalog V2 acceptance contract", () => {
       );
       expectSanitizedCliFailure(rejectsOversizedRoot, [oversizedRootSentinel, signedCatalog]);
       expect(rejectsOversizedRoot.stderr).toMatch(/^error: catalog-signer-root-too-large\r?\n$/);
+      const rejectsOversizedInspectClaims = spawnSync(
+        process.execPath,
+        [
+          cliPath,
+          "inspect",
+          "--signed-catalog",
+          signedCatalogPath,
+          "--catalog-signer-root",
+          resolve(temp, "must-not-read-root.json"),
+          "--expected-claims",
+          oversizedInspectClaimsPath,
+          "--now",
+          inspectionNow,
+          "--continuity",
+          "genesis",
+        ],
+        { cwd: consumer, encoding: "utf8" },
+      );
+      expectSanitizedCliFailure(rejectsOversizedInspectClaims, [oversizedInspectClaimsSentinel]);
+      expect(rejectsOversizedInspectClaims.stderr).toMatch(/^error: claims-too-large\r?\n$/);
+      const rejectsOversizedLastAccepted = spawnSync(
+        process.execPath,
+        [
+          cliPath,
+          "inspect",
+          "--signed-catalog",
+          signedCatalogPath,
+          "--catalog-signer-root",
+          rootPath,
+          "--expected-claims",
+          claimsPath,
+          "--now",
+          inspectionNow,
+          "--last-accepted-head",
+          oversizedLastAcceptedPath,
+          "--replay-state",
+          resolve(temp, "must-not-read-replay-state.json"),
+        ],
+        { cwd: consumer, encoding: "utf8" },
+      );
+      expectSanitizedCliFailure(rejectsOversizedLastAccepted, [oversizedLastAcceptedSentinel]);
+      expect(rejectsOversizedLastAccepted.stderr).toMatch(
+        /^error: last-accepted-head-too-large\r?\n$/,
+      );
+      const rejectsOversizedReplayState = spawnSync(
+        process.execPath,
+        [
+          cliPath,
+          "inspect",
+          "--signed-catalog",
+          signedCatalogPath,
+          "--catalog-signer-root",
+          rootPath,
+          "--expected-claims",
+          claimsPath,
+          "--now",
+          inspectionNow,
+          "--continuity",
+          "genesis",
+          "--replay-state",
+          oversizedReplayStatePath,
+        ],
+        { cwd: consumer, encoding: "utf8" },
+      );
+      expectSanitizedCliFailure(rejectsOversizedReplayState, [oversizedReplayStateSentinel]);
+      expect(rejectsOversizedReplayState.stderr).toMatch(/^error: replay-state-too-large\r?\n$/);
       writeFileSync(oversizedSignedCatalogPath, "A".repeat(24 * oneMiB + 1));
       const rejectsOversizedSignedCatalog = spawnSync(
         process.execPath,
@@ -3801,12 +3983,19 @@ describe("public signed catalog V2 acceptance contract", () => {
       /(?:if|test)\s+[^\n]*actual_commit[^\n]*(?:!=|==|=)[^\n]*inputs\.commit_sha/i,
     );
     expect(candidate).toMatch(/sha256sum|shasum/);
+    expect(candidate).toMatch(/actions\/upload-artifact@[0-9a-f]{40}/);
     expect(candidate).toMatch(/regenerated_candidate|regenerated-candidate/i);
     expect(candidate).toMatch(/embedded_catalog_head|embedded-catalog-head/i);
     expect(candidate).toMatch(/canonical.*(?:catalogHead|catalog_head)/i);
     expect(candidate).toMatch(
       /(?:cmp|diff|test|if)[^\n]*(?:regenerated_candidate|regenerated-candidate)[^\n]*(?:embedded_catalog_head|embedded-catalog-head)/i,
     );
+    const candidateComparisonIndex = candidate.search(
+      /(?:cmp|diff|test|if)[^\n]*(?:regenerated_candidate|regenerated-candidate)[^\n]*(?:embedded_catalog_head|embedded-catalog-head)/i,
+    );
+    const candidateUploadIndex = candidate.search(/actions\/upload-artifact@[0-9a-f]{40}/);
+    expect(candidateComparisonIndex).toBeGreaterThanOrEqual(0);
+    expect(candidateUploadIndex).toBeGreaterThan(candidateComparisonIndex);
     for (const githubContext of [
       "github.repository",
       "github.repository_id",
@@ -3821,6 +4010,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       /inner.*(?:run_id|run_attempt|github\.sha)|claims.*(?:run_id|run_attempt)/i,
     );
     expect(signer).toMatch(/environment:\s*catalog-signing/);
+    expect(signer).toMatch(/needs:\s*(?:candidate|\[\s*candidate\s*\])/);
     expect(signer).toMatch(/actions\/download-artifact@[0-9a-f]{40}/);
     expect(signer).toMatch(/\[0-9a-f\]\{64\}/);
     expect(signer).toMatch(/id-token:\s*write/);
@@ -3846,6 +4036,18 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(signer).toMatch(
       /(?:attest-build-provenance|cosign)[\s\S]*(?:signed_catalog_sha256|actual_catalog_sha256)/i,
     );
+    const signerDigestAssignmentIndex = signer.search(
+      /actual_catalog_sha256\s*=\s*["']?\$\((?:sha256sum|shasum)/i,
+    );
+    const signerDigestCompareIndex = signer.search(
+      /(?:if|test)\s+[^\n]*actual_catalog_sha256[^\n]*(?:!=|==|=)[^\n]*inputs\.signed_catalog_sha256/i,
+    );
+    const outerAttestationIndex = signer.search(
+      /(?:actions\/attest-build-provenance|sigstore\/cosign)@[0-9a-f]{40}/i,
+    );
+    expect(signerDigestAssignmentIndex).toBeGreaterThanOrEqual(0);
+    expect(signerDigestCompareIndex).toBeGreaterThan(signerDigestAssignmentIndex);
+    expect(outerAttestationIndex).toBeGreaterThan(signerDigestCompareIndex);
     expect(verifier).toMatch(/actions\/download-artifact/);
     expect(verifier).toMatch(/npm\s+(ci|run)/);
     expect(verifier).toMatch(/needs:\s*(?:sign|\[\s*sign\s*\])/);
