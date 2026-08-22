@@ -1266,7 +1266,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       const staleSigned = signRawHead(staleHead);
       for (const operation of [publicApi.verifySignedCatalogV2, publicApi.inspectSignedCatalogV2])
         expect(
-          () => operation({ ...verification, signed: staleSigned }),
+          () => operation({ ...verification, lastAccepted: head, signed: staleSigned }),
           `valid DSSE rejects stale ${staleField} after all outer fields are recomputed`,
         ).toThrow();
     }
@@ -1308,7 +1308,9 @@ describe("public signed catalog V2 acceptance contract", () => {
       head: unsortedHead,
     };
     for (const operation of [publicApi.verifySignedCatalogV2, publicApi.inspectSignedCatalogV2])
-      expect(() => operation({ ...verification, signed: unsortedSigned })).toThrow();
+      expect(() =>
+        operation({ ...verification, lastAccepted: head, signed: unsortedSigned }),
+      ).toThrow();
     const candidateWithRecomputedBadMember = recomputeCatalog({
       ...staleSource,
       entries: [
@@ -2285,6 +2287,7 @@ describe("public signed catalog V2 acceptance contract", () => {
         "defaults",
       ]) {
         const unsafeSeedDirectory = resolve(temp, `unsafe-seed-${sha(unsafeArtifactPath)}`);
+        mkdirSync(unsafeSeedDirectory, { recursive: true });
         const confinedArtifacts = Object.fromEntries(
           Object.keys(installedSeedCatalog.artifacts).map((kind) => [
             kind,
