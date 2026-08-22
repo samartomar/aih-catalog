@@ -442,6 +442,11 @@ describe("public signed catalog V2 acceptance contract", () => {
         publicApi.canonicalCatalogHeadV2Bytes(head).toString("utf8"),
       ),
     ).toEqual(head);
+    expect(() =>
+      publicApi.createCatalogHeadV2(
+        headInput(fixture.signer, { validUntil: "2026-11-20T00:00:00Z" }),
+      ),
+    ).not.toThrow();
     for (const nonCanonical of [
       ` ${publicApi.canonicalCatalogHeadV2Bytes(head).toString("utf8")}`,
       `\ufeff${publicApi.canonicalCatalogHeadV2Bytes(head).toString("utf8")}`,
@@ -505,6 +510,84 @@ describe("public signed catalog V2 acceptance contract", () => {
       }),
     ])
       expect(() => publicApi.createCatalogHeadV2(malformed)).toThrow();
+    for (const capability of ["commands", "egress", "hooks", "mcpTools", "permissions"] as const) {
+      const base = entry();
+      const capabilities = base.capabilities as Record<string, string[]>;
+      const capabilityValue = capabilities[capability]?.[0];
+      if (!capabilityValue) throw new Error(`missing ${capability} fixture value`);
+      expect(() =>
+        publicApi.createCatalogHeadV2(
+          headInput(fixture.signer, {
+            entries: [
+              {
+                ...base,
+                capabilities: {
+                  ...capabilities,
+                  [capability]: [capabilityValue, capabilityValue],
+                },
+              },
+            ],
+          }),
+        ),
+      ).toThrow();
+    }
+    for (const qualificationSurface of ["findings", "gaps", "rights"] as const) {
+      const base = entry();
+      const qualification = base.qualification as Record<string, Record<string, unknown>[]>;
+      const qualificationValue = qualification[qualificationSurface]?.[0];
+      if (!qualificationValue) throw new Error(`missing ${qualificationSurface} fixture value`);
+      expect(() =>
+        publicApi.createCatalogHeadV2(
+          headInput(fixture.signer, {
+            entries: [
+              {
+                ...base,
+                qualification: {
+                  ...qualification,
+                  [qualificationSurface]: [qualificationValue, qualificationValue],
+                },
+              },
+            ],
+          }),
+        ),
+      ).toThrow();
+    }
+    for (const noncanonicalEgress of [
+      "https://EXAMPLE.invalid/path",
+      "https://example.invalid/path/",
+      "https://example.invalid:443/path",
+      "https://example.invalid/path?query=1",
+      "https://example.invalid/path#fragment",
+    ])
+      expect(() =>
+        publicApi.createCatalogHeadV2(
+          headInput(fixture.signer, {
+            entries: [
+              {
+                ...entry(),
+                capabilities: { ...(entry().capabilities as object), egress: [noncanonicalEgress] },
+              },
+            ],
+          }),
+        ),
+      ).toThrow();
+    for (const malformedDigestEntry of [
+      { ...entry(), closure: { identity: "closure:default", sha256: "a".repeat(63) } },
+      { ...entry(), prose: { identity: "prose:default", sha256: "A".repeat(64) } },
+      { ...entry(), recipe: { identity: "recipe:default", sha256: "A".repeat(64) } },
+      {
+        ...entry(),
+        qualification: {
+          ...(entry().qualification as object),
+          findings: [{ identity: "finding:clean", sha256: "A".repeat(64) }],
+        },
+      },
+    ])
+      expect(() =>
+        publicApi.createCatalogHeadV2(
+          headInput(fixture.signer, { entries: [malformedDigestEntry] }),
+        ),
+      ).toThrow();
     for (const malformedClaims of [
       {},
       { ...claims(), extra: "forbidden" },
@@ -515,6 +598,14 @@ describe("public signed catalog V2 acceptance contract", () => {
       { ...claims(), jobWorkflowSha: "forbidden-outer-attestation-field" },
       { ...claims(), runAttempt: 1 },
       { ...claims(), runId: "1" },
+      ...Object.keys(claims()).map((missing) =>
+        Object.fromEntries(Object.entries(claims()).filter(([key]) => key !== missing)),
+      ),
+      { ...claims(), repository: "SAMARTOMAR/aih-supported" },
+      { ...claims(), ref: "main" },
+      { ...claims(), jobWorkflowRef: "not-a-workflow-ref" },
+      { ...claims(), eventName: "push" },
+      { ...claims(), environment: "Catalog Signing" },
     ])
       expect(() =>
         publicApi.createCatalogHeadV2(headInput(fixture.signer, { claims: malformedClaims })),
@@ -540,17 +631,40 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(() =>
       publicApi.createCatalogHeadV2(headInput(fixture.signer, { entries: tooManyEntries })),
     ).toThrow(/4096.*entr(?:y|ies)|entr(?:y|ies).*4096/i);
-    const oversizedHead = headInput(fixture.signer, {
-      entries: [
-        {
-          ...entry(),
-          prose: {
-            identity: `prose:${"a".repeat(canonicalHeadLimit)}`,
-            sha256: sha("oversized-prose"),
-          },
+    const oversizedGrammarValidEntries = Array.from({ length: 4_096 }, (_, index) => {
+      const suffix = `${String(index).padStart(4, "0")}.${"a".repeat(240)}`;
+      return {
+        ...entry(`recipe.oversized.${String(index).padStart(4, "0")}`),
+        capabilities: {
+          commands: [`catalog.${suffix}`],
+          egress: [`https://example.invalid/${suffix}`],
+          hooks: [`hook.${suffix}`],
+          mcpTools: [`tool.${suffix}`],
+          permissions: [`contents:${suffix}`],
         },
-      ],
+        qualification: {
+          findings: [{ identity: `finding:${suffix}`, sha256: sha(`finding:${suffix}`) }],
+          gaps: [{ identity: `gap:${suffix}`, sha256: sha(`gap:${suffix}`) }],
+          rights: [{ identity: `right:${suffix}`, sha256: sha(`right:${suffix}`) }],
+        },
+        subject: subject("profile", `profile-oversized-${String(index).padStart(4, "0")}`),
+      };
     });
+    for (const entryValue of oversizedGrammarValidEntries) {
+      for (const value of Object.values(entryValue.capabilities).flat()) {
+        expect(value).toMatch(/^[a-z0-9:./_-]+$/);
+        expect(value.length).toBeLessThanOrEqual(256);
+      }
+      for (const evidence of Object.values(entryValue.qualification).flat()) {
+        expect(evidence.identity).toMatch(/^[a-z0-9:._-]+$/);
+        expect(evidence.identity.length).toBeLessThanOrEqual(256);
+        expect(evidence.sha256).toMatch(/^[a-f0-9]{64}$/);
+      }
+    }
+    const oversizedHead = headInput(fixture.signer, { entries: oversizedGrammarValidEntries });
+    expect(Buffer.byteLength(canonicalJson(oversizedHead as Json), "utf8")).toBeGreaterThan(
+      canonicalHeadLimit,
+    );
     expect(() => publicApi.createCatalogHeadV2(oversizedHead)).toThrow(/head-too-large/i);
     expect(() =>
       publicApi.verifySignedCatalogV2({
@@ -640,6 +754,15 @@ describe("public signed catalog V2 acceptance contract", () => {
     const verifiedHead = publicApi.verifySignedCatalogV2(verification);
     expect(verifiedHead).toEqual(head);
     expect(publicApi.verifySignedCatalogV2({ ...verification, now: head.validFrom })).toEqual(head);
+    const actualV2ReplayIdentity = (statement.predicate as Record<string, unknown>)
+      .replayIdentity as string;
+    for (const operation of [publicApi.verifySignedCatalogV2, publicApi.inspectSignedCatalogV2])
+      expect(() =>
+        operation({
+          ...verification,
+          replay: { acceptedIdentities: [actualV2ReplayIdentity] },
+        }),
+      ).toThrow();
     expect(canonicalJson(verifiedHead as Json)).toBe(
       canonicalJson((statement.predicate as Record<string, unknown>).catalogHead as Json),
     );
@@ -1503,6 +1626,33 @@ describe("public signed catalog V2 acceptance contract", () => {
       expect(() =>
         publicApi.deriveQualificationBasisV2({ entryId: "recipe.default", head: invalidHead }),
       ).toThrow();
+    const incompatibleEntryHead = structuredClone(head) as Record<string, unknown>;
+    const incompatibleEntries = incompatibleEntryHead.entries as Record<string, unknown>[];
+    incompatibleEntries[1] = {
+      ...incompatibleEntries[1],
+      versions: { effect: "999", schema: "2" },
+    };
+    const incompatibleEntryWithoutMember = { ...incompatibleEntries[1] };
+    delete incompatibleEntryWithoutMember.memberSha256;
+    incompatibleEntries[1].memberSha256 = domainSha256(
+      "aih-supported-catalog-member/v2",
+      incompatibleEntryWithoutMember as Json,
+    );
+    incompatibleEntryHead.catalogSha256 = domainSha256(
+      "aih-supported-catalog/v2",
+      incompatibleEntries as Json,
+    );
+    delete incompatibleEntryHead.catalogHeadSha256;
+    incompatibleEntryHead.catalogHeadSha256 = domainSha256(
+      "aih-supported-catalog-head/v2",
+      incompatibleEntryHead as Json,
+    );
+    expect(() =>
+      publicApi.deriveQualificationBasisV2({
+        entryId: "recipe.default",
+        head: incompatibleEntryHead,
+      }),
+    ).toThrow();
     const packageJson = readFileSync(resolve(root, "package.json"), "utf8");
     const packageScripts = JSON.parse(packageJson).scripts as Record<string, string>;
     const verificationWorkflow = readFileSync(
@@ -1791,6 +1941,9 @@ describe("public signed catalog V2 acceptance contract", () => {
       for (const unsafeArtifactPath of [
         "../outside.json",
         "/absolute.json",
+        "//server/share/artifact.json",
+        "\\\\server\\share\\artifact.json",
+        "C:\\drive\\artifact.json",
         "defaults\\backslash.json",
         "",
         ".",
@@ -2144,9 +2297,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       );
       expect(repeatedCandidate.status).toBe(0);
       expect(readFileSync(repeatedCandidatePath, "utf8")).toBe(candidateText);
-      const inspectionNow = new Date(
-        Date.parse(candidate.validFrom as string) + 12 * 60 * 60 * 1_000,
-      ).toISOString();
+      const inspectionNow = "2026-08-22T12:00:00Z";
       expect(inspectionNow < (candidate.validUntil as string)).toBe(true);
       const changedClaimsCandidate = spawnSync(
         process.execPath,
