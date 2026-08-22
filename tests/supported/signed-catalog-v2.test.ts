@@ -671,7 +671,12 @@ describe("public signed catalog V2 acceptance contract", () => {
         const staleEntries = staleHead.entries as Record<string, unknown>[];
         staleEntries[0] = {
           ...staleEntries[0],
-          subjectDigest: (head.entries as Record<string, unknown>[])[0]?.subjectDigest,
+          subject: {
+            ...(staleEntries[0]?.subject as object),
+            subjectDigest: (
+              (head.entries as Record<string, unknown>[])[0]?.subject as Record<string, unknown>
+            ).subjectDigest,
+          },
         };
       } else {
         staleHead.catalogSha256 = head.catalogSha256;
