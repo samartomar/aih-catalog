@@ -119,7 +119,6 @@ function claims(): Record<string, unknown> {
 function changedClaimValues(): Readonly<Record<string, unknown>> {
   return {
     environment: "different-environment",
-    eventName: "push",
     jobWorkflowRef: "samartomar/aih-supported/.github/workflows/other.yml@refs/heads/main",
     ref: "refs/tags/v2",
     repository: "samartomar/other",
@@ -130,10 +129,9 @@ function changedClaimValues(): Readonly<Record<string, unknown>> {
 
 function subject(kind = "profile", id = "default-profile"): Record<string, unknown> {
   const source = {
-    commit: "0123456789abcdef0123456789abcdef01234567",
-    path: "profiles/default.json",
-    repository: "samartomar/aih-supported",
-    type: "github",
+    release: "1.0.0",
+    revision: `sha256:${sha("profile:default")}`,
+    type: "aih",
   };
   const sourceDigest = coreSourceDigest(source);
   return {
@@ -408,7 +406,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       subject: {
         id: "default-profile",
         kind: "profile",
-        source: { type: "github" },
+        source: { type: "aih" },
       },
     });
     const defaultEntry = entries[1] as Record<string, unknown>;
@@ -453,10 +451,28 @@ describe("public signed catalog V2 acceptance contract", () => {
       '{"sequence":0,"sequence":0}',
     ])
       expect(() => publicApi.parseCatalogHeadV2Json(nonCanonical)).toThrow();
+    for (const malformedCanonicalHead of [
+      { ...head, catalogHeadSha256: sha("wrong-canonical-head") },
+      { ...head, extra: true },
+      { ...head, entries: [...(head.entries as Record<string, unknown>[])].reverse() },
+      {
+        ...head,
+        entries: [
+          ...(head.entries as Record<string, unknown>[]),
+          (head.entries as Record<string, unknown>[])[0],
+        ],
+      },
+    ])
+      expect(() =>
+        publicApi.parseCatalogHeadV2Json(canonicalJson(malformedCanonicalHead as Json)),
+      ).toThrow();
     for (const malformed of [
       headInput({ ...fixture.signer, keyId: "ed25519:wrong" }),
       headInput({ ...fixture.signer, privateKey: "forbidden" }),
       headInput(fixture.signer, { entries: [{ ...entry(), evidence: [] }] }),
+      headInput(fixture.signer, {
+        entries: [{ ...entry(), memberSha256: sha("caller-supplied") }],
+      }),
       headInput(fixture.signer, {
         entries: [
           {
@@ -466,6 +482,13 @@ describe("public signed catalog V2 acceptance contract", () => {
         ],
       }),
       headInput(fixture.signer, { previousCatalogHeadSha256: sha("not-genesis") }),
+      headInput(fixture.signer, { sequence: 1 }),
+      headInput(fixture.signer, { unexpectedTopLevel: true }),
+      headInput(fixture.signer, { compatibleEffectVersions: [] }),
+      headInput(fixture.signer, { compatibleSchemaVersions: [] }),
+      headInput(fixture.signer, { compatibleEffectVersions: ["2", "2"] }),
+      headInput(fixture.signer, { compatibleSchemaVersions: ["3", "2"] }),
+      headInput(fixture.signer, { compatibleEffectVersions: ["3"] }),
       headInput(fixture.signer, { effectVersion: "999" }),
       headInput(fixture.signer, { schemaVersion: "999" }),
       headInput(fixture.signer, { entries: [] }),
@@ -474,7 +497,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       headInput(fixture.signer, { validFrom: "2026-08-22T00:00:00+00:00" }),
       headInput(fixture.signer, { validFrom: "2026-08-22T00:00:00.1Z" }),
       headInput(fixture.signer, { validFrom: "2026-08-23T00:00:00Z" }),
-      headInput(fixture.signer, { validUntil: "2026-11-21T00:00:01Z" }),
+      headInput(fixture.signer, { validUntil: "2026-11-20T00:00:01Z" }),
       headInput(fixture.signer, { sequence: -1 }),
       headInput(fixture.signer, { sequence: 1.5 }),
       headInput(fixture.signer, { sequence: -0 }),
@@ -489,6 +512,39 @@ describe("public signed catalog V2 acceptance contract", () => {
           {
             ...entry(),
             subject: { ...subject(), sourceDigest: `sha256:${"A".repeat(64)}` },
+          },
+        ],
+      }),
+      headInput(fixture.signer, {
+        entries: [{ ...entry(), subject: { ...subject(), unexpectedSubjectKey: true } }],
+      }),
+      headInput(fixture.signer, {
+        entries: [{ ...entry(), platforms: [{ architecture: "amd64", os: "linux", extra: true }] }],
+      }),
+      headInput(fixture.signer, {
+        entries: [{ ...entry(), versions: { effect: "2", schema: "2", extra: true } }],
+      }),
+      headInput(fixture.signer, {
+        entries: [
+          { ...entry(), qualification: { ...(entry().qualification as object), extra: [] } },
+        ],
+      }),
+      headInput(fixture.signer, {
+        entries: [{ ...entry(), closure: { ...(entry().closure as object), extra: true } }],
+      }),
+      headInput(fixture.signer, {
+        entries: [{ ...entry(), closure: { identity: "closure:é", sha256: sha("closure:é") } }],
+      }),
+      headInput(fixture.signer, {
+        entries: [
+          { ...entry(), prose: { identity: "prose:e\u0301", sha256: sha("prose:e\u0301") } },
+        ],
+      }),
+      headInput(fixture.signer, {
+        entries: [
+          {
+            ...entry(),
+            recipe: { identity: "recipe:\u0000control", sha256: sha("recipe:control") },
           },
         ],
       }),
@@ -1098,7 +1154,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     const changedSource = {
       ...(((head.entries as Record<string, unknown>[])[0]?.subject as Record<string, unknown>)
         .source as object),
-      path: "profiles/default-changed.json",
+      revision: `sha256:${sha("profile:default:changed")}`,
     };
     const changedSourceDigest = coreSourceDigest(changedSource);
     staleSourceInput.entries = [
@@ -1120,7 +1176,20 @@ describe("public signed catalog V2 acceptance contract", () => {
     delete (staleSourceInput.entries as Record<string, unknown>[])[0]?.memberSha256;
     delete (staleSourceInput.entries as Record<string, unknown>[])[1]?.memberSha256;
     const staleSource = publicApi.createCatalogHeadV2(staleSourceInput);
-    for (const staleField of ["memberSha256", "catalogSha256", "subjectDigest"] as const) {
+    const restampSemanticHead = (value: Record<string, unknown>): Record<string, unknown> => {
+      const withoutHeadDigest = { ...value };
+      delete withoutHeadDigest.catalogHeadSha256;
+      return {
+        ...value,
+        catalogHeadSha256: domainSha256("aih-supported-catalog-head/v2", withoutHeadDigest as Json),
+      };
+    };
+    for (const staleField of [
+      "memberSha256",
+      "catalogSha256",
+      "sourceDigest",
+      "subjectDigest",
+    ] as const) {
       const staleHead = structuredClone(staleSource) as Record<string, unknown>;
       if (staleField === "memberSha256") {
         const staleEntries = staleHead.entries as Record<string, unknown>[];
@@ -1128,20 +1197,21 @@ describe("public signed catalog V2 acceptance contract", () => {
           ...staleEntries[0],
           memberSha256: (head.entries as Record<string, unknown>[])[0]?.memberSha256,
         };
-      } else if (staleField === "subjectDigest") {
+      } else if (staleField === "sourceDigest" || staleField === "subjectDigest") {
         const staleEntries = staleHead.entries as Record<string, unknown>[];
         staleEntries[0] = {
           ...staleEntries[0],
           subject: {
             ...(staleEntries[0]?.subject as object),
-            subjectDigest: (
+            [staleField]: (
               (head.entries as Record<string, unknown>[])[0]?.subject as Record<string, unknown>
-            ).subjectDigest,
+            )[staleField],
           },
         };
       } else {
         staleHead.catalogSha256 = head.catalogSha256;
       }
+      Object.assign(staleHead, restampSemanticHead(staleHead));
       expect(() =>
         publicApi.signCatalogHeadV2({ head: staleHead, privateKey: fixture.privateKey }),
       ).toThrow();
@@ -1187,6 +1257,68 @@ describe("public signed catalog V2 acceptance contract", () => {
           `valid DSSE rejects stale ${staleField} after all outer fields are recomputed`,
         ).toThrow();
     }
+    const unsortedHead = structuredClone(staleSource) as Record<string, unknown>;
+    unsortedHead.entries = [...(unsortedHead.entries as Record<string, unknown>[])].reverse();
+    unsortedHead.catalogSha256 = domainSha256(
+      "aih-supported-catalog/v2",
+      unsortedHead.entries as Json,
+    );
+    Object.assign(unsortedHead, restampSemanticHead(unsortedHead));
+    const unsortedStatement = structuredClone(statement) as Record<string, unknown>;
+    const unsortedPredicate = unsortedStatement.predicate as Record<string, unknown>;
+    unsortedPredicate.catalogHead = unsortedHead;
+    unsortedPredicate.catalogHeadSha256 = unsortedHead.catalogHeadSha256;
+    unsortedPredicate.candidateSha256 = sha(canonicalJson(unsortedHead as Json));
+    unsortedPredicate.replayIdentity = `catalog-head:${unsortedHead.catalogHeadSha256}:${unsortedPredicate.candidateSha256}`;
+    unsortedStatement.subject = [
+      {
+        digest: { sha256: unsortedHead.catalogHeadSha256 },
+        name: "aih-supported/CatalogHeadV2",
+      },
+    ];
+    const unsortedPayload = Buffer.from(canonicalJson(unsortedStatement as Json), "utf8");
+    const unsortedSigned = {
+      envelope: {
+        payload: unsortedPayload.toString("base64"),
+        payloadType: envelope.payloadType,
+        signatures: [
+          {
+            keyid: fixture.signer.keyId,
+            sig: sign(
+              null,
+              dssePae(envelope.payloadType, unsortedPayload),
+              fixture.privateKey as never,
+            ).toString("base64"),
+          },
+        ],
+      },
+      head: unsortedHead,
+    };
+    for (const operation of [publicApi.verifySignedCatalogV2, publicApi.inspectSignedCatalogV2])
+      expect(() => operation({ ...verification, signed: unsortedSigned })).toThrow();
+    const candidateWithRecomputedBadMember = restampSemanticHead({
+      ...staleSource,
+      entries: [
+        {
+          ...((staleSource.entries as Record<string, unknown>[])[0] as Record<string, unknown>),
+          memberSha256: sha("recomputed-outer-but-stale-member"),
+        },
+        (staleSource.entries as Record<string, unknown>[])[1] as Record<string, unknown>,
+      ],
+    });
+    expect(() =>
+      publicApi.planCatalogPromotionV2({
+        candidateHead: candidateWithRecomputedBadMember,
+        lastGood: head,
+        now: "2026-08-22T12:00:00Z",
+      }),
+    ).toThrow();
+    expect(() =>
+      publicApi.deriveQualificationBasisV2({
+        entryId: "recipe.default",
+        head: candidateWithRecomputedBadMember,
+      }),
+    ).toThrow();
     const successorVerification = {
       ...verification,
       expectedClaims: claims(),
@@ -1211,12 +1343,10 @@ describe("public signed catalog V2 acceptance contract", () => {
     const sameSequenceFork = publicApi.createCatalogHeadV2(
       headInput(fixture.signer, { validUntil: "2026-08-23T01:00:00Z" }),
     );
-    const zeroPredecessorSuccessor = publicApi.createCatalogHeadV2(
-      headInput(fixture.signer, {
-        claims: { ...claims(), repository: "samartomar/other" },
-        sequence: 1,
-      }),
-    );
+    const zeroPredecessorSuccessor = headInput(fixture.signer, {
+      sequence: 1,
+    });
+    expect(() => publicApi.createCatalogHeadV2(zeroPredecessorSuccessor)).toThrow();
     for (const [key, value] of Object.entries(changedClaimValues())) {
       const changedHead = publicApi.createCatalogHeadV2(
         headInput(fixture.signer, { claims: { ...claims(), [key]: value } }),
@@ -1246,11 +1376,13 @@ describe("public signed catalog V2 acceptance contract", () => {
       })),
       { ...verification, expectedClaims: { ...claims(), extra: "forbidden" } },
       { ...verification, expectedClaims: { ...claims(), issuer: "https://issuer.invalid" } },
+      { ...verification, expectedClaims: { ...claims(), eventName: "push" } },
       { ...verification, now: "2026-08-24T00:00:00Z" },
       { ...verification, now: "2026-08-21T23:59:59Z" },
       { ...verification, now: "2026-08-22T12:00:00.1Z" },
       { ...verification, now: "2026-08-22T12:00:00+00:00" },
       { ...verification, now: "2026-08-23T00:00:00Z" },
+      { ...verification, now: undefined },
       {
         ...verification,
         catalogSignerRoots: [{ ...fixture.catalogSignerRoot, identity: "administrator:wrong" }],
@@ -1293,6 +1425,25 @@ describe("public signed catalog V2 acceptance contract", () => {
         signed: {
           ...signed,
           envelope: { ...envelope, signatures: [...envelope.signatures, envelope.signatures[0]] },
+        },
+      },
+      {
+        ...verification,
+        signed: { ...signed, envelope: { ...envelope, signatures: [] } },
+      },
+      {
+        ...verification,
+        signed: {
+          ...signed,
+          envelope: {
+            ...envelope,
+            signatures: [
+              {
+                ...envelope.signatures[0],
+                sig: `${envelope.signatures[0]?.sig ?? ""}=`,
+              },
+            ],
+          },
         },
       },
       {
@@ -1385,20 +1536,21 @@ describe("public signed catalog V2 acceptance contract", () => {
           privateKey: fixture.privateKey,
         }),
       },
-      {
-        ...verification,
-        lastAccepted: head,
-        signed: publicApi.signCatalogHeadV2({
-          head: zeroPredecessorSuccessor,
-          privateKey: fixture.privateKey,
-        }),
-      },
       { ...verification, lastAccepted: successor },
       { ...verification, provider: "forbidden" },
       { ...verification, fetch: () => undefined },
       { ...verification, skipContinuity: true },
     ])
       expect(() => publicApi.verifySignedCatalogV2(rejected)).toThrow();
+    for (const operation of [publicApi.verifySignedCatalogV2, publicApi.inspectSignedCatalogV2])
+      expect(() => operation({ ...verification, now: undefined })).toThrow();
+    for (const operation of [publicApi.verifySignedCatalogV2, publicApi.inspectSignedCatalogV2])
+      expect(() =>
+        operation({
+          ...verification,
+          lastAccepted: { ...head, catalogHeadSha256: sha("tampered-last-accepted") },
+        }),
+      ).toThrow();
     for (const signingInput of [
       { head, privateKey: signingFixture().privateKey },
       { head, privateKey: generateKeyPairSync("rsa", { modulusLength: 2048 }).privateKey },
@@ -1462,6 +1614,18 @@ describe("public signed catalog V2 acceptance contract", () => {
       record: { effectVersion: "999", schemaVersion: "999" },
     });
     expect(Object.keys(opaqueInspection).sort()).toEqual(["kind", "record"]);
+    expect(Object.keys(opaqueInspection.record as object).sort()).toEqual([
+      "candidateSha256",
+      "catalogHeadSha256",
+      "claims",
+      "effectVersion",
+      "protocol",
+      "replayIdentity",
+      "schemaVersion",
+      "signer",
+      "validFrom",
+      "validUntil",
+    ]);
     expect(opaqueInspection).not.toHaveProperty("head");
     expect(opaqueInspection).not.toHaveProperty("basis");
     const replayIdentitiesAtLimit = Array.from(
@@ -1535,6 +1699,9 @@ describe("public signed catalog V2 acceptance contract", () => {
       }),
     ).toEqual({ head: lastGood, kind: "unchanged" });
     expect(() =>
+      publicApi.planCatalogPromotionV2({ candidateHead: cleanSuccessor, lastGood }),
+    ).toThrow();
+    expect(() =>
       publicApi.planCatalogPromotionV2({
         candidateHead: cleanSuccessor,
         lastGood: { ...lastGood, catalogSha256: sha("tampered-last-good") },
@@ -1595,7 +1762,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       "prose",
     ]) {
       const result = publicApi.planCatalogPromotionV2({
-        candidateHead: changedSurface(lastGood, surface),
+        candidateHead: publicApi.createCatalogHeadV2(changedSurface(lastGood, surface)),
         lastGood,
         now: "2026-08-22T12:00:00Z",
       }) as Record<string, unknown>;
@@ -1612,6 +1779,13 @@ describe("public signed catalog V2 acceptance contract", () => {
         ]),
       );
     }
+    expect(() =>
+      publicApi.planCatalogPromotionV2({
+        candidateHead: { ...cleanSuccessor, catalogHeadSha256: sha("wrong-candidate-head") },
+        lastGood,
+        now: "2026-08-22T12:00:00Z",
+      }),
+    ).toThrow();
     const entryAdded = publicApi.createCatalogHeadV2({
       ...nextInput(lastGood, fixture.signer),
       entries: [
@@ -1695,6 +1869,12 @@ describe("public signed catalog V2 acceptance contract", () => {
     const sourceVector = vectors.source;
     const subjectVector = vectors.subject;
     if (!sourceVector || !subjectVector) throw new Error("missing exact Core digest vectors");
+    expect(sourceVector.digest).toBe(
+      "sha256:cf031ec31f84fd8d592dd1797711217e3d806f517d3b52a994d5576d78267bc7",
+    );
+    expect(subjectVector.digest).toBe(
+      "sha256:65de8c36c7fa97a742edb7c72bad0df3e261a5c90e59ee26e83896852c7da81a",
+    );
     expect(sourceVector.canonical).toBe(
       `aih-governance-decision-source/v2\0${canonicalJson(sourceVector.value as Json)}`,
     );
@@ -1807,6 +1987,13 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(verifier).toContain("tests/contracts/core/aih-governance-decision-v2.schema.json");
     expect(existsSync(schemaPath)).toBe(true);
     expect(sha(readFileSync(schemaPath))).toBe(schemaSha256);
+    const vectorVerifier = spawnSync(
+      process.execPath,
+      ["tests/contracts/core/verify-core-v2-vectors.mjs"],
+      { cwd: root, encoding: "utf8" },
+    );
+    expect(vectorVerifier.status).toBe(0);
+    expect(vectorVerifier.stdout).toBe("Core V2 vectors and schema lock PASS\n");
     expect(
       spawnSync(process.execPath, [verifierPath], { cwd: root, encoding: "utf8" }).status,
     ).toBe(0);
@@ -2105,6 +2292,7 @@ describe("public signed catalog V2 acceptance contract", () => {
           { cwd: consumer, encoding: "utf8" },
         );
         expectSanitizedCliFailure(rejectedUnsafeSeed, [unsafeArtifactPath]);
+        expect(rejectedUnsafeSeed.stderr).toMatch(/^error: unsafe-seed-artifact\r?\n$/);
       }
       const externalArtifactPath = resolve(temp, "external-profile-artifact.json");
       const linkedArtifactPath = resolve(
@@ -2150,7 +2338,46 @@ describe("public signed catalog V2 acceptance contract", () => {
           { cwd: consumer, encoding: "utf8" },
         );
         expectSanitizedCliFailure(rejectedLinkedArtifact, ["external artifact must not be read"]);
+        expect(rejectedLinkedArtifact.stderr).toMatch(/^error: seed-artifact-not-regular\r?\n$/);
       }
+      const externalSeedDirectory = resolve(temp, "external-organization-seed");
+      const externalArtifactsDirectory = resolve(externalSeedDirectory, "artifacts");
+      mkdirSync(externalArtifactsDirectory, { recursive: true });
+      const externalArtifacts = Object.fromEntries(
+        Object.entries(installedSeedCatalog.artifacts).map(([kind, installedPath]) => {
+          const relativePath = `artifacts/${kind}.json`;
+          writeFileSync(
+            resolve(externalSeedDirectory, relativePath),
+            readFileSync(resolve(installedPackage, installedPath)),
+          );
+          return [kind, relativePath];
+        }),
+      );
+      const externalSeedPath = resolve(externalSeedDirectory, "seed.json");
+      writeFileSync(
+        externalSeedPath,
+        canonicalJson({ ...installedSeedCatalog, artifacts: externalArtifacts } as unknown as Json),
+      );
+      const externalSeedCandidatePath = resolve(temp, "external-seed-candidate.json");
+      const generatedExternalSeed = spawnSync(
+        process.execPath,
+        [
+          cliPath,
+          "generate-candidate",
+          "--seed",
+          externalSeedPath,
+          "--signer",
+          signerPath,
+          "--claims",
+          claimsPath,
+          ...candidateInputs,
+          "--output",
+          externalSeedCandidatePath,
+        ],
+        { cwd: consumer, encoding: "utf8" },
+      );
+      expect(generatedExternalSeed.status).toBe(0);
+      expect(existsSync(externalSeedCandidatePath)).toBe(true);
       for (const digest of Object.values(artifactDigests)) expect(digest).toMatch(/^[a-f0-9]{64}$/);
       expect((installedSeedCatalog as Record<string, unknown>).entryId).toBe("recipe.default");
       expect((installedSeedCatalog as Record<string, unknown>).subject).toMatchObject({
@@ -2183,7 +2410,7 @@ describe("public signed catalog V2 acceptance contract", () => {
         [
           cliPath,
           "inspect",
-          "--catalog",
+          "--signed-catalog",
           installedSeed,
           "--catalog-signer-root",
           rootPath,
@@ -2200,6 +2427,7 @@ describe("public signed catalog V2 acceptance contract", () => {
         { cwd: consumer, encoding: "utf8" },
       );
       expectSanitizedCliFailure(unsignedInspection, [privatePem, claimsText, installedSeedText]);
+      expect(unsignedInspection.stderr).toMatch(/^error: unsigned-catalog\r?\n$/);
       for (const rejectedAuthority of [
         ["--private-key", privateKeyPath],
         ["--sign-callback", "https://signer.invalid/callback"],
@@ -2758,6 +2986,7 @@ describe("public signed catalog V2 acceptance contract", () => {
         oversizedSignerSentinel,
         installedSeedText,
       ]);
+      expect(rejectsOversizedSigner.stderr).toMatch(/^error: signer-too-large\r?\n$/);
       const rejectsOversizedClaims = spawnSync(
         process.execPath,
         [
@@ -2779,6 +3008,7 @@ describe("public signed catalog V2 acceptance contract", () => {
         oversizedClaimsSentinel,
         installedSeedText,
       ]);
+      expect(rejectsOversizedClaims.stderr).toMatch(/^error: claims-too-large\r?\n$/);
       const rejectsOversizedPrivateKey = spawnSync(
         process.execPath,
         [
@@ -2797,6 +3027,7 @@ describe("public signed catalog V2 acceptance contract", () => {
         oversizedPrivateKeySentinel,
         candidateText,
       ]);
+      expect(rejectsOversizedPrivateKey.stderr).toMatch(/^error: private-key-too-large\r?\n$/);
       const oversizedSeedSentinel = "OVERSIZED_SEED_SENTINEL";
       const oversizedCandidateSentinel = "OVERSIZED_CANDIDATE_SENTINEL";
       writeFileSync(oversizedSeedPath, `${oversizedSeedSentinel}${"x".repeat(8 * oneMiB)}`);
@@ -2896,6 +3127,31 @@ describe("public signed catalog V2 acceptance contract", () => {
         { cwd: consumer, encoding: "utf8" },
       );
       expect(inspectedSuccessor.status).toBe(0);
+      const tamperedLastAcceptedPath = resolve(temp, "tampered-last-accepted.json");
+      const tamperedLastAccepted = JSON.parse(candidateText) as Record<string, unknown>;
+      tamperedLastAccepted.catalogHeadSha256 = sha("tampered-last-accepted");
+      writeFileSync(tamperedLastAcceptedPath, canonicalJson(tamperedLastAccepted as Json));
+      const rejectsTamperedLastAccepted = spawnSync(
+        process.execPath,
+        [
+          cliPath,
+          "inspect",
+          "--signed-catalog",
+          successorSignedCatalogPath,
+          "--catalog-signer-root",
+          rootPath,
+          "--expected-claims",
+          claimsPath,
+          "--now",
+          "2026-08-22T12:00:00Z",
+          "--last-accepted-head",
+          tamperedLastAcceptedPath,
+          "--replay-state",
+          replayStatePath,
+        ],
+        { cwd: consumer, encoding: "utf8" },
+      );
+      expectSanitizedCliFailure(rejectsTamperedLastAccepted, [candidateText, claimsText]);
       const rejectsSuccessorAsGenesis = spawnSync(
         process.execPath,
         [
@@ -3027,6 +3283,7 @@ describe("public signed catalog V2 acceptance contract", () => {
         { cwd: consumer, encoding: "utf8" },
       );
       expectSanitizedCliFailure(rejectsOversizedRoot, [oversizedRootSentinel, signedCatalog]);
+      expect(rejectsOversizedRoot.stderr).toMatch(/^error: catalog-signer-root-too-large\r?\n$/);
       writeFileSync(oversizedSignedCatalogPath, "A".repeat(24 * oneMiB + 1));
       const rejectsOversizedSignedCatalog = spawnSync(
         process.execPath,
@@ -3047,6 +3304,9 @@ describe("public signed catalog V2 acceptance contract", () => {
         { cwd: consumer, encoding: "utf8" },
       );
       expectSanitizedCliFailure(rejectsOversizedSignedCatalog, [signedCatalog, claimsText]);
+      expect(rejectsOversizedSignedCatalog.stderr).toMatch(
+        /^error: signed-catalog-too-large\r?\n$/,
+      );
       const inspectedOutput = JSON.parse(inspected.stdout) as Record<string, unknown>;
       expect(inspectedOutput).toMatchObject({
         organizationAdmission: coldAdmin.organizationAdmission,
@@ -3183,6 +3443,12 @@ describe("public signed catalog V2 acceptance contract", () => {
       /(?:if|test)\s+[^\n]*actual_commit[^\n]*(?:!=|==|=)[^\n]*inputs\.commit_sha/i,
     );
     expect(candidate).toMatch(/sha256sum|shasum/);
+    expect(candidate).toMatch(/regenerated_candidate|regenerated-candidate/i);
+    expect(candidate).toMatch(/embedded_catalog_head|embedded-catalog-head/i);
+    expect(candidate).toMatch(/canonical.*(?:catalogHead|catalog_head)/i);
+    expect(candidate).toMatch(
+      /(?:cmp|diff|test|if)[^\n]*(?:regenerated_candidate|regenerated-candidate)[^\n]*(?:embedded_catalog_head|embedded-catalog-head)/i,
+    );
     for (const githubContext of [
       "github.repository",
       "github.repository_id",
@@ -3219,6 +3485,9 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(signer).toMatch(/transparency/i);
     expect(signer).toMatch(/attestations:\s*write/);
     expect(signer).toMatch(/(?:actions\/attest-build-provenance|sigstore\/cosign)@[0-9a-f]{40}/);
+    expect(signer).toMatch(
+      /(?:attest-build-provenance|cosign)[\s\S]*(?:signed_catalog_sha256|actual_catalog_sha256)/i,
+    );
     expect(verifier).toMatch(/actions\/download-artifact/);
     expect(verifier).toMatch(/npm\s+(ci|run)/);
     expect(verifier).toMatch(/needs:\s*(?:sign|\[\s*sign\s*\])/);

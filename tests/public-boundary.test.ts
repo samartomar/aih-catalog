@@ -34,6 +34,9 @@ describe("supported public V2 boundary", () => {
     expect(readFileSync(resolve(root, "src/supported/signed-catalog-v2.ts"), "utf8")).toMatch(
       /export (?:async )?function runCatalogV2Cli/,
     );
+    expect(readFileSync(resolve(root, "src/supported/signed-catalog-v2.ts"), "utf8")).not.toMatch(
+      /\bDate\.now\s*\(|\bnew\s+Date\s*\(/,
+    );
   });
 
   it("keeps all README and ai-coding truth surfaces explicit about Catalog V2 authority and use", () => {
