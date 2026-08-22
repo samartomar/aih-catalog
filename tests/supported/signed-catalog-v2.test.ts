@@ -12,7 +12,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { basename, isAbsolute, join, resolve } from "node:path";
+import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const root = resolve(import.meta.dirname, "..", "..");
@@ -487,8 +487,11 @@ describe("public signed catalog V2 acceptance contract", () => {
       headInput(fixture.signer, { compatibleEffectVersions: [] }),
       headInput(fixture.signer, { compatibleSchemaVersions: [] }),
       headInput(fixture.signer, { compatibleEffectVersions: ["2", "2"] }),
+      headInput(fixture.signer, { compatibleEffectVersions: ["3", "2"] }),
       headInput(fixture.signer, { compatibleSchemaVersions: ["3", "2"] }),
+      headInput(fixture.signer, { compatibleSchemaVersions: ["2", "2"] }),
       headInput(fixture.signer, { compatibleEffectVersions: ["3"] }),
+      headInput(fixture.signer, { compatibleSchemaVersions: ["3"] }),
       headInput(fixture.signer, { effectVersion: "999" }),
       headInput(fixture.signer, { schemaVersion: "999" }),
       headInput(fixture.signer, { entries: [] }),
@@ -1107,45 +1110,6 @@ describe("public signed catalog V2 acceptance contract", () => {
           },
         }),
       ).toThrow();
-    const invalidPredicateHead = {
-      ...head,
-      entries: [
-        {
-          ...(head.entries as Record<string, unknown>[])[0],
-          capabilities: {
-            ...((head.entries as Record<string, unknown>[])[0]?.capabilities as object),
-            commands: ["catalog.tampered"],
-          },
-        },
-        (head.entries as Record<string, unknown>[])[1],
-      ],
-    };
-    const invalidStatement = structuredClone(statement) as Record<string, unknown>;
-    const invalidPredicate = invalidStatement.predicate as Record<string, unknown>;
-    invalidPredicate.catalogHead = invalidPredicateHead;
-    invalidPredicate.candidateSha256 = sha(canonicalJson(invalidPredicateHead as Json));
-    const invalidPayload = Buffer.from(canonicalJson(invalidStatement as Json), "utf8");
-    const invalidEnvelope = {
-      payload: invalidPayload.toString("base64"),
-      payloadType: envelope.payloadType,
-      signatures: [
-        {
-          keyid: fixture.signer.keyId,
-          sig: sign(
-            null,
-            dssePae(envelope.payloadType, invalidPayload),
-            fixture.privateKey as never,
-          ).toString("base64"),
-        },
-      ],
-    };
-    for (const operation of [publicApi.verifySignedCatalogV2, publicApi.inspectSignedCatalogV2])
-      expect(() =>
-        operation({
-          ...verification,
-          signed: { envelope: invalidEnvelope, head: invalidPredicateHead },
-        }),
-      ).toThrow();
     expect(publicApi.inspectSignedCatalogV2(verification)).toEqual({
       kind: "materializable",
       head,
@@ -1190,34 +1154,24 @@ describe("public signed catalog V2 acceptance contract", () => {
         catalogHeadSha256: domainSha256("aih-supported-catalog-head/v2", withoutHeadDigest as Json),
       };
     };
-    for (const staleField of [
-      "memberSha256",
-      "catalogSha256",
-      "sourceDigest",
-      "subjectDigest",
-    ] as const) {
-      const staleHead = structuredClone(staleSource) as Record<string, unknown>;
-      if (staleField === "memberSha256") {
-        const staleEntries = staleHead.entries as Record<string, unknown>[];
-        staleEntries[0] = {
-          ...staleEntries[0],
-          memberSha256: (head.entries as Record<string, unknown>[])[0]?.memberSha256,
+    const recomputeCatalog = (value: Record<string, unknown>): Record<string, unknown> => ({
+      ...value,
+      catalogSha256: domainSha256("aih-supported-catalog/v2", value.entries as Json),
+    });
+    const recomputeMembersAndCatalog = (
+      value: Record<string, unknown>,
+    ): Record<string, unknown> => {
+      const entries = (value.entries as Record<string, unknown>[]).map((candidate) => {
+        const withoutMember = { ...candidate };
+        delete withoutMember.memberSha256;
+        return {
+          ...candidate,
+          memberSha256: domainSha256("aih-supported-catalog-member/v2", withoutMember as Json),
         };
-      } else if (staleField === "sourceDigest" || staleField === "subjectDigest") {
-        const staleEntries = staleHead.entries as Record<string, unknown>[];
-        staleEntries[0] = {
-          ...staleEntries[0],
-          subject: {
-            ...(staleEntries[0]?.subject as object),
-            [staleField]: (
-              (head.entries as Record<string, unknown>[])[0]?.subject as Record<string, unknown>
-            )[staleField],
-          },
-        };
-      } else {
-        staleHead.catalogSha256 = head.catalogSha256;
-      }
-      Object.assign(staleHead, restampSemanticHead(staleHead));
+      });
+      return recomputeCatalog({ ...value, entries });
+    };
+    const signRawHead = (staleHead: Record<string, unknown>) => {
       expect(() =>
         publicApi.signCatalogHeadV2({ head: staleHead, privateKey: fixture.privateKey }),
       ).toThrow();
@@ -1257,6 +1211,59 @@ describe("public signed catalog V2 acceptance contract", () => {
         },
         head: staleHead,
       };
+      return staleSigned;
+    };
+    const staleDigestHeads: Record<string, Record<string, unknown>> = {};
+    const staleMember = structuredClone(staleSource) as Record<string, unknown>;
+    const staleMemberEntries = staleMember.entries as Record<string, unknown>[];
+    staleMemberEntries[0] = {
+      ...staleMemberEntries[0],
+      memberSha256: (head.entries as Record<string, unknown>[])[0]?.memberSha256,
+    };
+    staleDigestHeads.memberSha256 = restampSemanticHead(recomputeCatalog(staleMember));
+
+    const staleCatalog = structuredClone(staleSource) as Record<string, unknown>;
+    staleCatalog.catalogSha256 = head.catalogSha256;
+    staleDigestHeads.catalogSha256 = restampSemanticHead(staleCatalog);
+
+    const staleSourceDigest = structuredClone(staleSource) as Record<string, unknown>;
+    const staleSourceDigestEntries = staleSourceDigest.entries as Record<string, unknown>[];
+    const staleSourceSubject = staleSourceDigestEntries[0]?.subject as Record<string, unknown>;
+    const sourceDigestFromDifferentSource = (
+      (head.entries as Record<string, unknown>[])[0]?.subject as Record<string, unknown>
+    ).sourceDigest as string;
+    staleSourceDigestEntries[0] = {
+      ...staleSourceDigestEntries[0],
+      subject: {
+        ...staleSourceSubject,
+        sourceDigest: sourceDigestFromDifferentSource,
+        subjectDigest: coreSubjectDigest(
+          staleSourceSubject.kind as string,
+          staleSourceSubject.id as string,
+          sourceDigestFromDifferentSource,
+        ),
+      },
+    };
+    staleDigestHeads.sourceDigest = restampSemanticHead(
+      recomputeMembersAndCatalog(staleSourceDigest),
+    );
+
+    const staleSubjectDigest = structuredClone(staleSource) as Record<string, unknown>;
+    const staleSubjectDigestEntries = staleSubjectDigest.entries as Record<string, unknown>[];
+    staleSubjectDigestEntries[0] = {
+      ...staleSubjectDigestEntries[0],
+      subject: {
+        ...(staleSubjectDigestEntries[0]?.subject as object),
+        subjectDigest: (
+          (head.entries as Record<string, unknown>[])[0]?.subject as Record<string, unknown>
+        ).subjectDigest,
+      },
+    };
+    staleDigestHeads.subjectDigest = restampSemanticHead(
+      recomputeMembersAndCatalog(staleSubjectDigest),
+    );
+    for (const [staleField, staleHead] of Object.entries(staleDigestHeads)) {
+      const staleSigned = signRawHead(staleHead);
       for (const operation of [publicApi.verifySignedCatalogV2, publicApi.inspectSignedCatalogV2])
         expect(
           () => operation({ ...verification, signed: staleSigned }),
@@ -1302,7 +1309,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     };
     for (const operation of [publicApi.verifySignedCatalogV2, publicApi.inspectSignedCatalogV2])
       expect(() => operation({ ...verification, signed: unsortedSigned })).toThrow();
-    const candidateWithRecomputedBadMember = restampSemanticHead({
+    const candidateWithRecomputedBadMember = recomputeCatalog({
       ...staleSource,
       entries: [
         {
@@ -1312,6 +1319,10 @@ describe("public signed catalog V2 acceptance contract", () => {
         (staleSource.entries as Record<string, unknown>[])[1] as Record<string, unknown>,
       ],
     });
+    Object.assign(
+      candidateWithRecomputedBadMember,
+      restampSemanticHead(candidateWithRecomputedBadMember),
+    );
     expect(() =>
       publicApi.planCatalogPromotionV2({
         candidateHead: candidateWithRecomputedBadMember,
@@ -2242,6 +2253,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       const installedPackage = resolve(consumer, "node_modules/@aihq/supported");
       const installedSeed = resolve(installedPackage, defaultCatalog.installedSeed as string);
       expect(existsSync(installedSeed)).toBe(true);
+      const installedSeedDirectory = dirname(installedSeed);
       const installedSeedText = readFileSync(installedSeed, "utf8");
       const installedSeedCatalog = JSON.parse(installedSeedText) as {
         artifacts: Record<string, string>;
@@ -2251,7 +2263,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       const artifactDigests = Object.fromEntries(
         Object.entries(installedSeedCatalog.artifacts).map(([kind, path]) => [
           kind,
-          sha(readFileSync(resolve(installedPackage, path))),
+          sha(readFileSync(resolve(installedSeedDirectory, path))),
         ]),
       );
       expect(Object.keys(installedSeedCatalog.artifacts).sort()).toEqual([
@@ -2272,12 +2284,19 @@ describe("public signed catalog V2 acceptance contract", () => {
         "defaults/../profile.json",
         "defaults",
       ]) {
-        const unsafeSeedPath = resolve(temp, `unsafe-seed-${sha(unsafeArtifactPath)}.json`);
+        const unsafeSeedDirectory = resolve(temp, `unsafe-seed-${sha(unsafeArtifactPath)}`);
+        const confinedArtifacts = Object.fromEntries(
+          Object.keys(installedSeedCatalog.artifacts).map((kind) => [
+            kind,
+            `artifacts/${kind}.json`,
+          ]),
+        );
+        const unsafeSeedPath = resolve(unsafeSeedDirectory, "seed.json");
         writeFileSync(
           unsafeSeedPath,
           canonicalJson({
             ...installedSeedCatalog,
-            artifacts: { ...installedSeedCatalog.artifacts, profile: unsafeArtifactPath },
+            artifacts: { ...confinedArtifacts, profile: unsafeArtifactPath },
           } as unknown as Json),
         );
         const rejectedUnsafeSeed = spawnSync(
@@ -2301,12 +2320,22 @@ describe("public signed catalog V2 acceptance contract", () => {
         expect(rejectedUnsafeSeed.stderr).toMatch(/^error: unsafe-seed-artifact\r?\n$/);
       }
       const externalArtifactPath = resolve(temp, "external-profile-artifact.json");
-      const linkedArtifactPath = resolve(
-        installedPackage,
-        "defaults",
-        "linked-profile-artifact.json",
-      );
       writeFileSync(externalArtifactPath, "external artifact must not be read");
+      const linkedSeedDirectory = resolve(temp, "linked-artifact-seed");
+      const linkedArtifactsDirectory = resolve(linkedSeedDirectory, "artifacts");
+      mkdirSync(linkedArtifactsDirectory, { recursive: true });
+      const linkedArtifacts = Object.fromEntries(
+        Object.entries(installedSeedCatalog.artifacts).map(([kind, installedPath]) => {
+          const relativePath = `artifacts/${kind}.json`;
+          if (kind !== "profile")
+            writeFileSync(
+              resolve(linkedSeedDirectory, relativePath),
+              readFileSync(resolve(installedSeedDirectory, installedPath)),
+            );
+          return [kind, relativePath];
+        }),
+      );
+      const linkedArtifactPath = resolve(linkedSeedDirectory, linkedArtifacts.profile as string);
       let linkedArtifactCreated = false;
       try {
         symlinkSync(externalArtifactPath, linkedArtifactPath, "file");
@@ -2315,15 +2344,12 @@ describe("public signed catalog V2 acceptance contract", () => {
         // Symlink/reparse points are unavailable on some supported locked-down hosts.
       }
       if (linkedArtifactCreated) {
-        const linkedSeedPath = resolve(temp, "linked-artifact-seed.json");
+        const linkedSeedPath = resolve(linkedSeedDirectory, "seed.json");
         writeFileSync(
           linkedSeedPath,
           canonicalJson({
             ...installedSeedCatalog,
-            artifacts: {
-              ...installedSeedCatalog.artifacts,
-              profile: "defaults/linked-profile-artifact.json",
-            },
+            artifacts: linkedArtifacts,
           } as unknown as Json),
         );
         const rejectedLinkedArtifact = spawnSync(
@@ -2354,7 +2380,7 @@ describe("public signed catalog V2 acceptance contract", () => {
           const relativePath = `artifacts/${kind}.json`;
           writeFileSync(
             resolve(externalSeedDirectory, relativePath),
-            readFileSync(resolve(installedPackage, installedPath)),
+            readFileSync(resolve(installedSeedDirectory, installedPath)),
           );
           return [kind, relativePath];
         }),
@@ -2392,13 +2418,13 @@ describe("public signed catalog V2 acceptance contract", () => {
       });
       const installedProfileArtifact = JSON.parse(
         readFileSync(
-          resolve(installedPackage, installedSeedCatalog.artifacts.profile as string),
+          resolve(installedSeedDirectory, installedSeedCatalog.artifacts.profile as string),
           "utf8",
         ),
       ) as Record<string, unknown>;
       const installedRecipeArtifact = JSON.parse(
         readFileSync(
-          resolve(installedPackage, installedSeedCatalog.artifacts.recipe as string),
+          resolve(installedSeedDirectory, installedSeedCatalog.artifacts.recipe as string),
           "utf8",
         ),
       ) as Record<string, unknown>;

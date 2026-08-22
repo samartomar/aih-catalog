@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const root = resolve(import.meta.dirname, "..", "..");
@@ -21,7 +21,7 @@ describe("default CatalogHead V2 evidence chain", () => {
     const artifactDigests = Object.fromEntries(
       Object.entries(seed.artifacts).map(([kind, relativePath]) => [
         kind,
-        sha256(readFileSync(resolve(root, relativePath))),
+        sha256(readFileSync(resolve(dirname(seedPath), relativePath))),
       ]),
     );
     for (const digest of Object.values(artifactDigests)) expect(digest).toMatch(/^[a-f0-9]{64}$/);
