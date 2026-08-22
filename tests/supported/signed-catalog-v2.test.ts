@@ -907,7 +907,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       expect(generated.status).toBe(0);
       const candidateText = readFileSync(candidatePath, "utf8");
       const candidate = JSON.parse(candidateText) as Record<string, unknown>;
-      expect(candidateText.trim()).toBe(canonicalJson(candidate as unknown as Json));
+      expect(candidateText).toBe(canonicalJson(candidate as unknown as Json));
       expect(candidate).not.toHaveProperty("signature");
       expect(candidate).not.toHaveProperty("catalogSignerRoot");
       expect(candidate).not.toHaveProperty("privateKey");
@@ -1037,7 +1037,7 @@ describe("public signed catalog V2 acceptance contract", () => {
         envelope: { payload: string; payloadType: string };
         head: Record<string, unknown>;
       };
-      expect(canonicalJson(signedArtifact.head as Json)).toBe(candidateText.trim());
+      expect(canonicalJson(signedArtifact.head as Json)).toBe(candidateText);
       const statement = JSON.parse(
         Buffer.from(signedArtifact.envelope.payload, "base64").toString("utf8"),
       ) as {
@@ -1046,7 +1046,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       };
       expect(signedArtifact.envelope.payloadType).toBe("application/vnd.in-toto+json");
       expect(statement.predicate.candidateSha256).toBe(sha(candidateText));
-      expect(canonicalJson(statement.predicate.catalogHead as Json)).toBe(candidateText.trim());
+      expect(canonicalJson(statement.predicate.catalogHead as Json)).toBe(candidateText);
       expect(statement.subject).toEqual([
         {
           digest: { sha256: candidate.catalogHeadSha256 },
