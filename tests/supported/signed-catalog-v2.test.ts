@@ -129,6 +129,23 @@ function changedClaimValues(): Readonly<Record<string, unknown>> {
 
 function subject(kind = "profile", id = "default-profile"): Record<string, unknown> {
   const source = {
+    commit: "0123456789abcdef0123456789abcdef01234567",
+    path: "profiles/default.json",
+    repository: "samartomar/aih-supported",
+    type: "github",
+  };
+  const sourceDigest = coreSourceDigest(source);
+  return {
+    id,
+    kind,
+    source,
+    sourceDigest,
+    subjectDigest: coreSubjectDigest(kind, id, sourceDigest),
+  };
+}
+
+function aihSubject(kind = "profile", id = "default-profile"): Record<string, unknown> {
+  const source = {
     release: "1.0.0",
     revision: `sha256:${sha("profile:default")}`,
     type: "aih",
@@ -406,7 +423,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       subject: {
         id: "default-profile",
         kind: "profile",
-        source: { type: "aih" },
+        source: { type: "github" },
       },
     });
     const defaultEntry = entries[1] as Record<string, unknown>;
@@ -659,7 +676,7 @@ describe("public signed catalog V2 acceptance contract", () => {
           }),
         ),
       ).toThrow();
-    for (const key of ["release", "revision", "type"])
+    for (const key of ["commit", "path", "repository", "type"])
       expect(() =>
         publicApi.createCatalogHeadV2(
           headInput(fixture.signer, {
@@ -669,6 +686,22 @@ describe("public signed catalog V2 acceptance contract", () => {
                 subject: {
                   ...subject(),
                   source: without(subject().source as Record<string, unknown>, key),
+                },
+              },
+            ],
+          }),
+        ),
+      ).toThrow();
+    for (const key of ["release", "revision", "type"])
+      expect(() =>
+        publicApi.createCatalogHeadV2(
+          headInput(fixture.signer, {
+            entries: [
+              {
+                ...entry(),
+                subject: {
+                  ...aihSubject(),
+                  source: without(aihSubject().source as Record<string, unknown>, key),
                 },
               },
             ],
@@ -1276,7 +1309,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     const changedSource = {
       ...(((head.entries as Record<string, unknown>[])[0]?.subject as Record<string, unknown>)
         .source as object),
-      revision: `sha256:${sha("profile:default:changed")}`,
+      path: "profiles/default-changed.json",
     };
     const changedSourceDigest = coreSourceDigest(changedSource);
     staleSourceInput.entries = [
