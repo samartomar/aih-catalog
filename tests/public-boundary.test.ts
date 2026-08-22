@@ -53,6 +53,7 @@ describe("supported public V2 boundary", () => {
       expect(text).toMatch(/public.*V2|V2.*public/i);
       expect(text).toMatch(/Core.*does not.*consume.*Catalog V2/i);
       expect(text).toMatch(/optional|not.*admission|not-authoritative/i);
+      expect(text).not.toMatch(/deferred .*bootstrap|no product behavior/i);
     }
     const project = JSON.parse(
       readFileSync(resolve(root, "ai-coding/project.json"), "utf8"),
@@ -60,18 +61,22 @@ describe("supported public V2 boundary", () => {
     expect(project.supportedCatalogV2).toEqual({
       coreConsumption: "not-yet",
       documentation: "ai-coding/supported-catalog-v2.md",
+      entrypoints: ["dist/cli.js"],
       organizationAdmission: "not-authoritative",
+      publicationStatus: "release-ready-publication-separately-authorized",
       status: "public-v2",
     });
   });
 
   it("keeps network/process/provider authority absent and confines cryptographic signing to one V2 module", () => {
     const signingModules: string[] = [];
+    const forbiddenRuntimeAuthority =
+      /node:(child_process|http|https|net|tls|dgram)|\bprocess\.(?:spawn|exec|fork)\b|\bfetch\s*\(|(?<![\w.$])(?:spawn|exec|fork)\s*\(|provider\.(request|poll)/i;
+    expect("process.exec()".match(forbiddenRuntimeAuthority)).not.toBeNull();
+    expect("regex.exec()".match(forbiddenRuntimeAuthority)).toBeNull();
     for (const source of sourceFiles()) {
       const text = readFileSync(source, "utf8");
-      expect(text, source).not.toMatch(
-        /node:(child_process|http|https|net|tls|dgram)|\b(fetch|spawn|exec|fork)\s*\(|provider\.(request|poll)/i,
-      );
+      expect(text, source).not.toMatch(forbiddenRuntimeAuthority);
       if (/\b(sign|createPrivateKey)\s*\(/.test(text))
         signingModules.push(relative(root, source).replaceAll("\\", "/"));
     }
