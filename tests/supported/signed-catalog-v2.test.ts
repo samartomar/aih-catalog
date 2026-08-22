@@ -268,7 +268,7 @@ function opaqueUnknownEnvelope(fixture: Fixture): Record<string, unknown> {
       claims: claims(),
       effectVersion: "999",
       protocol: "CatalogHeadV2",
-      replayIdentity: "opaque:catalog-head:999",
+      replayIdentity: `catalog-head:${catalogHeadSha256}:${sha(canonicalJson(opaque))}`,
       schemaVersion: "999",
       signer: fixture.signer,
       validFrom: "2026-08-22T00:00:00Z",
@@ -459,6 +459,13 @@ describe("public signed catalog V2 acceptance contract", () => {
     const fixture = signingFixture();
     const head = publicApi.createCatalogHeadV2(headInput(fixture.signer));
     const signed = publicApi.signCatalogHeadV2({ head, privateKey: fixture.privateKey });
+    const pem = fixture.privateKey.export({ format: "pem", type: "pkcs8" });
+    expect(publicApi.signCatalogHeadV2({ head, privateKey: pem })).toMatchObject({
+      envelope: expect.any(Object),
+    });
+    expect(publicApi.signCatalogHeadV2({ head, privateKey: Buffer.from(pem) })).toMatchObject({
+      envelope: expect.any(Object),
+    });
     const envelope = signed.envelope as {
       payload: string;
       payloadType: string;
@@ -785,6 +792,8 @@ describe("public signed catalog V2 acceptance contract", () => {
       { head, privateKey: fixture.privateKey, provider: "forbidden" },
       { head, privateKey: fixture.privateKey, source: "forbidden" },
       { head, privateKey: fixture.privateKey, authority: "forbidden" },
+      { head, privateKey: "not a PEM" },
+      { head, privateKey: `${pem}\n${pem}` },
     ])
       expect(() => publicApi.signCatalogHeadV2(signingInput)).toThrow();
   });
@@ -821,16 +830,27 @@ describe("public signed catalog V2 acceptance contract", () => {
       sha(canonicalJson(opaqueStatement.predicate.catalogHead as Json)),
     );
 
-    expect(publicApi.inspectSignedCatalogV2(request)).toMatchObject({
+    const opaqueInspection = publicApi.inspectSignedCatalogV2(request) as Record<string, unknown>;
+    expect(opaqueInspection).toMatchObject({
       kind: "unsupported-version",
       record: { effectVersion: "999", schemaVersion: "999" },
     });
+    expect(Object.keys(opaqueInspection).sort()).toEqual(["kind", "record"]);
+    expect(opaqueInspection).not.toHaveProperty("head");
+    expect(opaqueInspection).not.toHaveProperty("basis");
     expect(() => publicApi.verifySignedCatalogV2(request)).toThrow();
     for (const rejected of [
       { ...request, expectedClaims: { ...claims(), runId: "other" } },
       { ...request, now: "2026-08-21T23:59:59Z" },
       { ...request, now: "2026-08-24T00:00:00Z" },
-      { ...request, replay: { acceptedIdentities: ["opaque:catalog-head:999"] } },
+      {
+        ...request,
+        replay: {
+          acceptedIdentities: [
+            `catalog-head:${opaqueStatement.predicate.catalogHeadSha256 as string}:${opaqueStatement.predicate.candidateSha256 as string}`,
+          ],
+        },
+      },
       {
         ...request,
         catalogSignerRoots: [{ ...fixture.catalogSignerRoot, publicKeySpkiSha256: sha("wrong") }],
@@ -929,9 +949,9 @@ describe("public signed catalog V2 acceptance contract", () => {
       expect(result.facts).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            candidateSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+            candidateSurfaceSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
             identity: expect.any(String),
-            lastGoodSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+            lastGoodSurfaceSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
             surface,
           }),
         ]),
@@ -1050,6 +1070,23 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(() =>
       publicApi.deriveQualificationBasisV2({ entryId: "recipe.unknown", head }),
     ).toThrow();
+    for (const invalidHead of [
+      headInput(fixture.signer),
+      { ...head, catalogHeadSha256: sha("tampered-head") },
+      {
+        ...head,
+        entries: [
+          {
+            ...(head.entries as Record<string, unknown>[])[0],
+            memberSha256: sha("tampered-member"),
+          },
+          (head.entries as Record<string, unknown>[])[1],
+        ],
+      },
+    ])
+      expect(() =>
+        publicApi.deriveQualificationBasisV2({ entryId: "recipe.default", head: invalidHead }),
+      ).toThrow();
     const packageJson = readFileSync(resolve(root, "package.json"), "utf8");
     const packageScripts = JSON.parse(packageJson).scripts as Record<string, string>;
     const verificationWorkflow = readFileSync(
@@ -1096,6 +1133,20 @@ describe("public signed catalog V2 acceptance contract", () => {
           { cwd: root, encoding: "utf8" },
         ).status,
       ).not.toBe(0);
+      for (const malformedBasis of [
+        Object.fromEntries(Object.entries(derived).filter(([key]) => key !== "catalogDigest")),
+        { ...derived, catalogDigest: String(derived.catalogDigest).replace("sha256:", "sha1:") },
+        { ...derived, extra: "forbidden" },
+      ]) {
+        writeFileSync(basisPath, canonicalJson(malformedBasis as Json));
+        expect(
+          spawnSync(
+            process.execPath,
+            [verifierPath, "--schema", schemaPath, "--qualification-basis", basisPath],
+            { cwd: root, encoding: "utf8" },
+          ).status,
+        ).not.toBe(0);
+      }
     } finally {
       rmSync(validationTemp, { force: true, recursive: true });
     }
@@ -1149,12 +1200,19 @@ describe("public signed catalog V2 acceptance contract", () => {
     for (const script of Object.values(packageScripts)) expect(script).not.toMatch(/^true(?:\s|$)/);
     const temp = mkdtempSync(join(tmpdir(), "aih-supported-cold-"));
     try {
+      const staleOutput = resolve(root, "dist/stale.js");
+      mkdirSync(resolve(root, "dist"), { recursive: true });
+      writeFileSync(staleOutput, "stale");
+      expect((packageJson.scripts as Record<string, string>).build).toMatch(
+        /(?:node tools\/clean-dist\.mjs|node -e .*dist.*rmSync).*tsc -p tsconfig\.build\.json/,
+      );
       const buildStarted = Date.now();
       const build = spawnSync(process.execPath, [npmCli(), "run", "build"], {
         cwd: root,
         encoding: "utf8",
       });
       expect(build.status).toBe(0);
+      expect(existsSync(staleOutput)).toBe(false);
       for (const output of ["dist/cli.js", "dist/index.js"] as const) {
         const outputPath = resolve(root, output);
         expect(existsSync(outputPath)).toBe(true);
@@ -1306,6 +1364,10 @@ describe("public signed catalog V2 acceptance contract", () => {
           rootPath,
           "--expected-claims",
           claimsPath,
+          "--now",
+          "2026-08-22T12:00:00Z",
+          "--continuity",
+          "genesis",
           "--qualification-basis",
         ],
         { cwd: consumer, encoding: "utf8" },
@@ -1605,6 +1667,27 @@ describe("public signed catalog V2 acceptance contract", () => {
         organizationAdmission: coldAdmin.organizationAdmission,
         verificationMode: coldAdmin.verificationMode,
       });
+      for (const omittedFlag of ["--now", "--continuity"]) {
+        const args = [
+          cliPath,
+          "inspect",
+          "--signed-catalog",
+          signedCatalogPath,
+          "--catalog-signer-root",
+          rootPath,
+          "--expected-claims",
+          claimsPath,
+          "--now",
+          inspectionNow,
+          "--continuity",
+          "genesis",
+        ];
+        const offset = args.indexOf(omittedFlag);
+        args.splice(offset, 2);
+        expect(
+          spawnSync(process.execPath, args, { cwd: consumer, encoding: "utf8" }).status,
+        ).not.toBe(0);
+      }
       const tamperedSignedCatalogPath = resolve(temp, "tampered-signed-catalog.json");
       const wrongRootPath = resolve(temp, "wrong-catalog-signer-root.json");
       writeFileSync(tamperedSignedCatalogPath, `${signedCatalog} `);
@@ -1656,6 +1739,8 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(verificationWorkflow).toContain("npm run verify:default-evidence-chain");
     expect(existsSync(workflowPath)).toBe(true);
     const workflow = readFileSync(workflowPath, "utf8");
+    for (const use of workflow.matchAll(/^\s*-\s*uses:\s*[^@\s]+@([^\s#]+)\s*$/gm))
+      expect(use[1]).toMatch(/^[0-9a-f]{40}$/);
     expect(workflow).toMatch(/^on:\s*\n\s*workflow_dispatch:/m);
     expect(workflow).toMatch(/commit_sha:[\s\S]*required:\s*true/);
     expect(workflow).toMatch(/signed_catalog_sha256:[\s\S]*required:\s*true/);
@@ -1663,6 +1748,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     const signer = workflowJob(workflow, "sign");
     const verifier = workflowJob(workflow, "verify");
     expect(candidate).toMatch(/permissions:\s*\n\s*contents:\s*read/);
+    expect(candidate).toMatch(/persist-credentials:\s*false/);
     expect(candidate).toMatch(/\[0-9a-f\]\{40\}/);
     expect(candidate).not.toMatch(
       /id-token:\s*write|contents:\s*write|\b(sign|cosign|sigstore)\b/i,
@@ -1674,6 +1760,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     );
     expect(candidate).toMatch(/sha256sum|shasum/);
     expect(signer).toMatch(/environment:\s*catalog-signing/);
+    expect(signer).toMatch(/actions\/download-artifact@[0-9a-f]{40}/);
     expect(signer).toMatch(/\[0-9a-f\]\{64\}/);
     expect(signer).toMatch(/id-token:\s*write/);
     expect(signer).toMatch(/sha256sum|shasum/);
@@ -1687,13 +1774,16 @@ describe("public signed catalog V2 acceptance contract", () => {
       /(provenance|attestation).*(signed-catalog|artifact)|(signed-catalog|artifact).*(provenance|attestation)/i,
     );
     expect(signer).not.toMatch(
-      /actions\/checkout|npm\s|candidate\.ts|contents:\s*write|catalogSignerRoot|ed25519.*generate|private.*key/i,
+      /actions\/checkout|npm\s|candidate\.ts|contents:\s*write|catalogSignerRoot|ed25519.*generate|private.*key|\b(curl|wget|gh\s+api)\b/i,
     );
     expect(signer).toMatch(/administrator.*ed25519.*DSSE|DSSE.*administrator.*ed25519/i);
     expect(signer).toMatch(/keyless.*(provenance|publication)|(provenance|publication).*keyless/i);
+    expect(signer).toMatch(/attestations:\s*write/);
+    expect(signer).toMatch(/(?:actions\/attest-build-provenance|sigstore\/cosign)@[0-9a-f]{40}/);
     expect(verifier).toMatch(/actions\/download-artifact/);
     expect(verifier).toMatch(/npm\s+(ci|run)/);
-    expect(verifier).not.toMatch(/needs:\s*\[?candidate/i);
+    expect(verifier).toMatch(/needs:\s*(?:sign|\[\s*sign\s*\])/);
+    expect(verifier).not.toMatch(/needs:\s*(?:candidate|\[[^\]]*candidate)/i);
     expect(workflow).not.toMatch(/\b(release|publish|create-release|git tag)\b/i);
   });
 });
