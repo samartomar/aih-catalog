@@ -59,8 +59,16 @@ describe("supported public V2 boundary", () => {
       expect(text).toMatch(/public.*V2|V2.*public/i);
       expect(text).toMatch(/Core.*does not.*consume.*Catalog V2/i);
       expect(text).toMatch(/optional|not.*admission|not-authoritative/i);
-      expect(text).not.toMatch(/deferred .*bootstrap|no product behavior/i);
+      expect(text).not.toMatch(/deferred .*bootstrap|no product behavior|no public (?:API|CLI)/i);
     }
+    const ciDiscipline = readFileSync(
+      resolve(root, "ai-coding/rules/git-ci-discipline.md"),
+      "utf8",
+    );
+    expect(ciDiscipline).toMatch(/(?:verify|verification).*(?:CI|workflow).*read-only/i);
+    expect(ciDiscipline).toMatch(/manual.*outer.*(?:provenance|attestation)/i);
+    expect(ciDiscipline).toMatch(/(?:publication|provenance).*separately authorized/i);
+    expect(ciDiscipline).toMatch(/exact[- ]SHA|[0-9a-f]\{40\}/i);
     const project = JSON.parse(
       readFileSync(resolve(root, "ai-coding/project.json"), "utf8"),
     ) as Record<string, unknown>;

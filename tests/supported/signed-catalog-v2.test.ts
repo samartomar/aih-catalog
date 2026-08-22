@@ -550,6 +550,46 @@ describe("public signed catalog V2 acceptance contract", () => {
     ])
       for (const operation of [publicApi.verifySignedCatalogV2, publicApi.inspectSignedCatalogV2])
         expect(() => operation({ ...verification, signed: forgedBinding })).toThrow();
+    const signedPredicateMirror = (patch: Record<string, unknown>) => {
+      const mirrorStatement = structuredClone(statement) as Record<string, unknown>;
+      Object.assign(mirrorStatement.predicate as Record<string, unknown>, patch);
+      const mirrorPayload = Buffer.from(canonicalJson(mirrorStatement as Json), "utf8");
+      return {
+        envelope: {
+          payload: mirrorPayload.toString("base64"),
+          payloadType: envelope.payloadType,
+          signatures: [
+            {
+              keyid: fixture.signer.keyId,
+              sig: sign(
+                null,
+                dssePae(envelope.payloadType, mirrorPayload),
+                fixture.privateKey as never,
+              ).toString("base64"),
+            },
+          ],
+        },
+        head,
+      };
+    };
+    const predicateMirrorMismatches: readonly [string, Record<string, unknown>][] = [
+      ["claims", { claims: claims("123456790", 2) }],
+      ["signer", { signer: { ...fixture.signer, identity: "administrator:other" } }],
+      ["validFrom", { validFrom: "2026-08-22T00:00:01Z" }],
+      ["validUntil", { validUntil: "2026-08-23T00:00:01Z" }],
+      ["effectVersion", { effectVersion: 3 }],
+      ["schemaVersion", { schemaVersion: 3 }],
+      ["catalogHeadSha256", { catalogHeadSha256: sha("predicate-mirror") }],
+      ["replayIdentity", { replayIdentity: "catalog-head:predicate-mirror" }],
+    ];
+    for (const [field, patch] of predicateMirrorMismatches) {
+      const mismatched = signedPredicateMirror(patch);
+      for (const operation of [publicApi.verifySignedCatalogV2, publicApi.inspectSignedCatalogV2])
+        expect(
+          () => operation({ ...verification, signed: mismatched }),
+          `valid DSSE rejects outer predicate ${field} mismatch`,
+        ).toThrow();
+    }
     const invalidPredicateHead = {
       ...head,
       entries: [
@@ -599,6 +639,88 @@ describe("public signed catalog V2 acceptance contract", () => {
       head: successor,
       privateKey: fixture.privateKey,
     });
+    const staleSourceInput = nextInput(head, fixture.signer) as Record<string, unknown>;
+    staleSourceInput.entries = [
+      {
+        ...(head.entries as Record<string, unknown>[])[0],
+        subject: {
+          ...((head.entries as Record<string, unknown>[])[0]?.subject as object),
+          source: {
+            ...(((head.entries as Record<string, unknown>[])[0]?.subject as Record<string, unknown>)
+              .source as object),
+            path: "profiles/default-changed.json",
+          },
+        },
+        capabilities: {
+          ...((head.entries as Record<string, unknown>[])[0]?.capabilities as object),
+          egress: ["https://changed.example.invalid"],
+        },
+      },
+      (head.entries as Record<string, unknown>[])[1],
+    ];
+    const staleSource = publicApi.createCatalogHeadV2(staleSourceInput);
+    for (const staleField of ["memberSha256", "catalogSha256", "subjectDigest"] as const) {
+      const staleHead = structuredClone(staleSource) as Record<string, unknown>;
+      if (staleField === "memberSha256") {
+        const staleEntries = staleHead.entries as Record<string, unknown>[];
+        staleEntries[0] = {
+          ...staleEntries[0],
+          memberSha256: (head.entries as Record<string, unknown>[])[0]?.memberSha256,
+        };
+      } else if (staleField === "subjectDigest") {
+        const staleEntries = staleHead.entries as Record<string, unknown>[];
+        staleEntries[0] = {
+          ...staleEntries[0],
+          subjectDigest: (head.entries as Record<string, unknown>[])[0]?.subjectDigest,
+        };
+      } else {
+        staleHead.catalogSha256 = head.catalogSha256;
+      }
+      expect(() =>
+        publicApi.signCatalogHeadV2({ head: staleHead, privateKey: fixture.privateKey }),
+      ).toThrow();
+      const staleStatement = structuredClone(statement) as Record<string, unknown>;
+      const stalePredicate = staleStatement.predicate as Record<string, unknown>;
+      stalePredicate.catalogHead = staleHead;
+      stalePredicate.catalogHeadSha256 = staleHead.catalogHeadSha256;
+      stalePredicate.candidateSha256 = sha(canonicalJson(staleHead as Json));
+      stalePredicate.claims = staleHead.claims;
+      stalePredicate.signer = staleHead.signer;
+      stalePredicate.validFrom = staleHead.validFrom;
+      stalePredicate.validUntil = staleHead.validUntil;
+      stalePredicate.effectVersion = staleHead.effectVersion;
+      stalePredicate.schemaVersion = staleHead.schemaVersion;
+      stalePredicate.replayIdentity = `catalog-head:${staleHead.catalogHeadSha256}:${stalePredicate.candidateSha256}`;
+      staleStatement.subject = [
+        {
+          name: "aih-supported/CatalogHeadV2",
+          digest: { sha256: staleHead.catalogHeadSha256 },
+        },
+      ];
+      const stalePayload = Buffer.from(canonicalJson(staleStatement as Json), "utf8");
+      const staleSigned = {
+        envelope: {
+          payload: stalePayload.toString("base64"),
+          payloadType: envelope.payloadType,
+          signatures: [
+            {
+              keyid: fixture.signer.keyId,
+              sig: sign(
+                null,
+                dssePae(envelope.payloadType, stalePayload),
+                fixture.privateKey as never,
+              ).toString("base64"),
+            },
+          ],
+        },
+        head: staleHead,
+      };
+      for (const operation of [publicApi.verifySignedCatalogV2, publicApi.inspectSignedCatalogV2])
+        expect(
+          () => operation({ ...verification, signed: staleSigned }),
+          `valid DSSE rejects stale ${staleField} after all outer fields are recomputed`,
+        ).toThrow();
+    }
     const successorVerification = {
       ...verification,
       expectedClaims: claims("123456790", 2),
@@ -1194,9 +1316,18 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(packageScripts["verify:cold-external-admin"]).toMatch(
       /^node dist\/cli\.js inspect(?:\s|$)/,
     );
-    expect(packageScripts["verify:default-evidence-chain"]).toMatch(
-      /^(?:node dist\/cli\.js verify-default-evidence-chain|vitest run tests\/supported\/default-evidence-chain\.test\.ts)$/,
+    expect(packageScripts["verify:default-evidence-chain"]).toBe(
+      "vitest run tests/supported/default-evidence-chain.test.ts",
     );
+    const defaultEvidenceChainTest = resolve(
+      root,
+      "tests/supported/default-evidence-chain.test.ts",
+    );
+    expect(existsSync(defaultEvidenceChainTest)).toBe(true);
+    const defaultEvidenceChainSource = readFileSync(defaultEvidenceChainTest, "utf8");
+    expect(defaultEvidenceChainSource).toMatch(/artifactDigests/);
+    expect(defaultEvidenceChainSource).toMatch(/cold-external-admin/);
+    expect(defaultEvidenceChainSource).toMatch(/qualificationBasis/);
     for (const script of Object.values(packageScripts)) expect(script).not.toMatch(/^true(?:\s|$)/);
     const temp = mkdtempSync(join(tmpdir(), "aih-supported-cold-"));
     try {
@@ -1313,6 +1444,8 @@ describe("public signed catalog V2 acceptance contract", () => {
       expect(existsSync(installedSeed)).toBe(true);
       const installedSeedCatalog = JSON.parse(readFileSync(installedSeed, "utf8")) as {
         artifacts: Record<string, string>;
+        entryId: string;
+        subject: Record<string, unknown>;
       };
       const artifactDigests = Object.fromEntries(
         Object.entries(installedSeedCatalog.artifacts).map(([kind, path]) => [
@@ -1448,6 +1581,48 @@ describe("public signed catalog V2 acceptance contract", () => {
       expect(candidate.validUntil).toBe("2026-08-23T00:00:00Z");
       expect(candidate.sequence).toBe(0);
       expect(candidate.previousCatalogHeadSha256).toBe(zeroDigest);
+      expect(
+        spawnSync(
+          process.execPath,
+          [
+            cliPath,
+            "generate-candidate",
+            "--seed",
+            installedSeed,
+            "--signer",
+            signerPath,
+            "--claims",
+            claimsPath,
+            ...candidateInputs,
+            "--output",
+            repeatedCandidatePath,
+            "--unknown-generate-flag",
+            "forbidden",
+          ],
+          { cwd: consumer, encoding: "utf8" },
+        ).status,
+      ).not.toBe(0);
+      const defaultCandidateEntry = (candidate.entries as Record<string, unknown>[]).find(
+        (candidateEntry) => candidateEntry.entryId === installedSeedCatalog.entryId,
+      ) as Record<string, unknown>;
+      expect(defaultCandidateEntry).toBeDefined();
+      expect(defaultCandidateEntry.subject).toMatchObject({
+        id: (installedSeedCatalog.subject as Record<string, unknown>).id,
+        kind: "profile",
+        sourceDigest: artifactDigests.profile,
+      });
+      expect(defaultCandidateEntry.recipe).toEqual({
+        identity: `artifact:${installedSeedCatalog.artifacts.recipe}`,
+        sha256: artifactDigests.recipe,
+      });
+      expect(defaultCandidateEntry.closure).toEqual({
+        identity: `artifact:${installedSeedCatalog.artifacts.closure}`,
+        sha256: artifactDigests.closure,
+      });
+      expect(defaultCandidateEntry.prose).toEqual({
+        identity: `artifact:${installedSeedCatalog.artifacts.prose}`,
+        sha256: artifactDigests.prose,
+      });
       const repeatedCandidate = spawnSync(
         process.execPath,
         [
@@ -1603,6 +1778,24 @@ describe("public signed catalog V2 acceptance contract", () => {
         { cwd: consumer, encoding: "utf8" },
       );
       expect(rejectsWrongPrivateKey.status).not.toBe(0);
+      expect(
+        spawnSync(
+          process.execPath,
+          [
+            cliPath,
+            "sign-candidate",
+            "--candidate",
+            candidatePath,
+            "--private-key",
+            privateKeyPath,
+            "--output",
+            signedCatalogPath,
+            "--unknown-sign-flag",
+            "forbidden",
+          ],
+          { cwd: consumer, encoding: "utf8" },
+        ).status,
+      ).not.toBe(0);
       const signed = spawnSync(
         process.execPath,
         [
@@ -1667,6 +1860,37 @@ describe("public signed catalog V2 acceptance contract", () => {
         organizationAdmission: coldAdmin.organizationAdmission,
         verificationMode: coldAdmin.verificationMode,
       });
+      expect(inspectedOutput.qualificationBasis).toEqual({
+        catalogDigest: `sha256:${candidate.catalogSha256}`,
+        catalogHeadDigest: `sha256:${candidate.catalogHeadSha256}`,
+        catalogMemberDigest: `sha256:${defaultCandidateEntry.memberSha256}`,
+        catalogSignerIdentity: fixture.signer.identity,
+        kind: "aih-supported",
+        subjectDigest: `sha256:${(defaultCandidateEntry.subject as Record<string, unknown>).subjectDigest}`,
+        subjectKind: "profile",
+      });
+      expect(
+        spawnSync(
+          process.execPath,
+          [
+            cliPath,
+            "inspect",
+            "--signed-catalog",
+            signedCatalogPath,
+            "--catalog-signer-root",
+            rootPath,
+            "--expected-claims",
+            claimsPath,
+            "--now",
+            inspectionNow,
+            "--continuity",
+            "genesis",
+            "--unknown-inspect-flag",
+            "forbidden",
+          ],
+          { cwd: consumer, encoding: "utf8" },
+        ).status,
+      ).not.toBe(0);
       for (const omittedFlag of ["--now", "--continuity"]) {
         const args = [
           cliPath,
@@ -1735,7 +1959,9 @@ describe("public signed catalog V2 acceptance contract", () => {
     );
     const workflowPath = resolve(root, ".github/workflows/signed-catalog-v2.yml");
 
-    expect(packageJson).toContain('"verify:default-evidence-chain"');
+    expect(packageJson).toContain(
+      '"verify:default-evidence-chain": "vitest run tests/supported/default-evidence-chain.test.ts"',
+    );
     expect(verificationWorkflow).toContain("npm run verify:default-evidence-chain");
     expect(existsSync(workflowPath)).toBe(true);
     const workflow = readFileSync(workflowPath, "utf8");
