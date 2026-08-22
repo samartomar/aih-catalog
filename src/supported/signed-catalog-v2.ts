@@ -179,12 +179,48 @@ function source(v: unknown): R {
       out[k] = phex(x, "source digest");
     else if (k === "platform") {
       const p = rec(x, "platform");
-      keys(p, ["architecture", "os"], "platform");
+      keys(
+        p,
+        Object.hasOwn(p, "variant") ? ["architecture", "os", "variant"] : ["architecture", "os"],
+        "platform",
+      );
       out[k] = {
-        architecture: text(p.architecture, "platform", /^[a-z0-9-]+$/),
-        os: text(p.os, "platform", /^[a-z0-9-]+$/),
+        architecture: text(p.architecture, "platform", /^[a-z][a-z0-9-]{0,63}$/),
+        os: text(p.os, "platform", /^[a-z][a-z0-9-]{0,63}$/),
+        ...(Object.hasOwn(p, "variant")
+          ? { variant: text(p.variant, "platform", /^[a-z0-9._-]+$/) }
+          : {}),
       };
     } else out[k] = text(x, "source");
+  }
+  // These deliberately mirror the locked Core decision-v2 source grammar.  The
+  // catalog adds no provider interpretation; it only validates and binds bytes.
+  const semver =
+    /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:(?:0|[1-9]\d*)|(?:\d*[A-Za-z-][0-9A-Za-z-]*))(?:\.(?:(?:0|[1-9]\d*)|(?:\d*[A-Za-z-][0-9A-Za-z-]*)))*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
+  if (type === "github") {
+    text(out.commit, "source", /^[0-9a-f]{40}(?:[0-9a-f]{24})?$/);
+    text(out.repository, "source", /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/);
+    text(out.path, "source", /^.{1,500}$/);
+  } else if (type === "npm") {
+    text(out.package, "source", /^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/);
+    text(out.version, "source", semver);
+    text(out.registry, "source");
+    text(out.integrity, "source");
+  } else if (type === "pypi") {
+    text(out.package, "source", /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+    text(out.version, "source", /^[A-Za-z0-9][A-Za-z0-9.!+_-]{0,127}$/);
+    text(out.filename, "source", /^[A-Za-z0-9][A-Za-z0-9._+-]*$/);
+    text(out.registry, "source");
+  } else if (type === "oci") {
+    text(out.registry, "source");
+    text(out.repository, "source", /^.{1,500}$/);
+    const platform = rec(out.platform, "platform");
+    if (Object.hasOwn(platform, "variant"))
+      text(platform.variant, "platform", /^[a-z][a-z0-9-]{0,63}$/);
+  } else if (type === "remote") {
+    text(out.endpoint, "source");
+  } else if (type === "aih") {
+    text(out.release, "source", semver);
   }
   return out;
 }
@@ -250,8 +286,8 @@ function descriptor(v: unknown, c: string): R {
   keys(x, ["identity", "sha256"], c);
   return { identity: text(x.identity, c, /^[a-z][a-z0-9:./_-]{0,255}$/), sha256: hex(x.sha256, c) };
 }
-function evidence(v: unknown, c: string): R[] {
-  if (!Array.isArray(v) || !v.length || v.length > 64) fail(c);
+function evidence(v: unknown, c: string, minimum = 1): R[] {
+  if (!Array.isArray(v) || v.length < minimum || v.length > 64) fail(c);
   const a = (v as unknown[]).map((x: unknown) => descriptor(x, c));
   if (a.some((x, i) => i && String(a[i - 1]?.identity) >= String(x.identity))) fail(c);
   return a;
@@ -300,7 +336,7 @@ function entry(v: unknown, eff: string[], sch: string[]): R {
     permissions: sorted(cap.permissions, "permissions"),
   };
   const q = rec(x.qualification, "qualification");
-  keys(q, ["findings", "gaps", "rights"], "qualification");
+  keys(q, ["findings", "gaps", "report", "rights"], "qualification");
   const ver = rec(x.versions, "versions");
   keys(ver, ["effect", "schema"], "versions");
   const versions = {
@@ -329,8 +365,9 @@ function entry(v: unknown, eff: string[], sch: string[]): R {
     platforms,
     prose: descriptor(x.prose, "prose"),
     qualification: {
-      findings: evidence(q.findings, "findings"),
-      gaps: evidence(q.gaps, "gaps"),
+      findings: evidence(q.findings, "findings", 0),
+      gaps: evidence(q.gaps, "gaps", 0),
+      report: descriptor(q.report, "report"),
       rights: evidence(q.rights, "rights"),
     },
     recipe: descriptor(x.recipe, "recipe"),
@@ -558,36 +595,39 @@ function verified(v: unknown): { head: R; opaque: boolean } {
   const rootValues = array(x.catalogSignerRoots, "roots");
   if (!rootValues.length) fail("roots");
   if (rootValues.length > 64) fail("64 roots");
-  const rootKeyIds = rootValues.map((root) => rec(root, "root").keyId);
-  if (new Set(rootKeyIds).size !== rootKeyIds.length) fail("duplicate root");
-  const signatures = array(env.signatures, "envelope");
-  const sig = rec(signatures[0], "signature");
-  keys(sig, ["keyid", "sig"], "signature");
-  const keyid = text(sig.keyid, "keyid", /^ed25519:[0-9a-f]{64}$/),
-    sigBytes = Buffer.from(base64(sig.sig, "signature"), "base64");
-  let root: R | undefined;
-  for (const r of rootValues) {
-    const q = rec(r, "root");
+  const roots = rootValues.map((value) => {
+    const q = rec(value, "root");
     keys(
       q,
       ["class", "identity", "keyId", "publicKeySpkiDerBase64", "publicKeySpkiSha256"],
       "root",
     );
-    if (q.keyId === keyid) root = q;
-  }
-  if (!root) fail("root");
-  const trustedRoot = root as R;
-  const der = Buffer.from(base64(trustedRoot.publicKeySpkiDerBase64, "root"), "base64");
-  if (sha(der) !== trustedRoot.publicKeySpkiSha256 || trustedRoot.keyId !== `ed25519:${sha(der)}`)
-    fail("root");
-  let pub: KeyObject | undefined;
-  try {
-    pub = createPublicKey({ key: der, format: "der", type: "spki" });
-    if (pub.asymmetricKeyType !== "ed25519") fail("root");
-  } catch {
-    return fail("root");
-  }
-  if (!verify(null, pae(env.payloadType as string, payload), pub ?? fail("root"), sigBytes))
+    const projection = signer({
+      class: q.class,
+      identity: q.identity,
+      keyId: q.keyId,
+      publicKeySpkiSha256: q.publicKeySpkiSha256,
+    });
+    const der = Buffer.from(base64(q.publicKeySpkiDerBase64, "root"), "base64");
+    if (sha(der) !== projection.publicKeySpkiSha256) fail("root");
+    let pub: KeyObject;
+    try {
+      pub = createPublicKey({ key: der, format: "der", type: "spki" });
+      if (pub.asymmetricKeyType !== "ed25519") fail("root");
+    } catch {
+      return fail("root");
+    }
+    return { projection, pub };
+  });
+  if (new Set(roots.map((root) => root.projection.keyId)).size !== roots.length)
+    fail("duplicate root");
+  const signatures = array(env.signatures, "envelope");
+  const sig = rec(signatures[0], "signature");
+  keys(sig, ["keyid", "sig"], "signature");
+  const keyid = text(sig.keyid, "keyid", /^ed25519:[0-9a-f]{64}$/),
+    sigBytes = Buffer.from(base64(sig.sig, "signature"), "base64");
+  const trustedRoot = roots.find((root) => root.projection.keyId === keyid) ?? fail("root");
+  if (!verify(null, pae(env.payloadType as string, payload), trustedRoot.pub, sigBytes))
     fail("signature");
   const replay = x.replay;
   const acceptedReplay = replay === undefined ? undefined : replayIdentities(replay);
@@ -621,10 +661,7 @@ function verified(v: unknown): { head: R; opaque: boolean } {
     const opaqueSigner = signer(pr.signer);
     if (
       canon({
-        class: trustedRoot.class,
-        identity: trustedRoot.identity,
-        keyId: trustedRoot.keyId,
-        publicKeySpkiSha256: trustedRoot.publicKeySpkiSha256,
+        ...trustedRoot.projection,
       } as J) !== canon(opaqueSigner as J)
     )
       fail("signer");
@@ -660,10 +697,7 @@ function verified(v: unknown): { head: R; opaque: boolean } {
     fail("binding");
   if (
     canon({
-      class: trustedRoot.class,
-      identity: trustedRoot.identity,
-      keyId: trustedRoot.keyId,
-      publicKeySpkiSha256: trustedRoot.publicKeySpkiSha256,
+      ...trustedRoot.projection,
     } as J) !== canon(signer(h.signer) as J)
   )
     fail("signer");
@@ -721,7 +755,7 @@ export function deriveQualificationBasisV2(v: unknown): R {
   if (!e || (e.versions && ((e.versions as R).effect !== "2" || (e.versions as R).schema !== "2")))
     fail("basis");
   const selected = e as R;
-  return {
+  return frozen({
     catalogDigest: `sha256:${h.catalogSha256}`,
     catalogHeadDigest: `sha256:${h.catalogHeadSha256}`,
     catalogMemberDigest: `sha256:${selected.memberSha256}`,
@@ -729,7 +763,7 @@ export function deriveQualificationBasisV2(v: unknown): R {
     kind: "aih-supported",
     subjectDigest: (selected.subject as R).subjectDigest,
     subjectKind: (selected.subject as R).kind,
-  };
+  });
 }
 export function planCatalogPromotionV2(v: unknown): R {
   const x = rec(v, "promotion");
@@ -836,12 +870,12 @@ export function planCatalogPromotionV2(v: unknown): R {
           candidateSurfaceSha256: sha(canon(bv as J)),
         });
     }
-    for (const surface of ["findings", "gaps", "rights"]) {
+    for (const surface of ["findings", "gaps", "report", "rights"]) {
       const av = (a.qualification as R)[surface];
       const bv = (b.qualification as R)[surface];
       if (canon(av as J) !== canon(bv as J))
         facts.push({
-          surface: surface.slice(0, -1),
+          surface: surface === "report" ? "report" : surface.slice(0, -1),
           identity: id,
           lastGoodSurfaceSha256: sha(canon(av as J)),
           candidateSurfaceSha256: sha(canon(bv as J)),
@@ -959,43 +993,103 @@ export function runCatalogV2Cli(argv: readonly string[]): number {
       const artifactPaths = rec(seed.artifacts, "artifacts");
       keys(artifactPaths, ["closure", "profile", "prose", "recipe"], "artifacts");
       const base = dirname(seedPath);
-      const artifact = (name: string) => {
+      const safePath = (value: unknown, code: string, malformedCode = code) => {
         const path = text(
-          artifactPaths[name],
-          "unsafe-seed-artifact",
+          value,
+          malformedCode,
           /^(?!.*(?:^|\/)\.\.(?:\/|$))(?!\/|\\|[A-Za-z]:|\/\/)[A-Za-z0-9._/-]+$/,
         );
-        if (!/\.[a-z0-9]+$/.test(path)) fail("unsafe-seed-artifact");
+        if (!/\.[a-z0-9]+$/.test(path)) fail(malformedCode);
         const target = resolve(base, path);
-        if (relative(base, target).startsWith("..")) fail("unsafe-seed-artifact");
-        let traversed = base;
-        for (const segment of path.split("/")) {
-          traversed = resolve(traversed, segment);
-          if (lstatSync(traversed).isSymbolicLink()) fail("seed-artifact-not-regular");
+        if (relative(base, target).startsWith("..")) fail(malformedCode);
+        try {
+          let traversed = base;
+          for (const segment of path.split("/")) {
+            traversed = resolve(traversed, segment);
+            if (lstatSync(traversed).isSymbolicLink()) fail("seed-artifact-not-regular");
+          }
+          const st = lstatSync(target);
+          if (!st.isFile() || st.isSymbolicLink()) fail("seed-artifact-not-regular");
+          return { path, target, size: st.size };
+        } catch (error) {
+          if (error instanceof Error && /^[a-z0-9-]+$/.test(error.message)) throw error;
+          return fail(code);
         }
-        const st = lstatSync(target);
-        if (!st.isFile() || st.isSymbolicLink()) fail("seed-artifact-not-regular");
-        return { path, sha256: sha(readFileSync(target)) };
+      };
+      const artifact = (name: string) => {
+        const location = safePath(
+          artifactPaths[name],
+          "seed-artifact-unreadable",
+          "unsafe-seed-artifact",
+        );
+        return { path: location.path, sha256: sha(readFileSync(location.target)) };
       };
       const profile = artifact("profile"),
         recipe = artifact("recipe"),
         closure = artifact("closure"),
         prose = artifact("prose");
-      const source = { release: "1.0.0", revision: `sha256:${profile.sha256}`, type: "aih" };
-      const sourceDigest = `sha256:${digest("aih-governance-decision-source/v2", source)}`;
       const subjectSeed = rec(seed.subject, "subject");
+      keys(subjectSeed, ["id", "kind", "source"], "subject");
       const subjectId = text(subjectSeed.id, "subject id", /^[a-z][a-z0-9-]{0,63}$/);
       const subjectKind = text(
         subjectSeed.kind,
         "subject kind",
         /^(tool|skill|mcp|package|profile)$/,
       );
+      const sourceValue = source(subjectSeed.source);
+      if (sourceValue.type === "aih" && sourceValue.revision !== `sha256:${profile.sha256}`)
+        fail("aih source revision");
+      const sourceDigest = `sha256:${digest("aih-governance-decision-source/v2", sourceValue as J)}`;
+      const qualificationSeed = rec(seed.qualification, "qualification");
+      keys(qualificationSeed, ["findings", "gaps", "report", "rights"], "qualification");
+      const evidenceDescriptor = (kind: "finding" | "gap" | "report" | "right", value: unknown) => {
+        const location = safePath(value, "evidence-unreadable");
+        if (location.size > 1024 * 1024) fail("evidence-too-large");
+        let envelope: R;
+        try {
+          envelope = rec(JSON.parse(readFileSync(location.target, "utf8")), "evidence");
+        } catch {
+          return fail("evidence-unreadable");
+        }
+        keys(
+          envelope,
+          ["attestor", "format", "id", "kind", "subjectDigest", "summary"],
+          "evidence",
+        );
+        if (envelope.format !== "aih-supported-evidence/v2" || envelope.kind !== kind)
+          fail("evidence");
+        if (envelope.subjectDigest !== subjectValue.subjectDigest) fail("evidence-subject");
+        text(envelope.id, "evidence", /^[a-z][a-z0-9._-]{0,127}$/);
+        text(envelope.attestor, "evidence", /^[A-Za-z0-9][A-Za-z0-9:._@/-]{0,255}$/);
+        text(envelope.summary, "evidence", /^.{1,1024}$/);
+        const bytes = readFileSync(location.target);
+        return { identity: `evidence:${kind}:${location.path}`, sha256: sha(bytes) };
+      };
       const subjectValue = {
         id: subjectId,
         kind: subjectKind,
-        source,
+        source: sourceValue,
         sourceDigest,
         subjectDigest: `sha256:${digest("aih-governance-decision-subject/v2", { id: subjectId, kind: subjectKind, sourceDigest })}`,
+      };
+      const evidenceList = (kind: "finding" | "gap" | "right", value: unknown, minimum: number) => {
+        const paths = array(value, "evidence");
+        if (paths.length < minimum || paths.length > 64) fail("evidence");
+        const descriptors = paths.map((path: unknown) => evidenceDescriptor(kind, path));
+        if (
+          descriptors.some(
+            (descriptor, index) =>
+              index > 0 && (descriptors[index - 1]?.identity ?? "") >= descriptor.identity,
+          )
+        )
+          fail("evidence");
+        return descriptors;
+      };
+      const qualification = {
+        findings: evidenceList("finding", qualificationSeed.findings, 0),
+        gaps: evidenceList("gap", qualificationSeed.gaps, 0),
+        report: evidenceDescriptor("report", qualificationSeed.report),
+        rights: evidenceList("right", qualificationSeed.rights, 1),
       };
       const created = createCatalogHeadV2({
         claims: JSON.parse(read(args.claims, 1024 * 1024, "claims-too-large")),
@@ -1009,7 +1103,7 @@ export function runCatalogV2Cli(argv: readonly string[]): number {
             entryId: seed.entryId,
             platforms: seed.platforms,
             prose: { identity: `artifact:${prose.path}`, sha256: prose.sha256 },
-            qualification: seed.qualification,
+            qualification,
             recipe: { identity: `artifact:${recipe.path}`, sha256: recipe.sha256 },
             subject: subjectValue,
             versions: { effect: "2", schema: "2" },

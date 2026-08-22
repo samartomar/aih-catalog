@@ -187,7 +187,7 @@ function coreSourceVariants(): readonly Record<string, unknown>[] {
     {
       indexDigest: digest("oci-index"),
       manifestDigest: digest("oci-manifest"),
-      platform: { architecture: "amd64", os: "linux" },
+      platform: { architecture: "amd64", os: "linux", variant: "v8" },
       registry: "ghcr.io",
       repository: "samartomar/aih-supported",
       type: "oci",
@@ -221,6 +221,7 @@ function entry(id = "recipe.default"): Record<string, unknown> {
     qualification: {
       findings: [{ identity: "finding:clean", sha256: sha("finding:clean") }],
       gaps: [{ identity: "gap:none", sha256: sha("gap:none") }],
+      report: { identity: "report:default", sha256: sha("report:default") },
       rights: [{ identity: "right:catalog.read", sha256: sha("right:catalog.read") }],
     },
     recipe: { identity: "recipe:default", sha256: sha("recipe:default") },
@@ -271,7 +272,7 @@ function changedSurface(lastGood: Head, surface: string): Record<string, unknown
   );
   const first = (candidate.entries as Record<string, unknown>[])[0] as Record<string, unknown>;
   const capabilities = first.capabilities as Record<string, string[]>;
-  const qualification = first.qualification as Record<string, Record<string, unknown>[]>;
+  const qualification = first.qualification as Record<string, unknown>;
   switch (surface) {
     case "claims":
       candidate.claims = { ...(candidate.claims as object), repository: "samartomar/changed" };
@@ -281,6 +282,9 @@ function changedSurface(lastGood: Head, surface: string): Record<string, unknown
       break;
     case "gap":
       qualification.gaps = [{ identity: "gap:changed", sha256: sha("gap:changed") }];
+      break;
+    case "report":
+      qualification.report = { identity: "report:changed", sha256: sha("report:changed") };
       break;
     case "right":
       qualification.rights = [{ identity: "right:changed", sha256: sha("right:changed") }];
@@ -641,6 +645,12 @@ describe("public signed catalog V2 acceptance contract", () => {
 
         const defaultSeed = JSON.parse(readFileSync(defaultSeedPath, "utf8")) as {
           artifacts: Record<string, string>;
+          qualification: {
+            findings: string[];
+            gaps: string[];
+            report: string;
+            rights: string[];
+          };
         };
         const relativeArtifacts = Object.fromEntries(
           Object.keys(defaultSeed.artifacts)
@@ -662,6 +672,18 @@ describe("public signed catalog V2 acceptance contract", () => {
             target,
             readFileSync(resolve(dirname(defaultSeedPath), defaultSeed.artifacts[kind] as string)),
           );
+        };
+        const copyEvidence = (directory: string) => {
+          for (const evidencePath of [
+            defaultSeed.qualification.report,
+            ...defaultSeed.qualification.findings,
+            ...defaultSeed.qualification.gaps,
+            ...defaultSeed.qualification.rights,
+          ]) {
+            const target = resolve(directory, evidencePath);
+            mkdirSync(dirname(target), { recursive: true });
+            writeFileSync(target, readFileSync(resolve(dirname(defaultSeedPath), evidencePath)));
+          }
         };
 
         const fileLinkedSeedDirectory = resolve(temp, "file-linked-seed");
@@ -701,6 +723,24 @@ describe("public signed catalog V2 acceptance contract", () => {
         const directoryLinkedSeed = writeSeed(directoryLinkedSeedDirectory);
         expectExactFailure(
           generate(directoryLinkedSeed, resolve(temp, "directory-linked-candidate.json")),
+          "seed-artifact-not-regular",
+        );
+
+        const evidenceLinkedSeedDirectory = resolve(temp, "evidence-linked-seed");
+        mkdirSync(evidenceLinkedSeedDirectory, { recursive: true });
+        for (const kind of Object.keys(relativeArtifacts))
+          copyArtifact(evidenceLinkedSeedDirectory, kind);
+        copyEvidence(evidenceLinkedSeedDirectory);
+        const linkedReport = resolve(evidenceLinkedSeedDirectory, defaultSeed.qualification.report);
+        const outsideReport = resolve(temp, "outside-evidence-report.json");
+        writeFileSync(outsideReport, "evidence outside the seed must not be read");
+        rmSync(linkedReport);
+        symlinkSync(outsideReport, linkedReport, "file");
+        expectExactFailure(
+          generate(
+            writeSeed(evidenceLinkedSeedDirectory),
+            resolve(temp, "evidence-linked-candidate.json"),
+          ),
           "seed-artifact-not-regular",
         );
 
@@ -835,7 +875,20 @@ describe("public signed catalog V2 acceptance contract", () => {
   it("creates only strict V2 heads with derived Core subjects, member/catalog digests, sorted surfaces, and a zero-digest genesis", async () => {
     const publicApi = await api();
     const fixture = signingFixture();
-    const head = publicApi.createCatalogHeadV2(headInput(fixture.signer));
+    const mutableInput = headInput(fixture.signer);
+    const head = publicApi.createCatalogHeadV2(mutableInput);
+    const inputFirstEntry = (mutableInput.entries as Record<string, unknown>[])[0] as Record<
+      string,
+      unknown
+    >;
+    ((inputFirstEntry.subject as Record<string, unknown>).source as Record<string, unknown>).path =
+      "changed-after-create.json";
+    expect(
+      (
+        ((head.entries as Record<string, unknown>[])[0]?.subject as Record<string, unknown>)
+          .source as Record<string, unknown>
+      ).path,
+    ).toBe("profiles/default.json");
     const entries = head.entries as readonly Record<string, unknown>[];
 
     expect(head.previousCatalogHeadSha256).toBe(zeroDigest);
@@ -886,6 +939,22 @@ describe("public signed catalog V2 acceptance contract", () => {
     );
     const subjectKinds = ["tool", "skill", "mcp", "package", "profile"] as const;
     const sourceVariants = coreSourceVariants();
+    const coreSchema = JSON.parse(
+      readFileSync(
+        resolve(root, "tests/contracts/core/aih-governance-decision-v2.schema.json"),
+        "utf8",
+      ),
+    ) as {
+      oneOf: { properties: { subject: { properties: { source: { oneOf: unknown[] } } } } }[];
+    };
+    const sourceGrammar = coreSchema.oneOf[0]?.properties.subject.properties.source.oneOf;
+    expect(sourceGrammar).toHaveLength(6);
+    const sourceGrammarTypes = (sourceGrammar ?? [])
+      .map(
+        (source) =>
+          (source as { properties?: { type?: { const?: unknown } } }).properties?.type?.const,
+      )
+      .sort();
     expect(sourceVariants.map((source) => source.type).sort()).toEqual([
       "aih",
       "github",
@@ -894,6 +963,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       "pypi",
       "remote",
     ]);
+    expect(sourceGrammarTypes).toEqual(sourceVariants.map((source) => source.type).sort());
     const githubSource = sourceVariants.find((source) => source.type === "github");
     if (!githubSource) throw new Error("missing github Core source vector");
     for (const kind of subjectKinds)
@@ -1567,6 +1637,7 @@ describe("public signed catalog V2 acceptance contract", () => {
         qualification: {
           findings: [{ identity: `finding:${suffix}`, sha256: sha(`finding:${suffix}`) }],
           gaps: [{ identity: `gap:${suffix}`, sha256: sha(`gap:${suffix}`) }],
+          report: { identity: `report:${suffix}`, sha256: sha(`report:${suffix}`) },
           rights: [{ identity: `right:${suffix}`, sha256: sha(`right:${suffix}`) }],
         },
         subject: subject("profile", `profile-oversized-${String(index).padStart(4, "0")}`),
@@ -2256,6 +2327,13 @@ describe("public signed catalog V2 acceptance contract", () => {
       {
         ...verification,
         catalogSignerRoots: [
+          fixture.catalogSignerRoot,
+          { ...signingFixture().catalogSignerRoot, class: "administrator-other" },
+        ],
+      },
+      {
+        ...verification,
+        catalogSignerRoots: [
           {
             ...fixture.catalogSignerRoot,
             publicKeySpkiDerBase64: generateKeyPairSync("rsa", { modulusLength: 2048 })
@@ -2678,6 +2756,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       "claims",
       "finding",
       "gap",
+      "report",
       "right",
       "signer",
       "closure",
@@ -3217,7 +3296,7 @@ describe("public signed catalog V2 acceptance contract", () => {
         capabilities: Record<string, string[]>;
         entryId: string;
         platforms: Record<string, string>[];
-        qualification: Record<string, Record<string, unknown>[]>;
+        qualification: Record<string, unknown>;
         subject: Record<string, unknown>;
       };
       expect(installedSeedCatalog.capabilities).toEqual(defaultCatalog.capabilities);
@@ -3302,6 +3381,22 @@ describe("public signed catalog V2 acceptance contract", () => {
           return [kind, relativePath];
         }),
       );
+      const externalQualification = installedSeedCatalog.qualification as {
+        findings: string[];
+        gaps: string[];
+        report: string;
+        rights: string[];
+      };
+      for (const evidencePath of [
+        externalQualification.report,
+        ...externalQualification.findings,
+        ...externalQualification.gaps,
+        ...externalQualification.rights,
+      ]) {
+        const target = resolve(externalSeedDirectory, evidencePath);
+        mkdirSync(dirname(target), { recursive: true });
+        writeFileSync(target, readFileSync(resolve(installedSeedDirectory, evidencePath)));
+      }
       const externalSeedPath = resolve(externalSeedDirectory, "seed.json");
       writeFileSync(
         externalSeedPath,
@@ -3327,6 +3422,93 @@ describe("public signed catalog V2 acceptance contract", () => {
       );
       expect(generatedExternalSeed.status).toBe(0);
       expect(existsSync(externalSeedCandidatePath)).toBe(true);
+      const externalSeedObject = JSON.parse(readFileSync(externalSeedPath, "utf8")) as Record<
+        string,
+        unknown
+      >;
+      const rejectedEvidenceSeed = (
+        suffix: string,
+        seedValue: Record<string, unknown>,
+        expectedCode: RegExp,
+      ) => {
+        const path = resolve(externalSeedDirectory, `evidence-${suffix}.json`);
+        writeFileSync(path, canonicalJson(seedValue as Json));
+        const result = spawnSync(
+          process.execPath,
+          [
+            cliPath,
+            "generate-candidate",
+            "--seed",
+            path,
+            "--signer",
+            signerPath,
+            "--claims",
+            claimsPath,
+            ...candidateInputs,
+            "--output",
+            resolve(temp, `evidence-${suffix}-output.json`),
+          ],
+          { cwd: consumer, encoding: "utf8" },
+        );
+        expectSanitizedCliFailure(result, [privatePem, claimsText]);
+        expect(result.stderr).toMatch(expectedCode);
+      };
+      rejectedEvidenceSeed(
+        "caller-hash",
+        {
+          ...externalSeedObject,
+          qualification: {
+            ...externalQualification,
+            rights: [{ identity: "right:caller", sha256: sha("caller") }],
+          },
+        },
+        /^error: evidence-unreadable\r?\n$/,
+      );
+      rejectedEvidenceSeed(
+        "missing",
+        {
+          ...externalSeedObject,
+          qualification: { ...externalQualification, report: "evidence/missing.json" },
+        },
+        /^error: evidence-unreadable\r?\n$/,
+      );
+      const reportPath = resolve(externalSeedDirectory, externalQualification.report);
+      const originalReport = readFileSync(reportPath, "utf8");
+      const changedEvidence = (changes: Record<string, unknown>) => {
+        writeFileSync(
+          reportPath,
+          canonicalJson({ ...JSON.parse(originalReport), ...changes } as Json),
+        );
+        rejectedEvidenceSeed(
+          `report-${Object.keys(changes)[0] ?? "changed"}`,
+          externalSeedObject,
+          /^error: evidence(?:-subject)?\r?\n$/,
+        );
+        writeFileSync(reportPath, originalReport);
+      };
+      changedEvidence({ kind: "right" });
+      changedEvidence({ subjectDigest: `sha256:${sha("wrong-evidence-subject")}` });
+      changedEvidence({ attestor: "!invalid-attestor" });
+      const oversizeEvidencePath = resolve(externalSeedDirectory, "evidence", "oversize.json");
+      writeFileSync(oversizeEvidencePath, Buffer.alloc(1024 * 1024 + 1, 0x20));
+      rejectedEvidenceSeed(
+        "oversize",
+        {
+          ...externalSeedObject,
+          qualification: { ...externalQualification, report: "evidence/oversize.json" },
+        },
+        /^error: evidence-too-large\r?\n$/,
+      );
+      const unreadableEvidencePath = resolve(externalSeedDirectory, "evidence", "unreadable.json");
+      mkdirSync(unreadableEvidencePath, { recursive: true });
+      rejectedEvidenceSeed(
+        "unreadable",
+        {
+          ...externalSeedObject,
+          qualification: { ...externalQualification, report: "evidence/unreadable.json" },
+        },
+        /^error: seed-artifact-not-regular\r?\n$/,
+      );
       for (const digest of Object.values(artifactDigests)) expect(digest).toMatch(/^[a-f0-9]{64}$/);
       expect((installedSeedCatalog as Record<string, unknown>).entryId).toBe("recipe.default");
       expect((installedSeedCatalog as Record<string, unknown>).subject).toMatchObject({
@@ -3558,6 +3740,22 @@ describe("public signed catalog V2 acceptance contract", () => {
         type: "aih",
       };
       const expectedDefaultSourceDigest = coreSourceDigest(expectedDefaultSource);
+      const installedQualification = installedSeedCatalog.qualification as {
+        findings: string[];
+        gaps: string[];
+        report: string;
+        rights: string[];
+      };
+      const installedEvidence = (kind: string, path: string) => ({
+        identity: `evidence:${kind}:${path}`,
+        sha256: sha(readFileSync(resolve(installedSeedDirectory, path))),
+      });
+      const expectedQualification = {
+        findings: installedQualification.findings.map((path) => installedEvidence("finding", path)),
+        gaps: installedQualification.gaps.map((path) => installedEvidence("gap", path)),
+        report: installedEvidence("report", installedQualification.report),
+        rights: installedQualification.rights.map((path) => installedEvidence("right", path)),
+      };
       const expectedApiHead = publicApi.createCatalogHeadV2({
         claims: claims(),
         compatibleEffectVersions: ["2"],
@@ -3576,7 +3774,7 @@ describe("public signed catalog V2 acceptance contract", () => {
               identity: `artifact:${installedSeedCatalog.artifacts.prose}`,
               sha256: artifactDigests.prose,
             },
-            qualification: installedSeedCatalog.qualification,
+            qualification: expectedQualification,
             recipe: {
               identity: `artifact:${installedSeedCatalog.artifacts.recipe}`,
               sha256: artifactDigests.recipe,
@@ -4684,6 +4882,9 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(workflow).toMatch(/^on:\s*\n\s*workflow_dispatch:/m);
     expect(workflow).toMatch(/commit_sha:[\s\S]*required:\s*true/);
     expect(workflow).toMatch(/signed_catalog_sha256:[\s\S]*required:\s*true/);
+    expect(workflow).toMatch(/continuity_mode:[\s\S]*required:\s*true/);
+    expect(workflow).toContain("last_accepted_head_path");
+    expect(workflow).toContain("last_accepted_head_sha256");
     const candidate = workflowJob(workflow, "candidate");
     const signer = workflowJob(workflow, "sign");
     const verifier = workflowJob(workflow, "verify");
@@ -4718,15 +4919,19 @@ describe("public signed catalog V2 acceptance contract", () => {
       /git merge-base --is-ancestor\s+"?\$EXPECTED_COMMIT_SHA"?\s+"?origin\/\$\{EXPECTED_REF#refs\/heads\/\}"?/i,
     );
     expect(candidate).toMatch(/sha256sum|shasum/);
+    expect(candidate).toMatch(/realpath\s+-e\s+"?\$GITHUB_WORKSPACE/i);
+    expect(candidate).toMatch(/git ls-files --error-unmatch/i);
+    expect(candidate).toMatch(/CONTINUITY_MODE.*(?:genesis|successor)/s);
+    expect(candidate).toMatch(/planCatalogPromotionV2/);
     expect(candidate).toMatch(/actions\/upload-artifact@[0-9a-f]{40}/);
     expect(candidate).toMatch(/regenerated_candidate|regenerated-candidate/i);
     expect(candidate).toMatch(/embedded_catalog_head|embedded-catalog-head/i);
     expect(candidate).toMatch(/canonical.*(?:catalogHead|catalog_head)/i);
     expect(candidate).toMatch(
-      /(?:cmp|diff|test|if)[^\n]*(?:regenerated_candidate|regenerated-candidate)[^\n]*(?:embedded_catalog_head|embedded-catalog-head)/i,
+      /(?:cmp|diff|test|if)[^\n]*(?:planned_candidate|planned-candidate)[^\n]*(?:embedded_catalog_head|embedded-catalog-head)/i,
     );
     const candidateComparisonIndex = candidate.search(
-      /(?:cmp|diff|test|if)[^\n]*(?:regenerated_candidate|regenerated-candidate)[^\n]*(?:embedded_catalog_head|embedded-catalog-head)/i,
+      /(?:cmp|diff|test|if)[^\n]*(?:planned_candidate|planned-candidate)[^\n]*(?:embedded_catalog_head|embedded-catalog-head)/i,
     );
     const candidateUploadIndex = candidate.search(/actions\/upload-artifact@[0-9a-f]{40}/);
     const candidateInspectIndex = candidate.search(
@@ -4857,6 +5062,8 @@ describe("public signed catalog V2 acceptance contract", () => {
       /git merge-base --is-ancestor\s+"?\$EXPECTED_COMMIT_SHA"?\s+"?origin\/\$\{EXPECTED_REF#refs\/heads\/\}"?/i,
     );
     expect(verifier).toMatch(/(?:node\s+dist\/cli\.js|aih-supported)\s+inspect/i);
+    expect(verifier).toMatch(/realpath\s+-e\s+"?\$GITHUB_WORKSPACE/i);
+    expect(verifier).toMatch(/git ls-files --error-unmatch/i);
     for (const flag of ["--signed-catalog", "--catalog-signer-root", "--expected-claims", "--now"])
       expect(verifier).toContain(flag);
     expect(verifier).toMatch(

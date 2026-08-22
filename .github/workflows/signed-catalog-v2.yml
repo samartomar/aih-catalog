@@ -7,6 +7,9 @@ on:
       signed_catalog_sha256: { required: true, type: string }
       signed_catalog_path: { required: true, type: string }
       catalog_signer_root_path: { required: true, type: string }
+      continuity_mode: { required: true, type: string }
+      last_accepted_head_path: { required: false, type: string }
+      last_accepted_head_sha256: { required: false, type: string }
 
 jobs:
   candidate:
@@ -23,12 +26,16 @@ jobs:
       EXPECTED_EVENT_NAME: ${{ github.event_name }}
       SIGNED_CATALOG_PATH: ${{ inputs.signed_catalog_path }}
       CATALOG_SIGNER_ROOT_PATH: ${{ inputs.catalog_signer_root_path }}
+      CONTINUITY_MODE: ${{ inputs.continuity_mode }}
+      LAST_ACCEPTED_HEAD_PATH: ${{ inputs.last_accepted_head_path }}
+      EXPECTED_LAST_ACCEPTED_HEAD_SHA256: ${{ inputs.last_accepted_head_sha256 }}
       EXPECTED_CLAIMS_PATH: catalog-expected-claims.json
       CANDIDATE_ARTIFACT_PATH: signed-catalog-v2.json
       REGENERATED_CANDIDATE_PATH: regenerated-candidate.json
       EMBEDDED_CATALOG_HEAD_PATH: embedded-catalog-head.json
       CANDIDATE_SIGNER_PATH: candidate-signer.json
       CANDIDATE_METADATA_PATH: candidate-metadata.json
+      PLANNED_CANDIDATE_PATH: planned-candidate.json
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -38,17 +45,35 @@ jobs:
         run: |
           [[ "$EXPECTED_COMMIT_SHA" =~ ^[0-9a-f]{40}$ ]]
           [[ "$EXPECTED_REF" =~ ^refs/heads/main$ ]]
-          [[ "$SIGNED_CATALOG_PATH" =~ ^[A-Za-z0-9._/-]+$ ]]
-          [[ "$CATALOG_SIGNER_ROOT_PATH" =~ ^[A-Za-z0-9._/-]+$ ]]
-          [[ "$SIGNED_CATALOG_PATH" != *".."* ]]
-          [[ "$CATALOG_SIGNER_ROOT_PATH" != *".."* ]]
+          safe_workspace_file() {
+            local requested="$1"
+            [[ "$requested" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]*$ ]]
+            [[ "$requested" != *".."* ]]
+            local workspace resolved
+            workspace=$(realpath -e "$GITHUB_WORKSPACE")
+            resolved=$(realpath -e "$GITHUB_WORKSPACE/$requested")
+            [[ "$resolved" == "$workspace/"* ]]
+            test ! -L "$GITHUB_WORKSPACE/$requested"
+            git ls-files --error-unmatch -- "$requested" >/dev/null
+          }
+          safe_workspace_file "$SIGNED_CATALOG_PATH"
+          safe_workspace_file "$CATALOG_SIGNER_ROOT_PATH"
           actual_commit=$(git rev-parse HEAD)
           test "$actual_commit" = "$EXPECTED_COMMIT_SHA"
           git merge-base --is-ancestor "$EXPECTED_COMMIT_SHA" "origin/${EXPECTED_REF#refs/heads/}"
-          test -f "$SIGNED_CATALOG_PATH"
-          test -f "$CATALOG_SIGNER_ROOT_PATH"
-          test ! -L "$SIGNED_CATALOG_PATH"
-          test ! -L "$CATALOG_SIGNER_ROOT_PATH"
+          if [[ "$CONTINUITY_MODE" == "genesis" ]]; then
+            [[ -z "$LAST_ACCEPTED_HEAD_PATH" ]]
+            [[ -z "$EXPECTED_LAST_ACCEPTED_HEAD_SHA256" ]]
+            continuity_args=(--continuity genesis)
+          elif [[ "$CONTINUITY_MODE" == "successor" ]]; then
+            [[ "$EXPECTED_LAST_ACCEPTED_HEAD_SHA256" =~ ^[0-9a-f]{64}$ ]]
+            safe_workspace_file "$LAST_ACCEPTED_HEAD_PATH"
+            actual_last_accepted_head_sha256=$(sha256sum "$LAST_ACCEPTED_HEAD_PATH" | awk '{print $1}')
+            test "$actual_last_accepted_head_sha256" = "$EXPECTED_LAST_ACCEPTED_HEAD_SHA256"
+            continuity_args=(--last-accepted-head "$LAST_ACCEPTED_HEAD_PATH")
+          else
+            exit 2
+          fi
           actual_catalog_sha256=$(sha256sum "$SIGNED_CATALOG_PATH" | awk '{print $1}')
           test -n "$actual_catalog_sha256"
           inner_claims_github="$EXPECTED_REPOSITORY:$EXPECTED_REPOSITORY_ID:$EXPECTED_REPOSITORY_OWNER_ID:$EXPECTED_REF:$EXPECTED_WORKFLOW_REF:$EXPECTED_EVENT_NAME"
@@ -57,11 +82,11 @@ jobs:
           npm ci --ignore-scripts
           npm run build
           observed_now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          node dist/cli.js inspect --signed-catalog "$SIGNED_CATALOG_PATH" --catalog-signer-root "$CATALOG_SIGNER_ROOT_PATH" --expected-claims "$EXPECTED_CLAIMS_PATH" --now "$observed_now" --continuity genesis
+          node dist/cli.js inspect --signed-catalog "$SIGNED_CATALOG_PATH" --catalog-signer-root "$CATALOG_SIGNER_ROOT_PATH" --expected-claims "$EXPECTED_CLAIMS_PATH" --now "$observed_now" "${continuity_args[@]}"
           node -e "const fs=require('node:fs');const signed=JSON.parse(fs.readFileSync(process.env.SIGNED_CATALOG_PATH));const predicate=JSON.parse(Buffer.from(signed.envelope.payload,'base64')).predicate;const head=predicate.catalogHead;fs.writeFileSync(process.env.EMBEDDED_CATALOG_HEAD_PATH,JSON.stringify(head));fs.writeFileSync(process.env.CANDIDATE_SIGNER_PATH,JSON.stringify(predicate.signer));fs.writeFileSync(process.env.EXPECTED_CLAIMS_PATH,JSON.stringify(predicate.claims));fs.writeFileSync(process.env.CANDIDATE_METADATA_PATH,JSON.stringify({validFrom:head.validFrom,validUntil:head.validUntil,sequence:String(head.sequence),previous:head.previousCatalogHeadSha256}))"
           node dist/cli.js generate-candidate --seed defaults/default-catalog-v2.json --signer "$CANDIDATE_SIGNER_PATH" --claims "$EXPECTED_CLAIMS_PATH" --valid-from "$(node -e "process.stdout.write(require('./candidate-metadata.json').validFrom)")" --valid-until "$(node -e "process.stdout.write(require('./candidate-metadata.json').validUntil)")" --sequence "$(node -e "process.stdout.write(require('./candidate-metadata.json').sequence)")" --previous-catalog-head-sha256 "$(node -e "process.stdout.write(require('./candidate-metadata.json').previous)")" --output "$REGENERATED_CANDIDATE_PATH"
-          canonical_catalogHead=$(sha256sum "$EMBEDDED_CATALOG_HEAD_PATH" | awk '{print $1}')
-          cmp "$REGENERATED_CANDIDATE_PATH" "$EMBEDDED_CATALOG_HEAD_PATH"
+          OBSERVED_NOW="$observed_now" node --input-type=module -e "import fs from 'node:fs'; import { canonicalCatalogHeadV2Bytes, planCatalogPromotionV2 } from './dist/index.js'; const candidate=JSON.parse(fs.readFileSync(process.env.REGENERATED_CANDIDATE_PATH)); const last=process.env.CONTINUITY_MODE==='successor'?JSON.parse(fs.readFileSync(process.env.LAST_ACCEPTED_HEAD_PATH)):candidate; const plan=process.env.CONTINUITY_MODE==='successor'?planCatalogPromotionV2({candidateHead:candidate,lastGood:last,now:process.env.OBSERVED_NOW}):{head:candidate}; fs.writeFileSync(process.env.PLANNED_CANDIDATE_PATH,canonicalCatalogHeadV2Bytes(plan.head));"
+          cmp "$PLANNED_CANDIDATE_PATH" "$EMBEDDED_CATALOG_HEAD_PATH"
           cp "$SIGNED_CATALOG_PATH" "$CANDIDATE_ARTIFACT_PATH"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -113,6 +138,9 @@ jobs:
       EXPECTED_SIGNED_CATALOG_SHA256: ${{ inputs.signed_catalog_sha256 }}
       SIGNED_CATALOG_PATH: signed-catalog-v2/signed-catalog-v2.json
       CATALOG_SIGNER_ROOT_PATH: ${{ inputs.catalog_signer_root_path }}
+      CONTINUITY_MODE: ${{ inputs.continuity_mode }}
+      LAST_ACCEPTED_HEAD_PATH: ${{ inputs.last_accepted_head_path }}
+      EXPECTED_LAST_ACCEPTED_HEAD_SHA256: ${{ inputs.last_accepted_head_sha256 }}
       EXPECTED_CLAIMS_PATH: catalog-expected-claims.json
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -128,14 +156,35 @@ jobs:
           [[ "$EXPECTED_COMMIT_SHA" =~ ^[0-9a-f]{40}$ ]]
           [[ "$EXPECTED_SIGNED_CATALOG_SHA256" =~ ^[0-9a-f]{64}$ ]]
           [[ "$EXPECTED_REF" =~ ^refs/heads/main$ ]]
-          [[ "$CATALOG_SIGNER_ROOT_PATH" =~ ^[A-Za-z0-9._/-]+$ ]]
-          [[ "$CATALOG_SIGNER_ROOT_PATH" != *".."* ]]
+          safe_workspace_file() {
+            local requested="$1"
+            [[ "$requested" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]*$ ]]
+            [[ "$requested" != *".."* ]]
+            local workspace resolved
+            workspace=$(realpath -e "$GITHUB_WORKSPACE")
+            resolved=$(realpath -e "$GITHUB_WORKSPACE/$requested")
+            [[ "$resolved" == "$workspace/"* ]]
+            test ! -L "$GITHUB_WORKSPACE/$requested"
+            git ls-files --error-unmatch -- "$requested" >/dev/null
+          }
+          safe_workspace_file "$CATALOG_SIGNER_ROOT_PATH"
           actual_commit=$(git rev-parse HEAD)
           test "$actual_commit" = "$EXPECTED_COMMIT_SHA"
           git merge-base --is-ancestor "$EXPECTED_COMMIT_SHA" "origin/${EXPECTED_REF#refs/heads/}"
           test -f "$SIGNED_CATALOG_PATH"
-          test -f "$CATALOG_SIGNER_ROOT_PATH"
-          test ! -L "$CATALOG_SIGNER_ROOT_PATH"
+          if [[ "$CONTINUITY_MODE" == "genesis" ]]; then
+            [[ -z "$LAST_ACCEPTED_HEAD_PATH" ]]
+            [[ -z "$EXPECTED_LAST_ACCEPTED_HEAD_SHA256" ]]
+            continuity_args=(--continuity genesis)
+          elif [[ "$CONTINUITY_MODE" == "successor" ]]; then
+            [[ "$EXPECTED_LAST_ACCEPTED_HEAD_SHA256" =~ ^[0-9a-f]{64}$ ]]
+            safe_workspace_file "$LAST_ACCEPTED_HEAD_PATH"
+            actual_last_accepted_head_sha256=$(sha256sum "$LAST_ACCEPTED_HEAD_PATH" | awk '{print $1}')
+            test "$actual_last_accepted_head_sha256" = "$EXPECTED_LAST_ACCEPTED_HEAD_SHA256"
+            continuity_args=(--last-accepted-head "$LAST_ACCEPTED_HEAD_PATH")
+          else
+            exit 2
+          fi
           actual_catalog_sha256=$(sha256sum "$SIGNED_CATALOG_PATH" | awk '{print $1}')
           test "$actual_catalog_sha256" = "$EXPECTED_SIGNED_CATALOG_SHA256"
           test "$(sha256sum "$SIGNED_CATALOG_PATH" | awk '{print $1}')" = "$EXPECTED_SIGNED_CATALOG_SHA256"
@@ -143,5 +192,5 @@ jobs:
           npm run build
           node -e "const fs=require('node:fs');fs.writeFileSync(process.env.EXPECTED_CLAIMS_PATH,JSON.stringify({environment:'catalog-signing',eventName:process.env.EXPECTED_EVENT_NAME,issuer:'https://token.actions.githubusercontent.com',jobWorkflowRef:process.env.EXPECTED_WORKFLOW_REF,ref:process.env.EXPECTED_REF,repository:process.env.EXPECTED_REPOSITORY,repositoryId:process.env.EXPECTED_REPOSITORY_ID,repositoryOwnerId:process.env.EXPECTED_REPOSITORY_OWNER_ID}))"
           observed_now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          node dist/cli.js inspect --signed-catalog "$SIGNED_CATALOG_PATH" --catalog-signer-root "$CATALOG_SIGNER_ROOT_PATH" --expected-claims "$EXPECTED_CLAIMS_PATH" --now "$observed_now" --continuity genesis
+          node dist/cli.js inspect --signed-catalog "$SIGNED_CATALOG_PATH" --catalog-signer-root "$CATALOG_SIGNER_ROOT_PATH" --expected-claims "$EXPECTED_CLAIMS_PATH" --now "$observed_now" "${continuity_args[@]}"
           gh attestation verify "$SIGNED_CATALOG_PATH" --repo "$EXPECTED_REPOSITORY" --source-digest "$EXPECTED_COMMIT_SHA"

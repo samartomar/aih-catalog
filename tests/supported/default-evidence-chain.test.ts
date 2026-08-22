@@ -36,9 +36,10 @@ describe("default CatalogHead V2 evidence chain", () => {
       };
       platforms: { architecture: string; os: string }[];
       qualification: {
-        findings: { identity: string; sha256: string }[];
-        gaps: { identity: string; sha256: string }[];
-        rights: { identity: string; sha256: string }[];
+        findings: string[];
+        gaps: string[];
+        report: string;
+        rights: string[];
       };
     };
     expect(existsSync(seedPath)).toBe(true);
@@ -48,7 +49,7 @@ describe("default CatalogHead V2 evidence chain", () => {
       entryId: string;
       platforms: typeof pinnedDefault.platforms;
       qualification: typeof pinnedDefault.qualification;
-      subject: { id: string; kind: "profile" };
+      subject: { id: string; kind: "profile"; source: Record<string, unknown> };
     };
     expect(seed.capabilities).toEqual(pinnedDefault.capabilities);
     expect(seed.capabilities.commands).toEqual(["catalog.verify"]);
@@ -72,7 +73,12 @@ describe("default CatalogHead V2 evidence chain", () => {
       keyId: `ed25519:${spkiSha256}`,
       publicKeySpkiSha256: spkiSha256,
     };
-    const source = { release: "1.0.0", revision: `sha256:${artifactDigests.profile}`, type: "aih" };
+    const source = seed.subject.source as Json;
+    expect(source).toEqual({
+      release: "1.0.0",
+      revision: `sha256:${artifactDigests.profile}`,
+      type: "aih",
+    });
     const sourceDigest = domainDigest("aih-governance-decision-source/v2", source);
     const subject = {
       id: seed.subject.id,
@@ -84,6 +90,26 @@ describe("default CatalogHead V2 evidence chain", () => {
         kind: seed.subject.kind,
         sourceDigest,
       }),
+    };
+    const evidenceDescriptor = (
+      kind: "finding" | "gap" | "report" | "right",
+      relativePath: string,
+    ) => {
+      const bytes = readFileSync(resolve(dirname(seedPath), relativePath));
+      const envelope = JSON.parse(bytes.toString("utf8")) as Record<string, unknown>;
+      expect(envelope).toMatchObject({
+        attestor: "attestor:aih-supported/default",
+        format: "aih-supported-evidence/v2",
+        kind,
+        subjectDigest: subject.subjectDigest,
+      });
+      return { identity: `evidence:${kind}:${relativePath}`, sha256: sha256(bytes) };
+    };
+    const qualification = {
+      findings: seed.qualification.findings.map((path) => evidenceDescriptor("finding", path)),
+      gaps: seed.qualification.gaps.map((path) => evidenceDescriptor("gap", path)),
+      report: evidenceDescriptor("report", seed.qualification.report),
+      rights: seed.qualification.rights.map((path) => evidenceDescriptor("right", path)),
     };
     const api = (await import("../../src/index.js")) as {
       createCatalogHeadV2(value: unknown): Record<string, unknown>;
@@ -116,7 +142,7 @@ describe("default CatalogHead V2 evidence chain", () => {
           entryId: seed.entryId,
           platforms: seed.platforms,
           prose: { identity: `artifact:${seed.artifacts.prose}`, sha256: artifactDigests.prose },
-          qualification: seed.qualification,
+          qualification,
           recipe: { identity: `artifact:${seed.artifacts.recipe}`, sha256: artifactDigests.recipe },
           subject,
           versions: { effect: "2", schema: "2" },
@@ -136,7 +162,7 @@ describe("default CatalogHead V2 evidence chain", () => {
       closure: { identity: `artifact:${seed.artifacts.closure}`, sha256: artifactDigests.closure },
       platforms: seed.platforms,
       prose: { identity: `artifact:${seed.artifacts.prose}`, sha256: artifactDigests.prose },
-      qualification: seed.qualification,
+      qualification,
       recipe: { identity: `artifact:${seed.artifacts.recipe}`, sha256: artifactDigests.recipe },
       subject: { source },
     });
@@ -153,6 +179,10 @@ describe("default CatalogHead V2 evidence chain", () => {
       subjectDigest: (entry.subject as Record<string, unknown>).subjectDigest,
       subjectKind: "profile",
     });
+    expect(Object.isFrozen(qualificationBasis)).toBe(true);
+    expect(Object.isFrozen(head)).toBe(true);
+    expect(Object.isFrozen(head.entries as object)).toBe(true);
+    expect(Object.isFrozen(entry.subject as object)).toBe(true);
     expect(coldAdmin.organizationAdmission).toBe("not-authoritative");
   });
 });
