@@ -955,6 +955,19 @@ describe("public signed catalog V2 acceptance contract", () => {
           (source as { properties?: { type?: { const?: unknown } } }).properties?.type?.const,
       )
       .sort();
+    const coreSourceByType = new Map(
+      (sourceGrammar ?? []).map((source) => {
+        const definition = source as {
+          properties?: {
+            commit?: { pattern?: unknown };
+            platform?: { properties?: { variant?: { pattern?: unknown } }; required?: unknown[] };
+            release?: { pattern?: unknown };
+            type?: { const?: unknown };
+          };
+        };
+        return [String(definition.properties?.type?.const), definition] as const;
+      }),
+    );
     expect(sourceVariants.map((source) => source.type).sort()).toEqual([
       "aih",
       "github",
@@ -964,6 +977,13 @@ describe("public signed catalog V2 acceptance contract", () => {
       "remote",
     ]);
     expect(sourceGrammarTypes).toEqual(sourceVariants.map((source) => source.type).sort());
+    expect(coreSourceByType.get("github")?.properties?.commit?.pattern).toBe(
+      "^[0-9a-f]{40}(?:[0-9a-f]{24})?$",
+    );
+    expect(coreSourceByType.get("aih")?.properties?.release?.pattern).toContain("[1-9]");
+    const coreOciPlatform = coreSourceByType.get("oci")?.properties?.platform;
+    expect(coreOciPlatform?.required).toEqual(["os", "architecture"]);
+    expect(coreOciPlatform?.properties?.variant?.pattern).toBe("^[a-z][a-z0-9-]{0,63}$");
     const githubSource = sourceVariants.find((source) => source.type === "github");
     if (!githubSource) throw new Error("missing github Core source vector");
     for (const kind of subjectKinds)
@@ -3489,6 +3509,31 @@ describe("public signed catalog V2 acceptance contract", () => {
       changedEvidence({ kind: "right" });
       changedEvidence({ subjectDigest: `sha256:${sha("wrong-evidence-subject")}` });
       changedEvidence({ attestor: "!invalid-attestor" });
+      changedEvidence({ id: "a".repeat(65) });
+      writeFileSync(
+        reportPath,
+        canonicalJson({ ...JSON.parse(originalReport), id: "a".repeat(64) } as Json),
+      );
+      expect(
+        spawnSync(
+          process.execPath,
+          [
+            cliPath,
+            "generate-candidate",
+            "--seed",
+            externalSeedPath,
+            "--signer",
+            signerPath,
+            "--claims",
+            claimsPath,
+            ...candidateInputs,
+            "--output",
+            resolve(temp, "evidence-id-boundary-candidate.json"),
+          ],
+          { cwd: consumer, encoding: "utf8" },
+        ).status,
+      ).toBe(0);
+      writeFileSync(reportPath, originalReport);
       const oversizeEvidencePath = resolve(externalSeedDirectory, "evidence", "oversize.json");
       writeFileSync(oversizeEvidencePath, Buffer.alloc(1024 * 1024 + 1, 0x20));
       rejectedEvidenceSeed(
@@ -3508,6 +3553,13 @@ describe("public signed catalog V2 acceptance contract", () => {
           qualification: { ...externalQualification, report: "evidence/unreadable.json" },
         },
         /^error: seed-artifact-not-regular\r?\n$/,
+      );
+      const oversizedArtifactPath = resolve(externalSeedDirectory, "artifacts", "profile.json");
+      writeFileSync(oversizedArtifactPath, Buffer.alloc(1024 * 1024 + 1, 0x20));
+      rejectedEvidenceSeed(
+        "oversize-artifact",
+        externalSeedObject,
+        /^error: artifact-too-large\r?\n$/,
       );
       for (const digest of Object.values(artifactDigests)) expect(digest).toMatch(/^[a-f0-9]{64}$/);
       expect((installedSeedCatalog as Record<string, unknown>).entryId).toBe("recipe.default");
@@ -4882,6 +4934,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(workflow).toMatch(/^on:\s*\n\s*workflow_dispatch:/m);
     expect(workflow).toMatch(/commit_sha:[\s\S]*required:\s*true/);
     expect(workflow).toMatch(/signed_catalog_sha256:[\s\S]*required:\s*true/);
+    expect(workflow).toMatch(/promotion_plan_sha256:[\s\S]*required:\s*true/);
     expect(workflow).toMatch(/continuity_mode:[\s\S]*required:\s*true/);
     expect(workflow).toContain("last_accepted_head_path");
     expect(workflow).toContain("last_accepted_head_sha256");
@@ -4904,6 +4957,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       EXPECTED_COMMIT_SHA: "$" + "{{ inputs.commit_sha }}",
       EXPECTED_REF: "$" + "{{ github.ref }}",
     });
+    expect(candidateEnv).not.toHaveProperty("EXPECTED_PROMOTION_PLAN_SHA256");
     expect(candidate).toMatch(
       /actions\/checkout[\s\S]*ref:\s*\$\{\{\s*env\.EXPECTED_COMMIT_SHA\s*\}\}/,
     );
@@ -4926,12 +4980,15 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(candidate).toMatch(/actions\/upload-artifact@[0-9a-f]{40}/);
     expect(candidate).toMatch(/regenerated_candidate|regenerated-candidate/i);
     expect(candidate).toMatch(/embedded_catalog_head|embedded-catalog-head/i);
-    expect(candidate).toMatch(/canonical.*(?:catalogHead|catalog_head)/i);
+    expect(candidate).toMatch(/promotion-plan|promotion_plan/i);
+    expect(candidate).toMatch(/candidateCatalogHeadSha256/);
+    expect(candidate).toMatch(/lastGoodCatalogHeadSha256/);
+    expect(candidate).toMatch(/facts:plan\.facts/);
     expect(candidate).toMatch(
-      /(?:cmp|diff|test|if)[^\n]*(?:planned_candidate|planned-candidate)[^\n]*(?:embedded_catalog_head|embedded-catalog-head)/i,
+      /(?:cmp|diff|test|if)[^\n]*(?:regenerated_candidate|regenerated-candidate)[^\n]*(?:embedded_catalog_head|embedded-catalog-head)/i,
     );
     const candidateComparisonIndex = candidate.search(
-      /(?:cmp|diff|test|if)[^\n]*(?:planned_candidate|planned-candidate)[^\n]*(?:embedded_catalog_head|embedded-catalog-head)/i,
+      /(?:cmp|diff|test|if)[^\n]*(?:regenerated_candidate|regenerated-candidate)[^\n]*(?:embedded_catalog_head|embedded-catalog-head)/i,
     );
     const candidateUploadIndex = candidate.search(/actions\/upload-artifact@[0-9a-f]{40}/);
     const candidateInspectIndex = candidate.search(
@@ -4985,12 +5042,18 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(signer).toMatch(/needs:\s*(?:candidate|\[\s*candidate\s*\])/);
     expect(signerEnv).toMatchObject({
       EXPECTED_SIGNED_CATALOG_SHA256: "$" + "{{ inputs.signed_catalog_sha256 }}",
+      EXPECTED_PROMOTION_PLAN_SHA256: "$" + "{{ inputs.promotion_plan_sha256 }}",
     });
     expect(signer).toMatch(/actions\/download-artifact@[0-9a-f]{40}/);
     expect(signer).toMatch(/\[0-9a-f\]\{64\}/);
     expect(signer).toMatch(/id-token:\s*write/);
     expect(signer).toMatch(/sha256sum|shasum/);
     expect(signer).toMatch(/signed_catalog_sha256/);
+    expect(signer).toMatch(/promotion_plan_sha256/);
+    expect(signer).toMatch(/actual_promotion_plan_sha256/);
+    expect(signer).toMatch(
+      /test\s+"\$actual_promotion_plan_sha256"\s+=\s+"\$EXPECTED_PROMOTION_PLAN_SHA256"/,
+    );
     expect(signer).toMatch(/actual_catalog_sha256\s*=\s*["']?\$\((?:sha256sum|shasum)/i);
     expect(signer).toMatch(
       /\[\[\s+"\$EXPECTED_SIGNED_CATALOG_SHA256"\s+=~\s+\^\[0-9a-f\]\{64\}\$\s+\]\]/i,
@@ -5032,6 +5095,11 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(signerDigestAssignmentIndex).toBeGreaterThan(signerDigestFormatIndex);
     expect(signerDigestCompareIndex).toBeGreaterThan(signerDigestAssignmentIndex);
     expect(outerAttestationIndex).toBeGreaterThan(signerDigestCompareIndex);
+    const signerPromotionPlanCompareIndex = signer.search(
+      /test\s+"\$actual_promotion_plan_sha256"\s+=\s+"\$EXPECTED_PROMOTION_PLAN_SHA256"/,
+    );
+    expect(signerPromotionPlanCompareIndex).toBeGreaterThan(signerDigestAssignmentIndex);
+    expect(outerAttestationIndex).toBeGreaterThan(signerPromotionPlanCompareIndex);
     expect(verifier).toMatch(/actions\/download-artifact/);
     expect(verifier).toMatch(/npm\s+(ci|run)/);
     expect(verifier).toMatch(/needs:\s*(?:sign|\[\s*sign\s*\])/);
@@ -5043,6 +5111,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       EXPECTED_REF: "$" + "{{ github.ref }}",
       EXPECTED_REPOSITORY: "$" + "{{ github.repository }}",
       EXPECTED_SIGNED_CATALOG_SHA256: "$" + "{{ inputs.signed_catalog_sha256 }}",
+      EXPECTED_PROMOTION_PLAN_SHA256: "$" + "{{ inputs.promotion_plan_sha256 }}",
     });
     expect(verifier).toMatch(
       /actions\/checkout[\s\S]*ref:\s*\$\{\{\s*env\.EXPECTED_COMMIT_SHA\s*\}\}/,
@@ -5064,6 +5133,8 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(verifier).toMatch(/(?:node\s+dist\/cli\.js|aih-supported)\s+inspect/i);
     expect(verifier).toMatch(/realpath\s+-e\s+"?\$GITHUB_WORKSPACE/i);
     expect(verifier).toMatch(/git ls-files --error-unmatch/i);
+    expect(verifier).toMatch(/planCatalogPromotionV2/);
+    expect(verifier).toMatch(/promotion-plan|promotion_plan/i);
     for (const flag of ["--signed-catalog", "--catalog-signer-root", "--expected-claims", "--now"])
       expect(verifier).toContain(flag);
     expect(verifier).toMatch(

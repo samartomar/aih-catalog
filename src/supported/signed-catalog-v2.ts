@@ -13,7 +13,8 @@ type R = Record<string, unknown>;
 type J = null | boolean | number | string | J[] | { [key: string]: J };
 const ZERO = "0".repeat(64),
   MAX_HEAD = 8 * 1024 * 1024,
-  MAX_SIGNED = 24 * 1024 * 1024;
+  MAX_SIGNED = 24 * 1024 * 1024,
+  MAX_SEED_ARTIFACT = 1024 * 1024;
 export const STRICT_V2_CORE_LOCK = Object.freeze({
   coreCommit: "e27a55dcebb635c8298aa4fd6fd871f59089bcf7",
   schemaSha256: "27295aee8d8be333abe2c73adc72884b534b1c9980a9b7a39d12be8d34c5caff",
@@ -1016,13 +1017,35 @@ export function runCatalogV2Cli(argv: readonly string[]): number {
           return fail(code);
         }
       };
+      const boundedSeedBytes = (
+        location: { readonly size: number; readonly target: string },
+        limit: number,
+        code: string,
+        unreadableCode = code,
+      ): Buffer => {
+        if (location.size > limit) fail(code);
+        let bytes: Buffer;
+        try {
+          bytes = readFileSync(location.target);
+        } catch {
+          return fail(unreadableCode);
+        }
+        if (bytes.length > limit) fail(code);
+        return bytes;
+      };
       const artifact = (name: string) => {
         const location = safePath(
           artifactPaths[name],
           "seed-artifact-unreadable",
           "unsafe-seed-artifact",
         );
-        return { path: location.path, sha256: sha(readFileSync(location.target)) };
+        const bytes = boundedSeedBytes(
+          location,
+          MAX_SEED_ARTIFACT,
+          "artifact-too-large",
+          "seed-artifact-unreadable",
+        );
+        return { path: location.path, sha256: sha(bytes) };
       };
       const profile = artifact("profile"),
         recipe = artifact("recipe"),
@@ -1044,10 +1067,15 @@ export function runCatalogV2Cli(argv: readonly string[]): number {
       keys(qualificationSeed, ["findings", "gaps", "report", "rights"], "qualification");
       const evidenceDescriptor = (kind: "finding" | "gap" | "report" | "right", value: unknown) => {
         const location = safePath(value, "evidence-unreadable");
-        if (location.size > 1024 * 1024) fail("evidence-too-large");
+        const bytes = boundedSeedBytes(
+          location,
+          MAX_SEED_ARTIFACT,
+          "evidence-too-large",
+          "evidence-unreadable",
+        );
         let envelope: R;
         try {
-          envelope = rec(JSON.parse(readFileSync(location.target, "utf8")), "evidence");
+          envelope = rec(JSON.parse(bytes.toString("utf8")), "evidence");
         } catch {
           return fail("evidence-unreadable");
         }
@@ -1059,10 +1087,9 @@ export function runCatalogV2Cli(argv: readonly string[]): number {
         if (envelope.format !== "aih-supported-evidence/v2" || envelope.kind !== kind)
           fail("evidence");
         if (envelope.subjectDigest !== subjectValue.subjectDigest) fail("evidence-subject");
-        text(envelope.id, "evidence", /^[a-z][a-z0-9._-]{0,127}$/);
+        text(envelope.id, "evidence", /^[a-z][a-z0-9._-]{0,63}$/);
         text(envelope.attestor, "evidence", /^[A-Za-z0-9][A-Za-z0-9:._@/-]{0,255}$/);
         text(envelope.summary, "evidence", /^.{1,1024}$/);
-        const bytes = readFileSync(location.target);
         return { identity: `evidence:${kind}:${location.path}`, sha256: sha(bytes) };
       };
       const subjectValue = {
