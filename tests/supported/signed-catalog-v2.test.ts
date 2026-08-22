@@ -1,7 +1,8 @@
 import { spawnSync } from "node:child_process";
-import { createHash, generateKeyPairSync, sign, verify } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { createHash, generateKeyPairSync, type KeyObject, sign, verify } from "node:crypto";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const root = resolve(import.meta.dirname, "..", "..");
@@ -27,8 +28,8 @@ type Api = Readonly<{
 
 type Fixture = Readonly<{
   readonly catalogSignerRoot: Readonly<Record<string, unknown>>;
-  readonly privateKey: unknown;
-  readonly publicKey: unknown;
+  readonly privateKey: KeyObject;
+  readonly publicKey: KeyObject;
   readonly signer: Readonly<Record<string, unknown>>;
 }>;
 
@@ -682,14 +683,14 @@ describe("public signed catalog V2 acceptance contract", () => {
     const fixtureJson = JSON.parse(
       readFileSync(resolve(root, "tests/contracts/core-qualification-basis-v2.json"), "utf8"),
     ) as Record<string, unknown>;
-    const expected = fixtureJson.qualificationBasis as Record<string, unknown>;
+    const expectedKeys = fixtureJson.qualificationBasisKeys as string[];
     const derived = publicApi.deriveQualificationBasisV2({
       entryId: "recipe.default",
       head,
     }) as Record<string, unknown>;
 
     expect(fixtureJson.core).toEqual({ commit: coreCommit, schemaSha256 });
-    expect(Object.keys(expected).sort()).toEqual([
+    expect(expectedKeys).toEqual([
       "catalogDigest",
       "catalogHeadDigest",
       "catalogMemberDigest",
@@ -699,7 +700,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       "subjectKind",
     ]);
     expect(derived).toMatchObject({ kind: "aih-supported", subjectKind: "profile" });
-    expect(Object.keys(derived).sort()).toEqual(Object.keys(expected).sort());
+    expect(Object.keys(derived).sort()).toEqual([...expectedKeys].sort());
     const packageJson = readFileSync(resolve(root, "package.json"), "utf8");
     const verificationWorkflow = readFileSync(
       resolve(root, ".github/workflows/verify.yml"),
@@ -715,7 +716,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(verifier).toContain("aih-governance-decision-v2.schema.json");
   });
 
-  it("ships one deterministic default profile/recipe evidence chain and supports a disposable cold external-admin inspect journey", () => {
+  it("derives one deterministic default profile/recipe evidence chain and supports a packed disposable cold external-admin journey", () => {
     const packageJson = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8")) as Record<
       string,
       unknown
@@ -730,17 +731,31 @@ describe("public signed catalog V2 acceptance contract", () => {
       "utf8",
     );
     const coldAdmin = JSON.parse(coldAdminText) as Record<string, unknown>;
-    const cliPath = resolve(root, "dist/cli.js");
+    const artifacts = defaultCatalog.artifacts as Record<string, string>;
+    const artifactDigests = Object.fromEntries(
+      Object.entries(artifacts).map(([kind, path]) => [
+        kind,
+        sha(readFileSync(resolve(root, path))),
+      ]),
+    );
 
     expect(defaultCatalog).toMatchObject({
       entryId: "recipe.default",
-      evidence: {
-        closureSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
-        profileSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
-        proseSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
-        recipeSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+      artifacts: {
+        closure: expect.any(String),
+        profile: expect.any(String),
+        prose: expect.any(String),
+        recipe: expect.any(String),
       },
     });
+    expect(Object.values(artifactDigests)).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^[a-f0-9]{64}$/),
+        expect.stringMatching(/^[a-f0-9]{64}$/),
+        expect.stringMatching(/^[a-f0-9]{64}$/),
+        expect.stringMatching(/^[a-f0-9]{64}$/),
+      ]),
+    );
     expect(defaultCatalogText.trim()).toBe(canonicalJson(defaultCatalog as unknown as Json));
     expect(coldAdmin).toMatchObject({
       organizationAdmission: "not-authoritative",
@@ -754,22 +769,99 @@ describe("public signed catalog V2 acceptance contract", () => {
         "verify:cold-external-admin": expect.any(String),
       },
     });
-    expect(existsSync(cliPath)).toBe(true);
-    const result = spawnSync(
-      process.execPath,
-      [
-        cliPath,
-        "inspect",
-        "--catalog",
-        resolve(root, "tests/contracts/default-catalog-v2.json"),
-        "--catalog-signer-root",
-        resolve(root, "tests/contracts/cold-external-admin-v2.json"),
-        "--qualification-basis",
-      ],
-      { cwd: root, encoding: "utf8" },
-    );
-    expect(result.status).toBe(0);
-    expect(result.stdout).toContain('"kind":"aih-supported"');
+    const temp = mkdtempSync(join(tmpdir(), "aih-supported-cold-"));
+    try {
+      const npm = process.platform === "win32" ? "npm.cmd" : "npm";
+      const packed = spawnSync(
+        npm,
+        ["pack", "--ignore-scripts", "--json", "--pack-destination", temp],
+        {
+          cwd: root,
+          encoding: "utf8",
+        },
+      );
+      expect(packed.status).toBe(0);
+      const tarball = resolve(
+        temp,
+        (JSON.parse(packed.stdout) as { filename: string }[])[0]?.filename ?? "",
+      );
+      const consumer = resolve(temp, "consumer");
+      mkdirSync(consumer);
+      writeFileSync(`${consumer}/package.json`, '{"name":"cold-admin-consumer","private":true}');
+      const installed = spawnSync(npm, ["install", "--ignore-scripts", tarball], {
+        cwd: consumer,
+        encoding: "utf8",
+      });
+      expect(installed.status).toBe(0);
+
+      const fixture = signingFixture();
+      const claimsPath = resolve(temp, "claims.json");
+      const rootPath = resolve(temp, "catalog-signer-root.json");
+      const privateKeyPath = resolve(temp, "catalog-signer-private.pem");
+      const signedCatalogPath = resolve(temp, "signed-catalog.json");
+      writeFileSync(claimsPath, canonicalJson(claims() as unknown as Json));
+      writeFileSync(rootPath, canonicalJson(fixture.catalogSignerRoot as unknown as Json));
+      writeFileSync(privateKeyPath, fixture.privateKey.export({ format: "pem", type: "pkcs8" }));
+      const cliPath = resolve(consumer, "node_modules/@aihq/supported/dist/cli.js");
+      const unsignedInspection = spawnSync(
+        process.execPath,
+        [
+          cliPath,
+          "inspect",
+          "--catalog",
+          resolve(root, "tests/contracts/default-catalog-v2.json"),
+          "--catalog-signer-root",
+          rootPath,
+          "--expected-claims",
+          claimsPath,
+          "--qualification-basis",
+        ],
+        { cwd: consumer, encoding: "utf8" },
+      );
+      expect(unsignedInspection.status).not.toBe(0);
+      const generated = spawnSync(
+        process.execPath,
+        [
+          cliPath,
+          "generate-default-catalog",
+          "--seed",
+          resolve(root, "tests/contracts/default-catalog-v2.json"),
+          "--claims",
+          claimsPath,
+          "--private-key",
+          privateKeyPath,
+          "--output",
+          signedCatalogPath,
+        ],
+        { cwd: consumer, encoding: "utf8" },
+      );
+      expect(generated.status).toBe(0);
+      const signedCatalog = readFileSync(signedCatalogPath, "utf8");
+      for (const digest of Object.values(artifactDigests)) expect(signedCatalog).toContain(digest);
+      const inspected = spawnSync(
+        process.execPath,
+        [
+          cliPath,
+          "inspect",
+          "--signed-catalog",
+          signedCatalogPath,
+          "--catalog-signer-root",
+          rootPath,
+          "--expected-claims",
+          claimsPath,
+          "--now",
+          "2026-08-22T12:00:00Z",
+          "--continuity",
+          "genesis",
+          "--qualification-basis",
+        ],
+        { cwd: consumer, encoding: "utf8" },
+      );
+      expect(inspected.status).toBe(0);
+      expect(inspected.stdout).toContain('"kind":"aih-supported"');
+    } finally {
+      rmSync(temp, { force: true, recursive: true });
+    }
   });
 
   it("requires a manual exact-SHA OIDC/keyless workflow split into no-authority candidate, protected signer, and independent verifier jobs", () => {
@@ -796,11 +888,17 @@ describe("public signed catalog V2 acceptance contract", () => {
     );
     expect(candidate).toMatch(/actions\/checkout|git checkout/);
     expect(candidate).toMatch(/git rev-parse HEAD/);
+    expect(candidate).toMatch(/sha256sum|shasum/);
     expect(signer).toMatch(/environment:/);
     expect(signer).toMatch(/id-token:\s*write/);
     expect(signer).toMatch(/sha256sum|shasum/);
     expect(signer).toMatch(/(sigstore|cosign|keyless)/i);
-    expect(signer).not.toMatch(/actions\/checkout|npm\s|candidate\.ts|contents:\s*write/);
+    expect(signer).toMatch(
+      /(provenance|attestation).*(signed-catalog|artifact)|(signed-catalog|artifact).*(provenance|attestation)/i,
+    );
+    expect(signer).not.toMatch(
+      /actions\/checkout|npm\s|candidate\.ts|contents:\s*write|catalogSignerRoot|ed25519.*generate|private.*key/i,
+    );
     expect(verifier).toMatch(/actions\/download-artifact/);
     expect(verifier).toMatch(/npm\s+(ci|run)/);
     expect(verifier).not.toMatch(/needs:\s*\[?candidate/i);

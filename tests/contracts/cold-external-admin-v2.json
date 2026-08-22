@@ -1,1 +1,1 @@
-{"catalogSignerRoot":{"class":"administrator-ed25519","identity":"administrator:external-cold-verify","keyId":"ed25519:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","publicKeySpkiSha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"organizationAdmission":"not-authoritative","verificationMode":"cold-external-admin"}
+{"organizationAdmission":"not-authoritative","verificationMode":"cold-external-admin"}
