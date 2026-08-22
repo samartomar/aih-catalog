@@ -1223,6 +1223,16 @@ describe("public signed catalog V2 acceptance contract", () => {
       );
       expect(changedHead.catalogHeadSha256).not.toBe(head.catalogHeadSha256);
     }
+    for (const malformedExpectedClaims of [
+      ...Object.keys(claims()).map((missing) =>
+        Object.fromEntries(Object.entries(claims()).filter(([key]) => key !== missing)),
+      ),
+      { ...claims(), extra: "forbidden" },
+    ])
+      for (const operation of [publicApi.verifySignedCatalogV2, publicApi.inspectSignedCatalogV2])
+        expect(() =>
+          operation({ ...verification, expectedClaims: malformedExpectedClaims }),
+        ).toThrow();
     for (const rejected of [
       ...Object.entries(changedClaimValues()).map(([key, value]) => ({
         ...verification,
