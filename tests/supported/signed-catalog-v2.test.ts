@@ -533,6 +533,12 @@ describe("public signed catalog V2 acceptance contract", () => {
         entries: [{ ...entry(), closure: { ...(entry().closure as object), extra: true } }],
       }),
       headInput(fixture.signer, {
+        entries: [{ ...entry(), recipe: { ...(entry().recipe as object), extra: true } }],
+      }),
+      headInput(fixture.signer, {
+        entries: [{ ...entry(), prose: { ...(entry().prose as object), extra: true } }],
+      }),
+      headInput(fixture.signer, {
         entries: [{ ...entry(), closure: { identity: "closure:é", sha256: sha("closure:é") } }],
       }),
       headInput(fixture.signer, {
