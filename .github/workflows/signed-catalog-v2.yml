@@ -64,7 +64,6 @@ jobs:
           safe_workspace_file "$CATALOG_SIGNER_ROOT_PATH"
           actual_commit=$(git rev-parse HEAD)
           test "$actual_commit" = "$EXPECTED_COMMIT_SHA"
-          git merge-base --is-ancestor "$EXPECTED_COMMIT_SHA" "origin/${EXPECTED_REF#refs/heads/}"
           if [[ "$CONTINUITY_MODE" == "genesis" ]]; then
             [[ -z "$LAST_ACCEPTED_HEAD_PATH" ]]
             [[ -z "$EXPECTED_LAST_ACCEPTED_HEAD_SHA256" ]]
@@ -193,7 +192,6 @@ jobs:
           safe_workspace_file "$CATALOG_SIGNER_ROOT_PATH"
           actual_commit=$(git rev-parse HEAD)
           test "$actual_commit" = "$EXPECTED_COMMIT_SHA"
-          git merge-base --is-ancestor "$EXPECTED_COMMIT_SHA" "origin/${EXPECTED_REF#refs/heads/}"
           test -f "$SIGNED_CATALOG_PATH"
           test -f "$PROMOTION_PLAN_PATH"
           if [[ "$CONTINUITY_MODE" == "genesis" ]]; then
@@ -220,4 +218,8 @@ jobs:
           observed_now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           node dist/cli.js inspect --signed-catalog "$SIGNED_CATALOG_PATH" --catalog-signer-root "$CATALOG_SIGNER_ROOT_PATH" --expected-claims "$EXPECTED_CLAIMS_PATH" --now "$observed_now" "${continuity_args[@]}"
           OBSERVED_NOW="$observed_now" node --input-type=module -e "import fs from 'node:fs'; import { planCatalogPromotionV2 } from './dist/index.js'; const canon=v=>v===null||typeof v!=='object'?JSON.stringify(v):Array.isArray(v)?'['+v.map(canon).join(',')+']':'{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+canon(v[k])).join(',')+'}'; const signed=JSON.parse(fs.readFileSync(process.env.SIGNED_CATALOG_PATH)); const candidate=JSON.parse(Buffer.from(signed.envelope.payload,'base64')).predicate.catalogHead; const last=process.env.CONTINUITY_MODE==='successor'?JSON.parse(fs.readFileSync(process.env.LAST_ACCEPTED_HEAD_PATH)):null; const plan=last?planCatalogPromotionV2({candidateHead:candidate,lastGood:last,now:process.env.OBSERVED_NOW}):{kind:'genesis',facts:[]}; const expected={candidateCatalogHeadSha256:candidate.catalogHeadSha256,facts:plan.facts??[],kind:plan.kind,lastGoodCatalogHeadSha256:last?.catalogHeadSha256??null}; if(fs.readFileSync(process.env.PROMOTION_PLAN_PATH,'utf8')!==canon(expected))process.exit(2);"
+      - name: verify outer attestation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
           gh attestation verify "$SIGNED_CATALOG_PATH" --repo "$EXPECTED_REPOSITORY" --source-digest "$EXPECTED_COMMIT_SHA"

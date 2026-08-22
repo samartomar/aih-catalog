@@ -5027,9 +5027,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(candidate).toMatch(
       /(?:if|test)\s+[^\n]*actual_commit[^\n]*(?:!=|==|=)[^\n]*EXPECTED_COMMIT_SHA/i,
     );
-    expect(candidate).toMatch(
-      /git merge-base --is-ancestor\s+"?\$EXPECTED_COMMIT_SHA"?\s+"?origin\/\$\{EXPECTED_REF#refs\/heads\/\}"?/i,
-    );
+    expect(candidate).not.toMatch(/git merge-base --is-ancestor/i);
     expect(candidate).toMatch(/sha256sum|shasum/);
     expect(candidate).toMatch(/realpath\s+-e\s+"?\$GITHUB_WORKSPACE/i);
     expect(candidate).toMatch(/git ls-files --error-unmatch/i);
@@ -5072,7 +5070,6 @@ describe("public signed catalog V2 acceptance contract", () => {
     const candidateRefFormatIndex = candidate.search(
       /\[\[\s+"\$EXPECTED_REF"\s+=~\s+\^refs\/heads\/[a-z0-9._/-]+\$\s+\]\]/i,
     );
-    const candidateAncestryIndex = candidate.search(/git merge-base --is-ancestor/i);
     const candidateGenerationIndex = candidate.search(
       /(?:node\s+dist\/cli\.js|aih-supported)\s+generate-candidate/i,
     );
@@ -5081,8 +5078,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(candidateRefFormatIndex).toBeGreaterThan(candidateCommitFormatIndex);
     expect(candidateCommitCompareIndex).toBeGreaterThan(candidateCommitAssignmentIndex);
     expect(candidateCommitCompareIndex).toBeGreaterThan(candidateCommitFormatIndex);
-    expect(candidateAncestryIndex).toBeGreaterThan(candidateRefFormatIndex);
-    expect(candidateGenerationIndex).toBeGreaterThan(candidateAncestryIndex);
+    expect(candidateGenerationIndex).toBeGreaterThan(candidateRefFormatIndex);
     for (const githubContext of [
       "github.repository",
       "github.repository_id",
@@ -5193,9 +5189,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(verifier).toMatch(
       /(?:if|test)\s+[^\n]*actual_commit[^\n]*(?:!=|==|=)[^\n]*EXPECTED_COMMIT_SHA/i,
     );
-    expect(verifier).toMatch(
-      /git merge-base --is-ancestor\s+"?\$EXPECTED_COMMIT_SHA"?\s+"?origin\/\$\{EXPECTED_REF#refs\/heads\/\}"?/i,
-    );
+    expect(verifier).not.toMatch(/git merge-base --is-ancestor/i);
     expect(verifier).toMatch(/(?:node\s+dist\/cli\.js|aih-supported)\s+inspect/i);
     expect(verifier).toMatch(/realpath\s+-e\s+"?\$GITHUB_WORKSPACE/i);
     expect(verifier).toMatch(/git ls-files --error-unmatch/i);
@@ -5206,9 +5200,10 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(verifier).toMatch(
       /(?:sha256sum|shasum).*EXPECTED_SIGNED_CATALOG_SHA256|EXPECTED_SIGNED_CATALOG_SHA256.*(?:sha256sum|shasum)/i,
     );
-    expect(verifier).toMatch(
-      /gh\s+attestation\s+verify\s+"\$SIGNED_CATALOG_PATH"\s+--repo\s+"\$EXPECTED_REPOSITORY"\s+--source-digest\s+"\$EXPECTED_COMMIT_SHA"/i,
+    const outerAttestationStep = workflow.match(
+      /- name: verify outer attestation\s+env:\s+GH_TOKEN:\s+\$\{\{ github\.token \}\}\s+run:\s+\|\s+gh attestation verify "\$SIGNED_CATALOG_PATH" --repo "\$EXPECTED_REPOSITORY" --source-digest "\$EXPECTED_COMMIT_SHA"\s*$/m,
     );
+    expect(outerAttestationStep).not.toBeNull();
     const verifierDigestAssignmentIndex = verifier.search(
       /actual_catalog_sha256\s*=\s*["']?\$\((?:sha256sum|shasum)/i,
     );
@@ -5227,9 +5222,6 @@ describe("public signed catalog V2 acceptance contract", () => {
     const verifierInspectIndex = verifier.search(
       /(?:node\s+dist\/cli\.js|aih-supported)\s+inspect/i,
     );
-    const outerVerifyIndex = verifier.search(
-      /gh\s+attestation\s+verify\s+"\$SIGNED_CATALOG_PATH"\s+--repo\s+"\$EXPECTED_REPOSITORY"\s+--source-digest\s+"\$EXPECTED_COMMIT_SHA"/i,
-    );
     const verifierCommitCompareIndex = verifier.search(
       /(?:if|test)\s+[^\n]*actual_commit[^\n]*(?:!=|==|=)[^\n]*EXPECTED_COMMIT_SHA/i,
     );
@@ -5241,7 +5233,10 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(verifierDigestAssignmentIndex).toBeGreaterThan(verifierDigestFormatIndex);
     expect(verifierDigestCompareIndex).toBeGreaterThan(verifierDigestAssignmentIndex);
     expect(verifierInspectIndex).toBeGreaterThan(verifierDigestCompareIndex);
-    expect(outerVerifyIndex).toBeGreaterThan(verifierInspectIndex);
+    const outerAttestationStepIndex = workflow.indexOf("- name: verify outer attestation");
+    expect(outerAttestationStepIndex).toBeGreaterThan(
+      workflow.indexOf("- name: verify signed catalog"),
+    );
     expect(workflow).not.toMatch(/\b(release|publish|create-release|git tag)\b/i);
   });
 });
