@@ -228,6 +228,9 @@ function changedSurface(lastGood: Head, surface: string): Record<string, unknown
   const capabilities = first.capabilities as Record<string, string[]>;
   const qualification = first.qualification as Record<string, Record<string, unknown>[]>;
   switch (surface) {
+    case "claims":
+      candidate.claims = { ...(candidate.claims as object), repository: "samartomar/changed" };
+      break;
     case "finding":
       qualification.findings = [{ identity: "finding:changed", sha256: sha("finding:changed") }];
       break;
@@ -331,6 +334,34 @@ function workflowJob(workflow: string, name: string): string {
   return lines.slice(start + 1, end < 0 ? undefined : end).join("\n");
 }
 
+function workflowRunBlocks(workflow: string): readonly string[] {
+  const lines = workflow.split(/\r?\n/);
+  const blocks: string[] = [];
+  for (let index = 0; index < lines.length; index += 1) {
+    const match = /^(\s*)run:\s*(.*)$/.exec(lines[index] ?? "");
+    if (!match) continue;
+    const indentation = match[1]?.length ?? 0;
+    const inline = match[2] ?? "";
+    const block: string[] = [];
+    if (inline !== "|" && inline !== ">" && inline !== "") block.push(inline);
+    for (index += 1; index < lines.length; index += 1) {
+      const line = lines[index] ?? "";
+      if (line.trim() === "") {
+        block.push(line);
+        continue;
+      }
+      const childIndentation = /^\s*/.exec(line)?.[0].length ?? 0;
+      if (childIndentation <= indentation) {
+        index -= 1;
+        break;
+      }
+      block.push(line);
+    }
+    blocks.push(block.join("\n"));
+  }
+  return blocks;
+}
+
 function npmCli(): string {
   const candidates = [
     process.env.npm_execpath,
@@ -372,12 +403,43 @@ function canCreateFileAndDirectorySymlinks(): boolean {
 
 describe("public signed catalog V2 acceptance contract", () => {
   it.skipIf(!canCreateFileAndDirectorySymlinks())(
-    "rejects file/directory seed links and linked candidate/signed outputs without effects",
+    "rejects seed and output symlinks through a freshly built packed public CLI without effects",
     () => {
       const temp = mkdtempSync(join(tmpdir(), "aih-supported-symlink-custody-"));
       try {
-        const cliPath = resolve(root, "dist/cli.js");
-        const defaultSeedPath = resolve(root, "defaults/default-catalog-v2.json");
+        const built = spawnSync(process.execPath, [npmCli(), "run", "build"], {
+          cwd: root,
+          encoding: "utf8",
+        });
+        expect(built.status).toBe(0);
+        const packed = spawnSync(
+          process.execPath,
+          [npmCli(), "pack", "--json", "--pack-destination", temp],
+          { cwd: root, encoding: "utf8" },
+        );
+        expect(packed.status).toBe(0);
+        const packedManifest = (JSON.parse(packed.stdout) as { filename: string }[])[0];
+        if (!packedManifest) throw new Error("npm pack produced no manifest");
+        const consumer = resolve(temp, "consumer");
+        mkdirSync(consumer);
+        writeFileSync(resolve(consumer, "package.json"), '{"name":"symlink-custody-consumer"}');
+        const installed = spawnSync(
+          process.execPath,
+          [
+            npmCli(),
+            "install",
+            "--offline",
+            "--no-audit",
+            "--no-fund",
+            "--ignore-scripts",
+            resolve(temp, packedManifest.filename),
+          ],
+          { cwd: consumer, encoding: "utf8" },
+        );
+        expect(installed.status).toBe(0);
+        const installedPackage = resolve(consumer, "node_modules/@aihq/supported");
+        const cliPath = resolve(installedPackage, "dist/cli.js");
+        const defaultSeedPath = resolve(installedPackage, "defaults/default-catalog-v2.json");
         expect(existsSync(cliPath)).toBe(true);
         expect(existsSync(defaultSeedPath)).toBe(true);
 
@@ -500,6 +562,11 @@ describe("public signed catalog V2 acceptance contract", () => {
         symlinkSync(candidateTarget, candidateOutput, "file");
         expectExactFailure(generate(defaultSeedPath, candidateOutput), "output-exists");
         expect(readFileSync(candidateTarget, "utf8")).toBe("candidate-target-must-not-change");
+        const danglingCandidateTarget = resolve(temp, "dangling-candidate-target.json");
+        const danglingCandidateOutput = resolve(temp, "dangling-candidate-output.json");
+        symlinkSync(danglingCandidateTarget, danglingCandidateOutput, "file");
+        expectExactFailure(generate(defaultSeedPath, danglingCandidateOutput), "output-exists");
+        expect(existsSync(danglingCandidateTarget)).toBe(false);
 
         const signedTarget = resolve(temp, "signed-target.json");
         const signedOutput = resolve(temp, "signed-output.json");
@@ -521,10 +588,63 @@ describe("public signed catalog V2 acceptance contract", () => {
         );
         expectExactFailure(signedResult, "output-exists");
         expect(readFileSync(signedTarget, "utf8")).toBe("signed-target-must-not-change");
+        const danglingSignedTarget = resolve(temp, "dangling-signed-target.json");
+        const danglingSignedOutput = resolve(temp, "dangling-signed-output.json");
+        symlinkSync(danglingSignedTarget, danglingSignedOutput, "file");
+        expectExactFailure(
+          spawnSync(
+            process.execPath,
+            [
+              cliPath,
+              "sign-candidate",
+              "--candidate",
+              candidatePath,
+              "--private-key",
+              privateKeyPath,
+              "--output",
+              danglingSignedOutput,
+            ],
+            { cwd: temp, encoding: "utf8" },
+          ),
+          "output-exists",
+        );
+        expect(existsSync(danglingSignedTarget)).toBe(false);
+
+        const outsideOutputDirectory = resolve(temp, "outside-output-directory");
+        const linkedOutputParent = resolve(temp, "linked-output-parent");
+        mkdirSync(outsideOutputDirectory);
+        symlinkSync(
+          outsideOutputDirectory,
+          linkedOutputParent,
+          process.platform === "win32" ? "junction" : "dir",
+        );
+        const linkedCandidateOutput = resolve(linkedOutputParent, "candidate.json");
+        expectExactFailure(generate(defaultSeedPath, linkedCandidateOutput), "unsafe-output-path");
+        expect(existsSync(resolve(outsideOutputDirectory, "candidate.json"))).toBe(false);
+        const linkedSignedOutput = resolve(linkedOutputParent, "signed-catalog.json");
+        expectExactFailure(
+          spawnSync(
+            process.execPath,
+            [
+              cliPath,
+              "sign-candidate",
+              "--candidate",
+              candidatePath,
+              "--private-key",
+              privateKeyPath,
+              "--output",
+              linkedSignedOutput,
+            ],
+            { cwd: temp, encoding: "utf8" },
+          ),
+          "unsafe-output-path",
+        );
+        expect(existsSync(resolve(outsideOutputDirectory, "signed-catalog.json"))).toBe(false);
       } finally {
         rmSync(temp, { force: true, recursive: true });
       }
     },
+    180_000,
   );
   it("exposes the public V2 package/CLI and a Core lock only for qualification-basis derivation", async () => {
     const publicApi = await api();
@@ -1493,6 +1613,44 @@ describe("public signed catalog V2 acceptance contract", () => {
       head: successor,
       privateKey: fixture.privateKey,
     });
+    const rotatedSigner = {
+      ...rootB.signer,
+      // Rotation is a key change, not an identity change.
+      identity: fixture.signer.identity,
+    };
+    const rotatedHead = publicApi.createCatalogHeadV2(nextInput(head, rotatedSigner));
+    expect(rotatedHead.signer).toMatchObject({
+      identity: fixture.signer.identity,
+      keyId: rootB.signer.keyId,
+    });
+    expect(rotatedHead.signer).not.toMatchObject({ keyId: fixture.signer.keyId });
+    const signedRotatedHead = publicApi.signCatalogHeadV2({
+      head: rotatedHead,
+      privateKey: rootB.privateKey,
+    });
+    const rotationVerification = {
+      ...verification,
+      catalogSignerRoots: [fixture.catalogSignerRoot, rootB.catalogSignerRoot],
+      lastAccepted: head,
+      signed: signedRotatedHead,
+    };
+    expect(publicApi.verifySignedCatalogV2(rotationVerification)).toEqual(rotatedHead);
+    expect(publicApi.inspectSignedCatalogV2(rotationVerification)).toEqual({
+      kind: "materializable",
+      head: rotatedHead,
+    });
+    // A revoked prior root cannot validate its old DSSE artifact, while a caller-owned,
+    // previously verified lastAccepted head still permits a properly rooted successor.
+    for (const operation of [publicApi.verifySignedCatalogV2, publicApi.inspectSignedCatalogV2])
+      expect(() =>
+        operation({ ...verification, catalogSignerRoots: [rootB.catalogSignerRoot] }),
+      ).toThrow();
+    expect(
+      publicApi.verifySignedCatalogV2({
+        ...rotationVerification,
+        catalogSignerRoots: [rootB.catalogSignerRoot],
+      }),
+    ).toEqual(rotatedHead);
     const staleSourceInput = nextInput(head, fixture.signer) as Record<string, unknown>;
     const changedSource = {
       ...(((head.entries as Record<string, unknown>[])[0]?.subject as Record<string, unknown>)
@@ -2210,6 +2368,7 @@ describe("public signed catalog V2 acceptance contract", () => {
         }),
       ).toThrow();
     for (const surface of [
+      "claims",
       "finding",
       "gap",
       "right",
@@ -2501,7 +2660,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     }
   });
 
-  it("derives one deterministic default profile/recipe evidence chain and supports a packed disposable cold external-admin journey", () => {
+  it("derives one deterministic default profile/recipe evidence chain and supports a packed disposable cold external-admin journey", async () => {
     const packageJson = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8")) as Record<
       string,
       unknown
@@ -2707,9 +2866,18 @@ describe("public signed catalog V2 acceptance contract", () => {
       const installedSeedText = readFileSync(installedSeed, "utf8");
       const installedSeedCatalog = JSON.parse(installedSeedText) as {
         artifacts: Record<string, string>;
+        capabilities: Record<string, string[]>;
         entryId: string;
+        platforms: Record<string, string>[];
+        qualification: Record<string, Record<string, unknown>[]>;
         subject: Record<string, unknown>;
       };
+      expect(installedSeedCatalog.capabilities).toEqual(defaultCatalog.capabilities);
+      expect(installedSeedCatalog.capabilities.commands).toEqual(["catalog.verify"]);
+      expect(installedSeedCatalog.capabilities.egress).toEqual(["https://api.github.com"]);
+      expect(installedSeedCatalog.capabilities.permissions).toEqual(["contents:read"]);
+      expect(installedSeedCatalog.platforms).toEqual(defaultCatalog.platforms);
+      expect(installedSeedCatalog.qualification).toEqual(defaultCatalog.qualification);
       const artifactDigests = Object.fromEntries(
         Object.entries(installedSeedCatalog.artifacts).map(([kind, path]) => [
           kind,
@@ -2955,6 +3123,8 @@ describe("public signed catalog V2 acceptance contract", () => {
       const candidateText = readFileSync(candidatePath, "utf8");
       const candidate = JSON.parse(candidateText) as Record<string, unknown>;
       expect(candidateText).toBe(canonicalJson(candidate as unknown as Json));
+      const publicApi = await api();
+      expect(publicApi.createCatalogHeadV2(candidate)).toEqual(candidate);
       expect(candidate).not.toHaveProperty("signature");
       expect(candidate).not.toHaveProperty("catalogSignerRoot");
       expect(candidate).not.toHaveProperty("privateKey");
@@ -3483,6 +3653,56 @@ describe("public signed catalog V2 acceptance contract", () => {
       expect(inspected.status).toBe(0);
       expect(inspected.stdout).toContain('"kind":"aih-supported"');
       expect(inspected.stdout).toContain('"organizationAdmission":"not-authoritative"');
+      const opaqueSignedCatalogPath = resolve(temp, "opaque-signed-catalog.json");
+      writeFileSync(
+        opaqueSignedCatalogPath,
+        canonicalJson({ envelope: opaqueUnknownEnvelope(fixture) } as unknown as Json),
+      );
+      const opaqueInspection = spawnSync(
+        process.execPath,
+        [
+          cliPath,
+          "inspect",
+          "--signed-catalog",
+          opaqueSignedCatalogPath,
+          "--catalog-signer-root",
+          rootPath,
+          "--expected-claims",
+          claimsPath,
+          "--now",
+          inspectionNow,
+          "--continuity",
+          "genesis",
+        ],
+        { cwd: consumer, encoding: "utf8" },
+      );
+      expect(opaqueInspection.status).toBe(0);
+      const opaqueOutput = JSON.parse(opaqueInspection.stdout) as Record<string, unknown>;
+      expect(opaqueOutput).toMatchObject({ kind: "unsupported-version" });
+      expect(opaqueOutput).not.toHaveProperty("head");
+      expect(opaqueOutput).not.toHaveProperty("qualificationBasis");
+      const opaqueBasis = spawnSync(
+        process.execPath,
+        [
+          cliPath,
+          "inspect",
+          "--signed-catalog",
+          opaqueSignedCatalogPath,
+          "--catalog-signer-root",
+          rootPath,
+          "--expected-claims",
+          claimsPath,
+          "--now",
+          inspectionNow,
+          "--continuity",
+          "genesis",
+          "--qualification-basis",
+          "--entry-id",
+          "recipe.default",
+        ],
+        { cwd: consumer, encoding: "utf8" },
+      );
+      expectSanitizedCliFailure(opaqueBasis, [claimsText]);
       const inspectedSuccessor = spawnSync(
         process.execPath,
         [
@@ -3939,16 +4159,26 @@ describe("public signed catalog V2 acceptance contract", () => {
     const candidate = workflowJob(workflow, "candidate");
     const signer = workflowJob(workflow, "sign");
     const verifier = workflowJob(workflow, "verify");
+    const runBlocks = workflowRunBlocks(workflow);
+    expect(runBlocks.length).toBeGreaterThan(0);
+    for (const run of runBlocks) expect(run).not.toMatch(/\$\{\{\s*(?:inputs|github)\.[^}]+\}\}/i);
     expect(candidate).toMatch(/permissions:\s*\n\s*contents:\s*read/);
     expect(candidate).toMatch(/persist-credentials:\s*false/);
     expect(candidate).toMatch(/\[0-9a-f\]\{40\}/);
     expect(candidate).not.toMatch(
       /id-token:\s*write|contents:\s*write|\b(sign|cosign|sigstore)\b/i,
     );
-    expect(candidate).toMatch(/actions\/checkout[\s\S]*ref:\s*\$\{\{\s*inputs\.commit_sha\s*\}\}/);
+    expect(candidate).toMatch(/EXPECTED_COMMIT_SHA:\s*\$\{\{\s*inputs\.commit_sha\s*\}\}/);
+    expect(candidate).toMatch(/EXPECTED_REF:\s*\$\{\{\s*github\.ref\s*\}\}/);
+    expect(candidate).toMatch(
+      /actions\/checkout[\s\S]*ref:\s*\$\{\{\s*env\.EXPECTED_COMMIT_SHA\s*\}\}/,
+    );
     expect(candidate).toMatch(/actual_commit\s*=\s*["']?\$\(git rev-parse HEAD\)/i);
     expect(candidate).toMatch(
-      /(?:if|test)\s+[^\n]*actual_commit[^\n]*(?:!=|==|=)[^\n]*inputs\.commit_sha/i,
+      /(?:if|test)\s+[^\n]*actual_commit[^\n]*(?:!=|==|=)[^\n]*EXPECTED_COMMIT_SHA/i,
+    );
+    expect(candidate).toMatch(
+      /git merge-base --is-ancestor\s+"?\$EXPECTED_COMMIT_SHA"?\s+"?origin\/\$\{EXPECTED_REF#refs\/heads\/\}"?/i,
     );
     expect(candidate).toMatch(/sha256sum|shasum/);
     expect(candidate).toMatch(/actions\/upload-artifact@[0-9a-f]{40}/);
@@ -3964,6 +4194,20 @@ describe("public signed catalog V2 acceptance contract", () => {
     const candidateUploadIndex = candidate.search(/actions\/upload-artifact@[0-9a-f]{40}/);
     expect(candidateComparisonIndex).toBeGreaterThanOrEqual(0);
     expect(candidateUploadIndex).toBeGreaterThan(candidateComparisonIndex);
+    const candidateCommitAssignmentIndex = candidate.search(
+      /actual_commit\s*=\s*["']?\$\(git rev-parse HEAD\)/i,
+    );
+    const candidateCommitCompareIndex = candidate.search(
+      /(?:if|test)\s+[^\n]*actual_commit[^\n]*(?:!=|==|=)[^\n]*EXPECTED_COMMIT_SHA/i,
+    );
+    const candidateAncestryIndex = candidate.search(/git merge-base --is-ancestor/i);
+    const candidateGenerationIndex = candidate.search(
+      /(?:node\s+dist\/cli\.js|aih-supported)\s+generate-candidate/i,
+    );
+    expect(candidateCommitAssignmentIndex).toBeGreaterThanOrEqual(0);
+    expect(candidateCommitCompareIndex).toBeGreaterThan(candidateCommitAssignmentIndex);
+    expect(candidateAncestryIndex).toBeGreaterThan(candidateCommitCompareIndex);
+    expect(candidateGenerationIndex).toBeGreaterThan(candidateAncestryIndex);
     for (const githubContext of [
       "github.repository",
       "github.repository_id",
@@ -3979,6 +4223,9 @@ describe("public signed catalog V2 acceptance contract", () => {
     );
     expect(signer).toMatch(/environment:\s*catalog-signing/);
     expect(signer).toMatch(/needs:\s*(?:candidate|\[\s*candidate\s*\])/);
+    expect(signer).toMatch(
+      /EXPECTED_SIGNED_CATALOG_SHA256:\s*\$\{\{\s*inputs\.signed_catalog_sha256\s*\}\}/,
+    );
     expect(signer).toMatch(/actions\/download-artifact@[0-9a-f]{40}/);
     expect(signer).toMatch(/\[0-9a-f\]\{64\}/);
     expect(signer).toMatch(/id-token:\s*write/);
@@ -3986,7 +4233,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(signer).toMatch(/signed_catalog_sha256/);
     expect(signer).toMatch(/actual_catalog_sha256\s*=\s*["']?\$\((?:sha256sum|shasum)/i);
     expect(signer).toMatch(
-      /(?:if|test)\s+[^\n]*actual_catalog_sha256[^\n]*(?:!=|==|=)[^\n]*inputs\.signed_catalog_sha256/i,
+      /(?:if|test)\s+[^\n]*actual_catalog_sha256[^\n]*(?:!=|==|=)[^\n]*EXPECTED_SIGNED_CATALOG_SHA256/i,
     );
     expect(signer).toMatch(/(sigstore|cosign|keyless)/i);
     expect(signer).toMatch(
@@ -4008,7 +4255,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       /actual_catalog_sha256\s*=\s*["']?\$\((?:sha256sum|shasum)/i,
     );
     const signerDigestCompareIndex = signer.search(
-      /(?:if|test)\s+[^\n]*actual_catalog_sha256[^\n]*(?:!=|==|=)[^\n]*inputs\.signed_catalog_sha256/i,
+      /(?:if|test)\s+[^\n]*actual_catalog_sha256[^\n]*(?:!=|==|=)[^\n]*EXPECTED_SIGNED_CATALOG_SHA256/i,
     );
     const outerAttestationIndex = signer.search(
       /(?:actions\/attest-build-provenance|sigstore\/cosign)@[0-9a-f]{40}/i,
@@ -4020,6 +4267,46 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(verifier).toMatch(/npm\s+(ci|run)/);
     expect(verifier).toMatch(/needs:\s*(?:sign|\[\s*sign\s*\])/);
     expect(verifier).not.toMatch(/needs:\s*(?:candidate|\[[^\]]*candidate)/i);
+    expect(verifier).toMatch(/permissions:\s*\n\s*contents:\s*read/);
+    expect(verifier).not.toMatch(/(?:id-token|attestations|contents):\s*write/i);
+    expect(verifier).toMatch(/EXPECTED_COMMIT_SHA:\s*\$\{\{\s*inputs\.commit_sha\s*\}\}/);
+    expect(verifier).toMatch(/EXPECTED_REF:\s*\$\{\{\s*github\.ref\s*\}\}/);
+    expect(verifier).toMatch(
+      /EXPECTED_SIGNED_CATALOG_SHA256:\s*\$\{\{\s*inputs\.signed_catalog_sha256\s*\}\}/,
+    );
+    expect(verifier).toMatch(
+      /actions\/checkout[\s\S]*ref:\s*\$\{\{\s*env\.EXPECTED_COMMIT_SHA\s*\}\}/,
+    );
+    expect(verifier).toMatch(/actual_commit\s*=\s*["']?\$\(git rev-parse HEAD\)/i);
+    expect(verifier).toMatch(
+      /(?:if|test)\s+[^\n]*actual_commit[^\n]*(?:!=|==|=)[^\n]*EXPECTED_COMMIT_SHA/i,
+    );
+    expect(verifier).toMatch(
+      /git merge-base --is-ancestor\s+"?\$EXPECTED_COMMIT_SHA"?\s+"?origin\/\$\{EXPECTED_REF#refs\/heads\/\}"?/i,
+    );
+    expect(verifier).toMatch(/(?:node\s+dist\/cli\.js|aih-supported)\s+inspect/i);
+    for (const flag of ["--signed-catalog", "--catalog-signer-root", "--expected-claims", "--now"])
+      expect(verifier).toContain(flag);
+    expect(verifier).toMatch(
+      /(?:sha256sum|shasum).*EXPECTED_SIGNED_CATALOG_SHA256|EXPECTED_SIGNED_CATALOG_SHA256.*(?:sha256sum|shasum)/i,
+    );
+    expect(verifier).toMatch(/(?:gh\s+attestation\s+verify|cosign\s+verify-attestation)/i);
+    const verifierDigestAssignmentIndex = verifier.search(
+      /actual_catalog_sha256\s*=\s*["']?\$\((?:sha256sum|shasum)/i,
+    );
+    const verifierDigestCompareIndex = verifier.search(
+      /(?:if|test)\s+[^\n]*actual_catalog_sha256[^\n]*(?:!=|==|=)[^\n]*EXPECTED_SIGNED_CATALOG_SHA256/i,
+    );
+    const verifierInspectIndex = verifier.search(
+      /(?:node\s+dist\/cli\.js|aih-supported)\s+inspect/i,
+    );
+    const outerVerifyIndex = verifier.search(
+      /(?:gh\s+attestation\s+verify|cosign\s+verify-attestation)/i,
+    );
+    expect(verifierDigestAssignmentIndex).toBeGreaterThanOrEqual(0);
+    expect(verifierDigestCompareIndex).toBeGreaterThan(verifierDigestAssignmentIndex);
+    expect(verifierInspectIndex).toBeGreaterThan(verifierDigestCompareIndex);
+    expect(outerVerifyIndex).toBeGreaterThan(verifierInspectIndex);
     expect(workflow).not.toMatch(/\b(release|publish|create-release|git tag)\b/i);
   });
 });

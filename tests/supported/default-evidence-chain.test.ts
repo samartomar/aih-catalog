@@ -24,12 +24,40 @@ const domainDigest = (domain: string, value: Json) =>
 describe("default CatalogHead V2 evidence chain", () => {
   it("uses public V2 creation and basis APIs to bind default artifact bytes", async () => {
     const seedPath = resolve(root, "defaults", "default-catalog-v2.json");
+    const pinnedDefault = JSON.parse(
+      readFileSync(resolve(root, "tests", "contracts", "default-catalog-v2.json"), "utf8"),
+    ) as {
+      capabilities: {
+        commands: string[];
+        egress: string[];
+        hooks: string[];
+        mcpTools: string[];
+        permissions: string[];
+      };
+      platforms: { architecture: string; os: string }[];
+      qualification: {
+        findings: { identity: string; sha256: string }[];
+        gaps: { identity: string; sha256: string }[];
+        rights: { identity: string; sha256: string }[];
+      };
+    };
     expect(existsSync(seedPath)).toBe(true);
     const seed = JSON.parse(readFileSync(seedPath, "utf8")) as {
       artifacts: Record<"profile" | "recipe" | "closure" | "prose", string>;
+      capabilities: typeof pinnedDefault.capabilities;
       entryId: string;
+      platforms: typeof pinnedDefault.platforms;
+      qualification: typeof pinnedDefault.qualification;
       subject: { id: string; kind: "profile" };
     };
+    expect(seed.capabilities).toEqual(pinnedDefault.capabilities);
+    expect(seed.capabilities.commands).toEqual(["catalog.verify"]);
+    expect(seed.capabilities.egress).toEqual(["https://api.github.com"]);
+    expect(seed.capabilities.hooks).toEqual(["hook.catalog.verify"]);
+    expect(seed.capabilities.mcpTools).toEqual(["github.get_workflow_run"]);
+    expect(seed.capabilities.permissions).toEqual(["contents:read"]);
+    expect(seed.platforms).toEqual(pinnedDefault.platforms);
+    expect(seed.qualification).toEqual(pinnedDefault.qualification);
     const artifactDigests = Object.fromEntries(
       Object.entries(seed.artifacts).map(([kind, relativePath]) => [
         kind,
@@ -79,24 +107,16 @@ describe("default CatalogHead V2 evidence chain", () => {
       entries: [
         {
           capabilities: {
-            commands: ["catalog.verify"],
-            egress: ["https://api.github.com"],
-            hooks: ["hook.catalog.verify"],
-            mcpTools: ["github.get_workflow_run"],
-            permissions: ["contents:read"],
+            ...seed.capabilities,
           },
           closure: {
             identity: `artifact:${seed.artifacts.closure}`,
             sha256: artifactDigests.closure,
           },
           entryId: seed.entryId,
-          platforms: [{ architecture: "amd64", os: "linux" }],
+          platforms: seed.platforms,
           prose: { identity: `artifact:${seed.artifacts.prose}`, sha256: artifactDigests.prose },
-          qualification: {
-            findings: [{ identity: "finding:clean", sha256: sha256("finding:clean") }],
-            gaps: [{ identity: "gap:none", sha256: sha256("gap:none") }],
-            rights: [{ identity: "right:catalog.read", sha256: sha256("right:catalog.read") }],
-          },
+          qualification: seed.qualification,
           recipe: { identity: `artifact:${seed.artifacts.recipe}`, sha256: artifactDigests.recipe },
           subject,
           versions: { effect: "2", schema: "2" },
@@ -112,8 +132,11 @@ describe("default CatalogHead V2 evidence chain", () => {
     });
     const entry = (head.entries as Record<string, unknown>[])[0] as Record<string, unknown>;
     expect(entry).toMatchObject({
+      capabilities: seed.capabilities,
       closure: { identity: `artifact:${seed.artifacts.closure}`, sha256: artifactDigests.closure },
+      platforms: seed.platforms,
       prose: { identity: `artifact:${seed.artifacts.prose}`, sha256: artifactDigests.prose },
+      qualification: seed.qualification,
       recipe: { identity: `artifact:${seed.artifacts.recipe}`, sha256: artifactDigests.recipe },
       subject: { source },
     });
