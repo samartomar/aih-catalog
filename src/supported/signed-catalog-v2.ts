@@ -41,6 +41,14 @@ const array = (v: unknown, c: string): unknown[] => {
   if (Array.isArray(v)) return v;
   return fail(c);
 };
+const frozen = <T>(value: T): T => {
+  if (Array.isArray(value)) {
+    for (const item of value) frozen(item);
+  } else if (value !== null && typeof value === "object") {
+    for (const item of Object.values(value)) frozen(item);
+  }
+  return Object.freeze(value);
+};
 const order = (left: string, right: string) => (left < right ? -1 : left > right ? 1 : 0);
 const keys = (v: R, wanted: readonly string[], c: string) => {
   const got = Object.getOwnPropertyNames(v).sort(order);
@@ -139,6 +147,18 @@ const base64 = (v: unknown, c: string) => {
   if (Buffer.from(s, "base64").toString("base64") !== s) fail(c);
   return s;
 };
+const replayIdentities = (v: unknown): string[] => {
+  const state = rec(v, "replay");
+  keys(state, ["acceptedIdentities"], "replay");
+  const identities = array(state.acceptedIdentities, "replay");
+  if (identities.length > 4096) fail("4096 replay");
+  const normalized = identities.map((identity) =>
+    text(identity, "replay", /^catalog-head:[0-9a-f]{64}:[0-9a-f]{64}$/),
+  );
+  if (normalized.some((identity, index) => index > 0 && (normalized[index - 1] ?? "") >= identity))
+    fail("replay");
+  return normalized;
+};
 function source(v: unknown): R {
   const s = rec(v, "source"),
     type = text(s.type, "source type", /^(github|npm|pypi|oci|remote|aih)$/);
@@ -152,17 +172,21 @@ function source(v: unknown): R {
   };
   const shape = shapes[type] ?? fail("source");
   keys(s, shape, "source");
+  const out: R = { type };
   for (const [k, x] of Object.entries(s)) {
     if (k === "type") continue;
-    if (k.includes("Digest") || k === "sha256" || k === "revision") phex(x, "source digest");
+    if (k.includes("Digest") || k === "sha256" || k === "revision")
+      out[k] = phex(x, "source digest");
     else if (k === "platform") {
       const p = rec(x, "platform");
       keys(p, ["architecture", "os"], "platform");
-      text(p.os, "platform", /^[a-z0-9-]+$/);
-      text(p.architecture, "platform", /^[a-z0-9-]+$/);
-    } else text(x, "source");
+      out[k] = {
+        architecture: text(p.architecture, "platform", /^[a-z0-9-]+$/),
+        os: text(p.os, "platform", /^[a-z0-9-]+$/),
+      };
+    } else out[k] = text(x, "source");
   }
-  return s;
+  return out;
 }
 function subject(v: unknown): R {
   const s = rec(v, "subject");
@@ -391,14 +415,14 @@ function head(v: unknown, requireDerived = false): R {
     fail("head digest");
   const result = { ...full, catalogHeadSha256 };
   if (Buffer.byteLength(canon(result as J)) > MAX_HEAD) fail("head-too-large");
-  return result;
+  return frozen(result);
 }
 export function createCatalogHeadV2(v: unknown): R {
   const x = rec(v, "head");
   const hasCatalog = Object.hasOwn(x, "catalogSha256");
   const hasHead = Object.hasOwn(x, "catalogHeadSha256");
   if (hasCatalog !== hasHead) fail("head");
-  return Object.freeze(head(x, hasCatalog));
+  return head(x, hasCatalog);
 }
 export function canonicalCatalogHeadV2Bytes(v: unknown): Buffer {
   return Buffer.from(canon(head(v, true) as J));
@@ -414,7 +438,7 @@ export function parseCatalogHeadV2Json(v: string): R {
   }
   const h = head(x, true);
   if (v !== canon(h as J)) fail("head json");
-  return Object.freeze(h);
+  return h;
 }
 const pae = (t: string, p: Buffer) =>
   Buffer.concat([Buffer.from(`DSSEv1 ${Buffer.byteLength(t)} ${t} ${p.length} `), p]);
@@ -464,7 +488,7 @@ export function signCatalogHeadV2(v: unknown): R {
     subject: [{ digest: { sha256: h.catalogHeadSha256 }, name: "aih-supported/CatalogHeadV2" }],
   };
   const p = Buffer.from(canon(statement as J));
-  return {
+  return frozen({
     envelope: {
       payload: p.toString("base64"),
       payloadType: "application/vnd.in-toto+json",
@@ -476,7 +500,7 @@ export function signCatalogHeadV2(v: unknown): R {
       ],
     },
     head: h,
-  };
+  });
 }
 function verified(v: unknown): { head: R; opaque: boolean } {
   const x = rec(v, "verify"),
@@ -537,8 +561,9 @@ function verified(v: unknown): { head: R; opaque: boolean } {
   const rootKeyIds = rootValues.map((root) => rec(root, "root").keyId);
   if (new Set(rootKeyIds).size !== rootKeyIds.length) fail("duplicate root");
   const signatures = array(env.signatures, "envelope");
-  const sig = rec(signatures[0], "signature"),
-    keyid = text(sig.keyid, "keyid", /^ed25519:[0-9a-f]{64}$/),
+  const sig = rec(signatures[0], "signature");
+  keys(sig, ["keyid", "sig"], "signature");
+  const keyid = text(sig.keyid, "keyid", /^ed25519:[0-9a-f]{64}$/),
     sigBytes = Buffer.from(base64(sig.sig, "signature"), "base64");
   let root: R | undefined;
   for (const r of rootValues) {
@@ -565,22 +590,30 @@ function verified(v: unknown): { head: R; opaque: boolean } {
   if (!verify(null, pae(env.payloadType as string, payload), pub ?? fail("root"), sigBytes))
     fail("signature");
   const replay = x.replay;
+  const acceptedReplay = replay === undefined ? undefined : replayIdentities(replay);
   if (replay !== undefined) {
-    const replayRecord = rec(replay, "replay");
-    keys(replayRecord, ["acceptedIdentities"], "replay");
-    const accepted = array(replayRecord.acceptedIdentities, "replay");
-    if (accepted.length > 4096) fail("4096 replay");
+    if (acceptedReplay === undefined) fail("replay");
   }
   const subjects = array(statement.subject, "statement");
   const statementSubject = rec(subjects[0], "statement subject");
-  const statementDigest = rec(statementSubject.digest, "statement digest").sha256;
+  keys(statementSubject, ["digest", "name"], "statement subject");
+  const statementDigestRecord = rec(statementSubject.digest, "statement digest");
+  keys(statementDigestRecord, ["sha256"], "statement digest");
+  const statementDigest = hex(statementDigestRecord.sha256, "statement digest");
+  const statementName = text(
+    statementSubject.name,
+    "statement subject",
+    /^aih-supported\/CatalogHeadV2$/,
+  );
   const raw = rec(pr.catalogHead, "catalog head"),
     unknown = raw.schemaVersion !== "2" || raw.effectVersion !== "2";
   if (unknown) {
     if (
       pr.protocol !== "CatalogHeadV2" ||
       pr.candidateSha256 !== sha(Buffer.from(canon(raw as J))) ||
-      pr.catalogHeadSha256 !== statementDigest
+      pr.catalogHeadSha256 !== statementDigest ||
+      statementName !== "aih-supported/CatalogHeadV2" ||
+      pr.replayIdentity !== `catalog-head:${pr.catalogHeadSha256}:${pr.candidateSha256}`
     )
       fail("binding");
     claims(pr.claims);
@@ -600,11 +633,7 @@ function verified(v: unknown): { head: R; opaque: boolean } {
     const opaqueFrom = iso(pr.validFrom, "from"),
       opaqueUntil = iso(pr.validUntil, "until");
     if (now < opaqueFrom || now >= opaqueUntil) fail("time");
-    if (
-      replay !== undefined &&
-      array(rec(replay, "replay").acceptedIdentities, "replay").includes(pr.replayIdentity)
-    )
-      fail("replay");
+    if (acceptedReplay?.includes(text(pr.replayIdentity, "replay"))) fail("replay");
     return { head: pr, opaque: true };
   }
   const h = head(raw, true);
@@ -624,7 +653,7 @@ function verified(v: unknown): { head: R; opaque: boolean } {
   }
   if (
     pr.candidateSha256 !== sha(Buffer.from(canon(h as J))) ||
-    statementSubject.name !== "aih-supported/CatalogHeadV2" ||
+    statementName !== "aih-supported/CatalogHeadV2" ||
     statementDigest !== h.catalogHeadSha256 ||
     pr.replayIdentity !== `catalog-head:${h.catalogHeadSha256}:${pr.candidateSha256}`
   )
@@ -655,26 +684,19 @@ function verified(v: unknown): { head: R; opaque: boolean } {
   } else if (h.sequence !== 0) fail("continuity");
 
   if (replay !== undefined) {
-    const rr = rec(replay, "replay");
-    keys(rr, ["acceptedIdentities"], "replay");
-    if (
-      !Array.isArray(rr.acceptedIdentities) ||
-      rr.acceptedIdentities.length > 4096 ||
-      rr.acceptedIdentities.includes(pr.replayIdentity)
-    )
-      fail("replay");
+    if (acceptedReplay?.includes(text(pr.replayIdentity, "replay"))) fail("replay");
   }
   return { head: h, opaque: false };
 }
 export function verifySignedCatalogV2(v: unknown): R {
   const q = verified(v);
   if (q.opaque) fail("unsupported-version");
-  return Object.freeze(q.head);
+  return q.head;
 }
 export function inspectSignedCatalogV2(v: unknown): R {
   const q = verified(v);
   return q.opaque
-    ? Object.freeze({
+    ? frozen({
         kind: "unsupported-version",
         record: {
           candidateSha256: q.head.candidateSha256,
@@ -689,7 +711,7 @@ export function inspectSignedCatalogV2(v: unknown): R {
           validUntil: q.head.validUntil,
         },
       })
-    : Object.freeze({ kind: "materializable", head: q.head });
+    : frozen({ kind: "materializable", head: q.head });
 }
 export function deriveQualificationBasisV2(v: unknown): R {
   const x = rec(v, "basis");
@@ -718,8 +740,7 @@ export function planCatalogPromotionV2(v: unknown): R {
   const candidateFrom = iso(c.validFrom, "from"),
     candidateUntil = iso(c.validUntil, "until");
   if (n < candidateFrom || n >= candidateUntil) fail("time");
-  if (c.catalogHeadSha256 === l.catalogHeadSha256)
-    return { kind: "unchanged", head: x.lastGood as R };
+  if (c.catalogHeadSha256 === l.catalogHeadSha256) return frozen({ kind: "unchanged", head: l });
   const candidateSequence = c.sequence,
     previousSequence = l.sequence;
   if (typeof candidateSequence !== "number" || typeof previousSequence !== "number")
@@ -828,8 +849,8 @@ export function planCatalogPromotionV2(v: unknown): R {
     }
   }
   return facts.length
-    ? { kind: "last-good", head: x.lastGood as R, facts }
-    : { kind: "promoted", head: c };
+    ? frozen({ kind: "last-good", head: l, facts })
+    : frozen({ kind: "promoted", head: c });
 }
 
 // Directly importable only from the implementation boundary; the package root exports no CLI loader.
@@ -868,6 +889,20 @@ export function runCatalogV2Cli(argv: readonly string[]): number {
       } catch (error) {
         if (error instanceof Error && error.message === code) throw error;
         return fail(code);
+      }
+    };
+    const protectedPrivateKey = (p: unknown) => {
+      const path = text(p, "private-key-too-large");
+      try {
+        const status = lstatSync(path);
+        if (!status.isFile() || status.isSymbolicLink()) fail("private-key-too-large");
+        if (status.size > 65536) fail("private-key-too-large");
+        if (process.platform !== "win32" && (status.mode & 0o077) !== 0)
+          fail("private-key-permissions");
+        return readFileSync(path, "utf8");
+      } catch (error) {
+        if (error instanceof Error && /^[a-z0-9-]+$/.test(error.message)) throw error;
+        return fail("private-key-too-large");
       }
     };
     const write = (p: unknown, data: string) => {
@@ -999,7 +1034,7 @@ export function runCatalogV2Cli(argv: readonly string[]): number {
         canon(
           signCatalogHeadV2({
             head: h,
-            privateKey: read(args["private-key"], 65536, "private-key-too-large"),
+            privateKey: protectedPrivateKey(args["private-key"]),
           }) as J,
         ),
       );

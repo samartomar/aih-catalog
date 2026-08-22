@@ -18,6 +18,7 @@
     "test:cov": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "verify:core-v2-lock": "node tools/verify-core-v2-lock.mjs",
+    "verify:workflow-action-pins": "node tools/verify-pinned-actions.mjs",
     "verify:cold-external-admin": "node dist/cli.js inspect",
     "verify:default-evidence-chain": "vitest run tests/supported/default-evidence-chain.test.ts",
     "verify": "npm run typecheck && npm run lint && npm run build && npm test"
