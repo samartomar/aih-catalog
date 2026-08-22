@@ -481,6 +481,14 @@ describe("public signed catalog V2 acceptance contract", () => {
           },
         ],
       }),
+      headInput(fixture.signer, {
+        entries: [
+          {
+            ...entry(),
+            capabilities: { ...(entry().capabilities as object), unknownCapability: ["forbidden"] },
+          },
+        ],
+      }),
       headInput(fixture.signer, { previousCatalogHeadSha256: sha("not-genesis") }),
       headInput(fixture.signer, { sequence: 1 }),
       headInput(fixture.signer, { unexpectedTopLevel: true }),
@@ -575,6 +583,150 @@ describe("public signed catalog V2 acceptance contract", () => {
       }),
     ])
       expect(() => publicApi.createCatalogHeadV2(malformed)).toThrow();
+    const without = (value: Record<string, unknown>, key: string): Record<string, unknown> => {
+      const result = { ...value };
+      delete result[key];
+      return result;
+    };
+    for (const key of [
+      "claims",
+      "compatibleEffectVersions",
+      "compatibleSchemaVersions",
+      "effectVersion",
+      "entries",
+      "previousCatalogHeadSha256",
+      "protocol",
+      "schemaVersion",
+      "sequence",
+      "signer",
+      "validFrom",
+      "validUntil",
+    ])
+      expect(() =>
+        publicApi.createCatalogHeadV2(without(headInput(fixture.signer), key)),
+      ).toThrow();
+    for (const key of [
+      "capabilities",
+      "closure",
+      "entryId",
+      "platforms",
+      "prose",
+      "qualification",
+      "recipe",
+      "subject",
+      "versions",
+    ])
+      expect(() =>
+        publicApi.createCatalogHeadV2(
+          headInput(fixture.signer, { entries: [without(entry(), key)] }),
+        ),
+      ).toThrow();
+    for (const key of ["commands", "egress", "hooks", "mcpTools", "permissions"])
+      expect(() =>
+        publicApi.createCatalogHeadV2(
+          headInput(fixture.signer, {
+            entries: [
+              {
+                ...entry(),
+                capabilities: without(entry().capabilities as Record<string, unknown>, key),
+              },
+            ],
+          }),
+        ),
+      ).toThrow();
+    for (const key of ["findings", "gaps", "rights"])
+      expect(() =>
+        publicApi.createCatalogHeadV2(
+          headInput(fixture.signer, {
+            entries: [
+              {
+                ...entry(),
+                qualification: without(entry().qualification as Record<string, unknown>, key),
+              },
+            ],
+          }),
+        ),
+      ).toThrow();
+    for (const key of ["class", "identity", "keyId", "publicKeySpkiSha256"])
+      expect(() =>
+        publicApi.createCatalogHeadV2(headInput(without(fixture.signer, key))),
+      ).toThrow();
+    for (const key of ["id", "kind", "source", "sourceDigest", "subjectDigest"])
+      expect(() =>
+        publicApi.createCatalogHeadV2(
+          headInput(fixture.signer, {
+            entries: [{ ...entry(), subject: without(subject(), key) }],
+          }),
+        ),
+      ).toThrow();
+    for (const key of ["release", "revision", "type"])
+      expect(() =>
+        publicApi.createCatalogHeadV2(
+          headInput(fixture.signer, {
+            entries: [
+              {
+                ...entry(),
+                subject: {
+                  ...subject(),
+                  source: without(subject().source as Record<string, unknown>, key),
+                },
+              },
+            ],
+          }),
+        ),
+      ).toThrow();
+    for (const key of ["architecture", "os"])
+      expect(() =>
+        publicApi.createCatalogHeadV2(
+          headInput(fixture.signer, {
+            entries: [
+              { ...entry(), platforms: [without({ architecture: "amd64", os: "linux" }, key)] },
+            ],
+          }),
+        ),
+      ).toThrow();
+    for (const key of ["effect", "schema"])
+      expect(() =>
+        publicApi.createCatalogHeadV2(
+          headInput(fixture.signer, {
+            entries: [
+              { ...entry(), versions: without(entry().versions as Record<string, unknown>, key) },
+            ],
+          }),
+        ),
+      ).toThrow();
+    for (const descriptor of ["closure", "recipe", "prose"] as const)
+      for (const key of ["identity", "sha256"])
+        expect(() =>
+          publicApi.createCatalogHeadV2(
+            headInput(fixture.signer, {
+              entries: [
+                {
+                  ...entry(),
+                  [descriptor]: without(entry()[descriptor] as Record<string, unknown>, key),
+                },
+              ],
+            }),
+          ),
+        ).toThrow();
+    for (const evidence of ["findings", "gaps", "rights"] as const)
+      for (const key of ["identity", "sha256"])
+        expect(() => {
+          const qualification = entry().qualification as Record<string, Record<string, unknown>[]>;
+          return publicApi.createCatalogHeadV2(
+            headInput(fixture.signer, {
+              entries: [
+                {
+                  ...entry(),
+                  qualification: {
+                    ...qualification,
+                    [evidence]: [without(qualification[evidence]?.[0] ?? {}, key)],
+                  },
+                },
+              ],
+            }),
+          );
+        }).toThrow();
     for (const capability of ["commands", "egress", "hooks", "mcpTools", "permissions"] as const) {
       const base = entry();
       const capabilities = base.capabilities as Record<string, string[]>;
@@ -3595,9 +3747,9 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(verificationWorkflow).toContain("npm run verify:default-evidence-chain");
     expect(existsSync(workflowPath)).toBe(true);
     const workflow = readFileSync(workflowPath, "utf8");
-    const actionRefs = [...workflow.matchAll(/^\s*(?:-\s*)?uses:\s*[^@\s]+@([^\s#]+)\s*$/gm)];
+    const actionRefs = [...workflow.matchAll(/^\s*(?:-\s*)?uses:\s*(\S+)/gm)];
     expect(actionRefs.length).toBeGreaterThan(0);
-    for (const use of actionRefs) expect(use[1]).toMatch(/^[0-9a-f]{40}$/);
+    for (const use of actionRefs) expect(use[1]).toMatch(/^[^@\s]+@[0-9a-f]{40}$/);
     expect(workflow).toMatch(/^on:\s*\n\s*workflow_dispatch:/m);
     expect(workflow).toMatch(/commit_sha:[\s\S]*required:\s*true/);
     expect(workflow).toMatch(/signed_catalog_sha256:[\s\S]*required:\s*true/);
