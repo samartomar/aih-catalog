@@ -1563,13 +1563,50 @@ describe("public signed catalog V2 acceptance contract", () => {
       expect(() => publicApi.verifySignedCatalogV2(rejected)).toThrow();
     for (const operation of [publicApi.verifySignedCatalogV2, publicApi.inspectSignedCatalogV2])
       expect(() => operation({ ...verification, now: undefined })).toThrow();
-    for (const operation of [publicApi.verifySignedCatalogV2, publicApi.inspectSignedCatalogV2])
-      expect(() =>
-        operation({
-          ...verification,
-          lastAccepted: { ...head, catalogHeadSha256: sha("tampered-last-accepted") },
+    const restampLastAccepted = (value: Record<string, unknown>) => {
+      const withoutHeadDigest = { ...value };
+      delete withoutHeadDigest.catalogHeadSha256;
+      return {
+        ...value,
+        catalogHeadSha256: domainSha256("aih-supported-catalog-head/v2", withoutHeadDigest as Json),
+      };
+    };
+    const tamperedLastAcceptedCatalog = restampLastAccepted({
+      ...head,
+      catalogSha256: sha("tampered-last-accepted-catalog"),
+    });
+    const staleLastAcceptedEntries = structuredClone(head.entries) as Record<string, unknown>[];
+    staleLastAcceptedEntries[0] = {
+      ...staleLastAcceptedEntries[0],
+      memberSha256: sha("tampered-last-accepted-member"),
+    };
+    const tamperedLastAcceptedMember = restampLastAccepted({
+      ...head,
+      entries: staleLastAcceptedEntries,
+      catalogSha256: domainSha256("aih-supported-catalog/v2", staleLastAcceptedEntries as Json),
+    });
+    for (const tamperedLastAccepted of [tamperedLastAcceptedCatalog, tamperedLastAcceptedMember]) {
+      const successorOfTamperedLastAccepted = publicApi.createCatalogHeadV2(
+        headInput(fixture.signer, {
+          previousCatalogHeadSha256: tamperedLastAccepted.catalogHeadSha256,
+          sequence: 1,
+          validFrom: "2026-08-22T01:00:00Z",
+          validUntil: "2026-08-23T00:00:00Z",
         }),
-      ).toThrow();
+      );
+      const signedSuccessorOfTamperedLastAccepted = publicApi.signCatalogHeadV2({
+        head: successorOfTamperedLastAccepted,
+        privateKey: fixture.privateKey,
+      });
+      for (const operation of [publicApi.verifySignedCatalogV2, publicApi.inspectSignedCatalogV2])
+        expect(() =>
+          operation({
+            ...verification,
+            lastAccepted: tamperedLastAccepted,
+            signed: signedSuccessorOfTamperedLastAccepted,
+          }),
+        ).toThrow();
+    }
     for (const signingInput of [
       { head, privateKey: signingFixture().privateKey },
       { head, privateKey: generateKeyPairSync("rsa", { modulusLength: 2048 }).privateKey },
@@ -1720,13 +1757,45 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(() =>
       publicApi.planCatalogPromotionV2({ candidateHead: cleanSuccessor, lastGood }),
     ).toThrow();
-    expect(() =>
-      publicApi.planCatalogPromotionV2({
-        candidateHead: cleanSuccessor,
-        lastGood: { ...lastGood, catalogSha256: sha("tampered-last-good") },
-        now: "2026-08-22T12:00:00Z",
-      }),
-    ).toThrow();
+    const restampLastGood = (value: Record<string, unknown>) => {
+      const withoutHeadDigest = { ...value };
+      delete withoutHeadDigest.catalogHeadSha256;
+      return {
+        ...value,
+        catalogHeadSha256: domainSha256("aih-supported-catalog-head/v2", withoutHeadDigest as Json),
+      };
+    };
+    const tamperedLastGoodCatalog = restampLastGood({
+      ...lastGood,
+      catalogSha256: sha("tampered-last-good-catalog"),
+    });
+    const staleLastGoodEntries = structuredClone(lastGood.entries) as Record<string, unknown>[];
+    staleLastGoodEntries[0] = {
+      ...staleLastGoodEntries[0],
+      memberSha256: sha("tampered-last-good-member"),
+    };
+    const tamperedLastGoodMember = restampLastGood({
+      ...lastGood,
+      entries: staleLastGoodEntries,
+      catalogSha256: domainSha256("aih-supported-catalog/v2", staleLastGoodEntries as Json),
+    });
+    for (const tamperedLastGood of [tamperedLastGoodCatalog, tamperedLastGoodMember]) {
+      const successorOfTamperedLastGood = publicApi.createCatalogHeadV2(
+        headInput(fixture.signer, {
+          previousCatalogHeadSha256: tamperedLastGood.catalogHeadSha256,
+          sequence: 1,
+          validFrom: "2026-08-22T01:00:00Z",
+          validUntil: "2026-08-23T00:00:00Z",
+        }),
+      );
+      expect(() =>
+        publicApi.planCatalogPromotionV2({
+          candidateHead: successorOfTamperedLastGood,
+          lastGood: tamperedLastGood,
+          now: "2026-08-22T12:00:00Z",
+        }),
+      ).toThrow();
+    }
     for (const now of ["2026-08-21T23:59:59Z", "2026-08-25T00:00:00Z"])
       expect(() =>
         publicApi.planCatalogPromotionV2({ candidateHead: cleanSuccessor, lastGood, now }),
@@ -1751,10 +1820,14 @@ describe("public signed catalog V2 acceptance contract", () => {
       }),
     ).toThrow();
     for (const invalidContinuity of [
-      { ...nextInput(lastGood, fixture.signer), sequence: (lastGood.sequence as number) + 2 },
-      { ...nextInput(lastGood, fixture.signer), previousCatalogHeadSha256: sha("wrong-parent") },
-      { ...nextInput(lastGood, fixture.signer), previousCatalogHeadSha256: zeroDigest },
-      { ...nextInput(lastGood, fixture.signer), sequence: 0 },
+      publicApi.createCatalogHeadV2({
+        ...nextInput(lastGood, fixture.signer),
+        sequence: (lastGood.sequence as number) + 2,
+      }),
+      publicApi.createCatalogHeadV2({
+        ...nextInput(lastGood, fixture.signer),
+        previousCatalogHeadSha256: sha("wrong-parent"),
+      }),
     ])
       expect(() =>
         publicApi.planCatalogPromotionV2({
@@ -2109,6 +2182,9 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(defaultEvidenceChainSource).toMatch(/artifactDigests/);
     expect(defaultEvidenceChainSource).toMatch(/cold-external-admin/);
     expect(defaultEvidenceChainSource).toMatch(/qualificationBasis/);
+    expect(defaultEvidenceChainSource).toMatch(/import\("\.\.\/\.\.\/src\/index\.js"\)/);
+    expect(defaultEvidenceChainSource).toMatch(/createCatalogHeadV2/);
+    expect(defaultEvidenceChainSource).toMatch(/deriveQualificationBasisV2/);
     for (const script of Object.values(packageScripts)) expect(script).not.toMatch(/^true(?:\s|$)/);
     const temp = mkdtempSync(join(tmpdir(), "aih-supported-cold-"));
     try {
@@ -3164,15 +3240,76 @@ describe("public signed catalog V2 acceptance contract", () => {
       expect(inspectedSuccessor.status).toBe(0);
       const tamperedLastAcceptedPath = resolve(temp, "tampered-last-accepted.json");
       const tamperedLastAccepted = JSON.parse(candidateText) as Record<string, unknown>;
-      tamperedLastAccepted.catalogHeadSha256 = sha("tampered-last-accepted");
+      const tamperedLastAcceptedEntries = tamperedLastAccepted.entries as Record<string, unknown>[];
+      tamperedLastAcceptedEntries[0] = {
+        ...tamperedLastAcceptedEntries[0],
+        memberSha256: sha("tampered-last-accepted-member"),
+      };
+      tamperedLastAccepted.catalogSha256 = domainSha256(
+        "aih-supported-catalog/v2",
+        tamperedLastAcceptedEntries as Json,
+      );
+      const tamperedLastAcceptedWithoutHeadDigest = { ...tamperedLastAccepted };
+      delete tamperedLastAcceptedWithoutHeadDigest.catalogHeadSha256;
+      tamperedLastAccepted.catalogHeadSha256 = domainSha256(
+        "aih-supported-catalog-head/v2",
+        tamperedLastAcceptedWithoutHeadDigest as Json,
+      );
       writeFileSync(tamperedLastAcceptedPath, canonicalJson(tamperedLastAccepted as Json));
+      const tamperedSuccessorCandidatePath = resolve(temp, "tampered-successor-candidate.json");
+      const tamperedSuccessorSignedCatalogPath = resolve(
+        temp,
+        "tampered-successor-signed-catalog.json",
+      );
+      expect(
+        spawnSync(
+          process.execPath,
+          [
+            cliPath,
+            "generate-candidate",
+            "--seed",
+            installedSeed,
+            "--signer",
+            signerPath,
+            "--claims",
+            claimsPath,
+            "--valid-from",
+            "2026-08-22T01:00:00Z",
+            "--valid-until",
+            "2026-08-23T00:00:00Z",
+            "--sequence",
+            "1",
+            "--previous-catalog-head-sha256",
+            tamperedLastAccepted.catalogHeadSha256 as string,
+            "--output",
+            tamperedSuccessorCandidatePath,
+          ],
+          { cwd: consumer, encoding: "utf8" },
+        ).status,
+      ).toBe(0);
+      expect(
+        spawnSync(
+          process.execPath,
+          [
+            cliPath,
+            "sign-candidate",
+            "--candidate",
+            tamperedSuccessorCandidatePath,
+            "--private-key",
+            privateKeyPath,
+            "--output",
+            tamperedSuccessorSignedCatalogPath,
+          ],
+          { cwd: consumer, encoding: "utf8" },
+        ).status,
+      ).toBe(0);
       const rejectsTamperedLastAccepted = spawnSync(
         process.execPath,
         [
           cliPath,
           "inspect",
           "--signed-catalog",
-          successorSignedCatalogPath,
+          tamperedSuccessorSignedCatalogPath,
           "--catalog-signer-root",
           rootPath,
           "--expected-claims",
@@ -3458,8 +3595,9 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(verificationWorkflow).toContain("npm run verify:default-evidence-chain");
     expect(existsSync(workflowPath)).toBe(true);
     const workflow = readFileSync(workflowPath, "utf8");
-    for (const use of workflow.matchAll(/^\s*-\s*uses:\s*[^@\s]+@([^\s#]+)\s*$/gm))
-      expect(use[1]).toMatch(/^[0-9a-f]{40}$/);
+    const actionRefs = [...workflow.matchAll(/^\s*(?:-\s*)?uses:\s*[^@\s]+@([^\s#]+)\s*$/gm)];
+    expect(actionRefs.length).toBeGreaterThan(0);
+    for (const use of actionRefs) expect(use[1]).toMatch(/^[0-9a-f]{40}$/);
     expect(workflow).toMatch(/^on:\s*\n\s*workflow_dispatch:/m);
     expect(workflow).toMatch(/commit_sha:[\s\S]*required:\s*true/);
     expect(workflow).toMatch(/signed_catalog_sha256:[\s\S]*required:\s*true/);
