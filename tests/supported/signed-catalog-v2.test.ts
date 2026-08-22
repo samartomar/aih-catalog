@@ -261,6 +261,7 @@ function opaqueUnknownEnvelope(fixture: Fixture): Record<string, unknown> {
   const statement = {
     _type: "https://in-toto.io/Statement/v1",
     predicate: {
+      candidateSha256: sha(canonicalJson(opaque)),
       catalogHead: opaque,
       catalogHeadSha256,
       claims: claims(),
@@ -466,6 +467,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       ],
     });
     expect(Object.keys(statement.predicate as object).sort()).toEqual([
+      "candidateSha256",
       "catalogHead",
       "catalogHeadSha256",
       "claims",
@@ -483,6 +485,9 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect((statement.predicate as Record<string, unknown>).catalogHeadSha256).toBe(
       sha(canonicalJson((statement.predicate as Record<string, unknown>).catalogHead as Json)),
     );
+    expect((statement.predicate as Record<string, unknown>).candidateSha256).toBe(
+      sha(canonicalJson((statement.predicate as Record<string, unknown>).catalogHead as Json)),
+    );
     const verification = {
       catalogSignerRoots: [fixture.catalogSignerRoot, { ...signingFixture().catalogSignerRoot }],
       expectedClaims: claims(),
@@ -495,6 +500,45 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(canonicalJson(verifiedHead as Json)).toBe(
       canonicalJson((statement.predicate as Record<string, unknown>).catalogHead as Json),
     );
+    const invalidPredicateHead = {
+      ...head,
+      entries: [
+        {
+          ...(head.entries as Record<string, unknown>[])[0],
+          capabilities: {
+            ...((head.entries as Record<string, unknown>[])[0]?.capabilities as object),
+            commands: ["catalog.tampered"],
+          },
+        },
+        (head.entries as Record<string, unknown>[])[1],
+      ],
+    };
+    const invalidStatement = structuredClone(statement) as Record<string, unknown>;
+    const invalidPredicate = invalidStatement.predicate as Record<string, unknown>;
+    invalidPredicate.catalogHead = invalidPredicateHead;
+    invalidPredicate.candidateSha256 = sha(canonicalJson(invalidPredicateHead as Json));
+    const invalidPayload = Buffer.from(canonicalJson(invalidStatement as Json), "utf8");
+    const invalidEnvelope = {
+      payload: invalidPayload.toString("base64"),
+      payloadType: envelope.payloadType,
+      signatures: [
+        {
+          keyid: fixture.signer.keyId,
+          sig: sign(
+            null,
+            dssePae(envelope.payloadType, invalidPayload),
+            fixture.privateKey as never,
+          ).toString("base64"),
+        },
+      ],
+    };
+    for (const operation of [publicApi.verifySignedCatalogV2, publicApi.inspectSignedCatalogV2])
+      expect(() =>
+        operation({
+          ...verification,
+          signed: { envelope: invalidEnvelope, head: invalidPredicateHead },
+        }),
+      ).toThrow();
     expect(publicApi.inspectSignedCatalogV2(verification)).toEqual({
       kind: "materializable",
       head,
@@ -717,6 +761,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       Buffer.from(envelope.payload as string, "base64").toString("utf8"),
     ) as { predicate: Record<string, unknown> };
     expect(Object.keys(opaqueStatement.predicate).sort()).toEqual([
+      "candidateSha256",
       "catalogHead",
       "catalogHeadSha256",
       "claims",
@@ -728,6 +773,9 @@ describe("public signed catalog V2 acceptance contract", () => {
       "validFrom",
       "validUntil",
     ]);
+    expect(opaqueStatement.predicate.candidateSha256).toBe(
+      sha(canonicalJson(opaqueStatement.predicate.catalogHead as Json)),
+    );
 
     expect(publicApi.inspectSignedCatalogV2(request)).toMatchObject({
       kind: "unsupported-version",
@@ -1043,13 +1091,18 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(packageJson.bin).toEqual({ "aih-supported": "dist/cli.js" });
     expect(packageJson.files).toEqual(["dist", "defaults", "README.md"]);
     expect(packageJson.dependencies).toEqual({});
-    expect(packageJson).toMatchObject({
-      scripts: {
-        "generate:default-candidate": expect.any(String),
-        "sign:candidate": expect.any(String),
-        "verify:cold-external-admin": expect.any(String),
-      },
-    });
+    const packageScripts = packageJson.scripts as Record<string, string>;
+    expect(packageScripts["generate:default-candidate"]).toMatch(
+      /^node dist\/cli\.js generate-candidate(?:\s|$)/,
+    );
+    expect(packageScripts["sign:candidate"]).toMatch(/^node dist\/cli\.js sign-candidate(?:\s|$)/);
+    expect(packageScripts["verify:cold-external-admin"]).toMatch(
+      /^node dist\/cli\.js inspect(?:\s|$)/,
+    );
+    expect(packageScripts["verify:default-evidence-chain"]).toMatch(
+      /^(?:node dist\/cli\.js verify-default-evidence-chain|vitest run tests\/supported\/default-evidence-chain\.test\.ts)$/,
+    );
+    for (const script of Object.values(packageScripts)) expect(script).not.toMatch(/^true(?:\s|$)/);
     const temp = mkdtempSync(join(tmpdir(), "aih-supported-cold-"));
     try {
       const buildStarted = Date.now();
@@ -1086,17 +1139,15 @@ describe("public signed catalog V2 acceptance contract", () => {
           /^(dist\/|defaults\/|package\.json$|README(?:\.md)?$|LICENSE(?:\.md)?$)/,
         );
       expect(tarFiles.join("\n")).not.toMatch(/\.pem$|^tests\/|^ai-coding\/|^tools\/|hooks\//m);
-      expect(tarFiles).toEqual(
-        expect.arrayContaining([
-          "dist/cli.js",
-          "dist/cli.d.ts",
-          "dist/index.js",
-          "dist/index.d.ts",
-          "dist/supported/signed-catalog-v2.js",
-          "dist/supported/signed-catalog-v2.d.ts",
-          "package.json",
-        ]),
-      );
+      expect(tarFiles.filter((path) => path.startsWith("dist/")).sort()).toEqual([
+        "dist/cli.d.ts",
+        "dist/cli.js",
+        "dist/index.d.ts",
+        "dist/index.js",
+        "dist/supported/signed-catalog-v2.d.ts",
+        "dist/supported/signed-catalog-v2.js",
+      ]);
+      expect(tarFiles).toContain("package.json");
       expect(tarFiles.join("\n")).not.toMatch(
         /(?:^|\/)v1(?:\/|\.|$)|records-v1|provider-watcher-v1/i,
       );
@@ -1349,7 +1400,14 @@ describe("public signed catalog V2 acceptance contract", () => {
           .catalogHeadSha256,
       ).not.toBe(candidate.catalogHeadSha256);
       const mutatedCandidatePath = resolve(temp, "mutated-candidate.json");
-      writeFileSync(mutatedCandidatePath, `${candidateText} `);
+      const mutatedCandidate = {
+        ...candidate,
+        catalogHeadSha256: `0${String(candidate.catalogHeadSha256).slice(1)}`,
+      };
+      const mutatedCandidateText = canonicalJson(mutatedCandidate as Json);
+      expect(mutatedCandidateText).not.toBe(candidateText);
+      expect(mutatedCandidateText).toBe(canonicalJson(JSON.parse(mutatedCandidateText) as Json));
+      writeFileSync(mutatedCandidatePath, mutatedCandidateText);
       expect(
         spawnSync(
           process.execPath,

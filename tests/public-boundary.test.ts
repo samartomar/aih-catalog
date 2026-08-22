@@ -58,6 +58,10 @@ describe("supported public V2 boundary", () => {
     const project = JSON.parse(
       readFileSync(resolve(root, "ai-coding/project.json"), "utf8"),
     ) as Record<string, unknown>;
+    expect(project.description).toMatch(/public Catalog V2 producer/i);
+    expect(project.description).not.toMatch(/private|bootstrap|no product/i);
+    expect(project.entrypoints).toEqual(expect.arrayContaining(["dist/cli.js"]));
+    expect(project.publication).toBe("release-ready-publication-separately-authorized");
     expect(project.supportedCatalogV2).toEqual({
       coreConsumption: "not-yet",
       documentation: "ai-coding/supported-catalog-v2.md",
