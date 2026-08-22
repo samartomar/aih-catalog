@@ -13,7 +13,7 @@ function sourceFiles(path = resolve(root, "src")): string[] {
 }
 
 describe("supported public V2 boundary", () => {
-  it("publishes only the V2 API/CLI surface while publication remains deferred", () => {
+  it("exposes only the V2 API/CLI surface while publication remains deferred", () => {
     const packageJson = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8")) as Record<
       string,
       unknown
@@ -21,11 +21,33 @@ describe("supported public V2 boundary", () => {
     const index = readFileSync(resolve(root, "src/index.ts"), "utf8");
 
     expect(packageJson.name).toBe("@aihq/supported");
+    expect(packageJson.version).toBe("1.0.0");
     expect(packageJson.bin).toEqual({ "aih-supported": "dist/cli.js" });
+    expect(packageJson.files).toEqual(["dist", "defaults", "README.md", "LICENSE"]);
     expect(packageJson).not.toHaveProperty("publishConfig");
     expect(packageJson.scripts).not.toMatchObject({ publish: expect.any(String) });
     expect(index).toContain('from "./supported/signed-catalog-v2.js"');
     expect(index).not.toMatch(/V1|records-v1|provider-watcher-v1/);
+  });
+
+  it("keeps the README and ai-coding truth contract explicit about Catalog V2 authority and use", () => {
+    const readme = readFileSync(resolve(root, "README.md"), "utf8");
+    const truth = readFileSync(resolve(root, "ai-coding/supported-catalog-v2.md"), "utf8");
+    for (const text of [readme, truth]) {
+      expect(text).toMatch(/supported/i);
+      expect(text).toMatch(/organization-qualified|org-qualified/i);
+      expect(text).toMatch(/not.*admission authority|not-authoritative/i);
+      expect(text).toMatch(/install/i);
+      expect(text).toMatch(/candidate/i);
+      expect(text).toMatch(/sign/i);
+      expect(text).toMatch(/verify/i);
+      expect(text).toMatch(/inspect/i);
+      expect(text).toMatch(/version/i);
+      expect(text).toMatch(/consum/i);
+      expect(text).toMatch(/contribut/i);
+      expect(text).toMatch(/publication.*deferred|publish.*separate/i);
+      expect(text).toMatch(/Core.*does not.*consume.*Catalog V2/i);
+    }
   });
 
   it("keeps network/process/provider authority absent and confines cryptographic signing to one V2 module", () => {

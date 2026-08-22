@@ -11,7 +11,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { basename, isAbsolute, join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const root = resolve(import.meta.dirname, "..", "..");
@@ -261,11 +261,11 @@ function opaqueUnknownEnvelope(fixture: Fixture): Record<string, unknown> {
   const statement = {
     _type: "https://in-toto.io/Statement/v1",
     predicate: {
+      catalogHead: opaque,
       catalogHeadSha256,
       claims: claims(),
       effectVersion: "999",
       protocol: "CatalogHeadV2",
-      rawCatalogHead: opaque,
       replayIdentity: "opaque:catalog-head:999",
       schemaVersion: "999",
       signer: fixture.signer,
@@ -302,6 +302,24 @@ function workflowJob(workflow: string, name: string): string {
   return lines.slice(start + 1, end < 0 ? undefined : end).join("\n");
 }
 
+function npmCli(): string {
+  const candidates = [
+    process.env.npm_execpath,
+    resolve(process.execPath, "..", "node_modules", "npm", "bin", "npm-cli.js"),
+    resolve(process.execPath, "..", "..", "lib", "node_modules", "npm", "bin", "npm-cli.js"),
+  ];
+  for (const candidate of candidates) {
+    if (
+      candidate &&
+      isAbsolute(candidate) &&
+      basename(candidate) === "npm-cli.js" &&
+      existsSync(candidate)
+    )
+      return candidate;
+  }
+  throw new Error("unable to resolve a local npm-cli.js");
+}
+
 describe("public signed catalog V2 acceptance contract", () => {
   it("exposes the public V2 package/CLI and a Core lock only for qualification-basis derivation", async () => {
     const publicApi = await api();
@@ -325,6 +343,18 @@ describe("public signed catalog V2 acceptance contract", () => {
       "deriveQualificationBasisV2",
     ] as const)
       expect(publicApi[operation]).toBeTypeOf("function");
+    expect(Object.keys(publicApi).sort()).toEqual([
+      "STRICT_V2_CORE_LOCK",
+      "canonicalCatalogHeadV2Bytes",
+      "createCatalogHeadV2",
+      "deriveQualificationBasisV2",
+      "inspectSignedCatalogV2",
+      "parseCatalogHeadV2Json",
+      "planCatalogPromotionV2",
+      "signCatalogHeadV2",
+      "verifySignedCatalogV2",
+    ]);
+    expect(Object.keys(publicApi)).not.toEqual(expect.arrayContaining(["isSupported", "isMember"]));
   });
 
   it("creates only strict V2 heads with derived Core subjects, member/catalog digests, sorted surfaces, and a zero-digest genesis", async () => {
@@ -386,6 +416,20 @@ describe("public signed catalog V2 acceptance contract", () => {
       headInput(fixture.signer, { entries: [{ ...entry(), entryId: "UPPER" }] }),
     ])
       expect(() => publicApi.createCatalogHeadV2(malformed)).toThrow();
+    for (const malformedClaims of [
+      {},
+      { ...claims(), extra: "forbidden" },
+      { ...claims(), issuer: "https://issuer.invalid" },
+      { ...claims(), repositoryId: "not-a-decimal-id" },
+      { ...claims(), repositoryOwnerId: "not-a-decimal-id" },
+      { ...claims(), sha: "not-a-40-hex-sha" },
+      { ...claims(), jobWorkflowSha: "not-a-40-hex-sha" },
+      { ...claims(), runAttempt: 0 },
+      { ...claims(), runAttempt: 1.5 },
+    ])
+      expect(() =>
+        publicApi.createCatalogHeadV2(headInput(fixture.signer, { claims: malformedClaims })),
+      ).toThrow();
   });
 
   it("signs the exact in-toto DSSE PAE once with a matching private Ed25519 key and verifies exact root, claims, continuity, replay, and time", async () => {
@@ -419,6 +463,21 @@ describe("public signed catalog V2 acceptance contract", () => {
         { digest: { sha256: head.catalogHeadSha256 }, name: "aih-supported/CatalogHeadV2" },
       ],
     });
+    expect(Object.keys(statement.predicate as object).sort()).toEqual([
+      "catalogHead",
+      "catalogHeadSha256",
+      "claims",
+      "effectVersion",
+      "protocol",
+      "replayIdentity",
+      "schemaVersion",
+      "signer",
+      "validFrom",
+      "validUntil",
+    ]);
+    expect(
+      canonicalJson((statement.predicate as Record<string, unknown>).catalogHead as Json),
+    ).toBe(publicApi.canonicalCatalogHeadV2Bytes(head).toString("utf8"));
     const verification = {
       catalogSignerRoots: [fixture.catalogSignerRoot, { ...signingFixture().catalogSignerRoot }],
       expectedClaims: claims(),
@@ -426,7 +485,11 @@ describe("public signed catalog V2 acceptance contract", () => {
       now: "2026-08-22T12:00:00Z",
       signed,
     };
-    expect(publicApi.verifySignedCatalogV2(verification)).toEqual(head);
+    const verifiedHead = publicApi.verifySignedCatalogV2(verification);
+    expect(verifiedHead).toEqual(head);
+    expect(canonicalJson(verifiedHead as Json)).toBe(
+      canonicalJson((statement.predicate as Record<string, unknown>).catalogHead as Json),
+    );
     expect(publicApi.inspectSignedCatalogV2(verification)).toEqual({
       kind: "materializable",
       head,
@@ -455,6 +518,15 @@ describe("public signed catalog V2 acceptance contract", () => {
       ...nextInput(head, fixture.signer),
       sequence: 2,
     });
+    const sameSequenceFork = publicApi.createCatalogHeadV2(
+      headInput(fixture.signer, { validUntil: "2026-08-23T01:00:00Z" }),
+    );
+    const zeroPredecessorSuccessor = publicApi.createCatalogHeadV2(
+      headInput(fixture.signer, {
+        claims: claims("123456790", 2),
+        sequence: 1,
+      }),
+    );
     for (const [key, value] of Object.entries(changedClaimValues())) {
       const changedHead = publicApi.createCatalogHeadV2(
         headInput(fixture.signer, { claims: { ...claims(), [key]: value } }),
@@ -520,6 +592,29 @@ describe("public signed catalog V2 acceptance contract", () => {
       },
       {
         ...verification,
+        signed: { ...signed, head: { ...head, validUntil: "2026-08-23T01:00:00Z" } },
+      },
+      {
+        ...verification,
+        signed: {
+          ...signed,
+          head: {
+            ...head,
+            entries: [
+              {
+                ...(head.entries as Record<string, unknown>[])[0],
+                capabilities: {
+                  ...((head.entries as Record<string, unknown>[])[0]?.capabilities as object),
+                  commands: ["catalog.changed"],
+                },
+              },
+              (head.entries as Record<string, unknown>[])[1],
+            ],
+          },
+        },
+      },
+      {
+        ...verification,
         signed: { ...signed, envelope: { ...envelope, payload: `${envelope.payload} ` } },
       },
       {
@@ -556,9 +651,33 @@ describe("public signed catalog V2 acceptance contract", () => {
           privateKey: fixture.privateKey,
         }),
       },
+      {
+        ...verification,
+        lastAccepted: head,
+        signed: publicApi.signCatalogHeadV2({
+          head: sameSequenceFork,
+          privateKey: fixture.privateKey,
+        }),
+      },
+      {
+        ...verification,
+        lastAccepted: head,
+        signed: publicApi.signCatalogHeadV2({
+          head: zeroPredecessorSuccessor,
+          privateKey: fixture.privateKey,
+        }),
+      },
       { ...verification, lastAccepted: successor },
     ])
       expect(() => publicApi.verifySignedCatalogV2(rejected)).toThrow();
+    for (const signingInput of [
+      { head, privateKey: signingFixture().privateKey },
+      { head, privateKey: generateKeyPairSync("rsa", { modulusLength: 2048 }).privateKey },
+      { head, privateKey: fixture.privateKey, provider: "forbidden" },
+      { head, privateKey: fixture.privateKey, source: "forbidden" },
+      { head, privateKey: fixture.privateKey, authority: "forbidden" },
+    ])
+      expect(() => publicApi.signCatalogHeadV2(signingInput)).toThrow();
   });
 
   it("returns an authenticated opaque unknown-version record but never materializes or verifies it as V2", async () => {
@@ -573,6 +692,21 @@ describe("public signed catalog V2 acceptance contract", () => {
       replay: { acceptedIdentities: [] },
       signed: { envelope },
     };
+    const opaqueStatement = JSON.parse(
+      Buffer.from(envelope.payload as string, "base64").toString("utf8"),
+    ) as { predicate: Record<string, unknown> };
+    expect(Object.keys(opaqueStatement.predicate).sort()).toEqual([
+      "catalogHead",
+      "catalogHeadSha256",
+      "claims",
+      "effectVersion",
+      "protocol",
+      "replayIdentity",
+      "schemaVersion",
+      "signer",
+      "validFrom",
+      "validUntil",
+    ]);
 
     expect(publicApi.inspectSignedCatalogV2(request)).toMatchObject({
       kind: "unsupported-version",
@@ -619,6 +753,8 @@ describe("public signed catalog V2 acceptance contract", () => {
     for (const invalidContinuity of [
       { ...nextInput(lastGood, fixture.signer), sequence: (lastGood.sequence as number) + 2 },
       { ...nextInput(lastGood, fixture.signer), previousCatalogHeadSha256: sha("wrong-parent") },
+      { ...nextInput(lastGood, fixture.signer), previousCatalogHeadSha256: zeroDigest },
+      { ...nextInput(lastGood, fixture.signer), sequence: 0 },
     ])
       expect(() =>
         publicApi.planCatalogPromotionV2({
@@ -660,6 +796,43 @@ describe("public signed catalog V2 acceptance contract", () => {
             surface,
           }),
         ]),
+      );
+    }
+    const entryAdded = publicApi.createCatalogHeadV2({
+      ...nextInput(lastGood, fixture.signer),
+      entries: [
+        ...(nextInput(lastGood, fixture.signer).entries as Record<string, unknown>[]),
+        entry("recipe.beta"),
+      ],
+    });
+    const entryRemoved = publicApi.createCatalogHeadV2({
+      ...nextInput(lastGood, fixture.signer),
+      entries: (nextInput(lastGood, fixture.signer).entries as Record<string, unknown>[]).filter(
+        (candidate) => candidate.entryId !== "recipe.alpha",
+      ),
+    });
+    const subjectChanged = publicApi.createCatalogHeadV2({
+      ...nextInput(lastGood, fixture.signer),
+      entries: (nextInput(lastGood, fixture.signer).entries as Record<string, unknown>[]).map(
+        (candidate) =>
+          candidate.entryId === "recipe.default"
+            ? { ...candidate, subject: subject("profile", "changed-default-profile") }
+            : candidate,
+      ),
+    });
+    for (const [candidateHead, surface, identity] of [
+      [entryAdded, "entry-added", "recipe.beta"],
+      [entryRemoved, "entry-removed", "recipe.alpha"],
+      [subjectChanged, "subject", "recipe.default"],
+    ]) {
+      const result = publicApi.planCatalogPromotionV2({
+        candidateHead,
+        lastGood,
+        now: "2026-08-22T12:00:00Z",
+      }) as Record<string, unknown>;
+      expect(result).toMatchObject({ head: lastGood, kind: "last-good" });
+      expect(result.facts).toEqual(
+        expect.arrayContaining([expect.objectContaining({ identity, surface })]),
       );
     }
     for (const forbidden of [
@@ -708,14 +881,38 @@ describe("public signed catalog V2 acceptance contract", () => {
       "subjectDigest",
       "subjectKind",
     ]);
-    expect(derived).toMatchObject({ kind: "aih-supported", subjectKind: "profile" });
+    const defaultEntry = (head.entries as Record<string, unknown>[]).find(
+      (candidate) => candidate.entryId === "recipe.default",
+    ) as Record<string, unknown>;
+    expect(derived).toMatchObject({
+      catalogDigest: `sha256:${head.catalogSha256}`,
+      catalogHeadDigest: `sha256:${head.catalogHeadSha256}`,
+      catalogMemberDigest: `sha256:${defaultEntry.memberSha256}`,
+      catalogSignerIdentity: fixture.signer.identity,
+      kind: "aih-supported",
+      subjectDigest: `sha256:${(defaultEntry.subject as Record<string, unknown>).subjectDigest}`,
+      subjectKind: "profile",
+    });
+    for (const key of [
+      "catalogDigest",
+      "catalogHeadDigest",
+      "catalogMemberDigest",
+      "subjectDigest",
+    ])
+      expect(derived[key]).toMatch(/^sha256:[a-f0-9]{64}$/);
+    expect(derived.catalogSignerIdentity).toMatch(/^administrator:aih-supported\/catalog-v2$/);
+    expect(derived.subjectKind).toMatch(/^(profile|recipe)$/);
     expect(Object.keys(derived).sort()).toEqual([...expectedKeys].sort());
+    expect(() =>
+      publicApi.deriveQualificationBasisV2({ entryId: "recipe.unknown", head }),
+    ).toThrow();
     const packageJson = readFileSync(resolve(root, "package.json"), "utf8");
     const verificationWorkflow = readFileSync(
       resolve(root, ".github/workflows/verify.yml"),
       "utf8",
     );
     const verifierPath = resolve(root, "tools/verify-core-v2-lock.mjs");
+    const schemaPath = resolve(root, "tests/contracts/core/aih-governance-decision-v2.schema.json");
     expect(packageJson).toContain('"verify:core-v2-lock"');
     expect(verificationWorkflow).toContain("npm run verify:core-v2-lock");
     expect(existsSync(verifierPath)).toBe(true);
@@ -723,6 +920,31 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(verifier).toContain(coreCommit);
     expect(verifier).toContain(schemaSha256);
     expect(verifier).toContain("aih-governance-decision-v2.schema.json");
+    expect(existsSync(schemaPath)).toBe(true);
+    expect(sha(readFileSync(schemaPath))).toBe(schemaSha256);
+    const validationTemp = mkdtempSync(join(tmpdir(), "aih-supported-core-lock-"));
+    try {
+      const basisPath = resolve(validationTemp, "qualification-basis.json");
+      const driftedSchemaPath = resolve(validationTemp, "drifted-schema.json");
+      writeFileSync(basisPath, canonicalJson(derived as unknown as Json));
+      writeFileSync(driftedSchemaPath, `${readFileSync(schemaPath, "utf8")}\n`);
+      expect(
+        spawnSync(
+          process.execPath,
+          [verifierPath, "--schema", schemaPath, "--qualification-basis", basisPath],
+          { cwd: root, encoding: "utf8" },
+        ).status,
+      ).toBe(0);
+      expect(
+        spawnSync(
+          process.execPath,
+          [verifierPath, "--schema", driftedSchemaPath, "--qualification-basis", basisPath],
+          { cwd: root, encoding: "utf8" },
+        ).status,
+      ).not.toBe(0);
+    } finally {
+      rmSync(validationTemp, { force: true, recursive: true });
+    }
   });
 
   it("derives one deterministic default profile/recipe evidence chain and supports a packed disposable cold external-admin journey", () => {
@@ -752,7 +974,11 @@ describe("public signed catalog V2 acceptance contract", () => {
       verificationMode: "cold-external-admin",
     });
     expect(coldAdminText.trim()).toBe(canonicalJson(coldAdmin as unknown as Json));
+    expect(packageJson.version).toBe("1.0.0");
     expect(packageJson.bin).toEqual({ "aih-supported": "dist/cli.js" });
+    expect(packageJson.files).toEqual(
+      expect.arrayContaining(["dist", "defaults", "README.md", "LICENSE"]),
+    );
     expect(packageJson).toMatchObject({
       scripts: {
         "generate:default-candidate": expect.any(String),
@@ -762,23 +988,38 @@ describe("public signed catalog V2 acceptance contract", () => {
     });
     const temp = mkdtempSync(join(tmpdir(), "aih-supported-cold-"));
     try {
-      const npm = process.platform === "win32" ? "npm.cmd" : "npm";
-      const packed = spawnSync(npm, ["pack", "--json", "--pack-destination", temp], {
-        cwd: root,
-        encoding: "utf8",
-      });
-      expect(packed.status).toBe(0);
-      const tarball = resolve(
-        temp,
-        (JSON.parse(packed.stdout) as { filename: string }[])[0]?.filename ?? "",
+      const packed = spawnSync(
+        process.execPath,
+        [npmCli(), "pack", "--json", "--pack-destination", temp],
+        {
+          cwd: root,
+          encoding: "utf8",
+        },
       );
+      expect(packed.status).toBe(0);
+      const packedManifest = (
+        JSON.parse(packed.stdout) as {
+          filename: string;
+          files: { path: string }[];
+        }[]
+      )[0];
+      const tarball = resolve(temp, packedManifest?.filename ?? "");
+      const tarFiles = packedManifest?.files.map((file) => file.path) ?? [];
+      expect(tarFiles).not.toHaveLength(0);
+      for (const file of tarFiles)
+        expect(file).toMatch(/^(dist\/|defaults\/|README(?:\.md)?$|LICENSE(?:\.md)?$)/);
+      expect(tarFiles.join("\n")).not.toMatch(/\.pem$|^tests\/|^ai-coding\/|^tools\/|hooks\//m);
       const consumer = resolve(temp, "consumer");
       mkdirSync(consumer);
       writeFileSync(`${consumer}/package.json`, '{"name":"cold-admin-consumer","private":true}');
-      const installed = spawnSync(npm, ["install", "--ignore-scripts", tarball], {
-        cwd: consumer,
-        encoding: "utf8",
-      });
+      const installed = spawnSync(
+        process.execPath,
+        [npmCli(), "install", "--ignore-scripts", tarball],
+        {
+          cwd: consumer,
+          encoding: "utf8",
+        },
+      );
       expect(installed.status).toBe(0);
 
       const fixture = signingFixture();
@@ -824,14 +1065,18 @@ describe("public signed catalog V2 acceptance contract", () => {
           sha(readFileSync(resolve(installedPackage, path))),
         ]),
       );
-      expect(Object.values(artifactDigests)).toEqual(
-        expect.arrayContaining([
-          expect.stringMatching(/^[a-f0-9]{64}$/),
-          expect.stringMatching(/^[a-f0-9]{64}$/),
-          expect.stringMatching(/^[a-f0-9]{64}$/),
-          expect.stringMatching(/^[a-f0-9]{64}$/),
-        ]),
-      );
+      expect(Object.keys(installedSeedCatalog.artifacts).sort()).toEqual([
+        "closure",
+        "profile",
+        "prose",
+        "recipe",
+      ]);
+      for (const digest of Object.values(artifactDigests)) expect(digest).toMatch(/^[a-f0-9]{64}$/);
+      expect((installedSeedCatalog as Record<string, unknown>).entryId).toBe("recipe.default");
+      expect((installedSeedCatalog as Record<string, unknown>).subject).toMatchObject({
+        id: "default-profile",
+        kind: "profile",
+      });
       if (process.platform !== "win32") {
         chmodSync(privateKeyPath, 0o600);
         chmodSync(wrongPrivateKeyPath, 0o600);
@@ -1075,10 +1320,45 @@ describe("public signed catalog V2 acceptance contract", () => {
       );
       expect(inspected.status).toBe(0);
       expect(inspected.stdout).toContain('"kind":"aih-supported"');
+      expect(inspected.stdout).toContain('"organizationAdmission":"not-authoritative"');
+      const tamperedSignedCatalogPath = resolve(temp, "tampered-signed-catalog.json");
+      const wrongRootPath = resolve(temp, "wrong-catalog-signer-root.json");
+      writeFileSync(tamperedSignedCatalogPath, `${signedCatalog} `);
+      writeFileSync(
+        wrongRootPath,
+        canonicalJson(wrongFixture.catalogSignerRoot as unknown as Json),
+      );
+      for (const [flag, value] of [
+        ["--expected-claims", changedClaimsPath],
+        ["--catalog-signer-root", wrongRootPath],
+        ["--now", "2026-08-24T00:00:00Z"],
+        ["--signed-catalog", tamperedSignedCatalogPath],
+      ] as const) {
+        const rejectedInspection = spawnSync(
+          process.execPath,
+          [
+            cliPath,
+            "inspect",
+            "--signed-catalog",
+            flag === "--signed-catalog" ? value : signedCatalogPath,
+            "--catalog-signer-root",
+            flag === "--catalog-signer-root" ? value : rootPath,
+            "--expected-claims",
+            flag === "--expected-claims" ? value : claimsPath,
+            "--now",
+            flag === "--now" ? value : "2026-08-22T12:00:00Z",
+            "--continuity",
+            "genesis",
+            "--qualification-basis",
+          ],
+          { cwd: consumer, encoding: "utf8" },
+        );
+        expect(rejectedInspection.status).not.toBe(0);
+      }
     } finally {
       rmSync(temp, { force: true, recursive: true });
     }
-  });
+  }, 180_000);
 
   it("requires a manual exact-SHA OIDC/keyless workflow split into no-authority candidate, protected signer, and independent verifier jobs", () => {
     const packageJson = readFileSync(resolve(root, "package.json"), "utf8");
@@ -1094,7 +1374,9 @@ describe("public signed catalog V2 acceptance contract", () => {
     const workflow = readFileSync(workflowPath, "utf8");
     expect(workflow).toMatch(/^on:\s*\n\s*workflow_dispatch:/m);
     expect(workflow).toMatch(/commit_sha:[\s\S]*required:\s*true/);
+    expect(workflow).toMatch(/signed_catalog_sha256:[\s\S]*required:\s*true/);
     expect(workflow).toMatch(/[0-9a-f]\{40\}/);
+    expect(workflow).toMatch(/[0-9a-f]\{64\}/);
     const candidate = workflowJob(workflow, "candidate");
     const signer = workflowJob(workflow, "sign");
     const verifier = workflowJob(workflow, "verify");
@@ -1102,12 +1384,18 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(candidate).not.toMatch(
       /id-token:\s*write|contents:\s*write|\b(sign|cosign|sigstore)\b/i,
     );
-    expect(candidate).toMatch(/actions\/checkout|git checkout/);
-    expect(candidate).toMatch(/git rev-parse HEAD/);
+    expect(candidate).toMatch(/actions\/checkout[\s\S]*ref:\s*\$\{\{\s*inputs\.commit_sha\s*\}\}/);
+    expect(candidate).toMatch(
+      /git rev-parse HEAD[\s\S]*inputs\.commit_sha|inputs\.commit_sha[\s\S]*git rev-parse HEAD/,
+    );
     expect(candidate).toMatch(/sha256sum|shasum/);
-    expect(signer).toMatch(/environment:/);
+    expect(signer).toMatch(/environment:\s*catalog-signing/);
     expect(signer).toMatch(/id-token:\s*write/);
     expect(signer).toMatch(/sha256sum|shasum/);
+    expect(signer).toMatch(/signed_catalog_sha256/);
+    expect(signer).toMatch(
+      /(?:sha256sum|shasum)[\s\S]*signed_catalog_sha256|signed_catalog_sha256[\s\S]*(?:sha256sum|shasum)/,
+    );
     expect(signer).toMatch(/(sigstore|cosign|keyless)/i);
     expect(signer).toMatch(
       /(provenance|attestation).*(signed-catalog|artifact)|(signed-catalog|artifact).*(provenance|attestation)/i,
@@ -1115,6 +1403,8 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(signer).not.toMatch(
       /actions\/checkout|npm\s|candidate\.ts|contents:\s*write|catalogSignerRoot|ed25519.*generate|private.*key/i,
     );
+    expect(signer).toMatch(/administrator.*ed25519.*DSSE|DSSE.*administrator.*ed25519/i);
+    expect(signer).toMatch(/keyless.*(provenance|publication)|(provenance|publication).*keyless/i);
     expect(verifier).toMatch(/actions\/download-artifact/);
     expect(verifier).toMatch(/npm\s+(ci|run)/);
     expect(verifier).not.toMatch(/needs:\s*\[?candidate/i);
