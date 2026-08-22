@@ -1,6 +1,15 @@
 import { spawnSync } from "node:child_process";
 import { createHash, generateKeyPairSync, type KeyObject, sign, verify } from "node:crypto";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -731,31 +740,12 @@ describe("public signed catalog V2 acceptance contract", () => {
       "utf8",
     );
     const coldAdmin = JSON.parse(coldAdminText) as Record<string, unknown>;
-    const artifacts = defaultCatalog.artifacts as Record<string, string>;
-    const artifactDigests = Object.fromEntries(
-      Object.entries(artifacts).map(([kind, path]) => [
-        kind,
-        sha(readFileSync(resolve(root, path))),
-      ]),
-    );
-
     expect(defaultCatalog).toMatchObject({
       entryId: "recipe.default",
-      artifacts: {
-        closure: expect.any(String),
-        profile: expect.any(String),
-        prose: expect.any(String),
-        recipe: expect.any(String),
-      },
+      installedSeed: "defaults/default-catalog-v2.json",
+      profile: { id: "default-profile", kind: "profile" },
+      recipe: { id: "default-recipe", kind: "recipe" },
     });
-    expect(Object.values(artifactDigests)).toEqual(
-      expect.arrayContaining([
-        expect.stringMatching(/^[a-f0-9]{64}$/),
-        expect.stringMatching(/^[a-f0-9]{64}$/),
-        expect.stringMatching(/^[a-f0-9]{64}$/),
-        expect.stringMatching(/^[a-f0-9]{64}$/),
-      ]),
-    );
     expect(defaultCatalogText.trim()).toBe(canonicalJson(defaultCatalog as unknown as Json));
     expect(coldAdmin).toMatchObject({
       organizationAdmission: "not-authoritative",
@@ -765,21 +755,18 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(packageJson.bin).toEqual({ "aih-supported": "dist/cli.js" });
     expect(packageJson).toMatchObject({
       scripts: {
-        "generate:default-catalog": expect.any(String),
+        "generate:default-candidate": expect.any(String),
+        "sign:candidate": expect.any(String),
         "verify:cold-external-admin": expect.any(String),
       },
     });
     const temp = mkdtempSync(join(tmpdir(), "aih-supported-cold-"));
     try {
       const npm = process.platform === "win32" ? "npm.cmd" : "npm";
-      const packed = spawnSync(
-        npm,
-        ["pack", "--ignore-scripts", "--json", "--pack-destination", temp],
-        {
-          cwd: root,
-          encoding: "utf8",
-        },
-      );
+      const packed = spawnSync(npm, ["pack", "--json", "--pack-destination", temp], {
+        cwd: root,
+        encoding: "utf8",
+      });
       expect(packed.status).toBe(0);
       const tarball = resolve(
         temp,
@@ -797,19 +784,53 @@ describe("public signed catalog V2 acceptance contract", () => {
       const fixture = signingFixture();
       const claimsPath = resolve(temp, "claims.json");
       const rootPath = resolve(temp, "catalog-signer-root.json");
+      const signerPath = resolve(temp, "catalog-signer.json");
       const privateKeyPath = resolve(temp, "catalog-signer-private.pem");
+      const insecurePrivateKeyPath = resolve(temp, "insecure-catalog-signer-private.pem");
+      const candidatePath = resolve(temp, "candidate.json");
       const signedCatalogPath = resolve(temp, "signed-catalog.json");
       writeFileSync(claimsPath, canonicalJson(claims() as unknown as Json));
       writeFileSync(rootPath, canonicalJson(fixture.catalogSignerRoot as unknown as Json));
+      writeFileSync(signerPath, canonicalJson(fixture.signer as unknown as Json));
+      expect(Object.keys(JSON.parse(readFileSync(signerPath, "utf8")) as object).sort()).toEqual([
+        "class",
+        "identity",
+        "keyId",
+        "publicKeySpkiSha256",
+      ]);
       writeFileSync(privateKeyPath, fixture.privateKey.export({ format: "pem", type: "pkcs8" }));
       const cliPath = resolve(consumer, "node_modules/@aihq/supported/dist/cli.js");
+      const installedPackage = resolve(consumer, "node_modules/@aihq/supported");
+      const installedSeed = resolve(installedPackage, defaultCatalog.installedSeed as string);
+      expect(existsSync(installedSeed)).toBe(true);
+      const installedSeedCatalog = JSON.parse(readFileSync(installedSeed, "utf8")) as {
+        artifacts: Record<string, string>;
+      };
+      const artifactDigests = Object.fromEntries(
+        Object.entries(installedSeedCatalog.artifacts).map(([kind, path]) => [
+          kind,
+          sha(readFileSync(resolve(installedPackage, path))),
+        ]),
+      );
+      expect(Object.values(artifactDigests)).toEqual(
+        expect.arrayContaining([
+          expect.stringMatching(/^[a-f0-9]{64}$/),
+          expect.stringMatching(/^[a-f0-9]{64}$/),
+          expect.stringMatching(/^[a-f0-9]{64}$/),
+          expect.stringMatching(/^[a-f0-9]{64}$/),
+        ]),
+      );
+      if (process.platform !== "win32") {
+        chmodSync(privateKeyPath, 0o600);
+        expect(statSync(privateKeyPath).mode & 0o777).toBe(0o600);
+      }
       const unsignedInspection = spawnSync(
         process.execPath,
         [
           cliPath,
           "inspect",
           "--catalog",
-          resolve(root, "tests/contracts/default-catalog-v2.json"),
+          installedSeed,
           "--catalog-signer-root",
           rootPath,
           "--expected-claims",
@@ -819,13 +840,114 @@ describe("public signed catalog V2 acceptance contract", () => {
         { cwd: consumer, encoding: "utf8" },
       );
       expect(unsignedInspection.status).not.toBe(0);
-      const generated = spawnSync(
+      for (const rejectedAuthority of [
+        ["--signer", signerPath],
+        ["--private-key", privateKeyPath],
+      ]) {
+        const rejectsCandidateSigningAuthority = spawnSync(
+          process.execPath,
+          [
+            cliPath,
+            "generate-candidate",
+            "--seed",
+            installedSeed,
+            ...rejectedAuthority,
+            "--output",
+            candidatePath,
+          ],
+          { cwd: consumer, encoding: "utf8" },
+        );
+        expect(rejectsCandidateSigningAuthority.status).not.toBe(0);
+      }
+      const rejectsCandidateProvider = spawnSync(
         process.execPath,
         [
           cliPath,
-          "generate-default-catalog",
+          "generate-candidate",
           "--seed",
-          resolve(root, "tests/contracts/default-catalog-v2.json"),
+          installedSeed,
+          "--provider-callback",
+          "https://provider.invalid/candidate",
+          "--output",
+          candidatePath,
+        ],
+        { cwd: consumer, encoding: "utf8" },
+      );
+      expect(rejectsCandidateProvider.status).not.toBe(0);
+      const generated = spawnSync(
+        process.execPath,
+        [cliPath, "generate-candidate", "--seed", installedSeed, "--output", candidatePath],
+        { cwd: consumer, encoding: "utf8" },
+      );
+      expect(generated.status).toBe(0);
+      const candidateText = readFileSync(candidatePath, "utf8");
+      const candidate = JSON.parse(candidateText) as Record<string, unknown>;
+      expect(candidateText.trim()).toBe(canonicalJson(candidate as unknown as Json));
+      expect(candidate).not.toHaveProperty("signature");
+      expect(candidate).not.toHaveProperty("catalogSignerRoot");
+      expect(candidate).not.toHaveProperty("privateKey");
+      for (const rejectedCandidateInput of [
+        ["--seed", installedSeed],
+        ["--artifact", installedSeed],
+        ["--artifacts", installedSeed],
+        ["--provider-callback", "https://provider.invalid/sign"],
+      ]) {
+        const rejectsSigningCandidateInput = spawnSync(
+          process.execPath,
+          [
+            cliPath,
+            "sign-candidate",
+            "--candidate",
+            candidatePath,
+            "--signer",
+            signerPath,
+            "--claims",
+            claimsPath,
+            "--private-key",
+            privateKeyPath,
+            ...rejectedCandidateInput,
+            "--output",
+            signedCatalogPath,
+          ],
+          { cwd: consumer, encoding: "utf8" },
+        );
+        expect(rejectsSigningCandidateInput.status).not.toBe(0);
+      }
+      if (process.platform !== "win32") {
+        writeFileSync(
+          insecurePrivateKeyPath,
+          fixture.privateKey.export({ format: "pem", type: "pkcs8" }),
+        );
+        chmodSync(insecurePrivateKeyPath, 0o644);
+        const rejectsInsecurePrivateKey = spawnSync(
+          process.execPath,
+          [
+            cliPath,
+            "sign-candidate",
+            "--candidate",
+            candidatePath,
+            "--signer",
+            signerPath,
+            "--claims",
+            claimsPath,
+            "--private-key",
+            insecurePrivateKeyPath,
+            "--output",
+            signedCatalogPath,
+          ],
+          { cwd: consumer, encoding: "utf8" },
+        );
+        expect(rejectsInsecurePrivateKey.status).not.toBe(0);
+      }
+      const signed = spawnSync(
+        process.execPath,
+        [
+          cliPath,
+          "sign-candidate",
+          "--candidate",
+          candidatePath,
+          "--signer",
+          signerPath,
           "--claims",
           claimsPath,
           "--private-key",
@@ -835,7 +957,7 @@ describe("public signed catalog V2 acceptance contract", () => {
         ],
         { cwd: consumer, encoding: "utf8" },
       );
-      expect(generated.status).toBe(0);
+      expect(signed.status).toBe(0);
       const signedCatalog = readFileSync(signedCatalogPath, "utf8");
       for (const digest of Object.values(artifactDigests)) expect(signedCatalog).toContain(digest);
       const inspected = spawnSync(
