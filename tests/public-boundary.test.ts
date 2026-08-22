@@ -23,17 +23,23 @@ describe("supported public V2 boundary", () => {
     expect(packageJson.name).toBe("@aihq/supported");
     expect(packageJson.version).toBe("1.0.0");
     expect(packageJson.bin).toEqual({ "aih-supported": "dist/cli.js" });
-    expect(packageJson.files).toEqual(["dist", "defaults", "README.md", "LICENSE"]);
+    expect(packageJson.files).toEqual(["dist", "defaults", "README.md"]);
     expect(packageJson).not.toHaveProperty("publishConfig");
     expect(packageJson.scripts).not.toMatchObject({ publish: expect.any(String) });
     expect(index).toContain('from "./supported/signed-catalog-v2.js"');
     expect(index).not.toMatch(/V1|records-v1|provider-watcher-v1/);
   });
 
-  it("keeps the README and ai-coding truth contract explicit about Catalog V2 authority and use", () => {
-    const readme = readFileSync(resolve(root, "README.md"), "utf8");
-    const truth = readFileSync(resolve(root, "ai-coding/supported-catalog-v2.md"), "utf8");
-    for (const text of [readme, truth]) {
+  it("keeps all README and ai-coding truth surfaces explicit about Catalog V2 authority and use", () => {
+    const truthSurfaces = [
+      "README.md",
+      "ai-coding/RULE_ROUTER.md",
+      "ai-coding/project.md",
+      "ai-coding/project.json",
+      "ai-coding/supported-catalog-v2.md",
+    ];
+    for (const path of truthSurfaces) {
+      const text = readFileSync(resolve(root, path), "utf8");
       expect(text).toMatch(/supported/i);
       expect(text).toMatch(/organization-qualified|org-qualified/i);
       expect(text).toMatch(/not.*admission authority|not-authoritative/i);

@@ -901,7 +901,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     ])
       expect(derived[key]).toMatch(/^sha256:[a-f0-9]{64}$/);
     expect(derived.catalogSignerIdentity).toMatch(/^administrator:aih-supported\/catalog-v2$/);
-    expect(derived.subjectKind).toMatch(/^(profile|recipe)$/);
+    expect(derived.subjectKind).toMatch(/^(tool|skill|mcp|package|profile)$/);
     expect(Object.keys(derived).sort()).toEqual([...expectedKeys].sort());
     expect(() =>
       publicApi.deriveQualificationBasisV2({ entryId: "recipe.unknown", head }),
@@ -962,12 +962,15 @@ describe("public signed catalog V2 acceptance contract", () => {
       "utf8",
     );
     const coldAdmin = JSON.parse(coldAdminText) as Record<string, unknown>;
+    const defaultRecipeArtifact = defaultCatalog.recipe as Record<string, unknown>;
     expect(defaultCatalog).toMatchObject({
       entryId: "recipe.default",
       installedSeed: "defaults/default-catalog-v2.json",
       profile: { id: "default-profile", kind: "profile" },
-      recipe: { id: "default-recipe", kind: "recipe" },
+      recipe: defaultRecipeArtifact,
     });
+    expect(defaultRecipeArtifact).toEqual({ id: "default-recipe", kind: "recipe" });
+    expect(defaultRecipeArtifact.kind).not.toBe("profile");
     expect(defaultCatalogText.trim()).toBe(canonicalJson(defaultCatalog as unknown as Json));
     expect(coldAdmin).toMatchObject({
       organizationAdmission: "not-authoritative",
@@ -976,9 +979,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(coldAdminText.trim()).toBe(canonicalJson(coldAdmin as unknown as Json));
     expect(packageJson.version).toBe("1.0.0");
     expect(packageJson.bin).toEqual({ "aih-supported": "dist/cli.js" });
-    expect(packageJson.files).toEqual(
-      expect.arrayContaining(["dist", "defaults", "README.md", "LICENSE"]),
-    );
+    expect(packageJson.files).toEqual(["dist", "defaults", "README.md"]);
     expect(packageJson).toMatchObject({
       scripts: {
         "generate:default-candidate": expect.any(String),
@@ -1385,16 +1386,18 @@ describe("public signed catalog V2 acceptance contract", () => {
       /id-token:\s*write|contents:\s*write|\b(sign|cosign|sigstore)\b/i,
     );
     expect(candidate).toMatch(/actions\/checkout[\s\S]*ref:\s*\$\{\{\s*inputs\.commit_sha\s*\}\}/);
+    expect(candidate).toMatch(/actual_commit\s*=\s*["']?\$\(git rev-parse HEAD\)/i);
     expect(candidate).toMatch(
-      /git rev-parse HEAD[\s\S]*inputs\.commit_sha|inputs\.commit_sha[\s\S]*git rev-parse HEAD/,
+      /(?:if|test)\s+[^\n]*actual_commit[^\n]*(?:!=|==|=)[^\n]*inputs\.commit_sha/i,
     );
     expect(candidate).toMatch(/sha256sum|shasum/);
     expect(signer).toMatch(/environment:\s*catalog-signing/);
     expect(signer).toMatch(/id-token:\s*write/);
     expect(signer).toMatch(/sha256sum|shasum/);
     expect(signer).toMatch(/signed_catalog_sha256/);
+    expect(signer).toMatch(/actual_catalog_sha256\s*=\s*["']?\$\((?:sha256sum|shasum)/i);
     expect(signer).toMatch(
-      /(?:sha256sum|shasum)[\s\S]*signed_catalog_sha256|signed_catalog_sha256[\s\S]*(?:sha256sum|shasum)/,
+      /(?:if|test)\s+[^\n]*actual_catalog_sha256[^\n]*(?:!=|==|=)[^\n]*inputs\.signed_catalog_sha256/i,
     );
     expect(signer).toMatch(/(sigstore|cosign|keyless)/i);
     expect(signer).toMatch(
