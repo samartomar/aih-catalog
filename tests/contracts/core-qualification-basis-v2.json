@@ -1,0 +1,27 @@
+{
+  "core": {
+    "commit": "e27a55dcebb635c8298aa4fd6fd871f59089bcf7",
+    "schemaSha256": "27295aee8d8be333abe2c73adc72884b534b1c9980a9b7a39d12be8d34c5caff"
+  },
+  "qualificationBasis": {
+    "catalogDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "catalogHeadDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "catalogMemberDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "catalogSignerIdentity": "administrator:aih-supported/catalog-v2",
+    "kind": "aih-supported",
+    "subjectDigest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "subjectKind": "profile"
+  },
+  "subject": {
+    "id": "default-profile",
+    "kind": "profile",
+    "source": {
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "path": "profiles/default.json",
+      "repository": "samartomar/aih-supported",
+      "type": "github"
+    },
+    "sourceDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "subjectDigest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  }
+}
