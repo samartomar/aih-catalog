@@ -845,7 +845,8 @@ describe("public signed catalog V2 acceptance contract", () => {
 
     expect(packageJson.name).toBe("@aihq/supported");
     expect(packageJson.bin).toEqual({ "aih-supported": "dist/cli.js" });
-    expect(packageJson).not.toHaveProperty("publishConfig");
+    expect(packageJson.publishConfig).toEqual({ access: "public" });
+    expect(packageJson.private).toBe(true);
     expect(publicApi.STRICT_V2_CORE_LOCK).toEqual({ coreCommit, schemaSha256 });
     for (const operation of [
       "createCatalogHeadV2",
@@ -3118,14 +3119,56 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(packageJson.bin).toEqual({ "aih-supported": "dist/cli.js" });
     expect(packageJson.files).toEqual(["dist", "defaults", "README.md"]);
     expect(packageJson.dependencies).toEqual({});
+    expect(packageJson.private).toBe(true);
+    expect(packageJson.repository).toEqual({
+      type: "git",
+      url: "git+https://github.com/samartomar/aih-supported.git",
+    });
+    expect(packageJson.homepage).toBe("https://github.com/samartomar/aih-supported#readme");
+    expect(packageJson.bugs).toEqual({ url: "https://github.com/samartomar/aih-supported/issues" });
+    expect(packageJson.keywords).toEqual([
+      "ai-harness",
+      "aih",
+      "catalog",
+      "dsse",
+      "ed25519",
+      "evidence",
+    ]);
+    expect(packageJson.publishConfig).toEqual({ access: "public" });
     const packageScripts = packageJson.scripts as Record<string, string>;
     expect(packageScripts["generate:default-candidate"]).toMatch(
       /^node dist\/cli\.js generate-candidate(?:\s|$)/,
     );
-    expect(packageScripts["sign:candidate"]).toMatch(/^node dist\/cli\.js sign-candidate(?:\s|$)/);
-    expect(packageScripts["verify:cold-external-admin"]).toMatch(
-      /^node dist\/cli\.js inspect(?:\s|$)/,
+    expect(packageScripts.build).toBe(
+      "node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node tools/ensure-cli-executable.mjs",
     );
+    expect(packageScripts["sign:candidate"]).toMatch(/^node dist\/cli\.js sign-candidate(?:\s|$)/);
+    expect(packageScripts["verify:cold-external-admin"]).toBe(
+      "node tools/verify-cold-external-admin.mjs",
+    );
+    const coldVerificationTool = resolve(root, "tools/verify-cold-external-admin.mjs");
+    expect(existsSync(coldVerificationTool)).toBe(true);
+    const coldVerificationSource = readFileSync(coldVerificationTool, "utf8");
+    expect(coldVerificationSource).toMatch(/npmCli, "pack"/);
+    expect(coldVerificationSource).toMatch(/--offline/);
+    expect(coldVerificationSource).toMatch(/generateKeyPairSync\("ed25519"\)/);
+    expect(coldVerificationSource).toMatch(/"generate-candidate"/);
+    expect(coldVerificationSource).toMatch(/"sign-candidate"/);
+    expect(coldVerificationSource).toMatch(/"inspect"/);
+    expect(coldVerificationSource).toMatch(/"--qualification-basis"/);
+    expect(coldVerificationSource).toMatch(
+      /process\.platform === "win32" \? process\.execPath : bin/,
+    );
+    const cliSource = readFileSync(resolve(root, "src/cli.ts"), "utf8");
+    expect(cliSource).toMatch(/^#!\/usr\/bin\/env node\n/);
+    const executableTool = resolve(root, "tools/ensure-cli-executable.mjs");
+    expect(readFileSync(executableTool, "utf8")).toMatch(/chmodSync\(cli, 0o755\)/);
+    expect(packageJson.main).toBe("./dist/index.js");
+    expect(packageJson.types).toBe("./dist/index.d.ts");
+    expect(packageJson.exports).toEqual({
+      ".": { import: "./dist/index.js", types: "./dist/index.d.ts" },
+    });
+    expect(coldVerificationSource).toMatch(/import \* as api from '@aihq\/supported'/);
     expect(packageScripts["verify:default-evidence-chain"]).toBe(
       "vitest run tests/supported/default-evidence-chain.test.ts",
     );
@@ -3162,6 +3205,8 @@ describe("public signed catalog V2 acceptance contract", () => {
         expect(existsSync(outputPath)).toBe(true);
         expect(statSync(outputPath).mtimeMs).toBeGreaterThanOrEqual(buildStarted - 1_000);
       }
+      if (process.platform !== "win32")
+        expect(statSync(resolve(root, "dist/cli.js")).mode & 0o111).not.toBe(0);
       const packed = spawnSync(
         process.execPath,
         [npmCli(), "pack", "--json", "--pack-destination", temp],
@@ -3209,6 +3254,15 @@ describe("public signed catalog V2 acceptance contract", () => {
         },
       );
       expect(installed.status).toBe(0);
+      const installedManifest = JSON.parse(
+        readFileSync(resolve(consumer, "node_modules/@aihq/supported/package.json"), "utf8"),
+      ) as Record<string, unknown>;
+      expect(installedManifest).toMatchObject({
+        homepage: "https://github.com/samartomar/aih-supported#readme",
+        publishConfig: { access: "public" },
+        repository: { type: "git", url: "git+https://github.com/samartomar/aih-supported.git" },
+      });
+      expect(installedManifest.private).toBe(true);
 
       const fixture = signingFixture();
       const wrongFixture = signingFixture();
@@ -4922,6 +4976,8 @@ describe("public signed catalog V2 acceptance contract", () => {
       '"verify:workflow-action-pins": "node tools/verify-pinned-actions.mjs"',
     );
     expect(verificationWorkflow).toContain("npm run verify:default-evidence-chain");
+    expect(verificationWorkflow).toMatch(/push:\s*\n\s*branches:\s*\[main\]/);
+    expect(verificationWorkflow).toContain("npm run verify:workflow-action-pins");
     expect(existsSync(workflowPath)).toBe(true);
     const workflow = readFileSync(workflowPath, "utf8");
     const actionRefs = [...workflow.matchAll(/^\s*(?:-\s*)?uses:\s*(\S+)/gm)];
@@ -4955,6 +5011,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     );
     expect(candidateEnv).toMatchObject({
       EXPECTED_COMMIT_SHA: "$" + "{{ inputs.commit_sha }}",
+      ACTUAL_DISPATCH_SHA: "$" + "{{ github.sha }}",
       EXPECTED_REF: "$" + "{{ github.ref }}",
     });
     expect(candidateEnv).not.toHaveProperty("EXPECTED_PROMOTION_PLAN_SHA256");
@@ -4962,6 +5019,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       /actions\/checkout[\s\S]*ref:\s*\$\{\{\s*env\.EXPECTED_COMMIT_SHA\s*\}\}/,
     );
     expect(candidate).toMatch(/actual_commit\s*=\s*["']?\$\(git rev-parse HEAD\)/i);
+    expect(candidate).toMatch(/test\s+"\$EXPECTED_COMMIT_SHA"\s+=\s+"\$ACTUAL_DISPATCH_SHA"/);
     expect(candidate).toMatch(/\[\[\s+"\$EXPECTED_COMMIT_SHA"\s+=~\s+\^\[0-9a-f\]\{40\}\$\s+\]\]/i);
     expect(candidate).toMatch(
       /\[\[\s+"\$EXPECTED_REF"\s+=~\s+\^refs\/heads\/[a-z0-9._/-]+\$\s+\]\]/i,
@@ -5043,6 +5101,8 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(signerEnv).toMatchObject({
       EXPECTED_SIGNED_CATALOG_SHA256: "$" + "{{ inputs.signed_catalog_sha256 }}",
       EXPECTED_PROMOTION_PLAN_SHA256: "$" + "{{ inputs.promotion_plan_sha256 }}",
+      EXPECTED_COMMIT_SHA: "$" + "{{ inputs.commit_sha }}",
+      ACTUAL_DISPATCH_SHA: "$" + "{{ github.sha }}",
     });
     expect(signer).toMatch(/actions\/download-artifact@[0-9a-f]{40}/);
     expect(signer).toMatch(/\[0-9a-f\]\{64\}/);
@@ -5051,6 +5111,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(signer).toMatch(/signed_catalog_sha256/);
     expect(signer).toMatch(/promotion_plan_sha256/);
     expect(signer).toMatch(/actual_promotion_plan_sha256/);
+    expect(signer).toMatch(/test\s+"\$EXPECTED_COMMIT_SHA"\s+=\s+"\$ACTUAL_DISPATCH_SHA"/);
     expect(signer).toMatch(
       /test\s+"\$actual_promotion_plan_sha256"\s+=\s+"\$EXPECTED_PROMOTION_PLAN_SHA256"/,
     );
@@ -5090,6 +5151,9 @@ describe("public signed catalog V2 acceptance contract", () => {
     const outerAttestationIndex = signer.search(
       /(?:actions\/attest-build-provenance|sigstore\/cosign)@[0-9a-f]{40}/i,
     );
+    const signerDispatchCompareIndex = signer.search(
+      /test\s+"\$EXPECTED_COMMIT_SHA"\s+=\s+"\$ACTUAL_DISPATCH_SHA"/,
+    );
     expect(signerDigestAssignmentIndex).toBeGreaterThanOrEqual(0);
     expect(signerDigestFormatIndex).toBeGreaterThanOrEqual(0);
     expect(signerDigestAssignmentIndex).toBeGreaterThan(signerDigestFormatIndex);
@@ -5099,6 +5163,8 @@ describe("public signed catalog V2 acceptance contract", () => {
       /test\s+"\$actual_promotion_plan_sha256"\s+=\s+"\$EXPECTED_PROMOTION_PLAN_SHA256"/,
     );
     expect(signerPromotionPlanCompareIndex).toBeGreaterThan(signerDigestAssignmentIndex);
+    expect(signerDispatchCompareIndex).toBeGreaterThanOrEqual(0);
+    expect(outerAttestationIndex).toBeGreaterThan(signerDispatchCompareIndex);
     expect(outerAttestationIndex).toBeGreaterThan(signerPromotionPlanCompareIndex);
     expect(verifier).toMatch(/actions\/download-artifact/);
     expect(verifier).toMatch(/npm\s+(ci|run)/);

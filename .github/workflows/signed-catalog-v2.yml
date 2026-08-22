@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       EXPECTED_COMMIT_SHA: ${{ inputs.commit_sha }}
+      ACTUAL_DISPATCH_SHA: ${{ github.sha }}
       EXPECTED_REF: ${{ github.ref }}
       EXPECTED_REPOSITORY: ${{ github.repository }}
       EXPECTED_REPOSITORY_ID: ${{ github.repository_id }}
@@ -45,6 +46,8 @@ jobs:
       - name: validate candidate custody
         run: |
           [[ "$EXPECTED_COMMIT_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$ACTUAL_DISPATCH_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$EXPECTED_COMMIT_SHA" = "$ACTUAL_DISPATCH_SHA"
           [[ "$EXPECTED_REF" =~ ^refs/heads/main$ ]]
           safe_workspace_file() {
             local requested="$1"
@@ -107,6 +110,8 @@ jobs:
     env:
       EXPECTED_SIGNED_CATALOG_SHA256: ${{ inputs.signed_catalog_sha256 }}
       EXPECTED_PROMOTION_PLAN_SHA256: ${{ inputs.promotion_plan_sha256 }}
+      EXPECTED_COMMIT_SHA: ${{ inputs.commit_sha }}
+      ACTUAL_DISPATCH_SHA: ${{ github.sha }}
       SIGNED_CATALOG_PATH: signed-catalog-v2/signed-catalog-v2.json
       PROMOTION_PLAN_PATH: signed-catalog-v2/promotion-plan.json
     steps:
@@ -118,6 +123,9 @@ jobs:
         run: |
           [[ "$EXPECTED_SIGNED_CATALOG_SHA256" =~ ^[0-9a-f]{64}$ ]]
           [[ "$EXPECTED_PROMOTION_PLAN_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$EXPECTED_COMMIT_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$ACTUAL_DISPATCH_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$EXPECTED_COMMIT_SHA" = "$ACTUAL_DISPATCH_SHA"
           test -f "$SIGNED_CATALOG_PATH"
           test -f "$PROMOTION_PLAN_PATH"
           actual_catalog_sha256=$(sha256sum "$SIGNED_CATALOG_PATH" | awk '{print $1}')
@@ -138,6 +146,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       EXPECTED_COMMIT_SHA: ${{ inputs.commit_sha }}
+      ACTUAL_DISPATCH_SHA: ${{ github.sha }}
       EXPECTED_REF: ${{ github.ref }}
       EXPECTED_REPOSITORY: ${{ github.repository }}
       EXPECTED_REPOSITORY_ID: ${{ github.repository_id }}
@@ -165,6 +174,8 @@ jobs:
       - name: verify signed catalog
         run: |
           [[ "$EXPECTED_COMMIT_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$ACTUAL_DISPATCH_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$EXPECTED_COMMIT_SHA" = "$ACTUAL_DISPATCH_SHA"
           [[ "$EXPECTED_SIGNED_CATALOG_SHA256" =~ ^[0-9a-f]{64}$ ]]
           [[ "$EXPECTED_PROMOTION_PLAN_SHA256" =~ ^[0-9a-f]{64}$ ]]
           [[ "$EXPECTED_REF" =~ ^refs/heads/main$ ]]

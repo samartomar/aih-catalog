@@ -24,7 +24,7 @@ describe("supported public V2 boundary", () => {
     expect(packageJson.version).toBe("1.0.0");
     expect(packageJson.bin).toEqual({ "aih-supported": "dist/cli.js" });
     expect(packageJson.files).toEqual(["dist", "defaults", "README.md"]);
-    expect(packageJson).not.toHaveProperty("publishConfig");
+    expect(packageJson.publishConfig).toEqual({ access: "public" });
     expect(packageJson.scripts).not.toMatchObject({ publish: expect.any(String) });
     expect(index).toContain('from "./supported/signed-catalog-v2.js"');
     expect(index).not.toMatch(/V1|records-v1|provider-watcher-v1/);
