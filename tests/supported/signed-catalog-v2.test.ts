@@ -127,13 +127,11 @@ function changedClaimValues(): Readonly<Record<string, unknown>> {
   };
 }
 
-function subject(kind = "profile", id = "default-profile"): Record<string, unknown> {
-  const source = {
-    commit: "0123456789abcdef0123456789abcdef01234567",
-    path: "profiles/default.json",
-    repository: "samartomar/aih-supported",
-    type: "github",
-  };
+function coreSubject(
+  kind: string,
+  id: string,
+  source: Record<string, unknown>,
+): Record<string, unknown> {
   const sourceDigest = coreSourceDigest(source);
   return {
     id,
@@ -144,20 +142,66 @@ function subject(kind = "profile", id = "default-profile"): Record<string, unkno
   };
 }
 
+function subject(kind = "profile", id = "default-profile"): Record<string, unknown> {
+  return coreSubject(kind, id, {
+    commit: "0123456789abcdef0123456789abcdef01234567",
+    path: "profiles/default.json",
+    repository: "samartomar/aih-supported",
+    type: "github",
+  });
+}
+
 function aihSubject(kind = "profile", id = "default-profile"): Record<string, unknown> {
-  const source = {
+  return coreSubject(kind, id, {
     release: "1.0.0",
     revision: `sha256:${sha("profile:default")}`,
     type: "aih",
-  };
-  const sourceDigest = coreSourceDigest(source);
-  return {
-    id,
-    kind,
-    source,
-    sourceDigest,
-    subjectDigest: coreSubjectDigest(kind, id, sourceDigest),
-  };
+  });
+}
+
+function coreSourceVariants(): readonly Record<string, unknown>[] {
+  const digest = (value: string) => `sha256:${sha(value)}`;
+  return [
+    {
+      commit: "0123456789abcdef0123456789abcdef01234567",
+      path: "profiles/default.json",
+      repository: "samartomar/aih-supported",
+      type: "github",
+    },
+    {
+      integrity: "sha512-valid-package-integrity",
+      package: "@aihq/supported",
+      registry: "https://registry.npmjs.org",
+      type: "npm",
+      version: "1.0.0",
+    },
+    {
+      filename: "aih_supported-1.0.0-py3-none-any.whl",
+      package: "aih-supported",
+      registry: "https://pypi.org/simple",
+      sha256: digest("pypi-artifact"),
+      type: "pypi",
+      version: "1.0.0",
+    },
+    {
+      indexDigest: digest("oci-index"),
+      manifestDigest: digest("oci-manifest"),
+      platform: { architecture: "amd64", os: "linux" },
+      registry: "ghcr.io",
+      repository: "samartomar/aih-supported",
+      type: "oci",
+    },
+    {
+      contentDigest: digest("remote-content"),
+      endpoint: "https://catalog.example.invalid/default.json",
+      type: "remote",
+    },
+    {
+      release: "1.0.0",
+      revision: digest("aih-revision"),
+      type: "aih",
+    },
+  ];
 }
 
 function entry(id = "recipe.default"): Record<string, unknown> {
@@ -241,7 +285,11 @@ function changedSurface(lastGood: Head, surface: string): Record<string, unknown
       qualification.rights = [{ identity: "right:changed", sha256: sha("right:changed") }];
       break;
     case "signer":
-      candidate.signer = { ...(candidate.signer as object), identity: "administrator:rotated" };
+      candidate.signer = {
+        ...(candidate.signer as object),
+        keyId: `ed25519:${sha("rotated-signer-spki")}`,
+        publicKeySpkiSha256: sha("rotated-signer-spki"),
+      };
       break;
     case "closure":
       first.closure = { identity: "closure:changed", sha256: sha("closure:changed") };
@@ -268,6 +316,12 @@ function changedSurface(lastGood: Head, surface: string): Record<string, unknown
     case "schema":
       candidate.compatibleSchemaVersions = ["2", "3"];
       first.versions = { effect: "2", schema: "3" };
+      break;
+    case "compatible-effect-versions":
+      candidate.compatibleEffectVersions = ["2", "3"];
+      break;
+    case "compatible-schema-versions":
+      candidate.compatibleSchemaVersions = ["2", "3"];
       break;
     case "platform":
       first.platforms = [{ architecture: "arm64", os: "linux" }];
@@ -756,6 +810,101 @@ describe("public signed catalog V2 acceptance contract", () => {
         defaultSubject.sourceDigest as string,
       ),
     );
+    const subjectKinds = ["tool", "skill", "mcp", "package", "profile"] as const;
+    const sourceVariants = coreSourceVariants();
+    expect(sourceVariants.map((source) => source.type).sort()).toEqual([
+      "aih",
+      "github",
+      "npm",
+      "oci",
+      "pypi",
+      "remote",
+    ]);
+    const githubSource = sourceVariants.find((source) => source.type === "github");
+    if (!githubSource) throw new Error("missing github Core source vector");
+    for (const kind of subjectKinds)
+      for (const source of sourceVariants) {
+        const sourceType = source.type as string;
+        const id = `${kind}-${sourceType}`;
+        const validSubject = coreSubject(kind, id, structuredClone(source));
+        const validHead = publicApi.createCatalogHeadV2(
+          headInput(fixture.signer, {
+            entries: [{ ...entry(`recipe.${kind}-${sourceType}`), subject: validSubject }],
+          }),
+        );
+        const createdSubject = (validHead.entries as Record<string, unknown>[])[0]
+          ?.subject as Record<string, unknown>;
+        expect(createdSubject.sourceDigest).toBe(
+          coreSourceDigest(createdSubject.source as Record<string, unknown>),
+        );
+        expect(createdSubject.subjectDigest).toBe(
+          coreSubjectDigest(
+            createdSubject.kind as string,
+            createdSubject.id as string,
+            createdSubject.sourceDigest as string,
+          ),
+        );
+      }
+    const createHeadWithSubject = (value: Record<string, unknown>) =>
+      publicApi.createCatalogHeadV2(
+        headInput(fixture.signer, { entries: [{ ...entry(), subject: value }] }),
+      );
+    for (const [kind, id] of [
+      ["unknown", "valid-id"],
+      ["profile", "Invalid"],
+      ["profile", "a".repeat(65)],
+    ] as readonly (readonly [string, string])[])
+      expect(() =>
+        createHeadWithSubject(coreSubject(kind, id, structuredClone(githubSource))),
+      ).toThrow();
+    expect(() =>
+      createHeadWithSubject(
+        coreSubject("profile", "valid-id", { type: "unknown", value: "forbidden" }),
+      ),
+    ).toThrow();
+    for (const source of sourceVariants) {
+      for (const required of Object.keys(source)) {
+        const malformed = structuredClone(source);
+        delete malformed[required];
+        const requiredIdentity = required.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+        expect(() =>
+          createHeadWithSubject(
+            coreSubject(
+              "profile",
+              `missing-${source.type as string}-${requiredIdentity}`,
+              malformed,
+            ),
+          ),
+        ).toThrow();
+      }
+      const withExtra = { ...source, extra: "forbidden" };
+      expect(() =>
+        createHeadWithSubject(coreSubject("profile", `extra-${source.type as string}`, withExtra)),
+      ).toThrow();
+      if (source.type === "oci") {
+        const platform = source.platform as Record<string, unknown>;
+        for (const required of ["architecture", "os"]) {
+          const malformedPlatform = { ...platform };
+          delete malformedPlatform[required];
+          expect(() =>
+            createHeadWithSubject(
+              coreSubject("profile", `missing-oci-platform-${required}`, {
+                ...source,
+                platform: malformedPlatform,
+              }),
+            ),
+          ).toThrow();
+        }
+        expect(() =>
+          createHeadWithSubject(
+            coreSubject("profile", "extra-oci-platform", {
+              ...source,
+              platform: { ...platform, extra: "forbidden" },
+            }),
+          ),
+        ).toThrow();
+      }
+    }
     const entryWithoutMember = { ...defaultEntry };
     delete entryWithoutMember.memberSha256;
     expect(defaultEntry.memberSha256).toBe(
@@ -2403,27 +2552,45 @@ describe("public signed catalog V2 acceptance contract", () => {
       "permission",
       "effect",
       "schema",
+      "compatible-effect-versions",
+      "compatible-schema-versions",
       "platform",
       "recipe",
       "prose",
     ]) {
+      const candidateInput = changedSurface(lastGood, surface);
+      if (surface === "signer") {
+        expect((candidateInput.signer as Record<string, unknown>).identity).toBe(
+          fixture.signer.identity,
+        );
+        expect((candidateInput.signer as Record<string, unknown>).keyId).not.toBe(
+          fixture.signer.keyId,
+        );
+        expect((candidateInput.signer as Record<string, unknown>).publicKeySpkiSha256).not.toBe(
+          fixture.signer.publicKeySpkiSha256,
+        );
+      }
       const result = publicApi.planCatalogPromotionV2({
-        candidateHead: publicApi.createCatalogHeadV2(changedSurface(lastGood, surface)),
+        candidateHead: publicApi.createCatalogHeadV2(candidateInput),
         lastGood,
         now: "2026-08-22T12:00:00Z",
       }) as Record<string, unknown>;
       expect(result.kind).toBe("last-good");
       expect(result.head).toBe(lastGood);
-      expect(result.facts).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            candidateSurfaceSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
-            identity: expect.any(String),
-            lastGoodSurfaceSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
-            surface,
-          }),
-        ]),
-      );
+      const expectedIdentity =
+        surface === "signer"
+          ? fixture.signer.identity
+          : surface === "compatible-effect-versions" || surface === "compatible-schema-versions"
+            ? "catalog"
+            : expect.any(String);
+      expect(result.facts).toEqual([
+        {
+          candidateSurfaceSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+          identity: expectedIdentity,
+          lastGoodSurfaceSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+          surface,
+        },
+      ]);
     }
     expect(() =>
       publicApi.planCatalogPromotionV2({
@@ -3848,6 +4015,8 @@ describe("public signed catalog V2 acceptance contract", () => {
         { cwd: consumer, encoding: "utf8" },
       );
       expectSanitizedCliFailure(opaqueBasis, [claimsText]);
+      const replayStateBeforeSuccessorInspection = readFileSync(replayStatePath, "utf8");
+      const lastAcceptedBeforeSuccessorInspection = readFileSync(candidatePath, "utf8");
       const inspectedSuccessor = spawnSync(
         process.execPath,
         [
@@ -3872,6 +4041,8 @@ describe("public signed catalog V2 acceptance contract", () => {
         { cwd: consumer, encoding: "utf8" },
       );
       expect(inspectedSuccessor.status).toBe(0);
+      expect(readFileSync(replayStatePath, "utf8")).toBe(replayStateBeforeSuccessorInspection);
+      expect(readFileSync(candidatePath, "utf8")).toBe(lastAcceptedBeforeSuccessorInspection);
       const inspectedRotatedSuccessor = spawnSync(
         process.execPath,
         [
@@ -3893,6 +4064,8 @@ describe("public signed catalog V2 acceptance contract", () => {
         { cwd: consumer, encoding: "utf8" },
       );
       expect(inspectedRotatedSuccessor.status).toBe(0);
+      expect(readFileSync(replayStatePath, "utf8")).toBe(replayStateBeforeSuccessorInspection);
+      expect(readFileSync(candidatePath, "utf8")).toBe(lastAcceptedBeforeSuccessorInspection);
       const revokedOldArtifact = spawnSync(
         process.execPath,
         [
@@ -4407,7 +4580,16 @@ describe("public signed catalog V2 acceptance contract", () => {
       /(?:cmp|diff|test|if)[^\n]*(?:regenerated_candidate|regenerated-candidate)[^\n]*(?:embedded_catalog_head|embedded-catalog-head)/i,
     );
     const candidateUploadIndex = candidate.search(/actions\/upload-artifact@[0-9a-f]{40}/);
+    const candidateInspectIndex = candidate.search(
+      /(?:node\s+dist\/cli\.js|aih-supported)\s+inspect/i,
+    );
+    expect(candidate).toMatch(/(?:node\s+dist\/cli\.js|aih-supported)\s+inspect/i);
+    for (const flag of ["--signed-catalog", "--catalog-signer-root", "--expected-claims", "--now"])
+      expect(candidate).toContain(flag);
+    expect(candidate).toMatch(/--continuity\s+genesis|--last-accepted-head/i);
     expect(candidateComparisonIndex).toBeGreaterThanOrEqual(0);
+    expect(candidateInspectIndex).toBeGreaterThanOrEqual(0);
+    expect(candidateComparisonIndex).toBeGreaterThan(candidateInspectIndex);
     expect(candidateUploadIndex).toBeGreaterThan(candidateComparisonIndex);
     const candidateCommitAssignmentIndex = candidate.search(
       /actual_commit\s*=\s*["']?\$\(git rev-parse HEAD\)/i,
@@ -4531,7 +4713,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       /(?:sha256sum|shasum).*EXPECTED_SIGNED_CATALOG_SHA256|EXPECTED_SIGNED_CATALOG_SHA256.*(?:sha256sum|shasum)/i,
     );
     expect(verifier).toMatch(
-      /gh\s+attestation\s+verify\s+artifact\s+"\$SIGNED_CATALOG_PATH"\s+--repo\s+"\$EXPECTED_REPOSITORY"/i,
+      /gh\s+attestation\s+verify\s+"\$SIGNED_CATALOG_PATH"\s+--repo\s+"\$EXPECTED_REPOSITORY"\s+--source-digest\s+"\$EXPECTED_COMMIT_SHA"/i,
     );
     const verifierDigestAssignmentIndex = verifier.search(
       /actual_catalog_sha256\s*=\s*["']?\$\((?:sha256sum|shasum)/i,
@@ -4552,7 +4734,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       /(?:node\s+dist\/cli\.js|aih-supported)\s+inspect/i,
     );
     const outerVerifyIndex = verifier.search(
-      /gh\s+attestation\s+verify\s+artifact\s+"\$SIGNED_CATALOG_PATH"\s+--repo\s+"\$EXPECTED_REPOSITORY"/i,
+      /gh\s+attestation\s+verify\s+"\$SIGNED_CATALOG_PATH"\s+--repo\s+"\$EXPECTED_REPOSITORY"\s+--source-digest\s+"\$EXPECTED_COMMIT_SHA"/i,
     );
     const verifierCommitCompareIndex = verifier.search(
       /(?:if|test)\s+[^\n]*actual_commit[^\n]*(?:!=|==|=)[^\n]*EXPECTED_COMMIT_SHA/i,
