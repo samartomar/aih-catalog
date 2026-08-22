@@ -1,11 +1,21 @@
 # aih-supported repository truth
 
-This repository provides bootstrap and local verification tooling plus strict,
-internal supported-catalog contract foundations. Its provider watcher resolves
-injected GitHub, npm, PyPI, and OCI observations into immutable candidate
-records. Watcher V1 accepts only stable three-part numeric npm and PyPI versions;
-other version grammars are unavailable rather than normalized or coerced. The
-watcher has no network, qualification, signing, publication, repository write,
-Core-pin, or seat-runtime authority. There is no public product API or CLI. Keep
-generated local state ignored and use direct repository checks for repository
-maintenance.
+This repository is the release-ready public Catalog V2 producer and verifier.
+Its versioned API and CLI create deterministic candidates from exact
+Core-compatible sources and seed-relative evidence, sign canonical heads with an
+administrator Ed25519 key, verify continuity and caller-supplied replay state,
+inspect unknown versions without materializing them, plan promotion exceptions,
+and derive the locked Core qualification basis. See
+`ai-coding/supported-catalog-v2.md` before changing that boundary.
+
+The supported channel is optional and not-authoritative for organization
+admission. Core does not consume Catalog V2 directly. Organization-qualified
+subjects remain a separate Core Strict V2 path, and evidence attestors remain
+distinct from catalog signers.
+
+Candidate generation has no provider network, installation, signing,
+repository-write, or publication authority. Signing executes no candidate code.
+The manual protected workflow can add outer GitHub provenance only after exact
+artifact and promotion-plan approval, and publication is separately authorized.
+V1 has been removed. Never run an installed aih-supported against this checkout;
+use packed disposable consumers or direct repository checks.
