@@ -1829,6 +1829,10 @@ describe("public signed catalog V2 acceptance contract", () => {
       path: "profiles/default-changed.json",
     };
     const changedSourceDigest = coreSourceDigest(changedSource);
+    const selectedSubject = (head.entries as Record<string, unknown>[])[0]?.subject as Record<
+      string,
+      unknown
+    >;
     staleSourceInput.entries = [
       {
         ...(head.entries as Record<string, unknown>[])[0],
@@ -1836,7 +1840,11 @@ describe("public signed catalog V2 acceptance contract", () => {
           ...((head.entries as Record<string, unknown>[])[0]?.subject as object),
           source: changedSource,
           sourceDigest: changedSourceDigest,
-          subjectDigest: coreSubjectDigest("profile", "default-profile", changedSourceDigest),
+          subjectDigest: coreSubjectDigest(
+            selectedSubject.kind as string,
+            selectedSubject.id as string,
+            changedSourceDigest,
+          ),
         },
         capabilities: {
           ...((head.entries as Record<string, unknown>[])[0]?.capabilities as object),
@@ -2084,7 +2092,7 @@ describe("public signed catalog V2 acceptance contract", () => {
         expect(() =>
           operation({ ...verification, expectedClaims: malformedExpectedClaims }),
         ).toThrow();
-    for (const rejected of [
+    for (const [rejectedIndex, rejected] of [
       ...Object.entries(changedClaimValues()).map(([key, value]) => ({
         ...verification,
         expectedClaims: { ...claims(), [key]: value },
@@ -2261,8 +2269,11 @@ describe("public signed catalog V2 acceptance contract", () => {
       { ...verification, provider: "forbidden" },
       { ...verification, fetch: () => undefined },
       { ...verification, skipContinuity: true },
-    ])
-      expect(() => publicApi.verifySignedCatalogV2(rejected)).toThrow();
+    ].entries())
+      expect(
+        () => publicApi.verifySignedCatalogV2(rejected),
+        `rejected input ${rejectedIndex}`,
+      ).toThrow();
     for (const operation of [publicApi.verifySignedCatalogV2, publicApi.inspectSignedCatalogV2])
       expect(() => operation({ ...verification, now: undefined })).toThrow();
     const restampLastAccepted = (value: Record<string, unknown>) => {
@@ -3146,7 +3157,10 @@ describe("public signed catalog V2 acceptance contract", () => {
           ],
           { cwd: consumer, encoding: "utf8" },
         );
-        expectSanitizedCliFailure(rejectedUnsafeSeed, [unsafeArtifactPath]);
+        expectSanitizedCliFailure(
+          rejectedUnsafeSeed,
+          unsafeArtifactPath === "" ? [] : [unsafeArtifactPath],
+        );
         expect(rejectedUnsafeSeed.stderr).toMatch(/^error: unsafe-seed-artifact\r?\n$/);
       }
       const externalSeedDirectory = resolve(temp, "external-organization-seed");
