@@ -52,6 +52,10 @@ describe("supported public V2 boundary", () => {
       expect(text).toMatch(/contribut/i);
       expect(text).toMatch(/publication.*deferred|publish.*separate/i);
       expect(text).toMatch(/Core.*does not.*consume.*Catalog V2/i);
+      expect(text).toMatch(/aih-supported-catalog-member\/v2|catalogHeadSha256|candidateSha256/i);
+      expect(text).toMatch(/inner claims.*declaration|signer declaration/i);
+      expect(text).toMatch(/outer.*GitHub.*attestation|GitHub.*attestation.*verif/i);
+      expect(text).toMatch(/transparency|publication.*exact-SHA/i);
     }
     for (const path of ["ai-coding/RULE_ROUTER.md", "ai-coding/project.md"]) {
       const text = readFileSync(resolve(root, path), "utf8");
