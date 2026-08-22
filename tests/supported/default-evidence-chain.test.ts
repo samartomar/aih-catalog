@@ -1,0 +1,188 @@
+import { createHash, generateKeyPairSync } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { describe, expect, it } from "vitest";
+
+const root = resolve(import.meta.dirname, "..", "..");
+const sha256 = (value: Buffer | string) => createHash("sha256").update(value).digest("hex");
+type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
+
+function canonicalJson(value: Json): string {
+  if (value === null || typeof value === "boolean" || typeof value === "number")
+    return JSON.stringify(value);
+  if (typeof value === "string") return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  return `{${Object.keys(value)
+    .sort()
+    .map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key] as Json)}`)
+    .join(",")}}`;
+}
+
+const domainDigest = (domain: string, value: Json) =>
+  `sha256:${sha256(`${domain}\0${canonicalJson(value)}`)}`;
+
+describe("default CatalogHead V2 evidence chain", () => {
+  it("uses public V2 creation and basis APIs to bind default artifact bytes", async () => {
+    const seedPath = resolve(root, "defaults", "default-catalog-v2.json");
+    const pinnedDefault = JSON.parse(
+      readFileSync(resolve(root, "tests", "contracts", "default-catalog-v2.json"), "utf8"),
+    ) as {
+      capabilities: {
+        commands: string[];
+        egress: string[];
+        hooks: string[];
+        mcpTools: string[];
+        permissions: string[];
+      };
+      platforms: { architecture: string; os: string }[];
+      qualification: {
+        findings: string[];
+        gaps: string[];
+        report: string;
+        rights: string[];
+      };
+    };
+    expect(existsSync(seedPath)).toBe(true);
+    const seed = JSON.parse(readFileSync(seedPath, "utf8")) as {
+      artifacts: Record<"profile" | "recipe" | "closure" | "prose", string>;
+      capabilities: typeof pinnedDefault.capabilities;
+      entryId: string;
+      platforms: typeof pinnedDefault.platforms;
+      qualification: typeof pinnedDefault.qualification;
+      subject: { id: string; kind: "profile"; source: Record<string, unknown> };
+    };
+    expect(seed.capabilities).toEqual(pinnedDefault.capabilities);
+    expect(seed.capabilities.commands).toEqual(["catalog.verify"]);
+    expect(seed.capabilities.egress).toEqual(["https://api.github.com"]);
+    expect(seed.capabilities.hooks).toEqual(["hook.catalog.verify"]);
+    expect(seed.capabilities.mcpTools).toEqual(["github.get_workflow_run"]);
+    expect(seed.capabilities.permissions).toEqual(["contents:read"]);
+    expect(seed.platforms).toEqual(pinnedDefault.platforms);
+    expect(seed.qualification).toEqual(pinnedDefault.qualification);
+    const artifactDigests = Object.fromEntries(
+      Object.entries(seed.artifacts).map(([kind, relativePath]) => [
+        kind,
+        sha256(readFileSync(resolve(dirname(seedPath), relativePath))),
+      ]),
+    );
+    const { publicKey } = generateKeyPairSync("ed25519");
+    const spkiSha256 = sha256(publicKey.export({ format: "der", type: "spki" }));
+    const signer = {
+      class: "administrator-ed25519",
+      identity: "administrator:aih-supported/catalog-v2",
+      keyId: `ed25519:${spkiSha256}`,
+      publicKeySpkiSha256: spkiSha256,
+    };
+    const source = seed.subject.source as Json;
+    expect(source).toEqual({
+      release: "1.0.0",
+      revision: `sha256:${artifactDigests.profile}`,
+      type: "aih",
+    });
+    const sourceDigest = domainDigest("aih-governance-decision-source/v2", source);
+    const subject = {
+      id: seed.subject.id,
+      kind: seed.subject.kind,
+      source,
+      sourceDigest,
+      subjectDigest: domainDigest("aih-governance-decision-subject/v2", {
+        id: seed.subject.id,
+        kind: seed.subject.kind,
+        sourceDigest,
+      }),
+    };
+    const evidenceDescriptor = (
+      kind: "finding" | "gap" | "report" | "right",
+      relativePath: string,
+    ) => {
+      const bytes = readFileSync(resolve(dirname(seedPath), relativePath));
+      const envelope = JSON.parse(bytes.toString("utf8")) as Record<string, unknown>;
+      expect(envelope).toMatchObject({
+        attestor: "attestor:aih-supported/default",
+        format: "aih-supported-evidence/v2",
+        kind,
+        subjectDigest: subject.subjectDigest,
+      });
+      return { identity: `evidence:${kind}:${relativePath}`, sha256: sha256(bytes) };
+    };
+    const qualification = {
+      findings: seed.qualification.findings.map((path) => evidenceDescriptor("finding", path)),
+      gaps: seed.qualification.gaps.map((path) => evidenceDescriptor("gap", path)),
+      report: evidenceDescriptor("report", seed.qualification.report),
+      rights: seed.qualification.rights.map((path) => evidenceDescriptor("right", path)),
+    };
+    const api = (await import("../../src/index.js")) as {
+      createCatalogHeadV2(value: unknown): Record<string, unknown>;
+      deriveQualificationBasisV2(value: unknown): Record<string, unknown>;
+    };
+    const head = api.createCatalogHeadV2({
+      claims: {
+        environment: "catalog-signing",
+        eventName: "workflow_dispatch",
+        issuer: "https://token.actions.githubusercontent.com",
+        jobWorkflowRef:
+          "samartomar/aih-supported/.github/workflows/signed-catalog-v2.yml@refs/heads/main",
+        ref: "refs/heads/main",
+        repository: "samartomar/aih-supported",
+        repositoryId: "987654321",
+        repositoryOwnerId: "123456789",
+      },
+      compatibleEffectVersions: ["2"],
+      compatibleSchemaVersions: ["2"],
+      effectVersion: "2",
+      entries: [
+        {
+          capabilities: {
+            ...seed.capabilities,
+          },
+          closure: {
+            identity: `artifact:${seed.artifacts.closure}`,
+            sha256: artifactDigests.closure,
+          },
+          entryId: seed.entryId,
+          platforms: seed.platforms,
+          prose: { identity: `artifact:${seed.artifacts.prose}`, sha256: artifactDigests.prose },
+          qualification,
+          recipe: { identity: `artifact:${seed.artifacts.recipe}`, sha256: artifactDigests.recipe },
+          subject,
+          versions: { effect: "2", schema: "2" },
+        },
+      ],
+      previousCatalogHeadSha256: "0".repeat(64),
+      protocol: "CatalogHeadV2",
+      schemaVersion: "2",
+      sequence: 0,
+      signer,
+      validFrom: "2026-08-22T00:00:00Z",
+      validUntil: "2026-08-23T00:00:00Z",
+    });
+    const entry = (head.entries as Record<string, unknown>[])[0] as Record<string, unknown>;
+    expect(entry).toMatchObject({
+      capabilities: seed.capabilities,
+      closure: { identity: `artifact:${seed.artifacts.closure}`, sha256: artifactDigests.closure },
+      platforms: seed.platforms,
+      prose: { identity: `artifact:${seed.artifacts.prose}`, sha256: artifactDigests.prose },
+      qualification,
+      recipe: { identity: `artifact:${seed.artifacts.recipe}`, sha256: artifactDigests.recipe },
+      subject: { source },
+    });
+    const coldAdmin = JSON.parse(
+      readFileSync(resolve(root, "tests/contracts/cold-external-admin-v2.json"), "utf8"),
+    ) as { organizationAdmission: string };
+    const qualificationBasis = api.deriveQualificationBasisV2({ entryId: seed.entryId, head });
+    expect(qualificationBasis).toEqual({
+      catalogDigest: `sha256:${head.catalogSha256}`,
+      catalogHeadDigest: `sha256:${head.catalogHeadSha256}`,
+      catalogMemberDigest: `sha256:${entry.memberSha256}`,
+      catalogSignerIdentity: signer.identity,
+      kind: "aih-supported",
+      subjectDigest: (entry.subject as Record<string, unknown>).subjectDigest,
+      subjectKind: "profile",
+    });
+    expect(Object.isFrozen(qualificationBasis)).toBe(true);
+    expect(Object.isFrozen(head)).toBe(true);
+    expect(Object.isFrozen(head.entries as object)).toBe(true);
+    expect(Object.isFrozen(entry.subject as object)).toBe(true);
+    expect(coldAdmin.organizationAdmission).toBe("not-authoritative");
+  });
+});

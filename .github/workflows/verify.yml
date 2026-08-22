@@ -2,6 +2,8 @@ name: verify
 
 on:
   pull_request:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -20,6 +22,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run verify
+      - run: npm run verify:core-v2-lock
+      - run: npm run verify:default-evidence-chain
+      - run: npm run verify:workflow-action-pins
       - run: npm run test:cov
       - run: npm audit --audit-level=high
       - run: git diff --check

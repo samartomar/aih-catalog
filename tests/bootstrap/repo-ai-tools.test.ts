@@ -105,9 +105,10 @@ describe("aih-supported repository AI bootstrap", () => {
 
   it("keeps local projections and caches out of Git", () => {
     const packageJson = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as {
-      private: boolean;
+      private?: boolean;
       scripts: Record<string, string>;
     };
+    // Publication is a separately authorized effect; this bootstrap must remain non-publishable.
     expect(packageJson.private).toBe(true);
     expect(packageJson.scripts["repo:init"]).toBe("node tools/repo-ai-tools.mjs setup-codex");
     expect(packageJson.scripts["repo:doctor"]).toBe("node tools/repo-ai-tools.mjs doctor-codex");

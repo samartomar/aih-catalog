@@ -1,21 +1,54 @@
 {
-  "name": "aih-supported",
-  "version": "0.0.0",
+  "name": "@aihq/supported",
+  "version": "1.0.0",
   "private": true,
-  "description": "Local bootstrap for the deferred aih-supported repository.",
+  "description": "Strict CatalogHead V2 evidence producer.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/samartomar/aih-supported.git"
+  },
+  "homepage": "https://github.com/samartomar/aih-supported#readme",
+  "bugs": {
+    "url": "https://github.com/samartomar/aih-supported/issues"
+  },
+  "keywords": [
+    "ai-harness",
+    "aih",
+    "catalog",
+    "dsse",
+    "ed25519",
+    "evidence"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node tools/ensure-cli-executable.mjs",
+    "generate:default-candidate": "node dist/cli.js generate-candidate",
     "lint": "biome check .",
     "repo:doctor": "node tools/repo-ai-tools.mjs doctor-codex",
     "repo:init": "node tools/repo-ai-tools.mjs setup-codex",
     "test": "vitest run",
+    "sign:candidate": "node dist/cli.js sign-candidate",
     "test:cov": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
-    "verify": "npm run typecheck && npm run lint && npm test && npm run build"
+    "verify:core-v2-lock": "node tools/verify-core-v2-lock.mjs",
+    "verify:workflow-action-pins": "node tools/verify-pinned-actions.mjs",
+    "verify:cold-external-admin": "node tools/verify-cold-external-admin.mjs",
+    "verify:default-evidence-chain": "vitest run tests/supported/default-evidence-chain.test.ts",
+    "verify": "npm run typecheck && npm run lint && npm run build && npm test"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.1",
@@ -24,7 +57,7 @@
     "typescript": "7.0.2",
     "vitest": "4.1.10"
   },
-  "dependencies": {
-    "jsonc-parser": "3.3.1"
-  }
+  "dependencies": {},
+  "bin": { "aih-supported": "dist/cli.js" },
+  "files": ["dist", "defaults", "README.md"]
 }

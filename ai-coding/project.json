@@ -3,10 +3,10 @@
   "name": "aih-supported",
   "contextDir": "ai-coding",
   "targets": ["claude", "codex"],
-  "description": "Private, publication-deferred TypeScript repository bootstrap with no product surface.",
+  "description": "Release-ready public Catalog V2 producer and verifier with publication separately authorized.",
   "languages": ["TypeScript/Node.js"],
   "packageManager": "npm",
-  "entrypoints": [],
+  "entrypoints": ["dist/cli.js"],
   "commands": {
     "typecheck": "npm run typecheck",
     "test": "npm test",
@@ -15,5 +15,13 @@
     "repoInit": "npm run repo:init",
     "repoDoctor": "npm run repo:doctor"
   },
-  "publication": "deferred"
+  "publication": "release-ready-publication-separately-authorized",
+  "supportedCatalogV2": {
+    "coreConsumption": "not-yet",
+    "documentation": "ai-coding/supported-catalog-v2.md",
+    "entrypoints": ["dist/cli.js"],
+    "organizationAdmission": "not-authoritative",
+    "publicationStatus": "release-ready-publication-separately-authorized",
+    "status": "public-v2"
+  }
 }
