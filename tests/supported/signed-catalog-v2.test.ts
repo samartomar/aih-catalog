@@ -372,15 +372,158 @@ function canCreateFileAndDirectorySymlinks(): boolean {
 
 describe("public signed catalog V2 acceptance contract", () => {
   it.skipIf(!canCreateFileAndDirectorySymlinks())(
-    "documents executable file and directory seed-link custody cases",
+    "rejects file/directory seed links and linked candidate/signed outputs without effects",
     () => {
-      const source = readFileSync(
-        resolve(root, "tests/supported/signed-catalog-v2.test.ts"),
-        "utf8",
-      );
-      expect(source).toMatch(/symlinkSync\([^\n]+"file"/);
-      expect(source).toMatch(/process\.platform === "win32" \? "junction" : "dir"/);
-      expect(source).toMatch(/error: seed-artifact-not-regular/);
+      const temp = mkdtempSync(join(tmpdir(), "aih-supported-symlink-custody-"));
+      try {
+        const cliPath = resolve(root, "dist/cli.js");
+        const defaultSeedPath = resolve(root, "defaults/default-catalog-v2.json");
+        expect(existsSync(cliPath)).toBe(true);
+        expect(existsSync(defaultSeedPath)).toBe(true);
+
+        const fixture = signingFixture();
+        const signerPath = resolve(temp, "signer.json");
+        const claimsPath = resolve(temp, "claims.json");
+        const privateKeyPath = resolve(temp, "signer.pem");
+        writeFileSync(signerPath, canonicalJson(fixture.signer as unknown as Json));
+        writeFileSync(claimsPath, canonicalJson(claims() as Json));
+        writeFileSync(privateKeyPath, fixture.privateKey.export({ format: "pem", type: "pkcs8" }));
+        if (process.platform !== "win32") chmodSync(privateKeyPath, 0o600);
+
+        const fixedCandidateArguments = [
+          "--signer",
+          signerPath,
+          "--claims",
+          claimsPath,
+          "--valid-from",
+          "2026-08-22T00:00:00Z",
+          "--valid-until",
+          "2026-08-23T00:00:00Z",
+          "--sequence",
+          "0",
+          "--previous-catalog-head-sha256",
+          zeroDigest,
+        ];
+        const expectExactFailure = (
+          result: { status: number | null; stderr: string; stdout: string },
+          error: string,
+        ) => {
+          expect(result.status).toBe(2);
+          expect(result.stdout).toBe("");
+          expect(result.stderr).toBe(`error: ${error}\n`);
+        };
+        const generate = (seed: string, output: string) =>
+          spawnSync(
+            process.execPath,
+            [
+              cliPath,
+              "generate-candidate",
+              "--seed",
+              seed,
+              ...fixedCandidateArguments,
+              "--output",
+              output,
+            ],
+            { cwd: temp, encoding: "utf8" },
+          );
+
+        const defaultSeed = JSON.parse(readFileSync(defaultSeedPath, "utf8")) as {
+          artifacts: Record<string, string>;
+        };
+        const relativeArtifacts = Object.fromEntries(
+          Object.keys(defaultSeed.artifacts)
+            .sort()
+            .map((kind) => [kind, `artifacts/${kind}.json`]),
+        );
+        const writeSeed = (directory: string): string => {
+          const seedPath = resolve(directory, "seed.json");
+          writeFileSync(
+            seedPath,
+            canonicalJson({ ...defaultSeed, artifacts: relativeArtifacts } as unknown as Json),
+          );
+          return seedPath;
+        };
+        const copyArtifact = (directory: string, kind: string) => {
+          const target = resolve(directory, relativeArtifacts[kind] as string);
+          mkdirSync(dirname(target), { recursive: true });
+          writeFileSync(
+            target,
+            readFileSync(resolve(dirname(defaultSeedPath), defaultSeed.artifacts[kind] as string)),
+          );
+        };
+
+        const fileLinkedSeedDirectory = resolve(temp, "file-linked-seed");
+        mkdirSync(fileLinkedSeedDirectory, { recursive: true });
+        for (const kind of Object.keys(relativeArtifacts)) {
+          if (kind !== "profile") copyArtifact(fileLinkedSeedDirectory, kind);
+        }
+        const outsideProfile = resolve(temp, "outside-profile.json");
+        writeFileSync(outsideProfile, "outside seed artifact must not be read");
+        const fileLinkedProfile = resolve(
+          fileLinkedSeedDirectory,
+          relativeArtifacts.profile as string,
+        );
+        mkdirSync(dirname(fileLinkedProfile), { recursive: true });
+        symlinkSync(outsideProfile, fileLinkedProfile, "file");
+        const fileLinkedSeed = writeSeed(fileLinkedSeedDirectory);
+        expectExactFailure(
+          generate(fileLinkedSeed, resolve(temp, "file-linked-candidate.json")),
+          "seed-artifact-not-regular",
+        );
+
+        const outsideArtifacts = resolve(temp, "outside-artifacts");
+        mkdirSync(outsideArtifacts, { recursive: true });
+        for (const kind of Object.keys(relativeArtifacts)) {
+          writeFileSync(
+            resolve(outsideArtifacts, `${kind}.json`),
+            readFileSync(resolve(dirname(defaultSeedPath), defaultSeed.artifacts[kind] as string)),
+          );
+        }
+        const directoryLinkedSeedDirectory = resolve(temp, "directory-linked-seed");
+        mkdirSync(directoryLinkedSeedDirectory, { recursive: true });
+        symlinkSync(
+          outsideArtifacts,
+          resolve(directoryLinkedSeedDirectory, "artifacts"),
+          process.platform === "win32" ? "junction" : "dir",
+        );
+        const directoryLinkedSeed = writeSeed(directoryLinkedSeedDirectory);
+        expectExactFailure(
+          generate(directoryLinkedSeed, resolve(temp, "directory-linked-candidate.json")),
+          "seed-artifact-not-regular",
+        );
+
+        const candidatePath = resolve(temp, "candidate.json");
+        expect(generate(defaultSeedPath, candidatePath).status).toBe(0);
+        const candidateTarget = resolve(temp, "candidate-target.json");
+        const candidateOutput = resolve(temp, "candidate-output.json");
+        writeFileSync(candidateTarget, "candidate-target-must-not-change");
+        symlinkSync(candidateTarget, candidateOutput, "file");
+        expectExactFailure(generate(defaultSeedPath, candidateOutput), "output-exists");
+        expect(readFileSync(candidateTarget, "utf8")).toBe("candidate-target-must-not-change");
+
+        const signedTarget = resolve(temp, "signed-target.json");
+        const signedOutput = resolve(temp, "signed-output.json");
+        writeFileSync(signedTarget, "signed-target-must-not-change");
+        symlinkSync(signedTarget, signedOutput, "file");
+        const signedResult = spawnSync(
+          process.execPath,
+          [
+            cliPath,
+            "sign-candidate",
+            "--candidate",
+            candidatePath,
+            "--private-key",
+            privateKeyPath,
+            "--output",
+            signedOutput,
+          ],
+          { cwd: temp, encoding: "utf8" },
+        );
+        expectExactFailure(signedResult, "output-exists");
+        expect(readFileSync(signedTarget, "utf8")).toBe("signed-target-must-not-change");
+      } finally {
+        rmSync(temp, { force: true, recursive: true });
+      }
     },
   );
   it("exposes the public V2 package/CLI and a Core lock only for qualification-basis derivation", async () => {
@@ -2501,10 +2644,6 @@ describe("public signed catalog V2 acceptance contract", () => {
       const signedCatalogPath = resolve(temp, "signed-catalog.json");
       const existingCandidatePath = resolve(temp, "existing-candidate.json");
       const existingSignedCatalogPath = resolve(temp, "existing-signed-catalog.json");
-      const linkedCandidateTargetPath = resolve(temp, "linked-candidate-target.json");
-      const linkedCandidateOutputPath = resolve(temp, "linked-candidate-output.json");
-      const linkedSignedCatalogTargetPath = resolve(temp, "linked-signed-catalog-target.json");
-      const linkedSignedCatalogOutputPath = resolve(temp, "linked-signed-catalog-output.json");
       const oversizedSignerPath = resolve(temp, "oversized-signer.json");
       const oversizedClaimsPath = resolve(temp, "oversized-claims.json");
       const oversizedInspectClaimsPath = resolve(temp, "oversized-inspect-claims.json");
@@ -2630,112 +2769,6 @@ describe("public signed catalog V2 acceptance contract", () => {
         );
         expectSanitizedCliFailure(rejectedUnsafeSeed, [unsafeArtifactPath]);
         expect(rejectedUnsafeSeed.stderr).toMatch(/^error: unsafe-seed-artifact\r?\n$/);
-      }
-      const externalArtifactPath = resolve(temp, "external-profile-artifact.json");
-      writeFileSync(externalArtifactPath, "external artifact must not be read");
-      const linkedSeedDirectory = resolve(temp, "linked-artifact-seed");
-      const linkedArtifactsDirectory = resolve(linkedSeedDirectory, "artifacts");
-      mkdirSync(linkedArtifactsDirectory, { recursive: true });
-      const linkedArtifacts = Object.fromEntries(
-        Object.entries(installedSeedCatalog.artifacts).map(([kind, installedPath]) => {
-          const relativePath = `artifacts/${kind}.json`;
-          if (kind !== "profile")
-            writeFileSync(
-              resolve(linkedSeedDirectory, relativePath),
-              readFileSync(resolve(installedSeedDirectory, installedPath)),
-            );
-          return [kind, relativePath];
-        }),
-      );
-      const linkedArtifactPath = resolve(linkedSeedDirectory, linkedArtifacts.profile as string);
-      let linkedArtifactCreated = false;
-      try {
-        symlinkSync(externalArtifactPath, linkedArtifactPath, "file");
-        linkedArtifactCreated = true;
-      } catch {
-        // Symlink/reparse points are unavailable on some supported locked-down hosts.
-      }
-      if (linkedArtifactCreated) {
-        const linkedSeedPath = resolve(linkedSeedDirectory, "seed.json");
-        writeFileSync(
-          linkedSeedPath,
-          canonicalJson({
-            ...installedSeedCatalog,
-            artifacts: linkedArtifacts,
-          } as unknown as Json),
-        );
-        const rejectedLinkedArtifact = spawnSync(
-          process.execPath,
-          [
-            cliPath,
-            "generate-candidate",
-            "--seed",
-            linkedSeedPath,
-            "--signer",
-            signerPath,
-            "--claims",
-            claimsPath,
-            ...candidateInputs,
-            "--output",
-            resolve(temp, "linked-artifact-output.json"),
-          ],
-          { cwd: consumer, encoding: "utf8" },
-        );
-        expectSanitizedCliFailure(rejectedLinkedArtifact, ["external artifact must not be read"]);
-        expect(rejectedLinkedArtifact.stderr).toMatch(/^error: seed-artifact-not-regular\r?\n$/);
-      }
-      const directoryLinkedSeedDirectory = resolve(temp, "directory-linked-artifact-seed");
-      const outsideArtifactsDirectory = resolve(temp, "outside-linked-artifacts");
-      mkdirSync(directoryLinkedSeedDirectory, { recursive: true });
-      mkdirSync(outsideArtifactsDirectory, { recursive: true });
-      const directoryLinkedArtifacts = Object.fromEntries(
-        Object.entries(installedSeedCatalog.artifacts).map(([kind, installedPath]) => {
-          const relativePath = `artifacts/${kind}.json`;
-          writeFileSync(
-            resolve(outsideArtifactsDirectory, `${kind}.json`),
-            readFileSync(resolve(installedSeedDirectory, installedPath)),
-          );
-          return [kind, relativePath];
-        }),
-      );
-      let directoryLinkCreated = false;
-      try {
-        symlinkSync(
-          outsideArtifactsDirectory,
-          resolve(directoryLinkedSeedDirectory, "artifacts"),
-          process.platform === "win32" ? "junction" : "dir",
-        );
-        directoryLinkCreated = true;
-      } catch {
-        // The separate skipIf probe reports unavailable symlink support.
-      }
-      if (directoryLinkCreated) {
-        const directoryLinkedSeedPath = resolve(directoryLinkedSeedDirectory, "seed.json");
-        writeFileSync(
-          directoryLinkedSeedPath,
-          canonicalJson({ ...installedSeedCatalog, artifacts: directoryLinkedArtifacts } as Json),
-        );
-        const rejectedDirectoryLinkedArtifact = spawnSync(
-          process.execPath,
-          [
-            cliPath,
-            "generate-candidate",
-            "--seed",
-            directoryLinkedSeedPath,
-            "--signer",
-            signerPath,
-            "--claims",
-            claimsPath,
-            ...candidateInputs,
-            "--output",
-            resolve(temp, "directory-linked-artifact-output.json"),
-          ],
-          { cwd: consumer, encoding: "utf8" },
-        );
-        expectSanitizedCliFailure(rejectedDirectoryLinkedArtifact, ["outside-linked-artifacts"]);
-        expect(rejectedDirectoryLinkedArtifact.stderr).toMatch(
-          /^error: seed-artifact-not-regular\r?\n$/,
-        );
       }
       const externalSeedDirectory = resolve(temp, "external-organization-seed");
       const externalArtifactsDirectory = resolve(externalSeedDirectory, "artifacts");
@@ -2998,40 +3031,6 @@ describe("public signed catalog V2 acceptance contract", () => {
         identity: `artifact:${installedSeedCatalog.artifacts.prose}`,
         sha256: artifactDigests.prose,
       });
-      const linkedCandidateMarker = "linked-candidate-target-must-not-change";
-      writeFileSync(linkedCandidateTargetPath, linkedCandidateMarker);
-      let linkedCandidateOutputCreated = false;
-      try {
-        symlinkSync(linkedCandidateTargetPath, linkedCandidateOutputPath, "file");
-        linkedCandidateOutputCreated = true;
-      } catch {
-        // Symlink creation is not available on every supported host (notably locked-down Windows).
-      }
-      if (linkedCandidateOutputCreated) {
-        const rejectsLinkedCandidateOutput = spawnSync(
-          process.execPath,
-          [
-            cliPath,
-            "generate-candidate",
-            "--seed",
-            installedSeed,
-            "--signer",
-            signerPath,
-            "--claims",
-            claimsPath,
-            ...candidateInputs,
-            "--output",
-            linkedCandidateOutputPath,
-          ],
-          { cwd: consumer, encoding: "utf8" },
-        );
-        expectSanitizedCliFailure(rejectsLinkedCandidateOutput, [
-          privatePem,
-          claimsText,
-          installedSeedText,
-        ]);
-        expect(readFileSync(linkedCandidateTargetPath, "utf8")).toBe(linkedCandidateMarker);
-      }
       const repeatedCandidate = spawnSync(
         process.execPath,
         [
@@ -3235,37 +3234,6 @@ describe("public signed catalog V2 acceptance contract", () => {
         candidateText,
       ]);
       expect(readFileSync(existingSignedCatalogPath, "utf8")).toBe(existingSignedCatalogMarker);
-      const linkedSignedCatalogMarker = "linked-signed-catalog-target-must-not-change";
-      writeFileSync(linkedSignedCatalogTargetPath, linkedSignedCatalogMarker);
-      let linkedSignedCatalogOutputCreated = false;
-      try {
-        symlinkSync(linkedSignedCatalogTargetPath, linkedSignedCatalogOutputPath, "file");
-        linkedSignedCatalogOutputCreated = true;
-      } catch {
-        // Symlink creation is not available on every supported host (notably locked-down Windows).
-      }
-      if (linkedSignedCatalogOutputCreated) {
-        const rejectsLinkedSignedCatalogOutput = spawnSync(
-          process.execPath,
-          [
-            cliPath,
-            "sign-candidate",
-            "--candidate",
-            candidatePath,
-            "--private-key",
-            privateKeyPath,
-            "--output",
-            linkedSignedCatalogOutputPath,
-          ],
-          { cwd: consumer, encoding: "utf8" },
-        );
-        expectSanitizedCliFailure(rejectsLinkedSignedCatalogOutput, [
-          privatePem,
-          claimsText,
-          candidateText,
-        ]);
-        expect(readFileSync(linkedSignedCatalogTargetPath, "utf8")).toBe(linkedSignedCatalogMarker);
-      }
       const signed = spawnSync(
         process.execPath,
         [
