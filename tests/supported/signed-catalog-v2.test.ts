@@ -107,7 +107,6 @@ function changedClaimValues(): Readonly<Record<string, unknown>> {
   return {
     environment: "different-environment",
     eventName: "push",
-    issuer: "https://issuer.invalid",
     jobWorkflowRef: "samartomar/aih-supported/.github/workflows/other.yml@refs/heads/main",
     jobWorkflowSha: "fedcba9876543210fedcba9876543210fedcba98",
     ref: "refs/tags/v2",
@@ -233,10 +232,12 @@ function changedSurface(lastGood: Head, surface: string): Record<string, unknown
       capabilities.permissions = ["issues:read"];
       break;
     case "effect":
-      first.versions = { effect: "999", schema: "2" };
+      candidate.compatibleEffectVersions = ["2", "3"];
+      first.versions = { effect: "3", schema: "2" };
       break;
     case "schema":
-      first.versions = { effect: "2", schema: "999" };
+      candidate.compatibleSchemaVersions = ["2", "3"];
+      first.versions = { effect: "2", schema: "3" };
       break;
     case "platform":
       first.platforms = [{ architecture: "arm64", os: "linux" }];
@@ -399,6 +400,12 @@ describe("public signed catalog V2 acceptance contract", () => {
         publicApi.canonicalCatalogHeadV2Bytes(head).toString("utf8"),
       ),
     ).toEqual(head);
+    for (const nonCanonical of [
+      ` ${publicApi.canonicalCatalogHeadV2Bytes(head).toString("utf8")}`,
+      `\ufeff${publicApi.canonicalCatalogHeadV2Bytes(head).toString("utf8")}`,
+      '{"sequence":0,"sequence":0}',
+    ])
+      expect(() => publicApi.parseCatalogHeadV2Json(nonCanonical)).toThrow();
     for (const malformed of [
       headInput({ ...fixture.signer, keyId: "ed25519:wrong" }),
       headInput({ ...fixture.signer, privateKey: "forbidden" }),
@@ -417,6 +424,18 @@ describe("public signed catalog V2 acceptance contract", () => {
       headInput(fixture.signer, { entries: [] }),
       headInput(fixture.signer, { entries: [entry("recipe.default"), entry("recipe.default")] }),
       headInput(fixture.signer, { entries: [{ ...entry(), entryId: "UPPER" }] }),
+      headInput(fixture.signer, { validFrom: "2026-08-22T00:00:00+00:00" }),
+      headInput(fixture.signer, { validFrom: "2026-08-22T00:00:00.1Z" }),
+      headInput(fixture.signer, { validFrom: "2026-08-23T00:00:00Z" }),
+      headInput(fixture.signer, { sequence: -1 }),
+      headInput(fixture.signer, { sequence: 1.5 }),
+      headInput(fixture.signer, { sequence: -0 }),
+      headInput(fixture.signer, { sequence: 1e100 }),
+      headInput({ ...fixture.signer, keyId: `ed25519:${sha("mismatch")}` }),
+      headInput(fixture.signer, { previousCatalogHeadSha256: "A".repeat(64) }),
+      headInput(fixture.signer, {
+        entries: [{ ...entry(), versions: { effect: "3", schema: "2" } }],
+      }),
     ])
       expect(() => publicApi.createCatalogHeadV2(malformed)).toThrow();
     for (const malformedClaims of [
@@ -488,8 +507,9 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect((statement.predicate as Record<string, unknown>).candidateSha256).toBe(
       sha(canonicalJson((statement.predicate as Record<string, unknown>).catalogHead as Json)),
     );
+    const rootB = signingFixture();
     const verification = {
-      catalogSignerRoots: [fixture.catalogSignerRoot, { ...signingFixture().catalogSignerRoot }],
+      catalogSignerRoots: [fixture.catalogSignerRoot, rootB.catalogSignerRoot],
       expectedClaims: claims(),
       lastAccepted: null,
       now: "2026-08-22T12:00:00Z",
@@ -500,6 +520,29 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(canonicalJson(verifiedHead as Json)).toBe(
       canonicalJson((statement.predicate as Record<string, unknown>).catalogHead as Json),
     );
+    const signatureByRootB = sign(
+      null,
+      dssePae(envelope.payloadType, payload),
+      rootB.privateKey as never,
+    );
+    for (const forgedBinding of [
+      {
+        ...signed,
+        envelope: {
+          ...envelope,
+          signatures: [{ keyid: rootB.signer.keyId, sig: signatureByRootB.toString("base64") }],
+        },
+      },
+      {
+        ...signed,
+        envelope: {
+          ...envelope,
+          signatures: [{ keyid: fixture.signer.keyId, sig: signatureByRootB.toString("base64") }],
+        },
+      },
+    ])
+      for (const operation of [publicApi.verifySignedCatalogV2, publicApi.inspectSignedCatalogV2])
+        expect(() => operation({ ...verification, signed: forgedBinding })).toThrow();
     const invalidPredicateHead = {
       ...head,
       entries: [
@@ -587,6 +630,7 @@ describe("public signed catalog V2 acceptance contract", () => {
         ...verification,
         expectedClaims: { ...claims(), [key]: value },
       })),
+      { ...verification, expectedClaims: { ...claims(), issuer: "https://issuer.invalid" } },
       { ...verification, now: "2026-08-24T00:00:00Z" },
       { ...verification, now: "2026-08-21T23:59:59Z" },
       {
@@ -1279,6 +1323,11 @@ describe("public signed catalog V2 acceptance contract", () => {
             "generate-candidate",
             "--seed",
             installedSeed,
+            "--signer",
+            signerPath,
+            "--claims",
+            claimsPath,
+            ...candidateInputs,
             ...rejectedAuthority,
             "--output",
             candidatePath,
@@ -1294,6 +1343,11 @@ describe("public signed catalog V2 acceptance contract", () => {
           "generate-candidate",
           "--seed",
           installedSeed,
+          "--signer",
+          signerPath,
+          "--claims",
+          claimsPath,
+          ...candidateInputs,
           "--provider-callback",
           "https://provider.invalid/candidate",
           "--output",

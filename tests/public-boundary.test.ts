@@ -28,6 +28,12 @@ describe("supported public V2 boundary", () => {
     expect(packageJson.scripts).not.toMatchObject({ publish: expect.any(String) });
     expect(index).toContain('from "./supported/signed-catalog-v2.js"');
     expect(index).not.toMatch(/V1|records-v1|provider-watcher-v1/);
+    expect((packageJson.scripts as Record<string, string>)["test:cov"]).toMatch(
+      /^vitest run --coverage(?:\s|$)/,
+    );
+    expect(readFileSync(resolve(root, "src/supported/signed-catalog-v2.ts"), "utf8")).toMatch(
+      /export (?:async )?function runCatalogV2Cli/,
+    );
   });
 
   it("keeps all README and ai-coding truth surfaces explicit about Catalog V2 authority and use", () => {
