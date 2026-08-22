@@ -483,7 +483,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       canonicalJson((statement.predicate as Record<string, unknown>).catalogHead as Json),
     ).toBe(publicApi.canonicalCatalogHeadV2Bytes(head).toString("utf8"));
     expect((statement.predicate as Record<string, unknown>).catalogHeadSha256).toBe(
-      sha(canonicalJson((statement.predicate as Record<string, unknown>).catalogHead as Json)),
+      head.catalogHeadSha256,
     );
     expect((statement.predicate as Record<string, unknown>).candidateSha256).toBe(
       sha(canonicalJson((statement.predicate as Record<string, unknown>).catalogHead as Json)),
@@ -1400,9 +1400,10 @@ describe("public signed catalog V2 acceptance contract", () => {
           .catalogHeadSha256,
       ).not.toBe(candidate.catalogHeadSha256);
       const mutatedCandidatePath = resolve(temp, "mutated-candidate.json");
+      const candidateDigest = String(candidate.catalogHeadSha256);
       const mutatedCandidate = {
         ...candidate,
-        catalogHeadSha256: `0${String(candidate.catalogHeadSha256).slice(1)}`,
+        catalogHeadSha256: `${candidateDigest.startsWith("0") ? "1" : "0"}${candidateDigest.slice(1)}`,
       };
       const mutatedCandidateText = canonicalJson(mutatedCandidate as Json);
       expect(mutatedCandidateText).not.toBe(candidateText);
