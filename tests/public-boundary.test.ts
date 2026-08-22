@@ -31,14 +31,7 @@ describe("supported public V2 boundary", () => {
   });
 
   it("keeps all README and ai-coding truth surfaces explicit about Catalog V2 authority and use", () => {
-    const truthSurfaces = [
-      "README.md",
-      "ai-coding/RULE_ROUTER.md",
-      "ai-coding/project.md",
-      "ai-coding/project.json",
-      "ai-coding/supported-catalog-v2.md",
-    ];
-    for (const path of truthSurfaces) {
+    for (const path of ["README.md", "ai-coding/supported-catalog-v2.md"]) {
       const text = readFileSync(resolve(root, path), "utf8");
       expect(text).toMatch(/supported/i);
       expect(text).toMatch(/organization-qualified|org-qualified/i);
@@ -54,6 +47,22 @@ describe("supported public V2 boundary", () => {
       expect(text).toMatch(/publication.*deferred|publish.*separate/i);
       expect(text).toMatch(/Core.*does not.*consume.*Catalog V2/i);
     }
+    for (const path of ["ai-coding/RULE_ROUTER.md", "ai-coding/project.md"]) {
+      const text = readFileSync(resolve(root, path), "utf8");
+      expect(text).toMatch(/supported-catalog-v2\.md/i);
+      expect(text).toMatch(/public.*V2|V2.*public/i);
+      expect(text).toMatch(/Core.*does not.*consume.*Catalog V2/i);
+      expect(text).toMatch(/optional|not.*admission|not-authoritative/i);
+    }
+    const project = JSON.parse(
+      readFileSync(resolve(root, "ai-coding/project.json"), "utf8"),
+    ) as Record<string, unknown>;
+    expect(project.supportedCatalogV2).toEqual({
+      coreConsumption: "not-yet",
+      documentation: "ai-coding/supported-catalog-v2.md",
+      organizationAdmission: "not-authoritative",
+      status: "public-v2",
+    });
   });
 
   it("keeps network/process/provider authority absent and confines cryptographic signing to one V2 module", () => {
