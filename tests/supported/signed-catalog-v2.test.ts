@@ -998,6 +998,8 @@ describe("public signed catalog V2 acceptance contract", () => {
       { catalogHeadDigest: `sha256:${sha("wrong-head")}` },
       { previousCatalogHeadDigest: `sha256:${successor.catalogHeadSha256}` },
       { replayIdentity: `catalog-head:${sha("wrong-head")}:${sha("wrong-candidate")}` },
+      { sequence: 0 },
+      { previousCatalogHeadDigest: `sha256:${zeroDigest}` },
       { sequence: -0 },
       { sequence: Number.MAX_SAFE_INTEGER + 1 },
       { headValidFrom: successor.validUntil },
@@ -1009,6 +1011,18 @@ describe("public signed catalog V2 acceptance contract", () => {
           catalogContinuity: { ...continuity, ...patch },
         }),
       ).toThrow();
+    expect(() =>
+      publicApi.canonicalQualificationReceiptBytes({
+        ...receipt,
+        unexpected: true,
+      }),
+    ).toThrow();
+    expect(() =>
+      publicApi.canonicalQualificationReceiptBytes({
+        ...receipt,
+        catalogContinuity: { ...continuity, unexpected: true },
+      }),
+    ).toThrow();
     expect(() =>
       publicApi.canonicalQualificationReceiptBytes({
         ...receipt,
@@ -1107,6 +1121,34 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(Buffer.byteLength(bytes, "utf8")).toBe(publicApi.QUALIFICATION_RECEIPT_V2_MAX_BYTES);
     expect(publicApi.parseQualificationReceiptV2Json(bytes)).toEqual(atCap);
     expect(() => publicApi.parseQualificationReceiptV2Json(`${bytes}x`)).toThrow();
+  });
+
+  it("refuses a canonical source one byte above the closed V2 source-byte limit", async () => {
+    const publicApi = await api();
+    const fixture = signingFixture();
+    const fixedSource = {
+      contentDigest: `sha256:${sha("source-byte-cap")}`,
+      endpoint: "",
+      type: "remote",
+    };
+    const endpointBytes = 4097 - Buffer.byteLength(canonicalJson(fixedSource), "utf8");
+    const source = {
+      ...fixedSource,
+      endpoint: `https://a/${"a".repeat(endpointBytes - "https://a/".length)}`,
+    };
+    expect(Buffer.byteLength(canonicalJson(source), "utf8")).toBe(4097);
+    expect(() =>
+      publicApi.createCatalogHeadV2(
+        headInput(fixture.signer, {
+          entries: [
+            {
+              ...entry("recipe.source-cap"),
+              subject: coreSubject("profile", "source-cap", source),
+            },
+          ],
+        }),
+      ),
+    ).toThrow();
   });
 
   it("emits closed V2 receipt bytes while preserving the exact Core source grammar", async () => {
