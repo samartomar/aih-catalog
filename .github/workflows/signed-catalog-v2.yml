@@ -8,6 +8,9 @@ on:
       signed_catalog_path: { required: true, type: string }
       catalog_signer_root_path: { required: true, type: string }
       promotion_plan_sha256: { required: true, type: string }
+      qualification_receipt_sha256: { required: true, type: string }
+      qualification_receipt_issued_at: { required: true, type: string }
+      entry_id: { required: true, type: string }
       continuity_mode: { required: true, type: string }
       last_accepted_head_path: { required: false, type: string }
       last_accepted_head_sha256: { required: false, type: string }
@@ -31,6 +34,9 @@ jobs:
       CONTINUITY_MODE: ${{ inputs.continuity_mode }}
       LAST_ACCEPTED_HEAD_PATH: ${{ inputs.last_accepted_head_path }}
       EXPECTED_LAST_ACCEPTED_HEAD_SHA256: ${{ inputs.last_accepted_head_sha256 }}
+      EXPECTED_QUALIFICATION_RECEIPT_SHA256: ${{ inputs.qualification_receipt_sha256 }}
+      QUALIFICATION_RECEIPT_ISSUED_AT: ${{ inputs.qualification_receipt_issued_at }}
+      ENTRY_ID: ${{ inputs.entry_id }}
       EXPECTED_CLAIMS_PATH: catalog-expected-claims.json
       CANDIDATE_ARTIFACT_PATH: signed-catalog-v2.json
       REGENERATED_CANDIDATE_PATH: regenerated-candidate.json
@@ -38,6 +44,8 @@ jobs:
       CANDIDATE_SIGNER_PATH: candidate-signer.json
       CANDIDATE_METADATA_PATH: candidate-metadata.json
       PROMOTION_PLAN_PATH: promotion-plan.json
+      QUALIFICATION_RECEIPT_PATH: qualification-receipt-v1.json
+      REPLAY_STATE_PATH: qualification-receipt-replay-state.json
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -49,6 +57,14 @@ jobs:
           [[ "$ACTUAL_DISPATCH_SHA" =~ ^[0-9a-f]{40}$ ]]
           test "$EXPECTED_COMMIT_SHA" = "$ACTUAL_DISPATCH_SHA"
           [[ "$EXPECTED_REF" =~ ^refs/heads/main$ ]]
+          [[ "$EXPECTED_QUALIFICATION_RECEIPT_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$QUALIFICATION_RECEIPT_ISSUED_AT" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]]
+          [[ "$ENTRY_ID" =~ ^[a-z][a-z0-9.-]{0,63}$ ]]
+          issued_epoch=$(date -u -d "$QUALIFICATION_RECEIPT_ISSUED_AT" +%s)
+          test "$(date -u -d "@$issued_epoch" +%Y-%m-%dT%H:%M:%SZ)" = "$QUALIFICATION_RECEIPT_ISSUED_AT"
+          observed_epoch=$(date -u +%s)
+          skew=$((observed_epoch - issued_epoch))
+          (( skew >= -300 && skew <= 300 ))
           safe_workspace_file() {
             local requested="$1"
             [[ "$requested" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]*$ ]]
@@ -84,8 +100,12 @@ jobs:
           node -e "const fs=require('node:fs');fs.writeFileSync(process.env.EXPECTED_CLAIMS_PATH,JSON.stringify({environment:'catalog-signing',eventName:process.env.EXPECTED_EVENT_NAME,issuer:'https://token.actions.githubusercontent.com',jobWorkflowRef:process.env.EXPECTED_WORKFLOW_REF,ref:process.env.EXPECTED_REF,repository:process.env.EXPECTED_REPOSITORY,repositoryId:process.env.EXPECTED_REPOSITORY_ID,repositoryOwnerId:process.env.EXPECTED_REPOSITORY_OWNER_ID}))"
           npm ci --ignore-scripts
           npm run build
-          observed_now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          observed_now="$QUALIFICATION_RECEIPT_ISSUED_AT"
           node dist/cli.js inspect --signed-catalog "$SIGNED_CATALOG_PATH" --catalog-signer-root "$CATALOG_SIGNER_ROOT_PATH" --expected-claims "$EXPECTED_CLAIMS_PATH" --now "$observed_now" "${continuity_args[@]}"
+          printf '%s' '{"acceptedIdentities":[]}' > "$REPLAY_STATE_PATH"
+          node dist/cli.js emit-qualification-receipt --signed-catalog "$SIGNED_CATALOG_PATH" --catalog-signer-root "$CATALOG_SIGNER_ROOT_PATH" --expected-claims "$EXPECTED_CLAIMS_PATH" --now "$observed_now" "${continuity_args[@]}" --replay-state "$REPLAY_STATE_PATH" --entry-id "$ENTRY_ID" --output "$QUALIFICATION_RECEIPT_PATH"
+          actual_qualification_receipt_sha256=$(sha256sum "$QUALIFICATION_RECEIPT_PATH" | awk '{print $1}')
+          test "$actual_qualification_receipt_sha256" = "$EXPECTED_QUALIFICATION_RECEIPT_SHA256"
           node -e "const fs=require('node:fs');const signed=JSON.parse(fs.readFileSync(process.env.SIGNED_CATALOG_PATH));const predicate=JSON.parse(Buffer.from(signed.envelope.payload,'base64')).predicate;const head=predicate.catalogHead;fs.writeFileSync(process.env.EMBEDDED_CATALOG_HEAD_PATH,JSON.stringify(head));fs.writeFileSync(process.env.CANDIDATE_SIGNER_PATH,JSON.stringify(predicate.signer));fs.writeFileSync(process.env.EXPECTED_CLAIMS_PATH,JSON.stringify(predicate.claims));fs.writeFileSync(process.env.CANDIDATE_METADATA_PATH,JSON.stringify({validFrom:head.validFrom,validUntil:head.validUntil,sequence:String(head.sequence),previous:head.previousCatalogHeadSha256}))"
           node dist/cli.js generate-candidate --seed defaults/default-catalog-v2.json --signer "$CANDIDATE_SIGNER_PATH" --claims "$EXPECTED_CLAIMS_PATH" --valid-from "$(node -e "process.stdout.write(require('./candidate-metadata.json').validFrom)")" --valid-until "$(node -e "process.stdout.write(require('./candidate-metadata.json').validUntil)")" --sequence "$(node -e "process.stdout.write(require('./candidate-metadata.json').sequence)")" --previous-catalog-head-sha256 "$(node -e "process.stdout.write(require('./candidate-metadata.json').previous)")" --output "$REGENERATED_CANDIDATE_PATH"
           OBSERVED_NOW="$observed_now" node --input-type=module -e "import fs from 'node:fs'; import { planCatalogPromotionV2 } from './dist/index.js'; const canon=v=>v===null||typeof v!=='object'?JSON.stringify(v):Array.isArray(v)?'['+v.map(canon).join(',')+']':'{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+canon(v[k])).join(',')+'}'; const candidate=JSON.parse(fs.readFileSync(process.env.REGENERATED_CANDIDATE_PATH)); const last=process.env.CONTINUITY_MODE==='successor'?JSON.parse(fs.readFileSync(process.env.LAST_ACCEPTED_HEAD_PATH)):null; const plan=last?planCatalogPromotionV2({candidateHead:candidate,lastGood:last,now:process.env.OBSERVED_NOW}):{kind:'genesis',facts:[]}; const record={candidateCatalogHeadSha256:candidate.catalogHeadSha256,facts:plan.facts??[],kind:plan.kind,lastGoodCatalogHeadSha256:last?.catalogHeadSha256??null}; fs.writeFileSync(process.env.PROMOTION_PLAN_PATH,canon(record));"
@@ -97,6 +117,7 @@ jobs:
           path: |
             ${{ env.CANDIDATE_ARTIFACT_PATH }}
             ${{ env.PROMOTION_PLAN_PATH }}
+            ${{ env.QUALIFICATION_RECEIPT_PATH }}
 
   sign:
     needs: candidate
@@ -109,10 +130,13 @@ jobs:
     env:
       EXPECTED_SIGNED_CATALOG_SHA256: ${{ inputs.signed_catalog_sha256 }}
       EXPECTED_PROMOTION_PLAN_SHA256: ${{ inputs.promotion_plan_sha256 }}
+      EXPECTED_QUALIFICATION_RECEIPT_SHA256: ${{ inputs.qualification_receipt_sha256 }}
+      QUALIFICATION_RECEIPT_ISSUED_AT: ${{ inputs.qualification_receipt_issued_at }}
       EXPECTED_COMMIT_SHA: ${{ inputs.commit_sha }}
       ACTUAL_DISPATCH_SHA: ${{ github.sha }}
       SIGNED_CATALOG_PATH: signed-catalog-v2/signed-catalog-v2.json
       PROMOTION_PLAN_PATH: signed-catalog-v2/promotion-plan.json
+      QUALIFICATION_RECEIPT_PATH: signed-catalog-v2/qualification-receipt-v1.json
     steps:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
@@ -122,20 +146,72 @@ jobs:
         run: |
           [[ "$EXPECTED_SIGNED_CATALOG_SHA256" =~ ^[0-9a-f]{64}$ ]]
           [[ "$EXPECTED_PROMOTION_PLAN_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$EXPECTED_QUALIFICATION_RECEIPT_SHA256" =~ ^[0-9a-f]{64}$ ]]
           [[ "$EXPECTED_COMMIT_SHA" =~ ^[0-9a-f]{40}$ ]]
           [[ "$ACTUAL_DISPATCH_SHA" =~ ^[0-9a-f]{40}$ ]]
           test "$EXPECTED_COMMIT_SHA" = "$ACTUAL_DISPATCH_SHA"
           test -f "$SIGNED_CATALOG_PATH"
           test -f "$PROMOTION_PLAN_PATH"
+          test -f "$QUALIFICATION_RECEIPT_PATH"
           actual_catalog_sha256=$(sha256sum "$SIGNED_CATALOG_PATH" | awk '{print $1}')
           actual_promotion_plan_sha256=$(sha256sum "$PROMOTION_PLAN_PATH" | awk '{print $1}')
+          actual_qualification_receipt_sha256=$(sha256sum "$QUALIFICATION_RECEIPT_PATH" | awk '{print $1}')
           test "$actual_catalog_sha256" = "$EXPECTED_SIGNED_CATALOG_SHA256"
           test "$actual_promotion_plan_sha256" = "$EXPECTED_PROMOTION_PLAN_SHA256"
+          test "$actual_qualification_receipt_sha256" = "$EXPECTED_QUALIFICATION_RECEIPT_SHA256"
+          node -e '
+            const fs = require("node:fs");
+            const raw = fs.readFileSync(process.env.QUALIFICATION_RECEIPT_PATH);
+            if (raw.byteLength > 4096) process.exit(2);
+            let text;
+            let receipt;
+            try {
+              text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(raw);
+              receipt = JSON.parse(text);
+            } catch {
+              process.exit(2);
+            }
+            const canonical = (value) => {
+              if (value === null || typeof value !== "object") return JSON.stringify(value);
+              if (Array.isArray(value)) return "[" + value.map(canonical).join(",") + "]";
+              return "{" + Object.keys(value).sort().map((key) => JSON.stringify(key) + ":" + canonical(value[key])).join(",") + "}";
+            };
+            const isCanonicalUtc = (value) => {
+              if (typeof value !== "string" || !/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$/.test(value)) return false;
+              const epoch = Date.parse(value);
+              return Number.isFinite(epoch) && new Date(epoch).toISOString().replace(".000Z", "Z") === value;
+            };
+            if (
+              text !== canonical(receipt) ||
+              Object.keys(receipt).sort().join(",") !== "expiresAt,format,issuedAt,notBefore,organizationAdmission,qualificationBasis,subject,version" ||
+              receipt.format !== "aih-supported-qualification-receipt" ||
+              receipt.version !== 1 ||
+              receipt.organizationAdmission !== "not-authoritative" ||
+              !isCanonicalUtc(process.env.QUALIFICATION_RECEIPT_ISSUED_AT) ||
+              !isCanonicalUtc(receipt.issuedAt) ||
+              !isCanonicalUtc(receipt.notBefore) ||
+              !isCanonicalUtc(receipt.expiresAt) ||
+              receipt.issuedAt !== process.env.QUALIFICATION_RECEIPT_ISSUED_AT
+            ) process.exit(2);
+            const issuedAt = Date.parse(receipt.issuedAt);
+            const notBefore = Date.parse(receipt.notBefore);
+            const expiresAt = Date.parse(receipt.expiresAt);
+            const now = Date.now();
+            if (
+              issuedAt > notBefore ||
+              expiresAt <= notBefore ||
+              expiresAt - issuedAt > 90 * 24 * 60 * 60 * 1000 ||
+              Date.parse(receipt.notBefore) > now || now >= Date.parse(receipt.expiresAt)
+            ) process.exit(2);
+          '
           echo "signed-catalog keyless provenance records the already-admitted administrator Ed25519 DSSE artifact."
           echo "GitHub attestation keyless provenance records a separately authorized public transparency publication effect."
       - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8
         with:
           subject-path: ${{ env.SIGNED_CATALOG_PATH }}
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8
+        with:
+          subject-path: ${{ env.QUALIFICATION_RECEIPT_PATH }}
 
   verify:
     needs: sign
@@ -154,8 +230,14 @@ jobs:
       EXPECTED_EVENT_NAME: ${{ github.event_name }}
       EXPECTED_SIGNED_CATALOG_SHA256: ${{ inputs.signed_catalog_sha256 }}
       EXPECTED_PROMOTION_PLAN_SHA256: ${{ inputs.promotion_plan_sha256 }}
+      EXPECTED_QUALIFICATION_RECEIPT_SHA256: ${{ inputs.qualification_receipt_sha256 }}
+      QUALIFICATION_RECEIPT_ISSUED_AT: ${{ inputs.qualification_receipt_issued_at }}
+      ENTRY_ID: ${{ inputs.entry_id }}
       SIGNED_CATALOG_PATH: signed-catalog-v2/signed-catalog-v2.json
       PROMOTION_PLAN_PATH: signed-catalog-v2/promotion-plan.json
+      QUALIFICATION_RECEIPT_PATH: signed-catalog-v2/qualification-receipt-v1.json
+      RECOMPUTED_QUALIFICATION_RECEIPT_PATH: recomputed-qualification-receipt-v1.json
+      REPLAY_STATE_PATH: qualification-receipt-replay-state.json
       CATALOG_SIGNER_ROOT_PATH: ${{ inputs.catalog_signer_root_path }}
       CONTINUITY_MODE: ${{ inputs.continuity_mode }}
       LAST_ACCEPTED_HEAD_PATH: ${{ inputs.last_accepted_head_path }}
@@ -177,6 +259,9 @@ jobs:
           test "$EXPECTED_COMMIT_SHA" = "$ACTUAL_DISPATCH_SHA"
           [[ "$EXPECTED_SIGNED_CATALOG_SHA256" =~ ^[0-9a-f]{64}$ ]]
           [[ "$EXPECTED_PROMOTION_PLAN_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$EXPECTED_QUALIFICATION_RECEIPT_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$QUALIFICATION_RECEIPT_ISSUED_AT" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]]
+          [[ "$ENTRY_ID" =~ ^[a-z][a-z0-9.-]{0,63}$ ]]
           [[ "$EXPECTED_REF" =~ ^refs/heads/main$ ]]
           safe_workspace_file() {
             local requested="$1"
@@ -194,6 +279,7 @@ jobs:
           test "$actual_commit" = "$EXPECTED_COMMIT_SHA"
           test -f "$SIGNED_CATALOG_PATH"
           test -f "$PROMOTION_PLAN_PATH"
+          test -f "$QUALIFICATION_RECEIPT_PATH"
           if [[ "$CONTINUITY_MODE" == "genesis" ]]; then
             [[ -z "$LAST_ACCEPTED_HEAD_PATH" ]]
             [[ -z "$EXPECTED_LAST_ACCEPTED_HEAD_SHA256" ]]
@@ -209,17 +295,24 @@ jobs:
           fi
           actual_catalog_sha256=$(sha256sum "$SIGNED_CATALOG_PATH" | awk '{print $1}')
           actual_promotion_plan_sha256=$(sha256sum "$PROMOTION_PLAN_PATH" | awk '{print $1}')
+          actual_qualification_receipt_sha256=$(sha256sum "$QUALIFICATION_RECEIPT_PATH" | awk '{print $1}')
           test "$actual_catalog_sha256" = "$EXPECTED_SIGNED_CATALOG_SHA256"
           test "$actual_promotion_plan_sha256" = "$EXPECTED_PROMOTION_PLAN_SHA256"
+          test "$actual_qualification_receipt_sha256" = "$EXPECTED_QUALIFICATION_RECEIPT_SHA256"
           test "$(sha256sum "$SIGNED_CATALOG_PATH" | awk '{print $1}')" = "$EXPECTED_SIGNED_CATALOG_SHA256"
           npm ci --ignore-scripts
           npm run build
           node -e "const fs=require('node:fs');fs.writeFileSync(process.env.EXPECTED_CLAIMS_PATH,JSON.stringify({environment:'catalog-signing',eventName:process.env.EXPECTED_EVENT_NAME,issuer:'https://token.actions.githubusercontent.com',jobWorkflowRef:process.env.EXPECTED_WORKFLOW_REF,ref:process.env.EXPECTED_REF,repository:process.env.EXPECTED_REPOSITORY,repositoryId:process.env.EXPECTED_REPOSITORY_ID,repositoryOwnerId:process.env.EXPECTED_REPOSITORY_OWNER_ID}))"
-          observed_now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          observed_now="$QUALIFICATION_RECEIPT_ISSUED_AT"
           node dist/cli.js inspect --signed-catalog "$SIGNED_CATALOG_PATH" --catalog-signer-root "$CATALOG_SIGNER_ROOT_PATH" --expected-claims "$EXPECTED_CLAIMS_PATH" --now "$observed_now" "${continuity_args[@]}"
+          printf '%s' '{"acceptedIdentities":[]}' > "$REPLAY_STATE_PATH"
+          node dist/cli.js emit-qualification-receipt --signed-catalog "$SIGNED_CATALOG_PATH" --catalog-signer-root "$CATALOG_SIGNER_ROOT_PATH" --expected-claims "$EXPECTED_CLAIMS_PATH" --now "$observed_now" "${continuity_args[@]}" --replay-state "$REPLAY_STATE_PATH" --entry-id "$ENTRY_ID" --output "$RECOMPUTED_QUALIFICATION_RECEIPT_PATH"
+          cmp "$QUALIFICATION_RECEIPT_PATH" "$RECOMPUTED_QUALIFICATION_RECEIPT_PATH"
+          test "$(sha256sum "$RECOMPUTED_QUALIFICATION_RECEIPT_PATH" | awk '{print $1}')" = "$EXPECTED_QUALIFICATION_RECEIPT_SHA256"
           OBSERVED_NOW="$observed_now" node --input-type=module -e "import fs from 'node:fs'; import { planCatalogPromotionV2 } from './dist/index.js'; const canon=v=>v===null||typeof v!=='object'?JSON.stringify(v):Array.isArray(v)?'['+v.map(canon).join(',')+']':'{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+canon(v[k])).join(',')+'}'; const signed=JSON.parse(fs.readFileSync(process.env.SIGNED_CATALOG_PATH)); const candidate=JSON.parse(Buffer.from(signed.envelope.payload,'base64')).predicate.catalogHead; const last=process.env.CONTINUITY_MODE==='successor'?JSON.parse(fs.readFileSync(process.env.LAST_ACCEPTED_HEAD_PATH)):null; const plan=last?planCatalogPromotionV2({candidateHead:candidate,lastGood:last,now:process.env.OBSERVED_NOW}):{kind:'genesis',facts:[]}; const expected={candidateCatalogHeadSha256:candidate.catalogHeadSha256,facts:plan.facts??[],kind:plan.kind,lastGoodCatalogHeadSha256:last?.catalogHeadSha256??null}; if(fs.readFileSync(process.env.PROMOTION_PLAN_PATH,'utf8')!==canon(expected))process.exit(2);"
       - name: verify outer attestation
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh attestation verify "$SIGNED_CATALOG_PATH" --repo "$EXPECTED_REPOSITORY" --source-digest "$EXPECTED_COMMIT_SHA"
+          gh attestation verify "$QUALIFICATION_RECEIPT_PATH" --repo "$EXPECTED_REPOSITORY" --source-digest "$EXPECTED_COMMIT_SHA"

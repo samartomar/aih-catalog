@@ -1,6 +1,6 @@
 # Supported Catalog V2 contract
 
-This document is the operator and maintainer contract for the public Strict V2
+This document is the operator and maintainer contract for the public Catalog V2
 surface in `@aihq/supported` 1.0.0. Publication is deferred; publishing npm bytes
 or executing the outer-attestation workflow requires separate exact-SHA
 authorization.
@@ -13,11 +13,13 @@ different qualification provenance paths, and catalog membership is not an
 admission authority. The CLI makes that boundary machine-visible as
 `organizationAdmission: "not-authoritative"`.
 
-Core does not consume Catalog V2 directly. This package derives the locked
-Core-compatible basis, but a separate Strict V2 governance decision and authority
-receipt must authorize use. An organization can therefore qualify a tool, skill,
-MCP server, package, or profile with its own exact source and evidence even when
-the subject is absent from the supported channel.
+Core does not consume Catalog V2 directly. This package emits the closed
+Core-owned qualification receipt only after verifying Catalog V2; Core separately
+verifies that receipt's outer attestation and exact fields. A separate Strict V2
+governance decision carried by a V3 authority receipt must still authorize use. An
+organization can therefore qualify a tool, skill, MCP server, package, or profile
+with its own exact source and evidence even when the subject is absent from the
+supported channel.
 
 ## Data flow
 
@@ -31,8 +33,11 @@ the subject is absent from the supported channel.
 5. A cold consumer verifies an out-of-band root, static expected claims, current
    validity, continuity, caller-supplied replay state when used, the signature,
    and all digest mirrors.
-6. A separately authorized manual workflow may attach GitHub OIDC/keyless outer
-   provenance after exact artifact and promotion-plan approval.
+6. The producer emits one closed, canonical, non-authoritative qualification
+   receipt for an exact verified member.
+7. A separately authorized manual workflow may attach independent GitHub
+   OIDC/keyless outer provenance to the exact catalog and receipt after their
+   hashes and the exact promotion plan are approved.
 
 Candidate generation has no signing, provider, network, repository-write, or
 organization-admission authority. Signing executes no candidate code. The outer
@@ -97,13 +102,16 @@ the subject.
 The Core contract is locked to commit
 `e27a55dcebb635c8298aa4fd6fd871f59089bcf7` and schema SHA-256
 `27295aee8d8be333abe2c73adc72884b534b1c9980a9b7a39d12be8d34c5caff`.
-The verifier and committed vectors reject drift. Unknown schema/effect versions
-may be inspectable as authenticated opaque records, but cannot verify or
-materialize as V2.
+The qualification-receipt schema has a separate Core commit and SHA-256 lock;
+the commit is advanced only to the merged Core receipt implementation. The
+verifier and committed vectors reject drift. Unknown schema/effect versions may
+be inspectable as authenticated opaque records, but cannot verify or materialize
+as V2.
 
 Resource bounds are fail-closed: 4,096 entries, 64 signer roots, 4,096 replay
 identities, 64 items in bounded lists, an 8 MiB head/candidate, a 24 MiB signed
-artifact, 1 MiB claims/root/replay/seed artifacts, and a 64 KiB private key.
+artifact, 1 MiB claims/root/replay/seed artifacts, a 64 KiB private key, and a
+4 KiB qualification receipt.
 
 ## Cold verification and consumption
 
@@ -119,6 +127,29 @@ not the package clock, supplies `--now`; production callers must use a live UTC
 observation. `inspect` emits only a materializable head or an authenticated opaque
 record. The returned qualification basis can be consumed by decision-authoring
 code, but it is evidence provenance rather than effective permission.
+
+To create the Core handoff, run the same verified inputs through the exclusive
+file command:
+
+```sh
+aih-supported emit-qualification-receipt --signed-catalog ./signed-catalog.json --catalog-signer-root ./catalog-signer-root.json --expected-claims ./expected-claims.json --replay-state ./replay-state.json --now 2026-08-22T12:00:00Z --continuity genesis --entry-id recipe.default --output ./.aih/aih-supported-qualification-receipt.json
+```
+
+The command prints no receipt to stdout. It writes a canonical, closed receipt
+only after catalog, member, signer, claims, continuity, replay, compatibility,
+and validity checks pass. The result explicitly states that it is not
+organization admission. Core still requires its independent Strict V2
+organization decision, V3 authority verification, and fresh upstream
+observation.
+
+The installed Core package exposes
+`verifyAihSupportedQualificationArtifactV1({root, decisionReference, subject})`
+for the target repository. Core owns the runner, environment snapshot, host
+adapter, and live clock, then re-observes both protected attestations and the
+exact current Strict V2 decision in its V3 authority receipt. The result is only
+`verified` or `unverified`; no
+authority, receipt bytes, qualification capability, or reusable evidence crosses
+the package boundary.
 
 The inner claims are a declaration and must exactly match independently supplied
 expectations. Consumers must also verify the outer GitHub attestation against the
@@ -147,11 +178,12 @@ the supported-channel revocation mechanism.
 The manual workflow records a canonical promotion plan binding the candidate
 head, last-good head, and facts. Candidate jobs have read-only contents authority
 and cannot sign. A material version bump or removal can proceed only when an
-operator supplies the exact promotion-plan SHA-256 and signed-catalog SHA-256 and
-the protected `catalog-signing` environment approves them. The signing job runs
-no candidate code; it adds only the separately authorized outer provenance. The
-final verifier rebuilds, checks continuity and the inner signature, recomputes
-the plan, and verifies the outer GitHub attestation.
+operator supplies the exact promotion-plan, signed-catalog, and qualification-
+receipt SHA-256 values plus the receipt issuance timestamp and entry id, and the
+protected `catalog-signing` environment approves them. The signing job runs no
+candidate code; it separately attests the catalog and receipt. The final verifier
+rebuilds, checks continuity and the inner signature, recomputes the plan and
+receipt bytes, and verifies both outer GitHub attestations.
 
 A catalog removal affects later catalog observation. It does not revoke a
 previously issued Core decision with a pinned member digest; the organization

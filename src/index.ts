@@ -1,7 +1,9 @@
 export {
   canonicalCatalogHeadV2Bytes,
+  canonicalQualificationReceiptBytes,
   createCatalogHeadV2,
   deriveQualificationBasisV2,
+  emitQualificationReceipt,
   inspectSignedCatalogV2,
   parseCatalogHeadV2Json,
   planCatalogPromotionV2,

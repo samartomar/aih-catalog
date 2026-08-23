@@ -14,7 +14,8 @@ type J = null | boolean | number | string | J[] | { [key: string]: J };
 const ZERO = "0".repeat(64),
   MAX_HEAD = 8 * 1024 * 1024,
   MAX_SIGNED = 24 * 1024 * 1024,
-  MAX_SEED_ARTIFACT = 1024 * 1024;
+  MAX_SEED_ARTIFACT = 1024 * 1024,
+  MAX_QUALIFICATION_RECEIPT = 4096;
 export const STRICT_V2_CORE_LOCK = Object.freeze({
   coreCommit: "e27a55dcebb635c8298aa4fd6fd871f59089bcf7",
   schemaSha256: "27295aee8d8be333abe2c73adc72884b534b1c9980a9b7a39d12be8d34c5caff",
@@ -173,57 +174,159 @@ function source(v: unknown): R {
   };
   const shape = shapes[type] ?? fail("source");
   keys(s, shape, "source");
-  const out: R = { type };
-  for (const [k, x] of Object.entries(s)) {
-    if (k === "type") continue;
-    if (k.includes("Digest") || k === "sha256" || k === "revision")
-      out[k] = phex(x, "source digest");
-    else if (k === "platform") {
-      const p = rec(x, "platform");
-      keys(
-        p,
-        Object.hasOwn(p, "variant") ? ["architecture", "os", "variant"] : ["architecture", "os"],
-        "platform",
-      );
-      out[k] = {
-        architecture: text(p.architecture, "platform", /^[a-z][a-z0-9-]{0,63}$/),
-        os: text(p.os, "platform", /^[a-z][a-z0-9-]{0,63}$/),
-        ...(Object.hasOwn(p, "variant")
-          ? { variant: text(p.variant, "platform", /^[a-z0-9._-]+$/) }
-          : {}),
-      };
-    } else out[k] = text(x, "source");
-  }
-  // These deliberately mirror the locked Core decision-v2 source grammar.  The
-  // catalog adds no provider interpretation; it only validates and binds bytes.
   const semver =
     /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:(?:0|[1-9]\d*)|(?:\d*[A-Za-z-][0-9A-Za-z-]*))(?:\.(?:(?:0|[1-9]\d*)|(?:\d*[A-Za-z-][0-9A-Za-z-]*)))*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
+  const value = (x: unknown, c = "source") => (typeof x === "string" ? x : fail(c));
+  const match = (x: unknown, expression: RegExp, c = "source") => {
+    const raw = value(x, c);
+    return expression.test(raw) ? raw : fail(c);
+  };
+  const httpsBase = (x: unknown) => {
+    const raw = value(x);
+    try {
+      const url = new URL(raw);
+      if (
+        url.protocol !== "https:" ||
+        url.username !== "" ||
+        url.password !== "" ||
+        url.search !== "" ||
+        url.hash !== "" ||
+        raw !== url.href ||
+        !url.pathname.endsWith("/")
+      )
+        fail("source");
+      return raw;
+    } catch {
+      return fail("source");
+    }
+  };
+  const httpsEndpoint = (x: unknown) => {
+    const raw = value(x);
+    try {
+      const url = new URL(raw);
+      if (
+        url.protocol !== "https:" ||
+        url.username !== "" ||
+        url.password !== "" ||
+        url.search !== "" ||
+        url.hash !== "" ||
+        raw !== url.href ||
+        !url.pathname.startsWith("/")
+      )
+        fail("source");
+      return raw;
+    } catch {
+      return fail("source");
+    }
+  };
+  const ociRegistry = (x: unknown) => {
+    const raw = value(x);
+    try {
+      const url = new URL(`https://${raw}`);
+      const dnsHost =
+        /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(?:\.(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?))*$/;
+      if (
+        url.username !== "" ||
+        url.password !== "" ||
+        url.pathname !== "/" ||
+        url.search !== "" ||
+        url.hash !== "" ||
+        raw !== url.host ||
+        !(url.hostname.startsWith("[") || dnsHost.test(url.hostname))
+      )
+        fail("source");
+      return raw;
+    } catch {
+      return fail("source");
+    }
+  };
+  const sri = (x: unknown) => {
+    const raw = value(x);
+    const match = /^sha512-([A-Za-z0-9+/]+={0,2})$/.exec(raw);
+    if (match?.[1] === undefined) return fail("source");
+    const encoded = match[1];
+    const decoded = Buffer.from(encoded, "base64");
+    if (decoded.length !== 64 || decoded.toString("base64") !== encoded) fail("source");
+    return raw;
+  };
+  const stable = (x: unknown, c = "source") => match(x, /^[a-z][a-z0-9-]{0,63}$/, c);
+  // These deliberately mirror the locked Core decision-v2 source grammar. The
+  // catalog adds no provider interpretation; it only validates and binds bytes.
   if (type === "github") {
-    text(out.commit, "source", /^[0-9a-f]{40}(?:[0-9a-f]{24})?$/);
-    text(out.repository, "source", /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/);
-    text(out.path, "source", /^.{1,500}$/);
+    const path = value(s.path);
+    if (
+      path.length < 1 ||
+      path.length > 500 ||
+      path !== path.trim() ||
+      path.startsWith("/") ||
+      path.includes("\\") ||
+      path.split("/").some((segment) => segment === "" || segment === "." || segment === "..") ||
+      /[\p{C}]/u.test(path)
+    )
+      fail("source");
+    return {
+      commit: match(s.commit, /^[0-9a-f]{40}(?:[0-9a-f]{24})?$/),
+      path,
+      repository: match(s.repository, /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/),
+      type,
+    };
   } else if (type === "npm") {
-    text(out.package, "source", /^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/);
-    text(out.version, "source", semver);
-    text(out.registry, "source");
-    text(out.integrity, "source");
+    return {
+      integrity: sri(s.integrity),
+      package: match(s.package, /^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/),
+      registry: httpsBase(s.registry),
+      type,
+      version: match(s.version, semver),
+    };
   } else if (type === "pypi") {
-    text(out.package, "source", /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
-    text(out.version, "source", /^[A-Za-z0-9][A-Za-z0-9.!+_-]{0,127}$/);
-    text(out.filename, "source", /^[A-Za-z0-9][A-Za-z0-9._+-]*$/);
-    text(out.registry, "source");
+    return {
+      filename: match(s.filename, /^[A-Za-z0-9][A-Za-z0-9._+-]*$/),
+      package: match(s.package, /^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+      registry: httpsBase(s.registry),
+      sha256: phex(s.sha256, "source digest"),
+      type,
+      version: match(s.version, /^[A-Za-z0-9][A-Za-z0-9.!+_-]{0,127}$/),
+    };
   } else if (type === "oci") {
-    text(out.registry, "source");
-    text(out.repository, "source", /^.{1,500}$/);
-    const platform = rec(out.platform, "platform");
-    if (Object.hasOwn(platform, "variant"))
-      text(platform.variant, "platform", /^[a-z][a-z0-9-]{0,63}$/);
+    const repository = value(s.repository);
+    if (
+      repository.length < 1 ||
+      repository.length > 500 ||
+      !repository.split("/").every((segment) => /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(segment))
+    )
+      fail("source");
+    const platform = rec(s.platform, "platform");
+    keys(
+      platform,
+      Object.hasOwn(platform, "variant")
+        ? ["architecture", "os", "variant"]
+        : ["architecture", "os"],
+      "platform",
+    );
+    return {
+      indexDigest: phex(s.indexDigest, "source digest"),
+      manifestDigest: phex(s.manifestDigest, "source digest"),
+      platform: {
+        architecture: stable(platform.architecture, "platform"),
+        os: stable(platform.os, "platform"),
+        ...(Object.hasOwn(platform, "variant")
+          ? { variant: stable(platform.variant, "platform") }
+          : {}),
+      },
+      registry: ociRegistry(s.registry),
+      repository,
+      type,
+    };
   } else if (type === "remote") {
-    text(out.endpoint, "source");
+    return {
+      contentDigest: phex(s.contentDigest, "source digest"),
+      endpoint: httpsEndpoint(s.endpoint),
+      type,
+    };
   } else if (type === "aih") {
-    text(out.release, "source", semver);
+    return { release: match(s.release, semver), revision: phex(s.revision, "source digest"), type };
   }
-  return out;
+  return fail("source");
 }
 function subject(v: unknown): R {
   const s = rec(v, "subject");
@@ -243,7 +346,7 @@ function signer(v: unknown): R {
   const fp = hex(s.publicKeySpkiSha256, "spki");
   const out = {
     class: text(s.class, "class", /^administrator-ed25519$/),
-    identity: text(s.identity, "identity", /^administrator:[a-z0-9:/._-]+$/),
+    identity: text(s.identity, "identity", /^administrator:[a-z0-9:/._-]{1,242}$/),
     keyId: text(s.keyId, "key id", /^ed25519:[0-9a-f]{64}$/),
     publicKeySpkiSha256: fp,
   };
@@ -766,6 +869,130 @@ export function deriveQualificationBasisV2(v: unknown): R {
     subjectKind: (selected.subject as R).kind,
   });
 }
+function qualificationBasis(v: unknown): R {
+  const x = rec(v, "qualification-basis");
+  keys(
+    x,
+    [
+      "catalogDigest",
+      "catalogHeadDigest",
+      "catalogMemberDigest",
+      "catalogSignerIdentity",
+      "kind",
+      "subjectDigest",
+      "subjectKind",
+    ],
+    "qualification-basis",
+  );
+  return {
+    catalogDigest: phex(x.catalogDigest, "qualification-basis"),
+    catalogHeadDigest: phex(x.catalogHeadDigest, "qualification-basis"),
+    catalogMemberDigest: phex(x.catalogMemberDigest, "qualification-basis"),
+    catalogSignerIdentity: text(
+      x.catalogSignerIdentity,
+      "qualification-basis",
+      /^[A-Za-z0-9][A-Za-z0-9:._@/-]{0,255}$/,
+    ),
+    kind: text(x.kind, "qualification-basis", /^aih-supported$/),
+    subjectDigest: phex(x.subjectDigest, "qualification-basis"),
+    subjectKind: text(x.subjectKind, "qualification-basis", /^(tool|skill|mcp|package|profile)$/),
+  };
+}
+function qualificationReceipt(v: unknown): R {
+  const x = rec(v, "qualification-receipt");
+  keys(
+    x,
+    [
+      "expiresAt",
+      "format",
+      "issuedAt",
+      "notBefore",
+      "organizationAdmission",
+      "qualificationBasis",
+      "subject",
+      "version",
+    ],
+    "qualification-receipt",
+  );
+  if (x.format !== "aih-supported-qualification-receipt" || x.version !== 1)
+    fail("qualification-receipt");
+  if (x.organizationAdmission !== "not-authoritative") fail("qualification-receipt");
+  const issuedAt = iso(x.issuedAt, "qualification-receipt"),
+    notBefore = iso(x.notBefore, "qualification-receipt"),
+    expiresAt = iso(x.expiresAt, "qualification-receipt");
+  const duration = epochSeconds(expiresAt) - epochSeconds(issuedAt);
+  if (
+    epochSeconds(issuedAt) > epochSeconds(notBefore) ||
+    epochSeconds(notBefore) >= epochSeconds(expiresAt) ||
+    duration > 90 * 86400
+  )
+    fail("qualification-receipt");
+  const receiptSubject = subject(x.subject);
+  const receiptBasis = qualificationBasis(x.qualificationBasis);
+  if (
+    receiptBasis.subjectDigest !== receiptSubject.subjectDigest ||
+    receiptBasis.subjectKind !== receiptSubject.kind
+  )
+    fail("qualification-receipt");
+  const result = {
+    expiresAt,
+    format: "aih-supported-qualification-receipt",
+    issuedAt,
+    notBefore,
+    organizationAdmission: "not-authoritative",
+    qualificationBasis: receiptBasis,
+    subject: receiptSubject,
+    version: 1,
+  };
+  if (Buffer.byteLength(canon(result as J), "utf8") > MAX_QUALIFICATION_RECEIPT)
+    fail("qualification-receipt-too-large");
+  return frozen(result);
+}
+export function canonicalQualificationReceiptBytes(v: unknown): Buffer {
+  return Buffer.from(canon(qualificationReceipt(v) as J), "utf8");
+}
+export function emitQualificationReceipt(v: unknown): R {
+  const x = rec(v, "qualification-receipt");
+  keys(
+    x,
+    Object.hasOwn(x, "lastAccepted")
+      ? [
+          "catalogSignerRoots",
+          "entryId",
+          "expectedClaims",
+          "lastAccepted",
+          "now",
+          "replay",
+          "signed",
+        ]
+      : ["catalogSignerRoots", "entryId", "expectedClaims", "now", "replay", "signed"],
+    "qualification-receipt",
+  );
+  const inspected = inspectSignedCatalogV2({
+    catalogSignerRoots: x.catalogSignerRoots,
+    expectedClaims: x.expectedClaims,
+    lastAccepted: x.lastAccepted ?? null,
+    now: x.now,
+    replay: x.replay,
+    signed: x.signed,
+  });
+  if (inspected.kind !== "materializable") fail("qualification-receipt");
+  const h = inspected.head as R;
+  const selected = (h.entries as R[]).find((candidate) => candidate.entryId === x.entryId);
+  if (!selected) fail("qualification-receipt");
+  const selectedEntry = selected as R;
+  const issuedAt = iso(x.now, "qualification-receipt");
+  return qualificationReceipt({
+    expiresAt: h.validUntil,
+    format: "aih-supported-qualification-receipt",
+    issuedAt,
+    notBefore: issuedAt,
+    organizationAdmission: "not-authoritative",
+    qualificationBasis: deriveQualificationBasisV2({ entryId: x.entryId, head: h }),
+    subject: selectedEntry.subject,
+    version: 1,
+  });
+}
 export function planCatalogPromotionV2(v: unknown): R {
   const x = rec(v, "promotion");
   keys(x, ["candidateHead", "lastGood", "now"], "promotion");
@@ -1227,6 +1454,70 @@ export function runCatalogV2Cli(argv: readonly string[]): number {
       out.organizationAdmission = "not-authoritative";
       out.verificationMode = "cold-external-admin";
       process.stdout.write(canon(out as J));
+      return 0;
+    }
+    if (command === "emit-qualification-receipt") {
+      const allowed = [
+        "catalog-signer-root",
+        "continuity",
+        "entry-id",
+        "expected-claims",
+        "last-accepted-head",
+        "now",
+        "output",
+        "replay-state",
+        "signed-catalog",
+      ];
+      keys(
+        args,
+        allowed.filter((key) => Object.hasOwn(args, key)),
+        "arguments",
+      );
+      for (const key of [
+        "catalog-signer-root",
+        "entry-id",
+        "expected-claims",
+        "now",
+        "output",
+        "replay-state",
+        "signed-catalog",
+      ])
+        if (!Object.hasOwn(args, key)) fail("arguments");
+      const hasLast = Object.hasOwn(args, "last-accepted-head");
+      if (
+        (args.continuity === "genesis") === hasLast ||
+        (args.continuity !== undefined && args.continuity !== "genesis")
+      )
+        fail("arguments");
+      const signedText = read(args["signed-catalog"], MAX_SIGNED, "signed-catalog-too-large");
+      if (signedText.startsWith("\ufeff") || signedText !== signedText.trim())
+        fail("signed-catalog");
+      const signed = JSON.parse(signedText);
+      if (signedText !== canon(signed as J)) fail("signed-catalog");
+      if (!rec(signed, "unsigned-catalog").envelope) fail("unsigned-catalog");
+      const roots = JSON.parse(
+        read(args["catalog-signer-root"], 1024 * 1024, "catalog-signer-root-too-large"),
+      );
+      const receipt = emitQualificationReceipt({
+        catalogSignerRoots: Array.isArray(roots)
+          ? roots
+          : roots.catalogSignerRoots
+            ? [...roots.catalogSignerRoots]
+            : [roots],
+        entryId: args["entry-id"],
+        expectedClaims: JSON.parse(read(args["expected-claims"], 1024 * 1024, "claims-too-large")),
+        ...(hasLast
+          ? {
+              lastAccepted: parseCatalogHeadV2Json(
+                read(args["last-accepted-head"], MAX_HEAD, "last-accepted-head-too-large"),
+              ),
+            }
+          : {}),
+        now: args.now,
+        replay: JSON.parse(read(args["replay-state"], 1024 * 1024, "replay-state-too-large")),
+        signed,
+      });
+      write(args.output, canonicalQualificationReceiptBytes(receipt).toString("utf8"));
       return 0;
     }
     fail("arguments");
