@@ -13,7 +13,6 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
-import Ajv2020 from "ajv/dist/2020.js";
 import { describe, expect, it, vi } from "vitest";
 import { runCatalogV2Cli } from "../../src/supported/signed-catalog-v2.js";
 
@@ -864,9 +863,11 @@ describe("public signed catalog V2 acceptance contract", () => {
       "deriveQualificationBasisV2",
       "emitQualificationReceipt",
       "canonicalQualificationReceiptBytes",
+      "parseQualificationReceiptV2Json",
     ] as const)
       expect(publicApi[operation]).toBeTypeOf("function");
     expect(Object.keys(publicApi).sort()).toEqual([
+      "QUALIFICATION_RECEIPT_V2_MAX_BYTES",
       "STRICT_V2_CORE_LOCK",
       "canonicalCatalogHeadV2Bytes",
       "canonicalQualificationReceiptBytes",
@@ -875,10 +876,12 @@ describe("public signed catalog V2 acceptance contract", () => {
       "emitQualificationReceipt",
       "inspectSignedCatalogV2",
       "parseCatalogHeadV2Json",
+      "parseQualificationReceiptV2Json",
       "planCatalogPromotionV2",
       "signCatalogHeadV2",
       "verifySignedCatalogV2",
     ]);
+    expect(publicApi.QUALIFICATION_RECEIPT_V2_MAX_BYTES).toBe(6091);
     expect(Object.keys(publicApi)).not.toEqual(expect.arrayContaining(["isSupported", "isMember"]));
   });
 
@@ -995,7 +998,6 @@ describe("public signed catalog V2 acceptance contract", () => {
       { catalogHeadDigest: `sha256:${sha("wrong-head")}` },
       { previousCatalogHeadDigest: `sha256:${successor.catalogHeadSha256}` },
       { replayIdentity: `catalog-head:${sha("wrong-head")}:${sha("wrong-candidate")}` },
-      { signerKeyId: `ed25519:${sha("wrong-key")}` },
       { sequence: -0 },
       { sequence: Number.MAX_SAFE_INTEGER + 1 },
       { headValidFrom: successor.validUntil },
@@ -1014,6 +1016,38 @@ describe("public signed catalog V2 acceptance contract", () => {
       }),
     ).toThrow();
     expect(() =>
+      publicApi.canonicalQualificationReceiptBytes({
+        ...receipt,
+        issuedAt: "2026-08-22T00:30:00Z",
+        notBefore: "2026-08-22T00:30:00Z",
+      }),
+    ).toThrow();
+    const wrongKeyFixture = signingFixture();
+    expect(() =>
+      publicApi.emitQualificationReceipt({
+        catalogSignerRoots: [wrongKeyFixture.catalogSignerRoot],
+        entryId: "recipe.default",
+        expectedClaims: claims(),
+        lastAccepted: genesis,
+        now: "2026-08-22T12:00:00Z",
+        replay: { acceptedIdentities: [] },
+        signed,
+      }),
+    ).toThrow();
+    expect(() =>
+      publicApi.emitQualificationReceipt({
+        catalogSignerRoots: [
+          { ...fixture.catalogSignerRoot, identity: "administrator:wrong-signer-identity" },
+        ],
+        entryId: "recipe.default",
+        expectedClaims: claims(),
+        lastAccepted: genesis,
+        now: "2026-08-22T12:00:00Z",
+        replay: { acceptedIdentities: [] },
+        signed,
+      }),
+    ).toThrow();
+    expect(() =>
       publicApi.emitQualificationReceipt({
         catalogSignerRoots: [fixture.catalogSignerRoot],
         entryId: "missing.member",
@@ -1026,16 +1060,58 @@ describe("public signed catalog V2 acceptance contract", () => {
     ).toThrow();
   });
 
-  it("emits receipt bytes conforming to the pinned Core schema and exact runtime source grammar", async () => {
+  it("accepts the measured V2 byte cap exactly and rejects cap plus one", async () => {
     const publicApi = await api();
     const fixture = signingFixture();
-    const schema = JSON.parse(
-      readFileSync(
-        resolve(root, "tests/contracts/core/aih-supported-qualification-receipt-v1.schema.json"),
-        "utf8",
-      ),
+    const signer = {
+      ...fixture.signer,
+      identity: `administrator:${"a".repeat(242)}`,
+    };
+    const endpoint = `https://a/${"a".repeat(4086)}`;
+    const source = {
+      contentDigest: `sha256:${sha("maximum-receipt-remote-content")}`,
+      endpoint,
+      type: "remote",
+    };
+    const subjectId = `a${"a".repeat(63)}`;
+    const entryId = `a${"a".repeat(63)}`;
+    const head = publicApi.createCatalogHeadV2(
+      headInput(signer, {
+        entries: [
+          {
+            ...entry(entryId),
+            subject: coreSubject("profile", subjectId, source),
+          },
+        ],
+      }),
     );
-    const validate = new Ajv2020({ strict: true }).compile(schema);
+    const receipt = publicApi.emitQualificationReceipt({
+      catalogSignerRoots: [
+        { ...signer, publicKeySpkiDerBase64: fixture.catalogSignerRoot.publicKeySpkiDerBase64 },
+      ],
+      entryId,
+      expectedClaims: claims(),
+      now: "2026-08-22T12:00:00Z",
+      replay: { acceptedIdentities: [] },
+      signed: publicApi.signCatalogHeadV2({ head, privateKey: fixture.privateKey }),
+    });
+    const atCap = {
+      ...receipt,
+      catalogContinuity: {
+        ...(receipt.catalogContinuity as Record<string, unknown>),
+        previousCatalogHeadDigest: `sha256:${sha("maximum-receipt-predecessor")}`,
+        sequence: Number.MAX_SAFE_INTEGER,
+      },
+    };
+    const bytes = publicApi.canonicalQualificationReceiptBytes(atCap).toString("utf8");
+    expect(Buffer.byteLength(bytes, "utf8")).toBe(publicApi.QUALIFICATION_RECEIPT_V2_MAX_BYTES);
+    expect(publicApi.parseQualificationReceiptV2Json(bytes)).toEqual(atCap);
+    expect(() => publicApi.parseQualificationReceiptV2Json(`${bytes}x`)).toThrow();
+  });
+
+  it("emits closed V2 receipt bytes while preserving the exact Core source grammar", async () => {
+    const publicApi = await api();
+    const fixture = signingFixture();
     const emit = (signer: Record<string, unknown>, sourceValue: Record<string, unknown>) => {
       const sourceType = sourceValue.type as string;
       const head = publicApi.createCatalogHeadV2(
@@ -1068,25 +1144,24 @@ describe("public signed catalog V2 acceptance contract", () => {
     for (const sourceValue of variants) {
       const receipt = emit(boundarySigner, sourceValue);
       const receiptSubject = receipt.subject as Record<string, unknown>;
-      expect(validate(receipt)).toBe(true);
-      expect(
-        validate({
+      expect(() =>
+        publicApi.canonicalQualificationReceiptBytes({
           ...receipt,
           qualificationBasis: {
             ...(receipt.qualificationBasis as Record<string, unknown>),
             catalogSignerIdentity: `administrator:${"a".repeat(243)}`,
           },
         }),
-      ).toBe(false);
-      expect(
-        validate({
+      ).toThrow();
+      expect(() =>
+        publicApi.canonicalQualificationReceiptBytes({
           ...receipt,
           subject: {
             ...receiptSubject,
             source: { ...(receiptSubject.source as Record<string, unknown>), extra: true },
           },
         }),
-      ).toBe(false);
+      ).toThrow();
     }
     const overlongSigner = { ...fixture.signer, identity: `administrator:${"a".repeat(243)}` };
     expect(() => emit(overlongSigner, variants[0] as Record<string, unknown>)).toThrow();
@@ -1222,8 +1297,11 @@ describe("public signed catalog V2 acceptance contract", () => {
       /actual_qualification_receipt_sha256[\s\S]*EXPECTED_QUALIFICATION_RECEIPT_SHA256/,
     );
     expect(workflow).toMatch(/emit-qualification-receipt[\s\S]*--replay-state[\s\S]*--output/);
-    expect(workflow).toMatch(/QUALIFICATION_RECEIPT_PATH: qualification-receipt-v1\.json/);
-    expect(workflow).toMatch(/qualification-receipt-v1\.json/);
+    expect(workflow).toMatch(/QUALIFICATION_RECEIPT_PATH: qualification-receipt-v2\.json/);
+    expect(workflow).toMatch(/qualification-receipt-v2\.json/);
+    expect(workflow).toMatch(/raw\.byteLength > 6091/);
+    expect(workflow).toMatch(/receipt\.version !== 2/);
+    expect(workflow).toMatch(/continuity\.replayIdentity !== predicate\.replayIdentity/);
     expect(
       workflow.match(/actions\/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8/g),
     ).toHaveLength(2);
@@ -3531,26 +3609,17 @@ describe("public signed catalog V2 acceptance contract", () => {
     const coldVerificationSource = readFileSync(coldVerificationTool, "utf8");
     expect(coldVerificationSource).toMatch(/npmCli, "pack"/);
     expect(coldVerificationSource).not.toMatch(/npmCli,\s*"install",\s*"--offline"/);
-    expect(coldVerificationSource).toMatch(/ordinary registry dependencies/);
     expect(coldVerificationSource).toMatch(/generateKeyPairSync\("ed25519"\)/);
     expect(coldVerificationSource).toMatch(/"generate-candidate"/);
     expect(coldVerificationSource).toMatch(/"sign-candidate"/);
     expect(coldVerificationSource).toMatch(/"inspect"/);
     expect(coldVerificationSource).toMatch(/"--qualification-basis"/);
-    expect(coldVerificationSource).toMatch(/AIH_SUPPORTED_CORE_SOURCE/);
-    expect(coldVerificationSource).toMatch(/import \* as api from '@aihq\/harness'/);
-    expect(coldVerificationSource).toMatch(/verifyAihSupportedQualificationArtifactV1/);
-    expect(coldVerificationSource).toContain('{"state":"verified"}');
-    expect(coldVerificationSource).toMatch(/actual external fake gh executable/);
-    expect(coldVerificationSource).toMatch(/AIH_POLICY_AUTHORITY_REPOSITORY/);
-    expect(coldVerificationSource).toMatch(/AIH_SUPPORTED_QUALIFICATION_REPOSITORY/);
-    expect(coldVerificationSource).toMatch(/AIH_SUPPORTED_QUALIFICATION_WORKFLOW/);
-    expect(coldVerificationSource).toMatch(/"git", \["clone"/);
-    expect(ciWorkflow).toMatch(/cold-external-admin:[\s\S]*repository: samartomar\/ai-harness/);
-    expect(ciWorkflow).toContain("03c07b37c64d7d00473e5171ce8c6a7e5159a034");
-    expect(ciWorkflow).toMatch(
-      /AIH_SUPPORTED_CORE_SOURCE: \$\{\{ github\.workspace \}\}\/core-source/,
-    );
+    expect(coldVerificationSource).not.toMatch(/AIH_SUPPORTED_CORE_SOURCE|@aihq\/harness|fake gh/);
+    expect(coldVerificationSource).toMatch(/receipt\.version !== 2/);
+    expect(coldVerificationSource).toMatch(/catalogContinuity/);
+    expect(coldVerificationSource).toMatch(/Core V2 custody is verified by Core/);
+    expect(ciWorkflow).toMatch(/cold-external-admin:[\s\S]*npm run verify:cold-external-admin/);
+    expect(ciWorkflow).not.toMatch(/repository: samartomar\/ai-harness|AIH_SUPPORTED_CORE_SOURCE/);
     expect(coldVerificationSource).toMatch(
       /process\.platform === "win32" \? process\.execPath : bin/,
     );

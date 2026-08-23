@@ -14,8 +14,12 @@ type J = null | boolean | number | string | J[] | { [key: string]: J };
 const ZERO = "0".repeat(64),
   MAX_HEAD = 8 * 1024 * 1024,
   MAX_SIGNED = 24 * 1024 * 1024,
-  MAX_SEED_ARTIFACT = 1024 * 1024,
-  MAX_QUALIFICATION_RECEIPT = 4096;
+  MAX_SEED_ARTIFACT = 1024 * 1024;
+// The maximum legal canonical V2 receipt is 6,091 bytes, measured from the
+// closed grammar: a 4,096-character remote endpoint, maximum subject/entry and
+// signer identities, and a 16-digit safe successor sequence. This exact cap is
+// deliberately synchronized with workflow verification and regression tests.
+export const QUALIFICATION_RECEIPT_V2_MAX_BYTES = 6091;
 export const STRICT_V2_CORE_LOCK = Object.freeze({
   coreCommit: "e27a55dcebb635c8298aa4fd6fd871f59089bcf7",
   schemaSha256: "27295aee8d8be333abe2c73adc72884b534b1c9980a9b7a39d12be8d34c5caff",
@@ -903,6 +907,8 @@ function qualificationReceipt(v: unknown): R {
   keys(
     x,
     [
+      "catalogContinuity",
+      "entryId",
       "expiresAt",
       "format",
       "issuedAt",
@@ -914,16 +920,65 @@ function qualificationReceipt(v: unknown): R {
     ],
     "qualification-receipt",
   );
-  if (x.format !== "aih-supported-qualification-receipt" || x.version !== 1)
+  if (x.format !== "aih-supported-qualification-receipt" || x.version !== 2)
     fail("qualification-receipt");
   if (x.organizationAdmission !== "not-authoritative") fail("qualification-receipt");
+  const continuity = rec(x.catalogContinuity, "qualification-receipt");
+  keys(
+    continuity,
+    [
+      "catalogHeadDigest",
+      "headValidFrom",
+      "headValidUntil",
+      "previousCatalogHeadDigest",
+      "replayIdentity",
+      "sequence",
+      "signerKeyId",
+    ],
+    "qualification-receipt",
+  );
+  const catalogHeadDigest = phex(continuity.catalogHeadDigest, "qualification-receipt");
+  const previousCatalogHeadDigest = phex(
+    continuity.previousCatalogHeadDigest,
+    "qualification-receipt",
+  );
+  const sequence = continuity.sequence;
+  if (
+    typeof sequence !== "number" ||
+    !Number.isSafeInteger(sequence) ||
+    sequence < 0 ||
+    Object.is(sequence, -0) ||
+    (sequence === 0) !== (previousCatalogHeadDigest === `sha256:${ZERO}`)
+  )
+    fail("qualification-receipt");
+  if (previousCatalogHeadDigest === catalogHeadDigest) fail("qualification-receipt");
+  const replayIdentity = text(
+    continuity.replayIdentity,
+    "qualification-receipt",
+    /^catalog-head:[0-9a-f]{64}:[0-9a-f]{64}$/,
+  );
+  if (
+    replayIdentity.slice("catalog-head:".length, "catalog-head:".length + 64) !==
+    catalogHeadDigest.slice(7)
+  )
+    fail("qualification-receipt");
+  const signerKeyId = text(
+    continuity.signerKeyId,
+    "qualification-receipt",
+    /^ed25519:[0-9a-f]{64}$/,
+  );
+  const headValidFrom = iso(continuity.headValidFrom, "qualification-receipt");
+  const headValidUntil = iso(continuity.headValidUntil, "qualification-receipt");
+  if (epochSeconds(headValidFrom) >= epochSeconds(headValidUntil)) fail("qualification-receipt");
   const issuedAt = iso(x.issuedAt, "qualification-receipt"),
     notBefore = iso(x.notBefore, "qualification-receipt"),
     expiresAt = iso(x.expiresAt, "qualification-receipt");
   const duration = epochSeconds(expiresAt) - epochSeconds(issuedAt);
   if (
+    epochSeconds(headValidFrom) > epochSeconds(issuedAt) ||
     epochSeconds(issuedAt) > epochSeconds(notBefore) ||
     epochSeconds(notBefore) >= epochSeconds(expiresAt) ||
+    expiresAt !== headValidUntil ||
     duration > 90 * 86400
   )
     fail("qualification-receipt");
@@ -931,10 +986,21 @@ function qualificationReceipt(v: unknown): R {
   const receiptBasis = qualificationBasis(x.qualificationBasis);
   if (
     receiptBasis.subjectDigest !== receiptSubject.subjectDigest ||
-    receiptBasis.subjectKind !== receiptSubject.kind
+    receiptBasis.subjectKind !== receiptSubject.kind ||
+    receiptBasis.catalogHeadDigest !== catalogHeadDigest
   )
     fail("qualification-receipt");
   const result = {
+    catalogContinuity: {
+      catalogHeadDigest,
+      headValidFrom,
+      headValidUntil,
+      previousCatalogHeadDigest,
+      replayIdentity,
+      sequence,
+      signerKeyId,
+    },
+    entryId: text(x.entryId, "qualification-receipt", /^[a-z][a-z0-9.-]{0,63}$/),
     expiresAt,
     format: "aih-supported-qualification-receipt",
     issuedAt,
@@ -942,14 +1008,31 @@ function qualificationReceipt(v: unknown): R {
     organizationAdmission: "not-authoritative",
     qualificationBasis: receiptBasis,
     subject: receiptSubject,
-    version: 1,
+    version: 2,
   };
-  if (Buffer.byteLength(canon(result as J), "utf8") > MAX_QUALIFICATION_RECEIPT)
+  if (Buffer.byteLength(canon(result as J), "utf8") > QUALIFICATION_RECEIPT_V2_MAX_BYTES)
     fail("qualification-receipt-too-large");
   return frozen(result);
 }
 export function canonicalQualificationReceiptBytes(v: unknown): Buffer {
   return Buffer.from(canon(qualificationReceipt(v) as J), "utf8");
+}
+export function parseQualificationReceiptV2Json(v: string): R {
+  if (
+    Buffer.byteLength(v, "utf8") > QUALIFICATION_RECEIPT_V2_MAX_BYTES ||
+    v.startsWith("\ufeff") ||
+    v !== v.trim()
+  )
+    fail("qualification-receipt");
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(v);
+  } catch {
+    return fail("qualification-receipt");
+  }
+  const receipt = qualificationReceipt(parsed);
+  if (canon(receipt as J) !== v) fail("qualification-receipt");
+  return receipt;
 }
 export function emitQualificationReceipt(v: unknown): R {
   const x = rec(v, "qualification-receipt");
@@ -983,6 +1066,16 @@ export function emitQualificationReceipt(v: unknown): R {
   const selectedEntry = selected as R;
   const issuedAt = iso(x.now, "qualification-receipt");
   return qualificationReceipt({
+    catalogContinuity: {
+      catalogHeadDigest: `sha256:${h.catalogHeadSha256}`,
+      headValidFrom: h.validFrom,
+      headValidUntil: h.validUntil,
+      previousCatalogHeadDigest: `sha256:${h.previousCatalogHeadSha256}`,
+      replayIdentity: `catalog-head:${h.catalogHeadSha256}:${sha(Buffer.from(canon(h as J)))}`,
+      sequence: h.sequence,
+      signerKeyId: (h.signer as R).keyId,
+    },
+    entryId: text(x.entryId, "qualification-receipt", /^[a-z][a-z0-9.-]{0,63}$/),
     expiresAt: h.validUntil,
     format: "aih-supported-qualification-receipt",
     issuedAt,
@@ -990,7 +1083,7 @@ export function emitQualificationReceipt(v: unknown): R {
     organizationAdmission: "not-authoritative",
     qualificationBasis: deriveQualificationBasisV2({ entryId: x.entryId, head: h }),
     subject: selectedEntry.subject,
-    version: 1,
+    version: 2,
   });
 }
 export function planCatalogPromotionV2(v: unknown): R {

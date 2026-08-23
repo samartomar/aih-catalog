@@ -88,8 +88,8 @@ describe("supported public V2 boundary", () => {
       entrypoints: ["dist/cli.js"],
       organizationAdmission: "not-authoritative",
       publicationStatus: "release-ready-publication-separately-authorized",
-      coreConsumption: "independently-attested-qualification-receipt-v1",
-      qualificationReceipt: "aih-supported-qualification-receipt-v1",
+      coreConsumption: "independently-attested-qualification-receipt-v2",
+      qualificationReceipt: "aih-supported-qualification-receipt-v2",
       status: "public-v2",
     });
   });
