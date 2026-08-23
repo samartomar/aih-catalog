@@ -3330,7 +3330,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(coldVerificationSource).toMatch(/AIH_SUPPORTED_CORE_SOURCE/);
     expect(coldVerificationSource).toMatch(/import \* as api from '@aihq\/harness'/);
     expect(coldVerificationSource).toMatch(/verifyAihSupportedQualificationArtifactV1/);
-    expect(coldVerificationSource).toMatch(/state === "verified"/);
+    expect(coldVerificationSource).toContain('{"state":"verified"}');
     expect(coldVerificationSource).toMatch(/actual external fake gh executable/);
     expect(coldVerificationSource).toMatch(/AIH_POLICY_AUTHORITY_REPOSITORY/);
     expect(coldVerificationSource).toMatch(/AIH_SUPPORTED_QUALIFICATION_REPOSITORY/);

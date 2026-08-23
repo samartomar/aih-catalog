@@ -13,7 +13,6 @@ import { dirname, isAbsolute, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { pathToFileURL } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const npmCli = process.env.npm_execpath;
@@ -60,6 +59,9 @@ const coreCommitMatch = /qualificationReceiptCoreCommit = "([0-9a-f]{40})"/.exec
 if (coreCommitMatch === null) throw new Error("cold-admin-core-lock");
 const coreCommit = coreCommitMatch[1];
 if (typeof coreCommit !== "string") throw new Error("cold-admin-core-lock");
+const canonicalUtc = (value) => value.toISOString().replace(/\.\d{3}Z$/, "Z");
+const receiptNow = canonicalUtc(new Date());
+const receiptExpiresAt = canonicalUtc(new Date(Date.now() + 24 * 60 * 60 * 1000));
 
 const temp = mkdtempSync(join(tmpdir(), "aih-supported-cold-admin-"));
 try {
@@ -69,7 +71,9 @@ try {
   runCommand(coreCheckout, "git", ["checkout", "--detach", coreCommit]);
   if (runCommand(coreCheckout, "git", ["rev-parse", "HEAD"]).stdout.trim() !== coreCommit)
     throw new Error("cold-admin-core-commit");
-  run(coreCheckout, [npmCli, "ci", "--offline", "--ignore-scripts"]);
+  // The pinned external Core checkout seeds the npm cache; the later disposable
+  // consumer install remains offline and uses only the two packed tarballs.
+  run(coreCheckout, [npmCli, "ci", "--ignore-scripts"]);
   run(coreCheckout, [npmCli, "run", "build"]);
   const packedCore = run(coreCheckout, [npmCli, "pack", "--json", "--pack-destination", temp]);
   const coreManifest = JSON.parse(packedCore.stdout);
@@ -151,9 +155,9 @@ try {
     "--claims",
     claimsPath,
     "--valid-from",
-    "2026-08-22T00:00:00Z",
+    receiptNow,
     "--valid-until",
-    "2026-08-23T00:00:00Z",
+    receiptExpiresAt,
     "--sequence",
     "0",
     "--previous-catalog-head-sha256",
@@ -179,7 +183,7 @@ try {
     "--expected-claims",
     claimsPath,
     "--now",
-    "2026-08-22T12:00:00Z",
+    receiptNow,
     "--continuity",
     "genesis",
     "--qualification-basis",
@@ -202,7 +206,7 @@ try {
     "--expected-claims",
     claimsPath,
     "--now",
-    "2026-08-22T12:00:00Z",
+    receiptNow,
     "--continuity",
     "genesis",
     "--replay-state",
@@ -217,101 +221,98 @@ try {
     receipt.format !== "aih-supported-qualification-receipt" ||
     receipt.version !== 1 ||
     receipt.organizationAdmission !== "not-authoritative" ||
-    receipt.issuedAt !== "2026-08-22T12:00:00Z" ||
-    receipt.notBefore !== "2026-08-22T12:00:00Z" ||
-    receipt.expiresAt !== "2026-08-23T00:00:00Z" ||
+    receipt.issuedAt !== receiptNow ||
+    receipt.notBefore !== receiptNow ||
+    receipt.expiresAt !== receiptExpiresAt ||
     receipt.qualificationBasis?.kind !== "aih-supported"
   )
     throw new Error("cold-admin-qualification-receipt");
-  const installedHarness = resolve(consumer, "node_modules", "@aihq", "harness");
   run(consumer, [
     "--input-type=module",
     "--eval",
-    "import * as api from '@aihq/harness';if(typeof api.verifyAihSupportedQualificationReceiptV1!=='function')process.exit(2);",
+    "import * as api from '@aihq/harness';if(typeof api.verifyAihSupportedQualificationArtifactV1!=='function'||Object.keys(api).includes('verifyAihSupportedQualificationReceiptV1'))process.exit(2);",
   ]);
-  const fakeGhDir = resolve(temp, "simulated-outer-attestation-gh");
-  mkdirSync(fakeGhDir);
-  const fakeGhPath = resolve(fakeGhDir, process.platform === "win32" ? "gh.exe" : "gh");
-  writeFileSync(fakeGhPath, "SIMULATED outer-attestation verification only; not a public attestation.\n", {
-    mode: 0o755,
-  });
-  const fakeGh = realpathSync.native(fakeGhPath);
-  const harness = await import(pathToFileURL(resolve(installedHarness, "dist", "index.js")).href);
-  const decision = {
-    format: "aih-governance-decision",
-    version: 2,
-    id: "decision-supported-default",
-    qualificationBasis: receipt.qualificationBasis,
-    subject: receipt.subject,
-    targets: ["codex"],
-    allowedEffects: ["configure"],
-    policy: { id: "platform-policy", version: "2026.08", digest: `sha256:${"c".repeat(64)}` },
-    control: { id: "review-control", digest: `sha256:${"d".repeat(64)}` },
-    evidence: {
-      id: "catalog-evidence",
-      digest: `sha256:${"e".repeat(64)}`,
-      attestor: "catalog-attestor",
-    },
-    issuer: "platform-security",
-    actor: "security-admin",
-    reason: "The exact supported receipt is bound to this authority decision.",
-    issuedAt: "2026-08-22T00:00:00Z",
-    notBefore: "2026-08-22T00:00:00Z",
-    expiresAt: "2026-08-23T00:00:00Z",
-    disposition: "approved",
-    acceptedFindings: [],
-    acceptedGaps: [],
-    conditions: [],
-  };
-  const simulatedCalls = [];
-  const simulatedRun = async (argv) => {
-    simulatedCalls.push(argv);
+  if (process.platform === "win32") {
+    process.stdout.write(
+      "Cold external-admin packed verification PASS (POSIX public Core artifact proof runs in Ubuntu CI)\n",
+    );
+  } else {
+    const fakeGhDir = resolve(temp, "external-fake-gh");
+    const fakeGhLog = resolve(temp, "external-fake-gh.log");
+    mkdirSync(fakeGhDir);
+    const fakeGhPath = resolve(fakeGhDir, "gh");
+    // An actual external fake gh executable for simulated outer-attestation verification only;
+    // it is not a public attestation and cannot mint Core authority.
+    writeFileSync(
+      fakeGhPath,
+      '#!/bin/sh\nprintf \'%s\\n\' "$*" >> "$AIH_FAKE_GH_LOG"\nexit 0\n',
+      { mode: 0o755 },
+    );
+    chmodSync(fakeGhPath, 0o755);
+    const coreArtifactScript = resolve(consumer, "verify-core-artifact.mjs");
+    writeFileSync(
+      coreArtifactScript,
+      `import { readFileSync, writeFileSync } from "node:fs";
+import { governanceDecisionDigestV2, verifyAihSupportedQualificationArtifactV1 } from "@aihq/harness";
+const root = process.cwd();
+const receipt = JSON.parse(readFileSync(".aih/aih-supported-qualification-receipt.json", "utf8"));
+const decision = {
+  format: "aih-governance-decision", version: 2, id: "decision-supported-default",
+  qualificationBasis: receipt.qualificationBasis, subject: receipt.subject,
+  targets: ["codex"], allowedEffects: ["configure"],
+  policy: { id: "platform-policy", version: "2026.08", digest: "sha256:${"c".repeat(64)}" },
+  control: { id: "review-control", digest: "sha256:${"d".repeat(64)}" },
+  evidence: { id: "catalog-evidence", digest: "sha256:${"e".repeat(64)}", attestor: "platform-security" },
+  issuer: "platform-security", actor: "security-admin",
+  reason: "The exact supported receipt is bound to this authority decision.",
+  issuedAt: receipt.issuedAt, notBefore: receipt.notBefore, expiresAt: receipt.expiresAt,
+  disposition: "approved", acceptedFindings: [], acceptedGaps: [], conditions: [],
+};
+writeFileSync(".aih/policy-authority-receipt.json", JSON.stringify({
+  format: "aih-policy-authority-receipt", version: 3, issuerRepository: "acme/governance",
+  issuedAt: receipt.issuedAt, expiresAt: receipt.expiresAt,
+  trustedIssuers: [{ id: "platform-security", githubRepository: "acme/governance" }],
+  targets: ["codex"], decisions: [decision], decisionRevocations: [],
+}));
+const result = await verifyAihSupportedQualificationArtifactV1({
+  root, decisionReference: { id: decision.id, digest: governanceDecisionDigestV2(decision) }, subject: decision.subject,
+});
+if (JSON.stringify(result) !== "{\\"state\\":\\"verified\\"}") process.exit(2);
+process.stdout.write(JSON.stringify(result));
+`,
+    );
+    const coreArtifact = spawnSync(process.execPath, [coreArtifactScript], {
+      cwd: consumer,
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        AIH_FAKE_GH_LOG: fakeGhLog,
+        AIH_POLICY_AUTHORITY_REPOSITORY: "acme/governance",
+        AIH_POLICY_AUTHORITY_WORKFLOW: "authority.yml",
+        AIH_SUPPORTED_QUALIFICATION_REPOSITORY: "aihq/supported-catalog",
+        AIH_SUPPORTED_QUALIFICATION_WORKFLOW: "qualification.yml",
+        PATH: `${realpathSync(fakeGhDir)}${process.platform === "win32" ? ";" : ":"}${process.env.PATH ?? ""}`,
+      },
+    });
+    if (coreArtifact.status !== 0)
+      throw new Error(`cold-admin-core-artifact:${coreArtifact.stderr.slice(0, 128)}`);
+    const coreArtifactResult = JSON.parse(coreArtifact.stdout);
     if (
-      argv[0] !== fakeGh ||
-      argv[1] !== "attestation" ||
-      argv[2] !== "verify" ||
-      !argv.includes("--repo")
+      canonicalJson(coreArtifactResult) !== '{"state":"verified"}' ||
+      Object.keys(coreArtifactResult).join(",") !== "state"
     )
-      return { code: 1 };
-    return { code: 0 };
-  };
-  const context = {
-    root: consumer,
-    contextDir: "ai-coding",
-    posture: "enterprise",
-    apply: false,
-    verify: false,
-    json: false,
-    run: simulatedRun,
-    host: {},
-    env: {
-      AIH_POLICY_AUTHORITY_REPOSITORY: "acme/governance",
-      AIH_SUPPORTED_QUALIFICATION_REPOSITORY: "aihq/supported-catalog",
-      AIH_SUPPORTED_QUALIFICATION_WORKFLOW: "qualification.yml",
-      PATH: fakeGhDir,
-    },
-    options: {},
-  };
-  const coreVerification = await harness.verifyAihSupportedQualificationReceiptV1(context, {
-    decisionReference: {
-      id: decision.id,
-      digest: harness.governanceDecisionDigestV2(decision),
-    },
-    subject: decision.subject,
-    target: "codex",
-    effect: "configure",
-    supportedTargets: ["codex"],
-    now: "2026-08-22T12:00:00Z",
-  });
-  if (
-    coreVerification.qualification !== undefined ||
-    coreVerification.problem !== "supported qualification receipt does not match the current authority decision" ||
-    simulatedCalls.length !== 1
-  )
-    throw new Error("cold-admin-core-qualification-receipt");
-  process.stdout.write(
-    "Cold external-admin packed verification PASS (Core outer-attestation path simulated; no Core authority mint claimed)\n",
-  );
+      throw new Error("cold-admin-core-artifact-result");
+    const attestationCalls = readFileSync(fakeGhLog, "utf8").trim().split("\n");
+    if (
+      attestationCalls.length !== 2 ||
+      !attestationCalls.some((line) => line.includes("--repo acme/governance") && line.includes("--signer-workflow authority.yml")) ||
+      !attestationCalls.some((line) => line.includes("--repo aihq/supported-catalog") && line.includes("--signer-workflow qualification.yml"))
+    )
+      throw new Error("cold-admin-core-attestation-roots");
+    process.stdout.write(
+      "Cold external-admin packed verification PASS (POSIX package-root artifact verdict verified; outer attestation verifier simulated)\n",
+    );
+  }
 } finally {
   rmSync(temp, { force: true, recursive: true });
 }
