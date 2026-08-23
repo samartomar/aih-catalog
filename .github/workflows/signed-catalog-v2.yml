@@ -162,7 +162,7 @@ jobs:
           node -e '
             const fs = require("node:fs");
             const raw = fs.readFileSync(process.env.QUALIFICATION_RECEIPT_PATH);
-            if (raw.byteLength > 6091) process.exit(2);
+            if (raw.byteLength > 5970) process.exit(2);
             let text;
             let receipt;
             try {

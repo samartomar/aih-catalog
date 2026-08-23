@@ -15,11 +15,12 @@ const ZERO = "0".repeat(64),
   MAX_HEAD = 8 * 1024 * 1024,
   MAX_SIGNED = 24 * 1024 * 1024,
   MAX_SEED_ARTIFACT = 1024 * 1024;
-// The maximum legal canonical V2 receipt is 6,091 bytes, measured from the
-// closed grammar: a 4,096-character remote endpoint, maximum subject/entry and
-// signer identities, and a 16-digit safe successor sequence. This exact cap is
-// deliberately synchronized with workflow verification and regression tests.
-export const QUALIFICATION_RECEIPT_V2_MAX_BYTES = 6091;
+// The maximum legal canonical V2 receipt is 5,970 bytes, measured from the
+// 4,096-byte canonical-source cap, maximum subject/entry and signer identities,
+// and a 16-digit safe successor sequence. This exact cap is deliberately
+// synchronized with workflow verification and regression tests.
+export const QUALIFICATION_RECEIPT_V2_MAX_BYTES = 5970;
+export const CATALOG_SOURCE_V2_MAX_BYTES = 4096;
 export const STRICT_V2_CORE_LOCK = Object.freeze({
   coreCommit: "e27a55dcebb635c8298aa4fd6fd871f59089bcf7",
   schemaSha256: "27295aee8d8be333abe2c73adc72884b534b1c9980a9b7a39d12be8d34c5caff",
@@ -254,6 +255,10 @@ function source(v: unknown): R {
     return raw;
   };
   const stable = (x: unknown, c = "source") => match(x, /^[a-z][a-z0-9-]{0,63}$/, c);
+  const bounded = (normalized: R): R =>
+    Buffer.byteLength(canon(normalized as J), "utf8") <= CATALOG_SOURCE_V2_MAX_BYTES
+      ? normalized
+      : fail("source-too-large");
   // These deliberately mirror the locked Core decision-v2 source grammar. The
   // catalog adds no provider interpretation; it only validates and binds bytes.
   if (type === "github") {
@@ -268,29 +273,29 @@ function source(v: unknown): R {
       /[\p{C}]/u.test(path)
     )
       fail("source");
-    return {
+    return bounded({
       commit: match(s.commit, /^[0-9a-f]{40}(?:[0-9a-f]{24})?$/),
       path,
       repository: match(s.repository, /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/),
       type,
-    };
+    });
   } else if (type === "npm") {
-    return {
+    return bounded({
       integrity: sri(s.integrity),
       package: match(s.package, /^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/),
       registry: httpsBase(s.registry),
       type,
       version: match(s.version, semver),
-    };
+    });
   } else if (type === "pypi") {
-    return {
+    return bounded({
       filename: match(s.filename, /^[A-Za-z0-9][A-Za-z0-9._+-]*$/),
       package: match(s.package, /^[a-z0-9]+(?:-[a-z0-9]+)*$/),
       registry: httpsBase(s.registry),
       sha256: phex(s.sha256, "source digest"),
       type,
       version: match(s.version, /^[A-Za-z0-9][A-Za-z0-9.!+_-]{0,127}$/),
-    };
+    });
   } else if (type === "oci") {
     const repository = value(s.repository);
     if (
@@ -307,7 +312,7 @@ function source(v: unknown): R {
         : ["architecture", "os"],
       "platform",
     );
-    return {
+    return bounded({
       indexDigest: phex(s.indexDigest, "source digest"),
       manifestDigest: phex(s.manifestDigest, "source digest"),
       platform: {
@@ -320,15 +325,19 @@ function source(v: unknown): R {
       registry: ociRegistry(s.registry),
       repository,
       type,
-    };
+    });
   } else if (type === "remote") {
-    return {
+    return bounded({
       contentDigest: phex(s.contentDigest, "source digest"),
       endpoint: httpsEndpoint(s.endpoint),
       type,
-    };
+    });
   } else if (type === "aih") {
-    return { release: match(s.release, semver), revision: phex(s.revision, "source digest"), type };
+    return bounded({
+      release: match(s.release, semver),
+      revision: phex(s.revision, "source digest"),
+      type,
+    });
   }
   return fail("source");
 }

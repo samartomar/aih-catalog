@@ -881,7 +881,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       "signCatalogHeadV2",
       "verifySignedCatalogV2",
     ]);
-    expect(publicApi.QUALIFICATION_RECEIPT_V2_MAX_BYTES).toBe(6091);
+    expect(publicApi.QUALIFICATION_RECEIPT_V2_MAX_BYTES).toBe(5970);
     expect(Object.keys(publicApi)).not.toEqual(expect.arrayContaining(["isSupported", "isMember"]));
   });
 
@@ -1081,12 +1081,17 @@ describe("public signed catalog V2 acceptance contract", () => {
       ...fixture.signer,
       identity: `administrator:${"a".repeat(242)}`,
     };
-    const endpoint = `https://a/${"a".repeat(4086)}`;
-    const source = {
+    const fixedSource = {
       contentDigest: `sha256:${sha("maximum-receipt-remote-content")}`,
-      endpoint,
+      endpoint: "",
       type: "remote",
     };
+    const endpointBytes = 4096 - Buffer.byteLength(canonicalJson(fixedSource), "utf8");
+    const source = {
+      ...fixedSource,
+      endpoint: `https://a/${"a".repeat(endpointBytes - "https://a/".length)}`,
+    };
+    expect(Buffer.byteLength(canonicalJson(source), "utf8")).toBe(4096);
     const subjectId = `a${"a".repeat(63)}`;
     const entryId = `a${"a".repeat(63)}`;
     const head = publicApi.createCatalogHeadV2(
@@ -1341,7 +1346,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(workflow).toMatch(/emit-qualification-receipt[\s\S]*--replay-state[\s\S]*--output/);
     expect(workflow).toMatch(/QUALIFICATION_RECEIPT_PATH: qualification-receipt-v2\.json/);
     expect(workflow).toMatch(/qualification-receipt-v2\.json/);
-    expect(workflow).toMatch(/raw\.byteLength > 6091/);
+    expect(workflow).toMatch(/raw\.byteLength > 5970/);
     expect(workflow).toMatch(/receipt\.version !== 2/);
     expect(workflow).toMatch(/continuity\.replayIdentity !== predicate\.replayIdentity/);
     expect(
