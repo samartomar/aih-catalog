@@ -3329,11 +3329,15 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(coldVerificationSource).toMatch(/"--qualification-basis"/);
     expect(coldVerificationSource).toMatch(/AIH_SUPPORTED_CORE_SOURCE/);
     expect(coldVerificationSource).toMatch(/import \* as api from '@aihq\/harness'/);
-    expect(coldVerificationSource).toMatch(/verifyAihSupportedQualificationReceiptV1/);
-    expect(coldVerificationSource).toMatch(/SIMULATED outer-attestation verification/);
+    expect(coldVerificationSource).toMatch(/verifyAihSupportedQualificationArtifactV1/);
+    expect(coldVerificationSource).toMatch(/state === "verified"/);
+    expect(coldVerificationSource).toMatch(/actual external fake gh executable/);
+    expect(coldVerificationSource).toMatch(/AIH_POLICY_AUTHORITY_REPOSITORY/);
+    expect(coldVerificationSource).toMatch(/AIH_SUPPORTED_QUALIFICATION_REPOSITORY/);
+    expect(coldVerificationSource).toMatch(/AIH_SUPPORTED_QUALIFICATION_WORKFLOW/);
     expect(coldVerificationSource).toMatch(/"git", \["clone"/);
     expect(ciWorkflow).toMatch(/cold-external-admin:[\s\S]*repository: samartomar\/ai-harness/);
-    expect(ciWorkflow).toContain("b05d6099659ce807e62ee17b896de0d70964e3a9");
+    expect(ciWorkflow).toContain("e858afb9738d9fdfc467937cef4b520917495a6a");
     expect(ciWorkflow).toMatch(
       /AIH_SUPPORTED_CORE_SOURCE: \$\{\{ github\.workspace \}\}\/core-source/,
     );
