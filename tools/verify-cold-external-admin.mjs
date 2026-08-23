@@ -100,6 +100,8 @@ try {
   const privateKeyPath = resolve(temp, "signer.pem");
   const candidatePath = resolve(temp, "candidate.json");
   const signedPath = resolve(temp, "signed.json");
+  const replayPath = resolve(temp, "replay.json");
+  const receiptPath = resolve(temp, "qualification-receipt-v1.json");
   writeFileSync(signerPath, canonicalJson(signer));
   writeFileSync(claimsPath, canonicalJson(claims));
   writeFileSync(
@@ -107,6 +109,7 @@ try {
     canonicalJson({ ...signer, publicKeySpkiDerBase64: spki.toString("base64") }),
   );
   writeFileSync(privateKeyPath, privateKey.export({ format: "pem", type: "pkcs8" }));
+  writeFileSync(replayPath, canonicalJson({ acceptedIdentities: [] }));
   if (process.platform !== "win32") chmodSync(privateKeyPath, 0o600);
   runInstalledCli(consumer, cli, bin, [
     "generate-candidate",
@@ -159,6 +162,36 @@ try {
     result.qualificationBasis?.kind !== "aih-supported"
   )
     throw new Error("cold-admin-verification");
+  runInstalledCli(consumer, cli, bin, [
+    "emit-qualification-receipt",
+    "--signed-catalog",
+    signedPath,
+    "--catalog-signer-root",
+    rootPath,
+    "--expected-claims",
+    claimsPath,
+    "--now",
+    "2026-08-22T12:00:00Z",
+    "--continuity",
+    "genesis",
+    "--replay-state",
+    replayPath,
+    "--entry-id",
+    "recipe.default",
+    "--output",
+    receiptPath,
+  ]);
+  const receipt = JSON.parse(readFileSync(receiptPath, "utf8"));
+  if (
+    receipt.format !== "aih-supported-qualification-receipt" ||
+    receipt.version !== 1 ||
+    receipt.organizationAdmission !== "not-authoritative" ||
+    receipt.issuedAt !== "2026-08-22T12:00:00Z" ||
+    receipt.notBefore !== "2026-08-22T12:00:00Z" ||
+    receipt.expiresAt !== "2026-08-23T00:00:00Z" ||
+    receipt.qualificationBasis?.kind !== "aih-supported"
+  )
+    throw new Error("cold-admin-qualification-receipt");
   process.stdout.write("Cold external-admin packed verification PASS\n");
 } finally {
   rmSync(temp, { force: true, recursive: true });

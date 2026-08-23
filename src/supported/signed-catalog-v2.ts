@@ -14,7 +14,8 @@ type J = null | boolean | number | string | J[] | { [key: string]: J };
 const ZERO = "0".repeat(64),
   MAX_HEAD = 8 * 1024 * 1024,
   MAX_SIGNED = 24 * 1024 * 1024,
-  MAX_SEED_ARTIFACT = 1024 * 1024;
+  MAX_SEED_ARTIFACT = 1024 * 1024,
+  MAX_QUALIFICATION_RECEIPT = 4096;
 export const STRICT_V2_CORE_LOCK = Object.freeze({
   coreCommit: "e27a55dcebb635c8298aa4fd6fd871f59089bcf7",
   schemaSha256: "27295aee8d8be333abe2c73adc72884b534b1c9980a9b7a39d12be8d34c5caff",
@@ -766,6 +767,130 @@ export function deriveQualificationBasisV2(v: unknown): R {
     subjectKind: (selected.subject as R).kind,
   });
 }
+function qualificationBasis(v: unknown): R {
+  const x = rec(v, "qualification-basis");
+  keys(
+    x,
+    [
+      "catalogDigest",
+      "catalogHeadDigest",
+      "catalogMemberDigest",
+      "catalogSignerIdentity",
+      "kind",
+      "subjectDigest",
+      "subjectKind",
+    ],
+    "qualification-basis",
+  );
+  return {
+    catalogDigest: phex(x.catalogDigest, "qualification-basis"),
+    catalogHeadDigest: phex(x.catalogHeadDigest, "qualification-basis"),
+    catalogMemberDigest: phex(x.catalogMemberDigest, "qualification-basis"),
+    catalogSignerIdentity: text(
+      x.catalogSignerIdentity,
+      "qualification-basis",
+      /^administrator:[a-z0-9:/._-]+$/,
+    ),
+    kind: text(x.kind, "qualification-basis", /^aih-supported$/),
+    subjectDigest: phex(x.subjectDigest, "qualification-basis"),
+    subjectKind: text(x.subjectKind, "qualification-basis", /^(tool|skill|mcp|package|profile)$/),
+  };
+}
+function qualificationReceipt(v: unknown): R {
+  const x = rec(v, "qualification-receipt");
+  keys(
+    x,
+    [
+      "expiresAt",
+      "format",
+      "issuedAt",
+      "notBefore",
+      "organizationAdmission",
+      "qualificationBasis",
+      "subject",
+      "version",
+    ],
+    "qualification-receipt",
+  );
+  if (x.format !== "aih-supported-qualification-receipt" || x.version !== 1)
+    fail("qualification-receipt");
+  if (x.organizationAdmission !== "not-authoritative") fail("qualification-receipt");
+  const issuedAt = iso(x.issuedAt, "qualification-receipt"),
+    notBefore = iso(x.notBefore, "qualification-receipt"),
+    expiresAt = iso(x.expiresAt, "qualification-receipt");
+  const duration = epochSeconds(expiresAt) - epochSeconds(issuedAt);
+  if (
+    epochSeconds(issuedAt) > epochSeconds(notBefore) ||
+    epochSeconds(notBefore) >= epochSeconds(expiresAt) ||
+    duration > 90 * 86400
+  )
+    fail("qualification-receipt");
+  const receiptSubject = subject(x.subject);
+  const receiptBasis = qualificationBasis(x.qualificationBasis);
+  if (
+    receiptBasis.subjectDigest !== receiptSubject.subjectDigest ||
+    receiptBasis.subjectKind !== receiptSubject.kind
+  )
+    fail("qualification-receipt");
+  const result = {
+    expiresAt,
+    format: "aih-supported-qualification-receipt",
+    issuedAt,
+    notBefore,
+    organizationAdmission: "not-authoritative",
+    qualificationBasis: receiptBasis,
+    subject: receiptSubject,
+    version: 1,
+  };
+  if (Buffer.byteLength(canon(result as J), "utf8") > MAX_QUALIFICATION_RECEIPT)
+    fail("qualification-receipt-too-large");
+  return frozen(result);
+}
+export function canonicalQualificationReceiptBytes(v: unknown): Buffer {
+  return Buffer.from(canon(qualificationReceipt(v) as J), "utf8");
+}
+export function emitQualificationReceipt(v: unknown): R {
+  const x = rec(v, "qualification-receipt");
+  keys(
+    x,
+    Object.hasOwn(x, "lastAccepted")
+      ? [
+          "catalogSignerRoots",
+          "entryId",
+          "expectedClaims",
+          "lastAccepted",
+          "now",
+          "replay",
+          "signed",
+        ]
+      : ["catalogSignerRoots", "entryId", "expectedClaims", "now", "replay", "signed"],
+    "qualification-receipt",
+  );
+  const inspected = inspectSignedCatalogV2({
+    catalogSignerRoots: x.catalogSignerRoots,
+    expectedClaims: x.expectedClaims,
+    lastAccepted: x.lastAccepted ?? null,
+    now: x.now,
+    replay: x.replay,
+    signed: x.signed,
+  });
+  if (inspected.kind !== "materializable") fail("qualification-receipt");
+  const h = inspected.head as R;
+  const selected = (h.entries as R[]).find((candidate) => candidate.entryId === x.entryId);
+  if (!selected) fail("qualification-receipt");
+  const selectedEntry = selected as R;
+  const issuedAt = iso(x.now, "qualification-receipt");
+  return qualificationReceipt({
+    expiresAt: h.validUntil,
+    format: "aih-supported-qualification-receipt",
+    issuedAt,
+    notBefore: issuedAt,
+    organizationAdmission: "not-authoritative",
+    qualificationBasis: deriveQualificationBasisV2({ entryId: x.entryId, head: h }),
+    subject: selectedEntry.subject,
+    version: 1,
+  });
+}
 export function planCatalogPromotionV2(v: unknown): R {
   const x = rec(v, "promotion");
   keys(x, ["candidateHead", "lastGood", "now"], "promotion");
@@ -1227,6 +1352,68 @@ export function runCatalogV2Cli(argv: readonly string[]): number {
       out.organizationAdmission = "not-authoritative";
       out.verificationMode = "cold-external-admin";
       process.stdout.write(canon(out as J));
+      return 0;
+    }
+    if (command === "emit-qualification-receipt") {
+      const allowed = [
+        "catalog-signer-root",
+        "continuity",
+        "entry-id",
+        "expected-claims",
+        "last-accepted-head",
+        "now",
+        "output",
+        "replay-state",
+        "signed-catalog",
+      ];
+      keys(
+        args,
+        allowed.filter((key) => Object.hasOwn(args, key)),
+        "arguments",
+      );
+      for (const key of [
+        "catalog-signer-root",
+        "entry-id",
+        "expected-claims",
+        "now",
+        "output",
+        "replay-state",
+        "signed-catalog",
+      ])
+        if (!Object.hasOwn(args, key)) fail("arguments");
+      const hasLast = Object.hasOwn(args, "last-accepted-head");
+      if (
+        (args.continuity === "genesis") === hasLast ||
+        (args.continuity !== undefined && args.continuity !== "genesis")
+      )
+        fail("arguments");
+      const signed = JSON.parse(
+        read(args["signed-catalog"], MAX_SIGNED, "signed-catalog-too-large"),
+      );
+      if (!rec(signed, "unsigned-catalog").envelope) fail("unsigned-catalog");
+      const roots = JSON.parse(
+        read(args["catalog-signer-root"], 1024 * 1024, "catalog-signer-root-too-large"),
+      );
+      const receipt = emitQualificationReceipt({
+        catalogSignerRoots: Array.isArray(roots)
+          ? roots
+          : roots.catalogSignerRoots
+            ? [...roots.catalogSignerRoots]
+            : [roots],
+        entryId: args["entry-id"],
+        expectedClaims: JSON.parse(read(args["expected-claims"], 1024 * 1024, "claims-too-large")),
+        ...(hasLast
+          ? {
+              lastAccepted: parseCatalogHeadV2Json(
+                read(args["last-accepted-head"], MAX_HEAD, "last-accepted-head-too-large"),
+              ),
+            }
+          : {}),
+        now: args.now,
+        replay: JSON.parse(read(args["replay-state"], 1024 * 1024, "replay-state-too-large")),
+        signed,
+      });
+      write(args.output, canonicalQualificationReceiptBytes(receipt).toString("utf8"));
       return 0;
     }
     fail("arguments");

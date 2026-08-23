@@ -35,8 +35,8 @@ type Api = Readonly<{
   inspectSignedCatalogV2: (value: unknown) => unknown;
   planCatalogPromotionV2: (value: unknown) => unknown;
   deriveQualificationBasisV2: (value: unknown) => unknown;
-  emitQualificationReceiptV1: (value: unknown) => Readonly<Record<string, unknown>>;
-  canonicalQualificationReceiptV1Bytes: (value: unknown) => Buffer;
+  emitQualificationReceipt: (value: unknown) => Readonly<Record<string, unknown>>;
+  canonicalQualificationReceiptBytes: (value: unknown) => Buffer;
 }>;
 
 type Fixture = Readonly<{
@@ -859,17 +859,17 @@ describe("public signed catalog V2 acceptance contract", () => {
       "inspectSignedCatalogV2",
       "planCatalogPromotionV2",
       "deriveQualificationBasisV2",
-      "emitQualificationReceiptV1",
-      "canonicalQualificationReceiptV1Bytes",
+      "emitQualificationReceipt",
+      "canonicalQualificationReceiptBytes",
     ] as const)
       expect(publicApi[operation]).toBeTypeOf("function");
     expect(Object.keys(publicApi).sort()).toEqual([
       "STRICT_V2_CORE_LOCK",
       "canonicalCatalogHeadV2Bytes",
+      "canonicalQualificationReceiptBytes",
       "createCatalogHeadV2",
-      "canonicalQualificationReceiptV1Bytes",
       "deriveQualificationBasisV2",
-      "emitQualificationReceiptV1",
+      "emitQualificationReceipt",
       "inspectSignedCatalogV2",
       "parseCatalogHeadV2Json",
       "planCatalogPromotionV2",
@@ -892,7 +892,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       replay: { acceptedIdentities: [] },
       signed,
     };
-    const receipt = publicApi.emitQualificationReceiptV1(request);
+    const receipt = publicApi.emitQualificationReceipt(request);
     const selected = (head.entries as readonly Record<string, unknown>[]).find(
       (candidate) => candidate.entryId === "recipe.default",
     );
@@ -909,15 +909,138 @@ describe("public signed catalog V2 acceptance contract", () => {
       subject: selected?.subject,
       version: 1,
     });
-    const bytes = publicApi.canonicalQualificationReceiptV1Bytes(receipt);
+    const bytes = publicApi.canonicalQualificationReceiptBytes(receipt);
     expect(bytes.toString("utf8")).toBe(canonicalJson(receipt as Json));
-    expect(publicApi.emitQualificationReceiptV1(request)).toEqual(receipt);
+    expect(publicApi.emitQualificationReceipt(request)).toEqual(receipt);
     expect(() =>
-      publicApi.emitQualificationReceiptV1({ ...request, entryId: "missing.receipt" }),
+      publicApi.emitQualificationReceipt({ ...request, entryId: "missing.receipt" }),
     ).toThrow();
     expect(() =>
-      publicApi.canonicalQualificationReceiptV1Bytes({ ...receipt, unexpected: true }),
+      publicApi.emitQualificationReceipt({ ...request, now: "2026-08-23T00:00:00Z" }),
     ).toThrow();
+    expect(() =>
+      publicApi.emitQualificationReceipt({
+        ...request,
+        replay: {
+          acceptedIdentities: [
+            `catalog-head:${head.catalogHeadSha256}:${sha(canonicalJson(head as Json))}`,
+          ],
+        },
+      }),
+    ).toThrow();
+    expect(() =>
+      publicApi.canonicalQualificationReceiptBytes({ ...receipt, unexpected: true }),
+    ).toThrow();
+    expect(() =>
+      publicApi.canonicalQualificationReceiptBytes({
+        ...receipt,
+        qualificationBasis: { ...(receipt.qualificationBasis as object), subjectKind: "tool" },
+      }),
+    ).toThrow();
+    expect(() =>
+      publicApi.canonicalQualificationReceiptBytes({
+        ...receipt,
+        issuedAt: "2026-05-23T12:00:00Z",
+        notBefore: "2026-08-22T12:00:00Z",
+      }),
+    ).toThrow();
+  });
+
+  it("emits qualification receipts only to an exclusive regular output path and never stdout", async () => {
+    const publicApi = await api();
+    const fixture = signingFixture();
+    const head = publicApi.createCatalogHeadV2(headInput(fixture.signer));
+    const signed = publicApi.signCatalogHeadV2({ head, privateKey: fixture.privateKey });
+    const temp = mkdtempSync(join(tmpdir(), "aih-supported-receipt-cli-"));
+    const signedPath = resolve(temp, "signed.json");
+    const rootPath = resolve(temp, "root.json");
+    const claimsPath = resolve(temp, "claims.json");
+    const replayPath = resolve(temp, "replay.json");
+    const outputPath = resolve(temp, "receipt.json");
+    try {
+      writeFileSync(signedPath, canonicalJson(signed as Json));
+      writeFileSync(rootPath, canonicalJson(fixture.catalogSignerRoot as Json));
+      writeFileSync(claimsPath, canonicalJson(claims() as Json));
+      writeFileSync(replayPath, canonicalJson({ acceptedIdentities: [] }));
+      const args = [
+        "emit-qualification-receipt",
+        "--signed-catalog",
+        signedPath,
+        "--catalog-signer-root",
+        rootPath,
+        "--expected-claims",
+        claimsPath,
+        "--now",
+        "2026-08-22T12:00:00Z",
+        "--continuity",
+        "genesis",
+        "--replay-state",
+        replayPath,
+        "--entry-id",
+        "recipe.default",
+        "--output",
+        outputPath,
+      ];
+      const stdout = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+      try {
+        expect(runCatalogV2Cli(args)).toBe(0);
+        expect(stdout).not.toHaveBeenCalled();
+      } finally {
+        stdout.mockRestore();
+      }
+      const bytes = readFileSync(outputPath);
+      expect(bytes).toEqual(
+        publicApi.canonicalQualificationReceiptBytes(
+          publicApi.emitQualificationReceipt({
+            catalogSignerRoots: [fixture.catalogSignerRoot],
+            entryId: "recipe.default",
+            expectedClaims: claims(),
+            now: "2026-08-22T12:00:00Z",
+            replay: { acceptedIdentities: [] },
+            signed,
+          }),
+        ),
+      );
+      expect(runCatalogV2Cli(args)).toBe(2);
+      expect(readFileSync(outputPath)).toEqual(bytes);
+      expect(
+        runCatalogV2Cli(args.filter((value) => value !== "--replay-state" && value !== replayPath)),
+      ).toBe(2);
+      const outside = resolve(temp, "outside");
+      const linkedParent = resolve(temp, "linked-output");
+      mkdirSync(outside);
+      symlinkSync(outside, linkedParent, process.platform === "win32" ? "junction" : "dir");
+      const linkedArgs = [...args];
+      linkedArgs[linkedArgs.indexOf(outputPath)] = resolve(linkedParent, "receipt.json");
+      expect(runCatalogV2Cli(linkedArgs)).toBe(2);
+      expect(existsSync(resolve(outside, "receipt.json"))).toBe(false);
+    } finally {
+      rmSync(temp, { force: true, recursive: true });
+    }
+  });
+
+  it("keeps the qualification receipt as a separately attested protected-workflow subject", () => {
+    const workflow = readFileSync(resolve(root, ".github/workflows/signed-catalog-v2.yml"), "utf8");
+    expect(workflow).toMatch(/qualification_receipt_sha256: \{ required: true, type: string \}/);
+    expect(workflow).toMatch(/qualification_receipt_issued_at: \{ required: true, type: string \}/);
+    expect(workflow).toMatch(/entry_id: \{ required: true, type: string \}/);
+    expect(workflow).toMatch(/skew=\$\(\(observed_epoch - issued_epoch\)\)[\s\S]*skew >= -300/);
+    expect(workflow).toMatch(
+      /actual_qualification_receipt_sha256[\s\S]*EXPECTED_QUALIFICATION_RECEIPT_SHA256/,
+    );
+    expect(workflow).toMatch(/emit-qualification-receipt[\s\S]*--replay-state[\s\S]*--output/);
+    expect(workflow).toMatch(/QUALIFICATION_RECEIPT_PATH: qualification-receipt-v1\.json/);
+    expect(workflow).toMatch(/qualification-receipt-v1\.json/);
+    expect(
+      workflow.match(/actions\/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8/g),
+    ).toHaveLength(2);
+    expect(workflow).toMatch(
+      /subject-path: \$\{\{ env\.QUALIFICATION_RECEIPT_PATH \}\}[\s\S]*gh attestation verify "\$QUALIFICATION_RECEIPT_PATH"/,
+    );
+    expect(workflow).toMatch(
+      /cmp "\$QUALIFICATION_RECEIPT_PATH" "\$RECOMPUTED_QUALIFICATION_RECEIPT_PATH"/,
+    );
+    expect(workflow).not.toMatch(/\b(release|publish|create-release|git tag)\b/i);
   });
 
   it("creates only strict V2 heads with derived Core subjects, member/catalog digests, sorted surfaces, and a zero-digest genesis", async () => {
