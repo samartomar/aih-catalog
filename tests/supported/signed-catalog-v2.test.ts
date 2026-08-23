@@ -964,7 +964,11 @@ describe("public signed catalog V2 acceptance contract", () => {
           entries: [
             {
               ...entry(`recipe.${sourceType}`),
-              subject: coreSubject("profile", `profile-${sourceType}`, structuredClone(sourceValue)),
+              subject: coreSubject(
+                "profile",
+                `profile-${sourceType}`,
+                structuredClone(sourceValue),
+              ),
             },
           ],
         }),
@@ -1012,7 +1016,10 @@ describe("public signed catalog V2 acceptance contract", () => {
       npm: { ...variants[1], registry: "https://registry.npmjs.org" },
       pypi: { ...variants[2], registry: "https://pypi.org/simple" },
       oci: { ...variants[3], repository: "aih-supported/Upper" },
-      remote: { ...variants[4], endpoint: "https://catalog.example.invalid/default.json?mutable=1" },
+      remote: {
+        ...variants[4],
+        endpoint: "https://catalog.example.invalid/default.json?mutable=1",
+      },
       aih: { ...variants[5], release: "01.0.0" },
     };
     for (const sourceValue of Object.values(invalidByType))

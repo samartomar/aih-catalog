@@ -174,57 +174,159 @@ function source(v: unknown): R {
   };
   const shape = shapes[type] ?? fail("source");
   keys(s, shape, "source");
-  const out: R = { type };
-  for (const [k, x] of Object.entries(s)) {
-    if (k === "type") continue;
-    if (k.includes("Digest") || k === "sha256" || k === "revision")
-      out[k] = phex(x, "source digest");
-    else if (k === "platform") {
-      const p = rec(x, "platform");
-      keys(
-        p,
-        Object.hasOwn(p, "variant") ? ["architecture", "os", "variant"] : ["architecture", "os"],
-        "platform",
-      );
-      out[k] = {
-        architecture: text(p.architecture, "platform", /^[a-z][a-z0-9-]{0,63}$/),
-        os: text(p.os, "platform", /^[a-z][a-z0-9-]{0,63}$/),
-        ...(Object.hasOwn(p, "variant")
-          ? { variant: text(p.variant, "platform", /^[a-z0-9._-]+$/) }
-          : {}),
-      };
-    } else out[k] = text(x, "source");
-  }
-  // These deliberately mirror the locked Core decision-v2 source grammar.  The
-  // catalog adds no provider interpretation; it only validates and binds bytes.
   const semver =
     /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:(?:0|[1-9]\d*)|(?:\d*[A-Za-z-][0-9A-Za-z-]*))(?:\.(?:(?:0|[1-9]\d*)|(?:\d*[A-Za-z-][0-9A-Za-z-]*)))*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
+  const value = (x: unknown, c = "source") => (typeof x === "string" ? x : fail(c));
+  const match = (x: unknown, expression: RegExp, c = "source") => {
+    const raw = value(x, c);
+    return expression.test(raw) ? raw : fail(c);
+  };
+  const httpsBase = (x: unknown) => {
+    const raw = value(x);
+    try {
+      const url = new URL(raw);
+      if (
+        url.protocol !== "https:" ||
+        url.username !== "" ||
+        url.password !== "" ||
+        url.search !== "" ||
+        url.hash !== "" ||
+        raw !== url.href ||
+        !url.pathname.endsWith("/")
+      )
+        fail("source");
+      return raw;
+    } catch {
+      return fail("source");
+    }
+  };
+  const httpsEndpoint = (x: unknown) => {
+    const raw = value(x);
+    try {
+      const url = new URL(raw);
+      if (
+        url.protocol !== "https:" ||
+        url.username !== "" ||
+        url.password !== "" ||
+        url.search !== "" ||
+        url.hash !== "" ||
+        raw !== url.href ||
+        !url.pathname.startsWith("/")
+      )
+        fail("source");
+      return raw;
+    } catch {
+      return fail("source");
+    }
+  };
+  const ociRegistry = (x: unknown) => {
+    const raw = value(x);
+    try {
+      const url = new URL(`https://${raw}`);
+      const dnsHost =
+        /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(?:\.(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?))*$/;
+      if (
+        url.username !== "" ||
+        url.password !== "" ||
+        url.pathname !== "/" ||
+        url.search !== "" ||
+        url.hash !== "" ||
+        raw !== url.host ||
+        !(url.hostname.startsWith("[") || dnsHost.test(url.hostname))
+      )
+        fail("source");
+      return raw;
+    } catch {
+      return fail("source");
+    }
+  };
+  const sri = (x: unknown) => {
+    const raw = value(x);
+    const match = /^sha512-([A-Za-z0-9+/]+={0,2})$/.exec(raw);
+    if (match?.[1] === undefined) return fail("source");
+    const encoded = match[1];
+    const decoded = Buffer.from(encoded, "base64");
+    if (decoded.length !== 64 || decoded.toString("base64") !== encoded) fail("source");
+    return raw;
+  };
+  const stable = (x: unknown, c = "source") => match(x, /^[a-z][a-z0-9-]{0,63}$/, c);
+  // These deliberately mirror the locked Core decision-v2 source grammar. The
+  // catalog adds no provider interpretation; it only validates and binds bytes.
   if (type === "github") {
-    text(out.commit, "source", /^[0-9a-f]{40}(?:[0-9a-f]{24})?$/);
-    text(out.repository, "source", /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/);
-    text(out.path, "source", /^.{1,500}$/);
+    const path = value(s.path);
+    if (
+      path.length < 1 ||
+      path.length > 500 ||
+      path !== path.trim() ||
+      path.startsWith("/") ||
+      path.includes("\\") ||
+      path.split("/").some((segment) => segment === "" || segment === "." || segment === "..") ||
+      /[\p{C}]/u.test(path)
+    )
+      fail("source");
+    return {
+      commit: match(s.commit, /^[0-9a-f]{40}(?:[0-9a-f]{24})?$/),
+      path,
+      repository: match(s.repository, /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/),
+      type,
+    };
   } else if (type === "npm") {
-    text(out.package, "source", /^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/);
-    text(out.version, "source", semver);
-    text(out.registry, "source");
-    text(out.integrity, "source");
+    return {
+      integrity: sri(s.integrity),
+      package: match(s.package, /^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/),
+      registry: httpsBase(s.registry),
+      type,
+      version: match(s.version, semver),
+    };
   } else if (type === "pypi") {
-    text(out.package, "source", /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
-    text(out.version, "source", /^[A-Za-z0-9][A-Za-z0-9.!+_-]{0,127}$/);
-    text(out.filename, "source", /^[A-Za-z0-9][A-Za-z0-9._+-]*$/);
-    text(out.registry, "source");
+    return {
+      filename: match(s.filename, /^[A-Za-z0-9][A-Za-z0-9._+-]*$/),
+      package: match(s.package, /^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+      registry: httpsBase(s.registry),
+      sha256: phex(s.sha256, "source digest"),
+      type,
+      version: match(s.version, /^[A-Za-z0-9][A-Za-z0-9.!+_-]{0,127}$/),
+    };
   } else if (type === "oci") {
-    text(out.registry, "source");
-    text(out.repository, "source", /^.{1,500}$/);
-    const platform = rec(out.platform, "platform");
-    if (Object.hasOwn(platform, "variant"))
-      text(platform.variant, "platform", /^[a-z][a-z0-9-]{0,63}$/);
+    const repository = value(s.repository);
+    if (
+      repository.length < 1 ||
+      repository.length > 500 ||
+      !repository.split("/").every((segment) => /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(segment))
+    )
+      fail("source");
+    const platform = rec(s.platform, "platform");
+    keys(
+      platform,
+      Object.hasOwn(platform, "variant")
+        ? ["architecture", "os", "variant"]
+        : ["architecture", "os"],
+      "platform",
+    );
+    return {
+      indexDigest: phex(s.indexDigest, "source digest"),
+      manifestDigest: phex(s.manifestDigest, "source digest"),
+      platform: {
+        architecture: stable(platform.architecture, "platform"),
+        os: stable(platform.os, "platform"),
+        ...(Object.hasOwn(platform, "variant")
+          ? { variant: stable(platform.variant, "platform") }
+          : {}),
+      },
+      registry: ociRegistry(s.registry),
+      repository,
+      type,
+    };
   } else if (type === "remote") {
-    text(out.endpoint, "source");
+    return {
+      contentDigest: phex(s.contentDigest, "source digest"),
+      endpoint: httpsEndpoint(s.endpoint),
+      type,
+    };
   } else if (type === "aih") {
-    text(out.release, "source", semver);
+    return { release: match(s.release, semver), revision: phex(s.revision, "source digest"), type };
   }
-  return out;
+  return fail("source");
 }
 function subject(v: unknown): R {
   const s = rec(v, "subject");
@@ -244,7 +346,7 @@ function signer(v: unknown): R {
   const fp = hex(s.publicKeySpkiSha256, "spki");
   const out = {
     class: text(s.class, "class", /^administrator-ed25519$/),
-    identity: text(s.identity, "identity", /^administrator:[a-z0-9:/._-]+$/),
+    identity: text(s.identity, "identity", /^administrator:[a-z0-9:/._-]{1,242}$/),
     keyId: text(s.keyId, "key id", /^ed25519:[0-9a-f]{64}$/),
     publicKeySpkiSha256: fp,
   };
@@ -789,7 +891,7 @@ function qualificationBasis(v: unknown): R {
     catalogSignerIdentity: text(
       x.catalogSignerIdentity,
       "qualification-basis",
-      /^administrator:[a-z0-9:/._-]+$/,
+      /^[A-Za-z0-9][A-Za-z0-9:._@/-]{0,255}$/,
     ),
     kind: text(x.kind, "qualification-basis", /^aih-supported$/),
     subjectDigest: phex(x.subjectDigest, "qualification-basis"),
