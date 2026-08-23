@@ -71,8 +71,8 @@ try {
   runCommand(coreCheckout, "git", ["checkout", "--detach", coreCommit]);
   if (runCommand(coreCheckout, "git", ["rev-parse", "HEAD"]).stdout.trim() !== coreCommit)
     throw new Error("cold-admin-core-commit");
-  // The pinned external Core checkout seeds the npm cache; the later disposable
-  // consumer install remains offline and uses only the two packed tarballs.
+  // Build the exact pinned Core source before packing; the disposable consumer
+  // resolves its ordinary registry dependencies honestly alongside local tarballs.
   run(coreCheckout, [npmCli, "ci", "--ignore-scripts"]);
   run(coreCheckout, [npmCli, "run", "build"]);
   const packedCore = run(coreCheckout, [npmCli, "pack", "--json", "--pack-destination", temp]);
@@ -89,7 +89,6 @@ try {
   run(consumer, [
     npmCli,
     "install",
-    "--offline",
     "--no-audit",
     "--no-fund",
     "--ignore-scripts",
