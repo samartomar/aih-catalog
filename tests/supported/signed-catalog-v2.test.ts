@@ -13,6 +13,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
+import Ajv2020 from "ajv/dist/2020.js";
 import { describe, expect, it, vi } from "vitest";
 import { runCatalogV2Cli } from "../../src/supported/signed-catalog-v2.js";
 
@@ -172,16 +173,16 @@ function coreSourceVariants(): readonly Record<string, unknown>[] {
       type: "github",
     },
     {
-      integrity: "sha512-valid-package-integrity",
+      integrity: `sha512-${Buffer.alloc(64, 7).toString("base64")}`,
       package: "@aihq/supported",
-      registry: "https://registry.npmjs.org",
+      registry: "https://registry.npmjs.org/",
       type: "npm",
       version: "1.0.0",
     },
     {
       filename: "aih_supported-1.0.0-py3-none-any.whl",
       package: "aih-supported",
-      registry: "https://pypi.org/simple",
+      registry: "https://pypi.org/simple/",
       sha256: digest("pypi-artifact"),
       type: "pypi",
       version: "1.0.0",
@@ -944,6 +945,93 @@ describe("public signed catalog V2 acceptance contract", () => {
         notBefore: "2026-08-22T12:00:00Z",
       }),
     ).toThrow();
+  });
+
+  it("emits receipt bytes conforming to the pinned Core schema and exact runtime source grammar", async () => {
+    const publicApi = await api();
+    const fixture = signingFixture();
+    const schema = JSON.parse(
+      readFileSync(
+        resolve(root, "tests/contracts/core/aih-supported-qualification-receipt-v1.schema.json"),
+        "utf8",
+      ),
+    );
+    const validate = new Ajv2020({ strict: true }).compile(schema);
+    const emit = (signer: Record<string, unknown>, sourceValue: Record<string, unknown>) => {
+      const sourceType = sourceValue.type as string;
+      const head = publicApi.createCatalogHeadV2(
+        headInput(signer, {
+          entries: [
+            {
+              ...entry(`recipe.${sourceType}`),
+              subject: coreSubject("profile", `profile-${sourceType}`, structuredClone(sourceValue)),
+            },
+          ],
+        }),
+      );
+      return publicApi.emitQualificationReceipt({
+        catalogSignerRoots: [
+          { ...signer, publicKeySpkiDerBase64: fixture.catalogSignerRoot.publicKeySpkiDerBase64 },
+        ],
+        entryId: `recipe.${sourceType}`,
+        expectedClaims: claims(),
+        now: "2026-08-22T12:00:00Z",
+        replay: { acceptedIdentities: [] },
+        signed: publicApi.signCatalogHeadV2({ head, privateKey: fixture.privateKey }),
+      });
+    };
+    const boundarySigner = { ...fixture.signer, identity: `administrator:${"a".repeat(242)}` };
+    const variants = coreSourceVariants();
+    for (const sourceValue of variants) {
+      const receipt = emit(boundarySigner, sourceValue);
+      const receiptSubject = receipt.subject as Record<string, unknown>;
+      expect(validate(receipt)).toBe(true);
+      expect(
+        validate({
+          ...receipt,
+          qualificationBasis: {
+            ...(receipt.qualificationBasis as Record<string, unknown>),
+            catalogSignerIdentity: `administrator:${"a".repeat(243)}`,
+          },
+        }),
+      ).toBe(false);
+      expect(
+        validate({
+          ...receipt,
+          subject: {
+            ...receiptSubject,
+            source: { ...(receiptSubject.source as Record<string, unknown>), extra: true },
+          },
+        }),
+      ).toBe(false);
+    }
+    const overlongSigner = { ...fixture.signer, identity: `administrator:${"a".repeat(243)}` };
+    expect(() => emit(overlongSigner, variants[0] as Record<string, unknown>)).toThrow();
+    const invalidByType: Record<string, Record<string, unknown>> = {
+      github: { ...variants[0], path: "../outside.json" },
+      npm: { ...variants[1], registry: "https://registry.npmjs.org" },
+      pypi: { ...variants[2], registry: "https://pypi.org/simple" },
+      oci: { ...variants[3], repository: "aih-supported/Upper" },
+      remote: { ...variants[4], endpoint: "https://catalog.example.invalid/default.json?mutable=1" },
+      aih: { ...variants[5], release: "01.0.0" },
+    };
+    for (const sourceValue of Object.values(invalidByType))
+      expect(() =>
+        publicApi.createCatalogHeadV2(
+          headInput(fixture.signer, {
+            entries: [
+              {
+                ...entry(`recipe.invalid-${sourceValue.type as string}`),
+                subject: coreSubject(
+                  "profile",
+                  `invalid-${sourceValue.type as string}`,
+                  sourceValue,
+                ),
+              },
+            ],
+          }),
+        ),
+      ).toThrow();
   });
 
   it("emits qualification receipts only to an exclusive regular output path and never stdout", async () => {
