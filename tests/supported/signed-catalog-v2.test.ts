@@ -3317,6 +3317,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       "node tools/verify-cold-external-admin.mjs",
     );
     const coldVerificationTool = resolve(root, "tools/verify-cold-external-admin.mjs");
+    const ciWorkflow = readFileSync(resolve(root, ".github/workflows/verify.yml"), "utf8");
     expect(existsSync(coldVerificationTool)).toBe(true);
     const coldVerificationSource = readFileSync(coldVerificationTool, "utf8");
     expect(coldVerificationSource).toMatch(/npmCli, "pack"/);
@@ -3327,9 +3328,15 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(coldVerificationSource).toMatch(/"inspect"/);
     expect(coldVerificationSource).toMatch(/"--qualification-basis"/);
     expect(coldVerificationSource).toMatch(/AIH_SUPPORTED_CORE_SOURCE/);
+    expect(coldVerificationSource).toMatch(/import \* as api from '@aihq\/harness'/);
     expect(coldVerificationSource).toMatch(/verifyAihSupportedQualificationReceiptV1/);
     expect(coldVerificationSource).toMatch(/SIMULATED outer-attestation verification/);
-    expect(coldVerificationSource).toMatch(/git", "clone"/);
+    expect(coldVerificationSource).toMatch(/"git", \["clone"/);
+    expect(ciWorkflow).toMatch(/cold-external-admin:[\s\S]*repository: samartomar\/ai-harness/);
+    expect(ciWorkflow).toContain("b05d6099659ce807e62ee17b896de0d70964e3a9");
+    expect(ciWorkflow).toMatch(
+      /AIH_SUPPORTED_CORE_SOURCE: \$\{\{ github\.workspace \}\}\/core-source/,
+    );
     expect(coldVerificationSource).toMatch(
       /process\.platform === "win32" \? process\.execPath : bin/,
     );

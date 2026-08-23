@@ -8,7 +8,7 @@ const schemaSha256 = "27295aee8d8be333abe2c73adc72884b534b1c9980a9b7a39d12be8d34
 const vendoredSchemaPath = "tests/contracts/core/aih-governance-decision-v2.schema.json";
 // Keep the receipt lock independent from the established Core V2 decision lock:
 // the Core merge SHA is the only value expected to change after Core promotion.
-const qualificationReceiptCoreCommit = "f99c67bb084d73376bc9ddc6a241d5b7fa4b2935";
+const qualificationReceiptCoreCommit = "b05d6099659ce807e62ee17b896de0d70964e3a9";
 const qualificationReceiptSchemaPath = "schemas/aih-supported-qualification-receipt-v1.schema.json";
 const qualificationReceiptSchemaSha256 = "b3291e568177829cad4e369c78075c58b0835ccbda90f15def4c840168a4eda8";
 const vendoredQualificationReceiptSchemaPath =
