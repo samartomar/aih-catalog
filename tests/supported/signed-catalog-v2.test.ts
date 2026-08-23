@@ -3356,7 +3356,8 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(existsSync(coldVerificationTool)).toBe(true);
     const coldVerificationSource = readFileSync(coldVerificationTool, "utf8");
     expect(coldVerificationSource).toMatch(/npmCli, "pack"/);
-    expect(coldVerificationSource).toMatch(/--offline/);
+    expect(coldVerificationSource).not.toMatch(/npmCli,\s*"install",\s*"--offline"/);
+    expect(coldVerificationSource).toMatch(/ordinary registry dependencies/);
     expect(coldVerificationSource).toMatch(/generateKeyPairSync\("ed25519"\)/);
     expect(coldVerificationSource).toMatch(/"generate-candidate"/);
     expect(coldVerificationSource).toMatch(/"sign-candidate"/);
