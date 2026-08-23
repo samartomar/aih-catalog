@@ -38,6 +38,8 @@ type Api = Readonly<{
   deriveQualificationBasisV2: (value: unknown) => unknown;
   emitQualificationReceipt: (value: unknown) => Readonly<Record<string, unknown>>;
   canonicalQualificationReceiptBytes: (value: unknown) => Buffer;
+  parseQualificationReceiptV2Json: (value: string) => Readonly<Record<string, unknown>>;
+  QUALIFICATION_RECEIPT_V2_MAX_BYTES: number;
 }>;
 
 type Fixture = Readonly<{
@@ -880,7 +882,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(Object.keys(publicApi)).not.toEqual(expect.arrayContaining(["isSupported", "isMember"]));
   });
 
-  it("emits only a deterministic, canonical, catalog-verified qualification receipt", async () => {
+  it("emits only a deterministic, canonical, catalog-verified V2 qualification receipt", async () => {
     const publicApi = await api();
     const fixture = signingFixture();
     const head = publicApi.createCatalogHeadV2(headInput(fixture.signer));
@@ -898,6 +900,16 @@ describe("public signed catalog V2 acceptance contract", () => {
       (candidate) => candidate.entryId === "recipe.default",
     );
     expect(receipt).toEqual({
+      catalogContinuity: {
+        catalogHeadDigest: `sha256:${head.catalogHeadSha256}`,
+        headValidFrom: head.validFrom,
+        headValidUntil: head.validUntil,
+        previousCatalogHeadDigest: `sha256:${head.previousCatalogHeadSha256}`,
+        replayIdentity: `catalog-head:${head.catalogHeadSha256}:${sha(canonicalJson(head as Json))}`,
+        sequence: head.sequence,
+        signerKeyId: (head.signer as Record<string, unknown>).keyId,
+      },
+      entryId: "recipe.default",
       expiresAt: "2026-08-23T00:00:00Z",
       format: "aih-supported-qualification-receipt",
       issuedAt: "2026-08-22T12:00:00Z",
@@ -908,7 +920,7 @@ describe("public signed catalog V2 acceptance contract", () => {
         head,
       }),
       subject: selected?.subject,
-      version: 1,
+      version: 2,
     });
     const bytes = publicApi.canonicalQualificationReceiptBytes(receipt);
     expect(bytes.toString("utf8")).toBe(canonicalJson(receipt as Json));
@@ -943,6 +955,73 @@ describe("public signed catalog V2 acceptance contract", () => {
         ...receipt,
         issuedAt: "2026-05-23T12:00:00Z",
         notBefore: "2026-08-22T12:00:00Z",
+      }),
+    ).toThrow();
+  });
+
+  it("accepts only closed canonical V2 receipt bytes and binds all continuity facts to the verified head", async () => {
+    const publicApi = await api();
+    const fixture = signingFixture();
+    const genesis = publicApi.createCatalogHeadV2(headInput(fixture.signer));
+    const successor = publicApi.createCatalogHeadV2(nextInput(genesis, fixture.signer));
+    const signed = publicApi.signCatalogHeadV2({ head: successor, privateKey: fixture.privateKey });
+    const receipt = publicApi.emitQualificationReceipt({
+      catalogSignerRoots: [fixture.catalogSignerRoot],
+      entryId: "recipe.default",
+      expectedClaims: claims(),
+      lastAccepted: genesis,
+      now: "2026-08-22T12:00:00Z",
+      replay: { acceptedIdentities: [] },
+      signed,
+    });
+    const bytes = publicApi.canonicalQualificationReceiptBytes(receipt).toString("utf8");
+    expect(publicApi.parseQualificationReceiptV2Json).toBeTypeOf("function");
+    expect(publicApi.parseQualificationReceiptV2Json(bytes)).toEqual(receipt);
+    expect((receipt.catalogContinuity as Record<string, unknown>).replayIdentity).toBe(
+      `catalog-head:${successor.catalogHeadSha256}:${sha(canonicalJson(successor as Json))}`,
+    );
+    expect((receipt.catalogContinuity as Record<string, unknown>).catalogHeadDigest).toBe(
+      (receipt.qualificationBasis as Record<string, unknown>).catalogHeadDigest,
+    );
+    for (const malformed of [
+      `\uFEFF${bytes}`,
+      `${bytes}\n`,
+      bytes.replace("{", '{"version":2,'),
+      bytes.replace('"version":2', '"version":1'),
+    ])
+      expect(() => publicApi.parseQualificationReceiptV2Json(malformed)).toThrow();
+    const continuity = receipt.catalogContinuity as Record<string, unknown>;
+    for (const patch of [
+      { catalogHeadDigest: `sha256:${sha("wrong-head")}` },
+      { previousCatalogHeadDigest: `sha256:${successor.catalogHeadSha256}` },
+      { replayIdentity: `catalog-head:${sha("wrong-head")}:${sha("wrong-candidate")}` },
+      { signerKeyId: `ed25519:${sha("wrong-key")}` },
+      { sequence: -0 },
+      { sequence: Number.MAX_SAFE_INTEGER + 1 },
+      { headValidFrom: successor.validUntil },
+      { headValidUntil: successor.validFrom },
+    ])
+      expect(() =>
+        publicApi.canonicalQualificationReceiptBytes({
+          ...receipt,
+          catalogContinuity: { ...continuity, ...patch },
+        }),
+      ).toThrow();
+    expect(() =>
+      publicApi.canonicalQualificationReceiptBytes({
+        ...receipt,
+        expiresAt: "2026-08-25T00:00:00Z",
+      }),
+    ).toThrow();
+    expect(() =>
+      publicApi.emitQualificationReceipt({
+        catalogSignerRoots: [fixture.catalogSignerRoot],
+        entryId: "missing.member",
+        expectedClaims: claims(),
+        lastAccepted: genesis,
+        now: "2026-08-22T12:00:00Z",
+        replay: { acceptedIdentities: [] },
+        signed,
       }),
     ).toThrow();
   });
