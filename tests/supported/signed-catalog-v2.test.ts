@@ -3326,6 +3326,10 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(coldVerificationSource).toMatch(/"sign-candidate"/);
     expect(coldVerificationSource).toMatch(/"inspect"/);
     expect(coldVerificationSource).toMatch(/"--qualification-basis"/);
+    expect(coldVerificationSource).toMatch(/AIH_SUPPORTED_CORE_SOURCE/);
+    expect(coldVerificationSource).toMatch(/verifyAihSupportedQualificationReceiptV1/);
+    expect(coldVerificationSource).toMatch(/SIMULATED outer-attestation verification/);
+    expect(coldVerificationSource).toMatch(/git", "clone"/);
     expect(coldVerificationSource).toMatch(
       /process\.platform === "win32" \? process\.execPath : bin/,
     );
