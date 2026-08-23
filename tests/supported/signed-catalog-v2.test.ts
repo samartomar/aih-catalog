@@ -1005,12 +1005,16 @@ describe("public signed catalog V2 acceptance contract", () => {
         ["trailing-whitespace", `${canonicalJson(signed as Json)} `],
         ["bom", `\uFEFF${canonicalJson(signed as Json)}`],
         ["pretty", JSON.stringify(signed, null, 2)],
-      ]) {
+      ] as const) {
         const malformedSignedPath = resolve(temp, `${name}-signed.json`);
         const malformedOutputPath = resolve(temp, `${name}-receipt.json`);
         writeFileSync(malformedSignedPath, signedCatalogText);
         const malformedArgs = args.map((value) =>
-          value === signedPath ? malformedSignedPath : value === outputPath ? malformedOutputPath : value,
+          value === signedPath
+            ? malformedSignedPath
+            : value === outputPath
+              ? malformedOutputPath
+              : value,
         );
         expect(runCatalogV2Cli(malformedArgs)).toBe(2);
         expect(existsSync(malformedOutputPath)).toBe(false);

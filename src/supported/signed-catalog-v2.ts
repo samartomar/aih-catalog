@@ -1387,9 +1387,11 @@ export function runCatalogV2Cli(argv: readonly string[]): number {
         (args.continuity !== undefined && args.continuity !== "genesis")
       )
         fail("arguments");
-      const signed = JSON.parse(
-        read(args["signed-catalog"], MAX_SIGNED, "signed-catalog-too-large"),
-      );
+      const signedText = read(args["signed-catalog"], MAX_SIGNED, "signed-catalog-too-large");
+      if (signedText.startsWith("\ufeff") || signedText !== signedText.trim())
+        fail("signed-catalog");
+      const signed = JSON.parse(signedText);
+      if (signedText !== canon(signed as J)) fail("signed-catalog");
       if (!rec(signed, "unsigned-catalog").envelope) fail("unsigned-catalog");
       const roots = JSON.parse(
         read(args["catalog-signer-root"], 1024 * 1024, "catalog-signer-root-too-large"),
