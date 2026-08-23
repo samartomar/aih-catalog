@@ -35,6 +35,8 @@ type Api = Readonly<{
   inspectSignedCatalogV2: (value: unknown) => unknown;
   planCatalogPromotionV2: (value: unknown) => unknown;
   deriveQualificationBasisV2: (value: unknown) => unknown;
+  emitQualificationReceiptV1: (value: unknown) => Readonly<Record<string, unknown>>;
+  canonicalQualificationReceiptV1Bytes: (value: unknown) => Buffer;
 }>;
 
 type Fixture = Readonly<{
@@ -857,13 +859,17 @@ describe("public signed catalog V2 acceptance contract", () => {
       "inspectSignedCatalogV2",
       "planCatalogPromotionV2",
       "deriveQualificationBasisV2",
+      "emitQualificationReceiptV1",
+      "canonicalQualificationReceiptV1Bytes",
     ] as const)
       expect(publicApi[operation]).toBeTypeOf("function");
     expect(Object.keys(publicApi).sort()).toEqual([
       "STRICT_V2_CORE_LOCK",
       "canonicalCatalogHeadV2Bytes",
       "createCatalogHeadV2",
+      "canonicalQualificationReceiptV1Bytes",
       "deriveQualificationBasisV2",
+      "emitQualificationReceiptV1",
       "inspectSignedCatalogV2",
       "parseCatalogHeadV2Json",
       "planCatalogPromotionV2",
@@ -871,6 +877,47 @@ describe("public signed catalog V2 acceptance contract", () => {
       "verifySignedCatalogV2",
     ]);
     expect(Object.keys(publicApi)).not.toEqual(expect.arrayContaining(["isSupported", "isMember"]));
+  });
+
+  it("emits only a deterministic, canonical, catalog-verified qualification receipt", async () => {
+    const publicApi = await api();
+    const fixture = signingFixture();
+    const head = publicApi.createCatalogHeadV2(headInput(fixture.signer));
+    const signed = publicApi.signCatalogHeadV2({ head, privateKey: fixture.privateKey });
+    const request = {
+      catalogSignerRoots: [fixture.catalogSignerRoot],
+      entryId: "recipe.default",
+      expectedClaims: claims(),
+      now: "2026-08-22T12:00:00Z",
+      replay: { acceptedIdentities: [] },
+      signed,
+    };
+    const receipt = publicApi.emitQualificationReceiptV1(request);
+    const selected = (head.entries as readonly Record<string, unknown>[]).find(
+      (candidate) => candidate.entryId === "recipe.default",
+    );
+    expect(receipt).toEqual({
+      expiresAt: "2026-08-23T00:00:00Z",
+      format: "aih-supported-qualification-receipt",
+      issuedAt: "2026-08-22T12:00:00Z",
+      notBefore: "2026-08-22T12:00:00Z",
+      organizationAdmission: "not-authoritative",
+      qualificationBasis: publicApi.deriveQualificationBasisV2({
+        entryId: "recipe.default",
+        head,
+      }),
+      subject: selected?.subject,
+      version: 1,
+    });
+    const bytes = publicApi.canonicalQualificationReceiptV1Bytes(receipt);
+    expect(bytes.toString("utf8")).toBe(canonicalJson(receipt as Json));
+    expect(publicApi.emitQualificationReceiptV1(request)).toEqual(receipt);
+    expect(() =>
+      publicApi.emitQualificationReceiptV1({ ...request, entryId: "missing.receipt" }),
+    ).toThrow();
+    expect(() =>
+      publicApi.canonicalQualificationReceiptV1Bytes({ ...receipt, unexpected: true }),
+    ).toThrow();
   });
 
   it("creates only strict V2 heads with derived Core subjects, member/catalog digests, sorted surfaces, and a zero-digest genesis", async () => {
