@@ -12,8 +12,9 @@ member. See
 The supported channel is optional and not-authoritative for organization
 admission. Core does not consume Catalog V2 directly; it independently verifies
 the receipt's outer attestation and exact subject/basis fields. Organization-
-qualified subjects remain a separate Core Strict V3 path, and evidence attestors
-remain distinct from catalog signers.
+qualified subjects remain a separate Core Strict V2 decision path carried by a
+V3 authority receipt, and evidence attestors remain distinct from catalog
+signers.
 
 Candidate generation has no provider network, installation, signing,
 repository-write, or publication authority. Signing executes no candidate code.

@@ -17,7 +17,8 @@ There are two independent governance paths:
 - `aih-supported` means a catalog signer included the exact subject and evidence
   in a verified Catalog V2 head.
 - `organization-qualified` means an organization bound its own exact subject to
-  its own evidence and attestor through the Core Strict V3 decision contract.
+  its own evidence and attestor through the Core Strict V2 decision contract and
+  V3 authority receipt.
 
 The supported catalog is optional convenience. It is not an admission authority,
 and its CLI reports `organizationAdmission: "not-authoritative"`. Absence from
@@ -30,7 +31,8 @@ Core does not consume Catalog V2 directly; it neither imports nor reverifies the
 catalog. This package can emit the closed Core-owned qualification receipt after
 full Catalog V2 verification; Core then independently verifies the receipt's
 outer GitHub attestation and exact fields. The organization must still issue the
-separately authorized Strict V3 governance decision.
+separately authorized Strict V2 governance decision through its V3 authority
+receipt.
 
 ## Install and inspect from a clean consumer
 
@@ -107,8 +109,8 @@ attestation subject. Core verifies that outer attestation against its dedicated
 supported repository/workflow roots before using the receipt as provenance.
 
 In the target repository, an administrator or integration can ask the installed
-Core package to re-observe both protected attestations and the exact current V3
-decision:
+Core package to re-observe both protected attestations and the exact current
+Strict V2 decision in its V3 authority receipt:
 
 ```js
 import { verifyAihSupportedQualificationArtifactV1 } from "@aihq/harness";

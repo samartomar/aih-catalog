@@ -15,8 +15,8 @@ admission authority. The CLI makes that boundary machine-visible as
 
 Core does not consume Catalog V2 directly. This package emits the closed
 Core-owned qualification receipt only after verifying Catalog V2; Core separately
-verifies that receipt's outer attestation and exact fields. A separate Strict V3
-governance decision and authority receipt must still authorize use. An
+verifies that receipt's outer attestation and exact fields. A separate Strict V2
+governance decision carried by a V3 authority receipt must still authorize use. An
 organization can therefore qualify a tool, skill, MCP server, package, or profile
 with its own exact source and evidence even when the subject is absent from the
 supported channel.
@@ -138,14 +138,16 @@ aih-supported emit-qualification-receipt --signed-catalog ./signed-catalog.json 
 The command prints no receipt to stdout. It writes a canonical, closed receipt
 only after catalog, member, signer, claims, continuity, replay, compatibility,
 and validity checks pass. The result explicitly states that it is not
-organization admission. Core still requires its independent V3 organization
-decision, authority verification, and fresh upstream observation.
+organization admission. Core still requires its independent Strict V2
+organization decision, V3 authority verification, and fresh upstream
+observation.
 
 The installed Core package exposes
 `verifyAihSupportedQualificationArtifactV1({root, decisionReference, subject})`
 for the target repository. Core owns the runner, environment snapshot, host
 adapter, and live clock, then re-observes both protected attestations and the
-exact current V3 decision. The result is only `verified` or `unverified`; no
+exact current Strict V2 decision in its V3 authority receipt. The result is only
+`verified` or `unverified`; no
 authority, receipt bytes, qualification capability, or reusable evidence crosses
 the package boundary.
 
