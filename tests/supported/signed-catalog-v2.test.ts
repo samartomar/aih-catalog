@@ -3337,7 +3337,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(coldVerificationSource).toMatch(/AIH_SUPPORTED_QUALIFICATION_WORKFLOW/);
     expect(coldVerificationSource).toMatch(/"git", \["clone"/);
     expect(ciWorkflow).toMatch(/cold-external-admin:[\s\S]*repository: samartomar\/ai-harness/);
-    expect(ciWorkflow).toContain("e858afb9738d9fdfc467937cef4b520917495a6a");
+    expect(ciWorkflow).toContain("03c07b37c64d7d00473e5171ce8c6a7e5159a034");
     expect(ciWorkflow).toMatch(
       /AIH_SUPPORTED_CORE_SOURCE: \$\{\{ github\.workspace \}\}\/core-source/,
     );
