@@ -1021,6 +1021,7 @@ describe("public signed catalog V2 acceptance contract", () => {
 
   it("keeps the qualification receipt as a separately attested protected-workflow subject", () => {
     const workflow = readFileSync(resolve(root, ".github/workflows/signed-catalog-v2.yml"), "utf8");
+    const signer = workflowJob(workflow, "sign");
     expect(workflow).toMatch(/qualification_receipt_sha256: \{ required: true, type: string \}/);
     expect(workflow).toMatch(/qualification_receipt_issued_at: \{ required: true, type: string \}/);
     expect(workflow).toMatch(/entry_id: \{ required: true, type: string \}/);
@@ -1040,6 +1041,22 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(workflow).toMatch(
       /cmp "\$QUALIFICATION_RECEIPT_PATH" "\$RECOMPUTED_QUALIFICATION_RECEIPT_PATH"/,
     );
+    expect(signer).toMatch(
+      /QUALIFICATION_RECEIPT_ISSUED_AT:\s*\$\{\{\s*inputs\.qualification_receipt_issued_at\s*\}\}/,
+    );
+    expect(signer).toMatch(/receipt\.issuedAt !== process\.env\.QUALIFICATION_RECEIPT_ISSUED_AT/);
+    expect(signer).toMatch(
+      /Date\.parse\(receipt\.notBefore\) > now \|\| now >= Date\.parse\(receipt\.expiresAt\)/,
+    );
+    expect(signer).toMatch(/Object\.keys\(receipt\).*organizationAdmission/);
+    const receiptDigestIndex = signer.indexOf(
+      'test "$actual_qualification_receipt_sha256" = "$EXPECTED_QUALIFICATION_RECEIPT_SHA256"',
+    );
+    const receiptValidityGateIndex = signer.indexOf("receipt.issuedAt !==");
+    const firstAttestationIndex = signer.indexOf("actions/attest-build-provenance@");
+    expect(receiptDigestIndex).toBeGreaterThanOrEqual(0);
+    expect(receiptValidityGateIndex).toBeGreaterThan(receiptDigestIndex);
+    expect(firstAttestationIndex).toBeGreaterThan(receiptValidityGateIndex);
     expect(workflow).not.toMatch(/\b(release|publish|create-release|git tag)\b/i);
   });
 
