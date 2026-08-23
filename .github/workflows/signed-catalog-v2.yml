@@ -131,6 +131,7 @@ jobs:
       EXPECTED_SIGNED_CATALOG_SHA256: ${{ inputs.signed_catalog_sha256 }}
       EXPECTED_PROMOTION_PLAN_SHA256: ${{ inputs.promotion_plan_sha256 }}
       EXPECTED_QUALIFICATION_RECEIPT_SHA256: ${{ inputs.qualification_receipt_sha256 }}
+      QUALIFICATION_RECEIPT_ISSUED_AT: ${{ inputs.qualification_receipt_issued_at }}
       EXPECTED_COMMIT_SHA: ${{ inputs.commit_sha }}
       ACTUAL_DISPATCH_SHA: ${{ github.sha }}
       SIGNED_CATALOG_PATH: signed-catalog-v2/signed-catalog-v2.json
@@ -158,6 +159,51 @@ jobs:
           test "$actual_catalog_sha256" = "$EXPECTED_SIGNED_CATALOG_SHA256"
           test "$actual_promotion_plan_sha256" = "$EXPECTED_PROMOTION_PLAN_SHA256"
           test "$actual_qualification_receipt_sha256" = "$EXPECTED_QUALIFICATION_RECEIPT_SHA256"
+          node -e '
+            const fs = require("node:fs");
+            const raw = fs.readFileSync(process.env.QUALIFICATION_RECEIPT_PATH);
+            if (raw.byteLength > 4096) process.exit(2);
+            let text;
+            let receipt;
+            try {
+              text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(raw);
+              receipt = JSON.parse(text);
+            } catch {
+              process.exit(2);
+            }
+            const canonical = (value) => {
+              if (value === null || typeof value !== "object") return JSON.stringify(value);
+              if (Array.isArray(value)) return "[" + value.map(canonical).join(",") + "]";
+              return "{" + Object.keys(value).sort().map((key) => JSON.stringify(key) + ":" + canonical(value[key])).join(",") + "}";
+            };
+            const isCanonicalUtc = (value) => {
+              if (typeof value !== "string" || !/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$/.test(value)) return false;
+              const epoch = Date.parse(value);
+              return Number.isFinite(epoch) && new Date(epoch).toISOString().replace(".000Z", "Z") === value;
+            };
+            if (
+              text !== canonical(receipt) ||
+              Object.keys(receipt).sort().join(",") !== "expiresAt,format,issuedAt,notBefore,organizationAdmission,qualificationBasis,subject,version" ||
+              receipt.format !== "aih-supported-qualification-receipt" ||
+              receipt.version !== 1 ||
+              receipt.organizationAdmission !== "not-authoritative" ||
+              !isCanonicalUtc(process.env.QUALIFICATION_RECEIPT_ISSUED_AT) ||
+              !isCanonicalUtc(receipt.issuedAt) ||
+              !isCanonicalUtc(receipt.notBefore) ||
+              !isCanonicalUtc(receipt.expiresAt) ||
+              receipt.issuedAt !== process.env.QUALIFICATION_RECEIPT_ISSUED_AT
+            ) process.exit(2);
+            const issuedAt = Date.parse(receipt.issuedAt);
+            const notBefore = Date.parse(receipt.notBefore);
+            const expiresAt = Date.parse(receipt.expiresAt);
+            const now = Date.now();
+            if (
+              issuedAt > notBefore ||
+              expiresAt <= notBefore ||
+              expiresAt - issuedAt > 90 * 24 * 60 * 60 * 1000 ||
+              Date.parse(receipt.notBefore) > now || now >= Date.parse(receipt.expiresAt)
+            ) process.exit(2);
+          '
           echo "signed-catalog keyless provenance records the already-admitted administrator Ed25519 DSSE artifact."
           echo "GitHub attestation keyless provenance records a separately authorized public transparency publication effect."
       - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8
