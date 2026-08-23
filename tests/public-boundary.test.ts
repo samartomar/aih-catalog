@@ -84,11 +84,12 @@ describe("supported public V2 boundary", () => {
     expect(project.entrypoints).toEqual(expect.arrayContaining(["dist/cli.js"]));
     expect(project.publication).toBe("release-ready-publication-separately-authorized");
     expect(project.supportedCatalogV2).toEqual({
-      coreConsumption: "not-yet",
       documentation: "ai-coding/supported-catalog-v2.md",
       entrypoints: ["dist/cli.js"],
       organizationAdmission: "not-authoritative",
       publicationStatus: "release-ready-publication-separately-authorized",
+      coreConsumption: "independently-attested-qualification-receipt-v1",
+      qualificationReceipt: "aih-supported-qualification-receipt-v1",
       status: "public-v2",
     });
   });
