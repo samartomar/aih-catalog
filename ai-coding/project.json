@@ -17,11 +17,12 @@
   },
   "publication": "release-ready-publication-separately-authorized",
   "supportedCatalogV2": {
-    "coreConsumption": "not-yet",
+    "coreConsumption": "independently-attested-qualification-receipt-v1",
     "documentation": "ai-coding/supported-catalog-v2.md",
     "entrypoints": ["dist/cli.js"],
     "organizationAdmission": "not-authoritative",
     "publicationStatus": "release-ready-publication-separately-authorized",
+    "qualificationReceipt": "aih-supported-qualification-receipt-v1",
     "status": "public-v2"
   }
 }
