@@ -22,7 +22,7 @@ const ZERO = "0".repeat(64),
 export const QUALIFICATION_RECEIPT_V2_MAX_BYTES = 5970;
 export const CATALOG_SOURCE_V2_MAX_BYTES = 4096;
 export const STRICT_V2_CORE_LOCK = Object.freeze({
-  coreCommit: "e27a55dcebb635c8298aa4fd6fd871f59089bcf7",
+  coreCommit: "e53fe219002515c092ebb68c5b91c91a2fc6110d",
   schemaSha256: "27295aee8d8be333abe2c73adc72884b534b1c9980a9b7a39d12be8d34c5caff",
 });
 const fail = (code: string): never => {
