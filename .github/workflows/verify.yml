@@ -38,7 +38,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           repository: samartomar/ai-harness
-          ref: 03c07b37c64d7d00473e5171ce8c6a7e5159a034
+          ref: e53fe219002515c092ebb68c5b91c91a2fc6110d
           path: core-source
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020

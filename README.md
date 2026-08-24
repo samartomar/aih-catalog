@@ -28,11 +28,16 @@ the catalog; it does not convert an evidence declaration into an organization
 approval.
 
 Core does not consume Catalog V2 directly; it neither imports nor reverifies the
-catalog. This package can emit the closed Core-owned qualification receipt after
-full Catalog V2 verification; Core then independently verifies the receipt's
-outer GitHub attestation and exact fields. The organization must still issue the
-separately authorized Strict V2 governance decision through its V3 authority
-receipt.
+catalog. This package emits one closed Strict Qualification Receipt V2 after
+full Catalog V2 verification. The receipt carries the exact member basis plus
+the authenticated catalog continuity that Core needs for its own durable
+high-water custody. Core's matching V2 consumer is available through
+`aih policy supported accept` and `aih policy supported inspect`. Acceptance
+separately verifies the receipt's outer GitHub attestation, the current Strict
+V2 organization decision carried by its V3 authority receipt, and the exact
+receipt fields before writing durable signer, replay, head, and head-scoped
+member custody. Inspection is read-only. Neither command turns catalog
+membership into organization admission.
 
 ## Install and inspect from a clean consumer
 
@@ -96,11 +101,18 @@ mkdir -p ./.aih
 ```
 
 For a successor, use `--last-accepted-head` as for `inspect`. The receipt is
-canonical JSON no larger than 4 KiB. It binds the full exact subject, all seven
-Core `aih-supported` basis fields, issuance and catalog-bounded expiry, and
-`organizationAdmission: "not-authoritative"`. It is written with exclusive
-creation and is never printed to stdout. An existing or linked output path fails
-closed.
+canonical JSON no larger than 5,970 bytes, the measured maximum legal V2
+encoding. The Supported channel first bounds the subject's complete canonical
+source object to 4,096 bytes; organization-qualified Core remains available for
+exact sources outside that optional-channel limit. The receipt binds the full
+exact subject, entry id, all seven Core
+`aih-supported` basis fields, issuance and catalog-bounded expiry, and
+`organizationAdmission: "not-authoritative"`. Its separate
+`catalogContinuity` block carries the mirrored head digest, predecessor,
+sequence, signed replay identity, Ed25519 signer key id, and exact head-validity
+window. Every field is derived from the already verified signed head and member;
+no caller flag can override it. The file is written with exclusive creation and
+is never printed to stdout. An existing or linked output path fails closed.
 
 The file is not trusted merely because this command created it. The official
 workflow accepts its exact SHA-256, issuance timestamp, and entry id, reproduces
@@ -108,29 +120,29 @@ the bytes at the exact main commit, and makes the receipt a separate protected
 attestation subject. Core verifies that outer attestation against its dedicated
 supported repository/workflow roots before using the receipt as provenance.
 
-In the target repository, an administrator or integration can ask the installed
-Core package to re-observe both protected attestations and the exact current
-Strict V2 decision in its V3 authority receipt:
+Receipt V1 is not a compatibility path: an older Core V1 verifier must reject
+these bytes and may not infer the new continuity fields. Core's matching V2
+consumer owns the out-of-checkout supported repository/workflow roots, live
+clock, outer-attestation verification, administrator signer-key lineage,
+durable replay/head/member custody, and current organization decision. Place the
+receipt at the fixed target path shown above; then use Core's preview-first
+`aih policy supported accept` command with the exact decision reference and
+target. Apply remains unavailable unless the production authority and GitHub
+support attestation both verify.
+`aih policy supported inspect --root <target> --json` reports only current
+scrubbed custody and performs no write.
 
-```js
-import { verifyAihSupportedQualificationArtifactV1 } from "@aihq/harness";
-
-const result = await verifyAihSupportedQualificationArtifactV1({
-  root: process.cwd(),
-  decisionReference: { id: decision.id, digest: exactDecisionDigest },
-  subject: decision.subject,
-});
-
-if (result.state !== "verified") throw new Error(result.problem);
-```
-
-Set Core's out-of-checkout authority registry root and the dedicated supported
-repository/workflow roots through `AIH_POLICY_AUTHORITY_REPOSITORY`,
-`AIH_SUPPORTED_QUALIFICATION_REPOSITORY`, and
-`AIH_SUPPORTED_QUALIFICATION_WORKFLOW`; none may come from the governed checkout.
-The caller cannot supply Core's runner, environment snapshot, clock, authority,
-or supported-target set. The return value is only an inert current-state verdict;
-it contains no authority receipt, qualification capability, or reusable evidence.
+Repository CI verifies an exact clean Core checkout, materializes the locked
+revision in a disposable detached clone, and builds and packs both packages
+there. It installs both tarballs into disposable roots and proves that packed
+Core accepts the emitted V2 receipt and the exact 5,970-byte legal ceiling,
+rejects V1 and 5,971 bytes, reaches the production acceptance boundary, and
+exercises read-only inspection. Because the real
+outer-attestation workflow has not been authorized or executed, that cold proof
+expects production acceptance to fail closed with `AIH_TRUST`; it does not
+fabricate a successful custody write. Successful production acceptance remains
+contingent on genuine organization authority and the separately authorized
+GitHub attestation.
 
 ## Produce a candidate
 

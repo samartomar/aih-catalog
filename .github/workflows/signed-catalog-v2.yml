@@ -44,7 +44,7 @@ jobs:
       CANDIDATE_SIGNER_PATH: candidate-signer.json
       CANDIDATE_METADATA_PATH: candidate-metadata.json
       PROMOTION_PLAN_PATH: promotion-plan.json
-      QUALIFICATION_RECEIPT_PATH: qualification-receipt-v1.json
+      QUALIFICATION_RECEIPT_PATH: qualification-receipt-v2.json
       REPLAY_STATE_PATH: qualification-receipt-replay-state.json
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -132,11 +132,12 @@ jobs:
       EXPECTED_PROMOTION_PLAN_SHA256: ${{ inputs.promotion_plan_sha256 }}
       EXPECTED_QUALIFICATION_RECEIPT_SHA256: ${{ inputs.qualification_receipt_sha256 }}
       QUALIFICATION_RECEIPT_ISSUED_AT: ${{ inputs.qualification_receipt_issued_at }}
+      ENTRY_ID: ${{ inputs.entry_id }}
       EXPECTED_COMMIT_SHA: ${{ inputs.commit_sha }}
       ACTUAL_DISPATCH_SHA: ${{ github.sha }}
       SIGNED_CATALOG_PATH: signed-catalog-v2/signed-catalog-v2.json
       PROMOTION_PLAN_PATH: signed-catalog-v2/promotion-plan.json
-      QUALIFICATION_RECEIPT_PATH: signed-catalog-v2/qualification-receipt-v1.json
+      QUALIFICATION_RECEIPT_PATH: signed-catalog-v2/qualification-receipt-v2.json
     steps:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
@@ -147,6 +148,7 @@ jobs:
           [[ "$EXPECTED_SIGNED_CATALOG_SHA256" =~ ^[0-9a-f]{64}$ ]]
           [[ "$EXPECTED_PROMOTION_PLAN_SHA256" =~ ^[0-9a-f]{64}$ ]]
           [[ "$EXPECTED_QUALIFICATION_RECEIPT_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$ENTRY_ID" =~ ^[a-z][a-z0-9.-]{0,63}$ ]]
           [[ "$EXPECTED_COMMIT_SHA" =~ ^[0-9a-f]{40}$ ]]
           [[ "$ACTUAL_DISPATCH_SHA" =~ ^[0-9a-f]{40}$ ]]
           test "$EXPECTED_COMMIT_SHA" = "$ACTUAL_DISPATCH_SHA"
@@ -162,7 +164,7 @@ jobs:
           node -e '
             const fs = require("node:fs");
             const raw = fs.readFileSync(process.env.QUALIFICATION_RECEIPT_PATH);
-            if (raw.byteLength > 4096) process.exit(2);
+            if (raw.byteLength > 5970) process.exit(2);
             let text;
             let receipt;
             try {
@@ -183,15 +185,48 @@ jobs:
             };
             if (
               text !== canonical(receipt) ||
-              Object.keys(receipt).sort().join(",") !== "expiresAt,format,issuedAt,notBefore,organizationAdmission,qualificationBasis,subject,version" ||
+              Object.keys(receipt).sort().join(",") !== "catalogContinuity,entryId,expiresAt,format,issuedAt,notBefore,organizationAdmission,qualificationBasis,subject,version" ||
               receipt.format !== "aih-supported-qualification-receipt" ||
-              receipt.version !== 1 ||
+              receipt.version !== 2 ||
               receipt.organizationAdmission !== "not-authoritative" ||
               !isCanonicalUtc(process.env.QUALIFICATION_RECEIPT_ISSUED_AT) ||
               !isCanonicalUtc(receipt.issuedAt) ||
               !isCanonicalUtc(receipt.notBefore) ||
               !isCanonicalUtc(receipt.expiresAt) ||
               receipt.issuedAt !== process.env.QUALIFICATION_RECEIPT_ISSUED_AT
+            ) process.exit(2);
+            const continuity = receipt.catalogContinuity;
+            const signed = JSON.parse(fs.readFileSync(process.env.SIGNED_CATALOG_PATH));
+            const predicate = JSON.parse(Buffer.from(signed.envelope.payload, "base64")).predicate;
+            const head = predicate.catalogHead;
+            const member = Array.isArray(head.entries)
+              ? head.entries.find((candidate) => candidate.entryId === receipt.entryId)
+              : undefined;
+            const basis = receipt.qualificationBasis;
+            if (
+              continuity === null || typeof continuity !== "object" || Array.isArray(continuity) ||
+              Object.keys(continuity).sort().join(",") !== "catalogHeadDigest,headValidFrom,headValidUntil,previousCatalogHeadDigest,replayIdentity,sequence,signerKeyId" ||
+              receipt.entryId !== process.env.ENTRY_ID ||
+              member === undefined ||
+              basis === null || typeof basis !== "object" || Array.isArray(basis) ||
+              Object.keys(basis).sort().join(",") !== "catalogDigest,catalogHeadDigest,catalogMemberDigest,catalogSignerIdentity,kind,subjectDigest,subjectKind" ||
+              basis.kind !== "aih-supported" ||
+              basis.catalogDigest !== `sha256:${head.catalogSha256}` ||
+              basis.catalogHeadDigest !== `sha256:${head.catalogHeadSha256}` ||
+              basis.catalogMemberDigest !== `sha256:${member.memberSha256}` ||
+              basis.catalogSignerIdentity !== head.signer.identity ||
+              basis.subjectDigest !== member.subject?.subjectDigest ||
+              basis.subjectKind !== member.subject?.kind ||
+              canonical(receipt.subject) !== canonical(member.subject) ||
+              continuity.catalogHeadDigest !== `sha256:${head.catalogHeadSha256}` ||
+              continuity.previousCatalogHeadDigest !== `sha256:${head.previousCatalogHeadSha256}` ||
+              continuity.replayIdentity !== predicate.replayIdentity ||
+              continuity.sequence !== head.sequence ||
+              continuity.signerKeyId !== head.signer.keyId ||
+              continuity.headValidFrom !== head.validFrom ||
+              continuity.headValidUntil !== head.validUntil ||
+              receipt.expiresAt !== head.validUntil ||
+              receipt.qualificationBasis?.catalogHeadDigest !== continuity.catalogHeadDigest
             ) process.exit(2);
             const issuedAt = Date.parse(receipt.issuedAt);
             const notBefore = Date.parse(receipt.notBefore);
@@ -235,8 +270,8 @@ jobs:
       ENTRY_ID: ${{ inputs.entry_id }}
       SIGNED_CATALOG_PATH: signed-catalog-v2/signed-catalog-v2.json
       PROMOTION_PLAN_PATH: signed-catalog-v2/promotion-plan.json
-      QUALIFICATION_RECEIPT_PATH: signed-catalog-v2/qualification-receipt-v1.json
-      RECOMPUTED_QUALIFICATION_RECEIPT_PATH: recomputed-qualification-receipt-v1.json
+      QUALIFICATION_RECEIPT_PATH: signed-catalog-v2/qualification-receipt-v2.json
+      RECOMPUTED_QUALIFICATION_RECEIPT_PATH: recomputed-qualification-receipt-v2.json
       REPLAY_STATE_PATH: qualification-receipt-replay-state.json
       CATALOG_SIGNER_ROOT_PATH: ${{ inputs.catalog_signer_root_path }}
       CONTINUITY_MODE: ${{ inputs.continuity_mode }}

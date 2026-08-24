@@ -14,8 +14,10 @@ admission authority. The CLI makes that boundary machine-visible as
 `organizationAdmission: "not-authoritative"`.
 
 Core does not consume Catalog V2 directly. This package emits the closed
-Core-owned qualification receipt only after verifying Catalog V2; Core separately
-verifies that receipt's outer attestation and exact fields. A separate Strict V2
+Core-owned Strict Qualification Receipt V2 only after verifying Catalog V2. The
+receipt carries the exact member basis and authenticated continuity facts; the
+matching Core V2 consumer separately verifies its outer attestation and exact
+fields. A separate Strict V2
 governance decision carried by a V3 authority receipt must still authorize use. An
 organization can therefore qualify a tool, skill, MCP server, package, or profile
 with its own exact source and evidence even when the subject is absent from the
@@ -33,8 +35,9 @@ supported channel.
 5. A cold consumer verifies an out-of-band root, static expected claims, current
    validity, continuity, caller-supplied replay state when used, the signature,
    and all digest mirrors.
-6. The producer emits one closed, canonical, non-authoritative qualification
-   receipt for an exact verified member.
+6. The producer emits one closed, canonical, non-authoritative Strict
+   Qualification Receipt V2 for an exact verified member, including the
+   authenticated head continuity and replay identity.
 7. A separately authorized manual workflow may attach independent GitHub
    OIDC/keyless outer provenance to the exact catalog and receipt after their
    hashes and the exact promotion plan are approved.
@@ -100,18 +103,28 @@ the subject.
 - DSSE payload type, in-toto subject, replay identity, and one Ed25519 signature.
 
 The Core contract is locked to commit
-`e27a55dcebb635c8298aa4fd6fd871f59089bcf7` and schema SHA-256
-`27295aee8d8be333abe2c73adc72884b534b1c9980a9b7a39d12be8d34c5caff`.
-The qualification-receipt schema has a separate Core commit and SHA-256 lock;
-the commit is advanced only to the merged Core receipt implementation. The
-verifier and committed vectors reject drift. Unknown schema/effect versions may
+`e53fe219002515c092ebb68c5b91c91a2fc6110d`, decision-schema SHA-256
+`27295aee8d8be333abe2c73adc72884b534b1c9980a9b7a39d12be8d34c5caff`,
+and Receipt V2 schema SHA-256
+`40a2522dfd05b370c537dc5d9b05ddc3fe2a1d6e1b6448fa50b97d53d2d2477f`.
+Qualification Receipt V1 and its obsolete Core schema lock are removed. The
+public lock export, fixture, vendored decision and receipt schemas, vector
+verifier, packed proof, and CI checkout all bind that same merged Core contract;
+available drift is rejected.
+Unknown schema/effect versions may
 be inspectable as authenticated opaque records, but cannot verify or materialize
 as V2.
 
 Resource bounds are fail-closed: 4,096 entries, 64 signer roots, 4,096 replay
 identities, 64 items in bounded lists, an 8 MiB head/candidate, a 24 MiB signed
-artifact, 1 MiB claims/root/replay/seed artifacts, a 64 KiB private key, and a
-4 KiB qualification receipt.
+artifact, 1 MiB claims/root/replay/seed artifacts, a 64 KiB private key, a
+4,096-byte complete canonical source object, and a 5,970-byte Qualification
+Receipt V2. The receipt bound is the measured maximum canonical encoding
+admitted by that closed grammar; exact-cap and cap+1 tests lock the producer
+contract, and the packed proof requires the matching Core consumer to accept
+the exact 5,970-byte ceiling and reject 5,971 bytes. The source
+cap limits only this optional supported channel; organization-qualified Core
+remains the path for an exact source outside it.
 
 ## Cold verification and consumption
 
@@ -135,21 +148,25 @@ file command:
 aih-supported emit-qualification-receipt --signed-catalog ./signed-catalog.json --catalog-signer-root ./catalog-signer-root.json --expected-claims ./expected-claims.json --replay-state ./replay-state.json --now 2026-08-22T12:00:00Z --continuity genesis --entry-id recipe.default --output ./.aih/aih-supported-qualification-receipt.json
 ```
 
-The command prints no receipt to stdout. It writes a canonical, closed receipt
-only after catalog, member, signer, claims, continuity, replay, compatibility,
-and validity checks pass. The result explicitly states that it is not
+The command prints no receipt to stdout. It writes a canonical, closed V2
+receipt only after catalog, member, signer, claims, continuity, replay,
+compatibility, and validity checks pass. The producer derives its `entryId` and
+`catalogContinuity` block only from the verified member and signed head. That
+block binds the mirrored head digest, predecessor, sequence, signed replay
+identity, Ed25519 signer key id, and head-validity window; receipt expiry equals
+the head-validity ceiling. The result explicitly states that it is not
 organization admission. Core still requires its independent Strict V2
-organization decision, V3 authority verification, and fresh upstream
-observation.
+organization decision, V3 authority verification, durable V2 acceptance, and
+fresh upstream observation.
 
-The installed Core package exposes
-`verifyAihSupportedQualificationArtifactV1({root, decisionReference, subject})`
-for the target repository. Core owns the runner, environment snapshot, host
-adapter, and live clock, then re-observes both protected attestations and the
-exact current Strict V2 decision in its V3 authority receipt. The result is only
-`verified` or `unverified`; no
-authority, receipt bytes, qualification capability, or reusable evidence crosses
-the package boundary.
+Receipt V1 is deliberately unsupported. The older Core V1 artifact verifier
+must reject V2 bytes and is not a downgrade route. Core's matching V2 consumer
+owns the runner, environment snapshot, live clock, outer-attestation roots,
+administrator signer-key lineage, replay/head/member custody, and current
+organization authority. Its preview-first `aih policy supported accept` route
+reads the receipt only from the fixed target path, and its separate
+`aih policy supported inspect` route is read-only and scrubbed. A receipt is not
+accepted or effective merely because this producer emitted it.
 
 The inner claims are a declaration and must exactly match independently supplied
 expectations. Consumers must also verify the outer GitHub attestation against the
@@ -161,6 +178,18 @@ checks it but never writes it. A stateful consumer records the returned replay
 identity only as part of its own atomic acceptance transaction. Omitting
 `--replay-state` leaves that caller-owned duplicate-identity check disabled; it
 does not relax signature, validity, continuity, claim, or digest verification.
+
+The cold cross-repository check takes an exact clean Core checkout through
+`AIH_SUPPORTED_CORE_SOURCE`, verifies it, materializes the locked commit in a
+disposable detached clone, builds and packs both packages, installs them into
+disposable roots, emits the real V2 receipt at Core's fixed target path, verifies
+the packed public V2 parser accepts it and the exact legal byte ceiling while
+rejecting V1 and cap+1, invokes the production accept route, and exercises
+read-only inspection. The real outer-attestation
+workflow remains separately authorized and has not run, so the check requires
+the production accept route to return its exact `AIH_TRUST` refusal rather than
+simulating `gh` or fabricating authority. It therefore proves package and
+contract integration, not a successful production custody write.
 
 ## Candidate, version, promotion, and revocation
 
@@ -202,6 +231,7 @@ npm test
 npm run test:cov
 npm run verify:core-v2-lock
 npm run verify:default-evidence-chain
+npm run verify:cold-external-admin
 npm run verify:workflow-action-pins -- --online
 npm audit --audit-level=high
 ```
@@ -210,5 +240,6 @@ Normal CI is read-only. It validates the Core lock, deterministic defaults,
 package boundaries, and tests; it does not sign, attest, publish, or initialize
 repository state. Contributors may propose exact sources and evidence, but
 catalog signing, protected promotion approval, outer provenance, npm publication,
-and any release remain separate authority decisions. V1 is removed rather than
-served as a compatibility or downgrade path.
+and any release remain separate authority decisions. Catalog V1 and
+Qualification Receipt V1 are removed rather than served as compatibility or
+downgrade paths.

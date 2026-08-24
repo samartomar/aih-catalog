@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 const here = fileURLToPath(new URL(".", import.meta.url));
 const fixturePath = resolve(here, "..", "core-qualification-basis-v2.json");
 const schemaPath = resolve(here, "aih-governance-decision-v2.schema.json");
+const receiptSchemaPath = resolve(here, "aih-supported-qualification-receipt-v2.schema.json");
 const generatorPath = resolve(here, "generate-core-v2-vectors.mjs");
 const fixture = JSON.parse(readFileSync(fixturePath, "utf8"));
 const sha256 = (value) => createHash("sha256").update(value).digest("hex");
@@ -26,11 +27,15 @@ const generated = spawnSync(process.execPath, [generatorPath], { encoding: "utf8
 const generatedVectors = generated.status === 0 ? JSON.parse(generated.stdout) : undefined;
 if (fixture.provenance.generator !== "tests/contracts/core/generate-core-v2-vectors.mjs" ||
   fixture.provenance.source !== `samartomar/ai-harness@${fixture.core.commit}` ||
+  fixture.core.commit !== "e53fe219002515c092ebb68c5b91c91a2fc6110d" ||
+  fixture.core.repository !== "samartomar/ai-harness" ||
+  fixture.core.receiptMaxBytes !== 5970 || fixture.core.receiptSourceMaxBytes !== 4096 ||
   generatedVectors?.source?.digest !== source.digest || generatedVectors?.subject?.digest !== subject.digest ||
   source.canonical !== expectedSourceCanonical || source.digest !== expectedSourceDigest ||
   subject.canonical !== expectedSubjectCanonical || subject.digest !== expectedSubjectDigest ||
   subject.value.sourceDigest !== source.digest ||
-  sha256(readFileSync(schemaPath)) !== fixture.core.schemaSha256) {
+  sha256(readFileSync(schemaPath)) !== fixture.core.schemaSha256 ||
+  sha256(readFileSync(receiptSchemaPath)) !== fixture.core.receiptSchemaSha256) {
   throw new Error("exact Core V2 vector or schema lock drift");
 }
-process.stdout.write("Core V2 vectors and schema lock PASS\n");
+process.stdout.write("Core V2 vectors and schema locks PASS\n");
