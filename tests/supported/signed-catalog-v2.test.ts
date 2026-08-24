@@ -3661,7 +3661,15 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(coldVerificationSource).toMatch(/"sign-candidate"/);
     expect(coldVerificationSource).toMatch(/"inspect"/);
     expect(coldVerificationSource).toMatch(/"--qualification-basis"/);
-    expect(coldVerificationSource).not.toMatch(/AIH_SUPPORTED_CORE_SOURCE|@aihq\/harness|fake gh/);
+    expect(coldVerificationSource).toContain(
+      "e53fe219002515c092ebb68c5b91c91a2fc6110d",
+    );
+    expect(coldVerificationSource).toMatch(/github\.com\/samartomar\/ai-harness/);
+    expect(coldVerificationSource).toMatch(/@aihq\/harness/);
+    expect(coldVerificationSource).toMatch(/policy", "supported", "inspect"/);
+    expect(coldVerificationSource).toMatch(/pre-publication-synthetic-custody-contract/);
+    expect(coldVerificationSource).toMatch(/qualification-receipt-v1|version: 1/);
+    expect(coldVerificationSource).not.toMatch(/fake gh/);
     expect(coldVerificationSource).toMatch(/receipt\.version !== 2/);
     expect(coldVerificationSource).toMatch(/catalogContinuity/);
     expect(coldVerificationSource).toMatch(/Core V2 custody is verified by Core/);
