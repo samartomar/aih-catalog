@@ -90,7 +90,12 @@ if (
   !receipt.catalogContinuity.signerKeyId.startsWith("ed25519:")
 )
   throw new Error("core-receipt-continuity");
-const v1 = Buffer.from(JSON.stringify({ ...receipt, version: 1 }), "utf8");
+const receiptText = receiptBytes.toString("utf8");
+if ((receiptText.match(/"version":2/g) ?? []).length !== 1)
+  throw new Error("core-receipt-v2-version-marker");
+const v1Text = receiptText.replace('"version":2', '"version":1');
+if (v1Text.length !== receiptText.length) throw new Error("core-receipt-v1-version-mutation");
+const v1 = Buffer.from(v1Text, "utf8");
 if (api.parseAihSupportedQualificationReceiptV2Bytes(v1) !== undefined)
   throw new Error("core-v1-receipt-accepted");
 const stable = (value) => {

@@ -13,6 +13,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
+import Ajv2020 from "ajv/dist/2020.js";
 import { describe, expect, it, vi } from "vitest";
 import { runCatalogV2Cli } from "../../src/supported/signed-catalog-v2.js";
 
@@ -1172,6 +1173,13 @@ describe("public signed catalog V2 acceptance contract", () => {
   it("emits closed V2 receipt bytes while preserving the exact Core source grammar", async () => {
     const publicApi = await api();
     const fixture = signingFixture();
+    const receiptSchema = JSON.parse(
+      readFileSync(
+        resolve(root, "tests/contracts/core/aih-supported-qualification-receipt-v2.schema.json"),
+        "utf8",
+      ),
+    );
+    const validateReceiptSchema = new Ajv2020({ strict: true }).compile(receiptSchema);
     const emit = (signer: Record<string, unknown>, sourceValue: Record<string, unknown>) => {
       const sourceType = sourceValue.type as string;
       const head = publicApi.createCatalogHeadV2(
@@ -1204,23 +1212,26 @@ describe("public signed catalog V2 acceptance contract", () => {
     for (const sourceValue of variants) {
       const receipt = emit(boundarySigner, sourceValue);
       const receiptSubject = receipt.subject as Record<string, unknown>;
+      expect(validateReceiptSchema(receipt)).toBe(true);
+      const overlongReceiptSigner = {
+        ...receipt,
+        qualificationBasis: {
+          ...(receipt.qualificationBasis as Record<string, unknown>),
+          catalogSignerIdentity: `administrator:${"a".repeat(243)}`,
+        },
+      };
+      expect(validateReceiptSchema(overlongReceiptSigner)).toBe(false);
+      expect(() => publicApi.canonicalQualificationReceiptBytes(overlongReceiptSigner)).toThrow();
+      const receiptWithUnknownSource = {
+        ...receipt,
+        subject: {
+          ...receiptSubject,
+          source: { ...(receiptSubject.source as Record<string, unknown>), extra: true },
+        },
+      };
+      expect(validateReceiptSchema(receiptWithUnknownSource)).toBe(false);
       expect(() =>
-        publicApi.canonicalQualificationReceiptBytes({
-          ...receipt,
-          qualificationBasis: {
-            ...(receipt.qualificationBasis as Record<string, unknown>),
-            catalogSignerIdentity: `administrator:${"a".repeat(243)}`,
-          },
-        }),
-      ).toThrow();
-      expect(() =>
-        publicApi.canonicalQualificationReceiptBytes({
-          ...receipt,
-          subject: {
-            ...receiptSubject,
-            source: { ...(receiptSubject.source as Record<string, unknown>), extra: true },
-          },
-        }),
+        publicApi.canonicalQualificationReceiptBytes(receiptWithUnknownSource),
       ).toThrow();
     }
     const overlongSigner = { ...fixture.signer, identity: `administrator:${"a".repeat(243)}` };
@@ -1374,7 +1385,11 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(signer).toMatch(
       /QUALIFICATION_RECEIPT_ISSUED_AT:\s*\$\{\{\s*inputs\.qualification_receipt_issued_at\s*\}\}/,
     );
+    expect(signer).toMatch(/ENTRY_ID:\s*\$\{\{\s*inputs\.entry_id\s*\}\}/);
     expect(signer).toMatch(/receipt\.issuedAt !== process\.env\.QUALIFICATION_RECEIPT_ISSUED_AT/);
+    expect(signer).toMatch(/receipt\.entryId !== process\.env\.ENTRY_ID/);
+    expect(signer).toMatch(/head\.entries\.find/);
+    expect(signer).toMatch(/basis\.catalogMemberDigest[\s\S]*member\.memberSha256/);
     expect(signer).toMatch(
       /Date\.parse\(receipt\.notBefore\) > now \|\| now >= Date\.parse\(receipt\.expiresAt\)/,
     );
@@ -3736,7 +3751,8 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(coldVerificationSource).toMatch(/@aihq\/harness/);
     expect(coldVerificationSource).toMatch(/"policy",\s*"supported",\s*"inspect"/);
     expect(coldVerificationSource).toMatch(/pre-publication-public-receipt-contract/);
-    expect(coldVerificationSource).toMatch(/qualification-receipt-v1|version: 1/);
+    expect(coldVerificationSource).toMatch(/core-v1-receipt-accepted/);
+    expect(coldVerificationSource).toContain(`replace('"version":2', '"version":1')`);
     expect(coldVerificationSource).not.toMatch(/fake gh/);
     expect(coldVerificationSource).toMatch(/receipt\.version !== 2/);
     expect(coldVerificationSource).toMatch(/catalogContinuity/);

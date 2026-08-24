@@ -132,6 +132,7 @@ jobs:
       EXPECTED_PROMOTION_PLAN_SHA256: ${{ inputs.promotion_plan_sha256 }}
       EXPECTED_QUALIFICATION_RECEIPT_SHA256: ${{ inputs.qualification_receipt_sha256 }}
       QUALIFICATION_RECEIPT_ISSUED_AT: ${{ inputs.qualification_receipt_issued_at }}
+      ENTRY_ID: ${{ inputs.entry_id }}
       EXPECTED_COMMIT_SHA: ${{ inputs.commit_sha }}
       ACTUAL_DISPATCH_SHA: ${{ github.sha }}
       SIGNED_CATALOG_PATH: signed-catalog-v2/signed-catalog-v2.json
@@ -147,6 +148,7 @@ jobs:
           [[ "$EXPECTED_SIGNED_CATALOG_SHA256" =~ ^[0-9a-f]{64}$ ]]
           [[ "$EXPECTED_PROMOTION_PLAN_SHA256" =~ ^[0-9a-f]{64}$ ]]
           [[ "$EXPECTED_QUALIFICATION_RECEIPT_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$ENTRY_ID" =~ ^[a-z][a-z0-9.-]{0,63}$ ]]
           [[ "$EXPECTED_COMMIT_SHA" =~ ^[0-9a-f]{40}$ ]]
           [[ "$ACTUAL_DISPATCH_SHA" =~ ^[0-9a-f]{40}$ ]]
           test "$EXPECTED_COMMIT_SHA" = "$ACTUAL_DISPATCH_SHA"
@@ -197,10 +199,25 @@ jobs:
             const signed = JSON.parse(fs.readFileSync(process.env.SIGNED_CATALOG_PATH));
             const predicate = JSON.parse(Buffer.from(signed.envelope.payload, "base64")).predicate;
             const head = predicate.catalogHead;
+            const member = Array.isArray(head.entries)
+              ? head.entries.find((candidate) => candidate.entryId === receipt.entryId)
+              : undefined;
+            const basis = receipt.qualificationBasis;
             if (
               continuity === null || typeof continuity !== "object" || Array.isArray(continuity) ||
               Object.keys(continuity).sort().join(",") !== "catalogHeadDigest,headValidFrom,headValidUntil,previousCatalogHeadDigest,replayIdentity,sequence,signerKeyId" ||
-              receipt.entryId === undefined ||
+              receipt.entryId !== process.env.ENTRY_ID ||
+              member === undefined ||
+              basis === null || typeof basis !== "object" || Array.isArray(basis) ||
+              Object.keys(basis).sort().join(",") !== "catalogDigest,catalogHeadDigest,catalogMemberDigest,catalogSignerIdentity,kind,subjectDigest,subjectKind" ||
+              basis.kind !== "aih-supported" ||
+              basis.catalogDigest !== `sha256:${head.catalogSha256}` ||
+              basis.catalogHeadDigest !== `sha256:${head.catalogHeadSha256}` ||
+              basis.catalogMemberDigest !== `sha256:${member.memberSha256}` ||
+              basis.catalogSignerIdentity !== head.signer.identity ||
+              basis.subjectDigest !== member.subject?.subjectDigest ||
+              basis.subjectKind !== member.subject?.kind ||
+              canonical(receipt.subject) !== canonical(member.subject) ||
               continuity.catalogHeadDigest !== `sha256:${head.catalogHeadSha256}` ||
               continuity.previousCatalogHeadDigest !== `sha256:${head.previousCatalogHeadSha256}` ||
               continuity.replayIdentity !== predicate.replayIdentity ||
