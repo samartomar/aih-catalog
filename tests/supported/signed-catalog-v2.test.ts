@@ -3663,6 +3663,10 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(coldVerificationSource).toMatch(/"--qualification-basis"/);
     expect(coldVerificationSource).toContain("e53fe219002515c092ebb68c5b91c91a2fc6110d");
     expect(coldVerificationSource).toMatch(/AIH_SUPPORTED_CORE_SOURCE/);
+    expect(coldVerificationSource).toMatch(/"status",\s*"--porcelain=v1"/);
+    expect(coldVerificationSource).toMatch(/"clone",\s*"--no-checkout",\s*"--shared"/);
+    expect(coldVerificationSource).toMatch(/"checkout",\s*"--detach",\s*coreCommit/);
+    expect(coldVerificationSource).not.toMatch(/run\(coreSource,/);
     expect(coldVerificationSource).toMatch(/@aihq\/harness/);
     expect(coldVerificationSource).toMatch(/"policy",\s*"supported",\s*"inspect"/);
     expect(coldVerificationSource).toMatch(/pre-publication-public-receipt-contract/);

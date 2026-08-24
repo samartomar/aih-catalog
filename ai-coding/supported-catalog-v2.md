@@ -175,8 +175,9 @@ identity only as part of its own atomic acceptance transaction. Omitting
 `--replay-state` leaves that caller-owned duplicate-identity check disabled; it
 does not relax signature, validity, continuity, claim, or digest verification.
 
-The cold cross-repository check takes an exact detached Core checkout through
-`AIH_SUPPORTED_CORE_SOURCE`, builds and packs both packages, installs them into
+The cold cross-repository check takes an exact clean Core checkout through
+`AIH_SUPPORTED_CORE_SOURCE`, verifies it, materializes the locked commit in a
+disposable detached clone, builds and packs both packages, installs them into
 disposable roots, emits the real V2 receipt at Core's fixed target path, verifies
 the packed public V2 parser accepts it and rejects V1, invokes the production
 accept route, and exercises read-only inspection. The real outer-attestation

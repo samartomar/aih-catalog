@@ -46,6 +46,15 @@ const runCommand = (command, cwd, args) => {
     );
   return result;
 };
+const requireExactCleanCore = (cwd, stateError) => {
+  if (runCommand("git", cwd, ["rev-parse", "HEAD"]).stdout.trim() !== coreCommit)
+    throw new Error(`${stateError}-commit`);
+  if (
+    runCommand("git", cwd, ["status", "--porcelain=v1", "--untracked-files=all"]).stdout.length !==
+    0
+  )
+    throw new Error(`${stateError}-dirty`);
+};
 const runInstalledCli = (cwd, cli, bin, args, allowFailure = false) => {
   const result = spawnSync(
     process.platform === "win32" ? process.execPath : bin,
@@ -92,11 +101,15 @@ process.stdout.write(JSON.stringify({
 
 const temp = mkdtempSync(join(tmpdir(), "aih-supported-cold-admin-"));
 try {
-  if (runCommand("git", coreSource, ["rev-parse", "HEAD"]).stdout.trim() !== coreCommit)
-    throw new Error("cold-admin-core-commit");
-  run(coreSource, [npmCli, "ci", "--ignore-scripts"]);
-  run(coreSource, [npmCli, "run", "build"]);
-  const corePacked = run(coreSource, [npmCli, "pack", "--json", "--pack-destination", temp]);
+  requireExactCleanCore(coreSource, "cold-admin-core-source");
+  const coreBuild = resolve(temp, "core");
+  runCommand("git", temp, ["clone", "--no-checkout", "--shared", coreSource, coreBuild]);
+  runCommand("git", coreBuild, ["checkout", "--detach", coreCommit]);
+  requireExactCleanCore(coreBuild, "cold-admin-core-build");
+  run(coreBuild, [npmCli, "ci", "--ignore-scripts"]);
+  run(coreBuild, [npmCli, "run", "build"]);
+  requireExactCleanCore(coreBuild, "cold-admin-core-build");
+  const corePacked = run(coreBuild, [npmCli, "pack", "--json", "--pack-destination", temp]);
   const coreManifest = JSON.parse(corePacked.stdout);
   if (!Array.isArray(coreManifest) || typeof coreManifest[0]?.filename !== "string")
     throw new Error("cold-admin-core-pack-manifest");
