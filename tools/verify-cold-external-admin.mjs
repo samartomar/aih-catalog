@@ -15,6 +15,16 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const coreCommit = "e53fe219002515c092ebb68c5b91c91a2fc6110d";
+const coreSchemaLocks = Object.freeze([
+  Object.freeze({
+    path: "schemas/aih-governance-decision-v2.schema.json",
+    sha256: "27295aee8d8be333abe2c73adc72884b534b1c9980a9b7a39d12be8d34c5caff",
+  }),
+  Object.freeze({
+    path: "schemas/aih-supported-qualification-receipt-v2.schema.json",
+    sha256: "40a2522dfd05b370c537dc5d9b05ddc3fe2a1d6e1b6448fa50b97d53d2d2477f",
+  }),
+]);
 const corePackageName = "@aihq/harness";
 const npmCli = process.env.npm_execpath;
 const coreSource = process.env.AIH_SUPPORTED_CORE_SOURCE;
@@ -72,13 +82,11 @@ const receiptExpiresAt = canonicalUtc(new Date(Date.now() + 24 * 60 * 60 * 1000)
 const coreReceiptContract = String.raw`
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
-import { pathToFileURL } from "node:url";
 
-const [corePackage, receiptPath] = process.argv.slice(2);
-if ([corePackage, receiptPath].some((value) => typeof value !== "string" || value.length === 0))
+const [receiptPath] = process.argv.slice(2);
+if (typeof receiptPath !== "string" || receiptPath.length === 0)
   throw new Error("core-receipt-contract-input");
-const api = await import(pathToFileURL(resolve(corePackage, "dist/index.js")).href);
+const api = await import("@aihq/harness");
 const receiptBytes = readFileSync(receiptPath);
 const receipt = api.parseAihSupportedQualificationReceiptV2Bytes(receiptBytes);
 if (receipt === undefined || receipt.version !== 2) throw new Error("core-receipt-v2-required");
@@ -170,6 +178,10 @@ try {
   runCommand("git", temp, ["clone", "--no-checkout", "--shared", coreSource, coreBuild]);
   runCommand("git", coreBuild, ["checkout", "--detach", coreCommit]);
   requireExactCleanCore(coreBuild, "cold-admin-core-build");
+  for (const schemaLock of coreSchemaLocks) {
+    if (sha256(readFileSync(resolve(coreBuild, schemaLock.path))) !== schemaLock.sha256)
+      throw new Error("cold-admin-core-schema-lock");
+  }
   run(coreBuild, [npmCli, "ci", "--ignore-scripts"]);
   run(coreBuild, [npmCli, "run", "build"]);
   requireExactCleanCore(coreBuild, "cold-admin-core-build");
@@ -359,7 +371,7 @@ try {
   if (!acceptanceDiagnostic.includes("error [AIH_TRUST]: supported custody verification failed"))
     throw new Error("cold-admin-production-accept-boundary");
   writeFileSync(coreContractPath, coreReceiptContract, "utf8");
-  const custodyResult = run(consumer, [coreContractPath, installedCore, receiptPath]);
+  const custodyResult = run(consumer, [coreContractPath, receiptPath]);
   const custody = JSON.parse(custodyResult.stdout);
   if (
     custody.mode !== "pre-publication-public-receipt-contract" ||
