@@ -23,6 +23,9 @@ export const QUALIFICATION_RECEIPT_V2_MAX_BYTES = 5970;
 export const CATALOG_SOURCE_V2_MAX_BYTES = 4096;
 export const STRICT_V2_CORE_LOCK = Object.freeze({
   coreCommit: "e53fe219002515c092ebb68c5b91c91a2fc6110d",
+  receiptMaxBytes: QUALIFICATION_RECEIPT_V2_MAX_BYTES,
+  receiptSchemaSha256: "40a2522dfd05b370c537dc5d9b05ddc3fe2a1d6e1b6448fa50b97d53d2d2477f",
+  receiptSourceMaxBytes: CATALOG_SOURCE_V2_MAX_BYTES,
   schemaSha256: "27295aee8d8be333abe2c73adc72884b534b1c9980a9b7a39d12be8d34c5caff",
 });
 const fail = (code: string): never => {

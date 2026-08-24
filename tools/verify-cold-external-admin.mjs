@@ -70,6 +70,7 @@ const receiptNow = canonicalUtc(new Date());
 const receiptExpiresAt = canonicalUtc(new Date(Date.now() + 24 * 60 * 60 * 1000));
 
 const coreReceiptContract = String.raw`
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -92,9 +93,67 @@ if (
 const v1 = Buffer.from(JSON.stringify({ ...receipt, version: 1 }), "utf8");
 if (api.parseAihSupportedQualificationReceiptV2Bytes(v1) !== undefined)
   throw new Error("core-v1-receipt-accepted");
+const stable = (value) => {
+  if (Array.isArray(value)) return "[" + value.map(stable).join(",") + "]";
+  if (value !== null && typeof value === "object")
+    return "{" + Object.keys(value).sort().map((key) => JSON.stringify(key) + ":" + stable(value[key])).join(",") + "}";
+  return JSON.stringify(value);
+};
+const domainDigest = (domain, value) =>
+  "sha256:" + createHash("sha256").update(domain + "\0" + stable(value), "utf8").digest("hex");
+const fixedSource = {
+  contentDigest: "sha256:" + "a".repeat(64),
+  endpoint: "",
+  type: "remote",
+};
+const endpointBytes = 4096 - Buffer.byteLength(stable(fixedSource), "utf8");
+const source = {
+  ...fixedSource,
+  endpoint: "https://a/" + "a".repeat(endpointBytes - "https://a/".length),
+};
+const sourceDigest = domainDigest("aih-governance-decision-source/v2", source);
+const id = "a".repeat(64);
+const subjectDigest = domainDigest("aih-governance-decision-subject/v2", {
+  id,
+  kind: "profile",
+  sourceDigest,
+});
+const previousCatalogHeadDigest =
+  receipt.catalogContinuity.catalogHeadDigest === "sha256:" + "1".repeat(64)
+    ? "sha256:" + "2".repeat(64)
+    : "sha256:" + "1".repeat(64);
+const atCap = {
+  ...receipt,
+  catalogContinuity: {
+    ...receipt.catalogContinuity,
+    previousCatalogHeadDigest,
+    sequence: Number.MAX_SAFE_INTEGER,
+  },
+  entryId: id,
+  qualificationBasis: {
+    ...receipt.qualificationBasis,
+    catalogSignerIdentity: "administrator:" + "a".repeat(242),
+    subjectDigest,
+    subjectKind: "profile",
+  },
+  subject: { id, kind: "profile", source, sourceDigest, subjectDigest },
+};
+const atCapBytes = Buffer.from(stable(atCap), "utf8");
+if (
+  atCapBytes.byteLength !== 5970 ||
+  api.parseAihSupportedQualificationReceiptV2Bytes(atCapBytes) === undefined
+)
+  throw new Error("core-receipt-v2-at-cap");
+const capPlusOne = Buffer.concat([atCapBytes, Buffer.from("x")]);
+if (
+  capPlusOne.byteLength !== 5971 ||
+  api.parseAihSupportedQualificationReceiptV2Bytes(capPlusOne) !== undefined
+)
+  throw new Error("core-receipt-v2-cap-plus-one");
 process.stdout.write(JSON.stringify({
   mode: "pre-publication-public-receipt-contract",
   receiptVersion: receipt.version,
+  receiptMaxBytes: atCapBytes.byteLength,
   continuity: receipt.catalogContinuity,
 }) + "\n");
 `;
@@ -300,6 +359,7 @@ try {
   if (
     custody.mode !== "pre-publication-public-receipt-contract" ||
     custody.receiptVersion !== 2 ||
+    custody.receiptMaxBytes !== 5970 ||
     custody.continuity?.catalogHeadDigest !== receipt.qualificationBasis.catalogHeadDigest ||
     custody.continuity?.replayIdentity !== receipt.catalogContinuity.replayIdentity ||
     custody.continuity?.signerKeyId !== receipt.catalogContinuity.signerKeyId

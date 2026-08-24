@@ -135,8 +135,9 @@ scrubbed custody and performs no write.
 Repository CI verifies an exact clean Core checkout, materializes the locked
 revision in a disposable detached clone, and builds and packs both packages
 there. It installs both tarballs into disposable roots and proves that packed
-Core accepts the V2 receipt grammar and rejects V1, reaches the production
-acceptance boundary, and exercises read-only inspection. Because the real
+Core accepts the emitted V2 receipt and the exact 5,970-byte legal ceiling,
+rejects V1 and 5,971 bytes, reaches the production acceptance boundary, and
+exercises read-only inspection. Because the real
 outer-attestation workflow has not been authorized or executed, that cold proof
 expects production acceptance to fail closed with `AIH_TRUST`; it does not
 fabricate a successful custody write. Successful production acceptance remains

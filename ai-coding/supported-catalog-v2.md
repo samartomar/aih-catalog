@@ -103,11 +103,14 @@ the subject.
 - DSSE payload type, in-toto subject, replay identity, and one Ed25519 signature.
 
 The Core contract is locked to commit
-`e53fe219002515c092ebb68c5b91c91a2fc6110d` and schema SHA-256
-`27295aee8d8be333abe2c73adc72884b534b1c9980a9b7a39d12be8d34c5caff`.
-Qualification Receipt V1 and its obsolete Core schema lock are removed. The V2
-receipt, public lock export, committed vectors, and CI checkout all bind that
-same merged Core contract; available drift is rejected.
+`e53fe219002515c092ebb68c5b91c91a2fc6110d`, decision-schema SHA-256
+`27295aee8d8be333abe2c73adc72884b534b1c9980a9b7a39d12be8d34c5caff`,
+and Receipt V2 schema SHA-256
+`40a2522dfd05b370c537dc5d9b05ddc3fe2a1d6e1b6448fa50b97d53d2d2477f`.
+Qualification Receipt V1 and its obsolete Core schema lock are removed. The
+public lock export, fixture, vendored decision and receipt schemas, vector
+verifier, packed proof, and CI checkout all bind that same merged Core contract;
+available drift is rejected.
 Unknown schema/effect versions may
 be inspectable as authenticated opaque records, but cannot verify or materialize
 as V2.
@@ -118,7 +121,8 @@ artifact, 1 MiB claims/root/replay/seed artifacts, a 64 KiB private key, a
 4,096-byte complete canonical source object, and a 5,970-byte Qualification
 Receipt V2. The receipt bound is the measured maximum canonical encoding
 admitted by that closed grammar; exact-cap and cap+1 tests lock the producer
-contract, and the matching Core consumer must adopt the same limit. The source
+contract, and the packed proof requires the matching Core consumer to accept
+the exact 5,970-byte ceiling and reject 5,971 bytes. The source
 cap limits only this optional supported channel; organization-qualified Core
 remains the path for an exact source outside it.
 
@@ -179,8 +183,9 @@ The cold cross-repository check takes an exact clean Core checkout through
 `AIH_SUPPORTED_CORE_SOURCE`, verifies it, materializes the locked commit in a
 disposable detached clone, builds and packs both packages, installs them into
 disposable roots, emits the real V2 receipt at Core's fixed target path, verifies
-the packed public V2 parser accepts it and rejects V1, invokes the production
-accept route, and exercises read-only inspection. The real outer-attestation
+the packed public V2 parser accepts it and the exact legal byte ceiling while
+rejecting V1 and cap+1, invokes the production accept route, and exercises
+read-only inspection. The real outer-attestation
 workflow remains separately authorized and has not run, so the check requires
 the production accept route to return its exact `AIH_TRUST` refusal rather than
 simulating `gh` or fabricating authority. It therefore proves package and
