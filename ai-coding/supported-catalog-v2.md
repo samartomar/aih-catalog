@@ -103,12 +103,11 @@ the subject.
 - DSSE payload type, in-toto subject, replay identity, and one Ed25519 signature.
 
 The Core contract is locked to commit
-`e27a55dcebb635c8298aa4fd6fd871f59089bcf7` and schema SHA-256
+`e53fe219002515c092ebb68c5b91c91a2fc6110d` and schema SHA-256
 `27295aee8d8be333abe2c73adc72884b534b1c9980a9b7a39d12be8d34c5caff`.
 Qualification Receipt V1 and its obsolete Core schema lock are removed. The V2
-receipt requires a separate Core commit and SHA-256 schema lock once Core's
-matching consumer is merged; until then it has no compatible Core runtime
-consumer. The verifier and committed vectors reject available contract drift.
+receipt, public lock export, committed vectors, and CI checkout all bind that
+same merged Core contract; available drift is rejected.
 Unknown schema/effect versions may
 be inspectable as authenticated opaque records, but cannot verify or materialize
 as V2.
@@ -160,9 +159,10 @@ Receipt V1 is deliberately unsupported. The older Core V1 artifact verifier
 must reject V2 bytes and is not a downgrade route. Core's matching V2 consumer
 owns the runner, environment snapshot, live clock, outer-attestation roots,
 administrator signer-key lineage, replay/head/member custody, and current
-organization authority. Until that consumer and its schema lock are merged,
-this receipt remains a producer artifact rather than accepted or effective
-state.
+organization authority. Its preview-first `aih policy supported accept` route
+reads the receipt only from the fixed target path, and its separate
+`aih policy supported inspect` route is read-only and scrubbed. A receipt is not
+accepted or effective merely because this producer emitted it.
 
 The inner claims are a declaration and must exactly match independently supplied
 expectations. Consumers must also verify the outer GitHub attestation against the
@@ -174,6 +174,16 @@ checks it but never writes it. A stateful consumer records the returned replay
 identity only as part of its own atomic acceptance transaction. Omitting
 `--replay-state` leaves that caller-owned duplicate-identity check disabled; it
 does not relax signature, validity, continuity, claim, or digest verification.
+
+The cold cross-repository check takes an exact detached Core checkout through
+`AIH_SUPPORTED_CORE_SOURCE`, builds and packs both packages, installs them into
+disposable roots, emits the real V2 receipt at Core's fixed target path, verifies
+the packed public V2 parser accepts it and rejects V1, invokes the production
+accept route, and exercises read-only inspection. The real outer-attestation
+workflow remains separately authorized and has not run, so the check requires
+the production accept route to return its exact `AIH_TRUST` refusal rather than
+simulating `gh` or fabricating authority. It therefore proves package and
+contract integration, not a successful production custody write.
 
 ## Candidate, version, promotion, and revocation
 
@@ -215,6 +225,7 @@ npm test
 npm run test:cov
 npm run verify:core-v2-lock
 npm run verify:default-evidence-chain
+npm run verify:cold-external-admin
 npm run verify:workflow-action-pins -- --online
 npm audit --audit-level=high
 ```

@@ -31,10 +31,13 @@ Core does not consume Catalog V2 directly; it neither imports nor reverifies the
 catalog. This package emits one closed Strict Qualification Receipt V2 after
 full Catalog V2 verification. The receipt carries the exact member basis plus
 the authenticated catalog continuity that Core needs for its own durable
-high-water custody. The matching Core V2 consumer separately verifies the
-receipt's outer GitHub attestation and exact fields. The organization must still
-issue the separately authorized Strict V2 governance decision through its V3
-authority receipt.
+high-water custody. Core's matching V2 consumer is available through
+`aih policy supported accept` and `aih policy supported inspect`. Acceptance
+separately verifies the receipt's outer GitHub attestation, the current Strict
+V2 organization decision carried by its V3 authority receipt, and the exact
+receipt fields before writing durable signer, replay, head, and head-scoped
+member custody. Inspection is read-only. Neither command turns catalog
+membership into organization admission.
 
 ## Install and inspect from a clean consumer
 
@@ -121,9 +124,22 @@ Receipt V1 is not a compatibility path: an older Core V1 verifier must reject
 these bytes and may not infer the new continuity fields. Core's matching V2
 consumer owns the out-of-checkout supported repository/workflow roots, live
 clock, outer-attestation verification, administrator signer-key lineage,
-durable replay/head/member custody, and current organization decision. Until
-that V2 consumer is available, the receipt is a producer artifact only and must
-not be treated as accepted, qualified, or effective state.
+durable replay/head/member custody, and current organization decision. Place the
+receipt at the fixed target path shown above; then use Core's preview-first
+`aih policy supported accept` command with the exact decision reference and
+target. Apply remains unavailable unless the production authority and GitHub
+support attestation both verify.
+`aih policy supported inspect --root <target> --json` reports only current
+scrubbed custody and performs no write.
+
+Repository CI builds and packs this package together with the exact locked Core
+revision, installs both tarballs into disposable roots, proves that packed Core
+accepts the V2 receipt grammar and rejects V1, reaches the production acceptance
+boundary, and exercises read-only inspection. Because the real outer-attestation
+workflow has not been authorized or executed, that cold proof expects production
+acceptance to fail closed with `AIH_TRUST`; it does not fabricate a successful
+custody write. Successful production acceptance remains contingent on genuine
+organization authority and the separately authorized GitHub attestation.
 
 ## Produce a candidate
 
