@@ -17,7 +17,7 @@ import { describe, expect, it, vi } from "vitest";
 import { runCatalogV2Cli } from "../../src/supported/signed-catalog-v2.js";
 
 const root = resolve(import.meta.dirname, "..", "..");
-const coreCommit = "e27a55dcebb635c8298aa4fd6fd871f59089bcf7";
+const coreCommit = "e53fe219002515c092ebb68c5b91c91a2fc6110d";
 const schemaSha256 = "27295aee8d8be333abe2c73adc72884b534b1c9980a9b7a39d12be8d34c5caff";
 const zeroDigest = "0".repeat(64);
 const sha = (value: string | Buffer): string => createHash("sha256").update(value).digest("hex");
@@ -3661,20 +3661,25 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(coldVerificationSource).toMatch(/"sign-candidate"/);
     expect(coldVerificationSource).toMatch(/"inspect"/);
     expect(coldVerificationSource).toMatch(/"--qualification-basis"/);
-    expect(coldVerificationSource).toContain(
-      "e53fe219002515c092ebb68c5b91c91a2fc6110d",
-    );
-    expect(coldVerificationSource).toMatch(/github\.com\/samartomar\/ai-harness/);
+    expect(coldVerificationSource).toContain("e53fe219002515c092ebb68c5b91c91a2fc6110d");
+    expect(coldVerificationSource).toMatch(/AIH_SUPPORTED_CORE_SOURCE/);
     expect(coldVerificationSource).toMatch(/@aihq\/harness/);
-    expect(coldVerificationSource).toMatch(/policy", "supported", "inspect"/);
-    expect(coldVerificationSource).toMatch(/pre-publication-synthetic-custody-contract/);
+    expect(coldVerificationSource).toMatch(/"policy",\s*"supported",\s*"inspect"/);
+    expect(coldVerificationSource).toMatch(/pre-publication-public-receipt-contract/);
     expect(coldVerificationSource).toMatch(/qualification-receipt-v1|version: 1/);
     expect(coldVerificationSource).not.toMatch(/fake gh/);
     expect(coldVerificationSource).toMatch(/receipt\.version !== 2/);
     expect(coldVerificationSource).toMatch(/catalogContinuity/);
-    expect(coldVerificationSource).toMatch(/Core V2 custody is verified by Core/);
+    expect(coldVerificationSource).toMatch(/production acceptance was not accepted/);
+    expect(coldVerificationSource).toContain(
+      "error [AIH_TRUST]: supported custody verification failed",
+    );
+    expect(coldVerificationSource).toMatch(
+      /Number\.isInteger\(unsupportedProductionAcceptance\.status\)/,
+    );
     expect(ciWorkflow).toMatch(/cold-external-admin:[\s\S]*npm run verify:cold-external-admin/);
-    expect(ciWorkflow).not.toMatch(/repository: samartomar\/ai-harness|AIH_SUPPORTED_CORE_SOURCE/);
+    expect(ciWorkflow).toMatch(/repository: samartomar\/ai-harness/);
+    expect(ciWorkflow).toMatch(/AIH_SUPPORTED_CORE_SOURCE/);
     expect(coldVerificationSource).toMatch(
       /process\.platform === "win32" \? process\.execPath : bin/,
     );
