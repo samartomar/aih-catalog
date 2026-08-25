@@ -18,7 +18,7 @@ import { describe, expect, it, vi } from "vitest";
 import { runCatalogV2Cli } from "../../src/supported/signed-catalog-v2.js";
 
 const root = resolve(import.meta.dirname, "..", "..");
-const coreCommit = "38e01f49f2f4ff310e2f94651b292a1618b61f2e";
+const coreCommit = "c0324d331deffe6ca757be5ee9bbdcffb9927883";
 const corePackageManifestSha256 =
   "af64feda4e3e57808e1a262e15a5cb8f41581f77e8f9b49eb9b459317b803ecd";
 const schemaSha256 = "27295aee8d8be333abe2c73adc72884b534b1c9980a9b7a39d12be8d34c5caff";
