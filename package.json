@@ -4,11 +4,11 @@
   "description": "AIH Catalog qualification producer for AI Development Assurance.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/samartomar/aih-supported.git"
+    "url": "git+https://github.com/samartomar/aih-catalog.git"
   },
-  "homepage": "https://github.com/samartomar/aih-supported#readme",
+  "homepage": "https://github.com/samartomar/aih-catalog#readme",
   "bugs": {
-    "url": "https://github.com/samartomar/aih-supported/issues"
+    "url": "https://github.com/samartomar/aih-catalog/issues"
   },
   "keywords": [
     "ai-harness",
@@ -21,6 +21,7 @@
   "publishConfig": {
     "access": "public"
   },
+  "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
