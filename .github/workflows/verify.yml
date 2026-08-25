@@ -25,7 +25,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           repository: samartomar/ai-harness
-          ref: 5c74400eebb1c1a6d2b25c53151664878c319afe
+          ref: aa93128ff56b3ed978ec428e29d1b1ce8036e53b
           path: core-source
           fetch-depth: 2
           persist-credentials: false
@@ -48,7 +48,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           repository: samartomar/ai-harness
-          ref: 5c74400eebb1c1a6d2b25c53151664878c319afe
+          ref: aa93128ff56b3ed978ec428e29d1b1ce8036e53b
           path: core-source
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
