@@ -335,9 +335,9 @@ try {
     eventName: "workflow_dispatch",
     issuer: "https://token.actions.githubusercontent.com",
     jobWorkflowRef:
-      "samartomar/aih-supported/.github/workflows/signed-catalog-v2.yml@refs/heads/main",
+      "samartomar/aih-catalog/.github/workflows/signed-catalog-v2.yml@refs/heads/main",
     ref: "refs/heads/main",
-    repository: "samartomar/aih-supported",
+    repository: "samartomar/aih-catalog",
     repositoryId: "987654321",
     repositoryOwnerId: "123456789",
   };

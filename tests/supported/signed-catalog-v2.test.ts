@@ -126,9 +126,9 @@ function claims(): Record<string, unknown> {
     eventName: "workflow_dispatch",
     issuer: "https://token.actions.githubusercontent.com",
     jobWorkflowRef:
-      "samartomar/aih-supported/.github/workflows/signed-catalog-v2.yml@refs/heads/main",
+      "samartomar/aih-catalog/.github/workflows/signed-catalog-v2.yml@refs/heads/main",
     ref: "refs/heads/main",
-    repository: "samartomar/aih-supported",
+    repository: "samartomar/aih-catalog",
     repositoryId: "987654321",
     repositoryOwnerId: "123456789",
   };
@@ -137,7 +137,7 @@ function claims(): Record<string, unknown> {
 function changedClaimValues(): Readonly<Record<string, unknown>> {
   return {
     environment: "different-environment",
-    jobWorkflowRef: "samartomar/aih-supported/.github/workflows/other.yml@refs/heads/main",
+    jobWorkflowRef: "samartomar/aih-catalog/.github/workflows/other.yml@refs/heads/main",
     ref: "refs/tags/v2",
     repository: "samartomar/other",
     repositoryId: "111111111",
@@ -164,7 +164,7 @@ function subject(kind = "profile", id = "default-profile"): Record<string, unkno
   return coreSubject(kind, id, {
     commit: "0123456789abcdef0123456789abcdef01234567",
     path: "profiles/default.json",
-    repository: "samartomar/aih-supported",
+    repository: "samartomar/aih-catalog",
     type: "github",
   });
 }
@@ -183,7 +183,7 @@ function coreSourceVariants(): readonly Record<string, unknown>[] {
     {
       commit: "0123456789abcdef0123456789abcdef01234567",
       path: "profiles/default.json",
-      repository: "samartomar/aih-supported",
+      repository: "samartomar/aih-catalog",
       type: "github",
     },
     {
@@ -206,7 +206,7 @@ function coreSourceVariants(): readonly Record<string, unknown>[] {
       manifestDigest: digest("oci-manifest"),
       platform: { architecture: "amd64", os: "linux", variant: "v8" },
       registry: "ghcr.io",
-      repository: "samartomar/aih-supported",
+      repository: "samartomar/aih-catalog",
       type: "oci",
     },
     {
@@ -2154,7 +2154,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       ...Object.keys(claims()).map((missing) =>
         Object.fromEntries(Object.entries(claims()).filter(([key]) => key !== missing)),
       ),
-      { ...claims(), repository: "SAMARTOMAR/aih-supported" },
+      { ...claims(), repository: "SAMARTOMAR/aih-catalog" },
       { ...claims(), ref: "main" },
       { ...claims(), jobWorkflowRef: "not-a-workflow-ref" },
       { ...claims(), eventName: "push" },
@@ -3718,10 +3718,10 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(packageJson).not.toHaveProperty("private");
     expect(packageJson.repository).toEqual({
       type: "git",
-      url: "git+https://github.com/samartomar/aih-supported.git",
+      url: "git+https://github.com/samartomar/aih-catalog.git",
     });
-    expect(packageJson.homepage).toBe("https://github.com/samartomar/aih-supported#readme");
-    expect(packageJson.bugs).toEqual({ url: "https://github.com/samartomar/aih-supported/issues" });
+    expect(packageJson.homepage).toBe("https://github.com/samartomar/aih-catalog#readme");
+    expect(packageJson.bugs).toEqual({ url: "https://github.com/samartomar/aih-catalog/issues" });
     expect(packageJson.keywords).toEqual([
       "ai-harness",
       "aih",
@@ -3890,9 +3890,9 @@ describe("public signed catalog V2 acceptance contract", () => {
         readFileSync(resolve(consumer, "node_modules/@aihq/catalog/package.json"), "utf8"),
       ) as Record<string, unknown>;
       expect(installedManifest).toMatchObject({
-        homepage: "https://github.com/samartomar/aih-supported#readme",
+        homepage: "https://github.com/samartomar/aih-catalog#readme",
         publishConfig: { access: "public" },
-        repository: { type: "git", url: "git+https://github.com/samartomar/aih-supported.git" },
+        repository: { type: "git", url: "git+https://github.com/samartomar/aih-catalog.git" },
       });
       expect(installedManifest).not.toHaveProperty("private");
 

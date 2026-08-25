@@ -395,7 +395,7 @@ function claims(v: unknown): R {
     jobWorkflowRef: text(
       x.jobWorkflowRef,
       "workflow",
-      /^samartomar\/aih-supported\/.+@refs\/heads\/main$/,
+      /^samartomar\/aih-catalog\/.+@refs\/heads\/main$/,
     ),
     ref: text(x.ref, "ref", /^refs\/(?:heads|tags)\/[A-Za-z0-9._/-]+$/),
     repository: text(x.repository, "repository", /^[a-z0-9_.-]+\/[a-z0-9_.-]+$/),

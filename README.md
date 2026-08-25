@@ -1,5 +1,7 @@
 # @aihq/catalog
 
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+
 `@aihq/catalog` is AIH Catalog, the public Catalog V2 producer and verifier for
 AI Development Assurance. It binds exact tool, skill, MCP, package, and profile
 sources to byte-addressed evidence, explicit capabilities, an administrator
@@ -9,10 +11,13 @@ Ed25519 signature, continuity, and bounded validity.
 organization provides authority.**
 
 The source package is `@aihq/catalog@0.1.0`; the command remains
-`aih-supported`. npm publication is deferred: no Catalog tag, GitHub Release,
-or npm version exists, and license/release-control selection remains an owner
-decision. Publishing or running the manual outer-attestation workflow requires
-separate authorization for an exact commit SHA.
+`aih-supported`. It is Apache-2.0 licensed and has not been published to npm.
+The pinned package-release workflow is present, but the protected environment,
+first-package bootstrap, npm trusted-publisher binding, exact tag, GitHub
+Release, and npm version remain owner actions documented in
+[RELEASING.md](RELEASING.md). Package publication and the manual catalog/receipt
+outer-attestation workflow are separate effects; each requires its own exact-SHA
+authorization. Publishing remains separately authorized.
 
 ## Authority boundary
 
@@ -62,7 +67,18 @@ After publication, the equivalent version-pinned install will be:
 
 ```sh
 npm install --save-exact @aihq/catalog@0.1.0
+npm audit signatures
+gh release download v-catalog-0.1.0 --repo samartomar/aih-catalog --pattern "aihq-catalog-0.1.0.tgz"
+gh attestation verify ./aihq-catalog-0.1.0.tgz --repo samartomar/aih-catalog --signer-workflow samartomar/aih-catalog/.github/workflows/release.yml --source-ref refs/tags/v-catalog-0.1.0 --deny-self-hosted-runners
+./node_modules/.bin/aih-supported --help
 ```
+
+The package workflow binds npm provenance, a GitHub build attestation, a
+tarball-scoped SPDX SBOM, the checksum, and a keyless cosign checksum bundle to
+the exact tagged source. Do not run this block until
+`npm view @aihq/catalog@0.1.0` succeeds. Those package-release records do not
+sign a Catalog V2 head or Qualification Receipt and do not grant organization
+authority.
 
 Obtain these inputs through administrator-controlled channels:
 
@@ -261,5 +277,11 @@ capability declarations, and negative tests. A contribution is only a candidate;
 review, administrator signing, the exact promotion-plan digest, protected
 approval, CI, and separately authorized publication remain distinct steps.
 
-See [the Catalog V2 contract](https://github.com/samartomar/aih-supported/blob/main/ai-coding/supported-catalog-v2.md)
+See [the Catalog V2 contract](https://github.com/samartomar/aih-catalog/blob/main/ai-coding/supported-catalog-v2.md)
 for schemas, limits, trust boundaries, and maintainer verification commands.
+
+## License
+
+[Apache-2.0](LICENSE). Catalog software and qualification data are provided on
+an "AS IS" basis without organization approval, admission, warranty, support,
+or effect authority.
