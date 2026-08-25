@@ -254,10 +254,13 @@ The package-release workflow is separate from the protected Catalog V2
 outer-provenance workflow. Only an exact `v-catalog-X.Y.Z` tag on current
 `main`, matching the package version, can enter it. It repeats the repository,
 Core-lock, disposable cold packed, coverage, pin, and audit gates before packing
-the release artifact once. The same checksum-revalidated tarball is the subject
-of its SPDX SBOM, GitHub build
-attestation, keyless checksum signature, disposable smoke install, npm OIDC
-publication, and GitHub Release. It cannot sign or promote a catalog head or
-Qualification Receipt. First-package bootstrap, the protected `npm-publish`
-environment, trusted-publisher binding, exact tag, and publication remain the
-owner actions defined in [RELEASING.md](../RELEASING.md).
+and smoke-installing the release artifact once in a read-only job. A separate
+protected job downloads that candidate by immutable artifact ID, verifies its
+artifact-service and direct tarball digests, re-observes the tag and `main`, and
+validates the packed identity without running candidate package code. The same
+digest-revalidated tarball is the subject of its SPDX SBOM, GitHub build
+attestation, keyless checksum signature, npm OIDC publication, and GitHub
+Release. It cannot sign or promote a catalog head or Qualification Receipt.
+First-package bootstrap, the protected `npm-publish` environment,
+trusted-publisher binding, exact tag, and publication remain the owner actions
+defined in [RELEASING.md](../RELEASING.md).

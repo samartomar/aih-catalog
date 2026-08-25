@@ -73,9 +73,12 @@ gh attestation verify ./aihq-catalog-0.1.0.tgz --repo samartomar/aih-catalog --s
 ./node_modules/.bin/aih-supported --help
 ```
 
-The package workflow binds npm provenance, a GitHub build attestation, a
-tarball-scoped SPDX SBOM, the checksum, and a keyless cosign checksum bundle to
-the exact tagged source. Do not run this block until
+The package workflow keeps candidate execution in a read-only job. Its protected
+job downloads the packed candidate by immutable artifact ID, revalidates the
+original tarball digest before every effect, re-observes the tag and `main`, and
+runs no candidate package code. It binds npm provenance, a GitHub build
+attestation, a tarball-scoped SPDX SBOM, the checksum, and a keyless cosign
+checksum bundle to the exact tagged source. Do not run this block until
 `npm view @aihq/catalog@0.1.0` succeeds. Those package-release records do not
 sign a Catalog V2 head or Qualification Receipt and do not grant organization
 authority.

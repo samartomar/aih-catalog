@@ -2,12 +2,15 @@
 
 `@aihq/catalog` is the Apache-2.0 Catalog package. A `v-catalog-X.Y.Z` tag on
 the exact current `main` commit starts `.github/workflows/release.yml`. The
-workflow re-runs repository and exact Core contract verification, including a
-disposable packed integration proof, then packs the release artifact once. It
-hashes and smoke-installs that exact tarball, produces a tarball-scoped SPDX
-SBOM and GitHub build attestation, signs the checksum with keyless cosign,
-publishes the same tarball through npm trusted publishing, and creates the
-GitHub Release.
+workflow's read-only job re-runs repository and exact Core contract verification,
+including a disposable packed integration proof, then packs, hashes, and
+smoke-installs the release artifact once. A protected publication job downloads
+that candidate by immutable artifact ID, checks its artifact-service and direct
+tarball digests, re-observes the tag and `main`, and validates the embedded
+package identity. The protected job runs no candidate package code. It produces
+a tarball-scoped SPDX SBOM and GitHub build attestation, signs the trusted
+checksum with keyless cosign, publishes the same digest-revalidated tarball
+through npm trusted publishing, and creates the GitHub Release.
 
 Package publication is not Catalog signing authority. It makes producer bytes
 publicly obtainable with provenance; it does not execute
