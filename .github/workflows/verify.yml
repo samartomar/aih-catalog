@@ -27,6 +27,7 @@ jobs:
           repository: samartomar/ai-harness
           ref: 43609a21ee3cc97834fc84f358f49d2196c91873
           path: core-source
+          fetch-depth: 2
           persist-credentials: false
       - run: npm run verify:core-v2-lock -- --core-root ${{ github.workspace }}/core-source
       - run: npm test -- tests/contracts/catalog-package-identity.test.ts
