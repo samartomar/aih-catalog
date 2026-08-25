@@ -18,7 +18,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const coreCommit = "43609a21ee3cc97834fc84f358f49d2196c91873";
+const coreCommit = "74ddf3439df47a947a6f7a022515099602702ac8";
 const corePackage = Object.freeze({
   filename: "aihq-core-0.1.0.tgz",
   name: "@aihq/core",

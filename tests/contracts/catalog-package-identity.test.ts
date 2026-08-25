@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import { STRICT_V2_CORE_LOCK } from "../../src/index.js";
 
 const root = resolve(import.meta.dirname, "..", "..");
-const coreCommit = "43609a21ee3cc97834fc84f358f49d2196c91873";
+const coreCommit = "74ddf3439df47a947a6f7a022515099602702ac8";
 const corePackageManifestSha256 =
   "af64feda4e3e57808e1a262e15a5cb8f41581f77e8f9b49eb9b459317b803ecd";
 
