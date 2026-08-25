@@ -28,7 +28,7 @@ Do not fall back to an unprovenanced local publish.
 For the first version:
 
 1. Merge and fully verify the exact release candidate.
-2. Obtain full-SHA publication authorization naming `@aihq/catalog@0.1.0` and
+2. Obtain full-SHA publication authorization naming `@aihq/catalog@0.1.1` and
    the exact `main` SHA.
 3. Create the `npm-publish` GitHub environment with a required reviewer and
    protect immutable `v-catalog-*` tags. Create a short-lived granular npm access
@@ -36,7 +36,7 @@ For the first version:
    scope, then store it only as the environment secret `NPM_BOOTSTRAP_TOKEN`.
    Never place it in a repository/organization variable, working-tree `.npmrc`,
    read-only job, log, or issue.
-4. The temporary workflow accepts only `v-catalog-0.1.0`. Before the secret is
+4. The temporary workflow accepts only `v-catalog-0.1.1`. Before the secret is
    available and again after `npm whoami` authenticates it, the workflow requires
    one structured npm error whose exact code is `E404`. Mixed output, success, or
    any other failure refuses publication. The packed manifest must contain exactly
@@ -64,9 +64,10 @@ not npm package publication.
 
 ## Normal release
 
-1. Re-observe the issue and current npm state. A stable `0.1.0` cut is preferred
-   unless an RC is justified; prerelease versions publish to `next`, while
-   stable versions publish to `latest`.
+1. Re-observe the issue and current npm state. The immutable `v-catalog-0.1.0`
+   attempt failed during read-only verification before publication and is retained
+   as audit evidence. The fix-forward first publication is `0.1.1`; prerelease
+   versions publish to `next`, while stable versions publish to `latest`.
 2. Ensure `package.json` and `package-lock.json` name the exact version and the
    public README and Catalog V2 contract document the shipped behavior.
 3. Run the repository verification commands in the Catalog V2 contract,
@@ -90,12 +91,12 @@ not npm package publication.
    terminal. Verify the published result from a disposable consumer:
 
    ```sh
-   npm view @aihq/catalog@0.1.0
-   npm install --save-exact @aihq/catalog@0.1.0
+   npm view @aihq/catalog@0.1.1
+   npm install --save-exact @aihq/catalog@0.1.1
    npm audit signatures
-   gh release download v-catalog-0.1.0 --repo samartomar/aih-catalog --pattern "aihq-catalog-0.1.0.tgz"
-   release_sha="$(gh api repos/samartomar/aih-catalog/git/ref/tags/v-catalog-0.1.0 --jq .object.sha)"
-   gh attestation verify ./aihq-catalog-0.1.0.tgz --repo samartomar/aih-catalog --signer-workflow samartomar/aih-catalog/.github/workflows/release.yml --source-ref refs/tags/v-catalog-0.1.0 --source-digest "$release_sha" --deny-self-hosted-runners
+   gh release download v-catalog-0.1.1 --repo samartomar/aih-catalog --pattern "aihq-catalog-0.1.1.tgz"
+   release_sha="$(gh api repos/samartomar/aih-catalog/git/ref/tags/v-catalog-0.1.1 --jq .object.sha)"
+   gh attestation verify ./aihq-catalog-0.1.1.tgz --repo samartomar/aih-catalog --signer-workflow samartomar/aih-catalog/.github/workflows/release.yml --source-ref refs/tags/v-catalog-0.1.1 --source-digest "$release_sha" --deny-self-hosted-runners
    ./node_modules/.bin/aih-supported --help
    ```
 

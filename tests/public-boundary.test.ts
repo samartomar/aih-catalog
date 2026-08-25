@@ -21,7 +21,7 @@ describe("supported public V2 boundary", () => {
     const index = readFileSync(resolve(root, "src/index.ts"), "utf8");
 
     expect(packageJson.name).toBe("@aihq/catalog");
-    expect(packageJson.version).toBe("0.1.0");
+    expect(packageJson.version).toBe("0.1.1");
     expect(packageJson).not.toHaveProperty("private");
     expect(packageJson.bin).toEqual({ "aih-supported": "dist/cli.js" });
     expect(packageJson.files).toEqual(["dist", "defaults", "README.md"]);

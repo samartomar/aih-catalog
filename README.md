@@ -10,11 +10,13 @@ Ed25519 signature, continuity, and bounded validity.
 **Core governs. Scan produces evidence. Catalog provides AIH qualification. The
 organization provides authority.**
 
-The source package is `@aihq/catalog@0.1.0`; the command remains
+The source package is `@aihq/catalog@0.1.1`; the command remains
 `aih-supported`. It is Apache-2.0 licensed and has not been published to npm.
 The pinned package-release workflow and a temporary one-use path restricted to
-exact `@aihq/catalog@0.1.0` are present. That path accepts only structured public
-and authenticated npm `E404` observations, rejects packed publication overrides,
+exact `@aihq/catalog@0.1.1` are present. The immutable `v-catalog-0.1.0` attempt
+failed during read-only verification before any publication and remains audit
+evidence; it is never moved, deleted, or reused. The `0.1.1` path accepts only
+structured public and authenticated npm `E404` observations, rejects packed publication overrides,
 pins npmjs, and exposes the bootstrap credential only to the publish step. The
 protected environment, credential, exact tag, GitHub Release, npm version,
 immediate trusted-publisher binding, credential removal, and source cleanup remain
@@ -65,16 +67,16 @@ npm pack --pack-destination ../artifacts
 mkdir ../catalog-consumer
 cd ../catalog-consumer
 npm init -y
-npm install --ignore-scripts ../artifacts/aihq-catalog-0.1.0.tgz
+npm install --ignore-scripts ../artifacts/aihq-catalog-0.1.1.tgz
 ```
 
 After publication, the equivalent version-pinned install will be:
 
 ```sh
-npm install --save-exact @aihq/catalog@0.1.0
+npm install --save-exact @aihq/catalog@0.1.1
 npm audit signatures
-gh release download v-catalog-0.1.0 --repo samartomar/aih-catalog --pattern "aihq-catalog-0.1.0.tgz"
-gh attestation verify ./aihq-catalog-0.1.0.tgz --repo samartomar/aih-catalog --signer-workflow samartomar/aih-catalog/.github/workflows/release.yml --source-ref refs/tags/v-catalog-0.1.0 --deny-self-hosted-runners
+gh release download v-catalog-0.1.1 --repo samartomar/aih-catalog --pattern "aihq-catalog-0.1.1.tgz"
+gh attestation verify ./aihq-catalog-0.1.1.tgz --repo samartomar/aih-catalog --signer-workflow samartomar/aih-catalog/.github/workflows/release.yml --source-ref refs/tags/v-catalog-0.1.1 --deny-self-hosted-runners
 ./node_modules/.bin/aih-supported --help
 ```
 
@@ -84,7 +86,7 @@ original tarball digest before every effect, re-observes the tag and `main`, and
 runs no candidate package code. It binds npm provenance, a GitHub build
 attestation, a tarball-scoped SPDX SBOM, the checksum, and a keyless cosign
 checksum bundle to the exact tagged source. Do not run this block until
-`npm view @aihq/catalog@0.1.0` succeeds. Those package-release records do not
+`npm view @aihq/catalog@0.1.1` succeeds. Those package-release records do not
 sign a Catalog V2 head or Qualification Receipt and do not grant organization
 authority.
 

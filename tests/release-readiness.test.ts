@@ -45,8 +45,8 @@ describe("@aihq/catalog release boundary (#12)", () => {
     expect(workflow).toContain('if [ "$ver" != "$tag" ]; then');
     expect(workflow).toContain("name: npm-publish");
     expect(workflow).toContain("https://www.npmjs.com/package/@aihq/catalog");
-    expect(workflow).toContain("if: github.ref == 'refs/tags/v-catalog-0.1.0'");
-    expect(workflow).toContain('test "$GITHUB_REF_NAME" = "v-catalog-0.1.0"');
+    expect(workflow).toContain("if: github.ref == 'refs/tags/v-catalog-0.1.1'");
+    expect(workflow).toContain('test "$GITHUB_REF_NAME" = "v-catalog-0.1.1"');
     expect(workflow).not.toContain("packages: write");
     expect(workflow).not.toContain("NPM_TOKEN");
     expect(workflow.match(/secrets\.NPM_BOOTSTRAP_TOKEN/gu)).toHaveLength(1);
@@ -69,6 +69,15 @@ describe("@aihq/catalog release boundary (#12)", () => {
       expect(action).toMatch(/^[\w.-]+\/[\w.-]+$/u);
       expect(revision).toMatch(/^[0-9a-f]{40}$/u);
     }
+  });
+
+  it("verifies the Catalog repository before adding the nested Core checkout", () => {
+    const workflow = read(".github/workflows/release.yml");
+    const sourceVerification = workflow.indexOf("name: Verify exact source candidate");
+    const coreCheckout = workflow.indexOf("repository: samartomar/ai-harness");
+    expect(sourceVerification).toBeGreaterThanOrEqual(0);
+    expect(coreCheckout).toBeGreaterThanOrEqual(0);
+    expect(sourceVerification).toBeLessThan(coreCheckout);
   });
 
   it("isolates candidate execution from protected publication permissions", () => {
@@ -194,14 +203,14 @@ describe("@aihq/catalog release boundary (#12)", () => {
           join(packageRoot, "package.json"),
           JSON.stringify({
             name: "@aihq/catalog",
-            version: "0.1.0",
+            version: "0.1.1",
             publishConfig,
           }),
         );
         execFileSync("tar", ["-czf", "candidate.tgz", "package"], {
           cwd: fixtureRoot,
         });
-        return spawnSync(process.execPath, ["--input-type=module", "-", "candidate.tgz", "0.1.0"], {
+        return spawnSync(process.execPath, ["--input-type=module", "-", "candidate.tgz", "0.1.1"], {
           cwd: fixtureRoot,
           input: validator,
           encoding: "utf8",
@@ -277,14 +286,14 @@ describe("@aihq/catalog release boundary (#12)", () => {
       /as soon as npm confirms package existence, regardless of whether\s+the later GitHub Release succeeds/u,
     );
     expect(releasing).toContain("never delete, move, or reuse the tag");
-    expect(releasing).toContain("npm view @aihq/catalog@0.1.0");
-    expect(releasing).toContain("gh attestation verify ./aihq-catalog-0.1.0.tgz");
+    expect(releasing).toContain("npm view @aihq/catalog@0.1.1");
+    expect(releasing).toContain("gh attestation verify ./aihq-catalog-0.1.1.tgz");
     expect(releasing).not.toContain("gh attestation verify ./node_modules/@aihq/catalog");
     expect(releasing).toContain("Package publication is not Catalog signing authority");
 
     const readme = read("README.md");
-    expect(readme).toContain("npm install --save-exact @aihq/catalog@0.1.0");
-    expect(readme).toContain("gh attestation verify ./aihq-catalog-0.1.0.tgz");
+    expect(readme).toContain("npm install --save-exact @aihq/catalog@0.1.1");
+    expect(readme).toContain("gh attestation verify ./aihq-catalog-0.1.1.tgz");
     expect(readme).toContain("npm provenance");
     expect(readme).toMatch(/GitHub build\s+attestation/u);
     expect(readme).toContain("has not been published");
@@ -307,8 +316,8 @@ describe("@aihq/catalog release boundary (#12)", () => {
     if (packed === undefined) throw new Error("npm pack produced no manifest");
     expect(packed).toMatchObject({
       name: "@aihq/catalog",
-      version: "0.1.0",
-      filename: "aihq-catalog-0.1.0.tgz",
+      version: "0.1.1",
+      filename: "aihq-catalog-0.1.1.tgz",
     });
     const paths = packed.files.map(({ path }) => path);
     expect(paths).toContain("LICENSE");
