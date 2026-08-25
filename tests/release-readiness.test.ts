@@ -236,6 +236,7 @@ describe("@aihq/catalog release boundary (#12)", () => {
       'if [ "$GITHUB_SHA" != "$main_sha" ] || [ "$GITHUB_SHA" != "$tag_sha" ]; then',
     );
     expect(publication).toContain('test "$GITHUB_REF" = "refs/tags/$GITHUB_REF_NAME"');
+    expect(publication).toContain('--repo "$GITHUB_REPOSITORY"');
     expect(publication).toContain("Validate packed manifest identity");
     expect(publication).toContain('manifest.name !== "@aihq/catalog"');
     expect(publication).toContain("manifest.version !== tag");
