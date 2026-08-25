@@ -358,6 +358,7 @@ jobs:
         run: |
           set -euo pipefail
           gh release create "$GITHUB_REF_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
             --title "$GITHUB_REF_NAME" \
             --generate-notes \
             --notes "AIH Catalog qualification data. Package publication grants no catalog-signing or organization authority." \
