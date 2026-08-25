@@ -294,10 +294,14 @@ describe("@aihq/catalog release boundary (#12)", () => {
 
     const readme = read("README.md");
     expect(readme).toContain("npm install --save-exact @aihq/catalog@0.1.1");
+    expect(readme).toContain("gh release view v-catalog-0.1.1");
     expect(readme).toContain("gh attestation verify ./aihq-catalog-0.1.1.tgz");
     expect(readme).toContain("npm provenance");
     expect(readme).toMatch(/GitHub build\s+attestation/u);
-    expect(readme).toContain("has not been published");
+    expect(readme).toMatch(/Package and GitHub Release\s+availability are live state/u);
+    expect(readme).not.toContain("has not been published");
+    expect(releasing).toContain("applies only while the registry returns");
+    expect(releasing).not.toContain("package has not been published");
   });
 
   it("packs the license, default data, command, and library under the exact identity", () => {
