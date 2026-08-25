@@ -12,12 +12,16 @@ organization provides authority.**
 
 The source package is `@aihq/catalog@0.1.0`; the command remains
 `aih-supported`. It is Apache-2.0 licensed and has not been published to npm.
-The pinned package-release workflow is present, but the protected environment,
-first-package bootstrap, npm trusted-publisher binding, exact tag, GitHub
-Release, and npm version remain owner actions documented in
-[RELEASING.md](RELEASING.md). Package publication and the manual catalog/receipt
-outer-attestation workflow are separate effects; each requires its own exact-SHA
-authorization. Publishing remains separately authorized.
+The pinned package-release workflow and a temporary one-use path restricted to
+exact `@aihq/catalog@0.1.0` are present. That path accepts only structured public
+and authenticated npm `E404` observations, rejects packed publication overrides,
+pins npmjs, and exposes the bootstrap credential only to the publish step. The
+protected environment, credential, exact tag, GitHub Release, npm version,
+immediate trusted-publisher binding, credential removal, and source cleanup remain
+owner actions documented in [RELEASING.md](RELEASING.md). Package publication
+and the manual catalog/receipt outer-attestation workflow are separate effects;
+each requires its own exact-SHA authorization. Publishing remains separately
+authorized.
 
 ## Authority boundary
 
@@ -156,7 +160,7 @@ support attestation both verify.
 scrubbed custody and performs no write.
 
 Repository CI verifies an exact clean Core checkout at
-`c0324d331deffe6ca757be5ee9bbdcffb9927883`, materializes that locked revision
+`5c74400eebb1c1a6d2b25c53151664878c319afe`, materializes that locked revision
 in a disposable detached clone, and builds and packs both packages
 there. It installs both tarballs into disposable roots and proves that packed
 Core accepts the emitted V2 receipt and the exact 5,970-byte legal ceiling,

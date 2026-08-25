@@ -1,7 +1,9 @@
 # Release only an exact v-catalog-* tag on current main. Package publication is
 # separate from signed-catalog-v2.yml: this workflow cannot sign or promote a
 # catalog head or Qualification Receipt. Owner controls are documented in
-# RELEASING.md, and the package candidate never receives a long-lived token.
+# RELEASING.md. This temporary revision permits only @aihq/catalog@0.1.0
+# through an environment-scoped one-use token and is removed immediately after
+# trusted publishing is bound.
 name: release
 
 on:
@@ -24,6 +26,8 @@ jobs:
       artifact_id: ${{ steps.upload.outputs.artifact-id }}
       artifact_sha256: ${{ steps.upload.outputs.artifact-digest }}
     steps:
+      - name: Refuse every tag outside the temporary bootstrap boundary
+        run: test "$GITHUB_REF_NAME" = "v-catalog-0.1.0"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
@@ -40,7 +44,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: samartomar/ai-harness
-          ref: c0324d331deffe6ca757be5ee9bbdcffb9927883
+          ref: 5c74400eebb1c1a6d2b25c53151664878c319afe
           path: core-source
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -109,6 +113,7 @@ jobs:
 
   npm-publish:
     needs: verify-and-pack
+    if: github.ref == 'refs/tags/v-catalog-0.1.0'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment:
@@ -136,6 +141,38 @@ jobs:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
           package-manager-cache: false
+      - name: Assert one-use bootstrap package is still absent
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = "v-catalog-0.1.0"
+          set +e
+          registry_observation="$(npm view "@aihq/catalog" name --json --registry "https://registry.npmjs.org/" --loglevel silent 2>&1)"
+          registry_status=$?
+          set -e
+          if [ "$registry_status" -eq 0 ]; then
+            echo "::error::@aihq/catalog already exists; the bootstrap path cannot be reused"
+            exit 1
+          fi
+          if ! REGISTRY_OBSERVATION="$registry_observation" node --input-type=module <<'NODE'
+          const observation = JSON.parse(process.env.REGISTRY_OBSERVATION ?? "");
+          if (
+            typeof observation !== "object" ||
+            observation === null ||
+            Array.isArray(observation) ||
+            Object.keys(observation).length !== 1 ||
+            !Object.hasOwn(observation, "error") ||
+            typeof observation.error !== "object" ||
+            observation.error === null ||
+            Array.isArray(observation.error) ||
+            observation.error.code !== "E404"
+          ) {
+            process.exit(1);
+          }
+          NODE
+          then
+            echo "::error::the npm registry did not prove that @aihq/catalog is absent"
+            exit 1
+          fi
       - name: Verify immutable artifact custody
         env:
           GH_TOKEN: ${{ github.token }}
@@ -175,6 +212,17 @@ jobs:
           );
           if (manifest.name !== "@aihq/catalog" || manifest.version !== tag) {
             throw new Error(`packed manifest identity does not match ${tag}`);
+          }
+          const publishConfig = manifest.publishConfig;
+          if (
+            typeof publishConfig !== "object" ||
+            publishConfig === null ||
+            Array.isArray(publishConfig) ||
+            Object.keys(publishConfig).length !== 1 ||
+            !Object.hasOwn(publishConfig, "access") ||
+            publishConfig.access !== "public"
+          ) {
+            throw new Error("packed manifest publishConfig must be exactly { access: public }");
           }
           NODE
       - name: Verify exact tarball before SBOM
@@ -237,16 +285,54 @@ jobs:
           set -euo pipefail
           actual_sha256="$(sha256sum "$TARBALL" | awk '{print $1}')"
           test "$actual_sha256" = "$EXPECTED_TARBALL_SHA256"
-      - name: Publish exact tarball through npm trusted publishing
+      - name: Publish exact first tarball through the one-use npm bootstrap
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_BOOTSTRAP_TOKEN }}
         run: |
           set -euo pipefail
+          test "$GITHUB_REF_NAME" = "v-catalog-0.1.0"
+          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
+            echo "::error::the protected NPM_BOOTSTRAP_TOKEN secret is required"
+            exit 1
+          fi
+          npm whoami --registry "https://registry.npmjs.org/" >/dev/null
+          set +e
+          registry_observation="$(npm view "@aihq/catalog" name --json --registry "https://registry.npmjs.org/" --loglevel silent 2>&1)"
+          registry_status=$?
+          set -e
+          if [ "$registry_status" -eq 0 ]; then
+            echo "::error::@aihq/catalog already exists; refusing bootstrap publication"
+            exit 1
+          fi
+          if ! REGISTRY_OBSERVATION="$registry_observation" node --input-type=module <<'NODE'
+          const observation = JSON.parse(process.env.REGISTRY_OBSERVATION ?? "");
+          if (
+            typeof observation !== "object" ||
+            observation === null ||
+            Array.isArray(observation) ||
+            Object.keys(observation).length !== 1 ||
+            !Object.hasOwn(observation, "error") ||
+            typeof observation.error !== "object" ||
+            observation.error === null ||
+            Array.isArray(observation.error) ||
+            observation.error.code !== "E404"
+          ) {
+            process.exit(1);
+          }
+          NODE
+          then
+            echo "::error::the npm registry did not prove that @aihq/catalog is absent"
+            exit 1
+          fi
+          actual_sha256="$(sha256sum "$TARBALL" | awk '{print $1}')"
+          test "$actual_sha256" = "$EXPECTED_TARBALL_SHA256"
           tarball="$TARBALL"
           tag="${GITHUB_REF_NAME#v-catalog-}"
           case "$tag" in
             *-*) dist_tag=next ;;
             *) dist_tag=latest ;;
           esac
-          npm publish "$tarball" --ignore-scripts --provenance --access public --tag "$dist_tag"
+          npm publish "$tarball" --ignore-scripts --provenance --access public --registry "https://registry.npmjs.org/" --tag "$dist_tag"
       - name: Verify exact tarball before GitHub release
         run: |
           set -euo pipefail
