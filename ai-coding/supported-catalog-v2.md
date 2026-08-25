@@ -106,7 +106,7 @@ the subject.
 - DSSE payload type, in-toto subject, replay identity, and one Ed25519 signature.
 
 The Core contract is locked to commit
-`c0324d331deffe6ca757be5ee9bbdcffb9927883`, package
+`5c74400eebb1c1a6d2b25c53151664878c319afe`, package
 `@aihq/core@0.1.0`, package-manifest SHA-256
 `af64feda4e3e57808e1a262e15a5cb8f41581f77e8f9b49eb9b459317b803ecd`,
 decision-schema SHA-256
