@@ -42,8 +42,9 @@ For the first version:
    any other failure refuses publication. The packed manifest must contain exactly
    `publishConfig: { "access": "public" }`; the publish command explicitly selects
    `https://registry.npmjs.org/` and rehashes the tarball before the effect.
-5. Immediately after verified npm and GitHub publication, bind the steady-state
-   trusted publisher with npm CLI 11.15.0 or newer:
+5. Begin cleanup as soon as npm confirms package existence, regardless of whether
+   the later GitHub Release succeeds. Bind the steady-state trusted publisher
+   with npm CLI 11.15.0 or newer:
 
    ```sh
    npm trust github @aihq/catalog --file release.yml --repo samartomar/aih-catalog --env npm-publish --allow-publish
@@ -110,3 +111,8 @@ version. Preserve the failed run as audit evidence, correct the defect on a new
 reviewed commit/version, and fix forward. A green package-release workflow is
 not evidence of a signed catalog head, receipt provenance, organization
 authority, evidence acceptance, or a successful Core effect.
+
+If npm publication succeeded before a later workflow step failed, npm package
+existence is the cleanup trigger: complete step 5 immediately before repairing
+the missing GitHub Release evidence. Do not leave the bootstrap credential or
+source path active while repairing that evidence.

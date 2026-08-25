@@ -18,10 +18,11 @@ and authenticated npm `E404` observations, rejects packed publication overrides,
 pins npmjs, and exposes the bootstrap credential only to the publish step. The
 protected environment, credential, exact tag, GitHub Release, npm version,
 immediate trusted-publisher binding, credential removal, and source cleanup remain
-owner actions documented in [RELEASING.md](RELEASING.md). Package publication
-and the manual catalog/receipt outer-attestation workflow are separate effects;
-each requires its own exact-SHA authorization. Publishing remains separately
-authorized.
+owner actions documented in [RELEASING.md](RELEASING.md). That cleanup begins as
+soon as npm confirms package existence, even if later GitHub Release evidence
+fails. Package publication and the manual catalog/receipt outer-attestation
+workflow are separate effects; each requires its own exact-SHA authorization.
+Publishing remains separately authorized.
 
 ## Authority boundary
 
