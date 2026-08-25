@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { readFileSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -15,7 +15,7 @@ function git(cwd: string, args: readonly string[]) {
 }
 
 describe("Catalog package identity and current Core lock", () => {
-  it("publishes the 0.1 Catalog package identity while preserving the aih-supported command", () => {
+  it("exposes the 0.1 Catalog source identity while preserving the aih-supported command", () => {
     const packageJson = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8")) as Record<
       string,
       unknown
@@ -57,8 +57,8 @@ describe("Catalog package identity and current Core lock", () => {
     expect(coldProof).toContain('name: "@aihq/core"');
     expect(coldProof).toContain('name: "@aihq/catalog"');
     expect(coldProof).toContain('await import("@aihq/core")');
-    expect(coldProof).toContain("node_modules\", \"@aihq\", \"catalog");
-    expect(coldProof).toContain("node_modules\", \"@aihq\", \"core");
+    expect(coldProof).toContain('node_modules", "@aihq", "catalog');
+    expect(coldProof).toContain('node_modules", "@aihq", "core');
     expect(coldProof).not.toMatch(/@aihq\/harness|@aihq\/supported/);
     expect(coldProof).toMatch(/(?:openSync|readFileSync)\(/);
     expect(coldProof).toMatch(/(?:fstatSync|lstatSync)\(/);
@@ -84,8 +84,13 @@ describe("Catalog package identity and current Core lock", () => {
       const clone = (name: string): string => {
         const destination = resolve(temporaryRoot, name);
         expect(
-          git(temporaryRoot, ["clone", "--no-checkout", "--shared", coreSource as string, destination])
-            .status,
+          git(temporaryRoot, [
+            "clone",
+            "--no-checkout",
+            "--shared",
+            coreSource as string,
+            destination,
+          ]).status,
         ).toBe(0);
         expect(git(destination, ["checkout", "--detach", coreCommit]).status).toBe(0);
         return destination;
@@ -106,9 +111,9 @@ describe("Catalog package identity and current Core lock", () => {
         expect(verify(dirty).status).not.toBe(0);
 
         const hiddenPackageDrift = clone("hidden-package-drift");
-        expect(git(hiddenPackageDrift, ["update-index", "--skip-worktree", "package.json"]).status).toBe(
-          0,
-        );
+        expect(
+          git(hiddenPackageDrift, ["update-index", "--skip-worktree", "package.json"]).status,
+        ).toBe(0);
         const packageJson = JSON.parse(
           readFileSync(resolve(hiddenPackageDrift, "package.json"), "utf8"),
         ) as Record<string, unknown>;
@@ -121,7 +126,9 @@ describe("Catalog package identity and current Core lock", () => {
 
         const hiddenSchemaDrift = clone("hidden-schema-drift");
         const schemaPath = "schemas/aih-governance-decision-v2.schema.json";
-        expect(git(hiddenSchemaDrift, ["update-index", "--skip-worktree", schemaPath]).status).toBe(0);
+        expect(git(hiddenSchemaDrift, ["update-index", "--skip-worktree", schemaPath]).status).toBe(
+          0,
+        );
         writeFileSync(
           resolve(hiddenSchemaDrift, schemaPath),
           `${readFileSync(resolve(hiddenSchemaDrift, schemaPath), "utf8")}\n`,

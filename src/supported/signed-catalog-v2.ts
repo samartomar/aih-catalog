@@ -22,7 +22,10 @@ const ZERO = "0".repeat(64),
 export const QUALIFICATION_RECEIPT_V2_MAX_BYTES = 5970;
 export const CATALOG_SOURCE_V2_MAX_BYTES = 4096;
 export const STRICT_V2_CORE_LOCK = Object.freeze({
-  coreCommit: "e53fe219002515c092ebb68c5b91c91a2fc6110d",
+  coreCommit: "43609a21ee3cc97834fc84f358f49d2196c91873",
+  corePackageManifestSha256: "af64feda4e3e57808e1a262e15a5cb8f41581f77e8f9b49eb9b459317b803ecd",
+  corePackageName: "@aihq/core",
+  corePackageVersion: "0.1.0",
   receiptMaxBytes: QUALIFICATION_RECEIPT_V2_MAX_BYTES,
   receiptSchemaSha256: "40a2522dfd05b370c537dc5d9b05ddc3fe2a1d6e1b6448fa50b97d53d2d2477f",
   receiptSourceMaxBytes: CATALOG_SOURCE_V2_MAX_BYTES,

@@ -1,9 +1,13 @@
 import { generateKeyPairSync, createHash } from "node:crypto";
 import {
   chmodSync,
+  closeSync,
   existsSync,
+  fstatSync,
+  lstatSync,
   mkdirSync,
   mkdtempSync,
+  openSync,
   readFileSync,
   rmSync,
   writeFileSync,
@@ -14,7 +18,18 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const coreCommit = "e53fe219002515c092ebb68c5b91c91a2fc6110d";
+const coreCommit = "43609a21ee3cc97834fc84f358f49d2196c91873";
+const corePackage = Object.freeze({
+  filename: "aihq-core-0.1.0.tgz",
+  name: "@aihq/core",
+  sha256: "af64feda4e3e57808e1a262e15a5cb8f41581f77e8f9b49eb9b459317b803ecd",
+  version: "0.1.0",
+});
+const catalogPackage = Object.freeze({
+  filename: "aihq-catalog-0.1.0.tgz",
+  name: "@aihq/catalog",
+  version: "0.1.0",
+});
 const coreSchemaLocks = Object.freeze([
   Object.freeze({
     path: "schemas/aih-governance-decision-v2.schema.json",
@@ -25,12 +40,16 @@ const coreSchemaLocks = Object.freeze([
     sha256: "40a2522dfd05b370c537dc5d9b05ddc3fe2a1d6e1b6448fa50b97d53d2d2477f",
   }),
 ]);
-const corePackageName = "@aihq/harness";
 const npmCli = process.env.npm_execpath;
 const coreSource = process.env.AIH_SUPPORTED_CORE_SOURCE;
 if (typeof npmCli !== "string" || !isAbsolute(npmCli) || !existsSync(npmCli))
   throw new Error("npm-cli-unavailable");
-if (typeof coreSource !== "string" || !isAbsolute(coreSource) || !existsSync(coreSource))
+if (
+  typeof coreSource !== "string" ||
+  !isAbsolute(coreSource) ||
+  coreSource === coreCommit ||
+  !existsSync(coreSource)
+)
   throw new Error("core-source-unavailable");
 
 const sha256 = (value) => createHash("sha256").update(value).digest("hex");
@@ -56,7 +75,81 @@ const runCommand = (command, cwd, args) => {
     );
   return result;
 };
+const sameIdentity = (left, right) =>
+  left.dev === right.dev &&
+  left.ino === right.ino &&
+  left.nlink === right.nlink &&
+  left.size === right.size &&
+  left.mtimeMs === right.mtimeMs &&
+  left.ctimeMs === right.ctimeMs;
+const readPinnedArtifact = (artifactRoot, relativePath, maxBytes = 2 * 1024 * 1024) => {
+  const artifactPath = resolve(artifactRoot, relativePath);
+  const fromRoot = artifactPath.slice(resolve(artifactRoot).length);
+  if (!fromRoot.startsWith("\\") && !fromRoot.startsWith("/"))
+    throw new Error("cold-admin-artifact-path");
+  const beforePath = lstatSync(artifactPath);
+  if (
+    !beforePath.isFile() ||
+    beforePath.isSymbolicLink() ||
+    beforePath.nlink !== 1 ||
+    beforePath.size <= 0 ||
+    beforePath.size > maxBytes
+  )
+    throw new Error("cold-admin-artifact-shape");
+  const descriptor = openSync(artifactPath, "r");
+  try {
+    const beforeDescriptor = fstatSync(descriptor);
+    if (!beforeDescriptor.isFile() || !sameIdentity(beforePath, beforeDescriptor))
+      throw new Error("cold-admin-artifact-before-read");
+    const bytes = readFileSync(descriptor);
+    const afterDescriptor = fstatSync(descriptor);
+    const afterPath = lstatSync(artifactPath);
+    if (!sameIdentity(beforeDescriptor, afterDescriptor) || !sameIdentity(afterDescriptor, afterPath))
+      throw new Error("cold-admin-artifact-during-read");
+    return bytes;
+  } finally {
+    closeSync(descriptor);
+  }
+};
+const verifyPackageIdentity = (packageRoot, expected) => {
+  const bytes = readPinnedArtifact(packageRoot, "package.json", 1024 * 1024);
+  if (typeof expected.sha256 === "string" && sha256(bytes) !== expected.sha256)
+    throw new Error("cold-admin-package-manifest-digest");
+  let manifest;
+  try {
+    manifest = JSON.parse(bytes.toString("utf8"));
+  } catch {
+    throw new Error("cold-admin-package-manifest-json");
+  }
+  if (
+    manifest === null ||
+    typeof manifest !== "object" ||
+    Array.isArray(manifest) ||
+    manifest.name !== expected.name ||
+    manifest.version !== expected.version ||
+    manifest.private === true
+  )
+    throw new Error("cold-admin-package-identity");
+};
+const packExactPackage = (packageRoot, destination, expected) => {
+  const result = JSON.parse(
+    run(packageRoot, [npmCli, "pack", "--json", "--pack-destination", destination]).stdout,
+  );
+  if (
+    !Array.isArray(result) ||
+    result.length !== 1 ||
+    result[0]?.name !== expected.name ||
+    result[0]?.version !== expected.version ||
+    result[0]?.filename !== expected.filename
+  )
+    throw new Error("cold-admin-pack-manifest");
+  const tarball = resolve(destination, result[0].filename);
+  if (!existsSync(tarball)) throw new Error("cold-admin-pack-missing");
+  return tarball;
+};
 const requireExactCleanCore = (cwd, stateError) => {
+  const status = lstatSync(cwd);
+  if (!status.isDirectory() || status.isSymbolicLink()) throw new Error(`${stateError}-shape`);
   if (runCommand("git", cwd, ["rev-parse", "HEAD"]).stdout.trim() !== coreCommit)
     throw new Error(`${stateError}-commit`);
   if (
@@ -86,7 +179,7 @@ import { readFileSync } from "node:fs";
 const [receiptPath] = process.argv.slice(2);
 if (typeof receiptPath !== "string" || receiptPath.length === 0)
   throw new Error("core-receipt-contract-input");
-const api = await import("@aihq/harness");
+const api = await import("@aihq/core");
 const receiptBytes = readFileSync(receiptPath);
 const receipt = api.parseAihSupportedQualificationReceiptV2Bytes(receiptBytes);
 if (receipt === undefined || receipt.version !== 2) throw new Error("core-receipt-v2-required");
@@ -174,26 +267,32 @@ process.stdout.write(JSON.stringify({
 const temp = mkdtempSync(join(tmpdir(), "aih-supported-cold-admin-"));
 try {
   requireExactCleanCore(coreSource, "cold-admin-core-source");
+  verifyPackageIdentity(coreSource, corePackage);
   const coreBuild = resolve(temp, "core");
   runCommand("git", temp, ["clone", "--no-checkout", "--shared", coreSource, coreBuild]);
   runCommand("git", coreBuild, ["checkout", "--detach", coreCommit]);
   requireExactCleanCore(coreBuild, "cold-admin-core-build");
+  verifyPackageIdentity(coreBuild, corePackage);
   for (const schemaLock of coreSchemaLocks) {
-    if (sha256(readFileSync(resolve(coreBuild, schemaLock.path))) !== schemaLock.sha256)
+    if (sha256(readPinnedArtifact(coreBuild, schemaLock.path)) !== schemaLock.sha256)
       throw new Error("cold-admin-core-schema-lock");
   }
   run(coreBuild, [npmCli, "ci", "--ignore-scripts"]);
   run(coreBuild, [npmCli, "run", "build"]);
   requireExactCleanCore(coreBuild, "cold-admin-core-build");
-  const corePacked = run(coreBuild, [npmCli, "pack", "--json", "--pack-destination", temp]);
-  const coreManifest = JSON.parse(corePacked.stdout);
-  if (!Array.isArray(coreManifest) || typeof coreManifest[0]?.filename !== "string")
-    throw new Error("cold-admin-core-pack-manifest");
+  verifyPackageIdentity(coreBuild, corePackage);
+  for (const schemaLock of coreSchemaLocks) {
+    if (sha256(readPinnedArtifact(coreBuild, schemaLock.path)) !== schemaLock.sha256)
+      throw new Error("cold-admin-core-schema-lock");
+  }
+  const coreTarball = packExactPackage(coreBuild, temp, corePackage);
+  requireExactCleanCore(coreBuild, "cold-admin-core-build");
+  verifyPackageIdentity(coreBuild, corePackage);
+  verifyPackageIdentity(root, catalogPackage);
   run(root, [npmCli, "run", "build"]);
-  const packed = run(root, [npmCli, "pack", "--json", "--pack-destination", temp]);
-  const manifest = JSON.parse(packed.stdout);
-  if (!Array.isArray(manifest) || typeof manifest[0]?.filename !== "string")
-    throw new Error("cold-admin-pack-manifest");
+  verifyPackageIdentity(root, catalogPackage);
+  const catalogTarball = packExactPackage(root, temp, catalogPackage);
+  verifyPackageIdentity(root, catalogPackage);
   const consumer = resolve(temp, "consumer");
   mkdirSync(consumer);
   writeFileSync(resolve(consumer, "package.json"), '{"name":"cold-external-admin"}');
@@ -203,12 +302,14 @@ try {
     "--no-audit",
     "--no-fund",
     "--ignore-scripts",
-    resolve(temp, coreManifest[0].filename),
-    resolve(temp, manifest[0].filename),
+    coreTarball,
+    catalogTarball,
   ]);
 
-  const installed = resolve(consumer, "node_modules", "@aihq", "supported");
-  const installedCore = resolve(consumer, "node_modules", ...corePackageName.split("/"));
+  const installed = resolve(consumer, "node_modules", "@aihq", "catalog");
+  const installedCore = resolve(consumer, "node_modules", "@aihq", "core");
+  verifyPackageIdentity(installed, catalogPackage);
+  verifyPackageIdentity(installedCore, corePackage);
   const cli = resolve(installed, "dist", "cli.js");
   const bin = resolve(consumer, "node_modules", ".bin", "aih-supported");
   const coreCli = resolve(installedCore, "dist", "cli.js");
@@ -218,7 +319,7 @@ try {
   run(consumer, [
     "--input-type=module",
     "--eval",
-    "import * as api from '@aihq/supported';if(typeof api.createCatalogHeadV2!=='function'||Object.keys(api).includes('runCatalogV2Cli'))process.exit(2);",
+    "import * as api from '@aihq/catalog';if(typeof api.createCatalogHeadV2!=='function'||Object.keys(api).includes('runCatalogV2Cli'))process.exit(2);",
   ]);
   const { privateKey, publicKey } = generateKeyPairSync("ed25519");
   const spki = publicKey.export({ format: "der", type: "spki" });
@@ -394,7 +495,7 @@ try {
   if (coreInspectionResult.digests?.[0]?.data?.memberRecords?.occupied !== 0)
     throw new Error("cold-admin-core-inspect");
   process.stdout.write(
-    "Cold external-admin packed Supported receipt V2 verification PASS (Core exported strict receipt contract and inspect CLI exercised; production acceptance was not accepted without the required production authority and GitHub support attestation)\n",
+    "Cold external-admin packed Catalog receipt V2 verification PASS (Core exported strict receipt contract and inspect CLI exercised; production acceptance was not accepted without the required production authority and GitHub support attestation)\n",
   );
 } finally {
   rmSync(temp, { force: true, recursive: true });

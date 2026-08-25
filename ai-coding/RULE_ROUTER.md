@@ -11,8 +11,8 @@ also read `ai-coding/supported-catalog-v2.md`.
 ## Repository facts
 
 - TypeScript/Node.js, npm, ESM, Vitest, and Biome.
-- This repository provides the public Strict Catalog V2 API and CLI. It remains
-  release-ready with publication separately authorized.
+- This repository provides the public `@aihq/catalog@0.1.0` Strict Catalog V2
+  API and `aih-supported` CLI. Publication remains separately authorized.
 - The V2 producer is data-only and has no provider network, installation,
   repository-write, organization-admission, or seat-runtime authority.
 - Core does not consume Catalog V2 directly. The optional channel derives a

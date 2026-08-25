@@ -1,14 +1,18 @@
-# @aihq/supported
+# @aihq/catalog
 
-`@aihq/supported` is the public Catalog V2 producer and verifier for the
-AI-Harness-supported channel. It binds exact tool, skill, MCP, package, and
-profile sources to byte-addressed evidence, explicit capabilities, an
-administrator Ed25519 signature, continuity, and bounded validity.
+`@aihq/catalog` is AIH Catalog, the public Catalog V2 producer and verifier for
+AI Development Assurance. It binds exact tool, skill, MCP, package, and profile
+sources to byte-addressed evidence, explicit capabilities, an administrator
+Ed25519 signature, continuity, and bounded validity.
 
-The package is release-ready at `1.0.0`, but publication is deferred and the
-repository still sets `private: true`. Publishing to npm or running the manual
-outer-attestation workflow requires separate authorization for an exact commit
-SHA.
+**Core governs. Scan produces evidence. Catalog provides AIH qualification. The
+organization provides authority.**
+
+The source package is `@aihq/catalog@0.1.0`; the command remains
+`aih-supported`. npm publication is deferred: no Catalog tag, GitHub Release,
+or npm version exists, and license/release-control selection remains an owner
+decision. Publishing or running the manual outer-attestation workflow requires
+separate authorization for an exact commit SHA.
 
 ## Authority boundary
 
@@ -51,13 +55,13 @@ npm pack --pack-destination ../artifacts
 mkdir ../catalog-consumer
 cd ../catalog-consumer
 npm init -y
-npm install --ignore-scripts ../artifacts/aihq-supported-1.0.0.tgz
+npm install --ignore-scripts ../artifacts/aihq-catalog-0.1.0.tgz
 ```
 
 After publication, the equivalent version-pinned install will be:
 
 ```sh
-npm install --save-exact @aihq/supported@1.0.0
+npm install --save-exact @aihq/catalog@0.1.0
 ```
 
 Obtain these inputs through administrator-controlled channels:
@@ -248,7 +252,7 @@ schema and compatibility vectors.
 
 ## Consume or contribute
 
-Applications may import the bounded API from `@aihq/supported` to create,
+Applications may import the bounded API from `@aihq/catalog` to create,
 canonicalize, sign, verify, inspect, compare, and derive qualification bases. The
 package has no runtime dependencies and exports no network/provider controller.
 

@@ -16,13 +16,21 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: samartomar/ai-harness
+          ref: 43609a21ee3cc97834fc84f358f49d2196c91873
+          path: core-source
+          persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: 22
           cache: npm
       - run: npm ci
       - run: npm run verify
-      - run: npm run verify:core-v2-lock
+        env:
+          AIH_SUPPORTED_CORE_SOURCE: ${{ github.workspace }}/core-source
+      - run: npm run verify:core-v2-lock -- --core-root ${{ github.workspace }}/core-source
       - run: npm run verify:default-evidence-chain
       - run: npm run verify:workflow-action-pins
       - run: npm run test:cov
@@ -38,7 +46,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           repository: samartomar/ai-harness
-          ref: e53fe219002515c092ebb68c5b91c91a2fc6110d
+          ref: 43609a21ee3cc97834fc84f358f49d2196c91873
           path: core-source
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
