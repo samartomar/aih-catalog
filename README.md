@@ -161,7 +161,7 @@ support attestation both verify.
 scrubbed custody and performs no write.
 
 Repository CI verifies an exact clean Core checkout at
-`5c74400eebb1c1a6d2b25c53151664878c319afe`, materializes that locked revision
+`aa93128ff56b3ed978ec428e29d1b1ce8036e53b`, materializes that locked revision
 in a disposable detached clone, and builds and packs both packages
 there. It installs both tarballs into disposable roots and proves that packed
 Core accepts the emitted V2 receipt and the exact 5,970-byte legal ceiling,
