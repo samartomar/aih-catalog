@@ -7,7 +7,7 @@ import { isAbsolute, relative, resolve } from "node:path";
 const sourceDomain = "aih-governance-decision-source/v2\0";
 const subjectDomain = "aih-governance-decision-subject/v2\0";
 const coreRepository = "samartomar/ai-harness";
-const coreCommit = "43609a21ee3cc97834fc84f358f49d2196c91873";
+const coreCommit = "74ddf3439df47a947a6f7a022515099602702ac8";
 const corePackage = Object.freeze({
   name: "@aihq/core",
   version: "0.1.0",
