@@ -20,10 +20,12 @@ prove successful Core custody.
 
 ## First-package bootstrap
 
-The `@aihq/catalog` package has not been published. npm's trusted-publisher
-contract requires that the package must already exist before an owner can bind
-GitHub OIDC. That makes the first registry creation an exceptional owner action.
-Do not fall back to an unprovenanced local publish.
+This bootstrap applies only while the registry returns one exact structured
+`E404` for `@aihq/catalog`. npm's trusted-publisher contract requires that the
+package must already exist before an owner can bind GitHub OIDC. That makes the
+first registry creation an exceptional owner action. Once the package exists,
+never rerun this section: bind the trusted publisher and remove the bootstrap
+credential and source path. Do not fall back to an unprovenanced local publish.
 
 For the first version:
 

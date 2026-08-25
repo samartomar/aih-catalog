@@ -11,20 +11,23 @@ Ed25519 signature, continuity, and bounded validity.
 organization provides authority.**
 
 The source package is `@aihq/catalog@0.1.1`; the command remains
-`aih-supported`. It is Apache-2.0 licensed and has not been published to npm.
-The pinned package-release workflow and a temporary one-use path restricted to
-exact `@aihq/catalog@0.1.1` are present. The immutable `v-catalog-0.1.0` attempt
-failed during read-only verification before any publication and remains audit
-evidence; it is never moved, deleted, or reused. The `0.1.1` path accepts only
-structured public and authenticated npm `E404` observations, rejects packed publication overrides,
-pins npmjs, and exposes the bootstrap credential only to the publish step. The
-protected environment, credential, exact tag, GitHub Release, npm version,
-immediate trusted-publisher binding, credential removal, and source cleanup remain
-owner actions documented in [RELEASING.md](RELEASING.md). That cleanup begins as
-soon as npm confirms package existence, even if later GitHub Release evidence
-fails. Package publication and the manual catalog/receipt outer-attestation
-workflow are separate effects; each requires its own exact-SHA authorization.
-Publishing remains separately authorized.
+`aih-supported`. It is Apache-2.0 licensed. Package and GitHub Release
+availability are live state: verify the exact version and tag with the commands
+below rather than inferring a registry effect from source text. The pinned
+package-release workflow contains a one-use path restricted to exact
+`@aihq/catalog@0.1.1`. The immutable `v-catalog-0.1.0` attempt failed during
+read-only verification before any publication and remains audit evidence; it is
+never moved, deleted, or reused. The `0.1.1` bootstrap accepts only structured
+public and authenticated npm `E404` observations, rejects packed publication
+overrides, pins npmjs, and exposes the credential only to the publish step. It
+must refuse once the package exists. The protected environment, credential,
+exact tag, GitHub Release, npm version, trusted-publisher binding, credential
+removal, and source cleanup are owner-controlled effects documented in
+[RELEASING.md](RELEASING.md). Cleanup begins as soon as npm confirms package
+existence, even if later GitHub Release evidence fails. Package publication and
+the manual catalog/receipt outer-attestation workflow are separate effects; each
+requires its own exact-SHA authorization. Publishing is always separately
+authorized.
 
 ## Authority boundary
 
@@ -57,8 +60,27 @@ membership into organization admission.
 
 ## Install and inspect from a clean consumer
 
-Until npm publication is separately authorized, build a tarball from an exact
-reviewed checkout and install it in a disposable consumer:
+Choose the install path from live registry observation. If
+`npm view @aihq/catalog@0.1.1` returns the exact version, use the published path:
+
+```sh
+npm install --save-exact @aihq/catalog@0.1.1
+npm audit signatures
+./node_modules/.bin/aih-supported --help
+```
+
+npm publication and GitHub Release creation are separate observable effects.
+Verify the Release independently; only after `gh release view` succeeds should
+you download and verify its exact tarball:
+
+```sh
+gh release view v-catalog-0.1.1 --repo samartomar/aih-catalog
+gh release download v-catalog-0.1.1 --repo samartomar/aih-catalog --pattern "aihq-catalog-0.1.1.tgz"
+gh attestation verify ./aihq-catalog-0.1.1.tgz --repo samartomar/aih-catalog --signer-workflow samartomar/aih-catalog/.github/workflows/release.yml --source-ref refs/tags/v-catalog-0.1.1 --deny-self-hosted-runners
+```
+
+If the registry does not expose that exact version, build a tarball from an
+exact reviewed checkout and install it only in a disposable consumer:
 
 ```sh
 npm ci
@@ -68,16 +90,6 @@ mkdir ../catalog-consumer
 cd ../catalog-consumer
 npm init -y
 npm install --ignore-scripts ../artifacts/aihq-catalog-0.1.1.tgz
-```
-
-After publication, the equivalent version-pinned install will be:
-
-```sh
-npm install --save-exact @aihq/catalog@0.1.1
-npm audit signatures
-gh release download v-catalog-0.1.1 --repo samartomar/aih-catalog --pattern "aihq-catalog-0.1.1.tgz"
-gh attestation verify ./aihq-catalog-0.1.1.tgz --repo samartomar/aih-catalog --signer-workflow samartomar/aih-catalog/.github/workflows/release.yml --source-ref refs/tags/v-catalog-0.1.1 --deny-self-hosted-runners
-./node_modules/.bin/aih-supported --help
 ```
 
 The package workflow keeps candidate execution in a read-only job. Its protected
@@ -168,12 +180,12 @@ in a disposable detached clone, and builds and packs both packages
 there. It installs both tarballs into disposable roots and proves that packed
 Core accepts the emitted V2 receipt and the exact 5,970-byte legal ceiling,
 rejects V1 and 5,971 bytes, reaches the production acceptance boundary, and
-exercises read-only inspection. Because the real
-outer-attestation workflow has not been authorized or executed, that cold proof
-expects production acceptance to fail closed with `AIH_TRUST`; it does not
-fabricate a successful custody write. Successful production acceptance remains
-contingent on genuine organization authority and the separately authorized
-GitHub attestation.
+exercises read-only inspection. The packed proof intentionally supplies no
+genuine organization authority or public
+receipt attestation, so production acceptance must fail closed with `AIH_TRUST`;
+it does not fabricate a successful custody write. Successful production
+acceptance remains contingent on genuine organization authority and the
+separately authorized GitHub attestation.
 
 ## Produce a candidate
 
