@@ -27,7 +27,7 @@ const generated = spawnSync(process.execPath, [generatorPath], { encoding: "utf8
 const generatedVectors = generated.status === 0 ? JSON.parse(generated.stdout) : undefined;
 if (fixture.provenance.generator !== "tests/contracts/core/generate-core-v2-vectors.mjs" ||
   fixture.provenance.source !== `samartomar/ai-harness@${fixture.core.commit}` ||
-  fixture.core.commit !== "74ddf3439df47a947a6f7a022515099602702ac8" ||
+  fixture.core.commit !== "38e01f49f2f4ff310e2f94651b292a1618b61f2e" ||
   fixture.core.packageManifestSha256 !== "af64feda4e3e57808e1a262e15a5cb8f41581f77e8f9b49eb9b459317b803ecd" ||
   fixture.core.packageName !== "@aihq/core" || fixture.core.packageVersion !== "0.1.0" ||
   fixture.core.repository !== "samartomar/ai-harness" ||
