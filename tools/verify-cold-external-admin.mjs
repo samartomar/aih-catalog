@@ -26,9 +26,9 @@ const corePackage = Object.freeze({
   version: "0.1.0",
 });
 const catalogPackage = Object.freeze({
-  filename: "aihq-catalog-0.1.1.tgz",
+  filename: "aihq-catalog-0.1.2.tgz",
   name: "@aihq/catalog",
-  version: "0.1.1",
+  version: "0.1.2",
 });
 const coreSchemaLocks = Object.freeze([
   Object.freeze({

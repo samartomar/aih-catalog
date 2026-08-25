@@ -10,14 +10,18 @@ Ed25519 signature, continuity, and bounded validity.
 **Core governs. Scan produces evidence. Catalog provides AIH qualification. The
 organization provides authority.**
 
-The source package is `@aihq/catalog@0.1.1`; the command remains
+The source package is `@aihq/catalog@0.1.2`; the command remains
 `aih-supported`. It is Apache-2.0 licensed. Package and GitHub Release
 availability are live state: verify the exact version and tag with the commands
 below rather than inferring a registry effect from source text. The pinned
 package-release workflow contains a one-use path restricted to exact
-`@aihq/catalog@0.1.1`. The immutable `v-catalog-0.1.0` attempt failed during
-read-only verification before any publication and remains audit evidence; it is
-never moved, deleted, or reused. The `0.1.1` bootstrap accepts only structured
+`@aihq/catalog@0.1.2`. The immutable `v-catalog-0.1.0` and
+`v-catalog-0.1.1` attempts failed during read-only verification before any
+publication and remain audit evidence; neither tag is moved, deleted, or
+reused. The `0.1.1` failure exposed a test fixture that required unavailable
+parent history from the intentionally shallow exact-Core checkout; `0.1.2`
+creates its wrong-commit fixture without depending on repository history. The
+`0.1.2` bootstrap accepts only structured
 public and authenticated npm `E404` observations, rejects packed publication
 overrides, pins npmjs, and exposes the credential only to the publish step. It
 must refuse once the package exists. The protected environment, credential,
@@ -61,10 +65,10 @@ membership into organization admission.
 ## Install and inspect from a clean consumer
 
 Choose the install path from live registry observation. If
-`npm view @aihq/catalog@0.1.1` returns the exact version, use the published path:
+`npm view @aihq/catalog@0.1.2` returns the exact version, use the published path:
 
 ```sh
-npm install --save-exact @aihq/catalog@0.1.1
+npm install --save-exact @aihq/catalog@0.1.2
 npm audit signatures
 ./node_modules/.bin/aih-supported --help
 ```
@@ -74,9 +78,9 @@ Verify the Release independently; only after `gh release view` succeeds should
 you download and verify its exact tarball:
 
 ```sh
-gh release view v-catalog-0.1.1 --repo samartomar/aih-catalog
-gh release download v-catalog-0.1.1 --repo samartomar/aih-catalog --pattern "aihq-catalog-0.1.1.tgz"
-gh attestation verify ./aihq-catalog-0.1.1.tgz --repo samartomar/aih-catalog --signer-workflow samartomar/aih-catalog/.github/workflows/release.yml --source-ref refs/tags/v-catalog-0.1.1 --deny-self-hosted-runners
+gh release view v-catalog-0.1.2 --repo samartomar/aih-catalog
+gh release download v-catalog-0.1.2 --repo samartomar/aih-catalog --pattern "aihq-catalog-0.1.2.tgz"
+gh attestation verify ./aihq-catalog-0.1.2.tgz --repo samartomar/aih-catalog --signer-workflow samartomar/aih-catalog/.github/workflows/release.yml --source-ref refs/tags/v-catalog-0.1.2 --deny-self-hosted-runners
 ```
 
 If the registry does not expose that exact version, build a tarball from an
@@ -89,7 +93,7 @@ npm pack --pack-destination ../artifacts
 mkdir ../catalog-consumer
 cd ../catalog-consumer
 npm init -y
-npm install --ignore-scripts ../artifacts/aihq-catalog-0.1.1.tgz
+npm install --ignore-scripts ../artifacts/aihq-catalog-0.1.2.tgz
 ```
 
 The package workflow keeps candidate execution in a read-only job. Its protected
@@ -98,7 +102,7 @@ original tarball digest before every effect, re-observes the tag and `main`, and
 runs no candidate package code. It binds npm provenance, a GitHub build
 attestation, a tarball-scoped SPDX SBOM, the checksum, and a keyless cosign
 checksum bundle to the exact tagged source. Do not run this block until
-`npm view @aihq/catalog@0.1.1` succeeds. Those package-release records do not
+`npm view @aihq/catalog@0.1.2` succeeds. Those package-release records do not
 sign a Catalog V2 head or Qualification Receipt and do not grant organization
 authority.
 

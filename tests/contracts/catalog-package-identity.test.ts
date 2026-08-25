@@ -22,7 +22,7 @@ describe("Catalog package identity and current Core lock", () => {
     >;
 
     expect(packageJson.name).toBe("@aihq/catalog");
-    expect(packageJson.version).toBe("0.1.1");
+    expect(packageJson.version).toBe("0.1.2");
     expect(packageJson).not.toHaveProperty("private");
     expect(packageJson.bin).toEqual({ "aih-supported": "dist/cli.js" });
     expect(packageJson.publishConfig).toEqual({ access: "public" });
@@ -103,7 +103,21 @@ describe("Catalog package identity and current Core lock", () => {
 
       try {
         const wrongCommit = clone("wrong-commit");
-        expect(git(wrongCommit, ["checkout", "--detach", `${coreCommit}^`]).status).toBe(0);
+        writeFileSync(resolve(wrongCommit, "wrong-commit-proof.txt"), "fixture-only commit\n");
+        expect(git(wrongCommit, ["add", "wrong-commit-proof.txt"]).status).toBe(0);
+        expect(
+          git(wrongCommit, [
+            "-c",
+            "user.name=AIH Catalog Tests",
+            "-c",
+            "user.email=tests@aih.example",
+            "commit",
+            "--no-gpg-sign",
+            "-m",
+            "Create wrong-commit fixture",
+          ]).status,
+        ).toBe(0);
+        expect(git(wrongCommit, ["status", "--porcelain=v1"]).stdout).toBe("");
         expect(verify(wrongCommit).status).not.toBe(0);
 
         const dirty = clone("dirty");
