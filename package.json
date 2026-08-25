@@ -1,8 +1,7 @@
 {
-  "name": "@aihq/supported",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Strict CatalogHead V2 evidence producer.",
+  "name": "@aihq/catalog",
+  "version": "0.1.0",
+  "description": "AIH Catalog qualification producer for AI Development Assurance.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/samartomar/aih-supported.git"

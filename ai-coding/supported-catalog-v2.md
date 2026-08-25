@@ -1,7 +1,8 @@
 # Supported Catalog V2 contract
 
 This document is the operator and maintainer contract for the public Catalog V2
-surface in `@aihq/supported` 1.0.0. Publication is deferred; publishing npm bytes
+surface in `@aihq/catalog@0.1.0`; its command remains `aih-supported` and its V2
+wire/domain names remain stable. Publication is deferred; publishing npm bytes
 or executing the outer-attestation workflow requires separate exact-SHA
 authorization.
 
@@ -103,7 +104,10 @@ the subject.
 - DSSE payload type, in-toto subject, replay identity, and one Ed25519 signature.
 
 The Core contract is locked to commit
-`e53fe219002515c092ebb68c5b91c91a2fc6110d`, decision-schema SHA-256
+`43609a21ee3cc97834fc84f358f49d2196c91873`, package
+`@aihq/core@0.1.0`, package-manifest SHA-256
+`af64feda4e3e57808e1a262e15a5cb8f41581f77e8f9b49eb9b459317b803ecd`,
+decision-schema SHA-256
 `27295aee8d8be333abe2c73adc72884b534b1c9980a9b7a39d12be8d34c5caff`,
 and Receipt V2 schema SHA-256
 `40a2522dfd05b370c537dc5d9b05ddc3fe2a1d6e1b6448fa50b97d53d2d2477f`.

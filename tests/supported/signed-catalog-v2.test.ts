@@ -18,7 +18,9 @@ import { describe, expect, it, vi } from "vitest";
 import { runCatalogV2Cli } from "../../src/supported/signed-catalog-v2.js";
 
 const root = resolve(import.meta.dirname, "..", "..");
-const coreCommit = "e53fe219002515c092ebb68c5b91c91a2fc6110d";
+const coreCommit = "43609a21ee3cc97834fc84f358f49d2196c91873";
+const corePackageManifestSha256 =
+  "af64feda4e3e57808e1a262e15a5cb8f41581f77e8f9b49eb9b459317b803ecd";
 const schemaSha256 = "27295aee8d8be333abe2c73adc72884b534b1c9980a9b7a39d12be8d34c5caff";
 const receiptSchemaSha256 = "40a2522dfd05b370c537dc5d9b05ddc3fe2a1d6e1b6448fa50b97d53d2d2477f";
 const zeroDigest = "0".repeat(64);
@@ -30,6 +32,9 @@ type Signed = Readonly<Record<string, unknown>>;
 type Api = Readonly<{
   readonly STRICT_V2_CORE_LOCK: {
     readonly coreCommit: string;
+    readonly corePackageManifestSha256: string;
+    readonly corePackageName: string;
+    readonly corePackageVersion: string;
     readonly receiptMaxBytes: number;
     readonly receiptSchemaSha256: string;
     readonly receiptSourceMaxBytes: number;
@@ -183,10 +188,10 @@ function coreSourceVariants(): readonly Record<string, unknown>[] {
     },
     {
       integrity: `sha512-${Buffer.alloc(64, 7).toString("base64")}`,
-      package: "@aihq/supported",
+      package: "@aihq/catalog",
       registry: "https://registry.npmjs.org/",
       type: "npm",
-      version: "1.0.0",
+      version: "0.1.0",
     },
     {
       filename: "aih_supported-1.0.0-py3-none-any.whl",
@@ -603,7 +608,7 @@ describe("public signed catalog V2 acceptance contract", () => {
           { cwd: consumer, encoding: "utf8" },
         );
         expect(installed.status).toBe(0);
-        const installedPackage = resolve(consumer, "node_modules/@aihq/supported");
+        const installedPackage = resolve(consumer, "node_modules/@aihq/catalog");
         const cliPath = resolve(installedPackage, "dist/cli.js");
         const defaultSeedPath = resolve(installedPackage, "defaults/default-catalog-v2.json");
         expect(existsSync(cliPath)).toBe(true);
@@ -855,12 +860,15 @@ describe("public signed catalog V2 acceptance contract", () => {
       unknown
     >;
 
-    expect(packageJson.name).toBe("@aihq/supported");
+    expect(packageJson.name).toBe("@aihq/catalog");
     expect(packageJson.bin).toEqual({ "aih-supported": "dist/cli.js" });
     expect(packageJson.publishConfig).toEqual({ access: "public" });
-    expect(packageJson.private).toBe(true);
+    expect(packageJson).not.toHaveProperty("private");
     expect(publicApi.STRICT_V2_CORE_LOCK).toEqual({
       coreCommit,
+      corePackageManifestSha256,
+      corePackageName: "@aihq/core",
+      corePackageVersion: "0.1.0",
       receiptMaxBytes: 5970,
       receiptSchemaSha256,
       receiptSourceMaxBytes: 4096,
@@ -3442,6 +3450,9 @@ describe("public signed catalog V2 acceptance contract", () => {
 
     expect(fixtureJson.core).toEqual({
       commit: coreCommit,
+      packageManifestSha256: corePackageManifestSha256,
+      packageName: "@aihq/core",
+      packageVersion: "0.1.0",
       receiptMaxBytes: 5970,
       receiptSchemaPath: "schemas/aih-supported-qualification-receipt-v2.schema.json",
       receiptSchemaSha256,
@@ -3700,11 +3711,11 @@ describe("public signed catalog V2 acceptance contract", () => {
       verificationMode: "cold-external-admin",
     });
     expect(coldAdminText.trim()).toBe(canonicalJson(coldAdmin as unknown as Json));
-    expect(packageJson.version).toBe("1.0.0");
+    expect(packageJson.version).toBe("0.1.0");
     expect(packageJson.bin).toEqual({ "aih-supported": "dist/cli.js" });
     expect(packageJson.files).toEqual(["dist", "defaults", "README.md"]);
     expect(packageJson.dependencies).toEqual({});
-    expect(packageJson.private).toBe(true);
+    expect(packageJson).not.toHaveProperty("private");
     expect(packageJson.repository).toEqual({
       type: "git",
       url: "git+https://github.com/samartomar/aih-supported.git",
@@ -3742,14 +3753,16 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(coldVerificationSource).toMatch(/"sign-candidate"/);
     expect(coldVerificationSource).toMatch(/"inspect"/);
     expect(coldVerificationSource).toMatch(/"--qualification-basis"/);
-    expect(coldVerificationSource).toContain("e53fe219002515c092ebb68c5b91c91a2fc6110d");
+    expect(coldVerificationSource).toContain(coreCommit);
+    expect(coldVerificationSource).toContain(corePackageManifestSha256);
     expect(coldVerificationSource).toMatch(/AIH_SUPPORTED_CORE_SOURCE/);
     expect(coldVerificationSource).toMatch(/"status",\s*"--porcelain=v1"/);
     expect(coldVerificationSource).toMatch(/"clone",\s*"--no-checkout",\s*"--shared"/);
     expect(coldVerificationSource).toMatch(/"checkout",\s*"--detach",\s*coreCommit/);
     expect(coldVerificationSource).not.toMatch(/run\(coreSource,/);
-    expect(coldVerificationSource).toMatch(/@aihq\/harness/);
-    expect(coldVerificationSource).toContain('await import("@aihq/harness")');
+    expect(coldVerificationSource).toMatch(/@aihq\/core/);
+    expect(coldVerificationSource).toContain('await import("@aihq/core")');
+    expect(coldVerificationSource).not.toMatch(/@aihq\/harness/);
     expect(coldVerificationSource).not.toMatch(/pathToFileURL\(resolve\(corePackage/);
     expect(coldVerificationSource).toContain(
       "schemas/aih-supported-qualification-receipt-v2.schema.json",
@@ -3787,7 +3800,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(packageJson.exports).toEqual({
       ".": { import: "./dist/index.js", types: "./dist/index.d.ts" },
     });
-    expect(coldVerificationSource).toMatch(/import \* as api from '@aihq\/supported'/);
+    expect(coldVerificationSource).toMatch(/import \* as api from '@aihq\/catalog'/);
     expect(packageScripts["verify:default-evidence-chain"]).toBe(
       "vitest run tests/supported/default-evidence-chain.test.ts",
     );
@@ -3874,14 +3887,14 @@ describe("public signed catalog V2 acceptance contract", () => {
       );
       expect(installed.status).toBe(0);
       const installedManifest = JSON.parse(
-        readFileSync(resolve(consumer, "node_modules/@aihq/supported/package.json"), "utf8"),
+        readFileSync(resolve(consumer, "node_modules/@aihq/catalog/package.json"), "utf8"),
       ) as Record<string, unknown>;
       expect(installedManifest).toMatchObject({
         homepage: "https://github.com/samartomar/aih-supported#readme",
         publishConfig: { access: "public" },
         repository: { type: "git", url: "git+https://github.com/samartomar/aih-supported.git" },
       });
-      expect(installedManifest.private).toBe(true);
+      expect(installedManifest).not.toHaveProperty("private");
 
       const fixture = signingFixture();
       const wrongFixture = signingFixture();
@@ -3978,8 +3991,8 @@ describe("public signed catalog V2 acceptance contract", () => {
         expect(Buffer.byteLength(result.stderr, "utf8")).toBeLessThanOrEqual(128);
         for (const value of prohibitedValues) expect(result.stderr).not.toContain(value);
       };
-      const cliPath = resolve(consumer, "node_modules/@aihq/supported/dist/cli.js");
-      const installedPackage = resolve(consumer, "node_modules/@aihq/supported");
+      const cliPath = resolve(consumer, "node_modules/@aihq/catalog/dist/cli.js");
+      const installedPackage = resolve(consumer, "node_modules/@aihq/catalog");
       const installedSeed = resolve(installedPackage, defaultCatalog.installedSeed as string);
       expect(existsSync(installedSeed)).toBe(true);
       const installedSeedDirectory = dirname(installedSeed);
