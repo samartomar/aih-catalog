@@ -10,30 +10,18 @@ Ed25519 signature, continuity, and bounded validity.
 **Core governs. Scan produces evidence. Catalog provides AIH qualification. The
 organization provides authority.**
 
-The source package is `@aihq/catalog@0.1.3`; the command remains
+The published package is `@aihq/catalog@0.1.3`; the command remains
 `aih-supported`. It is Apache-2.0 licensed. Package and GitHub Release
 availability are live state: verify the exact version and tag with the commands
-below rather than inferring a registry effect from source text. The pinned
-package-release workflow contains a one-use path restricted to exact
-`@aihq/catalog@0.1.3`. The immutable `v-catalog-0.1.0`,
-`v-catalog-0.1.1`, and `v-catalog-0.1.2` attempts failed during read-only
-verification before any publication and remain audit evidence; no tag is moved,
-deleted, or reused. The `0.1.1` failure exposed a test fixture that required
-unavailable parent history from the intentionally shallow exact-Core checkout.
-The `0.1.2` verification fixed that fixture, then exposed that the documented
-packed `aih-supported --help` command returned status 2 after checksum
-verification and installation. Version `0.1.3` implements that deterministic,
-read-only help path. The `0.1.3` bootstrap accepts only structured
-public and authenticated npm `E404` observations, rejects packed publication
-overrides, pins npmjs, and exposes the credential only to the publish step. It
-must refuse once the package exists. The protected environment, credential,
-exact tag, GitHub Release, npm version, trusted-publisher binding, credential
-removal, and source cleanup are owner-controlled effects documented in
-[RELEASING.md](RELEASING.md). Cleanup begins as soon as npm confirms package
-existence, even if later GitHub Release evidence fails. Package publication and
-the manual catalog/receipt outer-attestation workflow are separate effects; each
-requires its own exact-SHA authorization. Publishing is always separately
-authorized.
+below rather than inferring a registry effect from source text. Version `0.1.3`
+is the first successful immutable package release. Its registry tarball and
+GitHub Release tarball have the same SHA-256, and npm exposes both a verified
+registry signature and provenance attestation. The release workflow uses the
+protected `npm-publish` environment and the exact Trusted Publisher tuple
+documented in [RELEASING.md](RELEASING.md); it rejects token credentials at the
+final effect boundary. Package publication and the manual catalog/receipt
+outer-attestation workflow are separate effects, and publishing never grants
+catalog-signing or organization authority.
 
 ## Authority boundary
 

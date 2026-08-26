@@ -1,6 +1,6 @@
 # aih-supported repository truth
 
-This repository is the prepublication public `@aihq/catalog@0.1.3` Catalog V2
+This repository provides the public `@aihq/catalog@0.1.3` Catalog V2
 producer and verifier. Its command remains `aih-supported`.
 Its versioned API and CLI create deterministic candidates from exact
 Core-compatible sources and seed-relative evidence, sign canonical heads with an

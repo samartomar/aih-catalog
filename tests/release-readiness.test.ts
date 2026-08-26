@@ -33,7 +33,7 @@ describe("@aihq/catalog release boundary (#12)", () => {
     expect(read("README.md")).toContain("[Apache-2.0](LICENSE)");
   });
 
-  it("pins one tag-only, main-bound package release workflow", () => {
+  it("pins one tag-only, main-bound Trusted Publishing workflow", () => {
     const workflow = read(".github/workflows/release.yml");
     expect(workflow).toContain('- "v-catalog-*"');
     expect(workflow).not.toMatch(/workflow_dispatch|workflow_call|pull_request_target/);
@@ -45,16 +45,17 @@ describe("@aihq/catalog release boundary (#12)", () => {
     expect(workflow).toContain('if [ "$ver" != "$tag" ]; then');
     expect(workflow).toContain("name: npm-publish");
     expect(workflow).toContain("https://www.npmjs.com/package/@aihq/catalog");
-    expect(workflow).toContain("if: github.ref == 'refs/tags/v-catalog-0.1.3'");
-    expect(workflow).toContain('test "$GITHUB_REF_NAME" = "v-catalog-0.1.3"');
     expect(workflow).not.toContain("packages: write");
-    expect(workflow).not.toContain("NPM_TOKEN");
-    expect(workflow.match(/secrets\.NPM_BOOTSTRAP_TOKEN/gu)).toHaveLength(1);
-    expect(workflow.match(/npm view "@aihq\/catalog" name --json/gu)).toHaveLength(2);
-    expect(workflow.match(/--loglevel silent/gu)).toHaveLength(2);
-    expect(workflow.match(/REGISTRY_OBSERVATION=/gu)).toHaveLength(2);
-    expect(workflow).not.toContain("grep -Eq 'E404'");
-    expect(workflow).toContain('npm whoami --registry "https://registry.npmjs.org/" >/dev/null');
+    expect(workflow).not.toContain("v-catalog-0.1.3");
+    expect(workflow).not.toContain("secrets.NPM_TOKEN");
+    expect(workflow).not.toContain("NPM_BOOTSTRAP_TOKEN");
+    expect(workflow).not.toContain("REGISTRY_OBSERVATION");
+    expect(workflow).not.toContain('npm view "@aihq/catalog"');
+    expect(workflow).not.toContain("npm whoami");
+    expect(workflow).toContain("Publish exact tarball through npm Trusted Publishing");
+    expect(workflow).toContain(
+      ['if [ -n "$', '{NODE_AUTH_TOKEN:-}" ] || [ -n "$', '{NPM_TOKEN:-}" ]; then'].join(""),
+    );
 
     const candidate = workflow.slice(
       workflow.indexOf("  verify-and-pack:\n"),
@@ -107,6 +108,7 @@ describe("@aihq/catalog release boundary (#12)", () => {
     expect(publication).toContain("actions/setup-node@820762786026740c76f36085b0efc47a31fe5020");
     expect(publication).toContain('node-version: "24"');
     expect(publication).toContain("package-manager-cache: false");
+    expect(publication).not.toContain("registry-url:");
     expect(publication).toContain('npm publish "$tarball" --ignore-scripts');
   });
 
@@ -169,26 +171,31 @@ describe("@aihq/catalog release boundary (#12)", () => {
     expect(workflow).toContain("gh release create");
   });
 
-  it("parses npm package-absence evidence as one exact JSON E404 error", () => {
+  it("accepts only a stable unambiguous npm CLI version at the Trusted Publishing boundary", () => {
     const workflow = read(".github/workflows/release.yml");
-    const validator = inlineModuleFollowing(workflow, "REGISTRY_OBSERVATION=");
-    const validate = (observation: string) =>
-      spawnSync(process.execPath, ["--input-type=module", "-e", validator], {
-        env: { ...process.env, REGISTRY_OBSERVATION: observation },
+    const validator = inlineModuleFollowing(workflow, 'npm_version="$(npm --version)"');
+    const validate = (version: string) =>
+      spawnSync(process.execPath, ["--input-type=module", "-", version], {
+        input: validator,
         encoding: "utf8",
       });
 
-    expect(validate(JSON.stringify({ error: { code: "E404", summary: "missing" } })).status).toBe(
-      0,
-    );
-    expect(
-      validate(
-        JSON.stringify({
-          error: { code: "E500", summary: "upstream mentioned E404" },
-        }),
-      ).status,
-    ).not.toBe(0);
-    expect(validate('npm ERR! code E500\n{"error":{"code":"E404"}}').status).not.toBe(0);
+    for (const accepted of ["11.5.1", "11.5.2", "11.6.0", "12.0.0"]) {
+      expect(validate(accepted).status, accepted).toBe(0);
+    }
+    for (const rejected of [
+      "11.5.0",
+      "10.99.99",
+      "11.5.1-beta.0",
+      "11.5.1+build.1",
+      "v11.5.1",
+      "11.5",
+      "011.5.1",
+      "999999999999999999999999.5.1",
+      "",
+    ]) {
+      expect(validate(rejected).status, rejected).not.toBe(0);
+    }
   });
 
   it("rejects a packed manifest that tries to redirect npm publication", () => {
@@ -245,7 +252,7 @@ describe("@aihq/catalog release boundary (#12)", () => {
     const attestIndex = publication.indexOf("Attest build provenance for the exact tarball");
     const signIndex = publication.indexOf("Sign trusted checksum and retain provenance bundle");
     const publishIndex = publication.indexOf(
-      "Publish exact first tarball through the one-use npm bootstrap",
+      "Publish exact tarball through npm Trusted Publishing",
     );
     const releaseIndex = publication.indexOf("Create immutable GitHub Release evidence");
     const verificationIndexes = [...publication.matchAll(/Verify exact tarball before/gmu)].map(
@@ -258,34 +265,32 @@ describe("@aihq/catalog release boundary (#12)", () => {
     expect(verificationIndexes[3]).toBeLessThan(publishIndex);
     expect(verificationIndexes[4]).toBeLessThan(releaseIndex);
 
-    const bootstrapStep = publication.slice(publishIndex, releaseIndex);
-    const authenticatedAbsenceIndex = bootstrapStep.indexOf('npm view "@aihq/catalog" name --json');
-    const liveRefIndex = bootstrapStep.indexOf(
-      "Revalidate live main and tag after authenticated registry observation",
+    const trustedPublishStep = publication.slice(publishIndex, releaseIndex);
+    const liveRefIndex = trustedPublishStep.indexOf(
+      "Revalidate live main and tag immediately before the effect",
     );
-    const finalHashIndex = bootstrapStep.indexOf('actual_sha256="$(sha256sum "$TARBALL"');
-    const effectIndex = bootstrapStep.indexOf('npm publish "$tarball"');
-    expect(authenticatedAbsenceIndex).toBeGreaterThanOrEqual(0);
-    expect(liveRefIndex).toBeGreaterThan(authenticatedAbsenceIndex);
+    const finalHashIndex = trustedPublishStep.indexOf('actual_sha256="$(sha256sum "$TARBALL"');
+    const effectIndex = trustedPublishStep.indexOf('npm publish "$tarball"');
+    expect(liveRefIndex).toBeGreaterThanOrEqual(0);
     expect(finalHashIndex).toBeGreaterThan(liveRefIndex);
     expect(effectIndex).toBeGreaterThan(finalHashIndex);
-    expect(bootstrapStep).toContain("env -u NODE_AUTH_TOKEN git");
+    expect(trustedPublishStep).not.toContain("NPM_BOOTSTRAP_TOKEN");
+    expect(trustedPublishStep).not.toContain("secrets.");
+    expect(trustedPublishStep).not.toContain('npm view "@aihq/catalog"');
   });
 
-  it("documents bootstrap, authority, verification, and immutable failure behavior", () => {
+  it("documents tokenless publication, authority, verification, and immutable failure behavior", () => {
     const releasing = read("RELEASING.md");
-    expect(releasing).toContain("package must already exist");
-    expect(releasing).toMatch(
-      /samartomar\/aih-catalog, workflow `release\.yml`,\s+environment `npm-publish`/u,
+    expect(releasing).toContain(
+      "npm trust github @aihq/catalog --file release.yml --repo samartomar/aih-catalog --env npm-publish --allow-publish",
     );
+    expect(releasing).toContain("npm trust list @aihq/catalog");
     expect(releasing).toContain("full-SHA publication authorization");
-    expect(releasing).toContain("**Bypass 2FA** enabled");
-    expect(releasing).toMatch(/delete the GitHub\s+`NPM_BOOTSTRAP_TOKEN` secret/u);
+    expect(releasing).toContain("GitHub bootstrap secret is absent");
     expect(releasing).toContain("revoke the npm token");
-    expect(releasing).toMatch(/restores trusted-publisher-only\s+publication/u);
-    expect(releasing).toMatch(
-      /as soon as npm confirms package existence, regardless of whether\s+the later GitHub Release succeeds/u,
-    );
+    expect(releasing).toContain("Future Catalog tags remain blocked");
+    expect(releasing).not.toContain("**Bypass 2FA** enabled");
+    expect(releasing).not.toContain("NPM_BOOTSTRAP_TOKEN");
     expect(releasing).toContain("never delete, move, or reuse the tag");
     expect(releasing).toContain("npm view @aihq/catalog@0.1.3");
     expect(releasing).toContain("gh attestation verify ./aihq-catalog-0.1.3.tgz");
@@ -300,8 +305,8 @@ describe("@aihq/catalog release boundary (#12)", () => {
     expect(readme).toMatch(/GitHub build\s+attestation/u);
     expect(readme).toMatch(/Package and GitHub Release\s+availability are live state/u);
     expect(readme).not.toContain("has not been published");
-    expect(releasing).toContain("applies only while the registry returns");
-    expect(releasing).not.toContain("package has not been published");
+    expect(read("ai-coding/project.md")).not.toContain("prepublication");
+    expect(read("ai-coding/supported-catalog-v2.md")).not.toContain("Publication remains deferred");
   });
 
   it("packs the license, default data, command, and library under the exact identity", () => {
