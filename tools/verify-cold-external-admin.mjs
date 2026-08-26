@@ -26,9 +26,9 @@ const corePackage = Object.freeze({
   version: "0.1.0",
 });
 const catalogPackage = Object.freeze({
-  filename: "aihq-catalog-0.1.2.tgz",
+  filename: "aihq-catalog-0.1.3.tgz",
   name: "@aihq/catalog",
-  version: "0.1.2",
+  version: "0.1.3",
 });
 const coreSchemaLocks = Object.freeze([
   Object.freeze({
@@ -316,6 +316,22 @@ try {
   const seed = resolve(installed, "defaults", "default-catalog-v2.json");
   if (!existsSync(cli) || !existsSync(bin) || !existsSync(seed) || !existsSync(coreCli))
     throw new Error("cold-admin-install");
+  const help = runInstalledCli(consumer, cli, bin, ["--help"]);
+  if (
+    help.stderr.length !== 0 ||
+    help.stdout !==
+      [
+        "Usage: aih-supported <command> [options]",
+        "",
+        "Commands:",
+        "  generate-candidate",
+        "  sign-candidate",
+        "  inspect",
+        "  emit-qualification-receipt",
+        "",
+      ].join("\n")
+  )
+    throw new Error("cold-admin-help");
   run(consumer, [
     "--input-type=module",
     "--eval",

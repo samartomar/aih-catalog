@@ -3,7 +3,7 @@
   "name": "aih-supported",
   "contextDir": "ai-coding",
   "targets": ["claude", "codex"],
-  "description": "Prepublication public @aihq/catalog@0.1.2 Catalog V2 producer and verifier.",
+  "description": "Prepublication public @aihq/catalog@0.1.3 Catalog V2 producer and verifier.",
   "languages": ["TypeScript/Node.js"],
   "packageManager": "npm",
   "entrypoints": ["dist/cli.js"],
