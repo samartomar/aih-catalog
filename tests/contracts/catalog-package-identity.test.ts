@@ -22,7 +22,7 @@ describe("Catalog package identity and current Core lock", () => {
     >;
 
     expect(packageJson.name).toBe("@aihq/catalog");
-    expect(packageJson.version).toBe("0.1.2");
+    expect(packageJson.version).toBe("0.1.3");
     expect(packageJson).not.toHaveProperty("private");
     expect(packageJson.bin).toEqual({ "aih-supported": "dist/cli.js" });
     expect(packageJson.publishConfig).toEqual({ access: "public" });

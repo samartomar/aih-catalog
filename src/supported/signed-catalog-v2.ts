@@ -1226,6 +1226,21 @@ export function planCatalogPromotionV2(v: unknown): R {
 // Directly importable only from the implementation boundary; the package root exports no CLI loader.
 export function runCatalogV2Cli(argv: readonly string[]): number {
   try {
+    if (argv.length === 1 && argv[0] === "--help") {
+      process.stdout.write(
+        [
+          "Usage: aih-supported <command> [options]",
+          "",
+          "Commands:",
+          "  generate-candidate",
+          "  sign-candidate",
+          "  inspect",
+          "  emit-qualification-receipt",
+          "",
+        ].join("\n"),
+      );
+      return 0;
+    }
     const [command, ...rest] = argv;
     const args: Record<string, string | true> = Object.create(null) as Record<
       string,

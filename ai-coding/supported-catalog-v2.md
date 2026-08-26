@@ -1,7 +1,7 @@
 # Supported Catalog V2 contract
 
 This document is the operator and maintainer contract for the public Catalog V2
-surface in `@aihq/catalog@0.1.2`; its command remains `aih-supported` and its V2
+surface in `@aihq/catalog@0.1.3`; its command remains `aih-supported` and its V2
 wire/domain names remain stable. The source package uses Apache-2.0 and has a
 pinned, provenance-capable `v-catalog-X.Y.Z` release path.
 Publication remains deferred; publishing npm bytes or executing the catalog/receipt

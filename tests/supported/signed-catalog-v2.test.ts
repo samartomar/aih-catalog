@@ -3736,7 +3736,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       verificationMode: "cold-external-admin",
     });
     expect(coldAdminText.trim()).toBe(canonicalJson(coldAdmin as unknown as Json));
-    expect(packageJson.version).toBe("0.1.2");
+    expect(packageJson.version).toBe("0.1.3");
     expect(packageJson.bin).toEqual({ "aih-supported": "dist/cli.js" });
     expect(packageJson.files).toEqual(["dist", "defaults", "README.md"]);
     expect(packageJson.dependencies).toEqual({});
