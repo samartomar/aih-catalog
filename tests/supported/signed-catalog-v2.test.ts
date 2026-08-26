@@ -500,6 +500,31 @@ function canCreateFileAndDirectorySymlinks(): boolean {
 }
 
 describe("public signed catalog V2 acceptance contract", () => {
+  it("prints deterministic help without entering a catalog effect path", () => {
+    const output = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const error = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    try {
+      expect(runCatalogV2Cli(["--help"])).toBe(0);
+      expect(output).toHaveBeenCalledOnce();
+      expect(output).toHaveBeenCalledWith(
+        [
+          "Usage: aih-supported <command> [options]",
+          "",
+          "Commands:",
+          "  generate-candidate",
+          "  sign-candidate",
+          "  inspect",
+          "  emit-qualification-receipt",
+          "",
+        ].join("\n"),
+      );
+      expect(error).not.toHaveBeenCalled();
+    } finally {
+      output.mockRestore();
+      error.mockRestore();
+    }
+  });
+
   it("executes the internal CLI boundary directly for coverage without exporting it publicly", async () => {
     const temp = mkdtempSync(join(tmpdir(), "aih-supported-direct-cli-"));
     const output = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
