@@ -54,7 +54,7 @@ describe("supported public V2 boundary", () => {
       expect(text).toMatch(/version/i);
       expect(text).toMatch(/consum/i);
       expect(text).toMatch(/contribut/i);
-      expect(text).toMatch(/publication.*deferred|publish.*separate/i);
+      expect(text).toMatch(/publication[\s\S]{0,180}(?:separate|exact-SHA)/i);
       expect(text).toMatch(/Core.*does not.*consume.*Catalog V2/i);
       expect(text).toMatch(/aih-supported-catalog-member\/v2|catalogHeadSha256|candidateSha256/i);
       expect(text).toMatch(/inner claims.*declaration|signer declaration/i);
@@ -83,12 +83,12 @@ describe("supported public V2 boundary", () => {
     expect(project.description).toMatch(/public .*Catalog V2 producer/i);
     expect(project.description).not.toMatch(/private|bootstrap|no product/i);
     expect(project.entrypoints).toEqual(expect.arrayContaining(["dist/cli.js"]));
-    expect(project.publication).toBe("prepublication-source-candidate");
+    expect(project.publication).toBe("published-npm-package");
     expect(project.supportedCatalogV2).toEqual({
       documentation: "ai-coding/supported-catalog-v2.md",
       entrypoints: ["dist/cli.js"],
       organizationAdmission: "not-authoritative",
-      publicationStatus: "prepublication-source-candidate",
+      publicationStatus: "published-npm-package",
       coreConsumption: "independently-attested-qualification-receipt-v2",
       qualificationReceipt: "aih-supported-qualification-receipt-v2",
       status: "public-v2",

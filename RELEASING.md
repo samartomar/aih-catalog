@@ -18,46 +18,32 @@ publicly obtainable with provenance; it does not execute
 Receipt, approve organization use, establish an organization trust root, or
 prove successful Core custody.
 
-## First-package bootstrap
+## Trusted Publishing boundary
 
-This bootstrap applies only while the registry returns one exact structured
-`E404` for `@aihq/catalog`. npm's trusted-publisher contract requires that the
-package must already exist before an owner can bind GitHub OIDC. That makes the
-first registry creation an exceptional owner action. Once the package exists,
-never rerun this section: bind the trusted publisher and remove the bootstrap
-credential and source path. Do not fall back to an unprovenanced local publish.
+The first successful package release is `@aihq/catalog@0.1.3` from immutable tag
+`v-catalog-0.1.3`. The normal registry endpoint, registry signature, npm
+provenance attestation, GitHub build attestation, Release checksum, disposable
+installation, and packed CLI help path were independently verified. The
+first-package credential path is historical and must never be restored.
 
-For the first version:
+The steady-state npm Trusted Publisher is configured with repository
+`samartomar/aih-catalog`, workflow `release.yml`, environment `npm-publish`, and
+only the `npm publish` action. Verify the exact tuple with npm CLI 11.15.0 or
+newer:
 
-1. Merge and fully verify the exact release candidate.
-2. Obtain full-SHA publication authorization naming `@aihq/catalog@0.1.3` and
-   the exact `main` SHA.
-3. Create the `npm-publish` GitHub environment with a required reviewer and
-   protect immutable `v-catalog-*` tags. Create a short-lived granular npm access
-   token with **Bypass 2FA** enabled and read/write access limited to the `@aihq`
-   scope, then store it only as the environment secret `NPM_BOOTSTRAP_TOKEN`.
-   Never place it in a repository/organization variable, working-tree `.npmrc`,
-   read-only job, log, or issue.
-4. The temporary workflow accepts only `v-catalog-0.1.3`. Before the secret is
-   available and again after `npm whoami` authenticates it, the workflow requires
-   one structured npm error whose exact code is `E404`. Mixed output, success, or
-   any other failure refuses publication. The packed manifest must contain exactly
-   `publishConfig: { "access": "public" }`; the publish command explicitly selects
-   `https://registry.npmjs.org/` and rehashes the tarball before the effect.
-5. Begin cleanup as soon as npm confirms package existence, regardless of whether
-   the later GitHub Release succeeds. Bind the steady-state trusted publisher
-   with npm CLI 11.15.0 or newer:
+```sh
+npm trust github @aihq/catalog --file release.yml --repo samartomar/aih-catalog --env npm-publish --allow-publish
+npm trust list @aihq/catalog
+```
 
-   ```sh
-   npm trust github @aihq/catalog --file release.yml --repo samartomar/aih-catalog --env npm-publish --allow-publish
-   npm trust list @aihq/catalog
-   ```
-
-   The observed tuple must name samartomar/aih-catalog, workflow `release.yml`,
-   environment `npm-publish`, and `npm publish` permission. Then delete the GitHub
-   `NPM_BOOTSTRAP_TOKEN` secret, revoke the npm token, and merge the cleanup that
-   restores trusted-publisher-only publication before any later Catalog tag.
-   Finally require 2FA and disallow traditional tokens in the package settings.
+The GitHub bootstrap secret is absent. The owner must revoke the npm token used
+for first publication and configure package publishing access to require 2FA and
+disallow traditional tokens. Future Catalog tags remain blocked by owner
+approval policy until those npm controls are confirmed. Independently, the
+workflow rejects nonempty token credential variables and requires npm CLI 11.5.1
+or newer so `npm publish` authenticates only through GitHub OIDC. The protected
+job also omits setup-node's `registry-url` input so it cannot create an empty
+token placeholder that suppresses OIDC; the publish command itself pins npmjs.
 
 Environment, ruleset, credential, tag, and trusted-publisher mutations are not
 source-code changes and require their own authorization. Keep `catalog-signing`
@@ -68,19 +54,17 @@ not npm package publication.
 
 1. Re-observe the issue and current npm state. The immutable `v-catalog-0.1.0`,
    `v-catalog-0.1.1`, and `v-catalog-0.1.2` attempts failed during read-only
-   verification before publication and are retained as audit evidence. The
-   `0.1.1` attempt exposed a test fixture that assumed the intentionally shallow
-   exact-Core checkout had parent history. The `0.1.2` attempt fixed that
-   fixture, then its packed smoke install exposed the missing documented
-   `aih-supported --help` path. The fix-forward first publication is `0.1.3`; prerelease
-   versions publish to `next`, while stable versions publish to `latest`.
+   verification before publication and remain audit evidence. Version `0.1.3`
+   is the first published package. Every later version uses Trusted Publishing;
+   prerelease versions publish to `next`, while stable versions publish to
+   `latest`.
 2. Ensure `package.json` and `package-lock.json` name the exact version and the
    public README and Catalog V2 contract document the shipped behavior.
 3. Run the repository verification commands in the Catalog V2 contract,
    followed by `npm pack --ignore-scripts --dry-run --json` and
    `git diff --check`.
 4. Merge the release candidate and wait for every required `main` check.
-5. Obtain the exact authorization statement:
+5. Obtain full-SHA publication authorization with the exact statement:
 
    ```text
    Authorize publishing @aihq/catalog@X.Y.Z from <full-main-SHA> as v-catalog-X.Y.Z.
@@ -119,7 +103,6 @@ reviewed commit/version, and fix forward. A green package-release workflow is
 not evidence of a signed catalog head, receipt provenance, organization
 authority, evidence acceptance, or a successful Core effect.
 
-If npm publication succeeded before a later workflow step failed, npm package
-existence is the cleanup trigger: complete step 5 immediately before repairing
-the missing GitHub Release evidence. Do not leave the bootstrap credential or
-source path active while repairing that evidence.
+If npm publication succeeds before a later workflow step fails, treat the npm
+version as immutable and repair the missing GitHub Release evidence from a new
+reviewed version. The tokenless workflow must not be weakened for recovery.

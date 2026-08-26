@@ -4,9 +4,10 @@ This document is the operator and maintainer contract for the public Catalog V2
 surface in `@aihq/catalog@0.1.3`; its command remains `aih-supported` and its V2
 wire/domain names remain stable. The source package uses Apache-2.0 and has a
 pinned, provenance-capable `v-catalog-X.Y.Z` release path.
-Publication remains deferred; publishing npm bytes or executing the catalog/receipt
-outer-attestation workflow requires separate exact-SHA authorization for that
-specific effect.
+`@aihq/catalog@0.1.3` is published with npm and GitHub provenance. Every later
+npm publication and every execution of the catalog/receipt outer-attestation
+workflow still requires separate exact-SHA authorization for that specific
+effect.
 
 ## Purpose and authority
 
@@ -261,6 +262,6 @@ validates the packed identity without running candidate package code. The same
 digest-revalidated tarball is the subject of its SPDX SBOM, GitHub build
 attestation, keyless checksum signature, npm OIDC publication, and GitHub
 Release. It cannot sign or promote a catalog head or Qualification Receipt.
-First-package bootstrap, the protected `npm-publish` environment,
-trusted-publisher binding, exact tag, and publication remain the owner actions
-defined in [RELEASING.md](../RELEASING.md).
+The protected `npm-publish` environment, exact Trusted Publisher tuple, token
+prohibition, exact tag, and publication owner gates are defined in
+[RELEASING.md](../RELEASING.md).
