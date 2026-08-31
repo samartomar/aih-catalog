@@ -10,18 +10,20 @@ Ed25519 signature, continuity, and bounded validity.
 **Core governs. Scan produces evidence. Catalog provides AIH qualification. The
 organization provides authority.**
 
-The published package is `@aihq/catalog@0.1.3`; the command remains
-`aih-supported`. It is Apache-2.0 licensed. Package and GitHub Release
-availability are live state: verify the exact version and tag with the commands
-below rather than inferring a registry effect from source text. Version `0.1.3`
-is the first successful immutable package release. Its registry tarball and
-GitHub Release tarball have the same SHA-256, and npm exposes both a verified
-registry signature and provenance attestation. The release workflow uses the
+The package is `@aihq/catalog`; the command remains `aih-supported`. It is
+Apache-2.0 licensed. Package and GitHub Release availability are live state:
+verify the exact version and tag with the commands below rather than inferring a
+registry effect from source text. The release workflow uses the
 protected `npm-publish` environment and the exact Trusted Publisher tuple
 documented in [RELEASING.md](RELEASING.md); it rejects token credentials at the
 final effect boundary. Package publication and the manual catalog/receipt
 outer-attestation workflow are separate effects, and publishing never grants
-catalog-signing or organization authority.
+catalog-signing or organization authority. Candidate bytes publish first under
+npm `next`; only public installed acceptance and separate authorization can
+promote those same bytes to `latest`.
+
+Release and contribution policy: [VERSIONING.md](VERSIONING.md) ·
+[RELEASING.md](RELEASING.md) · [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Authority boundary
 
@@ -54,11 +56,12 @@ membership into organization admission.
 
 ## Install and inspect from a clean consumer
 
-Choose the install path from live registry observation. If
-`npm view @aihq/catalog@0.1.3` returns the exact version, use the published path:
+Resolve the promoted stable version from live registry observation, approve that
+exact version, and use it consistently:
 
 ```sh
-npm install --save-exact @aihq/catalog@0.1.3
+version="$(npm view @aihq/catalog dist-tags.latest)"
+npm install --save-exact "@aihq/catalog@$version"
 npm audit signatures
 ./node_modules/.bin/aih-supported --help
 ```
@@ -68,9 +71,9 @@ Verify the Release independently; only after `gh release view` succeeds should
 you download and verify its exact tarball:
 
 ```sh
-gh release view v-catalog-0.1.3 --repo samartomar/aih-catalog
-gh release download v-catalog-0.1.3 --repo samartomar/aih-catalog --pattern "aihq-catalog-0.1.3.tgz"
-gh attestation verify ./aihq-catalog-0.1.3.tgz --repo samartomar/aih-catalog --signer-workflow samartomar/aih-catalog/.github/workflows/release.yml --source-ref refs/tags/v-catalog-0.1.3 --deny-self-hosted-runners
+gh release view "v-catalog-$version" --repo samartomar/aih-catalog
+gh release download "v-catalog-$version" --repo samartomar/aih-catalog --pattern "aihq-catalog-$version.tgz"
+gh attestation verify "./aihq-catalog-$version.tgz" --repo samartomar/aih-catalog --signer-workflow samartomar/aih-catalog/.github/workflows/release.yml --source-ref "refs/tags/v-catalog-$version" --deny-self-hosted-runners
 ```
 
 If the registry does not expose that exact version, build a tarball from an
@@ -83,7 +86,7 @@ npm pack --pack-destination ../artifacts
 mkdir ../catalog-consumer
 cd ../catalog-consumer
 npm init -y
-npm install --ignore-scripts ../artifacts/aihq-catalog-0.1.3.tgz
+npm install --ignore-scripts ../artifacts/aihq-catalog-X.Y.Z.tgz
 ```
 
 The package workflow keeps candidate execution in a read-only job. Its protected
@@ -91,8 +94,8 @@ job downloads the packed candidate by immutable artifact ID, revalidates the
 original tarball digest before every effect, re-observes the tag and `main`, and
 runs no candidate package code. It binds npm provenance, a GitHub build
 attestation, a tarball-scoped SPDX SBOM, the checksum, and a keyless cosign
-checksum bundle to the exact tagged source. Do not run this block until
-`npm view @aihq/catalog@0.1.3` succeeds. Those package-release records do not
+checksum bundle to the exact tagged source. Do not run this block until the exact
+`npm view "@aihq/catalog@$version"` succeeds. Those package-release records do not
 sign a Catalog V2 head or Qualification Receipt and do not grant organization
 authority.
 

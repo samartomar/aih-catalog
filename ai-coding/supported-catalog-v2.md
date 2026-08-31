@@ -1,13 +1,14 @@
 # Supported Catalog V2 contract
 
 This document is the operator and maintainer contract for the public Catalog V2
-surface in `@aihq/catalog@0.1.3`; its command remains `aih-supported` and its V2
+surface in `@aihq/catalog`; its command remains `aih-supported` and its V2
 wire/domain names remain stable. The source package uses Apache-2.0 and has a
 pinned, provenance-capable `v-catalog-X.Y.Z` release path.
-`@aihq/catalog@0.1.3` is published with npm and GitHub provenance. Every later
-npm publication and every execution of the catalog/receipt outer-attestation
-workflow still requires separate exact-SHA authorization for that specific
-effect.
+Package candidate publication, package stable promotion, and every execution of
+the catalog/receipt outer-attestation workflow require separate exact-SHA
+authorization for that specific effect. Package publication starts under npm
+`next`; promotion of the same accepted bytes to `latest` never signs or advances a
+Catalog head.
 
 ## Purpose and authority
 
