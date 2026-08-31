@@ -53,6 +53,9 @@ describe("@aihq/catalog release boundary (#12)", () => {
     expect(workflow).not.toContain('npm view "@aihq/catalog"');
     expect(workflow).not.toContain("npm whoami");
     expect(workflow).toContain("Publish exact tarball through npm Trusted Publishing");
+    expect(workflow).toContain("dist_tag=next");
+    expect(workflow).not.toContain("dist_tag=latest");
+    expect(workflow).toContain("--prerelease");
     expect(workflow).toContain(
       ['if [ -n "$', '{NODE_AUTH_TOKEN:-}" ] || [ -n "$', '{NPM_TOKEN:-}" ]; then'].join(""),
     );
@@ -292,21 +295,32 @@ describe("@aihq/catalog release boundary (#12)", () => {
     expect(releasing).not.toContain("**Bypass 2FA** enabled");
     expect(releasing).not.toContain("NPM_BOOTSTRAP_TOKEN");
     expect(releasing).toContain("never delete, move, or reuse the tag");
-    expect(releasing).toContain("npm view @aihq/catalog@0.1.3");
-    expect(releasing).toContain("gh attestation verify ./aihq-catalog-0.1.3.tgz");
+    expect(releasing).toContain("semver:none|patch|minor|major");
+    expect(releasing).toContain("publishes under npm `next`");
+    expect(releasing).toContain("separate promotion authorization");
+    expect(releasing).toContain("public installed Catalog/Core/\nScanner acceptance");
+    expect(releasing).toContain('npm view "@aihq/catalog@$version"');
+    expect(releasing).toContain('gh attestation verify "./aihq-catalog-$version.tgz"');
     expect(releasing).not.toContain("gh attestation verify ./node_modules/@aihq/catalog");
     expect(releasing).toContain("Package publication is not Catalog signing authority");
 
     const readme = read("README.md");
-    expect(readme).toContain("npm install --save-exact @aihq/catalog@0.1.3");
-    expect(readme).toContain("gh release view v-catalog-0.1.3");
-    expect(readme).toContain("gh attestation verify ./aihq-catalog-0.1.3.tgz");
+    expect(readme).toContain('npm install --save-exact "@aihq/catalog@$version"');
+    expect(readme).toContain('gh release view "v-catalog-$version"');
+    expect(readme).toContain('gh attestation verify "./aihq-catalog-$version.tgz"');
     expect(readme).toContain("npm provenance");
     expect(readme).toMatch(/GitHub build\s+attestation/u);
     expect(readme).toMatch(/Package and GitHub Release\s+availability are live state/u);
     expect(readme).not.toContain("has not been published");
     expect(read("ai-coding/project.md")).not.toContain("prepublication");
     expect(read("ai-coding/supported-catalog-v2.md")).not.toContain("Publication remains deferred");
+  });
+
+  it("enforces package-bearing and repository-only release classes in CI", () => {
+    const semver = read(".github/workflows/semver-label.yml");
+    expect(semver).toContain("semver:none|semver:patch|semver:minor|semver:major");
+    expect(semver).toContain("Exactly one semver:* label is required");
+    expect(read("VERSIONING.md")).toContain("cannot start or bump a package cut");
   });
 
   it("packs the license, default data, command, and library under the exact identity", () => {

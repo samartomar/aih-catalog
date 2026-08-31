@@ -18,3 +18,10 @@ signing authority. The protected job may add outer GitHub attestation provenance
 only after exact digest approval, and an independent job performs final
 verification. Publication and provenance execution are separately authorized for
 an exact-SHA; a green PR does not authorize either effect.
+
+Every PR carries exactly one `semver:none|patch|minor|major` label. Repository-only
+changes marked `semver:none` cannot start a package release. Package-bearing work
+accumulates in one coherent train. The package tag workflow publishes only under npm
+`next`; public installed acceptance and separate owner authorization precede promotion
+of the same bytes to `latest`. npm promotion remains independent of Catalog head
+signing and promotion.
