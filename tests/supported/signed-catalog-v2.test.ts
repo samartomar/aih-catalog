@@ -5646,7 +5646,9 @@ describe("public signed catalog V2 acceptance contract", () => {
     );
     expect(workflow).toContain("actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1");
     expect(workflow).not.toContain("actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683");
-    expect(workflow).not.toContain("actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093");
+    expect(workflow).not.toContain(
+      "actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093",
+    );
     expect(workflow).toContain(
       "actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8",
     );
