@@ -47,7 +47,7 @@ jobs:
       QUALIFICATION_RECEIPT_PATH: qualification-receipt-v2.json
       REPLAY_STATE_PATH: qualification-receipt-replay-state.json
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ env.EXPECTED_COMMIT_SHA }}
           persist-credentials: false
@@ -111,7 +111,7 @@ jobs:
           OBSERVED_NOW="$observed_now" node --input-type=module -e "import fs from 'node:fs'; import { planCatalogPromotionV2 } from './dist/index.js'; const canon=v=>v===null||typeof v!=='object'?JSON.stringify(v):Array.isArray(v)?'['+v.map(canon).join(',')+']':'{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+canon(v[k])).join(',')+'}'; const candidate=JSON.parse(fs.readFileSync(process.env.REGENERATED_CANDIDATE_PATH)); const last=process.env.CONTINUITY_MODE==='successor'?JSON.parse(fs.readFileSync(process.env.LAST_ACCEPTED_HEAD_PATH)):null; const plan=last?planCatalogPromotionV2({candidateHead:candidate,lastGood:last,now:process.env.OBSERVED_NOW}):{kind:'genesis',facts:[]}; const record={candidateCatalogHeadSha256:candidate.catalogHeadSha256,facts:plan.facts??[],kind:plan.kind,lastGoodCatalogHeadSha256:last?.catalogHeadSha256??null}; fs.writeFileSync(process.env.PROMOTION_PLAN_PATH,canon(record));"
           cmp "$REGENERATED_CANDIDATE_PATH" "$EMBEDDED_CATALOG_HEAD_PATH"
           cp "$SIGNED_CATALOG_PATH" "$CANDIDATE_ARTIFACT_PATH"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: signed-catalog-v2
           path: |
@@ -139,7 +139,7 @@ jobs:
       PROMOTION_PLAN_PATH: signed-catalog-v2/promotion-plan.json
       QUALIFICATION_RECEIPT_PATH: signed-catalog-v2/qualification-receipt-v2.json
     steps:
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: signed-catalog-v2
           path: signed-catalog-v2
@@ -279,11 +279,11 @@ jobs:
       EXPECTED_LAST_ACCEPTED_HEAD_SHA256: ${{ inputs.last_accepted_head_sha256 }}
       EXPECTED_CLAIMS_PATH: catalog-expected-claims.json
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ env.EXPECTED_COMMIT_SHA }}
           persist-credentials: false
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: signed-catalog-v2
           path: signed-catalog-v2
