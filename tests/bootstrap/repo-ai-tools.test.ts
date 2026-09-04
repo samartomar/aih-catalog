@@ -50,7 +50,7 @@ describe("aih-supported repository AI bootstrap", () => {
     );
     expect(workflow).toContain("permissions:\n  contents: read\n");
     expect(workflow).toContain(
-      "- uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683\n        with:\n          persist-credentials: false",
+      "- uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1\n        with:\n          persist-credentials: false",
     );
     expect(workflow).toContain("actions/setup-node@820762786026740c76f36085b0efc47a31fe5020");
     expect(workflow).not.toContain("repo:init");
