@@ -24,7 +24,7 @@ receipt carries the exact member basis and authenticated continuity facts; the
 matching Core V2 consumer separately verifies its outer attestation and exact
 fields. A separate Strict V2
 governance decision carried by a V3 authority receipt must still authorize use. An
-organization can therefore qualify a tool, skill, MCP server, package, or profile
+organization can therefore qualify a tool, skill, agent, MCP server, package, or profile
 with its own exact source and evidence even when the subject is absent from the
 supported channel.
 
@@ -40,12 +40,14 @@ supported channel.
 5. A cold consumer verifies an out-of-band root, static expected claims, current
    validity, continuity, caller-supplied replay state when used, the signature,
    and all digest mirrors.
-6. The producer emits one closed, canonical, non-authoritative Strict
-   Qualification Receipt V2 for an exact verified member, including the
+6. The producer emits either one closed, canonical, non-authoritative Strict
+   Qualification Receipt V2 for an exact verified member, or a receipt-set
+   manifest plus one receipt for every verified head member, including the
    authenticated head continuity and replay identity.
 7. A separately authorized manual workflow may attach independent GitHub
-   OIDC/keyless outer provenance to the exact catalog and receipt after their
-   hashes and the exact promotion plan are approved.
+   OIDC/keyless outer provenance to the exact catalog, receipt-set manifest,
+   and per-entry receipts after their hashes and the exact promotion plan are
+   approved.
 
 Candidate generation has no signing, provider, network, repository-write, or
 organization-admission authority. Signing executes no candidate code. The outer
@@ -55,7 +57,7 @@ inner administrator signature.
 ## Exact subjects
 
 The subject shape is `{id, kind, source, sourceDigest, subjectDigest}`. Supported
-kinds are `tool`, `skill`, `mcp`, `package`, and `profile`. Supported sources are
+kinds are `tool`, `skill`, `agent`, `mcp`, `package`, and `profile`. Supported sources are
 the closed Core V2 GitHub, npm, PyPI, OCI, remote-content, and AIH variants,
 including the optional OCI platform variant.
 
@@ -108,13 +110,13 @@ the subject.
 - DSSE payload type, in-toto subject, replay identity, and one Ed25519 signature.
 
 The Core contract is locked to commit
-`aa93128ff56b3ed978ec428e29d1b1ce8036e53b`, package
-`@aihq/core@0.1.0`, package-manifest SHA-256
-`af64feda4e3e57808e1a262e15a5cb8f41581f77e8f9b49eb9b459317b803ecd`,
+`c31741602b3dbd5f228dafe00591e5679c782878`, package
+`@aihq/core@0.5.0`, package-manifest SHA-256
+`8dc114f1564af7330e4376aad716a8622766c28e97c2b3fc74ae87da0a2cc185`,
 decision-schema SHA-256
-`27295aee8d8be333abe2c73adc72884b534b1c9980a9b7a39d12be8d34c5caff`,
+`7fdf101568cd7caa28516d0be37704c0dfd51198bc54d41d65829abbe77547cc`,
 and Receipt V2 schema SHA-256
-`40a2522dfd05b370c537dc5d9b05ddc3fe2a1d6e1b6448fa50b97d53d2d2477f`.
+`eb02f082e0adb11be1e2d67694fbe90666d7fff3725195b4c0ed9ce07b43f50c`.
 Qualification Receipt V1 and its obsolete Core schema lock are removed. The
 public lock export, fixture, vendored decision and receipt schemas, vector
 verifier, packed proof, and CI checkout all bind that same merged Core contract;
@@ -216,11 +218,12 @@ The manual workflow records a canonical promotion plan binding the candidate
 head, last-good head, and facts. Candidate jobs have read-only contents authority
 and cannot sign. A material version bump or removal can proceed only when an
 operator supplies the exact promotion-plan, signed-catalog, and qualification-
-receipt SHA-256 values plus the receipt issuance timestamp and entry id, and the
+receipt-set manifest SHA-256 values plus the receipt issuance timestamp, and the
 protected `catalog-signing` environment approves them. The signing job runs no
-candidate code; it separately attests the catalog and receipt. The final verifier
-rebuilds, checks continuity and the inner signature, recomputes the plan and
-receipt bytes, and verifies both outer GitHub attestations.
+candidate code; it separately attests the catalog, receipt-set manifest, and
+per-entry receipts. The final verifier rebuilds, checks continuity and the inner
+signature, recomputes the plan, manifest, and receipt bytes, and verifies the
+outer GitHub attestations.
 
 A catalog removal affects later catalog observation. It does not revoke a
 previously issued Core decision with a pinned member digest; the organization
