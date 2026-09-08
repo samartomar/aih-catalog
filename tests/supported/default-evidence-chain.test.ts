@@ -52,11 +52,11 @@ describe("default CatalogHead V2 evidence chain", () => {
       subject: { id: string; kind: "profile"; source: Record<string, unknown> };
     };
     expect(seed.capabilities).toEqual(pinnedDefault.capabilities);
-    expect(seed.capabilities.commands).toEqual(["catalog.verify"]);
-    expect(seed.capabilities.egress).toEqual(["https://api.github.com"]);
-    expect(seed.capabilities.hooks).toEqual(["hook.catalog.verify"]);
-    expect(seed.capabilities.mcpTools).toEqual(["github.get_workflow_run"]);
-    expect(seed.capabilities.permissions).toEqual(["contents:read"]);
+    expect(seed.capabilities.commands).toEqual([]);
+    expect(seed.capabilities.egress).toEqual([]);
+    expect(seed.capabilities.hooks).toEqual([]);
+    expect(seed.capabilities.mcpTools).toEqual([]);
+    expect(seed.capabilities.permissions).toEqual([]);
     expect(seed.platforms).toEqual(pinnedDefault.platforms);
     expect(seed.qualification).toEqual(pinnedDefault.qualification);
     const artifactDigests = Object.fromEntries(

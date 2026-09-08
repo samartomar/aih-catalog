@@ -63,7 +63,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: samartomar/ai-harness
-          ref: aa93128ff56b3ed978ec428e29d1b1ce8036e53b
+          ref: c31741602b3dbd5f228dafe00591e5679c782878
           path: core-source
           persist-credentials: false
       - name: Verify exact Core and package contracts

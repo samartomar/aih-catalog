@@ -6,10 +6,10 @@ Its versioned API and CLI create deterministic candidates from exact
 Core-compatible sources and seed-relative evidence, sign canonical heads with an
 administrator Ed25519 key, verify continuity and caller-supplied replay state,
 inspect unknown versions without materializing them, plan promotion exceptions,
-and emit the closed Core-owned Strict Qualification Receipt V2 for one fully
-verified member. The receipt preserves the verified entry, head, predecessor,
-sequence, replay identity, signer key, and validity facts needed by Core's
-separate durable custody. See
+and emit closed Core-owned Strict Qualification Receipt V2 bytes for either one
+fully verified member or every member in a receipt set. Each receipt preserves
+the verified entry, head, predecessor, sequence, replay identity, signer key,
+and validity facts needed by Core's separate durable custody. See
 `ai-coding/supported-catalog-v2.md` before changing that boundary.
 
 The supported channel is optional and not-authoritative for organization
@@ -22,8 +22,9 @@ signers.
 Candidate generation has no provider network, installation, signing,
 repository-write, or publication authority. Signing executes no candidate code.
 The manual protected workflow can add separate outer GitHub provenance for the
-exact catalog and exact V2 receipt only after their hashes and the promotion plan
-are approved, and publication is separately authorized.
+exact catalog, receipt-set manifest, and per-entry V2 receipts only after their
+hashes and the promotion plan are approved, and publication is separately
+authorized.
 Catalog V1 and Qualification Receipt V1 have been removed. Never run an
 installed aih-supported against this checkout; use packed disposable consumers
 or direct repository checks.

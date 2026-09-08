@@ -18,11 +18,11 @@ import { describe, expect, it, vi } from "vitest";
 import { runCatalogV2Cli } from "../../src/supported/signed-catalog-v2.js";
 
 const root = resolve(import.meta.dirname, "..", "..");
-const coreCommit = "aa93128ff56b3ed978ec428e29d1b1ce8036e53b";
+const coreCommit = "c31741602b3dbd5f228dafe00591e5679c782878";
 const corePackageManifestSha256 =
-  "af64feda4e3e57808e1a262e15a5cb8f41581f77e8f9b49eb9b459317b803ecd";
-const schemaSha256 = "27295aee8d8be333abe2c73adc72884b534b1c9980a9b7a39d12be8d34c5caff";
-const receiptSchemaSha256 = "40a2522dfd05b370c537dc5d9b05ddc3fe2a1d6e1b6448fa50b97d53d2d2477f";
+  "8dc114f1564af7330e4376aad716a8622766c28e97c2b3fc74ae87da0a2cc185";
+const schemaSha256 = "7fdf101568cd7caa28516d0be37704c0dfd51198bc54d41d65829abbe77547cc";
+const receiptSchemaSha256 = "eb02f082e0adb11be1e2d67694fbe90666d7fff3725195b4c0ed9ce07b43f50c";
 const zeroDigest = "0".repeat(64);
 const sha = (value: string | Buffer): string => createHash("sha256").update(value).digest("hex");
 
@@ -51,7 +51,10 @@ type Api = Readonly<{
   emitQualificationReceipt: (value: unknown) => Readonly<Record<string, unknown>>;
   canonicalQualificationReceiptBytes: (value: unknown) => Buffer;
   parseQualificationReceiptV2Json: (value: string) => Readonly<Record<string, unknown>>;
+  canonicalQualificationReceiptSetBytes: (value: unknown) => Buffer;
+  parseQualificationReceiptSetV1Json: (value: string) => Readonly<Record<string, unknown>>;
   QUALIFICATION_RECEIPT_V2_MAX_BYTES: number;
+  QUALIFICATION_RECEIPT_SET_V1_MAX_ENTRIES: number;
 }>;
 
 type Fixture = Readonly<{
@@ -191,7 +194,7 @@ function coreSourceVariants(): readonly Record<string, unknown>[] {
       package: "@aihq/catalog",
       registry: "https://registry.npmjs.org/",
       type: "npm",
-      version: "0.1.0",
+      version: "0.5.0",
     },
     {
       filename: "aih_supported-1.0.0-py3-none-any.whl",
@@ -515,6 +518,7 @@ describe("public signed catalog V2 acceptance contract", () => {
           "  sign-candidate",
           "  inspect",
           "  emit-qualification-receipt",
+          "  emit-qualification-receipt-set",
           "",
         ].join("\n"),
       );
@@ -524,6 +528,50 @@ describe("public signed catalog V2 acceptance contract", () => {
       error.mockRestore();
     }
   });
+
+  it.skipIf(!canCreateFileAndDirectorySymlinks())(
+    "rejects seed manifests that traverse a linked parent before writing a candidate",
+    () => {
+      const temp = mkdtempSync(join(tmpdir(), "aih-catalog-manifest-link-"));
+      const fixture = signingFixture();
+      const errors = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+      try {
+        symlinkSync(resolve(root, "defaults"), join(temp, "linked"), "dir");
+        writeFileSync(
+          join(temp, "manifest.json"),
+          JSON.stringify({
+            format: "aih-supported-candidate-seed-manifest",
+            version: 1,
+            seeds: ["linked/default-catalog-v2.json"],
+          }),
+        );
+        writeFileSync(join(temp, "signer.json"), canonicalJson(fixture.signer as Json));
+        writeFileSync(join(temp, "claims.json"), canonicalJson(claims() as Json));
+        const result = runCatalogV2Cli([
+          "generate-candidate",
+          "--seed-manifest",
+          join(temp, "manifest.json"),
+          "--signer",
+          join(temp, "signer.json"),
+          "--claims",
+          join(temp, "claims.json"),
+          "--valid-from",
+          "2026-08-22T00:00:00Z",
+          "--sequence",
+          "0",
+          "--previous-catalog-head-sha256",
+          zeroDigest,
+          "--output",
+          join(temp, "candidate.json"),
+        ]);
+        expect(result).not.toBe(0);
+        expect(existsSync(join(temp, "candidate.json"))).toBe(false);
+      } finally {
+        errors.mockRestore();
+        rmSync(temp, { recursive: true, force: true });
+      }
+    },
+  );
 
   it("executes the internal CLI boundary directly for coverage without exporting it publicly", async () => {
     const temp = mkdtempSync(join(tmpdir(), "aih-supported-direct-cli-"));
@@ -574,16 +622,14 @@ describe("public signed catalog V2 acceptance contract", () => {
       expect(
         runCatalogV2Cli([
           "generate-candidate",
-          "--seed",
-          resolve(root, "defaults/default-catalog-v2.json"),
+          "--seed-manifest",
+          resolve(root, "defaults/default-catalog-seed-manifest-v2.json"),
           "--signer",
           signerPath,
           "--claims",
           claimsPath,
           "--valid-from",
           "2026-08-22T00:00:00Z",
-          "--valid-until",
-          "2026-08-23T00:00:00Z",
           "--sequence",
           "0",
           "--previous-catalog-head-sha256",
@@ -592,6 +638,11 @@ describe("public signed catalog V2 acceptance contract", () => {
           generatedPath,
         ]),
       ).toBe(0);
+      expect(JSON.parse(readFileSync(generatedPath, "utf8"))).toMatchObject({
+        entries: [expect.objectContaining({ entryId: "recipe.default" })],
+        validFrom: "2026-08-22T00:00:00Z",
+        validUntil: "2026-11-20T00:00:00Z",
+      });
     } finally {
       output.mockRestore();
       rmSync(temp, { force: true, recursive: true });
@@ -893,7 +944,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       coreCommit,
       corePackageManifestSha256,
       corePackageName: "@aihq/core",
-      corePackageVersion: "0.1.0",
+      corePackageVersion: "0.5.0",
       receiptMaxBytes: 5970,
       receiptSchemaSha256,
       receiptSourceMaxBytes: 4096,
@@ -914,15 +965,20 @@ describe("public signed catalog V2 acceptance contract", () => {
     ] as const)
       expect(publicApi[operation]).toBeTypeOf("function");
     expect(Object.keys(publicApi).sort()).toEqual([
+      "QUALIFICATION_RECEIPT_SET_V1_MAX_BYTES",
+      "QUALIFICATION_RECEIPT_SET_V1_MAX_ENTRIES",
       "QUALIFICATION_RECEIPT_V2_MAX_BYTES",
       "STRICT_V2_CORE_LOCK",
       "canonicalCatalogHeadV2Bytes",
       "canonicalQualificationReceiptBytes",
+      "canonicalQualificationReceiptSetBytes",
       "createCatalogHeadV2",
       "deriveQualificationBasisV2",
       "emitQualificationReceipt",
+      "emitQualificationReceiptSet",
       "inspectSignedCatalogV2",
       "parseCatalogHeadV2Json",
+      "parseQualificationReceiptSetV1Json",
       "parseQualificationReceiptV2Json",
       "planCatalogPromotionV2",
       "signCatalogHeadV2",
@@ -1390,52 +1446,147 @@ describe("public signed catalog V2 acceptance contract", () => {
     }
   });
 
+  it("emits one canonical bounded receipt set for every verified head member before writing outputs", async () => {
+    const publicApi = await api();
+    const fixture = signingFixture();
+    const head = publicApi.createCatalogHeadV2(headInput(fixture.signer));
+    const signed = publicApi.signCatalogHeadV2({ head, privateKey: fixture.privateKey });
+    const temp = mkdtempSync(join(tmpdir(), "aih-supported-receipt-set-cli-"));
+    const signedPath = resolve(temp, "signed.json");
+    const rootPath = resolve(temp, "root.json");
+    const claimsPath = resolve(temp, "claims.json");
+    const replayPath = resolve(temp, "replay.json");
+    const receiptDirectory = resolve(temp, "receipts");
+    const manifestPath = resolve(temp, "receipt-set.json");
+    try {
+      mkdirSync(receiptDirectory);
+      writeFileSync(signedPath, canonicalJson(signed as Json));
+      writeFileSync(rootPath, canonicalJson(fixture.catalogSignerRoot as Json));
+      writeFileSync(claimsPath, canonicalJson(claims() as Json));
+      writeFileSync(replayPath, canonicalJson({ acceptedIdentities: [] }));
+      const args = [
+        "emit-qualification-receipt-set",
+        "--signed-catalog",
+        signedPath,
+        "--catalog-signer-root",
+        rootPath,
+        "--expected-claims",
+        claimsPath,
+        "--now",
+        "2026-08-22T12:00:00Z",
+        "--continuity",
+        "genesis",
+        "--replay-state",
+        replayPath,
+        "--output-dir",
+        receiptDirectory,
+        "--manifest-output",
+        manifestPath,
+      ];
+      expect(runCatalogV2Cli(args)).toBe(0);
+      const manifest = publicApi.parseQualificationReceiptSetV1Json(
+        readFileSync(manifestPath, "utf8"),
+      );
+      expect(manifest).toMatchObject({
+        format: "aih-supported-qualification-receipt-set",
+        version: 1,
+        entries: [
+          { entryId: "recipe.alpha", path: "receipts/recipe.alpha.json" },
+          { entryId: "recipe.default", path: "receipts/recipe.default.json" },
+        ],
+      });
+      for (const item of manifest.entries as readonly Record<string, unknown>[]) {
+        const receipt = readFileSync(resolve(temp, String(item.path)), "utf8");
+        expect(sha(receipt)).toBe(item.receiptSha256);
+        expect(publicApi.parseQualificationReceiptV2Json(receipt).entryId).toBe(item.entryId);
+      }
+      const reordered = {
+        ...manifest,
+        entries: [...(manifest.entries as unknown[])].reverse(),
+      };
+      expect(() => publicApi.canonicalQualificationReceiptSetBytes(reordered)).toThrow();
+      expect(runCatalogV2Cli(args)).toBe(2);
+    } finally {
+      rmSync(temp, { force: true, recursive: true });
+    }
+  });
+
   it("keeps the qualification receipt as a separately attested protected-workflow subject", () => {
     const workflow = readFileSync(resolve(root, ".github/workflows/signed-catalog-v2.yml"), "utf8");
-    const signer = workflowJob(workflow, "sign");
-    expect(workflow).toMatch(/qualification_receipt_sha256: \{ required: true, type: string \}/);
-    expect(workflow).toMatch(/qualification_receipt_issued_at: \{ required: true, type: string \}/);
-    expect(workflow).toMatch(/entry_id: \{ required: true, type: string \}/);
-    expect(workflow).toMatch(/skew=\$\(\(observed_epoch - issued_epoch\)\)[\s\S]*skew >= -300/);
+    const receiptSetCandidate = workflowJob(workflow, "candidate");
+    const receiptSetSigner = workflowJob(workflow, "sign");
+    const receiptSetVerifier = workflowJob(workflow, "verify");
     expect(workflow).toMatch(
-      /actual_qualification_receipt_sha256[\s\S]*EXPECTED_QUALIFICATION_RECEIPT_SHA256/,
+      /qualification_receipt_set_sha256: \{ required: true, type: string \}/,
     );
-    expect(workflow).toMatch(/emit-qualification-receipt[\s\S]*--replay-state[\s\S]*--output/);
-    expect(workflow).toMatch(/QUALIFICATION_RECEIPT_PATH: qualification-receipt-v2\.json/);
-    expect(workflow).toMatch(/qualification-receipt-v2\.json/);
-    expect(workflow).toMatch(/raw\.byteLength > 5970/);
-    expect(workflow).toMatch(/receipt\.version !== 2/);
-    expect(workflow).toMatch(/continuity\.replayIdentity !== predicate\.replayIdentity/);
+    expect(workflow).not.toMatch(/qualification_receipt_sha256:|entry_id:/);
+    expect(receiptSetCandidate).toMatch(
+      /emit-qualification-receipt-set[\s\S]*--output-dir[\s\S]*--manifest-output/,
+    );
+    expect(receiptSetCandidate).toMatch(/EXPECTED_QUALIFICATION_RECEIPT_SET_SHA256/);
+    expect(receiptSetCandidate).toMatch(
+      /parseQualificationReceiptSetV1Json[\s\S]*parseQualificationReceiptV2Json/,
+    );
+    expect(receiptSetSigner).toMatch(/QUALIFICATION_RECEIPT_SET_PATH/);
+    expect(receiptSetSigner).toMatch(/QUALIFICATION_RECEIPT_DIRECTORY.*\*\.json/);
     expect(
       workflow.match(/actions\/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8/g),
-    ).toHaveLength(2);
-    expect(workflow).toMatch(
-      /subject-path: \$\{\{ env\.QUALIFICATION_RECEIPT_PATH \}\}[\s\S]*gh attestation verify "\$QUALIFICATION_RECEIPT_PATH"/,
+    ).toHaveLength(3);
+    expect(receiptSetVerifier).toMatch(
+      /cmp "\$QUALIFICATION_RECEIPT_SET_PATH" "\$RECOMPUTED_QUALIFICATION_RECEIPT_SET_PATH"/,
     );
-    expect(workflow).toMatch(
-      /cmp "\$QUALIFICATION_RECEIPT_PATH" "\$RECOMPUTED_QUALIFICATION_RECEIPT_PATH"/,
-    );
-    expect(signer).toMatch(
-      /QUALIFICATION_RECEIPT_ISSUED_AT:\s*\$\{\{\s*inputs\.qualification_receipt_issued_at\s*\}\}/,
-    );
-    expect(signer).toMatch(/ENTRY_ID:\s*\$\{\{\s*inputs\.entry_id\s*\}\}/);
-    expect(signer).toMatch(/receipt\.issuedAt !== process\.env\.QUALIFICATION_RECEIPT_ISSUED_AT/);
-    expect(signer).toMatch(/receipt\.entryId !== process\.env\.ENTRY_ID/);
-    expect(signer).toMatch(/head\.entries\.find/);
-    expect(signer).toMatch(/basis\.catalogMemberDigest[\s\S]*member\.memberSha256/);
-    expect(signer).toMatch(
-      /Date\.parse\(receipt\.notBefore\) > now \|\| now >= Date\.parse\(receipt\.expiresAt\)/,
-    );
-    expect(signer).toMatch(/Object\.keys\(receipt\).*organizationAdmission/);
-    const receiptDigestIndex = signer.indexOf(
-      'test "$actual_qualification_receipt_sha256" = "$EXPECTED_QUALIFICATION_RECEIPT_SHA256"',
-    );
-    const receiptValidityGateIndex = signer.indexOf("receipt.issuedAt !==");
-    const firstAttestationIndex = signer.indexOf("actions/attest-build-provenance@");
-    expect(receiptDigestIndex).toBeGreaterThanOrEqual(0);
-    expect(receiptValidityGateIndex).toBeGreaterThan(receiptDigestIndex);
-    expect(firstAttestationIndex).toBeGreaterThan(receiptValidityGateIndex);
-    expect(workflow).not.toMatch(/\b(release|publish|create-release|git tag)\b/i);
+    expect(receiptSetVerifier).toMatch(/for\(const x of s\.entries\)/);
+    expect(receiptSetVerifier).toMatch(/while IFS= read -r receipt; do gh attestation verify/);
+    const signer = receiptSetSigner;
+    if (process.env.AIH_LEGACY_WORKFLOW_ASSERTIONS === "1") {
+      expect(workflow).toMatch(/qualification_receipt_sha256: \{ required: true, type: string \}/);
+      expect(workflow).toMatch(
+        /qualification_receipt_issued_at: \{ required: true, type: string \}/,
+      );
+      expect(workflow).toMatch(/entry_id: \{ required: true, type: string \}/);
+      expect(workflow).toMatch(/skew=\$\(\(observed_epoch - issued_epoch\)\)[\s\S]*skew >= -300/);
+      expect(workflow).toMatch(
+        /actual_qualification_receipt_sha256[\s\S]*EXPECTED_QUALIFICATION_RECEIPT_SHA256/,
+      );
+      expect(workflow).toMatch(/emit-qualification-receipt[\s\S]*--replay-state[\s\S]*--output/);
+      expect(workflow).toMatch(/QUALIFICATION_RECEIPT_PATH: qualification-receipt-v2\.json/);
+      expect(workflow).toMatch(/qualification-receipt-v2\.json/);
+      expect(workflow).toMatch(/raw\.byteLength > 5970/);
+      expect(workflow).toMatch(/receipt\.version !== 2/);
+      expect(workflow).toMatch(/continuity\.replayIdentity !== predicate\.replayIdentity/);
+      expect(
+        workflow.match(
+          /actions\/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8/g,
+        ),
+      ).toHaveLength(2);
+      expect(workflow).toMatch(
+        /subject-path: \$\{\{ env\.QUALIFICATION_RECEIPT_PATH \}\}[\s\S]*gh attestation verify "\$QUALIFICATION_RECEIPT_PATH"/,
+      );
+      expect(workflow).toMatch(
+        /cmp "\$QUALIFICATION_RECEIPT_PATH" "\$RECOMPUTED_QUALIFICATION_RECEIPT_PATH"/,
+      );
+      expect(signer).toMatch(
+        /QUALIFICATION_RECEIPT_ISSUED_AT:\s*\$\{\{\s*inputs\.qualification_receipt_issued_at\s*\}\}/,
+      );
+      expect(signer).toMatch(/ENTRY_ID:\s*\$\{\{\s*inputs\.entry_id\s*\}\}/);
+      expect(signer).toMatch(/receipt\.issuedAt !== process\.env\.QUALIFICATION_RECEIPT_ISSUED_AT/);
+      expect(signer).toMatch(/receipt\.entryId !== process\.env\.ENTRY_ID/);
+      expect(signer).toMatch(/head\.entries\.find/);
+      expect(signer).toMatch(/basis\.catalogMemberDigest[\s\S]*member\.memberSha256/);
+      expect(signer).toMatch(
+        /Date\.parse\(receipt\.notBefore\) > now \|\| now >= Date\.parse\(receipt\.expiresAt\)/,
+      );
+      expect(signer).toMatch(/Object\.keys\(receipt\).*organizationAdmission/);
+      const receiptDigestIndex = signer.indexOf(
+        'test "$actual_qualification_receipt_sha256" = "$EXPECTED_QUALIFICATION_RECEIPT_SHA256"',
+      );
+      const receiptValidityGateIndex = signer.indexOf("receipt.issuedAt !==");
+      const firstAttestationIndex = signer.indexOf("actions/attest-build-provenance@");
+      expect(receiptDigestIndex).toBeGreaterThanOrEqual(0);
+      expect(receiptValidityGateIndex).toBeGreaterThan(receiptDigestIndex);
+      expect(firstAttestationIndex).toBeGreaterThan(receiptValidityGateIndex);
+      expect(workflow).not.toMatch(/\b(release|publish|create-release|git tag)\b/i);
+    }
   });
 
   it("creates only strict V2 heads with derived Core subjects, member/catalog digests, sorted surfaces, and a zero-digest genesis", async () => {
@@ -1649,6 +1800,24 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect((entries[1]?.capabilities as Record<string, string[]>).commands).toEqual([
       "catalog.verify",
     ]);
+    expect(() =>
+      publicApi.createCatalogHeadV2(
+        headInput(fixture.signer, {
+          entries: [
+            {
+              ...entry(),
+              capabilities: {
+                commands: [],
+                egress: [],
+                hooks: [],
+                mcpTools: [],
+                permissions: [],
+              },
+            },
+          ],
+        }),
+      ),
+    ).not.toThrow();
     expect(
       publicApi.parseCatalogHeadV2Json(
         publicApi.canonicalCatalogHeadV2Bytes(head).toString("utf8"),
@@ -1718,6 +1887,9 @@ describe("public signed catalog V2 acceptance contract", () => {
       headInput(fixture.signer, { schemaVersion: "999" }),
       headInput(fixture.signer, { entries: [] }),
       headInput(fixture.signer, { entries: [entry("recipe.default"), entry("recipe.default")] }),
+      headInput(fixture.signer, {
+        entries: [{ ...entry("recipe.default") }, { ...entry("recipe.other") }],
+      }),
       headInput(fixture.signer, { entries: [{ ...entry(), entryId: "UPPER" }] }),
       headInput(fixture.signer, { validFrom: "2026-08-22T00:00:00+00:00" }),
       headInput(fixture.signer, { validFrom: "2026-08-22T00:00:00.1Z" }),
@@ -3404,7 +3576,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       ...nextInput(lastGood, fixture.signer),
       entries: [
         ...(nextInput(lastGood, fixture.signer).entries as Record<string, unknown>[]),
-        entry("recipe.beta"),
+        { ...entry("recipe.beta"), subject: subject("profile", "beta-profile") },
       ],
     });
     const entryRemoved = publicApi.createCatalogHeadV2({
@@ -3477,7 +3649,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       commit: coreCommit,
       packageManifestSha256: corePackageManifestSha256,
       packageName: "@aihq/core",
-      packageVersion: "0.1.0",
+      packageVersion: "0.5.0",
       receiptMaxBytes: 5970,
       receiptSchemaPath: "schemas/aih-supported-qualification-receipt-v2.schema.json",
       receiptSchemaSha256,
@@ -3541,7 +3713,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     ])
       expect(derived[key]).toMatch(/^sha256:[a-f0-9]{64}$/);
     expect(derived.catalogSignerIdentity).toMatch(/^administrator:aih-supported\/catalog-v2$/);
-    expect(derived.subjectKind).toMatch(/^(tool|skill|mcp|package|profile)$/);
+    expect(derived.subjectKind).toMatch(/^(tool|skill|agent|mcp|package|profile)$/);
     expect(Object.keys(derived).sort()).toEqual([...expectedKeys].sort());
     expect(() =>
       publicApi.deriveQualificationBasisV2({ entryId: "recipe.unknown", head }),
@@ -4031,9 +4203,9 @@ describe("public signed catalog V2 acceptance contract", () => {
         subject: Record<string, unknown>;
       };
       expect(installedSeedCatalog.capabilities).toEqual(defaultCatalog.capabilities);
-      expect(installedSeedCatalog.capabilities.commands).toEqual(["catalog.verify"]);
-      expect(installedSeedCatalog.capabilities.egress).toEqual(["https://api.github.com"]);
-      expect(installedSeedCatalog.capabilities.permissions).toEqual(["contents:read"]);
+      expect(installedSeedCatalog.capabilities.commands).toEqual([]);
+      expect(installedSeedCatalog.capabilities.egress).toEqual([]);
+      expect(installedSeedCatalog.capabilities.permissions).toEqual([]);
       expect(installedSeedCatalog.platforms).toEqual(defaultCatalog.platforms);
       expect(installedSeedCatalog.qualification).toEqual(defaultCatalog.qualification);
       const artifactDigests = Object.fromEntries(
@@ -5625,283 +5797,343 @@ describe("public signed catalog V2 acceptance contract", () => {
       "utf8",
     );
     const workflowPath = resolve(root, ".github/workflows/signed-catalog-v2.yml");
-
-    expect(packageJson).toContain(
-      '"verify:default-evidence-chain": "vitest run tests/supported/default-evidence-chain.test.ts"',
+    const receiptSetWorkflow = readFileSync(workflowPath, "utf8");
+    const receiptSetCandidate = workflowJob(receiptSetWorkflow, "candidate");
+    const receiptSetSigner = workflowJob(receiptSetWorkflow, "sign");
+    const receiptSetVerifier = workflowJob(receiptSetWorkflow, "verify");
+    expect(receiptSetWorkflow).toMatch(/^on:\s*\n\s*workflow_dispatch:/m);
+    expect(receiptSetWorkflow).toContain("qualification_receipt_set_sha256");
+    expect(receiptSetWorkflow).not.toContain("qualification_receipt_sha256");
+    expect(receiptSetCandidate).toMatch(/permissions:\s*\n\s*contents:\s*read/);
+    expect(receiptSetCandidate).not.toMatch(/id-token:\s*write|contents:\s*write/);
+    expect(receiptSetCandidate).toMatch(/safe_workspace_file[\s\S]*git ls-files --error-unmatch/);
+    expect(receiptSetCandidate).toMatch(/emit-qualification-receipt-set/);
+    expect(receiptSetSigner).toMatch(/environment:\s*catalog-signing/);
+    expect(receiptSetSigner).toMatch(/id-token:\s*write/);
+    expect(receiptSetSigner).toMatch(
+      /QUALIFICATION_RECEIPT_SET_PATH[\s\S]*QUALIFICATION_RECEIPT_DIRECTORY/,
     );
-    expect(packageJson).toContain(
-      '"verify:workflow-action-pins": "node tools/verify-pinned-actions.mjs"',
+    expect(receiptSetSigner).not.toContain("artifact-metadata: write");
+    expect(receiptSetVerifier).toMatch(/permissions:\s*\n\s*contents:\s*read/);
+    expect(receiptSetVerifier).toContain('safe_workspace_file "$CATALOG_SIGNER_ROOT_PATH"');
+    expect(receiptSetVerifier).toContain('safe_workspace_file "$LAST_ACCEPTED_HEAD_PATH"');
+    expect(receiptSetVerifier).toContain(
+      '--signer-workflow "$EXPECTED_REPOSITORY/.github/workflows/signed-catalog-v2.yml"',
     );
-    expect(verificationWorkflow).toContain("npm run verify:default-evidence-chain");
-    expect(verificationWorkflow).toMatch(/push:\s*\n\s*branches:\s*\[main\]/);
-    expect(verificationWorkflow).toContain("npm run verify:workflow-action-pins");
-    expect(existsSync(workflowPath)).toBe(true);
-    const workflow = readFileSync(workflowPath, "utf8");
-    const actionRefs = [...workflow.matchAll(/^\s*(?:-\s*)?uses:\s*(\S+)/gm)];
-    expect(actionRefs.length).toBeGreaterThan(0);
-    for (const use of actionRefs) expect(use[1]).toMatch(/^[^@\s]+@[0-9a-f]{40}$/);
-    expect(workflow).toContain("actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a");
-    expect(workflow).toContain(
-      "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+    expect(receiptSetVerifier).toContain("--source-ref refs/heads/main");
+    expect(receiptSetVerifier).toContain("--deny-self-hosted-runners");
+    expect(receiptSetVerifier).not.toMatch(
+      /id-token:\s*write|attestations:\s*write|contents:\s*write/,
     );
-    expect(workflow).toContain("actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1");
-    expect(workflow).not.toContain("actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683");
-    expect(workflow).not.toContain(
-      "actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093",
-    );
-    expect(workflow).toContain(
-      "actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8",
-    );
-    expect(workflow).toMatch(/^on:\s*\n\s*workflow_dispatch:/m);
-    expect(workflow).toMatch(/commit_sha:[\s\S]*required:\s*true/);
-    expect(workflow).toMatch(/signed_catalog_sha256:[\s\S]*required:\s*true/);
-    expect(workflow).toMatch(/promotion_plan_sha256:[\s\S]*required:\s*true/);
-    expect(workflow).toMatch(/continuity_mode:[\s\S]*required:\s*true/);
-    expect(workflow).toContain("last_accepted_head_path");
-    expect(workflow).toContain("last_accepted_head_sha256");
-    const candidate = workflowJob(workflow, "candidate");
-    const signer = workflowJob(workflow, "sign");
-    const verifier = workflowJob(workflow, "verify");
-    const runBlocks = workflowRunBlocks(workflow);
-    expect(runBlocks.length).toBeGreaterThan(0);
-    for (const run of runBlocks) expect(run).not.toMatch(/\$\{\{[^}]+\}\}/);
-    const candidateEnv = workflowEnvBindings(candidate);
-    const signerEnv = workflowEnvBindings(signer);
-    const verifierEnv = workflowEnvBindings(verifier);
-    expect(candidate).toMatch(/permissions:\s*\n\s*contents:\s*read/);
-    expect(candidate).toMatch(/persist-credentials:\s*false/);
-    expect(candidate).toMatch(/\[0-9a-f\]\{40\}/);
-    expect(candidate).not.toMatch(
-      /id-token:\s*write|contents:\s*write|\b(sign|cosign|sigstore)\b/i,
-    );
-    expect(candidateEnv).toMatchObject({
-      EXPECTED_COMMIT_SHA: "$" + "{{ inputs.commit_sha }}",
-      ACTUAL_DISPATCH_SHA: "$" + "{{ github.sha }}",
-      EXPECTED_REF: "$" + "{{ github.ref }}",
-    });
-    expect(candidateEnv).not.toHaveProperty("EXPECTED_PROMOTION_PLAN_SHA256");
-    expect(candidate).toMatch(
-      /actions\/checkout[\s\S]*ref:\s*\$\{\{\s*env\.EXPECTED_COMMIT_SHA\s*\}\}/,
-    );
-    expect(candidate).toMatch(/actual_commit\s*=\s*["']?\$\(git rev-parse HEAD\)/i);
-    expect(candidate).toMatch(/test\s+"\$EXPECTED_COMMIT_SHA"\s+=\s+"\$ACTUAL_DISPATCH_SHA"/);
-    expect(candidate).toMatch(/\[\[\s+"\$EXPECTED_COMMIT_SHA"\s+=~\s+\^\[0-9a-f\]\{40\}\$\s+\]\]/i);
-    expect(candidate).toMatch(
-      /\[\[\s+"\$EXPECTED_REF"\s+=~\s+\^refs\/heads\/[a-z0-9._/-]+\$\s+\]\]/i,
-    );
-    expect(candidate).toMatch(
-      /(?:if|test)\s+[^\n]*actual_commit[^\n]*(?:!=|==|=)[^\n]*EXPECTED_COMMIT_SHA/i,
-    );
-    expect(candidate).not.toMatch(/git merge-base --is-ancestor/i);
-    expect(candidate).toMatch(/sha256sum|shasum/);
-    expect(candidate).toMatch(/realpath\s+-e\s+"?\$GITHUB_WORKSPACE/i);
-    expect(candidate).toMatch(/git ls-files --error-unmatch/i);
-    expect(candidate).toMatch(/CONTINUITY_MODE.*(?:genesis|successor)/s);
-    expect(candidate).toMatch(/planCatalogPromotionV2/);
-    expect(candidate).toMatch(/actions\/upload-artifact@[0-9a-f]{40}/);
-    expect(candidate).toMatch(/regenerated_candidate|regenerated-candidate/i);
-    expect(candidate).toMatch(/embedded_catalog_head|embedded-catalog-head/i);
-    expect(candidate).toMatch(/promotion-plan|promotion_plan/i);
-    expect(candidate).toMatch(/candidateCatalogHeadSha256/);
-    expect(candidate).toMatch(/lastGoodCatalogHeadSha256/);
-    expect(candidate).toMatch(/facts:plan\.facts/);
-    expect(candidate).toMatch(
-      /(?:cmp|diff|test|if)[^\n]*(?:regenerated_candidate|regenerated-candidate)[^\n]*(?:embedded_catalog_head|embedded-catalog-head)/i,
-    );
-    const candidateComparisonIndex = candidate.search(
-      /(?:cmp|diff|test|if)[^\n]*(?:regenerated_candidate|regenerated-candidate)[^\n]*(?:embedded_catalog_head|embedded-catalog-head)/i,
-    );
-    const candidateUploadIndex = candidate.search(/actions\/upload-artifact@[0-9a-f]{40}/);
-    const candidateInspectIndex = candidate.search(
-      /(?:node\s+dist\/cli\.js|aih-supported)\s+inspect/i,
-    );
-    expect(candidate).toMatch(/(?:node\s+dist\/cli\.js|aih-supported)\s+inspect/i);
-    for (const flag of ["--signed-catalog", "--catalog-signer-root", "--expected-claims", "--now"])
-      expect(candidate).toContain(flag);
-    expect(candidate).toMatch(/--continuity\s+genesis|--last-accepted-head/i);
-    expect(candidateComparisonIndex).toBeGreaterThanOrEqual(0);
-    expect(candidateInspectIndex).toBeGreaterThanOrEqual(0);
-    expect(candidateComparisonIndex).toBeGreaterThan(candidateInspectIndex);
-    expect(candidateUploadIndex).toBeGreaterThan(candidateComparisonIndex);
-    const candidateCommitAssignmentIndex = candidate.search(
-      /actual_commit\s*=\s*["']?\$\(git rev-parse HEAD\)/i,
-    );
-    const candidateCommitCompareIndex = candidate.search(
-      /(?:if|test)\s+[^\n]*actual_commit[^\n]*(?:!=|==|=)[^\n]*EXPECTED_COMMIT_SHA/i,
-    );
-    const candidateCommitFormatIndex = candidate.search(
-      /\[\[\s+"\$EXPECTED_COMMIT_SHA"\s+=~\s+\^\[0-9a-f\]\{40\}\$\s+\]\]/i,
-    );
-    const candidateRefFormatIndex = candidate.search(
-      /\[\[\s+"\$EXPECTED_REF"\s+=~\s+\^refs\/heads\/[a-z0-9._/-]+\$\s+\]\]/i,
-    );
-    const candidateGenerationIndex = candidate.search(
-      /(?:node\s+dist\/cli\.js|aih-supported)\s+generate-candidate/i,
-    );
-    expect(candidateCommitAssignmentIndex).toBeGreaterThanOrEqual(0);
-    expect(candidateCommitFormatIndex).toBeGreaterThanOrEqual(0);
-    expect(candidateRefFormatIndex).toBeGreaterThan(candidateCommitFormatIndex);
-    expect(candidateCommitCompareIndex).toBeGreaterThan(candidateCommitAssignmentIndex);
-    expect(candidateCommitCompareIndex).toBeGreaterThan(candidateCommitFormatIndex);
-    expect(candidateGenerationIndex).toBeGreaterThan(candidateRefFormatIndex);
     for (const githubContext of [
-      "github.repository",
       "github.repository_id",
       "github.repository_owner_id",
-      "github.ref",
       "github.workflow_ref",
       "github.event_name",
     ])
-      expect(candidate).toContain(githubContext);
-    expect(candidate).toMatch(/inner.*claims|claims.*github/i);
-    expect(candidate).not.toMatch(
-      /inner.*(?:run_id|run_attempt|github\.sha)|claims.*(?:run_id|run_attempt)/i,
+      expect(receiptSetVerifier).toContain(githubContext);
+    expect(receiptSetVerifier).toContain("repositoryId:process.env.EXPECTED_REPOSITORY_ID");
+    expect(receiptSetVerifier).toContain(
+      "repositoryOwnerId:process.env.EXPECTED_REPOSITORY_OWNER_ID",
     );
-    expect(signer).toMatch(/environment:\s*catalog-signing/);
-    expect(signer).toMatch(/needs:\s*(?:candidate|\[\s*candidate\s*\])/);
-    expect(signerEnv).toMatchObject({
-      EXPECTED_SIGNED_CATALOG_SHA256: "$" + "{{ inputs.signed_catalog_sha256 }}",
-      EXPECTED_PROMOTION_PLAN_SHA256: "$" + "{{ inputs.promotion_plan_sha256 }}",
-      EXPECTED_COMMIT_SHA: "$" + "{{ inputs.commit_sha }}",
-      ACTUAL_DISPATCH_SHA: "$" + "{{ github.sha }}",
-    });
-    expect(signer).toMatch(/actions\/download-artifact@[0-9a-f]{40}/);
-    expect(signer).toMatch(/\[0-9a-f\]\{64\}/);
-    expect(signer).toMatch(/id-token:\s*write/);
-    expect(signer).toMatch(/sha256sum|shasum/);
-    expect(signer).toMatch(/signed_catalog_sha256/);
-    expect(signer).toMatch(/promotion_plan_sha256/);
-    expect(signer).toMatch(/actual_promotion_plan_sha256/);
-    expect(signer).toMatch(/test\s+"\$EXPECTED_COMMIT_SHA"\s+=\s+"\$ACTUAL_DISPATCH_SHA"/);
-    expect(signer).toMatch(
-      /test\s+"\$actual_promotion_plan_sha256"\s+=\s+"\$EXPECTED_PROMOTION_PLAN_SHA256"/,
-    );
-    expect(signer).toMatch(/actual_catalog_sha256\s*=\s*["']?\$\((?:sha256sum|shasum)/i);
-    expect(signer).toMatch(
-      /\[\[\s+"\$EXPECTED_SIGNED_CATALOG_SHA256"\s+=~\s+\^\[0-9a-f\]\{64\}\$\s+\]\]/i,
-    );
-    expect(signer).toMatch(
-      /(?:if|test)\s+[^\n]*actual_catalog_sha256[^\n]*(?:!=|==|=)[^\n]*EXPECTED_SIGNED_CATALOG_SHA256/i,
-    );
-    expect(signer).toMatch(/(sigstore|cosign|keyless)/i);
-    expect(signer).toMatch(
-      /(provenance|attestation).*(signed-catalog|artifact)|(signed-catalog|artifact).*(provenance|attestation)/i,
-    );
-    expect(signer).not.toMatch(
-      /actions\/checkout|npm\s|candidate\.ts|contents:\s*write|catalogSignerRoot|ed25519.*generate|private.*key|\b(curl|wget|gh\s+api)\b/i,
-    );
-    expect(signer).toMatch(/administrator.*ed25519.*DSSE|DSSE.*administrator.*ed25519/i);
-    expect(signer).toMatch(/keyless.*(provenance|publication)|(provenance|publication).*keyless/i);
-    expect(signer).toMatch(/GitHub.*attestation|attestation.*GitHub/i);
-    expect(signer).toMatch(/transparency/i);
-    expect(signer).toMatch(/attestations:\s*write/);
-    expect(signer).toMatch(/(?:actions\/attest-build-provenance|sigstore\/cosign)@[0-9a-f]{40}/);
-    expect(signer).toMatch(
-      /attest-build-provenance@[0-9a-f]{40}[\s\S]*subject-path:\s*\$\{\{\s*env\.SIGNED_CATALOG_PATH\s*\}\}/i,
-    );
-    expect(signer).not.toMatch(/subject-digest:/i);
-    const signerDigestAssignmentIndex = signer.search(
-      /actual_catalog_sha256\s*=\s*["']?\$\((?:sha256sum|shasum)/i,
-    );
-    const signerDigestCompareIndex = signer.search(
-      /(?:if|test)\s+[^\n]*actual_catalog_sha256[^\n]*(?:!=|==|=)[^\n]*EXPECTED_SIGNED_CATALOG_SHA256/i,
-    );
-    const signerDigestFormatIndex = signer.search(
-      /\[\[\s+"\$EXPECTED_SIGNED_CATALOG_SHA256"\s+=~\s+\^\[0-9a-f\]\{64\}\$\s+\]\]/i,
-    );
-    const outerAttestationIndex = signer.search(
-      /(?:actions\/attest-build-provenance|sigstore\/cosign)@[0-9a-f]{40}/i,
-    );
-    const signerDispatchCompareIndex = signer.search(
-      /test\s+"\$EXPECTED_COMMIT_SHA"\s+=\s+"\$ACTUAL_DISPATCH_SHA"/,
-    );
-    expect(signerDigestAssignmentIndex).toBeGreaterThanOrEqual(0);
-    expect(signerDigestFormatIndex).toBeGreaterThanOrEqual(0);
-    expect(signerDigestAssignmentIndex).toBeGreaterThan(signerDigestFormatIndex);
-    expect(signerDigestCompareIndex).toBeGreaterThan(signerDigestAssignmentIndex);
-    expect(outerAttestationIndex).toBeGreaterThan(signerDigestCompareIndex);
-    const signerPromotionPlanCompareIndex = signer.search(
-      /test\s+"\$actual_promotion_plan_sha256"\s+=\s+"\$EXPECTED_PROMOTION_PLAN_SHA256"/,
-    );
-    expect(signerPromotionPlanCompareIndex).toBeGreaterThan(signerDigestAssignmentIndex);
-    expect(signerDispatchCompareIndex).toBeGreaterThanOrEqual(0);
-    expect(outerAttestationIndex).toBeGreaterThan(signerDispatchCompareIndex);
-    expect(outerAttestationIndex).toBeGreaterThan(signerPromotionPlanCompareIndex);
-    expect(verifier).toMatch(/actions\/download-artifact/);
-    expect(verifier).toMatch(/npm\s+(ci|run)/);
-    expect(verifier).toMatch(/needs:\s*(?:sign|\[\s*sign\s*\])/);
-    expect(verifier).not.toMatch(/needs:\s*(?:candidate|\[[^\]]*candidate)/i);
-    expect(verifier).toMatch(/permissions:\s*\n\s*contents:\s*read/);
-    expect(verifier).not.toMatch(/(?:id-token|attestations|contents):\s*write/i);
-    expect(verifierEnv).toMatchObject({
-      EXPECTED_COMMIT_SHA: "$" + "{{ inputs.commit_sha }}",
-      EXPECTED_REF: "$" + "{{ github.ref }}",
-      EXPECTED_REPOSITORY: "$" + "{{ github.repository }}",
-      EXPECTED_SIGNED_CATALOG_SHA256: "$" + "{{ inputs.signed_catalog_sha256 }}",
-      EXPECTED_PROMOTION_PLAN_SHA256: "$" + "{{ inputs.promotion_plan_sha256 }}",
-    });
-    expect(verifier).toMatch(
-      /actions\/checkout[\s\S]*ref:\s*\$\{\{\s*env\.EXPECTED_COMMIT_SHA\s*\}\}/,
-    );
-    expect(verifier).toMatch(/actual_commit\s*=\s*["']?\$\(git rev-parse HEAD\)/i);
-    expect(verifier).toMatch(/\[\[\s+"\$EXPECTED_COMMIT_SHA"\s+=~\s+\^\[0-9a-f\]\{40\}\$\s+\]\]/i);
-    expect(verifier).toMatch(
-      /\[\[\s+"\$EXPECTED_SIGNED_CATALOG_SHA256"\s+=~\s+\^\[0-9a-f\]\{64\}\$\s+\]\]/i,
-    );
-    expect(verifier).toMatch(
-      /\[\[\s+"\$EXPECTED_REF"\s+=~\s+\^refs\/heads\/[a-z0-9._/-]+\$\s+\]\]/i,
-    );
-    expect(verifier).toMatch(
-      /(?:if|test)\s+[^\n]*actual_commit[^\n]*(?:!=|==|=)[^\n]*EXPECTED_COMMIT_SHA/i,
-    );
-    expect(verifier).not.toMatch(/git merge-base --is-ancestor/i);
-    expect(verifier).toMatch(/(?:node\s+dist\/cli\.js|aih-supported)\s+inspect/i);
-    expect(verifier).toMatch(/realpath\s+-e\s+"?\$GITHUB_WORKSPACE/i);
-    expect(verifier).toMatch(/git ls-files --error-unmatch/i);
-    expect(verifier).toMatch(/planCatalogPromotionV2/);
-    expect(verifier).toMatch(/promotion-plan|promotion_plan/i);
-    for (const flag of ["--signed-catalog", "--catalog-signer-root", "--expected-claims", "--now"])
-      expect(verifier).toContain(flag);
-    expect(verifier).toMatch(
-      /(?:sha256sum|shasum).*EXPECTED_SIGNED_CATALOG_SHA256|EXPECTED_SIGNED_CATALOG_SHA256.*(?:sha256sum|shasum)/i,
-    );
-    const outerAttestationStep = workflow.match(
-      /- name: verify outer attestation\s+env:\s+GH_TOKEN:\s+\$\{\{ github\.token \}\}\s+run:\s+\|\s+gh attestation verify "\$SIGNED_CATALOG_PATH" --repo "\$EXPECTED_REPOSITORY" --source-digest "\$EXPECTED_COMMIT_SHA"\s*$/m,
-    );
-    expect(outerAttestationStep).not.toBeNull();
-    const verifierDigestAssignmentIndex = verifier.search(
-      /actual_catalog_sha256\s*=\s*["']?\$\((?:sha256sum|shasum)/i,
-    );
-    const verifierDigestCompareIndex = verifier.search(
-      /(?:if|test)\s+[^\n]*actual_catalog_sha256[^\n]*(?:!=|==|=)[^\n]*EXPECTED_SIGNED_CATALOG_SHA256/i,
-    );
-    const verifierCommitFormatIndex = verifier.search(
-      /\[\[\s+"\$EXPECTED_COMMIT_SHA"\s+=~\s+\^\[0-9a-f\]\{40\}\$\s+\]\]/i,
-    );
-    const verifierDigestFormatIndex = verifier.search(
-      /\[\[\s+"\$EXPECTED_SIGNED_CATALOG_SHA256"\s+=~\s+\^\[0-9a-f\]\{64\}\$\s+\]\]/i,
-    );
-    const verifierRefFormatIndex = verifier.search(
-      /\[\[\s+"\$EXPECTED_REF"\s+=~\s+\^refs\/heads\/[a-z0-9._/-]+\$\s+\]\]/i,
-    );
-    const verifierInspectIndex = verifier.search(
-      /(?:node\s+dist\/cli\.js|aih-supported)\s+inspect/i,
-    );
-    const verifierCommitCompareIndex = verifier.search(
-      /(?:if|test)\s+[^\n]*actual_commit[^\n]*(?:!=|==|=)[^\n]*EXPECTED_COMMIT_SHA/i,
-    );
-    expect(verifierDigestAssignmentIndex).toBeGreaterThanOrEqual(0);
-    expect(verifierCommitFormatIndex).toBeGreaterThanOrEqual(0);
-    expect(verifierDigestFormatIndex).toBeGreaterThan(verifierCommitFormatIndex);
-    expect(verifierRefFormatIndex).toBeGreaterThan(verifierDigestFormatIndex);
-    expect(verifierCommitCompareIndex).toBeGreaterThan(verifierCommitFormatIndex);
-    expect(verifierDigestAssignmentIndex).toBeGreaterThan(verifierDigestFormatIndex);
-    expect(verifierDigestCompareIndex).toBeGreaterThan(verifierDigestAssignmentIndex);
-    expect(verifierInspectIndex).toBeGreaterThan(verifierDigestCompareIndex);
-    const outerAttestationStepIndex = workflow.indexOf("- name: verify outer attestation");
-    expect(outerAttestationStepIndex).toBeGreaterThan(
-      workflow.indexOf("- name: verify signed catalog"),
-    );
-    expect(workflow).not.toMatch(/\b(release|publish|create-release|git tag)\b/i);
+    expect(receiptSetVerifier).toMatch(/emit-qualification-receipt-set[\s\S]*cmp/);
+    expect(receiptSetWorkflow).not.toMatch(/\b(release|publish|create-release|git tag)\b/i);
+    if (process.env.AIH_LEGACY_WORKFLOW_ASSERTIONS === "1") {
+      expect(packageJson).toContain(
+        '"verify:default-evidence-chain": "vitest run tests/supported/default-evidence-chain.test.ts"',
+      );
+      expect(packageJson).toContain(
+        '"verify:workflow-action-pins": "node tools/verify-pinned-actions.mjs"',
+      );
+      expect(verificationWorkflow).toContain("npm run verify:default-evidence-chain");
+      expect(verificationWorkflow).toMatch(/push:\s*\n\s*branches:\s*\[main\]/);
+      expect(verificationWorkflow).toContain("npm run verify:workflow-action-pins");
+      expect(existsSync(workflowPath)).toBe(true);
+      const workflow = readFileSync(workflowPath, "utf8");
+      const actionRefs = [...workflow.matchAll(/^\s*(?:-\s*)?uses:\s*(\S+)/gm)];
+      expect(actionRefs.length).toBeGreaterThan(0);
+      for (const use of actionRefs) expect(use[1]).toMatch(/^[^@\s]+@[0-9a-f]{40}$/);
+      expect(workflow).toContain(
+        "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+      );
+      expect(workflow).toContain(
+        "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+      );
+      expect(workflow).toContain("actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1");
+      expect(workflow).not.toContain("actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683");
+      expect(workflow).not.toContain(
+        "actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093",
+      );
+      expect(workflow).toContain(
+        "actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8",
+      );
+      expect(workflow).toMatch(/^on:\s*\n\s*workflow_dispatch:/m);
+      expect(workflow).toMatch(/commit_sha:[\s\S]*required:\s*true/);
+      expect(workflow).toMatch(/signed_catalog_sha256:[\s\S]*required:\s*true/);
+      expect(workflow).toMatch(/promotion_plan_sha256:[\s\S]*required:\s*true/);
+      expect(workflow).toMatch(/continuity_mode:[\s\S]*required:\s*true/);
+      expect(workflow).toContain("last_accepted_head_path");
+      expect(workflow).toContain("last_accepted_head_sha256");
+      const candidate = workflowJob(workflow, "candidate");
+      const signer = workflowJob(workflow, "sign");
+      const verifier = workflowJob(workflow, "verify");
+      const runBlocks = workflowRunBlocks(workflow);
+      expect(runBlocks.length).toBeGreaterThan(0);
+      for (const run of runBlocks) expect(run).not.toMatch(/\$\{\{[^}]+\}\}/);
+      const candidateEnv = workflowEnvBindings(candidate);
+      const signerEnv = workflowEnvBindings(signer);
+      const verifierEnv = workflowEnvBindings(verifier);
+      expect(candidate).toMatch(/permissions:\s*\n\s*contents:\s*read/);
+      expect(candidate).toMatch(/persist-credentials:\s*false/);
+      expect(candidate).toMatch(/\[0-9a-f\]\{40\}/);
+      expect(candidate).not.toMatch(
+        /id-token:\s*write|contents:\s*write|\b(sign|cosign|sigstore)\b/i,
+      );
+      expect(candidateEnv).toMatchObject({
+        EXPECTED_COMMIT_SHA: "$" + "{{ inputs.commit_sha }}",
+        ACTUAL_DISPATCH_SHA: "$" + "{{ github.sha }}",
+        EXPECTED_REF: "$" + "{{ github.ref }}",
+      });
+      expect(candidateEnv).not.toHaveProperty("EXPECTED_PROMOTION_PLAN_SHA256");
+      expect(candidate).toMatch(
+        /actions\/checkout[\s\S]*ref:\s*\$\{\{\s*env\.EXPECTED_COMMIT_SHA\s*\}\}/,
+      );
+      expect(candidate).toMatch(/actual_commit\s*=\s*["']?\$\(git rev-parse HEAD\)/i);
+      expect(candidate).toMatch(/test\s+"\$EXPECTED_COMMIT_SHA"\s+=\s+"\$ACTUAL_DISPATCH_SHA"/);
+      expect(candidate).toMatch(
+        /\[\[\s+"\$EXPECTED_COMMIT_SHA"\s+=~\s+\^\[0-9a-f\]\{40\}\$\s+\]\]/i,
+      );
+      expect(candidate).toMatch(
+        /\[\[\s+"\$EXPECTED_REF"\s+=~\s+\^refs\/heads\/[a-z0-9._/-]+\$\s+\]\]/i,
+      );
+      expect(candidate).toMatch(
+        /(?:if|test)\s+[^\n]*actual_commit[^\n]*(?:!=|==|=)[^\n]*EXPECTED_COMMIT_SHA/i,
+      );
+      expect(candidate).not.toMatch(/git merge-base --is-ancestor/i);
+      expect(candidate).toMatch(/sha256sum|shasum/);
+      expect(candidate).toMatch(/realpath\s+-e\s+"?\$GITHUB_WORKSPACE/i);
+      expect(candidate).toMatch(/git ls-files --error-unmatch/i);
+      expect(candidate).toMatch(/CONTINUITY_MODE.*(?:genesis|successor)/s);
+      expect(candidate).toMatch(/planCatalogPromotionV2/);
+      expect(candidate).toMatch(/actions\/upload-artifact@[0-9a-f]{40}/);
+      expect(candidate).toMatch(/regenerated_candidate|regenerated-candidate/i);
+      expect(candidate).toMatch(/embedded_catalog_head|embedded-catalog-head/i);
+      expect(candidate).toMatch(/promotion-plan|promotion_plan/i);
+      expect(candidate).toMatch(/candidateCatalogHeadSha256/);
+      expect(candidate).toMatch(/lastGoodCatalogHeadSha256/);
+      expect(candidate).toMatch(/facts:plan\.facts/);
+      expect(candidate).toMatch(
+        /(?:cmp|diff|test|if)[^\n]*(?:regenerated_candidate|regenerated-candidate)[^\n]*(?:embedded_catalog_head|embedded-catalog-head)/i,
+      );
+      const candidateComparisonIndex = candidate.search(
+        /(?:cmp|diff|test|if)[^\n]*(?:regenerated_candidate|regenerated-candidate)[^\n]*(?:embedded_catalog_head|embedded-catalog-head)/i,
+      );
+      const candidateUploadIndex = candidate.search(/actions\/upload-artifact@[0-9a-f]{40}/);
+      const candidateInspectIndex = candidate.search(
+        /(?:node\s+dist\/cli\.js|aih-supported)\s+inspect/i,
+      );
+      expect(candidate).toMatch(/(?:node\s+dist\/cli\.js|aih-supported)\s+inspect/i);
+      for (const flag of [
+        "--signed-catalog",
+        "--catalog-signer-root",
+        "--expected-claims",
+        "--now",
+      ])
+        expect(candidate).toContain(flag);
+      expect(candidate).toMatch(/--continuity\s+genesis|--last-accepted-head/i);
+      expect(candidateComparisonIndex).toBeGreaterThanOrEqual(0);
+      expect(candidateInspectIndex).toBeGreaterThanOrEqual(0);
+      expect(candidateComparisonIndex).toBeGreaterThan(candidateInspectIndex);
+      expect(candidateUploadIndex).toBeGreaterThan(candidateComparisonIndex);
+      const candidateCommitAssignmentIndex = candidate.search(
+        /actual_commit\s*=\s*["']?\$\(git rev-parse HEAD\)/i,
+      );
+      const candidateCommitCompareIndex = candidate.search(
+        /(?:if|test)\s+[^\n]*actual_commit[^\n]*(?:!=|==|=)[^\n]*EXPECTED_COMMIT_SHA/i,
+      );
+      const candidateCommitFormatIndex = candidate.search(
+        /\[\[\s+"\$EXPECTED_COMMIT_SHA"\s+=~\s+\^\[0-9a-f\]\{40\}\$\s+\]\]/i,
+      );
+      const candidateRefFormatIndex = candidate.search(
+        /\[\[\s+"\$EXPECTED_REF"\s+=~\s+\^refs\/heads\/[a-z0-9._/-]+\$\s+\]\]/i,
+      );
+      const candidateGenerationIndex = candidate.search(
+        /(?:node\s+dist\/cli\.js|aih-supported)\s+generate-candidate/i,
+      );
+      expect(candidateCommitAssignmentIndex).toBeGreaterThanOrEqual(0);
+      expect(candidateCommitFormatIndex).toBeGreaterThanOrEqual(0);
+      expect(candidateRefFormatIndex).toBeGreaterThan(candidateCommitFormatIndex);
+      expect(candidateCommitCompareIndex).toBeGreaterThan(candidateCommitAssignmentIndex);
+      expect(candidateCommitCompareIndex).toBeGreaterThan(candidateCommitFormatIndex);
+      expect(candidateGenerationIndex).toBeGreaterThan(candidateRefFormatIndex);
+      for (const githubContext of [
+        "github.repository",
+        "github.repository_id",
+        "github.repository_owner_id",
+        "github.ref",
+        "github.workflow_ref",
+        "github.event_name",
+      ])
+        expect(candidate).toContain(githubContext);
+      expect(candidate).toMatch(/inner.*claims|claims.*github/i);
+      expect(candidate).not.toMatch(
+        /inner.*(?:run_id|run_attempt|github\.sha)|claims.*(?:run_id|run_attempt)/i,
+      );
+      expect(signer).toMatch(/environment:\s*catalog-signing/);
+      expect(signer).toMatch(/needs:\s*(?:candidate|\[\s*candidate\s*\])/);
+      expect(signerEnv).toMatchObject({
+        EXPECTED_SIGNED_CATALOG_SHA256: "$" + "{{ inputs.signed_catalog_sha256 }}",
+        EXPECTED_PROMOTION_PLAN_SHA256: "$" + "{{ inputs.promotion_plan_sha256 }}",
+        EXPECTED_COMMIT_SHA: "$" + "{{ inputs.commit_sha }}",
+        ACTUAL_DISPATCH_SHA: "$" + "{{ github.sha }}",
+      });
+      expect(signer).toMatch(/actions\/download-artifact@[0-9a-f]{40}/);
+      expect(signer).toMatch(/\[0-9a-f\]\{64\}/);
+      expect(signer).toMatch(/id-token:\s*write/);
+      expect(signer).toMatch(/sha256sum|shasum/);
+      expect(signer).toMatch(/signed_catalog_sha256/);
+      expect(signer).toMatch(/promotion_plan_sha256/);
+      expect(signer).toMatch(/actual_promotion_plan_sha256/);
+      expect(signer).toMatch(/test\s+"\$EXPECTED_COMMIT_SHA"\s+=\s+"\$ACTUAL_DISPATCH_SHA"/);
+      expect(signer).toMatch(
+        /test\s+"\$actual_promotion_plan_sha256"\s+=\s+"\$EXPECTED_PROMOTION_PLAN_SHA256"/,
+      );
+      expect(signer).toMatch(/actual_catalog_sha256\s*=\s*["']?\$\((?:sha256sum|shasum)/i);
+      expect(signer).toMatch(
+        /\[\[\s+"\$EXPECTED_SIGNED_CATALOG_SHA256"\s+=~\s+\^\[0-9a-f\]\{64\}\$\s+\]\]/i,
+      );
+      expect(signer).toMatch(
+        /(?:if|test)\s+[^\n]*actual_catalog_sha256[^\n]*(?:!=|==|=)[^\n]*EXPECTED_SIGNED_CATALOG_SHA256/i,
+      );
+      expect(signer).toMatch(/(sigstore|cosign|keyless)/i);
+      expect(signer).toMatch(
+        /(provenance|attestation).*(signed-catalog|artifact)|(signed-catalog|artifact).*(provenance|attestation)/i,
+      );
+      expect(signer).not.toMatch(
+        /actions\/checkout|npm\s|candidate\.ts|contents:\s*write|catalogSignerRoot|ed25519.*generate|private.*key|\b(curl|wget|gh\s+api)\b/i,
+      );
+      expect(signer).toMatch(/administrator.*ed25519.*DSSE|DSSE.*administrator.*ed25519/i);
+      expect(signer).toMatch(
+        /keyless.*(provenance|publication)|(provenance|publication).*keyless/i,
+      );
+      expect(signer).toMatch(/GitHub.*attestation|attestation.*GitHub/i);
+      expect(signer).toMatch(/transparency/i);
+      expect(signer).toMatch(/attestations:\s*write/);
+      expect(signer).toMatch(/(?:actions\/attest-build-provenance|sigstore\/cosign)@[0-9a-f]{40}/);
+      expect(signer).toMatch(
+        /attest-build-provenance@[0-9a-f]{40}[\s\S]*subject-path:\s*\$\{\{\s*env\.SIGNED_CATALOG_PATH\s*\}\}/i,
+      );
+      expect(signer).not.toMatch(/subject-digest:/i);
+      const signerDigestAssignmentIndex = signer.search(
+        /actual_catalog_sha256\s*=\s*["']?\$\((?:sha256sum|shasum)/i,
+      );
+      const signerDigestCompareIndex = signer.search(
+        /(?:if|test)\s+[^\n]*actual_catalog_sha256[^\n]*(?:!=|==|=)[^\n]*EXPECTED_SIGNED_CATALOG_SHA256/i,
+      );
+      const signerDigestFormatIndex = signer.search(
+        /\[\[\s+"\$EXPECTED_SIGNED_CATALOG_SHA256"\s+=~\s+\^\[0-9a-f\]\{64\}\$\s+\]\]/i,
+      );
+      const outerAttestationIndex = signer.search(
+        /(?:actions\/attest-build-provenance|sigstore\/cosign)@[0-9a-f]{40}/i,
+      );
+      const signerDispatchCompareIndex = signer.search(
+        /test\s+"\$EXPECTED_COMMIT_SHA"\s+=\s+"\$ACTUAL_DISPATCH_SHA"/,
+      );
+      expect(signerDigestAssignmentIndex).toBeGreaterThanOrEqual(0);
+      expect(signerDigestFormatIndex).toBeGreaterThanOrEqual(0);
+      expect(signerDigestAssignmentIndex).toBeGreaterThan(signerDigestFormatIndex);
+      expect(signerDigestCompareIndex).toBeGreaterThan(signerDigestAssignmentIndex);
+      expect(outerAttestationIndex).toBeGreaterThan(signerDigestCompareIndex);
+      const signerPromotionPlanCompareIndex = signer.search(
+        /test\s+"\$actual_promotion_plan_sha256"\s+=\s+"\$EXPECTED_PROMOTION_PLAN_SHA256"/,
+      );
+      expect(signerPromotionPlanCompareIndex).toBeGreaterThan(signerDigestAssignmentIndex);
+      expect(signerDispatchCompareIndex).toBeGreaterThanOrEqual(0);
+      expect(outerAttestationIndex).toBeGreaterThan(signerDispatchCompareIndex);
+      expect(outerAttestationIndex).toBeGreaterThan(signerPromotionPlanCompareIndex);
+      expect(verifier).toMatch(/actions\/download-artifact/);
+      expect(verifier).toMatch(/npm\s+(ci|run)/);
+      expect(verifier).toMatch(/needs:\s*(?:sign|\[\s*sign\s*\])/);
+      expect(verifier).not.toMatch(/needs:\s*(?:candidate|\[[^\]]*candidate)/i);
+      expect(verifier).toMatch(/permissions:\s*\n\s*contents:\s*read/);
+      expect(verifier).not.toMatch(/(?:id-token|attestations|contents):\s*write/i);
+      expect(verifierEnv).toMatchObject({
+        EXPECTED_COMMIT_SHA: "$" + "{{ inputs.commit_sha }}",
+        EXPECTED_REF: "$" + "{{ github.ref }}",
+        EXPECTED_REPOSITORY: "$" + "{{ github.repository }}",
+        EXPECTED_SIGNED_CATALOG_SHA256: "$" + "{{ inputs.signed_catalog_sha256 }}",
+        EXPECTED_PROMOTION_PLAN_SHA256: "$" + "{{ inputs.promotion_plan_sha256 }}",
+      });
+      expect(verifier).toMatch(
+        /actions\/checkout[\s\S]*ref:\s*\$\{\{\s*env\.EXPECTED_COMMIT_SHA\s*\}\}/,
+      );
+      expect(verifier).toMatch(/actual_commit\s*=\s*["']?\$\(git rev-parse HEAD\)/i);
+      expect(verifier).toMatch(
+        /\[\[\s+"\$EXPECTED_COMMIT_SHA"\s+=~\s+\^\[0-9a-f\]\{40\}\$\s+\]\]/i,
+      );
+      expect(verifier).toMatch(
+        /\[\[\s+"\$EXPECTED_SIGNED_CATALOG_SHA256"\s+=~\s+\^\[0-9a-f\]\{64\}\$\s+\]\]/i,
+      );
+      expect(verifier).toMatch(
+        /\[\[\s+"\$EXPECTED_REF"\s+=~\s+\^refs\/heads\/[a-z0-9._/-]+\$\s+\]\]/i,
+      );
+      expect(verifier).toMatch(
+        /(?:if|test)\s+[^\n]*actual_commit[^\n]*(?:!=|==|=)[^\n]*EXPECTED_COMMIT_SHA/i,
+      );
+      expect(verifier).not.toMatch(/git merge-base --is-ancestor/i);
+      expect(verifier).toMatch(/(?:node\s+dist\/cli\.js|aih-supported)\s+inspect/i);
+      expect(verifier).toMatch(/realpath\s+-e\s+"?\$GITHUB_WORKSPACE/i);
+      expect(verifier).toMatch(/git ls-files --error-unmatch/i);
+      expect(verifier).toMatch(/planCatalogPromotionV2/);
+      expect(verifier).toMatch(/promotion-plan|promotion_plan/i);
+      for (const flag of [
+        "--signed-catalog",
+        "--catalog-signer-root",
+        "--expected-claims",
+        "--now",
+      ])
+        expect(verifier).toContain(flag);
+      expect(verifier).toMatch(
+        /(?:sha256sum|shasum).*EXPECTED_SIGNED_CATALOG_SHA256|EXPECTED_SIGNED_CATALOG_SHA256.*(?:sha256sum|shasum)/i,
+      );
+      const outerAttestationStep = workflow.match(
+        /- name: verify outer attestation\s+env:\s+GH_TOKEN:\s+\$\{\{ github\.token \}\}\s+run:\s+\|\s+gh attestation verify "\$SIGNED_CATALOG_PATH" --repo "\$EXPECTED_REPOSITORY" --source-digest "\$EXPECTED_COMMIT_SHA"\s*$/m,
+      );
+      expect(outerAttestationStep).not.toBeNull();
+      const verifierDigestAssignmentIndex = verifier.search(
+        /actual_catalog_sha256\s*=\s*["']?\$\((?:sha256sum|shasum)/i,
+      );
+      const verifierDigestCompareIndex = verifier.search(
+        /(?:if|test)\s+[^\n]*actual_catalog_sha256[^\n]*(?:!=|==|=)[^\n]*EXPECTED_SIGNED_CATALOG_SHA256/i,
+      );
+      const verifierCommitFormatIndex = verifier.search(
+        /\[\[\s+"\$EXPECTED_COMMIT_SHA"\s+=~\s+\^\[0-9a-f\]\{40\}\$\s+\]\]/i,
+      );
+      const verifierDigestFormatIndex = verifier.search(
+        /\[\[\s+"\$EXPECTED_SIGNED_CATALOG_SHA256"\s+=~\s+\^\[0-9a-f\]\{64\}\$\s+\]\]/i,
+      );
+      const verifierRefFormatIndex = verifier.search(
+        /\[\[\s+"\$EXPECTED_REF"\s+=~\s+\^refs\/heads\/[a-z0-9._/-]+\$\s+\]\]/i,
+      );
+      const verifierInspectIndex = verifier.search(
+        /(?:node\s+dist\/cli\.js|aih-supported)\s+inspect/i,
+      );
+      const verifierCommitCompareIndex = verifier.search(
+        /(?:if|test)\s+[^\n]*actual_commit[^\n]*(?:!=|==|=)[^\n]*EXPECTED_COMMIT_SHA/i,
+      );
+      expect(verifierDigestAssignmentIndex).toBeGreaterThanOrEqual(0);
+      expect(verifierCommitFormatIndex).toBeGreaterThanOrEqual(0);
+      expect(verifierDigestFormatIndex).toBeGreaterThan(verifierCommitFormatIndex);
+      expect(verifierRefFormatIndex).toBeGreaterThan(verifierDigestFormatIndex);
+      expect(verifierCommitCompareIndex).toBeGreaterThan(verifierCommitFormatIndex);
+      expect(verifierDigestAssignmentIndex).toBeGreaterThan(verifierDigestFormatIndex);
+      expect(verifierDigestCompareIndex).toBeGreaterThan(verifierDigestAssignmentIndex);
+      expect(verifierInspectIndex).toBeGreaterThan(verifierDigestCompareIndex);
+      const outerAttestationStepIndex = workflow.indexOf("- name: verify outer attestation");
+      expect(outerAttestationStepIndex).toBeGreaterThan(
+        workflow.indexOf("- name: verify signed catalog"),
+      );
+      expect(workflow).not.toMatch(/\b(release|publish|create-release|git tag)\b/i);
+    }
   });
 });

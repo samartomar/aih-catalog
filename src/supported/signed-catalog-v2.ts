@@ -20,16 +20,18 @@ const ZERO = "0".repeat(64),
 // and a 16-digit safe successor sequence. This exact cap is deliberately
 // synchronized with workflow verification and regression tests.
 export const QUALIFICATION_RECEIPT_V2_MAX_BYTES = 5970;
+export const QUALIFICATION_RECEIPT_SET_V1_MAX_ENTRIES = 64;
+export const QUALIFICATION_RECEIPT_SET_V1_MAX_BYTES = 32 * 1024;
 export const CATALOG_SOURCE_V2_MAX_BYTES = 4096;
 export const STRICT_V2_CORE_LOCK = Object.freeze({
-  coreCommit: "aa93128ff56b3ed978ec428e29d1b1ce8036e53b",
-  corePackageManifestSha256: "af64feda4e3e57808e1a262e15a5cb8f41581f77e8f9b49eb9b459317b803ecd",
+  coreCommit: "c31741602b3dbd5f228dafe00591e5679c782878",
+  corePackageManifestSha256: "8dc114f1564af7330e4376aad716a8622766c28e97c2b3fc74ae87da0a2cc185",
   corePackageName: "@aihq/core",
-  corePackageVersion: "0.1.0",
+  corePackageVersion: "0.5.0",
   receiptMaxBytes: QUALIFICATION_RECEIPT_V2_MAX_BYTES,
-  receiptSchemaSha256: "40a2522dfd05b370c537dc5d9b05ddc3fe2a1d6e1b6448fa50b97d53d2d2477f",
+  receiptSchemaSha256: "eb02f082e0adb11be1e2d67694fbe90666d7fff3725195b4c0ed9ce07b43f50c",
   receiptSourceMaxBytes: CATALOG_SOURCE_V2_MAX_BYTES,
-  schemaSha256: "27295aee8d8be333abe2c73adc72884b534b1c9980a9b7a39d12be8d34c5caff",
+  schemaSha256: "7fdf101568cd7caa28516d0be37704c0dfd51198bc54d41d65829abbe77547cc",
 });
 const fail = (code: string): never => {
   throw new Error(code);
@@ -149,8 +151,42 @@ const epochSeconds = (value: string): number => {
     Number(parts[6])
   );
 };
-const sorted = (v: unknown, c: string, re = /^.{1,256}$/): string[] => {
-  if (!Array.isArray(v) || !v.length || v.length > 64) fail(c);
+const plusDays = (value: string, days: number): string => {
+  const match = /^(\d{4})-(\d{2})-(\d{2})(T\d{2}:\d{2}:\d{2}Z)$/.exec(value);
+  if (match === null || !Number.isSafeInteger(days) || days < 0) return fail("time");
+  let year = Number(match[1]),
+    month = Number(match[2]),
+    day = Number(match[3]);
+  for (let remaining = days; remaining > 0; remaining -= 1) {
+    const monthDays = [
+      31,
+      year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0) ? 29 : 28,
+      31,
+      30,
+      31,
+      30,
+      31,
+      31,
+      30,
+      31,
+      30,
+      31,
+    ];
+    day += 1;
+    if (day > (monthDays[month - 1] ?? 0)) {
+      day = 1;
+      month += 1;
+      if (month > 12) {
+        month = 1;
+        year += 1;
+        if (year > 9999) return fail("validity");
+      }
+    }
+  }
+  return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}${match[4]}`;
+};
+const sorted = (v: unknown, c: string, re = /^.{1,256}$/, minimum = 1): string[] => {
+  if (!Array.isArray(v) || v.length < minimum || v.length > 64) fail(c);
   const a = (v as unknown[]).map((x: unknown) => text(x, c, re));
   if (a.some((x, i) => i && (a[i - 1] ?? "") >= x)) fail(c);
   return a;
@@ -351,7 +387,7 @@ function subject(v: unknown): R {
   const s = rec(v, "subject");
   keys(s, ["id", "kind", "source", "sourceDigest", "subjectDigest"], "subject");
   const id = text(s.id, "subject id", /^[a-z][a-z0-9-]{0,63}$/),
-    kind = text(s.kind, "subject kind", /^(tool|skill|mcp|package|profile)$/),
+    kind = text(s.kind, "subject kind", /^(tool|skill|agent|mcp|package|profile)$/),
     src = source(s.source);
   const sd = `sha256:${digest("aih-governance-decision-source/v2", src as J)}`;
   if (s.sourceDigest !== sd) fail("source digest");
@@ -448,15 +484,16 @@ function entry(v: unknown, eff: string[], sch: string[]): R {
   const cap = rec(x.capabilities, "capabilities");
   keys(cap, ["commands", "egress", "hooks", "mcpTools", "permissions"], "capabilities");
   const caps = {
-    commands: sorted(cap.commands, "commands"),
+    commands: sorted(cap.commands, "commands", /^.{1,256}$/, 0),
     egress: sorted(
       cap.egress,
       "egress",
       /^https:\/\/[a-z0-9.-]+(?:\/[A-Za-z0-9._~!$&'()*+,;=:@%-]+)*$/,
+      0,
     ),
-    hooks: sorted(cap.hooks, "hooks"),
-    mcpTools: sorted(cap.mcpTools, "mcp"),
-    permissions: sorted(cap.permissions, "permissions"),
+    hooks: sorted(cap.hooks, "hooks", /^.{1,256}$/, 0),
+    mcpTools: sorted(cap.mcpTools, "mcp", /^.{1,256}$/, 0),
+    permissions: sorted(cap.permissions, "permissions", /^.{1,256}$/, 0),
   };
   const q = rec(x.qualification, "qualification");
   keys(q, ["findings", "gaps", "report", "rights"], "qualification");
@@ -537,6 +574,8 @@ function head(v: unknown, requireDerived = false): R {
     .map((e: unknown) => entry(e, ef, sc))
     .sort((a: R, b: R) => order(String(a.entryId), String(b.entryId)));
   if (new Set(es.map((e: R) => e.entryId)).size !== es.length) fail("entries");
+  if (new Set(es.map((e: R) => String((e.subject as R).subjectDigest))).size !== es.length)
+    fail("subjects");
   const sequence = x.sequence;
   if (
     typeof sequence !== "number" ||
@@ -914,7 +953,11 @@ function qualificationBasis(v: unknown): R {
     ),
     kind: text(x.kind, "qualification-basis", /^aih-supported$/),
     subjectDigest: phex(x.subjectDigest, "qualification-basis"),
-    subjectKind: text(x.subjectKind, "qualification-basis", /^(tool|skill|mcp|package|profile)$/),
+    subjectKind: text(
+      x.subjectKind,
+      "qualification-basis",
+      /^(tool|skill|agent|mcp|package|profile)$/,
+    ),
   };
 }
 function qualificationReceipt(v: unknown): R {
@@ -1049,6 +1092,64 @@ export function parseQualificationReceiptV2Json(v: string): R {
   if (canon(receipt as J) !== v) fail("qualification-receipt");
   return receipt;
 }
+function qualificationReceiptSet(v: unknown): R {
+  const x = rec(v, "qualification-receipt-set");
+  keys(x, ["entries", "format", "version"], "qualification-receipt-set");
+  if (x.format !== "aih-supported-qualification-receipt-set" || x.version !== 1)
+    fail("qualification-receipt-set");
+  const rawEntries = array(x.entries, "qualification-receipt-set");
+  if (!rawEntries.length || rawEntries.length > QUALIFICATION_RECEIPT_SET_V1_MAX_ENTRIES)
+    fail("qualification-receipt-set");
+  const entries = rawEntries.map((value) => {
+    const entry = rec(value, "qualification-receipt-set");
+    keys(entry, ["entryId", "memberDigest", "path", "receiptSha256"], "qualification-receipt-set");
+    const entryId = text(entry.entryId, "qualification-receipt-set", /^[a-z][a-z0-9.-]{0,63}$/);
+    const path = text(
+      entry.path,
+      "qualification-receipt-set",
+      /^receipts\/[a-z][a-z0-9.-]{0,63}\.json$/,
+    );
+    if (path !== `receipts/${entryId}.json`) fail("qualification-receipt-set");
+    return {
+      entryId,
+      memberDigest: phex(entry.memberDigest, "qualification-receipt-set"),
+      path,
+      receiptSha256: text(entry.receiptSha256, "qualification-receipt-set", /^[0-9a-f]{64}$/),
+    };
+  });
+  for (let index = 1; index < entries.length; index += 1)
+    if ((entries[index - 1]?.entryId ?? "") >= (entries[index]?.entryId ?? ""))
+      fail("qualification-receipt-set");
+  return frozen({
+    entries,
+    format: "aih-supported-qualification-receipt-set",
+    version: 1,
+  });
+}
+export function canonicalQualificationReceiptSetBytes(v: unknown): Buffer {
+  const set = qualificationReceiptSet(v);
+  const bytes = Buffer.from(canon(set as J), "utf8");
+  if (bytes.length > QUALIFICATION_RECEIPT_SET_V1_MAX_BYTES) fail("qualification-receipt-set");
+  return bytes;
+}
+export function parseQualificationReceiptSetV1Json(v: string): R {
+  if (
+    Buffer.byteLength(v, "utf8") > QUALIFICATION_RECEIPT_SET_V1_MAX_BYTES ||
+    v.startsWith("\ufeff") ||
+    v !== v.trim()
+  )
+    fail("qualification-receipt-set");
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(v);
+  } catch {
+    return fail("qualification-receipt-set");
+  }
+  const set = qualificationReceiptSet(parsed);
+  if (canonicalQualificationReceiptSetBytes(set).toString("utf8") !== v)
+    fail("qualification-receipt-set");
+  return set;
+}
 export function emitQualificationReceipt(v: unknown): R {
   const x = rec(v, "qualification-receipt");
   keys(
@@ -1100,6 +1201,55 @@ export function emitQualificationReceipt(v: unknown): R {
     subject: selectedEntry.subject,
     version: 2,
   });
+}
+export function emitQualificationReceiptSet(v: unknown): R {
+  const x = rec(v, "qualification-receipt-set");
+  keys(
+    x,
+    Object.hasOwn(x, "lastAccepted")
+      ? ["catalogSignerRoots", "expectedClaims", "lastAccepted", "now", "replay", "signed"]
+      : ["catalogSignerRoots", "expectedClaims", "now", "replay", "signed"],
+    "qualification-receipt-set",
+  );
+  const inspected = inspectSignedCatalogV2({
+    catalogSignerRoots: x.catalogSignerRoots,
+    expectedClaims: x.expectedClaims,
+    lastAccepted: x.lastAccepted ?? null,
+    now: x.now,
+    replay: x.replay,
+    signed: x.signed,
+  });
+  if (inspected.kind !== "materializable") fail("qualification-receipt-set");
+  const h = inspected.head as R;
+  const entries = h.entries as R[];
+  if (entries.length > QUALIFICATION_RECEIPT_SET_V1_MAX_ENTRIES)
+    fail("qualification-receipt-set-too-many-entries");
+  const receipts = entries.map((entry) => {
+    const entryId = text(entry.entryId, "qualification-receipt-set", /^[a-z][a-z0-9.-]{0,63}$/);
+    const receipt = emitQualificationReceipt({
+      catalogSignerRoots: x.catalogSignerRoots,
+      entryId,
+      expectedClaims: x.expectedClaims,
+      ...(x.lastAccepted === undefined ? {} : { lastAccepted: x.lastAccepted }),
+      now: x.now,
+      replay: x.replay,
+      signed: x.signed,
+    });
+    return {
+      entryId,
+      memberDigest: `sha256:${text(entry.memberSha256, "qualification-receipt-set", /^[0-9a-f]{64}$/)}`,
+      path: `receipts/${entryId}.json`,
+      receipt,
+      receiptSha256: sha(canonicalQualificationReceiptBytes(receipt)),
+    };
+  });
+  const manifest = qualificationReceiptSet({
+    entries: receipts.map(({ receipt: _receipt, ...entry }) => entry),
+    format: "aih-supported-qualification-receipt-set",
+    version: 1,
+  });
+  canonicalQualificationReceiptSetBytes(manifest);
+  return frozen({ manifest, receipts });
 }
 export function planCatalogPromotionV2(v: unknown): R {
   const x = rec(v, "promotion");
@@ -1236,6 +1386,7 @@ export function runCatalogV2Cli(argv: readonly string[]): number {
           "  sign-candidate",
           "  inspect",
           "  emit-qualification-receipt",
+          "  emit-qualification-receipt-set",
           "",
         ].join("\n"),
       );
@@ -1290,7 +1441,7 @@ export function runCatalogV2Cli(argv: readonly string[]): number {
         return fail("private-key-too-large");
       }
     };
-    const write = (p: unknown, data: string) => {
+    const exclusiveOutputPath = (p: unknown) => {
       const s = text(p, "output");
       let parent = dirname(resolve(s));
       while (parent !== dirname(parent)) {
@@ -1309,6 +1460,10 @@ export function runCatalogV2Cli(argv: readonly string[]): number {
         if ((e as Error).message === "output-exists") throw e;
         if (!isEnoent(e)) return fail("output");
       }
+      return s;
+    };
+    const write = (p: unknown, data: string) => {
+      const s = exclusiveOutputPath(p);
       try {
         writeFileSync(s, data, { flag: "wx" });
       } catch {
@@ -1316,183 +1471,233 @@ export function runCatalogV2Cli(argv: readonly string[]): number {
       }
     };
     if (command === "generate-candidate") {
+      const required = [
+        "claims",
+        "output",
+        "previous-catalog-head-sha256",
+        "sequence",
+        "signer",
+        "valid-from",
+      ];
+      const hasSeed = Object.hasOwn(args, "seed"),
+        hasManifest = Object.hasOwn(args, "seed-manifest");
+      if (hasSeed === hasManifest) fail("arguments");
       keys(
         args,
         [
-          "claims",
-          "output",
-          "previous-catalog-head-sha256",
-          "seed",
-          "sequence",
-          "signer",
-          "valid-from",
-          "valid-until",
+          ...required,
+          hasSeed ? "seed" : "seed-manifest",
+          ...(Object.hasOwn(args, "valid-until") ? ["valid-until"] : []),
         ],
         "arguments",
       );
-      const seedPath = text(args.seed, "seed");
       const sequenceText = text(args.sequence, "sequence", /^(0|[1-9][0-9]*)$/);
       const sequence = Number(sequenceText);
       if (!Number.isSafeInteger(sequence)) fail("sequence");
-      const seedText = read(seedPath, MAX_HEAD, "seed-too-large");
-      const seed = rec(JSON.parse(seedText), "seed");
-      keys(
-        seed,
-        ["artifacts", "capabilities", "entryId", "platforms", "qualification", "subject"],
-        "seed",
-      );
-      const artifactPaths = rec(seed.artifacts, "artifacts");
-      keys(artifactPaths, ["closure", "profile", "prose", "recipe"], "artifacts");
-      const base = dirname(seedPath);
-      const safePath = (value: unknown, code: string, malformedCode = code) => {
-        const path = text(
-          value,
-          malformedCode,
-          /^(?!.*(?:^|\/)\.\.(?:\/|$))(?!\/|\\|[A-Za-z]:|\/\/)[A-Za-z0-9._/-]+$/,
-        );
-        if (!/\.[a-z0-9]+$/.test(path)) fail(malformedCode);
-        const target = resolve(base, path);
-        if (relative(base, target).startsWith("..")) fail(malformedCode);
-        try {
-          let traversed = base;
-          for (const segment of path.split("/")) {
-            traversed = resolve(traversed, segment);
-            if (lstatSync(traversed).isSymbolicLink()) fail("seed-artifact-not-regular");
-          }
-          const st = lstatSync(target);
-          if (!st.isFile() || st.isSymbolicLink()) fail("seed-artifact-not-regular");
-          return { path, target, size: st.size };
-        } catch (error) {
-          if (error instanceof Error && /^[a-z0-9-]+$/.test(error.message)) throw error;
-          return fail(code);
-        }
-      };
-      const boundedSeedBytes = (
-        location: { readonly size: number; readonly target: string },
-        limit: number,
-        code: string,
-        unreadableCode = code,
-      ): Buffer => {
-        if (location.size > limit) fail(code);
-        let bytes: Buffer;
-        try {
-          bytes = readFileSync(location.target);
-        } catch {
-          return fail(unreadableCode);
-        }
-        if (bytes.length > limit) fail(code);
-        return bytes;
-      };
-      const artifact = (name: string) => {
-        const location = safePath(
-          artifactPaths[name],
-          "seed-artifact-unreadable",
-          "unsafe-seed-artifact",
-        );
-        const bytes = boundedSeedBytes(
-          location,
-          MAX_SEED_ARTIFACT,
-          "artifact-too-large",
-          "seed-artifact-unreadable",
-        );
-        return { path: location.path, sha256: sha(bytes) };
-      };
-      const profile = artifact("profile"),
-        recipe = artifact("recipe"),
-        closure = artifact("closure"),
-        prose = artifact("prose");
-      const subjectSeed = rec(seed.subject, "subject");
-      keys(subjectSeed, ["id", "kind", "source"], "subject");
-      const subjectId = text(subjectSeed.id, "subject id", /^[a-z][a-z0-9-]{0,63}$/);
-      const subjectKind = text(
-        subjectSeed.kind,
-        "subject kind",
-        /^(tool|skill|mcp|package|profile)$/,
-      );
-      const sourceValue = source(subjectSeed.source);
-      if (sourceValue.type === "aih" && sourceValue.revision !== `sha256:${profile.sha256}`)
-        fail("aih source revision");
-      const sourceDigest = `sha256:${digest("aih-governance-decision-source/v2", sourceValue as J)}`;
-      const qualificationSeed = rec(seed.qualification, "qualification");
-      keys(qualificationSeed, ["findings", "gaps", "report", "rights"], "qualification");
-      const evidenceDescriptor = (kind: "finding" | "gap" | "report" | "right", value: unknown) => {
-        const location = safePath(value, "evidence-unreadable");
-        const bytes = boundedSeedBytes(
-          location,
-          MAX_SEED_ARTIFACT,
-          "evidence-too-large",
-          "evidence-unreadable",
-        );
-        let envelope: R;
-        try {
-          envelope = rec(JSON.parse(bytes.toString("utf8")), "evidence");
-        } catch {
-          return fail("evidence-unreadable");
-        }
+      const validFrom = iso(args["valid-from"], "valid from");
+      const validUntil = Object.hasOwn(args, "valid-until")
+        ? iso(args["valid-until"], "valid until")
+        : plusDays(validFrom, 90);
+      const loadSeed = (seedPath: string): R => {
+        const seedText = read(seedPath, MAX_HEAD, "seed-too-large");
+        const seed = rec(JSON.parse(seedText), "seed");
         keys(
-          envelope,
-          ["attestor", "format", "id", "kind", "subjectDigest", "summary"],
-          "evidence",
+          seed,
+          ["artifacts", "capabilities", "entryId", "platforms", "qualification", "subject"],
+          "seed",
         );
-        if (envelope.format !== "aih-supported-evidence/v2" || envelope.kind !== kind)
-          fail("evidence");
-        if (envelope.subjectDigest !== subjectValue.subjectDigest) fail("evidence-subject");
-        text(envelope.id, "evidence", /^[a-z][a-z0-9._-]{0,63}$/);
-        text(envelope.attestor, "evidence", /^[A-Za-z0-9][A-Za-z0-9:._@/-]{0,255}$/);
-        text(envelope.summary, "evidence", /^.{1,1024}$/);
-        return { identity: `evidence:${kind}:${location.path}`, sha256: sha(bytes) };
-      };
-      const subjectValue = {
-        id: subjectId,
-        kind: subjectKind,
-        source: sourceValue,
-        sourceDigest,
-        subjectDigest: `sha256:${digest("aih-governance-decision-subject/v2", { id: subjectId, kind: subjectKind, sourceDigest })}`,
-      };
-      const evidenceList = (kind: "finding" | "gap" | "right", value: unknown, minimum: number) => {
-        const paths = array(value, "evidence");
-        if (paths.length < minimum || paths.length > 64) fail("evidence");
-        const descriptors = paths.map((path: unknown) => evidenceDescriptor(kind, path));
-        if (
-          descriptors.some(
-            (descriptor, index) =>
-              index > 0 && (descriptors[index - 1]?.identity ?? "") >= descriptor.identity,
+        const artifactPaths = rec(seed.artifacts, "artifacts");
+        keys(artifactPaths, ["closure", "profile", "prose", "recipe"], "artifacts");
+        const base = dirname(seedPath);
+        const safePath = (value: unknown, code: string, malformedCode = code) => {
+          const path = text(
+            value,
+            malformedCode,
+            /^(?!.*(?:^|\/)\.\.(?:\/|$))(?!\/|\\|[A-Za-z]:|\/\/)[A-Za-z0-9._/-]+$/,
+          );
+          if (!/\.[a-z0-9]+$/.test(path)) fail(malformedCode);
+          const target = resolve(base, path);
+          if (relative(base, target).startsWith("..")) fail(malformedCode);
+          try {
+            let traversed = base;
+            for (const segment of path.split("/")) {
+              traversed = resolve(traversed, segment);
+              if (lstatSync(traversed).isSymbolicLink()) fail("seed-artifact-not-regular");
+            }
+            const st = lstatSync(target);
+            if (!st.isFile() || st.isSymbolicLink()) fail("seed-artifact-not-regular");
+            return { path, target, size: st.size };
+          } catch (error) {
+            if (error instanceof Error && /^[a-z0-9-]+$/.test(error.message)) throw error;
+            return fail(code);
+          }
+        };
+        const boundedSeedBytes = (
+          location: { readonly size: number; readonly target: string },
+          limit: number,
+          code: string,
+          unreadableCode = code,
+        ): Buffer => {
+          if (location.size > limit) fail(code);
+          let bytes: Buffer;
+          try {
+            bytes = readFileSync(location.target);
+          } catch {
+            return fail(unreadableCode);
+          }
+          if (bytes.length > limit) fail(code);
+          return bytes;
+        };
+        const artifact = (name: string) => {
+          const location = safePath(
+            artifactPaths[name],
+            "seed-artifact-unreadable",
+            "unsafe-seed-artifact",
+          );
+          const bytes = boundedSeedBytes(
+            location,
+            MAX_SEED_ARTIFACT,
+            "artifact-too-large",
+            "seed-artifact-unreadable",
+          );
+          return { path: location.path, sha256: sha(bytes) };
+        };
+        const profile = artifact("profile"),
+          recipe = artifact("recipe"),
+          closure = artifact("closure"),
+          prose = artifact("prose");
+        const subjectSeed = rec(seed.subject, "subject");
+        keys(subjectSeed, ["id", "kind", "source"], "subject");
+        const subjectId = text(subjectSeed.id, "subject id", /^[a-z][a-z0-9-]{0,63}$/);
+        const subjectKind = text(
+          subjectSeed.kind,
+          "subject kind",
+          /^(tool|skill|agent|mcp|package|profile)$/,
+        );
+        const sourceValue = source(subjectSeed.source);
+        if (sourceValue.type === "aih" && sourceValue.revision !== `sha256:${profile.sha256}`)
+          fail("aih source revision");
+        const sourceDigest = `sha256:${digest("aih-governance-decision-source/v2", sourceValue as J)}`;
+        const qualificationSeed = rec(seed.qualification, "qualification");
+        keys(qualificationSeed, ["findings", "gaps", "report", "rights"], "qualification");
+        const evidenceDescriptor = (
+          kind: "finding" | "gap" | "report" | "right",
+          value: unknown,
+        ) => {
+          const location = safePath(value, "evidence-unreadable");
+          const bytes = boundedSeedBytes(
+            location,
+            MAX_SEED_ARTIFACT,
+            "evidence-too-large",
+            "evidence-unreadable",
+          );
+          let envelope: R;
+          try {
+            envelope = rec(JSON.parse(bytes.toString("utf8")), "evidence");
+          } catch {
+            return fail("evidence-unreadable");
+          }
+          keys(
+            envelope,
+            ["attestor", "format", "id", "kind", "subjectDigest", "summary"],
+            "evidence",
+          );
+          if (envelope.format !== "aih-supported-evidence/v2" || envelope.kind !== kind)
+            fail("evidence");
+          if (envelope.subjectDigest !== subjectValue.subjectDigest) fail("evidence-subject");
+          text(envelope.id, "evidence", /^[a-z][a-z0-9._-]{0,63}$/);
+          text(envelope.attestor, "evidence", /^[A-Za-z0-9][A-Za-z0-9:._@/-]{0,255}$/);
+          text(envelope.summary, "evidence", /^.{1,1024}$/);
+          return { identity: `evidence:${kind}:${location.path}`, sha256: sha(bytes) };
+        };
+        const subjectValue = {
+          id: subjectId,
+          kind: subjectKind,
+          source: sourceValue,
+          sourceDigest,
+          subjectDigest: `sha256:${digest("aih-governance-decision-subject/v2", { id: subjectId, kind: subjectKind, sourceDigest })}`,
+        };
+        const evidenceList = (
+          kind: "finding" | "gap" | "right",
+          value: unknown,
+          minimum: number,
+        ) => {
+          const paths = array(value, "evidence");
+          if (paths.length < minimum || paths.length > 64) fail("evidence");
+          const descriptors = paths.map((path: unknown) => evidenceDescriptor(kind, path));
+          if (
+            descriptors.some(
+              (descriptor, index) =>
+                index > 0 && (descriptors[index - 1]?.identity ?? "") >= descriptor.identity,
+            )
           )
-        )
-          fail("evidence");
-        return descriptors;
+            fail("evidence");
+          return descriptors;
+        };
+        const qualification = {
+          findings: evidenceList("finding", qualificationSeed.findings, 0),
+          gaps: evidenceList("gap", qualificationSeed.gaps, 0),
+          report: evidenceDescriptor("report", qualificationSeed.report),
+          rights: evidenceList("right", qualificationSeed.rights, 1),
+        };
+        return {
+          capabilities: seed.capabilities,
+          closure: { identity: `artifact:${closure.path}`, sha256: closure.sha256 },
+          entryId: seed.entryId,
+          platforms: seed.platforms,
+          prose: { identity: `artifact:${prose.path}`, sha256: prose.sha256 },
+          qualification,
+          recipe: { identity: `artifact:${recipe.path}`, sha256: recipe.sha256 },
+          subject: subjectValue,
+          versions: { effect: "2", schema: "2" },
+        };
       };
-      const qualification = {
-        findings: evidenceList("finding", qualificationSeed.findings, 0),
-        gaps: evidenceList("gap", qualificationSeed.gaps, 0),
-        report: evidenceDescriptor("report", qualificationSeed.report),
-        rights: evidenceList("right", qualificationSeed.rights, 1),
-      };
+      const seedPaths = hasSeed
+        ? [text(args.seed, "seed")]
+        : (() => {
+            const manifestPath = text(args["seed-manifest"], "seed-manifest");
+            const manifest = rec(
+              JSON.parse(read(manifestPath, MAX_HEAD, "seed-manifest-too-large")),
+              "seed-manifest",
+            );
+            keys(manifest, ["format", "seeds", "version"], "seed-manifest");
+            if (
+              manifest.format !== "aih-supported-candidate-seed-manifest" ||
+              manifest.version !== 1
+            )
+              fail("seed-manifest");
+            const base = dirname(manifestPath);
+            const paths = sorted(
+              manifest.seeds,
+              "seed-manifest",
+              /^(?!.*(?:^|\/)\.\.(?:\/|$))(?!\/|\\|[A-Za-z]:|\/\/)[A-Za-z0-9._/-]+$/,
+              1,
+            );
+            return paths.map((path) => {
+              const target = resolve(base, path);
+              if (relative(base, target).startsWith("..")) fail("seed-manifest");
+              let traversed = base;
+              for (const segment of path.split("/")) {
+                traversed = resolve(traversed, segment);
+                const status = lstatSync(traversed);
+                if (status.isSymbolicLink()) fail("seed-manifest");
+              }
+              return target;
+            });
+          })();
       const created = createCatalogHeadV2({
         claims: JSON.parse(read(args.claims, 1024 * 1024, "claims-too-large")),
         compatibleEffectVersions: ["2"],
         compatibleSchemaVersions: ["2"],
         effectVersion: "2",
-        entries: [
-          {
-            capabilities: seed.capabilities,
-            closure: { identity: `artifact:${closure.path}`, sha256: closure.sha256 },
-            entryId: seed.entryId,
-            platforms: seed.platforms,
-            prose: { identity: `artifact:${prose.path}`, sha256: prose.sha256 },
-            qualification,
-            recipe: { identity: `artifact:${recipe.path}`, sha256: recipe.sha256 },
-            subject: subjectValue,
-            versions: { effect: "2", schema: "2" },
-          },
-        ],
+        entries: seedPaths.map(loadSeed),
         previousCatalogHeadSha256: args["previous-catalog-head-sha256"],
         protocol: "CatalogHeadV2",
         schemaVersion: "2",
         sequence,
         signer: JSON.parse(read(args.signer, 1024 * 1024, "signer-too-large")),
-        validFrom: args["valid-from"],
-        validUntil: args["valid-until"],
+        validFrom,
+        validUntil,
       });
       write(args.output, canon(created as J));
       return 0;
@@ -1641,6 +1846,93 @@ export function runCatalogV2Cli(argv: readonly string[]): number {
         signed,
       });
       write(args.output, canonicalQualificationReceiptBytes(receipt).toString("utf8"));
+      return 0;
+    }
+    if (command === "emit-qualification-receipt-set") {
+      const allowed = [
+        "catalog-signer-root",
+        "continuity",
+        "expected-claims",
+        "last-accepted-head",
+        "manifest-output",
+        "now",
+        "output-dir",
+        "replay-state",
+        "signed-catalog",
+      ];
+      keys(
+        args,
+        allowed.filter((key) => Object.hasOwn(args, key)),
+        "arguments",
+      );
+      for (const key of [
+        "catalog-signer-root",
+        "expected-claims",
+        "manifest-output",
+        "now",
+        "output-dir",
+        "replay-state",
+        "signed-catalog",
+      ])
+        if (!Object.hasOwn(args, key)) fail("arguments");
+      const hasLast = Object.hasOwn(args, "last-accepted-head");
+      if (
+        (args.continuity === "genesis") === hasLast ||
+        (args.continuity !== undefined && args.continuity !== "genesis")
+      )
+        fail("arguments");
+      const signedText = read(args["signed-catalog"], MAX_SIGNED, "signed-catalog-too-large");
+      if (signedText.startsWith("\ufeff") || signedText !== signedText.trim())
+        fail("signed-catalog");
+      const signed = JSON.parse(signedText);
+      if (signedText !== canon(signed as J)) fail("signed-catalog");
+      if (!rec(signed, "unsigned-catalog").envelope) fail("unsigned-catalog");
+      const roots = JSON.parse(
+        read(args["catalog-signer-root"], 1024 * 1024, "catalog-signer-root-too-large"),
+      );
+      const outputDir = text(args["output-dir"], "output");
+      try {
+        const status = lstatSync(outputDir);
+        if (!status.isDirectory() || status.isSymbolicLink()) fail("unsafe-output-path");
+      } catch (error) {
+        if (error instanceof Error && /^[a-z0-9-]+$/.test(error.message)) throw error;
+        return fail("output");
+      }
+      const set = emitQualificationReceiptSet({
+        catalogSignerRoots: Array.isArray(roots)
+          ? roots
+          : roots.catalogSignerRoots
+            ? [...roots.catalogSignerRoots]
+            : [roots],
+        expectedClaims: JSON.parse(read(args["expected-claims"], 1024 * 1024, "claims-too-large")),
+        ...(hasLast
+          ? {
+              lastAccepted: parseCatalogHeadV2Json(
+                read(args["last-accepted-head"], MAX_HEAD, "last-accepted-head-too-large"),
+              ),
+            }
+          : {}),
+        now: args.now,
+        replay: JSON.parse(read(args["replay-state"], 1024 * 1024, "replay-state-too-large")),
+        signed,
+      });
+      const manifest = set.manifest as R;
+      const receipts = set.receipts as R[];
+      const outputs = [
+        ...receipts.map((receipt) => resolve(outputDir, `${receipt.entryId as string}.json`)),
+        text(args["manifest-output"], "output"),
+      ];
+      if (new Set(outputs.map((output) => resolve(output))).size !== outputs.length) fail("output");
+      for (const output of outputs) exclusiveOutputPath(output);
+      for (const receipt of receipts)
+        write(
+          resolve(outputDir, `${receipt.entryId as string}.json`),
+          canonicalQualificationReceiptBytes(receipt.receipt).toString("utf8"),
+        );
+      write(
+        args["manifest-output"],
+        canonicalQualificationReceiptSetBytes(manifest).toString("utf8"),
+      );
       return 0;
     }
     fail("arguments");

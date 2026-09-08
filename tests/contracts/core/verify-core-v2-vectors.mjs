@@ -27,9 +27,9 @@ const generated = spawnSync(process.execPath, [generatorPath], { encoding: "utf8
 const generatedVectors = generated.status === 0 ? JSON.parse(generated.stdout) : undefined;
 if (fixture.provenance.generator !== "tests/contracts/core/generate-core-v2-vectors.mjs" ||
   fixture.provenance.source !== `samartomar/ai-harness@${fixture.core.commit}` ||
-  fixture.core.commit !== "aa93128ff56b3ed978ec428e29d1b1ce8036e53b" ||
-  fixture.core.packageManifestSha256 !== "af64feda4e3e57808e1a262e15a5cb8f41581f77e8f9b49eb9b459317b803ecd" ||
-  fixture.core.packageName !== "@aihq/core" || fixture.core.packageVersion !== "0.1.0" ||
+  fixture.core.commit !== "c31741602b3dbd5f228dafe00591e5679c782878" ||
+  fixture.core.packageManifestSha256 !== "8dc114f1564af7330e4376aad716a8622766c28e97c2b3fc74ae87da0a2cc185" ||
+  fixture.core.packageName !== "@aihq/core" || fixture.core.packageVersion !== "0.5.0" ||
   fixture.core.repository !== "samartomar/ai-harness" ||
   fixture.core.receiptMaxBytes !== 5970 || fixture.core.receiptSourceMaxBytes !== 4096 ||
   generatedVectors?.source?.digest !== source.digest || generatedVectors?.subject?.digest !== subject.digest ||

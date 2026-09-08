@@ -28,7 +28,8 @@ describe("supported public V2 boundary", () => {
     expect(packageJson.publishConfig).toEqual({ access: "public" });
     expect(packageJson.scripts).not.toMatchObject({ publish: expect.any(String) });
     expect(index).toContain('from "./supported/signed-catalog-v2.js"');
-    expect(index).not.toMatch(/V1|records-v1|provider-watcher-v1/);
+    expect(index).not.toMatch(/records-v1|provider-watcher-v1/);
+    expect(index).toContain("QualificationReceiptSetV1");
     expect((packageJson.scripts as Record<string, string>)["test:cov"]).toMatch(
       /^vitest run --coverage(?:\s|$)/,
     );

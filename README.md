@@ -3,7 +3,7 @@
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 `@aihq/catalog` is AIH Catalog, the public Catalog V2 producer and verifier for
-AI Development Assurance. It binds exact tool, skill, MCP, package, and profile
+AI Development Assurance. It binds exact tool, skill, agent, MCP, package, and profile
 sources to byte-addressed evidence, explicit capabilities, an administrator
 Ed25519 signature, continuity, and bounded validity.
 
@@ -153,11 +153,13 @@ window. Every field is derived from the already verified signed head and member;
 no caller flag can override it. The file is written with exclusive creation and
 is never printed to stdout. An existing or linked output path fails closed.
 
-The file is not trusted merely because this command created it. The official
-workflow accepts its exact SHA-256, issuance timestamp, and entry id, reproduces
-the bytes at the exact main commit, and makes the receipt a separate protected
-attestation subject. Core verifies that outer attestation against its dedicated
-supported repository/workflow roots before using the receipt as provenance.
+The file is not trusted merely because this command created it. For protected
+publication, the official workflow emits a canonical receipt-set manifest plus
+one receipt for every verified catalog member, checks the supplied manifest
+SHA-256 and issuance timestamp, reproduces the bytes at the exact main commit,
+and makes the signed catalog, manifest, and per-entry receipts protected
+attestation subjects. Core verifies that outer attestation against its dedicated
+supported repository/workflow roots before using any receipt as provenance.
 
 Receipt V1 is not a compatibility path: an older Core V1 verifier must reject
 these bytes and may not infer the new continuity fields. Core's matching V2
@@ -172,7 +174,7 @@ support attestation both verify.
 scrubbed custody and performs no write.
 
 Repository CI verifies an exact clean Core checkout at
-`aa93128ff56b3ed978ec428e29d1b1ce8036e53b`, materializes that locked revision
+`c31741602b3dbd5f228dafe00591e5679c782878`, materializes that locked revision
 in a disposable detached clone, and builds and packs both packages
 there. It installs both tarballs into disposable roots and proves that packed
 Core accepts the emitted V2 receipt and the exact 5,970-byte legal ceiling,
@@ -257,10 +259,11 @@ consumers.
 The manual workflow uploads a canonical promotion plan that binds the candidate
 head, last-good head, and every fact. A material change crosses the effect
 boundary only when the caller supplies the exact promotion-plan, signed-catalog,
-and qualification-receipt SHA-256 values plus the receipt issuance timestamp and
-entry id, and the protected `catalog-signing` environment approves those exact
+and qualification-receipt-set manifest SHA-256 values plus the receipt issuance
+timestamp, and the protected `catalog-signing` environment approves those exact
 bytes. The independent verifier then recomputes continuity, plan bytes, inner
-signature, claims, receipt bytes, and both outer provenance records.
+signature, claims, receipt-set bytes, every per-entry receipt, and the outer
+provenance records.
 
 Removal does not retroactively invalidate a Core decision already issued for a
 pinned member digest. Organizations revoke those decisions through Core's
@@ -276,10 +279,11 @@ repository, workflow, issuer, ref, environment, and repository identities. The
 catalog-signer root remains out of band.
 
 The separately authorized workflow adds independent GitHub OIDC/keyless
-attestations for the exact signed catalog and exact qualification receipt at the
-main commit. Consumers must perform GitHub attestation verification as a
-separate layer. Outer transparency provenance does not replace the inner
-signature, approve organization use, or publish npm bytes.
+attestations for the exact signed catalog, exact qualification-receipt-set
+manifest, and exact per-entry qualification receipts at the main commit.
+Consumers must perform GitHub attestation verification as a separate layer.
+Outer transparency provenance does not replace the inner signature, approve
+organization use, or publish npm bytes.
 
 Catalog members use domain-separated `aih-supported-catalog-member/v2`, catalog,
 and catalog-head digests. The Core source and subject digest formulas and

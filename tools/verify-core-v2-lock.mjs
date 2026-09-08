@@ -7,16 +7,16 @@ import { isAbsolute, relative, resolve } from "node:path";
 const sourceDomain = "aih-governance-decision-source/v2\0";
 const subjectDomain = "aih-governance-decision-subject/v2\0";
 const coreRepository = "samartomar/ai-harness";
-const coreCommit = "aa93128ff56b3ed978ec428e29d1b1ce8036e53b";
+const coreCommit = "c31741602b3dbd5f228dafe00591e5679c782878";
 const corePackage = Object.freeze({
   name: "@aihq/core",
-  version: "0.1.0",
-  sha256: "af64feda4e3e57808e1a262e15a5cb8f41581f77e8f9b49eb9b459317b803ecd",
+  version: "0.5.0",
+  sha256: "8dc114f1564af7330e4376aad716a8622766c28e97c2b3fc74ae87da0a2cc185",
 });
 const schemaPath = "schemas/aih-governance-decision-v2.schema.json";
-const schemaSha256 = "27295aee8d8be333abe2c73adc72884b534b1c9980a9b7a39d12be8d34c5caff";
+const schemaSha256 = "7fdf101568cd7caa28516d0be37704c0dfd51198bc54d41d65829abbe77547cc";
 const receiptSchemaPath = "schemas/aih-supported-qualification-receipt-v2.schema.json";
-const receiptSchemaSha256 = "40a2522dfd05b370c537dc5d9b05ddc3fe2a1d6e1b6448fa50b97d53d2d2477f";
+const receiptSchemaSha256 = "eb02f082e0adb11be1e2d67694fbe90666d7fff3725195b4c0ed9ce07b43f50c";
 const receiptMaxBytes = 5970;
 const receiptSourceMaxBytes = 4096;
 const vendoredSchemaPath = "tests/contracts/core/aih-governance-decision-v2.schema.json";
