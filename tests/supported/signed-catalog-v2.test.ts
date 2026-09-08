@@ -638,8 +638,20 @@ describe("public signed catalog V2 acceptance contract", () => {
           generatedPath,
         ]),
       ).toBe(0);
-      expect(JSON.parse(readFileSync(generatedPath, "utf8"))).toMatchObject({
-        entries: [expect.objectContaining({ entryId: "recipe.default" })],
+      const generated = JSON.parse(readFileSync(generatedPath, "utf8"));
+      const manifest = JSON.parse(
+        readFileSync(resolve(root, "defaults/default-catalog-seed-manifest-v2.json"), "utf8"),
+      );
+      const expectedIds = manifest.seeds
+        .map(
+          (seed: string) =>
+            JSON.parse(readFileSync(resolve(root, "defaults", seed), "utf8")).entryId,
+        )
+        .sort();
+      expect(generated.entries.map((entry: { entryId: string }) => entry.entryId)).toEqual(
+        expectedIds,
+      );
+      expect(generated).toMatchObject({
         validFrom: "2026-08-22T00:00:00Z",
         validUntil: "2026-11-20T00:00:00Z",
       });
