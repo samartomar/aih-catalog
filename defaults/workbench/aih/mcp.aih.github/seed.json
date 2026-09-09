@@ -1,0 +1,43 @@
+{
+  "artifacts": {
+    "closure": "artifacts/closure.json",
+    "profile": "artifacts/profile.json",
+    "prose": "artifacts/prose.md",
+    "recipe": "artifacts/recipe.json"
+  },
+  "capabilities": {
+    "commands": [],
+    "egress": [],
+    "hooks": [],
+    "mcpTools": [],
+    "permissions": []
+  },
+  "entryId": "mcp.aih.github",
+  "platforms": [
+    {
+      "architecture": "amd64",
+      "os": "linux"
+    }
+  ],
+  "qualification": {
+    "findings": [
+      "evidence/finding-1.json"
+    ],
+    "gaps": [
+      "evidence/profile-scope-limit.json"
+    ],
+    "report": "evidence/report.json",
+    "rights": [
+      "evidence/right-core-apache-2.0.json"
+    ]
+  },
+  "subject": {
+    "id": "github",
+    "kind": "mcp",
+    "source": {
+      "release": "0.6.0",
+      "revision": "sha256:77b9d8cfc0a877e75069fc1a510afb0992218f6de4334479277425de971dbd3d",
+      "type": "aih"
+    }
+  }
+}

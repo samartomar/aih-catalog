@@ -1,0 +1,8 @@
+{
+  "attestor": "operator:catalog-successor-preparation",
+  "format": "aih-supported-evidence/v2",
+  "id": "core-apache-2.0",
+  "kind": "right",
+  "subjectDigest": "sha256:e24e3caa289e4739914f9a45ce77825e9563d6d7c345aca5a7bc83e7564eb961",
+  "summary": "Apache-2.0 notice packs/review-quality/aih-bugbounty/LICENSE sha256:c7963d5f486ca7f94b9141d20a08f0f2ec6f44447ceab499d8adc6ca516cf71e from frozen @aihq/core 0.6.0 applies to this Core-owned material; copied at Catalog-defaults path workbench/aih/source-reports/agent.aih.review-quality-LICENSE.txt. This attribution record grants no trademark, external-service, or organization-admission rights."
+}

@@ -1,0 +1,41 @@
+{
+  "artifacts": {
+    "closure": "artifacts/closure.json",
+    "profile": "artifacts/profile.json",
+    "prose": "artifacts/prose.md",
+    "recipe": "artifacts/recipe.json"
+  },
+  "capabilities": {
+    "commands": [],
+    "egress": [],
+    "hooks": [],
+    "mcpTools": [],
+    "permissions": []
+  },
+  "entryId": "agent.aih.review-quality",
+  "platforms": [
+    {
+      "architecture": "amd64",
+      "os": "linux"
+    }
+  ],
+  "qualification": {
+    "findings": [],
+    "gaps": [
+      "evidence/profile-scope-limit.json"
+    ],
+    "report": "evidence/report.json",
+    "rights": [
+      "evidence/right-core-apache-2.0.json"
+    ]
+  },
+  "subject": {
+    "id": "review-quality",
+    "kind": "agent",
+    "source": {
+      "release": "0.6.0",
+      "revision": "sha256:79b5396b546d1d4af9520c1370dad9a1e2ed6c2e7dd7ef3548a52405f006776e",
+      "type": "aih"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "attestor": "operator:catalog-successor-preparation",
+  "format": "aih-supported-evidence/v2",
+  "id": "core-apache-2.0",
+  "kind": "right",
+  "subjectDigest": "sha256:17025b80643d62d7334a68a0605eba48a7fb643829b330ef26f7a3d07556e328",
+  "summary": "Apache-2.0 notice LICENSE sha256:c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4 from frozen @aihq/core 0.6.0 applies to this Core-owned material; copied at Catalog-defaults path workbench/aih/source-reports/core-LICENSE.txt. This attribution record grants no trademark, external-service, or organization-admission rights."
+}
