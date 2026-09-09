@@ -23,6 +23,45 @@ function canonicalJson(value: unknown): string {
 }
 
 describe("committed Catalog V2 genesis", () => {
+  it("verifies the 428-member successor with unchanged previous membership and pinned signer", () => {
+    const directory = resolve(root, "catalog/workbench-latest-source-2026-09-09");
+    const bytes = readFileSync(resolve(directory, "signed-catalog-v2.json"), "utf8");
+    expect(createHash("sha256").update(bytes).digest("hex")).toBe(
+      "5949d4d5b333b8ade30ce47c5525e7ba0bb3f7e68a892d3b554ae6bca65718e9",
+    );
+    const signed = JSON.parse(bytes);
+    const previous = JSON.parse(readFileSync(resolve(directory, "previous-head.json"), "utf8"));
+    const signerRoot = JSON.parse(readFileSync(genesisRootPath, "utf8"));
+    const head = verifySignedCatalogV2({
+      catalogSignerRoots: [signerRoot],
+      expectedClaims: {
+        environment: "catalog-signing",
+        eventName: "workflow_dispatch",
+        issuer: "https://token.actions.githubusercontent.com",
+        jobWorkflowRef:
+          "samartomar/aih-catalog/.github/workflows/signed-catalog-v2.yml@refs/heads/main",
+        ref: "refs/heads/main",
+        repository: "samartomar/aih-catalog",
+        repositoryId: "1337425654",
+        repositoryOwnerId: "9993940",
+      },
+      now: "2026-09-09T00:53:33Z",
+      lastAccepted: previous,
+      replay: { acceptedIdentities: [] },
+      signed,
+    });
+    expect(head).toMatchObject({
+      sequence: 2,
+      previousCatalogHeadSha256: "04ac3bb54a716cf4681c5d2c40f11d72a40fb9f6440c5d77e3f1451788e8f5a2",
+      signer: { keyId: `ed25519:${genesisSignerFingerprint}` },
+    });
+    const entries = head.entries as Record<string, unknown>[];
+    expect(entries).toHaveLength(428);
+    expect(previous.entries).toHaveLength(26);
+    for (const prior of previous.entries)
+      expect(entries.find((entry) => entry.entryId === prior.entryId)).toEqual(prior);
+  });
+
   it("is a canonical, signed, live-claim genesis with bounded validity", () => {
     const rootText = readFileSync(genesisRootPath, "utf8");
     const signedText = readFileSync(signedCatalogPath, "utf8");

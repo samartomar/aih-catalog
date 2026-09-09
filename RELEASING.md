@@ -37,10 +37,12 @@ npm trust github @aihq/catalog --file release.yml --repo samartomar/aih-catalog 
 npm trust list @aihq/catalog
 ```
 
-The GitHub bootstrap secret is absent. The owner must revoke the npm token used
-for first publication and configure package publishing access to require 2FA and
-disallow traditional tokens. Future Catalog tags remain blocked by owner
-approval policy until those npm controls are confirmed. Independently, the
+The GitHub bootstrap secret is absent. The owner confirmed revocation of the
+first-publication token, and the saved npm setting requiring 2FA and disallowing
+bypass-2FA tokens was directly re-observed on 2026-08-26. The final verification
+is recorded in [release tracker #16](https://github.com/samartomar/aih-catalog/issues/16#issuecomment-5422642774),
+after an earlier mistaken completion claim was corrected. These controls remain
+release prerequisites; never restore the bootstrap token path. Independently, the
 workflow rejects nonempty token credential variables and requires npm CLI 11.5.1
 or newer so `npm publish` authenticates only through GitHub OIDC. The protected
 job also omits setup-node's `registry-url` input so it cannot create an empty

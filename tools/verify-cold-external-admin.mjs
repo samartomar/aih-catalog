@@ -26,9 +26,9 @@ const corePackage = Object.freeze({
   version: "0.5.0",
 });
 const catalogPackage = Object.freeze({
-  filename: "aihq-catalog-0.1.3.tgz",
+  filename: "aihq-catalog-0.2.0.tgz",
   name: "@aihq/catalog",
-  version: "0.1.3",
+  version: "0.2.0",
 });
 const coreSchemaLocks = Object.freeze([
   Object.freeze({
@@ -62,7 +62,7 @@ const canonicalJson = (value) => {
     .join(",")}}`;
 };
 const run = (cwd, args) => {
-  const result = spawnSync(process.execPath, args, { cwd, encoding: "utf8" });
+  const result = spawnSync(process.execPath, args, { cwd, encoding: "utf8", maxBuffer: 4 * 1024 * 1024 });
   if (result.status !== 0)
     throw new Error(`cold-admin-command-failed:${args.join(" ")}:${result.stderr.slice(0, 128)}`);
   return result;

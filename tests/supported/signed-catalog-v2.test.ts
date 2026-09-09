@@ -674,7 +674,7 @@ describe("public signed catalog V2 acceptance contract", () => {
         const packed = spawnSync(
           process.execPath,
           [npmCli(), "pack", "--json", "--pack-destination", temp],
-          { cwd: root, encoding: "utf8" },
+          { cwd: root, encoding: "utf8", maxBuffer: 4 * 1024 * 1024 },
         );
         expect(packed.status).toBe(0);
         const packedManifest = (JSON.parse(packed.stdout) as { filename: string }[])[0];
@@ -1456,6 +1456,41 @@ describe("public signed catalog V2 acceptance contract", () => {
     } finally {
       rmSync(temp, { force: true, recursive: true });
     }
+  });
+
+  it("accepts 512 ordered receipt members and rejects overflow, duplicates, and oversized bytes", async () => {
+    const publicApi = await api();
+    const entries = Array.from({ length: 512 }, (_, index) => {
+      const entryId = `skill.source.${String(index).padStart(4, "0")}`;
+      return {
+        entryId,
+        path: `receipts/${entryId}.json`,
+        memberDigest: `sha256:${"a".repeat(64)}`,
+        receiptSha256: "b".repeat(64),
+      };
+    });
+    const set = { format: "aih-supported-qualification-receipt-set", version: 1, entries };
+    const bytes = publicApi.canonicalQualificationReceiptSetBytes(set);
+    expect(publicApi.QUALIFICATION_RECEIPT_SET_V1_MAX_ENTRIES).toBe(512);
+    expect(
+      publicApi.parseQualificationReceiptSetV1Json(bytes.toString()).entries as unknown[],
+    ).toHaveLength(512);
+    expect(() =>
+      publicApi.canonicalQualificationReceiptSetBytes({
+        ...set,
+        entries: [...entries, entries[0]],
+      }),
+    ).toThrow();
+    expect(() =>
+      publicApi.canonicalQualificationReceiptSetBytes({
+        ...set,
+        entries: [entries[0], entries[0]],
+      }),
+    ).toThrow();
+    expect(() => publicApi.parseQualificationReceiptSetV1Json(" ".repeat(262145))).toThrow();
+    const workflow = readFileSync(resolve(root, ".github/workflows/signed-catalog-v2.yml"), "utf8");
+    expect(workflowJob(workflow, "sign")).toContain("raw.length>262144");
+    expect(workflowJob(workflow, "sign")).toContain("s.entries.length>512");
   });
 
   it("emits one canonical bounded receipt set for every verified head member before writing outputs", async () => {
@@ -3920,7 +3955,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       verificationMode: "cold-external-admin",
     });
     expect(coldAdminText.trim()).toBe(canonicalJson(coldAdmin as unknown as Json));
-    expect(packageJson.version).toBe("0.1.3");
+    expect(packageJson.version).toBe("0.2.0");
     expect(packageJson.bin).toEqual({ "aih-supported": "dist/cli.js" });
     expect(packageJson.files).toEqual(["dist", "defaults", "README.md"]);
     expect(packageJson.dependencies).toEqual({});
@@ -4054,6 +4089,7 @@ describe("public signed catalog V2 acceptance contract", () => {
         {
           cwd: root,
           encoding: "utf8",
+          maxBuffer: 4 * 1024 * 1024,
         },
       );
       expect(packed.status).toBe(0);

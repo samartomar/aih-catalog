@@ -25,6 +25,21 @@ promote those same bytes to `latest`.
 Release and contribution policy: [VERSIONING.md](VERSIONING.md) ·
 [RELEASING.md](RELEASING.md) · [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Source-assessment release train
+
+The 0.2.0 source train adds bounded receipt-set publication for up to 512
+members (256 KiB canonical manifest). Its default candidate contains 428 exact
+members: the existing default and 25 Matt assessments, plus 14 Anthropic,
+7 Ponytail, 14 Superpowers, and 367 ECC source-file assessments. Existing Matt
+member bytes and predecessor history are preserved.
+
+These assessments retain original Scanner findings and timestamps, grant no
+executable capabilities, and do not authorize installation or organization use.
+Anthropic's `docx`, `pdf`, `pptx`, `xlsx`, and `doc-coauthoring` are not included:
+their applicable license grant is restricted or unestablished. Unsupported
+component kinds and derived compositions are not relabeled as qualified members.
+Publication still requires the separate protected workflows described above.
+
 ## Authority boundary
 
 There are two independent governance paths:
