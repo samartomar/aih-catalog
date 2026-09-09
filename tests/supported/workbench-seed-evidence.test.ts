@@ -23,7 +23,12 @@ describe("registered Workbench source assessments", () => {
   it("includes exact latest-source assessments without licensing held Anthropic skills or replacing Matt", () => {
     const manifest = read(resolve(root, "defaults/default-catalog-seed-manifest-v2.json"));
     expect(
-      manifest.seeds.filter((path: string) => !path.startsWith("workbench/aih/")),
+      manifest.seeds.filter(
+        (path: string) =>
+          !path.startsWith("workbench/aih/") &&
+          !path.startsWith("workbench/aih-core-0.6.1/") &&
+          !path.startsWith("workbench/npm/"),
+      ),
     ).toHaveLength(428);
     const expected: Record<string, { count: number; commit: string }> = {
       anthropic: { count: 14, commit: "41bbe19d1a1a7eaab5e7bb9050a417e5c6cffc8f" },
