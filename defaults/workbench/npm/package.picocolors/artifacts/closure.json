@@ -1,0 +1,43 @@
+{
+  "artifacts": [
+    {
+      "bytes": 1128,
+      "path": "artifacts/public-projection/bounded-static-assessment.json",
+      "sha256": "sha256:9b7ad6933f990027f6f397fcb6f16077ba8f633d5be3c76c9cdc23136caaaa70"
+    },
+    {
+      "bytes": 606,
+      "path": "artifacts/public-projection/package-facts.json",
+      "sha256": "sha256:ba8fde483274074fea7112869afd0daecadc514bb7c16aa1ce147a56b2683860"
+    },
+    {
+      "bytes": 2625,
+      "path": "artifacts/public-projection/picocolors-1.1.1.tgz",
+      "sha256": "sha256:d3aedb2807967b7eb37fd11b03b7e3701e725af79c650d0812ff7213f8f882d9"
+    },
+    {
+      "bytes": 1378,
+      "path": "artifacts/public-projection/preflight-projection.json",
+      "sha256": "sha256:5fc942451de656c6c63f99ad003f4033a7ccb0ef78be6fedacbdfff545805784"
+    },
+    {
+      "bytes": 1287,
+      "path": "artifacts/public-projection/raw-seven-file-inspection.json",
+      "sha256": "sha256:201cd77f536db092b52bea50f7c473faac9f2290f47e90aafafc34c34eca7170"
+    }
+  ],
+  "format": "aih-supported-catalog-member-closure",
+  "scope": {
+    "description": "Exact npm identity, public projection of missing/warn preflight facts, and bounded static review only; no execution, installation, runtime, authority, admission, signing, or publication claim.",
+    "kind": "identity-and-assessment-record"
+  },
+  "source": {
+    "integrity": "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==",
+    "package": "picocolors",
+    "registry": "https://registry.npmjs.org/",
+    "type": "npm",
+    "version": "1.1.1"
+  },
+  "subjectDigest": "sha256:a7835af4bf73de3589596e59b9344471a31be1a42e1c473b2fdc3d98dad52bd8",
+  "version": 1
+}
