@@ -20,8 +20,8 @@ const ZERO = "0".repeat(64),
 // and a 16-digit safe successor sequence. This exact cap is deliberately
 // synchronized with workflow verification and regression tests.
 export const QUALIFICATION_RECEIPT_V2_MAX_BYTES = 5970;
-export const QUALIFICATION_RECEIPT_SET_V1_MAX_ENTRIES = 64;
-export const QUALIFICATION_RECEIPT_SET_V1_MAX_BYTES = 32 * 1024;
+export const QUALIFICATION_RECEIPT_SET_V1_MAX_ENTRIES = 512;
+export const QUALIFICATION_RECEIPT_SET_V1_MAX_BYTES = 256 * 1024;
 export const CATALOG_SOURCE_V2_MAX_BYTES = 4096;
 export const STRICT_V2_CORE_LOCK = Object.freeze({
   coreCommit: "c31741602b3dbd5f228dafe00591e5679c782878",
@@ -185,8 +185,8 @@ const plusDays = (value: string, days: number): string => {
   }
   return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}${match[4]}`;
 };
-const sorted = (v: unknown, c: string, re = /^.{1,256}$/, minimum = 1): string[] => {
-  if (!Array.isArray(v) || v.length < minimum || v.length > 64) fail(c);
+const sorted = (v: unknown, c: string, re = /^.{1,256}$/, minimum = 1, maximum = 64): string[] => {
+  if (!Array.isArray(v) || v.length < minimum || v.length > maximum) fail(c);
   const a = (v as unknown[]).map((x: unknown) => text(x, c, re));
   if (a.some((x, i) => i && (a[i - 1] ?? "") >= x)) fail(c);
   return a;
@@ -1672,6 +1672,7 @@ export function runCatalogV2Cli(argv: readonly string[]): number {
               "seed-manifest",
               /^(?!.*(?:^|\/)\.\.(?:\/|$))(?!\/|\\|[A-Za-z]:|\/\/)[A-Za-z0-9._/-]+$/,
               1,
+              QUALIFICATION_RECEIPT_SET_V1_MAX_ENTRIES,
             );
             return paths.map((path) => {
               const target = resolve(base, path);

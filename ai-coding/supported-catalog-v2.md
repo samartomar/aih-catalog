@@ -125,6 +125,11 @@ Unknown schema/effect versions may
 be inspectable as authenticated opaque records, but cannot verify or materialize
 as V2.
 
+Receipt-set publication is bounded to 512 uniquely ordered members and 256 KiB
+of canonical manifest bytes. These limits are enforced independently by the
+producer, protected signing job, and Core consumer. They do not change the
+individual receipt limit or relax member, continuity, or signature checks.
+
 Resource bounds are fail-closed: 4,096 entries, 64 signer roots, 4,096 replay
 identities, 64 items in bounded lists, an 8 MiB head/candidate, a 24 MiB signed
 artifact, 1 MiB claims/root/replay/seed artifacts, a 64 KiB private key, a

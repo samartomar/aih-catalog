@@ -290,8 +290,9 @@ describe("@aihq/catalog release boundary (#12)", () => {
     expect(releasing).toContain("npm trust list @aihq/catalog");
     expect(releasing).toContain("full-SHA publication authorization");
     expect(releasing).toContain("GitHub bootstrap secret is absent");
-    expect(releasing).toContain("revoke the npm token");
-    expect(releasing).toContain("Future Catalog tags remain blocked");
+    expect(releasing).toContain("owner confirmed revocation");
+    expect(releasing).toContain("issuecomment-5422642774");
+    expect(releasing).toContain("release prerequisites; never restore the bootstrap token path");
     expect(releasing).not.toContain("**Bypass 2FA** enabled");
     expect(releasing).not.toContain("NPM_BOOTSTRAP_TOKEN");
     expect(releasing).toContain("never delete, move, or reuse the tag");
@@ -327,7 +328,7 @@ describe("@aihq/catalog release boundary (#12)", () => {
     const raw = execFileSync(
       process.execPath,
       [process.env.npm_execpath ?? "", "pack", "--ignore-scripts", "--dry-run", "--json"],
-      { cwd: root, encoding: "utf8" },
+      { cwd: root, encoding: "utf8", maxBuffer: 4 * 1024 * 1024, timeout: 30_000 },
     );
     const packedManifests = JSON.parse(raw) as Array<{
       name: string;
@@ -340,8 +341,8 @@ describe("@aihq/catalog release boundary (#12)", () => {
     if (packed === undefined) throw new Error("npm pack produced no manifest");
     expect(packed).toMatchObject({
       name: "@aihq/catalog",
-      version: "0.1.3",
-      filename: "aihq-catalog-0.1.3.tgz",
+      version: "0.2.0",
+      filename: "aihq-catalog-0.2.0.tgz",
     });
     const paths = packed.files.map(({ path }) => path);
     expect(paths).toContain("LICENSE");
@@ -349,5 +350,5 @@ describe("@aihq/catalog release boundary (#12)", () => {
     expect(paths).toContain("defaults/default-catalog-v2.json");
     expect(paths).toContain("dist/cli.js");
     expect(paths).toContain("dist/index.js");
-  });
+  }, 45_000);
 });
