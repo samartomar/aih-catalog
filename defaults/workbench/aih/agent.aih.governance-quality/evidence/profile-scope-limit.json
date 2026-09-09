@@ -1,0 +1,8 @@
+{
+  "attestor": "operator:catalog-successor-preparation",
+  "format": "aih-supported-evidence/v2",
+  "id": "profile-scope-limit",
+  "kind": "gap",
+  "subjectDigest": "sha256:3e11bc9ea59b2c7c27c86f3c6c7cf577391a76a7c8c0759a3b5914c51916c8f6",
+  "summary": "Exact Core profile scope limitation (source-files): Exact first-party pack files and the declared AIH pack manifest; no execution or organization admission. Full profile bytes are retained in artifacts/profile.json; this record makes no runtime, external-service, or organization-admission claim."
+}

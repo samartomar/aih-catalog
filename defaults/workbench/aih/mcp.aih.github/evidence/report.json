@@ -1,0 +1,8 @@
+{
+  "attestor": "operator:catalog-successor-preparation",
+  "format": "aih-supported-evidence/v2",
+  "id": "scanner-report",
+  "kind": "report",
+  "subjectDigest": "sha256:ccfc3adb6a7750c5879fc89187c7fabd02164ed9f74972e4b9842ff48f594515",
+  "summary": "Verified Scanner observation asset:fc5e18d7992d389a13ebc1ad30f629e53d7f776f70dd1299bb04d8388d98f833 in sealed report sha256:fb34b793e8b254e97695687f34818d34d5f4ec30e76d7cefa8a65e01716b0d9c; verdict blocked; findings 1; signed 2026-09-09T09:46:59.000Z; verification expires 2026-09-09T10:31:59.000Z; publication 475cca746209a9b0cbb53fa710ebe8a55b9df78b921017dfb09f5f03dec960ab; receipt a1dd97dbce31de8e3a249935976ca309225cfbbc8a7732bac2de186eaac50200. Exact report bytes are retained at Catalog-defaults path workbench/aih/source-reports/scanner-report.json."
+}

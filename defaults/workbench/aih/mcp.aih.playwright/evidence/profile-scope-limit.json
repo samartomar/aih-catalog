@@ -1,0 +1,8 @@
+{
+  "attestor": "operator:catalog-successor-preparation",
+  "format": "aih-supported-evidence/v2",
+  "id": "profile-scope-limit",
+  "kind": "gap",
+  "subjectDigest": "sha256:e725e8988796ed770b80ab3a866af5e4be4d517fb4d8618a10accf9033c0af18",
+  "summary": "Exact Core profile scope limitation (configuration-only): Exact built-in declaration and compiler input; no server code, execution, or organization admission. Full profile bytes are retained in artifacts/profile.json; this record makes no runtime, external-service, or organization-admission claim."
+}

@@ -1,0 +1,41 @@
+{
+  "artifacts": {
+    "closure": "artifacts/closure.json",
+    "profile": "artifacts/profile.json",
+    "prose": "artifacts/prose.md",
+    "recipe": "artifacts/recipe.json"
+  },
+  "capabilities": {
+    "commands": [],
+    "egress": [],
+    "hooks": [],
+    "mcpTools": [],
+    "permissions": []
+  },
+  "entryId": "mcp.aih.sequential-thinking",
+  "platforms": [
+    {
+      "architecture": "amd64",
+      "os": "linux"
+    }
+  ],
+  "qualification": {
+    "findings": [],
+    "gaps": [
+      "evidence/profile-scope-limit.json"
+    ],
+    "report": "evidence/report.json",
+    "rights": [
+      "evidence/right-core-apache-2.0.json"
+    ]
+  },
+  "subject": {
+    "id": "sequential-thinking",
+    "kind": "mcp",
+    "source": {
+      "release": "0.6.0",
+      "revision": "sha256:2278d33a47cd739bd1ce4a34c7cd795fceb308ad3045a20976434a404fd4be4a",
+      "type": "aih"
+    }
+  }
+}

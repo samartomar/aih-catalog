@@ -22,7 +22,9 @@ const digest = (domain: string, value: unknown) =>
 describe("registered Workbench source assessments", () => {
   it("includes exact latest-source assessments without licensing held Anthropic skills or replacing Matt", () => {
     const manifest = read(resolve(root, "defaults/default-catalog-seed-manifest-v2.json"));
-    expect(manifest.seeds).toHaveLength(428);
+    expect(
+      manifest.seeds.filter((path: string) => !path.startsWith("workbench/aih/")),
+    ).toHaveLength(428);
     const expected: Record<string, { count: number; commit: string }> = {
       anthropic: { count: 14, commit: "41bbe19d1a1a7eaab5e7bb9050a417e5c6cffc8f" },
       ponytail: { count: 7, commit: "356918eba965ee1eac64bd3a7f0dd02108350de5" },

@@ -1,0 +1,41 @@
+{
+  "artifacts": {
+    "closure": "artifacts/closure.json",
+    "profile": "artifacts/profile.json",
+    "prose": "artifacts/prose.md",
+    "recipe": "artifacts/recipe.json"
+  },
+  "capabilities": {
+    "commands": [],
+    "egress": [],
+    "hooks": [],
+    "mcpTools": [],
+    "permissions": []
+  },
+  "entryId": "agent.aih.governance-quality",
+  "platforms": [
+    {
+      "architecture": "amd64",
+      "os": "linux"
+    }
+  ],
+  "qualification": {
+    "findings": [],
+    "gaps": [
+      "evidence/profile-scope-limit.json"
+    ],
+    "report": "evidence/report.json",
+    "rights": [
+      "evidence/right-core-apache-2.0.json"
+    ]
+  },
+  "subject": {
+    "id": "governance-quality",
+    "kind": "agent",
+    "source": {
+      "release": "0.6.0",
+      "revision": "sha256:32ce6e9dea74ba84fe56b71ba6516e032f18aa4132e6ef7ebca507512d8735f7",
+      "type": "aih"
+    }
+  }
+}

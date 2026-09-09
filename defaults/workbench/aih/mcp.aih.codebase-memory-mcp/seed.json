@@ -1,0 +1,41 @@
+{
+  "artifacts": {
+    "closure": "artifacts/closure.json",
+    "profile": "artifacts/profile.json",
+    "prose": "artifacts/prose.md",
+    "recipe": "artifacts/recipe.json"
+  },
+  "capabilities": {
+    "commands": [],
+    "egress": [],
+    "hooks": [],
+    "mcpTools": [],
+    "permissions": []
+  },
+  "entryId": "mcp.aih.codebase-memory-mcp",
+  "platforms": [
+    {
+      "architecture": "amd64",
+      "os": "linux"
+    }
+  ],
+  "qualification": {
+    "findings": [],
+    "gaps": [
+      "evidence/profile-scope-limit.json"
+    ],
+    "report": "evidence/report.json",
+    "rights": [
+      "evidence/right-core-apache-2.0.json"
+    ]
+  },
+  "subject": {
+    "id": "codebase-memory-mcp",
+    "kind": "mcp",
+    "source": {
+      "release": "0.6.0",
+      "revision": "sha256:3e9f8ec60a0051ba2095373cc8093df30bdfa56057d0724b95c6eefecfb0774f",
+      "type": "aih"
+    }
+  }
+}

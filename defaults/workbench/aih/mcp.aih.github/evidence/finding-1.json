@@ -1,0 +1,8 @@
+{
+  "attestor": "operator:catalog-successor-preparation",
+  "format": "aih-supported-evidence/v2",
+  "id": "scanner-finding-1",
+  "kind": "finding",
+  "subjectDigest": "sha256:ccfc3adb6a7750c5879fc89187c7fabd02164ed9f74972e4b9842ff48f594515",
+  "summary": "Scanner finding trust.external-egress for asset:fc5e18d7992d389a13ebc1ad30f629e53d7f776f70dd1299bb04d8388d98f833: trust-raw:355e76fbd0b5abe0f98fecfe1e01d0de943930325d9920c8d6906db4dd1efb39. Exact finding detail, analyzer identities, and verdict are retained in source-reports/scanner-report.json."
+}
