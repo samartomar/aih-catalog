@@ -1583,7 +1583,9 @@ describe("public signed catalog V2 acceptance contract", () => {
       /cmp "\$QUALIFICATION_RECEIPT_SET_PATH" "\$RECOMPUTED_QUALIFICATION_RECEIPT_SET_PATH"/,
     );
     expect(receiptSetVerifier).toMatch(/for\(const x of s\.entries\)/);
-    expect(receiptSetVerifier).toMatch(/while IFS= read -r receipt; do gh attestation verify/);
+    expect(receiptSetVerifier).toMatch(
+      /while IFS= read -r receipt; do node \.github\/verify-attestation-retry\.mjs/,
+    );
     const signer = receiptSetSigner;
     if (process.env.AIH_LEGACY_WORKFLOW_ASSERTIONS === "1") {
       expect(workflow).toMatch(/qualification_receipt_sha256: \{ required: true, type: string \}/);
