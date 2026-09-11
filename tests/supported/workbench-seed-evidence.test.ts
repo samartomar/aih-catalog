@@ -27,6 +27,7 @@ describe("registered Workbench source assessments", () => {
         (path: string) =>
           !path.startsWith("workbench/aih/") &&
           !path.startsWith("workbench/aih-core-0.6.1/") &&
+          !path.startsWith("workbench/aih-core-0.6.2/") &&
           !path.startsWith("workbench/npm/"),
       ),
     ).toHaveLength(428);
