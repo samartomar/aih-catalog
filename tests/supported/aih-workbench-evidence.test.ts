@@ -50,7 +50,7 @@ it("retains ten signed report components and canonical profiles for nine eligibl
     path.startsWith("workbench/aih/"),
   );
   expect(paths).toHaveLength(9);
-  expect(manifest.seeds).toHaveLength(447);
+  expect(manifest.seeds).toHaveLength(456);
   const wrapper = read(
     resolve(root, "defaults/workbench/aih/source-reports/verified-report-wrapper.json"),
   );
