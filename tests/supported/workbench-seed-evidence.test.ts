@@ -31,9 +31,33 @@ describe("registered Workbench source assessments", () => {
           !path.startsWith("workbench/npm/"),
       ),
     ).toHaveLength(429);
-    const expected: Record<string, { count: number; commit: string }> = {
-      anthropic: { count: 14, commit: "34040c9c568585f6929bedeaad110ad08f079624" },
-      "ui-ux-pro-max": { count: 1, commit: "a38d04c3d5c298c851dbe5e6ee1965ee3de42cb5" },
+    const expected: Record<
+      string,
+      {
+        count: number;
+        commit: string;
+        publication?: string;
+        mappedFindings?: number;
+        locationCoverageNotices?: number;
+        globalCoverageNotices?: number;
+      }
+    > = {
+      anthropic: {
+        count: 14,
+        commit: "34040c9c568585f6929bedeaad110ad08f079624",
+        publication: "bbda9be7b3cba505db10e6e61e38133a05ab17799bd4f8e155704c6900ffb914",
+        mappedFindings: 163,
+        locationCoverageNotices: 56,
+        globalCoverageNotices: 18,
+      },
+      "ui-ux-pro-max": {
+        count: 1,
+        commit: "a38d04c3d5c298c851dbe5e6ee1965ee3de42cb5",
+        publication: "3a2c67b989fd9def7db7b3f75e4223744ef33e59475d149224f847ae244fa123",
+        mappedFindings: 80,
+        locationCoverageNotices: 0,
+        globalCoverageNotices: 19,
+      },
       ponytail: { count: 7, commit: "356918eba965ee1eac64bd3a7f0dd02108350de5" },
       superpowers: { count: 14, commit: "b36e0829c6d0140e93cfef2ca599b1b07d4a7797" },
       ecc: { count: 367, commit: "5064474d4d762dc9640234a41617cccb79185cec" },
@@ -43,6 +67,8 @@ describe("registered Workbench source assessments", () => {
         path.startsWith(`workbench/${provider}/`),
       );
       expect(paths).toHaveLength(facts.count);
+      let mappedFindings = 0;
+      let locationCoverageNotices = 0;
       for (const path of paths) {
         const seedPath = resolve(root, "defaults", path);
         const seed = read(seedPath);
@@ -79,13 +105,26 @@ describe("registered Workbench source assessments", () => {
         });
         if (provider === "anthropic" || provider === "ui-ux-pro-max") {
           expect(seed.qualification.gaps).toContain("evidence/coverage-gap.json");
-          const coverageGap = read(
-            resolve(dirname(seedPath), "evidence/coverage-gap.json"),
-          );
+          const coverageGap = read(resolve(dirname(seedPath), "evidence/coverage-gap.json"));
           expect(coverageGap.summary).toContain("Unresolved Scanner coverage notifications:");
           expect(report.summary).toContain("Scanner authority none");
           expect(report.summary).toContain("historical observation");
+          expect(report.summary).toContain(`Publication sha256:${facts.publication}.`);
+          const findingMatch = /Scanner mapped findings: (\d+);/.exec(report.summary);
+          const coverageMatch =
+            /Unresolved Scanner coverage notifications: (\d+) location-bound and (\d+) global\./.exec(
+              coverageGap.summary,
+            );
+          expect(findingMatch).not.toBeNull();
+          expect(coverageMatch).not.toBeNull();
+          mappedFindings += Number(findingMatch?.[1]);
+          locationCoverageNotices += Number(coverageMatch?.[1]);
+          expect(Number(coverageMatch?.[2])).toBe(facts.globalCoverageNotices);
         }
+      }
+      if (facts.mappedFindings !== undefined) {
+        expect(mappedFindings).toBe(facts.mappedFindings);
+        expect(locationCoverageNotices).toBe(facts.locationCoverageNotices);
       }
     }
   });

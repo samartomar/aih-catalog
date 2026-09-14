@@ -1,12 +1,5 @@
 import { createHash, generateKeyPairSync, sign } from "node:crypto";
-import {
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-  symlinkSync,
-  writeFileSync,
-} from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -41,8 +34,7 @@ const canonical = (value: unknown): string => {
     .map((key) => `${JSON.stringify(key)}:${canonical(item[key])}`)
     .join(",")}}`;
 };
-const sha256 = (value: string | Buffer): string =>
-  createHash("sha256").update(value).digest("hex");
+const sha256 = (value: string | Buffer): string => createHash("sha256").update(value).digest("hex");
 const writeJson = (path: string, value: unknown) => writeFileSync(path, canonical(value));
 const pae = (payloadType: string, payload: Buffer) =>
   Buffer.concat([
@@ -153,18 +145,16 @@ async function fixture() {
   const publicationSha256 = sha256(publicationBytes);
   const scannerComponentId = "skill:skills-demo-0123456789ab";
   const catalogAssetId = "fixture-skills/skill:demo";
-  const analyzerExecution = ["aih-native", "skillspector", "semgrep", "cisco"].map(
-    (analyzer) => ({
-      analyzer,
-      analyzerVersion: "fixture",
-      annex: { path: `annex/${analyzer}.json`, sha256: "d".repeat(64) },
-      executionSuccessful: true,
-      fileCount: 2,
-      sourceTreeSha256: source.treeSha256,
-      resultCount: analyzer === "cisco" ? 1 : 0,
-      notificationCount: analyzer === "skillspector" ? 1 : 0,
-    }),
-  );
+  const analyzerExecution = ["aih-native", "skillspector", "semgrep", "cisco"].map((analyzer) => ({
+    analyzer,
+    analyzerVersion: "fixture",
+    annex: { path: `annex/${analyzer}.json`, sha256: "d".repeat(64) },
+    executionSuccessful: true,
+    fileCount: 2,
+    sourceTreeSha256: source.treeSha256,
+    resultCount: analyzer === "cisco" ? 1 : 0,
+    notificationCount: analyzer === "skillspector" ? 1 : 0,
+  }));
   const findings = [
     {
       analyzer: "cisco",
@@ -276,7 +266,11 @@ async function fixture() {
       url: `https://github.com/example/scan/releases/tag/baseline-v1-${componentArtifact.publisherCommit}-${requestSha256}`,
       targetCommitish: componentArtifact.publisherCommit,
     },
-    workflow: { status: "completed", conclusion: "success", headSha: componentArtifact.publisherCommit },
+    workflow: {
+      status: "completed",
+      conclusion: "success",
+      headSha: componentArtifact.publisherCommit,
+    },
     attestation: {
       subject: { name: "publication.json", digest: { sha256: publicationSha256 } },
       sourceRepositoryDigest: componentArtifact.publisherCommit,
@@ -324,7 +318,8 @@ async function fixture() {
   };
   const handoffPath = join(publicationRoot, "consumer-handoff.json");
   writeJson(handoffPath, handoff);
-  const manifestPath = join(root, "default-catalog-seed-manifest-v2.json");
+  const manifestPath = join(root, "defaults", "default-catalog-seed-manifest-v2.json");
+  mkdirSync(dirname(manifestPath), { recursive: true });
   writeJson(manifestPath, {
     format: "aih-supported-candidate-seed-manifest",
     seeds: ["default-catalog-v2.json"],
@@ -364,7 +359,13 @@ describe("source assessment row generator", () => {
     expect(seed).toMatchObject({
       entryId: "skill.fixture.demo",
       capabilities: { commands: [], egress: [], hooks: [], mcpTools: [], permissions: [] },
-      qualification: { gaps: ["evidence/coverage-gap.json", "evidence/publication-1.json", "evidence/scope-gap.json"] },
+      qualification: {
+        gaps: [
+          "evidence/coverage-gap.json",
+          "evidence/publication-1.json",
+          "evidence/scope-gap.json",
+        ],
+      },
     });
     expect(JSON.parse(readFileSync(item.manifestPath, "utf8")).seeds).toEqual([
       "default-catalog-v2.json",
@@ -375,7 +376,8 @@ describe("source assessment row generator", () => {
   it("fails closed on unexpected handoff fields, mismatched publications, and partial mapping", async () => {
     for (const mutate of [
       (handoff: Record<string, unknown>) => Object.assign(handoff, { unexpected: true }),
-      (handoff: Record<string, unknown>) => Object.assign(handoff, { publicationSha256: "0".repeat(64) }),
+      (handoff: Record<string, unknown>) =>
+        Object.assign(handoff, { publicationSha256: "0".repeat(64) }),
       (handoff: Record<string, unknown>) =>
         Object.assign(handoff.mapping as Record<string, unknown>, { components: [] }),
     ]) {

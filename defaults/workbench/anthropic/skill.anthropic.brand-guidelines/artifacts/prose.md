@@ -1,3 +1,3 @@
 # skill.anthropic.brand-guidelines
 
-Exact source-file assessment at anthropics/skills@41bbe19d1a1a7eaab5e7bb9050a417e5c6cffc8f:skills/brand-guidelines/SKILL.md. Original Scanner findings and dates remain unchanged. This is not a clean-scan declaration, installation approval, or organization admission.
+Exact review-only source-file assessment at anthropics/skills@34040c9c568585f6929bedeaad110ad08f079624:skills/brand-guidelines/SKILL.md. Scanner findings, coverage limits, authority, and dates remain unchanged. This is not a clean-scan declaration, installation approval, runtime authority, or organization admission.
