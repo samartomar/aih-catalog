@@ -348,6 +348,16 @@ async function fixture() {
   };
 }
 
+async function linkedParentSourceFixture() {
+  const item = await fixture();
+  const externalBase = join(item.root, "external-source-base");
+  mkdirSync(externalBase);
+  renameSync(item.sourceRoot, join(externalBase, "source"));
+  const linkedParent = join(item.root, "linked-source-parent");
+  symlinkSync(externalBase, linkedParent, directoryLinkType);
+  return { api: item.api, sourceRoot: join(linkedParent, "source") };
+}
+
 describe("source assessment row generator", () => {
   it("binds exact protected observations into review-only rows and updates the seed manifest", async () => {
     const item = await fixture();
@@ -450,6 +460,22 @@ describe("source assessment row generator", () => {
 
     expect(() => item.api.hashComponentTreeV1(item.sourceRoot, ["skills/demo"])).toThrow(
       /symbolic.*ancestor/i,
+    );
+  });
+
+  it("rejects a symbolic parent of the supplied source root when hashing the source tree", async () => {
+    const item = await linkedParentSourceFixture();
+
+    expect(() => item.api.hashSourceTreeV1(item.sourceRoot)).toThrow(
+      /source-root.*symbolic.*ancestor/i,
+    );
+  });
+
+  it("rejects a symbolic parent of the supplied source root when hashing a component", async () => {
+    const item = await linkedParentSourceFixture();
+
+    expect(() => item.api.hashComponentTreeV1(item.sourceRoot, ["skills/demo"])).toThrow(
+      /source-root.*symbolic.*ancestor/i,
     );
   });
 
