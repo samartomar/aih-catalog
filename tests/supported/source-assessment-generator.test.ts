@@ -458,11 +458,7 @@ describe("source assessment row generator", () => {
     const manifestBefore = readFileSync(item.manifestPath);
     const externalWorkbench = join(item.root, "external-workbench");
     mkdirSync(externalWorkbench);
-    symlinkSync(
-      externalWorkbench,
-      join(item.root, "defaults", "workbench"),
-      directoryLinkType,
-    );
+    symlinkSync(externalWorkbench, join(item.root, "defaults", "workbench"), directoryLinkType);
 
     expect(() =>
       item.api.generateSourceAssessmentRowsV1({

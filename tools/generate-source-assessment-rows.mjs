@@ -15,7 +15,7 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
-import { dirname, isAbsolute, posix, relative, resolve } from "node:path";
+import { dirname, isAbsolute, parse, posix, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HANDOFF_KEYS = [
@@ -220,6 +220,52 @@ const pathInside = (root, target, label) => {
     fail(`${label}-outside-root`);
   return child.replaceAll("\\", "/");
 };
+function unlinkedAbsolutePath(path, label, allowMissing = false) {
+  const absolute = resolve(path);
+  const root = parse(absolute).root;
+  const segments = relative(root, absolute).split(/[\\/]/).filter(Boolean);
+  if (segments.length === 0) fail(`${label}-path-root`);
+  let cursor = root;
+  for (const [index, segment] of segments.entries()) {
+    cursor = resolve(cursor, segment);
+    let stat;
+    try {
+      stat = lstatSync(cursor);
+    } catch (error) {
+      if (
+        allowMissing &&
+        error !== null &&
+        typeof error === "object" &&
+        "code" in error &&
+        error.code === "ENOENT"
+      )
+        return { exists: false };
+      fail(`${label}-ancestor-unreadable`);
+    }
+    if (stat.isSymbolicLink()) fail(`${label}: symbolic link ancestor`);
+    if (index < segments.length - 1 && !stat.isDirectory())
+      fail(`${label}-ancestor-directory`);
+    if (index === segments.length - 1) return { exists: true, stat };
+  }
+  fail(`${label}-path`);
+}
+function unlinkedSourcePath(root, target) {
+  const pathRel = relativeSourcePath(root, target);
+  let cursor = root;
+  let stat;
+  for (const segment of pathRel.split("/")) {
+    cursor = resolve(cursor, segment);
+    try {
+      stat = lstatSync(cursor);
+    } catch {
+      fail("component-path-missing");
+    }
+    if (stat.isSymbolicLink()) fail("component-path: symbolic link ancestor");
+  }
+  const actual = realpathSync(target);
+  pathInside(root, actual, "component-real-path");
+  return { pathRel, stat };
+}
 function rootOf(sourceRoot) {
   const stat = lstatSync(sourceRoot);
   if (stat.isSymbolicLink() || !stat.isDirectory()) fail("source-root-real-directory");
@@ -243,15 +289,8 @@ export function hashComponentTreeV1(sourceRoot, declaredPaths) {
   if (new Set(roots).size !== roots.length) fail("duplicate-component-root");
   const entries = new Map();
   const visit = (path) => {
-    let stat;
-    try {
-      stat = lstatSync(path);
-    } catch {
-      fail("component-path-missing");
-    }
-    const pathRel = relativeSourcePath(root, path);
+    const { pathRel, stat } = unlinkedSourcePath(root, path);
     if (entries.has(pathRel)) fail("duplicate-component-entry");
-    if (stat.isSymbolicLink()) fail("symbolic link in component");
     if (stat.isDirectory()) {
       entries.set(pathRel, { type: "directory", path: pathRel });
       for (const child of readdirSync(path).sort(codeUnitCompare)) visit(resolve(path, child));
@@ -926,16 +965,35 @@ function renderRows(validated, handoff, provider, sourceRoot) {
   return { files, seedPaths };
 }
 
+function destinationLayout(manifestPath, outputRoot, provider) {
+  const manifest = unlinkedAbsolutePath(manifestPath, "manifest");
+  if (!manifest.exists || !manifest.stat.isFile()) fail("manifest-file");
+  const output = unlinkedAbsolutePath(outputRoot, "output", true);
+  if (output.exists) fail("output-already-exists");
+  const prefix = pathInside(dirname(manifestPath), outputRoot, "provider-output");
+  if (prefix !== `workbench/${provider}`) fail("provider-output-layout");
+  const temporary = `${manifestPath}.source-assessment-generator.tmp`;
+  if (unlinkedAbsolutePath(temporary, "manifest-temporary", true).exists)
+    fail("seed-manifest-temporary-exists");
+  return { prefix, temporary };
+}
 function writeGeneratedRows(outputRoot, files) {
+  if (unlinkedAbsolutePath(outputRoot, "output", true).exists) fail("output-already-exists");
   mkdirSync(dirname(outputRoot), { recursive: true });
+  const parent = unlinkedAbsolutePath(dirname(outputRoot), "output-parent");
+  if (!parent.exists || !parent.stat.isDirectory()) fail("output-parent-directory");
   mkdirSync(outputRoot, { recursive: false });
   try {
+    const root = unlinkedAbsolutePath(outputRoot, "output");
+    if (!root.exists || !root.stat.isDirectory()) fail("output-directory");
     for (const [relativePath, contents] of [...files.entries()].sort(([left], [right]) =>
       codeUnitCompare(left, right),
     )) {
       const path = resolve(outputRoot, ...relativePath.split("/"));
       pathInside(outputRoot, path, "generated-output");
       mkdirSync(dirname(path), { recursive: true });
+      const parent = unlinkedAbsolutePath(dirname(path), "generated-output-parent");
+      if (!parent.exists || !parent.stat.isDirectory()) fail("generated-output-parent-directory");
       writeFileSync(path, contents, { encoding: "utf8", flag: "wx" });
     }
   } catch (error) {
@@ -943,7 +1001,11 @@ function writeGeneratedRows(outputRoot, files) {
     throw error;
   }
 }
-function updateManifest(manifestPath, outputRoot, provider, generatedSeedPaths) {
+function prepareManifestUpdate(
+  manifestPath,
+  generatedSeedPaths,
+  { prefix, temporary },
+) {
   const read = readJson(manifestPath, "seed-manifest", 4 * 1024 * 1024);
   const manifest = object(read.value, "seed-manifest");
   exactKeys(manifest, ["format", "seeds", "version"], "seed-manifest");
@@ -952,22 +1014,33 @@ function updateManifest(manifestPath, outputRoot, provider, generatedSeedPaths) 
   const current = validateStringSet(manifest.seeds, "seed-manifest-paths").map((path) =>
     sourceRelative(path, "seed-manifest-path"),
   );
-  const prefix = pathInside(dirname(manifestPath), outputRoot, "provider-output");
-  if (prefix !== `workbench/${provider}`) fail("provider-output-layout");
   const seedPaths = generatedSeedPaths.map((path) => `${prefix}/${path}`);
   const providerPrefix = `${prefix}/`;
   const seeds = [...current.filter((path) => !path.startsWith(providerPrefix)), ...seedPaths].sort(
     codeUnitCompare,
   );
   if (new Set(seeds).size !== seeds.length) fail("seed-manifest-duplicates");
-  const temporary = `${manifestPath}.source-assessment-generator.tmp`;
-  if (existsSync(temporary)) fail("seed-manifest-temporary-exists");
+  return {
+    contents: canonical({ format: manifest.format, seeds, version: manifest.version }),
+    manifestBytes: read.bytes,
+    manifestPath,
+    seedPaths,
+    temporary,
+  };
+}
+function updateManifest(prepared) {
+  const { contents, manifestBytes, manifestPath, seedPaths, temporary } = prepared;
+  unlinkedAbsolutePath(manifestPath, "manifest");
+  if (!readPinnedFile(manifestPath, 4 * 1024 * 1024).equals(manifestBytes))
+    fail("seed-manifest-changed");
+  if (unlinkedAbsolutePath(temporary, "manifest-temporary", true).exists)
+    fail("seed-manifest-temporary-exists");
   try {
-    writeFileSync(
-      temporary,
-      canonical({ format: manifest.format, seeds, version: manifest.version }),
-      { encoding: "utf8", flag: "wx" },
-    );
+    writeFileSync(temporary, contents, { encoding: "utf8", flag: "wx" });
+    const temporaryFile = unlinkedAbsolutePath(temporary, "manifest-temporary");
+    if (!temporaryFile.exists || !temporaryFile.stat.isFile() || temporaryFile.stat.nlink !== 1)
+      fail("seed-manifest-temporary-shape");
+    unlinkedAbsolutePath(manifestPath, "manifest");
     renameSync(temporary, manifestPath);
   } finally {
     if (existsSync(temporary)) rmSync(temporary, { force: true });
@@ -992,7 +1065,6 @@ export function generateSourceAssessmentRowsV1({
     manifestPath,
   }))
     if (typeof value !== "string" || !isAbsolute(value)) fail(`${label}-absolute`);
-  if (existsSync(outputRoot)) fail("output-already-exists");
   if (dirname(resolve(handoffPath)) !== dirname(resolve(publicationPath)))
     fail("publication-handoff-directory");
   const handoffRead = readJson(handoffPath, "handoff", MAX_INPUT_BYTES);
@@ -1000,10 +1072,12 @@ export function generateSourceAssessmentRowsV1({
   const handoff = handoffRead.value;
   const validated = validateHandoff(handoff, publicationBytes, sourceRoot, handoffPath);
   const rendered = renderRows(validated, handoff, provider, sourceRoot);
+  const layout = destinationLayout(manifestPath, outputRoot, provider);
+  const preparedManifest = prepareManifestUpdate(manifestPath, rendered.seedPaths, layout);
   writeGeneratedRows(outputRoot, rendered.files);
   let seedPaths;
   try {
-    seedPaths = updateManifest(manifestPath, outputRoot, provider, rendered.seedPaths);
+    seedPaths = updateManifest(preparedManifest);
   } catch (error) {
     rmSync(outputRoot, { recursive: true, force: true });
     throw error;
