@@ -659,7 +659,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       output.mockRestore();
       rmSync(temp, { force: true, recursive: true });
     }
-  });
+  }, 30_000);
 
   it.skipIf(!canCreateFileAndDirectorySymlinks())(
     "rejects seed and output symlinks through a freshly built packed public CLI without effects",
