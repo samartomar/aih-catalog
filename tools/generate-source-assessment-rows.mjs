@@ -267,8 +267,8 @@ function unlinkedSourcePath(root, target) {
   return { pathRel, stat };
 }
 function rootOf(sourceRoot) {
-  const stat = lstatSync(sourceRoot);
-  if (stat.isSymbolicLink() || !stat.isDirectory()) fail("source-root-real-directory");
+  const source = unlinkedAbsolutePath(sourceRoot, "source-root");
+  if (!source.exists || !source.stat.isDirectory()) fail("source-root-real-directory");
   return realpathSync(sourceRoot);
 }
 function file(path) {
