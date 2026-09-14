@@ -94,7 +94,7 @@ it("binds current declarations while retaining Scanner findings, dates and unsup
   const manifest = read(resolve(root, "defaults/default-catalog-seed-manifest-v2.json"));
   const paths: string[] = manifest.seeds.filter((path: string) => path.startsWith(prefix));
   expect(paths).toHaveLength(9);
-  expect(manifest.seeds).toHaveLength(456);
+  expect(manifest.seeds).toHaveLength(457);
   const wrapper = read(
     resolve(root, "defaults", prefix, "source-reports/verified-report-wrapper.json"),
   );
