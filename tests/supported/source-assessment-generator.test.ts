@@ -1,5 +1,14 @@
 import { createHash, generateKeyPairSync, sign } from "node:crypto";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -43,6 +52,7 @@ const pae = (payloadType: string, payload: Buffer) =>
   ]);
 
 const temporaryRoots: string[] = [];
+const directoryLinkType = process.platform === "win32" ? "junction" : "dir";
 afterEach(() => {
   for (const path of temporaryRoots.splice(0)) rmSync(path, { recursive: true, force: true });
 });
@@ -430,5 +440,62 @@ describe("source assessment row generator", () => {
         manifestPath: existing.manifestPath,
       }),
     ).toThrow(/output.*exists/i);
+  });
+
+  it("rejects a symbolic ancestor of a declared source closure", async () => {
+    const item = await fixture();
+    const externalSkills = join(item.root, "external-skills");
+    renameSync(join(item.sourceRoot, "skills"), externalSkills);
+    symlinkSync(externalSkills, join(item.sourceRoot, "skills"), directoryLinkType);
+
+    expect(() => item.api.hashComponentTreeV1(item.sourceRoot, ["skills/demo"])).toThrow(
+      /symbolic.*ancestor/i,
+    );
+  });
+
+  it("rejects an output-parent junction before changing output or the manifest", async () => {
+    const item = await fixture();
+    const manifestBefore = readFileSync(item.manifestPath);
+    const externalWorkbench = join(item.root, "external-workbench");
+    mkdirSync(externalWorkbench);
+    symlinkSync(
+      externalWorkbench,
+      join(item.root, "defaults", "workbench"),
+      directoryLinkType,
+    );
+
+    expect(() =>
+      item.api.generateSourceAssessmentRowsV1({
+        sourceRoot: item.sourceRoot,
+        handoffPath: item.handoffPath,
+        publicationPath: item.publicationPath,
+        provider: "fixture",
+        outputRoot: item.outputRoot,
+        manifestPath: item.manifestPath,
+      }),
+    ).toThrow(/output.*ancestor/i);
+    expect(existsSync(join(externalWorkbench, "fixture"))).toBe(false);
+    expect(readFileSync(item.manifestPath)).toEqual(manifestBefore);
+  });
+
+  it("rejects a manifest-ancestor junction before changing output or the manifest", async () => {
+    const item = await fixture();
+    const externalDefaults = join(item.root, "external-defaults");
+    renameSync(join(item.root, "defaults"), externalDefaults);
+    symlinkSync(externalDefaults, join(item.root, "defaults"), directoryLinkType);
+    const manifestBefore = readFileSync(item.manifestPath);
+
+    expect(() =>
+      item.api.generateSourceAssessmentRowsV1({
+        sourceRoot: item.sourceRoot,
+        handoffPath: item.handoffPath,
+        publicationPath: item.publicationPath,
+        provider: "fixture",
+        outputRoot: item.outputRoot,
+        manifestPath: item.manifestPath,
+      }),
+    ).toThrow(/manifest.*ancestor/i);
+    expect(existsSync(join(externalDefaults, "workbench", "fixture"))).toBe(false);
+    expect(readFileSync(item.manifestPath)).toEqual(manifestBefore);
   });
 });
