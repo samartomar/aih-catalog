@@ -1583,8 +1583,8 @@ describe("public signed catalog V2 acceptance contract", () => {
       /cmp "\$QUALIFICATION_RECEIPT_SET_PATH" "\$RECOMPUTED_QUALIFICATION_RECEIPT_SET_PATH"/,
     );
     expect(receiptSetVerifier).toMatch(/for\(const x of s\.entries\)/);
-    expect(receiptSetVerifier).toMatch(
-      /while IFS= read -r receipt; do node \.github\/verify-attestation-retry\.mjs/,
+    expect(receiptSetVerifier).toContain(
+      `node .github/verify-attestation-retry.mjs --batch 8 "$SIGNED_CATALOG_PATH" "$QUALIFICATION_RECEIPT_SET_PATH" -- "\${verify_args[@]}"`,
     );
     const signer = receiptSetSigner;
     if (process.env.AIH_LEGACY_WORKFLOW_ASSERTIONS === "1") {
