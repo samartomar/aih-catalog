@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { isAbsolute, join, parse, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -214,12 +214,11 @@ describe("aih-supported repository AI bootstrap", () => {
 
   it("does not commit an absolute override", () => {
     const override = resolve(tmpdir(), "aih-supported-uncommitted-cache");
-    const tracked = execFileSync("git", ["ls-files", "-z"], { cwd: root, encoding: "utf8" })
-      .split("\0")
-      .filter(Boolean)
-      .filter((path) => existsSync(join(root, path)))
-      .map((path) => readFileSync(join(root, path), "utf8"))
-      .join("\n");
-    expect(tracked).not.toContain(override);
+    const tracked = spawnSync(
+      "git",
+      ["grep", "--fixed-strings", "--quiet", "--no-textconv", "-e", override, "--"],
+      { cwd: root, encoding: "utf8" },
+    );
+    expect(tracked.status, tracked.stderr).toBe(1);
   });
 });
