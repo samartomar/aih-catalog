@@ -40,6 +40,39 @@ their applicable license grant is restricted or unestablished. Unsupported
 component kinds and derived compositions are not relabeled as qualified members.
 Publication still requires the separate protected workflows described above.
 
+## Consumer index
+
+Generate the browser-readable inventory from the existing seed manifest, seeds and
+evidence files:
+
+```sh
+npm run generate:catalog-index
+npm run check:catalog-index
+```
+
+The build also regenerates `defaults/catalog-index-v1.json`. The package exposes
+this data as `@aihq/catalog/catalog-index.json`; a consumer can import or bundle
+that JSON without loading the Node API:
+
+```js
+import catalogIndex from "@aihq/catalog/catalog-index.json" with { type: "json" };
+```
+
+The index has `format: "aih-catalog-index"`, `version: 1`, package identity and
+entries sorted by `entryId`. Each entry retains the seed's subject, capabilities
+and platforms, adds its source and subject digests, and includes artifact
+descriptors and the original report, findings, gaps and rights evidence.
+Descriptor paths are relative to the Catalog package root; their `sha256`
+values hash the original file bytes. Generation has no timestamps or network
+access, rejects missing files, duplicate identities, unsafe or linked paths and
+mismatched evidence subjects, and replaces the output only after validation.
+
+This is an unsigned browsing index, not a qualification receipt or organization
+admission authority. Evidence summaries remain summaries: this generator does
+not reconstruct raw scanner findings, infer categories or templates, or create
+signer identities and qualification bases. Those require additional source data.
+The generator is a Node maintenance script; the resulting index is plain JSON.
+
 ## Authority boundary
 
 There are two independent governance paths:

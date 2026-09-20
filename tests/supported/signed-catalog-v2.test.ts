@@ -695,7 +695,7 @@ describe("public signed catalog V2 acceptance contract", () => {
           ],
           { cwd: consumer, encoding: "utf8" },
         );
-        expect(installed.status).toBe(0);
+        expect(installed.status, installed.stderr).toBe(0);
         const installedPackage = resolve(consumer, "node_modules/@aihq/catalog");
         const cliPath = resolve(installedPackage, "dist/cli.js");
         const defaultSeedPath = resolve(installedPackage, "defaults/default-catalog-v2.json");
@@ -3982,7 +3982,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       /^node dist\/cli\.js generate-candidate(?:\s|$)/,
     );
     expect(packageScripts.build).toBe(
-      "node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node tools/ensure-cli-executable.mjs",
+      "node tools/generate-catalog-index.mjs && node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node tools/ensure-cli-executable.mjs",
     );
     expect(packageScripts["sign:candidate"]).toMatch(/^node dist\/cli\.js sign-candidate(?:\s|$)/);
     expect(packageScripts["verify:cold-external-admin"]).toBe(
@@ -4045,6 +4045,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(packageJson.types).toBe("./dist/index.d.ts");
     expect(packageJson.exports).toEqual({
       ".": { import: "./dist/index.js", types: "./dist/index.d.ts" },
+      "./catalog-index.json": "./defaults/catalog-index-v1.json",
     });
     expect(coldVerificationSource).toMatch(/import \* as api from '@aihq\/catalog'/);
     expect(packageScripts["verify:default-evidence-chain"]).toBe(
@@ -4132,7 +4133,7 @@ describe("public signed catalog V2 acceptance contract", () => {
           encoding: "utf8",
         },
       );
-      expect(installed.status).toBe(0);
+      expect(installed.status, installed.stderr).toBe(0);
       const installedManifest = JSON.parse(
         readFileSync(resolve(consumer, "node_modules/@aihq/catalog/package.json"), "utf8"),
       ) as Record<string, unknown>;
