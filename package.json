@@ -30,13 +30,14 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./catalog-index.json": "./defaults/catalog-index-v1.json"
+    "./catalog-index.json": "./defaults/catalog-index-v1.json",
+    "./catalog-collections.json": "./defaults/catalog-collections-v1.json"
   },
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "build": "node tools/generate-catalog-index.mjs && node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node tools/ensure-cli-executable.mjs",
+    "build": "node tools/generate-catalog-index.mjs && node tools/generate-catalog-collections.mjs && node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node tools/ensure-cli-executable.mjs",
     "generate:default-candidate": "node dist/cli.js generate-candidate",
     "lint": "biome check .",
     "repo:doctor": "node tools/repo-ai-tools.mjs doctor-codex",
@@ -51,7 +52,9 @@
     "verify:default-evidence-chain": "vitest run tests/supported/default-evidence-chain.test.ts",
     "verify": "npm run typecheck && npm run lint && npm run build && npm test",
     "generate:catalog-index": "node tools/generate-catalog-index.mjs",
-    "check:catalog-index": "node tools/generate-catalog-index.mjs --check"
+    "check:catalog-index": "node tools/generate-catalog-index.mjs --check && node tools/generate-catalog-collections.mjs --check",
+    "generate:catalog-collections": "node tools/generate-catalog-collections.mjs",
+    "prepare:core-collection": "node tools/prepare-core-collection.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.1",

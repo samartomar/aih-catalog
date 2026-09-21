@@ -977,6 +977,11 @@ describe("public signed catalog V2 acceptance contract", () => {
     ] as const)
       expect(publicApi[operation]).toBeTypeOf("function");
     expect(Object.keys(publicApi).sort()).toEqual([
+      "CATALOG_COLLECTIONS_FORMAT_V1",
+      "CATALOG_COLLECTIONS_MAX_BYTES_V1",
+      "CATALOG_COLLECTIONS_ROOT_URL",
+      "CATALOG_COLLECTIONS_SUBPATH_V1",
+      "CATALOG_COLLECTIONS_VERSION_V1",
       "CATALOG_CONTENT_FORMAT_V1",
       "CATALOG_CONTENT_INDEX_ROOT_URL",
       "CATALOG_CONTENT_INDEX_SUBPATH_V1",
@@ -999,6 +1004,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       "parseQualificationReceiptSetV1Json",
       "parseQualificationReceiptV2Json",
       "planCatalogPromotionV2",
+      "readCatalogCollectionsV1",
       "readCatalogContentV1",
       "resolveCatalogContentPathV1",
       "signCatalogHeadV2",
@@ -3990,7 +3996,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       /^node dist\/cli\.js generate-candidate(?:\s|$)/,
     );
     expect(packageScripts.build).toBe(
-      "node tools/generate-catalog-index.mjs && node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node tools/ensure-cli-executable.mjs",
+      "node tools/generate-catalog-index.mjs && node tools/generate-catalog-collections.mjs && node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node tools/ensure-cli-executable.mjs",
     );
     expect(packageScripts["sign:candidate"]).toMatch(/^node dist\/cli\.js sign-candidate(?:\s|$)/);
     expect(packageScripts["verify:cold-external-admin"]).toBe(
@@ -4054,6 +4060,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(packageJson.exports).toEqual({
       ".": { import: "./dist/index.js", types: "./dist/index.d.ts" },
       "./catalog-index.json": "./defaults/catalog-index-v1.json",
+      "./catalog-collections.json": "./defaults/catalog-collections-v1.json",
     });
     expect(coldVerificationSource).toMatch(/import \* as api from '@aihq\/catalog'/);
     expect(packageScripts["verify:default-evidence-chain"]).toBe(
@@ -4121,6 +4128,8 @@ describe("public signed catalog V2 acceptance contract", () => {
       expect(tarFiles.filter((path) => path.startsWith("dist/")).sort()).toEqual([
         "dist/cli.d.ts",
         "dist/cli.js",
+        "dist/content/catalog-collections-v1.d.ts",
+        "dist/content/catalog-collections-v1.js",
         "dist/content/catalog-content-v1.d.ts",
         "dist/content/catalog-content-v1.js",
         "dist/index.d.ts",

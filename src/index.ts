@@ -1,4 +1,17 @@
 export {
+  CATALOG_COLLECTIONS_FORMAT_V1,
+  CATALOG_COLLECTIONS_MAX_BYTES_V1,
+  CATALOG_COLLECTIONS_ROOT_URL,
+  CATALOG_COLLECTIONS_SUBPATH_V1,
+  CATALOG_COLLECTIONS_VERSION_V1,
+  type CatalogCollectionMemberV1,
+  type CatalogCollectionOriginV1,
+  type CatalogCollectionsV1,
+  type CatalogCollectionV1,
+  type ReadCatalogCollectionsV1Request,
+  readCatalogCollectionsV1,
+} from "./content/catalog-collections-v1.js";
+export {
   CATALOG_CONTENT_FORMAT_V1,
   CATALOG_CONTENT_INDEX_ROOT_URL,
   CATALOG_CONTENT_INDEX_SUBPATH_V1,
