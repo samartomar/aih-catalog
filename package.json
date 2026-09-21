@@ -54,7 +54,8 @@
     "generate:catalog-index": "node tools/generate-catalog-index.mjs",
     "check:catalog-index": "node tools/generate-catalog-index.mjs --check && node tools/generate-catalog-collections.mjs --check",
     "generate:catalog-collections": "node tools/generate-catalog-collections.mjs",
-    "prepare:core-collection": "node tools/prepare-core-collection.mjs"
+    "prepare:core-collection": "node tools/prepare-core-collection.mjs",
+    "stage:source-closure": "node tools/stage-source-closure.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.1",

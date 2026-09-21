@@ -73,6 +73,57 @@ not reconstruct raw scanner findings, infer categories or templates, or create
 signer identities and qualification bases. Those require additional source data.
 The generator is a Node maintenance script; the resulting index is plain JSON.
 
+## Original source closure
+
+`readCatalogSourceClosureV1` supplies a current collection member's original
+upstream files: their exact bytes at their original relative paths. The member
+is resolved through the collection view (`collectionId` plus the entry's
+`subject.id`), never by comparing versions.
+
+```js
+import { readCatalogSourceClosureV1 } from "@aihq/catalog";
+
+const result = readCatalogSourceClosureV1({
+  collectionId: "aih-core",
+  subjectId: "governance-quality",
+});
+if (result.state === "verified") {
+  for (const file of result.closure.files) {
+    // file.path is the original relative path; file.bytes hash to file.sha256.
+  }
+}
+```
+
+`root` defaults to the installed package; pass it (and optionally `readFile`)
+to read another copy. The entry's profile artifact must match the index digest
+before it is read; it alone declares the file list, each file's digest and the
+public repository revision. Bytes ship under
+`defaults/sources/github.com/<owner>/<repo>/<revision>/` and each file is served
+only when it hashes to its declared digest. The result carries the index's own
+entry id and subject/source digests, the profile's asset identity, the profile
+descriptor (an assessment artifact, kept separate from the source), the source
+repository and revision, and the files.
+
+`materialRoots` names what a detector can be pointed at: `closure` (`.`, every
+declared file) and each declared directory holding `SKILL.md` as a `skill` root,
+whose `excludes` lists every closure file outside it. A scan of a skill root does
+not cover its `excludes`. `declaredTreeDigest` is the profile's recorded value,
+carried as declared; Catalog does not recompute a tree hash over a newly staged
+snapshot.
+
+Every refusal is `{ state: "refused", reason }`, with the original `path` for a
+file refusal: `index-unreadable`, `collections-unreadable`,
+`collection-unknown`, `member-unknown`, `member-ambiguous`,
+`profile-unverified`, `profile-invalid`, `material-not-source-files`,
+`source-file-absent`, `source-file-digest-mismatch`. A member whose bytes this
+package does not ship is `source-file-absent`, never an empty closure.
+
+Only the current Core `governance-quality` member's closure is shipped today.
+Maintainers stage a member from its exact recorded revision with
+`npm run stage:source-closure -- <collection-id> <subject-id>`, which refuses any
+digest mismatch. Reading never uses the network. Source bytes are not a scan,
+qualification or admission.
+
 ## Authority boundary
 
 There are two independent governance paths:

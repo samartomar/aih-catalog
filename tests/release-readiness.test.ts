@@ -350,5 +350,8 @@ describe("@aihq/catalog release boundary (#12)", () => {
     expect(paths).toContain("defaults/default-catalog-v2.json");
     expect(paths).toContain("dist/cli.js");
     expect(paths).toContain("dist/index.js");
+    expect(paths).toContain(
+      "defaults/sources/github.com/samartomar/ai-harness/54ceab4118aade25a8a07608532b434feb0a6e6b/packs/governance-quality/aih-gov-doctor/SKILL.md",
+    );
   }, 45_000);
 });

@@ -35,6 +35,19 @@ export {
   resolveCatalogContentPathV1,
 } from "./content/catalog-content-v1.js";
 export {
+  CATALOG_SOURCE_CLOSURE_FORMAT_V1,
+  CATALOG_SOURCE_CLOSURE_VERSION_V1,
+  CATALOG_SOURCE_FILE_MAX_BYTES_V1,
+  CATALOG_SOURCE_ROOT_URL,
+  type CatalogSourceClosureRefusalV1,
+  type CatalogSourceClosureResultV1,
+  type CatalogSourceClosureV1,
+  type CatalogSourceFileV1,
+  type CatalogSourceMaterialRootV1,
+  type ReadCatalogSourceClosureV1Request,
+  readCatalogSourceClosureV1,
+} from "./content/catalog-source-closure-v1.js";
+export {
   canonicalCatalogHeadV2Bytes,
   canonicalQualificationReceiptBytes,
   canonicalQualificationReceiptSetBytes,
