@@ -977,6 +977,11 @@ describe("public signed catalog V2 acceptance contract", () => {
     ] as const)
       expect(publicApi[operation]).toBeTypeOf("function");
     expect(Object.keys(publicApi).sort()).toEqual([
+      "CATALOG_CONTENT_FORMAT_V1",
+      "CATALOG_CONTENT_INDEX_ROOT_URL",
+      "CATALOG_CONTENT_INDEX_SUBPATH_V1",
+      "CATALOG_CONTENT_MAX_BYTES_V1",
+      "CATALOG_CONTENT_VERSION_V1",
       "QUALIFICATION_RECEIPT_SET_V1_MAX_BYTES",
       "QUALIFICATION_RECEIPT_SET_V1_MAX_ENTRIES",
       "QUALIFICATION_RECEIPT_V2_MAX_BYTES",
@@ -989,10 +994,13 @@ describe("public signed catalog V2 acceptance contract", () => {
       "emitQualificationReceipt",
       "emitQualificationReceiptSet",
       "inspectSignedCatalogV2",
+      "parseCatalogContentV1Bytes",
       "parseCatalogHeadV2Json",
       "parseQualificationReceiptSetV1Json",
       "parseQualificationReceiptV2Json",
       "planCatalogPromotionV2",
+      "readCatalogContentV1",
+      "resolveCatalogContentPathV1",
       "signCatalogHeadV2",
       "verifySignedCatalogV2",
     ]);
@@ -4113,6 +4121,8 @@ describe("public signed catalog V2 acceptance contract", () => {
       expect(tarFiles.filter((path) => path.startsWith("dist/")).sort()).toEqual([
         "dist/cli.d.ts",
         "dist/cli.js",
+        "dist/content/catalog-content-v1.d.ts",
+        "dist/content/catalog-content-v1.js",
         "dist/index.d.ts",
         "dist/index.js",
         "dist/supported/signed-catalog-v2.d.ts",
