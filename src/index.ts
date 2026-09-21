@@ -35,6 +35,22 @@ export {
   resolveCatalogContentPathV1,
 } from "./content/catalog-content-v1.js";
 export {
+  CATALOG_PRESENTATION_FORMAT_V1,
+  CATALOG_PRESENTATION_MAX_BYTES_V1,
+  CATALOG_PRESENTATION_MAX_TEXT_V1,
+  CATALOG_PRESENTATION_ROOT_URL,
+  CATALOG_PRESENTATION_SUBPATH_V1,
+  CATALOG_PRESENTATION_VERSION_V1,
+  type CatalogPresentationEntryV1,
+  type CatalogPresentationFieldNameV1,
+  type CatalogPresentationSourceV1,
+  type CatalogPresentationUnavailableReasonV1,
+  type CatalogPresentationV1,
+  type CatalogPresentationValueV1,
+  type ReadCatalogPresentationV1Request,
+  readCatalogPresentationV1,
+} from "./content/catalog-presentation-v1.js";
+export {
   CATALOG_SOURCE_CLOSURE_FORMAT_V1,
   CATALOG_SOURCE_CLOSURE_VERSION_V1,
   CATALOG_SOURCE_FILE_MAX_BYTES_V1,

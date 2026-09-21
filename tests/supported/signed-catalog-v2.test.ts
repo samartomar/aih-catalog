@@ -987,6 +987,12 @@ describe("public signed catalog V2 acceptance contract", () => {
       "CATALOG_CONTENT_INDEX_SUBPATH_V1",
       "CATALOG_CONTENT_MAX_BYTES_V1",
       "CATALOG_CONTENT_VERSION_V1",
+      "CATALOG_PRESENTATION_FORMAT_V1",
+      "CATALOG_PRESENTATION_MAX_BYTES_V1",
+      "CATALOG_PRESENTATION_MAX_TEXT_V1",
+      "CATALOG_PRESENTATION_ROOT_URL",
+      "CATALOG_PRESENTATION_SUBPATH_V1",
+      "CATALOG_PRESENTATION_VERSION_V1",
       "CATALOG_SOURCE_CLOSURE_FORMAT_V1",
       "CATALOG_SOURCE_CLOSURE_VERSION_V1",
       "CATALOG_SOURCE_FILE_MAX_BYTES_V1",
@@ -1010,6 +1016,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       "planCatalogPromotionV2",
       "readCatalogCollectionsV1",
       "readCatalogContentV1",
+      "readCatalogPresentationV1",
       "readCatalogSourceClosureV1",
       "resolveCatalogContentPathV1",
       "signCatalogHeadV2",
@@ -4066,6 +4073,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       ".": { import: "./dist/index.js", types: "./dist/index.d.ts" },
       "./catalog-index.json": "./defaults/catalog-index-v1.json",
       "./catalog-collections.json": "./defaults/catalog-collections-v1.json",
+      "./catalog-presentation.json": "./defaults/catalog-presentation-v1.json",
     });
     expect(coldVerificationSource).toMatch(/import \* as api from '@aihq\/catalog'/);
     expect(packageScripts["verify:default-evidence-chain"]).toBe(
@@ -4137,6 +4145,8 @@ describe("public signed catalog V2 acceptance contract", () => {
         "dist/content/catalog-collections-v1.js",
         "dist/content/catalog-content-v1.d.ts",
         "dist/content/catalog-content-v1.js",
+        "dist/content/catalog-presentation-v1.d.ts",
+        "dist/content/catalog-presentation-v1.js",
         "dist/content/catalog-source-closure-v1.d.ts",
         "dist/content/catalog-source-closure-v1.js",
         "dist/index.d.ts",

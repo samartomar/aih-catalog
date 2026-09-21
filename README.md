@@ -73,6 +73,46 @@ not reconstruct raw scanner findings, infer categories or templates, or create
 signer identities and qualification bases. Those require additional source data.
 The generator is a Node maintenance script; the resulting index is plain JSON.
 
+## Presentation metadata
+
+`@aihq/catalog/catalog-presentation.json` (`defaults/catalog-presentation-v1.json`),
+read with `readCatalogPresentationV1({ bytes, index })`, gives each indexed item
+of a listed upstream source its publisher `title`, `description` and
+`category`, exactly as that source declares them. It is an additive, display-only
+sidecar. Entry ids, subject digests, artifacts and evidence do not change, and
+it says nothing about scanning, qualification, admission or policy.
+
+```js
+import { readCatalogContentV1, readCatalogPresentationV1 } from "@aihq/catalog";
+const presentation = readCatalogPresentationV1({ bytes: presentationBytes, index });
+// presentation.entries[i].description ->
+//   { state: "published", value, field: "frontmatter.description" }
+//   | { state: "unavailable", reason }
+```
+
+Each record names the upstream file its values came from (`source.path` and
+`source.sha256`) at the entry's own repository and commit. A value is published
+only verbatim from that file, after its bytes match the digest in the entry's
+closure artifact. An item's skill `SKILL.md` or agent file frontmatter supplies
+`name`, `description` and `category`. An MCP server supplies only its declared
+`description`, because its key is an id, not a name. Otherwise the value is
+`unavailable` with a reason: `not-declared`, `unparsed`, `no-source-file` or
+`not-in-source-file`. Nothing is inferred, classified or summarized. Every
+indexed entry of a listed source appears exactly once, so a missing value is an
+explicit result, not a missing item. `coverage` counts published and unavailable
+values from the data.
+
+The reader refuses (`undefined`) non-canonical or malformed bytes, unknown
+fields, an entry that is not in the index or has a different subject digest, an
+indexed entry left out, and malformed or oversize text. Values are upstream data:
+render them as text only.
+
+Today it covers `affaan-m/ECC` at `5064474d4d762dc9640234a41617cccb79185cec`
+(367 entries). Maintainers regenerate it from a tree extracted from that exact
+revision with
+`npm run generate:catalog-presentation -- --from <extracted upstream root>`.
+Reading never uses the network.
+
 ## Original source closure
 
 `readCatalogSourceClosureV1` supplies a current collection member's original
