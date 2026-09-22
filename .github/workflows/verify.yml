@@ -29,10 +29,19 @@ jobs:
           path: core-source
           fetch-depth: 2
           persist-credentials: false
-      - run: npm run verify:core-v2-lock -- --core-root ${{ github.workspace }}/core-source
-      - run: npm test -- tests/contracts/catalog-package-identity.test.ts
+      # The assessment profile literals first exist in Core after the Strict V2 pin.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: samartomar/ai-harness
+          ref: 2b3212f22e9f7006455b75f29377be3add58fac7
+          path: core-profile-source
+          fetch-depth: 1
+          persist-credentials: false
+      - run: npm run verify:core-v2-lock -- --core-root ${{ github.workspace }}/core-source --profile-core-root ${{ github.workspace }}/core-profile-source
+      - run: npm test -- tests/contracts/catalog-package-identity.test.ts tests/contracts/core-profile-lock.test.ts
         env:
           AIH_SUPPORTED_CORE_SOURCE: ${{ github.workspace }}/core-source
+          AIH_SUPPORTED_PROFILE_CORE_SOURCE: ${{ github.workspace }}/core-profile-source
       - run: npm run verify:default-evidence-chain
       - run: npm run verify:workflow-action-pins
       - run: npm run test:cov
