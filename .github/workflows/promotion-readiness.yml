@@ -1,8 +1,10 @@
 name: promotion-readiness
 
 # Read-only promotion gate. It proves that the exact bytes sitting on npm `next` are the
-# bytes Core's compatibility run tested, and then PRINTS the dist-tag commands. It never
-# runs them: moving a dist tag stays a manual, 2FA npm session by the owner.
+# bytes Core's compatibility run tested in its `catalog-candidate` combination, against
+# the supported Core and Scan still on `latest`, and then PRINTS the dist-tag commands. It
+# never runs them: moving a dist tag stays a manual, 2FA npm session by the owner.
+# Evidence from an all-next or branch combination is never independent compatibility.
 #
 # The required check to protect with is: promotion-readiness / authorize
 on:
@@ -131,6 +133,81 @@ jobs:
           sha256sum "candidate/aihq-catalog-$CANDIDATE_VERSION.tgz" | cut -d' ' -f1 > live-tarball-sha256.txt
           cat live-dist-tags.json
 
+      - name: Re-observe the supported Core and sibling
+        run: |
+          set -euo pipefail
+          # The artifact is read here only to learn which Core and Scan versions the candidate
+          # was tested against. The validator trusts no baseline it did not observe live.
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from "node:fs";
+
+          const refuse = (reason) => {
+            process.stderr.write(`refused: ${reason}\n`);
+            process.exit(1);
+          };
+          let evidence;
+          try {
+            evidence = JSON.parse(readFileSync("compatibility/core-sibling-compatibility.json", "utf8"));
+          } catch {
+            refuse("compatibility/core-sibling-compatibility.json is not readable JSON");
+          }
+          if (
+            evidence === null ||
+            typeof evidence !== "object" ||
+            Array.isArray(evidence) ||
+            evidence.format !== "core-sibling-compatibility" ||
+            evidence.version !== 2 ||
+            !Array.isArray(evidence.candidates)
+          )
+            refuse("the compatibility artifact declares an unknown format or version");
+          const entries = evidence.candidates.filter(
+            (entry) =>
+              entry !== null &&
+              typeof entry === "object" &&
+              (entry.combination === "catalog-candidate" || entry.candidate?.package === "@aihq/catalog"),
+          );
+          if (
+            entries.length !== 1 ||
+            entries[0].combination !== "catalog-candidate" ||
+            entries[0].candidate?.package !== "@aihq/catalog"
+          )
+            refuse("the compatibility artifact names no single @aihq/catalog candidate tested against the supported Core");
+          const semver =
+            /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$/u;
+          const baseline = entries[0].baseline;
+          const versions = new Map();
+          if (Array.isArray(baseline) && baseline.length === 2)
+            for (const entry of baseline)
+              if (
+                (entry?.package === "@aihq/core" || entry?.package === "@aihq/scan") &&
+                !versions.has(entry.package) &&
+                entry.distTag === "latest" &&
+                typeof entry.version === "string" &&
+                semver.test(entry.version)
+              )
+                versions.set(entry.package, entry.version);
+          if (!versions.has("@aihq/core") || !versions.has("@aihq/scan"))
+            refuse("the candidate combination does not name the supported Core and sibling");
+          writeFileSync("baseline-core-version.txt", versions.get("@aihq/core"));
+          writeFileSync("baseline-scan-version.txt", versions.get("@aihq/scan"));
+          NODE
+          core_version="$(cat baseline-core-version.txt)"
+          scan_version="$(cat baseline-scan-version.txt)"
+          semver='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$'
+          [[ "$core_version" =~ $semver ]] \
+            || { echo "refused: the candidate combination does not name the supported Core and sibling" >&2; exit 1; }
+          [[ "$scan_version" =~ $semver ]] \
+            || { echo "refused: the candidate combination does not name the supported Core and sibling" >&2; exit 1; }
+          npm view "@aihq/core" dist-tags --json > live-baseline-core-dist-tags.json \
+            || { echo "refused: the registry does not describe @aihq/core" >&2; exit 1; }
+          npm view "@aihq/core@$core_version" dist.integrity --json > live-baseline-core-integrity.json \
+            || { echo "refused: the registry does not describe @aihq/core@$core_version" >&2; exit 1; }
+          npm view "@aihq/scan" dist-tags --json > live-baseline-scan-dist-tags.json \
+            || { echo "refused: the registry does not describe @aihq/scan" >&2; exit 1; }
+          npm view "@aihq/scan@$scan_version" dist.integrity --json > live-baseline-scan-integrity.json \
+            || { echo "refused: the registry does not describe @aihq/scan@$scan_version" >&2; exit 1; }
+          cat live-baseline-core-dist-tags.json live-baseline-scan-dist-tags.json
+
       - name: Refuse unless the tested bytes are the bytes being promoted
         env:
           CANDIDATE_VERSION: ${{ inputs.candidate_version }}
@@ -152,16 +229,16 @@ jobs:
               return refuse(`${path} is not readable JSON`);
             }
           };
+          const isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+          const isText = (value) => typeof value === "string" && value.length !== 0;
 
           const candidateVersion = process.env.CANDIDATE_VERSION;
           const evidence = readJson("compatibility/core-sibling-compatibility.json");
           if (
-            evidence === null ||
-            typeof evidence !== "object" ||
-            Array.isArray(evidence) ||
+            !isObject(evidence) ||
             evidence.format !== "core-sibling-compatibility" ||
-            evidence.version !== 1 ||
-            !Array.isArray(evidence.legs)
+            evidence.version !== 2 ||
+            !Array.isArray(evidence.candidates)
           )
             refuse("the compatibility artifact declares an unknown format or version");
           if (
@@ -170,48 +247,138 @@ jobs:
           )
             refuse("the compatibility artifact was produced by a different run or attempt");
 
-          // This package's leg is the one whose "package":"@aihq/catalog", and every one of its
-          // contract checks must record "status":"passed".
-          const legs = evidence.legs.filter(
-            (leg) => leg !== null && typeof leg === "object" && leg.package === "@aihq/catalog",
+          // This package's entry is the one whose "combination":"catalog-candidate" and whose
+          // candidate is "package":"@aihq/catalog" at next, tested against the supported Core and
+          // Scan at latest. All-next, baseline and branch evidence never qualifies. Every
+          // required check must record "status":"passed" exactly once.
+          const entries = evidence.candidates.filter(
+            (entry) =>
+              isObject(entry) &&
+              (entry.combination === "catalog-candidate" || entry.candidate?.package === "@aihq/catalog"),
           );
-          if (legs.length !== 1) refuse("the compatibility artifact names no single @aihq/catalog leg");
-          const leg = legs[0];
-          if (leg.version !== candidateVersion)
-            refuse(`the tested leg is ${leg.version}, not ${candidateVersion}`);
-          if (!Array.isArray(leg.contractChecks) || leg.contractChecks.length === 0)
-            refuse("the tested leg records no contract checks");
-          const failed = leg.contractChecks.filter((check) => check?.status !== "passed");
-          if (failed.length !== 0)
-            refuse(`${failed.length} contract check(s) in the tested leg did not pass`);
+          if (
+            entries.length !== 1 ||
+            entries[0].combination !== "catalog-candidate" ||
+            entries[0].candidate?.package !== "@aihq/catalog"
+          )
+            refuse("the compatibility artifact names no single @aihq/catalog candidate tested against the supported Core");
+          const tested = entries[0];
+          const candidate = tested.candidate;
+          if (candidate.version !== candidateVersion)
+            refuse(`the tested candidate is ${candidate.version}, not ${candidateVersion}`);
+          if (candidate.distTag !== "next")
+            refuse(`the tested candidate was resolved from ${candidate.distTag}, not next`);
+
+          const semver =
+            /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$/u;
+          const supported = ["@aihq/core", "@aihq/scan"];
+          const baseline = Array.isArray(tested.baseline) ? tested.baseline : [];
+          if (
+            baseline.length !== supported.length ||
+            !supported.every((name) => baseline.filter((entry) => entry?.package === name).length === 1) ||
+            !baseline.every(
+              (entry) =>
+                isObject(entry) &&
+                entry.distTag === "latest" &&
+                typeof entry.version === "string" &&
+                semver.test(entry.version) &&
+                typeof entry.tarballSha256 === "string" &&
+                /^[0-9a-f]{64}$/u.test(entry.tarballSha256) &&
+                typeof entry.tarballIntegrity === "string" &&
+                /^sha512-.+$/u.test(entry.tarballIntegrity),
+            )
+          )
+            refuse("the candidate combination does not name the supported Core and sibling");
+          const testedBaseline = supported.map((name) => baseline.find((entry) => entry.package === name));
+
+          const requiredChecks = [
+            "catalog-readers",
+            "catalog-subject-digests",
+            "catalog-decision-schema-lock",
+            "catalog-qualification-receipt-schema-lock",
+            "supported-clis-shape",
+            "refusal-input-unknown-version",
+            "refusal-catalog-index-unknown-version",
+          ];
+          const checks = Array.isArray(tested.contractChecks) ? tested.contractChecks : [];
+          const notPassed = requiredChecks.filter((id) => {
+            const matching = checks.filter((check) => check?.id === id);
+            return matching.length !== 1 || matching[0].status !== "passed";
+          });
+          if (notPassed.length !== 0)
+            refuse(`${notPassed.length} required contract check(s) missing or not passed: ${notPassed.join(", ")}`);
+          if (
+            !checks.every(
+              (check) =>
+                isObject(check) &&
+                isText(check.id) &&
+                ["passed", "failed", "unavailable"].includes(check.status),
+            )
+          )
+            refuse("the candidate combination records a malformed contract check");
+          const otherChecksNotPassed = checks
+            .filter((check) => !requiredChecks.includes(check.id) && check.status !== "passed")
+            .map((check) => check.id);
+
+          const environment = tested.environment;
+          if (!isObject(environment) || !isText(environment.os) || !isText(environment.node))
+            refuse("the candidate combination records no execution environment (os and node)");
 
           const liveIntegrity = readJson("live-integrity.json");
           if (typeof liveIntegrity !== "string" || liveIntegrity.length === 0)
             refuse("the registry reports no dist.integrity for this candidate");
-          if (leg.tarballIntegrity !== liveIntegrity)
+          if (candidate.tarballIntegrity !== liveIntegrity)
             refuse("the registry integrity differs from the integrity the compatibility run tested");
 
           const liveSha256 = readFileSync("live-tarball-sha256.txt", "utf8").trim();
           if (!/^[0-9a-f]{64}$/u.test(liveSha256))
             refuse("the downloaded candidate tarball produced no sha256");
-          if (leg.tarballSha256 !== liveSha256)
+          if (candidate.tarballSha256 !== liveSha256)
             refuse("the published tarball bytes differ from the bytes the compatibility run tested");
 
           const distTags = readJson("live-dist-tags.json");
           if (distTags?.next !== candidateVersion)
             refuse(`npm dist-tags.next is ${distTags?.next}, not ${candidateVersion}`);
 
+          // The supported Core and Scan must still be the exact versions and bytes the run
+          // tested; otherwise the evidence is stale and the combination must be rerun.
+          for (const entry of testedBaseline) {
+            const short = entry.package.slice("@aihq/".length);
+            const liveLatest = readJson(`live-baseline-${short}-dist-tags.json`)?.latest;
+            if (liveLatest !== entry.version)
+              refuse(
+                `the supported ${entry.package} moved since the compatibility run (latest is ${liveLatest}, tested ${entry.version}); rerun Core's sibling-compatibility`,
+              );
+            if (readJson(`live-baseline-${short}-integrity.json`) !== entry.tarballIntegrity)
+              refuse(
+                `the supported ${entry.package}@${entry.version} bytes differ from the bytes the compatibility run tested`,
+              );
+          }
+
           process.stdout.write(
             `${JSON.stringify({
               status: "READY",
               candidateVersion,
+              combination: tested.combination,
               testedBy: { runId: evidence.runId, runAttempt: evidence.runAttempt },
               tarballSha256: liveSha256,
               tarballIntegrity: liveIntegrity,
-              contractChecks: leg.contractChecks.length,
+              baseline: testedBaseline.map((entry) => ({
+                package: entry.package,
+                version: entry.version,
+                tarballSha256: entry.tarballSha256,
+              })),
+              environment: {
+                os: environment.os,
+                node: environment.node,
+                ...(isText(environment.npm) ? { npm: environment.npm } : {}),
+              },
+              contractChecks: checks.length,
+              requiredChecks: requiredChecks.length,
+              otherChecksNotPassed,
               authority: "none",
               limitation:
-                "This gate proves the bytes on next are the bytes Core tested. It is not owner authorization and it moves no dist tag.",
+                "This gate proves the bytes on next are the bytes Core tested against the supported Core and Scan still on latest. It is not owner authorization and it moves no dist tag.",
             })}\n`,
           );
           NODE

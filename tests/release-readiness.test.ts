@@ -356,6 +356,129 @@ describe("@aihq/catalog release boundary (#12)", () => {
   }, 45_000);
 });
 
+// Core's version 2 sibling-compatibility artifact, shaped as the producer writes it: one
+// catalog-candidate combination (Catalog at next, the supported Core and Scan at latest),
+// one scan-candidate combination, and raw observations that are never promotable.
+function compatibilityFixture() {
+  const sha = "a".repeat(64);
+  const integrity = "sha512-catalog-0.3.0";
+  const core = {
+    package: "@aihq/core",
+    version: "0.7.0",
+    distTag: "latest",
+    tarballSha256: "c".repeat(64),
+    tarballIntegrity: "sha512-core-0.7.0",
+  };
+  const scan = {
+    package: "@aihq/scan",
+    version: "0.4.0",
+    distTag: "latest",
+    tarballSha256: "d".repeat(64),
+    tarballIntegrity: "sha512-scan-0.4.0",
+  };
+  const catalogLatest = {
+    package: "@aihq/catalog",
+    version: "0.2.0",
+    distTag: "latest",
+    tarballSha256: "f".repeat(64),
+    tarballIntegrity: "sha512-catalog-0.2.0",
+  };
+  // Every id the producer emits, in the producer's order. The old published Scan cannot
+  // pass Scan's own checks; that is visible to the owner but does not refuse Catalog.
+  const contractChecks = [
+    { id: "catalog-readers", status: "passed" },
+    { id: "catalog-subject-digests", status: "passed" },
+    { id: "scan-organization-evidence-schema-lock", status: "failed" },
+    { id: "scan-decision-schema-lock", status: "unavailable" },
+    { id: "catalog-decision-schema-lock", status: "passed" },
+    { id: "catalog-qualification-receipt-schema-lock", status: "passed" },
+    { id: "supported-clis-shape", status: "passed" },
+    { id: "refusal-input-unknown-version", status: "passed" },
+    { id: "refusal-evidence-unknown-version", status: "passed" },
+    { id: "refusal-scan-core-contract-unknown", status: "passed" },
+    { id: "refusal-catalog-index-unknown-version", status: "passed" },
+    { id: "scan-custody-negative", status: "failed" },
+  ];
+  const catalogCandidate = {
+    combination: "catalog-candidate",
+    candidate: {
+      package: "@aihq/catalog",
+      version: "0.3.0",
+      distTag: "next",
+      tarballSha256: sha,
+      tarballIntegrity: integrity,
+    },
+    baseline: [core, scan],
+    environment: { os: "ubuntu-latest", node: "22", npm: "11.6.2" },
+    lockfileSha256: "e".repeat(64),
+    contractChecks,
+  };
+  const scanCandidate = {
+    combination: "scan-candidate",
+    candidate: {
+      package: "@aihq/scan",
+      version: "0.5.0",
+      distTag: "next",
+      tarballSha256: "b".repeat(64),
+      tarballIntegrity: "sha512-scan-0.5.0",
+    },
+    baseline: [core, catalogLatest],
+    environment: { os: "ubuntu-latest", node: "22" },
+    lockfileSha256: "9".repeat(64),
+    contractChecks: contractChecks.map((check) => ({ ...check, status: "passed" })),
+  };
+  const allNextObservation = {
+    leg: "registry-all-next",
+    combination: "all-next",
+    status: "tested",
+    os: "ubuntu-latest",
+    node: "22",
+    packages: [
+      { ...core, role: "all-next" },
+      { ...scanCandidate.candidate, role: "all-next" },
+      { ...catalogCandidate.candidate, role: "all-next" },
+    ],
+    lockfileSha256: "8".repeat(64),
+    contractChecks: contractChecks.map((check) => ({ ...check, status: "passed" })),
+  };
+  const evidence = {
+    format: "core-sibling-compatibility",
+    version: 2,
+    runId: "35733767496",
+    runAttempt: "2",
+    core: { repository: "samartomar/ai-harness", commit: "1".repeat(40) },
+    resolvedAt: "2026-09-23T05:17:41.000Z",
+    baseline: {
+      "@aihq/core": { latest: core, next: null },
+      "@aihq/scan": { latest: scan, next: scanCandidate.candidate },
+      "@aihq/catalog": { latest: catalogLatest, next: catalogCandidate.candidate },
+    },
+    candidates: [scanCandidate, catalogCandidate],
+    observations: [allNextObservation],
+    limitation:
+      "Evidence of what was tested, not authorization and not a dependency pin. A candidate is promotable only for the exact bytes it names, against the exact baseline it names.",
+  };
+  const withCandidate = (changed: Record<string, unknown>) => ({
+    ...evidence,
+    candidates: [scanCandidate, { ...catalogCandidate, ...changed }],
+  });
+  // Every check passed in the all-next run, and no catalog-candidate combination exists.
+  const allNextOnly = { ...evidence, candidates: [scanCandidate] };
+  const v1 = {
+    format: "core-sibling-compatibility",
+    version: 1,
+    runId: 35733767496,
+    runAttempt: 2,
+    legs: [
+      {
+        ...catalogCandidate.candidate,
+        contractChecks: contractChecks.map((check) => ({ ...check, status: "passed" })),
+      },
+    ],
+  };
+  return { sha, integrity, core, scan, catalogCandidate, evidence, withCandidate, allNextOnly, v1 };
+}
+
 describe("@aihq/catalog promotion readiness gate", () => {
   it("gates promotion on Core's compatibility evidence without moving a dist tag", () => {
     const workflow = read(".github/workflows/promotion-readiness.yml");
@@ -393,14 +516,40 @@ describe("@aihq/catalog promotion readiness gate", () => {
     expect(mkdirIndex).toBeGreaterThan(packStepStart);
     expect(mkdirIndex).toBeLessThan(packIndex);
     expect(workflow).toContain('sha256sum "candidate/aihq-catalog-$CANDIDATE_VERSION.tgz"');
-    // The artifact leg this package reads, and the only passing check status.
+    // The version 2 combination this package reads, and the only passing check status.
+    expect(workflow).toContain('"combination":"catalog-candidate"');
     expect(workflow).toContain('"package":"@aihq/catalog"');
     expect(workflow).toContain('"status":"passed"');
-    expect(workflow).toContain('leg.package === "@aihq/catalog"');
-    expect(workflow).toContain('check?.status !== "passed"');
+    expect(workflow).toContain('entry.combination === "catalog-candidate"');
+    expect(workflow).toContain('entry.candidate?.package === "@aihq/catalog"');
+    expect(workflow).toContain('matching[0].status !== "passed"');
+    expect(workflow).not.toContain("evidence.legs");
     expect(workflow).toContain(
       "the published tarball bytes differ from the bytes the compatibility run tested",
     );
+    // The supported Core and Scan the candidate was tested against are re-observed live
+    // before the validator runs, and the validator reads only those live files.
+    const reobserveIndex = workflow.indexOf("- name: Re-observe the supported Core and sibling");
+    const downloadStepIndex = workflow.indexOf(
+      "- name: Download Core's sibling-compatibility evidence",
+    );
+    const validatorStepIndex = workflow.indexOf(
+      "- name: Refuse unless the tested bytes are the bytes being promoted",
+    );
+    expect(reobserveIndex).toBeGreaterThan(downloadStepIndex);
+    expect(validatorStepIndex).toBeGreaterThan(reobserveIndex);
+    const reobserveStep = workflow.slice(reobserveIndex, validatorStepIndex);
+    for (const command of [
+      'npm view "@aihq/core" dist-tags --json > live-baseline-core-dist-tags.json',
+      'npm view "@aihq/core@$core_version" dist.integrity --json > live-baseline-core-integrity.json',
+      'npm view "@aihq/scan" dist-tags --json > live-baseline-scan-dist-tags.json',
+      'npm view "@aihq/scan@$scan_version" dist.integrity --json > live-baseline-scan-integrity.json',
+    ])
+      expect(reobserveStep, command).toContain(command);
+    // The versions reach the shell only after a whole-string semver re-check.
+    expect(reobserveStep).toContain('[[ "$core_version" =~ $semver ]]');
+    expect(reobserveStep).toContain('[[ "$scan_version" =~ $semver ]]');
+    expect(reobserveStep).not.toContain("${{");
     expect(workflow).toContain("npm dist-tag add @aihq/catalog@$CANDIDATE_VERSION latest");
     // The commands exist only inside the printed heredoc, never as an executed step.
     expect(workflow).toContain("Print the promotion commands without running them");
@@ -418,6 +567,83 @@ describe("@aihq/catalog promotion readiness gate", () => {
     expect(releasing).toContain("promotion-readiness / authorize");
     expect(releasing).toContain("A green run is evidence, not\n   authorization.");
     expect(releasing).toContain("Authorize promoting @aihq/catalog@X.Y.Z from next to latest");
+    expect(releasing).toContain("`catalog-candidate`");
+    expect(releasing).toContain("Re-observe the supported Core and sibling");
+    for (const id of [
+      "catalog-readers",
+      "catalog-subject-digests",
+      "catalog-decision-schema-lock",
+      "catalog-qualification-receipt-schema-lock",
+      "supported-clis-shape",
+      "refusal-input-unknown-version",
+      "refusal-catalog-index-unknown-version",
+    ])
+      expect(releasing, id).toContain(`\`${id}\``);
+    // Initial-release sequencing: Core first, and all-next evidence is never independent.
+    expect(releasing).toContain("Core is promoted first");
+    expect(releasing).toContain("`all-next`");
+  });
+
+  it("re-observes only a well-formed supported Core and Scan baseline from the artifact", () => {
+    const workflow = read(".github/workflows/promotion-readiness.yml");
+    const reader = inlineModuleFollowing(workflow, "Re-observe the supported Core and sibling");
+    const fixtureRoot = mkdtempSync(join(tmpdir(), "aih-catalog-promotion-baseline-"));
+    try {
+      mkdirSync(join(fixtureRoot, "compatibility"));
+      const reobserve = (artifact: unknown) => {
+        rmSync(join(fixtureRoot, "baseline-core-version.txt"), { force: true });
+        rmSync(join(fixtureRoot, "baseline-scan-version.txt"), { force: true });
+        writeFileSync(
+          join(fixtureRoot, "compatibility", "core-sibling-compatibility.json"),
+          JSON.stringify(artifact),
+        );
+        return spawnSync(process.execPath, ["--input-type=module", "-"], {
+          cwd: fixtureRoot,
+          input: reader,
+          encoding: "utf8",
+          env: { ...process.env },
+        });
+      };
+      const fixture = compatibilityFixture();
+      const ok = reobserve(fixture.evidence);
+      expect(ok.status, ok.stderr).toBe(0);
+      expect(readFileSync(join(fixtureRoot, "baseline-core-version.txt"), "utf8")).toBe("0.7.0");
+      expect(readFileSync(join(fixtureRoot, "baseline-scan-version.txt"), "utf8")).toBe("0.4.0");
+
+      const withBaseline = (baseline: unknown) => fixture.withCandidate({ baseline });
+      const [core, scan] = fixture.catalogCandidate.baseline;
+      for (const [label, artifact, reason] of [
+        ["v1", fixture.v1, "declares an unknown format or version"],
+        [
+          "all-next only",
+          fixture.allNextOnly,
+          "names no single @aihq/catalog candidate tested against the supported Core",
+        ],
+        [
+          "Core at next",
+          withBaseline([{ ...core, distTag: "next" }, scan]),
+          "does not name the supported Core and sibling",
+        ],
+        ["no Scan", withBaseline([core]), "does not name the supported Core and sibling"],
+        [
+          "shell in a version",
+          withBaseline([{ ...core, version: "0.7.0 && curl example.invalid" }, scan]),
+          "does not name the supported Core and sibling",
+        ],
+        [
+          "multi-line version",
+          withBaseline([{ ...core, version: "0.7.0\n0.7.1" }, scan]),
+          "does not name the supported Core and sibling",
+        ],
+      ] as const) {
+        const result = reobserve(artifact);
+        expect(result.status, label).toBe(1);
+        expect(result.stderr, label).toMatch(/^refused: /u);
+        expect(result.stderr, label).toContain(reason);
+      }
+    } finally {
+      rmSync(fixtureRoot, { recursive: true, force: true });
+    }
   });
 
   it("refuses compatibility evidence unless it comes from Core's own main compatibility run", () => {
@@ -518,48 +744,54 @@ describe("@aihq/catalog promotion readiness gate", () => {
     }
   });
 
-  it("promotes only the @aihq/catalog leg whose every check passed, over the exact bytes", () => {
+  it("promotes only the catalog-candidate tested against the live supported Core and Scan, over the exact bytes", () => {
     const workflow = read(".github/workflows/promotion-readiness.yml");
     const validator = inlineModuleFollowing(
       workflow,
       "Refuse unless the tested bytes are the bytes being promoted",
     );
-    const sha = "a".repeat(64);
-    const integrity = "sha512-tested";
-    const leg = {
-      package: "@aihq/catalog",
-      version: "0.3.0",
-      tarballSha256: sha,
-      tarballIntegrity: integrity,
-      contractChecks: [{ status: "passed" }, { status: "passed" }],
-    };
-    const evidence = {
-      format: "core-sibling-compatibility",
-      version: 1,
-      runId: 35733767496,
-      runAttempt: 2,
-      legs: [{ ...leg, package: "@aihq/scan", version: "0.5.0" }, leg],
+    const fixture = compatibilityFixture();
+    const { sha, integrity, core, scan, catalogCandidate, evidence, withCandidate } = fixture;
+    type Live = {
+      integrity?: string;
+      sha256?: string;
+      next?: string;
+      coreLatest?: string;
+      coreIntegrity?: string;
+      scanLatest?: string;
+      scanIntegrity?: string;
+      omit?: string;
     };
     const fixtureRoot = mkdtempSync(join(tmpdir(), "aih-catalog-promotion-bytes-"));
     try {
       mkdirSync(join(fixtureRoot, "compatibility"));
-      const validate = (
-        artifact: unknown,
-        live: { integrity?: string; sha256?: string; next?: string } = {},
-      ) => {
+      const validate = (artifact: unknown, live: Live = {}) => {
         writeFileSync(
           join(fixtureRoot, "compatibility", "core-sibling-compatibility.json"),
           JSON.stringify(artifact),
         );
-        writeFileSync(
-          join(fixtureRoot, "live-integrity.json"),
-          JSON.stringify(live.integrity ?? integrity),
-        );
-        writeFileSync(join(fixtureRoot, "live-tarball-sha256.txt"), `${live.sha256 ?? sha}\n`);
-        writeFileSync(
-          join(fixtureRoot, "live-dist-tags.json"),
-          JSON.stringify({ latest: "0.2.0", next: live.next ?? "0.3.0" }),
-        );
+        const files: Record<string, string> = {
+          "live-integrity.json": JSON.stringify(live.integrity ?? integrity),
+          "live-tarball-sha256.txt": `${live.sha256 ?? sha}\n`,
+          "live-dist-tags.json": JSON.stringify({ latest: "0.2.0", next: live.next ?? "0.3.0" }),
+          "live-baseline-core-dist-tags.json": JSON.stringify({
+            latest: live.coreLatest ?? core.version,
+          }),
+          "live-baseline-core-integrity.json": JSON.stringify(
+            live.coreIntegrity ?? core.tarballIntegrity,
+          ),
+          "live-baseline-scan-dist-tags.json": JSON.stringify({
+            latest: live.scanLatest ?? scan.version,
+            next: "0.5.0",
+          }),
+          "live-baseline-scan-integrity.json": JSON.stringify(
+            live.scanIntegrity ?? scan.tarballIntegrity,
+          ),
+        };
+        for (const [name, content] of Object.entries(files)) {
+          rmSync(join(fixtureRoot, name), { force: true });
+          if (name !== live.omit) writeFileSync(join(fixtureRoot, name), content);
+        }
         return spawnSync(process.execPath, ["--input-type=module", "-"], {
           cwd: fixtureRoot,
           input: validator,
@@ -573,46 +805,235 @@ describe("@aihq/catalog promotion readiness gate", () => {
         });
       };
 
+      // (l) READY prints the combination, the tested baseline and the environment, and
+      // surfaces every non-passed check that this package does not require.
       const ready = validate(evidence);
       expect(ready.status, ready.stderr).toBe(0);
-      expect(JSON.parse(ready.stdout)).toMatchObject({
+      expect(JSON.parse(ready.stdout)).toEqual({
         status: "READY",
         candidateVersion: "0.3.0",
+        combination: "catalog-candidate",
+        testedBy: { runId: "35733767496", runAttempt: "2" },
         tarballSha256: sha,
+        tarballIntegrity: integrity,
+        baseline: [
+          { package: "@aihq/core", version: "0.7.0", tarballSha256: core.tarballSha256 },
+          { package: "@aihq/scan", version: "0.4.0", tarballSha256: scan.tarballSha256 },
+        ],
+        environment: { os: "ubuntu-latest", node: "22", npm: "11.6.2" },
+        contractChecks: 12,
+        requiredChecks: 7,
+        otherChecksNotPassed: [
+          "scan-organization-evidence-schema-lock",
+          "scan-decision-schema-lock",
+          "scan-custody-negative",
+        ],
         authority: "none",
+        limitation: expect.stringContaining("not owner authorization"),
       });
-      const withLeg = (changed: Record<string, unknown>) => ({
-        ...evidence,
-        legs: [evidence.legs[0], { ...leg, ...changed }],
-      });
-      const cases: ReadonlyArray<
-        readonly [string, unknown, { integrity?: string; sha256?: string; next?: string }, string]
-      > = [
+      // The recorded baseline order does not matter; each package is named once.
+      expect(validate(withCandidate({ baseline: [scan, core] })).status).toBe(0);
+      // An environment without a known npm version is still an environment.
+      const noNpm = validate(withCandidate({ environment: { os: "ubuntu-latest", node: "22" } }));
+      expect(noNpm.status, noNpm.stderr).toBe(0);
+      expect(JSON.parse(noNpm.stdout).environment).toEqual({ os: "ubuntu-latest", node: "22" });
+
+      const withChecks = (change: (checks: typeof catalogCandidate.contractChecks) => unknown) =>
+        withCandidate({ contractChecks: change(catalogCandidate.contractChecks) });
+      const withStatus = (id: string, status: string) =>
+        withChecks((checks) =>
+          checks.map((check) => (check.id === id ? { ...check, status } : check)),
+        );
+      const noCandidate =
+        "the compatibility artifact names no single @aihq/catalog candidate tested against the supported Core";
+      const noBaseline = "the candidate combination does not name the supported Core and sibling";
+      const cases: ReadonlyArray<readonly [string, unknown, Live, string]> = [
+        // (a) Version 1 artifacts, and anything else unknown, are refused by name.
         [
-          "no catalog leg",
-          { ...evidence, legs: [evidence.legs[0]] },
+          "v1 artifact",
+          fixture.v1,
           {},
-          "no single @aihq/catalog",
+          "the compatibility artifact declares an unknown format or version",
         ],
-        ["two catalog legs", { ...evidence, legs: [leg, leg] }, {}, "no single @aihq/catalog"],
-        ["other version", withLeg({ version: "0.2.9" }), {}, "the tested leg is 0.2.9"],
+        ["version 3", { ...evidence, version: 3 }, {}, "declares an unknown format or version"],
         [
-          "a failed check",
-          withLeg({ contractChecks: [{ status: "passed" }, { status: "failed" }] }),
+          "no candidates",
+          { ...evidence, candidates: undefined },
           {},
-          "1 contract check(s)",
+          "declares an unknown format or version",
         ],
-        ["no checks", withLeg({ contractChecks: [] }), {}, "records no contract checks"],
+        [
+          "other format",
+          { ...evidence, format: "other" },
+          {},
+          "declares an unknown format or version",
+        ],
+        // (b) All-next evidence is never independent compatibility evidence.
+        ["all-next observation only", fixture.allNextOnly, {}, noCandidate],
+        [
+          "all-next entry naming catalog",
+          { ...evidence, candidates: [{ ...catalogCandidate, combination: "all-next" }] },
+          {},
+          noCandidate,
+        ],
+        [
+          "catalog-candidate naming scan",
+          withCandidate({ candidate: { ...catalogCandidate.candidate, package: "@aihq/scan" } }),
+          {},
+          noCandidate,
+        ],
+        [
+          "two candidates",
+          { ...evidence, candidates: [catalogCandidate, catalogCandidate] },
+          {},
+          noCandidate,
+        ],
+        // (c)(d)(e) Every required check is present once and passed.
+        [
+          "required check failed",
+          withStatus("catalog-readers", "failed"),
+          {},
+          "1 required contract check(s) missing or not passed: catalog-readers",
+        ],
+        [
+          "required check unavailable",
+          withStatus("catalog-subject-digests", "unavailable"),
+          {},
+          "1 required contract check(s) missing or not passed: catalog-subject-digests",
+        ],
+        [
+          "required check missing",
+          withChecks((checks) => checks.filter(({ id }) => id !== "supported-clis-shape")),
+          {},
+          "1 required contract check(s) missing or not passed: supported-clis-shape",
+        ],
+        [
+          "required check duplicated",
+          withChecks((checks) => [...checks, { id: "catalog-readers", status: "passed" }]),
+          {},
+          "1 required contract check(s) missing or not passed: catalog-readers",
+        ],
+        [
+          "no checks",
+          withChecks(() => undefined),
+          {},
+          "7 required contract check(s) missing or not passed: catalog-readers, catalog-subject-digests, catalog-decision-schema-lock, catalog-qualification-receipt-schema-lock, supported-clis-shape, refusal-input-unknown-version, refusal-catalog-index-unknown-version",
+        ],
+        [
+          "malformed check",
+          withChecks((checks) => [...checks, { id: "scan-custody-negative-2", status: "skipped" }]),
+          {},
+          "the candidate combination records a malformed contract check",
+        ],
+        // (f)(g) The baseline is the supported Core and Scan at latest, once each.
+        [
+          "Core at next",
+          withCandidate({ baseline: [{ ...core, distTag: "next" }, scan] }),
+          {},
+          noBaseline,
+        ],
+        ["no Scan", withCandidate({ baseline: [core] }), {}, noBaseline],
+        ["Core twice", withCandidate({ baseline: [core, core] }), {}, noBaseline],
+        [
+          "Catalog as its own baseline",
+          withCandidate({ baseline: [core, { ...scan, package: "@aihq/catalog" }] }),
+          {},
+          noBaseline,
+        ],
+        ["no baseline", withCandidate({ baseline: undefined }), {}, noBaseline],
+        [
+          "baseline without bytes",
+          withCandidate({ baseline: [core, { ...scan, tarballSha256: "d" }] }),
+          {},
+          noBaseline,
+        ],
+        [
+          "baseline without integrity",
+          withCandidate({ baseline: [{ ...core, tarballIntegrity: "sha1-core" }, scan] }),
+          {},
+          noBaseline,
+        ],
+        [
+          "baseline without a version",
+          withCandidate({ baseline: [{ ...core, version: "latest" }, scan] }),
+          {},
+          noBaseline,
+        ],
+        // (k) The execution environment is part of the tested combination.
+        [
+          "environment missing",
+          withCandidate({ environment: undefined }),
+          {},
+          "the candidate combination records no execution environment",
+        ],
+        [
+          "environment without node",
+          withCandidate({ environment: { os: "ubuntu-latest", node: "" } }),
+          {},
+          "the candidate combination records no execution environment",
+        ],
+        // (h)(i)(j) The baseline is re-observed live; stale evidence is never reused.
+        [
+          "live Core moved",
+          evidence,
+          { coreLatest: "0.7.1" },
+          "the supported @aihq/core moved since the compatibility run (latest is 0.7.1, tested 0.7.0); rerun Core's sibling-compatibility",
+        ],
+        [
+          "live Core bytes differ",
+          evidence,
+          { coreIntegrity: "sha512-core-republished" },
+          "the supported @aihq/core@0.7.0 bytes differ from the bytes the compatibility run tested",
+        ],
+        [
+          "live Scan moved",
+          evidence,
+          { scanLatest: "0.5.0" },
+          "the supported @aihq/scan moved since the compatibility run (latest is 0.5.0, tested 0.4.0); rerun Core's sibling-compatibility",
+        ],
+        [
+          "live Scan bytes differ",
+          evidence,
+          { scanIntegrity: "sha512-scan-republished" },
+          "the supported @aihq/scan@0.4.0 bytes differ from the bytes the compatibility run tested",
+        ],
+        [
+          "live Core not observed",
+          evidence,
+          { omit: "live-baseline-core-dist-tags.json" },
+          "live-baseline-core-dist-tags.json is not readable JSON",
+        ],
+        [
+          "live Scan bytes not observed",
+          evidence,
+          { omit: "live-baseline-scan-integrity.json" },
+          "live-baseline-scan-integrity.json is not readable JSON",
+        ],
+        // The candidate itself: exact version at next, exact bytes, still on next.
+        [
+          "other version",
+          withCandidate({ candidate: { ...catalogCandidate.candidate, version: "0.2.9" } }),
+          {},
+          "the tested candidate is 0.2.9, not 0.3.0",
+        ],
+        [
+          "candidate from latest",
+          withCandidate({ candidate: { ...catalogCandidate.candidate, distTag: "latest" } }),
+          {},
+          "the tested candidate was resolved from latest, not next",
+        ],
         ["other bytes", evidence, { sha256: "b".repeat(64) }, "published tarball bytes differ"],
         ["other integrity", evidence, { integrity: "sha512-other" }, "registry integrity differs"],
         ["next moved", evidence, { next: "0.3.1" }, "dist-tags.next is 0.3.1"],
-        ["other run", { ...evidence, runId: 1 }, {}, "different run or attempt"],
-        ["unknown format", { ...evidence, version: 2 }, {}, "unknown format or version"],
+        ["other run", { ...evidence, runId: "1" }, {}, "different run or attempt"],
+        ["other attempt", { ...evidence, runAttempt: "1" }, {}, "different run or attempt"],
       ];
       for (const [label, artifact, live, reason] of cases) {
         const result = validate(artifact, live);
         expect(result.status, label).toBe(1);
+        expect(result.stderr, label).toMatch(/^refused: /u);
         expect(result.stderr, label).toContain(reason);
+        expect(result.stdout, label).not.toContain("READY");
       }
     } finally {
       rmSync(fixtureRoot, { recursive: true, force: true });

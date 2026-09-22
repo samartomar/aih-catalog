@@ -110,11 +110,21 @@ Scanner acceptance. Source checkout or local tarball execution cannot satisfy th
    `promotion-readiness / authorize` run. That read-only job first refuses unless the
    run is Core's own `.github/workflows/sibling-compatibility.yml` run on `main` of
    `samartomar/ai-harness`, triggered by `schedule` or `workflow_dispatch`, concluded
-   `success`, at the stated attempt. It then refuses unless the compatibility evidence
-   names this candidate in its single `@aihq/catalog` leg, every contract check in that
-   leg passed, the published tarball bytes and registry integrity still equal the bytes
-   that run tested, and `dist-tags.next` is still this candidate. It prints the
-   promotion commands and executes none of them. A green run is evidence, not
+   `success`, at the stated attempt. It then refuses unless the version 2 compatibility
+   evidence names this candidate, at `next`, in its single `catalog-candidate`
+   combination; that combination names the supported Core and Scan at `latest`, once
+   each, records its execution environment, and records every required check exactly
+   once as passed: `catalog-readers`, `catalog-subject-digests`,
+   `catalog-decision-schema-lock`, `catalog-qualification-receipt-schema-lock`,
+   `supported-clis-shape`, `refusal-input-unknown-version`, and
+   `refusal-catalog-index-unknown-version`. Other non-passed checks are printed for the
+   owner and do not by themselves refuse. The published tarball bytes and registry
+   integrity must still equal the bytes that run tested, and `dist-tags.next` must
+   still be this candidate. The step "Re-observe the supported Core and sibling" then
+   reads the live registry: if Core's or Scan's `latest` moved, or its bytes changed,
+   since the run, the job refuses and Core's `sibling-compatibility` must be rerun.
+   Evidence from an `all-next`, `baseline`, or branch combination never qualifies. It
+   prints the promotion commands and executes none of them. A green run is evidence, not
    authorization. Then obtain separate promotion authorization, quoting that run id:
 
    ```text
@@ -132,6 +142,15 @@ Scanner acceptance. Source checkout or local tarball execution cannot satisfy th
 
 Package promotion remains independent of Catalog head signing and promotion. Neither
 effect grants the other. Only the promoted stable package train is the supported default.
+
+Initial-release sequencing: the published `@aihq/core` 0.6.2, `@aihq/scan` 0.4.0, and
+`@aihq/catalog` 0.2.0 predate these contract checks, so a compatibility run's
+`baseline` combination honestly records failed or unavailable checks until they are
+replaced. The cutover order these gates allow is that Core is promoted first (this
+gate does not apply to Core), then Catalog and Scan in either order, each READY against
+the new Core `latest` and the other sibling's current `latest`, because each reader requires
+only its own package's and Core's checks. No step treats `all-next` evidence as independent
+compatibility, and the workflow has no bootstrap mode.
 
 ## Failure and immutability
 
