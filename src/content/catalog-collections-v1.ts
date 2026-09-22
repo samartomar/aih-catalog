@@ -94,6 +94,13 @@ export interface ReadCatalogCollectionsV1Request {
   readonly bytes: Uint8Array;
   /** The index these bytes must describe, as returned by `readCatalogContentV1`. */
   readonly index: CatalogContentV1;
+  /**
+   * The owner packages this consumer recognizes. When supplied, a collection
+   * owned by any other package refuses `unknown-owner`. When absent, an owner is
+   * read as data. Catalog holds no allowlist of its own: which owners to accept is
+   * the consumer's policy, and third-party collections stay representable.
+   */
+  readonly knownOwners?: readonly string[];
 }
 
 /** Every reason `readCatalogCollectionsV1Result` can refuse with. A closed set. */
@@ -108,6 +115,7 @@ export const CATALOG_COLLECTIONS_REFUSALS_V1 = [
   "index-mismatch",
   "malformed-collection",
   "duplicate-collection",
+  "unknown-owner",
   "member-not-in-index",
   "member-not-current",
   "duplicate-entry",
@@ -150,6 +158,7 @@ function origin(
 
 function collection(
   value: unknown,
+  knownOwners: readonly string[] | undefined,
   collected: readonly string[],
   entries: ReadonlyMap<string, CatalogEntryV1>,
   claimed: Set<string>,
@@ -161,6 +170,10 @@ function collection(
   if (!matches(id, COLLECTION_ID)) return refuse("malformed-collection");
   if (!isObject(owner) || !onlyKeys(owner, ["package"]) || !matches(owner.package, PACKAGE_NAME)) {
     return refuse("malformed-collection");
+  }
+  // Only the consumer's own stated owners, when it states them.
+  if (knownOwners !== undefined && !knownOwners.includes(owner.package)) {
+    return refuse("unknown-owner");
   }
   if (typeof sourceType !== "string" || !collected.includes(sourceType))
     return refuse("malformed-collection");
@@ -207,7 +220,8 @@ function collection(
  * describes, naming why it refuses: `unknown-format` and `unknown-version` (each
  * with the declared value in `observed`), malformed, oversize or non-canonical
  * bytes, a view bound to a different index (`index-mismatch`), a malformed or
- * duplicate collection, a member that is not that exact index entry
+ * duplicate collection, an owner outside a supplied `knownOwners`
+ * (`unknown-owner`), a member that is not that exact index entry
  * (`member-not-in-index`), a member of another source type or release than its
  * collection's current one (`member-not-current`), an entry claimed twice, or
  * members out of order.
@@ -247,6 +261,15 @@ function readCollections(request: ReadCatalogCollectionsV1Request): CatalogColle
   ) {
     return refuse("malformed-request");
   }
+  const { knownOwners } = request;
+  if (
+    knownOwners !== undefined &&
+    (!Array.isArray(knownOwners) ||
+      knownOwners.length === 0 ||
+      !knownOwners.every((owner) => matches(owner, PACKAGE_NAME)))
+  ) {
+    return refuse("malformed-request");
+  }
   const { value, digest } = readCanonicalDocument({
     bytes: request.bytes,
     maxBytes: CATALOG_COLLECTIONS_MAX_BYTES_V1,
@@ -282,7 +305,7 @@ function readCollections(request: ReadCatalogCollectionsV1Request): CatalogColle
   const ids = new Set<string>();
   const collections: CatalogCollectionV1[] = [];
   for (const raw of value.collections) {
-    const parsed = collection(raw, collected as string[], entries, claimed);
+    const parsed = collection(raw, knownOwners, collected as string[], entries, claimed);
     if (ids.has(parsed.id)) return refuse("duplicate-collection");
     ids.add(parsed.id);
     collections.push(parsed);

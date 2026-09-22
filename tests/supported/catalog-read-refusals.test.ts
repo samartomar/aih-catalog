@@ -271,6 +271,14 @@ describe("named refusals of the collections reader", () => {
           }),
         },
         {
+          reason: "unknown-owner",
+          request: () => ({
+            bytes: inOrder(base()),
+            index,
+            knownOwners: ["@aihq/catalog"],
+          }),
+        },
+        {
           reason: "member-not-in-index",
           request: mutate((doc) => {
             doc.collections[0].members[0].subjectDigest = ZERO;

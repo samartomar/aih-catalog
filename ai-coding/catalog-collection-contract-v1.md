@@ -30,6 +30,13 @@ of the collection's source type and current release, and current in no other
 collection. Member identities and digests are the index's own and never
 change here.
 
+`owner.package` is data, not an authority Catalog checks: Catalog holds no
+allowlist, so a third-party collection stays representable. A consumer that has
+an ownership policy states it with `knownOwners` (for example
+`["@aihq/core", "@aihq/catalog"]`). The reader then refuses any collection owned
+by another package with `unknown-owner` (`readCatalogCollectionsV1Result`);
+without `knownOwners` it reads the owner unchanged.
+
 `current.release` is the content release this Catalog indexes. It is not the
 version of an installed package. A consumer that runs a different Core version
 shows both and says they differ; it never relabels older content as the new

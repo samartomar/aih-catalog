@@ -5,6 +5,7 @@ import {
   CATALOG_COLLECTIONS_ROOT_URL,
   type CatalogCollectionsV1,
   readCatalogCollectionsV1,
+  readCatalogCollectionsV1Result,
 } from "../../src/content/catalog-collections-v1.js";
 import {
   type CatalogContentV1,
@@ -198,5 +199,38 @@ describe("published catalog collections", () => {
     expect(readCatalogCollectionsV1({ bytes: pretty, index })).toBeUndefined();
     const bom = Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), shippedBytes]);
     expect(readCatalogCollectionsV1({ bytes: bom, index })).toBeUndefined();
+  });
+
+  it("refuses an owner outside the consumer's stated owners, and only when it states them", () => {
+    const evil = clone();
+    (core(evil) as Doc).owner.package = "@evil/pkg";
+    (core(evil).current as Doc).origin.name = "@evil/pkg";
+    const bytes = bytesOf(evil);
+    // Catalog holds no allowlist of its own: without knownOwners the owner is data.
+    expect(readCatalogCollectionsV1Result({ bytes, index })).toMatchObject({ state: "read" });
+    const knownOwners = ["@aihq/core", "@aihq/catalog"];
+    expect(readCatalogCollectionsV1Result({ bytes, index, knownOwners })).toEqual({
+      state: "refused",
+      reason: "unknown-owner",
+    });
+    expect(readCatalogCollectionsV1({ bytes, index, knownOwners })).toBeUndefined();
+    // The shipped owners are exactly the ones a consumer names.
+    expect(
+      readCatalogCollectionsV1Result({ bytes: shippedBytes, index, knownOwners }),
+    ).toMatchObject({ state: "read" });
+    expect(
+      readCatalogCollectionsV1Result({ bytes: shippedBytes, index, knownOwners: ["@aihq/core"] }),
+    ).toEqual({ state: "refused", reason: "unknown-owner" });
+    // A stated owner list that is not a list of package names is a malformed request.
+    for (const malformed of [[], ["Not A Package"], "@aihq/core", [1]]) {
+      expect(
+        readCatalogCollectionsV1Result({
+          bytes: shippedBytes,
+          index,
+          knownOwners: malformed as never,
+        }),
+        JSON.stringify(malformed),
+      ).toEqual({ state: "refused", reason: "malformed-request" });
+    }
   });
 });
