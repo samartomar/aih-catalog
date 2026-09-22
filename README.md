@@ -73,6 +73,100 @@ not reconstruct raw scanner findings, infer categories or templates, or create
 signer identities and qualification bases. Those require additional source data.
 The generator is a Node maintenance script; the resulting index is plain JSON.
 
+## Qualification receipts
+
+The package ships the qualification basis of the signed Catalog V2 head it was
+cut from, so a consumer can verify rather than believe it:
+
+| File | Reachable as |
+| --- | --- |
+| `defaults/catalog-qualification-v1.json` | `@aihq/catalog/catalog-qualification.json` |
+| `defaults/signed-catalog-v2.json` (the exact signed head bytes) | `@aihq/catalog/signed-catalog.json` |
+| `defaults/catalog-signer-root.json` (public SPKI material only) | package-root path |
+| `defaults/qualification/receipt-set.json` | package-root path |
+| `defaults/qualification/receipts/<entryId>.json`, one per member | package-root path |
+
+Receipt and signer-root bytes are reached from the package root with
+`resolveCatalogQualificationPathV1(root, path)`, the way artifact bytes already
+are. No private key is in this repository's published data, in the package, or in
+any export.
+
+```js
+import { readCatalogContentV1, readCatalogQualificationV1 } from "@aihq/catalog";
+const basis = readCatalogQualificationV1({
+  bytes: qualificationBytes,
+  index,
+  now: "2026-09-22T12:00:00Z",
+  input: { root: packageRoot, verifyReceipts: true, verifySignature: true },
+});
+// basis.signature -> "verified" | "untrusted-signer" | "superseded" | "not-evaluated"
+// basis.attestation -> "absent" | "published-locator" | "not-evaluated"
+// basis.entries[i].state -> "qualified" | "expired" | "not-yet-valid"
+//   | "receipt-absent" | "receipt-digest-mismatch" | "receipt-malformed"
+//   | "basis-mismatch" | "member-mismatch" | "subject-mismatch" | "not-evaluated"
+```
+
+**What a receipt binds.** Each receipt names one catalog **member**
+(`qualificationBasis.catalogMemberDigest`), that member's **subject** (`subject`
+plus `qualificationBasis.subjectDigest` and `subjectKind`), the **head** it was
+cut from (`catalogDigest`, `catalogHeadDigest`), the **signer**
+(`catalogSignerIdentity`, `catalogContinuity.signerKeyId`), the head's
+**continuity** (`sequence`, `previousCatalogHeadDigest`, `replayIdentity`) and its
+**validity** window (`notBefore`, `expiresAt`, where `expiresAt` is exactly the
+head's `validUntil`). The reader recomputes every digest from bytes it read
+itself; the sidecar is a locator and a restatement, never a trusted claim. With
+`verifySignature`, the shipped head is re-verified against the shipped public
+signer roots under the exact claims it was signed with, and each receipt's basis
+must equal `deriveQualificationBasisV2({ head, entryId })` byte for byte.
+
+**Continuity is only partly re-derivable here.** The predecessor head is not
+shipped, so the reader cannot prove that this head's sequence follows that exact
+earlier head. It verifies this head's own signature, signer, claims and window,
+and requires every receipt to restate this head's own continuity fields. The
+published `previousCatalogHeadDigest` and `sequence` are the signed head's own
+values, not an independently checked chain.
+
+**These receipts are not attested in this package.** `attestation.state` is
+`"absent"`, and that is the honest state: the outer GitHub provenance over the
+receipt set and each `receipts/*.json` exists only after the owner dispatches
+`.github/workflows/signed-catalog-v2.yml` at the exact commit with
+`qualification_receipt_issued_at` equal to this document's `issuedAt`. Nothing an
+agent or a build can do substitutes for that dispatch. Once it has happened, a
+data-only update can set `attestation.state` to `"published"` with a
+`{ kind: "github-attestation", repository, sourceDigest, subjectDigest }` locator;
+the reader then reports `attestation: "published-locator"` and still verifies no
+attestation itself, because that needs the network and GitHub's store.
+
+**This is publisher qualification, never organization admission.**
+`organizationAdmission` is `"not-authoritative"` in the sidecar and in every
+receipt. A `qualified` state means this publisher's signed catalog carries that
+member with that identity inside that window. It does not admit the item into any
+organization, does not install or execute anything, and confers no effect
+authority; an organization's own decision remains required and separate.
+
+Regenerate with `npm run generate:catalog-qualification` after the build. It
+reads `dist/index.js` and re-emits every receipt with the public receipt-set
+emitter, which re-verifies the head once per member (about three minutes for 457
+members), so it is a maintainer step and not part of `build`.
+
+`npm run check:catalog-index` runs the fast drift gate
+(`generate-catalog-qualification.mjs --check`, about two seconds). It verifies the
+committed head once, with its committed predecessor, public root and claims; emits
+the receipts of three fixed members (first, middle, last) with the public emitter;
+projects every member's receipt from the first emitted receipt and that member's
+own record in the verified head (within one head only `entryId`, `subject` and the
+basis's member and subject fields differ); requires that projection to reproduce
+the emitter's bytes for every sampled member; and then compares every published
+byte (each receipt, the receipt set, the sidecar, the head copy and the signer-root
+copy) with what is committed, refusing any receipt file the inputs do not publish.
+`node tools/generate-catalog-qualification.mjs --check --full` runs the same
+comparison against a full re-emission instead of the projection.
+
+Inputs live in `defaults/catalog-qualification-inputs-v1.json`: the head, the
+signer root, the predecessor head, the exact claims, the publisher identity and a
+fixed `issuedAt`, so regeneration is byte-reproducible. Generation reads no
+private key, signs nothing and fetches nothing.
+
 ## Presentation metadata
 
 `@aihq/catalog/catalog-presentation.json` (`defaults/catalog-presentation-v1.json`),

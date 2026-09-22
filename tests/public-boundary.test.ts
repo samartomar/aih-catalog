@@ -1,8 +1,28 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { relative, resolve } from "node:path";
+import { execFileSync } from "node:child_process";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { basename, isAbsolute, relative, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const root = resolve(import.meta.dirname, "..");
+
+/** The npm shipped with this Node, whether or not the suite was started through npm. */
+function npmCli(): string {
+  const candidates = [
+    process.env.npm_execpath,
+    resolve(process.execPath, "..", "node_modules", "npm", "bin", "npm-cli.js"),
+    resolve(process.execPath, "..", "..", "lib", "node_modules", "npm", "bin", "npm-cli.js"),
+  ];
+  for (const candidate of candidates) {
+    if (
+      candidate &&
+      isAbsolute(candidate) &&
+      basename(candidate) === "npm-cli.js" &&
+      existsSync(candidate)
+    )
+      return candidate;
+  }
+  throw new Error("unable to resolve a local npm-cli.js");
+}
 
 function sourceFiles(path = resolve(root, "src")): string[] {
   return readdirSync(path, { withFileTypes: true }).flatMap((entry) => {
@@ -40,6 +60,49 @@ describe("supported public V2 boundary", () => {
       /\bDate\.now\s*\(|\bnew\s+Date\s*\(/,
     );
   });
+
+  it("publishes the qualification basis through declared subpaths and packs its receipts", () => {
+    const packageJson = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8")) as {
+      exports: Record<string, unknown>;
+      scripts: Record<string, string>;
+    };
+    expect(packageJson.exports["./catalog-qualification.json"]).toBe(
+      "./defaults/catalog-qualification-v1.json",
+    );
+    expect(packageJson.exports["./signed-catalog.json"]).toBe("./defaults/signed-catalog-v2.json");
+    // No private key material is ever exported or packed.
+    expect(Object.keys(packageJson.exports)).not.toContain("./catalog-signer-private.json");
+    expect(packageJson.scripts["generate:catalog-qualification"]).toBe(
+      "node tools/generate-catalog-qualification.mjs",
+    );
+    // Drift in the published receipts fails the same gate the index and collections use.
+    expect(packageJson.scripts["check:catalog-index"]).toContain(
+      "tools/generate-catalog-qualification.mjs --check",
+    );
+    const index = readFileSync(resolve(root, "src/index.ts"), "utf8");
+    expect(index).toContain("readCatalogQualificationV1");
+    expect(index).toContain("resolveCatalogQualificationPathV1");
+
+    const raw = execFileSync(
+      process.execPath,
+      [npmCli(), "pack", "--ignore-scripts", "--dry-run", "--json"],
+      { cwd: root, encoding: "utf8", maxBuffer: 32 * 1024 * 1024, timeout: 60_000 },
+    );
+    const packed = (JSON.parse(raw) as Array<{ files: Array<{ path: string }> }>)[0];
+    if (packed === undefined) throw new Error("npm pack produced no manifest");
+    const paths = new Set(packed.files.map(({ path }) => path));
+    expect(paths.has("defaults/catalog-qualification-v1.json")).toBe(true);
+    expect(paths.has("defaults/signed-catalog-v2.json")).toBe(true);
+    expect(paths.has("defaults/catalog-signer-root.json")).toBe(true);
+    expect(paths.has("defaults/qualification/receipt-set.json")).toBe(true);
+    const sidecar = JSON.parse(
+      readFileSync(resolve(root, "defaults/catalog-qualification-v1.json"), "utf8"),
+    ) as { entries: Array<{ receipt: { path: string } }> };
+    expect(sidecar.entries.length).toBeGreaterThan(0);
+    for (const entry of sidecar.entries) expect(paths.has(entry.receipt.path)).toBe(true);
+    // The repository's own catalog generations still stay out of the package.
+    expect([...paths].some((path) => path.startsWith("catalog/"))).toBe(false);
+  }, 90_000);
 
   it("keeps all README and ai-coding truth surfaces explicit about Catalog V2 authority and use", () => {
     for (const path of ["README.md", "ai-coding/supported-catalog-v2.md"]) {

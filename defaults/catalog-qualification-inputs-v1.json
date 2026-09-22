@@ -1,0 +1,26 @@
+{
+  "format": "aih-catalog-qualification-inputs",
+  "version": 1,
+  "issuedAt": "2026-09-22T00:00:00Z",
+  "signedCatalogPath": "catalog/weekly-refresh-2026-09-14/signed-catalog-v2.json",
+  "lastAcceptedHeadPath": "catalog/weekly-refresh-2026-09-14/previous-head.json",
+  "signerRootPaths": [
+    "catalog/genesis/catalog-signer-root.json"
+  ],
+  "expectedClaims": {
+    "environment": "catalog-signing",
+    "eventName": "workflow_dispatch",
+    "issuer": "https://token.actions.githubusercontent.com",
+    "jobWorkflowRef": "samartomar/aih-catalog/.github/workflows/signed-catalog-v2.yml@refs/heads/main",
+    "ref": "refs/heads/main",
+    "repository": "samartomar/aih-catalog",
+    "repositoryId": "1337425654",
+    "repositoryOwnerId": "9993940"
+  },
+  "publisher": {
+    "repository": "samartomar/aih-catalog",
+    "workflow": ".github/workflows/signed-catalog-v2.yml",
+    "ref": "refs/heads/main",
+    "issuer": "https://token.actions.githubusercontent.com"
+  }
+}
