@@ -8,6 +8,14 @@ import {
   verifySignedCatalogV2,
 } from "../supported/signed-catalog-v2.js";
 import type { CatalogContentV1, CatalogDescriptorV1 } from "./catalog-content-v1.js";
+import {
+  type CatalogReadRefusedV1,
+  readCanonicalDocument,
+  refuse,
+  refusedFrom,
+  requireAscending,
+  requireFormatAndVersion,
+} from "./refusal-v1.js";
 
 /**
  * Public, Catalog-owned reading of the published qualification basis: the signed
@@ -33,7 +41,8 @@ import type { CatalogContentV1, CatalogDescriptorV1 } from "./catalog-content-v1
  * signed head's own values, not an independently checked chain.
  *
  * This reader performs no network access, executes nothing and writes nothing.
- * Every structural refusal returns `undefined`.
+ * `readCatalogQualificationV1Result` names every structural refusal;
+ * `readCatalogQualificationV1` returns `undefined` for each of them.
  */
 
 export const CATALOG_QUALIFICATION_FORMAT_V1 = "aih-catalog-qualification";
@@ -215,6 +224,39 @@ export interface ReadCatalogQualificationV1Request {
   readonly input?: CatalogQualificationV1Input;
 }
 
+/** Every structural reason `readCatalogQualificationV1Result` can refuse with. A closed set. */
+export const CATALOG_QUALIFICATION_REFUSALS_V1 = [
+  "malformed-request",
+  "malformed-clock",
+  "malformed-bytes",
+  "oversize-bytes",
+  "non-canonical-bytes",
+  "digest-mismatch",
+  "malformed-document",
+  "unknown-format",
+  "unknown-version",
+  "malformed-catalog-identity",
+  "issued-outside-window",
+  "malformed-attestation",
+  "claims-publisher-mismatch",
+  "malformed-signer-root",
+  "malformed-entry",
+  "unsafe-path",
+  "duplicate-entry",
+  "unordered-entries",
+  "index-mismatch",
+] as const;
+export type CatalogQualificationRefusalV1 = (typeof CATALOG_QUALIFICATION_REFUSALS_V1)[number];
+
+/**
+ * A structural refusal is about the document. A document that is read still
+ * carries per-entry states and the signature and attestation states; those are
+ * verdicts, never refusals.
+ */
+export type CatalogQualificationV1Result =
+  | { readonly state: "read"; readonly qualification: CatalogQualificationDocumentV1 }
+  | CatalogReadRefusedV1<CatalogQualificationRefusalV1>;
+
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 const matches = (value: unknown, pattern: RegExp): value is string =>
@@ -236,10 +278,14 @@ function safeRelativePath(value: unknown): string | undefined {
   return value;
 }
 
-function descriptor(value: unknown): CatalogDescriptorV1 | undefined {
-  if (!isObject(value) || !exactKeys(value, ["path", "sha256"])) return undefined;
+/** A declared content address; an unsafe path refuses `unsafe-path`, anything else `malformed`. */
+function descriptor(value: unknown, malformed: CatalogQualificationRefusalV1): CatalogDescriptorV1 {
+  if (!isObject(value) || !exactKeys(value, ["path", "sha256"])) return refuse(malformed);
+  if (typeof value.path !== "string" || !matches(value.sha256, SHA256_HEX)) {
+    return refuse(malformed);
+  }
   const path = safeRelativePath(value.path);
-  if (path === undefined || !matches(value.sha256, SHA256_HEX)) return undefined;
+  if (path === undefined) return refuse("unsafe-path");
   return Object.freeze({ path, sha256: value.sha256 });
 }
 
@@ -444,8 +490,8 @@ interface DeclaredEntryV1 {
   readonly expiresAt: string;
 }
 
-function declaredEntry(value: unknown): DeclaredEntryV1 | undefined {
-  if (!isObject(value)) return undefined;
+function declaredEntry(value: unknown): DeclaredEntryV1 {
+  if (!isObject(value)) return refuse("malformed-entry");
   if (
     !exactKeys(value, [
       "catalogMemberDigest",
@@ -456,15 +502,15 @@ function declaredEntry(value: unknown): DeclaredEntryV1 | undefined {
       "subjectDigest",
     ])
   ) {
-    return undefined;
+    return refuse("malformed-entry");
   }
-  if (!matches(value.entryId, ENTRY_ID)) return undefined;
-  if (!matches(value.subjectDigest, PREFIXED_SHA256)) return undefined;
-  if (!matches(value.catalogMemberDigest, PREFIXED_SHA256)) return undefined;
-  if (!matches(value.notBefore, INSTANT) || !matches(value.expiresAt, INSTANT)) return undefined;
-  if (value.notBefore >= value.expiresAt) return undefined;
-  const receipt = descriptor(value.receipt);
-  if (receipt === undefined) return undefined;
+  if (!matches(value.entryId, ENTRY_ID)) return refuse("malformed-entry");
+  if (!matches(value.subjectDigest, PREFIXED_SHA256)) return refuse("malformed-entry");
+  if (!matches(value.catalogMemberDigest, PREFIXED_SHA256)) return refuse("malformed-entry");
+  if (!matches(value.notBefore, INSTANT) || !matches(value.expiresAt, INSTANT))
+    return refuse("malformed-entry");
+  if (value.notBefore >= value.expiresAt) return refuse("malformed-entry");
+  const receipt = descriptor(value.receipt, "malformed-entry");
   return {
     entryId: value.entryId,
     subjectDigest: value.subjectDigest,
@@ -477,6 +523,27 @@ function declaredEntry(value: unknown): DeclaredEntryV1 | undefined {
 
 /**
  * Reads and validates the published qualification basis against the index it
+ * describes, naming every structural refusal: `unknown-format` and
+ * `unknown-version` (each with the declared value in `observed`), a malformed
+ * `now` (`malformed-clock`), malformed, oversize or non-canonical bytes, a digest
+ * pin mismatch, a malformed document, catalog identity, attestation record,
+ * signer root or entry, receipts issued outside the head's window, claims that do
+ * not name the declared publisher, an unsafe declared path, a duplicate or
+ * out-of-order `entryId`, or an entry absent from the index or with a different
+ * subject digest (`index-mismatch`).
+ */
+export function readCatalogQualificationV1Result(
+  request: ReadCatalogQualificationV1Request,
+): CatalogQualificationV1Result {
+  try {
+    return Object.freeze({ state: "read" as const, qualification: readQualification(request) });
+  } catch (error) {
+    return refusedFrom<CatalogQualificationRefusalV1>(error);
+  }
+}
+
+/**
+ * Reads and validates the published qualification basis against the index it
  * describes.
  *
  * Returns `undefined` for every structural refusal: a byte order mark, bytes that
@@ -485,34 +552,31 @@ function declaredEntry(value: unknown): DeclaredEntryV1 | undefined {
  * catalog identity, signer root, publisher or entry, claims that do not name the
  * declared publisher, a duplicate or out-of-order `entryId`, an `entryId` absent
  * from the supplied index, a declared subject digest that is not the index's, a
- * malformed `now`, or an unsafe declared path.
+ * malformed `now`, or an unsafe declared path. Use
+ * `readCatalogQualificationV1Result` to learn which.
  */
 export function readCatalogQualificationV1(
   request: ReadCatalogQualificationV1Request,
 ): CatalogQualificationDocumentV1 | undefined {
-  if (!isObject(request)) return undefined;
-  const { bytes, index } = request;
-  if (!(bytes instanceof Uint8Array) || bytes.byteLength === 0) return undefined;
-  if (bytes.byteLength > CATALOG_QUALIFICATION_MAX_BYTES_V1) return undefined;
-  if (!isObject(index) || !Array.isArray(index.entries)) return undefined;
-  if (request.now !== undefined && !matches(request.now, INSTANT)) return undefined;
-  if (bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) return undefined;
-  const text = Buffer.from(bytes).toString("utf8");
-  if (!Buffer.from(text, "utf8").equals(Buffer.from(bytes))) return undefined;
+  const result = readCatalogQualificationV1Result(request);
+  return result.state === "read" ? result.qualification : undefined;
+}
 
-  const digest = `sha256:${sha256Hex(bytes)}`;
-  if (request.expectedDigest !== undefined && request.expectedDigest !== digest) return undefined;
-
-  let value: unknown;
-  try {
-    value = JSON.parse(text);
-  } catch {
-    return undefined;
-  }
-  // The publisher emits one canonical serialization; a rewrite cannot claim its digest.
-  if (canonical(value) !== text) return undefined;
+function readQualification(
+  request: ReadCatalogQualificationV1Request,
+): CatalogQualificationDocumentV1 {
+  if (!isObject(request)) return refuse("malformed-request");
+  const { index } = request;
+  if (!isObject(index) || !Array.isArray(index.entries)) return refuse("malformed-request");
+  if (request.now !== undefined && !matches(request.now, INSTANT)) return refuse("malformed-clock");
+  const { value, digest } = readCanonicalDocument({
+    bytes: request.bytes,
+    maxBytes: CATALOG_QUALIFICATION_MAX_BYTES_V1,
+    expectedDigest: request.expectedDigest,
+    canonical,
+  });
+  requireFormatAndVersion(value, CATALOG_QUALIFICATION_FORMAT_V1, CATALOG_QUALIFICATION_VERSION_V1);
   if (
-    !isObject(value) ||
     !exactKeys(value, [
       "attestation",
       "catalog",
@@ -527,58 +591,69 @@ export function readCatalogQualificationV1(
       "version",
     ])
   ) {
-    return undefined;
+    return refuse("malformed-document");
   }
-  if (value.format !== CATALOG_QUALIFICATION_FORMAT_V1) return undefined;
-  if (value.version !== CATALOG_QUALIFICATION_VERSION_V1) return undefined;
 
   const packageValue = value.package;
-  if (!isObject(packageValue) || !exactKeys(packageValue, ["name", "version"])) return undefined;
-  if (typeof packageValue.name !== "string" || packageValue.name.length === 0) return undefined;
+  if (!isObject(packageValue) || !exactKeys(packageValue, ["name", "version"])) {
+    return refuse("malformed-document");
+  }
+  if (typeof packageValue.name !== "string" || packageValue.name.length === 0) {
+    return refuse("malformed-document");
+  }
   if (typeof packageValue.version !== "string" || packageValue.version.length === 0) {
-    return undefined;
+    return refuse("malformed-document");
   }
   if (typeof value.organizationAdmission !== "string" || value.organizationAdmission.length === 0) {
-    return undefined;
+    return refuse("malformed-document");
   }
-  if (!matches(value.issuedAt, INSTANT)) return undefined;
+  if (!matches(value.issuedAt, INSTANT)) return refuse("malformed-document");
 
   const catalog = catalogIdentity(value.catalog);
-  if (catalog === undefined) return undefined;
+  if (catalog === undefined) return refuse("malformed-catalog-identity");
   // The receipts were issued while the head they bind was inside its own window.
-  if (value.issuedAt < catalog.validFrom || value.issuedAt >= catalog.validUntil) return undefined;
+  if (value.issuedAt < catalog.validFrom || value.issuedAt >= catalog.validUntil) {
+    return refuse("issued-outside-window");
+  }
 
   const attestation = publisherRecord(value.attestation);
-  if (attestation === undefined) return undefined;
-  if (!claimsNamePublisher(catalog.claims, attestation.publisher)) return undefined;
+  if (attestation === undefined) return refuse("malformed-attestation");
+  if (!claimsNamePublisher(catalog.claims, attestation.publisher)) {
+    return refuse("claims-publisher-mismatch");
+  }
 
-  const signedCatalog = descriptor(value.signedCatalog);
-  const receiptSet = descriptor(value.receiptSet);
-  if (signedCatalog === undefined || receiptSet === undefined) return undefined;
+  const signedCatalog = descriptor(value.signedCatalog, "malformed-document");
+  const receiptSet = descriptor(value.receiptSet, "malformed-document");
 
-  if (!Array.isArray(value.signerRoots) || value.signerRoots.length === 0) return undefined;
-  if (value.signerRoots.length > 64) return undefined;
+  if (!Array.isArray(value.signerRoots) || value.signerRoots.length === 0) {
+    return refuse("malformed-signer-root");
+  }
+  if (value.signerRoots.length > 64) return refuse("malformed-signer-root");
   const signerRoots: CatalogQualificationSignerRootV1[] = [];
   for (const raw of value.signerRoots) {
     const parsed = signerRoot(raw);
-    if (parsed === undefined) return undefined;
-    if (signerRoots.some((existing) => existing.keyId === parsed.keyId)) return undefined;
+    if (parsed === undefined) return refuse("malformed-signer-root");
+    if (signerRoots.some((existing) => existing.keyId === parsed.keyId)) {
+      return refuse("malformed-signer-root");
+    }
     signerRoots.push(parsed);
   }
 
-  if (!Array.isArray(value.entries) || value.entries.length === 0) return undefined;
-  if (value.entries.length > CATALOG_QUALIFICATION_MAX_ENTRIES_V1) return undefined;
+  if (!Array.isArray(value.entries) || value.entries.length === 0) {
+    return refuse("malformed-document");
+  }
+  if (value.entries.length > CATALOG_QUALIFICATION_MAX_ENTRIES_V1) {
+    return refuse("malformed-document");
+  }
   const indexed = new Map(index.entries.map((entry) => [entry.entryId, entry]));
   const declared: DeclaredEntryV1[] = [];
   for (const raw of value.entries) {
     const entry = declaredEntry(raw);
-    if (entry === undefined) return undefined;
-    const previous = declared.at(-1);
-    if (previous !== undefined && previous.entryId >= entry.entryId) return undefined;
+    requireAscending(declared.at(-1)?.entryId, entry.entryId);
     // Each record is that exact index entry. An unknown item is never described here.
     const indexEntry = indexed.get(entry.entryId);
-    if (indexEntry === undefined) return undefined;
-    if (indexEntry.subject.subjectDigest !== entry.subjectDigest) return undefined;
+    if (indexEntry === undefined) return refuse("index-mismatch");
+    if (indexEntry.subject.subjectDigest !== entry.subjectDigest) return refuse("index-mismatch");
     declared.push(entry);
   }
 

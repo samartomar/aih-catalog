@@ -1,9 +1,17 @@
-import { createHash } from "node:crypto";
 import {
   CATALOG_CONTENT_INDEX_ROOT_URL,
   type CatalogContentV1,
   type CatalogEntryV1,
 } from "./catalog-content-v1.js";
+import {
+  type CatalogReadRefusedV1,
+  isObject,
+  readCanonicalDocument,
+  refuse,
+  refusedFrom,
+  requireAscending,
+  requireFormatAndVersion,
+} from "./refusal-v1.js";
 
 /**
  * Public, Catalog-owned reading of the published collection view.
@@ -20,7 +28,8 @@ import {
  * qualification, installation or effect authority.
  *
  * This reader performs no network access, executes nothing and writes nothing.
- * Every refusal returns `undefined`.
+ * `readCatalogCollectionsV1Result` names every refusal; `readCatalogCollectionsV1`
+ * returns `undefined` for each of them.
  */
 
 export const CATALOG_COLLECTIONS_FORMAT_V1 = "aih-catalog-collections";
@@ -87,8 +96,29 @@ export interface ReadCatalogCollectionsV1Request {
   readonly index: CatalogContentV1;
 }
 
-const isObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
+/** Every reason `readCatalogCollectionsV1Result` can refuse with. A closed set. */
+export const CATALOG_COLLECTIONS_REFUSALS_V1 = [
+  "malformed-request",
+  "malformed-bytes",
+  "oversize-bytes",
+  "non-canonical-bytes",
+  "malformed-document",
+  "unknown-format",
+  "unknown-version",
+  "index-mismatch",
+  "malformed-collection",
+  "duplicate-collection",
+  "member-not-in-index",
+  "member-not-current",
+  "duplicate-entry",
+  "unordered-entries",
+] as const;
+export type CatalogCollectionsRefusalV1 = (typeof CATALOG_COLLECTIONS_REFUSALS_V1)[number];
+
+export type CatalogCollectionsV1Result =
+  | { readonly state: "read"; readonly collections: CatalogCollectionsV1 }
+  | CatalogReadRefusedV1<CatalogCollectionsRefusalV1>;
+
 const matches = (value: unknown, pattern: RegExp): value is string =>
   typeof value === "string" && pattern.test(value);
 const onlyKeys = (value: Record<string, unknown>, allowed: readonly string[]): boolean =>
@@ -123,39 +153,45 @@ function collection(
   collected: readonly string[],
   entries: ReadonlyMap<string, CatalogEntryV1>,
   claimed: Set<string>,
-): CatalogCollectionV1 | undefined {
+): CatalogCollectionV1 {
   if (!isObject(value) || !onlyKeys(value, ["current", "id", "members", "owner", "sourceType"])) {
-    return undefined;
+    return refuse("malformed-collection");
   }
   const { id, owner, sourceType, current, members } = value;
-  if (!matches(id, COLLECTION_ID)) return undefined;
+  if (!matches(id, COLLECTION_ID)) return refuse("malformed-collection");
   if (!isObject(owner) || !onlyKeys(owner, ["package"]) || !matches(owner.package, PACKAGE_NAME)) {
-    return undefined;
+    return refuse("malformed-collection");
   }
-  if (typeof sourceType !== "string" || !collected.includes(sourceType)) return undefined;
-  if (!isObject(current) || !onlyKeys(current, ["origin", "release"])) return undefined;
-  if (!matches(current.release, RELEASE)) return undefined;
+  if (typeof sourceType !== "string" || !collected.includes(sourceType))
+    return refuse("malformed-collection");
+  if (!isObject(current) || !onlyKeys(current, ["origin", "release"]))
+    return refuse("malformed-collection");
+  if (!matches(current.release, RELEASE)) return refuse("malformed-collection");
   const currentOrigin = origin(current.origin, owner.package, current.release);
-  if (currentOrigin === undefined) return undefined;
-  if (!Array.isArray(members) || members.length === 0) return undefined;
+  if (currentOrigin === undefined) return refuse("malformed-collection");
+  if (!Array.isArray(members) || members.length === 0) return refuse("malformed-collection");
 
   const parsed: CatalogCollectionMemberV1[] = [];
   for (const member of members) {
-    if (!isObject(member) || !onlyKeys(member, ["entryId", "subjectDigest"])) return undefined;
+    if (!isObject(member) || !onlyKeys(member, ["entryId", "subjectDigest"])) {
+      return refuse("malformed-collection");
+    }
     const { entryId, subjectDigest } = member;
-    if (typeof entryId !== "string" || !matches(subjectDigest, PREFIXED_SHA256)) return undefined;
+    if (typeof entryId !== "string" || !matches(subjectDigest, PREFIXED_SHA256)) {
+      return refuse("malformed-collection");
+    }
     // A member must be this exact index entry, of this source type and this release.
     const entry = entries.get(entryId);
-    if (entry === undefined || entry.subject.subjectDigest !== subjectDigest) return undefined;
-    if (entry.subject.source.type !== sourceType) return undefined;
-    if (entry.subject.source.release !== current.release) return undefined;
+    if (entry === undefined || entry.subject.subjectDigest !== subjectDigest) {
+      return refuse("member-not-in-index");
+    }
+    if (entry.subject.source.type !== sourceType) return refuse("member-not-current");
+    if (entry.subject.source.release !== current.release) return refuse("member-not-current");
     // No entry is current in two collections, and none is listed twice.
-    if (claimed.has(entryId)) return undefined;
+    if (claimed.has(entryId)) return refuse("duplicate-entry");
     claimed.add(entryId);
+    requireAscending(parsed.at(-1)?.entryId, entryId);
     parsed.push(Object.freeze({ entryId, subjectDigest }));
-  }
-  for (let index = 1; index < parsed.length; index += 1) {
-    if ((parsed[index - 1]?.entryId ?? "") >= (parsed[index]?.entryId ?? "")) return undefined;
   }
   return Object.freeze({
     id,
@@ -168,63 +204,86 @@ function collection(
 
 /**
  * Reads and validates the published collection view against the index it
+ * describes, naming why it refuses: `unknown-format` and `unknown-version` (each
+ * with the declared value in `observed`), malformed, oversize or non-canonical
+ * bytes, a view bound to a different index (`index-mismatch`), a malformed or
+ * duplicate collection, a member that is not that exact index entry
+ * (`member-not-in-index`), a member of another source type or release than its
+ * collection's current one (`member-not-current`), an entry claimed twice, or
+ * members out of order.
+ */
+export function readCatalogCollectionsV1Result(
+  request: ReadCatalogCollectionsV1Request,
+): CatalogCollectionsV1Result {
+  try {
+    return Object.freeze({ state: "read" as const, collections: readCollections(request) });
+  } catch (error) {
+    return refusedFrom<CatalogCollectionsRefusalV1>(error);
+  }
+}
+
+/**
+ * Reads and validates the published collection view against the index it
  * describes. Returns `undefined` for every refusal: unknown format or version,
  * malformed, non-canonical or oversize bytes, a different index, an unknown
  * field, a member that is not that exact index entry, a member whose source type
- * or release differs from its collection's, or an entry claimed twice.
+ * or release differs from its collection's, or an entry claimed twice. Use
+ * `readCatalogCollectionsV1Result` to learn which.
  */
 export function readCatalogCollectionsV1(
   request: ReadCatalogCollectionsV1Request,
 ): CatalogCollectionsV1 | undefined {
-  if (!isObject(request)) return undefined;
-  const { bytes, index } = request;
-  if (!(bytes instanceof Uint8Array) || bytes.byteLength === 0) return undefined;
-  if (bytes.byteLength > CATALOG_COLLECTIONS_MAX_BYTES_V1) return undefined;
+  const result = readCatalogCollectionsV1Result(request);
+  return result.state === "read" ? result.collections : undefined;
+}
+
+function readCollections(request: ReadCatalogCollectionsV1Request): CatalogCollectionsV1 {
+  if (!isObject(request)) return refuse("malformed-request");
+  const { index } = request;
   if (
     !isObject(index) ||
     !Array.isArray(index.entries) ||
     !matches(index.digest, PREFIXED_SHA256)
   ) {
-    return undefined;
+    return refuse("malformed-request");
   }
-  if (bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) return undefined;
-  const text = Buffer.from(bytes).toString("utf8");
-  if (!Buffer.from(text, "utf8").equals(Buffer.from(bytes))) return undefined;
-
-  let value: unknown;
-  try {
-    value = JSON.parse(text);
-  } catch {
-    return undefined;
-  }
-  // The publisher emits one canonical serialization; a rewrite is refused.
-  if (`${JSON.stringify(value)}\n` !== text) return undefined;
-  if (!isObject(value)) return undefined;
+  const { value, digest } = readCanonicalDocument({
+    bytes: request.bytes,
+    maxBytes: CATALOG_COLLECTIONS_MAX_BYTES_V1,
+    // The generator emits `JSON.stringify` of its own key order plus a newline.
+    canonical: (parsed) => `${JSON.stringify(parsed)}\n`,
+  });
+  requireFormatAndVersion(value, CATALOG_COLLECTIONS_FORMAT_V1, CATALOG_COLLECTIONS_VERSION_V1);
   if (!onlyKeys(value, ["collectedSourceTypes", "collections", "format", "index", "version"])) {
-    return undefined;
+    return refuse("malformed-document");
   }
-  if (value.format !== CATALOG_COLLECTIONS_FORMAT_V1) return undefined;
-  if (value.version !== CATALOG_COLLECTIONS_VERSION_V1) return undefined;
 
   const boundIndex = value.index;
-  if (!isObject(boundIndex) || !onlyKeys(boundIndex, ["path", "sha256"])) return undefined;
-  if (boundIndex.path !== CATALOG_CONTENT_INDEX_ROOT_URL) return undefined;
-  if (!matches(boundIndex.sha256, SHA256_HEX)) return undefined;
-  if (`sha256:${boundIndex.sha256}` !== index.digest) return undefined;
+  if (!isObject(boundIndex) || !onlyKeys(boundIndex, ["path", "sha256"])) {
+    return refuse("malformed-document");
+  }
+  if (!matches(boundIndex.sha256, SHA256_HEX)) return refuse("malformed-document");
+  // The view describes exactly the index it was cut from, and no other.
+  if (boundIndex.path !== CATALOG_CONTENT_INDEX_ROOT_URL) return refuse("index-mismatch");
+  if (`sha256:${boundIndex.sha256}` !== index.digest) return refuse("index-mismatch");
 
   const collected = value.collectedSourceTypes;
-  if (!Array.isArray(collected) || collected.length === 0) return undefined;
-  if (!collected.every((type) => matches(type, COLLECTION_ID))) return undefined;
-  if (new Set(collected).size !== collected.length) return undefined;
+  if (!Array.isArray(collected) || collected.length === 0) return refuse("malformed-document");
+  if (!collected.every((type) => matches(type, COLLECTION_ID))) {
+    return refuse("malformed-document");
+  }
+  if (new Set(collected).size !== collected.length) return refuse("malformed-document");
 
-  if (!Array.isArray(value.collections) || value.collections.length === 0) return undefined;
+  if (!Array.isArray(value.collections) || value.collections.length === 0) {
+    return refuse("malformed-document");
+  }
   const entries = new Map(index.entries.map((entry) => [entry.entryId, entry]));
   const claimed = new Set<string>();
   const ids = new Set<string>();
   const collections: CatalogCollectionV1[] = [];
   for (const raw of value.collections) {
     const parsed = collection(raw, collected as string[], entries, claimed);
-    if (parsed === undefined || ids.has(parsed.id)) return undefined;
+    if (ids.has(parsed.id)) return refuse("duplicate-collection");
     ids.add(parsed.id);
     collections.push(parsed);
   }
@@ -232,7 +291,7 @@ export function readCatalogCollectionsV1(
   return Object.freeze({
     format: CATALOG_COLLECTIONS_FORMAT_V1,
     version: CATALOG_COLLECTIONS_VERSION_V1,
-    digest: `sha256:${createHash("sha256").update(bytes).digest("hex")}`,
+    digest,
     index: Object.freeze({ path: boundIndex.path, sha256: boundIndex.sha256 }),
     collectedSourceTypes: Object.freeze([...(collected as string[])]),
     collections: Object.freeze(collections),

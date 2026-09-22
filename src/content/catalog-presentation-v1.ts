@@ -1,5 +1,13 @@
-import { createHash } from "node:crypto";
 import type { CatalogContentV1 } from "./catalog-content-v1.js";
+import {
+  type CatalogReadRefusedV1,
+  isObject,
+  readCanonicalDocument,
+  refuse,
+  refusedFrom,
+  requireAscending,
+  requireFormatAndVersion,
+} from "./refusal-v1.js";
 
 /**
  * Public, Catalog-owned reading of the presentation sidecar: each indexed item's
@@ -15,7 +23,8 @@ import type { CatalogContentV1 } from "./catalog-content-v1.js";
  *
  * Text is upstream data: render it as text, never as markup or instructions.
  * This reader performs no network access, executes nothing and writes nothing.
- * Every refusal returns `undefined`.
+ * `readCatalogPresentationV1Result` names every refusal;
+ * `readCatalogPresentationV1` returns `undefined` for each of them.
  */
 
 export const CATALOG_PRESENTATION_FORMAT_V1 = "aih-catalog-presentation";
@@ -93,8 +102,29 @@ export interface ReadCatalogPresentationV1Request {
   readonly index: CatalogContentV1;
 }
 
-const isObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
+/** Every reason `readCatalogPresentationV1Result` can refuse with. A closed set. */
+export const CATALOG_PRESENTATION_REFUSALS_V1 = [
+  "malformed-request",
+  "malformed-bytes",
+  "oversize-bytes",
+  "non-canonical-bytes",
+  "malformed-document",
+  "unknown-format",
+  "unknown-version",
+  "malformed-source",
+  "index-mismatch",
+  "malformed-entry",
+  "unsafe-path",
+  "duplicate-entry",
+  "unordered-entries",
+  "coverage-incomplete",
+] as const;
+export type CatalogPresentationRefusalV1 = (typeof CATALOG_PRESENTATION_REFUSALS_V1)[number];
+
+export type CatalogPresentationV1Result =
+  | { readonly state: "read"; readonly presentation: CatalogPresentationV1 }
+  | CatalogReadRefusedV1<CatalogPresentationRefusalV1>;
+
 const matches = (value: unknown, pattern: RegExp): value is string =>
   typeof value === "string" && pattern.test(value);
 const exactKeys = (value: Record<string, unknown>, keys: readonly string[]): boolean => {
@@ -133,48 +163,70 @@ function presentationValue(
 }
 
 /**
+ * Reads and validates the presentation sidecar against the index it describes,
+ * naming why it refuses: `unknown-format` and `unknown-version` (each with the
+ * declared value in `observed`), malformed, oversize or non-canonical bytes, a
+ * source that is not a pinned github commit or is listed twice
+ * (`malformed-source`), an entry absent from the index, of an unlisted source or
+ * with a different subject digest (`index-mismatch`), a malformed record or
+ * value, an unsafe source path, an entry listed twice or out of order, or an
+ * indexed entry of a listed source left out (`coverage-incomplete`).
+ */
+export function readCatalogPresentationV1Result(
+  request: ReadCatalogPresentationV1Request,
+): CatalogPresentationV1Result {
+  try {
+    return Object.freeze({ state: "read" as const, presentation: readPresentation(request) });
+  } catch (error) {
+    return refusedFrom<CatalogPresentationRefusalV1>(error);
+  }
+}
+
+/**
  * Reads and validates the presentation sidecar against the index it describes.
  * Returns `undefined` for every refusal: unknown format or version, malformed,
  * non-canonical or oversize bytes, an unknown field, a source that is not a
  * pinned github commit, an entry absent from the index or with a different
  * subject digest or source, an indexed entry of a listed source left out, an
- * entry listed twice or out of order, or a malformed value.
+ * entry listed twice or out of order, or a malformed value. Use
+ * `readCatalogPresentationV1Result` to learn which.
  */
 export function readCatalogPresentationV1(
   request: ReadCatalogPresentationV1Request,
 ): CatalogPresentationV1 | undefined {
-  if (!isObject(request)) return undefined;
-  const { bytes, index } = request;
-  if (!(bytes instanceof Uint8Array) || bytes.byteLength === 0) return undefined;
-  if (bytes.byteLength > CATALOG_PRESENTATION_MAX_BYTES_V1) return undefined;
-  if (!isObject(index) || !Array.isArray(index.entries)) return undefined;
-  if (bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) return undefined;
-  const text = Buffer.from(bytes).toString("utf8");
-  if (!Buffer.from(text, "utf8").equals(Buffer.from(bytes))) return undefined;
+  const result = readCatalogPresentationV1Result(request);
+  return result.state === "read" ? result.presentation : undefined;
+}
 
-  let value: unknown;
-  try {
-    value = JSON.parse(text);
-  } catch {
-    return undefined;
+function readPresentation(request: ReadCatalogPresentationV1Request): CatalogPresentationV1 {
+  if (!isObject(request)) return refuse("malformed-request");
+  const { index } = request;
+  if (!isObject(index) || !Array.isArray(index.entries)) return refuse("malformed-request");
+  const { value, digest } = readCanonicalDocument({
+    bytes: request.bytes,
+    maxBytes: CATALOG_PRESENTATION_MAX_BYTES_V1,
+    canonical,
+  });
+  requireFormatAndVersion(value, CATALOG_PRESENTATION_FORMAT_V1, CATALOG_PRESENTATION_VERSION_V1);
+  if (!exactKeys(value, ["entries", "format", "sources", "version"])) {
+    return refuse("malformed-document");
   }
-  // The publisher emits one canonical serialization; a rewrite is refused.
-  if (canonical(value) !== text) return undefined;
-  if (!isObject(value) || !exactKeys(value, ["entries", "format", "sources", "version"])) {
-    return undefined;
-  }
-  if (value.format !== CATALOG_PRESENTATION_FORMAT_V1) return undefined;
-  if (value.version !== CATALOG_PRESENTATION_VERSION_V1) return undefined;
 
-  if (!Array.isArray(value.sources) || value.sources.length === 0) return undefined;
+  if (!Array.isArray(value.sources) || value.sources.length === 0) {
+    return refuse("malformed-document");
+  }
   const sources: CatalogPresentationSourceV1[] = [];
   const sourceKeys = new Set<string>();
   for (const source of value.sources) {
-    if (!isObject(source) || !exactKeys(source, ["commit", "repository", "type"])) return undefined;
-    if (source.type !== "github" || !matches(source.repository, REPOSITORY)) return undefined;
-    if (!matches(source.commit, GIT_COMMIT)) return undefined;
+    if (!isObject(source) || !exactKeys(source, ["commit", "repository", "type"])) {
+      return refuse("malformed-source");
+    }
+    if (source.type !== "github" || !matches(source.repository, REPOSITORY)) {
+      return refuse("malformed-source");
+    }
+    if (!matches(source.commit, GIT_COMMIT)) return refuse("malformed-source");
     const key = `${source.repository}@${source.commit}`;
-    if (sourceKeys.has(key)) return undefined;
+    if (sourceKeys.has(key)) return refuse("malformed-source");
     sourceKeys.add(key);
     sources.push(
       Object.freeze({ type: "github", repository: source.repository, commit: source.commit }),
@@ -187,39 +239,46 @@ export function readCatalogPresentationV1(
   });
   const byId = new Map(indexed.map((entry) => [entry.entryId, entry]));
 
-  if (!Array.isArray(value.entries)) return undefined;
+  if (!Array.isArray(value.entries)) return refuse("malformed-document");
   const entries: CatalogPresentationEntryV1[] = [];
   for (const raw of value.entries) {
-    if (!isObject(raw)) return undefined;
+    if (!isObject(raw)) return refuse("malformed-entry");
     if (
       !exactKeys(raw, ["category", "description", "entryId", "source", "subjectDigest", "title"])
     ) {
-      return undefined;
+      return refuse("malformed-entry");
     }
     const { entryId, subjectDigest } = raw;
-    if (typeof entryId !== "string" || !matches(subjectDigest, PREFIXED_SHA256)) return undefined;
-    const previous = entries.at(-1);
-    if (previous !== undefined && previous.entryId >= entryId) return undefined;
+    if (typeof entryId !== "string" || !matches(subjectDigest, PREFIXED_SHA256)) {
+      return refuse("malformed-entry");
+    }
+    requireAscending(entries.at(-1)?.entryId, entryId);
     // Each record is that exact index entry, of a listed source.
     const entry = byId.get(entryId);
-    if (entry === undefined || entry.subject.subjectDigest !== subjectDigest) return undefined;
+    if (entry === undefined || entry.subject.subjectDigest !== subjectDigest) {
+      return refuse("index-mismatch");
+    }
 
     let source: CatalogPresentationEntryV1["source"] = null;
     if (raw.source !== null) {
       const declared = raw.source;
-      if (!isObject(declared) || !exactKeys(declared, ["path", "sha256"])) return undefined;
-      if (!sourcePath(declared.path) || !matches(declared.sha256, SHA256_HEX)) return undefined;
+      if (!isObject(declared) || !exactKeys(declared, ["path", "sha256"])) {
+        return refuse("malformed-entry");
+      }
+      if (!matches(declared.sha256, SHA256_HEX)) return refuse("malformed-entry");
+      if (!sourcePath(declared.path)) return refuse("unsafe-path");
       source = Object.freeze({ path: declared.path, sha256: declared.sha256 });
     }
     const title = presentationValue(raw.title, source !== null);
     const description = presentationValue(raw.description, source !== null);
     const category = presentationValue(raw.category, source !== null);
-    if (title === undefined || description === undefined || category === undefined)
-      return undefined;
+    if (title === undefined || description === undefined || category === undefined) {
+      return refuse("malformed-entry");
+    }
     entries.push(Object.freeze({ entryId, subjectDigest, source, title, description, category }));
   }
   // Every indexed entry of a listed source is covered.
-  if (entries.length !== indexed.length) return undefined;
+  if (entries.length !== indexed.length) return refuse("coverage-incomplete");
 
   const count = (name: CatalogPresentationFieldNameV1) => {
     const published = entries.filter((entry) => entry[name].state === "published").length;
@@ -228,7 +287,7 @@ export function readCatalogPresentationV1(
   return Object.freeze({
     format: CATALOG_PRESENTATION_FORMAT_V1,
     version: CATALOG_PRESENTATION_VERSION_V1,
-    digest: `sha256:${createHash("sha256").update(bytes).digest("hex")}`,
+    digest,
     sources: Object.freeze(sources),
     entries: Object.freeze(entries),
     coverage: Object.freeze({

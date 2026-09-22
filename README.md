@@ -77,6 +77,25 @@ not reconstruct raw scanner findings, infer categories or templates, or create
 signer identities and qualification bases. Those require additional source data.
 The generator is a Node maintenance script; the resulting index is plain JSON.
 
+### Why a reader refused
+
+Each public reader has a `…Result` twin that names its refusal:
+`readCatalogContentV1Result`, `readCatalogCollectionsV1Result`,
+`readCatalogPresentationV1Result`, `readCatalogQualificationV1Result` and
+`readCatalogCategoriesV1Result` return `{ state: "read", … }` or
+`{ state: "refused", reason }`. Each reason comes from that reader's closed list,
+exported as `CATALOG_*_REFUSALS_V1`. `unknown-format` and `unknown-version` are
+separate reasons, and each carries the declared value in `observed` as JSON text
+of at most 128 characters. So a newer document (`version: 2`) is never confused
+with damaged bytes. The original functions (`readCatalogContentV1` and the others)
+are unchanged thin wrappers that return `undefined` for every refusal.
+
+```js
+import { readCatalogContentV1Result } from "@aihq/catalog";
+const result = readCatalogContentV1Result({ bytes });
+// { state: "refused", reason: "unknown-version", observed: "2" }
+```
+
 ## Qualification receipts
 
 The package ships the qualification basis of the signed Catalog V2 head it was
