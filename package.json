@@ -34,7 +34,8 @@
     "./catalog-collections.json": "./defaults/catalog-collections-v1.json",
     "./catalog-presentation.json": "./defaults/catalog-presentation-v1.json",
     "./catalog-qualification.json": "./defaults/catalog-qualification-v1.json",
-    "./signed-catalog.json": "./defaults/signed-catalog-v2.json"
+    "./signed-catalog.json": "./defaults/signed-catalog-v2.json",
+    "./catalog-categories.json": "./defaults/catalog-categories-v1.json"
   },
   "engines": {
     "node": ">=20"
@@ -55,12 +56,13 @@
     "verify:default-evidence-chain": "vitest run tests/supported/default-evidence-chain.test.ts",
     "verify": "npm run typecheck && npm run lint && npm run build && npm test",
     "generate:catalog-index": "node tools/generate-catalog-index.mjs",
-    "check:catalog-index": "node tools/generate-catalog-index.mjs --check && node tools/generate-catalog-collections.mjs --check && node tools/generate-catalog-qualification.mjs --check && node tools/generate-catalog-presentation.mjs --check",
+    "check:catalog-index": "node tools/generate-catalog-index.mjs --check && node tools/generate-catalog-collections.mjs --check && node tools/generate-catalog-qualification.mjs --check && node tools/generate-catalog-presentation.mjs --check && node tools/generate-catalog-categories.mjs --check",
     "generate:catalog-collections": "node tools/generate-catalog-collections.mjs",
     "generate:catalog-qualification": "node tools/generate-catalog-qualification.mjs",
     "prepare:core-collection": "node tools/prepare-core-collection.mjs",
     "stage:source-closure": "node tools/stage-source-closure.mjs",
-    "generate:catalog-presentation": "node tools/generate-catalog-presentation.mjs"
+    "generate:catalog-presentation": "node tools/generate-catalog-presentation.mjs",
+    "generate:catalog-categories": "node tools/generate-catalog-categories.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.1",

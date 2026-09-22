@@ -1,4 +1,17 @@
 export {
+  CATALOG_CATEGORIES_FORMAT_V1,
+  CATALOG_CATEGORIES_MAX_BYTES_V1,
+  CATALOG_CATEGORIES_MAX_TAXONOMY_V1,
+  CATALOG_CATEGORIES_ROOT_URL,
+  CATALOG_CATEGORIES_SUBPATH_V1,
+  CATALOG_CATEGORIES_VERSION_V1,
+  type CatalogCategoriesV1,
+  type CatalogCategoryEntryV1,
+  type CatalogCategoryV1,
+  type ReadCatalogCategoriesV1Request,
+  readCatalogCategoriesV1,
+} from "./content/catalog-categories-v1.js";
+export {
   CATALOG_COLLECTIONS_FORMAT_V1,
   CATALOG_COLLECTIONS_MAX_BYTES_V1,
   CATALOG_COLLECTIONS_ROOT_URL,

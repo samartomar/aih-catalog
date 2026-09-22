@@ -240,6 +240,48 @@ path and digest from its closure, and the one field each value may come from,
 but not the published text itself. `--check --trees <trees-root>` also
 regenerates the text and compares bytes. Reading never uses the network.
 
+## Curated categories
+
+`@aihq/catalog/catalog-categories.json` (`defaults/catalog-categories-v1.json`),
+read with `readCatalogCategoriesV1({ bytes, index })`, gives every indexed item
+one category from a small published taxonomy, or an explicit `null`.
+
+**This is curated Catalog data, not an upstream declaration and not a UI
+classification.** `basis` is always `"curated"`. The AIH catalog maintainers edit
+it through `defaults/catalog-categories-rules-v1.json`: the taxonomy (`id`,
+`label`, `description`) and ordered rules, each mapping one kind of upstream
+evidence to a taxonomy id. A rule matches the item's declared `kind`, its
+upstream frontmatter `category` as the presentation sidecar published it, or a
+name pattern over its upstream name. The first matching rule wins. Every
+assignment carries a one-sentence `rationale` naming that evidence, its upstream
+file or release, and the rule, for example
+`Upstream name "python-reviewer" at affaan-m/ECC:agents/python-reviewer.md contains "reviewer" (rule review-names).`
+An item no rule matches is `{ category: null, reason: "not-curated" }`: an
+explicit result, never a guess. Upstream's own declared category, where one
+exists, stays in the presentation sidecar.
+
+```js
+import { readCatalogCategoriesV1 } from "@aihq/catalog";
+const categories = readCatalogCategoriesV1({ bytes: categoryBytes, index });
+// categories.entries[i] ->
+//   { reason: "curated", category: "code-review", rationale }
+//   | { reason: "not-curated", category: null, rationale: null }
+```
+
+Every index entry appears exactly once, in index order, with its subject digest.
+The reader refuses (`undefined`) non-canonical or oversize bytes, an unknown
+format, version, basis or member, an unsorted taxonomy, a category outside it, an
+entry not in the index, left out, duplicated or out of order, and a rationale that
+is missing, set on a `null` category, oversize or carries control characters.
+
+The taxonomy is a first curation: 12 categories, 365 of 457 entries curated and 92
+not curated. It awaits the owner's confirmation. Regenerate with
+`npm run generate:catalog-categories` after editing the rules;
+`npm run check:catalog-index` fails when the committed dataset differs from what
+the committed rules, index and presentation sidecar produce. A category is
+display and navigation data only: it says nothing about scanning, qualification,
+admission or policy.
+
 ## Original source closure
 
 `readCatalogSourceClosureV1` supplies a current collection member's original

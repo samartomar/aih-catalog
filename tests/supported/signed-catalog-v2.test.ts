@@ -977,6 +977,12 @@ describe("public signed catalog V2 acceptance contract", () => {
     ] as const)
       expect(publicApi[operation]).toBeTypeOf("function");
     expect(Object.keys(publicApi).sort()).toEqual([
+      "CATALOG_CATEGORIES_FORMAT_V1",
+      "CATALOG_CATEGORIES_MAX_BYTES_V1",
+      "CATALOG_CATEGORIES_MAX_TAXONOMY_V1",
+      "CATALOG_CATEGORIES_ROOT_URL",
+      "CATALOG_CATEGORIES_SUBPATH_V1",
+      "CATALOG_CATEGORIES_VERSION_V1",
       "CATALOG_COLLECTIONS_FORMAT_V1",
       "CATALOG_COLLECTIONS_MAX_BYTES_V1",
       "CATALOG_COLLECTIONS_ROOT_URL",
@@ -1023,6 +1029,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       "parseQualificationReceiptSetV1Json",
       "parseQualificationReceiptV2Json",
       "planCatalogPromotionV2",
+      "readCatalogCategoriesV1",
       "readCatalogCollectionsV1",
       "readCatalogContentV1",
       "readCatalogPresentationV1",
@@ -4087,6 +4094,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       "./catalog-presentation.json": "./defaults/catalog-presentation-v1.json",
       "./catalog-qualification.json": "./defaults/catalog-qualification-v1.json",
       "./signed-catalog.json": "./defaults/signed-catalog-v2.json",
+      "./catalog-categories.json": "./defaults/catalog-categories-v1.json",
     });
     expect(coldVerificationSource).toMatch(/import \* as api from '@aihq\/catalog'/);
     expect(packageScripts["verify:default-evidence-chain"]).toBe(
@@ -4154,6 +4162,8 @@ describe("public signed catalog V2 acceptance contract", () => {
       expect(tarFiles.filter((path) => path.startsWith("dist/")).sort()).toEqual([
         "dist/cli.d.ts",
         "dist/cli.js",
+        "dist/content/catalog-categories-v1.d.ts",
+        "dist/content/catalog-categories-v1.js",
         "dist/content/catalog-collections-v1.d.ts",
         "dist/content/catalog-collections-v1.js",
         "dist/content/catalog-content-v1.d.ts",
