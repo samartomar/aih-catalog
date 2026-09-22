@@ -55,7 +55,7 @@
     "verify:default-evidence-chain": "vitest run tests/supported/default-evidence-chain.test.ts",
     "verify": "npm run typecheck && npm run lint && npm run build && npm test",
     "generate:catalog-index": "node tools/generate-catalog-index.mjs",
-    "check:catalog-index": "node tools/generate-catalog-index.mjs --check && node tools/generate-catalog-collections.mjs --check && node tools/generate-catalog-qualification.mjs --check",
+    "check:catalog-index": "node tools/generate-catalog-index.mjs --check && node tools/generate-catalog-collections.mjs --check && node tools/generate-catalog-qualification.mjs --check && node tools/generate-catalog-presentation.mjs --check",
     "generate:catalog-collections": "node tools/generate-catalog-collections.mjs",
     "generate:catalog-qualification": "node tools/generate-catalog-qualification.mjs",
     "prepare:core-collection": "node tools/prepare-core-collection.mjs",

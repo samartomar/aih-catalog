@@ -205,11 +205,40 @@ fields, an entry that is not in the index or has a different subject digest, an
 indexed entry left out, and malformed or oversize text. Values are upstream data:
 render them as text only.
 
-Today it covers `affaan-m/ECC` at `5064474d4d762dc9640234a41617cccb79185cec`
-(367 entries). Maintainers regenerate it from a tree extracted from that exact
-revision with
-`npm run generate:catalog-presentation -- --from <extracted upstream root>`.
-Reading never uses the network.
+Today it covers every GitHub source in the index, 428 of 457 entries, each at
+its pinned commit:
+
+| Source | Commit | Entries |
+| --- | --- | --- |
+| `affaan-m/ECC` | `5064474d4d762dc9640234a41617cccb79185cec` | 367 |
+| `mattpocock/skills` | `3cca18b368ae95cdbdebbff572ccafa662551015` | 25 |
+| `anthropics/skills` | `34040c9c568585f6929bedeaad110ad08f079624` | 14 |
+| `obra/Superpowers` | `b36e0829c6d0140e93cfef2ca599b1b07d4a7797` | 14 |
+| `DietrichGebert/ponytail` | `356918eba965ee1eac64bd3a7f0dd02108350de5` | 7 |
+| `nextlevelbuilder/ui-ux-pro-max-skill` | `a38d04c3d5c298c851dbe5e6ee1965ee3de42cb5` | 1 |
+
+The ponytail MCP server's declared source is a JavaScript file, not a
+frontmatter or `mcpServers` file, so its values are `no-source-file`.
+
+**Not covered, by design of this format:** the 28 `aih` entries (Core releases
+and `recipe.default`) and the one `npm` entry (`picocolors@1.1.1`). This sidecar
+accepts only `github` sources pinned to a 40-hex commit, and `recipe.default` and
+`picocolors` declare no closure file to read even in principle. Those entries are
+absent from the sidecar, not unavailable within it; covering them needs a format
+change, which has not been made.
+
+Maintainers regenerate it from trees extracted at exactly those commits, laid out
+as `<trees-root>/<owner>/<repository>/<commit>`, with
+`npm run generate:catalog-presentation -- --trees <trees-root>` (or `--from
+<tree>` when one source is listed). The generator refuses any file whose bytes do
+not hash to the closure's declared digest, so a tree at another revision, or one
+checked out with line-ending conversion, cannot pass. `npm run
+check:catalog-index` runs `generate-catalog-presentation.mjs --check` without
+trees and without the network: it re-derives the source list from the inputs
+file, the entry set and subject digests from the index, each record's source
+path and digest from its closure, and the one field each value may come from,
+but not the published text itself. `--check --trees <trees-root>` also
+regenerates the text and compares bytes. Reading never uses the network.
 
 ## Original source closure
 

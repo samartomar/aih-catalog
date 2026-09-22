@@ -52,24 +52,98 @@ describe("published catalog presentation", () => {
     expect(pkg.exports["./catalog-presentation.json"]).toBe(`./${CATALOG_PRESENTATION_ROOT_URL}`);
   });
 
-  it("covers every ECC entry at the indexed commit, with counts from the data", () => {
+  it("covers every GitHub entry at its indexed commit, with counts from the data", () => {
     const presentation = readCatalogPresentationV1({ bytes: shippedBytes, index });
     if (presentation === undefined) throw new Error("shipped presentation refused");
-    expect(presentation.sources).toEqual([ECC]);
-    const eccEntries = index.entries.filter(
-      (entry) =>
-        entry.subject.source.repository === ECC.repository &&
-        entry.subject.source.commit === ECC.commit,
-    );
+    const github = (repository: string, commit: string) => ({
+      type: "github",
+      repository,
+      commit,
+    });
+    expect(presentation.sources).toEqual([
+      github("DietrichGebert/ponytail", "356918eba965ee1eac64bd3a7f0dd02108350de5"),
+      ECC,
+      github("anthropics/skills", "34040c9c568585f6929bedeaad110ad08f079624"),
+      github("mattpocock/skills", "3cca18b368ae95cdbdebbff572ccafa662551015"),
+      github("nextlevelbuilder/ui-ux-pro-max-skill", "a38d04c3d5c298c851dbe5e6ee1965ee3de42cb5"),
+      github("obra/Superpowers", "b36e0829c6d0140e93cfef2ca599b1b07d4a7797"),
+    ]);
+    // Every GitHub entry of the index, and nothing else.
+    const githubEntries = index.entries.filter((entry) => entry.subject.source.type === "github");
     expect(presentation.entries.map((entry) => entry.entryId)).toEqual(
-      eccEntries.map((entry) => entry.entryId),
+      githubEntries.map((entry) => entry.entryId),
     );
     expect(presentation.coverage).toEqual({
-      entries: 367,
-      title: { published: 330, unavailable: 37 },
-      description: { published: 361, unavailable: 6 },
-      category: { published: 3, unavailable: 364 },
+      entries: 428,
+      title: { published: 390, unavailable: 38 },
+      description: { published: 421, unavailable: 7 },
+      category: { published: 3, unavailable: 425 },
     });
+    // The aih and npm entries are outside this github-only format: absent, not unavailable.
+    const covered = new Set(presentation.entries.map((entry) => entry.entryId));
+    const absent = index.entries.filter((entry) => !covered.has(entry.entryId));
+    expect(absent.map((entry) => entry.subject.source.type).sort()).toEqual([
+      ...Array(28).fill("aih"),
+      "npm",
+    ]);
+  });
+
+  it("reads a skill declared by its SKILL.md and marks an undeclared MCP source file", () => {
+    const presentation = readCatalogPresentationV1({ bytes: shippedBytes, index });
+    const byId = new Map(presentation?.entries.map((entry) => [entry.entryId, entry]));
+    const academy = byId.get("skill.anthropic.academy-guide");
+    expect(academy?.source?.path).toBe("skills/academy-guide/SKILL.md");
+    expect(academy?.title).toMatchObject({ state: "published", field: "frontmatter.name" });
+    expect(academy?.description).toMatchObject({
+      state: "published",
+      field: "frontmatter.description",
+    });
+    const ponytailMcp = presentation?.entries.find((entry) => {
+      const indexed = index.entries.find((candidate) => candidate.entryId === entry.entryId);
+      return (
+        indexed?.subject.kind === "mcp" &&
+        indexed.subject.source.repository === "DietrichGebert/ponytail"
+      );
+    });
+    expect(ponytailMcp?.source).toBeNull();
+    expect(ponytailMcp?.description).toEqual({ state: "unavailable", reason: "no-source-file" });
+  });
+
+  it("checks the committed sidecar against the inputs, index and closures without upstream trees", async () => {
+    const { checkCatalogPresentation, serializeCatalogPresentation } = await generator();
+    expect(checkCatalogPresentation(root).entries).toHaveLength(428);
+    const refuse = (mutate: (doc: Doc) => void, message: string) => {
+      const doc = clone();
+      mutate(doc);
+      expect(() =>
+        checkCatalogPresentation(root, undefined, serializeCatalogPresentation(doc)),
+      ).toThrow(message);
+    };
+    const id = "skill.anthropic.academy-guide";
+    refuse((doc) => {
+      doc.sources.pop();
+    }, "sources are not the inputs file's");
+    refuse((doc) => {
+      doc.entries.splice(3, 1);
+    }, "does not cover every entry");
+    refuse((doc) => {
+      record(doc, id).source.sha256 = "0".repeat(64);
+    }, "not the closure-declared file and digest");
+    refuse((doc) => {
+      record(doc, id).source.path = "skills/academy-guide/README.md";
+    }, "not the closure-declared file and digest");
+    refuse((doc) => {
+      record(doc, id).title.field = "frontmatter.title";
+    }, "names a field this generator never reads");
+    refuse((doc) => {
+      record(doc, id).category = { state: "unavailable", reason: "no-source-file" };
+    }, "neither published nor a known unavailable reason");
+    refuse((doc) => {
+      record(doc, id).subjectDigest = `sha256:${"0".repeat(64)}`;
+    }, "is not this index entry");
+    expect(() =>
+      checkCatalogPresentation(root, undefined, `${JSON.stringify(shipped, null, 2)}\n`),
+    ).toThrow("not canonical");
   });
 
   it("reads each value from the exact file the entry's closure declares", () => {

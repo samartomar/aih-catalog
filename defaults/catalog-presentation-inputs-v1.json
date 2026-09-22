@@ -6,6 +6,31 @@
       "type": "github",
       "repository": "affaan-m/ECC",
       "commit": "5064474d4d762dc9640234a41617cccb79185cec"
+    },
+    {
+      "type": "github",
+      "repository": "anthropics/skills",
+      "commit": "34040c9c568585f6929bedeaad110ad08f079624"
+    },
+    {
+      "type": "github",
+      "repository": "DietrichGebert/ponytail",
+      "commit": "356918eba965ee1eac64bd3a7f0dd02108350de5"
+    },
+    {
+      "type": "github",
+      "repository": "mattpocock/skills",
+      "commit": "3cca18b368ae95cdbdebbff572ccafa662551015"
+    },
+    {
+      "type": "github",
+      "repository": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "commit": "a38d04c3d5c298c851dbe5e6ee1965ee3de42cb5"
+    },
+    {
+      "type": "github",
+      "repository": "obra/Superpowers",
+      "commit": "b36e0829c6d0140e93cfef2ca599b1b07d4a7797"
     }
   ]
 }

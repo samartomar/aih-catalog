@@ -16,7 +16,8 @@ import { fileURLToPath } from "node:url";
  *
  * Source text is data. It is copied, never interpreted or executed.
  *
- *   node tools/generate-catalog-presentation.mjs --from <extracted upstream root> [catalog-root]
+ *   node tools/generate-catalog-presentation.mjs [--check] (--from <extracted upstream root> | --trees <root of owner/repository/commit trees>) [catalog-root]
+ *   node tools/generate-catalog-presentation.mjs --check [catalog-root]
  */
 export const INPUT = "defaults/catalog-presentation-inputs-v1.json";
 export const OUTPUT = "defaults/catalog-presentation-v1.json";
@@ -174,7 +175,12 @@ const field = (values, key) => {
 
 function sourceFileOf(entry) {
   const { kind, source } = entry.subject;
-  if (kind === "skill") return `${source.path}/SKILL.md`;
+  // A skill is declared either by its directory or by its SKILL.md itself.
+  if (kind === "skill") {
+    return source.path === "SKILL.md" || source.path.endsWith("/SKILL.md")
+      ? source.path
+      : `${source.path}/SKILL.md`;
+  }
   if (kind === "agent" && source.path.endsWith(".md")) return source.path;
   if (kind === "mcp" && source.path.endsWith(".json")) return source.path;
   return undefined;
@@ -193,80 +199,99 @@ function readInputs(root) {
   return inputs;
 }
 
-export function generateCatalogPresentation(root, upstreamRoot) {
-  const inputs = readInputs(root);
+/**
+ * Every index entry of every listed source, with the closure-declared source file
+ * it is read from. The closure bytes must hash to the index's closure digest.
+ */
+function listedMembers(root, inputs) {
   const index = JSON.parse(readFileSync(resolve(root, INDEX), "utf8"));
-  const entries = [];
+  const members = [];
   for (const source of inputs.sources) {
-    const members = index.entries.filter(
+    const entries = index.entries.filter(
       (entry) =>
         entry.subject.source.type === "github" &&
         entry.subject.source.repository === source.repository &&
         entry.subject.source.commit === source.commit,
     );
-    if (members.length === 0) fail(`${source.repository}@${source.commit} has no index entries`);
-    for (const entry of members) {
-      const closure = JSON.parse(
-        readFileSync(resolve(root, ...entry.artifacts.closure.path.split("/")), "utf8"),
-      );
-      if (sha256(readFileSync(resolve(root, ...entry.artifacts.closure.path.split("/")))) !==
-        entry.artifacts.closure.sha256) {
+    if (entries.length === 0) fail(`${source.repository}@${source.commit} has no index entries`);
+    for (const entry of entries) {
+      const closureBytes = readFileSync(resolve(root, ...entry.artifacts.closure.path.split("/")));
+      if (sha256(closureBytes) !== entry.artifacts.closure.sha256) {
         fail(`${entry.entryId}: closure does not match its index digest`);
       }
+      const closure = JSON.parse(closureBytes.toString("utf8"));
       const path = sourceFileOf(entry);
-      const declared = closure.files?.find((file) => file.path === path);
-      const record = {
-        entryId: entry.entryId,
-        subjectDigest: entry.subject.subjectDigest,
-        source: null,
-        title: unavailable("not-declared"),
-        description: unavailable("not-declared"),
-        category: unavailable("not-declared"),
-      };
-      if (path === undefined || declared === undefined) {
-        record.title = unavailable("no-source-file");
-        record.description = unavailable("no-source-file");
-        record.category = unavailable("no-source-file");
-        entries.push(record);
-        continue;
-      }
-      const bytes = readFileSync(resolve(upstreamRoot, ...path.split("/")));
-      const digest = sha256(bytes);
-      if (`sha256:${digest}` !== declared.digest) {
-        fail(`${entry.entryId}: ${path} is sha256:${digest}, closure declares ${declared.digest}`);
-      }
-      record.source = { path, sha256: digest };
-      const text = Buffer.from(bytes).toString("utf8");
-      if (path.endsWith(".md")) {
-        const values = text.includes("\r") ? undefined : readFrontmatter(text);
-        if (values === undefined) {
-          record.title = unavailable("unparsed");
-          record.description = unavailable("unparsed");
-          record.category = unavailable("unparsed");
-        } else {
-          record.title = field(values, "name");
-          record.description = field(values, "description");
-          record.category = field(values, "category");
-        }
-      } else {
-        // An MCP server's key is its id, not a display name; only a declared description is read.
-        const servers = JSON.parse(text).mcpServers;
-        const server = servers?.[entry.subject.id];
-        record.description =
-          server === undefined
-            ? unavailable("not-in-source-file")
-            : published(server.description, `mcpServers.${entry.subject.id}.description`);
-      }
-      entries.push(record);
+      const declared =
+        path === undefined ? undefined : closure.files?.find((file) => file.path === path);
+      members.push({ source, entry, path, declared });
     }
+  }
+  return members;
+}
+
+const listedSources = (inputs) =>
+  inputs.sources
+    .map((source) => ({ type: source.type, repository: source.repository, commit: source.commit }))
+    .sort((a, b) => compare(`${a.repository}@${a.commit}`, `${b.repository}@${b.commit}`));
+
+/**
+ * `upstream` is one extracted tree (every listed source is read from it) or a
+ * function from a listed source to the extracted tree of that exact revision.
+ */
+export function generateCatalogPresentation(root, upstream) {
+  const treeOf = typeof upstream === "function" ? upstream : () => upstream;
+  const inputs = readInputs(root);
+  const entries = [];
+  for (const { source, entry, path, declared } of listedMembers(root, inputs)) {
+    const record = {
+      entryId: entry.entryId,
+      subjectDigest: entry.subject.subjectDigest,
+      source: null,
+      title: unavailable("not-declared"),
+      description: unavailable("not-declared"),
+      category: unavailable("not-declared"),
+    };
+    if (path === undefined || declared === undefined) {
+      record.title = unavailable("no-source-file");
+      record.description = unavailable("no-source-file");
+      record.category = unavailable("no-source-file");
+      entries.push(record);
+      continue;
+    }
+    const bytes = readFileSync(resolve(treeOf(source), ...path.split("/")));
+    const digest = sha256(bytes);
+    if (`sha256:${digest}` !== declared.digest) {
+      fail(`${entry.entryId}: ${path} is sha256:${digest}, closure declares ${declared.digest}`);
+    }
+    record.source = { path, sha256: digest };
+    const text = Buffer.from(bytes).toString("utf8");
+    if (path.endsWith(".md")) {
+      const values = text.includes("\r") ? undefined : readFrontmatter(text);
+      if (values === undefined) {
+        record.title = unavailable("unparsed");
+        record.description = unavailable("unparsed");
+        record.category = unavailable("unparsed");
+      } else {
+        record.title = field(values, "name");
+        record.description = field(values, "description");
+        record.category = field(values, "category");
+      }
+    } else {
+      // An MCP server's key is its id, not a display name; only a declared description is read.
+      const servers = JSON.parse(text).mcpServers;
+      const server = servers?.[entry.subject.id];
+      record.description =
+        server === undefined
+          ? unavailable("not-in-source-file")
+          : published(server.description, `mcpServers.${entry.subject.id}.description`);
+    }
+    entries.push(record);
   }
   entries.sort((a, b) => compare(a.entryId, b.entryId));
   return {
     format: "aih-catalog-presentation",
     version: 1,
-    sources: inputs.sources
-      .map((source) => ({ type: source.type, repository: source.repository, commit: source.commit }))
-      .sort((a, b) => compare(`${a.repository}@${a.commit}`, `${b.repository}@${b.commit}`)),
+    sources: listedSources(inputs),
     entries,
   };
 }
@@ -275,30 +300,168 @@ export function serializeCatalogPresentation(value) {
   return `${canonical(value)}\n`;
 }
 
+const sameValue = (a, b) => canonical(a) === canonical(b);
+const UNAVAILABLE_IN_FILE = new Set(["not-declared", "unparsed", "not-in-source-file"]);
+
+/** A file-backed value is published from the one field this generator reads, or unavailable. */
+function checkFileValue(entryId, name, value, publishedField) {
+  if (value?.state === "published") {
+    if (publishedField === undefined || value.field !== publishedField) {
+      fail(`${entryId}: ${name} names a field this generator never reads`);
+    }
+    if (published(value.value, value.field).state !== "published") {
+      fail(`${entryId}: ${name} is not publishable text`);
+    }
+    if (!sameValue(Object.keys(value).sort(), ["field", "state", "value"])) {
+      fail(`${entryId}: ${name} has unknown members`);
+    }
+    return;
+  }
+  if (value?.state !== "unavailable" || !UNAVAILABLE_IN_FILE.has(value.reason)) {
+    fail(`${entryId}: ${name} is neither published nor a known unavailable reason`);
+  }
+  if (!sameValue(Object.keys(value).sort(), ["reason", "state"])) {
+    fail(`${entryId}: ${name} has unknown members`);
+  }
+}
+
+/**
+ * The drift gate. With extracted upstream trees it regenerates and compares
+ * bytes. Without them (the default in `check:catalog-index`, which fetches
+ * nothing) it re-derives everything that does not need upstream bytes: the
+ * committed bytes are canonical, the source list is the inputs file's, the
+ * entries are exactly the index entries of the listed sources with their
+ * subject digests, each entry names exactly the closure-declared file and digest
+ * (or none, with every value `no-source-file`), and each value is published only
+ * from the one field this generator reads for that file type. It cannot
+ * re-derive the published text itself without the upstream trees.
+ * `committedText` replaces the committed file, for tests.
+ */
+export function checkCatalogPresentation(root, upstream, committedText) {
+  const committed = committedText ?? readFileSync(resolve(root, OUTPUT), "utf8");
+  if (upstream !== undefined) {
+    const regenerated = serializeCatalogPresentation(generateCatalogPresentation(root, upstream));
+    if (regenerated !== committed) {
+      fail("presentation is stale; run npm run generate:catalog-presentation");
+    }
+    return JSON.parse(committed);
+  }
+  const value = JSON.parse(committed);
+  if (serializeCatalogPresentation(value) !== committed) fail("presentation is not canonical");
+  if (!sameValue(Object.keys(value).sort(), ["entries", "format", "sources", "version"])) {
+    fail("presentation has unknown members");
+  }
+  if (value.format !== "aih-catalog-presentation" || value.version !== 1) {
+    fail("presentation format");
+  }
+  const inputs = readInputs(root);
+  if (!sameValue(value.sources, listedSources(inputs))) {
+    fail("presentation sources are not the inputs file's; run npm run generate:catalog-presentation");
+  }
+  const members = listedMembers(root, inputs).sort((a, b) =>
+    compare(a.entry.entryId, b.entry.entryId),
+  );
+  if (!Array.isArray(value.entries) || value.entries.length !== members.length) {
+    fail("presentation does not cover every entry of its listed sources");
+  }
+  members.forEach(({ entry, path, declared }, position) => {
+    const record = value.entries[position];
+    if (record.entryId !== entry.entryId || record.subjectDigest !== entry.subject.subjectDigest) {
+      fail(`${entry.entryId}: presentation record is not this index entry`);
+    }
+    if (
+      !sameValue(Object.keys(record).sort(), [
+        "category",
+        "description",
+        "entryId",
+        "source",
+        "subjectDigest",
+        "title",
+      ])
+    ) {
+      fail(`${entry.entryId}: presentation record has unknown members`);
+    }
+    if (path === undefined || declared === undefined) {
+      if (record.source !== null) fail(`${entry.entryId}: names a source file it has none of`);
+      for (const name of ["title", "description", "category"]) {
+        if (!sameValue(record[name], unavailable("no-source-file"))) {
+          fail(`${entry.entryId}: ${name} must be unavailable: no-source-file`);
+        }
+      }
+      return;
+    }
+    if (!sameValue(record.source, { path, sha256: declared.digest.slice("sha256:".length) })) {
+      fail(`${entry.entryId}: source is not the closure-declared file and digest`);
+    }
+    const markdown = path.endsWith(".md");
+    checkFileValue(entry.entryId, "title", record.title, markdown ? "frontmatter.name" : undefined);
+    checkFileValue(
+      entry.entryId,
+      "description",
+      record.description,
+      markdown ? "frontmatter.description" : `mcpServers.${entry.subject.id}.description`,
+    );
+    checkFileValue(
+      entry.entryId,
+      "category",
+      record.category,
+      markdown ? "frontmatter.category" : undefined,
+    );
+  });
+  return value;
+}
+
+/**
+ * `--trees <dir>` reads each listed source from `<dir>/<owner>/<repository>/<commit>`,
+ * a tree the maintainer extracted at exactly that commit.
+ */
+const treesAt = (directory) => (source) =>
+  resolve(directory, ...source.repository.split("/"), source.commit);
+
+function upstreamArgument(args) {
+  const flag = args[0];
+  if (flag !== "--from" && flag !== "--trees") return undefined;
+  if (!args[1]) fail(`${flag} needs a directory`);
+  const directory = resolve(args[1]);
+  args.splice(0, 2);
+  return flag === "--from" ? directory : treesAt(directory);
+}
+
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     const args = process.argv.slice(2);
-    if (args[0] !== "--from" || !args[1] || args.length > 3) {
-      fail("usage: node tools/generate-catalog-presentation.mjs --from <upstream-root> [catalog-root]");
+    const check = args[0] === "--check";
+    if (check) args.shift();
+    const upstream = upstreamArgument(args);
+    if ((!check && upstream === undefined) || args.length > 1 || args[0]?.startsWith("-")) {
+      fail(
+        "usage: node tools/generate-catalog-presentation.mjs [--check] (--from <upstream-root> | --trees <trees-root>) [catalog-root]",
+      );
     }
-    const upstream = resolve(args[1]);
-    const root = resolve(args[2] ?? resolve(dirname(fileURLToPath(import.meta.url)), ".."));
-    const value = generateCatalogPresentation(root, upstream);
-    const output = resolve(root, OUTPUT);
-    const temporary = `${output}.tmp`;
-    writeFileSync(temporary, serializeCatalogPresentation(value), { flag: "wx" });
-    try {
-      renameSync(temporary, output);
-    } finally {
-      rmSync(temporary, { force: true });
+    const root = resolve(args[0] ?? resolve(dirname(fileURLToPath(import.meta.url)), ".."));
+    const count = (value, name, state) =>
+      value.entries.filter((entry) => entry[name].state === state).length;
+    const summary = (value) =>
+      `${value.entries.length} entries; ` +
+      ["title", "description", "category"]
+        .map((name) => `${name} ${count(value, name, "published")} published`)
+        .join(", ");
+    if (check) {
+      const value = checkCatalogPresentation(root, upstream);
+      const mode = upstream === undefined ? "structure and sources" : "regenerated bytes";
+      console.log(`Checked ${OUTPUT} (${mode}): ${summary(value)}`);
+    } else {
+      const value = generateCatalogPresentation(root, upstream);
+      const output = resolve(root, OUTPUT);
+      const temporary = `${output}.tmp`;
+      writeFileSync(temporary, serializeCatalogPresentation(value), { flag: "wx" });
+      try {
+        renameSync(temporary, output);
+      } finally {
+        rmSync(temporary, { force: true });
+      }
+      console.log(`Generated ${OUTPUT}: ${summary(value)}`);
     }
-    const count = (name, state) => value.entries.filter((entry) => entry[name].state === state).length;
-    console.log(
-      `Generated ${OUTPUT}: ${value.entries.length} entries; ` +
-        ["title", "description", "category"]
-          .map((name) => `${name} ${count(name, "published")} published`)
-          .join(", "),
-    );
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
     process.exitCode = 1;
