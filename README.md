@@ -66,6 +66,10 @@ Descriptor paths are relative to the Catalog package root; their `sha256`
 values hash the original file bytes. Generation has no timestamps or network
 access, rejects missing files, duplicate identities, unsafe or linked paths and
 mismatched evidence subjects, and replaces the output only after validation.
+`readCatalogContentV1` returns each evidence record as `{ path, sha256,
+subjectDigest, format, kind, id, attestor, summary }`, with `summary` the
+envelope's own text verbatim (at most 4096 characters, no control character
+other than a line feed; anything else refuses the whole index).
 
 This is an unsigned browsing index, not a qualification receipt or organization
 admission authority. Evidence summaries remain summaries: this generator does

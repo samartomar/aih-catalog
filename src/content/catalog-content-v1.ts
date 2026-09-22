@@ -73,6 +73,12 @@ export interface CatalogEvidenceV1 {
   readonly kind: string;
   readonly id: string;
   readonly attestor: string;
+  /**
+   * The evidence envelope's own free-text summary, verbatim: at most 4096
+   * characters, no control characters other than a line feed. Prose, never a
+   * structured verdict or severity.
+   */
+  readonly summary: string;
 }
 
 export interface CatalogQualificationV1 {
@@ -143,6 +149,11 @@ export interface ReadCatalogContentV1Request {
   readonly input?: CatalogContentV1Input;
 }
 
+const EVIDENCE_SUMMARY_MAX_TEXT = 4096;
+/** Control characters, except the line feed that multi-line prose legitimately carries. */
+// biome-ignore lint/suspicious/noControlCharactersInRegex: control characters are what is refused.
+const CONTROL = /[\u0000-\u0009\u000b-\u001f\u007f]/;
+
 const fail = (reason: string): undefined => {
   void reason;
   return undefined;
@@ -181,6 +192,9 @@ function evidenceRecord(value: unknown, subjectDigest: string): CatalogEvidenceV
   if (record.format !== "aih-supported-evidence/v2") return undefined;
   if (!isText(record.kind) || !isText(record.id) || !isText(record.attestor)) return undefined;
   if (typeof record.summary !== "string") return undefined;
+  if (record.summary.length > EVIDENCE_SUMMARY_MAX_TEXT || CONTROL.test(record.summary)) {
+    return undefined;
+  }
   // An evidence record that is not bound to this exact subject is not this entry's evidence.
   if (record.subjectDigest !== subjectDigest) return undefined;
   return {
@@ -191,6 +205,7 @@ function evidenceRecord(value: unknown, subjectDigest: string): CatalogEvidenceV
     kind: record.kind,
     id: record.id,
     attestor: record.attestor,
+    summary: record.summary,
   };
 }
 

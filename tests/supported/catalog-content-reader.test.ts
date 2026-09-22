@@ -322,4 +322,48 @@ describe("Catalog public content reader", () => {
     expect(Object.isFrozen(content.entries[0])).toBe(true);
     expect(Object.isFrozen(content.entries[0]?.subject)).toBe(true);
   });
+
+  it("returns each evidence summary verbatim and refuses an oversize or control-character one", () => {
+    const content = readCatalogContentV1({ bytes: shippedBytes }) as CatalogContentV1;
+    const item = content.entries.find((entry) => entry.entryId === "agent.aih.governance-quality");
+    const published = (
+      shipped.entries as Array<{
+        entryId: string;
+        qualification: { report: { evidence: { summary: string } } };
+      }>
+    ).find((entry) => entry.entryId === "agent.aih.governance-quality");
+    expect(item?.qualification.report.summary).toBe(
+      published?.qualification.report.evidence.summary,
+    );
+    for (const entry of content.entries) {
+      const records = [
+        entry.qualification.report,
+        ...entry.qualification.findings,
+        ...entry.qualification.gaps,
+        ...entry.qualification.rights,
+      ];
+      for (const record of records) expect(typeof record.summary).toBe("string");
+    }
+
+    const withSummary = (summary: string) => {
+      const value = JSON.parse(syntheticIndex().bytes.toString("utf8"));
+      value.entries[0].qualification.gaps[0].evidence.summary = summary;
+      return Buffer.from(`${JSON.stringify(value)}\n`, "utf8");
+    };
+    const exact = "verdict pass; findings 0\nsecond line";
+    expect(
+      readCatalogContentV1({ bytes: withSummary(exact) })?.entries[0]?.qualification.gaps[0]
+        ?.summary,
+    ).toBe(exact);
+    expect(readCatalogContentV1({ bytes: withSummary("x".repeat(4096)) })).toBeDefined();
+    for (const [reason, summary] of [
+      ["oversize", "x".repeat(4097)],
+      ["NUL", "a\u0000b"],
+      ["tab", "a\tb"],
+      ["escape", "a\u001bb"],
+      ["delete", "a\u007fb"],
+    ] as const) {
+      expect(readCatalogContentV1({ bytes: withSummary(summary) }), reason).toBeUndefined();
+    }
+  });
 });
