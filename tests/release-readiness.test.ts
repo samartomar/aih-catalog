@@ -355,3 +355,267 @@ describe("@aihq/catalog release boundary (#12)", () => {
     );
   }, 45_000);
 });
+
+describe("@aihq/catalog promotion readiness gate", () => {
+  it("gates promotion on Core's compatibility evidence without moving a dist tag", () => {
+    const workflow = read(".github/workflows/promotion-readiness.yml");
+    // The required check to protect with is the workflow name plus the job id.
+    expect(workflow).toContain("name: promotion-readiness");
+    expect(workflow).toContain("promotion-readiness / authorize");
+    expect(workflow).toContain("  authorize:");
+    expect(workflow).toContain("workflow_dispatch:");
+    expect(workflow).not.toMatch(
+      /^\s*(push|pull_request|workflow_call|schedule|pull_request_target):/mu,
+    );
+    expect(workflow).toMatch(/permissions:\n\s+contents: read\n\s+actions: read/u);
+    expect(workflow).not.toMatch(/contents:\s*write|id-token:\s*write|packages:\s*write/u);
+    expect(workflow).not.toMatch(/secrets\.|NODE_AUTH_TOKEN|NPM_TOKEN/u);
+    for (const input of [
+      "candidate_version:",
+      "compatibility_run_id:",
+      "compatibility_run_attempt:",
+      "promotion_authorization_comment:",
+    ])
+      expect(workflow, input).toContain(input);
+    expect(workflow).toContain("core-sibling-compatibility");
+    expect(workflow).toContain("--repo samartomar/ai-harness");
+    expect(workflow).toContain('npm view "@aihq/catalog@$CANDIDATE_VERSION" dist.integrity');
+    expect(workflow).toContain('npm view "@aihq/catalog" dist-tags --json');
+    expect(workflow).toContain("--ignore-scripts");
+    // npm pack writes into --pack-destination without creating it, so the directory must
+    // be created before the pack runs, inside the same step.
+    const packIndex = workflow.indexOf(
+      'npm pack "@aihq/catalog@$CANDIDATE_VERSION" --ignore-scripts --pack-destination candidate',
+    );
+    expect(packIndex).toBeGreaterThan(0);
+    const packStepStart = workflow.lastIndexOf("      - name:", packIndex);
+    const mkdirIndex = workflow.indexOf("mkdir -p candidate\n", packStepStart);
+    expect(mkdirIndex).toBeGreaterThan(packStepStart);
+    expect(mkdirIndex).toBeLessThan(packIndex);
+    expect(workflow).toContain('sha256sum "candidate/aihq-catalog-$CANDIDATE_VERSION.tgz"');
+    // The artifact leg this package reads, and the only passing check status.
+    expect(workflow).toContain('"package":"@aihq/catalog"');
+    expect(workflow).toContain('"status":"passed"');
+    expect(workflow).toContain('leg.package === "@aihq/catalog"');
+    expect(workflow).toContain('check?.status !== "passed"');
+    expect(workflow).toContain(
+      "the published tarball bytes differ from the bytes the compatibility run tested",
+    );
+    expect(workflow).toContain("npm dist-tag add @aihq/catalog@$CANDIDATE_VERSION latest");
+    // The commands exist only inside the printed heredoc, never as an executed step.
+    expect(workflow).toContain("Print the promotion commands without running them");
+    const heredocStart = workflow.indexOf("cat <<EOF");
+    const heredocEnd = workflow.indexOf("EOF", heredocStart + "cat <<EOF".length);
+    expect(heredocStart).toBeGreaterThan(0);
+    expect(heredocEnd).toBeGreaterThan(heredocStart);
+    const outsideHeredoc =
+      workflow.slice(0, heredocStart) + workflow.slice(heredocEnd + "EOF".length);
+    expect(outsideHeredoc).not.toMatch(/npm dist-tag (add|rm)/u);
+    expect(outsideHeredoc).not.toContain("gh release edit");
+    expect(workflow).toContain("it is not the owner's promotion authorization");
+
+    const releasing = read("RELEASING.md");
+    expect(releasing).toContain("promotion-readiness / authorize");
+    expect(releasing).toContain("A green run is evidence, not\n   authorization.");
+    expect(releasing).toContain("Authorize promoting @aihq/catalog@X.Y.Z from next to latest");
+  });
+
+  it("refuses compatibility evidence unless it comes from Core's own main compatibility run", () => {
+    const workflow = read(".github/workflows/promotion-readiness.yml");
+    // The run is described before its artifact is downloaded, through env-only inputs.
+    const describeIndex = workflow.indexOf(
+      'gh api "repos/samartomar/ai-harness/actions/runs/$COMPATIBILITY_RUN_ID" > compatibility-run.json',
+    );
+    const downloadIndex = workflow.indexOf('gh run download "$COMPATIBILITY_RUN_ID"');
+    expect(describeIndex).toBeGreaterThan(0);
+    expect(downloadIndex).toBeGreaterThan(describeIndex);
+    const inputUses = workflow.split("\n").filter((line) => line.includes("${{ inputs."));
+    expect(inputUses.length).toBeGreaterThan(0);
+    for (const line of inputUses)
+      expect(line, line).toMatch(
+        /^(\s+[A-Z_]+: \$\{\{ inputs\.[a-z_]+ \}\}|\s+group: promotion-readiness-\$\{\{ inputs\.candidate_version \}\})$/u,
+      );
+    for (const refusal of [
+      "refused: Core compatibility run $COMPATIBILITY_RUN_ID is unreadable",
+      'if (run.head_repository?.full_name !== "samartomar/ai-harness")',
+      'if (run.path !== ".github/workflows/sibling-compatibility.yml")',
+      'if (run.event !== "schedule" && run.event !== "workflow_dispatch")',
+      'if (run.head_branch !== "main")',
+      'if (run.conclusion !== "success")',
+      "if (String(run.run_attempt) !== process.env.COMPATIBILITY_RUN_ATTEMPT)",
+    ])
+      expect(workflow, refusal).toContain(refusal);
+
+    const validator = inlineModuleFollowing(
+      workflow,
+      "Refuse evidence from any run but Core's own main compatibility run",
+    );
+    const genuine = {
+      id: 35733767496,
+      path: ".github/workflows/sibling-compatibility.yml",
+      event: "schedule",
+      head_branch: "main",
+      conclusion: "success",
+      run_attempt: 2,
+      head_repository: { full_name: "samartomar/ai-harness" },
+    };
+    const fixtureRoot = mkdtempSync(join(tmpdir(), "aih-catalog-promotion-run-"));
+    try {
+      const validate = (run: unknown, raw?: string) => {
+        writeFileSync(join(fixtureRoot, "compatibility-run.json"), raw ?? JSON.stringify(run));
+        return spawnSync(process.execPath, ["--input-type=module", "-"], {
+          cwd: fixtureRoot,
+          input: validator,
+          encoding: "utf8",
+          env: {
+            ...process.env,
+            COMPATIBILITY_RUN_ID: "35733767496",
+            COMPATIBILITY_RUN_ATTEMPT: "2",
+          },
+        });
+      };
+
+      expect(validate(genuine).status).toBe(0);
+      expect(validate({ ...genuine, event: "workflow_dispatch" }).status).toBe(0);
+      for (const [label, forged, reason] of [
+        ["other run", { ...genuine, id: 35733767497 }, "the compatibility run is 35733767497"],
+        [
+          "fork",
+          { ...genuine, head_repository: { full_name: "someone/ai-harness" } },
+          "ran from someone/ai-harness",
+        ],
+        [
+          "other workflow",
+          { ...genuine, path: ".github/workflows/ci.yml" },
+          "is .github/workflows/ci.yml",
+        ],
+        ["pull request", { ...genuine, event: "pull_request" }, "triggered by pull_request"],
+        [
+          "pull request target",
+          { ...genuine, event: "pull_request_target" },
+          "triggered by pull_request_target",
+        ],
+        ["push", { ...genuine, event: "push" }, "triggered by push"],
+        ["branch", { ...genuine, head_branch: "feature" }, "ran on feature, not main"],
+        ["failure", { ...genuine, conclusion: "failure" }, "concluded failure, not success"],
+        ["in progress", { ...genuine, conclusion: null }, "concluded null, not success"],
+        ["attempt", { ...genuine, run_attempt: 3 }, "latest attempt is 3, not 2"],
+        ["array", [genuine], "description is not an object"],
+        ["null", null, "description is not an object"],
+      ] as const) {
+        const result = validate(forged);
+        expect(result.status, label).toBe(1);
+        expect(result.stderr, label).toMatch(/^refused: the compatibility run('s)? /u);
+        expect(result.stderr, label).toContain(reason);
+      }
+      const unreadable = validate(undefined, "{not json");
+      expect(unreadable.status).toBe(1);
+      expect(unreadable.stderr).toContain(
+        "refused: the compatibility run description is not readable JSON",
+      );
+    } finally {
+      rmSync(fixtureRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("promotes only the @aihq/catalog leg whose every check passed, over the exact bytes", () => {
+    const workflow = read(".github/workflows/promotion-readiness.yml");
+    const validator = inlineModuleFollowing(
+      workflow,
+      "Refuse unless the tested bytes are the bytes being promoted",
+    );
+    const sha = "a".repeat(64);
+    const integrity = "sha512-tested";
+    const leg = {
+      package: "@aihq/catalog",
+      version: "0.3.0",
+      tarballSha256: sha,
+      tarballIntegrity: integrity,
+      contractChecks: [{ status: "passed" }, { status: "passed" }],
+    };
+    const evidence = {
+      format: "core-sibling-compatibility",
+      version: 1,
+      runId: 35733767496,
+      runAttempt: 2,
+      legs: [{ ...leg, package: "@aihq/scan", version: "0.5.0" }, leg],
+    };
+    const fixtureRoot = mkdtempSync(join(tmpdir(), "aih-catalog-promotion-bytes-"));
+    try {
+      mkdirSync(join(fixtureRoot, "compatibility"));
+      const validate = (
+        artifact: unknown,
+        live: { integrity?: string; sha256?: string; next?: string } = {},
+      ) => {
+        writeFileSync(
+          join(fixtureRoot, "compatibility", "core-sibling-compatibility.json"),
+          JSON.stringify(artifact),
+        );
+        writeFileSync(
+          join(fixtureRoot, "live-integrity.json"),
+          JSON.stringify(live.integrity ?? integrity),
+        );
+        writeFileSync(join(fixtureRoot, "live-tarball-sha256.txt"), `${live.sha256 ?? sha}\n`);
+        writeFileSync(
+          join(fixtureRoot, "live-dist-tags.json"),
+          JSON.stringify({ latest: "0.2.0", next: live.next ?? "0.3.0" }),
+        );
+        return spawnSync(process.execPath, ["--input-type=module", "-"], {
+          cwd: fixtureRoot,
+          input: validator,
+          encoding: "utf8",
+          env: {
+            ...process.env,
+            CANDIDATE_VERSION: "0.3.0",
+            COMPATIBILITY_RUN_ID: "35733767496",
+            COMPATIBILITY_RUN_ATTEMPT: "2",
+          },
+        });
+      };
+
+      const ready = validate(evidence);
+      expect(ready.status, ready.stderr).toBe(0);
+      expect(JSON.parse(ready.stdout)).toMatchObject({
+        status: "READY",
+        candidateVersion: "0.3.0",
+        tarballSha256: sha,
+        authority: "none",
+      });
+      const withLeg = (changed: Record<string, unknown>) => ({
+        ...evidence,
+        legs: [evidence.legs[0], { ...leg, ...changed }],
+      });
+      const cases: ReadonlyArray<
+        readonly [string, unknown, { integrity?: string; sha256?: string; next?: string }, string]
+      > = [
+        [
+          "no catalog leg",
+          { ...evidence, legs: [evidence.legs[0]] },
+          {},
+          "no single @aihq/catalog",
+        ],
+        ["two catalog legs", { ...evidence, legs: [leg, leg] }, {}, "no single @aihq/catalog"],
+        ["other version", withLeg({ version: "0.2.9" }), {}, "the tested leg is 0.2.9"],
+        [
+          "a failed check",
+          withLeg({ contractChecks: [{ status: "passed" }, { status: "failed" }] }),
+          {},
+          "1 contract check(s)",
+        ],
+        ["no checks", withLeg({ contractChecks: [] }), {}, "records no contract checks"],
+        ["other bytes", evidence, { sha256: "b".repeat(64) }, "published tarball bytes differ"],
+        ["other integrity", evidence, { integrity: "sha512-other" }, "registry integrity differs"],
+        ["next moved", evidence, { next: "0.3.1" }, "dist-tags.next is 0.3.1"],
+        ["other run", { ...evidence, runId: 1 }, {}, "different run or attempt"],
+        ["unknown format", { ...evidence, version: 2 }, {}, "unknown format or version"],
+      ];
+      for (const [label, artifact, live, reason] of cases) {
+        const result = validate(artifact, live);
+        expect(result.status, label).toBe(1);
+        expect(result.stderr, label).toContain(reason);
+      }
+    } finally {
+      rmSync(fixtureRoot, { recursive: true, force: true });
+    }
+  });
+});

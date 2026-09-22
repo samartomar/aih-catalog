@@ -105,7 +105,17 @@ verify the checksum, keyless signature, and SBOM subject before claiming the
 candidate publication complete. Then run the exact public installed Catalog/Core/
 Scanner acceptance. Source checkout or local tarball execution cannot satisfy this gate.
 
-8. After acceptance, obtain separate promotion authorization:
+8. After acceptance, dispatch `promotion-readiness.yml` with the candidate version and
+   the Core `sibling-compatibility` run id and attempt that tested it, and require a green
+   `promotion-readiness / authorize` run. That read-only job first refuses unless the
+   run is Core's own `.github/workflows/sibling-compatibility.yml` run on `main` of
+   `samartomar/ai-harness`, triggered by `schedule` or `workflow_dispatch`, concluded
+   `success`, at the stated attempt. It then refuses unless the compatibility evidence
+   names this candidate in its single `@aihq/catalog` leg, every contract check in that
+   leg passed, the published tarball bytes and registry integrity still equal the bytes
+   that run tested, and `dist-tags.next` is still this candidate. It prints the
+   promotion commands and executes none of them. A green run is evidence, not
+   authorization. Then obtain separate promotion authorization, quoting that run id:
 
    ```text
    Authorize promoting @aihq/catalog@X.Y.Z from next to latest after installed acceptance of <full-main-SHA>.
