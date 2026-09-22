@@ -296,6 +296,36 @@ describe("catalog original-source closure", () => {
     }
   });
 
+  it("names an unknown profile version apart from a malformed profile", () => {
+    const read = (mutate: (profile: Doc) => void) =>
+      readCatalogSourceClosureV1({
+        root,
+        collectionId: "aih-core",
+        subjectId: "governance-quality",
+        readFile: forgeProfile("governance-quality", mutate),
+      });
+    for (const version of [2, 0, "1", null]) {
+      expect(
+        read((p) => {
+          p.version = version;
+        }),
+        JSON.stringify(version),
+      ).toEqual({ state: "refused", reason: "profile-unknown-version" });
+    }
+    // Another format is not this profile at all: still malformed, not a version question.
+    expect(
+      read((p) => {
+        p.format = "aih-first-party-qualification-profile-v2";
+      }),
+    ).toEqual({ state: "refused", reason: "profile-invalid" });
+    expect(
+      read((p) => {
+        p.format = "aih-first-party-qualification-profile-v2";
+        p.version = 2;
+      }),
+    ).toEqual({ state: "refused", reason: "profile-invalid" });
+  });
+
   it("refuses a changed declared digest even when the shipped bytes are intact", () => {
     const readFile = forgeProfile("governance-quality", (profile) => {
       profile.material.files[0].digest = `sha256:${"0".repeat(64)}`;

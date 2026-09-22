@@ -977,6 +977,8 @@ describe("public signed catalog V2 acceptance contract", () => {
     ] as const)
       expect(publicApi[operation]).toBeTypeOf("function");
     expect(Object.keys(publicApi).sort()).toEqual([
+      "CATALOG_ASSESSMENT_PROFILE_FORMAT_V1",
+      "CATALOG_ASSESSMENT_PROFILE_VERSION_V1",
       "CATALOG_CATEGORIES_FORMAT_V1",
       "CATALOG_CATEGORIES_MAX_BYTES_V1",
       "CATALOG_CATEGORIES_MAX_TAXONOMY_V1",

@@ -342,8 +342,10 @@ snapshot.
 Every refusal is `{ state: "refused", reason }`, with the original `path` for a
 file refusal: `index-unreadable`, `collections-unreadable`,
 `collection-unknown`, `member-unknown`, `member-ambiguous`,
-`profile-unverified`, `profile-invalid`, `material-not-source-files`,
-`source-file-absent`, `source-file-digest-mismatch`. A member whose bytes this
+`profile-unverified`, `profile-invalid`, `profile-unknown-version`,
+`material-not-source-files`, `source-file-absent`, `source-file-digest-mismatch`.
+`profile-unknown-version` is the assessment profile format at a version other than
+`1`; a profile of any other format is `profile-invalid`. A member whose bytes this
 package does not ship is `source-file-absent`, never an empty closure.
 
 Only the current Core `governance-quality` member's closure is shipped today.

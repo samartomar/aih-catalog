@@ -44,7 +44,14 @@ export const CATALOG_SOURCE_FILE_MAX_BYTES_V1 = 16 * 1024 * 1024;
 
 /** This module sits at `<package>/dist/content/`; the package root is two levels up. */
 const PACKAGE_ROOT = fileURLToPath(new URL("../../", import.meta.url));
-const PROFILE_FORMAT = "aih-first-party-qualification-profile";
+/**
+ * Mirrors Core's `ASSESSMENT_MATERIAL_FORMAT_V1` and its `version: 1` literal.
+ * `tools/verify-core-v2-lock.mjs` fails if the pinned Core commit declares either
+ * differently.
+ */
+export const CATALOG_ASSESSMENT_PROFILE_FORMAT_V1 = "aih-first-party-qualification-profile";
+export const CATALOG_ASSESSMENT_PROFILE_VERSION_V1 = 1;
+const PROFILE_FORMAT = CATALOG_ASSESSMENT_PROFILE_FORMAT_V1;
 const SKILL_MARKER = "SKILL.md";
 const PREFIXED_SHA256 = /^sha256:[0-9a-f]{64}$/;
 const GIT_COMMIT = /^[0-9a-f]{40}$/;
@@ -59,6 +66,7 @@ export type CatalogSourceClosureRefusalV1 =
   | "member-ambiguous"
   | "profile-unverified"
   | "profile-invalid"
+  | "profile-unknown-version"
   | "material-not-source-files"
   | "source-file-absent"
   | "source-file-digest-mismatch";
@@ -188,10 +196,10 @@ function githubName(value: unknown): string | undefined {
 function declaredClosure(
   profile: unknown,
   subjectId: string,
-): DeclaredClosure | "material-not-source-files" | undefined {
-  if (!isObject(profile) || profile.format !== PROFILE_FORMAT || profile.version !== 1) {
-    return undefined;
-  }
+): DeclaredClosure | "material-not-source-files" | "profile-unknown-version" | undefined {
+  if (!isObject(profile) || profile.format !== PROFILE_FORMAT) return undefined;
+  // The same profile format at a version this reader does not know is named as such.
+  if (profile.version !== CATALOG_ASSESSMENT_PROFILE_VERSION_V1) return "profile-unknown-version";
   if (!isObject(profile.subject) || profile.subject.id !== subjectId) return undefined;
   const { asset, material, scanner } = profile;
   if (!isObject(asset) || typeof asset.assetId !== "string" || asset.assetId.length === 0) {
@@ -334,6 +342,7 @@ export function readCatalogSourceClosureV1(
   const declared = declaredClosure(profile, entry.subject.id);
   if (declared === undefined) return refuse("profile-invalid");
   if (declared === "material-not-source-files") return refuse("material-not-source-files");
+  if (declared === "profile-unknown-version") return refuse("profile-unknown-version");
 
   const root = `${CATALOG_SOURCE_ROOT_URL}/github.com/${declared.owner}/${declared.repository}/${declared.revision}`;
   const files: CatalogSourceFileV1[] = [];
