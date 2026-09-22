@@ -4108,6 +4108,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       "./catalog-qualification.json": "./defaults/catalog-qualification-v1.json",
       "./signed-catalog.json": "./defaults/signed-catalog-v2.json",
       "./catalog-categories.json": "./defaults/catalog-categories-v1.json",
+      "./package.json": "./package.json",
     });
     expect(coldVerificationSource).toMatch(/import \* as api from '@aihq\/catalog'/);
     expect(packageScripts["verify:default-evidence-chain"]).toBe(

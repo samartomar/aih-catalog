@@ -40,6 +40,39 @@ their applicable license grant is restricted or unestablished. Unsupported
 component kinds and derived compositions are not relabeled as qualified members.
 Publication still requires the separate protected workflows described above.
 
+## Node-only interfaces
+
+Every JavaScript entry of this package is Node-only. The package root
+(`import … from "@aihq/catalog"`) and the `aih-supported` command use
+`node:crypto`, `node:fs`, `node:path` and `node:url`, and this package makes no
+browser claim for them.
+
+The JSON subpaths are plain data and runtime-neutral. Any runtime or bundler that
+can read JSON can import them:
+
+| Subpath | Bytes |
+| --- | --- |
+| `@aihq/catalog/catalog-index.json` | `defaults/catalog-index-v1.json` |
+| `@aihq/catalog/catalog-collections.json` | `defaults/catalog-collections-v1.json` |
+| `@aihq/catalog/catalog-presentation.json` | `defaults/catalog-presentation-v1.json` |
+| `@aihq/catalog/catalog-qualification.json` | `defaults/catalog-qualification-v1.json` |
+| `@aihq/catalog/signed-catalog.json` | `defaults/signed-catalog-v2.json` |
+| `@aihq/catalog/catalog-categories.json` | `defaults/catalog-categories-v1.json` |
+| `@aihq/catalog/package.json` | `package.json`, the portable way to find the installed package root |
+
+Reading a subpath's bytes is not verifying them. Canonical-byte checks, digest
+pins, receipt hashing and signature verification are done by the Node readers
+(`read…V1Result`). A consumer that only imports the JSON has read unverified data.
+These subpaths and readers are not in `@aihq/catalog@0.2.0`: npm's `latest`,
+observed on 2026-09-22, exports only `.`. They reach consumers in the next
+published version.
+
+[`examples/read-the-catalog.mjs`](examples/read-the-catalog.mjs) walks the whole
+supported route (index, collections, presentation, qualification sidecar and a
+source closure) using only the package root and these subpaths. Run it with
+`node examples/read-the-catalog.mjs` after `npm run build`, or copy it into a
+project that has the package installed.
+
 ## Consumer index
 
 Generate the browser-readable inventory from the existing seed manifest, seeds and

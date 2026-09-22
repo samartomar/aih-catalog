@@ -35,7 +35,8 @@
     "./catalog-presentation.json": "./defaults/catalog-presentation-v1.json",
     "./catalog-qualification.json": "./defaults/catalog-qualification-v1.json",
     "./signed-catalog.json": "./defaults/signed-catalog-v2.json",
-    "./catalog-categories.json": "./defaults/catalog-categories-v1.json"
+    "./catalog-categories.json": "./defaults/catalog-categories-v1.json",
+    "./package.json": "./package.json"
   },
   "engines": {
     "node": ">=20"
