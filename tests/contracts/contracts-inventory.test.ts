@@ -90,6 +90,37 @@ const citations: ReadonlyArray<readonly [file: string, line: number, holds: stri
   ],
   ["src/content/catalog-source-closure-v1.ts", 53, "CATALOG_ASSESSMENT_PROFILE_VERSION_V1 = 1"],
   ["src/content/catalog-source-closure-v1.ts", 61, "export type CatalogSourceClosureRefusalV1 ="],
+  [
+    "src/content/catalog-runtime-descriptors-v1.ts",
+    42,
+    'CATALOG_RUNTIME_DESCRIPTORS_FORMAT_V1 = "aih-catalog-runtime-descriptors"',
+  ],
+  [
+    "src/content/catalog-runtime-descriptors-v1.ts",
+    43,
+    "CATALOG_RUNTIME_DESCRIPTORS_VERSION_V1 = 1",
+  ],
+  [
+    "src/content/catalog-runtime-descriptors-v1.ts",
+    48,
+    "CATALOG_RUNTIME_DESCRIPTORS_MAX_BYTES_V1 = 1024 * 1024",
+  ],
+  [
+    "src/content/catalog-runtime-descriptors-v1.ts",
+    50,
+    "CATALOG_RUNTIME_DESCRIPTOR_MAX_BYTES_V1 = 12 * 1024 * 1024",
+  ],
+  [
+    "src/content/catalog-runtime-descriptors-v1.ts",
+    51,
+    "CATALOG_RUNTIME_DESCRIPTORS_MAX_ENTRIES_V1 = 64",
+  ],
+  ["src/content/catalog-runtime-descriptors-v1.ts", 55, '["ecc", "ecc-runtime-descriptor/v1"]'],
+  [
+    "src/content/catalog-runtime-descriptors-v1.ts",
+    148,
+    "CATALOG_RUNTIME_DESCRIPTORS_REFUSALS_V1 = [",
+  ],
   ["src/content/refusal-v1.ts", 13, "CATALOG_REFUSAL_OBSERVED_MAX_CHARS_V1 = 128"],
   ["tools/verify-core-v2-lock.mjs", 11, 'coreCommit = "c31741602b3dbd5f228dafe00591e5679c782878"'],
   ["tools/verify-core-v2-lock.mjs", 18, "schemaSha256 = "],
@@ -161,6 +192,11 @@ describe("CONTRACTS.md inventory", () => {
       [api.CATALOG_SOURCE_FILE_MAX_BYTES_V1, 16 * MiB],
       [api.CATALOG_ASSESSMENT_PROFILE_FORMAT_V1, "aih-first-party-qualification-profile"],
       [api.CATALOG_ASSESSMENT_PROFILE_VERSION_V1, 1],
+      [api.CATALOG_RUNTIME_DESCRIPTORS_FORMAT_V1, "aih-catalog-runtime-descriptors"],
+      [api.CATALOG_RUNTIME_DESCRIPTORS_VERSION_V1, 1],
+      [api.CATALOG_RUNTIME_DESCRIPTORS_MAX_BYTES_V1, MiB],
+      [api.CATALOG_RUNTIME_DESCRIPTOR_MAX_BYTES_V1, 12 * MiB],
+      [api.CATALOG_RUNTIME_DESCRIPTORS_MAX_ENTRIES_V1, 64],
       [api.CATALOG_REFUSAL_OBSERVED_MAX_CHARS_V1, 128],
       [QUALIFICATION_RECEIPT_V2_MAX_BYTES, 5970],
       [QUALIFICATION_RECEIPT_SET_V1_MAX_ENTRIES, 512],
@@ -174,6 +210,8 @@ describe("CONTRACTS.md inventory", () => {
       "aih-catalog-qualification",
       "aih-catalog-categories",
       "aih-catalog-source-closure",
+      "aih-catalog-runtime-descriptors",
+      "ecc-runtime-descriptor/v1",
       "aih-first-party-qualification-profile",
       "aih-supported-qualification-receipt",
       "aih-supported-qualification-receipt-set",
@@ -187,6 +225,7 @@ describe("CONTRACTS.md inventory", () => {
       ["CATALOG_PRESENTATION_REFUSALS_V1", api.CATALOG_PRESENTATION_REFUSALS_V1],
       ["CATALOG_QUALIFICATION_REFUSALS_V1", api.CATALOG_QUALIFICATION_REFUSALS_V1],
       ["CATALOG_CATEGORIES_REFUSALS_V1", api.CATALOG_CATEGORIES_REFUSALS_V1],
+      ["CATALOG_RUNTIME_DESCRIPTORS_REFUSALS_V1", api.CATALOG_RUNTIME_DESCRIPTORS_REFUSALS_V1],
     ] as const) {
       expect(contracts, name).toContain(name);
       expect(reasons as readonly string[]).toContain("unknown-format");
@@ -194,6 +233,10 @@ describe("CONTRACTS.md inventory", () => {
     }
     expect(api.CATALOG_COLLECTIONS_REFUSALS_V1).toContain("unknown-owner");
     expect(api.CATALOG_COLLECTIONS_REFUSALS_V1).toContain("index-mismatch");
+    for (const reason of ["index-mismatch", "unsupported-descriptor", "source-not-in-index"]) {
+      expect(api.CATALOG_RUNTIME_DESCRIPTORS_REFUSALS_V1 as readonly string[]).toContain(reason);
+      expect(contracts, reason).toContain(reason);
+    }
     expect(contracts).toContain("profile-unknown-version");
   });
 

@@ -17,6 +17,7 @@ import {
   readCatalogContentV1Result,
   readCatalogPresentationV1Result,
   readCatalogQualificationV1Result,
+  readCatalogRuntimeDescriptorsV1Result,
   readCatalogSourceClosureV1,
 } from "@aihq/catalog";
 
@@ -76,6 +77,15 @@ const closure = readCatalogSourceClosureV1({
 });
 if (closure.state !== "verified") refused("source closure", closure);
 
+// 6. Framework runtime material: Core's sealed descriptor bytes, relayed unchanged and
+// checked here only for digest, length and declared identity. Core validates the rest.
+const runtimeResult = readCatalogRuntimeDescriptorsV1Result({
+  bytes: bytesAt("catalog-runtime-descriptors.json"),
+  index,
+  input: { root: packageRoot, verifyDescriptors: true },
+});
+if (runtimeResult.state !== "read") refused("runtime descriptors", runtimeResult);
+
 process.stdout.write(
   `${JSON.stringify(
     {
@@ -94,6 +104,13 @@ process.stdout.write(
         organizationAdmission: qualification.organizationAdmission,
         states,
       },
+      runtimeDescriptors: runtimeResult.runtimeDescriptors.descriptors.map((item) => ({
+        framework: item.framework,
+        format: item.format,
+        source: `${item.source.repository}@${item.source.commit}`,
+        sha256: item.descriptor.sha256,
+        state: item.descriptor.state,
+      })),
       sourceClosure: {
         entryId: closure.closure.entry.entryId,
         files: closure.closure.files.map((file) => file.path),

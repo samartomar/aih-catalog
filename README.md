@@ -114,8 +114,8 @@ The generator is a Node maintenance script; the resulting index is plain JSON.
 
 Each public reader has a `…Result` twin that names its refusal:
 `readCatalogContentV1Result`, `readCatalogCollectionsV1Result`,
-`readCatalogPresentationV1Result`, `readCatalogQualificationV1Result` and
-`readCatalogCategoriesV1Result` return `{ state: "read", … }` or
+`readCatalogPresentationV1Result`, `readCatalogQualificationV1Result`,
+`readCatalogCategoriesV1Result` and `readCatalogRuntimeDescriptorsV1Result` return `{ state: "read", … }` or
 `{ state: "refused", reason }`. Each reason comes from that reader's closed list,
 exported as `CATALOG_*_REFUSALS_V1`. `unknown-format` and `unknown-version` are
 separate reasons, and each carries the declared value in `observed` as JSON text
@@ -386,6 +386,63 @@ Maintainers stage a member from its exact recorded revision with
 `npm run stage:source-closure -- <collection-id> <subject-id>`, which refuses any
 digest mismatch. Reading never uses the network. Source bytes are not a scan,
 qualification or admission.
+
+## Runtime descriptors
+
+`@aihq/catalog/catalog-runtime-descriptors.json`
+(`defaults/catalog-runtime-descriptors-v1.json`), read with
+`readCatalogRuntimeDescriptorsV1Result({ bytes, index, input })`, distributes the
+exact runtime descriptor bytes Core's historical ECC resolver reads for a
+framework source revision this Catalog indexes. Today that is one
+`ecc-runtime-descriptor/v1` for `affaan-m/ECC@5064474d4d762dc9640234a41617cccb79185cec`.
+
+**This is runtime material, relayed unchanged.** It is not presentation, not an
+assessment identity, not the source closure, not a scan record and not a
+qualification. The descriptor is Core's own sealed, canonical JSON; Catalog does
+not interpret, re-serialize, re-sign or re-date it. Each entry names its
+`framework`, the descriptor `format` (Core's `version` literal), its `source`
+revision, its `origin` (the sha256 of the sealed Core packaged source-data record
+the bytes were taken from) and the descriptor's `path`, `sha256` and
+`byteLength`.
+
+```js
+import { readCatalogRuntimeDescriptorsV1Result } from "@aihq/catalog";
+const result = readCatalogRuntimeDescriptorsV1Result({
+  bytes: sidecarBytes,
+  index,
+  input: { root: packageRoot, verifyDescriptors: true },
+});
+// result.runtimeDescriptors.descriptors[0].descriptor ->
+//   { state: "verified", path, sha256, byteLength, bytes }
+//   | { state: "unverified", path, sha256, byteLength, reason }
+```
+
+Without `verifyDescriptors` every descriptor is `not-evaluated`. With it, each is
+`verified` only when its bytes have the declared length and sha256, parse as JSON,
+and declare the named format and source revision; otherwise it is `unverified`
+with `descriptor-absent`, `descriptor-unreadable`, `descriptor-size-mismatch`,
+`descriptor-digest-mismatch`, `descriptor-malformed` or
+`descriptor-identity-mismatch`. Those are verdicts about the bytes, not refusals.
+The sidecar itself refuses from `CATALOG_RUNTIME_DESCRIPTORS_REFUSALS_V1`, among
+them `index-mismatch` (cut from another index), `unsupported-descriptor` (a
+framework or descriptor format this version does not distribute, including a
+newer Core descriptor version) and `source-not-in-index` (a revision the index
+does not carry).
+
+Core keeps every check that makes a descriptor usable: its schema, seal, evidence
+custody and expiry, and the decision whether to trust Catalog-delivered bytes at
+all. A descriptor is never organization admission, installation or effect
+authority.
+
+Maintainers take descriptors only from Core's sealed packaged source data:
+`node tools/generate-catalog-runtime-descriptors.mjs --ingest-core-source-data <packaged-source-data-data.json>`
+checks each record's seal and each descriptor's seal and canonical bytes, writes
+the bytes under `defaults/runtime-descriptors/github.com/<owner>/<repo>/<commit>/`
+and records the origin in `defaults/catalog-runtime-descriptors-inputs-v1.json`.
+`npm run generate:catalog-runtime-descriptors` then writes the sidecar, and
+`npm run check:catalog-index` fails when a committed descriptor no longer matches
+the seal Core declared for it or the sidecar differs from what the inputs,
+descriptors and index produce.
 
 ## Authority boundary
 

@@ -37,6 +37,7 @@ describe("public-API example", () => {
       "catalog-collections.json",
       "catalog-presentation.json",
       "catalog-qualification.json",
+      "catalog-runtime-descriptors.json",
     ]);
     for (const subpath of subpaths) {
       expect(packageJson.exports, subpath).toHaveProperty([`./${subpath}`]);
@@ -68,6 +69,15 @@ describe("public-API example", () => {
         signature: "not-evaluated",
         states: { qualified: 457 },
       });
+      expect(report.runtimeDescriptors).toEqual([
+        {
+          framework: "ecc",
+          format: "ecc-runtime-descriptor/v1",
+          source: "affaan-m/ECC@5064474d4d762dc9640234a41617cccb79185cec",
+          sha256: "158f63e265f1ca18a7e65c97e372b1259200d6fb60eab87d70c20600d9d9abf0",
+          state: "verified",
+        },
+      ]);
       expect(report.sourceClosure.files).toContain(
         "packs/governance-quality/aih-gov-doctor/SKILL.md",
       );
