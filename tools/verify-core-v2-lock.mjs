@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { closeSync, fstatSync, lstatSync, openSync, readFileSync } from "node:fs";
 import { isAbsolute, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 // These values deliberately pin the exact merged Core producer/consumer contract.
 const sourceDomain = "aih-governance-decision-source/v2\0";
@@ -23,6 +24,15 @@ const vendoredSchemaPath = "tests/contracts/core/aih-governance-decision-v2.sche
 const vendoredReceiptSchemaPath =
   "tests/contracts/core/aih-supported-qualification-receipt-v2.schema.json";
 const fixturePath = "tests/contracts/core-qualification-basis-v2.json";
+// Catalog's source-closure reader mirrors Core's assessment profile literals. They
+// first exist in Core after the Strict V2 pin above, so they carry their own pin.
+export const profileContract = Object.freeze({
+  coreCommit: "2b3212f22e9f7006455b75f29377be3add58fac7",
+  coreSourcePath: "src/org-policy/assessment-material-binding-v1.ts",
+  format: "aih-first-party-qualification-profile",
+  version: 1,
+});
+const catalogProfileMirrorPath = "src/content/catalog-source-closure-v1.ts";
 const qualificationBasisKeys = [
   "catalogDigest",
   "catalogHeadDigest",
@@ -92,8 +102,8 @@ function git(coreRoot, args, reason) {
     return fail(reason);
   }
 }
-function requireExactCoreGitState(coreRoot) {
-  if (git(coreRoot, ["rev-parse", "HEAD"], "core-commit")?.trim() !== coreCommit)
+function requireExactCoreGitState(coreRoot, expectedCommit = coreCommit) {
+  if (git(coreRoot, ["rev-parse", "HEAD"], "core-commit")?.trim() !== expectedCommit)
     fail("core-commit");
   if (
     git(
@@ -141,6 +151,51 @@ function verifyCoreRoot(input) {
   return { coreCommit, package: corePackage, schemas };
 }
 
+/**
+ * Core's declaration of the assessment profile: the exported format literal and
+ * the `version` literal of the schema object whose `format` is that constant.
+ */
+export function readCoreProfileContract(sourceText) {
+  const format = /^export const ASSESSMENT_MATERIAL_FORMAT_V1 = "([^"\\]+)";\r?$/mu.exec(
+    sourceText,
+  )?.[1];
+  if (format === undefined) fail("core-profile-format");
+  const schemaFormat = sourceText.indexOf("format: z.literal(ASSESSMENT_MATERIAL_FORMAT_V1)");
+  if (schemaFormat < 0) fail("core-profile-format");
+  const version = /version: z\.literal\((\d+)\)/u.exec(sourceText.slice(schemaFormat))?.[1];
+  if (version === undefined) fail("core-profile-version");
+  return { format, version: Number(version) };
+}
+
+/** Catalog's own mirror of those literals, as its source-closure reader declares them. */
+export function readCatalogProfileMirror(sourceText) {
+  const format =
+    /^export const CATALOG_ASSESSMENT_PROFILE_FORMAT_V1 = "([^"\\]+)";\r?$/mu.exec(sourceText)?.[1];
+  const version = /^export const CATALOG_ASSESSMENT_PROFILE_VERSION_V1 = (\d+);\r?$/mu.exec(
+    sourceText,
+  )?.[1];
+  if (format === undefined || version === undefined) fail("profile-mirror-drift");
+  return { format, version: Number(version) };
+}
+
+export function requireProfileContract(actual, drift) {
+  if (actual.format !== profileContract.format || actual.version !== profileContract.version)
+    fail(drift);
+}
+
+function verifyProfileCoreRoot(input) {
+  const coreRoot = resolve(input);
+  const rootStat = lstatSync(coreRoot);
+  if (!rootStat.isDirectory() || rootStat.isSymbolicLink()) fail("core-root-shape");
+  requireExactCoreGitState(coreRoot, profileContract.coreCommit);
+  const declared = readCoreProfileContract(
+    readPinnedArtifact(coreRoot, profileContract.coreSourcePath).toString("utf8"),
+  );
+  requireProfileContract(declared, "core-profile-drift");
+  requireExactCoreGitState(coreRoot, profileContract.coreCommit);
+  return { coreCommit: profileContract.coreCommit, ...declared };
+}
+
 async function main() {
   const fixture = JSON.parse(readFileSync(resolve(fixturePath), "utf8"));
   if (
@@ -163,6 +218,10 @@ async function main() {
     sha256(readFileSync(resolve(vendoredReceiptSchemaPath))) !== receiptSchemaSha256
   )
     fail("vendored-lock-drift");
+  requireProfileContract(
+    readCatalogProfileMirror(readFileSync(resolve(catalogProfileMirrorPath), "utf8")),
+    "profile-mirror-drift",
+  );
 
   await import("../tests/contracts/core/verify-core-v2-vectors.mjs");
 
@@ -175,6 +234,21 @@ async function main() {
   }
   if (args.length === 2 && args[0] === "--core-root" && args[1]) {
     process.stdout.write(`${JSON.stringify(verifyCoreRoot(args[1]))}\n`);
+    return;
+  }
+  if (args.length === 2 && args[0] === "--profile-core-root" && args[1]) {
+    process.stdout.write(`${JSON.stringify({ profile: verifyProfileCoreRoot(args[1]) })}\n`);
+    return;
+  }
+  if (
+    args.length === 4 &&
+    args[0] === "--core-root" &&
+    args[1] &&
+    args[2] === "--profile-core-root" &&
+    args[3]
+  ) {
+    const core = verifyCoreRoot(args[1]);
+    process.stdout.write(`${JSON.stringify({ ...core, profile: verifyProfileCoreRoot(args[3]) })}\n`);
     return;
   }
   if (
@@ -200,13 +274,15 @@ async function main() {
   if (sha256(readFileSync(args[5])) !== receiptSchemaSha256) fail("receipt-schema-drift");
 }
 
-try {
-  await main();
-} catch (error) {
-  const reason =
-    error instanceof Error && /^[a-z0-9-]+$/.test(error.message)
-      ? error.message
-      : "verification";
-  process.stderr.write(`Core Strict V2 compatibility gate failed: ${reason}\n`);
-  process.exitCode = 1;
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  try {
+    await main();
+  } catch (error) {
+    const reason =
+      error instanceof Error && /^[a-z0-9-]+$/.test(error.message)
+        ? error.message
+        : "verification";
+    process.stderr.write(`Core Strict V2 compatibility gate failed: ${reason}\n`);
+    process.exitCode = 1;
+  }
 }

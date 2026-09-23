@@ -1,0 +1,404 @@
+name: promotion-readiness
+
+# Read-only promotion gate. It proves that the exact bytes sitting on npm `next` are the
+# bytes Core's compatibility run tested in its `catalog-candidate` combination, against
+# the supported Core and Scan still on `latest`, and then PRINTS the dist-tag commands. It
+# never runs them: moving a dist tag stays a manual, 2FA npm session by the owner.
+# Evidence from an all-next or branch combination is never independent compatibility.
+#
+# The required check to protect with is: promotion-readiness / authorize
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_version:
+        description: The exact @aihq/catalog version on npm next, for example 0.3.0
+        required: true
+        type: string
+      compatibility_run_id:
+        description: Core sibling-compatibility run id that tested this candidate
+        required: true
+        type: string
+      compatibility_run_attempt:
+        description: Core sibling-compatibility run attempt
+        required: true
+        type: string
+      promotion_authorization_comment:
+        description: The owner's full-SHA promotion authorization statement
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: promotion-readiness-${{ inputs.candidate_version }}
+  cancel-in-progress: false
+
+jobs:
+  authorize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Refuse malformed inputs
+        env:
+          CANDIDATE_VERSION: ${{ inputs.candidate_version }}
+          COMPATIBILITY_RUN_ID: ${{ inputs.compatibility_run_id }}
+          COMPATIBILITY_RUN_ATTEMPT: ${{ inputs.compatibility_run_attempt }}
+          PROMOTION_AUTHORIZATION_COMMENT: ${{ inputs.promotion_authorization_comment }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$CANDIDATE_VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' \
+            || { echo "refused: candidate_version must be an exact X.Y.Z version" >&2; exit 1; }
+          printf '%s' "$COMPATIBILITY_RUN_ID" | grep -Eq '^[1-9][0-9]{0,19}$' \
+            || { echo "refused: compatibility_run_id must be a run id" >&2; exit 1; }
+          printf '%s' "$COMPATIBILITY_RUN_ATTEMPT" | grep -Eq '^[1-9][0-9]{0,3}$' \
+            || { echo "refused: compatibility_run_attempt must be a run attempt" >&2; exit 1; }
+          printf '%s' "$PROMOTION_AUTHORIZATION_COMMENT" \
+            | grep -Fq "Authorize promoting @aihq/catalog@$CANDIDATE_VERSION from next to latest" \
+            || { echo "refused: promotion_authorization_comment does not name this candidate" >&2; exit 1; }
+
+      - name: Refuse evidence from any run but Core's own main compatibility run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMPATIBILITY_RUN_ID: ${{ inputs.compatibility_run_id }}
+          COMPATIBILITY_RUN_ATTEMPT: ${{ inputs.compatibility_run_attempt }}
+        run: |
+          set -euo pipefail
+          # Any ai-harness run can upload an artifact with the expected name, including a
+          # pull request from a fork, so the run itself is checked before its artifact is read.
+          # `gh run view --json` exposes no workflow file path; the REST run object does.
+          gh api "repos/samartomar/ai-harness/actions/runs/$COMPATIBILITY_RUN_ID" > compatibility-run.json \
+            || { echo "refused: Core compatibility run $COMPATIBILITY_RUN_ID is unreadable" >&2; exit 1; }
+          node --input-type=module <<'NODE'
+          import { readFileSync } from "node:fs";
+
+          const refuse = (reason) => {
+            process.stderr.write(`refused: ${reason}\n`);
+            process.exit(1);
+          };
+          let run;
+          try {
+            run = JSON.parse(readFileSync("compatibility-run.json", "utf8"));
+          } catch {
+            refuse("the compatibility run description is not readable JSON");
+          }
+          if (run === null || typeof run !== "object" || Array.isArray(run))
+            refuse("the compatibility run description is not an object");
+          if (String(run.id) !== process.env.COMPATIBILITY_RUN_ID)
+            refuse(`the compatibility run is ${run.id}, not ${process.env.COMPATIBILITY_RUN_ID}`);
+          if (run.head_repository?.full_name !== "samartomar/ai-harness")
+            refuse(`the compatibility run ran from ${run.head_repository?.full_name}, not samartomar/ai-harness`);
+          if (run.path !== ".github/workflows/sibling-compatibility.yml")
+            refuse(`the compatibility run is ${run.path}, not .github/workflows/sibling-compatibility.yml`);
+          if (run.event !== "schedule" && run.event !== "workflow_dispatch")
+            refuse(`the compatibility run was triggered by ${run.event}, not schedule or workflow_dispatch`);
+          if (run.head_branch !== "main")
+            refuse(`the compatibility run ran on ${run.head_branch}, not main`);
+          if (run.conclusion !== "success")
+            refuse(`the compatibility run concluded ${run.conclusion}, not success`);
+          if (String(run.run_attempt) !== process.env.COMPATIBILITY_RUN_ATTEMPT)
+            refuse(
+              `the compatibility run's latest attempt is ${run.run_attempt}, not ${process.env.COMPATIBILITY_RUN_ATTEMPT}`,
+            );
+          NODE
+
+      - name: Download Core's sibling-compatibility evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMPATIBILITY_RUN_ID: ${{ inputs.compatibility_run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p compatibility
+          gh run download "$COMPATIBILITY_RUN_ID" \
+            --repo samartomar/ai-harness \
+            --name core-sibling-compatibility \
+            --dir compatibility \
+            || { echo "refused: Core compatibility artifact is unreadable for run $COMPATIBILITY_RUN_ID" >&2; exit 1; }
+          test -f compatibility/core-sibling-compatibility.json \
+            || { echo "refused: artifact does not contain core-sibling-compatibility.json" >&2; exit 1; }
+
+      - name: Re-observe the live registry state
+        env:
+          CANDIDATE_VERSION: ${{ inputs.candidate_version }}
+        run: |
+          set -euo pipefail
+          npm view "@aihq/catalog@$CANDIDATE_VERSION" dist.integrity --json > live-integrity.json
+          npm view "@aihq/catalog" dist-tags --json > live-dist-tags.json
+          # Downloading the exact published tarball is read-only; nothing is installed and
+          # no package script runs, so the bytes are observed without executing them.
+          # npm pack does not create its destination directory.
+          mkdir -p candidate
+          npm pack "@aihq/catalog@$CANDIDATE_VERSION" --ignore-scripts --pack-destination candidate
+          sha256sum "candidate/aihq-catalog-$CANDIDATE_VERSION.tgz" | cut -d' ' -f1 > live-tarball-sha256.txt
+          cat live-dist-tags.json
+
+      - name: Re-observe the supported Core and sibling
+        run: |
+          set -euo pipefail
+          # The artifact is read here only to learn which Core and Scan versions the candidate
+          # was tested against. The validator trusts no baseline it did not observe live.
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from "node:fs";
+
+          const refuse = (reason) => {
+            process.stderr.write(`refused: ${reason}\n`);
+            process.exit(1);
+          };
+          let evidence;
+          try {
+            evidence = JSON.parse(readFileSync("compatibility/core-sibling-compatibility.json", "utf8"));
+          } catch {
+            refuse("compatibility/core-sibling-compatibility.json is not readable JSON");
+          }
+          if (
+            evidence === null ||
+            typeof evidence !== "object" ||
+            Array.isArray(evidence) ||
+            evidence.format !== "core-sibling-compatibility" ||
+            evidence.version !== 2 ||
+            !Array.isArray(evidence.candidates)
+          )
+            refuse("the compatibility artifact declares an unknown format or version");
+          const entries = evidence.candidates.filter(
+            (entry) =>
+              entry !== null &&
+              typeof entry === "object" &&
+              (entry.combination === "catalog-candidate" || entry.candidate?.package === "@aihq/catalog"),
+          );
+          if (
+            entries.length !== 1 ||
+            entries[0].combination !== "catalog-candidate" ||
+            entries[0].candidate?.package !== "@aihq/catalog"
+          )
+            refuse("the compatibility artifact names no single @aihq/catalog candidate tested against the supported Core");
+          const semver =
+            /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$/u;
+          const baseline = entries[0].baseline;
+          const versions = new Map();
+          if (Array.isArray(baseline) && baseline.length === 2)
+            for (const entry of baseline)
+              if (
+                (entry?.package === "@aihq/core" || entry?.package === "@aihq/scan") &&
+                !versions.has(entry.package) &&
+                entry.distTag === "latest" &&
+                typeof entry.version === "string" &&
+                semver.test(entry.version)
+              )
+                versions.set(entry.package, entry.version);
+          if (!versions.has("@aihq/core") || !versions.has("@aihq/scan"))
+            refuse("the candidate combination does not name the supported Core and sibling");
+          writeFileSync("baseline-core-version.txt", versions.get("@aihq/core"));
+          writeFileSync("baseline-scan-version.txt", versions.get("@aihq/scan"));
+          NODE
+          core_version="$(cat baseline-core-version.txt)"
+          scan_version="$(cat baseline-scan-version.txt)"
+          semver='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$'
+          [[ "$core_version" =~ $semver ]] \
+            || { echo "refused: the candidate combination does not name the supported Core and sibling" >&2; exit 1; }
+          [[ "$scan_version" =~ $semver ]] \
+            || { echo "refused: the candidate combination does not name the supported Core and sibling" >&2; exit 1; }
+          npm view "@aihq/core" dist-tags --json > live-baseline-core-dist-tags.json \
+            || { echo "refused: the registry does not describe @aihq/core" >&2; exit 1; }
+          npm view "@aihq/core@$core_version" dist.integrity --json > live-baseline-core-integrity.json \
+            || { echo "refused: the registry does not describe @aihq/core@$core_version" >&2; exit 1; }
+          npm view "@aihq/scan" dist-tags --json > live-baseline-scan-dist-tags.json \
+            || { echo "refused: the registry does not describe @aihq/scan" >&2; exit 1; }
+          npm view "@aihq/scan@$scan_version" dist.integrity --json > live-baseline-scan-integrity.json \
+            || { echo "refused: the registry does not describe @aihq/scan@$scan_version" >&2; exit 1; }
+          cat live-baseline-core-dist-tags.json live-baseline-scan-dist-tags.json
+
+      - name: Refuse unless the tested bytes are the bytes being promoted
+        env:
+          CANDIDATE_VERSION: ${{ inputs.candidate_version }}
+          COMPATIBILITY_RUN_ID: ${{ inputs.compatibility_run_id }}
+          COMPATIBILITY_RUN_ATTEMPT: ${{ inputs.compatibility_run_attempt }}
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { readFileSync } from "node:fs";
+
+          const refuse = (reason) => {
+            process.stderr.write(`refused: ${reason}\n`);
+            process.exit(1);
+          };
+          const readJson = (path) => {
+            try {
+              return JSON.parse(readFileSync(path, "utf8"));
+            } catch {
+              return refuse(`${path} is not readable JSON`);
+            }
+          };
+          const isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+          const isText = (value) => typeof value === "string" && value.length !== 0;
+
+          const candidateVersion = process.env.CANDIDATE_VERSION;
+          const evidence = readJson("compatibility/core-sibling-compatibility.json");
+          if (
+            !isObject(evidence) ||
+            evidence.format !== "core-sibling-compatibility" ||
+            evidence.version !== 2 ||
+            !Array.isArray(evidence.candidates)
+          )
+            refuse("the compatibility artifact declares an unknown format or version");
+          if (
+            String(evidence.runId) !== process.env.COMPATIBILITY_RUN_ID ||
+            String(evidence.runAttempt) !== process.env.COMPATIBILITY_RUN_ATTEMPT
+          )
+            refuse("the compatibility artifact was produced by a different run or attempt");
+
+          // This package's entry is the one whose "combination":"catalog-candidate" and whose
+          // candidate is "package":"@aihq/catalog" at next, tested against the supported Core and
+          // Scan at latest. All-next, baseline and branch evidence never qualifies. Every
+          // required check must record "status":"passed" exactly once.
+          const entries = evidence.candidates.filter(
+            (entry) =>
+              isObject(entry) &&
+              (entry.combination === "catalog-candidate" || entry.candidate?.package === "@aihq/catalog"),
+          );
+          if (
+            entries.length !== 1 ||
+            entries[0].combination !== "catalog-candidate" ||
+            entries[0].candidate?.package !== "@aihq/catalog"
+          )
+            refuse("the compatibility artifact names no single @aihq/catalog candidate tested against the supported Core");
+          const tested = entries[0];
+          const candidate = tested.candidate;
+          if (candidate.version !== candidateVersion)
+            refuse(`the tested candidate is ${candidate.version}, not ${candidateVersion}`);
+          if (candidate.distTag !== "next")
+            refuse(`the tested candidate was resolved from ${candidate.distTag}, not next`);
+
+          const semver =
+            /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$/u;
+          const supported = ["@aihq/core", "@aihq/scan"];
+          const baseline = Array.isArray(tested.baseline) ? tested.baseline : [];
+          if (
+            baseline.length !== supported.length ||
+            !supported.every((name) => baseline.filter((entry) => entry?.package === name).length === 1) ||
+            !baseline.every(
+              (entry) =>
+                isObject(entry) &&
+                entry.distTag === "latest" &&
+                typeof entry.version === "string" &&
+                semver.test(entry.version) &&
+                typeof entry.tarballSha256 === "string" &&
+                /^[0-9a-f]{64}$/u.test(entry.tarballSha256) &&
+                typeof entry.tarballIntegrity === "string" &&
+                /^sha512-.+$/u.test(entry.tarballIntegrity),
+            )
+          )
+            refuse("the candidate combination does not name the supported Core and sibling");
+          const testedBaseline = supported.map((name) => baseline.find((entry) => entry.package === name));
+
+          const requiredChecks = [
+            "catalog-readers",
+            "catalog-subject-digests",
+            "catalog-decision-schema-lock",
+            "catalog-qualification-receipt-schema-lock",
+            "supported-clis-shape",
+            "refusal-input-unknown-version",
+            "refusal-catalog-index-unknown-version",
+          ];
+          const checks = Array.isArray(tested.contractChecks) ? tested.contractChecks : [];
+          const notPassed = requiredChecks.filter((id) => {
+            const matching = checks.filter((check) => check?.id === id);
+            return matching.length !== 1 || matching[0].status !== "passed";
+          });
+          if (notPassed.length !== 0)
+            refuse(`${notPassed.length} required contract check(s) missing or not passed: ${notPassed.join(", ")}`);
+          if (
+            !checks.every(
+              (check) =>
+                isObject(check) &&
+                isText(check.id) &&
+                ["passed", "failed", "unavailable"].includes(check.status),
+            )
+          )
+            refuse("the candidate combination records a malformed contract check");
+          const otherChecksNotPassed = checks
+            .filter((check) => !requiredChecks.includes(check.id) && check.status !== "passed")
+            .map((check) => check.id);
+
+          const environment = tested.environment;
+          if (!isObject(environment) || !isText(environment.os) || !isText(environment.node))
+            refuse("the candidate combination records no execution environment (os and node)");
+
+          const liveIntegrity = readJson("live-integrity.json");
+          if (typeof liveIntegrity !== "string" || liveIntegrity.length === 0)
+            refuse("the registry reports no dist.integrity for this candidate");
+          if (candidate.tarballIntegrity !== liveIntegrity)
+            refuse("the registry integrity differs from the integrity the compatibility run tested");
+
+          const liveSha256 = readFileSync("live-tarball-sha256.txt", "utf8").trim();
+          if (!/^[0-9a-f]{64}$/u.test(liveSha256))
+            refuse("the downloaded candidate tarball produced no sha256");
+          if (candidate.tarballSha256 !== liveSha256)
+            refuse("the published tarball bytes differ from the bytes the compatibility run tested");
+
+          const distTags = readJson("live-dist-tags.json");
+          if (distTags?.next !== candidateVersion)
+            refuse(`npm dist-tags.next is ${distTags?.next}, not ${candidateVersion}`);
+
+          // The supported Core and Scan must still be the exact versions and bytes the run
+          // tested; otherwise the evidence is stale and the combination must be rerun.
+          for (const entry of testedBaseline) {
+            const short = entry.package.slice("@aihq/".length);
+            const liveLatest = readJson(`live-baseline-${short}-dist-tags.json`)?.latest;
+            if (liveLatest !== entry.version)
+              refuse(
+                `the supported ${entry.package} moved since the compatibility run (latest is ${liveLatest}, tested ${entry.version}); rerun Core's sibling-compatibility`,
+              );
+            if (readJson(`live-baseline-${short}-integrity.json`) !== entry.tarballIntegrity)
+              refuse(
+                `the supported ${entry.package}@${entry.version} bytes differ from the bytes the compatibility run tested`,
+              );
+          }
+
+          process.stdout.write(
+            `${JSON.stringify({
+              status: "READY",
+              candidateVersion,
+              combination: tested.combination,
+              testedBy: { runId: evidence.runId, runAttempt: evidence.runAttempt },
+              tarballSha256: liveSha256,
+              tarballIntegrity: liveIntegrity,
+              baseline: testedBaseline.map((entry) => ({
+                package: entry.package,
+                version: entry.version,
+                tarballSha256: entry.tarballSha256,
+              })),
+              environment: {
+                os: environment.os,
+                node: environment.node,
+                ...(isText(environment.npm) ? { npm: environment.npm } : {}),
+              },
+              contractChecks: checks.length,
+              requiredChecks: requiredChecks.length,
+              otherChecksNotPassed,
+              authority: "none",
+              limitation:
+                "This gate proves the bytes on next are the bytes Core tested against the supported Core and Scan still on latest. It is not owner authorization and it moves no dist tag.",
+            })}\n`,
+          );
+          NODE
+
+      - name: Print the promotion commands without running them
+        env:
+          CANDIDATE_VERSION: ${{ inputs.candidate_version }}
+        run: |
+          set -euo pipefail
+          # Printed only. This job has no npm credentials and executes no dist-tag change.
+          cat <<EOF
+          Promotion readiness passed for @aihq/catalog@$CANDIDATE_VERSION.
+
+          Run these yourself in an authenticated 2FA npm session:
+
+            npm dist-tag add @aihq/catalog@$CANDIDATE_VERSION latest
+            npm dist-tag rm @aihq/catalog next
+            gh release edit v-catalog-$CANDIDATE_VERSION --repo samartomar/aih-catalog --prerelease=false --latest
+            npm view @aihq/catalog dist-tags --json
+
+          This job changed nothing. A green run is evidence that the tested bytes and the
+          published bytes are the same; it is not the owner's promotion authorization.
+          EOF

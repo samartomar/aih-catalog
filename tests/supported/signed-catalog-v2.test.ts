@@ -695,7 +695,7 @@ describe("public signed catalog V2 acceptance contract", () => {
           ],
           { cwd: consumer, encoding: "utf8" },
         );
-        expect(installed.status).toBe(0);
+        expect(installed.status, installed.stderr).toBe(0);
         const installedPackage = resolve(consumer, "node_modules/@aihq/catalog");
         const cliPath = resolve(installedPackage, "dist/cli.js");
         const defaultSeedPath = resolve(installedPackage, "defaults/default-catalog-v2.json");
@@ -977,6 +977,57 @@ describe("public signed catalog V2 acceptance contract", () => {
     ] as const)
       expect(publicApi[operation]).toBeTypeOf("function");
     expect(Object.keys(publicApi).sort()).toEqual([
+      "CATALOG_ASSESSMENT_PROFILE_FORMAT_V1",
+      "CATALOG_ASSESSMENT_PROFILE_VERSION_V1",
+      "CATALOG_CATEGORIES_FORMAT_V1",
+      "CATALOG_CATEGORIES_MAX_BYTES_V1",
+      "CATALOG_CATEGORIES_MAX_TAXONOMY_V1",
+      "CATALOG_CATEGORIES_REFUSALS_V1",
+      "CATALOG_CATEGORIES_ROOT_URL",
+      "CATALOG_CATEGORIES_SUBPATH_V1",
+      "CATALOG_CATEGORIES_VERSION_V1",
+      "CATALOG_COLLECTIONS_FORMAT_V1",
+      "CATALOG_COLLECTIONS_MAX_BYTES_V1",
+      "CATALOG_COLLECTIONS_REFUSALS_V1",
+      "CATALOG_COLLECTIONS_ROOT_URL",
+      "CATALOG_COLLECTIONS_SUBPATH_V1",
+      "CATALOG_COLLECTIONS_VERSION_V1",
+      "CATALOG_CONTENT_FORMAT_V1",
+      "CATALOG_CONTENT_INDEX_ROOT_URL",
+      "CATALOG_CONTENT_INDEX_SUBPATH_V1",
+      "CATALOG_CONTENT_MAX_BYTES_V1",
+      "CATALOG_CONTENT_REFUSALS_V1",
+      "CATALOG_CONTENT_VERSION_V1",
+      "CATALOG_PRESENTATION_FORMAT_V1",
+      "CATALOG_PRESENTATION_MAX_BYTES_V1",
+      "CATALOG_PRESENTATION_MAX_TEXT_V1",
+      "CATALOG_PRESENTATION_REFUSALS_V1",
+      "CATALOG_PRESENTATION_ROOT_URL",
+      "CATALOG_PRESENTATION_SUBPATH_V1",
+      "CATALOG_PRESENTATION_VERSION_V1",
+      "CATALOG_QUALIFICATION_FORMAT_V1",
+      "CATALOG_QUALIFICATION_HEAD_MAX_BYTES_V1",
+      "CATALOG_QUALIFICATION_MAX_BYTES_V1",
+      "CATALOG_QUALIFICATION_MAX_ENTRIES_V1",
+      "CATALOG_QUALIFICATION_REFUSALS_V1",
+      "CATALOG_QUALIFICATION_ROOT_URL",
+      "CATALOG_QUALIFICATION_SUBPATH_V1",
+      "CATALOG_QUALIFICATION_VERSION_V1",
+      "CATALOG_REFUSAL_OBSERVED_MAX_CHARS_V1",
+      "CATALOG_RUNTIME_DESCRIPTORS_FORMAT_V1",
+      "CATALOG_RUNTIME_DESCRIPTORS_MAX_BYTES_V1",
+      "CATALOG_RUNTIME_DESCRIPTORS_MAX_ENTRIES_V1",
+      "CATALOG_RUNTIME_DESCRIPTORS_REFUSALS_V1",
+      "CATALOG_RUNTIME_DESCRIPTORS_ROOT_URL",
+      "CATALOG_RUNTIME_DESCRIPTORS_SUBPATH_V1",
+      "CATALOG_RUNTIME_DESCRIPTORS_VERSION_V1",
+      "CATALOG_RUNTIME_DESCRIPTOR_MAX_BYTES_V1",
+      "CATALOG_SIGNED_CATALOG_ROOT_URL",
+      "CATALOG_SIGNED_CATALOG_SUBPATH_V1",
+      "CATALOG_SOURCE_CLOSURE_FORMAT_V1",
+      "CATALOG_SOURCE_CLOSURE_VERSION_V1",
+      "CATALOG_SOURCE_FILE_MAX_BYTES_V1",
+      "CATALOG_SOURCE_ROOT_URL",
       "QUALIFICATION_RECEIPT_SET_V1_MAX_BYTES",
       "QUALIFICATION_RECEIPT_SET_V1_MAX_ENTRIES",
       "QUALIFICATION_RECEIPT_V2_MAX_BYTES",
@@ -989,10 +1040,26 @@ describe("public signed catalog V2 acceptance contract", () => {
       "emitQualificationReceipt",
       "emitQualificationReceiptSet",
       "inspectSignedCatalogV2",
+      "parseCatalogContentV1Bytes",
       "parseCatalogHeadV2Json",
       "parseQualificationReceiptSetV1Json",
       "parseQualificationReceiptV2Json",
       "planCatalogPromotionV2",
+      "readCatalogCategoriesV1",
+      "readCatalogCategoriesV1Result",
+      "readCatalogCollectionsV1",
+      "readCatalogCollectionsV1Result",
+      "readCatalogContentV1",
+      "readCatalogContentV1Result",
+      "readCatalogPresentationV1",
+      "readCatalogPresentationV1Result",
+      "readCatalogQualificationV1",
+      "readCatalogQualificationV1Result",
+      "readCatalogRuntimeDescriptorsV1",
+      "readCatalogRuntimeDescriptorsV1Result",
+      "readCatalogSourceClosureV1",
+      "resolveCatalogContentPathV1",
+      "resolveCatalogQualificationPathV1",
       "signCatalogHeadV2",
       "verifySignedCatalogV2",
     ]);
@@ -3818,7 +3885,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     );
     expect(packageJson).toContain('"verify:core-v2-lock"');
     expect(packageScripts.verify).toBe(
-      "npm run typecheck && npm run lint && npm run build && npm test",
+      "npm run typecheck && npm run lint && npm run build:dist && npm run check:catalog-index && npm run build && npm test",
     );
     expect(packageScripts["verify:core-v2-lock"]).toMatch(/^node tools\/verify-core-v2-lock\.mjs$/);
     expect(readFileSync(verifierPath, "utf8")).toContain("aih-governance-decision-source/v2\\0");
@@ -3982,7 +4049,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       /^node dist\/cli\.js generate-candidate(?:\s|$)/,
     );
     expect(packageScripts.build).toBe(
-      "node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node tools/ensure-cli-executable.mjs",
+      "node tools/generate-catalog-index.mjs && node tools/generate-catalog-collections.mjs && node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node tools/ensure-cli-executable.mjs",
     );
     expect(packageScripts["sign:candidate"]).toMatch(/^node dist\/cli\.js sign-candidate(?:\s|$)/);
     expect(packageScripts["verify:cold-external-admin"]).toBe(
@@ -4045,6 +4112,14 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(packageJson.types).toBe("./dist/index.d.ts");
     expect(packageJson.exports).toEqual({
       ".": { import: "./dist/index.js", types: "./dist/index.d.ts" },
+      "./catalog-index.json": "./defaults/catalog-index-v1.json",
+      "./catalog-collections.json": "./defaults/catalog-collections-v1.json",
+      "./catalog-presentation.json": "./defaults/catalog-presentation-v1.json",
+      "./catalog-qualification.json": "./defaults/catalog-qualification-v1.json",
+      "./signed-catalog.json": "./defaults/signed-catalog-v2.json",
+      "./catalog-categories.json": "./defaults/catalog-categories-v1.json",
+      "./catalog-runtime-descriptors.json": "./defaults/catalog-runtime-descriptors-v1.json",
+      "./package.json": "./package.json",
     });
     expect(coldVerificationSource).toMatch(/import \* as api from '@aihq\/catalog'/);
     expect(packageScripts["verify:default-evidence-chain"]).toBe(
@@ -4112,6 +4187,22 @@ describe("public signed catalog V2 acceptance contract", () => {
       expect(tarFiles.filter((path) => path.startsWith("dist/")).sort()).toEqual([
         "dist/cli.d.ts",
         "dist/cli.js",
+        "dist/content/catalog-categories-v1.d.ts",
+        "dist/content/catalog-categories-v1.js",
+        "dist/content/catalog-collections-v1.d.ts",
+        "dist/content/catalog-collections-v1.js",
+        "dist/content/catalog-content-v1.d.ts",
+        "dist/content/catalog-content-v1.js",
+        "dist/content/catalog-presentation-v1.d.ts",
+        "dist/content/catalog-presentation-v1.js",
+        "dist/content/catalog-qualification-v1.d.ts",
+        "dist/content/catalog-qualification-v1.js",
+        "dist/content/catalog-runtime-descriptors-v1.d.ts",
+        "dist/content/catalog-runtime-descriptors-v1.js",
+        "dist/content/catalog-source-closure-v1.d.ts",
+        "dist/content/catalog-source-closure-v1.js",
+        "dist/content/refusal-v1.d.ts",
+        "dist/content/refusal-v1.js",
         "dist/index.d.ts",
         "dist/index.js",
         "dist/supported/signed-catalog-v2.d.ts",
@@ -4132,7 +4223,7 @@ describe("public signed catalog V2 acceptance contract", () => {
           encoding: "utf8",
         },
       );
-      expect(installed.status).toBe(0);
+      expect(installed.status, installed.stderr).toBe(0);
       const installedManifest = JSON.parse(
         readFileSync(resolve(consumer, "node_modules/@aihq/catalog/package.json"), "utf8"),
       ) as Record<string, unknown>;

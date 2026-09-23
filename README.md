@@ -40,6 +40,414 @@ their applicable license grant is restricted or unestablished. Unsupported
 component kinds and derived compositions are not relabeled as qualified members.
 Publication still requires the separate protected workflows described above.
 
+## Node-only interfaces
+
+Every JavaScript entry of this package is Node-only. The package root
+(`import … from "@aihq/catalog"`) and the `aih-supported` command use
+`node:crypto`, `node:fs`, `node:path` and `node:url`, and this package makes no
+browser claim for them.
+
+The JSON subpaths are plain data and runtime-neutral. Any runtime or bundler that
+can read JSON can import them:
+
+| Subpath | Bytes |
+| --- | --- |
+| `@aihq/catalog/catalog-index.json` | `defaults/catalog-index-v1.json` |
+| `@aihq/catalog/catalog-collections.json` | `defaults/catalog-collections-v1.json` |
+| `@aihq/catalog/catalog-presentation.json` | `defaults/catalog-presentation-v1.json` |
+| `@aihq/catalog/catalog-qualification.json` | `defaults/catalog-qualification-v1.json` |
+| `@aihq/catalog/signed-catalog.json` | `defaults/signed-catalog-v2.json` |
+| `@aihq/catalog/catalog-categories.json` | `defaults/catalog-categories-v1.json` |
+| `@aihq/catalog/package.json` | `package.json`, the portable way to find the installed package root |
+
+Reading a subpath's bytes is not verifying them. Canonical-byte checks, digest
+pins, receipt hashing and signature verification are done by the Node readers
+(`read…V1Result`). A consumer that only imports the JSON has read unverified data.
+These subpaths and readers are not in `@aihq/catalog@0.2.0`: npm's `latest`,
+observed on 2026-09-22, exports only `.`. They reach consumers in the next
+published version.
+
+[`examples/read-the-catalog.mjs`](examples/read-the-catalog.mjs) walks the whole
+supported route (index, collections, presentation, qualification sidecar and a
+source closure) using only the package root and these subpaths. Run it with
+`node examples/read-the-catalog.mjs` after `npm run build`, or copy it into a
+project that has the package installed.
+
+## Consumer index
+
+Generate the browser-readable inventory from the existing seed manifest, seeds and
+evidence files:
+
+```sh
+npm run generate:catalog-index
+npm run check:catalog-index
+```
+
+The build also regenerates `defaults/catalog-index-v1.json`. So that committed
+drift fails instead of being rewritten, `npm run verify` and the `verify` workflow
+compile `dist` with `npm run build:dist` (no generators) and run
+`npm run check:catalog-index` against the committed `defaults/**` before
+`npm run build` regenerates anything. The package exposes
+this data as `@aihq/catalog/catalog-index.json`; a consumer can import or bundle
+that JSON without loading the Node API:
+
+```js
+import catalogIndex from "@aihq/catalog/catalog-index.json" with { type: "json" };
+```
+
+The index has `format: "aih-catalog-index"`, `version: 1`, package identity and
+entries sorted by `entryId`. Each entry retains the seed's subject, capabilities
+and platforms, adds its source and subject digests, and includes artifact
+descriptors and the original report, findings, gaps and rights evidence.
+Descriptor paths are relative to the Catalog package root; their `sha256`
+values hash the original file bytes. Generation has no timestamps or network
+access, rejects missing files, duplicate identities, unsafe or linked paths and
+mismatched evidence subjects, and replaces the output only after validation.
+`readCatalogContentV1` returns each evidence record as `{ path, sha256,
+subjectDigest, format, kind, id, attestor, summary }`, with `summary` the
+envelope's own text verbatim (at most 4096 characters, no control character
+other than a line feed; anything else refuses the whole index).
+
+This is an unsigned browsing index, not a qualification receipt or organization
+admission authority. Evidence summaries remain summaries: this generator does
+not reconstruct raw scanner findings, infer categories or templates, or create
+signer identities and qualification bases. Those require additional source data.
+The generator is a Node maintenance script; the resulting index is plain JSON.
+
+### Why a reader refused
+
+Each public reader has a `…Result` twin that names its refusal:
+`readCatalogContentV1Result`, `readCatalogCollectionsV1Result`,
+`readCatalogPresentationV1Result`, `readCatalogQualificationV1Result`,
+`readCatalogCategoriesV1Result` and `readCatalogRuntimeDescriptorsV1Result` return `{ state: "read", … }` or
+`{ state: "refused", reason }`. Each reason comes from that reader's closed list,
+exported as `CATALOG_*_REFUSALS_V1`. `unknown-format` and `unknown-version` are
+separate reasons, and each carries the declared value in `observed` as JSON text
+of at most 128 characters. So a newer document (`version: 2`) is never confused
+with damaged bytes. The original functions (`readCatalogContentV1` and the others)
+are unchanged thin wrappers that return `undefined` for every refusal.
+
+```js
+import { readCatalogContentV1Result } from "@aihq/catalog";
+const result = readCatalogContentV1Result({ bytes });
+// { state: "refused", reason: "unknown-version", observed: "2" }
+```
+
+## Qualification receipts
+
+The package ships the qualification basis of the signed Catalog V2 head it was
+cut from, so a consumer can verify rather than believe it:
+
+| File | Reachable as |
+| --- | --- |
+| `defaults/catalog-qualification-v1.json` | `@aihq/catalog/catalog-qualification.json` |
+| `defaults/signed-catalog-v2.json` (the exact signed head bytes) | `@aihq/catalog/signed-catalog.json` |
+| `defaults/catalog-signer-root.json` (public SPKI material only) | package-root path |
+| `defaults/qualification/receipt-set.json` | package-root path |
+| `defaults/qualification/receipts/<entryId>.json`, one per member | package-root path |
+
+Receipt and signer-root bytes are reached from the package root with
+`resolveCatalogQualificationPathV1(root, path)`, the way artifact bytes already
+are. No private key is in this repository's published data, in the package, or in
+any export.
+
+```js
+import { readCatalogContentV1, readCatalogQualificationV1 } from "@aihq/catalog";
+const basis = readCatalogQualificationV1({
+  bytes: qualificationBytes,
+  index,
+  now: "2026-09-22T12:00:00Z",
+  input: { root: packageRoot, verifyReceipts: true, verifySignature: true },
+});
+// basis.signature -> "verified" | "untrusted-signer" | "superseded" | "not-evaluated"
+// basis.attestation -> "absent" | "published-locator" | "not-evaluated"
+// basis.entries[i].state -> "qualified" | "expired" | "not-yet-valid"
+//   | "receipt-absent" | "receipt-digest-mismatch" | "receipt-malformed"
+//   | "basis-mismatch" | "member-mismatch" | "subject-mismatch" | "not-evaluated"
+```
+
+**What a receipt binds.** Each receipt names one catalog **member**
+(`qualificationBasis.catalogMemberDigest`), that member's **subject** (`subject`
+plus `qualificationBasis.subjectDigest` and `subjectKind`), the **head** it was
+cut from (`catalogDigest`, `catalogHeadDigest`), the **signer**
+(`catalogSignerIdentity`, `catalogContinuity.signerKeyId`), the head's
+**continuity** (`sequence`, `previousCatalogHeadDigest`, `replayIdentity`) and its
+**validity** window (`notBefore`, `expiresAt`, where `expiresAt` is exactly the
+head's `validUntil`). The reader recomputes every digest from bytes it read
+itself; the sidecar is a locator and a restatement, never a trusted claim. With
+`verifySignature`, the shipped head is re-verified against the shipped public
+signer roots under the exact claims it was signed with, and each receipt's basis
+must equal `deriveQualificationBasisV2({ head, entryId })` byte for byte.
+
+**Continuity is only partly re-derivable here.** The predecessor head is not
+shipped, so the reader cannot prove that this head's sequence follows that exact
+earlier head. It verifies this head's own signature, signer, claims and window,
+and requires every receipt to restate this head's own continuity fields. The
+published `previousCatalogHeadDigest` and `sequence` are the signed head's own
+values, not an independently checked chain.
+
+**These receipts are not attested in this package.** `attestation.state` is
+`"absent"`, and that is the honest state: the outer GitHub provenance over the
+receipt set and each `receipts/*.json` exists only after the owner dispatches
+`.github/workflows/signed-catalog-v2.yml` at the exact commit with
+`qualification_receipt_issued_at` equal to this document's `issuedAt`. Nothing an
+agent or a build can do substitutes for that dispatch. Once it has happened, a
+data-only update can set `attestation.state` to `"published"` with a
+`{ kind: "github-attestation", repository, sourceDigest, subjectDigest }` locator;
+the reader then reports `attestation: "published-locator"` and still verifies no
+attestation itself, because that needs the network and GitHub's store.
+
+**This is publisher qualification, never organization admission.**
+`organizationAdmission` is `"not-authoritative"` in the sidecar and in every
+receipt. A `qualified` state means this publisher's signed catalog carries that
+member with that identity inside that window. It does not admit the item into any
+organization, does not install or execute anything, and confers no effect
+authority; an organization's own decision remains required and separate.
+
+Regenerate with `npm run generate:catalog-qualification` after the build. It
+reads `dist/index.js` and re-emits every receipt with the public receipt-set
+emitter, which re-verifies the head once per member (about three minutes for 457
+members), so it is a maintainer step and not part of `build`.
+
+`npm run check:catalog-index` runs the fast drift gate
+(`generate-catalog-qualification.mjs --check`, about two seconds). It verifies the
+committed head once, with its committed predecessor, public root and claims; emits
+the receipts of three fixed members (first, middle, last) with the public emitter;
+projects every member's receipt from the first emitted receipt and that member's
+own record in the verified head (within one head only `entryId`, `subject` and the
+basis's member and subject fields differ); requires that projection to reproduce
+the emitter's bytes for every sampled member; and then compares every published
+byte (each receipt, the receipt set, the sidecar, the head copy and the signer-root
+copy) with what is committed, refusing any receipt file the inputs do not publish.
+`node tools/generate-catalog-qualification.mjs --check --full` runs the same
+comparison against a full re-emission instead of the projection.
+
+Inputs live in `defaults/catalog-qualification-inputs-v1.json`: the head, the
+signer root, the predecessor head, the exact claims, the publisher identity and a
+fixed `issuedAt`, so regeneration is byte-reproducible. Generation reads no
+private key, signs nothing and fetches nothing.
+
+## Presentation metadata
+
+`@aihq/catalog/catalog-presentation.json` (`defaults/catalog-presentation-v1.json`),
+read with `readCatalogPresentationV1({ bytes, index })`, gives each indexed item
+of a listed upstream source its publisher `title`, `description` and
+`category`, exactly as that source declares them. It is an additive, display-only
+sidecar. Entry ids, subject digests, artifacts and evidence do not change, and
+it says nothing about scanning, qualification, admission or policy.
+
+```js
+import { readCatalogContentV1, readCatalogPresentationV1 } from "@aihq/catalog";
+const presentation = readCatalogPresentationV1({ bytes: presentationBytes, index });
+// presentation.entries[i].description ->
+//   { state: "published", value, field: "frontmatter.description" }
+//   | { state: "unavailable", reason }
+```
+
+Each record names the upstream file its values came from (`source.path` and
+`source.sha256`) at the entry's own repository and commit. A value is published
+only verbatim from that file, after its bytes match the digest in the entry's
+closure artifact. An item's skill `SKILL.md` or agent file frontmatter supplies
+`name`, `description` and `category`. An MCP server supplies only its declared
+`description`, because its key is an id, not a name. Otherwise the value is
+`unavailable` with a reason: `not-declared`, `unparsed`, `no-source-file` or
+`not-in-source-file`. Nothing is inferred, classified or summarized. Every
+indexed entry of a listed source appears exactly once, so a missing value is an
+explicit result, not a missing item. `coverage` counts published and unavailable
+values from the data.
+
+The reader refuses (`undefined`) non-canonical or malformed bytes, unknown
+fields, an entry that is not in the index or has a different subject digest, an
+indexed entry left out, and malformed or oversize text. Values are upstream data:
+render them as text only.
+
+Today it covers every GitHub source in the index, 428 of 457 entries, each at
+its pinned commit:
+
+| Source | Commit | Entries |
+| --- | --- | --- |
+| `affaan-m/ECC` | `5064474d4d762dc9640234a41617cccb79185cec` | 367 |
+| `mattpocock/skills` | `3cca18b368ae95cdbdebbff572ccafa662551015` | 25 |
+| `anthropics/skills` | `34040c9c568585f6929bedeaad110ad08f079624` | 14 |
+| `obra/Superpowers` | `b36e0829c6d0140e93cfef2ca599b1b07d4a7797` | 14 |
+| `DietrichGebert/ponytail` | `356918eba965ee1eac64bd3a7f0dd02108350de5` | 7 |
+| `nextlevelbuilder/ui-ux-pro-max-skill` | `a38d04c3d5c298c851dbe5e6ee1965ee3de42cb5` | 1 |
+
+The ponytail MCP server's declared source is a JavaScript file, not a
+frontmatter or `mcpServers` file, so its values are `no-source-file`.
+
+**Not covered, by design of this format:** the 28 `aih` entries (Core releases
+and `recipe.default`) and the one `npm` entry (`picocolors@1.1.1`). This sidecar
+accepts only `github` sources pinned to a 40-hex commit, and `recipe.default` and
+`picocolors` declare no closure file to read even in principle. Those entries are
+absent from the sidecar, not unavailable within it; covering them needs a format
+change, which has not been made.
+
+Maintainers regenerate it from trees extracted at exactly those commits, laid out
+as `<trees-root>/<owner>/<repository>/<commit>`, with
+`npm run generate:catalog-presentation -- --trees <trees-root>` (or `--from
+<tree>` when one source is listed). The generator refuses any file whose bytes do
+not hash to the closure's declared digest, so a tree at another revision, or one
+checked out with line-ending conversion, cannot pass. `npm run
+check:catalog-index` runs `generate-catalog-presentation.mjs --check` without
+trees and without the network: it re-derives the source list from the inputs
+file, the entry set and subject digests from the index, each record's source
+path and digest from its closure, and the one field each value may come from,
+but not the published text itself. `--check --trees <trees-root>` also
+regenerates the text and compares bytes. Reading never uses the network.
+
+## Curated categories
+
+`@aihq/catalog/catalog-categories.json` (`defaults/catalog-categories-v1.json`),
+read with `readCatalogCategoriesV1({ bytes, index })`, gives every indexed item
+one category from a small published taxonomy, or an explicit `null`.
+
+**This is curated Catalog data, not an upstream declaration and not a UI
+classification.** `basis` is always `"curated"`. The AIH catalog maintainers edit
+it through `defaults/catalog-categories-rules-v1.json`: the taxonomy (`id`,
+`label`, `description`) and ordered rules, each mapping one kind of upstream
+evidence to a taxonomy id. A rule matches the item's declared `kind`, its
+upstream frontmatter `category` as the presentation sidecar published it, or a
+name pattern over its upstream name. The first matching rule wins. Every
+assignment carries a one-sentence `rationale` naming that evidence, its upstream
+file or release, and the rule, for example
+`Upstream name "python-reviewer" at affaan-m/ECC:agents/python-reviewer.md contains "reviewer" (rule review-names).`
+An item no rule matches is `{ category: null, reason: "not-curated" }`: an
+explicit result, never a guess. Upstream's own declared category, where one
+exists, stays in the presentation sidecar.
+
+```js
+import { readCatalogCategoriesV1 } from "@aihq/catalog";
+const categories = readCatalogCategoriesV1({ bytes: categoryBytes, index });
+// categories.entries[i] ->
+//   { reason: "curated", category: "code-review", rationale }
+//   | { reason: "not-curated", category: null, rationale: null }
+```
+
+Every index entry appears exactly once, in index order, with its subject digest.
+The reader refuses (`undefined`) non-canonical or oversize bytes, an unknown
+format, version, basis or member, an unsorted taxonomy, a category outside it, an
+entry not in the index, left out, duplicated or out of order, and a rationale that
+is missing, set on a `null` category, oversize or carries control characters.
+
+The taxonomy is a first curation: 12 categories, 365 of 457 entries curated and 92
+not curated. It awaits the owner's confirmation. Regenerate with
+`npm run generate:catalog-categories` after editing the rules;
+`npm run check:catalog-index` fails when the committed dataset differs from what
+the committed rules, index and presentation sidecar produce. A category is
+display and navigation data only: it says nothing about scanning, qualification,
+admission or policy.
+
+## Original source closure
+
+`readCatalogSourceClosureV1` supplies a current collection member's original
+upstream files: their exact bytes at their original relative paths. The member
+is resolved through the collection view (`collectionId` plus the entry's
+`subject.id`), never by comparing versions.
+
+```js
+import { readCatalogSourceClosureV1 } from "@aihq/catalog";
+
+const result = readCatalogSourceClosureV1({
+  collectionId: "aih-core",
+  subjectId: "governance-quality",
+});
+if (result.state === "verified") {
+  for (const file of result.closure.files) {
+    // file.path is the original relative path; file.bytes hash to file.sha256.
+  }
+}
+```
+
+`root` defaults to the installed package; pass it (and optionally `readFile`)
+to read another copy. The entry's profile artifact must match the index digest
+before it is read; it alone declares the file list, each file's digest and the
+public repository revision. Bytes ship under
+`defaults/sources/github.com/<owner>/<repo>/<revision>/` and each file is served
+only when it hashes to its declared digest. The result carries the index's own
+entry id and subject/source digests, the profile's asset identity, the profile
+descriptor (an assessment artifact, kept separate from the source), the source
+repository and revision, and the files.
+
+`materialRoots` names what a detector can be pointed at: `closure` (`.`, every
+declared file) and each declared directory holding `SKILL.md` as a `skill` root,
+whose `excludes` lists every closure file outside it. A scan of a skill root does
+not cover its `excludes`. `declaredTreeDigest` is the profile's recorded value,
+carried as declared; Catalog does not recompute a tree hash over a newly staged
+snapshot.
+
+Every refusal is `{ state: "refused", reason }`, with the original `path` for a
+file refusal: `index-unreadable`, `collections-unreadable`,
+`collection-unknown`, `member-unknown`, `member-ambiguous`,
+`profile-unverified`, `profile-invalid`, `profile-unknown-version`,
+`material-not-source-files`, `source-file-absent`, `source-file-digest-mismatch`.
+`profile-unknown-version` is the assessment profile format at a version other than
+`1`; a profile of any other format is `profile-invalid`. A member whose bytes this
+package does not ship is `source-file-absent`, never an empty closure.
+
+Only the current Core `governance-quality` member's closure is shipped today.
+Maintainers stage a member from its exact recorded revision with
+`npm run stage:source-closure -- <collection-id> <subject-id>`, which refuses any
+digest mismatch. Reading never uses the network. Source bytes are not a scan,
+qualification or admission.
+
+## Runtime descriptors
+
+`@aihq/catalog/catalog-runtime-descriptors.json`
+(`defaults/catalog-runtime-descriptors-v1.json`), read with
+`readCatalogRuntimeDescriptorsV1Result({ bytes, index, input })`, distributes the
+exact runtime descriptor bytes Core's historical ECC resolver reads for a
+framework source revision this Catalog indexes. Today that is one
+`ecc-runtime-descriptor/v1` for `affaan-m/ECC@5064474d4d762dc9640234a41617cccb79185cec`.
+
+**This is runtime material, relayed unchanged.** It is not presentation, not an
+assessment identity, not the source closure, not a scan record and not a
+qualification. The descriptor is Core's own sealed, canonical JSON; Catalog does
+not interpret, re-serialize, re-sign or re-date it. Each entry names its
+`framework`, the descriptor `format` (Core's `version` literal), its `source`
+revision, its `origin` (the sha256 of the sealed Core packaged source-data record
+the bytes were taken from) and the descriptor's `path`, `sha256` and
+`byteLength`.
+
+```js
+import { readCatalogRuntimeDescriptorsV1Result } from "@aihq/catalog";
+const result = readCatalogRuntimeDescriptorsV1Result({
+  bytes: sidecarBytes,
+  index,
+  input: { root: packageRoot, verifyDescriptors: true },
+});
+// result.runtimeDescriptors.descriptors[0].descriptor ->
+//   { state: "verified", path, sha256, byteLength, bytes }
+//   | { state: "unverified", path, sha256, byteLength, reason }
+```
+
+Without `verifyDescriptors` every descriptor is `not-evaluated`. With it, each is
+`verified` only when its bytes have the declared length and sha256, parse as JSON,
+and declare the named format and source revision; otherwise it is `unverified`
+with `descriptor-absent`, `descriptor-unreadable`, `descriptor-size-mismatch`,
+`descriptor-digest-mismatch`, `descriptor-malformed` or
+`descriptor-identity-mismatch`. Those are verdicts about the bytes, not refusals.
+The sidecar itself refuses from `CATALOG_RUNTIME_DESCRIPTORS_REFUSALS_V1`, among
+them `index-mismatch` (cut from another index), `unsupported-descriptor` (a
+framework or descriptor format this version does not distribute, including a
+newer Core descriptor version) and `source-not-in-index` (a revision the index
+does not carry).
+
+Core keeps every check that makes a descriptor usable: its schema, seal, evidence
+custody and expiry, and the decision whether to trust Catalog-delivered bytes at
+all. A descriptor is never organization admission, installation or effect
+authority.
+
+Maintainers take descriptors only from Core's sealed packaged source data:
+`node tools/generate-catalog-runtime-descriptors.mjs --ingest-core-source-data <packaged-source-data-data.json>`
+checks each record's seal and each descriptor's seal and canonical bytes, writes
+the bytes under `defaults/runtime-descriptors/github.com/<owner>/<repo>/<commit>/`
+and records the origin in `defaults/catalog-runtime-descriptors-inputs-v1.json`.
+`npm run generate:catalog-runtime-descriptors` then writes the sidecar, and
+`npm run check:catalog-index` fails when a committed descriptor no longer matches
+the seal Core declared for it or the sidecar differs from what the inputs,
+descriptors and index produce.
+
 ## Authority boundary
 
 There are two independent governance paths:

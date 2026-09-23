@@ -1,0 +1,42 @@
+{
+  "format": "aih-catalog-collection-inputs",
+  "version": 1,
+  "collectedSourceTypes": [
+    "aih"
+  ],
+  "collections": [
+    {
+      "id": "aih-core",
+      "owner": {
+        "package": "@aihq/core"
+      },
+      "sourceType": "aih",
+      "current": {
+        "release": "0.6.2",
+        "origin": {
+          "kind": "package-file",
+          "name": "@aihq/core",
+          "version": "0.6.2",
+          "sha256": "422443c1b4d489b4e426f4e180b7b68ecd5be1dc504b0a125b37e36aad813b4a"
+        }
+      },
+      "seedRoot": "workbench/aih-core-0.6.2/"
+    },
+    {
+      "id": "aih-default-profile",
+      "owner": {
+        "package": "@aihq/catalog"
+      },
+      "sourceType": "aih",
+      "current": {
+        "release": "1.0.0",
+        "origin": {
+          "kind": "catalog-authored"
+        }
+      },
+      "seeds": [
+        "default-catalog-v2.json"
+      ]
+    }
+  ]
+}
