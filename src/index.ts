@@ -107,6 +107,28 @@ export {
   resolveCatalogQualificationPathV1,
 } from "./content/catalog-qualification-v1.js";
 export {
+  CATALOG_RUNTIME_DESCRIPTOR_MAX_BYTES_V1,
+  CATALOG_RUNTIME_DESCRIPTORS_FORMAT_V1,
+  CATALOG_RUNTIME_DESCRIPTORS_MAX_BYTES_V1,
+  CATALOG_RUNTIME_DESCRIPTORS_MAX_ENTRIES_V1,
+  CATALOG_RUNTIME_DESCRIPTORS_REFUSALS_V1,
+  CATALOG_RUNTIME_DESCRIPTORS_ROOT_URL,
+  CATALOG_RUNTIME_DESCRIPTORS_SUBPATH_V1,
+  CATALOG_RUNTIME_DESCRIPTORS_VERSION_V1,
+  type CatalogRuntimeDescriptorEntryV1,
+  type CatalogRuntimeDescriptorFileV1,
+  type CatalogRuntimeDescriptorFormatV1,
+  type CatalogRuntimeDescriptorFrameworkV1,
+  type CatalogRuntimeDescriptorsRefusalV1,
+  type CatalogRuntimeDescriptorsV1,
+  type CatalogRuntimeDescriptorsV1Input,
+  type CatalogRuntimeDescriptorsV1Result,
+  type CatalogRuntimeDescriptorUnverifiedReasonV1,
+  type ReadCatalogRuntimeDescriptorsV1Request,
+  readCatalogRuntimeDescriptorsV1,
+  readCatalogRuntimeDescriptorsV1Result,
+} from "./content/catalog-runtime-descriptors-v1.js";
+export {
   CATALOG_ASSESSMENT_PROFILE_FORMAT_V1,
   CATALOG_ASSESSMENT_PROFILE_VERSION_V1,
   CATALOG_SOURCE_CLOSURE_FORMAT_V1,

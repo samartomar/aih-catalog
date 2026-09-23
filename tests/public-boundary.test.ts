@@ -100,6 +100,13 @@ describe("supported public V2 boundary", () => {
     ) as { entries: Array<{ receipt: { path: string } }> };
     expect(sidecar.entries.length).toBeGreaterThan(0);
     for (const entry of sidecar.entries) expect(paths.has(entry.receipt.path)).toBe(true);
+    // Every runtime descriptor the sidecar names is packed with it.
+    expect(paths.has("defaults/catalog-runtime-descriptors-v1.json")).toBe(true);
+    const runtime = JSON.parse(
+      readFileSync(resolve(root, "defaults/catalog-runtime-descriptors-v1.json"), "utf8"),
+    ) as { descriptors: Array<{ descriptor: { path: string } }> };
+    expect(runtime.descriptors.length).toBeGreaterThan(0);
+    for (const item of runtime.descriptors) expect(paths.has(item.descriptor.path)).toBe(true);
     // The repository's own catalog generations still stay out of the package.
     expect([...paths].some((path) => path.startsWith("catalog/"))).toBe(false);
   }, 90_000);
