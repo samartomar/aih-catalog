@@ -13,16 +13,21 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Compile dist only; the qualification gate loads dist/index.js. build would regenerate defaults/**.
+      - name: Compile dist without regenerating committed data
+        run: npm run build:dist
+      - name: Check committed catalog data before any regeneration
+        run: npm run check:catalog-index
       - run: npm run verify
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: samartomar/ai-harness
           ref: c31741602b3dbd5f228dafe00591e5679c782878
@@ -30,7 +35,7 @@ jobs:
           fetch-depth: 2
           persist-credentials: false
       # The assessment profile literals first exist in Core after the Strict V2 pin.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: samartomar/ai-harness
           ref: 2b3212f22e9f7006455b75f29377be3add58fac7
@@ -51,16 +56,16 @@ jobs:
   cold-external-admin:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: samartomar/ai-harness
           ref: c31741602b3dbd5f228dafe00591e5679c782878
           path: core-source
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
           cache: npm

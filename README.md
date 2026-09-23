@@ -83,7 +83,11 @@ npm run generate:catalog-index
 npm run check:catalog-index
 ```
 
-The build also regenerates `defaults/catalog-index-v1.json`. The package exposes
+The build also regenerates `defaults/catalog-index-v1.json`. So that committed
+drift fails instead of being rewritten, `npm run verify` and the `verify` workflow
+compile `dist` with `npm run build:dist` (no generators) and run
+`npm run check:catalog-index` against the committed `defaults/**` before
+`npm run build` regenerates anything. The package exposes
 this data as `@aihq/catalog/catalog-index.json`; a consumer can import or bundle
 that JSON without loading the Node API:
 

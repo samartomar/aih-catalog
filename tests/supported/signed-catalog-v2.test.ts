@@ -3885,7 +3885,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     );
     expect(packageJson).toContain('"verify:core-v2-lock"');
     expect(packageScripts.verify).toBe(
-      "npm run typecheck && npm run lint && npm run build && npm test",
+      "npm run typecheck && npm run lint && npm run build:dist && npm run check:catalog-index && npm run build && npm test",
     );
     expect(packageScripts["verify:core-v2-lock"]).toMatch(/^node tools\/verify-core-v2-lock\.mjs$/);
     expect(readFileSync(verifierPath, "utf8")).toContain("aih-governance-decision-source/v2\\0");

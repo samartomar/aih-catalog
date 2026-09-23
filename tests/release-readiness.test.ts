@@ -1040,3 +1040,80 @@ describe("@aihq/catalog promotion readiness gate", () => {
     }
   });
 });
+
+describe("Catalog content gates run on the committed data (WO-CATALOG-CI)", () => {
+  const verifyJob = () => {
+    const workflow = read(".github/workflows/verify.yml");
+    const start = workflow.indexOf("\n  verify:\n");
+    const end = workflow.indexOf("\n  cold-external-admin:\n");
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(end).toBeGreaterThan(start);
+    return workflow.slice(start, end);
+  };
+  /** Offset of the step line that runs exactly `command`, or -1. */
+  const stepIndex = (job: string, command: string) => {
+    let offset = 0;
+    for (const line of job.split("\n")) {
+      const step = line.trim();
+      if (step === `- run: ${command}` || step === `run: ${command}`) return offset;
+      offset += line.length + 1;
+    }
+    return -1;
+  };
+
+  it("checks committed defaults in the verify workflow before any step regenerates them", () => {
+    const job = verifyJob();
+    const install = stepIndex(job, "npm ci");
+    const compile = stepIndex(job, "npm run build:dist");
+    const check = stepIndex(job, "npm run check:catalog-index");
+    const verify = stepIndex(job, "npm run verify");
+    expect(install).toBeGreaterThanOrEqual(0);
+    expect(compile).toBeGreaterThan(install);
+    expect(check).toBeGreaterThan(compile);
+    expect(verify).toBeGreaterThan(check);
+    // Nothing before the gate may regenerate defaults/**: no build, generator or verify.
+    const beforeCheck = job.slice(0, check);
+    expect(beforeCheck).not.toMatch(/npm run (?:build|verify|generate:)(?![:\w-]*dist\b)/u);
+    expect(beforeCheck).not.toMatch(/tools\/generate-/u);
+    expect(job).toContain("name: Check committed catalog data before any regeneration");
+  });
+
+  it("keeps the verify workflow read-only, pinned and on its existing triggers", () => {
+    const workflow = read(".github/workflows/verify.yml");
+    expect(workflow).toContain(
+      "on:\n  pull_request:\n  push:\n    branches: [main]\n  workflow_dispatch:\n\npermissions:\n  contents: read\n\njobs:\n",
+    );
+    expect(workflow).not.toMatch(/(?:write|secrets\.|GITHUB_TOKEN|id-token)/u);
+    const uses = [...workflow.matchAll(/^\s*(?:-\s*)?uses:\s*([^@\s]+)@(\S+)(.*)$/gmu)];
+    expect(uses.length).toBeGreaterThanOrEqual(6);
+    for (const [, action, revision, comment] of uses) {
+      expect(action).toMatch(/^[\w.-]+\/[\w.-]+$/u);
+      expect(revision).toMatch(/^[0-9a-f]{40}$/u);
+      expect(comment).toMatch(/^ # v\d+\.\d+\.\d+$/u);
+    }
+    const checkouts = workflow.match(/uses: actions\/checkout@/gu) ?? [];
+    const persisted = workflow.match(/persist-credentials: false/gu) ?? [];
+    expect(persisted.length).toBe(checkouts.length);
+  });
+
+  it("orders the local verify script so the gates see committed data before build regenerates it", () => {
+    const scripts = (
+      JSON.parse(read("package.json")) as {
+        scripts: { build: string; "build:dist": string; verify: string };
+      }
+    ).scripts;
+    // build:dist is build without the generators, so it cannot rewrite defaults/**.
+    expect(scripts["build:dist"]).toBe(
+      "node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node tools/ensure-cli-executable.mjs",
+    );
+    expect(scripts.build.endsWith(` && ${scripts["build:dist"]}`)).toBe(true);
+    expect(scripts.verify.split(" && ")).toEqual([
+      "npm run typecheck",
+      "npm run lint",
+      "npm run build:dist",
+      "npm run check:catalog-index",
+      "npm run build",
+      "npm test",
+    ]);
+  });
+});
