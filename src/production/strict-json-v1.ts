@@ -94,11 +94,18 @@ export function jsonOwnEntriesV1(value: object, label: string): [string, unknown
   return entries;
 }
 
+/**
+ * Requires strict JSON data: well-formed NFC strings and keys, finite numbers other than negative
+ * zero, plain acyclic own-data objects and arrays, nested at most `STRICT_JSON_MAX_DEPTH_V1`
+ * levels (the root is level 1), so a deep caller-supplied value is refused before the walk
+ * recurses far.
+ */
 export function assertStrictJsonValueV1<T>(
   value: T,
   label: string,
   requireNfc = true,
   active = new WeakSet<object>(),
+  depth = 1,
 ): T {
   if (value === null || typeof value === "boolean") return value;
   if (typeof value === "string") {
@@ -112,6 +119,7 @@ export function assertStrictJsonValueV1<T>(
     return value;
   }
   if (!isObject(value)) throw new TypeError(`${label} does not support ${typeof value}`);
+  if (depth > STRICT_JSON_MAX_DEPTH_V1) throw nestedTooDeep(label, STRICT_JSON_MAX_DEPTH_V1);
   if (active.has(value)) throw new TypeError(`${label} must not contain a cycle`);
   active.add(value);
   if (Object.getOwnPropertySymbols(value).length > 0) {
@@ -125,6 +133,7 @@ export function assertStrictJsonValueV1<T>(
         `${label}[${String(index)}]`,
         requireNfc,
         active,
+        depth + 1,
       );
     }
     active.delete(value);
@@ -136,7 +145,13 @@ export function assertStrictJsonValueV1<T>(
   }
   for (const key of Object.keys(value)) {
     assertWellFormedNfcV1(key, `${label} key`, requireNfc);
-    assertStrictJsonValueV1(dataValue(value, key, label), `${label}.${key}`, requireNfc, active);
+    assertStrictJsonValueV1(
+      dataValue(value, key, label),
+      `${label}.${key}`,
+      requireNfc,
+      active,
+      depth + 1,
+    );
   }
   active.delete(value);
   return value;
@@ -148,6 +163,10 @@ export function assertStrictJsonValueV1<T>(
  * (`STRICT_JSON_MAX_DEPTH_V1` in Core's src/contract/strict-json-v1.ts).
  */
 export const STRICT_JSON_MAX_DEPTH_V1 = 32;
+
+function nestedTooDeep(label: string, maxDepth: number): TypeError {
+  return new TypeError(`${label} nests deeper than ${String(maxDepth)} levels`);
+}
 
 /**
  * Refuses JSON text whose objects and arrays nest deeper than `maxDepth` (the root is level 1).
@@ -165,8 +184,7 @@ export function assertJsonTextDepthV1(text: string, label: string, maxDepth: num
     } else if (char === '"') inString = true;
     else if (char === "{" || char === "[") {
       depth += 1;
-      if (depth > maxDepth)
-        throw new TypeError(`${label} nests deeper than ${String(maxDepth)} levels`);
+      if (depth > maxDepth) throw nestedTooDeep(label, maxDepth);
     } else if (char === "}" || char === "]") depth -= 1;
   }
 }
@@ -321,19 +339,24 @@ export function parseStrictJsonObjectV1(text: string, label: string): Record<str
   return assertStrictJsonValueV1(parsed as Record<string, unknown>, label);
 }
 
+/** Freezes a value and everything it holds, at any depth: iteratively, never recursing. */
 export function deepFreezeStrictJsonV1<T>(value: T, seen = new WeakSet<object>()): T {
-  if (!isObject(value) || seen.has(value)) return value;
-  seen.add(value);
-  for (const key of Object.keys(value)) {
-    const descriptor = Object.getOwnPropertyDescriptor(value, key);
-    if (descriptor !== undefined && "value" in descriptor) {
-      deepFreezeStrictJsonV1(descriptor.value, seen);
+  const pending: unknown[] = [value];
+  while (pending.length > 0) {
+    const item = pending.pop();
+    if (!isObject(item) || seen.has(item)) continue;
+    seen.add(item);
+    for (const key of Object.keys(item)) {
+      const descriptor = Object.getOwnPropertyDescriptor(item, key);
+      if (descriptor !== undefined && "value" in descriptor) pending.push(descriptor.value);
     }
+    Object.freeze(item);
   }
-  return Object.freeze(value);
+  return value;
 }
 
-function serializeCanonicalValue(value: unknown): string {
+/** Canonical JSON text, nested at most `STRICT_JSON_MAX_DEPTH_V1` levels (the root is level 1). */
+function serializeCanonicalValue(value: unknown, depth = 1): string {
   if (value === null || typeof value === "string" || typeof value === "boolean") {
     return JSON.stringify(value);
   }
@@ -342,11 +365,15 @@ function serializeCanonicalValue(value: unknown): string {
       throw new TypeError("canonical JSON numbers must be finite and not negative zero");
     return JSON.stringify(value);
   }
+  if (typeof value === "object" && depth > STRICT_JSON_MAX_DEPTH_V1)
+    throw nestedTooDeep("canonical JSON", STRICT_JSON_MAX_DEPTH_V1);
   if (Array.isArray(value)) {
     assertPlainArray(value, "canonical JSON");
     const children: string[] = [];
     for (let index = 0; index < value.length; index += 1)
-      children.push(serializeCanonicalValue(dataValue(value, String(index), "canonical JSON")));
+      children.push(
+        serializeCanonicalValue(dataValue(value, String(index), "canonical JSON"), depth + 1),
+      );
     return `[${children.join(",")}]`;
   }
   if (typeof value === "object") {
@@ -359,7 +386,7 @@ function serializeCanonicalValue(value: unknown): string {
       .sort(codeUnitCompare)
       .map(
         (key) =>
-          `${JSON.stringify(key)}:${serializeCanonicalValue(dataValue(value, key, "canonical JSON"))}`,
+          `${JSON.stringify(key)}:${serializeCanonicalValue(dataValue(value, key, "canonical JSON"), depth + 1)}`,
       )
       .join(",")}}`;
   }

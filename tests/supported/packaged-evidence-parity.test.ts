@@ -2,7 +2,11 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { canonicalJsonV1, sha256HexV1 } from "../../src/production/strict-json-v1.js";
-import { parsePackagedScannerCollectionEvidenceV1 } from "../../src/production/workbench/packaged-evidence-v1.js";
+import {
+  packagedCoverageProjectionDigestV1,
+  packagedReportComponentDigestV1,
+  parsePackagedScannerCollectionEvidenceV1,
+} from "../../src/production/workbench/packaged-evidence-v1.js";
 
 // Decision D25: Catalog's reader applies exactly Core's structural validation to a packaged
 // collection evidence record and never admits one; publisher admission is Core's alone. The
@@ -184,6 +188,21 @@ function unrepresentableInputs(item: { bytes: string; sha256: string }) {
 }
 
 describe("packaged collection evidence parity with Core", () => {
+  it("refuses a deep value given to the digest helpers, typed", () => {
+    let deep: unknown = 0;
+    for (let level = 0; level < 100_000; level += 1) deep = [deep];
+    for (const digest of [packagedCoverageProjectionDigestV1, packagedReportComponentDigestV1]) {
+      let refusal: unknown;
+      try {
+        digest(deep);
+      } catch (error) {
+        refusal = error;
+      }
+      expect(refusal).toBeInstanceOf(TypeError);
+      expect((refusal as Error).message).toMatch(TOO_DEEP);
+    }
+  });
+
   it("refuses reader inputs JSON cannot express, typed and without invoking a getter", () => {
     const [item] = sealedInput(
       fixtures.find((fixture) => fixture.fixture === "valid") as Fixture,
