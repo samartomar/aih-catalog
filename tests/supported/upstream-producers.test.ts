@@ -2,6 +2,7 @@ import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:f
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { ECC_PROFILE_SOURCES_FILE_V1 } from "../../src/production/catalog/ecc-profile-evidence-v1.js";
 import { parseUpstreamInputsManifestV1 } from "../../src/production/catalog/upstream-inputs-v1.js";
 import { buildCatalogFrameworkDefaultsV1 } from "../../src/production/catalog-defaults-v1.js";
 import { catalogProductionRuntimeV1 } from "../../src/production/collation-v1.js";
@@ -33,6 +34,7 @@ function tree(repository: string, commit: string, files: Record<string, string |
       if (value === undefined) throw new TypeError(`absent ${path}`);
       return typeof value === "string" ? Buffer.from(value, "utf8") : value;
     },
+    mode: (path: string) => (path.endsWith(".sh") ? "100755" : "100644"),
   } satisfies UpstreamTreeV1;
 }
 
@@ -59,6 +61,9 @@ function eccTree(extra: Record<string, string> = {}) {
       ),
     }),
     "mcp-configs/mcp-servers.json": dataText("ecc-mcp-inventory-v1.json"),
+    "manifests/install-components.json": '{"version":1,"components":[]}\n',
+    "package.json": '{"name":"ecc-universal","version":"2.2.1"}\n',
+    LICENSE: "MIT License\n",
     "agents/planner.md":
       "---\nname: planner\ndescription: Plans work.\ntools: Read, Grep\n---\n\nBody.\n",
     ...Object.fromEntries(ECC_HOOK_CONTROL_SOURCE_PATHS.map((path) => [path, `// ${path}\n`])),
@@ -98,6 +103,45 @@ describe("networked upstream producers (offline transforms)", () => {
         return { path, sha256: sha256HexV1(bytes), bytesBase64: bytes.toString("base64") };
       }),
     });
+  });
+
+  it("fetches what the ECC profile evidence reads: manifests, package and file digests with modes", () => {
+    const produced = produceUpstreamInputsV1(
+      "ecc",
+      eccTree({ "skills/zz/run.sh": "#!/bin/sh\n", "commands/plan.md": "# plan\n" }),
+      root,
+    );
+    const input = JSON.parse(
+      produced.find((item) => item.file === ECC_PROFILE_SOURCES_FILE_V1)?.bytes ?? "null",
+    ) as {
+      commit: string;
+      package: unknown;
+      licensePath: string;
+      manifests: { path: string; text: string }[];
+      files: { path: string; sha256: string; bytes: number; mode: string }[];
+    };
+    expect(input.commit).toBe(ECC_COMMIT);
+    expect(input.package).toEqual({ name: "ecc-universal", version: "2.2.1" });
+    expect(input.licensePath).toBe("LICENSE");
+    expect(input.manifests.map((item) => item.path)).toEqual([
+      "manifests/install-components.json",
+      "manifests/install-modules.json",
+      "manifests/install-profiles.json",
+    ]);
+    expect(input.manifests[0]?.text).toBe('{"version":1,"components":[]}\n');
+    const paths = input.files.map((file) => file.path);
+    expect(paths).toContain("agents/planner.md");
+    expect(paths).toContain("commands/plan.md");
+    expect(paths).not.toContain("manifests/install-modules.json");
+    expect(input.files.find((file) => file.path === "skills/zz/run.sh")).toEqual({
+      path: "skills/zz/run.sh",
+      sha256: sha256HexV1(Buffer.from("#!/bin/sh\n", "utf8")),
+      bytes: 10,
+      mode: "100755",
+    });
+    expect(paths).toEqual([...paths].sort());
+    const { mode: _, ...withoutModes } = eccTree();
+    expect(() => produceUpstreamInputsV1("ecc", withoutModes, root)).toThrow(/mode/u);
   });
 
   it("orders the skill inventory as the git tree does", () => {

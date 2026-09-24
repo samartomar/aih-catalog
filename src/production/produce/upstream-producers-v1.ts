@@ -2,6 +2,10 @@ import { readFileSync } from "node:fs";
 import { parseContentMetadataV1 } from "../catalog/content-metadata-v1.js";
 import { validateEccMcpCatalogInventoryV1 } from "../catalog/ecc-mcp-inventory-v1.js";
 import {
+  ECC_PROFILE_SOURCES_FILE_V1,
+  isEccProfileSourcePathV1,
+} from "../catalog/ecc-profile-evidence-v1.js";
+import {
   parseEccModulesSnapshotV1,
   parseEccProfilesSnapshotV1,
 } from "../catalog/ecc-snapshots-v1.js";
@@ -42,6 +46,8 @@ export interface UpstreamTreeV1 {
   /** Every blob path at the commit. */
   readonly paths: readonly string[];
   read(path: string): Uint8Array;
+  /** The git mode of a regular file; a producer that records modes needs it. */
+  mode?(path: string): "100644" | "100755";
 }
 
 export interface ProducedUpstreamFileV1 {
@@ -268,6 +274,7 @@ function eccInputs(tree: UpstreamTreeV1): ProducedUpstreamFileV1[] {
     { file: "ecc-profiles-v1.json", bytes: pretty(profiles), sources: digest(profilesPath) },
     { file: "ecc-skill-inventory-v1.json", bytes: pretty(skills), sources: {} },
     eccHookSources(tree),
+    eccProfileSources(tree),
   ];
 }
 
@@ -355,6 +362,48 @@ function ponytailSnapshot(tree: UpstreamTreeV1, root: string): ProducedUpstreamF
   };
   compilePonytailComponentCollectionV1(snapshot);
   return { file: "ponytail.snapshot.json", bytes: pretty(snapshot), sources: {} };
+}
+
+/**
+ * What the ECC profile evidence reads at the fetched commit: the package
+ * identity, the three install manifests as text, and the digest, size and git
+ * mode of every file under skills/, agents/ and commands/.
+ */
+function eccProfileSources(tree: UpstreamTreeV1): ProducedUpstreamFileV1 {
+  const mode = tree.mode;
+  if (mode === undefined)
+    throw new TypeError("produce:ecc needs the git modes of the fetched tree");
+  const pkg = record(JSON.parse(textOf(tree, "package.json")), "package.json");
+  bytesOf(tree, "LICENSE");
+  const files = tree.paths
+    .filter(isEccProfileSourcePathV1)
+    .sort(codeUnitCompare)
+    .map((path) => {
+      const bytes = bytesOf(tree, path);
+      return {
+        path,
+        sha256: sha256HexV1(bytes),
+        bytes: bytes.byteLength,
+        mode: mode.call(tree, path),
+      };
+    });
+  return {
+    file: ECC_PROFILE_SOURCES_FILE_V1,
+    bytes: pretty({
+      version: 1,
+      repository: tree.repository,
+      commit: tree.commit,
+      package: { name: pkg.name, version: pkg.version },
+      licensePath: "LICENSE",
+      manifests: [
+        "manifests/install-components.json",
+        "manifests/install-modules.json",
+        "manifests/install-profiles.json",
+      ].map((path) => ({ path, text: textOf(tree, path) })),
+      files,
+    }),
+    sources: {},
+  };
 }
 
 /**

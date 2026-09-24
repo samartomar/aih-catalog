@@ -54,6 +54,18 @@
         "cldr": "48.0"
       }
     },
+    "ecc-profile-sources-v1.json": {
+      "repository": "affaan-m/ECC",
+      "commit": "5064474d4d762dc9640234a41617cccb79185cec",
+      "sha256": "6488037161ab57123ff75ee5f2d4a9517691a153f527d320d4d6f84228fc67e7",
+      "sources": {},
+      "runtime": {
+        "node": "26.4.0",
+        "icu": "78.3",
+        "unicode": "17.0",
+        "cldr": "48.0"
+      }
+    },
     "ecc-profiles-v1.json": {
       "repository": "affaan-m/ECC",
       "commit": "5064474d4d762dc9640234a41617cccb79185cec",

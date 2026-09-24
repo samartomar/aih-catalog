@@ -10,6 +10,10 @@ import {
   type CatalogFrameworkDescriptorV1,
   type CatalogFrameworkPluginsV1,
 } from "../content/catalog-framework-v1.js";
+import {
+  ECC_PROFILE_SOURCES_FILE_V1,
+  eccProfileEvidenceV1,
+} from "./catalog/ecc-profile-evidence-v1.js";
 import { reviewedSuperpowersHookControlInventoryV1 } from "./catalog/superpowers-hooks-v1.js";
 import {
   readUpstreamInputsManifestV1,
@@ -107,6 +111,14 @@ function frameworkDescriptor(
     sections.moduleGraph = readJson(root, "ecc-modules-v1.json");
     sections.profileGraph = readJson(root, "ecc-profiles-v1.json");
     sections.installPreview = readJson(root, "ecc-install-preview-v1.json");
+    sections.profileEvidence = eccProfileEvidenceV1(
+      readVerifiedUpstreamInputV1(
+        root,
+        readUpstreamInputsManifestV1(root),
+        ECC_PROFILE_SOURCES_FILE_V1,
+      ).json,
+      sections.vendorLock,
+    );
     if (record.runtimeDescriptor !== undefined)
       sections.runtimeDescriptor = record.runtimeDescriptor;
   } else {
