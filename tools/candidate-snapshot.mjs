@@ -58,6 +58,8 @@ const run = (args, options = {}) => {
   const result = spawnSync("git", ["--no-replace-objects", ...args], {
     encoding: "utf8",
     env: gitEnv(),
+    // A full-tree ls-tree of a real repository is larger than the 1 MiB default.
+    maxBuffer: 64 * 1024 * 1024,
     ...options,
   });
   if (result.status !== 0)

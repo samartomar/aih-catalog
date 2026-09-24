@@ -1026,3 +1026,24 @@ describe("the candidate build exposure rolls back safely", () => {
     expect(staging(dir)).toEqual([]);
   });
 });
+
+describe("the candidate build at real repository size", () => {
+  it("materializes a tree whose listing exceeds the child process default buffer", {
+    timeout: 120_000,
+  }, async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    // ~7000 entries with ~100-character paths: the ls-tree listing is over
+    // 1 MiB, past spawnSync's default maxBuffer.
+    const deep = join(dir, "d".repeat(60));
+    mkdirSync(deep);
+    for (let i = 0; i < 7000; i += 1) writeFileSync(join(deep, `f${i}-${"g".repeat(30)}`), `${i}`);
+    gitIn(dir, "add", "-A");
+    gitIn(dir, "commit", "-q", "-m", "many files");
+    const head = gitIn(dir, "rev-parse", "HEAD");
+    const built = await buildCandidateFromCommitV1(dir, emit);
+    expect(built.catalogCommit).toBe(head);
+    expect(readFileSync(join(built.outRoot, "input.json"), "utf8")).toBe(COMMITTED);
+    expect(staging(dir)).toEqual([]);
+  });
+});
