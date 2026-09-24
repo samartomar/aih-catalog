@@ -1,6 +1,6 @@
 {
   "name": "@aihq/catalog",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "AIH Catalog qualification producer for AI Development Assurance.",
   "repository": {
     "type": "git",
@@ -37,14 +37,22 @@
     "./signed-catalog.json": "./defaults/signed-catalog-v2.json",
     "./catalog-categories.json": "./defaults/catalog-categories-v1.json",
     "./catalog-runtime-descriptors.json": "./defaults/catalog-runtime-descriptors-v1.json",
+    "./catalog-authoring-bundle.json": "./defaults/catalog-authoring-bundle-v1.json",
+    "./catalog-core-qualification.json": "./defaults/catalog-core-qualification-v1.json",
+    "./catalog-scanner-evidence.json": "./defaults/catalog-scanner-evidence-v1.json",
+    "./catalog-scanner-providers.json": "./defaults/catalog-scanner-providers-v1.json",
+    "./catalog-public-baseline.json": "./defaults/catalog-public-baseline-v1.json",
+    "./catalog-framework-ecc.json": "./defaults/catalog-framework-ecc-v1.json",
+    "./catalog-framework-superpowers.json": "./defaults/catalog-framework-superpowers-v1.json",
+    "./catalog-framework-plugins.json": "./defaults/catalog-framework-plugins-v1.json",
     "./package.json": "./package.json"
   },
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "build": "node tools/generate-catalog-index.mjs && node tools/generate-catalog-collections.mjs && node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node tools/ensure-cli-executable.mjs",
-    "build:dist": "node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node tools/ensure-cli-executable.mjs",
+    "build": "node tools/generate-catalog-index.mjs && node tools/generate-catalog-collections.mjs && node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node dist/production/catalog-defaults-v1.js && node tools/ensure-cli-executable.mjs",
+    "build:dist": "node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node dist/production/catalog-defaults-v1.js && node tools/ensure-cli-executable.mjs",
     "generate:default-candidate": "node dist/cli.js generate-candidate",
     "lint": "biome check .",
     "repo:doctor": "node tools/repo-ai-tools.mjs doctor-codex",
@@ -59,7 +67,7 @@
     "verify:default-evidence-chain": "vitest run tests/supported/default-evidence-chain.test.ts",
     "verify": "npm run typecheck && npm run lint && npm run build:dist && npm run check:catalog-index && npm run build && npm test",
     "generate:catalog-index": "node tools/generate-catalog-index.mjs",
-    "check:catalog-index": "node tools/generate-catalog-index.mjs --check && node tools/generate-catalog-collections.mjs --check && node tools/generate-catalog-qualification.mjs --check && node tools/generate-catalog-presentation.mjs --check && node tools/generate-catalog-categories.mjs --check && node tools/generate-catalog-runtime-descriptors.mjs --check",
+    "check:catalog-index": "node tools/generate-catalog-index.mjs --check && node tools/generate-catalog-collections.mjs --check && node tools/generate-catalog-qualification.mjs --check && node tools/generate-catalog-presentation.mjs --check && node tools/generate-catalog-categories.mjs --check && node tools/generate-catalog-runtime-descriptors.mjs --check && node dist/production/catalog-defaults-v1.js --check",
     "generate:catalog-collections": "node tools/generate-catalog-collections.mjs",
     "generate:catalog-qualification": "node tools/generate-catalog-qualification.mjs",
     "prepare:core-collection": "node tools/prepare-core-collection.mjs",

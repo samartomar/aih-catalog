@@ -1,4 +1,16 @@
 export {
+  CATALOG_AUTHORING_BUNDLE_FORMAT_V1,
+  CATALOG_AUTHORING_BUNDLE_MAX_BYTES_V1,
+  CATALOG_AUTHORING_BUNDLE_REFUSALS_V1,
+  CATALOG_AUTHORING_BUNDLE_SUBPATH_V1,
+  CATALOG_AUTHORING_BUNDLE_VERSION_V1,
+  type CatalogAuthoringBundleRefusalV1,
+  type CatalogAuthoringBundleV1,
+  type CatalogAuthoringBundleV1Result,
+  readCatalogAuthoringBundleV1,
+  readCatalogAuthoringBundleV1Result,
+} from "./content/catalog-authoring-bundle-v1.js";
+export {
   CATALOG_CATEGORIES_FORMAT_V1,
   CATALOG_CATEGORIES_MAX_BYTES_V1,
   CATALOG_CATEGORIES_MAX_TAXONOMY_V1,
@@ -59,6 +71,44 @@ export {
   readCatalogContentV1Result,
   resolveCatalogContentPathV1,
 } from "./content/catalog-content-v1.js";
+export {
+  CATALOG_CORE_MATERIAL_MAX_BYTES_V1,
+  CATALOG_CORE_QUALIFICATION_SUBPATH_V1,
+  CATALOG_PUBLIC_BASELINE_SUBPATH_V1,
+  CATALOG_SCANNER_EVIDENCE_SUBPATH_V1,
+  type CatalogCoreMaterialRefusalV1,
+  type CatalogCoreMaterialV1Result,
+  type CatalogCoreQualificationV1,
+  type CatalogPublicBaselineV1,
+  type CatalogScannerEvidenceV1,
+  readCatalogCoreQualificationV1Result,
+  readCatalogPublicBaselineV1Result,
+  readCatalogScannerEvidenceV1Result,
+} from "./content/catalog-core-materials-v1.js";
+export {
+  CATALOG_FRAMEWORK_DESCRIPTOR_FORMAT_V1,
+  CATALOG_FRAMEWORK_DESCRIPTOR_MAX_BYTES_V1,
+  CATALOG_FRAMEWORK_DESCRIPTOR_REFUSALS_V1,
+  CATALOG_FRAMEWORK_DESCRIPTOR_VERSION_V1,
+  CATALOG_FRAMEWORK_ECC_SUBPATH_V1,
+  CATALOG_FRAMEWORK_PLUGINS_FORMAT_V1,
+  CATALOG_FRAMEWORK_PLUGINS_MAX_BYTES_V1,
+  CATALOG_FRAMEWORK_PLUGINS_SUBPATH_V1,
+  CATALOG_FRAMEWORK_PLUGINS_VERSION_V1,
+  CATALOG_FRAMEWORK_SUPERPOWERS_SUBPATH_V1,
+  type CatalogFrameworkDescriptorRefusalV1,
+  type CatalogFrameworkDescriptorV1,
+  type CatalogFrameworkDescriptorV1Result,
+  type CatalogFrameworkIdV1,
+  type CatalogFrameworkPluginIdentityV1,
+  type CatalogFrameworkPluginsV1,
+  type CatalogFrameworkPluginsV1Result,
+  type ReadCatalogFrameworkDescriptorV1Request,
+  readCatalogFrameworkDescriptorV1,
+  readCatalogFrameworkDescriptorV1Result,
+  readCatalogFrameworkPluginsV1,
+  readCatalogFrameworkPluginsV1Result,
+} from "./content/catalog-framework-v1.js";
 export {
   CATALOG_PRESENTATION_FORMAT_V1,
   CATALOG_PRESENTATION_MAX_BYTES_V1,
@@ -147,6 +197,11 @@ export {
   CATALOG_REFUSAL_OBSERVED_MAX_CHARS_V1,
   type CatalogReadRefusedV1,
 } from "./content/refusal-v1.js";
+export {
+  type PrepareCatalogSourceDataV1Request,
+  type PreparedCatalogSourceDataV1,
+  prepareCatalogSourceDataV1,
+} from "./production/source-data-v1.js";
 export {
   canonicalCatalogHeadV2Bytes,
   canonicalQualificationReceiptBytes,
