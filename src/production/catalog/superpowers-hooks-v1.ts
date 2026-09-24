@@ -2,6 +2,7 @@ import { codeUnitCompare, sha256HexV1 } from "../strict-json-v1.js";
 import {
   COMMIT_SHA,
   exactKeys,
+  integer,
   type JsonRecord,
   list,
   literal,
@@ -9,7 +10,10 @@ import {
   SHA256_HEX,
   text,
 } from "../validate-v1.js";
-import { readOpenCodePluginHooksV1 } from "./opencode-plugin-hooks-v1.js";
+import {
+  readOpenCodeEntryReexportV1,
+  readOpenCodePluginHooksV1,
+} from "./opencode-plugin-hooks-v1.js";
 
 /**
  * Derives the Superpowers `hookControlInventory` descriptor section from the
@@ -33,16 +37,30 @@ const HOOK_SUMMARIES: Readonly<Record<string, string>> = {
     "Injects the full using-superpowers skill into the agent's context when a session starts, is cleared, or compacts.",
   "skills-path":
     "Adds the Superpowers skills directory to the host's skill search paths when the host loads its configuration, so the Superpowers skills are discovered without manual links.",
+  "skill-registration":
+    "On OpenCode V2, registers every Superpowers skill with the host's native skill registry when the plugin is set up.",
+  "session-context":
+    "On OpenCode V2, injects the full using-superpowers skill into the first user message of each top-level session through the session context hook.",
 };
 
 /**
- * Reviewed readings of the hooks an OpenCode plugin returns. A reading without
- * `event` joins the SessionStart hook; one with `event` is its own hook.
+ * Reviewed readings of the hooks an OpenCode plugin returns (V1) or registers
+ * from `setup` (V2). A reading without `event` joins the SessionStart hook; one
+ * with `event` is its own hook. The V2 registrations are hooks of their own
+ * because a hook carries at most one declaration per host.
  */
 const OPENCODE_HOOKS: Readonly<Record<string, { hook: string; event?: string }>> = {
   "experimental.chat.messages.transform": { hook: "session-start" },
   config: { hook: "skills-path", event: "config" },
+  "skill.transform": { hook: "skill-registration", event: "setup" },
+  "session.hook.context": { hook: "session-context", event: "context" },
 };
+
+/** The OpenCode V2 directory entry point; it may only re-export a read plugin. */
+const OPENCODE_ENTRY = "index.js";
+
+/** The Muse manifest capabilities with a reviewed reading; only `hooks` may be non-empty. */
+const MUSE_CAPABILITIES = ["skills", "commands", "hooks", "mcpServers", "reminders"] as const;
 
 const UTF8 = new TextDecoder("utf-8", { fatal: true });
 
@@ -52,7 +70,8 @@ export function isSuperpowersHookSourcePathV1(path: string): boolean {
     /^\.[a-z0-9-]+-plugin\/plugin\.json$/u.test(path) ||
     path === "gemini-extension.json" ||
     /^hooks\/[^/]+$/u.test(path) ||
-    /^\.opencode\/plugins\/[^/]+\.js$/u.test(path)
+    /^\.opencode\/plugins\/[^/]+\.js$/u.test(path) ||
+    path === OPENCODE_ENTRY
   );
 }
 
@@ -226,6 +245,46 @@ export function superpowersHookControlInventoryV1(
           `${path} declares ${host} hooks this Catalog has no reviewed reading for`,
         );
     }
+    if (manifest.capabilities !== undefined) {
+      if (host !== "muse")
+        throw new TypeError(
+          `${path} declares ${host} capabilities this Catalog has no reviewed reading for`,
+        );
+      const capabilities = exactKeys(
+        record(manifest.capabilities, `${path} capabilities`),
+        MUSE_CAPABILITIES,
+        `${path} capabilities`,
+      );
+      list(capabilities.skills, `${path} skills`);
+      for (const key of ["commands", "mcpServers", "reminders"])
+        list(capabilities[key], `${path} ${key} (no reviewed reading)`, 0, 0);
+      recorded.add(path);
+      for (const raw of list(capabilities.hooks, `${path} hooks`)) {
+        const label = `${path} hook`;
+        const hook = exactKeys(record(raw, label), ["id", "event", "command"], label, [
+          "timeoutMs",
+        ]);
+        const name = text(hook.id, `${label} id`, /^[a-z0-9][a-z0-9-]*$/u);
+        const event = text(hook.event, `${label} ${name} event`);
+        const command = list(hook.command, `${label} ${name} command`, 2, 2);
+        if (command[0] !== "sh" || command[1] !== `hooks/${name}`)
+          throw new TypeError(`${path} has an unreviewed ${host} hook command for ${name}`);
+        if (hook.timeoutMs !== undefined) integer(hook.timeoutMs, `${label} ${name} timeoutMs`, 1);
+        const target = byHook.get(name);
+        if (target === undefined || target.event !== event)
+          throw new TypeError(
+            `${path} declares ${host} hook ${name} on ${event}, which no reviewed hook file declares`,
+          );
+        recorded.add(need(`hooks/${name}`, path).path);
+        target.declarations.push({
+          host,
+          sourcePath: path,
+          event,
+          command: `sh hooks/${name}`,
+          execution: "process",
+        });
+      }
+    }
     if (manifest.sessionStart !== undefined) {
       if (host !== "kimi")
         throw new TypeError(`${path} declares a ${host} sessionStart this Catalog cannot read`);
@@ -273,6 +332,16 @@ export function superpowersHookControlInventoryV1(
         execution: "in-process",
       });
     }
+  }
+
+  if (inComponent(OPENCODE_ENTRY)) {
+    const entry = need(OPENCODE_ENTRY, "runtime:superpowers-plugin");
+    const target = readOpenCodeEntryReexportV1(UTF8.decode(entry.bytes), entry.path).slice(2);
+    if (!openCodePlugins.includes(target))
+      throw new TypeError(
+        `${OPENCODE_ENTRY} re-exports ${target}, which this Catalog did not read as an OpenCode plugin`,
+      );
+    recorded.add(entry.path);
   }
 
   const hooks = [...byHook.entries()].map(([name, hook]) => {
