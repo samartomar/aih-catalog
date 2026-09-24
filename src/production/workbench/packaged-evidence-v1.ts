@@ -469,7 +469,8 @@ export function parsePackagedScannerCollectionEvidenceV1(
   value: unknown,
 ): PackagedScannerCollectionEvidenceV1[] {
   const catalogIds = new Set<string>();
-  return list(value, "packaged collection evidence records").map((item, index) => {
+  // Array.from visits holes too, so a hole is refused as a wrapper instead of being skipped.
+  return Array.from(list(value, "packaged collection evidence records"), (item, index) => {
     const label = `packaged collection evidence record ${String(index)}`;
     const sealed = strictKeys(item, ["bytes", "sha256"], label);
     const bytes = text(sealed.bytes, `${label} bytes`);

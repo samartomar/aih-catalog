@@ -9,13 +9,17 @@ import { parsePackagedScannerCollectionEvidenceV1 } from "../../src/production/w
 // fixtures are shared byte-identically with Core (see the README beside them).
 
 type Outcome = "accepted" | "refused";
-/** A fixture carries a `record` value (sealed here as its canonical bytes) or its exact `bytes`. */
+/**
+ * A fixture carries a `record` value (sealed here as its canonical bytes), its exact `bytes`, or
+ * the exact reader `input` (a list of sealed wrappers).
+ */
 interface Fixture {
   readonly fixture: string;
   readonly structure: Outcome;
   readonly coreAdmission: Outcome;
   readonly record?: unknown;
   readonly bytes?: string;
+  readonly input?: unknown;
 }
 
 const directory = resolve(import.meta.dirname, "..", "fixtures", "packaged-evidence-parity");
@@ -77,17 +81,38 @@ const EXPECTED: Record<string, readonly [Outcome, Outcome, RegExp?]> = {
   "timestamp-signed-without-seconds": ["refused", "refused", TIMESTAMP],
   "timestamp-whole-seconds": ["accepted", "accepted"],
   valid: ["accepted", "accepted"],
+  "wrapper-extra-key": ["refused", "refused", /record 0 has unsupported field extra/],
+  "wrapper-missing-sha256": ["refused", "refused", /record 0 is missing sha256/],
+  "wrapper-not-array": ["refused", "refused", /records must be an array/],
+  "wrapper-proto-key": ["refused", "refused", /record 0 has unsupported field __proto__/],
+  "wrapper-valid": ["accepted", "accepted"],
 };
 
-/** Seals the fixture (its exact bytes, or its record's canonical bytes, unvalidated) and reads it. */
-function read(fixture: Fixture): unknown {
+function sealedInput(fixture: Fixture): unknown {
+  if ("input" in fixture) return fixture.input;
   const bytes = fixture.bytes ?? canonicalJsonV1(fixture.record);
-  return parsePackagedScannerCollectionEvidenceV1([
-    { bytes, sha256: `sha256:${sha256HexV1(bytes)}` },
-  ]);
+  return [{ bytes, sha256: `sha256:${sha256HexV1(bytes)}` }];
+}
+
+/**
+ * Reads the fixture's reader input: its wrappers, or its exact bytes or its record's canonical
+ * bytes (unvalidated), sealed.
+ */
+function read(fixture: Fixture): unknown {
+  return parsePackagedScannerCollectionEvidenceV1(sealedInput(fixture));
 }
 
 describe("packaged collection evidence parity with Core", () => {
+  it("refuses a hole in the sealed record list", () => {
+    const valid = fixtures.find((fixture) => fixture.fixture === "valid") as Fixture;
+    const [item] = sealedInput(valid) as unknown[];
+    const sparse: unknown[] = [];
+    sparse[1] = item;
+    expect(() => parsePackagedScannerCollectionEvidenceV1(sparse)).toThrow(
+      /record 0 must be an object/,
+    );
+  });
+
   it("holds exactly the shared cases", () => {
     expect(fixtures.map((item) => item.fixture).sort()).toEqual(Object.keys(EXPECTED).sort());
   });
@@ -95,7 +120,7 @@ describe("packaged collection evidence parity with Core", () => {
   it.each(fixtures.map((item) => [item.fixture, item] as const))("%s", (name, fixture) => {
     const [structure, admission, reason] = EXPECTED[name] ?? [];
     expect([fixture.structure, fixture.coreAdmission]).toEqual([structure, admission]);
-    expect("record" in fixture).not.toBe("bytes" in fixture);
+    expect(["record", "bytes", "input"].filter((form) => form in fixture)).toHaveLength(1);
     if (structure === "accepted") {
       expect(read(fixture)).toHaveLength(1);
       return;
