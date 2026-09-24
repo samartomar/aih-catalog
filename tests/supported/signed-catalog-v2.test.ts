@@ -4072,7 +4072,13 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(coldAdminText.trim()).toBe(canonicalJson(coldAdmin as unknown as Json));
     expect(packageJson.version).toBe("0.3.0");
     expect(packageJson.bin).toEqual({ "aih-supported": "dist/cli.js" });
-    expect(packageJson.files).toEqual(["dist", "defaults", "README.md"]);
+    expect(packageJson.files).toEqual([
+      "dist",
+      "!dist/production/**",
+      "dist/production/source-data-v1.*",
+      "defaults",
+      "README.md",
+    ]);
     expect(packageJson.dependencies).toEqual({});
     expect(packageJson).not.toHaveProperty("private");
     expect(packageJson.repository).toEqual({
@@ -4265,10 +4271,6 @@ describe("public signed catalog V2 acceptance contract", () => {
         "dist/content/refusal-v1.js",
         "dist/index.d.ts",
         "dist/index.js",
-        "dist/production/catalog-defaults-v1.d.ts",
-        "dist/production/catalog-defaults-v1.js",
-        "dist/production/ecc-hook-controls-v1.d.ts",
-        "dist/production/ecc-hook-controls-v1.js",
         "dist/production/source-data-v1.d.ts",
         "dist/production/source-data-v1.js",
         "dist/supported/signed-catalog-v2.d.ts",

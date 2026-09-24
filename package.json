@@ -90,6 +90,8 @@
   },
   "files": [
     "dist",
+    "!dist/production/**",
+    "dist/production/source-data-v1.*",
     "defaults",
     "README.md"
   ]

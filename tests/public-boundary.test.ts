@@ -44,7 +44,13 @@ describe("supported public V2 boundary", () => {
     expect(packageJson.version).toBe("0.3.0");
     expect(packageJson).not.toHaveProperty("private");
     expect(packageJson.bin).toEqual({ "aih-supported": "dist/cli.js" });
-    expect(packageJson.files).toEqual(["dist", "defaults", "README.md"]);
+    expect(packageJson.files).toEqual([
+      "dist",
+      "!dist/production/**",
+      "dist/production/source-data-v1.*",
+      "defaults",
+      "README.md",
+    ]);
     expect(packageJson.publishConfig).toEqual({ access: "public" });
     expect(packageJson.scripts).not.toMatchObject({ publish: expect.any(String) });
     expect(index).toContain('from "./supported/signed-catalog-v2.js"');
@@ -169,10 +175,13 @@ describe("supported public V2 boundary", () => {
   it("keeps network/process/provider authority absent and confines cryptographic signing to one V2 module", () => {
     const signingModules: string[] = [];
     const forbiddenRuntimeAuthority =
-      /["'](?:node:)?(?:child_process|http|https|net|tls|dgram)["']|\bprocess\.(?:spawn|spawnSync|exec|execSync|execFile|execFileSync|fork)\b|\bfetch\s*\(|(?<![\w.$])(?:spawn|spawnSync|exec|execSync|execFile|execFileSync|fork)\s*\(|provider\.(request|poll)/i;
+      /(?:\bfrom\s*|\bimport\s*\(\s*|\brequire\s*\(\s*|\bimport\s+)["'](?:node:)?(?:child_process|http|https|net|tls|dgram)["']|\bprocess\.(?:spawn|spawnSync|exec|execSync|execFile|execFileSync|fork)\b|\bfetch\s*\(|(?<![\w.$])(?:spawn|spawnSync|exec|execSync|execFile|execFileSync|fork)\s*\(|provider\.(request|poll)/i;
     expect("process.spawnSync()".match(forbiddenRuntimeAuthority)).not.toBeNull();
     expect("execFileSync()".match(forbiddenRuntimeAuthority)).not.toBeNull();
     expect("regex.exec()".match(forbiddenRuntimeAuthority)).toBeNull();
+    expect('import { request } from "node:https";'.match(forbiddenRuntimeAuthority)).not.toBeNull();
+    expect('await import("child_process")'.match(forbiddenRuntimeAuthority)).not.toBeNull();
+    expect('type Transport = "stdio" | "http";'.match(forbiddenRuntimeAuthority)).toBeNull();
     for (const source of sourceFiles()) {
       const text = readFileSync(source, "utf8");
       expect(text, source).not.toMatch(forbiddenRuntimeAuthority);

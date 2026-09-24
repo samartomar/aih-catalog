@@ -46,7 +46,13 @@ describe("public-API example", () => {
     // The package root is found through a declared export, not a relative path.
     expect(packageJson.exports["./package.json"]).toBe("./package.json");
     // The example is repository material; the published file list is unchanged.
-    expect(packageJson.files).toEqual(["dist", "defaults", "README.md"]);
+    expect(packageJson.files).toEqual([
+      "dist",
+      "!dist/production/**",
+      "dist/production/source-data-v1.*",
+      "defaults",
+      "README.md",
+    ]);
   });
 
   // The example imports the built package through its own name, so it needs `dist/`.
