@@ -18,9 +18,15 @@ import type { AuthoringCatalogBundleV1, EvidenceSummaryV1 } from "./contracts-v1
  * Sealed `packaged-scanner-collection-evidence/v1` records (true inputs from
  * the Scanner release process) and their display projection onto a bundle.
  * Ported from Core 80120883 src/org-policy/packaged-collection-evidence-v1.ts
- * and src/evidence-freshness.ts. The reviewed-publisher allowlist is Core's
- * acceptance policy and stays in Core; everything a record states about
- * itself is checked here.
+ * and src/evidence-freshness.ts.
+ *
+ * Decision D25: this reader is STRUCTURAL validation only, identical to Core's
+ * `PackagedScannerCollectionEvidenceStructureV1Schema` (shared acceptance
+ * fixtures: tests/fixtures/packaged-evidence-parity, byte-identical in Core).
+ * Everything a record states about itself is checked here. Publisher admission
+ * (the reviewed publisher identity, publication ref and reviewed publisher
+ * commits) is Core's and stays only in Core: Catalog is a carrier, never an
+ * authority, so a record read here is never an admitted record.
  */
 const CATALOG_IDS = ["aih", "mattpocock", "ponytail", "ecc", "superpowers"] as const;
 const EVIDENCE_MAX_AGE_SECONDS = 90 * 86_400;
@@ -448,7 +454,10 @@ function assertConsistent(value: PackagedScannerCollectionEvidenceV1): void {
     fail("collection intake predates publication");
 }
 
-/** Reads the sealed records: canonical bytes, matching seal, one record per catalog id. */
+/**
+ * Reads the sealed records: canonical bytes, matching seal, one record per catalog id, each
+ * structurally valid. It never claims admission: which publisher may be named is Core's check.
+ */
 export function parsePackagedScannerCollectionEvidenceV1(
   value: unknown,
 ): PackagedScannerCollectionEvidenceV1[] {
