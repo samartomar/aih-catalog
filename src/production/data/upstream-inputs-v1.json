@@ -37,6 +37,26 @@
       "commit": "5caf398a91599029a176ca6d806409b00d1052c4",
       "sha256": "3c5353bc2f3016a117f9063e9e3ba195df1d7f169038dc533e9929fff63ca0d7",
       "sources": {}
+    },
+    "mattpocock.snapshot.json": {
+      "repository": "mattpocock/skills",
+      "commit": "3cca18b368ae95cdbdebbff572ccafa662551015",
+      "sha256": "cc75856e80061015202c1b678059c1e1b716fb61c1ec1f0a009592635a0da92f",
+      "sources": {
+        ".claude-plugin/plugin.json": "e531ddc6560515397ac32d93334fa3eb586b6b6bcc2e472c3646641fd3d2b951"
+      }
+    },
+    "ponytail.snapshot.json": {
+      "repository": "DietrichGebert/ponytail",
+      "commit": "974d940a1c5344210874150b98ff0d2c861fab6a",
+      "sha256": "c13e1ba5ec44827be0c47714a6c985e41b9e79b35e6d55f2d314dd6a72114b89",
+      "sources": {}
+    },
+    "superpowers-content-metadata-v1.json": {
+      "repository": "obra/Superpowers",
+      "commit": "b36e0829c6d0140e93cfef2ca599b1b07d4a7797",
+      "sha256": "26f38e9406ed6efa6affecce02310cd9ebaa8d5302f748f461d253c808603421",
+      "sources": {}
     }
   }
 }

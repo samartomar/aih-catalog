@@ -15,7 +15,10 @@ import {
   ECC_HOOK_PROFILES,
   eccHookControlCatalog,
 } from "./ecc-hook-controls-v1.js";
-import { produceCatalogAuthoringBundleV1 } from "./workbench/authoring-bundle-v1.js";
+import {
+  produceCatalogAuthoringBundleV1,
+  readCollectionSnapshotV1,
+} from "./workbench/authoring-bundle-v1.js";
 import { prepareMattPocockCollectionV1 } from "./workbench/mattpocock-provider-v1.js";
 import {
   produceCatalogCoreQualificationV1,
@@ -179,7 +182,9 @@ export function buildCatalogFrameworkDefaultsV1(root: string): Readonly<Record<s
       format: "aih-catalog-scanner-providers",
       version: 1,
       collections: {
-        mattpocock: prepareMattPocockCollectionV1(readJson(root, "mattpocock.snapshot.json")),
+        mattpocock: prepareMattPocockCollectionV1(
+          readCollectionSnapshotV1(root, "mattpocock.snapshot.json"),
+        ),
         ponytail: recordFor(root, "DietrichGebert/ponytail").compilerTemplate,
       },
     },

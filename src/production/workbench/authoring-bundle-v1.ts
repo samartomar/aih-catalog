@@ -3,7 +3,11 @@ import {
   policyAuthoringCatalogV1,
   readPolicyAuthoringCatalogInputsV1,
 } from "../catalog/policy-authoring-catalog-v1.js";
-import { productionDataPathV1 } from "../catalog/upstream-inputs-v1.js";
+import {
+  productionDataPathV1,
+  readUpstreamInputsManifestV1,
+  readVerifiedUpstreamInputV1,
+} from "../catalog/upstream-inputs-v1.js";
 import { canonicalDigestV1, sha256HexV1 } from "../strict-json-v1.js";
 import { assembleCompilerOutputsV1 } from "./assembly-v1.js";
 import { compileCatalogProvidersV1 } from "./catalog-providers-v1.js";
@@ -22,6 +26,27 @@ function readData(root: string, file: string): unknown {
 }
 
 /**
+ * Reads a fetched collection snapshot, verified against the upstream inputs
+ * manifest, and refuses one whose own pin is not the commit it was fetched at.
+ */
+export function readCollectionSnapshotV1(
+  root: string,
+  file: "mattpocock.snapshot.json" | "ponytail.snapshot.json",
+): unknown {
+  const { provenance, json } = readVerifiedUpstreamInputV1(
+    root,
+    readUpstreamInputsManifestV1(root),
+    file,
+  );
+  const snapshot = json as { upstream?: { pin?: unknown }; source?: { commit?: unknown } };
+  const pin =
+    file === "mattpocock.snapshot.json" ? snapshot.upstream?.pin : snapshot.source?.commit;
+  if (pin !== provenance.commit)
+    throw new TypeError(`${file} pins ${String(pin)} but was fetched at ${provenance.commit}`);
+  return json;
+}
+
+/**
  * Generates `defaults/catalog-authoring-bundle-v1.json` from the true inputs:
  * the policy authoring catalog inputs, the Matt Pocock and Ponytail snapshots,
  * the sealed packaged source records and the sealed Scanner collection
@@ -37,8 +62,8 @@ export function produceCatalogAuthoringBundleV1(root: string): Record<string, un
   const compiled = compileCatalogProvidersV1({
     catalog,
     vendorSources: inputs.vendorLock.sources,
-    mattpocockSnapshot: readData(root, "mattpocock.snapshot.json"),
-    ponytailSnapshot: readData(root, "ponytail.snapshot.json"),
+    mattpocockSnapshot: readCollectionSnapshotV1(root, "mattpocock.snapshot.json"),
+    ponytailSnapshot: readCollectionSnapshotV1(root, "ponytail.snapshot.json"),
   });
   const base = assembleCompilerOutputsV1(
     compiled.providers.flatMap((provider) => provider.inputs),

@@ -197,9 +197,7 @@ export function readPolicyAuthoringCatalogInputsV1(root: string): PolicyAuthorin
     eccMcpInventory: verified("ecc-mcp-inventory-v1.json"),
     eccModules: verified("ecc-modules-v1.json"),
     eccProfiles: verified("ecc-profiles-v1.json"),
-    superpowersContentMetadata: JSON.parse(
-      readFileSync(productionDataPathV1(root, "superpowers-content-metadata-v1.json"), "utf8"),
-    ),
+    superpowersContentMetadata: verified("superpowers-content-metadata-v1.json"),
   };
 }
 
