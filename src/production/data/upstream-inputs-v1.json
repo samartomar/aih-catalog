@@ -1,0 +1,42 @@
+{
+  "format": "aih-catalog-upstream-inputs",
+  "version": 1,
+  "files": {
+    "ecc-content-metadata-v1.json": {
+      "repository": "affaan-m/ECC",
+      "commit": "5caf398a91599029a176ca6d806409b00d1052c4",
+      "sha256": "c1431bc251062d46027c253e154a8b2e13d47c49a486bf28682e251c06bb3a86",
+      "sources": {}
+    },
+    "ecc-mcp-inventory-v1.json": {
+      "repository": "affaan-m/ECC",
+      "commit": "5caf398a91599029a176ca6d806409b00d1052c4",
+      "sha256": "a4426254c55a5352db2672bc86a87f10b0029f5e4ae1b74817841e87d9ab1e57",
+      "sources": {
+        "mcp-configs/mcp-servers.json": "a4426254c55a5352db2672bc86a87f10b0029f5e4ae1b74817841e87d9ab1e57"
+      }
+    },
+    "ecc-modules-v1.json": {
+      "repository": "affaan-m/ECC",
+      "commit": "5caf398a91599029a176ca6d806409b00d1052c4",
+      "sha256": "6c750cc7afe9e5559d2597cfd1e719ef88a625672adea625c1f6c68d04825beb",
+      "sources": {
+        "manifests/install-modules.json": "a35e6c3551379d764e04c9084da17e5fdda35b15f2168df9e7b5a1a003d9eaac"
+      }
+    },
+    "ecc-profiles-v1.json": {
+      "repository": "affaan-m/ECC",
+      "commit": "5caf398a91599029a176ca6d806409b00d1052c4",
+      "sha256": "0f1c20f12ec79a7c124e85951234e2c1a97171e43018c0fa1d695c8663cf6106",
+      "sources": {
+        "manifests/install-profiles.json": "3990be88bd4010eb960ad36dd20681ce045116e8aa05dcb06bd82f64f7c01d78"
+      }
+    },
+    "ecc-skill-inventory-v1.json": {
+      "repository": "affaan-m/ECC",
+      "commit": "5caf398a91599029a176ca6d806409b00d1052c4",
+      "sha256": "3c5353bc2f3016a117f9063e9e3ba195df1d7f169038dc533e9929fff63ca0d7",
+      "sources": {}
+    }
+  }
+}
