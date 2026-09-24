@@ -14,6 +14,7 @@ import {
   productionDataPathV1,
   type UpstreamInputRecordV1,
 } from "../catalog/upstream-inputs-v1.js";
+import { catalogTextCompareV1 } from "../collation-v1.js";
 import { assertSafeRelativePosixPathV1, codeUnitCompare, sha256HexV1 } from "../strict-json-v1.js";
 import { COMMIT_SHA, exactKeys, type JsonRecord, list, record, text } from "../validate-v1.js";
 import {
@@ -210,7 +211,7 @@ function metadataEntry(tree: UpstreamTreeV1, path: string, expectedName: string)
 /** Each entry carries its own `sourceSha256`, so the step records no extra sources. */
 export function produceContentMetadataV1(tree: UpstreamTreeV1): string {
   const byId = (left: JsonRecord, right: JsonRecord) =>
-    String(left.id).localeCompare(String(right.id), "en");
+    catalogTextCompareV1(String(left.id), String(right.id));
   const agents = tree.paths
     .filter((path) => /^agents\/[a-z0-9][a-z0-9-]*\.md$/u.test(path))
     .map((path) => metadataEntry(tree, path, path.slice("agents/".length, -".md".length)))

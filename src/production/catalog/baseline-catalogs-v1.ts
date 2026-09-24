@@ -1,3 +1,4 @@
+import { catalogTextCompareV1 } from "../collation-v1.js";
 import {
   type BaselineCatalogComponentV1,
   type BaselineCatalogV1,
@@ -102,7 +103,7 @@ export function eccBaselineCatalogV1(input: EccBaselineCatalogInputV1): Baseline
         ...(skillContent(module) ? { skillContent: true as const } : {}),
       })),
       ...declarable,
-      ...[...extra.values()].sort((left, right) => left.id.localeCompare(right.id)),
+      ...[...extra.values()].sort((left, right) => catalogTextCompareV1(left.id, right.id)),
     ],
   });
 }

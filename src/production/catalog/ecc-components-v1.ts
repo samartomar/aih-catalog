@@ -1,3 +1,4 @@
+import { catalogTextCompareV1 } from "../collation-v1.js";
 import type { EccModulesSnapshotV1, EccProfilesSnapshotV1 } from "./ecc-snapshots-v1.js";
 
 // Ported from Core 80120883 src/ecc/components.ts: the hand-authored ECC curation.
@@ -510,7 +511,7 @@ export function eccComponentModelV1(
       paths.add(".mcp.json");
       paths.add("mcp-configs/mcp-servers.json");
     }
-    return [...paths].sort((left, right) => left.localeCompare(right));
+    return [...paths].sort(catalogTextCompareV1);
   }
   const modules = eccModules.modules;
   const profiles = eccProfiles.profiles;

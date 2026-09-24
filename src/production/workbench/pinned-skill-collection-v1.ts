@@ -1,4 +1,5 @@
 import { Buffer } from "node:buffer";
+import { catalogTextCompareV1 } from "../collation-v1.js";
 import {
   assertSafeRelativePosixPathV1,
   assertStrictJsonValueV1,
@@ -92,7 +93,8 @@ function parseInput(value: unknown): PinnedSkillCollectionInputV1 {
   return input as unknown as PinnedSkillCollectionInputV1;
 }
 
-const byPath = (left: PinnedFileV1, right: PinnedFileV1) => left.path.localeCompare(right.path);
+const byPath = (left: PinnedFileV1, right: PinnedFileV1) =>
+  catalogTextCompareV1(left.path, right.path);
 
 function recordDigest(skill: { id: string; files: readonly PinnedFileV1[] }): string {
   return digest(canonicalStrictJsonBytesV1({ id: skill.id, files: [...skill.files].sort(byPath) }));
@@ -104,7 +106,7 @@ export function pinnedSkillCollectionDigestV1(
   return digest(
     canonicalStrictJsonBytesV1({
       ...input,
-      skills: [...input.skills].sort((left, right) => left.id.localeCompare(right.id)),
+      skills: [...input.skills].sort((left, right) => catalogTextCompareV1(left.id, right.id)),
     }),
   );
 }
