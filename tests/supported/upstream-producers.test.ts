@@ -317,6 +317,30 @@ describe("networked upstream producers (offline transforms)", () => {
       ).toThrow(/runtime/u);
   });
 
+  it("refuses a recorded version or identity that ends in a line terminator", () => {
+    const manifest = JSON.parse(dataText("upstream-inputs-v1.json")) as {
+      files: Record<string, Record<string, unknown>>;
+    };
+    const entry = manifest.files["ecc-modules-v1.json"] as Record<string, unknown>;
+    const runtime = entry.runtime as Record<string, string>;
+    const parse = (candidate: Record<string, unknown>) =>
+      parseUpstreamInputsManifestV1({
+        ...manifest,
+        files: { ...manifest.files, "ecc-modules-v1.json": candidate },
+      });
+    expect(() => parse(entry)).not.toThrow();
+    for (const terminator of ["\n", "\r\n", "\r", " ", " "]) {
+      for (const field of ["node", "icu", "unicode", "cldr"])
+        expect(() =>
+          parse({ ...entry, runtime: { ...runtime, [field]: `${runtime[field]}${terminator}` } }),
+        ).toThrow(/runtime/u);
+      for (const field of ["repository", "commit", "sha256"])
+        expect(() =>
+          parse({ ...entry, [field]: `${entry[field] as string}${terminator}` }),
+        ).toThrow(new RegExp(field, "u"));
+    }
+  });
+
   it("records every fetched input at the commit its content pins", () => {
     const manifest = JSON.parse(dataText("upstream-inputs-v1.json")) as {
       files: Record<string, { repository: string; commit: string; sha256: string }>;
