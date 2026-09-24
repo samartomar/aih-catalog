@@ -726,8 +726,11 @@ that alias on a case-insensitive or Unicode-normalizing file system, and any
 malformed `cat-file` batch frame each refuse the candidate before anything is
 built, and every written file is checked to stay inside the snapshot. Every
 git read runs with every `GIT_*`
-environment variable removed and replacement objects disabled, so only the
-named checkout's own objects are read. The local toolchain bytes
+environment variable removed, replacement objects disabled, the system and
+global configurations replaced by nothing, and the repository's own
+configuration neutralized where it could run code — the fsmonitor and the
+untracked cache are disabled and hooks resolve to an empty staging directory —
+using plumbing reads only, so only the named checkout's own objects are read. The local toolchain bytes
 (`node_modules/typescript` and its dependencies) are not part of the commit;
 they are trusted exactly as for the release build. The output becomes
 `dist-candidate/` only if, after the build, `HEAD` is still the recorded

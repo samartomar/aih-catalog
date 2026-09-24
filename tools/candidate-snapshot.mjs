@@ -38,8 +38,13 @@ import { candidateMarkersV1 } from "./check-not-candidate.mjs";
  * Every git invocation runs with --no-replace-objects and an environment with
  * every GIT_* variable removed, so an inherited GIT_DIR, GIT_WORK_TREE,
  * GIT_CONFIG* or a refs/replace substitute can never redirect a read, and -C
- * alone selects the repository. Before anything else, the checkout must be the
- * top level git reports for it.
+ * alone selects the repository. Repository configuration can never run code:
+ * the system configuration is disabled, the global configuration is an empty
+ * file in the staging area, and every invocation disables the fsmonitor and
+ * the untracked cache and points core.hooksPath at an empty staging
+ * directory; only plumbing reads (rev-parse, ls-tree, cat-file, ls-files,
+ * diff-index) are used. Before anything else, the checkout must be the top
+ * level git reports for it.
  */
 export const CANDIDATE_ROOT = "dist-candidate";
 const CANDIDATE_FORMAT = "aih-catalog-candidate";
@@ -65,25 +70,49 @@ const GIT_VARIABLE = /^GIT_/iu;
  * dropped: git selects the repository, index, object store, alternates,
  * namespace, replace-ref base and extra configuration from them before -C
  * applies, and a denylist would rot as git adds more. Replacement objects are
- * also disabled here, and a prompt can never block.
+ * also disabled here, and a prompt can never block. The system configuration
+ * is disabled and the global configuration is the build's own empty file, so
+ * no machine or user configuration can add behavior.
  */
-function gitEnv() {
+function gitEnv(emptyConfig) {
   const env = {};
   for (const [key, value] of Object.entries(process.env))
     if (value !== undefined && !GIT_VARIABLE.test(key)) env[key] = value;
   env.GIT_NO_REPLACE_OBJECTS = "1";
   env.GIT_TERMINAL_PROMPT = "0";
+  env.GIT_CONFIG_NOSYSTEM = "1";
+  env.GIT_CONFIG_GLOBAL = emptyConfig;
   return env;
 }
 
-const run = (args, options = {}) => {
-  const result = spawnSync("git", ["--no-replace-objects", ...args], {
-    encoding: "utf8",
-    env: gitEnv(),
-    // A full-tree ls-tree of a real repository is larger than the 1 MiB default.
-    maxBuffer: 64 * 1024 * 1024,
-    ...options,
-  });
+/**
+ * Every git invocation also neutralizes the repository's own configuration
+ * where it could run code or carry state: the fsmonitor and the untracked
+ * cache are disabled and hooks resolve to an empty directory created in the
+ * staging area. Command-line -c wins over every file, including includeIf
+ * includes.
+ */
+const run = (context, args, options = {}) => {
+  const result = spawnSync(
+    "git",
+    [
+      "--no-replace-objects",
+      "-c",
+      "core.fsmonitor=false",
+      "-c",
+      "core.untrackedCache=false",
+      "-c",
+      `core.hooksPath=${context.hooksDir}`,
+      ...args,
+    ],
+    {
+      encoding: "utf8",
+      env: gitEnv(context.emptyConfig),
+      // A full-tree ls-tree of a real repository is larger than the 1 MiB default.
+      maxBuffer: 64 * 1024 * 1024,
+      ...options,
+    },
+  );
   if (result.status !== 0)
     throw new Error(`git ${args.join(" ")} failed: ${(result.stderr ?? "").toString().trim()}`);
   return result.stdout;
@@ -98,16 +127,16 @@ const samePath = (a, b) => {
 };
 
 /** The checkout must be the top level of its repository, discovered through -C alone. */
-function assertCheckoutRoot(root) {
-  const top = run(["-C", root, "rev-parse", "--show-toplevel"]).trim();
+function assertCheckoutRoot(context, root) {
+  const top = run(context, ["-C", root, "rev-parse", "--show-toplevel"]).trim();
   if (!samePath(top, root))
     throw new Error(
       `${root} is not the top level of its checkout (git rev-parse --show-toplevel reports ${top}); the candidate is refused`,
     );
 }
 
-function headOf(root) {
-  const head = run(["-C", root, "rev-parse", "--verify", "HEAD^{commit}"]).trim();
+function headOf(context, root) {
+  const head = run(context, ["-C", root, "rev-parse", "--verify", "HEAD^{commit}"]).trim();
   if (!/^(?:[0-9a-f]{40}|[0-9a-f]{64})$/u.test(head))
     throw new Error(`HEAD ${head} is not a commit id`);
   return head;
@@ -157,8 +186,8 @@ function assertReplaceable(outRoot) {
  * system (same lowercased NFC form) also refuse: materialization and
  * verification could otherwise conflate distinct names.
  */
-function listTreeEntries(root, commit) {
-  const out = run(["-C", root, "ls-tree", "-r", "-z", "--full-tree", "-l", commit], {
+function listTreeEntries(context, root, commit) {
+  const out = run(context, ["-C", root, "ls-tree", "-r", "-z", "--full-tree", "-l", commit], {
     encoding: null, // raw bytes; path names must survive strict UTF-8 decoding
   });
   const entries = [];
@@ -267,9 +296,9 @@ export function parseCatFileBatchV1(entries, output) {
 }
 
 /** The raw bytes of every blob, in one batch read: no filters, attributes or eol conversion. */
-function readBlobBytes(root, entries) {
+function readBlobBytes(context, root, entries) {
   const total = entries.reduce((sum, entry) => sum + entry.size, 0);
-  const out = run(["-C", root, "cat-file", "--batch"], {
+  const out = run(context, ["-C", root, "cat-file", "--batch"], {
     encoding: null, // raw bytes; run() defaults to utf8 text
     input: `${entries.map((entry) => entry.oid).join("\n")}\n`,
     maxBuffer: total + entries.length * 128 + 1024 * 1024,
@@ -298,8 +327,8 @@ function materializeCommit(entries, bytes, tree) {
   }
 }
 
-function objectFormatOf(root) {
-  const format = run(["-C", root, "rev-parse", "--show-object-format"]).trim();
+function objectFormatOf(context, root) {
+  const format = run(context, ["-C", root, "rev-parse", "--show-object-format"]).trim();
   if (format !== "sha1" && format !== "sha256")
     throw new Error(`unsupported git object format ${format}; the candidate is refused`);
   return format;
@@ -374,28 +403,40 @@ function verifySnapshotBytes(tree, entries, format, commit) {
  */
 export async function buildCandidateFromCommitV1(checkout, step) {
   const root = resolve(checkout);
-  assertCheckoutRoot(root);
-  const markers = candidateMarkersV1(root);
-  if (markers.length > 0) throw new Error(`${root} is a candidate root (${markers.join(", ")})`);
-  const catalogCommit = headOf(root);
-  // The commit's tree is validated before the worktree is consulted: a tree
-  // with unusable paths refuses even where no worktree could represent it.
-  const entries = listTreeEntries(root, catalogCommit);
-  const dirty = run(["-C", root, "status", "--porcelain", "--untracked-files=all"]).trim();
-  if (dirty !== "")
-    throw new Error(
-      `the checkout has uncommitted changes; a candidate is built only at a recorded commit:\n${dirty}`,
-    );
-  const outRoot = join(root, CANDIDATE_ROOT);
-  assertReplaceable(outRoot);
-
-  const format = objectFormatOf(root);
   // Inside the checkout (gitignored) so the snapshot resolves its node_modules
   // by walking up, and so the finished output moves by a same-volume rename.
+  // Created before anything else: every git invocation points core.hooksPath
+  // at an empty directory and GIT_CONFIG_GLOBAL at an empty file inside it.
   const staging = mkdtempSync(join(root, ".candidate-build-"));
-  const tree = join(staging, "tree");
   try {
-    materializeCommit(entries, readBlobBytes(root, entries), tree);
+    const context = { hooksDir: join(staging, "hooks"), emptyConfig: join(staging, "gitconfig") };
+    mkdirSync(context.hooksDir);
+    writeFileSync(context.emptyConfig, "");
+    assertCheckoutRoot(context, root);
+    const markers = candidateMarkersV1(root);
+    if (markers.length > 0)
+      throw new Error(`${root} is a candidate root (${markers.join(", ")})`);
+    const catalogCommit = headOf(context, root);
+    // The commit's tree is validated before the worktree is consulted: a tree
+    // with unusable paths refuses even where no worktree could represent it.
+    const entries = listTreeEntries(context, root, catalogCommit);
+    // Plumbing only: a porcelain status would read fsmonitor state. A file
+    // differing from HEAD (staged or not) or an untracked file is dirty.
+    const changed = run(context, ["-C", root, "diff-index", "--name-only", "-z", "HEAD", "--"]);
+    const untracked = run(context, ["-C", root, "ls-files", "--others", "--exclude-standard", "-z"]);
+    const dirty = `${untracked}${changed}`
+      .split("\0")
+      .filter((name) => name !== "");
+    if (dirty.length > 0)
+      throw new Error(
+        `the checkout has uncommitted changes; a candidate is built only at a recorded commit:\n${dirty.join("\n")}`,
+      );
+    const outRoot = join(root, CANDIDATE_ROOT);
+    assertReplaceable(outRoot);
+
+    const format = objectFormatOf(context, root);
+    const tree = join(staging, "tree");
+    materializeCommit(entries, readBlobBytes(context, root, entries), tree);
 
     const result = await step({ root: tree, catalogCommit });
 
@@ -426,7 +467,7 @@ export async function buildCandidateFromCommitV1(checkout, step) {
       }
       renameSync(built, outRoot);
       exposed = true;
-      const after = headOf(root);
+      const after = headOf(context, root);
       if (after !== catalogCommit)
         throw new Error(
           `the checkout's HEAD moved from ${catalogCommit} to ${after} during the build; the candidate is refused`,

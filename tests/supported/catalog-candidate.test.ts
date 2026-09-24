@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   chmodSync,
+  existsSync,
   lstatSync,
   mkdirSync,
   mkdtempSync,
@@ -13,7 +14,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, resolve, sep } from "node:path";
 import { pathToFileURL } from "node:url";
 import { deflateSync } from "node:zlib";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -1099,6 +1100,32 @@ describe("the cat-file batch framing", () => {
     const { parseCatFileBatchV1 } = await parser();
     const trailing = Buffer.concat([record(entry.oid, Buffer.from("abc")), Buffer.from("x")]);
     expect(() => parseCatFileBatchV1([entry], trailing)).toThrow(/trailing/u);
+  });
+});
+
+describe("the candidate build never runs repository configuration code", () => {
+  it("never executes a core.fsmonitor command from .git/config", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    const outside = tempDir();
+    const marker = join(outside, "fsmonitor-ran");
+    const script = join(outside, "fsmonitor.js").split(sep).join("/");
+    writeFileSync(
+      join(outside, "fsmonitor.js"),
+      `require("node:fs").writeFileSync(${JSON.stringify(marker.split(sep).join("/"))}, "ran");\n`,
+    );
+    const command = `"${process.execPath.split(sep).join("/")}" "${script}"`;
+    gitIn(dir, "config", "core.fsmonitor", command);
+    // The monitor really fires for an unhardened git command in this fixture.
+    gitIn(dir, "status", "--porcelain");
+    expect(readFileSync(marker, "utf8")).toBe("ran");
+    rmSync(marker);
+
+    const built = await buildCandidateFromCommitV1(dir, emit);
+    expect(built.catalogCommit).toBe(gitIn(dir, "rev-parse", "HEAD"));
+    expect(readFileSync(join(built.outRoot, "input.json"), "utf8")).toBe(COMMITTED);
+    expect(existsSync(marker)).toBe(false);
+    expect(staging(dir)).toEqual([]);
   });
 });
 
