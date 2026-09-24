@@ -494,14 +494,24 @@ function blobIdOfFile(format, file, size) {
 }
 
 /**
+ * The executable bits a materialized file must carry for its git mode.
+ * Materialization sets 0o755 for 100755 (umask cannot add execute bits to a
+ * 100644 write), so the full mask must match: clearing the owner bit (0645)
+ * or adding only group/other bits (0654) both refuse.
+ */
+export function modeMatchesGitEntryV1(statMode, gitMode) {
+  return (statMode & 0o111) === (gitMode === "100755" ? 0o111 : 0);
+}
+
+/**
  * Raw-byte equality with the commit's tree: every snapshot file's git blob id
  * is recomputed in Node and compared with the tree's ids, so checkout
  * transformations (smudge filters, attributes, eol conversion) cannot hide a
- * change. On POSIX the executable bit of every file is verified against the
- * tree's mode as well (100755 vs 100644); on win32 there are no executable
- * bits, so modes are not verified. Any changed, missing or extra file outside
- * the build's own output directories (top-level dist/ and dist-candidate/)
- * refuses the candidate.
+ * change. On POSIX the executable mask of every file is verified against the
+ * tree's mode as well (100755 vs 100644, owner bit included); on win32 there
+ * are no executable bits, so modes are not verified. Any changed, missing or
+ * extra file outside the build's own output directories (top-level dist/ and
+ * dist-candidate/) refuses the candidate.
  */
 function verifySnapshotBytes(tree, entries, format, commit, limits) {
   const expected = new Map(entries.map((entry) => [entry.path, entry]));
@@ -541,9 +551,9 @@ function verifySnapshotBytes(tree, entries, format, commit, limits) {
           `the snapshot totals over the aggregate limit of ${limits.aggregateBytes} bytes after the build (at ${rel}); the candidate is refused`,
         );
       if (blobIdOfFile(format, file, stat.size) !== entry.oid) problems.push(`${rel} (changed)`);
-      // Git tracks only the executable bit: 100755 vs 100644.
-      const executable = (stat.mode & 0o111) !== 0;
-      if (process.platform !== "win32" && executable !== (entry.mode === "100755"))
+      // Git tracks only the executable bit: 100755 vs 100644. Compare the
+      // exact executable mask (owner bit included), not "any execute bit".
+      if (process.platform !== "win32" && !modeMatchesGitEntryV1(stat.mode, entry.mode))
         problems.push(`${rel} (mode changed)`);
     }
   };

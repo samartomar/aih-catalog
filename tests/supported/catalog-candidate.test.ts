@@ -1059,6 +1059,54 @@ describe("the candidate build snapshot file modes", () => {
       ).rejects.toThrow(/no longer equals.*mode/su);
     },
   );
+
+  // The recorded git mode (100755 = set, 100644 = clear) is compared with the
+  // exact executable mask, so clearing the owner bit (0645) or adding only
+  // group/other bits (0654) refuses too.
+  it.each([
+    [0o755, "100755", true],
+    [0o644, "100644", true],
+    [0o645, "100755", false],
+    [0o654, "100644", false],
+    [0o600, "100644", true],
+  ])("modeMatchesGitEntryV1(%s, %s) is %s", async (statMode, gitMode, matches) => {
+    const { modeMatchesGitEntryV1 } = (await import(
+      pathToFileURL(resolve(root, "tools", "candidate-snapshot.mjs")).href
+    )) as { modeMatchesGitEntryV1: (statMode: number, gitMode: string) => boolean };
+    expect(modeMatchesGitEntryV1(statMode, gitMode)).toBe(matches);
+  });
+
+  it.skipIf(process.platform === "win32")(
+    "refuses a 100755 file whose owner-execute bit was cleared (0645)",
+    async () => {
+      const { buildCandidateFromCommitV1 } = await snapshotTool();
+      const dir = executableCheckout();
+      await expect(
+        buildCandidateFromCommitV1(dir, (snapshot) => {
+          const result = emit(snapshot);
+          chmodSync(join(snapshot.root, "tool.sh"), 0o645);
+          return result;
+        }),
+      ).rejects.toThrow(/no longer equals.*mode/su);
+      expect(readdirSync(dir)).not.toContain(CATALOG_CANDIDATE_ROOT_V1);
+    },
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "refuses a 100644 file given group/other execute bits only (0654)",
+    async () => {
+      const { buildCandidateFromCommitV1 } = await snapshotTool();
+      const dir = executableCheckout();
+      await expect(
+        buildCandidateFromCommitV1(dir, (snapshot) => {
+          const result = emit(snapshot);
+          chmodSync(join(snapshot.root, "defaults", "x.json"), 0o654);
+          return result;
+        }),
+      ).rejects.toThrow(/no longer equals.*mode/su);
+      expect(readdirSync(dir)).not.toContain(CATALOG_CANDIDATE_ROOT_V1);
+    },
+  );
 });
 
 describe("the candidate build refuses unusable tree paths", () => {
