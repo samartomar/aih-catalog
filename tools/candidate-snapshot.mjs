@@ -11,7 +11,7 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, resolve, sep } from "node:path";
 import { candidateMarkersV1 } from "./check-not-candidate.mjs";
 
 /**
@@ -26,6 +26,14 @@ import { candidateMarkersV1 } from "./check-not-candidate.mjs";
  * output's CANDIDATE.json names that commit. Anything else is refused and the
  * partial output is removed; an earlier candidate root is left as it was.
  *
+ * The tree listing is decoded as strict UTF-8: a path that is not UTF-8, a
+ * duplicate path, or paths that alias on a case-insensitive or
+ * Unicode-normalizing file system (same lowercased NFC form) refuse the
+ * candidate before the worktree is consulted, and every written file is
+ * checked to stay inside the snapshot. The cat-file batch read is framed
+ * strictly: each header must name the requested blob and the listed size, the
+ * content must end in its newline and no trailing bytes may remain.
+ *
  * Every git invocation runs with --no-replace-objects and an environment with
  * every GIT_* variable removed, so an inherited GIT_DIR, GIT_WORK_TREE,
  * GIT_CONFIG* or a refs/replace substitute can never redirect a read, and -C
@@ -34,6 +42,19 @@ import { candidateMarkersV1 } from "./check-not-candidate.mjs";
  */
 export const CANDIDATE_ROOT = "dist-candidate";
 const CANDIDATE_FORMAT = "aih-catalog-candidate";
+
+/** A refusal with a stable code, so callers and tests can branch on the kind. */
+export class CandidateBuildRefusalV1 extends Error {
+  constructor(code, message) {
+    super(message);
+    this.name = "CandidateBuildRefusalV1";
+    this.code = code;
+  }
+}
+
+const utf8Fatal = new TextDecoder("utf-8", { fatal: true });
+const utf8Lossy = new TextDecoder("utf-8", { fatal: false });
+const utf8Encode = new TextEncoder();
 
 /** Every GIT_* name, whatever its case (Windows environment names are case-insensitive). */
 const GIT_VARIABLE = /^GIT_/iu;
@@ -126,19 +147,50 @@ function assertReplaceable(outRoot) {
 }
 
 /**
- * The commit's tree as raw entries. Only regular files (100644, 100755) can be
- * materialized; symlinks, gitlinks and anything else refuse the candidate. A
- * committed top-level dist/ or dist-candidate/ would collide with the build's
- * own output directories, so it refuses too.
+ * The commit's tree as raw entries, decoded from the NUL-separated listing as
+ * strict UTF-8. Only regular files (100644, 100755) can be materialized;
+ * symlinks, gitlinks and anything else refuse the candidate. A committed
+ * top-level dist/ or dist-candidate/ would collide with the build's own output
+ * directories, so it refuses too. A path that is not UTF-8, a duplicate path,
+ * or two paths that alias on a case-insensitive or Unicode-normalizing file
+ * system (same lowercased NFC form) also refuse: materialization and
+ * verification could otherwise conflate distinct names.
  */
 function listTreeEntries(root, commit) {
-  const out = run(["-C", root, "ls-tree", "-r", "-z", "--full-tree", "-l", commit]);
+  const out = run(["-C", root, "ls-tree", "-r", "-z", "--full-tree", "-l", commit], {
+    encoding: null, // raw bytes; path names must survive strict UTF-8 decoding
+  });
   const entries = [];
-  for (const record of out.split("\0")) {
-    if (record === "") continue;
-    const tab = record.indexOf("\t");
-    const [mode, type, oid, sizeText] = record.slice(0, tab).split(/\s+/u);
-    const path = record.slice(tab + 1);
+  const seen = new Map(); // lowercased NFC form → the first path with that form
+  let offset = 0;
+  while (offset < out.length) {
+    const recordEnd = out.indexOf(0x00, offset);
+    if (recordEnd < 0)
+      throw new CandidateBuildRefusalV1(
+        "candidate-listing-framing",
+        `git ls-tree returned a record without its NUL terminator; the candidate is refused`,
+      );
+    const record = out.subarray(offset, recordEnd);
+    const tab = record.indexOf(0x09);
+    const header = tab < 0 ? [] : record.subarray(0, tab).toString("utf8").split(/\s+/u);
+    const [mode, type, oid, sizeText] = header;
+    if (header.length !== 4 || !/^[0-9a-f]{40,64}$/u.test(oid ?? "") || !/^(?:[0-9]+|-)$/u.test(sizeText ?? ""))
+      throw new CandidateBuildRefusalV1(
+        "candidate-listing-framing",
+        `git ls-tree returned a malformed record at byte offset ${offset}; the candidate is refused`,
+      );
+    const pathBytes = record.subarray(tab + 1);
+    let path;
+    try {
+      path = utf8Fatal.decode(pathBytes);
+    } catch {
+      const lossy = utf8Lossy.decode(pathBytes);
+      const within = utf8Encode.encode(lossy.slice(0, lossy.indexOf("\uFFFD"))).length;
+      throw new CandidateBuildRefusalV1(
+        "candidate-path-not-utf8",
+        `the tree of ${commit} contains a path that is not UTF-8 (byte offset ${offset + tab + 1 + within} in the tree listing); the candidate is refused`,
+      );
+    }
     if ((mode !== "100644" && mode !== "100755") || type !== "blob")
       throw new Error(
         `the tree of ${commit} contains ${path} with mode ${mode} (${type}); only regular files (100644, 100755) can be materialized; the candidate is refused`,
@@ -152,9 +204,65 @@ function listTreeEntries(root, commit) {
       throw new Error(
         `the tree of ${commit} contains ${top}/, which the build uses for its own output; the candidate is refused`,
       );
+    const alias = path.normalize("NFC").toLowerCase();
+    const earlier = seen.get(alias);
+    if (earlier !== undefined) {
+      if (earlier === path)
+        throw new CandidateBuildRefusalV1(
+          "candidate-path-duplicate",
+          `the tree of ${commit} contains duplicate path ${path}; the candidate is refused`,
+        );
+      throw new CandidateBuildRefusalV1(
+        "candidate-path-alias",
+        `the tree of ${commit} contains paths that alias on a case-insensitive or Unicode-normalizing file system: ${earlier} and ${path}; the candidate is refused`,
+      );
+    }
+    seen.set(alias, path);
     entries.push({ mode, oid, size: Number(sizeText), path });
+    offset = recordEnd + 1;
   }
   return entries;
+}
+
+/**
+ * Parse the output of one `git cat-file --batch` read, frame by frame: each
+ * header must name the requested blob and the size the tree listing recorded,
+ * the content must be exactly that long and end in its newline, and no
+ * trailing bytes may remain. Anything else refuses the candidate before the
+ * build step runs.
+ */
+export function parseCatFileBatchV1(entries, output) {
+  const bytes = new Map();
+  let offset = 0;
+  for (const entry of entries) {
+    const headerEnd = output.indexOf(0x0a, offset);
+    if (headerEnd < 0)
+      throw new CandidateBuildRefusalV1(
+        "candidate-batch-framing",
+        `git cat-file --batch returned a truncated header for ${entry.oid}; the candidate is refused`,
+      );
+    const [oid, type, sizeText] = output.subarray(offset, headerEnd).toString("utf8").split(" ");
+    if (oid !== entry.oid || type !== "blob" || !/^[0-9]+$/u.test(sizeText) || Number(sizeText) !== entry.size)
+      throw new CandidateBuildRefusalV1(
+        "candidate-batch-framing",
+        `git cat-file --batch returned a header ${oid} ${type} size ${sizeText} where blob ${entry.oid} of ${entry.size} bytes was expected; the candidate is refused`,
+      );
+    const start = headerEnd + 1;
+    const end = start + entry.size;
+    if (end >= output.length || output[end] !== 0x0a)
+      throw new CandidateBuildRefusalV1(
+        "candidate-batch-framing",
+        `git cat-file --batch returned ${entry.path} without its terminating newline; the candidate is refused`,
+      );
+    bytes.set(entry.path, output.subarray(start, end));
+    offset = end + 1;
+  }
+  if (offset !== output.length)
+    throw new CandidateBuildRefusalV1(
+      "candidate-batch-framing",
+      `git cat-file --batch returned ${output.length - offset} trailing bytes; the candidate is refused`,
+    );
+  return bytes;
 }
 
 /** The raw bytes of every blob, in one batch read: no filters, attributes or eol conversion. */
@@ -165,32 +273,23 @@ function readBlobBytes(root, entries) {
     input: `${entries.map((entry) => entry.oid).join("\n")}\n`,
     maxBuffer: total + entries.length * 128 + 1024 * 1024,
   });
-  const bytes = new Map();
-  let offset = 0;
-  for (const entry of entries) {
-    const headerEnd = out.indexOf(0x0a, offset);
-    const [oid, type, sizeText] = out.subarray(offset, headerEnd).toString("utf8").split(" ");
-    if (headerEnd < 0 || oid !== entry.oid || type !== "blob")
-      throw new Error(`git cat-file could not read blob ${entry.oid}; the candidate is refused`);
-    const size = Number(sizeText);
-    const start = headerEnd + 1;
-    bytes.set(entry.path, out.subarray(start, start + size));
-    offset = start + size + 1; // the newline after each object
-  }
-  return bytes;
+  return parseCatFileBatchV1(entries, out);
 }
 
-/** Write the commit's raw blobs to <tree>; returns the entries for later verification. */
-function materializeCommit(root, commit, tree) {
-  const entries = listTreeEntries(root, commit);
-  const bytes = readBlobBytes(root, entries);
-  mkdirSync(tree);
+/** Write the commit's raw blobs to <tree>, every file contained inside it. */
+function materializeCommit(entries, bytes, tree) {
+  const treeRoot = resolve(tree);
+  mkdirSync(treeRoot);
   for (const entry of entries) {
-    const file = join(tree, ...entry.path.split("/"));
+    const file = resolve(treeRoot, ...entry.path.split("/"));
+    if (!file.startsWith(`${treeRoot}${sep}`))
+      throw new CandidateBuildRefusalV1(
+        "candidate-path-containment",
+        `the tree path ${entry.path} would be written outside the snapshot; the candidate is refused`,
+      );
     mkdirSync(dirname(file), { recursive: true });
     writeFileSync(file, bytes.get(entry.path), { mode: entry.mode === "100755" ? 0o755 : 0o644 });
   }
-  return entries;
 }
 
 function objectFormatOf(root) {
@@ -264,6 +363,9 @@ export async function buildCandidateFromCommitV1(checkout, step) {
   const markers = candidateMarkersV1(root);
   if (markers.length > 0) throw new Error(`${root} is a candidate root (${markers.join(", ")})`);
   const catalogCommit = headOf(root);
+  // The commit's tree is validated before the worktree is consulted: a tree
+  // with unusable paths refuses even where no worktree could represent it.
+  const entries = listTreeEntries(root, catalogCommit);
   const dirty = run(["-C", root, "status", "--porcelain", "--untracked-files=all"]).trim();
   if (dirty !== "")
     throw new Error(
@@ -278,7 +380,7 @@ export async function buildCandidateFromCommitV1(checkout, step) {
   const staging = mkdtempSync(join(root, ".candidate-build-"));
   const tree = join(staging, "tree");
   try {
-    const entries = materializeCommit(root, catalogCommit, tree);
+    materializeCommit(entries, readBlobBytes(root, entries), tree);
 
     const result = await step({ root: tree, catalogCommit });
 

@@ -720,7 +720,12 @@ The build never reads the live checkout. It records `HEAD` and materializes
 that commit's tree from raw git objects (`git ls-tree` and `git cat-file`, so
 checkout conversions — smudge filters, attributes, eol rewrites — never apply)
 into a gitignored `.candidate-build-*` snapshot, then compiles, generates and
-copies only from that snapshot. Every git read runs with every `GIT_*`
+copies only from that snapshot. The tree listing is decoded as strict UTF-8: a
+path that is not UTF-8 (named by its byte offset), a duplicate path, paths
+that alias on a case-insensitive or Unicode-normalizing file system, and any
+malformed `cat-file` batch frame each refuse the candidate before anything is
+built, and every written file is checked to stay inside the snapshot. Every
+git read runs with every `GIT_*`
 environment variable removed and replacement objects disabled, so only the
 named checkout's own objects are read. The local toolchain bytes
 (`node_modules/typescript` and its dependencies) are not part of the commit;

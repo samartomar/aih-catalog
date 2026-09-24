@@ -11,8 +11,9 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { deflateSync } from "node:zlib";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   CATALOG_CANDIDATE_FORMAT_V1,
@@ -874,6 +875,162 @@ describe("the candidate build reads raw commit bytes", () => {
     expect(readFileSync(join(out, "input.json"), "utf8")).toBe(COMMITTED);
     expect(readdirSync(out)).not.toContain("junk.js");
     expect(staging(dir)).toEqual([]);
+  });
+});
+
+// Raw-object fixtures for the tree-path refusal tests: the entries cannot be
+// represented in a Windows worktree (or even an index), so the commit is built
+// by plumbing alone. The refusal must happen before the worktree is consulted.
+// hash-object fsck-checks trees, so the tree object is written directly.
+const writeRawObject = (dir: string, type: string, content: Buffer) => {
+  const store = Buffer.concat([Buffer.from(`${type} ${content.length}\0`, "utf8"), content]);
+  const oid = createHash("sha1").update(store).digest("hex");
+  const path = join(dir, ".git", "objects", oid.slice(0, 2), oid.slice(2));
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, deflateSync(store));
+  return oid;
+};
+
+/** Commit a raw tree object (entries may carry any name bytes) and move HEAD to it. */
+function commitRawTree(dir: string, names: Buffer[]): string {
+  const oid = gitIn(dir, "rev-parse", "HEAD:package.json");
+  const sorted = [...names].sort(Buffer.compare);
+  const tree = Buffer.concat(
+    sorted.map((name) =>
+      Buffer.concat([
+        Buffer.from(`100644 `, "utf8"),
+        name,
+        Buffer.from([0]),
+        Buffer.from(oid, "hex"),
+      ]),
+    ),
+  );
+  const commit = gitInWithInput(
+    dir,
+    "raw tree\n",
+    "commit-tree",
+    writeRawObject(dir, "tree", tree),
+    "-p",
+    gitIn(dir, "rev-parse", "HEAD"),
+  );
+  gitIn(dir, "update-ref", "HEAD", commit);
+  return commit;
+}
+
+describe("the candidate build refuses unusable tree paths", () => {
+  it("refuses a path that is not UTF-8, naming the byte offset", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    commitRawTree(dir, [Buffer.from([0x62, 0x61, 0x64, 0x2e, 0xff, 0x6a, 0x73, 0x6f, 0x6e])]);
+    let called = false;
+    let failure: unknown;
+    await buildCandidateFromCommitV1(dir, () => {
+      called = true;
+    }).catch((error: unknown) => {
+      failure = error;
+    });
+    expect((failure as Error)?.message).toMatch(/not UTF-8.*byte offset [0-9]+/u);
+    expect((failure as { code?: string })?.code).toBe("candidate-path-not-utf8");
+    expect(called).toBe(false);
+    expect(staging(dir)).toEqual([]);
+  });
+
+  it("refuses a duplicate path", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    commitRawTree(dir, [Buffer.from("dup.json"), Buffer.from("dup.json")]);
+    let called = false;
+    await expect(
+      buildCandidateFromCommitV1(dir, () => {
+        called = true;
+      }),
+    ).rejects.toThrow(/duplicate.*dup\.json/u);
+    expect(called).toBe(false);
+    expect(staging(dir)).toEqual([]);
+  });
+
+  it("refuses paths that alias on a case-insensitive file system", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    commitRawTree(dir, [Buffer.from("Case.json"), Buffer.from("case.json")]);
+    let called = false;
+    await expect(
+      buildCandidateFromCommitV1(dir, () => {
+        called = true;
+      }),
+    ).rejects.toThrow(/alias.*Case\.json.*case\.json/u);
+    expect(called).toBe(false);
+    expect(staging(dir)).toEqual([]);
+  });
+
+  it("refuses paths that alias under Unicode normalization", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    commitRawTree(dir, [
+      Buffer.from("é.json".normalize("NFC"), "utf8"),
+      Buffer.from("é.json".normalize("NFD"), "utf8"),
+    ]);
+    let called = false;
+    await expect(
+      buildCandidateFromCommitV1(dir, () => {
+        called = true;
+      }),
+    ).rejects.toThrow(/alias/u);
+    expect(called).toBe(false);
+    expect(staging(dir)).toEqual([]);
+  });
+});
+
+describe("the cat-file batch framing", () => {
+  const entry = { mode: "100644", oid: "1".repeat(40), size: 3, path: "a.json" };
+  const record = (oid: string, content: Buffer, headerSize = content.length) =>
+    Buffer.concat([
+      Buffer.from(`${oid} blob ${headerSize}\n`, "utf8"),
+      content,
+      Buffer.from([0x0a]),
+    ]);
+  const parser = async () =>
+    (await import(pathToFileURL(resolve(root, "tools", "candidate-snapshot.mjs")).href)) as {
+      parseCatFileBatchV1: (
+        entries: { oid: string; size: number; path: string }[],
+        output: Buffer,
+      ) => Map<string, Buffer>;
+    };
+
+  it("reads a well-formed batch", async () => {
+    const { parseCatFileBatchV1 } = await parser();
+    const bytes = parseCatFileBatchV1([entry], record(entry.oid, Buffer.from("abc")));
+    expect(bytes.get("a.json")?.toString("utf8")).toBe("abc");
+  });
+
+  it("refuses a wrong object id in a header", async () => {
+    const { parseCatFileBatchV1 } = await parser();
+    expect(() => parseCatFileBatchV1([entry], record("2".repeat(40), Buffer.from("abc")))).toThrow(
+      /batch/u,
+    );
+  });
+
+  it("refuses a header size that differs from the tree listing", async () => {
+    const { parseCatFileBatchV1 } = await parser();
+    expect(() => parseCatFileBatchV1([entry], record(entry.oid, Buffer.from("abc"), 2))).toThrow(
+      /size/u,
+    );
+  });
+
+  it("refuses a missing terminating newline", async () => {
+    const { parseCatFileBatchV1 } = await parser();
+    const broken = Buffer.concat([
+      Buffer.from(`${entry.oid} blob 3\n`, "utf8"),
+      Buffer.from("abc"),
+      Buffer.from([0x00]),
+    ]);
+    expect(() => parseCatFileBatchV1([entry], broken)).toThrow(/newline/u);
+  });
+
+  it("refuses trailing bytes after the last object", async () => {
+    const { parseCatFileBatchV1 } = await parser();
+    const trailing = Buffer.concat([record(entry.oid, Buffer.from("abc")), Buffer.from("x")]);
+    expect(() => parseCatFileBatchV1([entry], trailing)).toThrow(/trailing/u);
   });
 });
 
