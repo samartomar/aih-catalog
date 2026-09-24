@@ -481,6 +481,20 @@ function npmCli(): string {
   throw new Error("unable to resolve a local npm-cli.js");
 }
 
+function isolatedNpmInstallConfiguration(
+  temp: string,
+  inherited: NodeJS.ProcessEnv = process.env,
+): { userconfig: string; environment: NodeJS.ProcessEnv } {
+  const userconfig = resolve(temp, "empty.npmrc");
+  writeFileSync(userconfig, "");
+  const environment = { ...inherited };
+  for (const key of Object.keys(environment)) {
+    if (/^npm_config_(?:allow[-_]?scripts|userconfig)$/i.test(key)) delete environment[key];
+  }
+  environment.npm_config_userconfig = userconfig;
+  return { userconfig, environment };
+}
+
 function canCreateFileAndDirectorySymlinks(): boolean {
   const probe = mkdtempSync(join(tmpdir(), "aih-supported-symlink-probe-"));
   try {
@@ -682,6 +696,7 @@ describe("public signed catalog V2 acceptance contract", () => {
         const consumer = resolve(temp, "consumer");
         mkdirSync(consumer);
         writeFileSync(resolve(consumer, "package.json"), '{"name":"symlink-custody-consumer"}');
+        const npmInstall = isolatedNpmInstallConfiguration(temp);
         const installed = spawnSync(
           process.execPath,
           [
@@ -691,9 +706,11 @@ describe("public signed catalog V2 acceptance contract", () => {
             "--no-audit",
             "--no-fund",
             "--ignore-scripts",
+            "--userconfig",
+            npmInstall.userconfig,
             resolve(temp, packedManifest.filename),
           ],
-          { cwd: consumer, encoding: "utf8" },
+          { cwd: consumer, encoding: "utf8", env: npmInstall.environment },
         );
         expect(installed.status, installed.stderr).toBe(0);
         const installedPackage = resolve(consumer, "node_modules/@aihq/catalog");
@@ -4215,12 +4232,30 @@ describe("public signed catalog V2 acceptance contract", () => {
       const consumer = resolve(temp, "consumer");
       mkdirSync(consumer);
       writeFileSync(`${consumer}/package.json`, '{"name":"cold-admin-consumer","private":true}');
+      const poisonedUserconfig = resolve(temp, "poisoned.npmrc");
+      writeFileSync(poisonedUserconfig, "allow-scripts=true\n");
+      const npmInstall = isolatedNpmInstallConfiguration(temp, {
+        ...process.env,
+        npm_config_userconfig: poisonedUserconfig,
+        npm_config_allow_scripts: "true",
+      });
       const installed = spawnSync(
         process.execPath,
-        [npmCli(), "install", "--offline", "--no-audit", "--no-fund", "--ignore-scripts", tarball],
+        [
+          npmCli(),
+          "install",
+          "--offline",
+          "--no-audit",
+          "--no-fund",
+          "--ignore-scripts",
+          "--userconfig",
+          npmInstall.userconfig,
+          tarball,
+        ],
         {
           cwd: consumer,
           encoding: "utf8",
+          env: npmInstall.environment,
         },
       );
       expect(installed.status, installed.stderr).toBe(0);
