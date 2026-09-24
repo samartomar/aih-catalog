@@ -70,6 +70,18 @@ describe("Superpowers hook control inventory", () => {
           sha256: "998f2cdd2824c4d84184043d07e94b9fbc0bdb5e79c23c14cd266355d0394fbd",
         },
         {
+          path: ".devin-plugin/plugin.json",
+          sha256: "717a5137ee3416c17bf7d2fbffb1edbc820e2bb8a6f5b9bc35b18b23afafd1bb",
+        },
+        {
+          path: ".hermes-plugin/__init__.py",
+          sha256: "7fd93899e39371d56ba1e32660548673afa78f3a4a8bd306f93fbb418afa6f3c",
+        },
+        {
+          path: ".hermes-plugin/plugin.yaml",
+          sha256: "5db5d7dcf9c6a7ce0cf2e90924087ea52e92510a91ccc60916b03562b0b49ca2",
+        },
+        {
           path: ".kimi-plugin/plugin.json",
           sha256: "ea5a1db06d1577f9e08339c4353e9cbcd4d381d64b9523c756d5f237424b2d6e",
         },
@@ -108,6 +120,7 @@ describe("Superpowers hook control inventory", () => {
       ["hook:skills-path", "config"],
       ["hook:skill-registration", "setup"],
       ["hook:session-context", "context"],
+      ["hook:first-turn-context", "pre_llm_call"],
     ]);
     expect(inventory.hooks[0]?.declarations).toEqual([
       ...["claude", "copilot", "antigravity"].map((host) => ({
@@ -146,7 +159,7 @@ describe("Superpowers hook control inventory", () => {
         execution: "in-process",
       },
     ]);
-    expect(inventory.hooks.slice(1).map((hook) => hook.declarations)).toEqual(
+    expect(inventory.hooks.slice(1, 4).map((hook) => hook.declarations)).toEqual(
       ["config", "skill.transform", "session.hook.context"].map((event) => [
         {
           host: "opencode",
@@ -167,6 +180,8 @@ describe("Superpowers hook control inventory", () => {
         ".claude-plugin",
         ".codex-plugin",
         ".cursor-plugin",
+        ".devin-plugin",
+        ".hermes-plugin",
         ".kimi-plugin",
         ".muse-plugin",
         ".opencode",
@@ -231,6 +246,10 @@ describe("Superpowers hook control inventory", () => {
     const files: Record<string, string> = {
       "skills/brainstorming/SKILL.md": "---\nname: brainstorming\ndescription: d.\n---\n",
       ".cursor-plugin/plugin.json": "{}",
+      ".devin-plugin/plugin.json": "{}",
+      ".hermes-plugin/plugin.yaml": "name: x\n",
+      ".hermes-plugin/__init__.py": "x",
+      ".hermes-plugin/helper.py": "x",
       ".claude-plugin/marketplace.json": "{}",
       "hooks/hooks.json": "{}",
       "hooks/nested/skip.json": "{}",
@@ -256,6 +275,9 @@ describe("Superpowers hook control inventory", () => {
     ) as HookSources;
     expect(snapshot.files.map((file) => file.path)).toEqual([
       ".cursor-plugin/plugin.json",
+      ".devin-plugin/plugin.json",
+      ".hermes-plugin/__init__.py",
+      ".hermes-plugin/plugin.yaml",
       ".opencode/plugins/superpowers.js",
       "gemini-extension.json",
       "hooks/hooks.json",
@@ -341,6 +363,100 @@ describe("Superpowers Muse and OpenCode V2 entry declarations", () => {
     expect(() =>
       superpowersHookControlInventoryV1(withFile(hookSources(), "index.js", text), vendorSource()),
     ).toThrow(/index\.js/u);
+  });
+});
+
+const DEVIN = ".devin-plugin/plugin.json";
+const HERMES_MANIFEST = ".hermes-plugin/plugin.yaml";
+const HERMES_PLUGIN = ".hermes-plugin/__init__.py";
+const HERMES_PLUGIN_SHA256 = "7fd93899e39371d56ba1e32660548673afa78f3a4a8bd306f93fbb418afa6f3c";
+
+function withoutFile(sources: HookSources, path: string): HookSources {
+  return { ...sources, files: sources.files.filter((file) => file.path !== path) };
+}
+
+describe("Superpowers Devin and Hermes declarations", () => {
+  const inventory = (sources: HookSources) =>
+    superpowersHookControlInventoryV1(sources, vendorSource()) as {
+      provenance: { sources: { path: string }[] };
+      hooks: {
+        id: string;
+        event: string;
+        summary: string;
+        declarations: Record<string, unknown>[];
+        upstreamControl: unknown;
+      }[];
+    };
+
+  it("records the Hermes pre_llm_call registration as a hand-reviewed in-process hook", () => {
+    const hook = inventory(hookSources()).hooks.find(
+      (item) => item.id === "hook:first-turn-context",
+    );
+    expect(hook).toEqual({
+      id: "hook:first-turn-context",
+      event: "pre_llm_call",
+      summary: expect.stringContaining("Hermes"),
+      declarations: [
+        {
+          host: "hermes",
+          sourcePath: HERMES_PLUGIN,
+          event: "pre_llm_call",
+          execution: "in-process",
+        },
+      ],
+      upstreamControl: { kind: "none" },
+    });
+  });
+
+  it("reads the Devin manifest as metadata that declares no hook", () => {
+    const result = inventory(hookSources());
+    expect(result.provenance.sources.map((source) => source.path)).toContain(DEVIN);
+    expect(
+      result.hooks.flatMap((hook) => hook.declarations).filter((item) => item.host === "devin"),
+    ).toEqual([]);
+  });
+
+  it.each([
+    ["hooks", {}],
+    ["skills", "./skills"],
+    ["commands", []],
+    ["mcpServers", {}],
+    ["sessionStart", { skill: "using-superpowers" }],
+    ["inject", "x"],
+    ["dependencies", []],
+  ])("refuses a Devin manifest field %s it has no reviewed reading for", (key, value) => {
+    const manifest = {
+      ...(JSON.parse(sourceText(DEVIN)) as Record<string, unknown>),
+      [key]: value,
+    };
+    expect(() => inventory(withFile(hookSources(), DEVIN, JSON.stringify(manifest)))).toThrow(
+      /devin/iu,
+    );
+  });
+
+  it("refuses Hermes plugin bytes other than the reviewed ones, naming both digests", () => {
+    const text = `${sourceText(HERMES_PLUGIN)}\n# changed\n`;
+    const actual = sha256HexV1(Buffer.from(text, "utf8"));
+    expect(() => inventory(withFile(hookSources(), HERMES_PLUGIN, text))).toThrow(
+      new RegExp(`__init__\\.py.*${HERMES_PLUGIN_SHA256}.*${actual}`, "u"),
+    );
+  });
+
+  it.each([
+    ["an unreviewed hook", "provides_hooks:\n  - pre_llm_call\n  - post_tool_call\n"],
+    ["no hook", "provides_hooks: []\n"],
+    ["an unknown field", "provides_hooks:\n  - pre_llm_call\nprovides_tools:\n  - x\n"],
+  ])("refuses a Hermes manifest with %s", (_label, tail) => {
+    const head = sourceText(HERMES_MANIFEST).split("provides_hooks:")[0] ?? "";
+    expect(head).toContain("name: superpowers");
+    expect(() => inventory(withFile(hookSources(), HERMES_MANIFEST, `${head}${tail}`))).toThrow(
+      /hermes/iu,
+    );
+  });
+
+  it("refuses a Hermes manifest without its plugin module and a module without its manifest", () => {
+    expect(() => inventory(withoutFile(hookSources(), HERMES_PLUGIN))).toThrow(/__init__\.py/u);
+    expect(() => inventory(withoutFile(hookSources(), HERMES_MANIFEST))).toThrow(/plugin\.yaml/u);
   });
 });
 

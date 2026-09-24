@@ -10,6 +10,7 @@ import {
   SHA256_HEX,
   text,
 } from "../validate-v1.js";
+import { parseYamlFrontmatterV1 } from "../yaml-frontmatter-v1.js";
 import {
   readOpenCodeEntryReexportV1,
   readOpenCodePluginHooksV1,
@@ -42,6 +43,30 @@ const HOOK_SUMMARIES: Readonly<Record<string, string>> = {
     "On OpenCode V2, registers every Superpowers skill with the host's native skill registry when the plugin is set up.",
   "session-context":
     "On OpenCode V2, injects the full using-superpowers skill into the first user message of each top-level session through the session context hook.",
+  "first-turn-context":
+    "On Hermes Agent, appends the full using-superpowers skill, how to load Superpowers skills on Hermes, the local skills directory and the Hermes tool mapping to the first turn's user message through the pre_llm_call hook.",
+};
+
+/** The Devin manifest is metadata only (Devin discovers `skills/` itself); any other field refuses. */
+const DEVIN_MANIFEST = ".devin-plugin/plugin.json";
+const DEVIN_METADATA = ["description", "author", "homepage", "repository", "license", "keywords"];
+
+/**
+ * Hermes loads `.hermes-plugin/__init__.py` and calls its `register(ctx)`. A
+ * Python module has no mechanical reading here, so its hooks are a hand
+ * review keyed by the module's sha256: other bytes have no reading and refuse.
+ * The review at 5bf4e780: `register` locates the plugin's `skills/` tree
+ * (raising if absent), registers each skill with `ctx.register_skill`, builds a
+ * bootstrap text from `skills/using-superpowers/SKILL.md` and
+ * `references/hermes-tools.md`, and registers one hook, `pre_llm_call`, which
+ * returns `{"context": bootstrap}` on the first turn and nothing otherwise. It
+ * reads only those local files: no process, network or write.
+ */
+const HERMES_MANIFEST = ".hermes-plugin/plugin.yaml";
+const HERMES_PLUGIN = ".hermes-plugin/__init__.py";
+const HERMES_REVIEWED_PLUGIN: { sha256: string; hooks: Readonly<Record<string, string>> } = {
+  sha256: "7fd93899e39371d56ba1e32660548673afa78f3a4a8bd306f93fbb418afa6f3c",
+  hooks: { pre_llm_call: "first-turn-context" },
 };
 
 /**
@@ -69,6 +94,18 @@ export const SUPERPOWERS_HOOK_REVIEW_V1: ReviewedSourcesV1 = {
     {
       path: ".cursor-plugin/plugin.json",
       sha256: "998f2cdd2824c4d84184043d07e94b9fbc0bdb5e79c23c14cd266355d0394fbd",
+    },
+    {
+      path: ".devin-plugin/plugin.json",
+      sha256: "717a5137ee3416c17bf7d2fbffb1edbc820e2bb8a6f5b9bc35b18b23afafd1bb",
+    },
+    {
+      path: ".hermes-plugin/__init__.py",
+      sha256: "7fd93899e39371d56ba1e32660548673afa78f3a4a8bd306f93fbb418afa6f3c",
+    },
+    {
+      path: ".hermes-plugin/plugin.yaml",
+      sha256: "5db5d7dcf9c6a7ce0cf2e90924087ea52e92510a91ccc60916b03562b0b49ca2",
     },
     {
       path: ".kimi-plugin/plugin.json",
@@ -119,6 +156,8 @@ export function isSuperpowersHookSourcePathV1(path: string): boolean {
     /^\.[a-z0-9-]+-plugin\/plugin\.json$/u.test(path) ||
     path === "gemini-extension.json" ||
     /^hooks\/[^/]+$/u.test(path) ||
+    path === HERMES_MANIFEST ||
+    path === HERMES_PLUGIN ||
     /^\.opencode\/plugins\/[^/]+\.js$/u.test(path) ||
     path === OPENCODE_ENTRY
   );
@@ -278,6 +317,16 @@ export function superpowersHookControlInventoryV1(
   for (const path of manifests) {
     const host = path.slice(1, path.indexOf("-plugin/"));
     const manifest = json(need(path, path));
+    if (path === DEVIN_MANIFEST) {
+      exactKeys(
+        manifest,
+        ["name", "version"],
+        `${path} (Devin reads metadata only)`,
+        DEVIN_METADATA,
+      );
+      recorded.add(path);
+      continue;
+    }
     const hooks = manifest.hooks;
     if (hooks !== undefined) {
       if (host === "cursor" && typeof hooks === "string") {
@@ -391,6 +440,45 @@ export function superpowersHookControlInventoryV1(
         `${OPENCODE_ENTRY} re-exports ${target}, which this Catalog did not read as an OpenCode plugin`,
       );
     recorded.add(entry.path);
+  }
+
+  if (inComponent(HERMES_MANIFEST) || inComponent(HERMES_PLUGIN)) {
+    const manifestFile = need(HERMES_MANIFEST, "the Hermes plugin");
+    const plugin = need(HERMES_PLUGIN, "the Hermes plugin");
+    const label = `${HERMES_MANIFEST} (Hermes manifest)`;
+    const manifest = exactKeys(
+      parseYamlFrontmatterV1(UTF8.decode(manifestFile.bytes), label),
+      ["name", "version", "provides_hooks"],
+      label,
+      ["description", "author"],
+    );
+    text(manifest.name, `${label} name`);
+    text(manifest.version, `${label} version`);
+    const declared = list(manifest.provides_hooks, `${label} provides_hooks`, 1).map((hook) =>
+      text(hook, `${label} provides_hooks entry`),
+    );
+    if (plugin.sha256 !== HERMES_REVIEWED_PLUGIN.sha256)
+      throw new TypeError(
+        `${HERMES_PLUGIN} was reviewed with sha256 ${HERMES_REVIEWED_PLUGIN.sha256} but the fetched bytes have sha256 ${plugin.sha256}; this Catalog has no reading for them`,
+      );
+    const reviewed = Object.keys(HERMES_REVIEWED_PLUGIN.hooks);
+    if (
+      new Set(declared).size !== declared.length ||
+      declared.length !== reviewed.length ||
+      declared.some((hook) => !reviewed.includes(hook))
+    )
+      throw new TypeError(
+        `${label} provides hooks ${declared.join(", ")}, but the reviewed Hermes plugin registers exactly ${reviewed.join(", ")}`,
+      );
+    recorded.add(manifestFile.path);
+    recorded.add(plugin.path);
+    for (const [event, name] of Object.entries(HERMES_REVIEWED_PLUGIN.hooks)) {
+      if (byHook.has(name)) throw new TypeError(`Superpowers hook ${name} is declared twice`);
+      byHook.set(name, {
+        event,
+        declarations: [{ host: "hermes", sourcePath: plugin.path, event, execution: "in-process" }],
+      });
+    }
   }
 
   const hooks = [...byHook.entries()].map(([name, hook]) => {

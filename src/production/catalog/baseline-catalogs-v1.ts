@@ -130,6 +130,8 @@ const SUPERPOWERS_PLUGIN_PATHS = [
   ".claude-plugin",
   ".codex-plugin",
   ".cursor-plugin",
+  ".devin-plugin",
+  ".hermes-plugin",
   ".kimi-plugin",
   ".muse-plugin",
   ".opencode",
