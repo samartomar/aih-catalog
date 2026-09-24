@@ -292,14 +292,111 @@ describe("OpenCode plugin hook declarations", () => {
     expect(() => inventoryWith(source)).toThrow(/cannot interpret/u);
   });
 
-  it("fails the generation when the plugin's hooks are not one returned object literal", () => {
-    const early = openCodeSource().replace(
+  it("reads a hook returned only inside a control-flow block", () => {
+    const source = [
+      "export const Plugin = async () => {",
+      "  if (true) {",
+      '    return { "tool.execute.before": async () => {} };',
+      "  }",
+      "  return { config: async () => {} };",
+      "};",
+      "",
+    ].join("\n");
+    expect(readOpenCodePluginHooksV1(source, OPENCODE)).toEqual([
+      { plugin: "Plugin", hook: "tool.execute.before" },
+      { plugin: "Plugin", hook: "config" },
+    ]);
+    expect(() => inventoryWith(source)).toThrow(/tool\.execute\.before/u);
+  });
+
+  it.each([
+    ["for", "for (const x of []) { RETURN }"],
+    ["while", "while (client) RETURN"],
+    ["do-while", "do { RETURN } while (client);"],
+    ["try", "try { RETURN } catch { }"],
+    ["catch", "try { client(); } catch (error) { RETURN }"],
+    ["finally", "try { client(); } finally { RETURN }"],
+    ["switch", "switch (client) { case 1: { RETURN } default: }"],
+    ["labeled block", "outer: { RETURN }"],
+    ["else", "if (client) {} else RETURN"],
+  ])("reads a hook returned inside %s", (_label, wrapper) => {
+    const early = wrapper.replace("RETURN", "return { 'tool.execute.before': async () => {} };");
+    const source = openCodeSource().replace("  return {\n", `  ${early}\n  return {\n`);
+    expect(source).not.toBe(openCodeSource());
+    expect(readOpenCodePluginHooksV1(source, OPENCODE).map((entry) => entry.hook)).toEqual([
+      "tool.execute.before",
+      "config",
+      "experimental.chat.messages.transform",
+    ]);
+  });
+
+  it("merges the hooks of every return path and ignores returns of nested functions", () => {
+    const source = openCodeSource().replace(
       "  return {\n",
-      "  if (!client) return {};\n  return {\n",
+      [
+        "  if (!client) return {};",
+        "  if (directory) return ({ config: async () => {} });",
+        "  const nested = () => { return { 'tool.execute.before': async () => {} }; };",
+        "  function helper() { return { 'tool.execute.after': async () => {} }; }",
+        "  class Helper { method() { return { 'chat.params': async () => {} }; } }",
+        "  return {\n",
+      ].join("\n"),
     );
-    expect(() => readOpenCodePluginHooksV1(early, OPENCODE)).toThrow(/cannot interpret/u);
-    const built = openCodeSource().replace("  return {\n", "  const hooks = {\n");
-    expect(() => readOpenCodePluginHooksV1(built, OPENCODE)).toThrow(/cannot interpret/u);
+    expect(readOpenCodePluginHooksV1(source, OPENCODE).map((entry) => entry.hook)).toEqual([
+      "config",
+      "experimental.chat.messages.transform",
+    ]);
+  });
+
+  it.each([
+    [
+      "a comma expression",
+      "return { config: async () => {} }, { 'tool.execute.before': async () => {} };",
+    ],
+    ["a conditional expression", "return client ? { config: async () => {} } : {};"],
+    ["a logical expression", "return client && { config: async () => {} };"],
+    ["a variable", "const hooks = {};\n  return hooks;"],
+    ["a call", "return Object.assign({}, { config: async () => {} });"],
+    ["an awaited object", "return await { config: async () => {} };"],
+    ["no value", "if (!client) return;"],
+  ])("fails the generation when a return path returns %s", (_label, statement) => {
+    const source = openCodeSource().replace("  return {\n", `  ${statement}\n  return {\n`);
+    expect(source).not.toBe(openCodeSource());
+    expect(() => readOpenCodePluginHooksV1(source, OPENCODE)).toThrow(/cannot interpret/u);
+    expect(() => inventoryWith(source)).toThrow(/cannot interpret/u);
+  });
+
+  it("fails the generation when the only return is a comma expression of object literals", () => {
+    const source = [
+      "export const Plugin = async () => {",
+      '  return { config: async () => {} }, { "tool.execute.before": async () => {} };',
+      "};",
+      "",
+    ].join("\n");
+    expect(() => readOpenCodePluginHooksV1(source, OPENCODE)).toThrow(/cannot interpret/u);
+    expect(() => inventoryWith(source)).toThrow(/cannot interpret/u);
+  });
+
+  it("fails the generation when the plugin returns no object literal at all", () => {
+    for (const source of [
+      "export const Plugin = async () => { await 1; };\n",
+      "export const Plugin = async () => hooks;\n",
+      "export const Plugin = async () => ({ config: async () => {} }, {});\n",
+      "export async function* Plugin() { yield 1; return { config: async () => {} }; }\n",
+    ])
+      expect(() => readOpenCodePluginHooksV1(source, OPENCODE)).toThrow(/cannot interpret/u);
+  });
+
+  it("reads a regular expression wherever the grammar allows one", () => {
+    const source = openCodeSource().replace(
+      "  return {\n",
+      "  if (directory) /[}{]/u.test(directory);\n  return {\n",
+    );
+    expect(source).not.toBe(openCodeSource());
+    expect(readOpenCodePluginHooksV1(source, OPENCODE).map((entry) => entry.hook)).toEqual([
+      "config",
+      "experimental.chat.messages.transform",
+    ]);
   });
 
   it("fails the generation on an export it cannot interpret", () => {

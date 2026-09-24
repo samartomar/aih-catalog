@@ -2,11 +2,48 @@
  * Reads the hook declarations an OpenCode plugin file exports, without running
  * it. OpenCode calls each exported plugin function and registers the members of
  * the object it returns as hooks, so the reading is: every export is either a
- * plugin function whose body returns exactly one object literal, inert text, or
- * a default export that only aliases a plugin already read; every member of the
- * returned object is a named function. Anything else fails closed: a hook this
- * reader cannot interpret is never dropped.
+ * plugin function, inert text, or a default export that only aliases a plugin
+ * already read; every return path of a plugin function (control-flow blocks
+ * included, nested functions and classes excluded) returns exactly one object
+ * literal; every member of such an object is a named function. The hooks of a
+ * plugin are the union over its return paths. Anything else fails closed: a
+ * hook this reader cannot interpret is never dropped.
+ *
+ * The file is parsed by the TypeScript compiler (a build-time dependency; this
+ * module never ships in the package) over a virtual file system holding only
+ * the plugin text, so nothing is resolved, read from disk or executed.
  */
+
+import type {
+  Block,
+  ExportAssignment,
+  Expression,
+  FunctionDeclaration,
+  Node,
+  ObjectLiteralExpression,
+  PropertyName,
+  ReturnStatement,
+  SourceFile,
+} from "typescript/unstable/ast";
+import { SyntaxKind } from "typescript/unstable/ast";
+import {
+  isArrowFunction,
+  isClassLikeDeclaration,
+  isExportAssignment,
+  isFunctionDeclaration,
+  isFunctionExpression,
+  isFunctionLikeDeclaration,
+  isIdentifier,
+  isMethodDeclaration,
+  isObjectLiteralExpression,
+  isParenthesizedExpression,
+  isPropertyAssignment,
+  isReturnStatement,
+  isStringLiteral,
+  isVariableStatement,
+} from "typescript/unstable/ast/is";
+import { createVirtualFileSystem } from "typescript/unstable/fs";
+import { API } from "typescript/unstable/sync";
 
 export interface OpenCodePluginHookV1 {
   /** The export that returns the hook, for example `SuperpowersPlugin`. */
@@ -15,383 +52,183 @@ export interface OpenCodePluginHookV1 {
   hook: string;
 }
 
-type TokenKind = "name" | "string" | "template" | "number" | "regex" | "punct";
-
-interface Token {
-  kind: TokenKind;
-  /** Names, punctuators and numbers verbatim; strings decoded; templates and regexes raw. */
-  value: string;
-  offset: number;
-}
-
 type Fail = (reason: string) => never;
 
-const REGEX_AFTER_WORDS = new Set([
-  "await",
-  "case",
-  "delete",
-  "do",
-  "else",
-  "in",
-  "instanceof",
-  "new",
-  "return",
-  "throw",
-  "typeof",
-  "void",
-  "yield",
-]);
-const PUNCTUATORS = ["...", "=>", "?."];
-const OPEN = new Map([
-  ["(", ")"],
-  ["[", "]"],
-  ["{", "}"],
-]);
-const CLOSE = new Set([")", "]", "}"]);
-const SIMPLE_ESCAPES: Readonly<Record<string, string>> = {
-  b: "\b",
-  f: "\f",
-  n: "\n",
-  r: "\r",
-  t: "\t",
-  v: "\v",
-};
+const VIRTUAL_ROOT = "/aih-opencode-plugin";
+const VIRTUAL_FILE = `${VIRTUAL_ROOT}/plugin.js`;
+const VIRTUAL_CONFIG = `${VIRTUAL_ROOT}/tsconfig.json`;
 
-function isNameStart(char: string): boolean {
-  return /[\p{ID_Start}$_]/u.test(char);
-}
-
-function isNamePart(char: string): boolean {
-  return /[\p{ID_Continue}$\u200c\u200d]/u.test(char);
-}
-
-/** The value of a quoted string literal's body (without its quotes). */
-function decodeString(raw: string, fail: Fail): string {
-  let value = "";
-  for (let index = 0; index < raw.length; index += 1) {
-    const char = raw[index] as string;
-    if (char !== "\\") {
-      value += char;
-      continue;
+/** Parses `source` as an ECMAScript module and hands its syntax tree to `read` while the parser runs. */
+function withParsedModule<T>(source: string, fail: Fail, read: (file: SourceFile) => T): T {
+  const api = new API({
+    cwd: VIRTUAL_ROOT,
+    fs: createVirtualFileSystem({
+      [VIRTUAL_CONFIG]: JSON.stringify({
+        compilerOptions: { allowJs: true, noLib: true, noResolve: true, types: [] },
+        files: ["plugin.js"],
+      }),
+      [VIRTUAL_FILE]: source,
+    }),
+  });
+  try {
+    const program = api
+      .updateSnapshot({ openProjects: [VIRTUAL_CONFIG] })
+      .getProjects()[0]?.program;
+    const file = program?.getSourceFile(VIRTUAL_FILE);
+    if (program === undefined || file === undefined)
+      return fail("the plugin file: it did not parse");
+    const [error] = program.getSyntacticDiagnostics(VIRTUAL_FILE);
+    if (error !== undefined) {
+      const line = file.getLineAndCharacterOfPosition(error.pos).line + 1;
+      return fail(`the plugin file, which has a syntax error on line ${line}: ${error.text}`);
     }
-    index += 1;
-    const next = raw[index] ?? "";
-    if (Object.hasOwn(SIMPLE_ESCAPES, next)) value += SIMPLE_ESCAPES[next];
-    else if (next === "0" && !/[0-9]/u.test(raw[index + 1] ?? "")) value += "\0";
-    else if (next === "x" || next === "u") {
-      const braced = next === "u" && raw[index + 1] === "{";
-      const width = next === "x" ? 2 : 4;
-      const digits = braced
-        ? raw.slice(index + 2, raw.indexOf("}", index))
-        : raw.slice(index + 1, index + 1 + width);
-      if (!/^[0-9a-fA-F]+$/u.test(digits) || (!braced && digits.length !== width))
-        fail(`a malformed \\${next} escape in a string literal`);
-      const codePoint = Number.parseInt(digits, 16);
-      if (codePoint > 0x10ffff) fail("an out-of-range escape in a string literal");
-      value += String.fromCodePoint(codePoint);
-      index += braced ? digits.length + 2 : digits.length;
-    } else if (/[1-9]/u.test(next)) fail("a legacy octal escape in a string literal");
-    else if (next === "\r") index += raw[index + 1] === "\n" ? 1 : 0;
-    else if (next !== "\n" && next !== "\u2028" && next !== "\u2029") value += next;
+    return read(file);
+  } finally {
+    api.close();
   }
-  return value;
-}
-
-/** A minimal ECMAScript tokenizer: enough to keep comments, strings, templates and regexes opaque. */
-function tokenize(source: string, fail: Fail): Token[] {
-  const skipQuoted = (start: number, quote: string): number => {
-    let cursor = start + 1;
-    while (cursor < source.length) {
-      const char = source[cursor] as string;
-      if (char === "\\") cursor += source.startsWith("\r\n", cursor + 1) ? 3 : 2;
-      else if (char === quote) return cursor + 1;
-      else if (char === "\n" || char === "\r") break;
-      else cursor += 1;
-    }
-    return fail(`an unterminated string at offset ${start}`);
-  };
-
-  const skipTemplate = (start: number): number => {
-    let cursor = start + 1;
-    while (cursor < source.length) {
-      const char = source[cursor] as string;
-      if (char === "\\") cursor += 2;
-      else if (char === "`") return cursor + 1;
-      else if (char === "$" && source[cursor + 1] === "{") {
-        // A substitution is ordinary code up to its matching brace; its tokens stay private.
-        cursor = scan(cursor + 2, [], "}");
-      } else cursor += 1;
-    }
-    return fail(`an unterminated template at offset ${start}`);
-  };
-
-  const skipRegex = (start: number): number => {
-    let cursor = start + 1;
-    let inClass = false;
-    while (cursor < source.length) {
-      const char = source[cursor] as string;
-      if (char === "\\") cursor += 2;
-      else if (char === "\n" || char === "\r") break;
-      else if (inClass) {
-        if (char === "]") inClass = false;
-        cursor += 1;
-      } else if (char === "[") {
-        inClass = true;
-        cursor += 1;
-      } else if (char === "/") {
-        cursor += 1;
-        while (cursor < source.length && isNamePart(source[cursor] as string)) cursor += 1;
-        return cursor;
-      } else cursor += 1;
-    }
-    return fail(`an unterminated regular expression at offset ${start}`);
-  };
-
-  /** Tokenizes into `out` from `start`; with `until`, stops after the bracket that closes the region. */
-  function scan(start: number, out: Token[], until?: string): number {
-    const stack: string[] = [];
-    const regexAllowed = (): boolean => {
-      const previous = out.at(-1);
-      if (previous === undefined) return true;
-      if (previous.kind === "name") return REGEX_AFTER_WORDS.has(previous.value);
-      if (previous.kind === "punct") return !CLOSE.has(previous.value);
-      return false;
-    };
-    let cursor = start;
-    while (cursor < source.length) {
-      const char = source[cursor] as string;
-      const next = source[cursor + 1];
-      if (/\s/u.test(char)) {
-        cursor += 1;
-      } else if (char === "/" && next === "/") {
-        const end = source.indexOf("\n", cursor);
-        cursor = end === -1 ? source.length : end;
-      } else if (char === "/" && next === "*") {
-        const end = source.indexOf("*/", cursor + 2);
-        if (end === -1) fail(`an unterminated comment at offset ${cursor}`);
-        cursor = end + 2;
-      } else if (char === "'" || char === '"') {
-        const end = skipQuoted(cursor, char);
-        const value = decodeString(source.slice(cursor + 1, end - 1), fail);
-        out.push({ kind: "string", value, offset: cursor });
-        cursor = end;
-      } else if (char === "`") {
-        const end = skipTemplate(cursor);
-        out.push({ kind: "template", value: source.slice(cursor, end), offset: cursor });
-        cursor = end;
-      } else if (char === "/" && regexAllowed()) {
-        const end = skipRegex(cursor);
-        out.push({ kind: "regex", value: source.slice(cursor, end), offset: cursor });
-        cursor = end;
-      } else if (isNameStart(char) || (char === "#" && next !== undefined && isNameStart(next))) {
-        let end = cursor + 1;
-        while (end < source.length && isNamePart(source[end] as string)) end += 1;
-        out.push({ kind: "name", value: source.slice(cursor, end), offset: cursor });
-        cursor = end;
-      } else if (
-        /[0-9]/u.test(char) ||
-        (char === "." && next !== undefined && /[0-9]/u.test(next))
-      ) {
-        let end = cursor + 1;
-        while (end < source.length && /[\w.]/u.test(source[end] as string)) end += 1;
-        out.push({ kind: "number", value: source.slice(cursor, end), offset: cursor });
-        cursor = end;
-      } else {
-        const punctuator =
-          PUNCTUATORS.find((candidate) => source.startsWith(candidate, cursor)) ?? char;
-        if (OPEN.has(punctuator)) stack.push(OPEN.get(punctuator) as string);
-        else if (CLOSE.has(punctuator)) {
-          if (stack.length === 0 && until === punctuator) return cursor + 1;
-          if (stack.pop() !== punctuator) fail(`an unbalanced ${punctuator} at offset ${cursor}`);
-        }
-        out.push({ kind: "punct", value: punctuator, offset: cursor });
-        cursor += punctuator.length;
-      }
-    }
-    if (until !== undefined) fail(`an unterminated template substitution before offset ${start}`);
-    if (stack.length !== 0) fail(`an unclosed ${stack.at(-1)} at the end of the file`);
-    return cursor;
-  }
-
-  const tokens: Token[] = [];
-  scan(source.startsWith("#!") ? source.indexOf("\n") + 1 || source.length : 0, tokens);
-  return tokens;
 }
 
 export function readOpenCodePluginHooksV1(source: string, path: string): OpenCodePluginHookV1[] {
   const fail: Fail = (reason) => {
     throw new TypeError(`${path}: this Catalog cannot interpret ${reason}`);
   };
-  const tokens = tokenize(source, fail);
-  const at = (index: number): Token | undefined => tokens[index];
-  const is = (index: number, value: string, kind: TokenKind = "punct") =>
-    at(index)?.kind === kind && at(index)?.value === value;
-  const isOpen = (index: number) => at(index)?.kind === "punct" && OPEN.has(at(index)?.value ?? "");
+  return withParsedModule(source, fail, (file) => readModule(file, fail));
+}
 
-  /** Index of the token that closes the bracket opened at `open` (the tokenizer checked balance). */
-  const matching = (open: number): number => {
-    let depth = 0;
-    for (let index = open; index < tokens.length; index += 1) {
-      const token = tokens[index] as Token;
-      if (token.kind !== "punct") continue;
-      if (OPEN.has(token.value)) depth += 1;
-      else if (CLOSE.has(token.value)) {
-        depth -= 1;
-        if (depth === 0) return index;
+function readModule(file: SourceFile, fail: Fail): OpenCodePluginHookV1[] {
+  const line = (node: Node) => file.getLineAndCharacterOfPosition(node.getStart(file)).line + 1;
+  const hasModifier = (node: Node, kind: SyntaxKind) =>
+    (node as { modifiers?: readonly Node[] }).modifiers?.some((item) => item.kind === kind) ===
+    true;
+  const unparenthesized = (expression: Expression): Expression =>
+    isParenthesizedExpression(expression) ? unparenthesized(expression.expression) : expression;
+  /** A property name whose text is known without evaluating anything. */
+  const keyOf = (name: PropertyName): string | undefined =>
+    isIdentifier(name) || isStringLiteral(name) ? name.text : undefined;
+  const isFunctionValue = (node: Expression) =>
+    (isArrowFunction(node) || isFunctionExpression(node)) && node.asteriskToken === undefined;
+
+  /** The hook names of one object literal a plugin returns. */
+  const hookNames = (object: ObjectLiteralExpression, plugin: string): string[] =>
+    object.properties.map((member) => {
+      const describe = () => `the member on line ${line(member)} of ${plugin}'s hooks`;
+      if (isPropertyAssignment(member)) {
+        const key = keyOf(member.name);
+        if (key === undefined || key === "__proto__" || !isFunctionValue(member.initializer))
+          return fail(describe());
+        return key;
       }
-    }
-    return fail(`an unclosed bracket at offset ${at(open)?.offset}`);
-  };
-
-  /**
-   * The function expression starting at `start` — `async? (params) =>`, `async? name =>`
-   * or `async? function*? name? (params) {` — as its body's first token and the token
-   * after it; undefined when `start` is not one.
-   */
-  const functionAt = (start: number): { body: number; end: number } | undefined => {
-    let cursor = is(start, "async", "name") && !is(start + 1, "=>") ? start + 1 : start;
-    if (is(cursor, "function", "name")) {
-      cursor += 1;
-      if (is(cursor, "*")) cursor += 1;
-      if (at(cursor)?.kind === "name") cursor += 1;
-      if (!is(cursor, "(")) return undefined;
-      const body = matching(cursor) + 1;
-      if (!is(body, "{")) return undefined;
-      return { body, end: matching(body) + 1 };
-    }
-    if (is(cursor, "(")) cursor = matching(cursor) + 1;
-    else if (at(cursor)?.kind === "name") cursor += 1;
-    else return undefined;
-    if (!is(cursor, "=>")) return undefined;
-    const body = cursor + 1;
-    if (is(body, "{") || is(body, "(")) return { body, end: matching(body) + 1 };
-    return undefined;
-  };
-
-  /** The members of the object literal at `open` as token index ranges, split at top-level commas. */
-  const members = (open: number): { start: number; end: number }[] => {
-    const close = matching(open);
-    const result: { start: number; end: number }[] = [];
-    let start = open + 1;
-    for (let index = open + 1; index <= close; index += 1) {
-      if (index < close && isOpen(index)) index = matching(index);
-      else if (index === close || is(index, ",")) {
-        // Only the position before the closing brace may be empty (a trailing comma or `{}`).
-        if (index > start) result.push({ start, end: index });
-        else if (index !== close)
-          fail(`an empty member in the object at offset ${at(open)?.offset}`);
-        start = index + 1;
+      if (isMethodDeclaration(member)) {
+        const key = keyOf(member.name);
+        if (key === undefined || member.asteriskToken !== undefined || member.body === undefined)
+          return fail(describe());
+        return key;
       }
-    }
-    return result;
-  };
-
-  const keyAt = (index: number): string | undefined => {
-    const token = at(index);
-    return token !== undefined && (token.kind === "name" || token.kind === "string")
-      ? token.value
-      : undefined;
-  };
-
-  /** The hook names of the object literal a plugin returns. */
-  const hookObject = (open: number, plugin: string): OpenCodePluginHookV1[] =>
-    members(open).map(({ start, end }) => {
-      const describe = () => `the member at offset ${at(start)?.offset} of ${plugin}'s hooks`;
-      // Method shorthand: `name(...) { }` or `async name(...) { }`.
-      const method =
-        is(start, "async", "name") && keyAt(start + 1) !== undefined && is(start + 2, "(") ? 1 : 0;
-      const key = keyAt(start + method);
-      if (key === undefined) return fail(describe());
-      const after = start + method + 1;
-      if (is(after, "(")) {
-        const body = matching(after) + 1;
-        if (!is(body, "{") || matching(body) !== end - 1) return fail(describe());
-        return { plugin, hook: key };
-      }
-      if (method !== 0 || !is(after, ":")) return fail(describe());
-      const fn = functionAt(after + 1);
-      if (fn === undefined || fn.end !== end) return fail(describe());
-      return { plugin, hook: key };
+      // Shorthand members, spreads and accessors carry no statically known hook function.
+      return fail(describe());
     });
 
-  /** The single object literal a plugin function's body returns. */
+  /** Every return statement of a function body, excluding those of nested functions and classes. */
+  const returnsOf = (body: Block): ReturnStatement[] => {
+    const found: ReturnStatement[] = [];
+    const visit = (node: Node): void => {
+      if (isFunctionLikeDeclaration(node) || isClassLikeDeclaration(node)) return;
+      if (isReturnStatement(node)) found.push(node);
+      node.forEachChild(visit);
+    };
+    body.forEachChild(visit);
+    return found;
+  };
+
+  /** The union of the hooks of every object literal the plugin function can return. */
   const pluginHooks = (
     plugin: string,
-    fn: { body: number; end: number },
+    fn: Expression | FunctionDeclaration,
   ): OpenCodePluginHookV1[] => {
-    if (is(fn.body, "(")) {
-      if (!is(fn.body + 1, "{") || matching(fn.body + 1) !== fn.end - 2)
-        return fail(`${plugin}, whose concise body is not an object literal`);
-      return hookObject(fn.body + 1, plugin);
+    if (!(isArrowFunction(fn) || isFunctionExpression(fn) || isFunctionDeclaration(fn)))
+      return fail(`${plugin}, which is not a plugin function`);
+    if (fn.asteriskToken !== undefined) return fail(`${plugin}, which is a generator`);
+    const body = fn.body;
+    if (body === undefined) return fail(`${plugin}, which has no body`);
+    const returned: ObjectLiteralExpression[] = [];
+    if (body.kind === SyntaxKind.Block) {
+      for (const statement of returnsOf(body as Block)) {
+        const object =
+          statement.expression === undefined ? undefined : unparenthesized(statement.expression);
+        if (object === undefined || !isObjectLiteralExpression(object))
+          return fail(
+            `${plugin}, whose return on line ${line(statement)} is not exactly one object literal`,
+          );
+        returned.push(object);
+      }
+      if (returned.length === 0) return fail(`${plugin}, whose body returns no object literal`);
+    } else {
+      const object = unparenthesized(body as Expression);
+      if (!isObjectLiteralExpression(object))
+        return fail(`${plugin}, whose concise body is not exactly one object literal`);
+      returned.push(object);
     }
-    const returns: number[] = [];
-    for (let index = fn.body + 1; index < fn.end - 1; index += 1) {
-      if (is(index, "return", "name")) returns.push(index);
-      else if (isOpen(index)) index = matching(index);
-    }
-    const [only] = returns;
-    if (returns.length !== 1 || only === undefined || !is(only + 1, "{"))
-      return fail(`${plugin}, whose body does not return exactly one object literal`);
-    return hookObject(only + 1, plugin);
+    const hooks = new Set(returned.flatMap((object) => hookNames(object, plugin)));
+    return [...hooks].map((hook) => ({ plugin, hook }));
   };
 
   const plugins = new Map<string, OpenCodePluginHookV1[]>();
-  const statementEnds = (index: number) =>
-    at(index) === undefined || is(index, ";") || is(index, "export", "name");
 
-  for (let index = 0; index < tokens.length; index += 1) {
-    if (isOpen(index)) {
-      index = matching(index);
-      continue;
-    }
-    if (!is(index, "export", "name")) continue;
-    const where = `the export at offset ${at(index)?.offset}`;
-    const declares = ["const", "let", "var"].some((word) => is(index + 1, word, "name"));
-    if (declares && at(index + 2)?.kind === "name" && is(index + 3, "=")) {
-      const name = at(index + 2)?.value as string;
-      const value = index + 4;
-      const kind = at(value)?.kind;
-      if ((kind === "string" || kind === "template") && statementEnds(value + 1)) {
-        index = value;
+  const readDefault = (statement: ExportAssignment): void => {
+    if (statement.isExportEquals) fail(`the export on line ${line(statement)}`);
+    const value = unparenthesized(statement.expression);
+    if (isIdentifier(value) && plugins.has(value.text)) return;
+    if (!isObjectLiteralExpression(value)) fail(`the export on line ${line(statement)}`);
+    for (const member of value.properties) {
+      const key = isPropertyAssignment(member) ? keyOf(member.name) : undefined;
+      const initializer = isPropertyAssignment(member) ? member.initializer : undefined;
+      if (key === "id" && initializer !== undefined && isStringLiteral(initializer)) continue;
+      if (
+        key === "server" &&
+        initializer !== undefined &&
+        isIdentifier(initializer) &&
+        plugins.has(initializer.text)
+      )
         continue;
-      }
-      const fn = functionAt(value);
-      if (fn === undefined || !statementEnds(fn.end)) return fail(where);
-      plugins.set(name, pluginHooks(name, fn));
-      index = fn.end - 1;
+      fail(
+        `the default export member ${key ?? `on line ${line(member)}`}: it has no reviewed reading (OpenCode V2 setup registrations have no representation in the hook inventory)`,
+      );
+    }
+  };
+
+  for (const statement of file.statements) {
+    if (isExportAssignment(statement)) {
+      readDefault(statement);
       continue;
     }
-    const keyword = is(index + 1, "async", "name") ? index + 2 : index + 1;
-    if (is(keyword, "function", "name") && at(keyword + 1)?.kind === "name") {
-      const name = at(keyword + 1)?.value as string;
-      const fn = functionAt(index + 1);
-      if (fn === undefined) return fail(where);
-      plugins.set(name, pluginHooks(name, fn));
-      index = fn.end - 1;
+    const where = `the export on line ${line(statement)}`;
+    // `export { … }` and `export * from …` re-export under names this reader cannot follow.
+    if (statement.kind === SyntaxKind.ExportDeclaration) return fail(where);
+    if (!hasModifier(statement, SyntaxKind.ExportKeyword)) continue;
+    if (hasModifier(statement, SyntaxKind.DefaultKeyword)) return fail(where);
+    if (isFunctionDeclaration(statement)) {
+      const name = statement.name?.text;
+      if (name === undefined) return fail(where);
+      plugins.set(name, pluginHooks(name, statement));
       continue;
     }
-    if (is(index + 1, "default", "name")) {
-      const alias = at(index + 2);
-      if (alias?.kind === "name" && plugins.has(alias.value) && statementEnds(index + 3)) {
-        index += 2;
-        continue;
-      }
-      if (!is(index + 2, "{")) return fail(where);
-      for (const { start, end } of members(index + 2)) {
-        const key = keyAt(start);
-        const value = at(start + 2);
-        const simple = end === start + 3 && is(start + 1, ":");
-        if (simple && key === "id" && value?.kind === "string") continue;
-        if (simple && key === "server" && value?.kind === "name" && plugins.has(value.value))
-          continue;
-        fail(
-          `the default export member ${key ?? `at offset ${at(start)?.offset}`}: it has no reviewed reading (OpenCode V2 setup registrations have no representation in the hook inventory)`,
-        );
-      }
-      index = matching(index + 2);
+    if (!isVariableStatement(statement)) return fail(where);
+    const declarations = statement.declarationList.declarations;
+    const [declaration] = declarations;
+    if (declarations.length !== 1 || declaration === undefined || !isIdentifier(declaration.name))
+      return fail(where);
+    const initializer = declaration.initializer;
+    if (initializer === undefined) return fail(where);
+    const name = declaration.name.text;
+    const kind = initializer.kind;
+    if (
+      kind === SyntaxKind.StringLiteral ||
+      kind === SyntaxKind.NoSubstitutionTemplateLiteral ||
+      kind === SyntaxKind.TemplateExpression
+    )
       continue;
-    }
-    fail(where);
+    if (!isFunctionValue(initializer)) return fail(where);
+    plugins.set(name, pluginHooks(name, initializer));
   }
   if (plugins.size === 0) fail("a plugin file that exports no plugin function");
   return [...plugins.values()].flat();
