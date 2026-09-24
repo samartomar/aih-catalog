@@ -1,5 +1,11 @@
 import { parseBaselineEvidenceLockV1 } from "../catalog/baseline-lock-v1.js";
-import { canonicalJsonV1, canonicalStrictJsonSha256V1, sha256HexV1 } from "../strict-json-v1.js";
+import {
+  canonicalJsonV1,
+  canonicalStrictJsonBytesV1,
+  canonicalStrictJsonSha256V1,
+  parseStrictJsonObjectV1,
+  sha256HexV1,
+} from "../strict-json-v1.js";
 import {
   COMMIT_SHA,
   exactKeys,
@@ -455,8 +461,9 @@ function assertConsistent(value: PackagedScannerCollectionEvidenceV1): void {
 }
 
 /**
- * Reads the sealed records: canonical bytes, matching seal, one record per catalog id, each
- * structurally valid. It never claims admission: which publisher may be named is Core's check.
+ * Reads the sealed records: matching seal, Core's strict JSON reading and string rule over the
+ * whole record, canonical bytes, one record per catalog id, each structurally valid. It never
+ * claims admission: which publisher may be named is Core's check.
  */
 export function parsePackagedScannerCollectionEvidenceV1(
   value: unknown,
@@ -470,8 +477,9 @@ export function parsePackagedScannerCollectionEvidenceV1(
       throw new TypeError(`${label} exceeds its byte budget`);
     if (text(sealed.sha256, `${label} seal`, QUALIFIED_SHA256) !== `sha256:${sha256HexV1(bytes)}`)
       throw new TypeError(`${label} seal mismatch`);
-    const parsed = parseRecord(JSON.parse(bytes));
-    if (canonicalJsonV1(parsed) !== bytes) throw new TypeError(`${label} must use canonical bytes`);
+    const parsed = parseRecord(parseStrictJsonObjectV1(bytes, label));
+    if (!canonicalStrictJsonBytesV1(parsed).equals(Buffer.from(bytes, "utf8")))
+      throw new TypeError(`${label} must use canonical bytes`);
     if (catalogIds.has(parsed.catalog.id)) throw new TypeError("duplicate packaged collection");
     catalogIds.add(parsed.catalog.id);
     return parsed;

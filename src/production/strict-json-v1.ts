@@ -114,6 +114,154 @@ export function assertStrictJsonValueV1<T>(
   return value;
 }
 
+const JSON_NUMBER = /-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/y;
+const JSON_HEX4 = /^[0-9a-fA-F]{4}$/;
+const JSON_ESCAPES: Readonly<Record<string, string>> = {
+  '"': '"',
+  "\\": "\\",
+  "/": "/",
+  b: "\b",
+  f: "\f",
+  n: "\n",
+  r: "\r",
+  t: "\t",
+};
+
+/**
+ * Core's strict JSON reader (`parseStrictJsonObjectV1` in Core's src/contract/strict-json-v1.ts,
+ * jsonc-parser without comments or trailing commas), without a runtime dependency: well-formed
+ * NFC text; RFC 8259 grammar only (no byte order mark, comments, trailing commas or trailing
+ * data; JSON whitespace only); no duplicate object keys; an object root; then every string, key
+ * and number strict (`assertStrictJsonValueV1`). A `__proto__` member is refused by name: no JSON
+ * parse preserves one (Core's reader makes it the prototype or drops it), so Core's packaged
+ * evidence reader refuses it from the parse tree the same way.
+ */
+export function parseStrictJsonObjectV1(text: string, label: string): Record<string, unknown> {
+  assertWellFormedNfcV1(text, `${label} JSON text`);
+  let index = 0;
+  const fail = (expected: string): never => {
+    throw new TypeError(`invalid JSON ${label}: ${expected} at offset ${String(index)}`);
+  };
+  const space = () => {
+    while (index < text.length && " \t\n\r".includes(text.charAt(index))) index += 1;
+  };
+  const string = (): string => {
+    index += 1;
+    let result = "";
+    for (;;) {
+      if (index >= text.length) return fail("closing quote");
+      const char = text.charAt(index);
+      if (char === '"') {
+        index += 1;
+        return result;
+      }
+      if (text.charCodeAt(index) < 0x20) return fail("escaped control character");
+      if (char !== "\\") {
+        result += char;
+        index += 1;
+        continue;
+      }
+      const escaped = text.charAt(index + 1);
+      if (escaped === "u") {
+        const hex = text.slice(index + 2, index + 6);
+        if (!JSON_HEX4.test(hex)) return fail("four hex digits");
+        result += String.fromCharCode(Number.parseInt(hex, 16));
+        index += 6;
+        continue;
+      }
+      const simple = Object.hasOwn(JSON_ESCAPES, escaped) ? JSON_ESCAPES[escaped] : undefined;
+      if (simple === undefined) return fail("escape character");
+      result += simple;
+      index += 2;
+    }
+  };
+  const value = (): unknown => {
+    space();
+    const char = text.charAt(index);
+    if (char === "{") {
+      index += 1;
+      const result: Record<string, unknown> = {};
+      const keys = new Set<string>();
+      space();
+      if (text.charAt(index) === "}") {
+        index += 1;
+        return result;
+      }
+      for (;;) {
+        space();
+        if (text.charAt(index) !== '"') return fail("property name");
+        const key = string();
+        if (key === "__proto__") throw new TypeError(`${label} has an unsupported field __proto__`);
+        if (keys.has(key)) throw new TypeError(`duplicate JSON object key: ${key}`);
+        keys.add(key);
+        space();
+        if (text.charAt(index) !== ":") return fail("colon");
+        index += 1;
+        Object.defineProperty(result, key, {
+          configurable: true,
+          enumerable: true,
+          value: value(),
+          writable: true,
+        });
+        space();
+        if (text.charAt(index) === ",") {
+          index += 1;
+          continue;
+        }
+        if (text.charAt(index) === "}") {
+          index += 1;
+          return result;
+        }
+        return fail("comma or closing brace");
+      }
+    }
+    if (char === "[") {
+      index += 1;
+      const result: unknown[] = [];
+      space();
+      if (text.charAt(index) === "]") {
+        index += 1;
+        return result;
+      }
+      for (;;) {
+        result.push(value());
+        space();
+        if (text.charAt(index) === ",") {
+          index += 1;
+          continue;
+        }
+        if (text.charAt(index) === "]") {
+          index += 1;
+          return result;
+        }
+        return fail("comma or closing bracket");
+      }
+    }
+    if (char === '"') return string();
+    for (const [word, literal] of [
+      ["true", true],
+      ["false", false],
+      ["null", null],
+    ] as const) {
+      if (text.startsWith(word, index)) {
+        index += word.length;
+        return literal;
+      }
+    }
+    JSON_NUMBER.lastIndex = index;
+    const number = JSON_NUMBER.exec(text);
+    if (number === null) return fail("value");
+    index += number[0].length;
+    return Number(number[0]);
+  };
+  space();
+  if (text.charAt(index) !== "{") return fail("object root");
+  const parsed = value();
+  space();
+  if (index !== text.length) return fail("end of text");
+  return assertStrictJsonValueV1(parsed as Record<string, unknown>, label);
+}
+
 export function deepFreezeStrictJsonV1<T>(value: T, seen = new WeakSet<object>()): T {
   if (!isObject(value) || seen.has(value)) return value;
   seen.add(value);
