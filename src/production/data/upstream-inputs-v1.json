@@ -84,8 +84,8 @@
     },
     "ponytail.snapshot.json": {
       "repository": "DietrichGebert/ponytail",
-      "commit": "974d940a1c5344210874150b98ff0d2c861fab6a",
-      "sha256": "c13e1ba5ec44827be0c47714a6c985e41b9e79b35e6d55f2d314dd6a72114b89",
+      "commit": "1d95ff7d39de12d87014ea40d4e22201bddc501b",
+      "sha256": "e9dc558c78103681a55199eec8b5aab9f020c1fc8bd5f590ad695fd238547f41",
       "sources": {},
       "runtime": {
         "node": "26.4.0",
