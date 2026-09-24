@@ -6,6 +6,10 @@ import {
   parseEccProfilesSnapshotV1,
 } from "../catalog/ecc-snapshots-v1.js";
 import {
+  isSuperpowersHookSourcePathV1,
+  SUPERPOWERS_HOOK_SOURCES_FILE_V1,
+} from "../catalog/superpowers-hooks-v1.js";
+import {
   parseUpstreamInputsManifestV1,
   productionDataPathV1,
   type UpstreamInputRecordV1,
@@ -347,6 +351,22 @@ function ponytailSnapshot(tree: UpstreamTreeV1, root: string): ProducedUpstreamF
   return { file: "ponytail.snapshot.json", bytes: pretty(snapshot), sources: {} };
 }
 
+/** The hook-declaring files, byte for byte; the build derives the hook inventory from them. */
+function superpowersHookSources(tree: UpstreamTreeV1): ProducedUpstreamFileV1 {
+  const files = tree.paths
+    .filter(isSuperpowersHookSourcePathV1)
+    .sort(codeUnitCompare)
+    .map((path) => {
+      const bytes = bytesOf(tree, path);
+      return { path, sha256: sha256HexV1(bytes), bytesBase64: bytes.toString("base64") };
+    });
+  return {
+    file: SUPERPOWERS_HOOK_SOURCES_FILE_V1,
+    bytes: pretty({ version: 1, repository: tree.repository, commit: tree.commit, files }),
+    sources: {},
+  };
+}
+
 export function produceUpstreamInputsV1(
   name: UpstreamProducerNameV1,
   tree: UpstreamTreeV1,
@@ -367,6 +387,7 @@ export function produceUpstreamInputsV1(
               bytes: produceContentMetadataV1(tree),
               sources: {},
             },
+            superpowersHookSources(tree),
           ]
         : name === "mattpocock"
           ? [mattPocockSnapshot(tree, root)]

@@ -57,6 +57,12 @@
       "commit": "b36e0829c6d0140e93cfef2ca599b1b07d4a7797",
       "sha256": "26f38e9406ed6efa6affecce02310cd9ebaa8d5302f748f461d253c808603421",
       "sources": {}
+    },
+    "superpowers-hook-sources-v1.json": {
+      "repository": "obra/Superpowers",
+      "commit": "b36e0829c6d0140e93cfef2ca599b1b07d4a7797",
+      "sha256": "b32b38a6bd8919a127943e8332a64ebf523c7800b5dff6890f2a4358e8fbbb0f",
+      "sources": {}
     }
   }
 }

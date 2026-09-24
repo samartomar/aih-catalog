@@ -10,6 +10,11 @@ import {
   type CatalogFrameworkDescriptorV1,
   type CatalogFrameworkPluginsV1,
 } from "../content/catalog-framework-v1.js";
+import { superpowersHookControlInventoryV1 } from "./catalog/superpowers-hooks-v1.js";
+import {
+  readUpstreamInputsManifestV1,
+  readVerifiedUpstreamInputV1,
+} from "./catalog/upstream-inputs-v1.js";
 import {
   ECC_HOOK_CONTROL_PROVENANCE,
   ECC_HOOK_PROFILES,
@@ -104,6 +109,15 @@ function frameworkDescriptor(
     sections.installPreview = readJson(root, "ecc-install-preview-v1.json");
     if (record.runtimeDescriptor !== undefined)
       sections.runtimeDescriptor = record.runtimeDescriptor;
+  } else {
+    sections.hookControlInventory = superpowersHookControlInventoryV1(
+      readVerifiedUpstreamInputV1(
+        root,
+        readUpstreamInputsManifestV1(root),
+        "superpowers-hook-sources-v1.json",
+      ).json,
+      sections.vendorLock,
+    );
   }
   return {
     format: CATALOG_FRAMEWORK_DESCRIPTOR_FORMAT_V1,
