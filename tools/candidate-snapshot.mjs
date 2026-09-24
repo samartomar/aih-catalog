@@ -399,7 +399,9 @@ function verifySnapshotBytes(tree, entries, format, commit) {
  * failure after the quarantine move, including a thrown exception, the new
  * output is removed (only if it is still the candidate this build exposed) and
  * the quarantined previous candidate is restored. The quarantine is deleted
- * only after success.
+ * only after success; if the rollback itself fails, the quarantine is kept
+ * and the refusal (code candidate-rollback-failed) names its path to recover
+ * from.
  */
 export async function buildCandidateFromCommitV1(checkout, step) {
   const root = resolve(checkout);
@@ -408,6 +410,9 @@ export async function buildCandidateFromCommitV1(checkout, step) {
   // Created before anything else: every git invocation points core.hooksPath
   // at an empty directory and GIT_CONFIG_GLOBAL at an empty file inside it.
   const staging = mkdtempSync(join(root, ".candidate-build-"));
+  // Set when a rollback failure keeps the quarantine: staging then stays, so
+  // the only copy of the earlier candidate is never deleted.
+  let keepStaging = false;
   try {
     const context = { hooksDir: join(staging, "hooks"), emptyConfig: join(staging, "gitconfig") };
     mkdirSync(context.hooksDir);
@@ -473,23 +478,27 @@ export async function buildCandidateFromCommitV1(checkout, step) {
           `the checkout's HEAD moved from ${catalogCommit} to ${after} during the build; the candidate is refused`,
         );
     } catch (error) {
-      let rollbackError;
       try {
         if (exposed && isExposedCandidate(outRoot, catalogCommit))
           rmSync(outRoot, { recursive: true, force: true });
         if (quarantined !== undefined) renameSync(quarantined, outRoot);
       } catch (restore) {
-        rollbackError = restore;
+        const message = error instanceof Error ? error.message : String(error);
+        const restoreMessage = restore instanceof Error ? restore.message : String(restore);
+        if (quarantined !== undefined) {
+          keepStaging = true;
+          throw new CandidateBuildRefusalV1(
+            "candidate-rollback-failed",
+            `${message}; the rollback also failed: ${restoreMessage}; the quarantined previous candidate was kept at ${quarantined}; move it back to ${outRoot} yourself`,
+          );
+        }
+        throw new Error(`${message}; rolling back the earlier candidate also failed: ${restoreMessage}`);
       }
-      if (rollbackError !== undefined)
-        throw new Error(
-          `${error instanceof Error ? error.message : String(error)}; rolling back the earlier candidate also failed: ${rollbackError instanceof Error ? rollbackError.message : String(rollbackError)}`,
-        );
       throw error;
     }
     if (quarantined !== undefined) rmSync(quarantined, { recursive: true, force: true });
     return { catalogCommit, outRoot, result, modesVerified: process.platform !== "win32" };
   } finally {
-    rmSync(staging, { recursive: true, force: true });
+    if (!keepStaging) rmSync(staging, { recursive: true, force: true });
   }
 }

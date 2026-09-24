@@ -39,10 +39,14 @@ import { assembleCompilerOutputsV1 } from "../../src/production/workbench/assemb
 import { readCollectionSnapshotV1 } from "../../src/production/workbench/authoring-bundle-v1.js";
 import { compileCatalogProvidersV1 } from "../../src/production/workbench/catalog-providers-v1.js";
 
-// Exposure rollback tests inject one rename failure into the candidate-snapshot
-// tool: the Nth renameSync after arming throws once, every other call passes
-// through. The mock is inert while fsFaults.renameCountdown is null.
-const fsFaults = vi.hoisted(() => ({ renameCountdown: null as number | null }));
+// Exposure rollback tests inject rename failures into the candidate-snapshot
+// tool: the Nth renameSync after arming throws, every other call passes
+// through; with keepFailing every rename from the Nth on throws. The mock is
+// inert while fsFaults.renameCountdown is null.
+const fsFaults = vi.hoisted(() => ({
+  renameCountdown: null as number | null,
+  keepFailing: false,
+}));
 vi.mock("node:fs", async (importOriginal) => {
   const actual = await importOriginal<typeof import("node:fs")>();
   return {
@@ -50,7 +54,7 @@ vi.mock("node:fs", async (importOriginal) => {
     renameSync: (...args: Parameters<typeof actual.renameSync>) => {
       if (fsFaults.renameCountdown !== null) {
         if (fsFaults.renameCountdown === 0) {
-          fsFaults.renameCountdown = null;
+          if (!fsFaults.keepFailing) fsFaults.renameCountdown = null;
           throw new Error("simulated rename failure");
         }
         fsFaults.renameCountdown -= 1;
@@ -1276,6 +1280,71 @@ describe("the candidate build exposure rolls back safely", () => {
     ).rejects.toThrow(/not an earlier candidate root/u);
     expect(readFileSync(join(out, "keep.txt"), "utf8")).toBe("keep");
     expect(staging(dir)).toEqual([]);
+  });
+
+  /** The one staging directory the refusal kept, with its quarantine inside. */
+  const keptQuarantine = (dir: string) => {
+    const remaining = staging(dir);
+    expect(remaining.length).toBe(1);
+    const quarantines = readdirSync(join(dir, remaining[0] as string)).filter((name) =>
+      name.startsWith("quarantine-"),
+    );
+    expect(quarantines.length).toBe(1);
+    return join(dir, remaining[0] as string, quarantines[0] as string, "previous");
+  };
+
+  it("keeps the quarantine with its content when restoring the earlier candidate fails", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    earlierCandidate(dir);
+    fsFaults.renameCountdown = 1; // the quarantine move passes, the exposure rename fails
+    fsFaults.keepFailing = true; // and so does every later rename, including the restore
+    let failure: unknown;
+    try {
+      await buildCandidateFromCommitV1(dir, emit).catch((error: unknown) => {
+        failure = error;
+      });
+    } finally {
+      fsFaults.renameCountdown = null;
+      fsFaults.keepFailing = false;
+    }
+    expect((failure as { code?: string })?.code).toBe("candidate-rollback-failed");
+    const previous = keptQuarantine(dir);
+    expect((failure as Error).message).toContain(previous);
+    expect(JSON.parse(readFileSync(join(previous, "CANDIDATE.json"), "utf8")).catalogCommit).toBe(
+      "earlier",
+    );
+    expect(existsSync(join(dir, CATALOG_CANDIDATE_ROOT_V1))).toBe(false);
+  });
+
+  it("keeps the quarantine when moving back a rejected unrelated directory fails", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    earlierCandidate(dir);
+    const out = join(dir, CATALOG_CANDIDATE_ROOT_V1);
+    fsFaults.renameCountdown = 1; // the quarantine move passes; the check refuses the moved object
+    fsFaults.keepFailing = true; // and moving it back fails too
+    let failure: unknown;
+    try {
+      await buildCandidateFromCommitV1(dir, (snapshot) => {
+        const result = emit(snapshot);
+        // A concurrent swapper replaces the earlier candidate mid-build.
+        rmSync(out, { recursive: true, force: true });
+        mkdirSync(out);
+        writeFileSync(join(out, "keep.txt"), "keep");
+        return result;
+      }).catch((error: unknown) => {
+        failure = error;
+      });
+    } finally {
+      fsFaults.renameCountdown = null;
+      fsFaults.keepFailing = false;
+    }
+    expect((failure as { code?: string })?.code).toBe("candidate-rollback-failed");
+    const previous = keptQuarantine(dir);
+    expect((failure as Error).message).toContain(previous);
+    expect(readFileSync(join(previous, "keep.txt"), "utf8")).toBe("keep");
+    expect(existsSync(out)).toBe(false);
   });
 });
 

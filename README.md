@@ -741,7 +741,9 @@ view), every file's executable bit still matches the tree's mode (100755 vs
 from `npm pack`, not from the snapshot) and the built `CANDIDATE.json` names
 that commit. Otherwise the build
 refuses, removes its partial output and restores any earlier `dist-candidate/`
-exactly as it was. An edit made during the build therefore never reaches the
+exactly as it was; if that rollback itself fails, the earlier candidate is
+kept in a named quarantine directory to recover from, never deleted. An edit
+made during the build therefore never reaches the
 candidate, and `catalogCommit` always names the commit whose bytes were built.
 
 The candidate is written only to `dist-candidate/`. `defaults/` and `dist/` are
