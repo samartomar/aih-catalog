@@ -9,14 +9,17 @@ import {
   mkdtempSync,
   openSync,
   readdirSync,
-  readFileSync,
   readSync,
   renameSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
 import { dirname, join, resolve, sep } from "node:path";
-import { candidateMarkersV1 } from "./check-not-candidate.mjs";
+import {
+  CandidateMarkerRefusalV1,
+  candidateMarkersV1,
+  readMarkerFileV1,
+} from "./check-not-candidate.mjs";
 
 /**
  * Binds a candidate Catalog root to the commit it names. The build step never
@@ -224,10 +227,11 @@ function isEarlierCandidateRoot(path) {
   const stat = lstatSync(path);
   if (stat.isSymbolicLink() || !stat.isDirectory()) return false;
   try {
-    return (
-      JSON.parse(readFileSync(join(path, "CANDIDATE.json"), "utf8"))?.format === CANDIDATE_FORMAT
-    );
-  } catch {
+    return JSON.parse(readMarkerFileV1(join(path, "CANDIDATE.json")))?.format === CANDIDATE_FORMAT;
+  } catch (error) {
+    // A marker that exists but is not a bounded regular file refuses the
+    // build; a missing or unparsable one means this is no candidate root.
+    if (error instanceof CandidateMarkerRefusalV1) throw error;
     return false;
   }
 }
@@ -237,10 +241,12 @@ function isExposedCandidate(outRoot, catalogCommit) {
   try {
     if (!isEarlierCandidateRoot(outRoot)) return false;
     return (
-      JSON.parse(readFileSync(join(outRoot, "CANDIDATE.json"), "utf8"))?.catalogCommit ===
+      JSON.parse(readMarkerFileV1(join(outRoot, "CANDIDATE.json")))?.catalogCommit ===
       catalogCommit
     );
   } catch {
+    // Best-effort ownership check during rollback: any unreadable marker
+    // (including a typed marker refusal) means the output is not touched.
     return false;
   }
 }
@@ -675,8 +681,9 @@ export async function buildCandidateFromCommitV1(checkout, step, limits = CANDID
     const identity = { dev: builtStat.dev, ino: builtStat.ino };
     let marker;
     try {
-      marker = JSON.parse(readFileSync(join(built, "CANDIDATE.json"), "utf8"));
-    } catch {
+      marker = JSON.parse(readMarkerFileV1(join(built, "CANDIDATE.json")));
+    } catch (error) {
+      if (error instanceof CandidateMarkerRefusalV1) throw error;
       throw new Error(`the build wrote no readable ${CANDIDATE_ROOT}/CANDIDATE.json`);
     }
     if (marker?.format !== CANDIDATE_FORMAT || marker.catalogCommit !== catalogCommit)

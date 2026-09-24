@@ -1373,6 +1373,66 @@ describe("the candidate build reads only the named checkout", () => {
   });
 });
 
+describe("the candidate build bounds marker and manifest reads", () => {
+  const refusesBeforeBuilding = async (
+    prepare: (dir: string) => void,
+    code: string,
+    message: RegExp,
+  ) => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    prepare(dir);
+    let called = false;
+    let failure: unknown;
+    await buildCandidateFromCommitV1(dir, () => {
+      called = true;
+    }).catch((error: unknown) => {
+      failure = error;
+    });
+    expect((failure as { code?: string })?.code).toBe(code);
+    expect((failure as Error)?.message).toMatch(message);
+    expect(called).toBe(false);
+    expect(staging(dir)).toEqual([]);
+  };
+
+  it("refuses an oversized existing dist-candidate/CANDIDATE.json, naming the file and the limit", async () => {
+    await refusesBeforeBuilding(
+      (dir) => {
+        mkdirSync(join(dir, CATALOG_CANDIDATE_ROOT_V1));
+        writeFileSync(
+          join(dir, CATALOG_CANDIDATE_ROOT_V1, "CANDIDATE.json"),
+          `{"format":"aih-catalog-candidate","pad":"${"x".repeat(1024 * 1024)}"}`,
+        );
+      },
+      "candidate-marker-too-large",
+      /CANDIDATE\.json.*limit of 1048576 bytes/su,
+    );
+  });
+
+  it("refuses an oversized checkout package.json, naming the file and the limit", async () => {
+    await refusesBeforeBuilding(
+      (dir) =>
+        writeFileSync(
+          join(dir, "package.json"),
+          `{"name":"@aihq/catalog","pad":"${"x".repeat(1024 * 1024)}"}`,
+        ),
+      "candidate-marker-too-large",
+      /package\.json.*limit of 1048576 bytes/su,
+    );
+  });
+
+  it("refuses a marker that is not a regular file", async () => {
+    await refusesBeforeBuilding(
+      (dir) => {
+        mkdirSync(join(dir, CATALOG_CANDIDATE_ROOT_V1));
+        mkdirSync(join(dir, CATALOG_CANDIDATE_ROOT_V1, "CANDIDATE.json"));
+      },
+      "candidate-marker-not-regular",
+      /CANDIDATE\.json.*not a regular file/su,
+    );
+  });
+});
+
 describe("the candidate build never lazy-fetches from a promisor remote", () => {
   it("refuses a missing blob typed, naming the object, and never contacts the remote", async () => {
     const { buildCandidateFromCommitV1 } = await snapshotTool();
