@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   CATALOG_CANDIDATE_FORMAT_V1,
@@ -548,5 +549,205 @@ describe("candidate guards in the package scripts", () => {
     const ignored = readFileSync(resolve(root, ".gitignore"), "utf8").split(/\r?\n/u);
     expect(ignored).toContain(`${CATALOG_CANDIDATE_ROOT_V1}/`);
     expect(ignored).toContain("/.candidate-build-*/");
+  });
+});
+
+describe("the candidate build snapshot", () => {
+  // tools/candidate-snapshot.mjs builds from a private checkout of the recorded
+  // commit, never from the live tree, and exposes the output only if the live
+  // HEAD and the snapshot still match that commit afterwards.
+  type Step = (snapshot: { root: string; catalogCommit: string }) => unknown;
+  const snapshotTool = async () =>
+    (await import(pathToFileURL(resolve(root, "tools", "candidate-snapshot.mjs")).href)) as {
+      buildCandidateFromCommitV1: (
+        root: string,
+        step: Step,
+      ) => Promise<{ catalogCommit: string; outRoot: string; result: unknown }>;
+    };
+  const INPUT = join("src", "production", "data", "input.json");
+  const COMMITTED = '{"v":"committed"}';
+
+  const gitIn = (dir: string, ...args: string[]) => {
+    const result = spawnSync(
+      "git",
+      [
+        "-C",
+        dir,
+        "-c",
+        "user.name=CQ4 fixture",
+        "-c",
+        "user.email=fixture@example.invalid",
+        "-c",
+        "commit.gpgsign=false",
+        ...args,
+      ],
+      { encoding: "utf8" },
+    );
+    if (result.status !== 0) throw new Error(`git ${args.join(" ")}: ${result.stderr}`);
+    return result.stdout.trim();
+  };
+
+  /** A committed fixture checkout; returns its root. */
+  function fixtureCheckout(): string {
+    const dir = tempDir();
+    gitIn(dir, "init", "-q");
+    writeFileSync(join(dir, ".gitattributes"), "* -text\n");
+    writeFileSync(join(dir, ".gitignore"), "dist/\ndist-candidate/\n/.candidate-build-*/\n");
+    writeFileSync(join(dir, "package.json"), '{"name":"@aihq/catalog"}');
+    mkdirSync(join(dir, "src", "production", "data"), { recursive: true });
+    writeFileSync(join(dir, INPUT), COMMITTED);
+    mkdirSync(join(dir, "defaults"));
+    writeFileSync(join(dir, "defaults", "x.json"), '{"x":"committed"}');
+    gitIn(dir, "add", "-A");
+    gitIn(dir, "commit", "-q", "-m", "fixture");
+    return dir;
+  }
+
+  /** What the real build does: read the handed root and write <root>/dist-candidate. */
+  const emit = ({ root: snapshot, catalogCommit }: { root: string; catalogCommit: string }) => {
+    const out = join(snapshot, CATALOG_CANDIDATE_ROOT_V1);
+    mkdirSync(out);
+    writeFileSync(join(out, "input.json"), readFileSync(join(snapshot, INPUT)));
+    writeFileSync(join(out, "x.json"), readFileSync(join(snapshot, "defaults", "x.json")));
+    writeFileSync(
+      join(out, "CANDIDATE.json"),
+      JSON.stringify({ format: CATALOG_CANDIDATE_FORMAT_V1, version: 1, catalogCommit }),
+    );
+    return snapshot;
+  };
+  const staging = (dir: string) =>
+    readdirSync(dir).filter((name) => name.startsWith(".candidate-build-"));
+  const earlierCandidate = (dir: string) => {
+    mkdirSync(join(dir, CATALOG_CANDIDATE_ROOT_V1));
+    writeFileSync(
+      join(dir, CATALOG_CANDIDATE_ROOT_V1, "CANDIDATE.json"),
+      JSON.stringify({ format: CATALOG_CANDIDATE_FORMAT_V1, catalogCommit: "earlier" }),
+    );
+  };
+
+  it("builds from the recorded commit, so an edit made during the build never reaches the candidate", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    const head = gitIn(dir, "rev-parse", "HEAD");
+    earlierCandidate(dir);
+    const built = await buildCandidateFromCommitV1(dir, (snapshot) => {
+      expect(resolve(snapshot.root)).not.toBe(resolve(dir));
+      writeFileSync(join(dir, INPUT), '{"v":"edited during the build"}');
+      writeFileSync(join(dir, "defaults", "x.json"), '{"x":"edited during the build"}');
+      return emit(snapshot);
+    });
+    const out = join(dir, CATALOG_CANDIDATE_ROOT_V1);
+    expect(built.catalogCommit).toBe(head);
+    expect(resolve(built.outRoot)).toBe(resolve(out));
+    expect(readFileSync(join(out, "input.json"), "utf8")).toBe(COMMITTED);
+    expect(readFileSync(join(out, "x.json"), "utf8")).toBe('{"x":"committed"}');
+    expect(JSON.parse(readFileSync(join(out, "CANDIDATE.json"), "utf8")).catalogCommit).toBe(head);
+    // The live edit stays where it was made; nothing of the snapshot is left.
+    expect(readFileSync(join(dir, INPUT), "utf8")).toBe('{"v":"edited during the build"}');
+    expect(staging(dir)).toEqual([]);
+  });
+
+  it("refuses when HEAD changes during the build and keeps the earlier candidate", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    const head = gitIn(dir, "rev-parse", "HEAD");
+    earlierCandidate(dir);
+    let moved = "";
+    await expect(
+      buildCandidateFromCommitV1(dir, (snapshot) => {
+        writeFileSync(join(dir, INPUT), '{"v":"next"}');
+        gitIn(dir, "commit", "-q", "-am", "moved during the build");
+        moved = gitIn(dir, "rev-parse", "HEAD");
+        return emit(snapshot);
+      }),
+    ).rejects.toThrow(new RegExp(`HEAD moved from ${head} to [0-9a-f]{40}`, "u"));
+    expect(moved).not.toBe(head);
+    expect(
+      JSON.parse(readFileSync(join(dir, CATALOG_CANDIDATE_ROOT_V1, "CANDIDATE.json"), "utf8"))
+        .catalogCommit,
+    ).toBe("earlier");
+    expect(staging(dir)).toEqual([]);
+  });
+
+  it.each([
+    [
+      "a changed tracked file",
+      (snapshot: string) => writeFileSync(join(snapshot, INPUT), '{"v":"changed in the snapshot"}'),
+    ],
+    ["a removed tracked file", (snapshot: string) => rmSync(join(snapshot, INPUT))],
+    [
+      "an added file",
+      (snapshot: string) => writeFileSync(join(snapshot, "defaults", "added.json"), "{}"),
+    ],
+  ])("refuses a snapshot that no longer equals the commit (%s)", async (_label, change) => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    await expect(
+      buildCandidateFromCommitV1(dir, (snapshot) => {
+        emit(snapshot);
+        change(snapshot.root);
+      }),
+    ).rejects.toThrow(/snapshot .* no longer equals/u);
+    expect(readdirSync(dir)).not.toContain(CATALOG_CANDIDATE_ROOT_V1);
+    expect(staging(dir)).toEqual([]);
+  });
+
+  it("refuses an output that names another commit or none", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    await expect(
+      buildCandidateFromCommitV1(dir, (snapshot) =>
+        emit({ root: snapshot.root, catalogCommit: "c".repeat(40) }),
+      ),
+    ).rejects.toThrow(/catalogCommit/u);
+    await expect(buildCandidateFromCommitV1(dir, () => undefined)).rejects.toThrow(
+      /CANDIDATE\.json/u,
+    );
+    expect(readdirSync(dir)).not.toContain(CATALOG_CANDIDATE_ROOT_V1);
+    expect(staging(dir)).toEqual([]);
+  });
+
+  it("removes the partial output when the build fails", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    await expect(
+      buildCandidateFromCommitV1(dir, (snapshot) => {
+        emit(snapshot);
+        throw new Error("generation failed");
+      }),
+    ).rejects.toThrow(/generation failed/u);
+    expect(readdirSync(dir)).not.toContain(CATALOG_CANDIDATE_ROOT_V1);
+    expect(staging(dir)).toEqual([]);
+  });
+
+  it.each([
+    ["a dirty checkout", (dir: string) => writeFileSync(join(dir, INPUT), "{}"), /uncommitted/u],
+    [
+      "an untracked file",
+      (dir: string) => writeFileSync(join(dir, "new.json"), "{}"),
+      /uncommitted/u,
+    ],
+    [
+      "a dist-candidate that is not a candidate",
+      (dir: string) => mkdirSync(join(dir, CATALOG_CANDIDATE_ROOT_V1)),
+      /not an earlier candidate root/u,
+    ],
+    [
+      "a candidate root",
+      (dir: string) => writeFileSync(join(dir, "CANDIDATE.json"), "{}"),
+      /is a candidate root/u,
+    ],
+  ])("refuses %s before building", async (_label, prepare, message) => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    prepare(dir);
+    let called = false;
+    await expect(
+      buildCandidateFromCommitV1(dir, () => {
+        called = true;
+      }),
+    ).rejects.toThrow(message);
+    expect(called).toBe(false);
+    expect(staging(dir)).toEqual([]);
   });
 });

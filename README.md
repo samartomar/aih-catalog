@@ -716,6 +716,16 @@ The build refuses if any of these hold:
 For a named framework, the build never reads that framework's record and never
 overlays it onto the bundle.
 
+The build never reads the live checkout. It records `HEAD`, checks that commit
+out through a private index into a gitignored `.candidate-build-*` snapshot,
+and compiles, generates and copies only from that snapshot. The output becomes
+`dist-candidate/` only if, after the build, `HEAD` is still the recorded commit,
+the snapshot still equals that commit's tree and the built `CANDIDATE.json`
+names that commit. Otherwise the build refuses, removes its partial output and
+leaves any earlier `dist-candidate/` as it was. An edit made during the build
+therefore never reaches the candidate, and `catalogCommit` always names the
+commit whose bytes were built.
+
 The candidate is written only to `dist-candidate/`. `defaults/` and `dist/` are
 never written. The candidate root carries two markers:
 
