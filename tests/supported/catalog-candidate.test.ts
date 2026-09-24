@@ -529,6 +529,20 @@ describe("the candidate package root", () => {
     rmSync(join(out, "CANDIDATE.json"));
     expect(() => write(dir, {})).toThrow(/CANDIDATE\.json/u);
   });
+
+  it("refuses a sha256 commit id with a clear message", () => {
+    const dir = fixtureRoot();
+    expect(() =>
+      writeCatalogCandidateRootV1({
+        root: dir,
+        outRoot: join(dir, CATALOG_CANDIDATE_ROOT_V1),
+        files: {},
+        candidate,
+        catalogCommit: "c".repeat(64),
+        omittedSections: [],
+      }),
+    ).toThrow(/sha256/u);
+  });
 });
 
 describe("candidate guards in the package scripts", () => {
@@ -634,9 +648,9 @@ const gitInWithInput = (dir: string, input: string | undefined, ...args: string[
 };
 
 /** A committed fixture checkout; returns its root. */
-function fixtureCheckout(): string {
+function fixtureCheckout(objectFormat?: "sha256"): string {
   const dir = tempDir();
-  gitIn(dir, "init", "-q");
+  gitIn(dir, "init", "-q", ...(objectFormat === "sha256" ? ["--object-format=sha256"] : []));
   writeFileSync(join(dir, ".gitattributes"), "* -text\n");
   writeFileSync(
     join(dir, ".gitignore"),
@@ -1382,6 +1396,25 @@ describe("the candidate build is serialized by a lock file", () => {
       }),
     ).rejects.toThrow(/boom/u);
     expect(existsSync(lockPath(dir))).toBe(false);
+    expect(staging(dir)).toEqual([]);
+  });
+});
+
+describe("the candidate build object format", () => {
+  it("refuses a sha256 repository explicitly before building", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout("sha256");
+    expect(gitIn(dir, "rev-parse", "HEAD")).toMatch(/^[0-9a-f]{64}$/u);
+    let called = false;
+    let failure: unknown;
+    await buildCandidateFromCommitV1(dir, () => {
+      called = true;
+    }).catch((error: unknown) => {
+      failure = error;
+    });
+    expect((failure as Error)?.message).toMatch(/sha256/u);
+    expect(called).toBe(false);
+    expect(readdirSync(dir)).not.toContain(CATALOG_CANDIDATE_ROOT_V1);
     expect(staging(dir)).toEqual([]);
   });
 });

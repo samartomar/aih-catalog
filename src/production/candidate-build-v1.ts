@@ -48,6 +48,10 @@ export function writeCatalogCandidateRootV1(input: CatalogCandidateRootV1): void
     throw new TypeError(
       `a candidate is written only to ${resolve(root, CATALOG_CANDIDATE_ROOT_V1)}, not ${outRoot}`,
     );
+  if (/^[a-f0-9]{64}$/u.test(input.catalogCommit))
+    throw new TypeError(
+      `the candidate catalog commit ${input.catalogCommit} is a sha256 commit id; a candidate is built only from a sha1 checkout`,
+    );
   if (!/^[a-f0-9]{40}$/u.test(input.catalogCommit))
     throw new TypeError(`the candidate catalog commit ${input.catalogCommit} is not a commit id`);
   for (const path of Object.keys(input.files))

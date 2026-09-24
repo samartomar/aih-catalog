@@ -359,9 +359,19 @@ function materializeCommit(entries, bytes, tree) {
   }
 }
 
+/**
+ * The candidate build supports sha1 repositories only: a sha256 repository is
+ * refused explicitly, before anything is built, rather than failing later in
+ * the candidate writer.
+ */
 function objectFormatOf(context, root) {
   const format = run(context, ["-C", root, "rev-parse", "--show-object-format"]).trim();
-  if (format !== "sha1" && format !== "sha256")
+  if (format === "sha256")
+    throw new CandidateBuildRefusalV1(
+      "candidate-object-format",
+      `the checkout uses the sha256 object format; the candidate build supports sha1 repositories only, so the candidate is refused before building`,
+    );
+  if (format !== "sha1")
     throw new Error(`unsupported git object format ${format}; the candidate is refused`);
   return format;
 }
@@ -509,6 +519,8 @@ export async function buildCandidateFromCommitV1(checkout, step, limits = CANDID
     if (markers.length > 0)
       throw new Error(`${root} is a candidate root (${markers.join(", ")})`);
     const catalogCommit = headOf(context, root);
+    // A sha256 repository refuses before anything is built.
+    const format = objectFormatOf(context, root);
     // The commit's tree is validated before the worktree is consulted: a tree
     // with unusable paths refuses even where no worktree could represent it.
     const entries = listTreeEntries(context, root, catalogCommit, limits);
@@ -526,7 +538,6 @@ export async function buildCandidateFromCommitV1(checkout, step, limits = CANDID
     const outRoot = join(root, CANDIDATE_ROOT);
     assertReplaceable(outRoot);
 
-    const format = objectFormatOf(context, root);
     const tree = join(staging, "tree");
     materializeCommit(entries, readBlobBytes(context, root, entries), tree);
 

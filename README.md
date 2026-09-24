@@ -725,7 +725,8 @@ repository's own files or configuration can cause stay fail-closed. One build
 runs at a time per checkout, serialized by an exclusive
 `.candidate-build.lock` (gitignored) held for the whole build and exposure; a
 second build refuses, naming the lock and how to remove a stale one. The
-build records `HEAD` and materializes
+build records `HEAD` (a sha256-object-format repository is refused explicitly
+before building; the candidate writer supports sha1 checkouts) and materializes
 that commit's tree from raw git objects (`git ls-tree` and `git cat-file`, so
 checkout conversions — smudge filters, attributes, eol rewrites — never apply)
 into a gitignored `.candidate-build-*` snapshot, then compiles, generates and
