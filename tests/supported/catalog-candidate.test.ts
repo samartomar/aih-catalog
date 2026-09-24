@@ -1648,6 +1648,49 @@ describe("the candidate build never lazy-fetches from a promisor remote", () => 
   });
 });
 
+describe("the candidate build types a missing commit or subtree", () => {
+  // A git read that exits nonzero because an object is not in the local store
+  // (lazy fetching is disabled) must surface as the typed
+  // candidate-object-missing refusal, never as a generic Error.
+  const refusesTyped = async (
+    prepare: (dir: string) => void,
+    message: RegExp,
+  ): Promise<unknown> => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    prepare(dir);
+    let called = false;
+    let failure: unknown;
+    await buildCandidateFromCommitV1(dir, () => {
+      called = true;
+    }).catch((error: unknown) => {
+      failure = error;
+    });
+    expect((failure as { code?: string } | undefined)?.code).toBe("candidate-object-missing");
+    expect((failure as Error | undefined)?.message).toMatch(message);
+    expect(called).toBe(false);
+    expect(staging(dir)).toEqual([]);
+    return failure;
+  };
+
+  it("refuses a missing subtree object typed, naming it", async () => {
+    let subtree = "";
+    const failure = await refusesTyped((dir) => {
+      subtree = gitIn(dir, "rev-parse", "HEAD:src");
+      rmSync(join(dir, ".git", "objects", subtree.slice(0, 2), subtree.slice(2)));
+    }, /not in the local object store/u);
+    expect(subtree).toMatch(/^[0-9a-f]{40}$/u);
+    expect((failure as Error).message).toContain(subtree);
+  });
+
+  it("refuses a missing HEAD commit object typed", async () => {
+    await refusesTyped((dir) => {
+      const head = gitIn(dir, "rev-parse", "HEAD");
+      rmSync(join(dir, ".git", "objects", head.slice(0, 2), head.slice(2)));
+    }, /HEAD/);
+  });
+});
+
 describe("the candidate build snapshot size bounds", () => {
   it("refuses a tree file over the per-file limit, naming the file and the limit", async () => {
     const { buildCandidateFromCommitV1 } = await snapshotTool();

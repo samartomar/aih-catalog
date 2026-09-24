@@ -47,7 +47,8 @@ import {
  * strictly: each header must name the requested blob and the listed size, the
  * content must end in its newline and no trailing bytes may remain.
  *
- * Every git invocation runs with --no-replace-objects and an environment with
+ * Every git invocation runs with --no-replace-objects and --no-lazy-fetch
+ * (global options, before the subcommand) and an environment with
  * every GIT_* variable removed, so an inherited GIT_DIR, GIT_WORK_TREE,
  * GIT_CONFIG* or a refs/replace substitute can never redirect a read, and -C
  * alone selects the repository. Repository configuration can never run code:
@@ -135,17 +136,19 @@ function gitEnv(emptyConfig) {
   env.GIT_CONFIG_GLOBAL = emptyConfig;
   // Never lazy-fetch from a promisor remote: a missing object must refuse,
   // never reach repository-controlled core.sshCommand or credential helpers.
-  // (None of the git commands used here accepts a --no-lazy-fetch option; the
-  // environment variable is the switch, and the build requires a git that
-  // honors it — see gitDisablesLazyFetchV1.)
+  // --no-lazy-fetch is a global git option (accepted before the subcommand
+  // since git 2.47) and is passed on every invocation in run(); the
+  // environment variable covers it for any subprocess git spawns. The build
+  // requires a git that honors both — see gitDisablesLazyFetchV1.
   env.GIT_NO_LAZY_FETCH = "1";
   return env;
 }
 
 /**
- * GIT_NO_LAZY_FETCH exists since git 2.47; older gits would silently ignore
- * it and could still be driven into a repository-configured fetch, so the
- * build requires a git new enough to honor it.
+ * GIT_NO_LAZY_FETCH and the global --no-lazy-fetch option exist since git
+ * 2.47; older gits would reject the option and silently ignore the variable
+ * and could still be driven into a repository-configured fetch, so the build
+ * requires a git new enough to honor both.
  */
 export function gitDisablesLazyFetchV1(versionOutput) {
   const match = /git version ([0-9]+)\.([0-9]+)\.[0-9]+/u.exec(versionOutput);
@@ -172,10 +175,16 @@ function assertGitDisablesLazyFetch(context) {
  * staging area. Command-line -c wins over every file, including includeIf
  * includes.
  */
+/** Git's own words for a read that failed because an object is not local. */
+const MISSING_OBJECT =
+  /Could not read|unable to read tree|bad object|Not a valid object name|Needed a single revision/u;
+
 const run = (context, args, options = {}) => {
+  const { missingObject, ...spawnOptions } = options;
   const result = spawnSync(
     "git",
     [
+      "--no-lazy-fetch",
       "--no-replace-objects",
       "-c",
       "core.fsmonitor=false",
@@ -190,11 +199,21 @@ const run = (context, args, options = {}) => {
       env: gitEnv(context.emptyConfig),
       // A full-tree ls-tree of a real repository is larger than the 1 MiB default.
       maxBuffer: 64 * 1024 * 1024,
-      ...options,
+      ...spawnOptions,
     },
   );
-  if (result.status !== 0)
-    throw new Error(`git ${args.join(" ")} failed: ${(result.stderr ?? "").toString().trim()}`);
+  if (result.status !== 0) {
+    const stderr = (result.stderr ?? "").toString().trim();
+    // A missing commit or subtree (lazy fetching is disabled, so git cannot
+    // fetch it) is the typed candidate-object-missing refusal, not a generic
+    // failure; anything else stays a plain Error.
+    if (missingObject !== undefined && MISSING_OBJECT.test(stderr))
+      throw new CandidateBuildRefusalV1(
+        "candidate-object-missing",
+        `${missingObject} is not in the local object store (git ${args.join(" ")} failed: ${stderr}); the candidate is refused`,
+      );
+    throw new Error(`git ${args.join(" ")} failed: ${stderr}`);
+  }
   return result.stdout;
 };
 
@@ -216,7 +235,9 @@ function assertCheckoutRoot(context, root) {
 }
 
 function headOf(context, root) {
-  const head = run(context, ["-C", root, "rev-parse", "--verify", "HEAD^{commit}"]).trim();
+  const head = run(context, ["-C", root, "rev-parse", "--verify", "HEAD^{commit}"], {
+    missingObject: "the checkout's HEAD commit",
+  }).trim();
   if (!/^(?:[0-9a-f]{40}|[0-9a-f]{64})$/u.test(head))
     throw new Error(`HEAD ${head} is not a commit id`);
   return head;
@@ -275,6 +296,7 @@ function assertReplaceable(outRoot) {
 function listTreeEntries(context, root, commit, limits) {
   const out = run(context, ["-C", root, "ls-tree", "-r", "-z", "--full-tree", "-l", commit], {
     encoding: null, // raw bytes; path names must survive strict UTF-8 decoding
+    missingObject: `the commit ${commit} or a subtree of it`,
   });
   const entries = [];
   const seen = new Map(); // lowercased NFC form → the first path with that form
