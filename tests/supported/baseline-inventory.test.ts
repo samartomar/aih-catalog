@@ -117,6 +117,8 @@ describe("whole-repository baseline inventory", () => {
   });
 
   describe("from a pinned git checkout", () => {
+    const runner = (args: readonly string[]) =>
+      execFileSync("git", args, { stdio: ["ignore", "pipe", "pipe"] });
     const git = (cwd: string, ...args: string[]) =>
       execFileSync(
         "git",
@@ -155,7 +157,7 @@ describe("whole-repository baseline inventory", () => {
       const { root, commit } = checkout();
       // Untracked files are not part of the pinned tree.
       writeFileSync(join(root, "untracked.md"), "x\n");
-      expect(emitBaselineInventoryV1("superpowers", commit, root)).toEqual({
+      expect(emitBaselineInventoryV1("superpowers", commit, root, runner)).toEqual({
         components: [
           { id: `runtime:hooks-${hash("hooks")}`, paths: ["hooks"] },
           { id: `runtime:root-${hash("root")}`, paths: ["README.md"] },
@@ -182,7 +184,7 @@ describe("whole-repository baseline inventory", () => {
       git(root, "add", "-A");
       git(root, "commit", "-q", "-m", "link");
       const commit = git(root, "rev-parse", "HEAD");
-      const inventory = emitBaselineInventoryV1("superpowers", commit, root);
+      const inventory = emitBaselineInventoryV1("superpowers", commit, root, runner);
       expect(inventory.components.flatMap((component) => component.paths)).not.toContain(
         "AGENTS.md",
       );
@@ -190,11 +192,11 @@ describe("whole-repository baseline inventory", () => {
 
     it("refuses a checkout of another repository or a commit it does not hold", () => {
       const other = checkout("https://github.com/someone/Superpowers.git");
-      expect(() => emitBaselineInventoryV1("superpowers", other.commit, other.root)).toThrow(
-        /origin is https:\/\/github.com\/someone\/Superpowers.git, not obra\/Superpowers/,
-      );
+      expect(() =>
+        emitBaselineInventoryV1("superpowers", other.commit, other.root, runner),
+      ).toThrow(/origin is https:\/\/github.com\/someone\/Superpowers.git, not obra\/Superpowers/);
       const { root } = checkout();
-      expect(() => emitBaselineInventoryV1("superpowers", "b".repeat(40), root)).toThrow(
+      expect(() => emitBaselineInventoryV1("superpowers", "b".repeat(40), root, runner)).toThrow(
         /does not hold commit/,
       );
     });

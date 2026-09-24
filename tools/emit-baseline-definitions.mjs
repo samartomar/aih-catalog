@@ -9,6 +9,7 @@
 // `--inventory <checkout>` instead emits the disjoint whole-repository inventory (the
 // partition Scan's request-set route requires) from the commit's tracked tree in a checkout
 // whose origin is the subject's GitHub repository; it reads no produced input.
+import { execFileSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -41,6 +42,16 @@ function parseArgs(argv) {
 }
 
 const options = parseArgs(process.argv.slice(2));
+
+/** The inventory reads only the local checkout: no network, no prompt, no redirect. */
+function git(args) {
+  return execFileSync("git", args, {
+    env: { ...process.env, GIT_TERMINAL_PROMPT: "0" },
+    maxBuffer: 256 * 1024 * 1024,
+    stdio: ["ignore", "pipe", "pipe"],
+    windowsHide: true,
+  });
+}
 const { emitBaselineDefinitionV1 } = await import(
   "../dist/production/catalog/baseline-definitions-v1.js"
 );
@@ -51,7 +62,7 @@ try {
   const definition =
     options.inventory === undefined
       ? emitBaselineDefinitionV1(root, options.name, options.commit)
-      : emitBaselineInventoryV1(options.name, options.commit, resolve(options.inventory));
+      : emitBaselineInventoryV1(options.name, options.commit, resolve(options.inventory), git);
   writeFileSync(resolve(options.output), `${JSON.stringify(definition, null, 2)}\n`, {
     encoding: "utf8",
     flag: "wx",

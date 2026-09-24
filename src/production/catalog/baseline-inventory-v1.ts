@@ -1,5 +1,5 @@
-import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
+import type { GitRunnerV1 } from "../produce/upstream-fetch-v1.js";
 import { assertSafeRelativePosixPathV1, codeUnitCompare } from "../strict-json-v1.js";
 import {
   BASELINE_DEFINITION_SUBJECTS_V1,
@@ -154,13 +154,9 @@ export function baselineInventoryFromTreeV1(
   return { components, id: subject, owner, pinnedSha: commit, repo };
 }
 
-function runGit(checkout: string, args: readonly string[]): Buffer {
+function runGit(git: GitRunnerV1, checkout: string, args: readonly string[]): Uint8Array {
   try {
-    return execFileSync("git", ["-C", checkout, ...args], {
-      maxBuffer: 256 * 1024 * 1024,
-      stdio: ["ignore", "pipe", "pipe"],
-      windowsHide: true,
-    });
+    return git(["-C", checkout, ...args]);
   } catch {
     return fail(`git ${args[0]} failed in ${checkout}`);
   }
@@ -176,25 +172,22 @@ export function emitBaselineInventoryV1(
   name: string,
   commit: string,
   checkout: string,
+  git: GitRunnerV1,
 ): BaselineInventoryV1 {
   const subject = subjectOf(name);
   if (!COMMIT.test(commit)) fail("commit must be a full 40-character lowercase sha");
   const repository = BASELINE_DEFINITION_SUBJECTS_V1[subject];
-  const origin = runGit(checkout, ["remote", "get-url", "origin"]).toString("utf8").trim();
+  const origin = Buffer.from(runGit(git, checkout, ["remote", "get-url", "origin"]))
+    .toString("utf8")
+    .trim();
   const named = /^https:\/\/github\.com\/([^/]+\/[^/]+?)(?:\.git)?$/u.exec(origin)?.[1];
   if (named === undefined || named.toLowerCase() !== repository.toLowerCase())
     fail(`checkout origin is ${origin}, not ${repository}`);
   let resolved: string;
   try {
-    resolved = execFileSync(
-      "git",
-      ["-C", checkout, "rev-parse", "--verify", `${commit}^{commit}`],
-      {
-        encoding: "utf8",
-        stdio: ["ignore", "pipe", "pipe"],
-        windowsHide: true,
-      },
-    ).trim();
+    resolved = Buffer.from(git(["-C", checkout, "rev-parse", "--verify", `${commit}^{commit}`]))
+      .toString("utf8")
+      .trim();
   } catch {
     return fail(`checkout ${checkout} does not hold commit ${commit}`);
   }
@@ -202,7 +195,7 @@ export function emitBaselineInventoryV1(
   let listing: string;
   try {
     listing = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(
-      runGit(checkout, ["ls-tree", "-r", "-z", "--full-tree", commit]),
+      runGit(git, checkout, ["ls-tree", "-r", "-z", "--full-tree", commit]),
     );
   } catch {
     return fail("the tree listing is not UTF-8");
