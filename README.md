@@ -705,6 +705,10 @@ vendor-lock pin is named in `candidate-inputs.json` together with the exact T3
 
 The build refuses if any of these hold:
 
+- the inputs manifest or a compiler input is not a regular file (a link or
+  junction is refused), exceeds 16 MiB (real inputs are well under 16 KiB;
+  the typed refusal names the file and the limit), or is not strict UTF-8
+  (a leading BOM is refused);
 - a compiler input's bytes do not match the named digest;
 - a compiler input's framework id, repository or commit differs from the
   vendor-lock pin;
@@ -754,11 +758,12 @@ global configurations replaced by nothing, and the repository's own
 configuration neutralized where it could run code — the fsmonitor and the
 untracked cache are disabled and hooks resolve to an empty staging directory —
 using plumbing reads only, so only the named checkout's own objects are read.
-Lazy fetching is disabled too (`GIT_NO_LAZY_FETCH=1`; the build requires git
-2.47 or newer, which introduced it, and refuses anything older), so a missing
-object refuses with a typed error naming the object instead of ever
-contacting a promisor remote whose `core.sshCommand` or credential helpers
-the repository controls. The local toolchain bytes
+Lazy fetching is disabled too (the global `--no-lazy-fetch` option on every
+invocation, plus `GIT_NO_LAZY_FETCH=1` for any subprocess git spawns; both
+exist since git 2.47, and the build refuses anything older), so a missing
+blob, subtree or commit refuses with a typed error naming the object instead
+of ever contacting a promisor remote whose `core.sshCommand` or credential
+helpers the repository controls. The local toolchain bytes
 (`node_modules/typescript` and its dependencies) are not part of the commit;
 they are trusted exactly as for the release build. The output becomes
 `dist-candidate/` only if, after the build, `HEAD` is still the recorded
