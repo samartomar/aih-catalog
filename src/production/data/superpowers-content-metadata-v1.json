@@ -1,7 +1,7 @@
 {
   "version": 1,
   "repository": "obra/Superpowers",
-  "commit": "b36e0829c6d0140e93cfef2ca599b1b07d4a7797",
+  "commit": "5bf4e78011075bcfc0dc295f0724994cd123ee71",
   "agents": [],
   "skills": [
     {
@@ -11,7 +11,16 @@
       "summary": "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation.",
       "usageContext": "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation.",
       "allowedTools": [],
-      "sourceSha256": "74edf03ea6d24ef53db48677b93558d14a979bdf052ca3f57ecdca0c66791608"
+      "sourceSha256": "a32d2255354775aa124855aa7100cf276bea096fff4ebb3a0edf57be216e6c72"
+    },
+    {
+      "id": "diagnosing-superpowers",
+      "title": "diagnosing-superpowers",
+      "path": "skills/diagnosing-superpowers/SKILL.md",
+      "summary": "Use when a superpowers session went wrong and your human partner wants to know why — repeated work, ignored plans, stumbles, poor results, a skill that didn't fire, \"it took too long\", \"why is it so expensive\", \"what is it doing\" — or wants to build a bug report for the superpowers maintainers, for the current session or a past one identified by id or path, on any harness.",
+      "usageContext": "Use when a superpowers session went wrong and your human partner wants to know why — repeated work, ignored plans, stumbles, poor results, a skill that didn't fire, \"it took too long\", \"why is it so expensive\", \"what is it doing\" — or wants to build a bug report for the superpowers maintainers, for the current session or a past one identified by id or path, on any harness.",
+      "allowedTools": [],
+      "sourceSha256": "5a652f8132cc901eb5ca61f89157839f87a2f20aed037fc7a2b51051bc37cd19"
     },
     {
       "id": "dispatching-parallel-agents",
@@ -26,10 +35,10 @@
       "id": "executing-plans",
       "title": "executing-plans",
       "path": "skills/executing-plans/SKILL.md",
-      "summary": "Use when you have a written implementation plan to execute in a separate session with review checkpoints",
-      "usageContext": "Use when you have a written implementation plan to execute in a separate session with review checkpoints",
+      "summary": "Use when executing an implementation plan in the current session as the implementer yourself — your human partner chose inline execution, or no subagent tool is available",
+      "usageContext": "You have a plan from superpowers:writing-plans and your human partner chose inline execution at the handoff. Your harness has no subagent tool (see the per-platform references in ../using-superpowers/references/). Never fabricate a dispatch; run the plan here. Tasks are mostly independent — the same precondition as superpowers:subagent-driven-development. A fully specified plan makes inline execution transcription plus testing: it runs well on a mid-tier session model, and the one place the most capable model earns its cost is the final review, which this skill dispatches separately. Tell your human partner so when they choose inline. Prefer superpowers:subagent-driven-development when your human partner wants a review gate on every task, or when the plan is long enough that its later tasks would run on a compacted context. Inline execution over a long plan still works — the ledger is what makes it recoverable — but the last tasks get the least of you.",
       "allowedTools": [],
-      "sourceSha256": "c4c3d8b628c51114cd165fb8246fe02744cd8be180032328391252e653028d9b"
+      "sourceSha256": "f38e8f2ddcf079f65493adc713c1fed78421dfaf5f4dbf6b3a6b2b1d95466e71"
     },
     {
       "id": "finishing-a-development-branch",
@@ -56,16 +65,16 @@
       "summary": "Use when completing tasks, implementing major features, or before merging to verify work meets requirements",
       "usageContext": "Use when completing tasks, implementing major features, or before merging to verify work meets requirements",
       "allowedTools": [],
-      "sourceSha256": "d71cc01ba56d2325cf8af5f7c11837819b63ecd57de0bfdb812f7f3ff7751df8"
+      "sourceSha256": "cfcee1b06774e7c0517f1e09be1a11f2d5680257072723e709ddbcf7e08b795a"
     },
     {
       "id": "subagent-driven-development",
       "title": "subagent-driven-development",
       "path": "skills/subagent-driven-development/SKILL.md",
       "summary": "Use when executing implementation plans with independent tasks in the current session",
-      "usageContext": "vs. Executing Plans (parallel session): Same session (no context switch) Fresh subagent per task (no context pollution) Review after each task (spec compliance + code quality), broad review at the end Faster iteration (no human-in-loop between tasks)",
+      "usageContext": "vs. Executing Plans (inline): Fresh subagent per task (no context pollution) instead of one context doing every task Review after each task (spec compliance + code quality) instead of only at the end Costs a fresh context per task and per review; inline costs one context plus one final reviewer Both run in this session, share the same plan workspace and ledger, and never pause between tasks",
       "allowedTools": [],
-      "sourceSha256": "8dd1b8e698edec3700c6d89517dbe96febd3bacd3f6ea21c1a3569c62ea104b5"
+      "sourceSha256": "8dde5589ee083fb4999106d116f01c8fdaf3116a8a9813fdedeb80329de49046"
     },
     {
       "id": "systematic-debugging",
@@ -83,7 +92,7 @@
       "summary": "Use when implementing any feature or bugfix, before writing implementation code",
       "usageContext": "Always: New features Bug fixes Refactoring Behavior changes Exceptions (ask your human partner): Throwaway prototypes Generated code Configuration files Thinking \"skip TDD just this once\"? Stop. That's rationalization.",
       "allowedTools": [],
-      "sourceSha256": "bf1b8216e523851a411e91d429a7c1c2a173e79d88957bc78e348218d50edd54"
+      "sourceSha256": "64b03fce4aee5a97a93160cea8111f3ba13a17b7c001db4bd5836d67fd10705d"
     },
     {
       "id": "using-git-worktrees",
@@ -101,7 +110,7 @@
       "summary": "Use when starting any conversation - establishes how to find and use skills, requiring skill invocation before ANY response including clarifying questions",
       "usageContext": "Use when starting any conversation - establishes how to find and use skills, requiring skill invocation before ANY response including clarifying questions",
       "allowedTools": [],
-      "sourceSha256": "30f2ab78e20ddc27ee7158ae8d4a2abe161c360981c7cc3548070913142d3dc3"
+      "sourceSha256": "82c5c8866ad7f5dd4440ce66bd7806ba48a2f13771beae5cf112e53f08fe36ba"
     },
     {
       "id": "verification-before-completion",
@@ -119,7 +128,7 @@
       "summary": "Use when you have a spec or requirements for a multi-step task, before touching code",
       "usageContext": "Use when you have a spec or requirements for a multi-step task, before touching code",
       "allowedTools": [],
-      "sourceSha256": "48508f44bbfd7d24b029fbf3a314f3cd14c9615599059366e922f47b8dc08cf2"
+      "sourceSha256": "0bc3d36590f7b2c323ed3ec18ff77e9f8ed57af42f5680a02b11a2d20de265cf"
     },
     {
       "id": "writing-skills",
@@ -128,7 +137,7 @@
       "summary": "Use when creating new skills, editing existing skills, or verifying skills work before deployment",
       "usageContext": "[Small inline flowchart IF decision non-obvious] Bullet list with SYMPTOMS and use cases When NOT to use",
       "allowedTools": [],
-      "sourceSha256": "d34db5c8aed6a4e0440132bd0613aace70a693ec7819d5637ad77481d8e10d1b"
+      "sourceSha256": "bbdfe742f853562e643a3d40d64476359d47881e39cef80a189283fa26d11ab9"
     }
   ]
 }
