@@ -89,17 +89,35 @@ function headOf(root) {
   return head;
 }
 
+/** True only for a real directory (never a link or junction) carrying the candidate marker. */
+function isEarlierCandidateRoot(path) {
+  const stat = lstatSync(path);
+  if (stat.isSymbolicLink() || !stat.isDirectory()) return false;
+  try {
+    return (
+      JSON.parse(readFileSync(join(path, "CANDIDATE.json"), "utf8"))?.format === CANDIDATE_FORMAT
+    );
+  } catch {
+    return false;
+  }
+}
+
+/** True only for the candidate root this build just exposed (its marker names the commit). */
+function isExposedCandidate(outRoot, catalogCommit) {
+  try {
+    if (!isEarlierCandidateRoot(outRoot)) return false;
+    return (
+      JSON.parse(readFileSync(join(outRoot, "CANDIDATE.json"), "utf8"))?.catalogCommit ===
+      catalogCommit
+    );
+  } catch {
+    return false;
+  }
+}
+
 /** An existing output root may be replaced only if it is an earlier candidate root. */
 function assertReplaceable(outRoot) {
-  if (!existsSync(outRoot)) return;
-  let format;
-  try {
-    if (!lstatSync(outRoot).isDirectory()) throw new Error("not a directory");
-    format = JSON.parse(readFileSync(join(outRoot, "CANDIDATE.json"), "utf8"))?.format;
-  } catch {
-    format = undefined;
-  }
-  if (format !== CANDIDATE_FORMAT)
+  if (existsSync(outRoot) && !isEarlierCandidateRoot(outRoot))
     throw new Error(
       `${outRoot} exists but is not an earlier candidate root (no CANDIDATE.json); remove it yourself`,
     );
@@ -227,6 +245,16 @@ function verifySnapshotBytes(tree, entries, format, commit) {
  * Run `step({ root: snapshot, catalogCommit })` over a snapshot of the
  * checkout's HEAD and expose its `<snapshot>/dist-candidate` as
  * `<root>/dist-candidate`. Returns `{ catalogCommit, outRoot, result }`.
+ *
+ * Exposure is rollback-safe. An existing candidate root is first renamed into a
+ * private quarantine inside the staging directory; the moved object is
+ * validated there (a real directory, never a link or junction, carrying the
+ * candidate marker) and moved back untouched if it is not an earlier candidate
+ * root. The new output is then renamed into place and HEAD is checked. On any
+ * failure after the quarantine move, including a thrown exception, the new
+ * output is removed (only if it is still the candidate this build exposed) and
+ * the quarantined previous candidate is restored. The quarantine is deleted
+ * only after success.
  */
 export async function buildCandidateFromCommitV1(checkout, step) {
   const root = resolve(checkout);
@@ -252,11 +280,6 @@ export async function buildCandidateFromCommitV1(checkout, step) {
 
     const result = await step({ root: tree, catalogCommit });
 
-    const moved = headOf(root);
-    if (moved !== catalogCommit)
-      throw new Error(
-        `the checkout's HEAD moved from ${catalogCommit} to ${moved} during the build; the candidate is refused`,
-      );
     verifySnapshotBytes(tree, entries, format, catalogCommit);
     const built = join(tree, CANDIDATE_ROOT);
     let marker;
@@ -270,16 +293,41 @@ export async function buildCandidateFromCommitV1(checkout, step) {
         `the built CANDIDATE.json catalogCommit ${String(marker?.catalogCommit)} is not the snapshot commit ${catalogCommit}`,
       );
 
-    assertReplaceable(outRoot);
-    rmSync(outRoot, { recursive: true, force: true });
-    renameSync(built, outRoot);
-    const after = headOf(root);
-    if (after !== catalogCommit) {
-      rmSync(outRoot, { recursive: true, force: true });
-      throw new Error(
-        `the checkout's HEAD moved from ${catalogCommit} to ${after} during the build; the candidate is refused`,
-      );
+    let quarantined;
+    let exposed = false;
+    try {
+      if (existsSync(outRoot)) {
+        const target = join(mkdtempSync(join(staging, "quarantine-")), "previous");
+        renameSync(outRoot, target);
+        quarantined = target;
+        if (!isEarlierCandidateRoot(quarantined))
+          throw new Error(
+            `${outRoot} is not an earlier candidate root (no CANDIDATE.json); it was left untouched`,
+          );
+      }
+      renameSync(built, outRoot);
+      exposed = true;
+      const after = headOf(root);
+      if (after !== catalogCommit)
+        throw new Error(
+          `the checkout's HEAD moved from ${catalogCommit} to ${after} during the build; the candidate is refused`,
+        );
+    } catch (error) {
+      let rollbackError;
+      try {
+        if (exposed && isExposedCandidate(outRoot, catalogCommit))
+          rmSync(outRoot, { recursive: true, force: true });
+        if (quarantined !== undefined) renameSync(quarantined, outRoot);
+      } catch (restore) {
+        rollbackError = restore;
+      }
+      if (rollbackError !== undefined)
+        throw new Error(
+          `${error instanceof Error ? error.message : String(error)}; rolling back the earlier candidate also failed: ${rollbackError instanceof Error ? rollbackError.message : String(rollbackError)}`,
+        );
+      throw error;
     }
+    if (quarantined !== undefined) rmSync(quarantined, { recursive: true, force: true });
     return { catalogCommit, outRoot, result };
   } finally {
     rmSync(staging, { recursive: true, force: true });

@@ -716,15 +716,22 @@ The build refuses if any of these hold:
 For a named framework, the build never reads that framework's record and never
 overlays it onto the bundle.
 
-The build never reads the live checkout. It records `HEAD`, checks that commit
-out through a private index into a gitignored `.candidate-build-*` snapshot,
-and compiles, generates and copies only from that snapshot. The output becomes
-`dist-candidate/` only if, after the build, `HEAD` is still the recorded commit,
-the snapshot still equals that commit's tree and the built `CANDIDATE.json`
-names that commit. Otherwise the build refuses, removes its partial output and
-leaves any earlier `dist-candidate/` as it was. An edit made during the build
-therefore never reaches the candidate, and `catalogCommit` always names the
-commit whose bytes were built.
+The build never reads the live checkout. It records `HEAD` and materializes
+that commit's tree from raw git objects (`git ls-tree` and `git cat-file`, so
+checkout conversions — smudge filters, attributes, eol rewrites — never apply)
+into a gitignored `.candidate-build-*` snapshot, then compiles, generates and
+copies only from that snapshot. Every git read runs with every `GIT_*`
+environment variable removed and replacement objects disabled, so only the
+named checkout's own objects are read. The local toolchain bytes
+(`node_modules/typescript` and its dependencies) are not part of the commit;
+they are trusted exactly as for the release build. The output becomes
+`dist-candidate/` only if, after the build, `HEAD` is still the recorded
+commit, every snapshot file outside the build's own output directories still
+hashes to the commit's blob ids (recomputed in Node, never by git's normalized
+view) and the built `CANDIDATE.json` names that commit. Otherwise the build
+refuses, removes its partial output and restores any earlier `dist-candidate/`
+exactly as it was. An edit made during the build therefore never reaches the
+candidate, and `catalogCommit` always names the commit whose bytes were built.
 
 The candidate is written only to `dist-candidate/`. `defaults/` and `dist/` are
 never written. The candidate root carries two markers:

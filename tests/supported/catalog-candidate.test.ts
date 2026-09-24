@@ -1,10 +1,19 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   CATALOG_CANDIDATE_FORMAT_V1,
   CATALOG_CANDIDATE_ROOT_V1,
@@ -25,6 +34,27 @@ import {
 import { assembleCompilerOutputsV1 } from "../../src/production/workbench/assembly-v1.js";
 import { readCollectionSnapshotV1 } from "../../src/production/workbench/authoring-bundle-v1.js";
 import { compileCatalogProvidersV1 } from "../../src/production/workbench/catalog-providers-v1.js";
+
+// Exposure rollback tests inject one rename failure into the candidate-snapshot
+// tool: the Nth renameSync after arming throws once, every other call passes
+// through. The mock is inert while fsFaults.renameCountdown is null.
+const fsFaults = vi.hoisted(() => ({ renameCountdown: null as number | null }));
+vi.mock("node:fs", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:fs")>();
+  return {
+    ...actual,
+    renameSync: (...args: Parameters<typeof actual.renameSync>) => {
+      if (fsFaults.renameCountdown !== null) {
+        if (fsFaults.renameCountdown === 0) {
+          fsFaults.renameCountdown = null;
+          throw new Error("simulated rename failure");
+        }
+        fsFaults.renameCountdown -= 1;
+      }
+      return actual.renameSync(...args);
+    },
+  };
+});
 
 const root = resolve(import.meta.dirname, "..", "..");
 const data = (name: string) =>
@@ -664,6 +694,8 @@ describe("the candidate build snapshot", () => {
       }),
     ).rejects.toThrow(new RegExp(`HEAD moved from ${head} to [0-9a-f]{40}`, "u"));
     expect(moved).not.toBe(head);
+    // The new output is removed and the earlier candidate is restored untouched.
+    expect(readdirSync(join(dir, CATALOG_CANDIDATE_ROOT_V1))).toEqual(["CANDIDATE.json"]);
     expect(
       JSON.parse(readFileSync(join(dir, CATALOG_CANDIDATE_ROOT_V1, "CANDIDATE.json"), "utf8"))
         .catalogCommit,
@@ -914,5 +946,83 @@ describe("the candidate build reads only the named checkout", () => {
     ).rejects.toThrow(/top level/u);
     expect(called).toBe(false);
     expect(readdirSync(join(dir, "src"))).not.toContain(CATALOG_CANDIDATE_ROOT_V1);
+  });
+});
+
+describe("the candidate build exposure rolls back safely", () => {
+  const earlierCandidateRestored = (dir: string) => {
+    const out = join(dir, CATALOG_CANDIDATE_ROOT_V1);
+    expect(readdirSync(out)).toEqual(["CANDIDATE.json"]);
+    expect(JSON.parse(readFileSync(join(out, "CANDIDATE.json"), "utf8")).catalogCommit).toBe(
+      "earlier",
+    );
+    expect(staging(dir)).toEqual([]);
+  };
+
+  it.each([
+    ["the quarantine move", 0],
+    ["the exposure rename", 1],
+  ])("restores the earlier candidate when %s fails", async (_label, countdown) => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    earlierCandidate(dir);
+    fsFaults.renameCountdown = countdown;
+    try {
+      await expect(buildCandidateFromCommitV1(dir, emit)).rejects.toThrow(
+        /simulated rename failure/u,
+      );
+    } finally {
+      fsFaults.renameCountdown = null;
+    }
+    earlierCandidateRestored(dir);
+  });
+
+  it("removes the new output and restores the earlier candidate when the final HEAD check throws", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    earlierCandidate(dir);
+    await expect(
+      buildCandidateFromCommitV1(dir, (snapshot) => {
+        const result = emit(snapshot);
+        renameSync(join(dir, ".git"), join(dir, ".git-hidden"));
+        return result;
+      }),
+    ).rejects.toThrow(/HEAD|git/u);
+    earlierCandidateRestored(dir);
+  });
+
+  it.each([
+    [
+      "an unrelated real directory",
+      (out: string) => {
+        mkdirSync(out);
+        writeFileSync(join(out, "keep.txt"), "keep");
+      },
+    ],
+    [
+      "a junction to an unrelated directory",
+      (out: string, dir: string) => {
+        const target = join(dir, "unrelated-target");
+        mkdirSync(target);
+        writeFileSync(join(target, "keep.txt"), "keep");
+        symlinkSync(target, out, "junction");
+      },
+    ],
+  ])("refuses and leaves %s swapped in at dist-candidate untouched", async (_label, swap) => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    earlierCandidate(dir);
+    const out = join(dir, CATALOG_CANDIDATE_ROOT_V1);
+    await expect(
+      buildCandidateFromCommitV1(dir, (snapshot) => {
+        const result = emit(snapshot);
+        // A concurrent swapper replaces the earlier candidate mid-build.
+        rmSync(out, { recursive: true, force: true });
+        swap(out, dir);
+        return result;
+      }),
+    ).rejects.toThrow(/not an earlier candidate root/u);
+    expect(readFileSync(join(out, "keep.txt"), "utf8")).toBe("keep");
+    expect(staging(dir)).toEqual([]);
   });
 });
