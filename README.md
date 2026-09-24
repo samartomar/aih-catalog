@@ -27,7 +27,7 @@ Release and contribution policy: [VERSIONING.md](VERSIONING.md) ·
 
 ## Source-assessment release train
 
-The 0.2.0 source train adds bounded receipt-set publication for up to 512
+The 0.3.0 source train keeps bounded receipt-set publication for up to 512
 members (256 KiB canonical manifest). Its default candidate contains 428 exact
 members: the existing default and 25 Matt assessments, plus 14 Anthropic,
 7 Ponytail, 14 Superpowers, and 367 ECC source-file assessments. Existing Matt
@@ -58,14 +58,23 @@ can read JSON can import them:
 | `@aihq/catalog/catalog-qualification.json` | `defaults/catalog-qualification-v1.json` |
 | `@aihq/catalog/signed-catalog.json` | `defaults/signed-catalog-v2.json` |
 | `@aihq/catalog/catalog-categories.json` | `defaults/catalog-categories-v1.json` |
+| `@aihq/catalog/catalog-authoring-bundle.json` | `defaults/catalog-authoring-bundle-v1.json` |
+| `@aihq/catalog/catalog-core-qualification.json` | `defaults/catalog-core-qualification-v1.json` |
+| `@aihq/catalog/catalog-scanner-evidence.json` | `defaults/catalog-scanner-evidence-v1.json` |
+| `@aihq/catalog/catalog-public-baseline.json` | `defaults/catalog-public-baseline-v1.json` |
+| `@aihq/catalog/catalog-framework-ecc.json` | `defaults/catalog-framework-ecc-v1.json` |
+| `@aihq/catalog/catalog-framework-superpowers.json` | `defaults/catalog-framework-superpowers-v1.json` |
+| `@aihq/catalog/catalog-framework-plugins.json` | `defaults/catalog-framework-plugins-v1.json` |
 | `@aihq/catalog/package.json` | `package.json`, the portable way to find the installed package root |
 
 Reading a subpath's bytes is not verifying them. Canonical-byte checks, digest
 pins, receipt hashing and signature verification are done by the Node readers
 (`read…V1Result`). A consumer that only imports the JSON has read unverified data.
-These subpaths and readers are not in `@aihq/catalog@0.2.0`: npm's `latest`,
-observed on 2026-09-22, exports only `.`. They reach consumers in the next
-published version.
+The package root also exports strict readers for these documents and
+`prepareCatalogSourceDataV1`, the Catalog-owned source preparation API used by
+Core. Core remains the authority: it validates the carried bytes against Core's
+schemas and policy pins and treats absent, incompatible, or malformed Catalog
+material as an explicit refusal.
 
 [`examples/read-the-catalog.mjs`](examples/read-the-catalog.mjs) walks the whole
 supported route (index, collections, presentation, qualification sidecar and a
@@ -438,15 +447,12 @@ custody and expiry, and the decision whether to trust Catalog-delivered bytes at
 all. A descriptor is never organization admission, installation or effect
 authority.
 
-Maintainers take descriptors only from Core's sealed packaged source data:
-`node tools/generate-catalog-runtime-descriptors.mjs --ingest-core-source-data <packaged-source-data-data.json>`
-checks each record's seal and each descriptor's seal and canonical bytes, writes
-the bytes under `defaults/runtime-descriptors/github.com/<owner>/<repo>/<commit>/`
-and records the origin in `defaults/catalog-runtime-descriptors-inputs-v1.json`.
-`npm run generate:catalog-runtime-descriptors` then writes the sidecar, and
+Maintainers update Catalog-owned descriptor inputs and exact descriptor bytes
+under `defaults/runtime-descriptors/github.com/<owner>/<repo>/<commit>/` in the
+same change. `npm run generate:catalog-runtime-descriptors` writes the sidecar, and
 `npm run check:catalog-index` fails when a committed descriptor no longer matches
-the seal Core declared for it or the sidecar differs from what the inputs,
-descriptors and index produce.
+the recorded digest or the sidecar differs from what the inputs, descriptors and
+index produce. The generator has no Core-checkout ingestion mode.
 
 ## Authority boundary
 

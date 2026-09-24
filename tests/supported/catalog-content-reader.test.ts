@@ -105,7 +105,7 @@ describe("Catalog public content reader", () => {
 
     expect(content.format).toBe(CATALOG_CONTENT_FORMAT_V1);
     expect(content.version).toBe(1);
-    expect(content.package).toEqual({ name: "@aihq/catalog", version: "0.2.0" });
+    expect(content.package).toEqual({ name: "@aihq/catalog", version: "0.3.0" });
     // Surfaced verbatim: presence in this index is never organization admission.
     expect(content.organizationAdmission).toBe("not-authoritative");
     expect(content.status).toEqual({ structure: "valid", artifacts: "not-evaluated" });

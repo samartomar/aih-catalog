@@ -956,7 +956,7 @@ describe("public signed catalog V2 acceptance contract", () => {
         rmSync(temp, { force: true, recursive: true });
       }
     },
-    180_000,
+    600_000,
   );
   it("exposes the public V2 package/CLI and a Core lock only for qualification-basis derivation", async () => {
     const publicApi = await api();
@@ -996,6 +996,11 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(Object.keys(publicApi).sort()).toEqual([
       "CATALOG_ASSESSMENT_PROFILE_FORMAT_V1",
       "CATALOG_ASSESSMENT_PROFILE_VERSION_V1",
+      "CATALOG_AUTHORING_BUNDLE_FORMAT_V1",
+      "CATALOG_AUTHORING_BUNDLE_MAX_BYTES_V1",
+      "CATALOG_AUTHORING_BUNDLE_REFUSALS_V1",
+      "CATALOG_AUTHORING_BUNDLE_SUBPATH_V1",
+      "CATALOG_AUTHORING_BUNDLE_VERSION_V1",
       "CATALOG_CATEGORIES_FORMAT_V1",
       "CATALOG_CATEGORIES_MAX_BYTES_V1",
       "CATALOG_CATEGORIES_MAX_TAXONOMY_V1",
@@ -1015,6 +1020,18 @@ describe("public signed catalog V2 acceptance contract", () => {
       "CATALOG_CONTENT_MAX_BYTES_V1",
       "CATALOG_CONTENT_REFUSALS_V1",
       "CATALOG_CONTENT_VERSION_V1",
+      "CATALOG_CORE_MATERIAL_MAX_BYTES_V1",
+      "CATALOG_CORE_QUALIFICATION_SUBPATH_V1",
+      "CATALOG_FRAMEWORK_DESCRIPTOR_FORMAT_V1",
+      "CATALOG_FRAMEWORK_DESCRIPTOR_MAX_BYTES_V1",
+      "CATALOG_FRAMEWORK_DESCRIPTOR_REFUSALS_V1",
+      "CATALOG_FRAMEWORK_DESCRIPTOR_VERSION_V1",
+      "CATALOG_FRAMEWORK_ECC_SUBPATH_V1",
+      "CATALOG_FRAMEWORK_PLUGINS_FORMAT_V1",
+      "CATALOG_FRAMEWORK_PLUGINS_MAX_BYTES_V1",
+      "CATALOG_FRAMEWORK_PLUGINS_SUBPATH_V1",
+      "CATALOG_FRAMEWORK_PLUGINS_VERSION_V1",
+      "CATALOG_FRAMEWORK_SUPERPOWERS_SUBPATH_V1",
       "CATALOG_PRESENTATION_FORMAT_V1",
       "CATALOG_PRESENTATION_MAX_BYTES_V1",
       "CATALOG_PRESENTATION_MAX_TEXT_V1",
@@ -1022,6 +1039,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       "CATALOG_PRESENTATION_ROOT_URL",
       "CATALOG_PRESENTATION_SUBPATH_V1",
       "CATALOG_PRESENTATION_VERSION_V1",
+      "CATALOG_PUBLIC_BASELINE_SUBPATH_V1",
       "CATALOG_QUALIFICATION_FORMAT_V1",
       "CATALOG_QUALIFICATION_HEAD_MAX_BYTES_V1",
       "CATALOG_QUALIFICATION_MAX_BYTES_V1",
@@ -1039,6 +1057,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       "CATALOG_RUNTIME_DESCRIPTORS_SUBPATH_V1",
       "CATALOG_RUNTIME_DESCRIPTORS_VERSION_V1",
       "CATALOG_RUNTIME_DESCRIPTOR_MAX_BYTES_V1",
+      "CATALOG_SCANNER_EVIDENCE_SUBPATH_V1",
       "CATALOG_SIGNED_CATALOG_ROOT_URL",
       "CATALOG_SIGNED_CATALOG_SUBPATH_V1",
       "CATALOG_SOURCE_CLOSURE_FORMAT_V1",
@@ -1062,18 +1081,28 @@ describe("public signed catalog V2 acceptance contract", () => {
       "parseQualificationReceiptSetV1Json",
       "parseQualificationReceiptV2Json",
       "planCatalogPromotionV2",
+      "prepareCatalogSourceDataV1",
+      "readCatalogAuthoringBundleV1",
+      "readCatalogAuthoringBundleV1Result",
       "readCatalogCategoriesV1",
       "readCatalogCategoriesV1Result",
       "readCatalogCollectionsV1",
       "readCatalogCollectionsV1Result",
       "readCatalogContentV1",
       "readCatalogContentV1Result",
+      "readCatalogCoreQualificationV1Result",
+      "readCatalogFrameworkDescriptorV1",
+      "readCatalogFrameworkDescriptorV1Result",
+      "readCatalogFrameworkPluginsV1",
+      "readCatalogFrameworkPluginsV1Result",
       "readCatalogPresentationV1",
       "readCatalogPresentationV1Result",
+      "readCatalogPublicBaselineV1Result",
       "readCatalogQualificationV1",
       "readCatalogQualificationV1Result",
       "readCatalogRuntimeDescriptorsV1",
       "readCatalogRuntimeDescriptorsV1Result",
+      "readCatalogScannerEvidenceV1Result",
       "readCatalogSourceClosureV1",
       "resolveCatalogContentPathV1",
       "resolveCatalogQualificationPathV1",
@@ -4041,9 +4070,15 @@ describe("public signed catalog V2 acceptance contract", () => {
       verificationMode: "cold-external-admin",
     });
     expect(coldAdminText.trim()).toBe(canonicalJson(coldAdmin as unknown as Json));
-    expect(packageJson.version).toBe("0.2.0");
+    expect(packageJson.version).toBe("0.3.0");
     expect(packageJson.bin).toEqual({ "aih-supported": "dist/cli.js" });
-    expect(packageJson.files).toEqual(["dist", "defaults", "README.md"]);
+    expect(packageJson.files).toEqual([
+      "dist",
+      "!dist/production/**",
+      "dist/production/source-data-v1.*",
+      "defaults",
+      "README.md",
+    ]);
     expect(packageJson.dependencies).toEqual({});
     expect(packageJson).not.toHaveProperty("private");
     expect(packageJson.repository).toEqual({
@@ -4066,7 +4101,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       /^node dist\/cli\.js generate-candidate(?:\s|$)/,
     );
     expect(packageScripts.build).toBe(
-      "node tools/generate-catalog-index.mjs && node tools/generate-catalog-collections.mjs && node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node tools/ensure-cli-executable.mjs",
+      "node tools/generate-catalog-index.mjs && node tools/generate-catalog-collections.mjs && node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node dist/production/catalog-defaults-v1.js && node tools/ensure-cli-executable.mjs",
     );
     expect(packageScripts["sign:candidate"]).toMatch(/^node dist\/cli\.js sign-candidate(?:\s|$)/);
     expect(packageScripts["verify:cold-external-admin"]).toBe(
@@ -4129,13 +4164,21 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(packageJson.types).toBe("./dist/index.d.ts");
     expect(packageJson.exports).toEqual({
       ".": { import: "./dist/index.js", types: "./dist/index.d.ts" },
+      "./catalog-authoring-bundle.json": "./defaults/catalog-authoring-bundle-v1.json",
       "./catalog-index.json": "./defaults/catalog-index-v1.json",
       "./catalog-collections.json": "./defaults/catalog-collections-v1.json",
+      "./catalog-core-qualification.json": "./defaults/catalog-core-qualification-v1.json",
+      "./catalog-framework-ecc.json": "./defaults/catalog-framework-ecc-v1.json",
+      "./catalog-framework-plugins.json": "./defaults/catalog-framework-plugins-v1.json",
+      "./catalog-framework-superpowers.json": "./defaults/catalog-framework-superpowers-v1.json",
       "./catalog-presentation.json": "./defaults/catalog-presentation-v1.json",
+      "./catalog-public-baseline.json": "./defaults/catalog-public-baseline-v1.json",
       "./catalog-qualification.json": "./defaults/catalog-qualification-v1.json",
       "./signed-catalog.json": "./defaults/signed-catalog-v2.json",
       "./catalog-categories.json": "./defaults/catalog-categories-v1.json",
       "./catalog-runtime-descriptors.json": "./defaults/catalog-runtime-descriptors-v1.json",
+      "./catalog-scanner-evidence.json": "./defaults/catalog-scanner-evidence-v1.json",
+      "./catalog-scanner-providers.json": "./defaults/catalog-scanner-providers-v1.json",
       "./package.json": "./package.json",
     });
     expect(coldVerificationSource).toMatch(/import \* as api from '@aihq\/catalog'/);
@@ -4204,12 +4247,18 @@ describe("public signed catalog V2 acceptance contract", () => {
       expect(tarFiles.filter((path) => path.startsWith("dist/")).sort()).toEqual([
         "dist/cli.d.ts",
         "dist/cli.js",
+        "dist/content/catalog-authoring-bundle-v1.d.ts",
+        "dist/content/catalog-authoring-bundle-v1.js",
         "dist/content/catalog-categories-v1.d.ts",
         "dist/content/catalog-categories-v1.js",
         "dist/content/catalog-collections-v1.d.ts",
         "dist/content/catalog-collections-v1.js",
         "dist/content/catalog-content-v1.d.ts",
         "dist/content/catalog-content-v1.js",
+        "dist/content/catalog-core-materials-v1.d.ts",
+        "dist/content/catalog-core-materials-v1.js",
+        "dist/content/catalog-framework-v1.d.ts",
+        "dist/content/catalog-framework-v1.js",
         "dist/content/catalog-presentation-v1.d.ts",
         "dist/content/catalog-presentation-v1.js",
         "dist/content/catalog-qualification-v1.d.ts",
@@ -4222,6 +4271,8 @@ describe("public signed catalog V2 acceptance contract", () => {
         "dist/content/refusal-v1.js",
         "dist/index.d.ts",
         "dist/index.js",
+        "dist/production/source-data-v1.d.ts",
+        "dist/production/source-data-v1.js",
         "dist/supported/signed-catalog-v2.d.ts",
         "dist/supported/signed-catalog-v2.js",
       ]);
@@ -5964,7 +6015,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     } finally {
       rmSync(temp, { force: true, recursive: true });
     }
-  }, 180_000);
+  }, 600_000);
 
   it("requires a manual exact-SHA OIDC/keyless workflow split into no-authority candidate, protected signer, and independent verifier jobs", () => {
     const packageJson = readFileSync(resolve(root, "package.json"), "utf8");

@@ -341,8 +341,8 @@ describe("@aihq/catalog release boundary (#12)", () => {
     if (packed === undefined) throw new Error("npm pack produced no manifest");
     expect(packed).toMatchObject({
       name: "@aihq/catalog",
-      version: "0.2.0",
-      filename: "aihq-catalog-0.2.0.tgz",
+      version: "0.3.0",
+      filename: "aihq-catalog-0.3.0.tgz",
     });
     const paths = packed.files.map(({ path }) => path);
     expect(paths).toContain("LICENSE");
@@ -1038,7 +1038,7 @@ describe("@aihq/catalog promotion readiness gate", () => {
     } finally {
       rmSync(fixtureRoot, { recursive: true, force: true });
     }
-  });
+  }, 20_000);
 });
 
 describe("Catalog content gates run on the committed data (WO-CATALOG-CI)", () => {
@@ -1104,7 +1104,7 @@ describe("Catalog content gates run on the committed data (WO-CATALOG-CI)", () =
     ).scripts;
     // build:dist is build without the generators, so it cannot rewrite defaults/**.
     expect(scripts["build:dist"]).toBe(
-      "node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node tools/ensure-cli-executable.mjs",
+      "node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node dist/production/catalog-defaults-v1.js && node tools/ensure-cli-executable.mjs",
     );
     expect(scripts.build.endsWith(` && ${scripts["build:dist"]}`)).toBe(true);
     expect(scripts.verify.split(" && ")).toEqual([

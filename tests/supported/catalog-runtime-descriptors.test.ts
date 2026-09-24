@@ -1,7 +1,6 @@
 import { createHash } from "node:crypto";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { dirname, resolve } from "node:path";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   type CatalogContentV1,
@@ -395,80 +394,6 @@ describe("published runtime descriptors", () => {
       reason: "descriptor-identity-mismatch",
     });
   });
-
-  it("ingests a descriptor only from an intact Core source-data seal", async () => {
-    const {
-      ingestCoreSourceDataRuntimeDescriptors,
-      generateCatalogRuntimeDescriptors,
-      serializeCatalogRuntimeDescriptors,
-      INPUT,
-    } = await generator();
-    const temp = mkdtempSync(resolve(tmpdir(), "aih-catalog-runtime-descriptors-"));
-    try {
-      mkdirSync(resolve(temp, "defaults"), { recursive: true });
-      writeFileSync(resolve(temp, "defaults/catalog-index-v1.json"), indexBytes);
-      const descriptorText = canonical({
-        components: [],
-        source: { commit: ECC_COMMIT, repository: "affaan-m/ECC", treeSha256: "a".repeat(64) },
-        version: "ecc-runtime-descriptor/v1",
-      });
-      const coreFile = (seal: string, text = descriptorText) => {
-        const record = canonical({
-          runtimeDescriptor: { bytesBase64: Buffer.from(text).toString("base64"), sha256: seal },
-          source: { commit: ECC_COMMIT, repository: "affaan-m/ECC" },
-          version: "packaged-workbench-source-data/v1",
-        });
-        const path = resolve(temp, `core-${sha256(seal + text).slice(0, 8)}.json`);
-        writeFileSync(path, JSON.stringify([{ bytes: record, sha256: sha256(record) }]));
-        return { path, recordSha256: sha256(record) };
-      };
-
-      expect(() =>
-        ingestCoreSourceDataRuntimeDescriptors(temp, coreFile(`sha256:${"0".repeat(64)}`).path),
-      ).toThrow(/seal/);
-      const pretty = JSON.stringify(JSON.parse(descriptorText), null, 2);
-      expect(() =>
-        ingestCoreSourceDataRuntimeDescriptors(
-          temp,
-          coreFile(`sha256:${sha256(pretty)}`, pretty).path,
-        ),
-      ).toThrow(/canonical/);
-
-      const intact = coreFile(`sha256:${sha256(descriptorText)}`);
-      ingestCoreSourceDataRuntimeDescriptors(temp, intact.path);
-      const inputs = JSON.parse(readFileSync(resolve(temp, INPUT), "utf8"));
-      expect(inputs.descriptors).toEqual([
-        {
-          coreSeal: `sha256:${sha256(descriptorText)}`,
-          format: "ecc-runtime-descriptor/v1",
-          framework: "ecc",
-          origin: { kind: "core-packaged-source-data", recordSha256: intact.recordSha256 },
-          path: `defaults/runtime-descriptors/github.com/affaan-m/ECC/${ECC_COMMIT}/ecc-runtime-descriptor-v1.json`,
-        },
-      ]);
-      const sidecar = serializeCatalogRuntimeDescriptors(generateCatalogRuntimeDescriptors(temp));
-      const output = resolve(temp, CATALOG_RUNTIME_DESCRIPTORS_ROOT_URL);
-      mkdirSync(dirname(output), { recursive: true });
-      writeFileSync(output, sidecar);
-      const result = readCatalogRuntimeDescriptorsV1Result({
-        bytes: readFileSync(output),
-        index,
-        input: { root: temp, verifyDescriptors: true },
-      });
-      if (result.state !== "read") throw new Error(`refused: ${result.reason}`);
-      const descriptor = result.runtimeDescriptors.descriptors[0]?.descriptor;
-      expect(descriptor?.state).toBe("verified");
-      expect(
-        descriptor?.state === "verified" && Buffer.from(descriptor.bytes).toString("utf8"),
-      ).toBe(descriptorText);
-
-      // A committed descriptor edited after ingestion no longer matches Core's seal.
-      writeFileSync(resolve(temp, inputs.descriptors[0].path), `${descriptorText} `);
-      expect(() => generateCatalogRuntimeDescriptors(temp)).toThrow(/seal/);
-    } finally {
-      rmSync(temp, { recursive: true, force: true });
-    }
-  }, 60_000);
 
   it("publishes through a declared subpath and the drift gate", () => {
     const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8")) as {
