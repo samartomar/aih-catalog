@@ -70,8 +70,8 @@
     },
     "mattpocock.snapshot.json": {
       "repository": "mattpocock/skills",
-      "commit": "3cca18b368ae95cdbdebbff572ccafa662551015",
-      "sha256": "cc75856e80061015202c1b678059c1e1b716fb61c1ec1f0a009592635a0da92f",
+      "commit": "c55ee46073ed923f86ce59a5eb3b6d895095d1b7",
+      "sha256": "eb8b8f10eced255eb3bc1dcf631dd43faf9b4c81a8e24b0569bc36b091d5a130",
       "sources": {
         ".claude-plugin/plugin.json": "e531ddc6560515397ac32d93334fa3eb586b6b6bcc2e472c3646641fd3d2b951"
       },
