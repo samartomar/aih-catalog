@@ -25,20 +25,67 @@ import { candidateMarkersV1 } from "./check-not-candidate.mjs";
  * (recomputed in Node, so git's normalized view cannot hide a change) and the
  * output's CANDIDATE.json names that commit. Anything else is refused and the
  * partial output is removed; an earlier candidate root is left as it was.
+ *
+ * Every git invocation runs with --no-replace-objects and an environment with
+ * every GIT_* variable removed, so an inherited GIT_DIR, GIT_WORK_TREE,
+ * GIT_CONFIG* or a refs/replace substitute can never redirect a read, and -C
+ * alone selects the repository. Before anything else, the checkout must be the
+ * top level git reports for it.
  */
 export const CANDIDATE_ROOT = "dist-candidate";
 const CANDIDATE_FORMAT = "aih-catalog-candidate";
 
+/** Every GIT_* name, whatever its case (Windows environment names are case-insensitive). */
+const GIT_VARIABLE = /^GIT_/iu;
+
+/**
+ * The environment for every git invocation. Every inherited GIT_* variable is
+ * dropped: git selects the repository, index, object store, alternates,
+ * namespace, replace-ref base and extra configuration from them before -C
+ * applies, and a denylist would rot as git adds more. Replacement objects are
+ * also disabled here, and a prompt can never block.
+ */
+function gitEnv() {
+  const env = {};
+  for (const [key, value] of Object.entries(process.env))
+    if (value !== undefined && !GIT_VARIABLE.test(key)) env[key] = value;
+  env.GIT_NO_REPLACE_OBJECTS = "1";
+  env.GIT_TERMINAL_PROMPT = "0";
+  return env;
+}
+
 const run = (args, options = {}) => {
-  const result = spawnSync("git", args, { encoding: "utf8", ...options });
+  const result = spawnSync("git", ["--no-replace-objects", ...args], {
+    encoding: "utf8",
+    env: gitEnv(),
+    ...options,
+  });
   if (result.status !== 0)
     throw new Error(`git ${args.join(" ")} failed: ${(result.stderr ?? "").toString().trim()}`);
   return result.stdout;
 };
 
+const samePath = (a, b) => {
+  const left = resolve(a);
+  const right = resolve(b);
+  return process.platform === "win32"
+    ? left.toLowerCase() === right.toLowerCase()
+    : left === right;
+};
+
+/** The checkout must be the top level of its repository, discovered through -C alone. */
+function assertCheckoutRoot(root) {
+  const top = run(["-C", root, "rev-parse", "--show-toplevel"]).trim();
+  if (!samePath(top, root))
+    throw new Error(
+      `${root} is not the top level of its checkout (git rev-parse --show-toplevel reports ${top}); the candidate is refused`,
+    );
+}
+
 function headOf(root) {
   const head = run(["-C", root, "rev-parse", "--verify", "HEAD^{commit}"]).trim();
-  if (!/^[0-9a-f]{40}$/u.test(head)) throw new Error(`HEAD ${head} is not a commit id`);
+  if (!/^(?:[0-9a-f]{40}|[0-9a-f]{64})$/u.test(head))
+    throw new Error(`HEAD ${head} is not a commit id`);
   return head;
 }
 
@@ -183,6 +230,7 @@ function verifySnapshotBytes(tree, entries, format, commit) {
  */
 export async function buildCandidateFromCommitV1(checkout, step) {
   const root = resolve(checkout);
+  assertCheckoutRoot(root);
   const markers = candidateMarkersV1(root);
   if (markers.length > 0) throw new Error(`${root} is a candidate root (${markers.join(", ")})`);
   const catalogCommit = headOf(root);

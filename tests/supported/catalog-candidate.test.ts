@@ -844,3 +844,75 @@ describe("the candidate build reads raw commit bytes", () => {
     expect(staging(dir)).toEqual([]);
   });
 });
+
+describe("the candidate build reads only the named checkout", () => {
+  it("ignores an inherited GIT_DIR and GIT_WORK_TREE that point elsewhere", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    const head = gitIn(dir, "rev-parse", "HEAD");
+    const other = fixtureCheckout();
+    writeFileSync(join(other, INPUT), '{"v":"other repository"}');
+    gitIn(other, "commit", "-q", "-am", "other");
+    const otherHead = gitIn(other, "rev-parse", "HEAD");
+    expect(otherHead).not.toBe(head);
+    const saved = { GIT_DIR: process.env.GIT_DIR, GIT_WORK_TREE: process.env.GIT_WORK_TREE };
+    process.env.GIT_DIR = join(other, ".git");
+    process.env.GIT_WORK_TREE = other;
+    try {
+      const built = await buildCandidateFromCommitV1(dir, emit);
+      expect(built.catalogCommit).toBe(head);
+      expect(readFileSync(join(built.outRoot, "input.json"), "utf8")).toBe(COMMITTED);
+    } finally {
+      for (const [name, value] of Object.entries(saved))
+        if (value === undefined) delete process.env[name];
+        else process.env[name] = value;
+    }
+    expect(staging(dir)).toEqual([]);
+  });
+
+  it("builds the original commit's bytes when a replace ref substitutes its tree", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    const head = gitIn(dir, "rev-parse", "HEAD");
+    writeFileSync(join(dir, INPUT), '{"v":"doctored by a replace ref"}');
+    gitIn(dir, "add", INPUT);
+    const doctored = gitInWithInput(
+      dir,
+      "doctored\n",
+      "commit-tree",
+      gitIn(dir, "write-tree"),
+      "-p",
+      head,
+    );
+    gitIn(dir, "reset", "-q", "--hard", head);
+    gitIn(dir, "replace", head, doctored);
+    // The replacement really substitutes the tree for replace-aware readers.
+    expect(gitIn(dir, "show", `${head}:src/production/data/input.json`)).toBe(
+      '{"v":"doctored by a replace ref"}',
+    );
+    expect(
+      gitIn(dir, "--no-replace-objects", "show", `${head}:src/production/data/input.json`),
+    ).toBe(COMMITTED);
+
+    const built = await buildCandidateFromCommitV1(dir, emit);
+    expect(built.catalogCommit).toBe(head);
+    expect(readFileSync(join(built.outRoot, "input.json"), "utf8")).toBe(COMMITTED);
+    expect(
+      JSON.parse(readFileSync(join(built.outRoot, "CANDIDATE.json"), "utf8")).catalogCommit,
+    ).toBe(head);
+    expect(staging(dir)).toEqual([]);
+  });
+
+  it("refuses a root that is not the checkout's top level", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    let called = false;
+    await expect(
+      buildCandidateFromCommitV1(join(dir, "src"), () => {
+        called = true;
+      }),
+    ).rejects.toThrow(/top level/u);
+    expect(called).toBe(false);
+    expect(readdirSync(join(dir, "src"))).not.toContain(CATALOG_CANDIDATE_ROOT_V1);
+  });
+});
