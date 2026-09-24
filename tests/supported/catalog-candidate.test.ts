@@ -529,9 +529,24 @@ describe("candidate guards in the package scripts", () => {
     expect(result.stderr).toMatch(/candidate/u);
   });
 
-  it("keeps the candidate root out of git and lint", () => {
-    expect(readFileSync(resolve(root, ".gitignore"), "utf8").split(/\r?\n/u)).toContain(
-      `${CATALOG_CANDIDATE_ROOT_V1}/`,
+  it.each([
+    [[]],
+    [["--candidate"]],
+    [["--out", "x"]],
+    [["--candidate", "x", "extra"]],
+  ])("refuses build:candidate arguments %j", (args) => {
+    const result = spawnSync(
+      process.execPath,
+      [resolve(root, "tools", "build-candidate.mjs"), ...args],
+      { cwd: root, encoding: "utf8" },
     );
+    expect(result.status).toBe(1);
+    expect(result.stderr).toMatch(/usage: npm run build:candidate -- --candidate/u);
+  });
+
+  it("keeps the candidate root and its build staging out of git", () => {
+    const ignored = readFileSync(resolve(root, ".gitignore"), "utf8").split(/\r?\n/u);
+    expect(ignored).toContain(`${CATALOG_CANDIDATE_ROOT_V1}/`);
+    expect(ignored).toContain("/.candidate-build-*/");
   });
 });

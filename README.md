@@ -676,6 +676,78 @@ On POSIX systems, the private key must not grant group or other access. Output
 creation is exclusive, and linked seed artifacts, evidence, private keys, or
 output paths are rejected. Keep signer roots outside catalog-controlled data.
 
+## Build a candidate package for Core's preparation tools
+
+A candidate package is not a release. It exists only so that Core's internal
+preparation tools can read their Catalog authority from an explicitly named,
+hashed package: `--candidate-catalog <tgz> --candidate-catalog-sha256 <sha256>`.
+Runbook step 8.3 builds one after the new vendor lock is copied (8.1–8.2) and
+before T3 writes the new packaged-source-data records (8.4).
+
+The problem it solves: a framework descriptor's `componentDefinitions` normally
+comes from that framework's packaged-source-data record, and T3 is what writes
+that record. In candidate mode, each framework whose record is not yet at the
+vendor-lock pin is named in `candidate-inputs.json` together with the exact T3
+`--compiler-input` file and its SHA-256:
+
+```json
+{
+  "format": "aih-catalog-candidate-inputs",
+  "version": 1,
+  "frameworks": {
+    "superpowers": { "compilerInput": "compiler/superpowers.json", "sha256": "<sha256 of that file>" }
+  }
+}
+```
+
+`compilerInput` resolves against the directory that holds the inputs file.
+`{ "omit": true }` leaves a framework's component definitions out entirely.
+
+The build refuses if any of these hold:
+
+- a compiler input's bytes do not match the named digest;
+- a compiler input's framework id, repository or commit differs from the
+  vendor-lock pin;
+- an unnamed framework's record is not at the pin;
+- the authoring bundle does not carry each named framework's source at the pin
+  with `pinned-baseline/v1`;
+- the checkout is dirty.
+
+For a named framework, the build never reads that framework's record and never
+overlays it onto the bundle.
+
+The candidate is written only to `dist-candidate/`. `defaults/` and `dist/` are
+never written. The candidate root carries two markers:
+
+- `CANDIDATE.json`: `{format: "aih-catalog-candidate", version: 1,
+  catalogCommit, inputsSha256, omittedSections}`;
+- `package.json#aihCandidate`: the same digest.
+
+The package version stays 0.3.x, because Core's loader requires it. The
+candidate `package.json` is `private` and has only a `prepublishOnly` script,
+which refuses. `build`, `build:dist`, `check:catalog-index` and the Catalog's
+own `prepublishOnly` refuse to run over either marker.
+
+Operator commands for step 8.3 (POSIX shell, run in the Catalog checkout at the
+recorded commit):
+
+```sh
+printf '{"format":"aih-catalog-candidate-inputs","version":1,"frameworks":{"superpowers":{"compilerInput":"%s","sha256":"%s"}}}\n' \
+  "$W/compiler/superpowers.json" "$(sha256sum -t "$W/compiler/superpowers.json" | cut -d' ' -f1)" > "$W/candidate-inputs.json"
+npm run build:candidate -- --candidate "$W/candidate-inputs.json"
+git rev-parse HEAD                     # equals CANDIDATE.json catalogCommit
+(cd dist-candidate && npm pack --pack-destination "$W/candidate")
+CAND=$W/candidate/aihq-catalog-0.3.0.tgz
+CAND_SHA=$(sha256sum -t "$CAND" | cut -d' ' -f1)
+```
+
+Record these in the log: the Catalog commit, `$W/candidate-inputs.json` and its
+`inputsSha256`, `$CAND`, `$CAND_SHA`, and `omittedSections`. After that, never
+edit the tarball: its digest is the authority the preparation used.
+
+Step 11 re-runs T3 without the candidate, against the shipped Catalog. That
+re-run is the proof.
+
 ## Version bumps, removal, and revocation
 
 A successor increments `sequence` and binds the previous

@@ -1,8 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { chmodSync, cpSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { createRequire } from "node:module";
-import { tmpdir } from "node:os";
-import { join, relative, resolve, sep } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { candidateMarkersV1 } from "./check-not-candidate.mjs";
 
@@ -40,17 +39,24 @@ const dirty = git("status", "--porcelain", "--untracked-files=all").trim();
 if (dirty !== "")
   fail(`the checkout has uncommitted changes; a candidate is built only at a recorded commit:\n${dirty}`);
 
-const staging = mkdtempSync(join(tmpdir(), "aih-catalog-candidate-build-"));
+// Staged inside the checkout so the compiled generators resolve its node_modules.
+const staging = mkdtempSync(join(root, ".candidate-build-"));
 try {
-  const tsc = createRequire(join(root, "package.json")).resolve("typescript/bin/tsc");
+  // typescript's exports map hides bin/; its main entry is lib/typescript.js.
+  const tsc = join(
+    dirname(dirname(createRequire(join(root, "package.json")).resolve("typescript"))),
+    "bin",
+    "tsc",
+  );
   const compiled = spawnSync(
     process.execPath,
     [tsc, "-p", "tsconfig.build.json", "--outDir", join(staging, "dist")],
     { cwd: root, stdio: "inherit" },
   );
-  if (compiled.status !== 0) fail("tsc failed");
+  if (compiled.status !== 0) throw new Error("tsc failed");
   const cli = join(staging, "dist", "cli.js");
-  if (!readFileSync(cli, "utf8").startsWith("#!/usr/bin/env node\n")) fail("cli-shebang-missing");
+  if (!readFileSync(cli, "utf8").startsWith("#!/usr/bin/env node\n"))
+    throw new Error("cli-shebang-missing");
 
   const { generateCatalogCandidateV1 } = await import(
     pathToFileURL(join(staging, "dist", "production", "candidate-build-v1.js")).href
@@ -77,6 +83,9 @@ try {
     );
   console.log(`omittedSections:\n  ${built.omittedSections.join("\n  ")}`);
   console.log(`next: cd ${built.outRoot} && npm pack --pack-destination <dir>`);
+} catch (error) {
+  console.error(`build:candidate: ${error instanceof Error ? error.message : String(error)}`);
+  process.exitCode = 1;
 } finally {
   rmSync(staging, { recursive: true, force: true });
 }
