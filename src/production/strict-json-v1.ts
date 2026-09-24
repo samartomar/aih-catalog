@@ -114,6 +114,35 @@ export function assertStrictJsonValueV1<T>(
   return value;
 }
 
+/**
+ * The nesting bound of the strict JSON reader: far above any real record (packaged scanner
+ * evidence nests seven levels). Core's packaged evidence reader uses the same
+ * (`STRICT_JSON_MAX_DEPTH_V1` in Core's src/contract/strict-json-v1.ts).
+ */
+export const STRICT_JSON_MAX_DEPTH_V1 = 32;
+
+/**
+ * Refuses JSON text whose objects and arrays nest deeper than `maxDepth` (the root is level 1).
+ * An iterative scan that skips string contents, so it runs before any recursive parser does;
+ * the same scan as Core's `assertJsonTextDepthV1`.
+ */
+export function assertJsonTextDepthV1(text: string, label: string, maxDepth: number): void {
+  let depth = 0;
+  let inString = false;
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text.charAt(index);
+    if (inString) {
+      if (char === "\\") index += 1;
+      else if (char === '"') inString = false;
+    } else if (char === '"') inString = true;
+    else if (char === "{" || char === "[") {
+      depth += 1;
+      if (depth > maxDepth)
+        throw new TypeError(`${label} nests deeper than ${String(maxDepth)} levels`);
+    } else if (char === "}" || char === "]") depth -= 1;
+  }
+}
+
 const JSON_NUMBER = /-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/y;
 const JSON_HEX4 = /^[0-9a-fA-F]{4}$/;
 const JSON_ESCAPES: Readonly<Record<string, string>> = {
@@ -130,13 +159,15 @@ const JSON_ESCAPES: Readonly<Record<string, string>> = {
 /**
  * Core's strict JSON reader (`parseStrictJsonObjectV1` in Core's src/contract/strict-json-v1.ts,
  * jsonc-parser without comments or trailing commas), without a runtime dependency: well-formed
- * NFC text; RFC 8259 grammar only (no byte order mark, comments, trailing commas or trailing
+ * NFC text nested at most `STRICT_JSON_MAX_DEPTH_V1` levels (checked first, without recursion);
+ * RFC 8259 grammar only (no byte order mark, comments, trailing commas or trailing
  * data; JSON whitespace only); no duplicate object keys; an object root; then every string, key
  * and number strict (`assertStrictJsonValueV1`). A `__proto__` member is refused by name: no JSON
  * parse preserves one (Core's reader makes it the prototype or drops it), so Core's packaged
  * evidence reader refuses it from the parse tree the same way.
  */
 export function parseStrictJsonObjectV1(text: string, label: string): Record<string, unknown> {
+  assertJsonTextDepthV1(text, label, STRICT_JSON_MAX_DEPTH_V1);
   assertWellFormedNfcV1(text, `${label} JSON text`);
   let index = 0;
   const fail = (expected: string): never => {

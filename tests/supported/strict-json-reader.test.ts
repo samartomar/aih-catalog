@@ -40,4 +40,19 @@ describe("strict JSON reader", () => {
   ])("refuses %s", (_label, text, reason) => {
     expect(() => read(text)).toThrow(reason);
   });
+
+  it.each([
+    ["arrays", `{"x":${"[".repeat(100_000)}0${"]".repeat(100_000)}}`],
+    ["objects", `${'{"a":'.repeat(100_000)}0${"}".repeat(100_000)}`],
+    ["an unterminated nest", `{"x":${"[".repeat(100_000)}`],
+    ["33 levels", `{"x":${"[".repeat(32)}${"]".repeat(32)}}`],
+  ])("refuses %s nested past 32 levels as a TypeError, before recursing", (_label, text) => {
+    expect(() => read(text)).toThrow(TypeError);
+    expect(() => read(text)).toThrow(/nests deeper than 32 levels/);
+  });
+
+  it("reads 32 levels, with brackets inside strings not counted", () => {
+    const text = `{"s":"[[[{{{\\"","x":${"[".repeat(31)}${"]".repeat(31)}}`;
+    expect(read(text)).toEqual(JSON.parse(text));
+  });
 });

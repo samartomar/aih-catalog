@@ -29,12 +29,16 @@ const UNTRIMMED = /must be a trimmed string/;
 const NOT_NFC = /must already be NFC/;
 const LONE_SURROGATE = /lone high surrogate/;
 const NOT_CANONICAL = /must use canonical bytes/;
+const TOO_DEEP = /nests deeper than 32 levels/;
 /** Catalog's structural outcome for every shared case, the defect a refusal must name, and Core's admission. */
 const EXPECTED: Record<string, readonly [Outcome, Outcome, RegExp?]> = {
   "asset-bound-twice": ["refused", "refused", /coverage asset bound twice/],
   "bytes-bom": ["refused", "refused", /invalid JSON/],
+  "bytes-deep-nesting": ["refused", "refused", TOO_DEEP],
   "bytes-duplicate-key": ["refused", "refused", /duplicate JSON object key: inputFormat/],
   "bytes-escaped-not-nfc": ["refused", "refused", NOT_NFC],
+  "bytes-nesting-at-bound": ["refused", "refused", /unmapped 0 must be a valid string/],
+  "bytes-nesting-over-bound": ["refused", "refused", TOO_DEEP],
   "bytes-number-exponent": ["refused", "refused", NOT_CANONICAL],
   "bytes-number-negative-zero": ["refused", "refused", /not negative zero/],
   "bytes-number-overflow": ["refused", "refused", /numbers must be finite/],
@@ -96,6 +100,14 @@ describe("packaged collection evidence parity with Core", () => {
       expect(read(fixture)).toHaveLength(1);
       return;
     }
-    expect(() => read(fixture)).toThrow(reason);
+    // Every refusal is a TypeError; anything else (a RangeError, say) is a crash.
+    let refusal: unknown;
+    try {
+      read(fixture);
+    } catch (error) {
+      refusal = error;
+    }
+    expect(refusal).toBeInstanceOf(TypeError);
+    if (reason !== undefined) expect((refusal as Error).message).toMatch(reason);
   });
 });
