@@ -126,8 +126,75 @@ describe("whole-repository baseline inventory", () => {
       [blob("x.md"), blob("X.md", "120000")],
       /tree paths differ only by case: x.md, X.md/,
     ],
+    [
+      "a dotless i beside a capital I (different lowercase keys, one name on Windows)",
+      [blob("I/SKILL.md"), blob("ı/x")],
+      /non-portable tree path "ı\/x": a character outside printable ASCII/,
+    ],
+    [
+      "a non-ASCII letter",
+      [blob("docs/café.md")],
+      /non-portable tree path "docs\/café.md": a character outside printable ASCII/,
+    ],
+    [
+      "a long s (uppercases to S)",
+      [blob("ſkills/x.md")],
+      /non-portable tree path "ſkills\/x.md": a character outside printable ASCII/u,
+    ],
+    ...["<", ">", '"', "|", "*"].map(
+      (character) =>
+        [
+          `the Windows-reserved character ${character}`,
+          [blob(`a${character}b/x.md`)],
+          /non-portable tree path .*: a Windows-reserved character/,
+        ] as const,
+    ),
+    [
+      "a segment ending in a dot",
+      [blob("docs./x.md")],
+      /non-portable tree path "docs.\/x.md": a trailing dot or space/,
+    ],
+    [
+      "a segment ending in a space",
+      [blob("notes .md ")],
+      /non-portable tree path "notes .md ": a trailing dot or space/,
+    ],
+    ...["CON", "prn", "Aux", "nul.txt", "COM1.md", "lpt9", "com0.tar.gz", "NUL .md"].map(
+      (name) =>
+        [
+          `the Windows-reserved name ${name}`,
+          [blob(`skills/${name}/SKILL.md`)],
+          /non-portable tree path .*: a Windows-reserved name/,
+        ] as const,
+    ),
+    [
+      "an 8.3 short-name shape (aliases a long name on NTFS)",
+      [blob("LONGNAME.md"), blob("LONGNA~1.MD")],
+      /non-portable tree path "LONGNA~1.MD": an 8.3 short-name shape/,
+    ],
   ] as const)("refuses %s", (_label, entries, reason) => {
     expect(() => baselineInventoryFromTreeV1("ecc", COMMIT, [...entries])).toThrow(reason);
+  });
+
+  it("accepts every portable spelling, including near misses of the refused ones", () => {
+    const paths = [
+      "a b/x.md",
+      ".github/workflows/ci.yml",
+      "CONSOLE.md",
+      "con-fig/x.md",
+      "com10.md",
+      "lpt.md",
+      "x~y.md",
+      "a.b.c",
+      "(x)[y]{z}!@$&+,;=^`'.md",
+    ];
+    expect(() =>
+      baselineInventoryFromTreeV1(
+        "ecc",
+        COMMIT,
+        paths.map((path) => blob(path)),
+      ),
+    ).not.toThrow();
   });
 
   it("rejects an unknown subject or a malformed commit", () => {

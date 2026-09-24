@@ -25,7 +25,8 @@ import {
  *
  * Anything that rule does not partition (a root SKILL.md, a skill inside a skill, a link
  * inside a directory component, a submodule, a repeated id) is refused, never guessed, and so
- * is a tree whose paths differ only by case (they alias on a case-insensitive file system).
+ * is a tree whose paths differ only by case (they alias on a case-insensitive file system) or
+ * name a segment outside the portable set (`nonPortableSegmentV1`).
  */
 export interface GitTreeEntryV1 {
   readonly mode: string;
@@ -82,6 +83,27 @@ function baselineInventoryPathCaseKeyV1(path: string): string {
   return path.normalize("NFC").toLowerCase();
 }
 
+/** Win32 device names, reserved in any case and with any extension. */
+const WINDOWS_RESERVED_NAME = /^(?:CON|PRN|AUX|NUL|COM[0-9]|LPT[0-9])$/iu;
+
+/**
+ * Why a path segment falls outside the portable set, or undefined. The set is printable
+ * ASCII without the Windows-reserved characters, a trailing dot or space (Win32 strips
+ * them), a reserved device name, or an 8.3 short-name shape (`~` and a digit, which can name
+ * another file on NTFS). Outside it no case mapping is demonstrably the file systems' own
+ * (`I` and `ı`, for one), so the case check below is exact only inside it. Core's definition
+ * check applies the same rule.
+ */
+function nonPortableSegmentV1(segment: string): string | undefined {
+  if (!/^[\x20-\x7e]+$/u.test(segment)) return "a character outside printable ASCII";
+  if (/[<>:"\\|?*]/u.test(segment)) return "a Windows-reserved character";
+  if (/[. ]$/u.test(segment)) return "a trailing dot or space";
+  if (WINDOWS_RESERVED_NAME.test((segment.split(".")[0] as string).trimEnd()))
+    return "a Windows-reserved name";
+  if (/~[0-9]/u.test(segment)) return "an 8.3 short-name shape";
+  return undefined;
+}
+
 /** Partitions one commit's tracked tree into the disjoint whole-repository inventory. */
 export function baselineInventoryFromTreeV1(
   name: string,
@@ -100,6 +122,11 @@ export function baselineInventoryFromTreeV1(
       fail(`unsafe tree path ${JSON.stringify(entry.path)}`);
     }
     const segments = entry.path.split("/");
+    for (const segment of segments) {
+      const reason = nonPortableSegmentV1(segment);
+      if (reason !== undefined)
+        fail(`non-portable tree path ${JSON.stringify(entry.path)}: ${reason}`);
+    }
     for (let length = 1; length <= segments.length; length += 1) {
       const prefix = segments.slice(0, length).join("/");
       const key = baselineInventoryPathCaseKeyV1(prefix);
