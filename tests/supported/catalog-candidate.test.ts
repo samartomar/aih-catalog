@@ -587,6 +587,7 @@ describe("candidate guards in the package scripts", () => {
     const ignored = readFileSync(resolve(root, ".gitignore"), "utf8").split(/\r?\n/u);
     expect(ignored).toContain(`${CATALOG_CANDIDATE_ROOT_V1}/`);
     expect(ignored).toContain("/.candidate-build-*/");
+    expect(ignored).toContain("/.candidate-build.lock");
   });
 });
 
@@ -636,7 +637,10 @@ function fixtureCheckout(): string {
   const dir = tempDir();
   gitIn(dir, "init", "-q");
   writeFileSync(join(dir, ".gitattributes"), "* -text\n");
-  writeFileSync(join(dir, ".gitignore"), "dist/\ndist-candidate/\n/.candidate-build-*/\n");
+  writeFileSync(
+    join(dir, ".gitignore"),
+    "dist/\ndist-candidate/\n/.candidate-build-*/\n/.candidate-build.lock\n",
+  );
   writeFileSync(join(dir, "package.json"), '{"name":"@aihq/catalog"}');
   mkdirSync(join(dir, "src", "production", "data"), { recursive: true });
   writeFileSync(join(dir, INPUT), COMMITTED);
@@ -1202,6 +1206,63 @@ describe("the candidate build reads only the named checkout", () => {
     ).rejects.toThrow(/top level/u);
     expect(called).toBe(false);
     expect(readdirSync(join(dir, "src"))).not.toContain(CATALOG_CANDIDATE_ROOT_V1);
+  });
+});
+
+describe("the candidate build is serialized by a lock file", () => {
+  const lockPath = (dir: string) => join(dir, ".candidate-build.lock");
+
+  it("refuses a second build while the lock is held, naming the lock and its removal", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    let nested: unknown;
+    const built = await buildCandidateFromCommitV1(dir, async (snapshot) => {
+      await buildCandidateFromCommitV1(dir, emit).catch((error: unknown) => {
+        nested = error;
+      });
+      return emit(snapshot);
+    });
+    expect((nested as { code?: string })?.code).toBe("candidate-build-locked");
+    expect((nested as Error).message).toContain(lockPath(dir));
+    expect((nested as Error).message).toMatch(/stale/u);
+    expect(readFileSync(join(built.outRoot, "input.json"), "utf8")).toBe(COMMITTED);
+    // The outer build's lock is removed on success.
+    expect(existsSync(lockPath(dir))).toBe(false);
+    expect(staging(dir)).toEqual([]);
+  });
+
+  it("refuses a stale lock file without removing it", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    writeFileSync(lockPath(dir), "stale\n");
+    let called = false;
+    let failure: unknown;
+    await buildCandidateFromCommitV1(dir, () => {
+      called = true;
+    }).catch((error: unknown) => {
+      failure = error;
+    });
+    expect((failure as { code?: string })?.code).toBe("candidate-build-locked");
+    expect(called).toBe(false);
+    // Not this build's lock: left in place, and no staging leaked.
+    expect(readFileSync(lockPath(dir), "utf8")).toBe("stale\n");
+    expect(staging(dir)).toEqual([]);
+    rmSync(lockPath(dir));
+    const built = await buildCandidateFromCommitV1(dir, emit);
+    expect(built.catalogCommit).toBe(gitIn(dir, "rev-parse", "HEAD"));
+    expect(existsSync(lockPath(dir))).toBe(false);
+  });
+
+  it("removes the lock when the build fails", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    await expect(
+      buildCandidateFromCommitV1(dir, () => {
+        throw new Error("boom");
+      }),
+    ).rejects.toThrow(/boom/u);
+    expect(existsSync(lockPath(dir))).toBe(false);
+    expect(staging(dir)).toEqual([]);
   });
 });
 

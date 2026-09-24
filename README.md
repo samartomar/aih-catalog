@@ -716,7 +716,16 @@ The build refuses if any of these hold:
 For a named framework, the build never reads that framework's record and never
 overlays it onto the bundle.
 
-The build never reads the live checkout. It records `HEAD` and materializes
+The build never reads the live checkout. It is a maintainer-local tool: a
+process running as the same user that races the checkout during a build
+(swapping directories between a check and a rename or delete) is outside its
+threat model — the same bound as D21/D22/D23, because that user can already
+edit the checkout and the tools. Accidental divergence and anything the
+repository's own files or configuration can cause stay fail-closed. One build
+runs at a time per checkout, serialized by an exclusive
+`.candidate-build.lock` (gitignored) held for the whole build and exposure; a
+second build refuses, naming the lock and how to remove a stale one. The
+build records `HEAD` and materializes
 that commit's tree from raw git objects (`git ls-tree` and `git cat-file`, so
 checkout conversions — smudge filters, attributes, eol rewrites — never apply)
 into a gitignored `.candidate-build-*` snapshot, then compiles, generates and

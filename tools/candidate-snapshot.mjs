@@ -391,7 +391,14 @@ function verifySnapshotBytes(tree, entries, format, commit) {
  * modesVerified }`; `modesVerified` is false on win32, where there are no
  * executable bits to verify.
  *
- * Exposure is rollback-safe. An existing candidate root is first renamed into a
+ * Exposure is rollback-safe. One build runs at a time per checkout: an
+ * exclusive lock file (.candidate-build.lock, gitignored) is held for the
+ * whole build and exposure and removed on success and on every failure; a
+ * second build refuses and names the file. A process running as the same
+ * user that races the checkout mid-build is outside the threat model
+ * (coordinator D27, the same bound as D21/D22/D23); everything a
+ * repository's own files or configuration can cause stays fail-closed.
+ * An existing candidate root is first renamed into a
  * private quarantine inside the staging directory; the moved object is
  * validated there (a real directory, never a link or junction, carrying the
  * candidate marker) and moved back untouched if it is not an earlier candidate
@@ -413,10 +420,25 @@ export async function buildCandidateFromCommitV1(checkout, step) {
   // Set when a rollback failure keeps the quarantine: staging then stays, so
   // the only copy of the earlier candidate is never deleted.
   let keepStaging = false;
+  // One build at a time per checkout, for the whole build and exposure: the
+  // lock is created exclusively and removed on success and on every failure.
+  // A directory swap by another process running as the same user is outside
+  // the threat model (coordinator D27).
+  const lockPath = join(root, ".candidate-build.lock");
+  let lockHeld = false;
   try {
     const context = { hooksDir: join(staging, "hooks"), emptyConfig: join(staging, "gitconfig") };
     mkdirSync(context.hooksDir);
     writeFileSync(context.emptyConfig, "");
+    try {
+      writeFileSync(lockPath, `pid ${process.pid}\n`, { flag: "wx" });
+      lockHeld = true;
+    } catch {
+      throw new CandidateBuildRefusalV1(
+        "candidate-build-locked",
+        `another candidate build is running (lock file ${lockPath}); if no build is running, remove the stale lock file yourself`,
+      );
+    }
     assertCheckoutRoot(context, root);
     const markers = candidateMarkersV1(root);
     if (markers.length > 0)
@@ -499,6 +521,7 @@ export async function buildCandidateFromCommitV1(checkout, step) {
     if (quarantined !== undefined) rmSync(quarantined, { recursive: true, force: true });
     return { catalogCommit, outRoot, result, modesVerified: process.platform !== "win32" };
   } finally {
+    if (lockHeld) rmSync(lockPath, { force: true });
     if (!keepStaging) rmSync(staging, { recursive: true, force: true });
   }
 }
