@@ -26,12 +26,28 @@ const CATALOG_IDS = ["aih", "mattpocock", "ponytail", "ecc", "superpowers"] as c
 const EVIDENCE_MAX_AGE_SECONDS = 90 * 86_400;
 const UTC = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/u;
 
-export interface PackagedEvidenceComponentV1 {
+export interface PackagedEvidenceSubjectV1 {
+  assetId: string;
+  sourceId: string;
+  sourceRevisionId: string;
+  contentDigest: string;
+}
+
+/**
+ * A compiler-partition component covers exactly one compiled asset (`subject`). A
+ * whole-repository inventory component is scanned whatever its asset count and names the
+ * zero-to-many compiled assets whose original path it scans (`subjects`, in asset-id order).
+ */
+export type PackagedEvidenceComponentV1 = {
   componentId: string;
   componentTreeSha256: string;
   paths: string[];
   files: { path: string; digest: string }[];
-  subject: { assetId: string; sourceId: string; sourceRevisionId: string; contentDigest: string };
+} & ({ subject: PackagedEvidenceSubjectV1 } | { subjects: PackagedEvidenceSubjectV1[] });
+
+/** The compiled assets one coverage component binds. */
+function componentSubjectsV1(covered: PackagedEvidenceComponentV1): PackagedEvidenceSubjectV1[] {
+  return "subject" in covered ? [covered.subject] : covered.subjects;
 }
 
 export interface PackagedScannerCollectionEvidenceV1 {
@@ -128,17 +144,34 @@ function strictKeys(value: unknown, keys: readonly string[], label: string): Jso
   return exactKeys(record(value, label), keys, label);
 }
 
-function component(value: unknown, label: string): PackagedEvidenceComponentV1 {
+function subject(value: unknown, label: string): PackagedEvidenceSubjectV1 {
   const input = strictKeys(
     value,
-    ["componentId", "componentTreeSha256", "paths", "files", "subject"],
+    ["assetId", "sourceId", "sourceRevisionId", "contentDigest"],
     label,
   );
-  const subject = strictKeys(
-    input.subject,
-    ["assetId", "sourceId", "sourceRevisionId", "contentDigest"],
-    `${label} subject`,
+  return {
+    assetId: bounded(input.assetId, `${label} asset`, 240),
+    sourceId: bounded(input.sourceId, `${label} source`, 240),
+    sourceRevisionId: bounded(input.sourceRevisionId, `${label} revision`, 240),
+    contentDigest: text(input.contentDigest, `${label} content digest`, QUALIFIED_SHA256),
+  };
+}
+
+function component(value: unknown, label: string): PackagedEvidenceComponentV1 {
+  const inventory = Object.hasOwn(record(value, label), "subjects");
+  const input = strictKeys(
+    value,
+    ["componentId", "componentTreeSha256", "paths", "files", inventory ? "subjects" : "subject"],
+    label,
   );
+  const subjects = inventory
+    ? {
+        subjects: list(input.subjects, `${label} subjects`, 0, 1_000).map((item, index) =>
+          subject(item, `${label} subject ${String(index)}`),
+        ),
+      }
+    : { subject: subject(input.subject, `${label} subject`) };
   return {
     componentId: bounded(input.componentId, `${label} id`, 240),
     componentTreeSha256: text(input.componentTreeSha256, `${label} tree`, SHA256_HEX),
@@ -152,12 +185,7 @@ function component(value: unknown, label: string): PackagedEvidenceComponentV1 {
         digest: text(entry.digest, `${label} file ${String(index)} digest`, QUALIFIED_SHA256),
       };
     }),
-    subject: {
-      assetId: bounded(subject.assetId, `${label} asset`, 240),
-      sourceId: bounded(subject.sourceId, `${label} source`, 240),
-      sourceRevisionId: bounded(subject.sourceRevisionId, `${label} revision`, 240),
-      contentDigest: text(subject.contentDigest, `${label} content digest`, QUALIFIED_SHA256),
-    },
+    ...subjects,
   };
 }
 
@@ -366,6 +394,17 @@ function assertConsistent(value: PackagedScannerCollectionEvidenceV1): void {
     ]),
   );
   if (components.size !== value.coverage.components.length) fail("duplicate coverage component");
+  // Every compiled asset belongs to at most one component, named once.
+  const assets = new Set<string>();
+  for (const covered of value.coverage.components) {
+    const ids = componentSubjectsV1(covered).map((item) => item.assetId);
+    if (ids.some((id, index) => index > 0 && (ids[index - 1] as string) > id))
+      fail("coverage subjects out of order");
+    for (const id of ids) {
+      if (assets.has(id)) fail("coverage asset bound twice");
+      assets.add(id);
+    }
+  }
   if (reports.size !== value.report.components.length || reports.size !== components.size)
     fail("report coverage cardinality mismatch");
   const seen = new Set<string>();
@@ -432,11 +471,11 @@ export function parsePackagedScannerCollectionEvidenceV1(
 
 function exactAsset(
   bundle: AuthoringCatalogBundleV1,
-  covered: PackagedEvidenceComponentV1,
+  subject: PackagedEvidenceSubjectV1,
   evidence: PackagedScannerCollectionEvidenceV1,
 ): boolean {
-  const asset = bundle.assets[covered.subject.assetId];
-  const source = bundle.sources[covered.subject.sourceId];
+  const asset = bundle.assets[subject.assetId];
+  const source = bundle.sources[subject.sourceId];
   const expected = evidence.catalog.source;
   return (
     asset !== undefined &&
@@ -447,11 +486,11 @@ function exactAsset(
     source.inputFormat === expected.inputFormat &&
     source.upstreamOrigin.kind === expected.upstreamOrigin.kind &&
     source.upstreamOrigin.locator === expected.upstreamOrigin.locator &&
-    source.id === covered.subject.sourceId &&
-    asset.id === covered.subject.assetId &&
-    asset.sourceId === covered.subject.sourceId &&
-    asset.sourceRevisionId === covered.subject.sourceRevisionId &&
-    asset.contentDigest === covered.subject.contentDigest &&
+    source.id === subject.sourceId &&
+    asset.id === subject.assetId &&
+    asset.sourceId === subject.sourceId &&
+    asset.sourceRevisionId === subject.sourceRevisionId &&
+    asset.contentDigest === subject.contentDigest &&
     asset.derivation === (expected.upstreamOrigin.kind === "aih" ? "built-in" : "upstream")
   );
 }
@@ -469,12 +508,7 @@ export function projectScannerCollectionEvidenceV1(
     for (const covered of evidence.coverage.components) {
       const report = reports.get(covered.componentId);
       const observation = observations.get(covered.componentId);
-      if (
-        report === undefined ||
-        observation === undefined ||
-        !exactAsset(bundle, covered, evidence)
-      )
-        continue;
+      if (report === undefined || observation === undefined) continue;
       const published = evidence.publications.find(
         (item) =>
           item.requestSha256 === observation.requestSha256 &&
@@ -482,36 +516,40 @@ export function projectScannerCollectionEvidenceV1(
           item.receiptSha256 === observation.receiptSha256,
       );
       if (published === undefined) continue;
-      const id = `evidence:${covered.subject.assetId}`;
-      result[id] = {
-        id,
-        projectionVersion: "evidence-summary/v1",
-        subjects: [covered.subject],
-        evidenceDigest: `sha256:${canonicalStrictJsonSha256V1({ record: recordDigest, component: covered, observation })}`,
-        coveredPaths: [...covered.paths].sort(),
-        verification: {
-          state: "verified",
-          verifiedAt: evidence.verification.preparedAt,
-          validUntil: evidenceExpiryV1(observation.reportSignedAt),
-          contextDigest: `sha256:${canonicalStrictJsonSha256V1({ record: recordDigest, publication: observation.publicationSha256, receipt: observation.receiptSha256 })}`,
-        },
-        scan: {
-          outcome: report.verdict === "blocked" ? "failed" : "pass",
-          coverage: "complete",
-          analyzers: [...report.analyzers].sort((left, right) => {
-            const leftKey = `${left.name}\u0000${left.version}`;
-            const rightKey = `${right.name}\u0000${right.version}`;
-            return leftKey < rightKey ? -1 : leftKey > rightKey ? 1 : 0;
-          }),
-          reportSignedAt: observation.reportSignedAt,
-          reportVerificationExpiresAt: observation.reportVerificationExpiresAt,
-          publishedAt: published.publishedAt,
-        },
-        qualification: { state: "unknown" },
-        findings: report.findings
-          .slice(0, 50)
-          .map((finding) => `${finding.code}: ${finding.detail}`.slice(0, 1000)),
-      } as EvidenceSummaryV1;
+      // Each compiled asset the component's scan covers gets that scan's evidence.
+      for (const subject of componentSubjectsV1(covered)) {
+        if (!exactAsset(bundle, subject, evidence)) continue;
+        const id = `evidence:${subject.assetId}`;
+        result[id] = {
+          id,
+          projectionVersion: "evidence-summary/v1",
+          subjects: [subject],
+          evidenceDigest: `sha256:${canonicalStrictJsonSha256V1({ record: recordDigest, component: covered, observation, ...("subject" in covered ? {} : { subject }) })}`,
+          coveredPaths: [...covered.paths].sort(),
+          verification: {
+            state: "verified",
+            verifiedAt: evidence.verification.preparedAt,
+            validUntil: evidenceExpiryV1(observation.reportSignedAt),
+            contextDigest: `sha256:${canonicalStrictJsonSha256V1({ record: recordDigest, publication: observation.publicationSha256, receipt: observation.receiptSha256 })}`,
+          },
+          scan: {
+            outcome: report.verdict === "blocked" ? "failed" : "pass",
+            coverage: "complete",
+            analyzers: [...report.analyzers].sort((left, right) => {
+              const leftKey = `${left.name}\u0000${left.version}`;
+              const rightKey = `${right.name}\u0000${right.version}`;
+              return leftKey < rightKey ? -1 : leftKey > rightKey ? 1 : 0;
+            }),
+            reportSignedAt: observation.reportSignedAt,
+            reportVerificationExpiresAt: observation.reportVerificationExpiresAt,
+            publishedAt: published.publishedAt,
+          },
+          qualification: { state: "unknown" },
+          findings: report.findings
+            .slice(0, 50)
+            .map((finding) => `${finding.code}: ${finding.detail}`.slice(0, 1000)),
+        } as EvidenceSummaryV1;
+      }
     }
   }
   return result;
