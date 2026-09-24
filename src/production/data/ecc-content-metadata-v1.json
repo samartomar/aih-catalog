@@ -1,7 +1,7 @@
 {
   "version": 1,
   "repository": "affaan-m/ECC",
-  "commit": "5caf398a91599029a176ca6d806409b00d1052c4",
+  "commit": "5064474d4d762dc9640234a41617cccb79185cec",
   "agents": [
     {
       "id": "a11y-architect",
@@ -267,7 +267,7 @@
       "id": "doc-updater",
       "title": "doc-updater",
       "path": "agents/doc-updater.md",
-      "summary": "Documentation and codemap specialist. Use PROACTIVELY for updating codemaps and documentation. Runs /update-codemaps and /update-docs, generates docs/CODEMAPS/*, updates READMEs and guides.",
+      "summary": "Documentation and codemap specialist. Use PROACTIVELY for updating codemaps and documentation. Generates docs/CODEMAPS/*, updates READMEs and guides. Backs the /update-codemaps and /update-docs commands.",
       "usageContext": "Use PROACTIVELY for updating codemaps and documentation.",
       "allowedTools": [
         "Read",
@@ -277,7 +277,7 @@
         "Grep",
         "Glob"
       ],
-      "sourceSha256": "3652d351df1cec43360fc2106a31fac3946e24b04885bf25550abbb5145079f6"
+      "sourceSha256": "5018d3a0bf740d2263fd4b7a92412d53a62d4be151a71221d6549cacba62d72c"
     },
     {
       "id": "docs-lookup",
@@ -362,9 +362,15 @@
         "Write",
         "Bash",
         "Grep",
-        "Glob"
+        "Glob",
+        "mcp__playwright__browser_navigate",
+        "mcp__playwright__browser_click",
+        "mcp__playwright__browser_take_screenshot",
+        "mcp__playwright__browser_snapshot",
+        "mcp__playwright__browser_type",
+        "mcp__playwright__browser_fill_form"
       ],
-      "sourceSha256": "598cb83f2cfd9dcce1f6ac02927ca20e5dd070ad619749dd001df1b674fbe7c1"
+      "sourceSha256": "ed41b2ab30893c66216def0334887bd29e05d62ccd0a759e0cd90f14566cdfc4"
     },
     {
       "id": "gan-generator",
@@ -446,8 +452,8 @@
       "id": "harness-optimizer",
       "title": "harness-optimizer",
       "path": "agents/harness-optimizer.md",
-      "summary": "Analyze and improve the local agent harness configuration for reliability, cost, and throughput.",
-      "usageContext": "Analyze and improve the local agent harness configuration for reliability, cost, and throughput.",
+      "summary": "Improve local agent-harness configuration reliability and cost using eval-driven grading (pass@k/pass^k) derived from the eval-harness skill.",
+      "usageContext": "Improve local agent-harness configuration reliability and cost using eval-driven grading (pass@k/pass^k) derived from the eval-harness skill.",
       "allowedTools": [
         "Read",
         "Grep",
@@ -455,7 +461,7 @@
         "Bash",
         "Edit"
       ],
-      "sourceSha256": "5ebfb9b9d2b23418c34cd3d669fb6434f9b63d782b761553fd5a9d7891334aff"
+      "sourceSha256": "16b5cd0cd03ba4de2a9cc6b737c8cc0d4e52d3fdc423a1c2bcdd6496d65d4cfd"
     },
     {
       "id": "healthcare-reviewer",
@@ -1182,9 +1188,9 @@
       "title": "autonomous-agent-harness",
       "path": "skills/autonomous-agent-harness/SKILL.md",
       "summary": "Transform Claude Code into a fully autonomous agent system with persistent memory, scheduled operations, computer use, and task queuing. Replaces standalone agent frameworks (Hermes, AutoGPT) by leveraging Claude Code's native crons, dispatch, MCP tools, and memory. Use when the user wants continuous autonomous operation, scheduled tasks, or a self-directing agent loop.",
-      "usageContext": "curl -X POST \"https://api.anthropic.com/dispatch\" \\ -H \"Authorization: Bearer $ANTHROPICAPIKEY\" \\ -d '{\"prompt\": \"Build failed on main. Diagnose and fix.\", \"project\": \"/repo\"}'",
+      "usageContext": "GitHub webhook - authenticated CI runner - claude -p - reviewable result",
       "allowedTools": [],
-      "sourceSha256": "4de9a47cdeb0ad2c3838878f13c676db4fbe4a68b4cdda54a6851b28e6facdaa"
+      "sourceSha256": "74afde3fa6e8423bdbf43f53b24c7b4a8b441648a1ad8f23953dc6eba3378409"
     },
     {
       "id": "autonomous-loops",
@@ -1522,7 +1528,7 @@
       "summary": "Cost optimization patterns for LLM API usage — model routing by task complexity, budget tracking, retry logic, and prompt caching. Use when LLM spend needs to come down, or when routing tasks across model tiers and budgets.",
       "usageContext": "Any application calling Claude, OpenAI, or similar LLM APIs Batch processing pipelines where cost adds up quickly Multi-model architectures that need intelligent routing Production systems that need budget guardrails",
       "allowedTools": [],
-      "sourceSha256": "7df1b284d527e4a089a241650baee1d7f96a07f5cc3d97e2dd91d4d25bff81e1"
+      "sourceSha256": "2d6c19c2d21a473db8720c4f723f17d265eeec48f84614f0169be2df2fbe28ff"
     },
     {
       "id": "cost-tracking",
@@ -1576,7 +1582,7 @@
       "summary": "Multi-platform content distribution across X, LinkedIn, Threads, and Bluesky. Adapts content per platform using content-engine patterns. Never posts identical content cross-platform. Use when the user wants to distribute content across social platforms.",
       "usageContext": "Use when the user wants to distribute content across social platforms.",
       "allowedTools": [],
-      "sourceSha256": "e5366ab70222c8f36903e8a0c0e39731e2973917f7a14b962047513fa894547a"
+      "sourceSha256": "03bd2ef6e08191cd336e9b8e7a55c29040e7a3225defdaeab1b51d983565661f"
     },
     {
       "id": "csharp-testing",
@@ -1630,7 +1636,7 @@
       "summary": "Build a fully automated AI-powered data collection agent for any public source — job boards, prices, news, GitHub, sports, anything. Runs on a schedule, enriches data with a free LLM (Gemini Flash), stores results in Notion/Sheets/Supabase, and learns from user feedback. Runs 100% free on GitHub Actions. Use when the user wants to monitor, collect, or track any public data automatically.",
       "usageContext": "Use when the user wants to monitor, collect, or track any public data automatically.",
       "allowedTools": [],
-      "sourceSha256": "8354c4606b7a8ac47e00be09f23335372cbafc0c63099c9ef394c9e40dd118ee"
+      "sourceSha256": "662e884d58f4089bd8e090ef8d32042b85a5d9b4715906a89072002704451c0a"
     },
     {
       "id": "data-throughput-accelerator",
@@ -1664,7 +1670,7 @@
       "summary": "Multi-source deep research using firecrawl and exa MCPs. Searches the web, synthesizes findings, and delivers cited reports with source attribution. Use when the user wants thorough research on any topic with evidence and citations.",
       "usageContext": "Use when the user wants thorough research on any topic with evidence and citations.",
       "allowedTools": [],
-      "sourceSha256": "f85e06874ffd0fcfea6051b4292f45fc2b7e4cd47586659817ddbafd6bea3ede"
+      "sourceSha256": "72e184f5d0f31ca4d45286753409d8c8431b025e8ac3800dcc9f32d9e930f58a"
     },
     {
       "id": "defi-amm-security",
@@ -1844,7 +1850,7 @@
       "summary": "Evidence-first mailbox triage, drafting, send verification, and sent-mail-safe follow-up workflow for ECC. Use when the user wants to organize email, draft or send through the real mail surface, or prove what landed in Sent.",
       "usageContext": "user asks to triage inbox or archive low-signal mail user wants a draft, reply, or new outbound email user wants to know whether a mail was already sent the user wants proof of which account, thread, or Sent entry was used",
       "allowedTools": [],
-      "sourceSha256": "627bc4a72c07b00ba7f5e3d78457a6d80e0817cb8a6507e8513abe46586586df"
+      "sourceSha256": "188b226ec0dfd4304d6c9b60498b5f0dc2b3c97b14e159e5bde5db323ad45721"
     },
     {
       "id": "energy-procurement",
@@ -1905,7 +1911,7 @@
       "summary": "Neural search via Exa MCP for web, code, and company research. Use when the user needs web search, code examples, company intel, people lookup, or AI-powered deep research with Exa's neural search engine.",
       "usageContext": "Quick Lookup",
       "allowedTools": [],
-      "sourceSha256": "cfab0ee1af18b56cd2e2726febb023ab77205bf5c082cce5331aadff6e02e7f5"
+      "sourceSha256": "ebc8e7ab299a6649f575e218f0c25f4d869017b8ad4b5f7725cedceaf82700e5"
     },
     {
       "id": "fal-ai-media",
@@ -2030,7 +2036,7 @@
       "summary": "Fact-forcing gate that blocks Edit/Write/Bash (including MultiEdit) and demands concrete investigation (importers, data schemas, user instruction) before allowing the action. Measurably improves output quality by +2.25 points vs ungated agents.",
       "usageContext": "Fact-forcing gate that blocks Edit/Write/Bash (including MultiEdit) and demands concrete investigation (importers, data schemas, user instruction) before allowing the action.",
       "allowedTools": [],
-      "sourceSha256": "745b0f84643d8a9ab82ae10366cc8491af0265b3505bce6fed7ff80e107c3fdc"
+      "sourceSha256": "68fa6e19ead99d37e0f1fb26bf9297b4938366c602f7ff7308f676c8b613f470"
     },
     {
       "id": "generating-python-installer",
@@ -2057,7 +2063,7 @@
       "summary": "GitHub repository operations, automation, and management. Issue triage, PR management, CI/CD operations, release management, and security monitoring using the gh CLI. Use when the user wants to manage GitHub issues, PRs, CI status, releases, contributors, stale items, or any GitHub operational task beyond simple git commands.",
       "usageContext": "Use when the user wants to manage GitHub issues, PRs, CI status, releases, contributors, stale items, or any GitHub operational task beyond simple git commands.",
       "allowedTools": [],
-      "sourceSha256": "0688938f4d45a66108de4d64c5400c60f5a4fd00141ec254acd55b4bd7f127e8"
+      "sourceSha256": "e475484ce751d87c3df591879a98d917e9380ff687ac588fbd68578df526e92d"
     },
     {
       "id": "golang-patterns",
@@ -2291,7 +2297,7 @@
       "summary": "Query live GPU inventory, submit an authenticated Itô fixed-rate RFQ, inspect RFQ or procurement status, revoke device credentials, and run explicitly gated node qualification through the separately installed canonical CLI. Use when a user asks to find H100/H200 capacity, request a fixed compute rate, check Itô compute status, validate GPU nodes, revoke Itô access, or rent or purchase GPU compute and needs the supported boundary explained.",
       "usageContext": "Query live GPU inventory, submit an authenticated Itô fixed-rate RFQ, inspect RFQ or procurement status, revoke device credentials, and run explicitly gated node qualification through the separately installed canonical CLI. Use when a user asks to find H100/H200 capacity, request a fixed compute rate, check Itô compute status, validate GPU nodes, revoke Itô access, or rent or purchase GPU compute and needs the supported boundary explained.",
       "allowedTools": [],
-      "sourceSha256": "2c3570b5beeec45b3eb5efd4e862363af74de3bf18ee5827fd6d3d47abd0bf92"
+      "sourceSha256": "ed0664f44307b1243cd7fa7521b05ca3f50a1dd4460e93b55edb8bcda988e815"
     },
     {
       "id": "ito-inference",
@@ -2327,7 +2333,7 @@
       "summary": "Use this skill when retrieving Jira tickets, analyzing requirements, updating ticket status, adding comments, or transitioning issues. Provides Jira API patterns via MCP or direct REST calls.",
       "usageContext": "Use this skill when retrieving Jira tickets, analyzing requirements, updating ticket status, adding comments, or transitioning issues.",
       "allowedTools": [],
-      "sourceSha256": "4cabafb56cf071653740cfe1b1a416dd859a736623dd92cc674a3bbb83238b41"
+      "sourceSha256": "ce0a0c815e3112a1e80d4dbd1d2d0c804c2af0371628d325e04d7ffbddf4247e"
     },
     {
       "id": "jpa-patterns",
@@ -2469,7 +2475,7 @@
       "summary": "AI-native lead intelligence and outreach pipeline. Replaces Apollo, Clay, and ZoomInfo with agent-powered signal scoring, mutual ranking, warm path discovery, source-derived voice modeling, and channel-specific outreach across email, LinkedIn, and X. Use when the user wants to find, qualify, and reach high-value contacts.",
       "usageContext": "Use when the user wants to find, qualify, and reach high-value contacts.",
       "allowedTools": [],
-      "sourceSha256": "878fdcca964382f9ae8058310d08a84617c13d6154c626253ee6f397935a7f5d"
+      "sourceSha256": "1b24027c5ef0ebfb046990433905b80d8df63d93f83fff9fdef4f74ad883a5f2"
     },
     {
       "id": "liquid-glass-design",
@@ -2550,7 +2556,7 @@
       "summary": "Conduct market research, competitive analysis, investor due diligence, and industry intelligence with source attribution and decision-oriented summaries. Use when the user wants market sizing, competitor comparisons, fund research, technology scans, or research that informs business decisions.",
       "usageContext": "Use when the user wants market sizing, competitor comparisons, fund research, technology scans, or research that informs business decisions.",
       "allowedTools": [],
-      "sourceSha256": "b50a353512a01190e48e0792a6f1fdaf2983cfcb38c7966db751a8c6a98dad55"
+      "sourceSha256": "8cfc36dc8a93476d092115f3fc70c631dcab14fcd6e04371160fc4fb29547800"
     },
     {
       "id": "marketing-campaign",
@@ -3355,7 +3361,7 @@
       "summary": "Agent-driven scheduling and publishing of social media posts across 13 platforms via SocialClaw. Use when the user wants to publish to X, LinkedIn, Instagram, Facebook Pages, TikTok, Discord, Telegram, YouTube, Reddit, WordPress, or Pinterest — or when managing campaigns, uploading media, or monitoring post delivery status.",
       "usageContext": "Use when the user wants to publish to X, LinkedIn, Instagram, Facebook Pages, TikTok, Discord, Telegram, YouTube, Reddit, WordPress, or Pinterest — or when managing campaigns, uploading media, or monitoring post delivery status.",
       "allowedTools": [],
-      "sourceSha256": "7476e2b3cb225689c0759bc20fb73be19752dcf468afb51c32e611aa9ed2711d"
+      "sourceSha256": "c2fde5ac9d953cb649ce69331ca49be1df854d051ebc31eb54423c5d262337f6"
     },
     {
       "id": "springboot-patterns",
@@ -3400,7 +3406,7 @@
       "summary": "Suggests manual context compaction at logical intervals to preserve context through task phases rather than arbitrary auto-compaction. Use when a session is approaching a context limit and a task phase is a natural place to compact.",
       "usageContext": "Instead of loading full skill content at session start, use a trigger table that maps keywords to skill paths. Skills load only when triggered, reducing baseline context by 50%+: | Trigger | Skill | Load When | |---------|-------|-----------| | \"test\", \"tdd\", \"coverage\" | tdd-workflow | User mentions testing | | \"security\", \"auth\", \"xss\" | security-review | Security-related work | | \"deploy\", \"ci/cd\" | deployment-patterns | Deployment context |",
       "allowedTools": [],
-      "sourceSha256": "520148d566ff92a94da8890a8418d48107318edf22cc0b8e9e634609292bcd85"
+      "sourceSha256": "44a71c6dcc3fdde8061b8a78296c5d37233e4accc8cf3c794e29ac5b9f2eee28"
     },
     {
       "id": "swift-actor-persistence",
@@ -3643,7 +3649,7 @@
       "summary": "X/Twitter API integration for posting tweets, threads, reading timelines, search, and analytics. Covers OAuth auth patterns, rate limits, and platform-native content posting. Use when the user wants to interact with X programmatically.",
       "usageContext": "Use when the user wants to interact with X programmatically.",
       "allowedTools": [],
-      "sourceSha256": "1316fb056cc7671fcba367eee5b375ba80b678e1601ffedb15b1c946d06ae8cb"
+      "sourceSha256": "997937ac9dc11779c6bb6c16833630836a22f1b2f115482982f6350474fa8ff1"
     }
   ]
 }
