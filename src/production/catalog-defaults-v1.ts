@@ -10,17 +10,24 @@ import {
   type CatalogFrameworkDescriptorV1,
   type CatalogFrameworkPluginsV1,
 } from "../content/catalog-framework-v1.js";
-import { superpowersHookControlInventoryV1 } from "./catalog/superpowers-hooks-v1.js";
+import {
+  assertCandidateBaseSourcesV1,
+  type CandidateFrameworkInputV1,
+  type CatalogCandidateV1,
+  candidateFrameworkSourceSectionsV1,
+  candidatePackagedSourceDataV1,
+} from "./candidate-inputs-v1.js";
+import {
+  ECC_PROFILE_SOURCES_FILE_V1,
+  eccProfileEvidenceV1,
+} from "./catalog/ecc-profile-evidence-v1.js";
+import { reviewedSuperpowersHookControlInventoryV1 } from "./catalog/superpowers-hooks-v1.js";
 import {
   readUpstreamInputsManifestV1,
   readVerifiedUpstreamInputV1,
 } from "./catalog/upstream-inputs-v1.js";
 import { type CatalogProductionRuntimeV1, catalogProductionRuntimeV1 } from "./collation-v1.js";
-import {
-  ECC_HOOK_CONTROL_PROVENANCE,
-  ECC_HOOK_PROFILES,
-  eccHookControlCatalog,
-} from "./ecc-hook-controls-v1.js";
+import { ECC_HOOK_SOURCES_FILE_V1, eccHookControlInventoryV1 } from "./ecc-hook-controls-v1.js";
 import {
   produceCatalogAuthoringBundleV1,
   readCollectionSnapshotV1,
@@ -82,16 +89,26 @@ function vendorSource(root: string, id: "ecc" | "superpowers"): JsonRecord {
   return object(source, `vendor source ${id}`);
 }
 
+/**
+ * A framework descriptor. A candidate build names the frameworks whose
+ * packaged source record it must not read: their component definitions come
+ * from the named T3 compiler input (or are omitted), with no packaged source.
+ */
 function frameworkDescriptor(
   root: string,
   frameworkId: "ecc" | "superpowers",
+  candidate?: CandidateFrameworkInputV1,
 ): CatalogFrameworkDescriptorV1 {
   const repository = frameworkId === "ecc" ? "affaan-m/ECC" : "obra/Superpowers";
-  const record = recordFor(root, repository);
+  const record = candidate === undefined ? recordFor(root, repository) : undefined;
   const sections: Record<string, unknown> = {
     contentMetadata: readJson(root, `${frameworkId}-content-metadata-v1.json`),
-    componentDefinitions: object(record.compilerTemplate, `${frameworkId} compiler template`),
-    packagedSource: object(record.source, `${frameworkId} packaged source`),
+    ...(record === undefined
+      ? candidateFrameworkSourceSectionsV1(frameworkId, candidate as CandidateFrameworkInputV1)
+      : {
+          componentDefinitions: object(record.compilerTemplate, `${frameworkId} compiler template`),
+          packagedSource: object(record.source, `${frameworkId} packaged source`),
+        }),
     vendorLock: vendorSource(root, frameworkId),
   };
   if (frameworkId === "ecc") {
@@ -100,18 +117,29 @@ function frameworkDescriptor(
     sections.mcpInventory = readJson(root, "ecc-mcp-inventory-v1.json");
     sections.aihOwnedMcpExclusions = ["github", "sequential-thinking", "context7", "playwright"];
     sections.skillCatalog = readJson(root, "ecc-skill-inventory-v1.json");
-    sections.hookControlInventory = {
-      provenance: ECC_HOOK_CONTROL_PROVENANCE,
-      profiles: ECC_HOOK_PROFILES,
-      hooks: eccHookControlCatalog,
-    };
+    sections.hookControlInventory = eccHookControlInventoryV1(
+      readVerifiedUpstreamInputV1(
+        root,
+        readUpstreamInputsManifestV1(root),
+        ECC_HOOK_SOURCES_FILE_V1,
+      ).json,
+      sections.vendorLock,
+    );
     sections.moduleGraph = readJson(root, "ecc-modules-v1.json");
     sections.profileGraph = readJson(root, "ecc-profiles-v1.json");
     sections.installPreview = readJson(root, "ecc-install-preview-v1.json");
-    if (record.runtimeDescriptor !== undefined)
+    sections.profileEvidence = eccProfileEvidenceV1(
+      readVerifiedUpstreamInputV1(
+        root,
+        readUpstreamInputsManifestV1(root),
+        ECC_PROFILE_SOURCES_FILE_V1,
+      ).json,
+      sections.vendorLock,
+    );
+    if (record?.runtimeDescriptor !== undefined)
       sections.runtimeDescriptor = record.runtimeDescriptor;
   } else {
-    sections.hookControlInventory = superpowersHookControlInventoryV1(
+    sections.hookControlInventory = reviewedSuperpowersHookControlInventoryV1(
       readVerifiedUpstreamInputV1(
         root,
         readUpstreamInputsManifestV1(root),
@@ -191,7 +219,21 @@ export function serializeCatalogDefaultV1(value: unknown): string {
   return `${canonical(value)}\n`;
 }
 
-export function buildCatalogFrameworkDefaultsV1(root: string): Readonly<Record<string, unknown>> {
+export function buildCatalogFrameworkDefaultsV1(
+  root: string,
+  candidate?: CatalogCandidateV1,
+): Readonly<Record<string, unknown>> {
+  const vendorLock = readJson(root, "vendor-lock-v1.json");
+  const sourceRecords =
+    candidate === undefined
+      ? readJson(root, "packaged-source-data-v1.json")
+      : candidatePackagedSourceDataV1(
+          readJson(root, "packaged-source-data-v1.json"),
+          vendorLock,
+          candidate,
+        );
+  const authoringBundle = produceCatalogAuthoringBundleV1(root, sourceRecords);
+  if (candidate !== undefined) assertCandidateBaseSourcesV1(authoringBundle, vendorLock, candidate);
   return {
     "defaults/catalog-scanner-providers-v1.json": {
       format: "aih-catalog-scanner-providers",
@@ -203,12 +245,23 @@ export function buildCatalogFrameworkDefaultsV1(root: string): Readonly<Record<s
         ponytail: recordFor(root, "DietrichGebert/ponytail").compilerTemplate,
       },
     },
-    "defaults/catalog-authoring-bundle-v1.json": produceCatalogAuthoringBundleV1(root),
+    "defaults/catalog-authoring-bundle-v1.json": authoringBundle,
     "defaults/catalog-core-qualification-v1.json": produceCatalogCoreQualificationV1(root),
-    "defaults/catalog-scanner-evidence-v1.json": produceCatalogScannerEvidenceV1(root),
+    "defaults/catalog-scanner-evidence-v1.json": produceCatalogScannerEvidenceV1(
+      root,
+      sourceRecords,
+    ),
     "defaults/catalog-public-baseline-v1.json": produceCatalogPublicBaselineV1(root),
-    "defaults/catalog-framework-ecc-v1.json": frameworkDescriptor(root, "ecc"),
-    "defaults/catalog-framework-superpowers-v1.json": frameworkDescriptor(root, "superpowers"),
+    "defaults/catalog-framework-ecc-v1.json": frameworkDescriptor(
+      root,
+      "ecc",
+      candidate?.frameworks.ecc,
+    ),
+    "defaults/catalog-framework-superpowers-v1.json": frameworkDescriptor(
+      root,
+      "superpowers",
+      candidate?.frameworks.superpowers,
+    ),
     "defaults/catalog-framework-plugins-v1.json": frameworkPlugins(root),
   };
 }

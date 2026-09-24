@@ -2,6 +2,10 @@ import { readFileSync } from "node:fs";
 import { parseContentMetadataV1 } from "../catalog/content-metadata-v1.js";
 import { validateEccMcpCatalogInventoryV1 } from "../catalog/ecc-mcp-inventory-v1.js";
 import {
+  ECC_PROFILE_SOURCES_FILE_V1,
+  isEccProfileSourcePathV1,
+} from "../catalog/ecc-profile-evidence-v1.js";
+import {
   parseEccModulesSnapshotV1,
   parseEccProfilesSnapshotV1,
 } from "../catalog/ecc-snapshots-v1.js";
@@ -16,6 +20,10 @@ import {
   type UpstreamInputRecordV1,
 } from "../catalog/upstream-inputs-v1.js";
 import { type CatalogProductionRuntimeV1, catalogTextCompareV1 } from "../collation-v1.js";
+import {
+  ECC_HOOK_CONTROL_SOURCE_PATHS,
+  ECC_HOOK_SOURCES_FILE_V1,
+} from "../ecc-hook-controls-v1.js";
 import { assertSafeRelativePosixPathV1, codeUnitCompare, sha256HexV1 } from "../strict-json-v1.js";
 import { COMMIT_SHA, exactKeys, type JsonRecord, list, record, text } from "../validate-v1.js";
 import {
@@ -39,6 +47,8 @@ export interface UpstreamTreeV1 {
   /** Every blob path at the commit. */
   readonly paths: readonly string[];
   read(path: string): Uint8Array;
+  /** The git mode of a regular file; a producer that records modes needs it. */
+  mode?(path: string): "100644" | "100755";
 }
 
 export interface ProducedUpstreamFileV1 {
@@ -258,10 +268,13 @@ function eccInputs(tree: UpstreamTreeV1): ProducedUpstreamFileV1[] {
     .map((path) => path.split("/")[1] as string)
     .sort((left, right) => Buffer.compare(Buffer.from(`${left}/`), Buffer.from(`${right}/`)));
   const digest = (path: string) => ({ [path]: sha256HexV1(bytesOf(tree, path)) });
+  // In UPSTREAM_PRODUCED_FILES_V1.ecc order (code-unit order of the file names).
   return [
     { file: "ecc-content-metadata-v1.json", bytes: produceContentMetadataV1(tree), sources: {} },
+    eccHookSources(tree),
     { file: "ecc-mcp-inventory-v1.json", bytes: mcp, sources: digest(mcpPath) },
     { file: "ecc-modules-v1.json", bytes: pretty(modules), sources: digest(modulesPath) },
+    eccProfileSources(tree),
     { file: "ecc-profiles-v1.json", bytes: pretty(profiles), sources: digest(profilesPath) },
     { file: "ecc-skill-inventory-v1.json", bytes: pretty(skills), sources: {} },
   ];
@@ -351,6 +364,65 @@ function ponytailSnapshot(tree: UpstreamTreeV1, root: string): ProducedUpstreamF
   };
   compilePonytailComponentCollectionV1(snapshot);
   return { file: "ponytail.snapshot.json", bytes: pretty(snapshot), sources: {} };
+}
+
+/**
+ * What the ECC profile evidence reads at the fetched commit: the package
+ * identity, the three install manifests as text, and the digest, size and git
+ * mode of every file under skills/, agents/ and commands/.
+ */
+function eccProfileSources(tree: UpstreamTreeV1): ProducedUpstreamFileV1 {
+  const mode = tree.mode;
+  if (mode === undefined)
+    throw new TypeError("produce:ecc needs the git modes of the fetched tree");
+  const pkg = record(JSON.parse(textOf(tree, "package.json")), "package.json");
+  bytesOf(tree, "LICENSE");
+  const files = tree.paths
+    .filter(isEccProfileSourcePathV1)
+    .sort(codeUnitCompare)
+    .map((path) => {
+      const bytes = bytesOf(tree, path);
+      return {
+        path,
+        sha256: sha256HexV1(bytes),
+        bytes: bytes.byteLength,
+        mode: mode.call(tree, path),
+      };
+    });
+  return {
+    file: ECC_PROFILE_SOURCES_FILE_V1,
+    bytes: pretty({
+      version: 1,
+      repository: tree.repository,
+      commit: tree.commit,
+      package: { name: pkg.name, version: pkg.version },
+      licensePath: "LICENSE",
+      manifests: [
+        "manifests/install-components.json",
+        "manifests/install-modules.json",
+        "manifests/install-profiles.json",
+      ].map((path) => ({ path, text: textOf(tree, path) })),
+      files,
+    }),
+    sources: {},
+  };
+}
+
+/**
+ * The files the ECC hook-control review read, byte for byte at the fetched
+ * commit; the build emits the reviewed rows only while these bytes are the
+ * reviewed ones.
+ */
+function eccHookSources(tree: UpstreamTreeV1): ProducedUpstreamFileV1 {
+  const files = ECC_HOOK_CONTROL_SOURCE_PATHS.map((path) => {
+    const bytes = bytesOf(tree, path);
+    return { path, sha256: sha256HexV1(bytes), bytesBase64: bytes.toString("base64") };
+  });
+  return {
+    file: ECC_HOOK_SOURCES_FILE_V1,
+    bytes: pretty({ version: 1, repository: tree.repository, commit: tree.commit, files }),
+    sources: {},
+  };
 }
 
 /** The hook-declaring files, byte for byte; the build derives the hook inventory from them. */

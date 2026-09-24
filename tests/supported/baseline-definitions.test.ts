@@ -132,8 +132,10 @@ describe("baseline definition emitter", () => {
     expect(UPSTREAM_PRODUCED_FILES_V1).toEqual({
       ecc: [
         "ecc-content-metadata-v1.json",
+        "ecc-hook-sources-v1.json",
         "ecc-mcp-inventory-v1.json",
         "ecc-modules-v1.json",
+        "ecc-profile-sources-v1.json",
         "ecc-profiles-v1.json",
         "ecc-skill-inventory-v1.json",
       ],
@@ -149,6 +151,8 @@ describe("baseline definition emitter", () => {
         "ecc-mcp-inventory-v1.json",
         "ecc-content-metadata-v1.json",
         "ecc-skill-inventory-v1.json",
+        "ecc-hook-sources-v1.json",
+        "ecc-profile-sources-v1.json",
       ],
       superpowers: ["superpowers-hook-sources-v1.json", "superpowers-content-metadata-v1.json"],
       mattpocock: ["mattpocock.snapshot.json"],

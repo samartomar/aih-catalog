@@ -1,11 +1,22 @@
-/** Exact pinned sources for ECC hook-profile and per-hook-disable semantics. */
+import { createHash } from "node:crypto";
+import {
+  assertReviewedSourcesV1,
+  parseFetchedSourceFilesV1,
+} from "./catalog/reviewed-sources-v1.js";
+import { record } from "./validate-v1.js";
+
+/**
+ * Exact pinned sources for ECC hook-profile and per-hook-disable semantics,
+ * reviewed at v2.2.1, plus the OpenCode plugin whose hooks the OpenCode row
+ * declares.
+ */
 export const ECC_HOOK_CONTROL_PROVENANCE = {
   repository: "affaan-m/ECC",
-  commit: "5caf398a91599029a176ca6d806409b00d1052c4",
+  commit: "5064474d4d762dc9640234a41617cccb79185cec",
   sources: [
     {
       path: "hooks/hooks.json",
-      sha256: "ddf283b6f0e0ce262008145f1a258ceb0a50b6836060e5b7bdaab60694018faf",
+      sha256: "42376cf51c9453d0e9ac4fef9c30baa8acdd01e5a0067f63fd03a94bd1cb70a1",
     },
     {
       path: "scripts/hooks/session-start-bootstrap.js",
@@ -17,7 +28,7 @@ export const ECC_HOOK_CONTROL_PROVENANCE = {
     },
     {
       path: "scripts/hooks/posttooluse-dispatcher.js",
-      sha256: "65ca4075bed8fdc85c290e8299f76f25795fcd1595d47b41feb3985b7113d433",
+      sha256: "74262d37a1f02d63b44ce498178cb3327b429c6d278c7aed5453905efe71b725",
     },
     {
       path: "scripts/hooks/run-with-flags.js",
@@ -27,15 +38,57 @@ export const ECC_HOOK_CONTROL_PROVENANCE = {
       path: "scripts/lib/hook-flags.js",
       sha256: "1f5fbf2d2ebd0ab07a3e54406db18c2932ae7bf965513ec12c521da1be54425d",
     },
+    {
+      path: ".opencode/plugins/ecc-hooks.ts",
+      sha256: "0345093b34e537d350c5b5aa0296511f558aa767e5104fb5ef05069013f3b5b6",
+    },
   ],
   /**
    * SHA-256 of JSON.stringify(sources.map(({ path, sha256 }) => [path, sha256])).
    * This binds the reviewed inventory and the runtime flag grammar together.
    */
-  contentSha256: "7c58c4d611b9b8724690f0f018405e491965d5749b7ad82797a37e0c61d5955b",
+  contentSha256: "f413bc5e7194045ea43d228ef87b2730e3678d418f4a5634db5bb68fb51c97ce",
 } as const;
 
 export const ECC_HOOK_CONTROL_SOURCE_CONTENT_SHA256 = ECC_HOOK_CONTROL_PROVENANCE.contentSha256;
+
+/** The reviewed files `produce:ecc` fetches byte for byte, so generation can compare them. */
+export const ECC_HOOK_SOURCES_FILE_V1 = "ecc-hook-sources-v1.json";
+
+/** The upstream paths the hook-control review read, in review order. */
+export const ECC_HOOK_CONTROL_SOURCE_PATHS: readonly string[] =
+  ECC_HOOK_CONTROL_PROVENANCE.sources.map((source) => source.path);
+
+/**
+ * Refuses the hand-reviewed ECC hook controls unless the hook sources were
+ * fetched at the selected vendor pin and that pin and every fetched byte are
+ * exactly what was reviewed. Every generator that emits these rows calls this
+ * first.
+ */
+export function assertEccHookControlsReviewedV1(hookSources: unknown, pinnedSha: unknown): void {
+  const label = "ECC hook sources";
+  const { commit, files } = parseFetchedSourceFilesV1(
+    hookSources,
+    label,
+    ECC_HOOK_CONTROL_PROVENANCE.repository,
+  );
+  if (pinnedSha !== commit)
+    throw new TypeError(
+      `${label} were fetched at ${commit} but the vendor lock pins ${String(pinnedSha)}`,
+    );
+  const digest = createHash("sha256")
+    .update(
+      JSON.stringify(ECC_HOOK_CONTROL_PROVENANCE.sources.map(({ path, sha256 }) => [path, sha256])),
+    )
+    .digest("hex");
+  if (digest !== ECC_HOOK_CONTROL_PROVENANCE.contentSha256)
+    throw new TypeError("the ECC hook control review does not match its own content sha256");
+  assertReviewedSourcesV1("the ECC hook control review", ECC_HOOK_CONTROL_PROVENANCE, {
+    repository: ECC_HOOK_CONTROL_PROVENANCE.repository,
+    commit,
+    sources: files.map(({ path, sha256 }) => ({ path, sha256 })),
+  });
+}
 
 export const ECC_HOOK_PROFILES = [
   { id: "minimal", label: "Minimal" },
@@ -65,10 +118,20 @@ const STRICT: readonly EccHookProfile[] = ["strict"];
 /**
  * Source order: non-gated wrapper, manifest/bootstrap gates, Bash dispatcher
  * gates, then PostToolUse dispatcher gates. AIH never contacts or executes ECC
- * to build this browser inventory.
+ * to build this browser inventory. v2.2.1 adds the PowerShell fact-forcing gate
+ * (second in hooks/hooks.json), widens pre:governance-capture (hooks.json) and
+ * post:governance-capture (PostToolUse dispatcher) to PowerShell (matchers only;
+ * the gate ids and profiles are unchanged) and rewrites the
+ * catch-all matchers from `*` to `.*` (same tools; not part of a row).
  */
 export const eccHookControlCatalog: readonly EccHookControlCatalogEntry[] = [
   { id: "pre:bash:dispatcher", event: "PreToolUse", profiles: ALL, disableEligible: false },
+  {
+    id: "pre:powershell:gateguard-fact-force",
+    event: "PreToolUse",
+    profiles: STANDARD_STRICT,
+    disableEligible: true,
+  },
   {
     id: "pre:write:doc-file-warning",
     event: "PreToolUse",
@@ -266,16 +329,78 @@ function invalid(message: string): never {
 const uniqueIds = new Set(eccHookControlCatalog.map((hook) => hook.id));
 const eligible = eccHookControlCatalog.filter((hook) => hook.disableEligible);
 if (
-  eccHookControlCatalog.length !== 43 ||
-  uniqueIds.size !== 43 ||
-  eligible.length !== 42 ||
+  eccHookControlCatalog.length !== 44 ||
+  uniqueIds.size !== 44 ||
+  eligible.length !== 43 ||
   eligible.filter((hook) => hook.profiles.includes("minimal")).length !== 11 ||
-  eligible.filter((hook) => hook.profiles.includes("standard")).length !== 39 ||
-  eligible.filter((hook) => hook.profiles.includes("strict")).length !== 42
+  eligible.filter((hook) => hook.profiles.includes("standard")).length !== 40 ||
+  eligible.filter((hook) => hook.profiles.includes("strict")).length !== 43
 ) {
   invalid(
-    "the pinned inventory must contain 43 distinct rows, 42 gated ids, and 11/39/42 profile eligibility",
+    "the pinned inventory must contain 44 distinct rows, 43 gated ids, and 11/40/43 profile eligibility",
   );
+}
+
+/** Where a hook is declared on one host (the descriptor's declaration shape). */
+export interface EccHookDeclarationV1 {
+  host: "opencode";
+  sourcePath: string;
+  event: string;
+  execution: "in-process";
+}
+
+export interface EccOpenCodeHookControlRowV1 extends EccHookControlCatalogEntry {
+  declarations: readonly EccHookDeclarationV1[];
+  /** ECC has no switch aih can set here, so a disable is recorded as unenforced. */
+  control: { kind: "none" };
+}
+
+/**
+ * The hooks `.opencode/plugins/ecc-hooks.ts` (installed by the platform-configs
+ * module) returns at v2.2.1, reviewed by hand: the syntax-tree reader refuses
+ * this plugin because it also returns a `tool` object (two custom tools, not
+ * hooks). The plugin checks ECC_HOOK_PROFILE / ECC_DISABLED_HOOKS in OpenCode's
+ * own environment, which aih does not write, so the whole plugin is one
+ * surface with control `none`: its next route is to leave the OpenCode
+ * platform config unselected or use OpenCode's plugin controls.
+ */
+export const ECC_OPENCODE_HOOK_CONTROL_ROWS: readonly EccOpenCodeHookControlRowV1[] = [
+  {
+    id: "opencode:ecc-hooks",
+    event: "plugin",
+    profiles: ALL,
+    disableEligible: true,
+    declarations: [
+      "file.edited",
+      "tool.execute.after",
+      "tool.execute.before",
+      "session.created",
+      "session.idle",
+      "session.deleted",
+      "file.watcher.updated",
+      "todo.updated",
+      "shell.env",
+      "experimental.session.compacting",
+      "permission.ask",
+    ].map((event) => ({
+      host: "opencode" as const,
+      sourcePath: ".opencode/plugins/ecc-hooks.ts",
+      event,
+      execution: "in-process" as const,
+    })),
+    control: { kind: "none" },
+  },
+];
+
+/** The descriptor's `hookControlInventory` section: the Claude rows, then the OpenCode row. */
+/** The `hookControlInventory` descriptor section, emitted only over the reviewed bytes. */
+export function eccHookControlInventoryV1(hookSources: unknown, vendorSource: unknown) {
+  assertEccHookControlsReviewedV1(hookSources, record(vendorSource, "ECC vendor source").pinnedSha);
+  return {
+    provenance: ECC_HOOK_CONTROL_PROVENANCE,
+    profiles: ECC_HOOK_PROFILES,
+    hooks: [...eccHookControlCatalog, ...ECC_OPENCODE_HOOK_CONTROL_ROWS],
+  };
 }
 
 /** Validate and return ids in pinned source order. */

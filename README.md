@@ -676,6 +676,146 @@ On POSIX systems, the private key must not grant group or other access. Output
 creation is exclusive, and linked seed artifacts, evidence, private keys, or
 output paths are rejected. Keep signer roots outside catalog-controlled data.
 
+## Build a candidate package for Core's preparation tools
+
+A candidate package is not a release. It exists only so that Core's internal
+preparation tools can read their Catalog authority from an explicitly named,
+hashed package: `--candidate-catalog <tgz> --candidate-catalog-sha256 <sha256>`.
+Runbook step 8.3 builds one after the new vendor lock is copied (8.1–8.2) and
+before T3 writes the new packaged-source-data records (8.4).
+
+The problem it solves: a framework descriptor's `componentDefinitions` normally
+comes from that framework's packaged-source-data record, and T3 is what writes
+that record. In candidate mode, each framework whose record is not yet at the
+vendor-lock pin is named in `candidate-inputs.json` together with the exact T3
+`--compiler-input` file and its SHA-256:
+
+```json
+{
+  "format": "aih-catalog-candidate-inputs",
+  "version": 1,
+  "frameworks": {
+    "superpowers": { "compilerInput": "compiler/superpowers.json", "sha256": "<sha256 of that file>" }
+  }
+}
+```
+
+`compilerInput` resolves against the directory that holds the inputs file.
+`{ "omit": true }` leaves a framework's component definitions out entirely.
+
+The build refuses if any of these hold:
+
+- the inputs manifest or a compiler input is not a regular file (a link or
+  junction is refused), exceeds 16 MiB (real inputs are well under 16 KiB;
+  the typed refusal names the file and the limit), or is not strict UTF-8
+  (a leading BOM is refused);
+- a compiler input's bytes do not match the named digest;
+- a compiler input's framework id, repository or commit differs from the
+  vendor-lock pin;
+- an unnamed framework's record is not at the pin;
+- the authoring bundle does not carry each named framework's source at the pin
+  with `pinned-baseline/v1`;
+- the checkout is dirty.
+
+For a named framework, the build never reads that framework's record and never
+overlays it onto the bundle.
+
+The build never reads the live checkout. It is a maintainer-local tool: a
+process running as the same user that races the checkout during a build
+(swapping directories between a check and a rename or delete) is outside its
+threat model — the same bound as D21/D22/D23, because that user can already
+edit the checkout and the tools. Accidental divergence and anything the
+repository's own files or configuration can cause stay fail-closed. One build
+runs at a time per checkout, serialized by an exclusive
+`.candidate-build.lock` (gitignored) held for the whole build and exposure; a
+second build refuses, naming the lock and how to remove a stale one, and a
+failure while writing the lock after creating it removes that lock and
+reports the real error, never "another build". The
+build records `HEAD` (a sha256-object-format repository is refused explicitly
+before building; the candidate writer supports sha1 checkouts) and materializes
+that commit's tree from raw git objects (`git ls-tree` and `git cat-file`, so
+checkout conversions — smudge filters, attributes, eol rewrites — never apply)
+into a gitignored `.candidate-build-*` snapshot, then compiles, generates and
+copies only from that snapshot. The tree listing is decoded as strict UTF-8
+with a leading BOM kept and a byte round trip required: a path that is not
+UTF-8 (named by its byte offset), a path segment that is not portable
+(printable ASCII only; none of `\ : < > " | ? *`; no trailing dot or space;
+no Win32 device name such as `CON` or `LPT1`, in any case, with any
+extension; no 8.3 short-name shape such as `LONGDI~1`), a duplicate path,
+paths that alias on a case-insensitive or Unicode-normalizing file system —
+as whole paths or at any single component, so `Dir/a` and `dir/b` collide —
+and any malformed `cat-file` batch frame (each header must be exactly `<oid>
+<type> <size>`) each refuse the candidate before anything is
+built, and every written file is checked to stay inside the snapshot. The
+batch read and the post-build verification are bounded — 64 MiB per file and
+512 MiB in aggregate, comfortably above this repository's ~12 MiB largest
+tracked file and ~90 MiB tracked total, with typed refusals naming the file
+and the limit — and files are hashed by streaming fixed-size chunks, so an
+arbitrarily enlarged file is refused before its bytes are read. Every
+git read runs with every `GIT_*`
+environment variable removed, replacement objects disabled, the system and
+global configurations replaced by nothing, and the repository's own
+configuration neutralized where it could run code — the fsmonitor and the
+untracked cache are disabled and hooks resolve to an empty staging directory —
+using plumbing reads only, so only the named checkout's own objects are read.
+Lazy fetching is disabled too (the global `--no-lazy-fetch` option on every
+invocation, plus `GIT_NO_LAZY_FETCH=1` for any subprocess git spawns; both
+exist since git 2.47, and the build refuses anything older), so a missing
+blob, subtree or commit refuses with a typed error naming the object instead
+of ever contacting a promisor remote whose `core.sshCommand` or credential
+helpers the repository controls. The local toolchain bytes
+(`node_modules/typescript` and its dependencies) are not part of the commit;
+they are trusted exactly as for the release build. The output becomes
+`dist-candidate/` only if, after the build, `HEAD` is still the recorded
+commit, every snapshot file outside the build's own output directories still
+hashes to the commit's blob ids (recomputed in Node, never by git's normalized
+view), every file's executable mask still matches the tree's mode exactly
+(owner bit included: 100755 vs
+100644; modes not verified on win32, where the published package's modes come
+from `npm pack`, not from the snapshot) and the built `CANDIDATE.json` names
+that commit, read from a real directory — markers and the checkout manifest
+are read only from regular files, bounded at 1 MiB with typed refusals naming
+the file and the limit; a link or junction as the output, or
+an output whose identity changed between the check and the rename, is refused
+and rolled back. Otherwise the build
+refuses, removes its partial output and restores any earlier `dist-candidate/`
+exactly as it was; if that rollback itself fails, the earlier candidate is
+kept in a named quarantine directory to recover from, never deleted. An edit
+made during the build therefore never reaches the
+candidate, and `catalogCommit` always names the commit whose bytes were built.
+
+The candidate is written only to `dist-candidate/`. `defaults/` and `dist/` are
+never written. The candidate root carries two markers:
+
+- `CANDIDATE.json`: `{format: "aih-catalog-candidate", version: 1,
+  catalogCommit, inputsSha256, omittedSections}`;
+- `package.json#aihCandidate`: the same digest.
+
+The package version stays 0.3.x, because Core's loader requires it. The
+candidate `package.json` is `private` and has only a `prepublishOnly` script,
+which refuses. `build`, `build:dist`, `check:catalog-index` and the Catalog's
+own `prepublishOnly` refuse to run over either marker.
+
+Operator commands for step 8.3 (POSIX shell, run in the Catalog checkout at the
+recorded commit):
+
+```sh
+printf '{"format":"aih-catalog-candidate-inputs","version":1,"frameworks":{"superpowers":{"compilerInput":"%s","sha256":"%s"}}}\n' \
+  "$W/compiler/superpowers.json" "$(sha256sum -t "$W/compiler/superpowers.json" | cut -d' ' -f1)" > "$W/candidate-inputs.json"
+npm run build:candidate -- --candidate "$W/candidate-inputs.json"
+git rev-parse HEAD                     # equals CANDIDATE.json catalogCommit
+(cd dist-candidate && npm pack --pack-destination "$W/candidate")
+CAND=$W/candidate/aihq-catalog-0.3.0.tgz
+CAND_SHA=$(sha256sum -t "$CAND" | cut -d' ' -f1)
+```
+
+Record these in the log: the Catalog commit, `$W/candidate-inputs.json` and its
+`inputsSha256`, `$CAND`, `$CAND_SHA`, and `omittedSections`. After that, never
+edit the tarball: its digest is the authority the preparation used.
+
+Step 11 re-runs T3 without the candidate, against the shipped Catalog. That
+re-run is the proof.
+
 ## Version bumps, removal, and revocation
 
 A successor increments `sequence` and binds the previous

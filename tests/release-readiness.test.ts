@@ -1102,10 +1102,12 @@ describe("Catalog content gates run on the committed data (WO-CATALOG-CI)", () =
         scripts: { build: string; "build:dist": string; verify: string };
       }
     ).scripts;
-    // build:dist is build without the generators, so it cannot rewrite defaults/**.
+    // build:dist is build without the generators, so it cannot rewrite defaults/**;
+    // both refuse to run over a candidate root first.
     expect(scripts["build:dist"]).toBe(
-      "node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node dist/production/catalog-defaults-v1.js && node tools/ensure-cli-executable.mjs",
+      "node tools/check-not-candidate.mjs && node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node dist/production/catalog-defaults-v1.js && node tools/ensure-cli-executable.mjs",
     );
+    expect(scripts.build.startsWith("node tools/check-not-candidate.mjs && ")).toBe(true);
     expect(scripts.build.endsWith(` && ${scripts["build:dist"]}`)).toBe(true);
     expect(scripts.verify.split(" && ")).toEqual([
       "npm run typecheck",

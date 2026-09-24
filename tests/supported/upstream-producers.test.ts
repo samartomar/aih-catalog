@@ -2,9 +2,14 @@ import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:f
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { ECC_PROFILE_SOURCES_FILE_V1 } from "../../src/production/catalog/ecc-profile-evidence-v1.js";
 import { parseUpstreamInputsManifestV1 } from "../../src/production/catalog/upstream-inputs-v1.js";
 import { buildCatalogFrameworkDefaultsV1 } from "../../src/production/catalog-defaults-v1.js";
 import { catalogProductionRuntimeV1 } from "../../src/production/collation-v1.js";
+import {
+  ECC_HOOK_CONTROL_SOURCE_PATHS,
+  ECC_HOOK_SOURCES_FILE_V1,
+} from "../../src/production/ecc-hook-controls-v1.js";
 import {
   produceContentMetadataV1,
   produceUpstreamInputsV1,
@@ -16,7 +21,7 @@ import { sha256HexV1 } from "../../src/production/strict-json-v1.js";
 const root = resolve(import.meta.dirname, "..", "..");
 const dataPath = (file: string) => resolve(root, "src", "production", "data", file);
 const dataText = (file: string) => readFileSync(dataPath(file), "utf8");
-const ECC_COMMIT = "5caf398a91599029a176ca6d806409b00d1052c4";
+const ECC_COMMIT = "5064474d4d762dc9640234a41617cccb79185cec";
 const OTHER_RUNTIME = { node: "20.19.0", icu: "76.1", unicode: "16.0", cldr: "46.0" };
 
 function tree(repository: string, commit: string, files: Record<string, string | Buffer>) {
@@ -29,6 +34,7 @@ function tree(repository: string, commit: string, files: Record<string, string |
       if (value === undefined) throw new TypeError(`absent ${path}`);
       return typeof value === "string" ? Buffer.from(value, "utf8") : value;
     },
+    mode: (path: string) => (path.endsWith(".sh") ? "100755" : "100644"),
   } satisfies UpstreamTreeV1;
 }
 
@@ -55,8 +61,12 @@ function eccTree(extra: Record<string, string> = {}) {
       ),
     }),
     "mcp-configs/mcp-servers.json": dataText("ecc-mcp-inventory-v1.json"),
+    "manifests/install-components.json": '{"version":1,"components":[]}\n',
+    "package.json": '{"name":"ecc-universal","version":"2.2.1"}\n',
+    LICENSE: "MIT License\n",
     "agents/planner.md":
       "---\nname: planner\ndescription: Plans work.\ntools: Read, Grep\n---\n\nBody.\n",
+    ...Object.fromEntries(ECC_HOOK_CONTROL_SOURCE_PATHS.map((path) => [path, `// ${path}\n`])),
     ...extra,
   };
   for (const skill of [...skills].reverse())
@@ -78,6 +88,60 @@ describe("networked upstream producers (offline transforms)", () => {
     expect(byFile["ecc-modules-v1.json"]?.sources).toEqual({
       "manifests/install-modules.json": expect.stringMatching(/^[a-f0-9]{64}$/u),
     });
+  });
+
+  it("fetches the files the ECC hook-control review read, byte for byte in review order", () => {
+    const produced = produceUpstreamInputsV1("ecc", eccTree(), root);
+    const hookSources = produced.find((item) => item.file === ECC_HOOK_SOURCES_FILE_V1);
+    expect(hookSources?.sources).toEqual({});
+    expect(JSON.parse(hookSources?.bytes ?? "null")).toEqual({
+      version: 1,
+      repository: "affaan-m/ECC",
+      commit: ECC_COMMIT,
+      files: ECC_HOOK_CONTROL_SOURCE_PATHS.map((path) => {
+        const bytes = Buffer.from(`// ${path}\n`, "utf8");
+        return { path, sha256: sha256HexV1(bytes), bytesBase64: bytes.toString("base64") };
+      }),
+    });
+  });
+
+  it("fetches what the ECC profile evidence reads: manifests, package and file digests with modes", () => {
+    const produced = produceUpstreamInputsV1(
+      "ecc",
+      eccTree({ "skills/zz/run.sh": "#!/bin/sh\n", "commands/plan.md": "# plan\n" }),
+      root,
+    );
+    const input = JSON.parse(
+      produced.find((item) => item.file === ECC_PROFILE_SOURCES_FILE_V1)?.bytes ?? "null",
+    ) as {
+      commit: string;
+      package: unknown;
+      licensePath: string;
+      manifests: { path: string; text: string }[];
+      files: { path: string; sha256: string; bytes: number; mode: string }[];
+    };
+    expect(input.commit).toBe(ECC_COMMIT);
+    expect(input.package).toEqual({ name: "ecc-universal", version: "2.2.1" });
+    expect(input.licensePath).toBe("LICENSE");
+    expect(input.manifests.map((item) => item.path)).toEqual([
+      "manifests/install-components.json",
+      "manifests/install-modules.json",
+      "manifests/install-profiles.json",
+    ]);
+    expect(input.manifests[0]?.text).toBe('{"version":1,"components":[]}\n');
+    const paths = input.files.map((file) => file.path);
+    expect(paths).toContain("agents/planner.md");
+    expect(paths).toContain("commands/plan.md");
+    expect(paths).not.toContain("manifests/install-modules.json");
+    expect(input.files.find((file) => file.path === "skills/zz/run.sh")).toEqual({
+      path: "skills/zz/run.sh",
+      sha256: sha256HexV1(Buffer.from("#!/bin/sh\n", "utf8")),
+      bytes: 10,
+      mode: "100755",
+    });
+    expect(paths).toEqual([...paths].sort());
+    const { mode: _, ...withoutModes } = eccTree();
+    expect(() => produceUpstreamInputsV1("ecc", withoutModes, root)).toThrow(/mode/u);
   });
 
   it("orders the skill inventory as the git tree does", () => {
@@ -159,13 +223,13 @@ describe("networked upstream producers (offline transforms)", () => {
         "mattpocock",
         "mattpocock.snapshot.json",
         "mattpocock/skills",
-        "3cca18b368ae95cdbdebbff572ccafa662551015",
+        "c55ee46073ed923f86ce59a5eb3b6d895095d1b7",
       ],
       [
         "ponytail",
         "ponytail.snapshot.json",
         "DietrichGebert/ponytail",
-        "974d940a1c5344210874150b98ff0d2c861fab6a",
+        "1d95ff7d39de12d87014ea40d4e22201bddc501b",
       ],
     ] as const) {
       const snapshot = JSON.parse(dataText(file)) as {
@@ -193,7 +257,7 @@ describe("networked upstream producers (offline transforms)", () => {
     expect(() =>
       produceUpstreamInputsV1("ecc", tree("affaan-m/other", ECC_COMMIT, {}), root),
     ).toThrow(/repository/u);
-    expect(() => produceUpstreamInputsV1("ecc", tree("affaan-m/ECC", "5caf398", {}), root)).toThrow(
+    expect(() => produceUpstreamInputsV1("ecc", tree("affaan-m/ECC", "5064474", {}), root)).toThrow(
       /commit/u,
     );
   });
@@ -349,13 +413,13 @@ describe("networked upstream producers (offline transforms)", () => {
       [
         "superpowers-content-metadata-v1.json",
         "obra/Superpowers",
-        "b36e0829c6d0140e93cfef2ca599b1b07d4a7797",
+        "5bf4e78011075bcfc0dc295f0724994cd123ee71",
       ],
-      ["mattpocock.snapshot.json", "mattpocock/skills", "3cca18b368ae95cdbdebbff572ccafa662551015"],
+      ["mattpocock.snapshot.json", "mattpocock/skills", "c55ee46073ed923f86ce59a5eb3b6d895095d1b7"],
       [
         "ponytail.snapshot.json",
         "DietrichGebert/ponytail",
-        "974d940a1c5344210874150b98ff0d2c861fab6a",
+        "1d95ff7d39de12d87014ea40d4e22201bddc501b",
       ],
     ] as const) {
       expect(manifest.files[file], file).toMatchObject({ repository, commit });

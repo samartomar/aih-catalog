@@ -111,6 +111,8 @@ describe("redirect-safe upstream fetch", () => {
     expect(tree.paths).toEqual(["README.md", "hooks/hooks.json", "link"]);
     expect(new TextDecoder().decode(tree.read("README.md"))).toBe("readme");
     expect(() => tree.read("link")).toThrow(/not a regular file/u);
+    expect(tree.mode("README.md")).toBe("100644");
+    expect(() => tree.mode("link")).toThrow(/not a regular file/u);
   });
 
   it("refuses a moved or transferred repository before fetching any bytes", async () => {

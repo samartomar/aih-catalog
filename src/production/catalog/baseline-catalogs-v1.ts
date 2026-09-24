@@ -110,6 +110,7 @@ export function eccBaselineCatalogV1(input: EccBaselineCatalogInputV1): Baseline
 
 const SUPERPOWERS_SKILLS = [
   "brainstorming",
+  "diagnosing-superpowers",
   "dispatching-parallel-agents",
   "executing-plans",
   "finishing-a-development-branch",
@@ -129,11 +130,15 @@ const SUPERPOWERS_PLUGIN_PATHS = [
   ".claude-plugin",
   ".codex-plugin",
   ".cursor-plugin",
+  ".devin-plugin",
+  ".hermes-plugin",
   ".kimi-plugin",
+  ".muse-plugin",
   ".opencode",
   ".pi",
   "gemini-extension.json",
   "hooks",
+  "index.js",
   "package.json",
   "scripts",
 ] as const;

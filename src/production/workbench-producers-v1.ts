@@ -113,12 +113,15 @@ export function catalogScannerEvidenceV1(
   };
 }
 
-export function produceCatalogScannerEvidenceV1(root: string): JsonRecord {
+export function produceCatalogScannerEvidenceV1(
+  root: string,
+  packagedSourceData: unknown = readData(root, "packaged-source-data-v1.json"),
+): JsonRecord {
   const governedTargets = readCoreProductDeclarationsV1(root)
     .hosts.filter((host) => host.policyTarget === true)
     .map((host) => String(host.id));
   return catalogScannerEvidenceV1(
-    readData(root, "packaged-source-data-v1.json"),
+    packagedSourceData,
     readData(root, "packaged-collection-evidence-v1.json"),
     governedTargets,
   );

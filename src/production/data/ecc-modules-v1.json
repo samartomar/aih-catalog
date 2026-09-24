@@ -17,7 +17,8 @@
         "zed",
         "hermes",
         "openclaw",
-        "kimi"
+        "kimi",
+        "adal"
       ],
       "dependencies": []
     },
@@ -40,7 +41,8 @@
         "zed",
         "hermes",
         "openclaw",
-        "kimi"
+        "kimi",
+        "adal"
       ],
       "dependencies": []
     },
@@ -63,7 +65,8 @@
         "zed",
         "hermes",
         "openclaw",
-        "kimi"
+        "kimi",
+        "adal"
       ],
       "dependencies": []
     },
@@ -99,7 +102,8 @@
         "scripts/setup-package-manager.js",
         ".hermes",
         ".openclaw",
-        ".kimi"
+        ".kimi",
+        ".adal"
       ],
       "targets": [
         "claude",
@@ -115,7 +119,8 @@
         "zed",
         "hermes",
         "openclaw",
-        "kimi"
+        "kimi",
+        "adal"
       ],
       "dependencies": []
     },
@@ -257,7 +262,8 @@
         "zed",
         "hermes",
         "openclaw",
-        "kimi"
+        "kimi",
+        "adal"
       ],
       "dependencies": [
         "platform-configs"
@@ -327,7 +333,8 @@
         "zed",
         "hermes",
         "openclaw",
-        "kimi"
+        "kimi",
+        "adal"
       ],
       "dependencies": [
         "skill-unified-memory"
@@ -550,7 +557,8 @@
         "zed",
         "hermes",
         "openclaw",
-        "kimi"
+        "kimi",
+        "adal"
       ],
       "dependencies": [
         "platform-configs"
@@ -943,6 +951,17 @@
       "id": "docs-de-de",
       "paths": [
         "docs/de-DE"
+      ],
+      "targets": [
+        "claude",
+        "claude-project"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "docs-uk-ua",
+      "paths": [
+        "docs/uk-UA"
       ],
       "targets": [
         "claude",

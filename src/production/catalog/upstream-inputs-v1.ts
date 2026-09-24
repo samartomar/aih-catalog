@@ -23,8 +23,10 @@ export const UPSTREAM_INPUTS_FORMAT_V1 = "aih-catalog-upstream-inputs";
 export const UPSTREAM_PRODUCED_FILES_V1 = {
   ecc: [
     "ecc-content-metadata-v1.json",
+    "ecc-hook-sources-v1.json",
     "ecc-mcp-inventory-v1.json",
     "ecc-modules-v1.json",
+    "ecc-profile-sources-v1.json",
     "ecc-profiles-v1.json",
     "ecc-skill-inventory-v1.json",
   ],

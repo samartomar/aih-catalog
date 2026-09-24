@@ -36,6 +36,7 @@ export interface FetchedUpstreamTreeV1 extends UpstreamTreeV1 {
   readonly url: string;
   /** The full name GitHub answered for the repository (GitHub names are case-insensitive). */
   readonly servedAs: string;
+  mode(path: string): "100644" | "100755";
 }
 
 async function servedAs(repository: string, http: HttpRunnerV1): Promise<string> {
@@ -105,6 +106,12 @@ export async function fetchUpstreamTreeV1(input: {
       if (mode !== "100644" && mode !== "100755")
         throw new Error(`upstream file ${path} is not a regular file`);
       return git("cat-file", "blob", `${commit}:${path}`);
+    },
+    mode(path: string): "100644" | "100755" {
+      const mode = blobs.get(path);
+      if (mode !== "100644" && mode !== "100755")
+        throw new Error(`upstream file ${path} is not a regular file`);
+      return mode;
     },
   };
 }

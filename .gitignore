@@ -1,5 +1,8 @@
 node_modules/
 dist/
+dist-candidate/
+/.candidate-build-*/
+/.candidate-build.lock
 coverage/
 *.tsbuildinfo
 
