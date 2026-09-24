@@ -51,8 +51,9 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "node tools/generate-catalog-index.mjs && node tools/generate-catalog-collections.mjs && node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node dist/production/catalog-defaults-v1.js && node tools/ensure-cli-executable.mjs",
-    "build:dist": "node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node dist/production/catalog-defaults-v1.js && node tools/ensure-cli-executable.mjs",
+    "build": "node tools/check-not-candidate.mjs && node tools/generate-catalog-index.mjs && node tools/generate-catalog-collections.mjs && node tools/check-not-candidate.mjs && node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node dist/production/catalog-defaults-v1.js && node tools/ensure-cli-executable.mjs",
+    "build:dist": "node tools/check-not-candidate.mjs && node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node dist/production/catalog-defaults-v1.js && node tools/ensure-cli-executable.mjs",
+    "build:candidate": "node tools/build-candidate.mjs",
     "generate:default-candidate": "node dist/cli.js generate-candidate",
     "lint": "biome check .",
     "repo:doctor": "node tools/repo-ai-tools.mjs doctor-codex",
@@ -71,14 +72,15 @@
     "produce:ponytail": "npm run build:dist && node tools/produce-upstream-inputs.mjs ponytail",
     "verify": "npm run typecheck && npm run lint && npm run build:dist && npm run check:catalog-index && npm run build && npm test",
     "generate:catalog-index": "node tools/generate-catalog-index.mjs",
-    "check:catalog-index": "node tools/generate-catalog-index.mjs --check && node tools/generate-catalog-collections.mjs --check && node tools/generate-catalog-qualification.mjs --check && node tools/generate-catalog-presentation.mjs --check && node tools/generate-catalog-categories.mjs --check && node tools/generate-catalog-runtime-descriptors.mjs --check && node dist/production/catalog-defaults-v1.js --check",
+    "check:catalog-index": "node tools/check-not-candidate.mjs && node tools/generate-catalog-index.mjs --check && node tools/generate-catalog-collections.mjs --check && node tools/generate-catalog-qualification.mjs --check && node tools/generate-catalog-presentation.mjs --check && node tools/generate-catalog-categories.mjs --check && node tools/generate-catalog-runtime-descriptors.mjs --check && node dist/production/catalog-defaults-v1.js --check",
     "generate:catalog-collections": "node tools/generate-catalog-collections.mjs",
     "generate:catalog-qualification": "node tools/generate-catalog-qualification.mjs",
     "prepare:core-collection": "node tools/prepare-core-collection.mjs",
     "stage:source-closure": "node tools/stage-source-closure.mjs",
     "generate:catalog-presentation": "node tools/generate-catalog-presentation.mjs",
     "generate:catalog-categories": "node tools/generate-catalog-categories.mjs",
-    "generate:catalog-runtime-descriptors": "node tools/generate-catalog-runtime-descriptors.mjs"
+    "generate:catalog-runtime-descriptors": "node tools/generate-catalog-runtime-descriptors.mjs",
+    "prepublishOnly": "node tools/check-not-candidate.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.1",

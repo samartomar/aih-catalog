@@ -52,8 +52,12 @@ export function readCollectionSnapshotV1(
  * the sealed packaged source records and the sealed Scanner collection
  * evidence. This is Core 80120883's compile → packaged overlay → admission
  * pipeline, with bindings left empty: Core derives bindings from what it admits.
+ * A candidate build passes the packaged source records it may overlay.
  */
-export function produceCatalogAuthoringBundleV1(root: string): Record<string, unknown> {
+export function produceCatalogAuthoringBundleV1(
+  root: string,
+  sourceRecords: unknown = readData(root, PACKAGED_SOURCE_DATA_FILE_V1),
+): Record<string, unknown> {
   const inputs = readPolicyAuthoringCatalogInputsV1(root);
   const catalog = policyAuthoringCatalogV1(inputs);
   const governedTargets = inputs.core.hosts
@@ -70,7 +74,6 @@ export function produceCatalogAuthoringBundleV1(root: string): Record<string, un
     compiled.coreCapabilities,
     governedTargets,
   );
-  const sourceRecords = readData(root, PACKAGED_SOURCE_DATA_FILE_V1);
   const packaged = parsePackagedSourceRecordsV1(sourceRecords, governedTargets);
   const evidence = parsePackagedScannerCollectionEvidenceV1(
     readData(root, PACKAGED_COLLECTION_EVIDENCE_FILE_V1),
