@@ -24,7 +24,8 @@ import {
  * - order: components by id, paths by code unit (Scan's normalized order); object keys sorted.
  *
  * Anything that rule does not partition (a root SKILL.md, a skill inside a skill, a link
- * inside a directory component, a submodule, a repeated id) is refused, never guessed.
+ * inside a directory component, a submodule, a repeated id) is refused, never guessed, and so
+ * is a tree whose paths differ only by case (they alias on a case-insensitive file system).
  */
 export interface GitTreeEntryV1 {
   readonly mode: string;
@@ -70,6 +71,17 @@ function subjectOf(name: string): BaselineDefinitionSubjectV1 {
 
 const within = (path: string, directory: string) => path.startsWith(`${directory}/`);
 
+/**
+ * The case mapping tree paths are compared under: Unicode NFC, then JavaScript's
+ * locale-independent `toLowerCase()` (Scan's win32 rule; Core's definition check uses the
+ * same). Two tracked paths, or directory prefixes, equal under it alias when the tree is
+ * materialized on a case-insensitive (Windows, default macOS) file system, so the inventory
+ * refuses them on every platform.
+ */
+function baselineInventoryPathCaseKeyV1(path: string): string {
+  return path.normalize("NFC").toLowerCase();
+}
+
 /** Partitions one commit's tracked tree into the disjoint whole-repository inventory. */
 export function baselineInventoryFromTreeV1(
   name: string,
@@ -80,11 +92,20 @@ export function baselineInventoryFromTreeV1(
   if (!COMMIT.test(commit)) fail("commit must be a full 40-character lowercase sha");
   const files: string[] = [];
   const links: string[] = [];
+  const spellings = new Map<string, string>();
   for (const entry of entries) {
     try {
       assertSafeRelativePosixPathV1(entry.path, "tree path");
     } catch {
       fail(`unsafe tree path ${JSON.stringify(entry.path)}`);
+    }
+    const segments = entry.path.split("/");
+    for (let length = 1; length <= segments.length; length += 1) {
+      const prefix = segments.slice(0, length).join("/");
+      const key = baselineInventoryPathCaseKeyV1(prefix);
+      const existing = spellings.get(key);
+      if (existing === undefined) spellings.set(key, prefix);
+      else if (existing !== prefix) fail(`tree paths differ only by case: ${existing}, ${prefix}`);
     }
     if (entry.type === "blob" && REGULAR.has(entry.mode)) files.push(entry.path);
     else if (entry.type === "blob" && entry.mode === "120000") links.push(entry.path);

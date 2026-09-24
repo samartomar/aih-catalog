@@ -69,10 +69,10 @@ describe("whole-repository baseline inventory", () => {
     const inventory = baselineInventoryFromTreeV1("superpowers", COMMIT, [
       blob("b.md"),
       blob("_a.md"),
-      blob("B.md"),
+      blob("C.md"),
       blob("a.md"),
     ]);
-    expect(inventory.components[0]?.paths).toEqual(["B.md", "_a.md", "a.md", "b.md"]);
+    expect(inventory.components[0]?.paths).toEqual(["C.md", "_a.md", "a.md", "b.md"]);
   });
 
   it.each([
@@ -105,6 +105,26 @@ describe("whole-repository baseline inventory", () => {
     ["a path whose component slug is empty", [blob("__/a.md")], /empty component slug/],
     ["no regular file", [blob("AGENTS.md", "120000")], /no regular file/],
     ["an unsafe path", [blob("../x.md")], /unsafe tree path/],
+    [
+      "directories that differ only by case",
+      [blob("A/SKILL.md"), blob("a/x")],
+      /tree paths differ only by case: A, a/,
+    ],
+    [
+      "nested directories that differ only by case",
+      [blob("skills/Tdd/SKILL.md"), blob("skills/tdd/notes.md")],
+      /tree paths differ only by case: skills\/Tdd, skills\/tdd/,
+    ],
+    [
+      "files that differ only by case",
+      [blob("README.md"), blob("readme.md")],
+      /tree paths differ only by case: README.md, readme.md/,
+    ],
+    [
+      "a link that differs only by case from a file",
+      [blob("x.md"), blob("X.md", "120000")],
+      /tree paths differ only by case: x.md, X.md/,
+    ],
   ] as const)("refuses %s", (_label, entries, reason) => {
     expect(() => baselineInventoryFromTreeV1("ecc", COMMIT, [...entries])).toThrow(reason);
   });
