@@ -948,6 +948,58 @@ function commitRawTree(dir: string, names: Buffer[]): string {
   return commit;
 }
 
+/** Commit raw tree objects for slash-separated paths (names may be unusable) and move HEAD. */
+function commitRawPaths(dir: string, paths: string[]): string {
+  const blob = gitIn(dir, "rev-parse", "HEAD:package.json");
+  interface Node {
+    files: string[];
+    dirs: Map<string, Node>;
+  }
+  const node = (): Node => ({ files: [], dirs: new Map() });
+  const tree = node();
+  for (const path of paths) {
+    const segments = path.split("/");
+    let at = tree;
+    for (const segment of segments.slice(0, -1)) {
+      if (!at.dirs.has(segment)) at.dirs.set(segment, node());
+      at = at.dirs.get(segment) as Node;
+    }
+    at.files.push(segments[segments.length - 1] as string);
+  }
+  const writeTree = (at: Node): string => {
+    // Git sorts tree entries by name, directories as if they ended in "/".
+    const entries = [
+      ...[...at.dirs.entries()].map(([name, child]) => ({ sort: `${name}/`, name, child })),
+      ...at.files.map((name) => ({ sort: name, name, child: undefined as Node | undefined })),
+    ].sort((a, b) => (a.sort < b.sort ? -1 : 1));
+    return writeRawObject(
+      dir,
+      "tree",
+      Buffer.concat(
+        entries.map((entry) =>
+          Buffer.concat([
+            Buffer.from(
+              `${entry.child === undefined ? "100644" : "40000"} ${entry.name}\0`,
+              "utf8",
+            ),
+            Buffer.from(entry.child === undefined ? blob : writeTree(entry.child), "hex"),
+          ]),
+        ),
+      ),
+    );
+  };
+  const commit = gitInWithInput(
+    dir,
+    "raw tree\n",
+    "commit-tree",
+    writeTree(tree),
+    "-p",
+    gitIn(dir, "rev-parse", "HEAD"),
+  );
+  gitIn(dir, "update-ref", "HEAD", commit);
+  return commit;
+}
+
 describe("the candidate build snapshot file modes", () => {
   /** A fixture with a committed 100755 file (the index bit works on win32 too). */
   function executableCheckout(): string {
@@ -1055,21 +1107,70 @@ describe("the candidate build refuses unusable tree paths", () => {
     expect(staging(dir)).toEqual([]);
   });
 
-  it("refuses paths that alias under Unicode normalization", async () => {
+  it("refuses a path needing Unicode normalization as non-portable (D31: ASCII only)", async () => {
     const { buildCandidateFromCommitV1 } = await snapshotTool();
     const dir = fixtureCheckout();
-    commitRawTree(dir, [
-      Buffer.from("é.json".normalize("NFC"), "utf8"),
-      Buffer.from("é.json".normalize("NFD"), "utf8"),
-    ]);
+    commitRawTree(dir, [Buffer.from("é.json".normalize("NFD"), "utf8")]);
     let called = false;
-    await expect(
-      buildCandidateFromCommitV1(dir, () => {
-        called = true;
-      }),
-    ).rejects.toThrow(/alias/u);
+    let failure: unknown;
+    await buildCandidateFromCommitV1(dir, () => {
+      called = true;
+    }).catch((error: unknown) => {
+      failure = error;
+    });
+    expect((failure as { code?: string })?.code).toBe("candidate-path-not-portable");
     expect(called).toBe(false);
     expect(staging(dir)).toEqual([]);
+  });
+});
+
+describe("the candidate build refuses non-portable tree paths (D31)", () => {
+  const refusesBeforeBuilding = async (
+    names: Buffer[],
+    code: string,
+    message: RegExp,
+    paths?: string[],
+  ) => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    if (paths === undefined) commitRawTree(dir, names);
+    else commitRawPaths(dir, paths);
+    let called = false;
+    let failure: unknown;
+    await buildCandidateFromCommitV1(dir, () => {
+      called = true;
+    }).catch((error: unknown) => {
+      failure = error;
+    });
+    expect((failure as { code?: string })?.code).toBe(code);
+    expect((failure as Error)?.message).toMatch(message);
+    expect(called).toBe(false);
+    expect(staging(dir)).toEqual([]);
+  };
+
+  it("keeps a leading BOM (strict decode, byte round trip) and refuses it as non-portable", async () => {
+    await refusesBeforeBuilding(
+      [Buffer.from("\uFEFFfoo.json", "utf8")],
+      "candidate-path-not-portable",
+      /foo\.json/u,
+    );
+  });
+
+  it.each([
+    ["a trailing dot segment", "bad./x.json"],
+    ["a trailing space segment", "bad /x.json"],
+    ["a Win32 device name", "CON.json"],
+    ["a Win32 device name with an extension, lowercase", "dir/lpt0.txt"],
+    ["an 8.3 short-name shape", "LONGDI~1/x.json"],
+  ])("refuses %s", async (_label, path) => {
+    await refusesBeforeBuilding([], "candidate-path-not-portable", /non-portable/u, [path]);
+  });
+
+  it("refuses paths whose components alias case-insensitively at any level", async () => {
+    await refusesBeforeBuilding([], "candidate-path-component-alias", /alias.*Dir.*dir/su, [
+      "Dir/a.json",
+      "dir/b.json",
+    ]);
   });
 });
 

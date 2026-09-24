@@ -30,11 +30,14 @@ import { candidateMarkersV1 } from "./check-not-candidate.mjs";
  * output's CANDIDATE.json names that commit. Anything else is refused and the
  * partial output is removed; an earlier candidate root is left as it was.
  *
- * The tree listing is decoded as strict UTF-8: a path that is not UTF-8, a
- * duplicate path, or paths that alias on a case-insensitive or
- * Unicode-normalizing file system (same lowercased NFC form) refuse the
- * candidate before the worktree is consulted, and every written file is
- * checked to stay inside the snapshot. The batch read and the post-build
+ * The tree listing is decoded as strict UTF-8 with the BOM kept and a byte
+ * round trip required: a path that is not UTF-8, a duplicate path, a path
+ * segment that is not portable (D31: printable ASCII only, no Windows
+ * punctuation, no trailing dot or space, no device name, no 8.3 shape), or
+ * paths that alias on a case-insensitive or Unicode-normalizing file system —
+ * as full paths or at any single component — refuse the candidate before the
+ * worktree is consulted, and every written file is checked to stay inside the
+ * snapshot. The batch read and the post-build
  * verification are bounded — per-file and aggregate limits with typed
  * refusals, files hashed by streaming fixed-size chunks — and the cat-file
  * batch read is framed
@@ -64,9 +67,35 @@ export class CandidateBuildRefusalV1 extends Error {
   }
 }
 
-const utf8Fatal = new TextDecoder("utf-8", { fatal: true });
+const utf8Fatal = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
 const utf8Lossy = new TextDecoder("utf-8", { fatal: false });
 const utf8Encode = new TextEncoder();
+
+/**
+ * The D20/D31 portable-segment rule, checked per path segment before anything
+ * is materialized or built: printable ASCII (0x20-0x7e) only; none of
+ * \ : < > " | ? *; no trailing dot or space; no Win32 device name (CON, PRN,
+ * AUX, NUL, COM0-9, LPT0-9, in any case, with any extension); no 8.3
+ * short-name shape (~ followed by a digit). A leading BOM survives the strict
+ * decode (ignoreBOM) and is refused here, because U+FEFF is not ASCII.
+ */
+const DEVICE_NAME = /^(?:con|prn|aux|nul|com[0-9]|lpt[0-9])(?:\..*)?$/iu;
+function assertPortableSegmentsV1(commit, path) {
+  for (const segment of path.split("/")) {
+    if (
+      segment === "" ||
+      !/^[ -~]+$/u.test(segment) ||
+      /[\\:<>"|?*]/u.test(segment) ||
+      /[. ]$/u.test(segment) ||
+      DEVICE_NAME.test(segment) ||
+      /~[0-9]/u.test(segment)
+    )
+      throw new CandidateBuildRefusalV1(
+        "candidate-path-not-portable",
+        `the tree of ${commit} contains the non-portable path segment ${JSON.stringify(segment)} in ${JSON.stringify(path)} (printable ASCII only, no \\ : < > " | ? *, no trailing dot or space, no Win32 device name, no 8.3 short-name shape); the candidate is refused`,
+      );
+  }
+}
 
 /**
  * Size bounds for the batch read and the post-build verification. This
@@ -197,13 +226,16 @@ function assertReplaceable(outRoot) {
 
 /**
  * The commit's tree as raw entries, decoded from the NUL-separated listing as
- * strict UTF-8. Only regular files (100644, 100755) can be materialized;
- * symlinks, gitlinks and anything else refuse the candidate. A committed
- * top-level dist/ or dist-candidate/ would collide with the build's own output
- * directories, so it refuses too. A path that is not UTF-8, a duplicate path,
- * or two paths that alias on a case-insensitive or Unicode-normalizing file
- * system (same lowercased NFC form) also refuse: materialization and
- * verification could otherwise conflate distinct names.
+ * strict UTF-8 (BOM kept, byte round trip required). Only regular files
+ * (100644, 100755) can be materialized; symlinks, gitlinks and anything else
+ * refuse the candidate. A committed top-level dist/ or dist-candidate/ would
+ * collide with the build's own output directories, so it refuses too. A path
+ * that is not UTF-8, a duplicate path, a non-portable path segment (D31:
+ * printable ASCII, no Windows punctuation, no trailing dot or space, no
+ * device name, no 8.3 short-name shape), or two paths that alias on a
+ * case-insensitive or Unicode-normalizing file system — as whole paths or at
+ * any single component — also refuse: materialization and verification could
+ * otherwise conflate distinct names.
  */
 function listTreeEntries(context, root, commit, limits) {
   const out = run(context, ["-C", root, "ls-tree", "-r", "-z", "--full-tree", "-l", commit], {
@@ -211,6 +243,7 @@ function listTreeEntries(context, root, commit, limits) {
   });
   const entries = [];
   const seen = new Map(); // lowercased NFC form → the first path with that form
+  const componentSeen = new Map(); // alias form of a path prefix → its first original form
   let total = 0;
   let offset = 0;
   while (offset < out.length) {
@@ -241,6 +274,15 @@ function listTreeEntries(context, root, commit, limits) {
         `the tree of ${commit} contains a path that is not UTF-8 (byte offset ${offset + tab + 1 + within} in the tree listing); the candidate is refused`,
       );
     }
+    // Byte round trip: the decoded path re-encoded must equal the raw bytes,
+    // so a leading BOM is kept (ignoreBOM) and then refused by the
+    // portable-segment rule below instead of silently renaming the file.
+    if (!Buffer.from(utf8Encode.encode(path)).equals(Buffer.from(pathBytes)))
+      throw new CandidateBuildRefusalV1(
+        "candidate-path-not-utf8",
+        `the tree of ${commit} contains a path whose UTF-8 does not round trip (byte offset ${offset + tab + 1} in the tree listing); the candidate is refused`,
+      );
+    assertPortableSegmentsV1(commit, path);
     if ((mode !== "100644" && mode !== "100755") || type !== "blob")
       throw new Error(
         `the tree of ${commit} contains ${path} with mode ${mode} (${type}); only regular files (100644, 100755) can be materialized; the candidate is refused`,
@@ -254,6 +296,22 @@ function listTreeEntries(context, root, commit, limits) {
       throw new Error(
         `the tree of ${commit} contains ${top}/, which the build uses for its own output; the candidate is refused`,
       );
+    // Uniqueness is required case-insensitively at every path component, not
+    // only as full paths: "Dir/a" and "dir/b" collide at the first component.
+    let aliasPrefix = "";
+    let originalPrefix = "";
+    for (const segment of path.split("/")) {
+      const segmentAlias = segment.normalize("NFC").toLowerCase();
+      aliasPrefix = aliasPrefix === "" ? segmentAlias : `${aliasPrefix}/${segmentAlias}`;
+      originalPrefix = originalPrefix === "" ? segment : `${originalPrefix}/${segment}`;
+      const earlierPrefix = componentSeen.get(aliasPrefix);
+      if (earlierPrefix !== undefined && earlierPrefix !== originalPrefix)
+        throw new CandidateBuildRefusalV1(
+          "candidate-path-component-alias",
+          `the tree of ${commit} contains path components that alias on a case-insensitive or Unicode-normalizing file system: ${earlierPrefix} and ${originalPrefix} (in ${path}); the candidate is refused`,
+        );
+      componentSeen.set(aliasPrefix, originalPrefix);
+    }
     const alias = path.normalize("NFC").toLowerCase();
     const earlier = seen.get(alias);
     if (earlier !== undefined) {
