@@ -236,6 +236,10 @@ async function fixture() {
     globalCoverageNotifications: coverage,
     globalCoverageSummary,
     coverageComplete: false,
+    coverageGaps: ["skillspector", "semgrep", "cisco"].map((analyzer) => ({
+      analyzer,
+      reason: "completion-evidence-absent",
+    })),
     coverageDisposition: "The limitation remains unresolved.",
   };
   const componentPath = join(publicationRoot, "components", "skill-skills-demo-0123456789ab.json");
@@ -301,6 +305,7 @@ async function fixture() {
       failedAnalyzers: [],
       errorNotificationCount: 0,
       coverageWarningCount: 1,
+      completionEvidenceAbsent: ["cisco", "semgrep", "skillspector"],
       coverageComplete: false,
     },
     findings: { mappedToDeclaredClosures: findingSummary },
@@ -343,9 +348,80 @@ async function fixture() {
     publicationPath,
     handoffPath,
     handoff,
+    componentPath,
+    componentArtifact,
+    emptyCoverageSummary,
     manifestPath,
     outputRoot: join(root, "defaults", "workbench", "fixture"),
   };
+}
+
+type Json = Record<string, unknown>;
+type Item = Awaited<ReturnType<typeof fixture>>;
+
+/** Rewrites the component artifact and handoff, re-binding the artifact pointer. */
+function rewrite(
+  item: Item,
+  mutateArtifact: (artifact: Json) => void,
+  mutateHandoff: (handoff: Json) => void,
+) {
+  const artifact = structuredClone(item.componentArtifact) as Json;
+  mutateArtifact(artifact);
+  writeJson(item.componentPath, artifact);
+  const bytes = readFileSync(item.componentPath);
+  const handoff = structuredClone(item.handoff) as Json;
+  const summary = (handoff.components as Json[])[0] as Json;
+  summary.globalCoverage = artifact.globalCoverageSummary;
+  summary.observationArtifact = {
+    path: item.componentPath,
+    byteLength: bytes.length,
+    sha256: sha256(bytes),
+  };
+  mutateHandoff(handoff);
+  writeJson(item.handoffPath, handoff);
+}
+
+/** A gap-free publication: every analyzer carries completion evidence and nothing is unresolved. */
+function gapFree(item: Item, outcome: string, mutateArtifact: (artifact: Json) => void = () => {}) {
+  rewrite(
+    item,
+    (artifact) => {
+      Object.assign(artifact, {
+        globalCoverageNotifications: [],
+        globalCoverageSummary: item.emptyCoverageSummary,
+        coverageGaps: [],
+        coverageComplete: true,
+        coverageDisposition: "Complete.",
+      });
+      mutateArtifact(artifact);
+    },
+    (handoff) => {
+      Object.assign(handoff, {
+        outcome,
+        analyzerGaps: {
+          missingAnalyzers: [],
+          failedAnalyzers: [],
+          errorNotificationCount: 0,
+          coverageWarningCount: 0,
+          completionEvidenceAbsent: [],
+          coverageComplete: true,
+        },
+        coverageNotifications: { global: item.emptyCoverageSummary },
+      });
+      (handoff.findings as Json).unmapped = { count: 0, byAnalyzer: {}, byLevel: {}, byRule: {} };
+    },
+  );
+}
+
+function generate(item: Item) {
+  return item.api.generateSourceAssessmentRowsV1({
+    sourceRoot: item.sourceRoot,
+    handoffPath: item.handoffPath,
+    publicationPath: item.publicationPath,
+    provider: "fixture",
+    outputRoot: item.outputRoot,
+    manifestPath: item.manifestPath,
+  });
 }
 
 async function linkedParentSourceFixture() {
@@ -391,6 +467,88 @@ describe("source assessment row generator", () => {
       "default-catalog-v2.json",
       "workbench/fixture/skill.fixture.demo/seed.json",
     ]);
+  });
+
+  it("accepts both truthful outcomes: observed without gaps, observed_with_gaps with them", async () => {
+    const clean = await fixture();
+    gapFree(clean, "observed");
+    expect(generate(clean).entries).toBe(1);
+    const gapped = await fixture();
+    expect(generate(gapped).entries).toBe(1);
+  });
+
+  it("rejects an outcome that misstates the gaps", async () => {
+    const claimedClean = await fixture();
+    writeJson(claimedClean.handoffPath, { ...claimedClean.handoff, outcome: "observed" });
+    expect(() => generate(claimedClean)).toThrow("source-assessment-generator:handoff-outcome");
+    const claimedGaps = await fixture();
+    gapFree(claimedGaps, "observed_with_gaps");
+    expect(() => generate(claimedGaps)).toThrow("source-assessment-generator:handoff-outcome");
+    const unmapped = await fixture();
+    gapFree(unmapped, "observed");
+    const handoff = JSON.parse(readFileSync(unmapped.handoffPath, "utf8")) as Json;
+    (handoff.findings as Json).unmapped = { count: 1, byAnalyzer: {}, byLevel: {}, byRule: {} };
+    writeJson(unmapped.handoffPath, handoff);
+    expect(() => generate(unmapped)).toThrow("source-assessment-generator:handoff-outcome");
+    for (const outcome of ["clean", "observed_without_gaps"]) {
+      const other = await fixture();
+      writeJson(other.handoffPath, { ...other.handoff, outcome });
+      expect(() => generate(other)).toThrow("source-assessment-generator:handoff-authority");
+    }
+  });
+
+  it("rejects coverage claimed from silence and malformed typed coverage gaps", async () => {
+    // Complete coverage while an analyzer carries no completion evidence.
+    const claimed = await fixture();
+    gapFree(claimed, "observed", (artifact) => {
+      artifact.coverageGaps = [{ analyzer: "semgrep", reason: "completion-evidence-absent" }];
+    });
+    expect(() => generate(claimed)).toThrow("source-assessment-generator:component-coverage-claim");
+    // Incomplete coverage while nothing is unresolved.
+    const understated = await fixture();
+    gapFree(understated, "observed", (artifact) => {
+      artifact.coverageComplete = false;
+    });
+    expect(() => generate(understated)).toThrow(
+      "source-assessment-generator:component-coverage-claim",
+    );
+    for (const coverageGaps of [
+      [{ analyzer: "semgrep", reason: "silent" }],
+      [{ analyzer: "trivy", reason: "completion-evidence-absent" }],
+      [
+        { analyzer: "semgrep", reason: "completion-evidence-absent" },
+        { analyzer: "semgrep", reason: "completion-evidence-absent" },
+      ],
+      [{ analyzer: "semgrep", reason: "completion-evidence-absent", note: "x" }],
+    ]) {
+      const item = await fixture();
+      rewrite(
+        item,
+        (artifact) => Object.assign(artifact, { coverageGaps }),
+        () => {},
+      );
+      expect(() => generate(item)).toThrow(/source-assessment-generator:component-coverage-gap/);
+    }
+    // An older handoff without typed coverage gaps is refused, never read as complete.
+    const older = await fixture();
+    rewrite(
+      older,
+      (artifact) => delete artifact.coverageGaps,
+      () => {},
+    );
+    expect(() => generate(older)).toThrow("source-assessment-generator:component-artifact-fields");
+    // Publication-level coverage cannot be complete while completion evidence is absent.
+    const summary = await fixture();
+    gapFree(summary, "observed");
+    const handoff = JSON.parse(readFileSync(summary.handoffPath, "utf8")) as Json;
+    (handoff.analyzerGaps as Json).completionEvidenceAbsent = ["semgrep"];
+    writeJson(summary.handoffPath, handoff);
+    expect(() => generate(summary)).toThrow("source-assessment-generator:analyzer-coverage-claim");
+    const noList = await fixture();
+    const value = structuredClone(noList.handoff) as Json;
+    delete (value.analyzerGaps as Json).completionEvidenceAbsent;
+    writeJson(noList.handoffPath, value);
+    expect(() => generate(noList)).toThrow("source-assessment-generator:analyzer-gaps-fields");
   });
 
   it("fails closed on unexpected handoff fields, mismatched publications, and partial mapping", async () => {
