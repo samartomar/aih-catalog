@@ -175,12 +175,41 @@ export function baselineInventoryFromTreeV1(
   return { components, id: subject, owner, pinnedSha: commit, repo };
 }
 
+/**
+ * Every git read names the checkout with `-C` and reads its own objects: `refs/replace/*`
+ * substitutes would otherwise stand in for the pinned commit or tree while keeping its id.
+ */
+function gitRead(checkout: string, args: readonly string[]): readonly string[] {
+  return ["--no-replace-objects", "-C", checkout, ...args];
+}
+
 function runGit(git: GitRunnerV1, checkout: string, args: readonly string[]): Uint8Array {
   try {
-    return git(["-C", checkout, ...args]);
+    return git(gitRead(checkout, args));
   } catch {
     return fail(`git ${args[0]} failed in ${checkout}`);
   }
+}
+
+/** Every `GIT_*` name, whatever its case (Windows environment names are case-insensitive). */
+const GIT_VARIABLE = /^GIT_/iu;
+
+/**
+ * The environment the injected git runner must use. Every inherited `GIT_*` variable is
+ * dropped: git selects the repository, index, object store, alternates, namespace,
+ * replace-ref base and extra configuration (`GIT_CONFIG*`, which can set `core.worktree`)
+ * from them before `-C` applies, and a denylist would rot as git adds more. Replacement
+ * objects are also disabled here, and a credential prompt can never block.
+ */
+export function baselineInventoryGitEnvV1(
+  base: Readonly<Record<string, string | undefined>>,
+): Record<string, string> {
+  const env: Record<string, string> = {};
+  for (const [key, value] of Object.entries(base))
+    if (value !== undefined && !GIT_VARIABLE.test(key)) env[key] = value;
+  env.GIT_NO_REPLACE_OBJECTS = "1";
+  env.GIT_TERMINAL_PROMPT = "0";
+  return env;
 }
 
 /**
@@ -206,7 +235,7 @@ export function emitBaselineInventoryV1(
     fail(`checkout origin is ${origin}, not ${repository}`);
   let resolved: string;
   try {
-    resolved = Buffer.from(git(["-C", checkout, "rev-parse", "--verify", `${commit}^{commit}`]))
+    resolved = Buffer.from(git(gitRead(checkout, ["rev-parse", "--verify", `${commit}^{commit}`])))
       .toString("utf8")
       .trim();
   } catch {

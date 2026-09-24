@@ -6,6 +6,7 @@ import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   baselineInventoryFromTreeV1,
+  baselineInventoryGitEnvV1,
   emitBaselineInventoryV1,
   type GitTreeEntryV1,
 } from "../../src/production/catalog/baseline-inventory-v1.js";
@@ -207,6 +208,80 @@ describe("whole-repository baseline inventory", () => {
       const inventory = emitBaselineInventoryV1("superpowers", commit, root, runner);
       expect(inventory.components.flatMap((component) => component.paths)).not.toContain(
         "AGENTS.md",
+      );
+    });
+
+    it("reads the pinned objects, never a refs/replace substitute", () => {
+      const { root, commit } = checkout();
+      const pinned = emitBaselineInventoryV1("superpowers", commit, root, runner);
+      // A second commit whose tree differs; replace the pinned tree, then the pinned commit.
+      writeFileSync(join(root, "injected.md"), "x\n");
+      git(root, "add", "-A");
+      git(root, "commit", "-q", "-m", "other");
+      const tree = git(root, "rev-parse", `${commit}^{tree}`);
+      const otherTree = git(root, "rev-parse", "HEAD^{tree}");
+      git(root, "replace", tree, otherTree);
+      expect(git(root, "ls-tree", "--name-only", commit)).toContain("injected.md");
+      expect(emitBaselineInventoryV1("superpowers", commit, root, runner)).toEqual(pinned);
+      git(root, "replace", "-d", tree);
+      git(root, "replace", commit, "HEAD");
+      expect(emitBaselineInventoryV1("superpowers", commit, root, runner)).toEqual(pinned);
+    });
+
+    it("passes --no-replace-objects on every git read", () => {
+      const { root, commit } = checkout();
+      const calls: (readonly string[])[] = [];
+      emitBaselineInventoryV1("superpowers", commit, root, (args) => {
+        calls.push(args);
+        return runner(args);
+      });
+      expect(calls.length).toBeGreaterThan(0);
+      for (const args of calls) expect(args[0]).toBe("--no-replace-objects");
+    });
+
+    it("strips inherited repository-selection overrides from the runner environment", () => {
+      const env = baselineInventoryGitEnvV1({
+        PATH: "/bin",
+        GIT_DIR: "/elsewhere/.git",
+        GIT_WORK_TREE: "/elsewhere",
+        GIT_INDEX_FILE: "/elsewhere/index",
+        GIT_OBJECT_DIRECTORY: "/elsewhere/objects",
+        GIT_ALTERNATE_OBJECT_DIRECTORIES: "/elsewhere/objects",
+        GIT_COMMON_DIR: "/elsewhere/.git",
+        GIT_NAMESPACE: "other",
+        GIT_REPLACE_REF_BASE: "refs/other/",
+        GIT_CONFIG: "/elsewhere/config",
+        GIT_CONFIG_COUNT: "1",
+        GIT_CONFIG_KEY_0: "core.worktree",
+        GIT_CONFIG_VALUE_0: "/elsewhere",
+        GIT_CONFIG_PARAMETERS: "'core.bare'='true'",
+        GIT_CEILING_DIRECTORIES: "/",
+        git_dir: "/elsewhere/.git",
+      });
+      expect(env).toEqual({
+        PATH: "/bin",
+        GIT_NO_REPLACE_OBJECTS: "1",
+        GIT_TERMINAL_PROMPT: "0",
+      });
+    });
+
+    it("reads the named checkout under a hostile inherited GIT_DIR", () => {
+      const { root, commit } = checkout();
+      const other = checkout("https://github.com/someone/Superpowers.git");
+      const hostile = { ...process.env, GIT_DIR: join(other.root, ".git") };
+      const inherited = (args: readonly string[]) =>
+        execFileSync("git", args, { env: hostile, stdio: ["ignore", "pipe", "pipe"] });
+      // The hostile variable really steers an unguarded runner to the other repository.
+      expect(() => emitBaselineInventoryV1("superpowers", commit, root, inherited)).toThrow(
+        /origin is https:\/\/github.com\/someone\/Superpowers.git/,
+      );
+      const guarded = (args: readonly string[]) =>
+        execFileSync("git", args, {
+          env: baselineInventoryGitEnvV1(hostile),
+          stdio: ["ignore", "pipe", "pipe"],
+        });
+      expect(emitBaselineInventoryV1("superpowers", commit, root, guarded)).toEqual(
+        emitBaselineInventoryV1("superpowers", commit, root, runner),
       );
     });
 

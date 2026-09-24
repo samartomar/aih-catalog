@@ -43,21 +43,25 @@ function parseArgs(argv) {
 
 const options = parseArgs(process.argv.slice(2));
 
-/** The inventory reads only the local checkout: no network, no prompt, no redirect. */
+const { emitBaselineDefinitionV1 } = await import(
+  "../dist/production/catalog/baseline-definitions-v1.js"
+);
+const { baselineInventoryGitEnvV1, emitBaselineInventoryV1 } = await import(
+  "../dist/production/catalog/baseline-inventory-v1.js"
+);
+
+/**
+ * The inventory reads only the local checkout: no network, no prompt, no redirect, and no
+ * inherited GIT_* variable may select another repository, object store or replace base.
+ */
 function git(args) {
   return execFileSync("git", args, {
-    env: { ...process.env, GIT_TERMINAL_PROMPT: "0" },
+    env: baselineInventoryGitEnvV1(process.env),
     maxBuffer: 256 * 1024 * 1024,
     stdio: ["ignore", "pipe", "pipe"],
     windowsHide: true,
   });
 }
-const { emitBaselineDefinitionV1 } = await import(
-  "../dist/production/catalog/baseline-definitions-v1.js"
-);
-const { emitBaselineInventoryV1 } = await import(
-  "../dist/production/catalog/baseline-inventory-v1.js"
-);
 try {
   const definition =
     options.inventory === undefined
