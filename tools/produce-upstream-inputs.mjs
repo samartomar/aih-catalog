@@ -1,10 +1,11 @@
 #!/usr/bin/env node
-// Networked `npm run produce:<name> -- --commit <full sha>` step. It fetches one
-// upstream repository at one full commit, runs the offline transforms from
-// dist/production/produce, writes the true inputs under src/production/data and
-// records repository, commit and sha256s in upstream-inputs-v1.json. The offline
-// build never runs this. `--repo <checkout>` reads a local clone that already
-// holds the commit; `--check` compares instead of writing.
+// Networked `npm run produce:<name> -- --commit <full sha>` step. It checks with
+// the GitHub API that the upstream repository is still served as itself (not
+// moved or transferred), fetches it at one full commit over HTTPS with redirects
+// refused, runs the offline transforms from dist/production/produce, writes the
+// true inputs under src/production/data and records the repository actually
+// fetched, the commit and sha256s in upstream-inputs-v1.json. The offline build
+// never runs this. `--check` compares instead of writing.
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -17,21 +18,21 @@ const COMMIT = /^[a-f0-9]{40}$/u;
 function usage(message) {
   console.error(`produce-upstream-inputs: ${message}`);
   console.error(
-    "usage: node tools/produce-upstream-inputs.mjs <ecc|superpowers|mattpocock|ponytail> --commit <40-hex> [--repo <checkout>] [--check]",
+    "usage: node tools/produce-upstream-inputs.mjs <ecc|superpowers|mattpocock|ponytail> --commit <40-hex> [--check]",
   );
   process.exit(2);
 }
 
 function parseArgs(argv) {
   const [name, ...rest] = argv;
-  const options = { name, commit: undefined, repo: undefined, check: false };
+  const options = { name, commit: undefined, check: false };
   for (let index = 0; index < rest.length; index += 1) {
     const arg = rest[index];
     if (arg === "--check") options.check = true;
-    else if (arg === "--commit" || arg === "--repo") {
+    else if (arg === "--commit") {
       const value = rest[index + 1];
       if (value === undefined || value.startsWith("--")) usage(`${arg} needs a value`);
-      options[arg.slice(2)] = value;
+      options.commit = value;
       index += 1;
     } else usage(`unexpected argument ${arg}`);
   }
@@ -44,60 +45,50 @@ const options = parseArgs(process.argv.slice(2));
 const { UPSTREAM_PRODUCERS_V1, produceUpstreamInputsV1, recordUpstreamInputsV1 } = await import(
   "../dist/production/produce/upstream-producers-v1.js"
 );
+const { fetchUpstreamTreeV1 } = await import("../dist/production/produce/upstream-fetch-v1.js");
 if (!Object.hasOwn(UPSTREAM_PRODUCERS_V1, options.name ?? ""))
   usage(`unknown produce step ${String(options.name)}`);
-const repository = UPSTREAM_PRODUCERS_V1[options.name];
 
-function git(cwd, args) {
-  return execFileSync("git", ["-C", cwd, ...args], {
+function git(args) {
+  return execFileSync("git", args, {
+    env: { ...process.env, GIT_TERMINAL_PROMPT: "0" },
     maxBuffer: 256 * 1024 * 1024,
     stdio: ["ignore", "pipe", "pipe"],
   });
 }
 
-const scratch = options.repo === undefined ? mkdtempSync(join(tmpdir(), "aih-produce-")) : undefined;
-try {
-  const checkout = options.repo === undefined ? scratch : resolve(options.repo);
-  if (scratch !== undefined) {
-    git(scratch, ["init", "-q"]);
-    git(scratch, [
-      "fetch",
-      "-q",
-      "--depth",
-      "1",
-      "--no-tags",
-      `https://github.com/${repository}.git`,
-      options.commit,
-    ]);
-  }
-  const type = git(checkout, ["cat-file", "-t", options.commit]).toString("utf8").trim();
-  if (type !== "commit") throw new Error(`${options.commit} is not a commit in ${repository}`);
-  const blobs = new Map();
-  for (const line of git(checkout, ["ls-tree", "-r", "-z", "--full-tree", options.commit])
-    .toString("utf8")
-    .split("\0")
-    .filter(Boolean)) {
-    const match = /^(\d{6}) (\w+) [a-f0-9]+\t(.+)$/su.exec(line);
-    if (match === null) throw new Error(`unreadable tree entry ${line}`);
-    if (match[2] === "blob") blobs.set(match[3], match[1]);
-  }
-  const tree = {
-    repository,
-    commit: options.commit,
-    paths: [...blobs.keys()],
-    read(path) {
-      const mode = blobs.get(path);
-      if (mode !== "100644" && mode !== "100755")
-        throw new Error(`upstream file ${path} is not a regular file`);
-      return git(checkout, ["cat-file", "blob", `${options.commit}:${path}`]);
-    },
+/** One GitHub API request that never follows a redirect: a moved repository must be seen as moved. */
+async function http(url) {
+  const response = await globalThis.fetch(url, {
+    redirect: "manual",
+    headers: { accept: "application/vnd.github+json", "user-agent": "aih-catalog-produce" },
+  });
+  return {
+    status: response.status,
+    location: response.headers.get("location") ?? undefined,
+    body: await response.text(),
   };
+}
+
+const scratch = mkdtempSync(join(tmpdir(), "aih-produce-"));
+try {
+  const tree = await fetchUpstreamTreeV1({
+    repository: UPSTREAM_PRODUCERS_V1[options.name],
+    commit: options.commit,
+    scratch,
+    git,
+    http,
+  });
+  console.log(
+    `fetched ${tree.url} at ${tree.commit}: GitHub serves it as ${tree.servedAs}; HTTP redirects refused`,
+  );
+  const repository = tree.repository;
   const produced = produceUpstreamInputsV1(options.name, tree, root);
   const manifestPath = resolve(root, "src", "production", "data", "upstream-inputs-v1.json");
   const manifest = recordUpstreamInputsV1(
     readFileSync(manifestPath, "utf8"),
     repository,
-    options.commit,
+    tree.commit,
     produced,
   );
   const outputs = [
@@ -120,5 +111,5 @@ try {
   else if (!options.check)
     console.log("Run `npm run build:dist` to regenerate defaults/** from the new inputs.");
 } finally {
-  if (scratch !== undefined) rmSync(scratch, { recursive: true, force: true });
+  rmSync(scratch, { recursive: true, force: true });
 }
