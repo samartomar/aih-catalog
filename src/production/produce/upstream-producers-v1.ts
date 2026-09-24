@@ -401,9 +401,10 @@ export function produceUpstreamInputsV1(
 
 /**
  * Records the fetched repository, full commit and sha256s; other entries are kept. An
- * entry records the production `runtime` of the run that last changed it: reproducing
- * identical bytes under another runtime keeps the recorded one, so the manifest names
- * the collation runtime that actually produced the committed bytes.
+ * entry records the production `runtime` of the run that last changed its bytes:
+ * reproducing identical bytes under another runtime keeps the recorded one (the
+ * repository, commit and sources are still updated), so the manifest names the
+ * collation runtime that actually produced the committed bytes.
  */
 export function recordUpstreamInputsV1(
   manifestText: string,
@@ -426,10 +427,8 @@ export function recordUpstreamInputsV1(
       ),
     };
     const previous = files[item.file];
-    const unchanged =
-      previous !== undefined &&
-      JSON.stringify({ ...previous, runtime: undefined }) === JSON.stringify(next);
-    files[item.file] = { ...next, runtime: unchanged ? previous.runtime : { ...runtime } };
+    const sameBytes = previous !== undefined && previous.sha256 === next.sha256;
+    files[item.file] = { ...next, runtime: sameBytes ? previous.runtime : { ...runtime } };
   }
   const sorted = Object.fromEntries(
     Object.entries(files).sort(([left], [right]) => codeUnitCompare(left, right)),

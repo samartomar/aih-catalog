@@ -254,6 +254,30 @@ describe("networked upstream producers (offline transforms)", () => {
     expect(manifest.files["ecc-skill-inventory-v1.json"]?.runtime).not.toEqual(OTHER_RUNTIME);
   });
 
+  it("keeps the recorded runtime for the same bytes at another commit and updates the provenance", () => {
+    const text = dataText("upstream-inputs-v1.json");
+    const manifest = JSON.parse(text) as { files: Record<string, Record<string, unknown>> };
+    const file = "ecc-skill-inventory-v1.json";
+    const sources = { "skills/example/SKILL.md": "b".repeat(64) };
+    const next = JSON.parse(
+      recordUpstreamInputsV1(
+        text,
+        "affaan-m/ECC",
+        "a".repeat(40),
+        [{ file, bytes: dataText(file), sources }],
+        OTHER_RUNTIME,
+      ),
+    ) as typeof manifest;
+    expect(next.files[file]).toEqual({
+      ...manifest.files[file],
+      repository: "affaan-m/ECC",
+      commit: "a".repeat(40),
+      sources,
+      runtime: manifest.files[file]?.runtime,
+    });
+    expect(manifest.files[file]?.runtime).not.toEqual(OTHER_RUNTIME);
+  });
+
   it("records the Node, ICU, Unicode and CLDR versions that produced every input", () => {
     const manifest = JSON.parse(dataText("upstream-inputs-v1.json")) as {
       files: Record<string, { runtime: Record<string, string> }>;
