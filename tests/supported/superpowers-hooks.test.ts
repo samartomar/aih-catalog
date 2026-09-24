@@ -1,7 +1,12 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { fsCallbackNames } from "typescript/unstable/fs";
+import { API } from "typescript/unstable/sync";
 import { describe, expect, it } from "vitest";
-import { readOpenCodePluginHooksV1 } from "../../src/production/catalog/opencode-plugin-hooks-v1.js";
+import {
+  openCodePluginParserFileSystemV1,
+  readOpenCodePluginHooksV1,
+} from "../../src/production/catalog/opencode-plugin-hooks-v1.js";
 import { superpowersHookControlInventoryV1 } from "../../src/production/catalog/superpowers-hooks-v1.js";
 import {
   buildCatalogFrameworkDefaultsV1,
@@ -422,5 +427,62 @@ describe("OpenCode plugin hook declarations", () => {
     expect(() =>
       readOpenCodePluginHooksV1(`${openCodeSource()}\nconst x = 'open`, OPENCODE),
     ).toThrow(/cannot interpret/u);
+  });
+});
+
+describe("the OpenCode plugin parser's file system", () => {
+  const onDisk = (...parts: string[]) => resolve(root, ...parts).replaceAll("\\", "/");
+  const PLUGIN = "export {};";
+
+  it("gives the parser nothing for a project that exists on disk outside it", () => {
+    const config = onDisk("tsconfig.json");
+    expect(existsSync(config)).toBe(true);
+    const api = new API({
+      cwd: "/aih-opencode-plugin",
+      fs: openCodePluginParserFileSystemV1(PLUGIN),
+    });
+    try {
+      expect(api.updateSnapshot({ openProjects: [config] }).getProjects()).toHaveLength(0);
+    } finally {
+      api.close();
+    }
+  });
+
+  it("answers every request outside the plugin text with an explicit miss, never a fallback", () => {
+    const fs = openCodePluginParserFileSystemV1(PLUGIN);
+    for (const name of fsCallbackNames) expect(typeof fs[name], name).toBe("function");
+    const files = [
+      onDisk("tsconfig.json"),
+      onDisk("package.json"),
+      "/aih-opencode-plugin/package.json",
+      "/package.json",
+      "toString",
+      "__proto__",
+    ];
+    for (const path of files) {
+      expect(existsSync(path) || !path.startsWith(onDisk())).toBe(true);
+      expect(fs.readFile?.(path), path).toBeNull();
+      expect(fs.fileExists?.(path), path).toBe(false);
+      expect(fs.directoryExists?.(path), path).toBe(false);
+      expect(fs.realpath?.(path), path).toBe(path);
+    }
+    for (const directory of [onDisk(), onDisk("src"), "/missing", "toString"]) {
+      expect(fs.directoryExists?.(directory), directory).toBe(false);
+      expect(fs.getAccessibleEntries?.(directory), directory).toEqual({
+        files: [],
+        directories: [],
+      });
+    }
+    expect(fs.readFile?.("/aih-opencode-plugin/plugin.js")).toBe(PLUGIN);
+    expect(fs.fileExists?.("/aih-opencode-plugin/plugin.js")).toBe(true);
+    expect(fs.directoryExists?.("/")).toBe(true);
+    expect(fs.getAccessibleEntries?.("/")).toEqual({
+      files: [],
+      directories: ["aih-opencode-plugin"],
+    });
+    expect(fs.getAccessibleEntries?.("/aih-opencode-plugin")?.files.toSorted()).toEqual([
+      "plugin.js",
+      "tsconfig.json",
+    ]);
   });
 });

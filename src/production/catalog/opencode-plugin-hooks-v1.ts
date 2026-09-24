@@ -42,7 +42,7 @@ import {
   isStringLiteral,
   isVariableStatement,
 } from "typescript/unstable/ast/is";
-import { createVirtualFileSystem } from "typescript/unstable/fs";
+import type { FileSystem, FileSystemEntries } from "typescript/unstable/fs";
 import { API } from "typescript/unstable/sync";
 
 export interface OpenCodePluginHookV1 {
@@ -58,18 +58,48 @@ const VIRTUAL_ROOT = "/aih-opencode-plugin";
 const VIRTUAL_FILE = `${VIRTUAL_ROOT}/plugin.js`;
 const VIRTUAL_CONFIG = `${VIRTUAL_ROOT}/tsconfig.json`;
 
-/** Parses `source` as an ECMAScript module and hands its syntax tree to `read` while the parser runs. */
-function withParsedModule<T>(source: string, fail: Fail, read: (file: SourceFile) => T): T {
-  const api = new API({
-    cwd: VIRTUAL_ROOT,
-    fs: createVirtualFileSystem({
-      [VIRTUAL_CONFIG]: JSON.stringify({
+/**
+ * The only files the parser can see: its configuration and the plugin text.
+ * Every request is answered from these alone, and a miss is explicit (`null`,
+ * `false`, no entries): the parser reads the real file system for any request
+ * a callback answers with `undefined`.
+ */
+export function openCodePluginParserFileSystemV1(source: string): FileSystem {
+  const files = new Map<unknown, string>([
+    [
+      VIRTUAL_CONFIG,
+      JSON.stringify({
         compilerOptions: { allowJs: true, noLib: true, noResolve: true, types: [] },
         files: ["plugin.js"],
       }),
-      [VIRTUAL_FILE]: source,
-    }),
-  });
+    ],
+    [VIRTUAL_FILE, source],
+  ]);
+  const directories = new Map<unknown, FileSystemEntries>([
+    ["/", { files: [], directories: [VIRTUAL_ROOT.slice(1)] }],
+    [
+      VIRTUAL_ROOT,
+      {
+        files: [VIRTUAL_CONFIG, VIRTUAL_FILE].map((file) => file.slice(VIRTUAL_ROOT.length + 1)),
+        directories: [],
+      },
+    ],
+  ]);
+  return {
+    readFile: (path) => files.get(path) ?? null,
+    fileExists: (path) => files.has(path),
+    directoryExists: (path) => directories.has(path),
+    getAccessibleEntries: (path) => {
+      const entries = directories.get(path);
+      return { files: [...(entries?.files ?? [])], directories: [...(entries?.directories ?? [])] };
+    },
+    realpath: (path) => path,
+  };
+}
+
+/** Parses `source` as an ECMAScript module and hands its syntax tree to `read` while the parser runs. */
+function withParsedModule<T>(source: string, fail: Fail, read: (file: SourceFile) => T): T {
+  const api = new API({ cwd: VIRTUAL_ROOT, fs: openCodePluginParserFileSystemV1(source) });
   try {
     const program = api
       .updateSnapshot({ openProjects: [VIRTUAL_CONFIG] })
