@@ -23,11 +23,22 @@ const fixtures = readdirSync(directory)
   .map((name) => JSON.parse(readFileSync(join(directory, name), "utf8")) as Fixture);
 
 const TIMESTAMP = /requires an exact UTC timestamp|is invalid/;
+const UNTRIMMED = /must be a trimmed string/;
 /** Catalog's structural outcome for every shared case, the defect a refusal must name, and Core's admission. */
 const EXPECTED: Record<string, readonly [Outcome, Outcome, RegExp?]> = {
   "asset-bound-twice": ["refused", "refused", /coverage asset bound twice/],
   "publication-other-ref": ["accepted", "refused"],
   "publication-unreviewed-commit": ["accepted", "refused"],
+  "report-analyzer-name-nbsp": ["refused", "refused", UNTRIMMED],
+  "report-analyzer-name-untrimmed": ["refused", "refused", UNTRIMMED],
+  "report-analyzer-proto-key": ["refused", "refused", /has unsupported field __proto__/],
+  "report-analyzer-version-untrimmed": ["refused", "refused", UNTRIMMED],
+  "report-finding-code-untrimmed": ["refused", "refused", UNTRIMMED],
+  "report-finding-count-unsafe-integer": ["refused", "refused", /count must be an integer/],
+  "report-finding-detail-untrimmed": ["refused", "refused", UNTRIMMED],
+  "report-finding-fingerprint-untrimmed": ["refused", "refused", UNTRIMMED],
+  "report-finding-fingerprints-untrimmed": ["refused", "refused", UNTRIMMED],
+  "report-findings": ["accepted", "accepted"],
   "subject-and-subjects": ["refused", "refused", /component 0 has unsupported field subject/],
   "subject-missing": ["refused", "refused", /component 0 is missing subject/],
   subjects: ["accepted", "accepted"],
