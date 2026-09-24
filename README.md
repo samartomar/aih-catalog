@@ -724,16 +724,24 @@ edit the checkout and the tools. Accidental divergence and anything the
 repository's own files or configuration can cause stay fail-closed. One build
 runs at a time per checkout, serialized by an exclusive
 `.candidate-build.lock` (gitignored) held for the whole build and exposure; a
-second build refuses, naming the lock and how to remove a stale one. The
+second build refuses, naming the lock and how to remove a stale one, and a
+failure while writing the lock after creating it removes that lock and
+reports the real error, never "another build". The
 build records `HEAD` (a sha256-object-format repository is refused explicitly
 before building; the candidate writer supports sha1 checkouts) and materializes
 that commit's tree from raw git objects (`git ls-tree` and `git cat-file`, so
 checkout conversions — smudge filters, attributes, eol rewrites — never apply)
 into a gitignored `.candidate-build-*` snapshot, then compiles, generates and
-copies only from that snapshot. The tree listing is decoded as strict UTF-8: a
-path that is not UTF-8 (named by its byte offset), a duplicate path, paths
-that alias on a case-insensitive or Unicode-normalizing file system, and any
-malformed `cat-file` batch frame each refuse the candidate before anything is
+copies only from that snapshot. The tree listing is decoded as strict UTF-8
+with a leading BOM kept and a byte round trip required: a path that is not
+UTF-8 (named by its byte offset), a path segment that is not portable
+(printable ASCII only; none of `\ : < > " | ? *`; no trailing dot or space;
+no Win32 device name such as `CON` or `LPT1`, in any case, with any
+extension; no 8.3 short-name shape such as `LONGDI~1`), a duplicate path,
+paths that alias on a case-insensitive or Unicode-normalizing file system —
+as whole paths or at any single component, so `Dir/a` and `dir/b` collide —
+and any malformed `cat-file` batch frame (each header must be exactly `<oid>
+<type> <size>`) each refuse the candidate before anything is
 built, and every written file is checked to stay inside the snapshot. The
 batch read and the post-build verification are bounded — 64 MiB per file and
 512 MiB in aggregate, comfortably above this repository's ~12 MiB largest
@@ -745,16 +753,24 @@ environment variable removed, replacement objects disabled, the system and
 global configurations replaced by nothing, and the repository's own
 configuration neutralized where it could run code — the fsmonitor and the
 untracked cache are disabled and hooks resolve to an empty staging directory —
-using plumbing reads only, so only the named checkout's own objects are read. The local toolchain bytes
+using plumbing reads only, so only the named checkout's own objects are read.
+Lazy fetching is disabled too (`GIT_NO_LAZY_FETCH=1`; the build requires git
+2.47 or newer, which introduced it, and refuses anything older), so a missing
+object refuses with a typed error naming the object instead of ever
+contacting a promisor remote whose `core.sshCommand` or credential helpers
+the repository controls. The local toolchain bytes
 (`node_modules/typescript` and its dependencies) are not part of the commit;
 they are trusted exactly as for the release build. The output becomes
 `dist-candidate/` only if, after the build, `HEAD` is still the recorded
 commit, every snapshot file outside the build's own output directories still
 hashes to the commit's blob ids (recomputed in Node, never by git's normalized
-view), every file's executable bit still matches the tree's mode (100755 vs
+view), every file's executable mask still matches the tree's mode exactly
+(owner bit included: 100755 vs
 100644; modes not verified on win32, where the published package's modes come
 from `npm pack`, not from the snapshot) and the built `CANDIDATE.json` names
-that commit, read from a real directory — a link or junction as the output, or
+that commit, read from a real directory — markers and the checkout manifest
+are read only from regular files, bounded at 1 MiB with typed refusals naming
+the file and the limit; a link or junction as the output, or
 an output whose identity changed between the check and the rename, is refused
 and rolled back. Otherwise the build
 refuses, removes its partial output and restores any earlier `dist-candidate/`
