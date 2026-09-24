@@ -284,6 +284,122 @@ describe("candidate inputs", () => {
   });
 });
 
+describe("candidate input reads are bounded and strictly decoded", () => {
+  // The real inputs are ~0.4 KiB (the manifest) and ~13 KiB (a compiler
+  // input); the limit sits far above them and is named in every refusal.
+  const LIMIT = 16 * 1024 * 1024;
+  const refusesTyped = (run: () => unknown, code: string, message: RegExp) => {
+    let failure: unknown;
+    try {
+      run();
+    } catch (error: unknown) {
+      failure = error;
+    }
+    expect((failure as { code?: string } | undefined)?.code).toBe(code);
+    expect((failure as Error | undefined)?.message).toMatch(message);
+  };
+
+  it("refuses an oversized inputs file before reading it, naming the file and the limit", () => {
+    const dir = tempDir();
+    const path = join(dir, "candidate-inputs.json");
+    writeFileSync(path, `{"pad":"${"x".repeat(LIMIT)}"}`);
+    refusesTyped(
+      () => readCatalogCandidateInputsV1(path, vendorLock()),
+      "candidate-input-too-large",
+      /candidate-inputs\.json.*over the candidate input limit of 16777216 bytes/su,
+    );
+  });
+
+  it("refuses an oversized compiler input before reading it, naming the file and the limit", () => {
+    const path = inputsFor(superpowersInput(`{"pad":"${"x".repeat(LIMIT)}"}`));
+    refusesTyped(
+      () => readCatalogCandidateInputsV1(path, vendorLock()),
+      "candidate-input-too-large",
+      /superpowers\.json.*over the candidate input limit of 16777216 bytes/su,
+    );
+  });
+
+  it("refuses a junction or directory in place of the inputs file", () => {
+    const dir = tempDir();
+    const path = join(dir, "candidate-inputs.json");
+    mkdirSync(path);
+    refusesTyped(
+      () => readCatalogCandidateInputsV1(path, vendorLock()),
+      "candidate-input-not-regular",
+      /candidate-inputs\.json.*not a regular file/su,
+    );
+  });
+
+  it("refuses a junction or directory in place of a compiler input", () => {
+    const path = inputsFor((dir) => {
+      mkdirSync(join(dir, "compiler", "superpowers.json"), { recursive: true });
+      return {
+        superpowers: { compilerInput: "compiler/superpowers.json", sha256: "0".repeat(64) },
+      };
+    });
+    refusesTyped(
+      () => readCatalogCandidateInputsV1(path, vendorLock()),
+      "candidate-input-not-regular",
+      /superpowers\.json.*not a regular file/su,
+    );
+  });
+
+  it.skipIf(process.platform === "win32")("refuses a symlink in place of the inputs file", () => {
+    const dir = tempDir();
+    writeFileSync(join(dir, "real.json"), "{}");
+    const path = join(dir, "candidate-inputs.json");
+    symlinkSync(join(dir, "real.json"), path);
+    refusesTyped(
+      () => readCatalogCandidateInputsV1(path, vendorLock()),
+      "candidate-input-not-regular",
+      /candidate-inputs\.json.*not a regular file/su,
+    );
+  });
+
+  it("refuses an inputs file that is not UTF-8", () => {
+    const dir = tempDir();
+    const path = join(dir, "candidate-inputs.json");
+    writeFileSync(path, Buffer.from([0x7b, 0xff, 0x7d]));
+    refusesTyped(
+      () => readCatalogCandidateInputsV1(path, vendorLock()),
+      "candidate-input-not-utf8",
+      /candidate-inputs\.json.*not valid UTF-8/su,
+    );
+  });
+
+  it("refuses a compiler input that is not UTF-8", () => {
+    const bytes = Buffer.from([0x7b, 0xff, 0x7d]);
+    const path = inputsFor((dir) => {
+      mkdirSync(join(dir, "compiler"));
+      writeFileSync(join(dir, "compiler", "superpowers.json"), bytes);
+      return { superpowers: { compilerInput: "compiler/superpowers.json", sha256: sha256(bytes) } };
+    });
+    refusesTyped(
+      () => readCatalogCandidateInputsV1(path, vendorLock()),
+      "candidate-input-not-utf8",
+      /superpowers\.json.*not valid UTF-8/su,
+    );
+  });
+
+  it("refuses an inputs file that starts with a BOM", () => {
+    const dir = tempDir();
+    const path = join(dir, "candidate-inputs.json");
+    writeFileSync(
+      path,
+      `\uFEFF${JSON.stringify({
+        format: "aih-catalog-candidate-inputs",
+        version: 1,
+        frameworks: { ecc: { omit: true } },
+      })}`,
+    );
+    refusesTyped(
+      () => readCatalogCandidateInputsV1(path, vendorLock()),
+      "candidate-input-bom",
+      /candidate-inputs\.json.*BOM/su,
+    );
+  });
+});
+
 describe("candidate packaged source records", () => {
   const records = () => data("packaged-source-data-v1.json") as { bytes: string; sha256: string }[];
   const repositories = (wrappers: unknown) =>

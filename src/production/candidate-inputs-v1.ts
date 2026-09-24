@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { lstatSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import {
   assertStrictJsonValueV1,
@@ -40,6 +40,74 @@ export const CATALOG_CANDIDATE_INPUTS_FORMAT_V1 = "aih-catalog-candidate-inputs"
 
 export type CandidateFrameworkIdV1 = "ecc" | "superpowers";
 const FRAMEWORK_IDS: readonly CandidateFrameworkIdV1[] = ["ecc", "superpowers"];
+
+/** A refusal with a stable code, so callers and tests can branch on the kind. */
+export class CandidateInputRefusalV1 extends TypeError {
+  readonly code: string;
+  constructor(code: string, message: string) {
+    super(message);
+    this.name = "CandidateInputRefusalV1";
+    this.code = code;
+  }
+}
+
+/**
+ * The operator-supplied inputs manifest and the compiler inputs it names are
+ * external input, read whole: bound them first. The real manifest is ~0.4 KiB
+ * and a real compiler input ~13 KiB, so 16 MiB is comfortably above either;
+ * the refusal names the file and the limit.
+ */
+export const CANDIDATE_INPUT_LIMIT_V1 = 16 * 1024 * 1024;
+
+const utf8Fatal = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+
+/**
+ * Bounded read of an operator-supplied input: lstat first, so a non-regular
+ * file (link, junction, directory) refuses, and a file over the limit refuses
+ * before its bytes are read. The bytes are then decoded as strict UTF-8 with
+ * the BOM kept (ignoreBOM) and a leading BOM refused explicitly, so no input
+ * byte is ever replaced by U+FFFD or silently dropped. All refusals are typed
+ * and name the file; the limit refusals name the limit too.
+ */
+function readCandidateInputFileV1(path: string, label: string): { bytes: Buffer; text: string } {
+  let stat: ReturnType<typeof lstatSync>;
+  try {
+    stat = lstatSync(path);
+  } catch (error) {
+    throw new TypeError(`${label} ${path} is unreadable: ${(error as Error).message}`);
+  }
+  if (stat.isSymbolicLink() || !stat.isFile())
+    throw new CandidateInputRefusalV1(
+      "candidate-input-not-regular",
+      `${label} ${path} is not a regular file; the candidate is refused`,
+    );
+  if (stat.size > CANDIDATE_INPUT_LIMIT_V1)
+    throw new CandidateInputRefusalV1(
+      "candidate-input-too-large",
+      `${label} ${path} is ${stat.size} bytes, over the candidate input limit of ${CANDIDATE_INPUT_LIMIT_V1} bytes; the candidate is refused`,
+    );
+  let bytes: Buffer;
+  try {
+    bytes = readFileSync(path);
+  } catch (error) {
+    throw new TypeError(`${label} ${path} is unreadable: ${(error as Error).message}`);
+  }
+  let text: string;
+  try {
+    text = utf8Fatal.decode(bytes);
+  } catch {
+    throw new CandidateInputRefusalV1(
+      "candidate-input-not-utf8",
+      `${label} ${path} is not valid UTF-8; the candidate is refused`,
+    );
+  }
+  if (text.startsWith("\uFEFF"))
+    throw new CandidateInputRefusalV1(
+      "candidate-input-bom",
+      `${label} ${path} starts with a byte order mark (BOM); the candidate is refused`,
+    );
+  return { bytes, text };
+}
 
 export type CandidateFrameworkInputV1 =
   | { kind: "compiler-input"; path: string; sha256: string; componentDefinitions: JsonRecord }
@@ -89,21 +157,17 @@ function readCompilerInput(
   const path = text(entry.compilerInput, `${label} compilerInput`);
   if (path.length === 0) throw new TypeError(`${label} compilerInput must name a file`);
   const expected = text(entry.sha256, `${label} sha256 (64 lowercase hex)`, SHA256_HEX);
-  let bytes: Buffer;
-  try {
-    bytes = readFileSync(resolve(base, path));
-  } catch (error) {
-    throw new TypeError(
-      `${label} compiler input ${path} is unreadable: ${(error as Error).message}`,
-    );
-  }
+  const { bytes, text: inputText } = readCandidateInputFileV1(
+    resolve(base, path),
+    `${label} compiler input`,
+  );
   const actual = sha256HexV1(bytes);
   if (actual !== expected)
     throw new TypeError(
       `${label} compiler input ${path} has sha256 ${actual}, not the named ${expected}`,
     );
   const inputLabel = `${label} compiler input ${path}`;
-  const value = parseJsonTextRejectingDuplicateKeysV1(bytes.toString("utf8"), inputLabel);
+  const value = parseJsonTextRejectingDuplicateKeysV1(inputText, inputLabel);
   assertStrictJsonValueV1(value, inputLabel);
   const input = exactKeys(record(value, inputLabel), ["version", "framework"], inputLabel);
   literal(input.version, "pinned-baseline/v1", `${inputLabel} version`);
@@ -133,14 +197,9 @@ export function readCatalogCandidateInputsV1(
   vendorLock: unknown,
 ): CatalogCandidateV1 {
   const label = "candidate inputs";
-  let bytes: Buffer;
-  try {
-    bytes = readFileSync(inputsPath);
-  } catch (error) {
-    throw new TypeError(`${label} ${inputsPath} is unreadable: ${(error as Error).message}`);
-  }
+  const { bytes, text: inputsText } = readCandidateInputFileV1(inputsPath, label);
   const inputs = exactKeys(
-    record(parseJsonTextRejectingDuplicateKeysV1(bytes.toString("utf8"), label), label),
+    record(parseJsonTextRejectingDuplicateKeysV1(inputsText, label), label),
     ["format", "version", "frameworks"],
     label,
   );
