@@ -6,6 +6,8 @@ import {
   compileMattPocockSkillCollectionV1,
   prepareMattPocockCollectionV1,
 } from "../../src/production/workbench/mattpocock-provider-v1.js";
+import { compilePonytailComponentCollectionV1 } from "../../src/production/workbench/ponytail-provider-v1.js";
+import { compileCatalogProviderV1 } from "../../src/production/workbench/provider-compilation-v1.js";
 
 const root = resolve(import.meta.dirname, "..", "..");
 const data = (name: string) => resolve(root, "src", "production", "data", name);
@@ -43,5 +45,31 @@ describe("Catalog production generators", () => {
 
   it("keeps no frozen derived Matt Pocock collection beside its snapshot", () => {
     expect(existsSync(data("mattpocock-collection-v1.json"))).toBe(false);
+  });
+
+  it("compiles the Ponytail components from the fetched snapshot deterministically", () => {
+    const compile = () =>
+      compileCatalogProviderV1(
+        "ponytail",
+        (input: unknown) => [compilePonytailComponentCollectionV1(input)],
+        json(data("ponytail.snapshot.json")),
+      );
+    const first = compile();
+    expect(canonicalJsonV1(compile())).toBe(canonicalJsonV1(first));
+    const declarations = first.inputs[0]?.declarations ?? [];
+    expect(declarations.map((entry) => entry.declaration.id)).toContain("ponytail/skill:ponytail");
+    expect(Object.keys(first.inputs[0]?.sources ?? {})).toEqual(["source:ponytail"]);
+  });
+
+  it("rejects Ponytail file bytes that do not match their recorded digest", () => {
+    const snapshot = json(data("ponytail.snapshot.json")) as { files: { sha256: string }[] };
+    (snapshot.files[0] as { sha256: string }).sha256 = `sha256:${"0".repeat(64)}`;
+    expect(() => compilePonytailComponentCollectionV1(snapshot)).toThrow(/digest mismatch/u);
+  });
+
+  it("rejects a Ponytail snapshot that names another repository", () => {
+    const snapshot = json(data("ponytail.snapshot.json")) as { source: { repository: string } };
+    snapshot.source.repository = "https://github.com/example/ponytail";
+    expect(() => compilePonytailComponentCollectionV1(snapshot)).toThrow(/exact source identity/u);
   });
 });
