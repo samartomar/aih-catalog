@@ -41,11 +41,13 @@ import { compileCatalogProvidersV1 } from "../../src/production/workbench/catalo
 
 // Exposure rollback tests inject rename failures into the candidate-snapshot
 // tool: the Nth renameSync after arming throws, every other call passes
-// through; with keepFailing every rename from the Nth on throws. The mock is
-// inert while fsFaults.renameCountdown is null.
+// through; with keepFailing every rename from the Nth on throws. The lock
+// test arms failLockWrite: the next writeFileSync of the lock (by path or by
+// fd) throws. The mock is inert while unarmed.
 const fsFaults = vi.hoisted(() => ({
   renameCountdown: null as number | null,
   keepFailing: false,
+  failLockWrite: false,
 }));
 vi.mock("node:fs", async (importOriginal) => {
   const actual = await importOriginal<typeof import("node:fs")>();
@@ -60,6 +62,16 @@ vi.mock("node:fs", async (importOriginal) => {
         fsFaults.renameCountdown -= 1;
       }
       return actual.renameSync(...args);
+    },
+    writeFileSync: (...args: Parameters<typeof actual.writeFileSync>) => {
+      if (
+        fsFaults.failLockWrite &&
+        (typeof args[0] === "number" || String(args[0]).endsWith(".candidate-build.lock"))
+      ) {
+        fsFaults.failLockWrite = false;
+        throw new Error("simulated lock write failure");
+      }
+      return actual.writeFileSync(...args);
     },
   };
 });
@@ -1681,6 +1693,28 @@ describe("the candidate build is serialized by a lock file", () => {
         throw new Error("boom");
       }),
     ).rejects.toThrow(/boom/u);
+    expect(existsSync(lockPath(dir))).toBe(false);
+    expect(staging(dir)).toEqual([]);
+  });
+
+  it("removes its own lock and reports the real error when writing the lock fails after creation", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    fsFaults.failLockWrite = true;
+    let called = false;
+    let failure: unknown;
+    try {
+      await buildCandidateFromCommitV1(dir, () => {
+        called = true;
+      }).catch((error: unknown) => {
+        failure = error;
+      });
+    } finally {
+      fsFaults.failLockWrite = false;
+    }
+    expect((failure as Error)?.message).toMatch(/simulated lock write failure/u);
+    expect((failure as Error)?.message).not.toMatch(/another candidate build/u);
+    expect(called).toBe(false);
     expect(existsSync(lockPath(dir))).toBe(false);
     expect(staging(dir)).toEqual([]);
   });

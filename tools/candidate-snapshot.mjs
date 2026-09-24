@@ -622,9 +622,19 @@ export async function buildCandidateFromCommitV1(checkout, step, limits = CANDID
     mkdirSync(context.hooksDir);
     writeFileSync(context.emptyConfig, "");
     try {
-      writeFileSync(lockPath, `pid ${process.pid}\n`, { flag: "wx" });
+      // Acquire exclusively, record ownership immediately, then write and
+      // close: a write failure after creation (ENOSPC, ...) is reported as
+      // itself and the outer finally removes OUR lock — it is never mistaken
+      // for another build and never left behind.
+      const lockFd = openSync(lockPath, "wx");
       lockHeld = true;
-    } catch {
+      try {
+        writeFileSync(lockFd, `pid ${process.pid}\n`);
+      } finally {
+        closeSync(lockFd);
+      }
+    } catch (error) {
+      if (lockHeld) throw error;
       throw new CandidateBuildRefusalV1(
         "candidate-build-locked",
         `another candidate build is running (lock file ${lockPath}); if no build is running, remove the stale lock file yourself`,
