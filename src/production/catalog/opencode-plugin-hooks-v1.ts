@@ -17,8 +17,11 @@
  * or `ctx.session.hook("<event>", fn)`, or the query `ctx.session.get(...)`;
  * and `this`, `arguments` and `eval` do not occur. Its hooks are
  * `skill.transform` and `session.hook.<event>` under the plugin name
- * `default.setup`. Anything else fails closed: a hook this reader cannot
- * interpret is never dropped.
+ * `default.setup`. A name the reading interprets (a plugin or `setup`) occurs
+ * only as its declaration, as a reference in the default export or as a
+ * property name, and `eval` occurs nowhere, so nothing can bind it to a value
+ * never read. Anything else fails closed: a hook this reader cannot interpret
+ * is never dropped.
  *
  * The file is parsed by the TypeScript compiler (a build-time dependency; this
  * module never ships in the package) over a virtual file system holding only
@@ -40,7 +43,6 @@ import type {
 import { SyntaxKind } from "typescript/unstable/ast";
 import {
   isArrowFunction,
-  isBinaryExpression,
   isBindingElement,
   isCallExpression,
   isClassLikeDeclaration,
@@ -56,7 +58,6 @@ import {
   isObjectLiteralExpression,
   isParameterDeclaration,
   isParenthesizedExpression,
-  isPostfixUnaryExpression,
   isPrefixUnaryExpression,
   isPropertyAccessExpression,
   isPropertyAssignment,
@@ -223,6 +224,18 @@ function readModule(file: SourceFile, fail: Fail): OpenCodePluginHookV1[] {
     isIdentifier(name) || isStringLiteral(name) ? name.text : undefined;
   const isFunctionValue = (node: Expression) =>
     (isArrowFunction(node) || isFunctionExpression(node)) && node.asteriskToken === undefined;
+  /** An identifier that names a property, not a binding. */
+  const isNameOf = (node: Node, parent: Node) =>
+    (isPropertyAccessExpression(parent) && parent.name === node) ||
+    (isPropertyAssignment(parent) && parent.name === node) ||
+    (isMethodDeclaration(parent) && parent.name === node) ||
+    (isBindingElement(parent) && parent.propertyName === node);
+  /**
+   * The identifiers the reading itself interprets: the name of each plugin and
+   * setup declaration it read and each reference in the default export. Any
+   * other occurrence of a read name could bind it to a value never read.
+   */
+  const reviewed = new Set<Node>();
 
   /** The hook names of one object literal a plugin returns. */
   const hookNames = (object: ObjectLiteralExpression, plugin: string): string[] =>
@@ -299,31 +312,7 @@ function readModule(file: SourceFile, fail: Fail): OpenCodePluginHookV1[] {
     const [fn] = declarations;
     if (declarations.length !== 1 || fn === undefined)
       return fail(`${where}, which is not exactly one top-level function declaration`);
-    const rebinds = (node: Node): boolean => {
-      const target = (expression: Expression) => {
-        const inner = unparenthesized(expression);
-        return isIdentifier(inner) && inner.text === name;
-      };
-      if (
-        (isVariableDeclaration(node) && isIdentifier(node.name) && node.name.text === name) ||
-        (isBinaryExpression(node) &&
-          node.operatorToken.kind >= SyntaxKind.FirstAssignment &&
-          node.operatorToken.kind <= SyntaxKind.LastAssignment &&
-          target(node.left)) ||
-        ((isPrefixUnaryExpression(node) || isPostfixUnaryExpression(node)) &&
-          (node.operator === SyntaxKind.PlusPlusToken ||
-            node.operator === SyntaxKind.MinusMinusToken) &&
-          target(node.operand))
-      )
-        return true;
-      let found = false;
-      node.forEachChild((child) => {
-        found ||= rebinds(child);
-        return undefined;
-      });
-      return found;
-    };
-    if (rebinds(file)) return fail(`${where}, which is declared or assigned again`);
+    reviewed.add(fn.name as Node);
     if (fn.asteriskToken !== undefined) return fail(`${where}, which is a generator`);
     const [parameter, ...extra] = fn.parameters;
     if (
@@ -342,10 +331,6 @@ function readModule(file: SourceFile, fail: Fail): OpenCodePluginHookV1[] {
         return fail(`${where}, whose return on line ${line(statement)} returns a value`);
 
     const hooks: string[] = [];
-    const isNameOf = (node: Node, parent: Node) =>
-      (isPropertyAccessExpression(parent) && parent.name === node) ||
-      (isPropertyAssignment(parent) && parent.name === node) ||
-      (isMethodDeclaration(parent) && parent.name === node);
     /** One use of the context parameter: a guard, a reviewed registration or a reviewed query. */
     const readUse = (reference: Node): void => {
       const at = `the use of ${context} on line ${line(reference)} in ${where}`;
@@ -422,11 +407,15 @@ function readModule(file: SourceFile, fail: Fail): OpenCodePluginHookV1[] {
 
   const plugins = new Map<string, OpenCodePluginHookV1[]>();
   let setup: OpenCodePluginHookV1[] | undefined;
+  let readSetupName: string | undefined;
 
   const readDefault = (statement: ExportAssignment): void => {
     if (statement.isExportEquals) fail(`the export on line ${line(statement)}`);
     const value = unparenthesized(statement.expression);
-    if (isIdentifier(value) && plugins.has(value.text)) return;
+    if (isIdentifier(value) && plugins.has(value.text)) {
+      reviewed.add(value);
+      return;
+    }
     if (!isObjectLiteralExpression(value)) fail(`the export on line ${line(statement)}`);
     for (const member of value.properties) {
       const key =
@@ -440,14 +429,18 @@ function readModule(file: SourceFile, fail: Fail): OpenCodePluginHookV1[] {
         initializer !== undefined &&
         isIdentifier(initializer) &&
         plugins.has(initializer.text)
-      )
+      ) {
+        reviewed.add(initializer);
         continue;
+      }
       const setupName = isShorthandPropertyAssignment(member)
         ? key
         : initializer !== undefined && isIdentifier(initializer)
           ? initializer.text
           : undefined;
       if (key === "setup" && setup === undefined && setupName !== undefined) {
+        reviewed.add(isShorthandPropertyAssignment(member) ? member.name : (initializer as Node));
+        readSetupName = setupName;
         setup = setupHooks(setupName);
         continue;
       }
@@ -470,6 +463,7 @@ function readModule(file: SourceFile, fail: Fail): OpenCodePluginHookV1[] {
     if (isFunctionDeclaration(statement)) {
       const name = statement.name?.text;
       if (name === undefined) return fail(where);
+      reviewed.add(statement.name as Node);
       plugins.set(name, pluginHooks(name, statement));
       continue;
     }
@@ -489,8 +483,33 @@ function readModule(file: SourceFile, fail: Fail): OpenCodePluginHookV1[] {
     )
       continue;
     if (!isFunctionValue(initializer)) return fail(where);
+    reviewed.add(declaration.name);
     plugins.set(name, pluginHooks(name, initializer));
   }
   if (plugins.size === 0) fail("a plugin file that exports no plugin function");
+  // Every binding of a read name, however written (a destructuring or loop
+  // target, a compound, logical or update assignment, a later declaration, an
+  // import, or a direct eval that could assign it), replaces what was read.
+  const read = new Set([
+    ...plugins.keys(),
+    ...(readSetupName === undefined ? [] : [readSetupName]),
+  ]);
+  const visitNames = (node: Node): void => {
+    if (isIdentifier(node) && !reviewed.has(node) && !isNameOf(node, node.parent)) {
+      if (node.text === "eval") fail(`the module, which uses eval on line ${line(node)}`);
+      if (read.has(node.text))
+        fail(
+          `${node.text} on line ${line(node)}: the module binds or uses a read name outside the reviewed reading`,
+        );
+    }
+    node.forEachChild((child) => {
+      visitNames(child);
+      return undefined;
+    });
+  };
+  file.forEachChild((child) => {
+    visitNames(child);
+    return undefined;
+  });
   return [...plugins.values(), setup ?? []].flat();
 }

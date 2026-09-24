@@ -650,6 +650,58 @@ describe("OpenCode V2 setup registrations", () => {
     expect(() => readOpenCodePluginHooksV1(source, OPENCODE)).toThrow(/cannot interpret/u);
   });
 
+  const REPLACEMENT = 'c => c.session.hook("tool.execute.before", async () => {})';
+  const PLUGIN_REPLACEMENT = "async () => ({ 'tool.execute.before': async () => {} })";
+
+  it.each([
+    ["an array destructuring", `[setup] = [${REPLACEMENT}];`],
+    ["a nested array destructuring with a default", `[[setup = ${REPLACEMENT}]] = [[]];`],
+    ["an array rest element", "[...setup] = [];"],
+    ["an object destructuring shorthand", `({ setup } = { setup: ${REPLACEMENT} });`],
+    ["an object destructuring with a default", `({ setup = ${REPLACEMENT} } = {});`],
+    ["a nested object destructuring", `({ a: { b: setup } } = { a: { b: ${REPLACEMENT} } });`],
+    ["an object rest element", "({ ...setup } = {});"],
+    ["a for-of target", `for (setup of [${REPLACEMENT}]);`],
+    ["a for-of destructuring target", `for ([setup] of [[${REPLACEMENT}]]);`],
+    ["a for-in target", "for (setup in { a: 1 });"],
+    ["a compound assignment", "setup += '';"],
+    ["a logical or assignment", `setup ||= ${REPLACEMENT};`],
+    ["a logical and assignment", `setup &&= ${REPLACEMENT};`],
+    ["a nullish assignment", `setup ??= ${REPLACEMENT};`],
+    ["a postfix update", "setup++;"],
+    ["a prefix update", "--setup;"],
+    ["a later function declaration", `function setup(c) { ${REPLACEMENT.slice(5)}; }`],
+    ["a function declaration in a block", "{ function setup(c) {} }"],
+    ["a class declaration", "class setup {}"],
+    ["a var redeclaration", `var setup = ${REPLACEMENT};`],
+    ["a var redeclaration in a block", `if (globalThis.x) { var setup = ${REPLACEMENT}; }`],
+    ["an import binding", 'import { setup } from "./other.js";'],
+    ["a direct eval elsewhere in the module", 'function later() { eval("setup = null"); }'],
+    ["a reassigned plugin", `SuperpowersPlugin = ${PLUGIN_REPLACEMENT};`],
+    ["a destructured plugin", `[SuperpowersPlugin] = [${PLUGIN_REPLACEMENT}];`],
+    ["a plugin as a for-of target", `for (SuperpowersPlugin of [${PLUGIN_REPLACEMENT}]);`],
+    ["a redeclared plugin", `function SuperpowersPlugin() { return {}; }`],
+  ])("fails the generation when the module rebinds a read name through %s", (_label, statement) => {
+    for (const source of [
+      openCodeSource().replace(DEFAULT_EXPORT, `${statement}\n${DEFAULT_EXPORT}`),
+      `${openCodeSource()}${statement}\n`,
+    ]) {
+      expect(source).not.toBe(openCodeSource());
+      expect(() => readOpenCodePluginHooksV1(source, OPENCODE)).toThrow(/cannot interpret/u);
+    }
+  });
+
+  it("reads a module that only uses the read names as property names", () => {
+    const source = openCodeSource().replace(
+      DEFAULT_EXPORT,
+      `const other = { setup: 1, SuperpowersPlugin: 2 };\nother.setup = other.SuperpowersPlugin;\n${DEFAULT_EXPORT}`,
+    );
+    expect(source).not.toBe(openCodeSource());
+    expect(readOpenCodePluginHooksV1(source, OPENCODE)).toEqual(
+      readOpenCodePluginHooksV1(openCodeSource(), OPENCODE),
+    );
+  });
+
   it("reads a TypeScript plugin by its path and refuses type syntax in a JavaScript one", () => {
     const source = [
       'import type { Plugin } from "@opencode-ai/plugin";',
