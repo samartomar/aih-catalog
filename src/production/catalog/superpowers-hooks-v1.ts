@@ -9,6 +9,7 @@ import {
   SHA256_HEX,
   text,
 } from "../validate-v1.js";
+import { readOpenCodePluginHooksV1 } from "./opencode-plugin-hooks-v1.js";
 
 /**
  * Derives the Superpowers `hookControlInventory` descriptor section from the
@@ -30,9 +31,20 @@ const CLAUDE_FORMAT_HOSTS = ["claude", "copilot", "antigravity"] as const;
 const HOOK_SUMMARIES: Readonly<Record<string, string>> = {
   "session-start":
     "Injects the full using-superpowers skill into the agent's context when a session starts, is cleared, or compacts.",
+  "skills-path":
+    "Adds the Superpowers skills directory to the host's skill search paths when the host loads its configuration, so the Superpowers skills are discovered without manual links.",
 };
 
-const OPENCODE_TRANSFORM = "experimental.chat.messages.transform";
+/**
+ * Reviewed readings of the hooks an OpenCode plugin returns. A reading without
+ * `event` joins the SessionStart hook; one with `event` is its own hook.
+ */
+const OPENCODE_HOOKS: Readonly<Record<string, { hook: string; event?: string }>> = {
+  "experimental.chat.messages.transform": { hook: "session-start" },
+  config: { hook: "skills-path", event: "config" },
+};
+
+const UTF8 = new TextDecoder("utf-8", { fatal: true });
 
 /** The upstream files a hook reading could need; the fetch keeps only these. */
 export function isSuperpowersHookSourcePathV1(path: string): boolean {
@@ -233,19 +245,35 @@ export function superpowersHookControlInventoryV1(
   const gemini = read("gemini-extension.json");
   if (gemini !== undefined && json(gemini).hooks !== undefined)
     throw new TypeError("gemini-extension.json declares hooks this Catalog cannot read");
-  for (const path of [...files.keys()].filter((candidate) => candidate.startsWith(".opencode/")))
-    if (
-      inComponent(path) &&
-      need(path, path).bytes.toString("utf8").includes(`'${OPENCODE_TRANSFORM}'`)
-    ) {
-      recorded.add(path);
-      sessionStartHook().declarations.push({
+  const openCodePlugins = [...files.keys()]
+    .filter((path) => /^\.opencode\/plugins\/[^/]+\.js$/u.test(path) && inComponent(path))
+    .sort(codeUnitCompare);
+  for (const path of openCodePlugins) {
+    recorded.add(path);
+    for (const { plugin, hook } of readOpenCodePluginHooksV1(
+      UTF8.decode(need(path, path).bytes),
+      path,
+    )) {
+      const reading = OPENCODE_HOOKS[hook];
+      if (reading === undefined || !Object.hasOwn(OPENCODE_HOOKS, hook))
+        throw new TypeError(
+          `${path} ${plugin} declares OpenCode hook ${hook}, which has no reviewed reading`,
+        );
+      let target = reading.event === undefined ? sessionStartHook() : byHook.get(reading.hook);
+      if (target === undefined) {
+        target = { event: reading.event as string, declarations: [] };
+        byHook.set(reading.hook, target);
+      }
+      if (target.declarations.some((declaration) => declaration.host === "opencode"))
+        throw new TypeError(`${path} ${plugin} declares OpenCode hook ${hook} more than once`);
+      target.declarations.push({
         host: "opencode",
         sourcePath: path,
-        event: OPENCODE_TRANSFORM,
+        event: hook,
         execution: "in-process",
       });
     }
+  }
 
   const hooks = [...byHook.entries()].map(([name, hook]) => {
     const summary = HOOK_SUMMARIES[name];
