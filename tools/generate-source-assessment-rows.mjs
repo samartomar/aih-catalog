@@ -45,6 +45,18 @@ const HANDOFF_KEYS = [
   "sourceArchive",
   "workflow",
 ];
+const ANALYZER_GAP_KEYS = [
+  "completionEvidenceAbsent",
+  "coverageComplete",
+  "coverageWarningCount",
+  "errorNotificationCount",
+  "failedAnalyzers",
+  "missingAnalyzers",
+];
+// The Scanner handoff's two truthful outcomes: "observed" only when nothing is unresolved.
+const HANDOFF_OUTCOMES = ["observed", "observed_with_gaps"];
+// The typed coverage-gap reasons a component artifact may carry.
+const COVERAGE_GAP_REASONS = ["completion-evidence-absent"];
 const HANDOFF_COMPONENT_KEYS = [
   "catalogAssetId",
   "content",
@@ -80,6 +92,7 @@ const COMPONENT_ARTIFACT_KEYS = [
   "content",
   "coverageComplete",
   "coverageDisposition",
+  "coverageGaps",
   "findingSummary",
   "findings",
   "globalCoverageNotifications",
@@ -517,7 +530,7 @@ function validateHandoff(handoff, publicationBytes, sourceRoot, handoffPath) {
   if (
     handoff.protocol !== "ScannerPublicationConsumerHandoffV1" ||
     handoff.authority !== "none" ||
-    handoff.outcome !== "observed_with_gaps" ||
+    !HANDOFF_OUTCOMES.includes(handoff.outcome) ||
     handoff.riskDecision !== "consumer_required"
   )
     fail("handoff-authority");
@@ -560,12 +573,27 @@ function validateHandoff(handoff, publicationBytes, sourceRoot, handoffPath) {
   )
     fail("handoff-attestation-custody");
   const analyzerGaps = object(handoff.analyzerGaps, "analyzer-gaps");
+  exactKeys(analyzerGaps, ANALYZER_GAP_KEYS, "analyzer-gaps");
   if (
     array(analyzerGaps.missingAnalyzers, "missing-analyzers").length !== 0 ||
     array(analyzerGaps.failedAnalyzers, "failed-analyzers").length !== 0 ||
     analyzerGaps.errorNotificationCount !== 0
   )
     fail("analyzer-execution-incomplete");
+  const completionEvidenceAbsent = validateStringSet(
+    analyzerGaps.completionEvidenceAbsent,
+    "completion-evidence-absent",
+  );
+  if (typeof analyzerGaps.coverageComplete !== "boolean") fail("analyzer-coverage-claim");
+  // Coverage is complete only with completion evidence for every analyzer, never from silence.
+  if (analyzerGaps.coverageComplete && completionEvidenceAbsent.length !== 0)
+    fail("analyzer-coverage-claim");
+  // "observed" is truthful only when nothing is unresolved; any gap needs observed_with_gaps.
+  const gapFree =
+    analyzerGaps.coverageComplete === true &&
+    validateSummary(object(handoff.findings, "handoff-findings").unmapped, "unmapped-findings")
+      .count === 0;
+  if ((handoff.outcome === "observed") !== gapFree) fail("handoff-outcome");
   const mapping = object(handoff.mapping, "mapping");
   exactKeys(mapping, MAPPING_KEYS, "mapping");
   if (
@@ -674,6 +702,26 @@ function validateHandoff(handoff, publicationBytes, sourceRoot, handoffPath) {
       "location-coverage",
     );
     const globalCoverage = array(artifact.globalCoverageNotifications, "global-coverage");
+    const coverageGaps = array(artifact.coverageGaps, "component-coverage-gaps");
+    const gapAnalyzers = new Set();
+    for (const gap of coverageGaps) {
+      exactKeys(gap, ["analyzer", "reason"], "component-coverage-gap");
+      if (
+        !COVERAGE_GAP_REASONS.includes(gap.reason) ||
+        !requestedAnalyzers.includes(gap.analyzer) ||
+        gapAnalyzers.has(gap.analyzer)
+      )
+        fail("component-coverage-gap");
+      gapAnalyzers.add(gap.analyzer);
+    }
+    // A component is complete exactly when nothing about its coverage is unresolved.
+    if (
+      artifact.coverageComplete !==
+      (locationCoverage.length === 0 && globalCoverage.length === 0 && coverageGaps.length === 0)
+    )
+      fail("component-coverage-claim");
+    if (analyzerGaps.coverageComplete === true && !artifact.coverageComplete)
+      fail("analyzer-coverage-claim");
     if (
       !same(validateSummary(artifact.findingSummary, "finding-summary"), summary.findings) ||
       !same(

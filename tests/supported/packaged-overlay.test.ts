@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -13,6 +14,19 @@ const data = (file: string) =>
 const TARGETS = ["claude", "codex", "copilot", "cursor", "kimi", "kiro", "opencode"];
 
 describe("sealed packaged inputs", () => {
+  it("refuses a sealed source record nested past 32 levels typed, before any recursive walk", () => {
+    const bytes = `{"x":${"[".repeat(100_000)}0${"]".repeat(100_000)}}`;
+    const sha256 = createHash("sha256").update(bytes).digest("hex");
+    let refusal: unknown;
+    try {
+      parsePackagedSourceRecordsV1([{ bytes, sha256 }], TARGETS);
+    } catch (error) {
+      refusal = error;
+    }
+    expect(refusal).toBeInstanceOf(TypeError);
+    expect((refusal as Error).message).toMatch(/nests deeper than 32 levels$/);
+  });
+
   it("reads every packaged source record and its seal", () => {
     const { records, seals } = parsePackagedSourceRecordsV1(
       data("packaged-source-data-v1.json"),
