@@ -15,9 +15,9 @@ import {
   ECC_HOOK_PROFILES,
   eccHookControlCatalog,
 } from "./ecc-hook-controls-v1.js";
+import { produceCatalogAuthoringBundleV1 } from "./workbench/authoring-bundle-v1.js";
 import { prepareMattPocockCollectionV1 } from "./workbench/mattpocock-provider-v1.js";
 import {
-  produceCatalogAuthoringBundleV1,
   produceCatalogCoreQualificationV1,
   produceCatalogPublicBaselineV1,
   produceCatalogScannerEvidenceV1,

@@ -17,7 +17,6 @@ function copyOfInputs(): string {
   scratch.push(copy);
   cpSync(resolve(root, "src", "production", "data"), join(copy, "src", "production", "data"), {
     recursive: true,
-    filter: (path) => !path.endsWith("catalog-authoring-bundle-source-v1.json"),
   });
   return copy;
 }

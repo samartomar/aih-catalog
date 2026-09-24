@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
@@ -29,5 +29,13 @@ describe("Catalog-owned Workbench producers", () => {
       prepared: { bindings: Record<string, unknown> };
     };
     expect(authoring.prepared.bindings).toEqual({});
+  });
+
+  it("keeps no frozen derived authoring bundle beside its true inputs", () => {
+    expect(
+      existsSync(
+        resolve(root, "src", "production", "data", "catalog-authoring-bundle-source-v1.json"),
+      ),
+    ).toBe(false);
   });
 });
