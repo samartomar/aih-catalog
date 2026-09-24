@@ -229,6 +229,20 @@ function blockScalar(header: string, rest: readonly string[], label: string) {
   return { value: lines.length === 0 ? "" : `${value}\n`, consumed };
 }
 
+/**
+ * Record a mapping entry as an own data property: plain assignment would send
+ * `__proto__` to the prototype setter and lose the key, so a reader could not
+ * see it and refuse it as unknown.
+ */
+function setOwn(result: Record<string, YamlValueV1>, key: string, value: YamlValueV1): void {
+  Object.defineProperty(result, key, {
+    value,
+    enumerable: true,
+    writable: true,
+    configurable: true,
+  });
+}
+
 /** Parse frontmatter text (without the `---` fences) into a flat mapping. */
 export function parseYamlFrontmatterV1(source: string, label: string): Record<string, YamlValueV1> {
   if (source.includes("\t")) fail(label, "tab character");
@@ -263,23 +277,23 @@ export function parseYamlFrontmatterV1(source: string, label: string): Record<st
       }
       if (!sawItem && index < lines.length && indentation(lines[index] as string) > 0)
         fail(label, `nested mapping under ${key}`);
-      result[key] = sawItem ? items : null;
+      setOwn(result, key, sawItem ? items : null);
       continue;
     }
     if (raw.startsWith('"') || raw.startsWith("'")) {
       const parsed = quotedScalar(raw, rest, raw[0] as '"' | "'", label);
       if (parsed.trailing !== "") fail(label, `text after quoted scalar for ${key}`);
-      result[key] = parsed.value;
+      setOwn(result, key, parsed.value);
       index += parsed.consumed;
       continue;
     }
     if (raw.startsWith("[")) {
-      result[key] = flowSequence(raw, label);
+      setOwn(result, key, flowSequence(raw, label));
       continue;
     }
     if (raw.startsWith("|") || raw.startsWith(">")) {
       const parsed = blockScalar(raw, rest, label);
-      result[key] = parsed.value;
+      setOwn(result, key, parsed.value);
       index += parsed.consumed;
       continue;
     }
@@ -308,7 +322,7 @@ export function parseYamlFrontmatterV1(source: string, label: string): Record<st
       else if (part === "") value += "\n";
       else value += value.endsWith("\n") ? part : ` ${part}`;
     });
-    result[key] = parts.length === 1 ? resolvePlain(value) : value;
+    setOwn(result, key, parts.length === 1 ? resolvePlain(value) : value);
   }
   return result;
 }

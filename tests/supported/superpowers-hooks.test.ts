@@ -434,6 +434,73 @@ describe("Superpowers Devin and Hermes declarations", () => {
     );
   });
 
+  it.each([
+    ["a duplicate top-level key", '{"name":"a","name":"b","version":"1"}'],
+    ["a duplicate nested key", '{"name":"a","version":"1","author":{"name":"x","name":"y"}}'],
+    ["a duplicate __proto__ key", '{"name":"a","version":"1","__proto__":1,"__proto__":2}'],
+  ])("refuses a Devin manifest with %s", (_label, text) => {
+    expect(() => inventory(withFile(hookSources(), DEVIN, text))).toThrow(/duplicate key/u);
+  });
+
+  it.each([
+    ["__proto__", '"x"'],
+    ["constructor", '"x"'],
+    ["prototype", '"x"'],
+  ])("refuses a Devin manifest field %s as unknown", (key, value) => {
+    const text = sourceText(DEVIN).replace(/\}\s*$/u, `,"${key}":${value}}`);
+    expect(() => inventory(withFile(hookSources(), DEVIN, text))).toThrow(
+      new RegExp(`devin.*${key}|${key}.*devin`, "iu"),
+    );
+  });
+
+  it.each([
+    ["name", 7],
+    ["name", ""],
+    ["version", null],
+    ["description", 1],
+    ["author", ["x"]],
+    ["author", { name: 1 }],
+    ["author", { name: "x", extra: "y" }],
+    ["homepage", 1],
+    ["repository", {}],
+    ["license", true],
+    ["keywords", "x"],
+    ["keywords", [1]],
+  ])("refuses a Devin manifest whose %s is not the metadata type", (key, value) => {
+    const manifest = {
+      ...(JSON.parse(sourceText(DEVIN)) as Record<string, unknown>),
+      [key]: value,
+    };
+    expect(() => inventory(withFile(hookSources(), DEVIN, JSON.stringify(manifest)))).toThrow(
+      new RegExp(`devin.*${key}`, "iu"),
+    );
+  });
+
+  it.each([
+    ["__proto__", "null"],
+    ["__proto__", "x"],
+    ["constructor", "x"],
+    ["prototype", "x"],
+  ])("refuses a Hermes manifest key %s: %s as unknown", (key, value) => {
+    const text = `${sourceText(HERMES_MANIFEST)}${key}: ${value}\n`;
+    expect(() => inventory(withFile(hookSources(), HERMES_MANIFEST, text))).toThrow(
+      new RegExp(`hermes.*unsupported field ${key}`, "iu"),
+    );
+  });
+
+  it.each([
+    ["description", "description:\n  - x\n"],
+    ["author", "author:\n  - x\n"],
+  ])("refuses a Hermes manifest whose %s is not text", (key, line) => {
+    const text = sourceText(HERMES_MANIFEST)
+      .split("\n")
+      .filter((item) => !item.startsWith(`${key}:`))
+      .join("\n");
+    expect(() => inventory(withFile(hookSources(), HERMES_MANIFEST, `${text}${line}`))).toThrow(
+      new RegExp(`hermes.*${key}`, "iu"),
+    );
+  });
+
   it("refuses Hermes plugin bytes other than the reviewed ones, naming both digests", () => {
     const text = `${sourceText(HERMES_PLUGIN)}\n# changed\n`;
     const actual = sha256HexV1(Buffer.from(text, "utf8"));

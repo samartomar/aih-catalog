@@ -177,6 +177,104 @@ export function canonicalDigestV1(value: unknown): string {
   return `sha256:${canonicalStrictJsonSha256V1(value)}`;
 }
 
+const JSON_WHITESPACE = /[ \t\n\r]*/y;
+// biome-ignore lint/suspicious/noControlCharactersInRegex: JSON strings exclude raw control characters
+const JSON_STRING = /"(?:[^"\\\u0000-\u001f]|\\(?:["\\/bfnrt]|u[0-9a-fA-F]{4}))*"/y;
+const JSON_NUMBER = /-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?/y;
+const JSON_LITERAL = /true|false|null/y;
+const JSON_MAX_DEPTH = 256;
+
+/**
+ * Read RFC 8259 JSON text as `JSON.parse` does, except that a key repeated in
+ * one object (compared after unescaping) is refused instead of silently
+ * keeping the last value, and every key, including `__proto__`, becomes an own
+ * data property so a reader sees it and can refuse it as unknown.
+ */
+export function parseJsonTextRejectingDuplicateKeysV1(source: string, label: string): unknown {
+  let index = 0;
+  const fail = (problem: string): never => {
+    throw new TypeError(`${label} is not strict JSON: ${problem} at offset ${String(index)}`);
+  };
+  const skip = () => {
+    JSON_WHITESPACE.lastIndex = index;
+    JSON_WHITESPACE.exec(source);
+    index = JSON_WHITESPACE.lastIndex;
+  };
+  const token = (pattern: RegExp): string | undefined => {
+    pattern.lastIndex = index;
+    const match = pattern.exec(source);
+    if (match === null) return undefined;
+    index = pattern.lastIndex;
+    return match[0];
+  };
+  const expect = (character: string) => {
+    skip();
+    if (source[index] !== character) fail(`expected ${character}`);
+    index += 1;
+  };
+  const value = (depth: number): unknown => {
+    if (depth > JSON_MAX_DEPTH) fail("nesting too deep");
+    skip();
+    const next = source[index];
+    if (next === "{") {
+      index += 1;
+      const result: Record<string, unknown> = {};
+      skip();
+      if (source[index] === "}") {
+        index += 1;
+        return result;
+      }
+      for (;;) {
+        skip();
+        const raw = token(JSON_STRING);
+        if (raw === undefined) fail("expected a string key");
+        const key = JSON.parse(raw as string) as string;
+        if (Object.hasOwn(result, key)) fail(`duplicate key ${key}`);
+        expect(":");
+        Object.defineProperty(result, key, {
+          value: value(depth + 1),
+          enumerable: true,
+          writable: true,
+          configurable: true,
+        });
+        skip();
+        if (source[index] === ",") {
+          index += 1;
+          continue;
+        }
+        expect("}");
+        return result;
+      }
+    }
+    if (next === "[") {
+      index += 1;
+      const result: unknown[] = [];
+      skip();
+      if (source[index] === "]") {
+        index += 1;
+        return result;
+      }
+      for (;;) {
+        result.push(value(depth + 1));
+        skip();
+        if (source[index] === ",") {
+          index += 1;
+          continue;
+        }
+        expect("]");
+        return result;
+      }
+    }
+    const scalar = token(JSON_STRING) ?? token(JSON_NUMBER) ?? token(JSON_LITERAL);
+    if (scalar === undefined) return fail("expected a value");
+    return JSON.parse(scalar);
+  };
+  const result = value(0);
+  skip();
+  if (index !== source.length) fail("unexpected text after the value");
+  return result;
+}
+
 export function sha256HexV1(bytes: string | Uint8Array): string {
   return createHash("sha256").update(bytes).digest("hex");
 }

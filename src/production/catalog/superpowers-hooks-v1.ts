@@ -1,4 +1,8 @@
-import { codeUnitCompare, sha256HexV1 } from "../strict-json-v1.js";
+import {
+  codeUnitCompare,
+  parseJsonTextRejectingDuplicateKeysV1,
+  sha256HexV1,
+} from "../strict-json-v1.js";
 import {
   COMMIT_SHA,
   exactKeys,
@@ -6,9 +10,11 @@ import {
   type JsonRecord,
   list,
   literal,
+  nonEmptyText,
   record,
   SHA256_HEX,
   text,
+  textList,
 } from "../validate-v1.js";
 import { parseYamlFrontmatterV1 } from "../yaml-frontmatter-v1.js";
 import {
@@ -197,8 +203,34 @@ function parseHookSources(value: unknown): {
   return { commit, files };
 }
 
+/** Read a JSON manifest, refusing a repeated key rather than keeping its last value. */
 function json(file: HookSourceFileV1): JsonRecord {
-  return record(JSON.parse(file.bytes.toString("utf8")), file.path);
+  return record(
+    parseJsonTextRejectingDuplicateKeysV1(file.bytes.toString("utf8"), file.path),
+    file.path,
+  );
+}
+
+/**
+ * The Devin manifest is package metadata only: each value must have its
+ * metadata type (`author` is a name string or `{name, email?, url?}`).
+ */
+function devinMetadata(manifest: JsonRecord, label: string): void {
+  exactKeys(manifest, ["name", "version"], label, DEVIN_METADATA);
+  nonEmptyText(manifest.name, `${label} name`);
+  nonEmptyText(manifest.version, `${label} version`);
+  for (const key of ["description", "homepage", "repository", "license"])
+    if (Object.hasOwn(manifest, key)) text(manifest[key], `${label} ${key}`);
+  if (Object.hasOwn(manifest, "keywords")) textList(manifest.keywords, `${label} keywords`);
+  if (Object.hasOwn(manifest, "author") && typeof manifest.author !== "string") {
+    const author = exactKeys(
+      record(manifest.author, `${label} author`),
+      ["name"],
+      `${label} author`,
+      ["email", "url"],
+    );
+    for (const key of Object.keys(author)) nonEmptyText(author[key], `${label} author ${key}`);
+  }
 }
 
 interface DeclarationV1 {
@@ -318,12 +350,7 @@ export function superpowersHookControlInventoryV1(
     const host = path.slice(1, path.indexOf("-plugin/"));
     const manifest = json(need(path, path));
     if (path === DEVIN_MANIFEST) {
-      exactKeys(
-        manifest,
-        ["name", "version"],
-        `${path} (Devin reads metadata only)`,
-        DEVIN_METADATA,
-      );
+      devinMetadata(manifest, `${path} (Devin reads metadata only)`);
       recorded.add(path);
       continue;
     }
@@ -454,6 +481,8 @@ export function superpowersHookControlInventoryV1(
     );
     text(manifest.name, `${label} name`);
     text(manifest.version, `${label} version`);
+    for (const key of ["description", "author"])
+      if (Object.hasOwn(manifest, key)) text(manifest[key], `${label} ${key}`);
     const declared = list(manifest.provides_hooks, `${label} provides_hooks`, 1).map((hook) =>
       text(hook, `${label} provides_hooks entry`),
     );
