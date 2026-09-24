@@ -2,7 +2,9 @@ import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:f
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { parseUpstreamInputsManifestV1 } from "../../src/production/catalog/upstream-inputs-v1.js";
 import { buildCatalogFrameworkDefaultsV1 } from "../../src/production/catalog-defaults-v1.js";
+import { catalogProductionRuntimeV1 } from "../../src/production/collation-v1.js";
 import {
   produceContentMetadataV1,
   produceUpstreamInputsV1,
@@ -15,6 +17,7 @@ const root = resolve(import.meta.dirname, "..", "..");
 const dataPath = (file: string) => resolve(root, "src", "production", "data", file);
 const dataText = (file: string) => readFileSync(dataPath(file), "utf8");
 const ECC_COMMIT = "5caf398a91599029a176ca6d806409b00d1052c4";
+const OTHER_RUNTIME = { node: "20.19.0", icu: "76.1", unicode: "16.0", cldr: "46.0" };
 
 function tree(repository: string, commit: string, files: Record<string, string | Buffer>) {
   return {
@@ -200,20 +203,94 @@ describe("networked upstream producers (offline transforms)", () => {
       files: Record<string, { commit: string; sha256: string }>;
     };
     const next = JSON.parse(
-      recordUpstreamInputsV1(dataText("upstream-inputs-v1.json"), "affaan-m/ECC", "a".repeat(40), [
-        { file: "ecc-modules-v1.json", bytes: "{}\n", sources: {} },
-      ]),
+      recordUpstreamInputsV1(
+        dataText("upstream-inputs-v1.json"),
+        "affaan-m/ECC",
+        "a".repeat(40),
+        [{ file: "ecc-modules-v1.json", bytes: "{}\n", sources: {} }],
+        OTHER_RUNTIME,
+      ),
     ) as typeof manifest;
     expect(next.files["ecc-modules-v1.json"]).toEqual({
       repository: "affaan-m/ECC",
       commit: "a".repeat(40),
       sha256: sha256HexV1("{}\n"),
       sources: {},
+      runtime: OTHER_RUNTIME,
     });
     expect(next.files["ecc-profiles-v1.json"]).toEqual(manifest.files["ecc-profiles-v1.json"]);
     expect(
-      recordUpstreamInputsV1(dataText("upstream-inputs-v1.json"), "affaan-m/ECC", ECC_COMMIT, []),
+      recordUpstreamInputsV1(
+        dataText("upstream-inputs-v1.json"),
+        "affaan-m/ECC",
+        ECC_COMMIT,
+        [],
+        OTHER_RUNTIME,
+      ),
     ).toBe(dataText("upstream-inputs-v1.json"));
+  });
+
+  it("keeps the recorded runtime when a produce step reproduces the same bytes", () => {
+    const text = dataText("upstream-inputs-v1.json");
+    const manifest = JSON.parse(text) as { files: Record<string, { runtime: unknown }> };
+    const same = {
+      file: "ecc-skill-inventory-v1.json",
+      bytes: dataText("ecc-skill-inventory-v1.json"),
+      sources: {},
+    };
+    expect(recordUpstreamInputsV1(text, "affaan-m/ECC", ECC_COMMIT, [same], OTHER_RUNTIME)).toBe(
+      text,
+    );
+    const changed = JSON.parse(
+      recordUpstreamInputsV1(
+        text,
+        "affaan-m/ECC",
+        ECC_COMMIT,
+        [{ ...same, bytes: `${same.bytes} ` }],
+        OTHER_RUNTIME,
+      ),
+    ) as typeof manifest;
+    expect(changed.files["ecc-skill-inventory-v1.json"]?.runtime).toEqual(OTHER_RUNTIME);
+    expect(manifest.files["ecc-skill-inventory-v1.json"]?.runtime).not.toEqual(OTHER_RUNTIME);
+  });
+
+  it("records the Node, ICU, Unicode and CLDR versions that produced every input", () => {
+    const manifest = JSON.parse(dataText("upstream-inputs-v1.json")) as {
+      files: Record<string, { runtime: Record<string, string> }>;
+    };
+    expect(Object.keys(manifest.files).length).toBeGreaterThan(0);
+    for (const [file, entry] of Object.entries(manifest.files)) {
+      expect(Object.keys(entry.runtime), file).toEqual(["node", "icu", "unicode", "cldr"]);
+      for (const version of Object.values(entry.runtime))
+        expect(version, file).toMatch(/^[0-9]+(\.[0-9]+)*$/u);
+    }
+    expect(catalogProductionRuntimeV1()).toEqual({
+      node: process.versions.node,
+      icu: process.versions.icu,
+      unicode: process.versions.unicode,
+      cldr: process.versions.cldr,
+    });
+  });
+
+  it("refuses a manifest entry without a well-formed production runtime", () => {
+    const manifest = JSON.parse(dataText("upstream-inputs-v1.json")) as {
+      files: Record<string, Record<string, unknown>>;
+    };
+    const entry = manifest.files["ecc-modules-v1.json"] as Record<string, unknown>;
+    const { runtime, ...withoutRuntime } = entry;
+    for (const candidate of [
+      withoutRuntime,
+      { ...entry, runtime: { ...(runtime as object), icu: "" } },
+      { ...entry, runtime: { ...(runtime as object), icu: "78.3; rm" } },
+      { ...entry, runtime: { ...(runtime as object), extra: "1" } },
+      { ...entry, runtime: "78.3" },
+    ])
+      expect(() =>
+        parseUpstreamInputsManifestV1({
+          ...manifest,
+          files: { ...manifest.files, "ecc-modules-v1.json": candidate },
+        }),
+      ).toThrow(/runtime/u);
   });
 
   it("records every fetched input at the commit its content pins", () => {

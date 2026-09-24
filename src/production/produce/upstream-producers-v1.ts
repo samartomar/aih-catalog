@@ -14,7 +14,7 @@ import {
   productionDataPathV1,
   type UpstreamInputRecordV1,
 } from "../catalog/upstream-inputs-v1.js";
-import { catalogTextCompareV1 } from "../collation-v1.js";
+import { type CatalogProductionRuntimeV1, catalogTextCompareV1 } from "../collation-v1.js";
 import { assertSafeRelativePosixPathV1, codeUnitCompare, sha256HexV1 } from "../strict-json-v1.js";
 import { COMMIT_SHA, exactKeys, type JsonRecord, list, record, text } from "../validate-v1.js";
 import {
@@ -399,19 +399,25 @@ export function produceUpstreamInputsV1(
   return produced;
 }
 
-/** Records the fetched repository, full commit and sha256s; other entries are kept. */
+/**
+ * Records the fetched repository, full commit and sha256s; other entries are kept. An
+ * entry records the production `runtime` of the run that last changed it: reproducing
+ * identical bytes under another runtime keeps the recorded one, so the manifest names
+ * the collation runtime that actually produced the committed bytes.
+ */
 export function recordUpstreamInputsV1(
   manifestText: string,
   repository: string,
   commit: string,
   produced: readonly ProducedUpstreamFileV1[],
+  runtime: CatalogProductionRuntimeV1,
 ): string {
   text(repository, "upstream repository", REPOSITORY);
   text(commit, "upstream commit", COMMIT_SHA);
   const manifest = parseUpstreamInputsManifestV1(JSON.parse(manifestText));
   const files: Record<string, UpstreamInputRecordV1> = { ...manifest.files };
-  for (const item of produced)
-    files[item.file] = {
+  for (const item of produced) {
+    const next = {
       repository,
       commit,
       sha256: sha256HexV1(item.bytes),
@@ -419,6 +425,12 @@ export function recordUpstreamInputsV1(
         Object.entries(item.sources).sort(([left], [right]) => codeUnitCompare(left, right)),
       ),
     };
+    const previous = files[item.file];
+    const unchanged =
+      previous !== undefined &&
+      JSON.stringify({ ...previous, runtime: undefined }) === JSON.stringify(next);
+    files[item.file] = { ...next, runtime: unchanged ? previous.runtime : { ...runtime } };
+  }
   const sorted = Object.fromEntries(
     Object.entries(files).sort(([left], [right]) => codeUnitCompare(left, right)),
   );

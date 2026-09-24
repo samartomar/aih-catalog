@@ -1,14 +1,17 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import type { CatalogProductionRuntimeV1 } from "../collation-v1.js";
 import { assertSafeRelativePosixPathV1, sha256HexV1 } from "../strict-json-v1.js";
 import { COMMIT_SHA, exactKeys, literal, record, SHA256_HEX, text } from "../validate-v1.js";
 
 /**
  * `src/production/data/upstream-inputs-v1.json` records what each networked
  * `produce:<name>` step fetched: the repository, the full commit, the sha256 of
- * the committed input file, and the sha256 of every upstream file read whose
- * digest the input file does not already carry. The offline build verifies
- * every recorded input before any generator reads it.
+ * the committed input file, the sha256 of every upstream file read whose
+ * digest the input file does not already carry, and the Node, ICU, Unicode and
+ * CLDR versions of the run that last changed the input's bytes (produced text
+ * order follows ICU collation). The offline build verifies every recorded input
+ * before any generator reads it.
  */
 export const UPSTREAM_INPUTS_FILE_V1 = "upstream-inputs-v1.json";
 export const UPSTREAM_INPUTS_FORMAT_V1 = "aih-catalog-upstream-inputs";
@@ -18,6 +21,7 @@ export interface UpstreamInputRecordV1 {
   commit: string;
   sha256: string;
   sources: Readonly<Record<string, string>>;
+  runtime: CatalogProductionRuntimeV1;
 }
 
 export interface UpstreamInputsManifestV1 {
@@ -28,6 +32,17 @@ export interface UpstreamInputsManifestV1 {
 
 const REPOSITORY = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u;
 const INPUT_FILE = /^[a-z0-9][a-z0-9.-]*\.json$/u;
+const RUNTIME_VERSION = /^[0-9]+(\.[0-9]+)*$/u;
+
+function parseRuntime(value: unknown, label: string): CatalogProductionRuntimeV1 {
+  const runtime = exactKeys(record(value, label), ["node", "icu", "unicode", "cldr"], label);
+  return {
+    node: text(runtime.node, `${label} node`, RUNTIME_VERSION),
+    icu: text(runtime.icu, `${label} icu`, RUNTIME_VERSION),
+    unicode: text(runtime.unicode, `${label} unicode`, RUNTIME_VERSION),
+    cldr: text(runtime.cldr, `${label} cldr`, RUNTIME_VERSION),
+  };
+}
 
 export function parseUpstreamInputsManifestV1(value: unknown): UpstreamInputsManifestV1 {
   const input = exactKeys(
@@ -44,7 +59,7 @@ export function parseUpstreamInputsManifestV1(value: unknown): UpstreamInputsMan
     const label = `upstream input ${file}`;
     const entry = exactKeys(
       record(candidate, label),
-      ["repository", "commit", "sha256", "sources"],
+      ["repository", "commit", "sha256", "sources", "runtime"],
       label,
     );
     const sources: Record<string, string> = {};
@@ -57,6 +72,7 @@ export function parseUpstreamInputsManifestV1(value: unknown): UpstreamInputsMan
       commit: text(entry.commit, `${label} commit`, COMMIT_SHA),
       sha256: text(entry.sha256, `${label} sha256`, SHA256_HEX),
       sources,
+      runtime: parseRuntime(entry.runtime, `${label} runtime`),
     };
   }
   return { format: UPSTREAM_INPUTS_FORMAT_V1, version: 1, files };

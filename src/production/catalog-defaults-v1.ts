@@ -15,6 +15,7 @@ import {
   readUpstreamInputsManifestV1,
   readVerifiedUpstreamInputV1,
 } from "./catalog/upstream-inputs-v1.js";
+import { type CatalogProductionRuntimeV1, catalogProductionRuntimeV1 } from "./collation-v1.js";
 import {
   ECC_HOOK_CONTROL_PROVENANCE,
   ECC_HOOK_PROFILES,
@@ -212,13 +213,22 @@ export function buildCatalogFrameworkDefaultsV1(root: string): Readonly<Record<s
   };
 }
 
+/** Why a regenerated default can differ: its text order follows the ICU collation runtime. */
+export function staleCatalogDefaultMessageV1(
+  relative: string,
+  runtime: CatalogProductionRuntimeV1,
+): string {
+  return `${relative} is stale (regenerated under Node ${runtime.node}, ICU ${runtime.icu}, Unicode ${runtime.unicode}, CLDR ${runtime.cldr}; text order follows ICU English collation, and src/production/data/upstream-inputs-v1.json records the runtime of each input)`;
+}
+
 export function generateCatalogFrameworkDefaultsV1(root: string, check = false): void {
   const generated = buildCatalogFrameworkDefaultsV1(root);
   for (const [relative, value] of Object.entries(generated)) {
     const target = resolve(root, relative);
     const bytes = serializeCatalogDefaultV1(value);
     if (check) {
-      if (readFileSync(target, "utf8") !== bytes) throw new Error(`${relative} is stale`);
+      if (readFileSync(target, "utf8") !== bytes)
+        throw new Error(staleCatalogDefaultMessageV1(relative, catalogProductionRuntimeV1()));
     } else {
       writeFileSync(target, bytes, "utf8");
     }

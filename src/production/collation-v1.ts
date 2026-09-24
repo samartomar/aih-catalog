@@ -39,3 +39,22 @@ assertPinnedCollatorV1();
 export function catalogTextCompareV1(left: string, right: string): number {
   return CATALOG_COLLATOR_V1.compare(left, right) || codeUnitCompare(left, right);
 }
+
+/**
+ * The runtime versions that decide Catalog text order: the ICU library, and the Unicode and
+ * CLDR data it collates with, as shipped by this Node. Production records them so a
+ * regeneration difference on another machine can be traced to a different collation runtime.
+ */
+export interface CatalogProductionRuntimeV1 {
+  node: string;
+  icu: string;
+  unicode: string;
+  cldr: string;
+}
+
+export function catalogProductionRuntimeV1(): CatalogProductionRuntimeV1 {
+  const { node, icu, unicode, cldr } = process.versions;
+  if (icu === undefined || unicode === undefined || cldr === undefined)
+    throw new Error("Catalog production requires a Node built with full ICU");
+  return { node, icu, unicode, cldr };
+}

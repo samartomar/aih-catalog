@@ -46,6 +46,7 @@ const { UPSTREAM_PRODUCERS_V1, produceUpstreamInputsV1, recordUpstreamInputsV1 }
   "../dist/production/produce/upstream-producers-v1.js"
 );
 const { fetchUpstreamTreeV1 } = await import("../dist/production/produce/upstream-fetch-v1.js");
+const { catalogProductionRuntimeV1 } = await import("../dist/production/collation-v1.js");
 if (!Object.hasOwn(UPSTREAM_PRODUCERS_V1, options.name ?? ""))
   usage(`unknown produce step ${String(options.name)}`);
 
@@ -84,12 +85,17 @@ try {
   );
   const repository = tree.repository;
   const produced = produceUpstreamInputsV1(options.name, tree, root);
+  const runtime = catalogProductionRuntimeV1();
+  console.log(
+    `produced under Node ${runtime.node}, ICU ${runtime.icu}, Unicode ${runtime.unicode}, CLDR ${runtime.cldr}`,
+  );
   const manifestPath = resolve(root, "src", "production", "data", "upstream-inputs-v1.json");
   const manifest = recordUpstreamInputsV1(
     readFileSync(manifestPath, "utf8"),
     repository,
     tree.commit,
     produced,
+    runtime,
   );
   const outputs = [
     ...produced.map((item) => [resolve(root, "src", "production", "data", item.file), item.bytes]),

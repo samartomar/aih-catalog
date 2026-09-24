@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildCatalogFrameworkDefaultsV1,
   serializeCatalogDefaultV1,
+  staleCatalogDefaultMessageV1,
 } from "../../src/production/catalog-defaults-v1.js";
 import { catalogTextCompareV1 } from "../../src/production/collation-v1.js";
 
@@ -80,6 +81,13 @@ describe("locale-independent Catalog generation", () => {
     expect([...sample].sort(catalogTextCompareV1)).toEqual(expected);
     expect(withDefaultLocale("th", () => [...sample].sort(catalogTextCompareV1))).toEqual(expected);
     expect(withDefaultLocale("tr", () => [...sample].sort(catalogTextCompareV1))).toEqual(expected);
+  });
+
+  it("names the Node, ICU, Unicode and CLDR versions when a regenerated default differs", () => {
+    const runtime = { node: "20.19.0", icu: "76.1", unicode: "16.0", cldr: "46.0" };
+    expect(staleCatalogDefaultMessageV1("defaults/x-v1.json", runtime)).toBe(
+      "defaults/x-v1.json is stale (regenerated under Node 20.19.0, ICU 76.1, Unicode 16.0, CLDR 46.0; text order follows ICU English collation, and src/production/data/upstream-inputs-v1.json records the runtime of each input)",
+    );
   });
 
   it("is a total order: collation ties fall back to code units", () => {
