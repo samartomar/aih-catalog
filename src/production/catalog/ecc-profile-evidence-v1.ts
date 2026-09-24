@@ -6,9 +6,11 @@ import {
   type JsonRecord,
   list,
   literal,
+  nonEmptyText,
   record,
   SHA256_HEX,
   text,
+  textList,
 } from "../validate-v1.js";
 
 /**
@@ -194,6 +196,137 @@ function canonicalJson(value: unknown): string {
   return JSON.stringify(value) ?? "null";
 }
 
+const isRecord = (value: unknown): value is JsonRecord =>
+  value !== null && typeof value === "object" && !Array.isArray(value);
+
+function pick(value: unknown, keys: readonly string[]): unknown {
+  if (!isRecord(value)) return value;
+  return Object.fromEntries(
+    keys.filter((key) => Object.hasOwn(value, key)).map((key) => [key, value[key]]),
+  );
+}
+
+/**
+ * The plugin's reduction of a raw upstream manifest onto the fields its pinned
+ * evidence models (plugin `src/profile/index.ts` `reduceUpstreamManifest`):
+ * upstream-only descriptive fields (descriptions, targets, cost, stability,
+ * defaultInstall) are dropped exactly as the plugin drops them when it
+ * re-reads the raw bytes, so the embedded payload and its canonical hash are
+ * the ones the plugin recomputes.
+ */
+function reduceUpstreamManifest(path: (typeof MANIFEST_PATHS)[number], raw: unknown): unknown {
+  switch (path) {
+    case PROFILE_MANIFEST: {
+      const manifest = pick(raw, ["version", "profiles"]);
+      if (!isRecord(manifest) || !isRecord(manifest.profiles)) return manifest;
+      return {
+        ...manifest,
+        profiles: Object.fromEntries(
+          Object.entries(manifest.profiles).map(([id, entry]) => [id, pick(entry, ["modules"])]),
+        ),
+      };
+    }
+    case COMPONENT_MANIFEST: {
+      const manifest = pick(raw, ["version", "components"]);
+      if (!isRecord(manifest) || !Array.isArray(manifest.components)) return manifest;
+      return {
+        ...manifest,
+        components: manifest.components.map((entry) => pick(entry, ["id", "family", "modules"])),
+      };
+    }
+    case MODULE_MANIFEST: {
+      const manifest = pick(raw, ["version", "modules"]);
+      if (!isRecord(manifest) || !Array.isArray(manifest.modules)) return manifest;
+      return {
+        ...manifest,
+        modules: manifest.modules.map((entry) =>
+          pick(entry, ["id", "kind", "paths", "dependencies"]),
+        ),
+      };
+    }
+  }
+}
+
+/** The plugin's manifest id grammar and portable source path (`idSchema`, `sourcePathSchema`). */
+const MANIFEST_ID = /^\/?[a-z0-9][a-z0-9._:/-]*$/u;
+const WINDOWS_RESERVED = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\..*)?$/iu;
+
+function portableSourcePath(value: unknown, label: string): string {
+  const path = text(value, label);
+  const segments = path.split("/");
+  if (
+    path.length === 0 ||
+    path.includes("\\") ||
+    path.includes("\0") ||
+    path.includes(":") ||
+    path.startsWith("/") ||
+    segments.some(
+      (segment) =>
+        segment.length === 0 ||
+        segment === "." ||
+        segment === ".." ||
+        segment.endsWith(".") ||
+        segment.endsWith(" ") ||
+        WINDOWS_RESERVED.test(segment),
+    )
+  )
+    throw new TypeError(`${label} ${path} is not a portable source path`);
+  return path;
+}
+
+/**
+ * Validate a reduced manifest against the plugin's strict evidence schema
+ * (`eccPinnedEvidenceSchema`): every object carries exactly the modelled keys
+ * with the modelled types, so generation refuses what the plugin would refuse.
+ */
+function strictReducedManifest(path: (typeof MANIFEST_PATHS)[number], value: unknown): JsonRecord {
+  const ids = (item: unknown, label: string) => textList(item, label, MANIFEST_ID);
+  switch (path) {
+    case PROFILE_MANIFEST: {
+      const manifest = exactKeys(record(value, path), ["version", "profiles"], path);
+      literal(manifest.version, 1, `${path} version`);
+      for (const [id, entry] of Object.entries(record(manifest.profiles, `${path} profiles`))) {
+        text(id, `${path} profile id`, MANIFEST_ID);
+        const profile = exactKeys(record(entry, `${path} profile ${id}`), ["modules"], path);
+        ids(profile.modules, `${path} profile ${id} modules`);
+      }
+      return manifest;
+    }
+    case COMPONENT_MANIFEST: {
+      const manifest = exactKeys(record(value, path), ["version", "components"], path);
+      literal(manifest.version, 1, `${path} version`);
+      for (const entry of list(manifest.components, `${path} components`)) {
+        const component = exactKeys(
+          record(entry, `${path} component`),
+          ["id", "family", "modules"],
+          `${path} component`,
+        );
+        const id = text(component.id, `${path} component id`, MANIFEST_ID);
+        nonEmptyText(component.family, `${path} component ${id} family`);
+        ids(component.modules, `${path} component ${id} modules`);
+      }
+      return manifest;
+    }
+    case MODULE_MANIFEST: {
+      const manifest = exactKeys(record(value, path), ["version", "modules"], path);
+      literal(manifest.version, 1, `${path} version`);
+      for (const entry of list(manifest.modules, `${path} modules`)) {
+        const module = exactKeys(
+          record(entry, `${path} module`),
+          ["id", "kind", "paths", "dependencies"],
+          `${path} module`,
+        );
+        const id = text(module.id, `${path} module id`, MANIFEST_ID);
+        nonEmptyText(module.kind, `${path} module ${id} kind`);
+        for (const item of list(module.paths, `${path} module ${id} paths`))
+          portableSourcePath(item, `${path} module ${id} path`);
+        ids(module.dependencies, `${path} module ${id} dependencies`);
+      }
+      return manifest;
+    }
+  }
+}
+
 const pretty = (value: unknown): string => `${JSON.stringify(value, null, 2)}\n`;
 const ordered = (values: Iterable<string>): string[] => [...values].sort(codeUnitCompare);
 
@@ -214,21 +347,23 @@ export function eccProfileEvidenceV1(profileSources: unknown, vendorSource: unkn
     throw new TypeError(`ECC profile sources name license ${sources.licensePath}`);
 
   const manifestText = (path: string): string => sources.manifests.get(path) as string;
-  const parse = (path: string): JsonRecord => record(JSON.parse(manifestText(path)), path);
-  const componentsManifest = parse(COMPONENT_MANIFEST);
-  const modulesManifest = parse(MODULE_MANIFEST);
-  const profilesManifest = parse(PROFILE_MANIFEST);
-  for (const [path, manifest] of [
-    [COMPONENT_MANIFEST, componentsManifest],
-    [MODULE_MANIFEST, modulesManifest],
-    [PROFILE_MANIFEST, profilesManifest],
-  ] as const)
-    literal(manifest.version, 1, `${path} version`);
+  // Each manifest is embedded as the plugin's reduction of its raw bytes; the
+  // raw bytes stay pinned separately by their own digest.
+  const reduced = (path: (typeof MANIFEST_PATHS)[number]): JsonRecord =>
+    strictReducedManifest(path, reduceUpstreamManifest(path, JSON.parse(manifestText(path))));
+  const componentsManifest = reduced(COMPONENT_MANIFEST);
+  const modulesManifest = reduced(MODULE_MANIFEST);
+  const profilesManifest = reduced(PROFILE_MANIFEST);
+  const payloads = {
+    [COMPONENT_MANIFEST]: componentsManifest,
+    [MODULE_MANIFEST]: modulesManifest,
+    [PROFILE_MANIFEST]: profilesManifest,
+  };
   const manifestHashes = Object.fromEntries(
     MANIFEST_PATHS.map((path) => [path, sha256HexV1(manifestText(path))]),
   );
   const manifestPayloadHashes = Object.fromEntries(
-    MANIFEST_PATHS.map((path) => [path, sha256HexV1(canonicalJson(parse(path)))]),
+    MANIFEST_PATHS.map((path) => [path, sha256HexV1(canonicalJson(payloads[path]))]),
   );
 
   // Inventory at the pin.

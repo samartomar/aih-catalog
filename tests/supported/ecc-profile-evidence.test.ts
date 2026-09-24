@@ -102,6 +102,61 @@ function canonicalJson(value: unknown): string {
   return JSON.stringify(value) ?? "null";
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === "object" && !Array.isArray(value);
+
+function pick(value: unknown, keys: readonly string[]): unknown {
+  if (!isRecord(value)) return value;
+  return Object.fromEntries(
+    keys.filter((key) => Object.hasOwn(value, key)).map((key) => [key, value[key]]),
+  );
+}
+
+/**
+ * The plugin's reduction of a raw upstream manifest onto its modelled evidence
+ * fields (Core `sep-plugins` `packages/framework-ecc/src/profile/index.ts:595-646`,
+ * `reduceUpstreamManifest`), which it hashes against `canonicalSha256`
+ * (`index.ts:414-426`).
+ */
+function reduceUpstreamManifest(path: string, raw: unknown): unknown {
+  switch (path) {
+    case "manifests/install-profiles.json": {
+      const manifest = pick(raw, ["version", "profiles"]);
+      if (!isRecord(manifest) || !isRecord(manifest.profiles)) return manifest;
+      return {
+        ...manifest,
+        profiles: Object.fromEntries(
+          Object.entries(manifest.profiles).map(([id, entry]) => [id, pick(entry, ["modules"])]),
+        ),
+      };
+    }
+    case "manifests/install-components.json": {
+      const manifest = pick(raw, ["version", "components"]);
+      if (!isRecord(manifest) || !Array.isArray(manifest.components)) return manifest;
+      return {
+        ...manifest,
+        components: manifest.components.map((entry) => pick(entry, ["id", "family", "modules"])),
+      };
+    }
+    case "manifests/install-modules.json": {
+      const manifest = pick(raw, ["version", "modules"]);
+      if (!isRecord(manifest) || !Array.isArray(manifest.modules)) return manifest;
+      return {
+        ...manifest,
+        modules: manifest.modules.map((entry) =>
+          pick(entry, ["id", "kind", "paths", "dependencies"]),
+        ),
+      };
+    }
+  }
+  throw new Error(`unknown manifest ${path}`);
+}
+
+const ID = /^\/?[a-z0-9][a-z0-9._:/-]*$/u;
+const keysOf = (value: unknown) => (isRecord(value) ? Object.keys(value).sort() : value);
+const ids = (value: unknown) =>
+  Array.isArray(value) && value.every((item) => typeof item === "string" && ID.test(item));
+
 /** The skill directories the plugin resolves: core + lang:typescript module closure, plus leaves. */
 function selectedSkillPaths(value: Section): { baseline: string[]; all: string[] } {
   const evidence = value.pinnedSourceEvidence;
@@ -209,11 +264,89 @@ describe("ECC profile evidence at v2.2.1", () => {
       expect(evidence.source.manifestHashes[text.path]).toBe(pin?.rawSha256);
       expect(pin?.canonicalSha256).toBe(sha256(canonicalJson(payloads[text.path])));
       expect(evidence.source.manifestPayloadHashes[text.path]).toBe(pin?.canonicalSha256);
+      // The canonical pin is over the plugin's reduction of the raw bytes, never the raw object.
+      const reduced = reduceUpstreamManifest(text.path, JSON.parse(text.text));
+      expect(payloads[text.path]).toEqual(reduced);
+      expect(pin?.canonicalSha256).toBe(sha256(canonicalJson(reduced)));
+      expect(pin?.canonicalSha256).not.toBe(sha256(canonicalJson(JSON.parse(text.text))));
     }
     const component = evidence.source.manifestHashes["manifests/install-components.json"];
     expect(value.profile.source.sourceHash).toBe(component);
     expect(value.profile.source.normalizedHash).toBe(component);
     expect(value.profile.source.componentPath).toBe("manifests/install-components.json");
+  });
+
+  it("embeds exactly the reduced manifest shapes the plugin's strict evidence schema accepts", () => {
+    // Core `sep-plugins` `packages/framework-ecc/src/profile/index.ts:217-263`
+    // (`moduleSchema`, `eccPinnedEvidenceSchema`): every object is strict.
+    const evidence = section().pinnedSourceEvidence as unknown as Record<string, unknown>;
+    const profiles = evidence.profilesManifest as Record<string, unknown>;
+    expect(keysOf(profiles)).toEqual(["profiles", "version"]);
+    expect(profiles.version).toBe(1);
+    const profileEntries = Object.entries(profiles.profiles as Record<string, unknown>);
+    expect(profileEntries.length).toBeGreaterThan(0);
+    for (const [id, entry] of profileEntries) {
+      expect(id).toMatch(ID);
+      expect(keysOf(entry)).toEqual(["modules"]);
+      expect(ids((entry as Record<string, unknown>).modules)).toBe(true);
+    }
+    const components = evidence.componentsManifest as Record<string, unknown>;
+    expect(keysOf(components)).toEqual(["components", "version"]);
+    expect(components.version).toBe(1);
+    for (const entry of components.components as Record<string, unknown>[]) {
+      expect(keysOf(entry)).toEqual(["family", "id", "modules"]);
+      expect(entry.id).toMatch(ID);
+      expect(typeof entry.family === "string" && entry.family.length > 0).toBe(true);
+      expect(ids(entry.modules)).toBe(true);
+    }
+    const modules = evidence.modulesManifest as Record<string, unknown>;
+    expect(keysOf(modules)).toEqual(["modules", "version"]);
+    expect(modules.version).toBe(1);
+    for (const entry of modules.modules as Record<string, unknown>[]) {
+      expect(keysOf(entry)).toEqual(["dependencies", "id", "kind", "paths"]);
+      expect(entry.id).toMatch(ID);
+      expect(typeof entry.kind === "string" && entry.kind.length > 0).toBe(true);
+      expect(
+        Array.isArray(entry.paths) && entry.paths.every((path) => typeof path === "string"),
+      ).toBe(true);
+      expect(ids(entry.dependencies)).toBe(true);
+    }
+  });
+
+  it("refuses a manifest whose reduction the plugin's strict evidence schema would reject", () => {
+    const withModules = (edit: (modules: Record<string, unknown>[]) => void) => {
+      const input = sources();
+      return {
+        ...input,
+        manifests: input.manifests.map((item) => {
+          if (item.path !== "manifests/install-modules.json") return item;
+          const manifest = JSON.parse(item.text) as { modules: Record<string, unknown>[] };
+          edit(manifest.modules);
+          return { ...item, text: JSON.stringify(manifest) };
+        }),
+      };
+    };
+    expect(() =>
+      section(
+        withModules((modules) => {
+          delete (modules[0] as Record<string, unknown>).dependencies;
+        }),
+      ),
+    ).toThrow(/dependencies/u);
+    expect(() =>
+      section(
+        withModules((modules) => {
+          (modules[0] as Record<string, unknown>).kind = 7;
+        }),
+      ),
+    ).toThrow(/kind/u);
+    expect(() =>
+      section(
+        withModules((modules) => {
+          (modules[0] as Record<string, unknown>).paths = ["../escape"];
+        }),
+      ),
+    ).toThrow(/path/u);
   });
 
   it("derives the counts from the pinned inventory (baseline 117 at v2.2.1)", () => {
@@ -326,7 +459,7 @@ describe("ECC profile evidence at v2.2.1", () => {
 
   it("serializes to the recorded descriptor section digest", () => {
     expect(sha256(serializeCatalogDefaultV1(section()))).toBe(
-      "7c95c62a619a836318d23ea330234d36284dd91aa4787950b31508f4e73db186",
+      "83d2d2bc26afeb991130142ecd1b4566645e82f1eddb1c1fd274bcb07dbbccbe",
     );
   });
 
