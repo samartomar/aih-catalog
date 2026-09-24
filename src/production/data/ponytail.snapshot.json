@@ -343,6 +343,18 @@
       "bytesBase64": "ewogICJuYW1lIjogInBvbnl0YWlsLW1jcCIsCiAgInZlcnNpb24iOiAiNC4xMC4wIiwKICAiZGVzY3JpcHRpb24iOiAiTUNQIHNlcnZlciB0aGF0IHNlcnZlcyBQb255dGFpbCdzIGxhenktc2VuaW9yLWRldiBpbnN0cnVjdGlvbnMgYXMgYSBwcm9tcHQgYW5kIGEgdG9vbC4iLAogICJwcml2YXRlIjogdHJ1ZSwKICAidHlwZSI6ICJtb2R1bGUiLAogICJsaWNlbnNlIjogIk1JVCIsCiAgInNjcmlwdHMiOiB7ICJ0ZXN0IjogIm5vZGUgLS10ZXN0IC4vdGVzdC8qLnRlc3QuanMiIH0sCiAgImRlcGVuZGVuY2llcyI6IHsKICAgICJAbW9kZWxjb250ZXh0cHJvdG9jb2wvc2RrIjogIl4xLjI2LjAiLAogICAgInpvZCI6ICJeMy4yMy4wIgogIH0KfQo=",
       "sha256": "sha256:d2423f5e4513d9cf13981ff4bedd4aee8ac74c6e516c605840b564de85a4ce44",
       "size": 365
+    },
+    {
+      "path": "hooks/cursor-hooks.json",
+      "bytesBase64": "ewogICJ2ZXJzaW9uIjogMSwKICAiaG9va3MiOiB7CiAgICAic2Vzc2lvblN0YXJ0IjogWwogICAgICB7CiAgICAgICAgImNvbW1hbmQiOiAibm9kZSBcIlBPTllUQUlMX0RJUi9ob29rcy9wb255dGFpbC1hY3RpdmF0ZS5qc1wiIiwKICAgICAgICAidGltZW91dCI6IDUKICAgICAgfQogICAgXSwKICAgICJiZWZvcmVTdWJtaXRQcm9tcHQiOiBbCiAgICAgIHsKICAgICAgICAiY29tbWFuZCI6ICJub2RlIFwiUE9OWVRBSUxfRElSL2hvb2tzL3Bvbnl0YWlsLW1vZGUtdHJhY2tlci5qc1wiIiwKICAgICAgICAidGltZW91dCI6IDUKICAgICAgfQogICAgXQogIH0KfQo=",
+      "sha256": "sha256:9c3a1a1b0de711dde532fa64467839c770bca4911f32a514c3e20571a54107a6",
+      "size": 320
+    },
+    {
+      "path": "scripts/cursor-hooks.js",
+      "bytesBase64": "IyEvdXNyL2Jpbi9lbnYgbm9kZQovLyBwb255dGFpbCDigJQgaW5zdGFsbCBvciByZW1vdmUgdGhlIEN1cnNvciBob29rcyAoaG9va3MvY3Vyc29yLWhvb2tzLmpzb24pIGluCi8vIH4vLmN1cnNvci9ob29rcy5qc29uIChkZWZhdWx0KSBvciA8Y3dkPi8uY3Vyc29yL2hvb2tzLmpzb24gKC0tcHJvamVjdCksCi8vIG1lcmdpbmcgd2l0aCB3aGF0ZXZlciBob29rcyBhcmUgYWxyZWFkeSB0aGVyZS4gT25seSBlbnRyaWVzIHRoYXQgcnVuIG9uZSBvZgovLyBwb255dGFpbCdzIG93biBob29rcy9wb255dGFpbC0qLmpzIHNjcmlwdHMgYXJlIGFkZGVkIG9yIHJlbW92ZWQ7IGV2ZXJ5IG90aGVyCi8vIGhvb2sgc3RheXMgYXMgaXQgd2FzLgovLwovLyAgIG5vZGUgc2NyaXB0cy9jdXJzb3ItaG9va3MuanMgaW5zdGFsbCBbLS1wcm9qZWN0XQovLyAgIG5vZGUgc2NyaXB0cy9jdXJzb3ItaG9va3MuanMgdW5pbnN0YWxsIFstLXByb2plY3RdCgpjb25zdCBmcyA9IHJlcXVpcmUoJ2ZzJyk7CmNvbnN0IG9zID0gcmVxdWlyZSgnb3MnKTsKY29uc3QgcGF0aCA9IHJlcXVpcmUoJ3BhdGgnKTsKY29uc3QgeyBpc1NoZWxsU2FmZSB9ID0gcmVxdWlyZSgnLi4vaG9va3MvcG9ueXRhaWwtY29uZmlnJyk7Cgpjb25zdCBST09UID0gcGF0aC5qb2luKF9fZGlybmFtZSwgJy4uJyk7CmNvbnN0IFRFTVBMQVRFID0gcGF0aC5qb2luKFJPT1QsICdob29rcycsICdjdXJzb3ItaG9va3MuanNvbicpOwpjb25zdCBQT05ZVEFJTF9IT09LID0gL3Bvbnl0YWlsLVtcdy1dK1wuanMvOwoKZnVuY3Rpb24gaXNQb255dGFpbEhvb2soZW50cnkpIHsKICByZXR1cm4gQm9vbGVhbihlbnRyeSAmJiB0eXBlb2YgZW50cnkuY29tbWFuZCA9PT0gJ3N0cmluZycgJiYgUE9OWVRBSUxfSE9PSy50ZXN0KGVudHJ5LmNvbW1hbmQpKTsKfQoKZnVuY3Rpb24gaG9va3NQYXRoKHNjb3BlKSB7CiAgcmV0dXJuIHNjb3BlID09PSAncHJvamVjdCcKICAgID8gcGF0aC5qb2luKHByb2Nlc3MuY3dkKCksICcuY3Vyc29yJywgJ2hvb2tzLmpzb24nKQogICAgOiBwYXRoLmpvaW4ob3MuaG9tZWRpcigpLCAnLmN1cnNvcicsICdob29rcy5qc29uJyk7Cn0KCi8vIE1pc3NpbmcgZmlsZSDihpIgZW1wdHkgY29uZmlnLiBNYWxmb3JtZWQgSlNPTiB0aHJvd3MgYSBTeW50YXhFcnJvciBzbyB0aGUKLy8gY2FsbGVyIGNhbiByZWZ1c2UgdG8gdG91Y2ggdGhlIGZpbGUgcmF0aGVyIHRoYW4gb3ZlcndyaXRlIGl0LgpmdW5jdGlvbiByZWFkQ29uZmlnKGZpbGUpIHsKICBsZXQgY29uZmlnID0ge307CiAgdHJ5IHsKICAgIGNvbmZpZyA9IEpTT04ucGFyc2UoZnMucmVhZEZpbGVTeW5jKGZpbGUsICd1dGY4JykucmVwbGFjZSgvXlx1RkVGRi8sICcnKSk7CiAgfSBjYXRjaCAoZSkgewogICAgaWYgKGUuY29kZSAhPT0gJ0VOT0VOVCcpIHRocm93IGU7CiAgfQogIGlmICghY29uZmlnIHx8IHR5cGVvZiBjb25maWcgIT09ICdvYmplY3QnIHx8IEFycmF5LmlzQXJyYXkoY29uZmlnKSkgY29uZmlnID0ge307CiAgaWYgKCFjb25maWcuaG9va3MgfHwgdHlwZW9mIGNvbmZpZy5ob29rcyAhPT0gJ29iamVjdCcgfHwgQXJyYXkuaXNBcnJheShjb25maWcuaG9va3MpKSBjb25maWcuaG9va3MgPSB7fTsKICByZXR1cm4gY29uZmlnOwp9CgpmdW5jdGlvbiB3cml0ZUNvbmZpZyhmaWxlLCBjb25maWcpIHsKICBmcy5ta2RpclN5bmMocGF0aC5kaXJuYW1lKGZpbGUpLCB7IHJlY3Vyc2l2ZTogdHJ1ZSB9KTsKICBmcy53cml0ZUZpbGVTeW5jKGZpbGUsIEpTT04uc3RyaW5naWZ5KGNvbmZpZywgbnVsbCwgMikgKyAnXG4nLCAndXRmOCcpOwp9CgovLyBUaGUgdGVtcGxhdGUncyBQT05ZVEFJTF9ESVIgcGxhY2Vob2xkZXIgYmVjb21lcyB0aGlzIGNoZWNrb3V0J3MgYWJzb2x1dGUKLy8gcGF0aC4gRm9yd2FyZCBzbGFzaGVzIHJ1biB1bmNoYW5nZWQgdW5kZXIgY21kLCBQb3dlclNoZWxsIGFuZCBiYXNoLCBhbmQgdGhlCi8vIHNhbWUgYWxsb3dsaXN0IHRoYXQgZ3VhcmRzIHRoZSBzdGF0dXNsaW5lIHNuaXBwZXQga2VlcHMgc2hlbGwgbWV0YWNoYXJhY3RlcnMKLy8gb3V0IG9mIHRoZSBjb21tYW5kIHN0cmluZy4KZnVuY3Rpb24gcG9ueXRhaWxFbnRyaWVzKCkgewogIGNvbnN0IHJvb3QgPSBST09ULnJlcGxhY2UoL1xcL2csICcvJyk7CiAgaWYgKCFpc1NoZWxsU2FmZShyb290KSkgewogICAgdGhyb3cgbmV3IEVycm9yKCdwb255dGFpbCBpcyBjaGVja2VkIG91dCBhdCBhIHBhdGggd2l0aCBzaGVsbCBtZXRhY2hhcmFjdGVycyAoJyArIFJPT1QgKwogICAgICAnKTsgbW92ZSBpdCwgb3IgY29weSBob29rcy9jdXJzb3ItaG9va3MuanNvbiBieSBoYW5kIGFuZCBxdW90ZSB0aGUgcGF0aCBmb3IgeW91ciBzaGVsbCcpOwogIH0KICBjb25zdCB0ZW1wbGF0ZSA9IEpTT04ucGFyc2UoZnMucmVhZEZpbGVTeW5jKFRFTVBMQVRFLCAndXRmOCcpKTsKICBjb25zdCBob29rcyA9IHt9OwogIGZvciAoY29uc3QgW2V2ZW50LCBlbnRyaWVzXSBvZiBPYmplY3QuZW50cmllcyh0ZW1wbGF0ZS5ob29rcykpIHsKICAgIGhvb2tzW2V2ZW50XSA9IGVudHJpZXMubWFwKChlbnRyeSkgPT4gKHsgLi4uZW50cnksIGNvbW1hbmQ6IGVudHJ5LmNvbW1hbmQucmVwbGFjZSgvUE9OWVRBSUxfRElSL2csIHJvb3QpIH0pKTsKICB9CiAgcmV0dXJuIGhvb2tzOwp9CgpmdW5jdGlvbiBzdHJpcFBvbnl0YWlsKGNvbmZpZykgewogIGZvciAoY29uc3QgW2V2ZW50LCBlbnRyaWVzXSBvZiBPYmplY3QuZW50cmllcyhjb25maWcuaG9va3MpKSB7CiAgICBpZiAoIUFycmF5LmlzQXJyYXkoZW50cmllcykpIGNvbnRpbnVlOwogICAgY29uc3Qga2VwdCA9IGVudHJpZXMuZmlsdGVyKChlbnRyeSkgPT4gIWlzUG9ueXRhaWxIb29rKGVudHJ5KSk7CiAgICBpZiAoa2VwdC5sZW5ndGgpIGNvbmZpZy5ob29rc1tldmVudF0gPSBrZXB0OwogICAgZWxzZSBkZWxldGUgY29uZmlnLmhvb2tzW2V2ZW50XTsKICB9Cn0KCmZ1bmN0aW9uIGluc3RhbGwoc2NvcGUpIHsKICBjb25zdCBmaWxlID0gaG9va3NQYXRoKHNjb3BlKTsKICBjb25zdCBjb25maWcgPSByZWFkQ29uZmlnKGZpbGUpOwogIGlmIChjb25maWcudmVyc2lvbiA9PT0gdW5kZWZpbmVkKSBjb25maWcudmVyc2lvbiA9IDE7CiAgLy8gUmUtcnVubmluZyByZXBsYWNlcyBzdGFsZSBwb255dGFpbCBlbnRyaWVzIGluc3RlYWQgb2YgZHVwbGljYXRpbmcgdGhlbS4KICBzdHJpcFBvbnl0YWlsKGNvbmZpZyk7CiAgZm9yIChjb25zdCBbZXZlbnQsIGVudHJpZXNdIG9mIE9iamVjdC5lbnRyaWVzKHBvbnl0YWlsRW50cmllcygpKSkgewogICAgY29uZmlnLmhvb2tzW2V2ZW50XSA9IFsuLi4oY29uZmlnLmhvb2tzW2V2ZW50XSB8fCBbXSksIC4uLmVudHJpZXNdOwogIH0KICB3cml0ZUNvbmZpZyhmaWxlLCBjb25maWcpOwogIHJldHVybiBmaWxlOwp9CgovLyBSZXR1cm5zIHRoZSBmaWxlIGl0IGNoYW5nZWQsIG9yIG51bGwgd2hlbiB0aGVyZSB3YXMgbm90aGluZyBvZiBwb255dGFpbCdzIGluIGl0LgpmdW5jdGlvbiB1bmluc3RhbGwoc2NvcGUpIHsKICBjb25zdCBmaWxlID0gaG9va3NQYXRoKHNjb3BlKTsKICBpZiAoIWZzLmV4aXN0c1N5bmMoZmlsZSkpIHJldHVybiBudWxsOwogIGNvbnN0IGNvbmZpZyA9IHJlYWRDb25maWcoZmlsZSk7CiAgY29uc3QgYmVmb3JlID0gSlNPTi5zdHJpbmdpZnkoY29uZmlnKTsKICBzdHJpcFBvbnl0YWlsKGNvbmZpZyk7CiAgaWYgKEpTT04uc3RyaW5naWZ5KGNvbmZpZykgPT09IGJlZm9yZSkgcmV0dXJuIG51bGw7CiAgY29uc3Qgb3RoZXJLZXlzID0gT2JqZWN0LmtleXMoY29uZmlnKS5maWx0ZXIoKGspID0+IGsgIT09ICd2ZXJzaW9uJyAmJiBrICE9PSAnaG9va3MnKTsKICBpZiAoT2JqZWN0LmtleXMoY29uZmlnLmhvb2tzKS5sZW5ndGggPT09IDAgJiYgb3RoZXJLZXlzLmxlbmd0aCA9PT0gMCkgewogICAgLy8gT25seSBwb255dGFpbCBsaXZlZCBoZXJlOiBkcm9wIHRoZSBmaWxlIHJhdGhlciB0aGFuIGxlYXZlIGFuIGVtcHR5IGh1c2suCiAgICBmcy51bmxpbmtTeW5jKGZpbGUpOwogIH0gZWxzZSB7CiAgICB3cml0ZUNvbmZpZyhmaWxlLCBjb25maWcpOwogIH0KICByZXR1cm4gZmlsZTsKfQoKaWYgKHJlcXVpcmUubWFpbiA9PT0gbW9kdWxlKSB7CiAgY29uc3QgYXJncyA9IHByb2Nlc3MuYXJndi5zbGljZSgyKTsKICBjb25zdCBhY3Rpb24gPSBhcmdzWzBdOwogIGNvbnN0IHNjb3BlID0gYXJncy5pbmNsdWRlcygnLS1wcm9qZWN0JykgPyAncHJvamVjdCcgOiAndXNlcic7CiAgdHJ5IHsKICAgIGlmIChhY3Rpb24gPT09ICdpbnN0YWxsJykgewogICAgICBjb25zdCBmaWxlID0gaW5zdGFsbChzY29wZSk7CiAgICAgIGNvbnNvbGUubG9nKCdJbnN0YWxsZWQgcG9ueXRhaWwgaG9va3MgaW4gJyArIGZpbGUpOwogICAgICBjb25zb2xlLmxvZygnQ3Vyc29yIHJlbG9hZHMgaG9va3MuanNvbiBvbiBzYXZlOyBzdGFydCBhIG5ldyBjaGF0IHRvIGFjdGl2YXRlLicpOwogICAgfSBlbHNlIGlmIChhY3Rpb24gPT09ICd1bmluc3RhbGwnKSB7CiAgICAgIGNvbnN0IGZpbGUgPSB1bmluc3RhbGwoc2NvcGUpOwogICAgICBjb25zb2xlLmxvZyhmaWxlCiAgICAgICAgPyAnUmVtb3ZlZCBwb255dGFpbCBob29rcyBmcm9tICcgKyBmaWxlCiAgICAgICAgOiAnTm8gcG9ueXRhaWwgaG9va3MgaW4gJyArIGhvb2tzUGF0aChzY29wZSkpOwogICAgfSBlbHNlIHsKICAgICAgY29uc29sZS5lcnJvcigndXNhZ2U6IG5vZGUgc2NyaXB0cy9jdXJzb3ItaG9va3MuanMgaW5zdGFsbHx1bmluc3RhbGwgWy0tcHJvamVjdF0nKTsKICAgICAgcHJvY2Vzcy5leGl0KDEpOwogICAgfQogIH0gY2F0Y2ggKGUpIHsKICAgIGlmIChlIGluc3RhbmNlb2YgU3ludGF4RXJyb3IpIHsKICAgICAgY29uc29sZS5lcnJvcihob29rc1BhdGgoc2NvcGUpICsgJyBpcyBub3QgdmFsaWQgSlNPTjsgbm90aGluZyB3YXMgY2hhbmdlZCwgZml4IGl0IGJ5IGhhbmQgKCcgKyBlLm1lc3NhZ2UgKyAnKScpOwogICAgfSBlbHNlIHsKICAgICAgY29uc29sZS5lcnJvcihlLm1lc3NhZ2UpOwogICAgfQogICAgcHJvY2Vzcy5leGl0KDEpOwogIH0KfQoKbW9kdWxlLmV4cG9ydHMgPSB7IGhvb2tzUGF0aCwgaW5zdGFsbCwgaXNQb255dGFpbEhvb2ssIHVuaW5zdGFsbCB9Owo=",
+      "sha256": "sha256:062da6ace43aba3475f4a523a42e83a7d25469f3a1e9d8d2b80c75bdcd69cbb1",
+      "size": 5090
     }
   ],
   "components": [
@@ -521,6 +533,58 @@
         "statusMessage": "Tracking ponytail mode..."
       },
       "description": "Pinned upstream user-prompt command hook declaration.",
+      "primaryPath": "hooks/ponytail-mode-tracker.js"
+    },
+    {
+      "id": "hook:cursor-session-start",
+      "kind": "hook",
+      "label": "Ponytail Cursor session activation",
+      "fileRefs": [
+        "hooks/cursor-hooks.json",
+        "scripts/cursor-hooks.js",
+        "hooks/ponytail-activate.js",
+        "hooks/ponytail-config.js",
+        "hooks/ponytail-runtime.js",
+        "hooks/ponytail-instructions.js",
+        "skills/ponytail/SKILL.md",
+        "hooks/ponytail-statusline.ps1",
+        "hooks/ponytail-statusline.sh"
+      ],
+      "metadata": {
+        "type": "command",
+        "declaredHosts": [
+          "Cursor"
+        ],
+        "event": "sessionStart",
+        "command": "node \"PONYTAIL_DIR/hooks/ponytail-activate.js\"",
+        "timeoutSeconds": 5
+      },
+      "description": "Pinned upstream Cursor session-start command hook declaration; scripts/cursor-hooks.js installs it into the user or project .cursor/hooks.json with PONYTAIL_DIR replaced by the checkout path.",
+      "primaryPath": "hooks/ponytail-activate.js"
+    },
+    {
+      "id": "hook:cursor-before-submit-prompt",
+      "kind": "hook",
+      "label": "Ponytail Cursor mode tracking",
+      "fileRefs": [
+        "hooks/cursor-hooks.json",
+        "scripts/cursor-hooks.js",
+        "hooks/ponytail-mode-tracker.js",
+        "hooks/ponytail-config.js",
+        "hooks/ponytail-runtime.js",
+        "hooks/ponytail-instructions.js",
+        "skills/ponytail/SKILL.md"
+      ],
+      "metadata": {
+        "type": "command",
+        "declaredHosts": [
+          "Cursor"
+        ],
+        "event": "beforeSubmitPrompt",
+        "command": "node \"PONYTAIL_DIR/hooks/ponytail-mode-tracker.js\"",
+        "timeoutSeconds": 5
+      },
+      "description": "Pinned upstream Cursor before-submit-prompt command hook declaration; scripts/cursor-hooks.js installs it into the user or project .cursor/hooks.json with PONYTAIL_DIR replaced by the checkout path.",
       "primaryPath": "hooks/ponytail-mode-tracker.js"
     },
     {

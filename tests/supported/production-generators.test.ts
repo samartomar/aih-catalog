@@ -61,6 +61,42 @@ describe("Catalog production generators", () => {
     expect(Object.keys(first.inputs[0]?.sources ?? {})).toEqual(["source:ponytail"]);
   });
 
+  it("declares the v4.10.0 Cursor hooks as their own components beside the Claude/Codex ones", () => {
+    const snapshot = json(data("ponytail.snapshot.json")) as {
+      source: { commit: string; version: string };
+      files: { path: string }[];
+      components: { id: string; fileRefs: string[]; metadata?: Record<string, unknown> }[];
+    };
+    expect(snapshot.source).toMatchObject({
+      commit: "1d95ff7d39de12d87014ea40d4e22201bddc501b",
+      version: "4.10.0",
+    });
+    const hooks = snapshot.components.filter((component) => component.id.startsWith("hook:"));
+    expect(
+      hooks.map((hook) => [hook.id, hook.metadata?.declaredHosts, hook.metadata?.event]),
+    ).toEqual([
+      ["hook:session-start", ["ClaudeCode", "Codex"], "SessionStart"],
+      ["hook:subagent-start", ["ClaudeCode", "Codex"], "SubagentStart"],
+      ["hook:user-prompt-submit", ["ClaudeCode", "Codex"], "UserPromptSubmit"],
+      ["hook:cursor-session-start", ["Cursor"], "sessionStart"],
+      ["hook:cursor-before-submit-prompt", ["Cursor"], "beforeSubmitPrompt"],
+    ]);
+    const cursor = hooks.filter((hook) => hook.id.startsWith("hook:cursor-"));
+    // biome-ignore lint/style/noNonNullAssertion: both rows are asserted above
+    expect(cursor.map((hook) => hook.metadata!.command)).toEqual([
+      'node "PONYTAIL_DIR/hooks/ponytail-activate.js"',
+      'node "PONYTAIL_DIR/hooks/ponytail-mode-tracker.js"',
+    ]);
+    for (const hook of cursor) {
+      expect(hook.fileRefs.slice(0, 2)).toEqual([
+        "hooks/cursor-hooks.json",
+        "scripts/cursor-hooks.js",
+      ]);
+      for (const path of hook.fileRefs)
+        expect(snapshot.files.map((file) => file.path)).toContain(path);
+    }
+  });
+
   it("rejects Ponytail file bytes that do not match their recorded digest", () => {
     const snapshot = json(data("ponytail.snapshot.json")) as { files: { sha256: string }[] };
     (snapshot.files[0] as { sha256: string }).sha256 = `sha256:${"0".repeat(64)}`;
