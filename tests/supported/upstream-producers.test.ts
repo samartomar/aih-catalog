@@ -16,7 +16,7 @@ import { sha256HexV1 } from "../../src/production/strict-json-v1.js";
 const root = resolve(import.meta.dirname, "..", "..");
 const dataPath = (file: string) => resolve(root, "src", "production", "data", file);
 const dataText = (file: string) => readFileSync(dataPath(file), "utf8");
-const ECC_COMMIT = "5caf398a91599029a176ca6d806409b00d1052c4";
+const ECC_COMMIT = "5064474d4d762dc9640234a41617cccb79185cec";
 const OTHER_RUNTIME = { node: "20.19.0", icu: "76.1", unicode: "16.0", cldr: "46.0" };
 
 function tree(repository: string, commit: string, files: Record<string, string | Buffer>) {
@@ -159,13 +159,13 @@ describe("networked upstream producers (offline transforms)", () => {
         "mattpocock",
         "mattpocock.snapshot.json",
         "mattpocock/skills",
-        "3cca18b368ae95cdbdebbff572ccafa662551015",
+        "c55ee46073ed923f86ce59a5eb3b6d895095d1b7",
       ],
       [
         "ponytail",
         "ponytail.snapshot.json",
         "DietrichGebert/ponytail",
-        "974d940a1c5344210874150b98ff0d2c861fab6a",
+        "1d95ff7d39de12d87014ea40d4e22201bddc501b",
       ],
     ] as const) {
       const snapshot = JSON.parse(dataText(file)) as {
@@ -193,7 +193,7 @@ describe("networked upstream producers (offline transforms)", () => {
     expect(() =>
       produceUpstreamInputsV1("ecc", tree("affaan-m/other", ECC_COMMIT, {}), root),
     ).toThrow(/repository/u);
-    expect(() => produceUpstreamInputsV1("ecc", tree("affaan-m/ECC", "5caf398", {}), root)).toThrow(
+    expect(() => produceUpstreamInputsV1("ecc", tree("affaan-m/ECC", "5064474", {}), root)).toThrow(
       /commit/u,
     );
   });
@@ -349,13 +349,13 @@ describe("networked upstream producers (offline transforms)", () => {
       [
         "superpowers-content-metadata-v1.json",
         "obra/Superpowers",
-        "b36e0829c6d0140e93cfef2ca599b1b07d4a7797",
+        "5bf4e78011075bcfc0dc295f0724994cd123ee71",
       ],
-      ["mattpocock.snapshot.json", "mattpocock/skills", "3cca18b368ae95cdbdebbff572ccafa662551015"],
+      ["mattpocock.snapshot.json", "mattpocock/skills", "c55ee46073ed923f86ce59a5eb3b6d895095d1b7"],
       [
         "ponytail.snapshot.json",
         "DietrichGebert/ponytail",
-        "974d940a1c5344210874150b98ff0d2c861fab6a",
+        "1d95ff7d39de12d87014ea40d4e22201bddc501b",
       ],
     ] as const) {
       expect(manifest.files[file], file).toMatchObject({ repository, commit });
