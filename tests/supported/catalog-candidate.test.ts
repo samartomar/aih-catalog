@@ -1209,6 +1209,47 @@ describe("the candidate build reads only the named checkout", () => {
   });
 });
 
+describe("the candidate build output must be a real directory", () => {
+  const linkedOutput = async (type: "junction" | "dir") => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    const external = join(tempDir(), "external");
+    mkdirSync(external);
+    let failure: unknown;
+    await buildCandidateFromCommitV1(dir, (snapshot) => {
+      writeFileSync(
+        join(external, "CANDIDATE.json"),
+        JSON.stringify({
+          format: CATALOG_CANDIDATE_FORMAT_V1,
+          version: 1,
+          catalogCommit: snapshot.catalogCommit,
+        }),
+      );
+      writeFileSync(join(external, "input.json"), '{"v":"external"}');
+      symlinkSync(external, join(snapshot.root, CATALOG_CANDIDATE_ROOT_V1), type);
+      return snapshot;
+    }).catch((error: unknown) => {
+      failure = error;
+    });
+    expect((failure as Error)?.message).toMatch(/not a real directory/u);
+    // The external directory is left untouched and nothing is exposed.
+    expect(readFileSync(join(external, "input.json"), "utf8")).toBe('{"v":"external"}');
+    expect(existsSync(join(dir, CATALOG_CANDIDATE_ROOT_V1))).toBe(false);
+    expect(staging(dir)).toEqual([]);
+  };
+
+  it("refuses a build output that is a junction to an external directory with a marker", async () => {
+    await linkedOutput("junction");
+  });
+
+  it.skipIf(process.platform === "win32")(
+    "refuses a build output that is a symlink to an external directory with a marker",
+    async () => {
+      await linkedOutput("dir");
+    },
+  );
+});
+
 describe("the candidate build is serialized by a lock file", () => {
   const lockPath = (dir: string) => join(dir, ".candidate-build.lock");
 

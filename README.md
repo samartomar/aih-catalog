@@ -748,7 +748,9 @@ hashes to the commit's blob ids (recomputed in Node, never by git's normalized
 view), every file's executable bit still matches the tree's mode (100755 vs
 100644; modes not verified on win32, where the published package's modes come
 from `npm pack`, not from the snapshot) and the built `CANDIDATE.json` names
-that commit. Otherwise the build
+that commit, read from a real directory — a link or junction as the output, or
+an output whose identity changed between the check and the rename, is refused
+and rolled back. Otherwise the build
 refuses, removes its partial output and restores any earlier `dist-candidate/`
 exactly as it was; if that rollback itself fails, the earlier candidate is
 kept in a named quarantine directory to recover from, never deleted. An edit

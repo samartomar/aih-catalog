@@ -402,7 +402,11 @@ function verifySnapshotBytes(tree, entries, format, commit) {
  * private quarantine inside the staging directory; the moved object is
  * validated there (a real directory, never a link or junction, carrying the
  * candidate marker) and moved back untouched if it is not an earlier candidate
- * root. The new output is then renamed into place and HEAD is checked. On any
+ * root. The new output must be a real directory too: its marker is read only
+ * after an lstat proves it is no link or junction, and after the rename its
+ * identity (dev/ino) must still be the checked directory's — anything else is
+ * refused and rolled back. The new output is then renamed into place and HEAD
+ * is checked. On any
  * failure after the quarantine move, including a thrown exception, the new
  * output is removed (only if it is still the candidate this build exposed) and
  * the quarantined previous candidate is restored. The quarantine is deleted
@@ -468,7 +472,22 @@ export async function buildCandidateFromCommitV1(checkout, step) {
     const result = await step({ root: tree, catalogCommit });
 
     verifySnapshotBytes(tree, entries, format, catalogCommit);
+    // The marker is read only from a real directory: a link or junction as
+    // the build output is refused, and the moved output must be the same
+    // directory (dev/ino) that was checked.
     const built = join(tree, CANDIDATE_ROOT);
+    let builtStat;
+    try {
+      builtStat = lstatSync(built);
+    } catch {
+      throw new Error(`the build wrote no readable ${CANDIDATE_ROOT}/CANDIDATE.json`);
+    }
+    if (builtStat.isSymbolicLink() || !builtStat.isDirectory())
+      throw new CandidateBuildRefusalV1(
+        "candidate-output-not-directory",
+        `the build's ${CANDIDATE_ROOT} is not a real directory (a link or junction is refused); the candidate is refused`,
+      );
+    const identity = { dev: builtStat.dev, ino: builtStat.ino };
     let marker;
     try {
       marker = JSON.parse(readFileSync(join(built, "CANDIDATE.json"), "utf8"));
@@ -494,6 +513,17 @@ export async function buildCandidateFromCommitV1(checkout, step) {
       }
       renameSync(built, outRoot);
       exposed = true;
+      const moved = lstatSync(outRoot);
+      if (
+        moved.isSymbolicLink() ||
+        !moved.isDirectory() ||
+        moved.dev !== identity.dev ||
+        moved.ino !== identity.ino
+      )
+        throw new CandidateBuildRefusalV1(
+          "candidate-output-not-directory",
+          `the exposed ${CANDIDATE_ROOT} is not the real directory this build checked; the candidate is refused`,
+        );
       const after = headOf(context, root);
       if (after !== catalogCommit)
         throw new Error(
