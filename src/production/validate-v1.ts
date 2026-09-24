@@ -1,11 +1,18 @@
 /** Minimal fail-closed structural checks for production inputs (Catalog has no runtime deps). */
 
+import { jsonOwnEntriesV1 } from "./strict-json-v1.js";
+
 export type JsonRecord = Record<string, unknown>;
 
+/**
+ * A plain JSON object: every own key (`Reflect.ownKeys`) an enumerable data property, read
+ * through its descriptor so a getter is never invoked (`jsonOwnEntriesV1`).
+ */
 export function record(value: unknown, label: string): JsonRecord {
   if (value === null || typeof value !== "object" || Array.isArray(value)) {
     throw new TypeError(`${label} must be an object`);
   }
+  jsonOwnEntriesV1(value, label);
   return value as JsonRecord;
 }
 
@@ -15,9 +22,10 @@ export function exactKeys(
   label: string,
   optional: readonly string[] = [],
 ): JsonRecord {
+  const keys = jsonOwnEntriesV1(value, label).map(([key]) => key);
   for (const key of required)
-    if (!Object.hasOwn(value, key)) throw new TypeError(`${label} is missing ${key}`);
-  for (const key of Object.keys(value))
+    if (!keys.includes(key)) throw new TypeError(`${label} is missing ${key}`);
+  for (const key of keys)
     if (!required.includes(key) && !optional.includes(key))
       throw new TypeError(`${label} has unsupported field ${key}`);
   return value;
@@ -40,6 +48,8 @@ export function list(value: unknown, label: string, min = 0, max = Number.MAX_SA
   if (!Array.isArray(value) || value.length < min || value.length > max) {
     throw new TypeError(`${label} must be an array of ${String(min)}..${String(max)} items`);
   }
+  // A plain array of indexed data elements: no hole, extra key or getter.
+  jsonOwnEntriesV1(value, label);
   return value as unknown[];
 }
 

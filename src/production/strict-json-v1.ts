@@ -66,6 +66,34 @@ function dataValue(value: object, key: string, label: string): unknown {
   return descriptor.value;
 }
 
+/**
+ * The own entries of a plain JSON object or array, read through their descriptors so a getter is
+ * never invoked. Every own key is enumerated (`Reflect.ownKeys`), and a non-plain prototype, a
+ * symbol key, a non-enumerable or accessor property, or, for an array, anything but its indices in
+ * order (an extra key or a hole) is refused. The same checks as Core's `jsonOwnEntriesV1` (its
+ * src/contract/strict-json-v1.ts), which Core's packaged evidence reader applies.
+ */
+export function jsonOwnEntriesV1(value: object, label: string): [string, unknown][] {
+  const array = Array.isArray(value);
+  const prototype = Object.getPrototypeOf(value);
+  if (array ? prototype !== Array.prototype : prototype !== Object.prototype && prototype !== null)
+    throw new TypeError(`${label} has an unsupported ${array ? "array" : "object"} prototype`);
+  const entries: [string, unknown][] = [];
+  for (const key of Reflect.ownKeys(value)) {
+    if (typeof key === "symbol") throw new TypeError(`${label} must not contain symbol properties`);
+    if (array && key === "length") continue;
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    if (descriptor === undefined || !("value" in descriptor) || descriptor.enumerable !== true)
+      throw new TypeError(`${label} field ${key} must be an enumerable data property`);
+    if (array && key !== String(entries.length))
+      throw new TypeError(`${label} must contain only indexed elements, with no holes`);
+    entries.push([key, descriptor.value]);
+  }
+  if (array && entries.length !== (value as unknown[]).length)
+    throw new TypeError(`${label} must contain only indexed elements, with no holes`);
+  return entries;
+}
+
 export function assertStrictJsonValueV1<T>(
   value: T,
   label: string,

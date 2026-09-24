@@ -111,14 +111,108 @@ function read(fixture: Fixture): unknown {
   return parsePackagedScannerCollectionEvidenceV1(sealedInput(fixture));
 }
 
+/**
+ * Reader inputs JSON cannot express, so no shared fixture carries them. Core's parity test holds
+ * the same cases and reasons: both readers refuse each one typed, and never invoke a getter.
+ */
+function unrepresentableInputs(item: { bytes: string; sha256: string }) {
+  const invoked: string[] = [];
+  const getter = (name: string) => () => {
+    invoked.push(name);
+    throw new Error(`getter ${name} invoked`);
+  };
+  const hidden = (key: string) =>
+    Object.defineProperty({ ...item }, key, { value: true, enumerable: false });
+  const index = (descriptor: PropertyDescriptor) =>
+    Object.defineProperty([] as unknown[], "0", { configurable: true, ...descriptor });
+  class Wrapper {}
+  class Records extends Array<unknown> {}
+  const refused: [string, unknown, RegExp][] = [
+    [
+      "wrapper non-enumerable extra",
+      [hidden("extra")],
+      /record 0 field extra must be an enumerable data property/,
+    ],
+    [
+      "wrapper non-enumerable __proto__",
+      [hidden("__proto__")],
+      /record 0 field __proto__ must be an enumerable data property/,
+    ],
+    [
+      "wrapper symbol key",
+      [{ ...item, [Symbol("extra")]: true }],
+      /record 0 must not contain symbol properties/,
+    ],
+    [
+      "wrapper throwing getter",
+      [
+        Object.defineProperty({ sha256: item.sha256 }, "bytes", {
+          enumerable: true,
+          get: getter("bytes"),
+        }),
+      ],
+      /record 0 field bytes must be an enumerable data property/,
+    ],
+    [
+      "wrapper class instance",
+      [Object.assign(new Wrapper(), item)],
+      /record 0 has an unsupported object prototype/,
+    ],
+    [
+      "list non-enumerable index",
+      index({ value: item, enumerable: false, writable: true }),
+      /records field 0 must be an enumerable data property/,
+    ],
+    [
+      "list throwing getter index",
+      index({ enumerable: true, get: getter("0") }),
+      /records field 0 must be an enumerable data property/,
+    ],
+    [
+      "list extra key",
+      Object.assign([item], { extra: true }),
+      /records must contain only indexed elements, with no holes/,
+    ],
+    [
+      "list symbol key",
+      Object.assign([item], { [Symbol("extra")]: true }),
+      /records must not contain symbol properties/,
+    ],
+    ["list subclass", Records.from([item]), /records has an unsupported array prototype/],
+  ];
+  return { invoked, refused, accepted: [[Object.assign(Object.create(null), item)]] };
+}
+
 describe("packaged collection evidence parity with Core", () => {
+  it("refuses reader inputs JSON cannot express, typed and without invoking a getter", () => {
+    const [item] = sealedInput(
+      fixtures.find((fixture) => fixture.fixture === "valid") as Fixture,
+    ) as { bytes: string; sha256: string }[];
+    const { invoked, refused, accepted } = unrepresentableInputs(
+      item as { bytes: string; sha256: string },
+    );
+    for (const [name, input, reason] of refused) {
+      let refusal: unknown;
+      try {
+        parsePackagedScannerCollectionEvidenceV1(input);
+      } catch (error) {
+        refusal = error;
+      }
+      expect(refusal, name).toBeInstanceOf(TypeError);
+      expect((refusal as Error).message, name).toMatch(reason);
+    }
+    for (const input of accepted)
+      expect(parsePackagedScannerCollectionEvidenceV1(input)).toHaveLength(1);
+    expect(invoked).toEqual([]);
+  });
+
   it("refuses a hole in the sealed record list", () => {
     const valid = fixtures.find((fixture) => fixture.fixture === "valid") as Fixture;
     const [item] = sealedInput(valid) as unknown[];
     const sparse: unknown[] = [];
     sparse[1] = item;
     expect(() => parsePackagedScannerCollectionEvidenceV1(sparse)).toThrow(
-      /record 0 must be an object/,
+      /records must contain only indexed elements, with no holes/,
     );
   });
 
