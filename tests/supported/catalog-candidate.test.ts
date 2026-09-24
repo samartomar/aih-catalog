@@ -1325,6 +1325,83 @@ describe("the candidate build reads only the named checkout", () => {
   });
 });
 
+describe("the candidate build never lazy-fetches from a promisor remote", () => {
+  it("refuses a missing blob typed, naming the object, and never contacts the remote", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    // Remove the blob of a tracked file from the object store, then point a
+    // promisor remote at an ssh command that writes a marker: any lazy fetch
+    // would run repository-controlled code.
+    const blob = gitIn(dir, "rev-parse", "HEAD:src/production/data/input.json");
+    rmSync(join(dir, ".git", "objects", blob.slice(0, 2), blob.slice(2)));
+    const outside = tempDir();
+    const marker = join(outside, "ssh-ran");
+    const script = join(outside, "ssh.js").split(sep).join("/");
+    writeFileSync(
+      join(outside, "ssh.js"),
+      `require("node:fs").writeFileSync(${JSON.stringify(marker.split(sep).join("/"))}, "ran");\n`,
+    );
+    const command = `"${process.execPath.split(sep).join("/")}" "${script}"`;
+    gitIn(dir, "config", "remote.origin.url", "ssh://example.invalid/repo");
+    gitIn(dir, "config", "remote.origin.promisor", "true");
+    gitIn(dir, "config", "extensions.partialclone", "origin");
+    gitIn(dir, "config", "core.sshCommand", command);
+    // The promisor fetch really fires for an unhardened git read in this fixture.
+    gitIn(dir, "ls-tree", "-r", "-l", "HEAD");
+    expect(readFileSync(marker, "utf8")).toBe("ran");
+    rmSync(marker);
+
+    let called = false;
+    let failure: unknown;
+    await buildCandidateFromCommitV1(dir, () => {
+      called = true;
+    }).catch((error: unknown) => {
+      failure = error;
+    });
+    expect((failure as { code?: string })?.code).toBe("candidate-object-missing");
+    expect((failure as Error)?.message).toContain(blob);
+    expect(called).toBe(false);
+    expect(existsSync(marker)).toBe(false);
+    expect(staging(dir)).toEqual([]);
+  });
+
+  it("refuses a missing object in the batch read, typed, naming it", async () => {
+    const { parseCatFileBatchV1 } = (await import(
+      pathToFileURL(resolve(root, "tools", "candidate-snapshot.mjs")).href
+    )) as {
+      parseCatFileBatchV1: (
+        entries: { oid: string; size: number; path: string }[],
+        output: Buffer,
+      ) => Map<string, Buffer>;
+    };
+    const oid = "1".repeat(40);
+    let failure: unknown;
+    try {
+      parseCatFileBatchV1(
+        [{ oid, size: 3, path: "a.json" }],
+        Buffer.from(`${oid} missing\n`, "utf8"),
+      );
+    } catch (error: unknown) {
+      failure = error;
+    }
+    expect((failure as { code?: string })?.code).toBe("candidate-object-missing");
+    expect((failure as Error)?.message).toContain(oid);
+  });
+
+  it.each([
+    ["git version 2.55.0.windows.3", true],
+    ["git version 2.47.0", true],
+    ["git version 2.46.1", false],
+    ["git version 1.8.0", false],
+    ["not a version", false],
+  ])("requires GIT_NO_LAZY_FETCH support: %s", async (version, capable) => {
+    const { gitDisablesLazyFetchV1 } = (await import(
+      pathToFileURL(resolve(root, "tools", "candidate-snapshot.mjs")).href
+    )) as { gitDisablesLazyFetchV1: (versionOutput: string) => boolean };
+    expect(gitDisablesLazyFetchV1(version)).toBe(capable);
+  });
+});
+
 describe("the candidate build snapshot size bounds", () => {
   it("refuses a tree file over the per-file limit, naming the file and the limit", async () => {
     const { buildCandidateFromCommitV1 } = await snapshotTool();

@@ -130,7 +130,36 @@ function gitEnv(emptyConfig) {
   env.GIT_TERMINAL_PROMPT = "0";
   env.GIT_CONFIG_NOSYSTEM = "1";
   env.GIT_CONFIG_GLOBAL = emptyConfig;
+  // Never lazy-fetch from a promisor remote: a missing object must refuse,
+  // never reach repository-controlled core.sshCommand or credential helpers.
+  // (None of the git commands used here accepts a --no-lazy-fetch option; the
+  // environment variable is the switch, and the build requires a git that
+  // honors it — see gitDisablesLazyFetchV1.)
+  env.GIT_NO_LAZY_FETCH = "1";
   return env;
+}
+
+/**
+ * GIT_NO_LAZY_FETCH exists since git 2.47; older gits would silently ignore
+ * it and could still be driven into a repository-configured fetch, so the
+ * build requires a git new enough to honor it.
+ */
+export function gitDisablesLazyFetchV1(versionOutput) {
+  const match = /git version ([0-9]+)\.([0-9]+)\.[0-9]+/u.exec(versionOutput);
+  if (match === null) return false;
+  const major = Number(match[1]);
+  const minor = Number(match[2]);
+  return major > 2 || (major === 2 && minor >= 47);
+}
+
+/** Refuse a git too old to disable lazy fetching, before any object read. */
+function assertGitDisablesLazyFetch(context) {
+  const version = run(context, ["version"]).trim();
+  if (!gitDisablesLazyFetchV1(version))
+    throw new CandidateBuildRefusalV1(
+      "candidate-git-too-old",
+      `the candidate build requires git 2.47 or newer so lazy fetching can be disabled (GIT_NO_LAZY_FETCH); ${version} is reported; the candidate is refused`,
+    );
 }
 
 /**
@@ -257,7 +286,7 @@ function listTreeEntries(context, root, commit, limits) {
     const tab = record.indexOf(0x09);
     const header = tab < 0 ? [] : record.subarray(0, tab).toString("utf8").split(/\s+/u);
     const [mode, type, oid, sizeText] = header;
-    if (header.length !== 4 || !/^[0-9a-f]{40,64}$/u.test(oid ?? "") || !/^(?:[0-9]+|-)$/u.test(sizeText ?? ""))
+    if (header.length !== 4 || !/^[0-9a-f]{40,64}$/u.test(oid ?? ""))
       throw new CandidateBuildRefusalV1(
         "candidate-listing-framing",
         `git ls-tree returned a malformed record at byte offset ${offset}; the candidate is refused`,
@@ -286,6 +315,14 @@ function listTreeEntries(context, root, commit, limits) {
     if ((mode !== "100644" && mode !== "100755") || type !== "blob")
       throw new Error(
         `the tree of ${commit} contains ${path} with mode ${mode} (${type}); only regular files (100644, 100755) can be materialized; the candidate is refused`,
+      );
+    // A blob whose size git cannot report (ls-tree prints "-" or "BAD") is not
+    // in the local object store. Lazy fetching is disabled, so this refuses
+    // instead of ever contacting a promisor remote.
+    if (!/^[0-9]+$/u.test(sizeText))
+      throw new CandidateBuildRefusalV1(
+        "candidate-object-missing",
+        `the object ${oid} (${path}) is not in the local object store (git ls-tree reports size ${sizeText}); the candidate is refused`,
       );
     if (path === "" || path.startsWith("/") || path.split("/").includes(".."))
       throw new Error(
@@ -362,6 +399,11 @@ export function parseCatFileBatchV1(entries, output) {
         `git cat-file --batch returned a truncated header for ${entry.oid}; the candidate is refused`,
       );
     const [oid, type, sizeText] = output.subarray(offset, headerEnd).toString("utf8").split(" ");
+    if (oid === entry.oid && type === "missing")
+      throw new CandidateBuildRefusalV1(
+        "candidate-object-missing",
+        `git cat-file --batch reports the object ${entry.oid} (${entry.path}) missing from the local object store; the candidate is refused`,
+      );
     if (oid !== entry.oid || type !== "blob" || !/^[0-9]+$/u.test(sizeText) || Number(sizeText) !== entry.size)
       throw new CandidateBuildRefusalV1(
         "candidate-batch-framing",
@@ -573,6 +615,9 @@ export async function buildCandidateFromCommitV1(checkout, step, limits = CANDID
       );
     }
     assertCheckoutRoot(context, root);
+    // Before any object read: this git must be able to disable lazy fetching,
+    // so a missing object can never drive a repository-configured fetch.
+    assertGitDisablesLazyFetch(context);
     const markers = candidateMarkersV1(root);
     if (markers.length > 0)
       throw new Error(`${root} is a candidate root (${markers.join(", ")})`);
