@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { CatalogProductionRuntimeV1 } from "../collation-v1.js";
 import { assertSafeRelativePosixPathV1, sha256HexV1 } from "../strict-json-v1.js";
@@ -15,6 +15,23 @@ import { COMMIT_SHA, exactKeys, literal, record, SHA256_HEX, text } from "../val
  */
 export const UPSTREAM_INPUTS_FILE_V1 = "upstream-inputs-v1.json";
 export const UPSTREAM_INPUTS_FORMAT_V1 = "aih-catalog-upstream-inputs";
+
+/**
+ * The complete set of inputs each `produce:<name>` step writes. A consumer that needs one
+ * producer's inputs requires all of them, so a partially produced subject is never read.
+ */
+export const UPSTREAM_PRODUCED_FILES_V1 = {
+  ecc: [
+    "ecc-content-metadata-v1.json",
+    "ecc-mcp-inventory-v1.json",
+    "ecc-modules-v1.json",
+    "ecc-profiles-v1.json",
+    "ecc-skill-inventory-v1.json",
+  ],
+  superpowers: ["superpowers-content-metadata-v1.json", "superpowers-hook-sources-v1.json"],
+  mattpocock: ["mattpocock.snapshot.json"],
+  ponytail: ["ponytail.snapshot.json"],
+} as const satisfies Record<string, readonly string[]>;
 
 export interface UpstreamInputRecordV1 {
   repository: string;
@@ -102,7 +119,10 @@ export function readVerifiedUpstreamInputV1(
 ): VerifiedUpstreamInputV1 {
   const provenance = manifest.files[file];
   if (provenance === undefined) throw new TypeError(`upstream input ${file} is not recorded`);
-  const bytes = readFileSync(productionDataPathV1(root, file));
+  const path = productionDataPathV1(root, file);
+  if (!existsSync(path))
+    throw new TypeError(`upstream input ${file} is recorded but its file is missing`);
+  const bytes = readFileSync(path);
   if (sha256HexV1(bytes) !== provenance.sha256)
     throw new TypeError(`upstream input ${file} does not match its recorded sha256`);
   const json: unknown = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));

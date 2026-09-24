@@ -6,6 +6,7 @@ import {
   BASELINE_DEFINITION_SUBJECTS_V1,
   emitBaselineDefinitionV1,
 } from "../../src/production/catalog/baseline-definitions-v1.js";
+import { UPSTREAM_PRODUCED_FILES_V1 } from "../../src/production/catalog/upstream-inputs-v1.js";
 import { buildCatalogFrameworkDefaultsV1 } from "../../src/production/catalog-defaults-v1.js";
 
 const root = resolve(import.meta.dirname, "..", "..");
@@ -124,6 +125,89 @@ describe("baseline definition emitter", () => {
     writeFileSync(path, JSON.stringify(value));
     expect(() => emitBaselineDefinitionV1(copy, "ecc", commit)).toThrow(
       `ecc-mcp-inventory-v1.json was produced at ${"1".repeat(40)}, not ${commit}`,
+    );
+  });
+
+  it("names every input each producer writes", () => {
+    expect(UPSTREAM_PRODUCED_FILES_V1).toEqual({
+      ecc: [
+        "ecc-content-metadata-v1.json",
+        "ecc-mcp-inventory-v1.json",
+        "ecc-modules-v1.json",
+        "ecc-profiles-v1.json",
+        "ecc-skill-inventory-v1.json",
+      ],
+      superpowers: ["superpowers-content-metadata-v1.json", "superpowers-hook-sources-v1.json"],
+      mattpocock: ["mattpocock.snapshot.json"],
+      ponytail: ["ponytail.snapshot.json"],
+    });
+  });
+
+  it.each(
+    Object.entries({
+      ecc: [
+        "ecc-mcp-inventory-v1.json",
+        "ecc-content-metadata-v1.json",
+        "ecc-skill-inventory-v1.json",
+      ],
+      superpowers: ["superpowers-hook-sources-v1.json", "superpowers-content-metadata-v1.json"],
+      mattpocock: ["mattpocock.snapshot.json"],
+      ponytail: ["ponytail.snapshot.json"],
+    }).flatMap(([name, files]) => files.map((file) => [name, file] as const)),
+  )("refuses %s when %s and its manifest entry are removed", (name, file) => {
+    const copy = copiedRoot();
+    const path = join(copy, "src", "production", "data", "upstream-inputs-v1.json");
+    const value = JSON.parse(readFileSync(path, "utf8"));
+    const commit = value.files[file].commit;
+    delete value.files[file];
+    writeFileSync(path, JSON.stringify(value));
+    rmSync(join(copy, "src", "production", "data", file));
+    expect(() => emitBaselineDefinitionV1(copy, name, commit)).toThrow(
+      `upstream input ${file} is not recorded`,
+    );
+  });
+
+  it("refuses a recorded input whose file is missing", () => {
+    const copy = copiedRoot();
+    rmSync(join(copy, "src", "production", "data", "ecc-skill-inventory-v1.json"));
+    expect(() => emitBaselineDefinitionV1(copy, "ecc", recorded("ecc-modules-v1.json"))).toThrow(
+      "upstream input ecc-skill-inventory-v1.json is recorded but its file is missing",
+    );
+  });
+
+  it.each([
+    ["ecc", "ecc-content-metadata-v1.json"],
+    ["superpowers", "superpowers-hook-sources-v1.json"],
+  ] as const)("refuses %s when %s no longer matches its recorded sha256", (name, file) => {
+    const copy = copiedRoot();
+    const path = join(copy, "src", "production", "data", file);
+    writeFileSync(path, `${readFileSync(path, "utf8")} `);
+    expect(() => emitBaselineDefinitionV1(copy, name, recorded(file))).toThrow(
+      `upstream input ${file} does not match its recorded sha256`,
+    );
+  });
+
+  it("refuses an expected input recorded from another repository", () => {
+    const copy = copiedRoot();
+    const path = join(copy, "src", "production", "data", "upstream-inputs-v1.json");
+    const value = JSON.parse(readFileSync(path, "utf8"));
+    const commit = value.files["superpowers-hook-sources-v1.json"].commit;
+    value.files["superpowers-hook-sources-v1.json"].repository = "someone/Superpowers";
+    writeFileSync(path, JSON.stringify(value));
+    expect(() => emitBaselineDefinitionV1(copy, "superpowers", commit)).toThrow(
+      "superpowers-hook-sources-v1.json was produced from someone/Superpowers, not obra/Superpowers",
+    );
+  });
+
+  it("refuses an input recorded for a producer's repository that the producer does not write", () => {
+    const copy = copiedRoot();
+    const path = join(copy, "src", "production", "data", "upstream-inputs-v1.json");
+    const value = JSON.parse(readFileSync(path, "utf8"));
+    const commit = value.files["ecc-modules-v1.json"].commit;
+    value.files["ecc-extra-v1.json"] = { ...value.files["ecc-modules-v1.json"] };
+    writeFileSync(path, JSON.stringify(value));
+    expect(() => emitBaselineDefinitionV1(copy, "ecc", commit)).toThrow(
+      "ecc-extra-v1.json is recorded for affaan-m/ECC but produce:ecc does not write it",
     );
   });
 

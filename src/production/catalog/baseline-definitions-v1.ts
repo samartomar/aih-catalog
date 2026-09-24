@@ -7,6 +7,7 @@ import { parseEccModulesSnapshotV1, parseEccProfilesSnapshotV1 } from "./ecc-sna
 import {
   readUpstreamInputsManifestV1,
   readVerifiedUpstreamInputV1,
+  UPSTREAM_PRODUCED_FILES_V1,
   type UpstreamInputsManifestV1,
 } from "./upstream-inputs-v1.js";
 
@@ -26,20 +27,28 @@ function fail(message: string): never {
 }
 
 /**
- * Every input the subject's produce step recorded must come from that repository at the
- * requested commit: a definition is never cut from a partially produced or stale subject.
+ * The subject's produce step must have written its complete input set from that repository
+ * at the requested commit, and every file must still match its recorded sha256: a definition
+ * is never cut from a partially produced, foreign or stale subject.
  */
 function assertProducedAt(
+  root: string,
   manifest: UpstreamInputsManifestV1,
-  repository: string,
+  subject: BaselineDefinitionSubjectV1,
   commit: string,
 ): void {
-  const records = Object.entries(manifest.files).filter(
-    ([, record]) => record.repository === repository,
-  );
-  if (records.length === 0) fail(`no produced input records ${repository}`);
-  for (const [file, record] of records)
-    if (record.commit !== commit) fail(`${file} was produced at ${record.commit}, not ${commit}`);
+  const repository = BASELINE_DEFINITION_SUBJECTS_V1[subject];
+  const expected: readonly string[] = UPSTREAM_PRODUCED_FILES_V1[subject];
+  for (const [file, record] of Object.entries(manifest.files))
+    if (record.repository === repository && !expected.includes(file))
+      fail(`${file} is recorded for ${repository} but produce:${subject} does not write it`);
+  for (const file of expected) {
+    const { provenance } = readVerifiedUpstreamInputV1(root, manifest, file);
+    if (provenance.repository !== repository)
+      fail(`${file} was produced from ${provenance.repository}, not ${repository}`);
+    if (provenance.commit !== commit)
+      fail(`${file} was produced at ${provenance.commit}, not ${commit}`);
+  }
 }
 
 /**
@@ -54,7 +63,7 @@ export function emitBaselineDefinitionV1(root: string, name: string, commit: str
   if (!COMMIT.test(commit)) fail("--commit must be a full 40-character lowercase commit sha");
   const subject = name as BaselineDefinitionSubjectV1;
   const manifest = readUpstreamInputsManifestV1(root);
-  assertProducedAt(manifest, BASELINE_DEFINITION_SUBJECTS_V1[subject], commit);
+  assertProducedAt(root, manifest, subject, commit);
   switch (subject) {
     case "ecc": {
       const modules = parseEccModulesSnapshotV1(
@@ -68,11 +77,6 @@ export function emitBaselineDefinitionV1(root: string, name: string, commit: str
       return eccBaselineCatalogV1({ pin: commit, modules, profiles, model });
     }
     case "superpowers":
-      for (const file of [
-        "superpowers-content-metadata-v1.json",
-        "superpowers-hook-sources-v1.json",
-      ])
-        readVerifiedUpstreamInputV1(root, manifest, file);
       return superpowersBaselineCatalogV1(commit);
     case "mattpocock":
       return prepareMattPocockCollectionV1(

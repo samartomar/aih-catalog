@@ -12,6 +12,7 @@ import {
 import {
   parseUpstreamInputsManifestV1,
   productionDataPathV1,
+  UPSTREAM_PRODUCED_FILES_V1,
   type UpstreamInputRecordV1,
 } from "../catalog/upstream-inputs-v1.js";
 import { type CatalogProductionRuntimeV1, catalogTextCompareV1 } from "../collation-v1.js";
@@ -393,6 +394,11 @@ export function produceUpstreamInputsV1(
         : name === "mattpocock"
           ? [mattPocockSnapshot(tree, root)]
           : [ponytailSnapshot(tree, root)];
+  const files = produced.map((item) => item.file);
+  if (JSON.stringify(files) !== JSON.stringify(UPSTREAM_PRODUCED_FILES_V1[name]))
+    throw new TypeError(
+      `produce:${name} must write exactly ${UPSTREAM_PRODUCED_FILES_V1[name].join(", ")}`,
+    );
   for (const item of produced)
     if (item.file.endsWith("content-metadata-v1.json"))
       parseContentMetadataV1(name === "ecc" ? "ecc" : "superpowers", JSON.parse(item.bytes), tree);
