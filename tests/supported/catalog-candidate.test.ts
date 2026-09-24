@@ -601,6 +601,7 @@ const snapshotTool = async () =>
     buildCandidateFromCommitV1: (
       root: string,
       step: SnapshotStep,
+      limits?: { perFileBytes: number; aggregateBytes: number },
     ) => Promise<{
       catalogCommit: string;
       outRoot: string;
@@ -1206,6 +1207,84 @@ describe("the candidate build reads only the named checkout", () => {
     ).rejects.toThrow(/top level/u);
     expect(called).toBe(false);
     expect(readdirSync(join(dir, "src"))).not.toContain(CATALOG_CANDIDATE_ROOT_V1);
+  });
+});
+
+describe("the candidate build snapshot size bounds", () => {
+  it("refuses a tree file over the per-file limit, naming the file and the limit", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    let called = false;
+    let failure: unknown;
+    await buildCandidateFromCommitV1(
+      dir,
+      () => {
+        called = true;
+      },
+      { perFileBytes: 10, aggregateBytes: 1 << 20 },
+    ).catch((error: unknown) => {
+      failure = error;
+    });
+    expect((failure as { code?: string })?.code).toBe("candidate-file-too-large");
+    expect((failure as Error)?.message).toMatch(
+      /\.gitignore.*over the per-file limit of 10 bytes/u,
+    );
+    expect(called).toBe(false);
+    expect(staging(dir)).toEqual([]);
+  });
+
+  it("refuses a tree over the aggregate limit, naming the limit", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    let called = false;
+    let failure: unknown;
+    await buildCandidateFromCommitV1(
+      dir,
+      () => {
+        called = true;
+      },
+      { perFileBytes: 200, aggregateBytes: 60 },
+    ).catch((error: unknown) => {
+      failure = error;
+    });
+    expect((failure as { code?: string })?.code).toBe("candidate-tree-too-large");
+    expect((failure as Error)?.message).toMatch(/aggregate limit of 60 bytes/u);
+    expect(called).toBe(false);
+    expect(staging(dir)).toEqual([]);
+  });
+
+  it("refuses a snapshot file the build enlarged past the per-file limit before reading it", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    let failure: unknown;
+    await buildCandidateFromCommitV1(
+      dir,
+      (snapshot) => {
+        const result = emit(snapshot);
+        writeFileSync(join(snapshot.root, INPUT), `${COMMITTED}${"x".repeat(100)}`);
+        return result;
+      },
+      { perFileBytes: 100, aggregateBytes: 8192 },
+    ).catch((error: unknown) => {
+      failure = error;
+    });
+    expect((failure as { code?: string })?.code).toBe("candidate-file-too-large");
+    expect((failure as Error)?.message).toMatch(
+      /src\/production\/data\/input\.json.*over the per-file limit of 100 bytes/u,
+    );
+    expect(existsSync(join(dir, CATALOG_CANDIDATE_ROOT_V1))).toBe(false);
+    expect(staging(dir)).toEqual([]);
+  });
+
+  it("builds within adequate limits", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    const built = await buildCandidateFromCommitV1(dir, emit, {
+      perFileBytes: 100,
+      aggregateBytes: 8192,
+    });
+    expect(readFileSync(join(built.outRoot, "input.json"), "utf8")).toBe(COMMITTED);
+    expect(staging(dir)).toEqual([]);
   });
 });
 

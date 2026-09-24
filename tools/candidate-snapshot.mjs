@@ -2,12 +2,15 @@ import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   chmodSync,
+  closeSync,
   existsSync,
   lstatSync,
   mkdirSync,
   mkdtempSync,
+  openSync,
   readdirSync,
   readFileSync,
+  readSync,
   renameSync,
   rmSync,
   writeFileSync,
@@ -31,7 +34,10 @@ import { candidateMarkersV1 } from "./check-not-candidate.mjs";
  * duplicate path, or paths that alias on a case-insensitive or
  * Unicode-normalizing file system (same lowercased NFC form) refuse the
  * candidate before the worktree is consulted, and every written file is
- * checked to stay inside the snapshot. The cat-file batch read is framed
+ * checked to stay inside the snapshot. The batch read and the post-build
+ * verification are bounded — per-file and aggregate limits with typed
+ * refusals, files hashed by streaming fixed-size chunks — and the cat-file
+ * batch read is framed
  * strictly: each header must name the requested blob and the listed size, the
  * content must end in its newline and no trailing bytes may remain.
  *
@@ -61,6 +67,19 @@ export class CandidateBuildRefusalV1 extends Error {
 const utf8Fatal = new TextDecoder("utf-8", { fatal: true });
 const utf8Lossy = new TextDecoder("utf-8", { fatal: false });
 const utf8Encode = new TextEncoder();
+
+/**
+ * Size bounds for the batch read and the post-build verification. This
+ * repository's largest tracked file is ~12 MiB and its tracked bytes total
+ * ~90 MiB, so 64 MiB per file and 512 MiB in aggregate are comfortably above
+ * it; both refusals name the file and the limit. Files are hashed by
+ * streaming fixed-size chunks, never read whole without a bound.
+ */
+export const CANDIDATE_SNAPSHOT_LIMITS_V1 = Object.freeze({
+  perFileBytes: 64 * 1024 * 1024,
+  aggregateBytes: 512 * 1024 * 1024,
+});
+const HASH_CHUNK = 8 * 1024 * 1024;
 
 /** Every GIT_* name, whatever its case (Windows environment names are case-insensitive). */
 const GIT_VARIABLE = /^GIT_/iu;
@@ -186,12 +205,13 @@ function assertReplaceable(outRoot) {
  * system (same lowercased NFC form) also refuse: materialization and
  * verification could otherwise conflate distinct names.
  */
-function listTreeEntries(context, root, commit) {
+function listTreeEntries(context, root, commit, limits) {
   const out = run(context, ["-C", root, "ls-tree", "-r", "-z", "--full-tree", "-l", commit], {
     encoding: null, // raw bytes; path names must survive strict UTF-8 decoding
   });
   const entries = [];
   const seen = new Map(); // lowercased NFC form → the first path with that form
+  let total = 0;
   let offset = 0;
   while (offset < out.length) {
     const recordEnd = out.indexOf(0x00, offset);
@@ -248,7 +268,19 @@ function listTreeEntries(context, root, commit) {
       );
     }
     seen.set(alias, path);
-    entries.push({ mode, oid, size: Number(sizeText), path });
+    const size = Number(sizeText);
+    if (size > limits.perFileBytes)
+      throw new CandidateBuildRefusalV1(
+        "candidate-file-too-large",
+        `the tree of ${commit} contains ${path} of ${size} bytes, over the per-file limit of ${limits.perFileBytes} bytes; the candidate is refused`,
+      );
+    total += size;
+    if (total > limits.aggregateBytes)
+      throw new CandidateBuildRefusalV1(
+        "candidate-tree-too-large",
+        `the tree of ${commit} totals over the aggregate limit of ${limits.aggregateBytes} bytes (at ${path}); the candidate is refused`,
+      );
+    entries.push({ mode, oid, size, path });
     offset = recordEnd + 1;
   }
   return entries;
@@ -334,8 +366,22 @@ function objectFormatOf(context, root) {
   return format;
 }
 
-const blobId = (format, bytes) =>
-  createHash(format).update(`blob ${bytes.length}\0`).update(bytes).digest("hex");
+/** The git blob id of a file, hashed by streaming fixed-size chunks. */
+function blobIdOfFile(format, file, size) {
+  const hash = createHash(format).update(`blob ${size}\0`);
+  const fd = openSync(file, "r");
+  try {
+    const chunk = Buffer.allocUnsafe(Math.max(1, Math.min(HASH_CHUNK, size)));
+    let count = readSync(fd, chunk, 0, chunk.length, null);
+    while (count > 0) {
+      hash.update(chunk.subarray(0, count));
+      count = readSync(fd, chunk, 0, chunk.length, null);
+    }
+  } finally {
+    closeSync(fd);
+  }
+  return hash.digest("hex");
+}
 
 /**
  * Raw-byte equality with the commit's tree: every snapshot file's git blob id
@@ -347,9 +393,10 @@ const blobId = (format, bytes) =>
  * the build's own output directories (top-level dist/ and dist-candidate/)
  * refuses the candidate.
  */
-function verifySnapshotBytes(tree, entries, format, commit) {
+function verifySnapshotBytes(tree, entries, format, commit, limits) {
   const expected = new Map(entries.map((entry) => [entry.path, entry]));
   const problems = [];
+  let verified = 0;
   const walk = (dir, prefix) => {
     for (const item of readdirSync(dir, { withFileTypes: true })) {
       const rel = prefix === "" ? item.name : `${prefix}/${item.name}`;
@@ -369,9 +416,23 @@ function verifySnapshotBytes(tree, entries, format, commit) {
       }
       expected.delete(rel);
       const file = join(dir, item.name);
-      if (blobId(format, readFileSync(file)) !== entry.oid) problems.push(`${rel} (changed)`);
+      // Bounds first: an arbitrarily enlarged tracked file is refused before
+      // its bytes are read.
+      const stat = lstatSync(file);
+      if (stat.size > limits.perFileBytes)
+        throw new CandidateBuildRefusalV1(
+          "candidate-file-too-large",
+          `${rel} is ${stat.size} bytes after the build, over the per-file limit of ${limits.perFileBytes} bytes; the candidate is refused`,
+        );
+      verified += stat.size;
+      if (verified > limits.aggregateBytes)
+        throw new CandidateBuildRefusalV1(
+          "candidate-tree-too-large",
+          `the snapshot totals over the aggregate limit of ${limits.aggregateBytes} bytes after the build (at ${rel}); the candidate is refused`,
+        );
+      if (blobIdOfFile(format, file, stat.size) !== entry.oid) problems.push(`${rel} (changed)`);
       // Git tracks only the executable bit: 100755 vs 100644.
-      const executable = (lstatSync(file).mode & 0o111) !== 0;
+      const executable = (stat.mode & 0o111) !== 0;
       if (process.platform !== "win32" && executable !== (entry.mode === "100755"))
         problems.push(`${rel} (mode changed)`);
     }
@@ -414,7 +475,7 @@ function verifySnapshotBytes(tree, entries, format, commit) {
  * and the refusal (code candidate-rollback-failed) names its path to recover
  * from.
  */
-export async function buildCandidateFromCommitV1(checkout, step) {
+export async function buildCandidateFromCommitV1(checkout, step, limits = CANDIDATE_SNAPSHOT_LIMITS_V1) {
   const root = resolve(checkout);
   // Inside the checkout (gitignored) so the snapshot resolves its node_modules
   // by walking up, and so the finished output moves by a same-volume rename.
@@ -450,7 +511,7 @@ export async function buildCandidateFromCommitV1(checkout, step) {
     const catalogCommit = headOf(context, root);
     // The commit's tree is validated before the worktree is consulted: a tree
     // with unusable paths refuses even where no worktree could represent it.
-    const entries = listTreeEntries(context, root, catalogCommit);
+    const entries = listTreeEntries(context, root, catalogCommit, limits);
     // Plumbing only: a porcelain status would read fsmonitor state. A file
     // differing from HEAD (staged or not) or an untracked file is dirty.
     const changed = run(context, ["-C", root, "diff-index", "--name-only", "-z", "HEAD", "--"]);
@@ -471,7 +532,7 @@ export async function buildCandidateFromCommitV1(checkout, step) {
 
     const result = await step({ root: tree, catalogCommit });
 
-    verifySnapshotBytes(tree, entries, format, catalogCommit);
+    verifySnapshotBytes(tree, entries, format, catalogCommit, limits);
     // The marker is read only from a real directory: a link or junction as
     // the build output is refused, and the moved output must be the same
     // directory (dev/ino) that was checked.

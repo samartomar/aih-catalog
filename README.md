@@ -733,7 +733,12 @@ copies only from that snapshot. The tree listing is decoded as strict UTF-8: a
 path that is not UTF-8 (named by its byte offset), a duplicate path, paths
 that alias on a case-insensitive or Unicode-normalizing file system, and any
 malformed `cat-file` batch frame each refuse the candidate before anything is
-built, and every written file is checked to stay inside the snapshot. Every
+built, and every written file is checked to stay inside the snapshot. The
+batch read and the post-build verification are bounded — 64 MiB per file and
+512 MiB in aggregate, comfortably above this repository's ~12 MiB largest
+tracked file and ~90 MiB tracked total, with typed refusals naming the file
+and the limit — and files are hashed by streaming fixed-size chunks, so an
+arbitrarily enlarged file is refused before its bytes are read. Every
 git read runs with every `GIT_*`
 environment variable removed, replacement objects disabled, the system and
 global configurations replaced by nothing, and the repository's own
