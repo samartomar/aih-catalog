@@ -389,9 +389,11 @@ function listTreeEntries(context, root, commit, limits) {
 
 /**
  * Parse the output of one `git cat-file --batch` read, frame by frame: each
- * header must name the requested blob and the size the tree listing recorded,
- * the content must be exactly that long and end in its newline, and no
- * trailing bytes may remain. Anything else refuses the candidate before the
+ * header is exactly three space-separated fields (`<oid> <type> <size>`) and
+ * must name the requested blob and the size the tree listing recorded, the
+ * content must be exactly that long and end in its newline, and no trailing
+ * bytes may remain. A `<oid> missing` frame refuses the candidate typed
+ * (candidate-object-missing). Anything else refuses the candidate before the
  * build step runs.
  */
 export function parseCatFileBatchV1(entries, output) {
@@ -404,13 +406,20 @@ export function parseCatFileBatchV1(entries, output) {
         "candidate-batch-framing",
         `git cat-file --batch returned a truncated header for ${entry.oid}; the candidate is refused`,
       );
-    const [oid, type, sizeText] = output.subarray(offset, headerEnd).toString("utf8").split(" ");
-    if (oid === entry.oid && type === "missing")
+    const fields = output.subarray(offset, headerEnd).toString("utf8").split(" ");
+    const [oid, type, sizeText] = fields;
+    if (fields.length === 2 && oid === entry.oid && type === "missing")
       throw new CandidateBuildRefusalV1(
         "candidate-object-missing",
         `git cat-file --batch reports the object ${entry.oid} (${entry.path}) missing from the local object store; the candidate is refused`,
       );
-    if (oid !== entry.oid || type !== "blob" || !/^[0-9]+$/u.test(sizeText) || Number(sizeText) !== entry.size)
+    if (
+      fields.length !== 3 ||
+      oid !== entry.oid ||
+      type !== "blob" ||
+      !/^[0-9]+$/u.test(sizeText) ||
+      Number(sizeText) !== entry.size
+    )
       throw new CandidateBuildRefusalV1(
         "candidate-batch-framing",
         `git cat-file --batch returned a header ${oid} ${type} size ${sizeText} where blob ${entry.oid} of ${entry.size} bytes was expected; the candidate is refused`,

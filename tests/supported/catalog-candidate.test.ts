@@ -1285,6 +1285,16 @@ describe("the cat-file batch framing", () => {
     const trailing = Buffer.concat([record(entry.oid, Buffer.from("abc")), Buffer.from("x")]);
     expect(() => parseCatFileBatchV1([entry], trailing)).toThrow(/trailing/u);
   });
+
+  it("refuses a header with extra fields", async () => {
+    const { parseCatFileBatchV1 } = await parser();
+    const extra = Buffer.concat([
+      Buffer.from(`${entry.oid} blob 3 EXTRA\n`, "utf8"),
+      Buffer.from("abc"),
+      Buffer.from([0x0a]),
+    ]);
+    expect(() => parseCatFileBatchV1([entry], extra)).toThrow(/batch/u);
+  });
 });
 
 describe("the candidate build never runs repository configuration code", () => {
