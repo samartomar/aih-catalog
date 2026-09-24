@@ -1,6 +1,8 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
+  chmodSync,
+  lstatSync,
   mkdirSync,
   mkdtempSync,
   readdirSync,
@@ -593,7 +595,12 @@ const snapshotTool = async () =>
     buildCandidateFromCommitV1: (
       root: string,
       step: SnapshotStep,
-    ) => Promise<{ catalogCommit: string; outRoot: string; result: unknown }>;
+    ) => Promise<{
+      catalogCommit: string;
+      outRoot: string;
+      result: unknown;
+      modesVerified: boolean;
+    }>;
   };
 const INPUT = join("src", "production", "data", "input.json");
 const COMMITTED = '{"v":"committed"}';
@@ -916,6 +923,67 @@ function commitRawTree(dir: string, names: Buffer[]): string {
   gitIn(dir, "update-ref", "HEAD", commit);
   return commit;
 }
+
+describe("the candidate build snapshot file modes", () => {
+  /** A fixture with a committed 100755 file (the index bit works on win32 too). */
+  function executableCheckout(): string {
+    const dir = fixtureCheckout();
+    writeFileSync(join(dir, "tool.sh"), "#!/bin/sh\necho ok\n");
+    if (process.platform !== "win32") chmodSync(join(dir, "tool.sh"), 0o755);
+    gitIn(dir, "add", "tool.sh");
+    gitIn(dir, "update-index", "--chmod=+x", "tool.sh");
+    gitIn(dir, "commit", "-q", "-m", "executable");
+    expect(gitIn(dir, "ls-tree", "HEAD", "--", "tool.sh")).toMatch(/^100755 /u);
+    expect(gitIn(dir, "status", "--porcelain", "--untracked-files=all")).toBe("");
+    return dir;
+  }
+
+  it("reports whether modes were verified (never on win32)", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = executableCheckout();
+    const built = await buildCandidateFromCommitV1(dir, emit);
+    expect(built.modesVerified).toBe(process.platform !== "win32");
+    expect(readFileSync(join(built.outRoot, "input.json"), "utf8")).toBe(COMMITTED);
+    expect(staging(dir)).toEqual([]);
+  });
+
+  it.skipIf(process.platform === "win32")(
+    "materializes a 100755 file executable and refuses a build that strips the bit",
+    async () => {
+      const { buildCandidateFromCommitV1 } = await snapshotTool();
+      const dir = executableCheckout();
+      await buildCandidateFromCommitV1(dir, (snapshot) => {
+        expect(lstatSync(join(snapshot.root, "tool.sh")).mode & 0o111).not.toBe(0);
+        return emit(snapshot);
+      });
+      const stripped = executableCheckout();
+      await expect(
+        buildCandidateFromCommitV1(stripped, (snapshot) => {
+          const result = emit(snapshot);
+          chmodSync(join(snapshot.root, "tool.sh"), 0o644);
+          return result;
+        }),
+      ).rejects.toThrow(/no longer equals.*mode/su);
+      expect(readdirSync(stripped)).not.toContain(CATALOG_CANDIDATE_ROOT_V1);
+      expect(staging(stripped)).toEqual([]);
+    },
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "refuses a build that adds the executable bit to a 100644 file",
+    async () => {
+      const { buildCandidateFromCommitV1 } = await snapshotTool();
+      const dir = executableCheckout();
+      await expect(
+        buildCandidateFromCommitV1(dir, (snapshot) => {
+          const result = emit(snapshot);
+          chmodSync(join(snapshot.root, "defaults", "x.json"), 0o755);
+          return result;
+        }),
+      ).rejects.toThrow(/no longer equals.*mode/su);
+    },
+  );
+});
 
 describe("the candidate build refuses unusable tree paths", () => {
   it("refuses a path that is not UTF-8, naming the byte offset", async () => {

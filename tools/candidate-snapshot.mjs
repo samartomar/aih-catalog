@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
+  chmodSync,
   existsSync,
   lstatSync,
   mkdirSync,
@@ -276,7 +277,11 @@ function readBlobBytes(root, entries) {
   return parseCatFileBatchV1(entries, out);
 }
 
-/** Write the commit's raw blobs to <tree>, every file contained inside it. */
+/**
+ * Write the commit's raw blobs to <tree>, every file contained inside it. On
+ * POSIX a 100755 file gets its executable bits; on win32 there are none, and
+ * verification reports modes as not verified.
+ */
 function materializeCommit(entries, bytes, tree) {
   const treeRoot = resolve(tree);
   mkdirSync(treeRoot);
@@ -289,6 +294,7 @@ function materializeCommit(entries, bytes, tree) {
       );
     mkdirSync(dirname(file), { recursive: true });
     writeFileSync(file, bytes.get(entry.path), { mode: entry.mode === "100755" ? 0o755 : 0o644 });
+    if (process.platform !== "win32" && entry.mode === "100755") chmodSync(file, 0o755);
   }
 }
 
@@ -306,11 +312,14 @@ const blobId = (format, bytes) =>
  * Raw-byte equality with the commit's tree: every snapshot file's git blob id
  * is recomputed in Node and compared with the tree's ids, so checkout
  * transformations (smudge filters, attributes, eol conversion) cannot hide a
- * change. Any changed, missing or extra file outside the build's own output
- * directories (top-level dist/ and dist-candidate/) refuses the candidate.
+ * change. On POSIX the executable bit of every file is verified against the
+ * tree's mode as well (100755 vs 100644); on win32 there are no executable
+ * bits, so modes are not verified. Any changed, missing or extra file outside
+ * the build's own output directories (top-level dist/ and dist-candidate/)
+ * refuses the candidate.
  */
 function verifySnapshotBytes(tree, entries, format, commit) {
-  const expected = new Map(entries.map((entry) => [entry.path, entry.oid]));
+  const expected = new Map(entries.map((entry) => [entry.path, entry]));
   const problems = [];
   const walk = (dir, prefix) => {
     for (const item of readdirSync(dir, { withFileTypes: true })) {
@@ -324,14 +333,18 @@ function verifySnapshotBytes(tree, entries, format, commit) {
         problems.push(`${rel} (not a regular file)`);
         continue;
       }
-      const oid = expected.get(rel);
-      if (oid === undefined) {
+      const entry = expected.get(rel);
+      if (entry === undefined) {
         problems.push(`${rel} (extra)`);
         continue;
       }
       expected.delete(rel);
-      if (blobId(format, readFileSync(join(dir, item.name))) !== oid)
-        problems.push(`${rel} (changed)`);
+      const file = join(dir, item.name);
+      if (blobId(format, readFileSync(file)) !== entry.oid) problems.push(`${rel} (changed)`);
+      // Git tracks only the executable bit: 100755 vs 100644.
+      const executable = (lstatSync(file).mode & 0o111) !== 0;
+      if (process.platform !== "win32" && executable !== (entry.mode === "100755"))
+        problems.push(`${rel} (mode changed)`);
     }
   };
   walk(tree, "");
@@ -345,7 +358,9 @@ function verifySnapshotBytes(tree, entries, format, commit) {
 /**
  * Run `step({ root: snapshot, catalogCommit })` over a snapshot of the
  * checkout's HEAD and expose its `<snapshot>/dist-candidate` as
- * `<root>/dist-candidate`. Returns `{ catalogCommit, outRoot, result }`.
+ * `<root>/dist-candidate`. Returns `{ catalogCommit, outRoot, result,
+ * modesVerified }`; `modesVerified` is false on win32, where there are no
+ * executable bits to verify.
  *
  * Exposure is rollback-safe. An existing candidate root is first renamed into a
  * private quarantine inside the staging directory; the moved object is
@@ -432,7 +447,7 @@ export async function buildCandidateFromCommitV1(checkout, step) {
       throw error;
     }
     if (quarantined !== undefined) rmSync(quarantined, { recursive: true, force: true });
-    return { catalogCommit, outRoot, result };
+    return { catalogCommit, outRoot, result, modesVerified: process.platform !== "win32" };
   } finally {
     rmSync(staging, { recursive: true, force: true });
   }

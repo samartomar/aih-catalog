@@ -63,12 +63,16 @@ async function buildInSnapshot({ root: snapshot, catalogCommit }) {
 }
 
 try {
-  const { catalogCommit, outRoot, result: built } = await buildCandidateFromCommitV1(
-    root,
-    buildInSnapshot,
-  );
+  const {
+    catalogCommit,
+    outRoot,
+    result: built,
+    modesVerified,
+  } = await buildCandidateFromCommitV1(root, buildInSnapshot);
   console.log(`candidate @aihq/catalog root: ${outRoot}`);
   console.log(`catalogCommit: ${catalogCommit}`);
+  if (!modesVerified)
+    console.log("modes not verified on win32: the published package's modes come from npm pack");
   console.log(`inputsSha256: ${built.candidate.inputsSha256}`);
   for (const [id, entry] of Object.entries(built.candidate.frameworks))
     console.log(
