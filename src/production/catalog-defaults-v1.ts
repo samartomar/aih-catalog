@@ -16,11 +16,7 @@ import {
   readVerifiedUpstreamInputV1,
 } from "./catalog/upstream-inputs-v1.js";
 import { type CatalogProductionRuntimeV1, catalogProductionRuntimeV1 } from "./collation-v1.js";
-import {
-  ECC_HOOK_CONTROL_PROVENANCE,
-  ECC_HOOK_PROFILES,
-  eccHookControlCatalog,
-} from "./ecc-hook-controls-v1.js";
+import { eccHookControlInventoryV1 } from "./ecc-hook-controls-v1.js";
 import {
   produceCatalogAuthoringBundleV1,
   readCollectionSnapshotV1,
@@ -100,11 +96,7 @@ function frameworkDescriptor(
     sections.mcpInventory = readJson(root, "ecc-mcp-inventory-v1.json");
     sections.aihOwnedMcpExclusions = ["github", "sequential-thinking", "context7", "playwright"];
     sections.skillCatalog = readJson(root, "ecc-skill-inventory-v1.json");
-    sections.hookControlInventory = {
-      provenance: ECC_HOOK_CONTROL_PROVENANCE,
-      profiles: ECC_HOOK_PROFILES,
-      hooks: eccHookControlCatalog,
-    };
+    sections.hookControlInventory = eccHookControlInventoryV1();
     sections.moduleGraph = readJson(root, "ecc-modules-v1.json");
     sections.profileGraph = readJson(root, "ecc-profiles-v1.json");
     sections.installPreview = readJson(root, "ecc-install-preview-v1.json");
