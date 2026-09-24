@@ -1,17 +1,30 @@
 import { spawnSync } from "node:child_process";
-import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { createHash } from "node:crypto";
+import {
+  existsSync,
+  lstatSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { dirname, join, resolve } from "node:path";
 import { candidateMarkersV1 } from "./check-not-candidate.mjs";
 
 /**
  * Binds a candidate Catalog root to the commit it names. The build step never
- * sees the live checkout: it gets a private snapshot of HEAD, checked out
- * from git into <root>/.candidate-build-* (gitignored) through a private
- * index, and writes its output to <snapshot>/dist-candidate. That output is
- * moved to <root>/dist-candidate only if, after the build, the live HEAD is
- * still the recorded commit, the snapshot still equals that commit's tree and
- * the output's CANDIDATE.json names that commit. Anything else is refused and
- * the partial output is removed; an earlier candidate root is left as it was.
+ * sees the live checkout: it gets a private snapshot of HEAD, materialized from
+ * the commit's raw objects (ls-tree + cat-file, no filters, no attributes, no
+ * eol conversion) into <root>/.candidate-build-* (gitignored), and writes its
+ * output to <snapshot>/dist-candidate. That output is moved to
+ * <root>/dist-candidate only if, after the build, the live HEAD is still the
+ * recorded commit, every snapshot file still hashes to the commit's blob ids
+ * (recomputed in Node, so git's normalized view cannot hide a change) and the
+ * output's CANDIDATE.json names that commit. Anything else is refused and the
+ * partial output is removed; an earlier candidate root is left as it was.
  */
 export const CANDIDATE_ROOT = "dist-candidate";
 const CANDIDATE_FORMAT = "aih-catalog-candidate";
@@ -19,7 +32,7 @@ const CANDIDATE_FORMAT = "aih-catalog-candidate";
 const run = (args, options = {}) => {
   const result = spawnSync("git", args, { encoding: "utf8", ...options });
   if (result.status !== 0)
-    throw new Error(`git ${args.join(" ")} failed: ${(result.stderr ?? "").trim()}`);
+    throw new Error(`git ${args.join(" ")} failed: ${(result.stderr ?? "").toString().trim()}`);
   return result.stdout;
 };
 
@@ -46,6 +59,124 @@ function assertReplaceable(outRoot) {
 }
 
 /**
+ * The commit's tree as raw entries. Only regular files (100644, 100755) can be
+ * materialized; symlinks, gitlinks and anything else refuse the candidate. A
+ * committed top-level dist/ or dist-candidate/ would collide with the build's
+ * own output directories, so it refuses too.
+ */
+function listTreeEntries(root, commit) {
+  const out = run(["-C", root, "ls-tree", "-r", "-z", "--full-tree", "-l", commit]);
+  const entries = [];
+  for (const record of out.split("\0")) {
+    if (record === "") continue;
+    const tab = record.indexOf("\t");
+    const [mode, type, oid, sizeText] = record.slice(0, tab).split(/\s+/u);
+    const path = record.slice(tab + 1);
+    if ((mode !== "100644" && mode !== "100755") || type !== "blob")
+      throw new Error(
+        `the tree of ${commit} contains ${path} with mode ${mode} (${type}); only regular files (100644, 100755) can be materialized; the candidate is refused`,
+      );
+    if (path === "" || path.startsWith("/") || path.split("/").includes(".."))
+      throw new Error(
+        `the tree of ${commit} contains an unusable path ${JSON.stringify(path)}; the candidate is refused`,
+      );
+    const top = path.split("/")[0];
+    if (top === "dist" || top === CANDIDATE_ROOT)
+      throw new Error(
+        `the tree of ${commit} contains ${top}/, which the build uses for its own output; the candidate is refused`,
+      );
+    entries.push({ mode, oid, size: Number(sizeText), path });
+  }
+  return entries;
+}
+
+/** The raw bytes of every blob, in one batch read: no filters, attributes or eol conversion. */
+function readBlobBytes(root, entries) {
+  const total = entries.reduce((sum, entry) => sum + entry.size, 0);
+  const out = run(["-C", root, "cat-file", "--batch"], {
+    encoding: null, // raw bytes; run() defaults to utf8 text
+    input: `${entries.map((entry) => entry.oid).join("\n")}\n`,
+    maxBuffer: total + entries.length * 128 + 1024 * 1024,
+  });
+  const bytes = new Map();
+  let offset = 0;
+  for (const entry of entries) {
+    const headerEnd = out.indexOf(0x0a, offset);
+    const [oid, type, sizeText] = out.subarray(offset, headerEnd).toString("utf8").split(" ");
+    if (headerEnd < 0 || oid !== entry.oid || type !== "blob")
+      throw new Error(`git cat-file could not read blob ${entry.oid}; the candidate is refused`);
+    const size = Number(sizeText);
+    const start = headerEnd + 1;
+    bytes.set(entry.path, out.subarray(start, start + size));
+    offset = start + size + 1; // the newline after each object
+  }
+  return bytes;
+}
+
+/** Write the commit's raw blobs to <tree>; returns the entries for later verification. */
+function materializeCommit(root, commit, tree) {
+  const entries = listTreeEntries(root, commit);
+  const bytes = readBlobBytes(root, entries);
+  mkdirSync(tree);
+  for (const entry of entries) {
+    const file = join(tree, ...entry.path.split("/"));
+    mkdirSync(dirname(file), { recursive: true });
+    writeFileSync(file, bytes.get(entry.path), { mode: entry.mode === "100755" ? 0o755 : 0o644 });
+  }
+  return entries;
+}
+
+function objectFormatOf(root) {
+  const format = run(["-C", root, "rev-parse", "--show-object-format"]).trim();
+  if (format !== "sha1" && format !== "sha256")
+    throw new Error(`unsupported git object format ${format}; the candidate is refused`);
+  return format;
+}
+
+const blobId = (format, bytes) =>
+  createHash(format).update(`blob ${bytes.length}\0`).update(bytes).digest("hex");
+
+/**
+ * Raw-byte equality with the commit's tree: every snapshot file's git blob id
+ * is recomputed in Node and compared with the tree's ids, so checkout
+ * transformations (smudge filters, attributes, eol conversion) cannot hide a
+ * change. Any changed, missing or extra file outside the build's own output
+ * directories (top-level dist/ and dist-candidate/) refuses the candidate.
+ */
+function verifySnapshotBytes(tree, entries, format, commit) {
+  const expected = new Map(entries.map((entry) => [entry.path, entry.oid]));
+  const problems = [];
+  const walk = (dir, prefix) => {
+    for (const item of readdirSync(dir, { withFileTypes: true })) {
+      const rel = prefix === "" ? item.name : `${prefix}/${item.name}`;
+      if (prefix === "" && (item.name === "dist" || item.name === CANDIDATE_ROOT)) continue;
+      if (item.isDirectory()) {
+        walk(join(dir, item.name), rel);
+        continue;
+      }
+      if (!item.isFile()) {
+        problems.push(`${rel} (not a regular file)`);
+        continue;
+      }
+      const oid = expected.get(rel);
+      if (oid === undefined) {
+        problems.push(`${rel} (extra)`);
+        continue;
+      }
+      expected.delete(rel);
+      if (blobId(format, readFileSync(join(dir, item.name))) !== oid)
+        problems.push(`${rel} (changed)`);
+    }
+  };
+  walk(tree, "");
+  for (const rel of expected.keys()) problems.push(`${rel} (missing)`);
+  if (problems.length > 0)
+    throw new Error(
+      `the build snapshot ${tree} no longer equals ${commit}; the candidate is refused:\n${problems.join("\n")}`,
+    );
+}
+
+/**
  * Run `step({ root: snapshot, catalogCommit })` over a snapshot of the
  * checkout's HEAD and expose its `<snapshot>/dist-candidate` as
  * `<root>/dist-candidate`. Returns `{ catalogCommit, outRoot, result }`.
@@ -63,20 +194,13 @@ export async function buildCandidateFromCommitV1(checkout, step) {
   const outRoot = join(root, CANDIDATE_ROOT);
   assertReplaceable(outRoot);
 
-  const gitDir = run(["-C", root, "rev-parse", "--absolute-git-dir"]).trim();
+  const format = objectFormatOf(root);
   // Inside the checkout (gitignored) so the snapshot resolves its node_modules
   // by walking up, and so the finished output moves by a same-volume rename.
   const staging = mkdtempSync(join(root, ".candidate-build-"));
   const tree = join(staging, "tree");
-  const env = { ...process.env, GIT_INDEX_FILE: join(staging, "index") };
-  delete env.GIT_DIR;
-  delete env.GIT_WORK_TREE;
-  const snapshotGit = (...args) =>
-    run(["--git-dir", gitDir, "--work-tree", tree, ...args], { cwd: tree, env });
   try {
-    mkdirSync(tree);
-    snapshotGit("read-tree", catalogCommit);
-    snapshotGit("checkout-index", "--all", "--force");
+    const entries = materializeCommit(root, catalogCommit, tree);
 
     const result = await step({ root: tree, catalogCommit });
 
@@ -85,17 +209,7 @@ export async function buildCandidateFromCommitV1(checkout, step) {
       throw new Error(
         `the checkout's HEAD moved from ${catalogCommit} to ${moved} during the build; the candidate is refused`,
       );
-    snapshotGit("update-index", "-q", "--refresh");
-    const changed = [
-      ...snapshotGit("diff-files", "--name-only").split("\n"),
-      ...snapshotGit("ls-files", "--others", "--exclude-standard").split("\n"),
-    ].filter((line) => line !== "");
-    const treeOf = snapshotGit("write-tree").trim();
-    const committedTree = run(["-C", root, "rev-parse", `${catalogCommit}^{tree}`]).trim();
-    if (changed.length > 0 || treeOf !== committedTree)
-      throw new Error(
-        `the build snapshot ${tree} no longer equals ${catalogCommit}; the candidate is refused:\n${changed.join("\n")}`,
-      );
+    verifySnapshotBytes(tree, entries, format, catalogCommit);
     const built = join(tree, CANDIDATE_ROOT);
     let marker;
     try {

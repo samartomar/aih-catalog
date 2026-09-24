@@ -552,79 +552,81 @@ describe("candidate guards in the package scripts", () => {
   });
 });
 
+// Shared fixtures for the candidate-snapshot tool tests: tools/candidate-snapshot.mjs
+// builds from a private materialization of the recorded commit, never from the live
+// tree, and exposes the output only if the live HEAD and the snapshot still match
+// that commit afterwards.
+type SnapshotStep = (snapshot: { root: string; catalogCommit: string }) => unknown;
+const snapshotTool = async () =>
+  (await import(pathToFileURL(resolve(root, "tools", "candidate-snapshot.mjs")).href)) as {
+    buildCandidateFromCommitV1: (
+      root: string,
+      step: SnapshotStep,
+    ) => Promise<{ catalogCommit: string; outRoot: string; result: unknown }>;
+  };
+const INPUT = join("src", "production", "data", "input.json");
+const COMMITTED = '{"v":"committed"}';
+
+const gitIn = (dir: string, ...args: string[]) => gitInWithInput(dir, undefined, ...args);
+const gitInWithInput = (dir: string, input: string | undefined, ...args: string[]) => {
+  const result = spawnSync(
+    "git",
+    [
+      "-C",
+      dir,
+      "-c",
+      "user.name=CQ4 fixture",
+      "-c",
+      "user.email=fixture@example.invalid",
+      "-c",
+      "commit.gpgsign=false",
+      ...args,
+    ],
+    { encoding: "utf8", input },
+  );
+  if (result.status !== 0) throw new Error(`git ${args.join(" ")}: ${result.stderr}`);
+  return result.stdout.trim();
+};
+
+/** A committed fixture checkout; returns its root. */
+function fixtureCheckout(): string {
+  const dir = tempDir();
+  gitIn(dir, "init", "-q");
+  writeFileSync(join(dir, ".gitattributes"), "* -text\n");
+  writeFileSync(join(dir, ".gitignore"), "dist/\ndist-candidate/\n/.candidate-build-*/\n");
+  writeFileSync(join(dir, "package.json"), '{"name":"@aihq/catalog"}');
+  mkdirSync(join(dir, "src", "production", "data"), { recursive: true });
+  writeFileSync(join(dir, INPUT), COMMITTED);
+  mkdirSync(join(dir, "defaults"));
+  writeFileSync(join(dir, "defaults", "x.json"), '{"x":"committed"}');
+  gitIn(dir, "add", "-A");
+  gitIn(dir, "commit", "-q", "-m", "fixture");
+  return dir;
+}
+
+/** What the real build does: read the handed root and write <root>/dist-candidate. */
+const emit = ({ root: snapshot, catalogCommit }: { root: string; catalogCommit: string }) => {
+  const out = join(snapshot, CATALOG_CANDIDATE_ROOT_V1);
+  mkdirSync(out);
+  writeFileSync(join(out, "input.json"), readFileSync(join(snapshot, INPUT)));
+  writeFileSync(join(out, "x.json"), readFileSync(join(snapshot, "defaults", "x.json")));
+  writeFileSync(
+    join(out, "CANDIDATE.json"),
+    JSON.stringify({ format: CATALOG_CANDIDATE_FORMAT_V1, version: 1, catalogCommit }),
+  );
+  return snapshot;
+};
+const staging = (dir: string) =>
+  readdirSync(dir).filter((name) => name.startsWith(".candidate-build-"));
+const earlierCandidate = (dir: string) => {
+  mkdirSync(join(dir, CATALOG_CANDIDATE_ROOT_V1));
+  writeFileSync(
+    join(dir, CATALOG_CANDIDATE_ROOT_V1, "CANDIDATE.json"),
+    JSON.stringify({ format: CATALOG_CANDIDATE_FORMAT_V1, catalogCommit: "earlier" }),
+  );
+};
+
 describe("the candidate build snapshot", () => {
-  // tools/candidate-snapshot.mjs builds from a private checkout of the recorded
-  // commit, never from the live tree, and exposes the output only if the live
-  // HEAD and the snapshot still match that commit afterwards.
-  type Step = (snapshot: { root: string; catalogCommit: string }) => unknown;
-  const snapshotTool = async () =>
-    (await import(pathToFileURL(resolve(root, "tools", "candidate-snapshot.mjs")).href)) as {
-      buildCandidateFromCommitV1: (
-        root: string,
-        step: Step,
-      ) => Promise<{ catalogCommit: string; outRoot: string; result: unknown }>;
-    };
-  const INPUT = join("src", "production", "data", "input.json");
-  const COMMITTED = '{"v":"committed"}';
-
-  const gitIn = (dir: string, ...args: string[]) => {
-    const result = spawnSync(
-      "git",
-      [
-        "-C",
-        dir,
-        "-c",
-        "user.name=CQ4 fixture",
-        "-c",
-        "user.email=fixture@example.invalid",
-        "-c",
-        "commit.gpgsign=false",
-        ...args,
-      ],
-      { encoding: "utf8" },
-    );
-    if (result.status !== 0) throw new Error(`git ${args.join(" ")}: ${result.stderr}`);
-    return result.stdout.trim();
-  };
-
-  /** A committed fixture checkout; returns its root. */
-  function fixtureCheckout(): string {
-    const dir = tempDir();
-    gitIn(dir, "init", "-q");
-    writeFileSync(join(dir, ".gitattributes"), "* -text\n");
-    writeFileSync(join(dir, ".gitignore"), "dist/\ndist-candidate/\n/.candidate-build-*/\n");
-    writeFileSync(join(dir, "package.json"), '{"name":"@aihq/catalog"}');
-    mkdirSync(join(dir, "src", "production", "data"), { recursive: true });
-    writeFileSync(join(dir, INPUT), COMMITTED);
-    mkdirSync(join(dir, "defaults"));
-    writeFileSync(join(dir, "defaults", "x.json"), '{"x":"committed"}');
-    gitIn(dir, "add", "-A");
-    gitIn(dir, "commit", "-q", "-m", "fixture");
-    return dir;
-  }
-
-  /** What the real build does: read the handed root and write <root>/dist-candidate. */
-  const emit = ({ root: snapshot, catalogCommit }: { root: string; catalogCommit: string }) => {
-    const out = join(snapshot, CATALOG_CANDIDATE_ROOT_V1);
-    mkdirSync(out);
-    writeFileSync(join(out, "input.json"), readFileSync(join(snapshot, INPUT)));
-    writeFileSync(join(out, "x.json"), readFileSync(join(snapshot, "defaults", "x.json")));
-    writeFileSync(
-      join(out, "CANDIDATE.json"),
-      JSON.stringify({ format: CATALOG_CANDIDATE_FORMAT_V1, version: 1, catalogCommit }),
-    );
-    return snapshot;
-  };
-  const staging = (dir: string) =>
-    readdirSync(dir).filter((name) => name.startsWith(".candidate-build-"));
-  const earlierCandidate = (dir: string) => {
-    mkdirSync(join(dir, CATALOG_CANDIDATE_ROOT_V1));
-    writeFileSync(
-      join(dir, CATALOG_CANDIDATE_ROOT_V1, "CANDIDATE.json"),
-      JSON.stringify({ format: CATALOG_CANDIDATE_FORMAT_V1, catalogCommit: "earlier" }),
-    );
-  };
-
   it("builds from the recorded commit, so an edit made during the build never reaches the candidate", async () => {
     const { buildCandidateFromCommitV1 } = await snapshotTool();
     const dir = fixtureCheckout();
@@ -748,6 +750,97 @@ describe("the candidate build snapshot", () => {
       }),
     ).rejects.toThrow(message);
     expect(called).toBe(false);
+    expect(staging(dir)).toEqual([]);
+  });
+});
+
+describe("the candidate build reads raw commit bytes", () => {
+  it("never lets a .git/info/attributes smudge filter reach the candidate", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    writeFileSync(join(dir, "README.md"), "clean readme\n");
+    gitIn(dir, "add", "README.md");
+    gitIn(dir, "commit", "-q", "-m", "readme");
+    const head = gitIn(dir, "rev-parse", "HEAD");
+    // A local filter that injects text on checkout and strips it on staging, so a
+    // checkout-based snapshot carries the injected bytes while every git-normalized
+    // comparison stays clean.
+    writeFileSync(join(dir, ".git", "info", "attributes"), "README.md filter=inject\n");
+    gitIn(dir, "config", "filter.inject.smudge", "sed 's/$/INJECTED/'");
+    gitIn(dir, "config", "filter.inject.clean", "sed 's/INJECTED$//'");
+    // The filter really fires on checkout, and the injected worktree file then
+    // looks clean to git (the clean filter strips the injection again).
+    rmSync(join(dir, "README.md"));
+    gitIn(dir, "checkout", "--", "README.md");
+    expect(readFileSync(join(dir, "README.md"), "utf8")).toBe("clean readmeINJECTED\n");
+    expect(gitIn(dir, "status", "--porcelain", "--untracked-files=all")).toBe("");
+
+    const built = await buildCandidateFromCommitV1(dir, (snapshot) => {
+      const out = join(snapshot.root, CATALOG_CANDIDATE_ROOT_V1);
+      mkdirSync(out);
+      writeFileSync(join(out, "README.md"), readFileSync(join(snapshot.root, "README.md")));
+      writeFileSync(
+        join(out, "CANDIDATE.json"),
+        JSON.stringify({
+          format: CATALOG_CANDIDATE_FORMAT_V1,
+          version: 1,
+          catalogCommit: snapshot.catalogCommit,
+        }),
+      );
+    });
+    expect(built.catalogCommit).toBe(head);
+    expect(readFileSync(join(built.outRoot, "README.md"), "utf8")).toBe("clean readme\n");
+    expect(staging(dir)).toEqual([]);
+  });
+
+  it.each([
+    [
+      "a symlink (120000)",
+      (dir: string) => {
+        gitIn(dir, "config", "core.symlinks", "false");
+        const oid = gitInWithInput(dir, "target", "hash-object", "-w", "--stdin");
+        gitIn(dir, "update-index", "--add", "--cacheinfo", `120000,${oid},link`);
+        writeFileSync(join(dir, "link"), "target");
+      },
+      /120000/u,
+    ],
+    [
+      "a gitlink (160000)",
+      (dir: string) => {
+        const head = gitIn(dir, "rev-parse", "HEAD");
+        gitIn(dir, "update-index", "--add", "--cacheinfo", `160000,${head},sub`);
+        mkdirSync(join(dir, "sub"));
+      },
+      /160000/u,
+    ],
+  ])("refuses a commit whose tree carries %s", async (_label, add, message) => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    add(dir);
+    gitIn(dir, "commit", "-q", "-m", "non-regular entry");
+    expect(gitIn(dir, "status", "--porcelain", "--untracked-files=all")).toBe("");
+    let called = false;
+    await expect(
+      buildCandidateFromCommitV1(dir, () => {
+        called = true;
+      }),
+    ).rejects.toThrow(message);
+    expect(called).toBe(false);
+    expect(readdirSync(dir)).not.toContain(CATALOG_CANDIDATE_ROOT_V1);
+    expect(staging(dir)).toEqual([]);
+  });
+
+  it("ignores the build's own output directories when verifying the snapshot", async () => {
+    const { buildCandidateFromCommitV1 } = await snapshotTool();
+    const dir = fixtureCheckout();
+    await buildCandidateFromCommitV1(dir, (snapshot) => {
+      mkdirSync(join(snapshot.root, "dist"), { recursive: true });
+      writeFileSync(join(snapshot.root, "dist", "junk.js"), "junk");
+      return emit(snapshot);
+    });
+    const out = join(dir, CATALOG_CANDIDATE_ROOT_V1);
+    expect(readFileSync(join(out, "input.json"), "utf8")).toBe(COMMITTED);
+    expect(readdirSync(out)).not.toContain("junk.js");
     expect(staging(dir)).toEqual([]);
   });
 });
