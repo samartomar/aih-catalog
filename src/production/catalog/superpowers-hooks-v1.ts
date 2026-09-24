@@ -14,6 +14,7 @@ import {
   readOpenCodeEntryReexportV1,
   readOpenCodePluginHooksV1,
 } from "./opencode-plugin-hooks-v1.js";
+import { assertReviewedSourcesV1, type ReviewedSourcesV1 } from "./reviewed-sources-v1.js";
 
 /**
  * Derives the Superpowers `hookControlInventory` descriptor section from the
@@ -54,6 +55,54 @@ const OPENCODE_HOOKS: Readonly<Record<string, { hook: string; event?: string }>>
   config: { hook: "skills-path", event: "config" },
   "skill.transform": { hook: "skill-registration", event: "setup" },
   "session.hook.context": { hook: "session-context", event: "context" },
+};
+
+/**
+ * The commit and bytes the hand-written summaries and readings above were
+ * reviewed against: every file the section reads. The section is emitted only
+ * over exactly these bytes (obra/Superpowers v6.4.1).
+ */
+export const SUPERPOWERS_HOOK_REVIEW_V1: ReviewedSourcesV1 = {
+  repository: REPOSITORY,
+  commit: "5bf4e78011075bcfc0dc295f0724994cd123ee71",
+  sources: [
+    {
+      path: ".cursor-plugin/plugin.json",
+      sha256: "998f2cdd2824c4d84184043d07e94b9fbc0bdb5e79c23c14cd266355d0394fbd",
+    },
+    {
+      path: ".kimi-plugin/plugin.json",
+      sha256: "ea5a1db06d1577f9e08339c4353e9cbcd4d381d64b9523c756d5f237424b2d6e",
+    },
+    {
+      path: ".muse-plugin/plugin.json",
+      sha256: "8ec5ba62667187e5660da986c5e5e21bf363a62bb7e1f461df15095e892eb960",
+    },
+    {
+      path: ".opencode/plugins/superpowers.js",
+      sha256: "c979fe5a9fd6fddc9bc9730b34b25989f9d53939eed7d594c4564f6e47495f26",
+    },
+    {
+      path: "hooks/hooks-cursor.json",
+      sha256: "53d8ceb3ff5d8bb1c4f283f238cc868b8c1af22e40a3ac30f6d6e4173effefbd",
+    },
+    {
+      path: "hooks/hooks.json",
+      sha256: "47fd72cc8bedf31c72702b35b4ed7bab670294d658c4ce518330337525a3798b",
+    },
+    {
+      path: "hooks/run-hook.cmd",
+      sha256: "d3d9c6199678dab2858e60509dde5e7414f13c2a2b5e48a38b1d368b6e1d6abb",
+    },
+    {
+      path: "hooks/session-start",
+      sha256: "5e92229e49d7cff5e0355ab84b0bceb0d27d53c565b33210132ce6e413ee9665",
+    },
+    {
+      path: "index.js",
+      sha256: "f0132fd5339befeb99ba903b1619fd9530969e5b4a1ea8cecf0b0a7f0213a099",
+    },
+  ],
 };
 
 /** The OpenCode V2 directory entry point; it may only re-export a read plugin. */
@@ -368,4 +417,18 @@ export function superpowersHookControlInventoryV1(
     },
     hooks,
   };
+}
+
+/**
+ * The descriptor section: the derived inventory, refused unless the selected
+ * upstream commit and every file it read are the reviewed ones.
+ */
+export function reviewedSuperpowersHookControlInventoryV1(
+  hookSources: unknown,
+  vendorSource: unknown,
+): JsonRecord {
+  const inventory = superpowersHookControlInventoryV1(hookSources, vendorSource);
+  const provenance = inventory.provenance as ReviewedSourcesV1;
+  assertReviewedSourcesV1("the Superpowers hook review", SUPERPOWERS_HOOK_REVIEW_V1, provenance);
+  return inventory;
 }

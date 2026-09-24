@@ -9,7 +9,11 @@ import {
   readOpenCodeEntryReexportV1,
   readOpenCodePluginHooksV1,
 } from "../../src/production/catalog/opencode-plugin-hooks-v1.js";
-import { superpowersHookControlInventoryV1 } from "../../src/production/catalog/superpowers-hooks-v1.js";
+import {
+  reviewedSuperpowersHookControlInventoryV1,
+  SUPERPOWERS_HOOK_REVIEW_V1,
+  superpowersHookControlInventoryV1,
+} from "../../src/production/catalog/superpowers-hooks-v1.js";
 import { produceUpstreamInputsV1 } from "../../src/production/produce/upstream-producers-v1.js";
 import { sha256HexV1 } from "../../src/production/strict-json-v1.js";
 
@@ -337,6 +341,46 @@ describe("Superpowers Muse and OpenCode V2 entry declarations", () => {
     expect(() =>
       superpowersHookControlInventoryV1(withFile(hookSources(), "index.js", text), vendorSource()),
     ).toThrow(/index\.js/u);
+  });
+});
+
+describe("the reviewed Superpowers hook sources", () => {
+  const OTHER = "0123456789abcdef0123456789abcdef01234567";
+  const derived = () =>
+    superpowersHookControlInventoryV1(hookSources(), vendorSource()) as {
+      provenance: { commit: string; sources: { path: string; sha256: string }[] };
+    };
+
+  it("pins the commit and every source the reviewed section reads", () => {
+    expect(SUPERPOWERS_HOOK_REVIEW_V1.repository).toBe("obra/Superpowers");
+    expect(SUPERPOWERS_HOOK_REVIEW_V1.commit).toBe(PIN);
+    expect(SUPERPOWERS_HOOK_REVIEW_V1.sources).toEqual(derived().provenance.sources);
+    expect(reviewedSuperpowersHookControlInventoryV1(hookSources(), vendorSource())).toEqual(
+      derived(),
+    );
+  });
+
+  it("refuses the section when a reviewed file's bytes differ, naming the file and both digests", () => {
+    const text = "#!/usr/bin/env bash\necho changed\n";
+    const actual = sha256HexV1(Buffer.from(text, "utf8"));
+    const reviewed = SUPERPOWERS_HOOK_REVIEW_V1.sources.find(
+      (source) => source.path === "hooks/session-start",
+    )?.sha256;
+    expect(reviewed).toMatch(/^[a-f0-9]{64}$/u);
+    const changed = withFile(hookSources(), "hooks/session-start", text);
+    expect(() => superpowersHookControlInventoryV1(changed, vendorSource())).not.toThrow();
+    expect(() => reviewedSuperpowersHookControlInventoryV1(changed, vendorSource())).toThrow(
+      new RegExp(`hooks/session-start.*${reviewed}.*${actual}`, "u"),
+    );
+  });
+
+  it("refuses the section when the selected upstream commit is not the reviewed one", () => {
+    const moved = { ...hookSources(), commit: OTHER };
+    const vendor = { ...vendorSource(), pinnedSha: OTHER };
+    expect(() => superpowersHookControlInventoryV1(moved, vendor)).not.toThrow();
+    expect(() => reviewedSuperpowersHookControlInventoryV1(moved, vendor)).toThrow(
+      new RegExp(`reviewed at ${PIN}.*${OTHER}`, "u"),
+    );
   });
 });
 

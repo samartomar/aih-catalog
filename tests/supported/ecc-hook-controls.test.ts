@@ -1,17 +1,52 @@
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import {
+  readUpstreamInputsManifestV1,
+  readVerifiedUpstreamInputV1,
+} from "../../src/production/catalog/upstream-inputs-v1.js";
 import {
   canonicalEccDisabledHookIds,
   ECC_DISABLE_ELIGIBLE_HOOK_IDS,
   ECC_HOOK_CONTROL_PROVENANCE,
+  ECC_HOOK_SOURCES_FILE_V1,
   ECC_OPENCODE_HOOK_CONTROL_ROWS,
   eccHookControlCatalog,
   eccHookControlInventoryV1,
 } from "../../src/production/ecc-hook-controls-v1.js";
+import { sha256HexV1 } from "../../src/production/strict-json-v1.js";
 
 /** affaan-m/ECC v2.2.1, the Q1 pin. */
 const PIN = "5064474d4d762dc9640234a41617cccb79185cec";
+const OTHER = "0123456789abcdef0123456789abcdef01234567";
 const OPENCODE_PLUGIN = ".opencode/plugins/ecc-hooks.ts";
+const root = resolve(import.meta.dirname, "..", "..");
+
+interface HookSources {
+  version: number;
+  repository: string;
+  commit: string;
+  files: { path: string; sha256: string; bytesBase64: string }[];
+}
+
+/** The reviewed files `produce:ecc` fetched, byte for byte. */
+const hookSources = () =>
+  JSON.parse(
+    readFileSync(resolve(root, "src", "production", "data", ECC_HOOK_SOURCES_FILE_V1), "utf8"),
+  ) as HookSources;
+
+function withBytes(sources: HookSources, path: string, text: string): HookSources {
+  const bytes = Buffer.from(text, "utf8");
+  return {
+    ...sources,
+    files: sources.files.map((file) =>
+      file.path === path
+        ? { path, sha256: sha256HexV1(bytes), bytesBase64: bytes.toString("base64") }
+        : file,
+    ),
+  };
+}
 
 describe("ECC hook controls at v2.2.1", () => {
   it("binds the reviewed inventory to the source digests at the pin", () => {
@@ -118,7 +153,7 @@ describe("ECC hook controls at v2.2.1", () => {
   });
 
   it("publishes the Claude rows and the OpenCode row in the descriptor section", () => {
-    const inventory = eccHookControlInventoryV1();
+    const inventory = eccHookControlInventoryV1(hookSources(), { pinnedSha: PIN });
     expect(inventory.provenance).toBe(ECC_HOOK_CONTROL_PROVENANCE);
     expect(inventory.profiles.map((profile) => profile.id)).toEqual([
       "minimal",
@@ -132,5 +167,74 @@ describe("ECC hook controls at v2.2.1", () => {
     for (const row of ECC_OPENCODE_HOOK_CONTROL_ROWS)
       for (const declaration of row.declarations)
         expect(recorded.has(declaration.sourcePath)).toBe(true);
+  });
+
+  it("records the reviewed files as produce:ecc fetched them at the pin", () => {
+    const manifest = readUpstreamInputsManifestV1(root);
+    const input = readVerifiedUpstreamInputV1(root, manifest, ECC_HOOK_SOURCES_FILE_V1);
+    expect(input.provenance.repository).toBe("affaan-m/ECC");
+    expect(input.provenance.commit).toBe(PIN);
+    const sources = input.json as HookSources;
+    expect(sources.commit).toBe(PIN);
+    expect(
+      sources.files.map((file) => ({
+        path: file.path,
+        sha256: sha256HexV1(Buffer.from(file.bytesBase64, "base64")),
+      })),
+    ).toEqual(ECC_HOOK_CONTROL_PROVENANCE.sources);
+  });
+
+  it("refuses the section when a reviewed file's bytes differ, naming the file and both digests", () => {
+    for (const { path, sha256 } of ECC_HOOK_CONTROL_PROVENANCE.sources) {
+      const changed = withBytes(hookSources(), path, "// changed upstream\n");
+      const actual = sha256HexV1(Buffer.from("// changed upstream\n", "utf8"));
+      expect(() => eccHookControlInventoryV1(changed, { pinnedSha: PIN })).toThrow(
+        new RegExp(`${path.replaceAll(".", "\\.")}.*${sha256}.*${actual}`, "u"),
+      );
+    }
+  });
+
+  it("refuses the section when the selected upstream commit is not the reviewed one", () => {
+    const moved = { ...hookSources(), commit: OTHER };
+    expect(() => eccHookControlInventoryV1(moved, { pinnedSha: OTHER })).toThrow(
+      new RegExp(`reviewed at ${PIN}.*${OTHER}`, "u"),
+    );
+  });
+
+  it("refuses hook sources fetched at a commit other than the vendor pin", () => {
+    expect(() => eccHookControlInventoryV1(hookSources(), { pinnedSha: OTHER })).toThrow(
+      new RegExp(`${PIN}.*${OTHER}`, "u"),
+    );
+  });
+
+  it("refuses a missing reviewed file and an unreviewed extra file", () => {
+    const sources = hookSources();
+    const missing = { ...sources, files: sources.files.slice(1) };
+    expect(() => eccHookControlInventoryV1(missing, { pinnedSha: PIN })).toThrow(
+      /hooks\/hooks\.json/u,
+    );
+    const bytes = Buffer.from("{}\n", "utf8");
+    const extra = {
+      ...sources,
+      files: [
+        ...sources.files,
+        {
+          path: "hooks/extra.json",
+          sha256: sha256HexV1(bytes),
+          bytesBase64: bytes.toString("base64"),
+        },
+      ],
+    };
+    expect(() => eccHookControlInventoryV1(extra, { pinnedSha: PIN })).toThrow(
+      /hooks\/extra\.json/u,
+    );
+  });
+
+  it("refuses hook sources whose recorded digest does not match their bytes", () => {
+    const sources = hookSources();
+    const [first, ...rest] = sources.files;
+    if (first === undefined) throw new Error("no hook sources");
+    const forged = { ...sources, files: [{ ...first, sha256: "0".repeat(64) }, ...rest] };
+    expect(() => eccHookControlInventoryV1(forged, { pinnedSha: PIN })).toThrow(/sha256/u);
   });
 });

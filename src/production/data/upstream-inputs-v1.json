@@ -14,6 +14,18 @@
         "cldr": "48.0"
       }
     },
+    "ecc-hook-sources-v1.json": {
+      "repository": "affaan-m/ECC",
+      "commit": "5064474d4d762dc9640234a41617cccb79185cec",
+      "sha256": "263d384698f4438841b1aede6e50bd1085c13009ac05ed6ecacf840b5ec3cf90",
+      "sources": {},
+      "runtime": {
+        "node": "26.4.0",
+        "icu": "78.3",
+        "unicode": "17.0",
+        "cldr": "48.0"
+      }
+    },
     "ecc-mcp-inventory-v1.json": {
       "repository": "affaan-m/ECC",
       "commit": "5064474d4d762dc9640234a41617cccb79185cec",

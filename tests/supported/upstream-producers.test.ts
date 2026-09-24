@@ -6,6 +6,10 @@ import { parseUpstreamInputsManifestV1 } from "../../src/production/catalog/upst
 import { buildCatalogFrameworkDefaultsV1 } from "../../src/production/catalog-defaults-v1.js";
 import { catalogProductionRuntimeV1 } from "../../src/production/collation-v1.js";
 import {
+  ECC_HOOK_CONTROL_SOURCE_PATHS,
+  ECC_HOOK_SOURCES_FILE_V1,
+} from "../../src/production/ecc-hook-controls-v1.js";
+import {
   produceContentMetadataV1,
   produceUpstreamInputsV1,
   recordUpstreamInputsV1,
@@ -57,6 +61,7 @@ function eccTree(extra: Record<string, string> = {}) {
     "mcp-configs/mcp-servers.json": dataText("ecc-mcp-inventory-v1.json"),
     "agents/planner.md":
       "---\nname: planner\ndescription: Plans work.\ntools: Read, Grep\n---\n\nBody.\n",
+    ...Object.fromEntries(ECC_HOOK_CONTROL_SOURCE_PATHS.map((path) => [path, `// ${path}\n`])),
     ...extra,
   };
   for (const skill of [...skills].reverse())
@@ -77,6 +82,21 @@ describe("networked upstream producers (offline transforms)", () => {
       expect(byFile[file]?.bytes, file).toBe(dataText(file));
     expect(byFile["ecc-modules-v1.json"]?.sources).toEqual({
       "manifests/install-modules.json": expect.stringMatching(/^[a-f0-9]{64}$/u),
+    });
+  });
+
+  it("fetches the files the ECC hook-control review read, byte for byte in review order", () => {
+    const produced = produceUpstreamInputsV1("ecc", eccTree(), root);
+    const hookSources = produced.find((item) => item.file === ECC_HOOK_SOURCES_FILE_V1);
+    expect(hookSources?.sources).toEqual({});
+    expect(JSON.parse(hookSources?.bytes ?? "null")).toEqual({
+      version: 1,
+      repository: "affaan-m/ECC",
+      commit: ECC_COMMIT,
+      files: ECC_HOOK_CONTROL_SOURCE_PATHS.map((path) => {
+        const bytes = Buffer.from(`// ${path}\n`, "utf8");
+        return { path, sha256: sha256HexV1(bytes), bytesBase64: bytes.toString("base64") };
+      }),
     });
   });
 

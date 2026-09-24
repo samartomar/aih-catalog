@@ -1,8 +1,10 @@
 import { readFileSync } from "node:fs";
 import {
+  assertEccHookControlsReviewedV1,
   ECC_DISABLE_ELIGIBLE_HOOK_IDS,
   ECC_HOOK_CONTROL_SOURCE_CONTENT_SHA256,
   ECC_HOOK_PROFILES,
+  ECC_HOOK_SOURCES_FILE_V1,
   type EccHookControlCatalogEntry,
   eccHookControlCatalog,
 } from "../ecc-hook-controls-v1.js";
@@ -180,6 +182,7 @@ export interface PolicyAuthoringCatalogInputsV1 {
   eccMcpInventory: unknown;
   eccModules: unknown;
   eccProfiles: unknown;
+  eccHookSources: unknown;
   superpowersContentMetadata: unknown;
 }
 
@@ -197,6 +200,7 @@ export function readPolicyAuthoringCatalogInputsV1(root: string): PolicyAuthorin
     eccMcpInventory: verified("ecc-mcp-inventory-v1.json"),
     eccModules: verified("ecc-modules-v1.json"),
     eccProfiles: verified("ecc-profiles-v1.json"),
+    eccHookSources: verified(ECC_HOOK_SOURCES_FILE_V1),
     superpowersContentMetadata: verified("superpowers-content-metadata-v1.json"),
   };
 }
@@ -245,8 +249,10 @@ export function policyAuthoringCatalogV1(
     "ecc-mcp-inventory-v1.json",
     "ecc-modules-v1.json",
     "ecc-profiles-v1.json",
+    ECC_HOOK_SOURCES_FILE_V1,
   ])
     upstreamPin(inputs.upstream, file, eccPin);
+  assertEccHookControlsReviewedV1(inputs.eccHookSources, eccPin.commit);
   const modules = parseEccModulesSnapshotV1(inputs.eccModules);
   const profiles = parseEccProfilesSnapshotV1(inputs.eccProfiles, modules);
   const model = eccComponentModelV1(modules, profiles);

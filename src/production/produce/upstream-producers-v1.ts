@@ -15,6 +15,10 @@ import {
   type UpstreamInputRecordV1,
 } from "../catalog/upstream-inputs-v1.js";
 import { type CatalogProductionRuntimeV1, catalogTextCompareV1 } from "../collation-v1.js";
+import {
+  ECC_HOOK_CONTROL_SOURCE_PATHS,
+  ECC_HOOK_SOURCES_FILE_V1,
+} from "../ecc-hook-controls-v1.js";
 import { assertSafeRelativePosixPathV1, codeUnitCompare, sha256HexV1 } from "../strict-json-v1.js";
 import { COMMIT_SHA, exactKeys, type JsonRecord, list, record, text } from "../validate-v1.js";
 import {
@@ -263,6 +267,7 @@ function eccInputs(tree: UpstreamTreeV1): ProducedUpstreamFileV1[] {
     { file: "ecc-modules-v1.json", bytes: pretty(modules), sources: digest(modulesPath) },
     { file: "ecc-profiles-v1.json", bytes: pretty(profiles), sources: digest(profilesPath) },
     { file: "ecc-skill-inventory-v1.json", bytes: pretty(skills), sources: {} },
+    eccHookSources(tree),
   ];
 }
 
@@ -350,6 +355,23 @@ function ponytailSnapshot(tree: UpstreamTreeV1, root: string): ProducedUpstreamF
   };
   compilePonytailComponentCollectionV1(snapshot);
   return { file: "ponytail.snapshot.json", bytes: pretty(snapshot), sources: {} };
+}
+
+/**
+ * The files the ECC hook-control review read, byte for byte at the fetched
+ * commit; the build emits the reviewed rows only while these bytes are the
+ * reviewed ones.
+ */
+function eccHookSources(tree: UpstreamTreeV1): ProducedUpstreamFileV1 {
+  const files = ECC_HOOK_CONTROL_SOURCE_PATHS.map((path) => {
+    const bytes = bytesOf(tree, path);
+    return { path, sha256: sha256HexV1(bytes), bytesBase64: bytes.toString("base64") };
+  });
+  return {
+    file: ECC_HOOK_SOURCES_FILE_V1,
+    bytes: pretty({ version: 1, repository: tree.repository, commit: tree.commit, files }),
+    sources: {},
+  };
 }
 
 /** The hook-declaring files, byte for byte; the build derives the hook inventory from them. */

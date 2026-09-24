@@ -1,3 +1,10 @@
+import { createHash } from "node:crypto";
+import {
+  assertReviewedSourcesV1,
+  parseFetchedSourceFilesV1,
+} from "./catalog/reviewed-sources-v1.js";
+import { record } from "./validate-v1.js";
+
 /**
  * Exact pinned sources for ECC hook-profile and per-hook-disable semantics,
  * reviewed at v2.2.1, plus the OpenCode plugin whose hooks the OpenCode row
@@ -44,6 +51,44 @@ export const ECC_HOOK_CONTROL_PROVENANCE = {
 } as const;
 
 export const ECC_HOOK_CONTROL_SOURCE_CONTENT_SHA256 = ECC_HOOK_CONTROL_PROVENANCE.contentSha256;
+
+/** The reviewed files `produce:ecc` fetches byte for byte, so generation can compare them. */
+export const ECC_HOOK_SOURCES_FILE_V1 = "ecc-hook-sources-v1.json";
+
+/** The upstream paths the hook-control review read, in review order. */
+export const ECC_HOOK_CONTROL_SOURCE_PATHS: readonly string[] =
+  ECC_HOOK_CONTROL_PROVENANCE.sources.map((source) => source.path);
+
+/**
+ * Refuses the hand-reviewed ECC hook controls unless the hook sources were
+ * fetched at the selected vendor pin and that pin and every fetched byte are
+ * exactly what was reviewed. Every generator that emits these rows calls this
+ * first.
+ */
+export function assertEccHookControlsReviewedV1(hookSources: unknown, pinnedSha: unknown): void {
+  const label = "ECC hook sources";
+  const { commit, files } = parseFetchedSourceFilesV1(
+    hookSources,
+    label,
+    ECC_HOOK_CONTROL_PROVENANCE.repository,
+  );
+  if (pinnedSha !== commit)
+    throw new TypeError(
+      `${label} were fetched at ${commit} but the vendor lock pins ${String(pinnedSha)}`,
+    );
+  const digest = createHash("sha256")
+    .update(
+      JSON.stringify(ECC_HOOK_CONTROL_PROVENANCE.sources.map(({ path, sha256 }) => [path, sha256])),
+    )
+    .digest("hex");
+  if (digest !== ECC_HOOK_CONTROL_PROVENANCE.contentSha256)
+    throw new TypeError("the ECC hook control review does not match its own content sha256");
+  assertReviewedSourcesV1("the ECC hook control review", ECC_HOOK_CONTROL_PROVENANCE, {
+    repository: ECC_HOOK_CONTROL_PROVENANCE.repository,
+    commit,
+    sources: files.map(({ path, sha256 }) => ({ path, sha256 })),
+  });
+}
 
 export const ECC_HOOK_PROFILES = [
   { id: "minimal", label: "Minimal" },
@@ -348,7 +393,9 @@ export const ECC_OPENCODE_HOOK_CONTROL_ROWS: readonly EccOpenCodeHookControlRowV
 ];
 
 /** The descriptor's `hookControlInventory` section: the Claude rows, then the OpenCode row. */
-export function eccHookControlInventoryV1() {
+/** The `hookControlInventory` descriptor section, emitted only over the reviewed bytes. */
+export function eccHookControlInventoryV1(hookSources: unknown, vendorSource: unknown) {
+  assertEccHookControlsReviewedV1(hookSources, record(vendorSource, "ECC vendor source").pinnedSha);
   return {
     provenance: ECC_HOOK_CONTROL_PROVENANCE,
     profiles: ECC_HOOK_PROFILES,
