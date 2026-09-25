@@ -14,6 +14,7 @@ type Generator = {
     outputRoot: string;
     manifestPath: string;
     definitionPath?: string;
+    authoringCatalogPath?: string;
   }): { entries: number; seedPaths: string[]; excluded?: Json[] };
   hashComponentTreeV1(sourceRoot: string, paths: string[]): { treeSha256: string };
   hashSourceTreeV1(sourceRoot: string): { treeSha256: string };
@@ -23,6 +24,7 @@ type MappingHelper = {
   deriveClosureMappingV1(
     publication: unknown,
     definition: unknown,
+    authoringCatalog?: unknown,
   ): { mapping: Json; rows: string[]; excluded: Json[] };
 };
 
@@ -74,6 +76,7 @@ interface Options {
   definition: (source: Json, files: Record<string, string>) => Json;
   nativeOverride?: Record<string, string>;
   tamperReceipt?: boolean;
+  authoring?: (source: Json, files: Record<string, string>) => Json;
 }
 
 const within = (component: Partition, path: string) =>
@@ -351,6 +354,8 @@ async function fixture(options: Options) {
   writeJson(handoffPath, handoff);
   const definitionPath = join(root, "definition.json");
   writeJson(definitionPath, options.definition(source, options.files));
+  const authoringPath = join(root, "authoring-catalog.json");
+  if (options.authoring) writeJson(authoringPath, options.authoring(source, options.files));
   const manifestPath = join(root, "defaults", "default-catalog-seed-manifest-v2.json");
   mkdirSync(dirname(manifestPath), { recursive: true });
   writeJson(manifestPath, {
@@ -368,8 +373,9 @@ async function fixture(options: Options) {
       outputRoot,
       manifestPath,
       ...(definition ? { definitionPath } : {}),
+      ...(definition && options.authoring ? { authoringCatalogPath: authoringPath } : {}),
     });
-  return { run, outputRoot, source, definitionPath, publicationPath };
+  return { run, outputRoot, source, definitionPath, publicationPath, authoringPath };
 }
 
 const FILES = {
@@ -644,6 +650,72 @@ const baselineCatalog =
     pinnedSha: source.pinnedCommit,
     components,
   });
+/**
+ * The Catalog's policy authoring catalog at the pin (tools/emit-compiler-input.mjs): the curated
+ * mcp components exactly as the definition lists them, one non-mcp asset, and `externals`.
+ */
+const authoringCatalog =
+  (components: Json[], externals: ((source: Json, files: Record<string, string>) => Json)[]) =>
+  (source: Json, files: Record<string, string>): Json => {
+    const pin = { repository: `${source.owner}/${source.repository}`, commit: source.pinnedCommit };
+    return {
+      version: "pinned-baseline/v1",
+      framework: {
+        id: source.id,
+        ...pin,
+        assets: [
+          {
+            id: "agent:reviewer",
+            kind: "agent",
+            source: { ...pin, path: "agents/reviewer.md" },
+            sourcePaths: ["agents/reviewer.md"],
+          },
+          ...components
+            .filter((component) => String(component.id).startsWith("mcp:"))
+            .map((component) => ({
+              id: component.id,
+              kind: "mcp",
+              source: { ...pin, path: (component.paths as string[])[0] },
+              sourcePaths: component.paths,
+            })),
+          ...externals.map((external) => external(source, files)),
+        ],
+      },
+    };
+  };
+/** An external-inventory MCP asset (framework-catalogs-v1.ts externalEccMcpAssets). */
+const external =
+  (
+    name: string,
+    path = "mcp-configs/servers.json",
+    change: (asset: Json) => Json = (asset) => asset,
+  ) =>
+  (source: Json, files: Record<string, string>): Json =>
+    change({
+      id: `mcp:${name}`,
+      kind: "mcp",
+      source: {
+        repository: `${source.owner}/${source.repository}`,
+        commit: source.pinnedCommit,
+        path,
+      },
+      sourcePaths: [path],
+      metadata: {
+        title: name,
+        summary: `${name} server`,
+        usageContext: "ECC declares this as a stdio MCP configuration.",
+        allowedTools: [],
+        sourcePath: path,
+        sourceSha256: sha256(files[path] ?? ""),
+      },
+    });
+const baseline = (
+  components: Json[] = BASELINE_COMPONENTS,
+  externals: ((source: Json, files: Record<string, string>) => Json)[] = [],
+) => ({
+  definition: baselineCatalog(components),
+  authoring: authoringCatalog(components, externals),
+});
 const baselineBase: Omit<Options, "definition"> = {
   files: BASELINE_FILES,
   partition: BASELINE_PARTITION,
@@ -662,7 +734,7 @@ describe("closure-row mode over a framework baseline catalog (D59)", () => {
   const prose = (dir: string) => readFileSync(join(dir, "artifacts", "prose.md"), "utf8");
 
   it("renders agent, shared-declaration mcp and two-root skill rows", async () => {
-    const item = await fixture({ ...baselineBase, definition: baselineCatalog() });
+    const item = await fixture({ ...baselineBase, ...baseline() });
     const result = item.run();
     expect(result.entries).toBe(5);
     expect(result.excluded).toEqual([
@@ -719,11 +791,12 @@ describe("closure-row mode over a framework baseline catalog (D59)", () => {
   });
 
   it("maps the Scanner components that hold the new shapes' files", async () => {
-    const item = await fixture({ ...baselineBase, definition: baselineCatalog() });
+    const item = await fixture({ ...baselineBase, ...baseline() });
     const helper = await mappingHelper();
     const derived = helper.deriveClosureMappingV1(
       read(item.publicationPath),
       read(item.definitionPath),
+      read(item.authoringPath),
     );
     expect(derived.rows).toEqual([
       "agent:planner",
@@ -747,7 +820,7 @@ describe("closure-row mode over a framework baseline catalog (D59)", () => {
     const item = await fixture({
       ...baselineBase,
       mapped: baselineBase.mapped.filter((id) => id !== "runtime:mcp-configs-000000000002"),
-      definition: baselineCatalog(),
+      ...baseline(),
     });
     expect(() => item.run()).toThrow("source-assessment-generator:closure-file-unmapped");
   });
@@ -755,7 +828,7 @@ describe("closure-row mode over a framework baseline catalog (D59)", () => {
   it("verifies every root of a two-root skill against the native hashes", async () => {
     const item = await fixture({
       ...baselineBase,
-      definition: baselineCatalog(),
+      ...baseline(),
       nativeOverride: { ".agents/skills/demo/openai.yaml": "0".repeat(64) },
     });
     expect(() => item.run()).toThrow("source-assessment-generator:closure-file-native-digest");
@@ -801,8 +874,169 @@ describe("closure-row mode over a framework baseline catalog (D59)", () => {
       "definition-shared-file-implicit skills/demo/SKILL.md",
     ],
   ])("refuses %s, stating the shape", async (_label, components, message) => {
-    const item = await fixture({ ...baselineBase, definition: baselineCatalog(components) });
+    const item = await fixture({ ...baselineBase, ...baseline(components) });
     expect(() => item.run()).toThrow(`source-assessment-generator:${message}`);
+  });
+});
+
+describe("external-inventory mcp rows from the policy authoring catalog (D61)", () => {
+  const closure = (dir: string) =>
+    (read(join(dir, "artifacts", "closure.json")).files as { path: string }[]).map(
+      (file) => file.path,
+    );
+  const subjectPath = (dir: string) =>
+    ((read(join(dir, "seed.json")).subject as Json).source as Json).path;
+  const report = (dir: string) => read(join(dir, "evidence", "report.json")).summary as string;
+  const EXTERNALS = [external("gamma"), external("delta")];
+
+  it("renders one row per authoring-catalog mcp asset, the external ones on their declaration file", async () => {
+    const item = await fixture({ ...baselineBase, ...baseline(BASELINE_COMPONENTS, EXTERNALS) });
+    expect(item.run().entries).toBe(7);
+    for (const name of ["gamma", "delta"]) {
+      const row = join(item.outputRoot, `mcp.fixture.${name}`);
+      expect(closure(row)).toEqual(["LICENSE", "mcp-configs/servers.json"]);
+      expect(subjectPath(row)).toBe("mcp-configs/servers.json");
+      // The finding located in the declaration file is stated on the row, as information.
+      expect(report(row)).toContain("Scanner mapped findings: 1;");
+      expect(report(row)).toContain(
+        "the component artifacts of 2 Scanner components (runtime:mcp-configs-000000000002, runtime:root-000000000001)",
+      );
+    }
+    // The curated rows are unchanged by the external ones.
+    expect(closure(join(item.outputRoot, "mcp.fixture.alpha"))).toEqual([
+      ".mcp.json",
+      "LICENSE",
+      "mcp-configs/servers.json",
+    ]);
+  });
+
+  it("maps the Scanner component that holds an external row's declaration file", async () => {
+    const item = await fixture({
+      ...baselineBase,
+      ...baseline(
+        BASELINE_COMPONENTS.filter((component) => component.id !== "skill:demo"),
+        EXTERNALS,
+      ),
+    });
+    const helper = await mappingHelper();
+    const derived = helper.deriveClosureMappingV1(
+      read(item.publicationPath),
+      read(item.definitionPath),
+      read(item.authoringPath),
+    );
+    expect(derived.rows).toEqual([
+      "agent:planner",
+      "agent:reviewer",
+      "mcp:alpha",
+      "mcp:beta",
+      "mcp:delta",
+      "mcp:gamma",
+    ]);
+  });
+
+  it("refuses a baseline catalog with mcp components but no policy authoring catalog", async () => {
+    const item = await fixture({ ...baselineBase, definition: baselineCatalog() });
+    expect(() => item.run()).toThrow(
+      "source-assessment-generator:authoring-catalog-required: a baseline catalog with mcp components renders its mcp rows from the Catalog's policy authoring catalog at the pin",
+    );
+  });
+
+  it("refuses a declared digest the checkout does not have", async () => {
+    const item = await fixture({
+      ...baselineBase,
+      ...baseline(BASELINE_COMPONENTS, [
+        external("gamma", "mcp-configs/servers.json", (asset) => ({
+          ...asset,
+          metadata: { ...(asset.metadata as Json), sourceSha256: "0".repeat(64) },
+        })),
+      ]),
+    });
+    expect(() => item.run()).toThrow("source-assessment-generator:closure-file-declared-digest");
+  });
+
+  it.each([
+    [
+      "an external asset on a file no curated mcp component lists",
+      [external("gamma", "README.md")],
+      "authoring-catalog-external-undeclared mcp:gamma: README.md is not a declaration file the curated definition lists for an mcp component",
+    ],
+    [
+      "an external asset on a directory",
+      [external("gamma", "mcp-configs")],
+      "authoring-catalog-external-undeclared mcp:gamma: mcp-configs is not a declaration file the curated definition lists for an mcp component",
+    ],
+    [
+      "an external asset with several source paths",
+      [
+        external("gamma", "mcp-configs/servers.json", (asset) => ({
+          ...asset,
+          sourcePaths: [".mcp.json", "mcp-configs/servers.json"],
+        })),
+      ],
+      "authoring-catalog-external-undeclared mcp:gamma: an external asset names exactly its one declaration file",
+    ],
+    [
+      "an external asset without a declared digest",
+      [
+        external("gamma", "mcp-configs/servers.json", (asset) => {
+          const { metadata: _, ...rest } = asset;
+          return rest;
+        }),
+      ],
+      "authoring-catalog-external-undeclared mcp:gamma: an external asset names exactly its one declaration file",
+    ],
+    [
+      "an external asset at another pin",
+      [
+        external("gamma", "mcp-configs/servers.json", (asset) => ({
+          ...asset,
+          source: { ...(asset.source as Json), commit: "9".repeat(40) },
+        })),
+      ],
+      "authoring-catalog-source",
+    ],
+  ])("refuses %s", async (_label, externals, message) => {
+    const item = await fixture({ ...baselineBase, ...baseline(BASELINE_COMPONENTS, externals) });
+    expect(() => item.run()).toThrow(`source-assessment-generator:${message}`);
+  });
+
+  it("refuses an authoring catalog at another pin or disagreeing with the curated mcp components", async () => {
+    const otherPin = await fixture({
+      ...baselineBase,
+      definition: baselineCatalog(),
+      authoring: (source, files) => {
+        const value = authoringCatalog(BASELINE_COMPONENTS, [])(source, files);
+        (value.framework as Json).commit = "9".repeat(40);
+        return value;
+      },
+    });
+    expect(() => otherPin.run()).toThrow("source-assessment-generator:authoring-catalog-source");
+    const otherEntry = await fixture({
+      ...baselineBase,
+      definition: baselineCatalog(),
+      authoring: authoringCatalog(
+        BASELINE_COMPONENTS.map((component) =>
+          component.id === "mcp:alpha"
+            ? { ...component, paths: [...DECLARATIONS].reverse() }
+            : component,
+        ),
+        [],
+      ),
+    });
+    expect(() => otherEntry.run()).toThrow(
+      "source-assessment-generator:authoring-catalog-curated-mismatch mcp:alpha",
+    );
+    const missing = await fixture({
+      ...baselineBase,
+      definition: baselineCatalog(),
+      authoring: authoringCatalog(
+        BASELINE_COMPONENTS.filter((component) => component.id !== "mcp:beta"),
+        [],
+      ),
+    });
+    expect(() => missing.run()).toThrow(
+      "source-assessment-generator:authoring-catalog-curated-missing mcp:beta",
+    );
   });
 });
 

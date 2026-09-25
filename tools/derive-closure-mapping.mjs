@@ -9,6 +9,10 @@
 // A publication set (D49: one request set over one source, published as several publications)
 // is named as repeated `--publication <p> --output <mapping>` pairs: the curated closure must
 // lie in the union of the members' requests, and each member gets its own mapping.
+//
+// `--authoring-catalog <compiler input>` names the Catalog's policy authoring catalog at the pin
+// (tools/emit-compiler-input.mjs). A baseline catalog with mcp components needs it: its
+// external-inventory MCP assets are rows too (D61).
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -25,8 +29,12 @@ const codeUnitCompare = (left, right) => (left < right ? -1 : left > right ? 1 :
 const holds = (component, path) =>
   component.paths.some((root) => path === root || path.startsWith(`${root}/`));
 
-export function deriveClosureMappingV1(publication, definition) {
-  const { mappings, rows, excluded } = deriveClosureMappingSetV1([publication], definition);
+export function deriveClosureMappingV1(publication, definition, authoringCatalog) {
+  const { mappings, rows, excluded } = deriveClosureMappingSetV1(
+    [publication],
+    definition,
+    authoringCatalog,
+  );
   return { mapping: mappings[0], rows, excluded };
 }
 
@@ -35,7 +43,7 @@ export function deriveClosureMappingV1(publication, definition) {
  * request set over one source (assertPublicationSetV1); every member's native annex is verified
  * and the curated closure must lie in the union of the members' requests.
  */
-export function deriveClosureMappingSetV1(publications, definition) {
+export function deriveClosureMappingSetV1(publications, definition, authoringCatalog) {
   if (!Array.isArray(publications) || publications.length === 0) fail("publication-set");
   if (publications.length > 1) assertPublicationSetV1(publications);
   const natives = publications.map((publication) => publicationNativeFilesV1(publication));
@@ -49,6 +57,7 @@ export function deriveClosureMappingSetV1(publications, definition) {
     definition,
     requests[0].source,
     [...natives[0].keys()].sort(codeUnitCompare),
+    authoringCatalog,
   );
   const closure = [...new Set(inventory.rows.flatMap((row) => row.files))].sort(codeUnitCompare);
   for (const path of closure)
@@ -102,14 +111,21 @@ function argumentsFrom(argv) {
     values.set(name, value);
   }
   const expected = ["publication", "definition", "output"];
+  const optional = ["authoring-catalog"];
   if (
-    values.size !== expected.length ||
+    values.size !== expected.length + optional.filter((name) => values.has(name)).length ||
     expected.some((name) => !values.has(name)) ||
     pairs.publication.length !== pairs.output.length ||
     new Set(pairs.output).size !== pairs.output.length
   )
     fail("arguments");
-  return { definition: resolve(values.get("definition")), ...pairs };
+  return {
+    definition: resolve(values.get("definition")),
+    ...(values.has("authoring-catalog")
+      ? { authoringCatalog: resolve(values.get("authoring-catalog")) }
+      : {}),
+    ...pairs,
+  };
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url))) {
@@ -121,6 +137,7 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
     const derived = deriveClosureMappingSetV1(
       values.publication.map(readJson),
       readJson(values.definition),
+      values.authoringCatalog === undefined ? undefined : readJson(values.authoringCatalog),
     );
     derived.mappings.forEach((mapping, index) =>
       writeFileSync(values.output[index], `${JSON.stringify(mapping)}\n`, {

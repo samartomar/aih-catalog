@@ -1057,6 +1057,80 @@ function baselineCandidate(id, kind, name, roots, nativePaths) {
 }
 
 /**
+ * The external-inventory MCP rows of a baseline catalog (D61): every mcp asset of the Catalog's
+ * policy authoring catalog at the pin (tools/emit-compiler-input.mjs; framework-catalogs-v1.ts
+ * externalEccMcpAssets) that is not a curated component. Each names exactly one declaration file
+ * the curated definition lists for an mcp component, with its declared sha256; that file is its
+ * entry and, beside the root license, its closure. The curated mcp assets must agree with the
+ * definition (same paths, the entry the compiler prefers), and every curated mcp component must
+ * be one of them.
+ */
+function externalMcpCandidates(value, source, repository, curated, nativePaths, declare) {
+  const authoring = object(value, "authoring-catalog");
+  const framework = object(authoring.framework, "authoring-catalog-framework");
+  if (
+    authoring.version !== "pinned-baseline/v1" ||
+    framework.id !== source.id ||
+    framework.repository !== repository ||
+    framework.commit !== source.pinnedCommit
+  )
+    fail("authoring-catalog-source");
+  const byId = new Map(curated.map((candidate) => [candidate.id, candidate]));
+  const declarations = new Set(curated.flatMap((candidate) => candidate.members));
+  const seen = new Set();
+  const externals = [];
+  for (const item of array(framework.assets, "authoring-catalog-assets")) {
+    const asset = object(item, "authoring-catalog-asset");
+    if (asset.kind !== "mcp") continue;
+    const id = text(asset.id, "authoring-catalog-asset-id", 300);
+    if (!id.startsWith("mcp:") || seen.has(id)) fail("authoring-catalog-asset-id");
+    seen.add(id);
+    const assetSource = object(asset.source, "authoring-catalog-asset-source");
+    if (assetSource.repository !== repository || assetSource.commit !== source.pinnedCommit)
+      fail("authoring-catalog-source");
+    const path = text(assetSource.path, "authoring-catalog-asset-path", 1_000);
+    const paths = validateStringSet(asset.sourcePaths, "authoring-catalog-source-paths");
+    const component = byId.get(id);
+    if (component !== undefined) {
+      if (
+        path !== component.entryPath ||
+        canonical([...paths].sort(codeUnitCompare)) !==
+          canonical([...component.members].sort(codeUnitCompare))
+      )
+        fail(`authoring-catalog-curated-mismatch ${id}`);
+      continue;
+    }
+    const undeclared = (reason) => fail(`authoring-catalog-external-undeclared ${id}: ${reason}`);
+    const metadata = asset.metadata;
+    if (
+      paths.length !== 1 ||
+      paths[0] !== path ||
+      metadata === null ||
+      typeof metadata !== "object" ||
+      metadata.sourcePath !== path ||
+      typeof metadata.sourceSha256 !== "string" ||
+      !/^[0-9a-f]{64}$/.test(metadata.sourceSha256)
+    )
+      undeclared("an external asset names exactly its one declaration file");
+    const relativePath = sourceRelative(path, "authoring-catalog-asset-path");
+    if (!declarations.has(relativePath) || !nativePaths.includes(relativePath))
+      undeclared(`${path} is not a declaration file the curated definition lists for an mcp component`);
+    declare(relativePath, `sha256:${metadata.sourceSha256}`);
+    externals.push({
+      id,
+      kind: "mcp",
+      name: id.slice("mcp:".length),
+      entryPath: relativePath,
+      members: [relativePath],
+      roots: [relativePath],
+    });
+  }
+  for (const candidate of curated)
+    if (!seen.has(candidate.id)) fail(`authoring-catalog-curated-missing ${candidate.id}`);
+  return externals;
+}
+
+/**
  * The curated Catalog rows of one source and their compiler closures, from the Catalog's own
  * pinned definition (tools/emit-baseline-definitions.mjs): a pinned skill collection (its
  * skills' declared files and declared license), a pinned component collection (each
@@ -1066,7 +1140,7 @@ function baselineCandidate(id, kind, name, roots, nativePaths) {
  * rows share must be listed by each. A definition for another source or pin refuses.
  * `nativePaths` is the publication's native file list.
  */
-export function curatedClosuresV1(definitionValue, source, nativePaths) {
+export function curatedClosuresV1(definitionValue, source, nativePaths, authoringValue) {
   const definition = object(definitionValue, "definition");
   const repository = `${source.owner}/${source.repository}`;
   const declared = new Map();
@@ -1091,6 +1165,7 @@ export function curatedClosuresV1(definitionValue, source, nativePaths) {
   const candidates = [];
   let licensePaths;
   const format = definition.version ?? (Object.hasOwn(definition, "pinnedSha") ? "pinned-baseline/v1" : undefined);
+  if (authoringValue !== undefined && format !== "pinned-baseline/v1") fail("authoring-catalog-format");
   if (format === "pinned-skill-collection/v1") {
     pinnedSource(definition.source);
     const license = object(definition.license, "definition-license");
@@ -1151,6 +1226,18 @@ export function curatedClosuresV1(definitionValue, source, nativePaths) {
       }
       candidates.push(baselineCandidate(id, kind, id.slice(colon + 1), roots, nativePaths));
     }
+    // Every mcp asset of the policy authoring catalog keeps its row (D61), so a baseline catalog
+    // with mcp components never renders them without it.
+    const curatedMcp = candidates.filter((candidate) => candidate.kind === "mcp");
+    if (authoringValue === undefined) {
+      if (curatedMcp.length > 0)
+        fail(
+          "authoring-catalog-required: a baseline catalog with mcp components renders its mcp rows from the Catalog's policy authoring catalog at the pin",
+        );
+    } else
+      candidates.push(
+        ...externalMcpCandidates(authoringValue, source, repository, curatedMcp, nativePaths, declare),
+      );
   } else fail("definition-format");
   // A file two curated rows share must be listed by each of them (D59): a closure never
   // reaches another row's file through a directory root.
@@ -1227,13 +1314,18 @@ const unique = (items) => {
  * receipt and native annex are verified (the set shares the annex bytes), the mapped components
  * are the union of the members' and a row cites exactly the members that own its closure.
  */
-function closureRows(members, provider, sourceRoot, definition) {
+function closureRows(members, provider, sourceRoot, definition, authoring) {
   const natives = members.map(({ handoff, validated }) =>
     publicationNativeFiles(validated.publication.value, handoff, validated.source),
   );
   const [native] = natives;
   const { source } = members[0].validated;
-  const inventory = curatedClosuresV1(definition, source, [...native.keys()].sort(codeUnitCompare));
+  const inventory = curatedClosuresV1(
+    definition,
+    source,
+    [...native.keys()].sort(codeUnitCompare),
+    authoring,
+  );
   const root = rootOf(sourceRoot);
   const owners = new Map();
   const memberOf = new Map();
@@ -1337,7 +1429,7 @@ function skillRowsOf(member, provider, sourceRoot) {
  * ordered by publication digest. Rows are rendered once over their union; each row cites the
  * publications its closure comes from, and a row of one publication renders as it always has.
  */
-function renderRows(members, provider, sourceRoot, definition) {
+function renderRows(members, provider, sourceRoot, definition, authoring) {
   const files = new Map();
   const seedPaths = [];
   const validated = { source: members[0].validated.source };
@@ -1352,7 +1444,7 @@ function renderRows(members, provider, sourceRoot, definition) {
   );
   const closureMode = definition !== undefined;
   const selected = closureMode
-    ? closureRows(members, provider, sourceRoot, definition)
+    ? closureRows(members, provider, sourceRoot, definition, authoring)
     : { rows: skillRows(members, provider, sourceRoot), excluded: undefined };
   for (const row of [...selected.rows].sort((left, right) =>
     codeUnitCompare(left.assetId, right.assetId),
@@ -1681,6 +1773,7 @@ export function generateSourceAssessmentRowsV1({
   outputRoot,
   manifestPath,
   definitionPath,
+  authoringCatalogPath,
 }) {
   if (!PROVIDER.test(text(provider, "provider", 80))) fail("provider");
   // One publication, or the members of one publication set as handoff/publication pairs (D49).
@@ -1695,6 +1788,7 @@ export function generateSourceAssessmentRowsV1({
     ["outputRoot", outputRoot],
     ["manifestPath", manifestPath],
     ...(definitionPath === undefined ? [] : [["definitionPath", definitionPath]]),
+    ...(authoringCatalogPath === undefined ? [] : [["authoringCatalogPath", authoringCatalogPath]]),
   ])
     if (typeof value !== "string" || !isAbsolute(value)) fail(`${label}-absolute`);
   handoffPaths.forEach((path, index) => {
@@ -1706,6 +1800,13 @@ export function generateSourceAssessmentRowsV1({
     definitionPath === undefined
       ? undefined
       : readJson(definitionPath, "definition", 64 * 1024 * 1024).value;
+  // The external-inventory MCP rows come from the Catalog's policy authoring catalog (D61).
+  if (authoringCatalogPath !== undefined && definition === undefined)
+    fail("authoring-catalog-without-definition");
+  const authoring =
+    authoringCatalogPath === undefined
+      ? undefined
+      : readJson(authoringCatalogPath, "authoring-catalog", 64 * 1024 * 1024).value;
   const members = handoffPaths.map((path, index) => {
     const handoff = readJson(path, "handoff", MAX_INPUT_BYTES).value;
     const publicationBytes = readPinnedFile(publicationPaths[index], MAX_INPUT_BYTES);
@@ -1732,7 +1833,7 @@ export function generateSourceAssessmentRowsV1({
       codeUnitCompare(left.handoff.publicationSha256, right.handoff.publicationSha256),
     );
   }
-  const rendered = renderRows(members, provider, sourceRoot, definition);
+  const rendered = renderRows(members, provider, sourceRoot, definition, authoring);
   const layout = destinationLayout(manifestPath, outputRoot, provider);
   const preparedManifest = prepareManifestUpdate(manifestPath, rendered.seedPaths, layout);
   writeGeneratedRows(outputRoot, rendered.files);
@@ -1774,7 +1875,7 @@ function argumentsFrom(argv) {
     "output-root",
     "manifest",
   ];
-  const optional = ["definition"];
+  const optional = ["definition", "authoring-catalog"];
   if (
     expected.some((name) => !values.has(name)) ||
     [...values.keys()].some((name) => !expected.includes(name) && !optional.includes(name))
@@ -1788,6 +1889,9 @@ function argumentsFrom(argv) {
     outputRoot: resolve(values.get("output-root")),
     manifestPath: resolve(values.get("manifest")),
     ...(values.has("definition") ? { definitionPath: resolve(values.get("definition")) } : {}),
+    ...(values.has("authoring-catalog")
+      ? { authoringCatalogPath: resolve(values.get("authoring-catalog")) }
+      : {}),
   };
 }
 
