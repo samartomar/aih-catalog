@@ -163,7 +163,7 @@ describe("networked upstream producers (offline transforms)", () => {
     const markdown = "---\nname: Planner\ndescription: Plans work.\ntools: [Read, Grep]\n---\n";
     const metadata = JSON.parse(
       produceContentMetadataV1(
-        tree("obra/Superpowers", "b36e0829c6d0140e93cfef2ca599b1b07d4a7797", {
+        tree("obra/Superpowers", "5bf4e78011075bcfc0dc295f0724994cd123ee71", {
           "agents/planner.md": markdown,
           "skills/brainstorming/SKILL.md":
             "---\nname: brainstorming\n---\n\n## Overview\n\nUse it before building.\n",
