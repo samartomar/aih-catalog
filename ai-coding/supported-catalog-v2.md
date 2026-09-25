@@ -99,8 +99,10 @@ Ponytail (`DietrichGebert/ponytail@1d95ff7d39de12d87014ea40d4e22201bddc501b`,
 counterpart of a `skills/<name>/SKILL.md`. The snapshot declares the six skill
 components from `skills/` only and stages no `.openclaw/` file. Upstream
 `README.md` says: "The OpenClaw skill package (`.openclaw/skills/`) is generated
-from `skills/`". `scripts/build-openclaw-skills.js` builds it for ClawHub
-publication. At the pin, the bytes of each copy differ from its `skills/`
+from `skills/`". There, `scripts/build-openclaw-skills.js` generates
+`.openclaw/skills/` from `skills/`, and a separate script,
+`scripts/publish-openclaw-skills.js`, publishes the six skills to ClawHub. At
+the pin, the bytes of each copy differ from its `skills/`
 original. The copies are generated packaging for the same six skills, so they
 are not separate subjects.
 
