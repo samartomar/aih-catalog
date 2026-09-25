@@ -851,7 +851,7 @@ describe("Core collection seed renderer, new-release mode", () => {
     expect(snapshot(crafted.catalogRoot)).toEqual(before);
   });
 
-  it("writes nothing when a binding does not verify or the new seed tree already exists", async () => {
+  it("writes nothing when a binding does not verify or a temporary file is left over", async () => {
     const api = await renderer();
     const unbound = nextRelease();
     const next = read(unbound.draftPath) as { bindings: { subject: { id: string } }[] };
@@ -873,11 +873,60 @@ describe("Core collection seed renderer, new-release mode", () => {
       ),
     );
     expect(snapshot(leftover.catalogRoot)).toEqual(withLeftover);
+  });
 
-    const existing = nextRelease();
-    mkdirSync(join(existing.catalogRoot, "defaults", "workbench", "aih-core-0.7.0"));
-    expect(() => api.renderCoreCollectionNewReleaseV1(existing)).toThrow(
-      "core-collection-renderer:output-exists",
+  it("names the partial tree an interrupted run left, before and after current.release moved", async () => {
+    const api = await renderer();
+    // Interrupted after the new tree was written, before the seed manifest was replaced.
+    const tree = nextRelease();
+    const nextTree = join(tree.catalogRoot, "defaults", "workbench", "aih-core-0.7.0");
+    mkdirSync(join(nextTree, "mcp.aih.serena.core-0-7-0"), { recursive: true });
+    const before = snapshot(tree.catalogRoot);
+    expect(() => api.renderCoreCollectionNewReleaseV1(tree)).toThrow(
+      new TypeError(
+        "core-collection-renderer:partial-release defaults/workbench/aih-core-0.7.0/ (current.release 0.6.2; seed manifest not updated)",
+      ),
+    );
+    expect(snapshot(tree.catalogRoot)).toEqual(before);
+
+    // Interrupted after the seed manifest was replaced, before the collection inputs were.
+    const manifest = nextRelease();
+    mkdirSync(join(manifest.catalogRoot, "defaults", "workbench", "aih-core-0.7.0"));
+    writeFileSync(
+      join(manifest.catalogRoot, "defaults", "default-catalog-seed-manifest-v2.json"),
+      canonical({
+        format: "aih-supported-candidate-seed-manifest",
+        seeds: ["workbench/aih-core-0.7.0/mcp.aih.serena.core-0-7-0/seed.json"],
+        version: 1,
+      }),
+    );
+    expect(() => api.renderCoreCollectionNewReleaseV1(manifest)).toThrow(
+      new TypeError(
+        "core-collection-renderer:partial-release defaults/workbench/aih-core-0.7.0/ (current.release 0.6.2; seed manifest updated)",
+      ),
+    );
+
+    // Interrupted after current.release moved to 0.7.0, before the previous tree was removed.
+    const moved = nextRelease({
+      inputs: {
+        collectedSourceTypes: ["aih"],
+        collections: [
+          {
+            current: { origin: { kind: "catalog-authored" }, release: NEXT },
+            id: "aih-core",
+            owner: { package: "@aihq/core" },
+            seedRoot: seedRootOf(NEXT),
+            sourceType: "aih",
+          },
+        ],
+        format: "aih-catalog-collection-inputs",
+        version: 1,
+      },
+    });
+    expect(() => api.renderCoreCollectionNewReleaseV1(moved)).toThrow(
+      new TypeError(
+        "core-collection-renderer:partial-release defaults/workbench/aih-core-0.6.2/ (current.release 0.7.0; previous tree not removed)",
+      ),
     );
   });
 

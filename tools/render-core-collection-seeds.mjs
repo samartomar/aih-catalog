@@ -28,6 +28,22 @@
 //   generators. Everything, the generated views included, is produced in a scratch copy first;
 //   the Catalog root is written only after all of it succeeded.
 //
+//   Commit phase and recovery. The Catalog root is then written in this order: the new seed tree;
+//   the seed manifest, the collection inputs and the four views, each replaced through
+//   <file>.tmp and a rename; then the previous seed tree is removed. These steps are not one
+//   atomic change, so a run killed between them leaves defaults/ partly moved. A re-run with the
+//   same R names what it finds and writes nothing:
+//     partial-release defaults/workbench/aih-core-<R>/ (current.release <previous>; seed manifest
+//       updated | not updated)   the new tree exists but current.release did not move yet;
+//     partial-release defaults/workbench/aih-core-<previous>/ (current.release <R>; previous tree
+//       not removed)             current.release moved, the previous tree is still there;
+//     leftover-temporary defaults/<file>.tmp   a replacement was cut off mid-write.
+//   defaults/ is tracked in git and the tool writes nothing outside it, so recovery is to put
+//   defaults/ back at the last commit and re-run:
+//     git restore --source=HEAD --staged --worktree -- defaults && git clean -fd -- defaults
+//   This discards every uncommitted change under defaults/ (the new tree, every .tmp and
+//   replaced file included): commit anything else there before a new-release run.
+//
 // In both modes a profile's Scanner observation is bound to its asset by the record, not by the
 // draft: the record's coverage must bind the component the profile names to the profile's exact
 // asset (asset id and content digest), or the run is refused. A refresh also refuses a profile
@@ -590,14 +606,40 @@ export function renderCoreCollectionNewReleaseV1({
   const root = resolve(catalogRoot);
   const current = currentCollection(root);
   if (typeof release !== "string" || !NEW_RELEASE.test(release)) fail("new-release");
-  if (release === current.release) fail("new-release-is-current");
+  const workbench = resolve(root, "defaults", "workbench");
+  const coreTrees = existsSync(workbench)
+    ? readdirSync(workbench)
+        .filter((name) => name.startsWith(`${COLLECTION}-`))
+        .sort(codeUnitCompare)
+    : [];
+  if (release === current.release) {
+    // current.release moved and a previous tree is still there: a run cut off before its last step.
+    const stale = coreTrees.filter((name) => `workbench/${name}/` !== current.seedRoot);
+    if (stale.length > 0)
+      fail(
+        `partial-release ${stale.map((name) => `defaults/workbench/${name}/`).join(", ")} (current.release ${release}; previous tree not removed)`,
+      );
+    fail("new-release-is-current");
+  }
   if (!NEW_RELEASE.test(current.release)) fail("inputs-release");
   if (releaseOrder(release, current.release) <= 0) fail(`new-release-not-newer ${release} ${current.release}`);
   const seedRoot = `workbench/aih-core-${release}/`;
   const suffix = `core-${release.replaceAll(".", "-")}`;
   const nextDirectory = defaultsPath(root, seedRoot);
   const previousDirectory = defaultsPath(root, current.seedRoot);
-  if (existsSync(nextDirectory)) fail("output-exists");
+  if (existsSync(nextDirectory)) {
+    // current.release has not moved, so this tree is an interrupted run's, not a committed release.
+    let listed = false;
+    try {
+      const seeds = JSON.parse(readFileSync(resolve(root, MANIFEST), "utf8")).seeds;
+      listed = Array.isArray(seeds) && seeds.some((path) => typeof path === "string" && path.startsWith(seedRoot));
+    } catch {
+      listed = false;
+    }
+    fail(
+      `partial-release defaults/${seedRoot} (current.release ${current.release}; seed manifest ${listed ? "updated" : "not updated"})`,
+    );
+  }
   // A killed run can leave a temporary file beside a file it replaces: named, never overwritten.
   const leftovers = [MANIFEST, INPUT, ...GENERATORS.map(([path]) => path)]
     .map((path) => `${path}.tmp`)
