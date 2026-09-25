@@ -61,13 +61,16 @@ export function governedTargetsV1(core: PolicyAuthoringCatalogInputsV1["core"]):
 /**
  * Assemble → packaged overlay: the stages after provider compilation, shared by the full
  * authoring bundle and the single-source bundle (single-source-bundle-v1.ts). The overlay
- * replaces each packaged source and projects the sealed Scanner collection evidence onto it.
+ * replaces each packaged source and projects the sealed Scanner collection evidence onto the
+ * replaced sources only (packaged-source-overlay-v1.ts replaceSource): a source no record
+ * replaces is exactly its compiled assembly.
  */
 export function assembleCatalogAuthoringBundleV1(
   root: string,
   providers: readonly CatalogProviderCompilationV1[],
   coreCapabilities: readonly CoreAuthoringCapabilityRegistryEntryV1[],
   sourceRecords: unknown = readData(root, PACKAGED_SOURCE_DATA_FILE_V1),
+  collectionEvidence: unknown = readData(root, PACKAGED_COLLECTION_EVIDENCE_FILE_V1),
 ): {
   bundle: AuthoringCatalogBundleV1;
   seals: ReturnType<typeof parsePackagedSourceRecordsV1>["seals"];
@@ -79,9 +82,7 @@ export function assembleCatalogAuthoringBundleV1(
     governedTargets,
   );
   const packaged = parsePackagedSourceRecordsV1(sourceRecords, governedTargets);
-  const evidence = parsePackagedScannerCollectionEvidenceV1(
-    readData(root, PACKAGED_COLLECTION_EVIDENCE_FILE_V1),
-  );
+  const evidence = parsePackagedScannerCollectionEvidenceV1(collectionEvidence);
   return {
     bundle: applyPackagedSourceBundlesV1(base, packaged.records, evidence, governedTargets),
     seals: packaged.seals,
@@ -106,17 +107,20 @@ export function compileAuthoringProvidersV1(root: string, inputs: PolicyAuthorin
  * the sealed packaged source records and the sealed Scanner collection
  * evidence. This is Core 80120883's compile → packaged overlay → admission
  * pipeline, with bindings left empty: Core derives bindings from what it admits.
- * A candidate build passes the packaged source records it may overlay.
+ * A candidate build passes the packaged source records it may overlay, and the
+ * provider of a named collection no registered provider compiles (anthropics-skills).
  */
 export function produceCatalogAuthoringBundleV1(
   root: string,
   sourceRecords: unknown = readData(root, PACKAGED_SOURCE_DATA_FILE_V1),
+  candidateProviders: readonly CatalogProviderCompilationV1[] = [],
 ): Record<string, unknown> {
   const inputs = readPolicyAuthoringCatalogInputsV1(root);
   const { catalog, compiled } = compileAuthoringProvidersV1(root, inputs);
+  const providers = [...compiled.providers, ...candidateProviders];
   const { bundle, seals } = assembleCatalogAuthoringBundleV1(
     root,
-    compiled.providers,
+    providers,
     compiled.coreCapabilities,
     sourceRecords,
   );
@@ -125,14 +129,14 @@ export function produceCatalogAuthoringBundleV1(
     coreVersion: inputs.core.source.version,
     catalogDigest: canonicalDigestV1(catalog),
     vendorLockDigest: `sha256:${sha256HexV1(readFileSync(productionDataPathV1(root, "vendor-lock-v1.json")))}`,
-    providerRegistrations: compiled.providers.map(({ providerId, providerVersion }) => ({
+    providerRegistrations: providers.map(({ providerId, providerVersion }) => ({
       providerId,
       providerVersion,
     })),
     compilerRegistrationsDigest: canonicalDigestV1(compilerFormatRegistrationsV1),
     coreCapabilitiesDigest: canonicalDigestV1(compiled.coreCapabilities),
     sourceRecordSeals: seals,
-    providerAdmissions: compiled.providers.map((provider) => ({
+    providerAdmissions: providers.map((provider) => ({
       providerId: provider.providerId,
       providerVersion: provider.providerVersion,
       inputDigest: provider.inputDigest,

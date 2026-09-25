@@ -1,0 +1,9 @@
+{
+  "version": "ecc-runtime-declared-evaluation/v2",
+  "projection": "source-data-contained-projection/v1",
+  "verdict": "has-findings-when-any-mapped-has-findings",
+  "analyzers": "exact-union",
+  "findings": "exact-union",
+  "evidenceProblems": "exact-union",
+  "tree": "declared-component-identity-paths"
+}

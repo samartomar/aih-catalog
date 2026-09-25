@@ -5,10 +5,22 @@
 // closure-row mode of tools/generate-source-assessment-rows.mjs: every Scanner component that
 // holds a file of a curated Catalog row closure (curatedClosuresV1) is mapped, and every other
 // component is excluded with that reason. It never overwrites: the output must not exist.
-import { readFileSync, writeFileSync } from "node:fs";
+//
+// A publication set (D49: one request set over one source, published as several publications)
+// is named as repeated `--publication <p> --output <mapping>` pairs: the curated closure must
+// lie in the union of the members' requests, and each member gets its own mapping.
+//
+// `--authoring-catalog <compiler input>` names the Catalog's policy authoring catalog at the pin
+// (tools/emit-compiler-input.mjs). A baseline catalog with mcp components needs it: its
+// external-inventory MCP assets are rows too (D61).
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { curatedClosuresV1, publicationNativeFilesV1 } from "./generate-source-assessment-rows.mjs";
+import {
+  assertPublicationSetV1,
+  curatedClosuresV1,
+  publicationNativeFilesV1,
+} from "./generate-source-assessment-rows.mjs";
 
 const fail = (message) => {
   throw new TypeError(`closure-mapping:${message}`);
@@ -17,42 +29,67 @@ const codeUnitCompare = (left, right) => (left < right ? -1 : left > right ? 1 :
 const holds = (component, path) =>
   component.paths.some((root) => path === root || path.startsWith(`${root}/`));
 
-export function deriveClosureMappingV1(publication, definition) {
-  const native = publicationNativeFilesV1(publication);
-  const request = publication.request;
-  if (request === null || typeof request !== "object" || !Array.isArray(request.components))
-    fail("publication-request");
+export function deriveClosureMappingV1(publication, definition, authoringCatalog) {
+  const { mappings, rows, excluded } = deriveClosureMappingSetV1(
+    [publication],
+    definition,
+    authoringCatalog,
+  );
+  return { mapping: mappings[0], rows, excluded };
+}
+
+/**
+ * The mappings of a publication set, one per member in the given order. The set must be one
+ * request set over one source (assertPublicationSetV1); every member's native annex is verified
+ * and the curated closure must lie in the union of the members' requests.
+ */
+export function deriveClosureMappingSetV1(publications, definition, authoringCatalog) {
+  if (!Array.isArray(publications) || publications.length === 0) fail("publication-set");
+  if (publications.length > 1) assertPublicationSetV1(publications);
+  const natives = publications.map((publication) => publicationNativeFilesV1(publication));
+  const requests = publications.map((publication) => {
+    const request = publication.request;
+    if (request === null || typeof request !== "object" || !Array.isArray(request.components))
+      fail("publication-request");
+    return request;
+  });
   const inventory = curatedClosuresV1(
     definition,
-    request.source,
-    [...native.keys()].sort(codeUnitCompare),
+    requests[0].source,
+    [...natives[0].keys()].sort(codeUnitCompare),
+    authoringCatalog,
   );
   const closure = [...new Set(inventory.rows.flatMap((row) => row.files))].sort(codeUnitCompare);
   for (const path of closure)
-    if (!request.components.some((component) => holds(component, path)))
+    if (
+      !requests.some((request) => request.components.some((component) => holds(component, path)))
+    )
       fail(`closure-file-outside-request ${path}`);
-  const components = [];
-  const exclusions = [];
-  for (const component of request.components) {
-    if (closure.some((path) => holds(component, path)))
-      components.push({
-        catalogAssetId: `${request.source.id}/${component.content}:${component.id.slice(component.id.indexOf(":") + 1)}`,
-        scannerComponentId: component.id,
-      });
-    else
-      exclusions.push({
-        reason: "holds no file of a curated Catalog row closure",
-        scannerComponentId: component.id,
-      });
-  }
-  return {
-    mapping: {
+  const mappings = requests.map((request) => {
+    const components = [];
+    const exclusions = [];
+    for (const component of request.components) {
+      if (closure.some((path) => holds(component, path)))
+        components.push({
+          catalogAssetId: `${request.source.id}/${component.content}:${component.id.slice(component.id.indexOf(":") + 1)}`,
+          scannerComponentId: component.id,
+        });
+      else
+        exclusions.push({
+          reason: "holds no file of a curated Catalog row closure",
+          scannerComponentId: component.id,
+        });
+    }
+    return {
       protocol: "ScannerConsumerMappingV1",
       requestSha256: request.requestSha256,
       contentClass: "exact compiler/source-file closure for assessment only",
       components,
       exclusions,
-    },
+    };
+  });
+  return {
+    mappings,
     rows: inventory.rows.map((row) => `${row.kind}:${row.name}`),
     excluded: inventory.excluded,
   };
@@ -60,34 +97,63 @@ export function deriveClosureMappingV1(publication, definition) {
 
 function argumentsFrom(argv) {
   const values = new Map();
+  const pairs = { publication: [], output: [] };
   for (let index = 0; index < argv.length; index += 2) {
     const [key, value] = [argv[index], argv[index + 1]];
     if (!key?.startsWith("--") || value === undefined || value.startsWith("--")) fail("arguments");
-    if (values.has(key.slice(2))) fail("duplicate-argument");
-    values.set(key.slice(2), value);
+    const name = key.slice(2);
+    if (Object.hasOwn(pairs, name)) {
+      pairs[name].push(resolve(value));
+      values.set(name, value);
+      continue;
+    }
+    if (values.has(name)) fail("duplicate-argument");
+    values.set(name, value);
   }
   const expected = ["publication", "definition", "output"];
-  if (values.size !== expected.length || expected.some((name) => !values.has(name)))
+  const optional = ["authoring-catalog"];
+  if (
+    values.size !== expected.length + optional.filter((name) => values.has(name)).length ||
+    expected.some((name) => !values.has(name)) ||
+    pairs.publication.length !== pairs.output.length ||
+    new Set(pairs.output).size !== pairs.output.length
+  )
     fail("arguments");
-  return values;
+  return {
+    definition: resolve(values.get("definition")),
+    ...(values.has("authoring-catalog")
+      ? { authoringCatalog: resolve(values.get("authoring-catalog")) }
+      : {}),
+    ...pairs,
+  };
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url))) {
   try {
     const values = argumentsFrom(process.argv.slice(2));
-    const readJson = (name) =>
-      JSON.parse(
-        new TextDecoder("utf-8", { fatal: true }).decode(readFileSync(resolve(values.get(name)))),
-      );
-    const derived = deriveClosureMappingV1(readJson("publication"), readJson("definition"));
-    writeFileSync(resolve(values.get("output")), `${JSON.stringify(derived.mapping)}\n`, {
-      encoding: "utf8",
-      flag: "wx",
+    const readJson = (path) =>
+      JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(readFileSync(path)));
+    for (const output of values.output) if (existsSync(output)) fail("output-exists");
+    const derived = deriveClosureMappingSetV1(
+      values.publication.map(readJson),
+      readJson(values.definition),
+      values.authoringCatalog === undefined ? undefined : readJson(values.authoringCatalog),
+    );
+    derived.mappings.forEach((mapping, index) =>
+      writeFileSync(values.output[index], `${JSON.stringify(mapping)}\n`, {
+        encoding: "utf8",
+        flag: "wx",
+      }),
+    );
+    const counts = (mapping) => ({
+      mapped: mapping.components.length,
+      excludedScannerComponents: mapping.exclusions.length,
     });
     process.stdout.write(
       `${JSON.stringify({
-        mapped: derived.mapping.components.length,
-        excludedScannerComponents: derived.mapping.exclusions.length,
+        ...(derived.mappings.length === 1
+          ? counts(derived.mappings[0])
+          : { members: derived.mappings.map(counts) }),
         rows: derived.rows,
         excludedCurated: derived.excluded,
       })}\n`,

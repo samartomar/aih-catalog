@@ -30,11 +30,29 @@ import {
  *
  * `compilerInput` is resolved against the inputs file's directory; `omit`
  * leaves the framework's component definitions out of the candidate entirely.
+ *
+ * T3 of a collection (anthropics-skills, ponytail) admits the source from the
+ * candidate's own authoring bundle, so a collection whose pin moved is named
+ * too, with its T3 compiler input: `"collections": { "anthropics-skills":
+ * { "compilerInput": "compiler/anthropics-skills.json", "sha256": "<hex>" } }`.
+ * Its record is never overlaid: ponytail compiles from the Catalog's fetched
+ * snapshot, which the named input must equal; anthropics-skills, which has no
+ * provider, compiles from the named input.
  */
 export const CATALOG_CANDIDATE_INPUTS_FORMAT_V1 = "aih-catalog-candidate-inputs";
 
 export type CandidateFrameworkIdV1 = "ecc" | "superpowers";
 const FRAMEWORK_IDS: readonly CandidateFrameworkIdV1[] = ["ecc", "superpowers"];
+
+/** The collections T3 prepares source data for, by their GitHub repositories. */
+export const CANDIDATE_COLLECTION_REPOSITORIES_V1 = {
+  "anthropics-skills": "anthropics/skills",
+  ponytail: "DietrichGebert/ponytail",
+} as const;
+export type CandidateCollectionIdV1 = keyof typeof CANDIDATE_COLLECTION_REPOSITORIES_V1;
+const COLLECTION_IDS = Object.keys(
+  CANDIDATE_COLLECTION_REPOSITORIES_V1,
+) as CandidateCollectionIdV1[];
 
 /** A refusal with a stable code, so callers and tests can branch on the kind. */
 export class CandidateInputRefusalV1 extends TypeError {
@@ -108,10 +126,22 @@ export type CandidateFrameworkInputV1 =
   | { kind: "compiler-input"; path: string; sha256: string; componentDefinitions: JsonRecord }
   | { kind: "omitted" };
 
+export interface CandidateCollectionInputV1 {
+  kind: "compiler-input";
+  path: string;
+  sha256: string;
+  /** The collection's new pin: the compiler input's own `source.commit`. */
+  commit: string;
+  compilerInput: JsonRecord;
+}
+
 export interface CatalogCandidateV1 {
   /** SHA-256 of the candidate inputs file bytes. */
   readonly inputsSha256: string;
   readonly frameworks: Readonly<Partial<Record<CandidateFrameworkIdV1, CandidateFrameworkInputV1>>>;
+  readonly collections?: Readonly<
+    Partial<Record<CandidateCollectionIdV1, CandidateCollectionInputV1>>
+  >;
 }
 
 const REPOSITORIES: Readonly<Record<CandidateFrameworkIdV1, string>> = {
@@ -141,6 +171,27 @@ function lockSource(vendorLock: unknown, id: CandidateFrameworkIdV1): LockSource
   };
 }
 
+/**
+ * A T3 compiler input named by path and SHA-256 (tools/emit-compiler-input.mjs writes it):
+ * a bounded regular file, strict UTF-8 without BOM, whose bytes have exactly the named digest,
+ * holding one strict JSON object.
+ */
+export function readNamedCompilerInputV1(
+  path: string,
+  sha256: string,
+  label: string,
+): { sha256: string; value: JsonRecord } {
+  const expected = text(sha256, `${label} sha256 (64 lowercase hex)`, SHA256_HEX);
+  const { bytes, text: inputText } = readCandidateInputFileV1(path, label);
+  const actual = sha256HexV1(bytes);
+  if (actual !== expected)
+    throw new TypeError(`${label} ${path} has sha256 ${actual}, not the named ${expected}`);
+  return {
+    sha256: actual,
+    value: record(parseStrictJsonObjectV1(inputText, `${label} ${path}`), `${label} ${path}`),
+  };
+}
+
 function readCompilerInput(
   id: CandidateFrameworkIdV1,
   entry: JsonRecord,
@@ -151,22 +202,13 @@ function readCompilerInput(
   exactKeys(entry, ["compilerInput", "sha256"], label);
   const path = text(entry.compilerInput, `${label} compilerInput`);
   if (path.length === 0) throw new TypeError(`${label} compilerInput must name a file`);
-  const expected = text(entry.sha256, `${label} sha256 (64 lowercase hex)`, SHA256_HEX);
-  const { bytes, text: inputText } = readCandidateInputFileV1(
+  const { sha256: actual, value } = readNamedCompilerInputV1(
     resolve(base, path),
+    entry.sha256 as string,
     `${label} compiler input`,
   );
-  const actual = sha256HexV1(bytes);
-  if (actual !== expected)
-    throw new TypeError(
-      `${label} compiler input ${path} has sha256 ${actual}, not the named ${expected}`,
-    );
   const inputLabel = `${label} compiler input ${path}`;
-  const input = exactKeys(
-    record(parseStrictJsonObjectV1(inputText, inputLabel), inputLabel),
-    ["version", "framework"],
-    inputLabel,
-  );
+  const input = exactKeys(value, ["version", "framework"], inputLabel);
   literal(input.version, "pinned-baseline/v1", `${inputLabel} version`);
   const framework = record(input.framework, `${inputLabel} framework`);
   if (framework.id !== id)
@@ -199,13 +241,18 @@ export function readCatalogCandidateInputsV1(
     record(parseStrictJsonObjectV1(inputsText, label), label),
     ["format", "version", "frameworks"],
     label,
+    ["collections"],
   );
   literal(inputs.format, CATALOG_CANDIDATE_INPUTS_FORMAT_V1, `${label} format`);
   literal(inputs.version, 1, `${label} version`);
   const named = record(inputs.frameworks, `${label} frameworks`);
   const keys = Object.keys(named);
-  if (keys.length === 0)
-    throw new TypeError(`${label} frameworks must name at least one framework`);
+  const namedCollections =
+    inputs.collections === undefined ? {} : record(inputs.collections, `${label} collections`);
+  if (keys.length === 0 && Object.keys(namedCollections).length === 0)
+    throw new TypeError(
+      `${label} frameworks and collections must name at least one framework or collection`,
+    );
   const frameworks: Partial<Record<CandidateFrameworkIdV1, CandidateFrameworkInputV1>> = {};
   for (const key of keys) {
     if (!(FRAMEWORK_IDS as readonly string[]).includes(key))
@@ -221,14 +268,57 @@ export function readCatalogCandidateInputsV1(
       frameworks[id] = { kind: "omitted" };
     } else frameworks[id] = readCompilerInput(id, entry, dirname(inputsPath), pin);
   }
-  return { inputsSha256: sha256HexV1(bytes), frameworks };
+  const collections: Partial<Record<CandidateCollectionIdV1, CandidateCollectionInputV1>> = {};
+  for (const key of Object.keys(namedCollections)) {
+    if (!(COLLECTION_IDS as readonly string[]).includes(key))
+      throw new TypeError(
+        `${label} names collection ${key}; only ${COLLECTION_IDS.join(", ")} are supported`,
+      );
+    const id = key as CandidateCollectionIdV1;
+    collections[id] = readCollectionInput(
+      id,
+      record(namedCollections[id], `${label} collection ${id}`),
+      dirname(inputsPath),
+    );
+  }
+  return {
+    inputsSha256: sha256HexV1(bytes),
+    frameworks,
+    ...(Object.keys(collections).length === 0 ? {} : { collections }),
+  };
+}
+
+function readCollectionInput(
+  id: CandidateCollectionIdV1,
+  entry: JsonRecord,
+  base: string,
+): CandidateCollectionInputV1 {
+  const label = `candidate inputs collection ${id}`;
+  exactKeys(entry, ["compilerInput", "sha256"], label);
+  const path = text(entry.compilerInput, `${label} compilerInput`);
+  if (path.length === 0) throw new TypeError(`${label} compilerInput must name a file`);
+  const { sha256, value } = readNamedCompilerInputV1(
+    resolve(base, path),
+    entry.sha256 as string,
+    `${label} compiler input`,
+  );
+  const inputLabel = `${label} compiler input ${path}`;
+  literal(value.version, "pinned-component-collection/v1", `${inputLabel} version`);
+  const source = record(value.source, `${inputLabel} source`);
+  if (source.id !== id)
+    throw new TypeError(`${inputLabel} is for collection ${String(source.id)}, not ${id}`);
+  const repository = `https://github.com/${CANDIDATE_COLLECTION_REPOSITORIES_V1[id]}`;
+  if (source.repository !== repository)
+    throw new TypeError(`${inputLabel} is for ${String(source.repository)}, not ${repository}`);
+  const commit = text(source.commit, `${inputLabel} source commit`, /^[a-f0-9]{40}$/u);
+  return { kind: "compiler-input", path, sha256, commit, compilerInput: value };
 }
 
 /**
  * The packaged-source-data wrappers a candidate may use: a named framework's
- * record is never used (T3 is about to produce it from this candidate), an
- * unnamed framework's record must be at the vendor-lock pin, and collection
- * records pass through byte for byte.
+ * or collection's record is never used (T3 is about to produce it from this
+ * candidate), an unnamed framework's record must be at the vendor-lock pin, and
+ * unnamed collection records pass through byte for byte.
  */
 export function candidatePackagedSourceDataV1(
   wrappers: unknown,
@@ -267,6 +357,9 @@ export function candidatePackagedSourceDataV1(
         `the packaged source record for ${pin.repository} is at ${commit} but the vendor lock pins ${pin.pinnedSha}; a candidate never overlays it: name ${id} in the candidate inputs`,
       );
   }
+  for (const id of COLLECTION_IDS)
+    if (candidate.collections?.[id] !== undefined)
+      excluded.add(CANDIDATE_COLLECTION_REPOSITORIES_V1[id]);
   return items.filter(
     (_, index) => !excluded.has((identities[index] as { repository: string }).repository),
   );
@@ -299,6 +392,20 @@ export function assertCandidateBaseSourcesV1(
         `the base authoring bundle carries source:${id} ${source === undefined ? "nowhere" : `at ${String(source.revision?.id)} as ${String(source.inputFormat)}`}, not at the vendor-lock pin ${pin.pinnedSha} with pinned-baseline/v1`,
       );
   }
+  for (const id of COLLECTION_IDS) {
+    const entry = candidate.collections?.[id];
+    if (entry === undefined) continue;
+    const source = sources[`source:${id}`] as
+      | { inputFormat?: unknown; revision?: { id?: unknown } }
+      | undefined;
+    if (
+      source?.inputFormat !== "pinned-component-collection/v1" ||
+      source.revision?.id !== entry.commit
+    )
+      throw new TypeError(
+        `the base authoring bundle carries source:${id} ${source === undefined ? "nowhere" : `at ${String(source.revision?.id)} as ${String(source.inputFormat)}`}, not at its named compiler input's pin ${entry.commit} with pinned-component-collection/v1`,
+      );
+  }
 }
 
 /** The descriptor source sections of a named framework: never a record's. */
@@ -323,6 +430,13 @@ export function candidateOmittedSectionsV1(candidate: CatalogCandidateV1): strin
     if (id === "ecc") omitted.push(`${descriptor}.runtimeDescriptor`);
     omitted.push(`./catalog-authoring-bundle.json#packagedSource:${REPOSITORIES[id]}`);
     omitted.push(`./catalog-scanner-evidence.json#sourceProofs:${REPOSITORIES[id]}`);
+  }
+  for (const id of COLLECTION_IDS) {
+    if (candidate.collections?.[id] === undefined) continue;
+    const repository = CANDIDATE_COLLECTION_REPOSITORIES_V1[id];
+    omitted.push(`./catalog-authoring-bundle.json#packagedSource:${repository}`);
+    omitted.push(`./catalog-scanner-evidence.json#sourceProofs:${repository}`);
+    if (id === "ponytail") omitted.push("./catalog-scanner-providers.json#collections.ponytail");
   }
   return omitted.sort(codeUnitCompare);
 }

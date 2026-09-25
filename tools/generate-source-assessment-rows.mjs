@@ -585,6 +585,90 @@ export function publicationNativeFilesV1(publication) {
 }
 
 /**
+ * Component ownership across the members of a publication set: no component id and no file
+ * may belong to two members (a root that equals, contains or lies inside another member's).
+ */
+function assertDisjointOwnership(memberComponents) {
+  const ids = new Map();
+  const roots = new Map();
+  memberComponents.forEach((components, member) => {
+    for (const component of components) {
+      if (ids.has(component.id) && ids.get(component.id) !== member)
+        fail("publication-set-component-overlap");
+      ids.set(component.id, member);
+      for (const root of component.paths) {
+        if (roots.has(root) && roots.get(root) !== member) fail("publication-set-component-overlap");
+        roots.set(root, member);
+      }
+    }
+  });
+  for (const [root, member] of roots) {
+    const parts = root.split("/");
+    for (let length = 1; length < parts.length; length += 1) {
+      const owner = roots.get(parts.slice(0, length).join("/"));
+      if (owner !== undefined && owner !== member) fail("publication-set-component-overlap");
+    }
+  }
+}
+
+/**
+ * A publication set (D49): the publications of one Scanner request set, which one execution
+ * produced over one source. Its members must agree on the source and its pin, carry the same
+ * bytes for every annex path they share, be distinct requests and own disjoint components;
+ * any other set is refused, never merged. Each member is still verified on its own.
+ */
+export function assertPublicationSetV1(publications) {
+  const members = array(publications, "publication-set").map((value) => {
+    const publication = object(value, "publication");
+    const request = object(publication.request, "publication-request");
+    const annexes = new Map();
+    for (const entry of array(publication.annexes, "publication-annexes")) {
+      const annex = object(entry, "publication-annex");
+      const path = text(annex.path, "publication-annex-path", 300);
+      const encoded = text(annex.bytesBase64, "publication-annex-bytes", MAX_INPUT_BYTES);
+      if (Buffer.from(encoded, "base64").toString("base64") !== encoded)
+        fail("publication-annex-base64");
+      if (annexes.has(path)) fail("publication-annex-duplicate");
+      annexes.set(path, encoded);
+    }
+    return {
+      annexes,
+      components: array(request.components, "request-components").map((entry) => {
+        const component = object(entry, "request-component");
+        return {
+          id: text(component.id, "scanner-component-id", 300),
+          paths: validateStringSet(component.paths, "component-paths").map((path) =>
+            sourceRelative(path),
+          ),
+        };
+      }),
+      requestSha256: hex(request.requestSha256, "request"),
+      source: validateSource(request.source),
+    };
+  });
+  const [first] = members;
+  if (first === undefined) fail("publication-set-empty");
+  const requests = new Set();
+  const annexes = new Map();
+  for (const member of members) {
+    if (["id", "owner", "repository"].some((key) => member.source[key] !== first.source[key]))
+      fail("publication-set-source");
+    if (
+      member.source.pinnedCommit !== first.source.pinnedCommit ||
+      member.source.treeSha256 !== first.source.treeSha256
+    )
+      fail("publication-set-pin");
+    if (requests.has(member.requestSha256)) fail("publication-set-duplicate");
+    requests.add(member.requestSha256);
+    for (const [path, encoded] of member.annexes) {
+      if (annexes.has(path) && annexes.get(path) !== encoded) fail("publication-set-annex-bytes");
+      annexes.set(path, encoded);
+    }
+  }
+  assertDisjointOwnership(members.map((member) => member.components));
+}
+
+/**
  * `closureMode`: rows come from the Catalog's curated inventory, so a mapped Scanner component
  * may hold any content (a skill directory, the repository root, a runtime directory); in the
  * direct skill mode every mapped component is itself one skill row.
@@ -926,15 +1010,137 @@ const declaredDigest = (value, label) => {
 };
 
 /**
+ * One supported component of a baseline catalog as a closure row (D59), in exactly one of its
+ * three curated shapes; anything else refuses, naming the component and the shape it misses.
+ * - skill: one directory with a SKILL.md, or several directory roots whose canonical root is
+ *   `skills/<name>` (the compiler's preferred source path) and holds the entry SKILL.md; the
+ *   closure is the union of the roots and every root must hold a file;
+ * - agent: exactly one file, which is the entry;
+ * - mcp: explicit declaration files only, which several components may share; the entry is the
+ *   first one the definition lists (the compiler's preferred source path).
+ */
+function baselineCandidate(id, kind, name, roots, nativePaths) {
+  const unrendered = (reason) => fail(`definition-component-unrendered ${id}: ${reason}`);
+  const under = (root) => nativePaths.filter((path) => path.startsWith(`${root}/`));
+  const isFile = (path) => nativePaths.includes(path);
+  if (kind === "skill") {
+    if (roots.length === 1) {
+      const members = under(roots[0]);
+      const entryPath = `${roots[0]}/SKILL.md`;
+      if (!members.includes(entryPath)) fail("definition-skill-entrypoint");
+      return { id, kind, name, entryPath, members, explicit: [] };
+    }
+    const canonicalRoot = `skills/${name}`;
+    if (!roots.includes(canonicalRoot))
+      unrendered(`a skill with several roots needs its canonical root ${canonicalRoot}`);
+    const members = roots.flatMap((root) => {
+      const files = under(root);
+      if (files.length === 0 || isFile(root)) unrendered(`root ${root} holds no file`);
+      return files;
+    });
+    const entryPath = `${canonicalRoot}/SKILL.md`;
+    if (!members.includes(entryPath)) fail("definition-skill-entrypoint");
+    return { id, kind, name, entryPath, members, explicit: [], roots };
+  }
+  if (kind === "agent") {
+    if (roots.length !== 1 || !isFile(roots[0]) || under(roots[0]).length > 0)
+      unrendered("an agent names exactly one file");
+    return { id, kind, name, entryPath: roots[0], members: roots, roots };
+  }
+  if (kind === "mcp") {
+    for (const root of roots)
+      if (!isFile(root) || under(root).length > 0)
+        unrendered(`an mcp names only explicit declaration files; ${root} is not one file`);
+    return { id, kind, name, entryPath: roots[0], members: roots, roots };
+  }
+  return unrendered("a baseline catalog renders only agent, mcp and skill rows");
+}
+
+/**
+ * The external-inventory MCP rows of a baseline catalog (D61): every mcp asset of the Catalog's
+ * policy authoring catalog at the pin (tools/emit-compiler-input.mjs; framework-catalogs-v1.ts
+ * externalEccMcpAssets) that is not a curated component. Each names exactly one declaration file
+ * the curated definition lists for an mcp component, with its declared sha256; that file is its
+ * entry and, beside the root license, its closure. The curated mcp assets must agree with the
+ * definition (same paths, the entry the compiler prefers), and every curated mcp component must
+ * be one of them.
+ */
+function externalMcpCandidates(value, source, repository, curated, nativePaths, declare) {
+  const authoring = object(value, "authoring-catalog");
+  const framework = object(authoring.framework, "authoring-catalog-framework");
+  if (
+    authoring.version !== "pinned-baseline/v1" ||
+    framework.id !== source.id ||
+    framework.repository !== repository ||
+    framework.commit !== source.pinnedCommit
+  )
+    fail("authoring-catalog-source");
+  const byId = new Map(curated.map((candidate) => [candidate.id, candidate]));
+  const declarations = new Set(curated.flatMap((candidate) => candidate.members));
+  const seen = new Set();
+  const externals = [];
+  for (const item of array(framework.assets, "authoring-catalog-assets")) {
+    const asset = object(item, "authoring-catalog-asset");
+    if (asset.kind !== "mcp") continue;
+    const id = text(asset.id, "authoring-catalog-asset-id", 300);
+    if (!id.startsWith("mcp:") || seen.has(id)) fail("authoring-catalog-asset-id");
+    seen.add(id);
+    const assetSource = object(asset.source, "authoring-catalog-asset-source");
+    if (assetSource.repository !== repository || assetSource.commit !== source.pinnedCommit)
+      fail("authoring-catalog-source");
+    const path = text(assetSource.path, "authoring-catalog-asset-path", 1_000);
+    const paths = validateStringSet(asset.sourcePaths, "authoring-catalog-source-paths");
+    const component = byId.get(id);
+    if (component !== undefined) {
+      if (
+        path !== component.entryPath ||
+        canonical([...paths].sort(codeUnitCompare)) !==
+          canonical([...component.members].sort(codeUnitCompare))
+      )
+        fail(`authoring-catalog-curated-mismatch ${id}`);
+      continue;
+    }
+    const undeclared = (reason) => fail(`authoring-catalog-external-undeclared ${id}: ${reason}`);
+    const metadata = asset.metadata;
+    if (
+      paths.length !== 1 ||
+      paths[0] !== path ||
+      metadata === null ||
+      typeof metadata !== "object" ||
+      metadata.sourcePath !== path ||
+      typeof metadata.sourceSha256 !== "string" ||
+      !/^[0-9a-f]{64}$/.test(metadata.sourceSha256)
+    )
+      undeclared("an external asset names exactly its one declaration file");
+    const relativePath = sourceRelative(path, "authoring-catalog-asset-path");
+    if (!declarations.has(relativePath) || !nativePaths.includes(relativePath))
+      undeclared(`${path} is not a declaration file the curated definition lists for an mcp component`);
+    declare(relativePath, `sha256:${metadata.sourceSha256}`);
+    externals.push({
+      id,
+      kind: "mcp",
+      name: id.slice("mcp:".length),
+      entryPath: relativePath,
+      members: [relativePath],
+      roots: [relativePath],
+    });
+  }
+  for (const candidate of curated)
+    if (!seen.has(candidate.id)) fail(`authoring-catalog-curated-missing ${candidate.id}`);
+  return externals;
+}
+
+/**
  * The curated Catalog rows of one source and their compiler closures, from the Catalog's own
  * pinned definition (tools/emit-baseline-definitions.mjs): a pinned skill collection (its
  * skills' declared files and declared license), a pinned component collection (each
  * component's file references and the declared license file) or a pinned baseline catalog (each
- * skill directory, expanded over the publication's native file list, and the repository-root
- * license files). A definition for another source or pin refuses. `nativePaths` is the
- * publication's native file list.
+ * agent file, mcp declaration files and skill root directories, expanded over the publication's
+ * native file list, and the repository-root license files; baselineCandidate). A file several
+ * rows share must be listed by each. A definition for another source or pin refuses.
+ * `nativePaths` is the publication's native file list.
  */
-export function curatedClosuresV1(definitionValue, source, nativePaths) {
+export function curatedClosuresV1(definitionValue, source, nativePaths, authoringValue) {
   const definition = object(definitionValue, "definition");
   const repository = `${source.owner}/${source.repository}`;
   const declared = new Map();
@@ -959,6 +1165,7 @@ export function curatedClosuresV1(definitionValue, source, nativePaths) {
   const candidates = [];
   let licensePaths;
   const format = definition.version ?? (Object.hasOwn(definition, "pinnedSha") ? "pinned-baseline/v1" : undefined);
+  if (authoringValue !== undefined && format !== "pinned-baseline/v1") fail("authoring-catalog-format");
   if (format === "pinned-skill-collection/v1") {
     pinnedSource(definition.source);
     const license = object(definition.license, "definition-license");
@@ -1017,15 +1224,29 @@ export function curatedClosuresV1(definitionValue, source, nativePaths) {
         candidates.push({ id, kind, name: id.slice(colon + 1), members: [] });
         continue;
       }
-      // A baseline catalog names skills by directory; any other supported kind has no curated
-      // entry point here, so it refuses rather than guess one.
-      if (kind !== "skill" || roots.length !== 1) fail("definition-component-unrendered");
-      const members = nativePaths.filter((path) => path.startsWith(`${roots[0]}/`));
-      const entryPath = `${roots[0]}/SKILL.md`;
-      if (!members.includes(entryPath)) fail("definition-skill-entrypoint");
-      candidates.push({ id, kind, name: id.slice(colon + 1), entryPath, members });
+      candidates.push(baselineCandidate(id, kind, id.slice(colon + 1), roots, nativePaths));
     }
+    // Every mcp asset of the policy authoring catalog keeps its row (D61), so a baseline catalog
+    // with mcp components never renders them without it.
+    const curatedMcp = candidates.filter((candidate) => candidate.kind === "mcp");
+    if (authoringValue === undefined) {
+      if (curatedMcp.length > 0)
+        fail(
+          "authoring-catalog-required: a baseline catalog with mcp components renders its mcp rows from the Catalog's policy authoring catalog at the pin",
+        );
+    } else
+      candidates.push(
+        ...externalMcpCandidates(authoringValue, source, repository, curatedMcp, nativePaths, declare),
+      );
   } else fail("definition-format");
+  // A file two curated rows share must be listed by each of them (D59): a closure never
+  // reaches another row's file through a directory root.
+  const listedBy = new Map();
+  for (const candidate of candidates)
+    for (const path of candidate.members) listedBy.set(path, [...(listedBy.get(path) ?? []), candidate]);
+  for (const [path, holders] of listedBy)
+    if (holders.length > 1 && holders.some((candidate) => !(candidate.explicit ?? candidate.members).includes(path)))
+      fail(`definition-shared-file-implicit ${path}`);
   const rows = [];
   const excluded = [];
   const seen = new Set();
@@ -1047,6 +1268,13 @@ export function curatedClosuresV1(definitionValue, source, nativePaths) {
       files: [...new Set([...licensePaths, ...candidate.members])].sort(codeUnitCompare),
       kind: candidate.kind,
       name: candidate.name,
+      // A baseline catalog's multi-path shapes (D59) state their roots and shared files.
+      ...(candidate.roots === undefined
+        ? {}
+        : {
+            roots: candidate.roots,
+            shared: candidate.members.filter((path) => listedBy.get(path).length > 1),
+          }),
     });
   }
   return {
@@ -1082,19 +1310,33 @@ const unique = (items) => {
  * publication's native per-file hashes, match the pinned checkout and any digest the definition
  * declares, and lie in exactly one mapped Scanner component. A row carries the findings and
  * location-bound notifications of those components whose location lies in its closure (or that
- * carry none), and all their global notifications.
+ * carry none), and all their global notifications. Over a publication set every member's
+ * receipt and native annex are verified (the set shares the annex bytes), the mapped components
+ * are the union of the members' and a row cites exactly the members that own its closure.
  */
-function closureRows(validated, handoff, provider, sourceRoot, definition) {
-  const native = publicationNativeFiles(validated.publication.value, handoff, validated.source);
+function closureRows(members, provider, sourceRoot, definition, authoring) {
+  const natives = members.map(({ handoff, validated }) =>
+    publicationNativeFiles(validated.publication.value, handoff, validated.source),
+  );
+  const [native] = natives;
+  const { source } = members[0].validated;
   const inventory = curatedClosuresV1(
     definition,
-    validated.source,
+    source,
     [...native.keys()].sort(codeUnitCompare),
+    authoring,
   );
   const root = rootOf(sourceRoot);
   const owners = new Map();
-  for (const component of validated.components)
-    for (const entry of component.files) owners.set(entry.path, component);
+  const memberOf = new Map();
+  for (const member of members)
+    for (const component of member.validated.components) {
+      memberOf.set(component, member);
+      for (const entry of component.files) {
+        if (owners.has(entry.path)) fail("publication-set-component-overlap");
+        owners.set(entry.path, component);
+      }
+    }
   const rows = inventory.rows.map((row) => {
     const closureFiles = row.files.map((path) => {
       const nativeDigest = native.get(path);
@@ -1116,10 +1358,12 @@ function closureRows(validated, handoff, provider, sourceRoot, definition) {
       codeUnitCompare(left.artifact.scannerComponentId, right.artifact.scannerComponentId),
     );
     const files = closureFiles.map(({ path, bytes, sha256: digest }) => ({ path, bytes, sha256: digest }));
+    const cited = new Set(involved.map((component) => memberOf.get(component)));
     return {
-      assetId: `${validated.source.id}/${row.kind}:${row.name}`,
+      assetId: `${source.id}/${row.kind}:${row.name}`,
       closureFiles: files.map((entry) => ({ digest: `sha256:${entry.sha256}`, path: entry.path })),
       compiler: inventory.compiler,
+      ...(row.roots === undefined ? {} : { roots: row.roots, shared: row.shared }),
       componentIds: involved.map((component) => component.artifact.scannerComponentId),
       contentDigest: `sha256:${sha256(JSON.stringify(files.map((entry) => ({ type: "file", ...entry }))))}`,
       coverageComplete: involved.every((component) => component.artifact.coverageComplete === true),
@@ -1132,6 +1376,7 @@ function closureRows(validated, handoff, provider, sourceRoot, definition) {
       locationCoverage: unique(
         involved.flatMap((component) => component.locationCoverage).filter(locatedIn(closure)),
       ),
+      publications: members.filter((member) => cited.has(member)),
       requestedAnalyzers: [
         ...new Set(involved.flatMap((component) => component.requestedAnalyzers)),
       ].sort(codeUnitCompare),
@@ -1142,7 +1387,11 @@ function closureRows(validated, handoff, provider, sourceRoot, definition) {
 }
 
 /** Direct skill mode: every mapped Scanner component is one skill row with its exact files. */
-function skillRows(validated, provider, sourceRoot) {
+function skillRows(members, provider, sourceRoot) {
+  return members.flatMap((member) => skillRowsOf(member, provider, sourceRoot));
+}
+function skillRowsOf(member, provider, sourceRoot) {
+  const { validated } = member;
   return validated.components.map((component) => {
     const assetId = text(component.artifact.catalogAssetId, "catalog-asset-id", 300);
     const expectedPrefix = `${validated.source.id}/skill:`;
@@ -1168,29 +1417,45 @@ function skillRows(validated, provider, sourceRoot) {
       kind: "skill",
       license: licenseFacts(sourceRoot, component.files),
       locationCoverage: component.locationCoverage,
+      publications: [member],
       requestedAnalyzers: component.requestedAnalyzers,
       subjectId,
     };
   });
 }
 
-function renderRows(validated, handoff, provider, sourceRoot, definition) {
+/**
+ * `members`: the verified publications of one source, one or the members of a publication set
+ * ordered by publication digest. Rows are rendered once over their union; each row cites the
+ * publications its closure comes from, and a row of one publication renders as it always has.
+ */
+function renderRows(members, provider, sourceRoot, definition, authoring) {
   const files = new Map();
   const seedPaths = [];
+  const validated = { source: members[0].validated.source };
   const repository = `${validated.source.owner}/${validated.source.repository}`;
   const sourceId = `source:${validated.source.id}`;
   const sourceContentDigest = `sha256:${validated.source.treeSha256}`;
-  const locator = releaseLocator(handoff.release, handoff.publisherCommit, handoff.requestSha256);
-  const { signedAt, expiresAt } = validated.publication;
+  const locators = new Map(
+    members.map(({ handoff }) => [
+      handoff,
+      releaseLocator(handoff.release, handoff.publisherCommit, handoff.requestSha256),
+    ]),
+  );
   const closureMode = definition !== undefined;
   const selected = closureMode
-    ? closureRows(validated, handoff, provider, sourceRoot, definition)
-    : { rows: skillRows(validated, provider, sourceRoot), excluded: undefined };
+    ? closureRows(members, provider, sourceRoot, definition, authoring)
+    : { rows: skillRows(members, provider, sourceRoot), excluded: undefined };
   for (const row of [...selected.rows].sort((left, right) =>
     codeUnitCompare(left.assetId, right.assetId),
   )) {
     const { assetId, subjectId, entryId, kind, license } = row;
     const root = entryId;
+    if (files.has(`${root}/seed.json`)) fail("duplicate-row");
+    const cited = row.publications;
+    const many = cited.length > 1;
+    const [{ handoff }] = cited;
+    const { signedAt, expiresAt } = cited[0].validated.publication;
     const source = {
       commit: validated.source.pinnedCommit,
       path: row.entryPath,
@@ -1273,7 +1538,11 @@ function renderRows(validated, handoff, provider, sourceRoot, definition) {
         locationBound: row.locationCoverage,
       }),
     );
-    const gaps = ["evidence/coverage-gap.json", "evidence/publication-1.json", "evidence/scope-gap.json"];
+    const gaps = [
+      "evidence/coverage-gap.json",
+      ...cited.map((_, index) => `evidence/publication-${index + 1}.json`),
+      "evidence/scope-gap.json",
+    ];
     files.set(
       `${root}/evidence/coverage-gap.json`,
       canonical(
@@ -1285,17 +1554,22 @@ function renderRows(validated, handoff, provider, sourceRoot, definition) {
         ),
       ),
     );
-    files.set(
-      `${root}/evidence/publication-1.json`,
-      canonical(
-        evidence(
-          "gap",
-          "publication-1",
-          subjectDigest,
-          `Original immutable Scanner publication SHA256 ${handoff.publicationSha256}; request ${handoff.requestSha256}; receipt ${handoff.receiptSha256}; locator ${locator}. Embedded Ed25519 signature verified for the time-bounded historical observation signed-at ${signedAt} and expires-at ${expiresAt}. Raw reports, findings, and notices remain the source of record; Catalog does not re-sign or refresh them.`,
+    cited.forEach((member, index) => {
+      const { publicationSha256, requestSha256, receiptSha256 } = member.handoff;
+      const observed = member.validated.publication;
+      files.set(
+        `${root}/evidence/publication-${index + 1}.json`,
+        canonical(
+          evidence(
+            "gap",
+            `publication-${index + 1}`,
+            subjectDigest,
+            `Original immutable Scanner publication SHA256 ${publicationSha256}; request ${requestSha256}; receipt ${receiptSha256}; locator ${locators.get(member.handoff)}. Embedded Ed25519 signature verified for the time-bounded historical observation signed-at ${observed.signedAt} and expires-at ${observed.expiresAt}. Raw reports, findings, and notices remain the source of record; Catalog does not re-sign or refresh them.`,
+          ),
         ),
-      ),
-    );
+      );
+    });
+    const immutable = many ? "the immutable publications" : "the immutable publication";
     files.set(
       `${root}/evidence/scope-gap.json`,
       canonical(
@@ -1304,12 +1578,14 @@ function renderRows(validated, handoff, provider, sourceRoot, definition) {
           "scope-gap",
           subjectDigest,
           closureMode
-            ? `Review-only source-file assessment of the Catalog's curated compiler closure. Scanner authority none; coverageComplete ${row.coverageComplete}. Findings and location-bound notifications of the ${row.componentIds.length} mapped Scanner components are carried here when a location lies in this closure or none is given; their other observations, and repository observations outside mapped closures, remain outside this row and in the immutable publication. No runtime safety, clean scan, execution, installation, service access, cross-platform validation, or organization admission is asserted. Empty capability lists grant no executable effects.`
-            : `Review-only source-file assessment. Scanner authority none; coverageComplete ${row.coverageComplete}. Repository observations outside mapped closures remain outside this row and in the immutable publication. No runtime safety, clean scan, execution, installation, service access, cross-platform validation, or organization admission is asserted. Empty capability lists grant no executable effects.`,
+            ? `Review-only source-file assessment of the Catalog's curated compiler closure. Scanner authority none; coverageComplete ${row.coverageComplete}. Findings and location-bound notifications of the ${row.componentIds.length} mapped Scanner components are carried here when a location lies in this closure or none is given; their other observations, and repository observations outside mapped closures, remain outside this row and in ${immutable}. No runtime safety, clean scan, execution, installation, service access, cross-platform validation, or organization admission is asserted. Empty capability lists grant no executable effects.`
+            : `Review-only source-file assessment. Scanner authority none; coverageComplete ${row.coverageComplete}. Repository observations outside mapped closures remain outside this row and in ${immutable}. No runtime safety, clean scan, execution, installation, service access, cross-platform validation, or organization admission is asserted. Empty capability lists grant no executable effects.`,
         ),
       ),
     );
-    const verified = closureMode
+    const verified = many
+      ? `${cited.length} protected Scanner publications of one request set, their receipts and identical native annexes, and the component artifacts of ${row.componentIds.length} Scanner components (${row.componentIds.join(", ")}) verified; each of the ${row.closureFiles.length} closure files matches the pinned checkout and the publications' native per-file hash. Scanner authority none; time-bounded historical observations, each signed-at and expires-at as its publication evidence states; component outcomes observed.`
+      : closureMode
       ? `Protected Scanner publication, its receipt and native annex, and the component artifacts of ${row.componentIds.length} Scanner components (${row.componentIds.join(", ")}) verified; each of the ${row.closureFiles.length} closure files matches the pinned checkout and the publication's native per-file hash. Scanner authority none; time-bounded historical observation signed-at ${signedAt}, expires-at ${expiresAt}; component outcomes observed.`
       : `Protected Scanner publication and component artifact verified against the exact source-file closure. Scanner authority none; time-bounded historical observation signed-at ${signedAt}, expires-at ${expiresAt}; component outcome observed.`;
     files.set(
@@ -1319,7 +1595,7 @@ function renderRows(validated, handoff, provider, sourceRoot, definition) {
           "report",
           "report",
           subjectDigest,
-          `${verified} Scanner mapped findings: ${row.findings.length}; all ${row.requestedAnalyzers.length} requested analyzers executed successfully. Unresolved coverage notifications: ${row.locationCoverage.length} location-bound and ${row.globalCoverage.length} global. Publication sha256:${handoff.publicationSha256}. No finding cleared or report relabeled.`,
+          `${verified} Scanner mapped findings: ${row.findings.length}; all ${row.requestedAnalyzers.length} requested analyzers executed successfully. Unresolved coverage notifications: ${row.locationCoverage.length} location-bound and ${row.globalCoverage.length} global. ${many ? `Publications ${cited.map((member) => `sha256:${member.handoff.publicationSha256}`).join(", ")}` : `Publication sha256:${handoff.publicationSha256}`}. No finding cleared or report relabeled.`,
         ),
       ),
     );
@@ -1365,9 +1641,22 @@ function renderRows(validated, handoff, provider, sourceRoot, definition) {
         source,
       }),
     );
+    const listed = (paths) => paths.map((path) => `\`${path}\``).join(", ");
+    const shape = [
+      ...(row.roots?.length > 1 && kind === "skill"
+        ? [
+            `Curated source roots: ${listed(row.roots)}; the entry is the canonical root's \`${row.entryPath}\`.`,
+          ]
+        : []),
+      ...(row.shared?.length > 0
+        ? [
+            `Shared declaration files, listed by the curated definition for several components: ${listed(row.shared)}. A finding located in a shared file is stated on every row whose closure holds it.`,
+          ]
+        : []),
+    ];
     files.set(
       `${root}/artifacts/prose.md`,
-      `# ${entryId}\n\nExact review-only source-file assessment at ${repository}@${validated.source.pinnedCommit}:${source.path}. Scanner findings, coverage limits, authority, and dates remain unchanged. This is not a clean-scan declaration, installation approval, runtime authority, or organization admission.\n`,
+      `# ${entryId}\n\nExact review-only source-file assessment at ${repository}@${validated.source.pinnedCommit}:${source.path}. Scanner findings, coverage limits, authority, and dates remain unchanged. This is not a clean-scan declaration, installation approval, runtime authority, or organization admission.\n${shape.map((line) => `\n${line}\n`).join("")}`,
     );
     const seed = {
       artifacts: {
@@ -1484,35 +1773,67 @@ export function generateSourceAssessmentRowsV1({
   outputRoot,
   manifestPath,
   definitionPath,
+  authoringCatalogPath,
 }) {
   if (!PROVIDER.test(text(provider, "provider", 80))) fail("provider");
-  for (const [label, value] of Object.entries({
-    sourceRoot,
-    handoffPath,
-    publicationPath,
-    outputRoot,
-    manifestPath,
-    ...(definitionPath === undefined ? {} : { definitionPath }),
-  }))
+  // One publication, or the members of one publication set as handoff/publication pairs (D49).
+  const handoffPaths = Array.isArray(handoffPath) ? handoffPath : [handoffPath];
+  const publicationPaths = Array.isArray(publicationPath) ? publicationPath : [publicationPath];
+  if (handoffPaths.length === 0 || handoffPaths.length !== publicationPaths.length)
+    fail("publication-set-pairs");
+  for (const [label, value] of [
+    ["sourceRoot", sourceRoot],
+    ...handoffPaths.map((path) => ["handoffPath", path]),
+    ...publicationPaths.map((path) => ["publicationPath", path]),
+    ["outputRoot", outputRoot],
+    ["manifestPath", manifestPath],
+    ...(definitionPath === undefined ? [] : [["definitionPath", definitionPath]]),
+    ...(authoringCatalogPath === undefined ? [] : [["authoringCatalogPath", authoringCatalogPath]]),
+  ])
     if (typeof value !== "string" || !isAbsolute(value)) fail(`${label}-absolute`);
-  if (dirname(resolve(handoffPath)) !== dirname(resolve(publicationPath)))
-    fail("publication-handoff-directory");
-  const handoffRead = readJson(handoffPath, "handoff", MAX_INPUT_BYTES);
-  const publicationBytes = readPinnedFile(publicationPath, MAX_INPUT_BYTES);
-  const handoff = handoffRead.value;
+  handoffPaths.forEach((path, index) => {
+    if (dirname(resolve(path)) !== dirname(resolve(publicationPaths[index])))
+      fail("publication-handoff-directory");
+  });
   // Closure-row mode reads the Catalog's curated definition at the publication's pin.
   const definition =
     definitionPath === undefined
       ? undefined
       : readJson(definitionPath, "definition", 64 * 1024 * 1024).value;
-  const validated = validateHandoff(
-    handoff,
-    publicationBytes,
-    sourceRoot,
-    handoffPath,
-    definition !== undefined,
-  );
-  const rendered = renderRows(validated, handoff, provider, sourceRoot, definition);
+  // The external-inventory MCP rows come from the Catalog's policy authoring catalog (D61).
+  if (authoringCatalogPath !== undefined && definition === undefined)
+    fail("authoring-catalog-without-definition");
+  const authoring =
+    authoringCatalogPath === undefined
+      ? undefined
+      : readJson(authoringCatalogPath, "authoring-catalog", 64 * 1024 * 1024).value;
+  const members = handoffPaths.map((path, index) => {
+    const handoff = readJson(path, "handoff", MAX_INPUT_BYTES).value;
+    const publicationBytes = readPinnedFile(publicationPaths[index], MAX_INPUT_BYTES);
+    const validated = validateHandoff(
+      handoff,
+      publicationBytes,
+      sourceRoot,
+      path,
+      definition !== undefined,
+    );
+    return { handoff, validated };
+  });
+  if (members.length > 1) {
+    assertPublicationSetV1(members.map(({ validated }) => validated.publication.value));
+    assertDisjointOwnership(
+      members.map(({ validated }) =>
+        validated.components.map(({ artifact }) => ({
+          id: artifact.scannerComponentId,
+          paths: artifact.paths,
+        })),
+      ),
+    );
+    members.sort((left, right) =>
+      codeUnitCompare(left.handoff.publicationSha256, right.handoff.publicationSha256),
+    );
+  }
+  const rendered = renderRows(members, provider, sourceRoot, definition, authoring);
   const layout = destinationLayout(manifestPath, outputRoot, provider);
   const preparedManifest = prepareManifestUpdate(manifestPath, rendered.seedPaths, layout);
   writeGeneratedRows(outputRoot, rendered.files);
@@ -1530,14 +1851,22 @@ export function generateSourceAssessmentRowsV1({
 
 function argumentsFrom(argv) {
   const values = new Map();
+  // A publication set is named as repeated --handoff/--publication pairs, in the same order.
+  const pairs = { handoff: [], publication: [] };
   for (let index = 0; index < argv.length; index += 2) {
     const key = argv[index];
     const value = argv[index + 1];
     if (!key?.startsWith("--") || value === undefined || value.startsWith("--")) fail("arguments");
     const name = key.slice(2);
+    if (Object.hasOwn(pairs, name)) {
+      pairs[name].push(resolve(value));
+      values.set(name, value);
+      continue;
+    }
     if (values.has(name)) fail("duplicate-argument");
     values.set(name, value);
   }
+  if (pairs.handoff.length !== pairs.publication.length) fail("arguments");
   const expected = [
     "source-root",
     "handoff",
@@ -1546,7 +1875,7 @@ function argumentsFrom(argv) {
     "output-root",
     "manifest",
   ];
-  const optional = ["definition"];
+  const optional = ["definition", "authoring-catalog"];
   if (
     expected.some((name) => !values.has(name)) ||
     [...values.keys()].some((name) => !expected.includes(name) && !optional.includes(name))
@@ -1554,12 +1883,15 @@ function argumentsFrom(argv) {
     fail("arguments");
   return {
     sourceRoot: resolve(values.get("source-root")),
-    handoffPath: resolve(values.get("handoff")),
-    publicationPath: resolve(values.get("publication")),
+    handoffPath: pairs.handoff.length === 1 ? pairs.handoff[0] : pairs.handoff,
+    publicationPath: pairs.publication.length === 1 ? pairs.publication[0] : pairs.publication,
     provider: values.get("provider"),
     outputRoot: resolve(values.get("output-root")),
     manifestPath: resolve(values.get("manifest")),
     ...(values.has("definition") ? { definitionPath: resolve(values.get("definition")) } : {}),
+    ...(values.has("authoring-catalog")
+      ? { authoringCatalogPath: resolve(values.get("authoring-catalog")) }
+      : {}),
   };
 }
 

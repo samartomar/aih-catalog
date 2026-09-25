@@ -98,6 +98,8 @@ export interface EvidenceSummaryV2 {
   scan: JsonRecord & { outcome: "no-findings" | "has-findings" | "unknown"; coverage: string };
   qualification: { state: "qualified" | "unqualified" | "unknown" };
   findings: string[];
+  /** A separate label (D50/D56): what kept the evidence from being complete, never a finding. */
+  evidenceProblems: string[];
 }
 
 export interface AuthoringCatalogBundleV1 {
@@ -299,6 +301,7 @@ function validateEvidence(value: unknown, key: string): void {
       "scan",
       "qualification",
       "findings",
+      "evidenceProblems",
     ],
     label,
   );
@@ -409,6 +412,11 @@ function validateEvidence(value: unknown, key: string): void {
   for (const finding of list(evidence.findings, `${label} findings`, 0, 50)) {
     const value = text(finding, "finding");
     if (value.length < 1 || value.length > 1_000) throw new TypeError("finding out of bounds");
+  }
+  for (const problem of list(evidence.evidenceProblems, `${label} evidenceProblems`, 0, 50)) {
+    const value = text(problem, "evidence problem");
+    if (value.length < 1 || value.length > 1_000)
+      throw new TypeError("evidence problem out of bounds");
   }
 }
 

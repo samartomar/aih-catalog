@@ -14,6 +14,7 @@ import {
   validateAuthoringCatalogBundleV1,
 } from "../../src/production/workbench/contracts-v1.js";
 import {
+  packagedReportComponentDigestV1,
   parsePackagedScannerCollectionEvidenceV1,
   projectScannerCollectionEvidenceV1,
 } from "../../src/production/workbench/packaged-evidence-v1.js";
@@ -179,6 +180,7 @@ function summary(scan: Record<string, unknown>, projectionVersion = "evidence-su
       scan,
       qualification: { state: "unknown" },
       findings: ["trust.external-egress: fetch() at src/a.ts:1"],
+      evidenceProblems: [],
     },
   };
 }
@@ -401,5 +403,191 @@ describe("packaged collection evidence projection", () => {
       findings: [],
     });
     expect(JSON.stringify(evidence)).not.toMatch(/"(?:failed|blocked|pass)"/u);
+  });
+});
+
+// D56 (Core 96453911): evidence-summary/v2 carries evidence problems as their own label, right
+// after findings with the same bounds; both projections fill it as "<code>: <detail>", at most
+// 50 entries of at most 1000 characters, and the pinned-baseline findings take the same caps.
+describe("evidence problems in evidence-summary/v2 (D56)", () => {
+  const withProblems = (evidenceProblems: unknown) => {
+    const value = summary({ outcome: "no-findings", coverage: "complete" });
+    for (const entry of Object.values(value))
+      (entry as Record<string, unknown>).evidenceProblems = evidenceProblems;
+    return value;
+  };
+
+  it("requires evidenceProblems, bounded as findings are", () => {
+    const valid = [PROBLEM, PROBLEM].map((problem) => `${problem.code}: ${problem.detail}`);
+    expect(() =>
+      validateAuthoringCatalogBundleV1(bundle(withProblems(valid)), governedTargets),
+    ).not.toThrow();
+    expect(() =>
+      validateAuthoringCatalogBundleV1(
+        bundle(withProblems(Array.from({ length: 50 }, () => "x".repeat(1_000)))),
+        governedTargets,
+      ),
+    ).not.toThrow();
+    const missing = summary({ outcome: "no-findings", coverage: "complete" });
+    for (const entry of Object.values(missing))
+      delete (entry as Record<string, unknown>).evidenceProblems;
+    expect(() => validateAuthoringCatalogBundleV1(bundle(missing), governedTargets)).toThrow();
+    for (const invalid of [
+      Array.from({ length: 51 }, () => "x"),
+      ["x".repeat(1_001)],
+      [""],
+      [1],
+      "trust.detector-unavailable",
+    ])
+      expect(() =>
+        validateAuthoringCatalogBundleV1(bundle(withProblems(invalid)), governedTargets),
+      ).toThrow();
+  });
+
+  function compiledBeta(beta: Record<string, unknown>) {
+    const source = parseBaselineEvidenceLockV1(
+      lock([
+        component({ id: "skill:alpha", paths: ["skills/alpha"] }),
+        component({ id: "skill:beta", paths: ["skills/beta"], ...beta }),
+      ]),
+    ).sources[0] as BaselineSourceEvidenceV1;
+    const metadata = (id: string) => ({
+      id,
+      path: `skills/${id}/SKILL.md`,
+      sourceSha256: TREE,
+      title: id,
+      summary: `${id} summary`,
+      usageContext: `${id} usage`,
+      allowedTools: [],
+    });
+    const framework = prepareSuperpowersCatalogSourceV1({
+      baseline: {
+        id: "superpowers",
+        owner: "obra",
+        repo: "Superpowers",
+        pinnedSha: COMMIT,
+        components: [
+          { id: "skill:alpha", paths: ["skills/alpha"] },
+          { id: "skill:beta", paths: ["skills/beta"] },
+        ],
+      },
+      sourceSnapshot: source,
+      contentMetadata: {
+        version: 1,
+        repository: "obra/Superpowers",
+        commit: COMMIT,
+        agents: [],
+        skills: [metadata("alpha"), metadata("beta")],
+      },
+    });
+    return compilePinnedBaselineV1(framework, source).evidence;
+  }
+
+  it("fills the pinned-baseline projection from the component's evidence problems", () => {
+    const evidence = compiledBeta({ evidenceProblems: [PROBLEM] });
+    expect(evidence["evidence:superpowers/skill:alpha"]?.evidenceProblems).toEqual([]);
+    expect(evidence["evidence:superpowers/skill:beta"]?.evidenceProblems).toEqual([
+      "trust.detector-unavailable: detector semgrep did not run",
+    ]);
+    expect(evidence["evidence:superpowers/skill:beta"]?.findings).toEqual([]);
+  });
+
+  it("caps the pinned-baseline findings and evidence problems at 50 entries of 1000 characters", () => {
+    const long = "d".repeat(1_500);
+    const evidence = compiledBeta({
+      verdict: "has-findings",
+      findings: Array.from({ length: 60 }, (_, index) => ({
+        code: "trust.external-egress",
+        detail: `${index} ${long}`,
+      })),
+      evidenceProblems: Array.from({ length: 60 }, (_, index) => ({
+        code: "trust.detector-unavailable",
+        detail: `${index} ${long}`,
+      })),
+    });
+    const beta = evidence["evidence:superpowers/skill:beta"];
+    expect(beta?.findings).toHaveLength(50);
+    expect(beta?.evidenceProblems).toHaveLength(50);
+    expect(beta?.findings[0]).toBe(`trust.external-egress: 0 ${long}`.slice(0, 1_000));
+    expect(beta?.evidenceProblems[49]).toBe(
+      `trust.detector-unavailable: 49 ${long}`.slice(0, 1_000),
+    );
+  });
+
+  it("fills the packaged collection projection from the report's evidence problems", () => {
+    const { record } = JSON.parse(
+      readFileSync(
+        resolve(root, "tests", "fixtures", "packaged-evidence-parity", "report-findings.json"),
+        "utf8",
+      ),
+    ) as { record: Record<string, unknown> };
+    const report = record.report as { components: Record<string, unknown>[] };
+    const second = report.components.find((item) => item.id === "component:second");
+    if (second === undefined) throw new Error("the shared fixture has no component:second");
+    const long = "p".repeat(1_500);
+    second.evidenceProblems = Array.from({ length: 60 }, (_, index) => ({
+      code: "trust.detector-unavailable",
+      detail: `${index} ${long}`,
+    }));
+    for (const observation of record.observations as Record<string, unknown>[])
+      if (observation.componentId === "component:second")
+        observation.reportComponentDigest = packagedReportComponentDigestV1(second);
+    const bytes = canonicalStrictJsonBytesV1(record).toString("utf8");
+    const [parsed] = parsePackagedScannerCollectionEvidenceV1([
+      { bytes, sha256: `sha256:${sha256HexV1(bytes)}` },
+    ]);
+    if (parsed === undefined) throw new Error("the changed fixture did not parse");
+    const catalog = record.catalog as {
+      source: {
+        id: string;
+        revisionId: string;
+        contentDigest: string;
+        inputFormat: string;
+        upstreamOrigin: { kind: string; locator: string };
+      };
+    };
+    const coverage = record.coverage as {
+      components: {
+        componentId: string;
+        subject: { assetId: string; sourceRevisionId: string; contentDigest: string };
+      }[];
+    };
+    const source = catalog.source;
+    const projected = projectScannerCollectionEvidenceV1(
+      {
+        sources: {
+          [source.id]: {
+            id: source.id,
+            revision: { id: source.revisionId, contentDigest: source.contentDigest },
+            inputFormat: source.inputFormat,
+            upstreamOrigin: source.upstreamOrigin,
+          },
+        },
+        assets: Object.fromEntries(
+          coverage.components.map(({ subject }) => [
+            subject.assetId,
+            {
+              id: subject.assetId,
+              sourceId: source.id,
+              sourceRevisionId: subject.sourceRevisionId,
+              contentDigest: subject.contentDigest,
+              derivation: "upstream",
+            },
+          ]),
+        ),
+      } as unknown as AuthoringCatalogBundleV1,
+      [parsed],
+    );
+    const byComponent = Object.fromEntries(
+      coverage.components.map(({ componentId, subject }) => [
+        componentId,
+        projected[`evidence:${subject.assetId}`],
+      ]),
+    );
+    expect(byComponent["component:first"]?.evidenceProblems).toEqual([]);
+    const problems = byComponent["component:second"]?.evidenceProblems;
+    expect(problems).toHaveLength(50);
+    expect(problems?.[0]).toBe(`trust.detector-unavailable: 0 ${long}`.slice(0, 1_000));
+    expect(byComponent["component:second"]?.scan).toMatchObject({ outcome: "no-findings" });
   });
 });

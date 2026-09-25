@@ -5,6 +5,7 @@ import type {
 } from "../catalog/framework-catalogs-v1.js";
 import type { PolicyAuthoringCatalogV1 } from "../catalog/policy-authoring-catalog-v1.js";
 import { canonicalStrictJsonSha256V1 } from "../strict-json-v1.js";
+import { compileAnthropicsSkillsComponentCollectionV1 } from "./anthropics-skills-provider-v1.js";
 import { type BuiltInCatalogInputV1, compileBuiltInCatalogV1 } from "./built-in-v1.js";
 import {
   type CatalogCompilerAssemblyInputV1,
@@ -181,6 +182,21 @@ export function compilePonytailProviderV1(snapshot: unknown): CatalogProviderCom
     "ponytail",
     (value: unknown) => [compilePonytailComponentCollectionV1(value)],
     snapshot,
+  );
+}
+
+/**
+ * The anthropics/skills collection provider. It is not a registered provider: the full build
+ * carries anthropics/skills only as its sealed packaged source record. It compiles a named T3
+ * compiler input where no record may stand in (a new pin, before T3 produces the record).
+ */
+export function compileAnthropicsSkillsProviderV1(
+  compilerInput: unknown,
+): CatalogProviderCompilationV1 {
+  return compileCatalogProviderV1(
+    "anthropics-skills",
+    (value: unknown) => [compileAnthropicsSkillsComponentCollectionV1(value)],
+    compilerInput,
   );
 }
 

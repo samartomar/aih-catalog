@@ -567,6 +567,9 @@ export function projectScannerCollectionEvidenceV1(
           findings: report.findings
             .slice(0, 50)
             .map((finding) => `${finding.code}: ${finding.detail}`.slice(0, 1000)),
+          evidenceProblems: report.evidenceProblems
+            .slice(0, 50)
+            .map((problem) => `${problem.code}: ${problem.detail}`.slice(0, 1000)),
         } as EvidenceSummaryV2;
       }
     }

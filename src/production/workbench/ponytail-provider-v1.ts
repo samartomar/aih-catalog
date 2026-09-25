@@ -8,18 +8,18 @@ export const PONYTAIL_SOURCE_ID_V1 = "ponytail";
 export const PONYTAIL_REPOSITORY_V1 = "https://github.com/DietrichGebert/ponytail";
 
 /**
- * The Ponytail snapshot is the hand-authored component declaration plus the
- * upstream file bytes `produce:ponytail` fetched at the pinned commit.
+ * A pinned component collection compiled as the assembly input of one exact source, the way
+ * Core compiled the packaged collection records (distributor @aihq/core, git upstream origin).
  */
-export function compilePonytailComponentCollectionV1(
+export function compileIdentifiedComponentCollectionV1(
   input: unknown,
+  sourceId: string,
+  repository: string,
+  label: string,
 ): CatalogCompilerAssemblyInputV1 {
   const result = compilePinnedComponentCollectionV1(input);
-  if (
-    result.source.id !== `source:${PONYTAIL_SOURCE_ID_V1}` ||
-    result.source.repository !== PONYTAIL_REPOSITORY_V1
-  )
-    throw new TypeError("Ponytail provider requires its exact source identity");
+  if (result.source.id !== `source:${sourceId}` || result.source.repository !== repository)
+    throw new TypeError(`${label} provider requires its exact source identity`);
   return {
     sources: {
       [result.source.id]: {
@@ -37,4 +37,19 @@ export function compilePonytailComponentCollectionV1(
     templates: result.templates,
     detailBytes: result.detailBytes,
   };
+}
+
+/**
+ * The Ponytail snapshot is the hand-authored component declaration plus the
+ * upstream file bytes `produce:ponytail` fetched at the pinned commit.
+ */
+export function compilePonytailComponentCollectionV1(
+  input: unknown,
+): CatalogCompilerAssemblyInputV1 {
+  return compileIdentifiedComponentCollectionV1(
+    input,
+    PONYTAIL_SOURCE_ID_V1,
+    PONYTAIL_REPOSITORY_V1,
+    "Ponytail",
+  );
 }
