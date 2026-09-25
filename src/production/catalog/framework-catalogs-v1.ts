@@ -26,10 +26,13 @@ export const POLICY_AUTHORING_ASSET_KINDS = [
 export type PolicyAuthoringAssetKindV1 = (typeof POLICY_AUTHORING_ASSET_KINDS)[number];
 
 export interface PolicyAuthoringVetV1 {
-  verdict: "pass" | "blocked";
+  /** Whether the vet reported findings: a label for the administrator, never a gate (D50). */
+  verdict: "no-findings" | "has-findings";
   treeSha256: string;
   analyzers: { name: string; version: string }[];
   findings: { code: string; count?: number; detail: string }[];
+  /** Problems with the evidence itself (a detector that did not run), kept apart from findings. */
+  evidenceProblems: { code: string; count?: number; detail: string }[];
 }
 
 export interface PolicyAuthoringAssetV1 {
@@ -125,16 +128,25 @@ function assertVettedSource(
     throw new TypeError(`${name} baseline input does not match its vetted source snapshot`);
 }
 
+function vetEntryOf(entry: BaselineSourceEvidenceV1["components"][number]["findings"][number]): {
+  code: string;
+  count?: number;
+  detail: string;
+} {
+  return {
+    code: entry.code,
+    ...(typeof entry.count === "number" ? { count: entry.count } : {}),
+    detail: entry.detail,
+  };
+}
+
 function vetOf(component: BaselineSourceEvidenceV1["components"][number]): PolicyAuthoringVetV1 {
   return {
     verdict: component.verdict,
     treeSha256: component.treeSha256,
     analyzers: component.analyzers.map((entry) => ({ name: entry.name, version: entry.version })),
-    findings: component.findings.map((entry) => ({
-      code: entry.code,
-      ...(typeof entry.count === "number" ? { count: entry.count } : {}),
-      detail: entry.detail,
-    })),
+    findings: component.findings.map(vetEntryOf),
+    evidenceProblems: component.evidenceProblems.map(vetEntryOf),
   };
 }
 

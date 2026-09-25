@@ -18,13 +18,13 @@ import {
   SHA256_HEX,
   text,
 } from "../validate-v1.js";
-import type { AuthoringCatalogBundleV1, EvidenceSummaryV1 } from "./contracts-v1.js";
+import type { AuthoringCatalogBundleV1, EvidenceSummaryV2 } from "./contracts-v1.js";
 
 /**
- * Sealed `packaged-scanner-collection-evidence/v1` records (true inputs from
+ * Sealed `packaged-scanner-collection-evidence/v2` records (true inputs from
  * the Scanner release process) and their display projection onto a bundle.
  * Ported from Core 80120883 src/org-policy/packaged-collection-evidence-v1.ts
- * and src/evidence-freshness.ts.
+ * and src/evidence-freshness.ts; the v2 vocabulary (D50) from Core 8dd77e53.
  *
  * Decision D25: this reader is STRUCTURAL validation only, identical to Core's
  * `PackagedScannerCollectionEvidenceStructureV1Schema` (shared acceptance
@@ -63,7 +63,7 @@ function componentSubjectsV1(covered: PackagedEvidenceComponentV1): PackagedEvid
 }
 
 export interface PackagedScannerCollectionEvidenceV1 {
-  version: "packaged-scanner-collection-evidence/v1";
+  version: "packaged-scanner-collection-evidence/v2";
   authority: "display-only";
   catalog: {
     id: (typeof CATALOG_IDS)[number];
@@ -225,7 +225,7 @@ function parseRecord(value: unknown): PackagedScannerCollectionEvidenceV1 {
     ],
     label,
   );
-  literal(input.version, "packaged-scanner-collection-evidence/v1", `${label} version`);
+  literal(input.version, "packaged-scanner-collection-evidence/v2", `${label} version`);
   literal(input.authority, "display-only", `${label} authority`);
   const catalog = strictKeys(
     input.catalog,
@@ -255,7 +255,7 @@ function parseRecord(value: unknown): PackagedScannerCollectionEvidenceV1 {
   literal(coverage.version, "workbench-scanner-coverage/v1", `${label} coverage version`);
   literal(coverage.authority, "none", `${label} coverage authority`);
   literal(coverage.scope, "declared-source-files", `${label} coverage scope`);
-  const report = parseBaselineEvidenceLockV1({ schemaVersion: 1, sources: [input.report] })
+  const report = parseBaselineEvidenceLockV1({ schemaVersion: 2, sources: [input.report] })
     .sources[0];
   if (report === undefined) throw new TypeError(`${label} report is missing`);
   const verification = strictKeys(
@@ -265,7 +265,7 @@ function parseRecord(value: unknown): PackagedScannerCollectionEvidenceV1 {
   );
   literal(verification.method, "gh-attestation-verify", `${label} verification method`);
   const result: PackagedScannerCollectionEvidenceV1 = {
-    version: "packaged-scanner-collection-evidence/v1",
+    version: "packaged-scanner-collection-evidence/v2",
     authority: "display-only",
     catalog: {
       id: oneOf(catalog.id, CATALOG_IDS, `${label} catalog id`),
@@ -517,8 +517,8 @@ function exactAsset(
 export function projectScannerCollectionEvidenceV1(
   bundle: AuthoringCatalogBundleV1,
   records: readonly PackagedScannerCollectionEvidenceV1[],
-): Record<string, EvidenceSummaryV1> {
-  const result: Record<string, EvidenceSummaryV1> = {};
+): Record<string, EvidenceSummaryV2> {
+  const result: Record<string, EvidenceSummaryV2> = {};
   for (const evidence of records) {
     const recordDigest = `sha256:${canonicalStrictJsonSha256V1(evidence)}`;
     const reports = new Map(evidence.report.components.map((item) => [item.id, item]));
@@ -540,7 +540,7 @@ export function projectScannerCollectionEvidenceV1(
         const id = `evidence:${subject.assetId}`;
         result[id] = {
           id,
-          projectionVersion: "evidence-summary/v1",
+          projectionVersion: "evidence-summary/v2",
           subjects: [subject],
           evidenceDigest: `sha256:${canonicalStrictJsonSha256V1({ record: recordDigest, component: covered, observation, ...("subject" in covered ? {} : { subject }) })}`,
           coveredPaths: [...covered.paths].sort(),
@@ -551,7 +551,8 @@ export function projectScannerCollectionEvidenceV1(
             contextDigest: `sha256:${canonicalStrictJsonSha256V1({ record: recordDigest, publication: observation.publicationSha256, receipt: observation.receiptSha256 })}`,
           },
           scan: {
-            outcome: report.verdict === "blocked" ? "failed" : "pass",
+            // The stored label itself (D50): what the analyzers observed, never a decision.
+            outcome: report.verdict,
             coverage: "complete",
             analyzers: [...report.analyzers].sort((left, right) => {
               const leftKey = `${left.name}\u0000${left.version}`;
@@ -566,7 +567,7 @@ export function projectScannerCollectionEvidenceV1(
           findings: report.findings
             .slice(0, 50)
             .map((finding) => `${finding.code}: ${finding.detail}`.slice(0, 1000)),
-        } as EvidenceSummaryV1;
+        } as EvidenceSummaryV2;
       }
     }
   }

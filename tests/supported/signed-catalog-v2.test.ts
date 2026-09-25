@@ -3570,7 +3570,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       expect(() => publicApi.inspectSignedCatalogV2(rejected)).toThrow();
   });
 
-  it("derives promotion differences from closed head surfaces and preserves last-good for every material exception", async () => {
+  it("derives promotion differences from closed head surfaces, preserves last-good for every material exception and states findings as information", async () => {
     const publicApi = await api();
     const fixture = signingFixture();
     const lastGood = publicApi.createCatalogHeadV2(headInput(fixture.signer));
@@ -3674,9 +3674,6 @@ describe("public signed catalog V2 acceptance contract", () => {
       ).toThrow();
     for (const surface of [
       "claims",
-      "finding",
-      "gap",
-      "report",
       "right",
       "signer",
       "closure",
@@ -3727,6 +3724,46 @@ describe("public signed catalog V2 acceptance contract", () => {
         },
       ]);
     }
+    // D50: findings, gaps and the report stating them are information about an entry. A change in
+    // them is stated as a fact and never holds the candidate back; with a material change beside
+    // it, the head is kept for that change and the finding fact is still stated.
+    for (const surface of ["finding", "gap", "report"]) {
+      const candidateHead = publicApi.createCatalogHeadV2(changedSurface(lastGood, surface));
+      const result = publicApi.planCatalogPromotionV2({
+        candidateHead,
+        lastGood,
+        now: "2026-08-22T12:00:00Z",
+      }) as Record<string, unknown>;
+      expect(result).toStrictEqual({
+        kind: "promoted",
+        head: candidateHead,
+        facts: [
+          {
+            surface,
+            identity: expect.any(String),
+            lastGoodSurfaceSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+            candidateSurfaceSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+          },
+        ],
+      });
+    }
+    const findingAndClosure = changedSurface(lastGood, "finding");
+    const closureInput = changedSurface(lastGood, "closure");
+    findingAndClosure.entries = (findingAndClosure.entries as Record<string, unknown>[]).map(
+      (candidate, index) => ({
+        ...candidate,
+        closure: (closureInput.entries as Record<string, unknown>[])[index]?.closure,
+      }),
+    );
+    const heldForClosure = publicApi.planCatalogPromotionV2({
+      candidateHead: publicApi.createCatalogHeadV2(findingAndClosure),
+      lastGood,
+      now: "2026-08-22T12:00:00Z",
+    }) as Record<string, unknown>;
+    expect(heldForClosure).toMatchObject({ kind: "last-good", head: lastGood });
+    expect(
+      (heldForClosure.facts as { surface: string }[]).map((fact) => fact.surface).sort(),
+    ).toEqual(["closure", "finding"]);
     expect(() =>
       publicApi.planCatalogPromotionV2({
         candidateHead: { ...cleanSuccessor, catalogHeadSha256: sha("wrong-candidate-head") },

@@ -15,7 +15,7 @@ it uses the established signing root and the same canonical head.
 
 Profiles bind the current Core declarations and release identity. Their evidence
 retains the original Scanner report, publications, observations, and dates,
-including GitHub's blocked `trust.external-egress` finding. Pack assessments
+including GitHub's `trust.external-egress` finding. Pack assessments
 cover declared files; MCP assessments cover configuration declarations. The
 usage-metering hook retains Scanner coverage and has no Catalog member.
 
