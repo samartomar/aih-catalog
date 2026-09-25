@@ -91,7 +91,7 @@ function runLayout(runDirectory) {
 }
 
 /** The signed head embedded in the run's signed catalog, validated by the Catalog's own reader. */
-function signedHead(bytes, api) {
+export function signedCatalogHeadV1(bytes, api) {
   const signed = object(jsonOf(bytes, "signed-catalog"), "signed-catalog");
   const envelope = object(signed.envelope, "signed-catalog envelope");
   if (typeof envelope.payload !== "string") fail("signed-catalog payload");
@@ -150,7 +150,7 @@ export function stageCatalogQualificationInputsV1({ catalogRoot, runDirectory, o
   if (existsSync(output)) fail("output-exists");
   const run = resolve(runDirectory);
   const receiptDirectory = runLayout(run);
-  const head = signedHead(regularFile(resolve(run, "signed-catalog-v2.json"), MAX_SIGNED_CATALOG_BYTES, "signed-catalog"), api);
+  const head = signedCatalogHeadV1(regularFile(resolve(run, "signed-catalog-v2.json"), MAX_SIGNED_CATALOG_BYTES, "signed-catalog"), api);
   const headDigest = `sha256:${head.catalogHeadSha256}`;
   const receiptSetBytes = regularFile(resolve(run, "qualification-receipt-set.json"), MAX_RECEIPT_SET_BYTES, "receipt-set");
   let receiptSet;
