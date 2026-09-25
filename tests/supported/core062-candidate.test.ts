@@ -114,7 +114,7 @@ it("binds current declarations while retaining Scanner findings, dates and unsup
   expect(report.catalog.sourceTreeSha256).toBe(old.catalog.sourceTreeSha256);
   expect(report.catalog.source.revisionId).toBe("package:@aihq/core@0.6.2");
   expect(report.coverage.components).toHaveLength(10);
-  let blocked = 0;
+  let withFinding = 0;
   for (const path of paths) {
     const seedPath = resolve(root, "defaults", path);
     const seed = read(seedPath);
@@ -145,15 +145,17 @@ it("binds current declarations while retaining Scanner findings, dates and unsup
     const evidence = read(resolve(dirname(seedPath), seed.qualification.report));
     expect(evidence.subjectDigest).toBe(closure.subjectDigest);
     if (seed.subject.id === "github") {
+      // The committed summary quotes the Scanner report in its v1 vocabulary until the
+      // evidence is regenerated with the v2 vocabulary (D50): the component carries a finding.
       expect(evidence.summary).toContain("verdict blocked");
       expect(seed.qualification.findings).toHaveLength(1);
       expect(read(resolve(dirname(seedPath), seed.qualification.findings[0])).summary).toContain(
         "trust.external-egress",
       );
-      blocked++;
+      withFinding++;
     } else expect(seed.qualification.findings).toHaveLength(0);
   }
-  expect(blocked).toBe(1);
+  expect(withFinding).toBe(1);
   expect(paths.some((path) => path.includes("usage-metering"))).toBe(false);
   const draft = read(resolve(root, "defaults", prefix, "source-reports/qualification-draft.json"));
   expect(draft.unsupported).toEqual([

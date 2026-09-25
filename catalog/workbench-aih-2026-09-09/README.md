@@ -11,8 +11,8 @@ The profiles bind Scanner publication from Core candidate
 The complete verified report, its sealed wrapper, qualification draft, and
 license notices are retained under `defaults/workbench/aih/source-reports`.
 
-The GitHub MCP configuration retains its blocked `trust.external-egress`
-finding. Every new entry carries its declared scope limitation. Configuration
+The GitHub MCP configuration carries 1 finding, `trust.external-egress`, as
+information. Every new entry carries its declared scope limitation. Configuration
 review does not cover the executable MCP server or grant organization approval.
 The usage-metering hook remains in the ten-component report but is not a
 Catalog member because hooks are outside the supported qualification grammar.
