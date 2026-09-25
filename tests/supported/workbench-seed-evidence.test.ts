@@ -30,7 +30,7 @@ describe("registered Workbench source assessments", () => {
           !path.startsWith("workbench/aih-core-0.6.2/") &&
           !path.startsWith("workbench/npm/"),
       ),
-    ).toHaveLength(429);
+    ).toHaveLength(430);
     const expected: Record<
       string,
       {
@@ -58,8 +58,30 @@ describe("registered Workbench source assessments", () => {
         locationCoverageNotices: 70,
         globalCoverageNotices: 15,
       },
-      ponytail: { count: 7, commit: "356918eba965ee1eac64bd3a7f0dd02108350de5" },
-      superpowers: { count: 14, commit: "b36e0829c6d0140e93cfef2ca599b1b07d4a7797" },
+      mattpocock: {
+        count: 25,
+        commit: "c55ee46073ed923f86ce59a5eb3b6d895095d1b7",
+        publication: "ab1a0b3c76d1962970195621fdd906fe200317ef30bef78e25fd0a82f853e518",
+        mappedFindings: 31,
+        locationCoverageNotices: 1,
+        globalCoverageNotices: 13,
+      },
+      ponytail: {
+        count: 7,
+        commit: "1d95ff7d39de12d87014ea40d4e22201bddc501b",
+        publication: "7651e06f56c4f17a37478fd03980c8b6499bb9db00f7c2a7e056020779666fd0",
+        mappedFindings: 70,
+        locationCoverageNotices: 8,
+        globalCoverageNotices: 2,
+      },
+      superpowers: {
+        count: 15,
+        commit: "5bf4e78011075bcfc0dc295f0724994cd123ee71",
+        publication: "cf939d5447eaae3e16b2bfa15ebad25620f0953a89d4d5fda51e14844bba288b",
+        mappedFindings: 82,
+        locationCoverageNotices: 13,
+        globalCoverageNotices: 14,
+      },
       ecc: { count: 367, commit: "5064474d4d762dc9640234a41617cccb79185cec" },
     };
     for (const [provider, facts] of Object.entries(expected)) {
@@ -103,7 +125,7 @@ describe("registered Workbench source assessments", () => {
           installation: false,
           organizationAdmission: "not-authoritative",
         });
-        if (provider === "anthropic" || provider === "ui-ux-pro-max") {
+        if (facts.publication !== undefined) {
           expect(seed.qualification.gaps).toContain("evidence/coverage-gap.json");
           const coverageGap = read(resolve(dirname(seedPath), "evidence/coverage-gap.json"));
           expect(coverageGap.summary).toContain("Unresolved Scanner coverage notifications:");
@@ -145,7 +167,7 @@ describe("registered Workbench source assessments", () => {
       expect(seed.subject.source).toMatchObject({
         type: "github",
         repository: "mattpocock/skills",
-        commit: "3cca18b368ae95cdbdebbff572ccafa662551015",
+        commit: "c55ee46073ed923f86ce59a5eb3b6d895095d1b7",
       });
       const sourceDigest = digest("aih-governance-decision-source/v2", seed.subject.source);
       const subjectDigest = digest("aih-governance-decision-subject/v2", {
@@ -180,10 +202,19 @@ describe("registered Workbench source assessments", () => {
             format: "aih-supported-evidence/v2",
           });
           if (kind === "finding") {
-            expect(evidence.summary).toMatch(/^Unresolved .*canonical finding SHA256 [0-9a-f]{64}/);
+            expect(evidence.summary).toMatch(
+              /^Unresolved original annex\/\S+\.json findings: \d+\. Canonical full ordered finding group SHA256 [0-9a-f]{64}\./,
+            );
             findingCount++;
           }
-          if (kind === "gap") expect(evidence.summary).toContain("no runtime safety, clean scan");
+          if (kind === "gap")
+            expect(evidence.summary).toContain(
+              {
+                "coverage-gap": "is not a complete or clean scan",
+                "publication-1": "Catalog does not re-sign or refresh them",
+                "scope-gap": "No runtime safety, clean scan",
+              }[evidence.id as string],
+            );
         }
       }
     }

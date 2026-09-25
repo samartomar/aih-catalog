@@ -61,12 +61,12 @@ describe("published catalog presentation", () => {
       commit,
     });
     expect(presentation.sources).toEqual([
-      github("DietrichGebert/ponytail", "356918eba965ee1eac64bd3a7f0dd02108350de5"),
+      github("DietrichGebert/ponytail", "1d95ff7d39de12d87014ea40d4e22201bddc501b"),
       ECC,
       github("anthropics/skills", "34040c9c568585f6929bedeaad110ad08f079624"),
-      github("mattpocock/skills", "3cca18b368ae95cdbdebbff572ccafa662551015"),
+      github("mattpocock/skills", "c55ee46073ed923f86ce59a5eb3b6d895095d1b7"),
       github("nextlevelbuilder/ui-ux-pro-max-skill", "a38d04c3d5c298c851dbe5e6ee1965ee3de42cb5"),
-      github("obra/Superpowers", "b36e0829c6d0140e93cfef2ca599b1b07d4a7797"),
+      github("obra/Superpowers", "5bf4e78011075bcfc0dc295f0724994cd123ee71"),
     ]);
     // Every GitHub entry of the index, and nothing else.
     const githubEntries = index.entries.filter((entry) => entry.subject.source.type === "github");
@@ -74,10 +74,10 @@ describe("published catalog presentation", () => {
       githubEntries.map((entry) => entry.entryId),
     );
     expect(presentation.coverage).toEqual({
-      entries: 428,
-      title: { published: 390, unavailable: 38 },
-      description: { published: 421, unavailable: 7 },
-      category: { published: 3, unavailable: 425 },
+      entries: 429,
+      title: { published: 391, unavailable: 38 },
+      description: { published: 422, unavailable: 7 },
+      category: { published: 3, unavailable: 426 },
     });
     // The aih and npm entries are outside this github-only format: absent, not unavailable.
     const covered = new Set(presentation.entries.map((entry) => entry.entryId));
@@ -111,7 +111,7 @@ describe("published catalog presentation", () => {
 
   it("checks the committed sidecar against the inputs, index and closures without upstream trees", async () => {
     const { checkCatalogPresentation, serializeCatalogPresentation } = await generator();
-    expect(checkCatalogPresentation(root).entries).toHaveLength(428);
+    expect(checkCatalogPresentation(root).entries).toHaveLength(429);
     const refuse = (mutate: (doc: Doc) => void, message: string) => {
       const doc = clone();
       mutate(doc);

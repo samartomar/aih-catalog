@@ -97,7 +97,7 @@ describe("catalog consumer index generator", () => {
       (entry: { entryId: string }) => entry.entryId === "skill.superpowers.brainstorming",
     );
     expect(brainstorming.subject.subjectDigest).toBe(
-      "sha256:44edc8683954da5fe67f206034c5913d6460e63fd3472dfe2584dbeb323d667e",
+      "sha256:79ec6da6c5ca3f92838989814f9d354df923c5c4f11f276c2014d9cc7e9477e4",
     );
     expect(JSON.stringify(result)).not.toContain(root);
     expect(result).not.toHaveProperty("qualificationBasis");

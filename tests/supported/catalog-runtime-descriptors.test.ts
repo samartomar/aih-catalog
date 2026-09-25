@@ -285,7 +285,7 @@ describe("published runtime descriptors", () => {
           const value = clone();
           const superpowers = structuredClone(value.descriptors[0]);
           superpowers.source.repository = "obra/Superpowers";
-          superpowers.source.commit = "b36e0829c6d0140e93cfef2ca599b1b07d4a7797";
+          superpowers.source.commit = "5bf4e78011075bcfc0dc295f0724994cd123ee71";
           value.descriptors = [superpowers, value.descriptors[0]];
           return readValue(value);
         },
