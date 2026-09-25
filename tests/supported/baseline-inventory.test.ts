@@ -198,10 +198,53 @@ describe("whole-repository baseline inventory", () => {
   });
 
   it("rejects an unknown subject or a malformed commit", () => {
-    expect(() => baselineInventoryFromTreeV1("anthropics-skills", COMMIT, [blob("a.md")])).toThrow(
-      /unknown subject/,
-    );
+    expect(() =>
+      baselineInventoryFromTreeV1("ui-ux-pro-max-skill", COMMIT, [blob("a.md")]),
+    ).toThrow(/unknown subject/);
     expect(() => baselineInventoryFromTreeV1("ecc", "5064474d", [blob("a.md")])).toThrow(/commit/);
+  });
+
+  it("partitions anthropics/skills, whose curation the Catalog keeps only in its sealed record", () => {
+    // The whole repository, as Scan's old anthropics-skills publication (41bbe19d) was: every
+    // skill, the template skill, and the runtime files beside them; nothing left unscanned.
+    const inventory = baselineInventoryFromTreeV1("anthropics-skills", COMMIT, [
+      blob(".claude-plugin/marketplace.json"),
+      blob("README.md"),
+      blob("skills/docx/SKILL.md"),
+      blob("skills/docx/scripts/pack.py", "100755"),
+      blob("skills/pdf/SKILL.md"),
+      blob("spec/agent-skills-spec.md"),
+      blob("template/SKILL.md"),
+    ]);
+    expect(inventory).toEqual({
+      components: [
+        { id: `runtime:claude-plugin-${hash(".claude-plugin")}`, paths: [".claude-plugin"] },
+        { id: `runtime:root-${hash("root")}`, paths: ["README.md"] },
+        { id: `runtime:spec-${hash("spec")}`, paths: ["spec"] },
+        {
+          id: `skill:skills-docx-${hash("skills/docx")}`,
+          paths: ["skills/docx"],
+          skillContent: true,
+        },
+        { id: `skill:skills-pdf-${hash("skills/pdf")}`, paths: ["skills/pdf"], skillContent: true },
+        { id: `skill:template-${hash("template")}`, paths: ["template"], skillContent: true },
+      ],
+      id: "anthropics-skills",
+      owner: "anthropics",
+      pinnedSha: COMMIT,
+      repo: "skills",
+    });
+    // The ids Scan's 41bbe19d request set published for the same keys.
+    expect(inventory.components.map((component) => component.id)).toEqual(
+      expect.arrayContaining([
+        "runtime:claude-plugin-216ddf49c509",
+        "runtime:root-4813494d137e",
+        "runtime:spec-d4f02eaafd1a",
+        "skill:skills-docx-d36d07847a81",
+        "skill:skills-pdf-ffdd2aa08b2c",
+        "skill:template-5cde0f1298f4",
+      ]),
+    );
   });
 
   describe("from a pinned git checkout", () => {
@@ -350,6 +393,20 @@ describe("whole-repository baseline inventory", () => {
       expect(emitBaselineInventoryV1("superpowers", commit, root, guarded)).toEqual(
         emitBaselineInventoryV1("superpowers", commit, root, runner),
       );
+    });
+
+    it("emits anthropics-skills only from a checkout of anthropics/skills", () => {
+      const { root, commit } = checkout("https://github.com/anthropics/skills.git");
+      expect(emitBaselineInventoryV1("anthropics-skills", commit, root, runner)).toMatchObject({
+        id: "anthropics-skills",
+        owner: "anthropics",
+        repo: "skills",
+        pinnedSha: commit,
+      });
+      const other = checkout();
+      expect(() =>
+        emitBaselineInventoryV1("anthropics-skills", other.commit, other.root, runner),
+      ).toThrow(/origin is https:\/\/github.com\/obra\/Superpowers.git, not anthropics\/skills/);
     });
 
     it("refuses a checkout of another repository or a commit it does not hold", () => {

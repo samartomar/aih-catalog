@@ -1,10 +1,8 @@
 import { createHash } from "node:crypto";
 import type { GitRunnerV1 } from "../produce/upstream-fetch-v1.js";
 import { assertSafeRelativePosixPathV1, codeUnitCompare } from "../strict-json-v1.js";
-import {
-  BASELINE_DEFINITION_SUBJECTS_V1,
-  type BaselineDefinitionSubjectV1,
-} from "./baseline-definitions-v1.js";
+import { CURATED_COLLECTION_TEMPLATES_V1 } from "../workbench/compiler-input-v1.js";
+import { BASELINE_DEFINITION_SUBJECTS_V1 } from "./baseline-definitions-v1.js";
 
 /**
  * The disjoint whole-repository Scanner inventory: the BaselineCatalog Scan's request-set
@@ -48,6 +46,17 @@ export interface BaselineInventoryV1 {
   repo: string;
 }
 
+/**
+ * The subjects a whole-repository inventory is emitted for: every definition subject, and each
+ * collection whose curation the Catalog carries only inside its sealed record (anthropics-skills:
+ * no produce step, so no definition, but Scan publishes its whole repository).
+ */
+export const BASELINE_INVENTORY_SUBJECTS_V1 = {
+  ...BASELINE_DEFINITION_SUBJECTS_V1,
+  ...CURATED_COLLECTION_TEMPLATES_V1,
+} as const;
+export type BaselineInventorySubjectV1 = keyof typeof BASELINE_INVENTORY_SUBJECTS_V1;
+
 const COMMIT = /^[0-9a-f]{40}$/u;
 const REGULAR = new Set(["100644", "100755"]);
 
@@ -64,10 +73,10 @@ function componentId(kind: "skill" | "runtime", key: string): string {
   return `${kind}:${slug}-${createHash("sha256").update(key, "utf8").digest("hex").slice(0, 12)}`;
 }
 
-function subjectOf(name: string): BaselineDefinitionSubjectV1 {
-  if (!Object.hasOwn(BASELINE_DEFINITION_SUBJECTS_V1, name))
+function subjectOf(name: string): BaselineInventorySubjectV1 {
+  if (!Object.hasOwn(BASELINE_INVENTORY_SUBJECTS_V1, name))
     fail(`unknown subject ${JSON.stringify(name)}`);
-  return name as BaselineDefinitionSubjectV1;
+  return name as BaselineInventorySubjectV1;
 }
 
 const within = (path: string, directory: string) => path.startsWith(`${directory}/`);
@@ -198,7 +207,7 @@ export function baselineInventoryFromTreeV1(
     };
   });
   components.sort((left, right) => codeUnitCompare(left.id, right.id));
-  const [owner, repo] = BASELINE_DEFINITION_SUBJECTS_V1[subject].split("/") as [string, string];
+  const [owner, repo] = BASELINE_INVENTORY_SUBJECTS_V1[subject].split("/") as [string, string];
   return { components, id: subject, owner, pinnedSha: commit, repo };
 }
 
@@ -253,7 +262,7 @@ export function emitBaselineInventoryV1(
 ): BaselineInventoryV1 {
   const subject = subjectOf(name);
   if (!COMMIT.test(commit)) fail("commit must be a full 40-character lowercase sha");
-  const repository = BASELINE_DEFINITION_SUBJECTS_V1[subject];
+  const repository = BASELINE_INVENTORY_SUBJECTS_V1[subject];
   const origin = Buffer.from(runGit(git, checkout, ["remote", "get-url", "origin"]))
     .toString("utf8")
     .trim();

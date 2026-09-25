@@ -8,7 +8,8 @@
 //
 // `--inventory <checkout>` instead emits the disjoint whole-repository inventory (the
 // partition Scan's request-set route requires) from the commit's tracked tree in a checkout
-// whose origin is the subject's GitHub repository; it reads no produced input.
+// whose origin is the subject's GitHub repository; it reads no produced input. It also takes
+// anthropics-skills, which has an inventory but no definition.
 import { execFileSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -19,7 +20,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 function usage(message) {
   console.error(`emit-baseline-definitions: ${message}`);
   console.error(
-    "usage: node tools/emit-baseline-definitions.mjs <ecc|superpowers|mattpocock|ponytail> --commit <40-hex> --output <new file> [--inventory <checkout>]",
+    "usage: node tools/emit-baseline-definitions.mjs <ecc|superpowers|mattpocock|ponytail> --commit <40-hex> --output <new file>\n       node tools/emit-baseline-definitions.mjs <ecc|superpowers|mattpocock|ponytail|anthropics-skills> --commit <40-hex> --output <new file> --inventory <checkout>",
   );
   process.exit(2);
 }
