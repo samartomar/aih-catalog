@@ -13,6 +13,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  catalogIndex,
   sha256,
   type WrittenPublication,
   writeJson,
@@ -33,6 +34,7 @@ type Generator = {
     outputRoot: string;
     manifestPath: string;
     definitionPath?: string;
+    catalogIndexPath?: string;
   }): { entries: number; seedPaths: string[]; excluded?: Json[] };
   hashComponentTreeV1(sourceRoot: string, paths: string[]): { treeSha256: string };
   hashSourceTreeV1(sourceRoot: string): { treeSha256: string };
@@ -162,6 +164,16 @@ async function publicationSet(members: Member[]) {
     version: 1,
   });
   const outputRoot = join(root, "defaults", "workbench", "fixture");
+  // The Catalog's curated inventory of this provider: the selection authority of the direct
+  // skill rows (the closure rows take theirs from the curated definition).
+  const catalogIndexPath = join(root, "defaults", "catalog-index-v1.json");
+  writeJson(
+    catalogIndexPath,
+    catalogIndex("fixture", baseSource, [
+      { kind: "skill", name: "skills-demo-02", entryPath: "skills/demo/SKILL.md" },
+      { kind: "skill", name: "skills-other-03", entryPath: "skills/other/SKILL.md" },
+    ]),
+  );
   const input = (definition = true) => ({
     sourceRoot,
     handoffPath: built.map((item) => item.handoffPath),
@@ -170,7 +182,7 @@ async function publicationSet(members: Member[]) {
     provider: "fixture",
     outputRoot,
     manifestPath,
-    ...(definition ? { definitionPath } : {}),
+    ...(definition ? { definitionPath } : { catalogIndexPath }),
   });
   const run = (definition = true) => api.generateSourceAssessmentRowsV1(input(definition));
   return { built, definitionPath, input, manifestPath, outputRoot, run };

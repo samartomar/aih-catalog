@@ -2,7 +2,12 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { sha256, writeJson, writeScannerPublication } from "./scanner-publication-fixture.js";
+import {
+  catalogIndex,
+  sha256,
+  writeJson,
+  writeScannerPublication,
+} from "./scanner-publication-fixture.js";
 
 type Json = Record<string, unknown>;
 type Generator = {
@@ -15,6 +20,7 @@ type Generator = {
     outputRoot: string;
     manifestPath: string;
     definitionPath?: string;
+    catalogIndexPath?: string;
     authoringCatalogPath?: string;
   }): { entries: number; seedPaths: string[]; excluded?: Json[] };
   hashComponentTreeV1(sourceRoot: string, paths: string[]): { treeSha256: string };
@@ -115,6 +121,15 @@ async function fixture(options: Options) {
     version: 1,
   });
   const outputRoot = join(root, "defaults", "workbench", "fixture");
+  // The Catalog's curated inventory of this provider: the selection authority of the direct
+  // skill rows (the closure rows take theirs from the curated definition).
+  const catalogIndexPath = join(root, "defaults", "catalog-index-v1.json");
+  writeJson(
+    catalogIndexPath,
+    catalogIndex("fixture", source, [
+      { kind: "skill", name: "skills-demo-000000000002", entryPath: "skills/demo/SKILL.md" },
+    ]),
+  );
   const run = (definition = true) =>
     api.generateSourceAssessmentRowsV1({
       sourceRoot,
@@ -124,8 +139,9 @@ async function fixture(options: Options) {
       provider: "fixture",
       outputRoot,
       manifestPath,
-      ...(definition ? { definitionPath } : {}),
-      ...(definition && options.authoring ? { authoringCatalogPath: authoringPath } : {}),
+      ...(definition
+        ? { definitionPath, ...(options.authoring ? { authoringCatalogPath: authoringPath } : {}) }
+        : { catalogIndexPath }),
     });
   return {
     run,

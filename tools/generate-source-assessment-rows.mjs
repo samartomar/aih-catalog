@@ -118,6 +118,8 @@ const COMPONENT_ARTIFACT_KEYS = [
 ];
 const SOURCE_KEYS = ["id", "owner", "pinnedCommit", "repository", "treeSha256"];
 const PUBLICATION_KEYS = ["annexes", "envelope", "protocol", "receipt", "request", "verification"];
+const CATALOG_INDEX_FORMAT = "aih-catalog-index";
+const CATALOG_INDEX_VERSION = 1;
 const HEX_40 = /^[0-9a-f]{40}$/;
 const HEX_64 = /^[0-9a-f]{64}$/;
 const ID = /^[a-z0-9][a-z0-9._:/-]{0,199}$/;
@@ -1507,6 +1509,86 @@ function closureRows(members, provider, sourceRoot, definition, authoring) {
   return { rows, excluded: inventory.excluded };
 }
 
+/**
+ * The Catalog's curated inventory of one provider at one source and pin, from the Catalog's own
+ * committed catalog index (tools/generate-catalog-index.mjs; defaults/catalog-index-v1.json in the
+ * package). A curated row of a provider is its seed at
+ * `defaults/workbench/<provider>/<entryId>/seed.json`; the index also carries rows of no provider
+ * (the collection recipe), which no provider renders and this inventory skips.
+ */
+function curatedDirectSkillInventory(indexValue, provider, source) {
+  const index = object(indexValue, "catalog-index");
+  if (index.format !== CATALOG_INDEX_FORMAT || index.version !== CATALOG_INDEX_VERSION)
+    fail("catalog-index-format");
+  const repository = `${source.owner}/${source.repository}`;
+  const entries = new Map();
+  for (const value of array(index.entries, "catalog-index-entries")) {
+    const entry = object(value, "catalog-index-entry");
+    const entryId = text(entry.entryId, "catalog-index-entry-id", 300);
+    const subject = object(entry.subject, "catalog-index-subject");
+    const name = text(subject.id, "catalog-index-subject-id", 200);
+    const kind = text(subject.kind, "catalog-index-subject-kind", 40);
+    const seed = object(entry.seed, "catalog-index-seed");
+    const seedPath = text(seed.path, "catalog-index-seed-path", 1_024);
+    // A row of no provider (the collection's own row) is not a provider's curated row; a
+    // defaults/workbench path states its provider and its entry id and must agree with both.
+    if (!seedPath.startsWith("defaults/workbench/")) continue;
+    const row = /^defaults\/workbench\/([^/]+)\/(.+)\/seed\.json$/.exec(seedPath);
+    if (row === null || row[2] !== entryId) fail(`catalog-index-seed-path ${entryId}`);
+    if (row[1] !== provider) continue;
+    hex(seed.sha256, "catalog-index-seed");
+    if (entryId !== `${kind}.${provider}.${name}`) fail(`catalog-index-entry-id ${entryId}`);
+    // A direct skill run replaces every row of its provider in the seed manifest, so an inventory
+    // of another kind can never be rendered as direct skill rows and is refused, never dropped.
+    if (kind !== "skill")
+      fail(`mapping-selection-kind ${entryId}: not a curated skill row of provider ${provider}`);
+    const declared = object(subject.source, "catalog-index-subject-source");
+    if (
+      text(declared.repository, "catalog-index-subject-repository", 200) !== repository ||
+      hex(declared.commit, "catalog-index-subject-commit", HEX_40) !== source.pinnedCommit
+    )
+      fail(
+        `mapping-selection-pin ${entryId}: ${declared.repository}@${declared.commit} is not ${repository}@${source.pinnedCommit}`,
+      );
+    if (entries.has(name)) fail(`catalog-index-duplicate ${entryId}`);
+    entries.set(name, {
+      entryId,
+      entryPath: sourceRelative(declared.path, "catalog-index-subject-path"),
+    });
+  }
+  return { entries, provider, repository, pin: source.pinnedCommit };
+}
+
+/**
+ * A direct skill row's subject is the mapping's `catalogAssetId` (skillRowsOf), and the mapping is
+ * Scan's unsigned copy of the consumer's selection, so the selection itself is the Catalog's
+ * curated inventory: one row per curated skill of the provider, the curated entry point inside the
+ * Scanner component that renders it, and every curated skill covered exactly once. A mapping that
+ * drops, adds or rebinds one refuses.
+ */
+function assertCuratedDirectSkillSelection(inventory, members) {
+  const claimed = new Map();
+  for (const member of members)
+    for (const component of member.validated.components) {
+      const { artifact, files } = component;
+      const scannerComponentId = artifact.scannerComponentId;
+      const prefix = `${member.validated.source.id}/skill:`;
+      const assetId = artifact.catalogAssetId;
+      const name = assetId.startsWith(prefix) ? assetId.slice(prefix.length) : "";
+      const entry = inventory.entries.get(name);
+      if (entry === undefined)
+        fail(
+          `mapping-selection-uncatalogued ${assetId}: no curated skill of provider ${inventory.provider} at ${inventory.repository}@${inventory.pin}`,
+        );
+      if (!files.some((file) => file.path === entry.entryPath))
+        fail(`mapping-selection-unbound ${scannerComponentId} ${entry.entryPath}`);
+      if (claimed.has(name)) fail(`mapping-selection-duplicate ${assetId}`);
+      claimed.set(name, scannerComponentId);
+    }
+  for (const [name, entry] of inventory.entries)
+    if (!claimed.has(name)) fail(`mapping-selection-unmapped ${entry.entryId}`);
+}
+
 /** Direct skill mode: every mapped Scanner component is one skill row with its exact files. */
 function skillRows(members, provider, sourceRoot) {
   return members.flatMap((member) => skillRowsOf(member, provider, sourceRoot));
@@ -1886,6 +1968,16 @@ function updateManifest(prepared) {
   return seedPaths;
 }
 
+/**
+ * Renders the review-only rows of one provider from verified publications.
+ *
+ * The selection never comes from the unsigned handoff. Closure rows (`definitionPath`) are one row
+ * per curated Catalog component of the Catalog's pinned definition, and a mapped component that is
+ * dropped leaves its closure files unowned (`closure-file-unmapped`). Direct skill rows
+ * (`catalogIndexPath`) are one row per mapped Scanner component, and the row's subject is the
+ * mapping's `catalogAssetId`, so the selection and every subject come from the Catalog's own
+ * curated inventory (its committed catalog index; `assertCuratedDirectSkillSelection`).
+ */
 export function generateSourceAssessmentRowsV1({
   sourceRoot,
   handoffPath,
@@ -1896,6 +1988,7 @@ export function generateSourceAssessmentRowsV1({
   manifestPath,
   definitionPath,
   authoringCatalogPath,
+  catalogIndexPath,
 }) {
   if (!PROVIDER.test(text(provider, "provider", 80))) fail("provider");
   // One publication, or the members of one publication set as handoff/publication pairs (D49),
@@ -1918,8 +2011,17 @@ export function generateSourceAssessmentRowsV1({
     ["manifestPath", manifestPath],
     ...(definitionPath === undefined ? [] : [["definitionPath", definitionPath]]),
     ...(authoringCatalogPath === undefined ? [] : [["authoringCatalogPath", authoringCatalogPath]]),
+    ...(catalogIndexPath === undefined ? [] : [["catalogIndexPath", catalogIndexPath]]),
   ])
     if (typeof value !== "string" || !isAbsolute(value)) fail(`${label}-absolute`);
+  // A direct skill row states the mapping's catalogAssetId as its subject, so its selection has to
+  // come from the Catalog's curated inventory, never from the handoff's own copy of the mapping.
+  if (definitionPath === undefined && catalogIndexPath === undefined)
+    fail(
+      "direct-skill-selection-unauthored: direct skill rows need the Catalog's curated inventory (--catalog-index <aih-catalog-index>); the handoff's mapping is not a selection authority",
+    );
+  if (definitionPath !== undefined && catalogIndexPath !== undefined)
+    fail("catalog-index-with-definition");
   handoffPaths.forEach((path, index) => {
     if (dirname(resolve(path)) !== dirname(resolve(publicationPaths[index])))
       fail("publication-handoff-directory");
@@ -1929,6 +2031,11 @@ export function generateSourceAssessmentRowsV1({
     definitionPath === undefined
       ? undefined
       : readJson(definitionPath, "definition", 64 * 1024 * 1024).value;
+  // Direct skill rows read the Catalog's curated inventory of the provider (its catalog index).
+  const catalogIndex =
+    catalogIndexPath === undefined
+      ? undefined
+      : readJson(catalogIndexPath, "catalog-index", 64 * 1024 * 1024).value;
   // The external-inventory MCP rows come from the Catalog's policy authoring catalog (D61).
   if (authoringCatalogPath !== undefined && definition === undefined)
     fail("authoring-catalog-without-definition");
@@ -1964,6 +2071,13 @@ export function generateSourceAssessmentRowsV1({
       codeUnitCompare(left.handoff.publicationSha256, right.handoff.publicationSha256),
     );
   }
+  // The direct skill selection is the Catalog's curated inventory of this provider, at this source
+  // and pin; the handoff's mapping is only the claim that is compared with it.
+  if (catalogIndex !== undefined)
+    assertCuratedDirectSkillSelection(
+      curatedDirectSkillInventory(catalogIndex, provider, members[0].validated.source),
+      members,
+    );
   const rendered = renderRows(members, provider, sourceRoot, definition, authoring);
   const layout = destinationLayout(manifestPath, outputRoot, provider);
   const preparedManifest = prepareManifestUpdate(manifestPath, rendered.seedPaths, layout);
@@ -2012,7 +2126,7 @@ function argumentsFrom(argv) {
     "output-root",
     "manifest",
   ];
-  const optional = ["definition", "authoring-catalog"];
+  const optional = ["definition", "authoring-catalog", "catalog-index"];
   if (
     expected.some((name) => !values.has(name)) ||
     [...values.keys()].some((name) => !expected.includes(name) && !optional.includes(name))
@@ -2029,6 +2143,9 @@ function argumentsFrom(argv) {
     ...(values.has("definition") ? { definitionPath: resolve(values.get("definition")) } : {}),
     ...(values.has("authoring-catalog")
       ? { authoringCatalogPath: resolve(values.get("authoring-catalog")) }
+      : {}),
+    ...(values.has("catalog-index")
+      ? { catalogIndexPath: resolve(values.get("catalog-index")) }
       : {}),
   };
 }

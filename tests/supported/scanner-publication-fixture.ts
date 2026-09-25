@@ -78,6 +78,54 @@ const pae = (payloadType: string, payload: Buffer) =>
     payload,
   ]);
 
+/** The source identity the Catalog's curated rows and a Scanner request share. */
+export interface CatalogSourceIdentity {
+  id: string;
+  owner: string;
+  repository: string;
+  pinnedCommit: string;
+}
+/** One curated Catalog row: a subject of one provider at one source and pin. */
+export interface CuratedSubject {
+  kind: string;
+  name: string;
+  /** The subject's entry point in the pinned source (the catalog index's subject.source.path). */
+  entryPath: string;
+}
+
+/**
+ * The Catalog's committed catalog index (`aih-catalog-index` v1, defaults/catalog-index-v1.json) for
+ * one provider at one source: the curated inventory a direct skill row's selection must match
+ * (tools/generate-catalog-index.mjs). Only the fields the selection authority reads are built.
+ */
+export function catalogIndex(
+  provider: string,
+  source: CatalogSourceIdentity,
+  subjects: CuratedSubject[],
+): Json {
+  return {
+    format: "aih-catalog-index",
+    version: 1,
+    entries: subjects.map((subject) => ({
+      entryId: `${subject.kind}.${provider}.${subject.name}`,
+      seed: {
+        path: `defaults/workbench/${provider}/${subject.kind}.${provider}.${subject.name}/seed.json`,
+        sha256: sha256(`${provider}/${subject.kind}:${subject.name}`),
+      },
+      subject: {
+        id: subject.name,
+        kind: subject.kind,
+        source: {
+          commit: source.pinnedCommit,
+          path: subject.entryPath,
+          repository: `${source.owner}/${source.repository}`,
+          type: "github",
+        },
+      },
+    })),
+  };
+}
+
 export const PUBLISHER_COMMIT = "e".repeat(40);
 const REPOSITORY = "samartomar/aih-scan";
 const REPOSITORY_URI = `https://github.com/${REPOSITORY}`;
