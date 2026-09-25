@@ -1,4 +1,3 @@
-import { createHash, generateKeyPairSync, sign } from "node:crypto";
 import {
   existsSync,
   mkdirSync,
@@ -12,12 +11,20 @@ import {
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
+import {
+  attestationBundle,
+  rewriteArtifact,
+  rewriteHandoff,
+  writeJson,
+  writeScannerPublication,
+} from "./scanner-publication-fixture.js";
 
 type Generator = {
   generateSourceAssessmentRowsV1(input: {
     sourceRoot: string;
     handoffPath: string;
     publicationPath: string;
+    attestationPath: string;
     provider: string;
     outputRoot: string;
     manifestPath: string;
@@ -34,305 +41,58 @@ async function generator(): Promise<Generator> {
   return (await import("../../tools/generate-source-assessment-rows.mjs")) as Generator;
 }
 
-const canonical = (value: unknown): string => {
-  if (value === null || typeof value !== "object") return JSON.stringify(value);
-  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
-  const item = value as Record<string, unknown>;
-  return `{${Object.keys(item)
-    .sort()
-    .map((key) => `${JSON.stringify(key)}:${canonical(item[key])}`)
-    .join(",")}}`;
-};
-const sha256 = (value: string | Buffer): string => createHash("sha256").update(value).digest("hex");
-const writeJson = (path: string, value: unknown) => writeFileSync(path, canonical(value));
-const pae = (payloadType: string, payload: Buffer) =>
-  Buffer.concat([
-    Buffer.from(`DSSEv1 ${Buffer.byteLength(payloadType)} ${payloadType} ${payload.length} `),
-    payload,
-  ]);
-
+type Json = Record<string, unknown>;
 const temporaryRoots: string[] = [];
 const directoryLinkType = process.platform === "win32" ? "junction" : "dir";
 afterEach(() => {
   for (const path of temporaryRoots.splice(0)) rmSync(path, { recursive: true, force: true });
 });
 
-async function fixture() {
+const SCANNER_ID = "skill:skills-demo-0123456789ab";
+const FILES = {
+  "skills/demo/LICENSE.txt": "MIT License\n\nPermission is hereby granted.\n",
+  "skills/demo/SKILL.md": "# Demo\n\nReview this source.\n",
+};
+
+/**
+ * One skill publication. By default it carries one cisco finding in SKILL.md and one global
+ * skillspector notification, and its SARIF analyzers carry no completion evidence, so it is
+ * observed with gaps; `gapFree` requests only the aih-native analyzer and observes nothing else.
+ */
+async function fixture({ gapFree = false } = {}) {
   const api = await generator();
   const root = mkdtempSync(join(tmpdir(), "aih-catalog-source-generator-"));
   temporaryRoots.push(root);
   const sourceRoot = join(root, "source");
   const skillRoot = join(sourceRoot, "skills", "demo");
-  const publicationRoot = join(root, "publication");
-  mkdirSync(skillRoot, { recursive: true });
-  mkdirSync(join(publicationRoot, "components"), { recursive: true });
-  writeFileSync(join(skillRoot, "LICENSE.txt"), "MIT License\n\nPermission is hereby granted.\n");
-  writeFileSync(join(skillRoot, "SKILL.md"), "# Demo\n\nReview this source.\n");
-
-  const sourceHash = api.hashSourceTreeV1(sourceRoot);
-  const componentHash = api.hashComponentTreeV1(sourceRoot, ["skills/demo"]);
+  for (const [path, contents] of Object.entries(FILES)) {
+    mkdirSync(dirname(join(sourceRoot, path)), { recursive: true });
+    writeFileSync(join(sourceRoot, path), contents);
+  }
   const source = {
     id: "fixture-skills",
     owner: "example",
     pinnedCommit: "a".repeat(40),
     repository: "skills",
-    treeSha256: sourceHash.treeSha256,
+    treeSha256: api.hashSourceTreeV1(sourceRoot).treeSha256,
   };
-  const requestSha256 = "b".repeat(64);
-  const receiptSha256 = "c".repeat(64);
-  const signedAt = "2026-01-01T00:00:00.000Z";
-  const expiresAt = "2026-01-01T00:45:00.000Z";
-  const { privateKey, publicKey } = generateKeyPairSync("ed25519");
-  const publicKeyBytes = publicKey.export({ format: "der", type: "spki" });
-  const keyId = `ed25519:${sha256(publicKeyBytes)}`;
-  const payloadType = "application/vnd.in-toto+json";
-  const payloadValue = {
-    _type: "https://in-toto.io/Statement/v1",
-    predicate: {
-      claims: { expiresAt, origin: "signer-asserted", provenance: "none", signedAt },
-      protocol: "BaselineVetAttestationV1",
-      receiptSha256,
-      requestSha256,
-      signer: {
-        class: "test-ephemeral",
-        identity: "github-actions:aih-scan-baseline-publication",
-        keyId,
-      },
-    },
-    predicateType: "https://aih.dev/BaselineVetAttestationV1",
-    subject: [{ digest: { sha256: receiptSha256 }, name: "baseline-vet-receipt" }],
-  };
-  const payload = Buffer.from(canonical(payloadValue));
-  const publication = {
-    annexes: [],
-    envelope: {
-      payload: payload.toString("base64"),
-      payloadType,
-      signatures: [
-        {
-          keyid: keyId,
-          sig: sign(null, pae(payloadType, payload), privateKey).toString("base64"),
-        },
-      ],
-    },
-    protocol: "BaselineVetPublicationV1",
-    receipt: {
-      components: [],
-      observations: [],
-      profile: "fixture",
-      protocol: "BaselineVetReceiptV1",
-      receiptSha256,
-      requestSha256,
-      source,
-    },
-    request: {
-      components: [],
-      profile: "fixture",
-      protocol: "BaselineVetRequestV1",
-      requestSha256,
-      source,
-    },
-    verification: {
-      expected: {
-        now: signedAt,
-        signer: {
-          class: "test-ephemeral",
-          identity: "github-actions:aih-scan-baseline-publication",
-          keyId,
-        },
-      },
-      root: {
-        class: "test-ephemeral",
-        identity: "github-actions:aih-scan-baseline-publication",
-        keyId,
-        publicKeySpkiBase64: publicKeyBytes.toString("base64"),
-      },
-    },
-  };
-  const publicationPath = join(publicationRoot, "publication.json");
-  writeJson(publicationPath, publication);
-  const publicationBytes = readFileSync(publicationPath);
-  const publicationSha256 = sha256(publicationBytes);
-  const scannerComponentId = "skill:skills-demo-0123456789ab";
-  const catalogAssetId = "fixture-skills/skill:demo";
-  const analyzerExecution = ["aih-native", "skillspector", "semgrep", "cisco"].map((analyzer) => ({
-    analyzer,
-    analyzerVersion: "fixture",
-    annex: { path: `annex/${analyzer}.json`, sha256: "d".repeat(64) },
-    executionSuccessful: true,
-    fileCount: 2,
-    sourceTreeSha256: source.treeSha256,
-    resultCount: analyzer === "cisco" ? 1 : 0,
-    notificationCount: analyzer === "skillspector" ? 1 : 0,
-  }));
-  const findings = [
-    {
-      analyzer: "cisco",
-      runIndex: 0,
-      ruleId: "FIXTURE_RULE",
-      level: "warning",
-      kind: null,
-      message: "Fixture finding remains unresolved.",
-      locations: [{ path: "skills/demo/SKILL.md", startLine: 1, startColumn: 1 }],
-      componentIds: [scannerComponentId],
-      unmapped: false,
-    },
-  ];
-  const coverage = [
-    {
-      analyzer: "skillspector",
-      runIndex: 0,
-      kind: "toolExecutionNotifications",
-      level: "warning",
-      message: "Fixture analyzer limitation.",
-      descriptor: null,
-      properties: { kind: "inspection_limitation" },
-      locations: [],
-      componentIds: [],
-      unmapped: true,
-    },
-  ];
-  const findingSummary = {
-    count: 1,
-    byAnalyzer: { cisco: 1 },
-    byLevel: { warning: 1 },
-    byRule: { FIXTURE_RULE: 1 },
-  };
-  const emptyCoverageSummary = {
-    count: 0,
-    byAnalyzer: {},
-    byLevel: {},
-    byMessage: {},
-    byReasonCode: {},
-  };
-  const globalCoverageSummary = {
-    count: 1,
-    byAnalyzer: { skillspector: 1 },
-    byLevel: { warning: 1 },
-    byMessage: { "Fixture analyzer limitation.": 1 },
-    byReasonCode: { null: 1 },
-  };
-  const componentArtifact = {
-    protocol: "ScannerComponentObservationHandoffV1",
-    authority: "none",
-    outcome: "observed",
-    riskDecision: "consumer_required",
-    publisherCommit: "e".repeat(40),
+  const written = await writeScannerPublication({
+    directory: join(root, "publication"),
     source,
-    requestSha256,
-    receiptSha256,
-    publicationSha256,
-    scannerComponentId,
-    catalogAssetId,
-    content: "skill",
-    paths: ["skills/demo"],
-    treeSha256: componentHash.treeSha256,
-    requestedAnalyzers: ["aih-native", "skillspector", "semgrep", "cisco"],
-    analyzerExecution,
-    findings,
-    findingSummary,
-    locationBoundCoverageNotifications: [],
-    locationBoundCoverageSummary: emptyCoverageSummary,
-    globalCoverageNotifications: coverage,
-    globalCoverageSummary,
-    coverageComplete: false,
-    coverageGaps: ["skillspector", "semgrep", "cisco"].map((analyzer) => ({
-      analyzer,
-      reason: "completion-evidence-absent",
-    })),
-    coverageDisposition: "The limitation remains unresolved.",
-  };
-  const componentPath = join(publicationRoot, "components", "skill-skills-demo-0123456789ab.json");
-  writeJson(componentPath, componentArtifact);
-  const componentBytes = readFileSync(componentPath);
-  const component = {
-    scannerComponentId,
-    catalogAssetId,
-    content: "skill",
-    paths: ["skills/demo"],
-    treeSha256: componentHash.treeSha256,
-    requestedAnalyzers: ["aih-native", "skillspector", "semgrep", "cisco"],
-    findings: findingSummary,
-    locationBoundCoverage: emptyCoverageSummary,
-    globalCoverage: globalCoverageSummary,
-    observationArtifact: {
-      path: componentPath,
-      byteLength: componentBytes.length,
-      sha256: sha256(componentBytes),
-    },
-  };
-  const handoff = {
-    protocol: "ScannerPublicationConsumerHandoffV1",
-    authority: "none",
-    outcome: "observed_with_gaps",
-    riskDecision: "consumer_required",
-    api: { package: "@aihq/scan", version: "0.4.0", node: ">=20" },
-    publisherCommit: componentArtifact.publisherCommit,
-    source,
-    sourceArchive: { provenance: "Exact fixture archive." },
-    requestSha256,
-    receiptSha256,
-    publicationSha256,
-    discoverySha256: "f".repeat(64),
-    inspectionSha256: "1".repeat(64),
-    release: {
-      tag: `baseline-v1-${componentArtifact.publisherCommit}-${requestSha256}`,
-      url: `https://github.com/example/scan/releases/tag/baseline-v1-${componentArtifact.publisherCommit}-${requestSha256}`,
-      targetCommitish: componentArtifact.publisherCommit,
-    },
-    workflow: {
-      status: "completed",
-      conclusion: "success",
-      headSha: componentArtifact.publisherCommit,
-    },
-    attestation: {
-      subject: { name: "publication.json", digest: { sha256: publicationSha256 } },
-      sourceRepositoryDigest: componentArtifact.publisherCommit,
-      sourceRepositoryRef: "refs/heads/main",
-      runnerEnvironment: "github-hosted",
-      verifiedTimestampCount: 1,
-    },
-    envelope: {
-      authority: "none",
-      envelopeValid: true,
-      annexesComplete: true,
-      sameRunArtifactAndReleaseBytesMatch: true,
-      cliInspectionMatchesReleasedInspection: true,
-    },
-    analyzers: analyzerExecution,
-    analyzerGaps: {
-      missingAnalyzers: [],
-      failedAnalyzers: [],
-      errorNotificationCount: 0,
-      coverageWarningCount: 1,
-      completionEvidenceAbsent: ["cisco", "semgrep", "skillspector"],
-      coverageComplete: false,
-    },
-    findings: { mappedToDeclaredClosures: findingSummary },
-    coverageNotifications: { global: globalCoverageSummary },
-    mapping: {
-      sourceId: source.id,
-      requestSha256,
-      sourceTreeSha256: source.treeSha256,
-      contentClass: "exact compiler/source-file closure for assessment only",
-      runtimeCapabilityClaim: [],
-      exclusions: [],
-      components: [
-        {
-          scannerComponentId,
-          catalogAssetId,
-          paths: ["skills/demo"],
-          treeSha256: componentHash.treeSha256,
-          analyzers: ["aih-native", "skillspector", "semgrep", "cisco"],
-        },
-      ],
-    },
-    components: [component],
-    rawReports: [],
-    localInspection: {},
-  };
-  const handoffPath = join(publicationRoot, "consumer-handoff.json");
-  writeJson(handoffPath, handoff);
+    files: FILES,
+    components: [{ id: SCANNER_ID, content: "skill", paths: ["skills/demo"] }],
+    analyzers: gapFree ? ["aih-native"] : ["aih-native", "skillspector", "semgrep", "cisco"],
+    treeOf: (paths) => api.hashComponentTreeV1(sourceRoot, paths).treeSha256,
+    observations: gapFree
+      ? []
+      : [
+          { analyzer: "cisco", ruleId: "FIXTURE_RULE", path: "skills/demo/SKILL.md" },
+          { analyzer: "skillspector", notification: true, message: "Fixture analyzer limitation." },
+        ],
+    mapped: [SCANNER_ID],
+    contentClass: "exact direct plugin skill/source files for assessment only",
+    catalogAssetIds: { [SCANNER_ID]: "fixture-skills/skill:demo" },
+  });
   const manifestPath = join(root, "defaults", "default-catalog-seed-manifest-v2.json");
   mkdirSync(dirname(manifestPath), { recursive: true });
   writeJson(manifestPath, {
@@ -340,89 +100,20 @@ async function fixture() {
     seeds: ["default-catalog-v2.json"],
     version: 1,
   });
-  return {
-    api,
-    root,
+  const outputRoot = join(root, "defaults", "workbench", "fixture");
+  const input = () => ({
     sourceRoot,
-    skillRoot,
-    publicationPath,
-    handoffPath,
-    handoff,
-    componentPath,
-    componentArtifact,
-    emptyCoverageSummary,
-    manifestPath,
-    outputRoot: join(root, "defaults", "workbench", "fixture"),
-  };
-}
-
-type Json = Record<string, unknown>;
-type Item = Awaited<ReturnType<typeof fixture>>;
-
-/** Rewrites the component artifact and handoff, re-binding the artifact pointer. */
-function rewrite(
-  item: Item,
-  mutateArtifact: (artifact: Json) => void,
-  mutateHandoff: (handoff: Json) => void,
-) {
-  const artifact = structuredClone(item.componentArtifact) as Json;
-  mutateArtifact(artifact);
-  writeJson(item.componentPath, artifact);
-  const bytes = readFileSync(item.componentPath);
-  const handoff = structuredClone(item.handoff) as Json;
-  const summary = (handoff.components as Json[])[0] as Json;
-  summary.globalCoverage = artifact.globalCoverageSummary;
-  summary.observationArtifact = {
-    path: item.componentPath,
-    byteLength: bytes.length,
-    sha256: sha256(bytes),
-  };
-  mutateHandoff(handoff);
-  writeJson(item.handoffPath, handoff);
-}
-
-/** A gap-free publication: every analyzer carries completion evidence and nothing is unresolved. */
-function gapFree(item: Item, outcome: string, mutateArtifact: (artifact: Json) => void = () => {}) {
-  rewrite(
-    item,
-    (artifact) => {
-      Object.assign(artifact, {
-        globalCoverageNotifications: [],
-        globalCoverageSummary: item.emptyCoverageSummary,
-        coverageGaps: [],
-        coverageComplete: true,
-        coverageDisposition: "Complete.",
-      });
-      mutateArtifact(artifact);
-    },
-    (handoff) => {
-      Object.assign(handoff, {
-        outcome,
-        analyzerGaps: {
-          missingAnalyzers: [],
-          failedAnalyzers: [],
-          errorNotificationCount: 0,
-          coverageWarningCount: 0,
-          completionEvidenceAbsent: [],
-          coverageComplete: true,
-        },
-        coverageNotifications: { global: item.emptyCoverageSummary },
-      });
-      (handoff.findings as Json).unmapped = { count: 0, byAnalyzer: {}, byLevel: {}, byRule: {} };
-    },
-  );
-}
-
-function generate(item: Item) {
-  return item.api.generateSourceAssessmentRowsV1({
-    sourceRoot: item.sourceRoot,
-    handoffPath: item.handoffPath,
-    publicationPath: item.publicationPath,
+    handoffPath: written.handoffPath,
+    publicationPath: written.publicationPath,
+    attestationPath: written.attestationPath,
     provider: "fixture",
-    outputRoot: item.outputRoot,
-    manifestPath: item.manifestPath,
+    outputRoot,
+    manifestPath,
   });
+  return { api, root, sourceRoot, skillRoot, written, manifestPath, outputRoot, input };
 }
+type Item = Awaited<ReturnType<typeof fixture>>;
+const generate = (item: Item) => item.api.generateSourceAssessmentRowsV1(item.input());
 
 async function linkedParentSourceFixture() {
   const item = await fixture();
@@ -437,15 +128,7 @@ async function linkedParentSourceFixture() {
 describe("source assessment row generator", () => {
   it("binds exact protected observations into review-only rows and updates the seed manifest", async () => {
     const item = await fixture();
-    const result = item.api.generateSourceAssessmentRowsV1({
-      sourceRoot: item.sourceRoot,
-      handoffPath: item.handoffPath,
-      publicationPath: item.publicationPath,
-      provider: "fixture",
-      outputRoot: item.outputRoot,
-      manifestPath: item.manifestPath,
-    });
-    expect(result).toEqual({
+    expect(generate(item)).toEqual({
       entries: 1,
       seedPaths: ["workbench/fixture/skill.fixture.demo/seed.json"],
     });
@@ -456,6 +139,7 @@ describe("source assessment row generator", () => {
       entryId: "skill.fixture.demo",
       capabilities: { commands: [], egress: [], hooks: [], mcpTools: [], permissions: [] },
       qualification: {
+        findings: ["evidence/findings-1.json"],
         gaps: [
           "evidence/coverage-gap.json",
           "evidence/publication-1.json",
@@ -463,6 +147,11 @@ describe("source assessment row generator", () => {
         ],
       },
     });
+    const report = JSON.parse(
+      readFileSync(join(item.outputRoot, "skill.fixture.demo", "evidence", "report.json"), "utf8"),
+    ).summary as string;
+    expect(report).toContain("Scanner mapped findings: 1;");
+    expect(report).toContain("Unresolved coverage notifications: 0 location-bound and 1 global.");
     expect(JSON.parse(readFileSync(item.manifestPath, "utf8")).seeds).toEqual([
       "default-catalog-v2.json",
       "workbench/fixture/skill.fixture.demo/seed.json",
@@ -470,125 +159,212 @@ describe("source assessment row generator", () => {
   });
 
   it("accepts both truthful outcomes: observed without gaps, observed_with_gaps with them", async () => {
-    const clean = await fixture();
-    gapFree(clean, "observed");
+    const clean = await fixture({ gapFree: true });
+    expect(clean.written.handoff.outcome).toBe("observed");
     expect(generate(clean).entries).toBe(1);
     const gapped = await fixture();
+    expect(gapped.written.handoff.outcome).toBe("observed_with_gaps");
     expect(generate(gapped).entries).toBe(1);
   });
 
   it("rejects an outcome that misstates the gaps", async () => {
     const claimedClean = await fixture();
-    writeJson(claimedClean.handoffPath, { ...claimedClean.handoff, outcome: "observed" });
+    rewriteHandoff(claimedClean.written, (handoff) =>
+      Object.assign(handoff, { outcome: "observed" }),
+    );
     expect(() => generate(claimedClean)).toThrow("source-assessment-generator:handoff-outcome");
-    const claimedGaps = await fixture();
-    gapFree(claimedGaps, "observed_with_gaps");
+    const claimedGaps = await fixture({ gapFree: true });
+    rewriteHandoff(claimedGaps.written, (handoff) =>
+      Object.assign(handoff, { outcome: "observed_with_gaps" }),
+    );
     expect(() => generate(claimedGaps)).toThrow("source-assessment-generator:handoff-outcome");
-    const unmapped = await fixture();
-    gapFree(unmapped, "observed");
-    const handoff = JSON.parse(readFileSync(unmapped.handoffPath, "utf8")) as Json;
-    (handoff.findings as Json).unmapped = { count: 1, byAnalyzer: {}, byLevel: {}, byRule: {} };
-    writeJson(unmapped.handoffPath, handoff);
+    const unmapped = await fixture({ gapFree: true });
+    rewriteHandoff(unmapped.written, (handoff) => {
+      (handoff.findings as Json).unmapped = { count: 1, byAnalyzer: {}, byLevel: {}, byRule: {} };
+    });
     expect(() => generate(unmapped)).toThrow("source-assessment-generator:handoff-outcome");
     for (const outcome of ["clean", "observed_without_gaps"]) {
       const other = await fixture();
-      writeJson(other.handoffPath, { ...other.handoff, outcome });
+      rewriteHandoff(other.written, (handoff) => Object.assign(handoff, { outcome }));
       expect(() => generate(other)).toThrow("source-assessment-generator:handoff-authority");
     }
   });
 
-  it("rejects coverage claimed from silence and malformed typed coverage gaps", async () => {
-    // Complete coverage while an analyzer carries no completion evidence.
+  it("refuses a component artifact whose coverage differs from the publication, even re-bound", async () => {
+    // Complete coverage claimed while the SARIF analyzers carry no completion evidence.
     const claimed = await fixture();
-    gapFree(claimed, "observed", (artifact) => {
-      artifact.coverageGaps = [{ analyzer: "semgrep", reason: "completion-evidence-absent" }];
+    rewriteArtifact(claimed.written, SCANNER_ID, (artifact) => {
+      Object.assign(artifact, {
+        globalCoverageNotifications: [],
+        globalCoverageSummary: {
+          count: 0,
+          byAnalyzer: {},
+          byLevel: {},
+          byMessage: {},
+          byReasonCode: {},
+        },
+        coverageGaps: [],
+        coverageComplete: true,
+      });
     });
-    expect(() => generate(claimed)).toThrow("source-assessment-generator:component-coverage-claim");
-    // Incomplete coverage while nothing is unresolved.
-    const understated = await fixture();
-    gapFree(understated, "observed", (artifact) => {
-      artifact.coverageComplete = false;
-    });
-    expect(() => generate(understated)).toThrow(
-      "source-assessment-generator:component-coverage-claim",
+    expect(() => generate(claimed)).toThrow(
+      /source-assessment-generator:handoff-not-reproduced components\/skill-skills-demo-0123456789ab\.json/,
     );
     for (const coverageGaps of [
       [{ analyzer: "semgrep", reason: "silent" }],
       [{ analyzer: "trivy", reason: "completion-evidence-absent" }],
-      [
-        { analyzer: "semgrep", reason: "completion-evidence-absent" },
-        { analyzer: "semgrep", reason: "completion-evidence-absent" },
-      ],
       [{ analyzer: "semgrep", reason: "completion-evidence-absent", note: "x" }],
     ]) {
       const item = await fixture();
-      rewrite(
-        item,
-        (artifact) => Object.assign(artifact, { coverageGaps }),
-        () => {},
+      rewriteArtifact(item.written, SCANNER_ID, (artifact) =>
+        Object.assign(artifact, { coverageGaps }),
       );
-      expect(() => generate(item)).toThrow(/source-assessment-generator:component-coverage-gap/);
+      expect(() => generate(item)).toThrow(/source-assessment-generator:handoff-not-reproduced/);
     }
-    // An older handoff without typed coverage gaps is refused, never read as complete.
-    const older = await fixture();
-    rewrite(
-      older,
-      (artifact) => delete artifact.coverageGaps,
-      () => {},
-    );
-    expect(() => generate(older)).toThrow("source-assessment-generator:component-artifact-fields");
     // Publication-level coverage cannot be complete while completion evidence is absent.
-    const summary = await fixture();
-    gapFree(summary, "observed");
-    const handoff = JSON.parse(readFileSync(summary.handoffPath, "utf8")) as Json;
-    (handoff.analyzerGaps as Json).completionEvidenceAbsent = ["semgrep"];
-    writeJson(summary.handoffPath, handoff);
+    const summary = await fixture({ gapFree: true });
+    rewriteHandoff(summary.written, (handoff) => {
+      (handoff.analyzerGaps as Json).completionEvidenceAbsent = ["semgrep"];
+    });
     expect(() => generate(summary)).toThrow("source-assessment-generator:analyzer-coverage-claim");
     const noList = await fixture();
-    const value = structuredClone(noList.handoff) as Json;
-    delete (value.analyzerGaps as Json).completionEvidenceAbsent;
-    writeJson(noList.handoffPath, value);
+    rewriteHandoff(noList.written, (handoff) => {
+      delete (handoff.analyzerGaps as Json).completionEvidenceAbsent;
+    });
     expect(() => generate(noList)).toThrow("source-assessment-generator:analyzer-gaps-fields");
+  });
+
+  it("refuses a handoff with a finding removed and its summaries, digest, length and count re-derived", async () => {
+    // The review's scenario (astra-STEP8 P2): the publication is unchanged; only the unsigned
+    // handoff drops a finding and recomputes everything it derives from it.
+    const item = await fixture();
+    rewriteArtifact(item.written, SCANNER_ID, (artifact) => {
+      artifact.findings = [];
+      artifact.findingSummary = { count: 0, byAnalyzer: {}, byLevel: {}, byRule: {} };
+    });
+    const handoff = JSON.parse(readFileSync(item.written.handoffPath, "utf8")) as Json;
+    expect((handoff.findings as Json).mappedToDeclaredClosures).toMatchObject({ count: 0 });
+    expect(() => generate(item)).toThrow(
+      /source-assessment-generator:handoff-not-reproduced components\/skill-skills-demo-0123456789ab\.json/,
+    );
+    expect(existsSync(item.outputRoot)).toBe(false);
+    // Changing only the aggregate summaries is refused by the same comparison.
+    for (const key of ["repository", "unmapped"]) {
+      const other = await fixture();
+      rewriteHandoff(other.written, (value) => {
+        (value.findings as Json)[key] = { count: 2, byAnalyzer: {}, byLevel: {}, byRule: {} };
+      });
+      expect(() => generate(other)).toThrow(
+        /source-assessment-generator:handoff-not-reproduced findings/,
+      );
+    }
+    const notices = await fixture();
+    rewriteHandoff(notices.written, (value) => {
+      (value.coverageNotifications as Json).global = {
+        count: 0,
+        byAnalyzer: {},
+        byLevel: {},
+        byMessage: {},
+        byReasonCode: {},
+      };
+    });
+    expect(() => generate(notices)).toThrow(
+      /source-assessment-generator:handoff-not-reproduced coverageNotifications/,
+    );
+  });
+
+  it("refuses annex bytes the signed receipt does not bind", async () => {
+    const item = await fixture();
+    const publication = JSON.parse(readFileSync(item.written.publicationPath, "utf8")) as Json;
+    const annexes = publication.annexes as Json[];
+    const cisco = annexes.find((annex) => annex.path === "annex/cisco.json") as Json;
+    cisco.bytesBase64 = Buffer.from('{"runs":[]}').toString("base64");
+    writeJson(item.written.publicationPath, publication);
+    const digest = (await import("node:crypto"))
+      .createHash("sha256")
+      .update(readFileSync(item.written.publicationPath))
+      .digest("hex");
+    rewriteHandoff(item.written, (handoff) =>
+      Object.assign(handoff, { publicationSha256: digest }),
+    );
+    expect(() => generate(item)).toThrow(
+      "source-assessment-generator:publication-annex-digest annex/cisco.json",
+    );
+  });
+
+  it("checks attestation custody against the Sigstore bundle, not the handoff", async () => {
+    const bent = [
+      [
+        "another subject",
+        { subjects: ["0".repeat(64)] },
+        /attestation subject-does-not-cover-publication/,
+      ],
+      [
+        "another source digest",
+        { sourceRepositoryDigest: "d".repeat(40) },
+        /attestation certificate-identity/,
+      ],
+      [
+        "another signer workflow",
+        {
+          buildSignerURI:
+            "https://github.com/samartomar/aih-scan/.github/workflows/other.yml@refs/heads/main",
+        },
+        /attestation certificate-identity/,
+      ],
+      ["a signature under another key", { resignWith: true }, /attestation signature-invalid/],
+      [
+        "a log entry after the observation window",
+        { integratedTime: Date.parse("2026-01-01T00:50:00.000Z") / 1000 },
+        /attestation tlog-outside/,
+      ],
+    ] as const;
+    for (const [, identity, refusal] of bent) {
+      const item = await fixture();
+      writeFileSync(
+        item.written.attestationPath,
+        attestationBundle(item.written.publicationSha256, item.written.signedAt, identity).bytes,
+      );
+      expect(() => generate(item)).toThrow(refusal);
+    }
+    // A handoff that restates its custody differently from the bundle.
+    const restated = await fixture();
+    rewriteHandoff(restated.written, (handoff) => {
+      (handoff.attestation as Json).runInvocationURI =
+        "https://github.com/samartomar/aih-scan/actions/runs/1/attempts/1";
+    });
+    expect(() => generate(restated)).toThrow(
+      "source-assessment-generator:handoff-attestation-custody",
+    );
+    const run = await fixture();
+    rewriteHandoff(run.written, (handoff) => {
+      (handoff.workflow as Json).runId = 1;
+    });
+    expect(() => generate(run)).toThrow("source-assessment-generator:workflow-custody");
+    const release = await fixture();
+    rewriteHandoff(release.written, (handoff) => {
+      const value = handoff.release as Json;
+      value.url = `https://github.com/example/scan/releases/tag/${value.tag}`;
+    });
+    expect(() => generate(release)).toThrow("source-assessment-generator:release-identity");
   });
 
   it("fails closed on unexpected handoff fields, mismatched publications, and partial mapping", async () => {
     for (const mutate of [
-      (handoff: Record<string, unknown>) => Object.assign(handoff, { unexpected: true }),
-      (handoff: Record<string, unknown>) =>
-        Object.assign(handoff, { publicationSha256: "0".repeat(64) }),
-      (handoff: Record<string, unknown>) =>
-        Object.assign(handoff.mapping as Record<string, unknown>, { components: [] }),
+      (handoff: Json) => Object.assign(handoff, { unexpected: true }),
+      (handoff: Json) => Object.assign(handoff, { publicationSha256: "0".repeat(64) }),
+      (handoff: Json) => Object.assign(handoff.mapping as Json, { components: [] }),
     ]) {
       const item = await fixture();
-      const changed = structuredClone(item.handoff) as Record<string, unknown>;
-      mutate(changed);
-      writeJson(item.handoffPath, changed);
-      expect(() =>
-        item.api.generateSourceAssessmentRowsV1({
-          sourceRoot: item.sourceRoot,
-          handoffPath: item.handoffPath,
-          publicationPath: item.publicationPath,
-          provider: "fixture",
-          outputRoot: item.outputRoot,
-          manifestPath: item.manifestPath,
-        }),
-      ).toThrow();
+      rewriteHandoff(item.written, mutate);
+      expect(() => generate(item)).toThrow();
     }
   });
 
   it("rejects transformed source bytes, symbolic links in closures, and existing output", async () => {
     const transformed = await fixture();
     writeFileSync(join(transformed.skillRoot, "SKILL.md"), "# Demo\r\n\r\nReview this source.\r\n");
-    expect(() =>
-      transformed.api.generateSourceAssessmentRowsV1({
-        sourceRoot: transformed.sourceRoot,
-        handoffPath: transformed.handoffPath,
-        publicationPath: transformed.publicationPath,
-        provider: "fixture",
-        outputRoot: transformed.outputRoot,
-        manifestPath: transformed.manifestPath,
-      }),
-    ).toThrow(/source.*digest/i);
+    expect(() => generate(transformed)).toThrow(/source.*digest/i);
 
     const symbolic = await fixture();
     symlinkSync(join(symbolic.skillRoot, "SKILL.md"), join(symbolic.skillRoot, "alias.md"));
@@ -598,16 +374,7 @@ describe("source assessment row generator", () => {
 
     const existing = await fixture();
     mkdirSync(existing.outputRoot, { recursive: true });
-    expect(() =>
-      existing.api.generateSourceAssessmentRowsV1({
-        sourceRoot: existing.sourceRoot,
-        handoffPath: existing.handoffPath,
-        publicationPath: existing.publicationPath,
-        provider: "fixture",
-        outputRoot: existing.outputRoot,
-        manifestPath: existing.manifestPath,
-      }),
-    ).toThrow(/output.*exists/i);
+    expect(() => generate(existing)).toThrow(/output.*exists/i);
   });
 
   it("rejects a symbolic ancestor of a declared source closure", async () => {
@@ -644,16 +411,7 @@ describe("source assessment row generator", () => {
     mkdirSync(externalWorkbench);
     symlinkSync(externalWorkbench, join(item.root, "defaults", "workbench"), directoryLinkType);
 
-    expect(() =>
-      item.api.generateSourceAssessmentRowsV1({
-        sourceRoot: item.sourceRoot,
-        handoffPath: item.handoffPath,
-        publicationPath: item.publicationPath,
-        provider: "fixture",
-        outputRoot: item.outputRoot,
-        manifestPath: item.manifestPath,
-      }),
-    ).toThrow(/output.*ancestor/i);
+    expect(() => generate(item)).toThrow(/output.*ancestor/i);
     expect(existsSync(join(externalWorkbench, "fixture"))).toBe(false);
     expect(readFileSync(item.manifestPath)).toEqual(manifestBefore);
   });
@@ -665,16 +423,7 @@ describe("source assessment row generator", () => {
     symlinkSync(externalDefaults, join(item.root, "defaults"), directoryLinkType);
     const manifestBefore = readFileSync(item.manifestPath);
 
-    expect(() =>
-      item.api.generateSourceAssessmentRowsV1({
-        sourceRoot: item.sourceRoot,
-        handoffPath: item.handoffPath,
-        publicationPath: item.publicationPath,
-        provider: "fixture",
-        outputRoot: item.outputRoot,
-        manifestPath: item.manifestPath,
-      }),
-    ).toThrow(/manifest.*ancestor/i);
+    expect(() => generate(item)).toThrow(/manifest.*ancestor/i);
     expect(existsSync(join(externalDefaults, "workbench", "fixture"))).toBe(false);
     expect(readFileSync(item.manifestPath)).toEqual(manifestBefore);
   });

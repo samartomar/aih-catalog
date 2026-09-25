@@ -17,6 +17,10 @@ import {
 } from "node:fs";
 import { dirname, isAbsolute, parse, posix, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  reproduceConsumerHandoffV1,
+  verifyAttestationBundleOfflineV1,
+} from "./scanner-consumer-handoff-v1.mjs";
 
 const HANDOFF_KEYS = [
   "analyzerGaps",
@@ -522,7 +526,119 @@ function validatePublication(publicationBytes, handoff) {
     !same(request.source, handoff.source)
   )
     fail("publication-bound-inputs");
-  return { signedAt, expiresAt, value: publication };
+  return { signedAt, expiresAt, predicate, value: publication };
+}
+
+// The handoff fields Scan derives from the publication (reproduceConsumerHandoffV1); the others
+// (api, discovery and inspection digests, release, workflow, attestation, the envelope's custody
+// booleans and the local inspection) are custody facts checked below or stated as trusted.
+const REPRODUCED_KEYS = [
+  "analyzerGaps",
+  "analyzers",
+  "authority",
+  "components",
+  "coverageNotifications",
+  "findings",
+  "mapping",
+  "outcome",
+  "protocol",
+  "publicationSha256",
+  "publisherCommit",
+  "rawReports",
+  "receiptSha256",
+  "requestSha256",
+  "riskDecision",
+  "source",
+  "sourceArchive",
+];
+const ATTESTATION_KEYS = [
+  "buildSignerDigest",
+  "buildSignerURI",
+  "issuer",
+  "predicateType",
+  "runInvocationURI",
+  "runnerEnvironment",
+  "sourceRepositoryDigest",
+  "sourceRepositoryRef",
+  "sourceRepositoryURI",
+  "subject",
+  "subjectCount",
+  "verifiedTimestampCount",
+  "verifiedTimestamps",
+];
+const WORKFLOW_KEYS = [
+  "attempt",
+  "conclusion",
+  "event",
+  "headBranch",
+  "headSha",
+  "runId",
+  "status",
+  "url",
+  "workflowName",
+  "workflowPath",
+];
+
+/**
+ * The handoff is Scan's derived, unsigned projection. Every value it derives from the publication
+ * must equal what the Catalog reproduces from the publication's authenticated bytes, and its
+ * attestation and workflow custody must equal what the Sigstore bundle itself states; any
+ * difference refuses. Returns the reproduced component artifacts by Scanner component id.
+ */
+function reproducedHandoff(handoff, publication, publicationSha256, attestationBytes) {
+  const { fields, artifacts } = reproduceConsumerHandoffV1({
+    publication: publication.value,
+    predicate: publication.predicate,
+    publicationSha256,
+    publisherCommit: handoff.publisherCommit,
+    mapping: handoff.mapping,
+  });
+  // Each component first, so a refusal names the component artifact that differs.
+  const stated = array(handoff.components, "handoff-components");
+  if (stated.length !== fields.components.length) fail("handoff-not-reproduced components");
+  fields.components.forEach((expected, index) => {
+    if (!same(stated[index], expected))
+      fail(`handoff-not-reproduced ${expected.observationArtifact.path}`);
+  });
+  for (const key of REPRODUCED_KEYS)
+    if (!same(handoff[key], fields[key])) fail(`handoff-not-reproduced ${key}`);
+  const envelope = object(handoff.envelope, "handoff-envelope");
+  for (const key of ["authority", "signer", "claims"])
+    if (!same(envelope[key], fields.envelope[key])) fail(`handoff-not-reproduced envelope.${key}`);
+  const attested = verifyAttestationBundleOfflineV1({
+    bundleBytes: attestationBytes,
+    publicationSha256,
+    publisherCommit: handoff.publisherCommit,
+    claims: publication.predicate.claims,
+  });
+  const attestation = object(handoff.attestation, "handoff-attestation");
+  exactKeys(attestation, ATTESTATION_KEYS, "handoff-attestation");
+  const { verifiedTimestamps, ...facts } = attestation;
+  const timestamps = array(verifiedTimestamps, "handoff-attestation-timestamps");
+  if (
+    !same(facts, attested.facts) ||
+    timestamps.length !== attested.integratedTimes.length ||
+    timestamps.some((value, index) => {
+      exactKeys(value, ["timestamp", "type", "uri"], "handoff-attestation-timestamp");
+      return (
+        value.type !== "Tlog" ||
+        value.uri !== "https://rekor.sigstore.dev" ||
+        Date.parse(value.timestamp) !== attested.integratedTimes[index] * 1000
+      );
+    })
+  )
+    fail("handoff-attestation-custody");
+  const workflow = object(handoff.workflow, "workflow");
+  exactKeys(workflow, WORKFLOW_KEYS, "workflow");
+  if (
+    workflow.headSha !== handoff.publisherCommit ||
+    workflow.headBranch !== "main" ||
+    Object.entries(attested.run).some(([key, value]) => workflow[key] !== value)
+  )
+    fail("workflow-custody");
+  const release = object(handoff.release, "release");
+  if (release.url !== `${attested.repositoryUri}/releases/tag/${release.tag}`) fail("release-identity");
+  return artifacts;
 }
 
 const NATIVE_ANNEX_PATH = "annex/aih-native.json";
@@ -673,7 +789,14 @@ export function assertPublicationSetV1(publications) {
  * may hold any content (a skill directory, the repository root, a runtime directory); in the
  * direct skill mode every mapped component is itself one skill row.
  */
-function validateHandoff(handoff, publicationBytes, sourceRoot, handoffPath, closureMode = false) {
+function validateHandoff(
+  handoff,
+  publicationBytes,
+  attestationBytes,
+  sourceRoot,
+  handoffPath,
+  closureMode = false,
+) {
   exactKeys(handoff, HANDOFF_KEYS, "handoff");
   if (
     handoff.protocol !== "ScannerPublicationConsumerHandoffV1" ||
@@ -709,17 +832,6 @@ function validateHandoff(handoff, publicationBytes, sourceRoot, handoffPath, clo
     envelope.cliInspectionMatchesReleasedInspection !== true
   )
     fail("handoff-envelope-custody");
-  const attestation = object(handoff.attestation, "handoff-attestation");
-  if (
-    object(object(attestation.subject, "attestation-subject").digest, "attestation-digest")
-      .sha256 !== handoff.publicationSha256 ||
-    attestation.sourceRepositoryDigest !== handoff.publisherCommit ||
-    attestation.sourceRepositoryRef !== "refs/heads/main" ||
-    attestation.runnerEnvironment !== "github-hosted" ||
-    !Number.isSafeInteger(attestation.verifiedTimestampCount) ||
-    attestation.verifiedTimestampCount < 1
-  )
-    fail("handoff-attestation-custody");
   const analyzerGaps = object(handoff.analyzerGaps, "analyzer-gaps");
   exactKeys(analyzerGaps, ANALYZER_GAP_KEYS, "analyzer-gaps");
   if (
@@ -780,6 +892,12 @@ function validateHandoff(handoff, publicationBytes, sourceRoot, handoffPath, clo
     mappedById.set(scannerComponentId, component);
   }
   const publication = validatePublication(publicationBytes, handoff);
+  const reproduced = reproducedHandoff(
+    handoff,
+    publication,
+    handoff.publicationSha256,
+    attestationBytes,
+  );
   const components = [];
   let mappedFindingCount = 0;
   for (const summary of summarized) {
@@ -809,6 +927,9 @@ function validateHandoff(handoff, publicationBytes, sourceRoot, handoffPath, clo
       sha256(artifactRead.bytes) !== artifactPointer.sha256
     )
       fail("component-artifact-digest");
+    // The artifact states exactly what the publication's authenticated bytes say, byte for byte.
+    if (!artifactRead.bytes.equals(reproduced.get(scannerComponentId)?.bytes ?? Buffer.alloc(0)))
+      fail(`handoff-not-reproduced components/${artifactName}`);
     const artifact = artifactRead.value;
     exactKeys(artifact, COMPONENT_ARTIFACT_KEYS, "component-artifact");
     if (
@@ -1769,6 +1890,7 @@ export function generateSourceAssessmentRowsV1({
   sourceRoot,
   handoffPath,
   publicationPath,
+  attestationPath,
   provider,
   outputRoot,
   manifestPath,
@@ -1776,15 +1898,22 @@ export function generateSourceAssessmentRowsV1({
   authoringCatalogPath,
 }) {
   if (!PROVIDER.test(text(provider, "provider", 80))) fail("provider");
-  // One publication, or the members of one publication set as handoff/publication pairs (D49).
+  // One publication, or the members of one publication set as handoff/publication pairs (D49),
+  // each with the Sigstore bundle of its outer attestation.
   const handoffPaths = Array.isArray(handoffPath) ? handoffPath : [handoffPath];
   const publicationPaths = Array.isArray(publicationPath) ? publicationPath : [publicationPath];
-  if (handoffPaths.length === 0 || handoffPaths.length !== publicationPaths.length)
+  const attestationPaths = Array.isArray(attestationPath) ? attestationPath : [attestationPath];
+  if (
+    handoffPaths.length === 0 ||
+    handoffPaths.length !== publicationPaths.length ||
+    handoffPaths.length !== attestationPaths.length
+  )
     fail("publication-set-pairs");
   for (const [label, value] of [
     ["sourceRoot", sourceRoot],
     ...handoffPaths.map((path) => ["handoffPath", path]),
     ...publicationPaths.map((path) => ["publicationPath", path]),
+    ...attestationPaths.map((path) => ["attestationPath", path]),
     ["outputRoot", outputRoot],
     ["manifestPath", manifestPath],
     ...(definitionPath === undefined ? [] : [["definitionPath", definitionPath]]),
@@ -1810,9 +1939,11 @@ export function generateSourceAssessmentRowsV1({
   const members = handoffPaths.map((path, index) => {
     const handoff = readJson(path, "handoff", MAX_INPUT_BYTES).value;
     const publicationBytes = readPinnedFile(publicationPaths[index], MAX_INPUT_BYTES);
+    const attestationBytes = readPinnedFile(attestationPaths[index], 4 * 1024 * 1024);
     const validated = validateHandoff(
       handoff,
       publicationBytes,
+      attestationBytes,
       sourceRoot,
       path,
       definition !== undefined,
@@ -1851,8 +1982,9 @@ export function generateSourceAssessmentRowsV1({
 
 function argumentsFrom(argv) {
   const values = new Map();
-  // A publication set is named as repeated --handoff/--publication pairs, in the same order.
-  const pairs = { handoff: [], publication: [] };
+  // A publication set is named as repeated --handoff/--publication/--attestation triples, in the
+  // same order.
+  const pairs = { handoff: [], publication: [], attestation: [] };
   for (let index = 0; index < argv.length; index += 2) {
     const key = argv[index];
     const value = argv[index + 1];
@@ -1866,11 +1998,16 @@ function argumentsFrom(argv) {
     if (values.has(name)) fail("duplicate-argument");
     values.set(name, value);
   }
-  if (pairs.handoff.length !== pairs.publication.length) fail("arguments");
+  if (
+    pairs.handoff.length !== pairs.publication.length ||
+    pairs.handoff.length !== pairs.attestation.length
+  )
+    fail("arguments");
   const expected = [
     "source-root",
     "handoff",
     "publication",
+    "attestation",
     "provider",
     "output-root",
     "manifest",
@@ -1885,6 +2022,7 @@ function argumentsFrom(argv) {
     sourceRoot: resolve(values.get("source-root")),
     handoffPath: pairs.handoff.length === 1 ? pairs.handoff[0] : pairs.handoff,
     publicationPath: pairs.publication.length === 1 ? pairs.publication[0] : pairs.publication,
+    attestationPath: pairs.attestation.length === 1 ? pairs.attestation[0] : pairs.attestation,
     provider: values.get("provider"),
     outputRoot: resolve(values.get("output-root")),
     manifestPath: resolve(values.get("manifest")),

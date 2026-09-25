@@ -1,8 +1,8 @@
-import { createHash, generateKeyPairSync, sign } from "node:crypto";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
+import { sha256, writeJson, writeScannerPublication } from "./scanner-publication-fixture.js";
 
 type Json = Record<string, unknown>;
 type Generator = {
@@ -10,6 +10,7 @@ type Generator = {
     sourceRoot: string;
     handoffPath: string;
     publicationPath: string;
+    attestationPath: string;
     provider: string;
     outputRoot: string;
     manifestPath: string;
@@ -38,17 +39,6 @@ async function generator(): Promise<Generator> {
   return (await import("../../tools/generate-source-assessment-rows.mjs")) as Generator;
 }
 
-const canonical = (value: unknown): string => {
-  if (value === null || typeof value !== "object") return JSON.stringify(value);
-  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
-  const item = value as Json;
-  return `{${Object.keys(item)
-    .sort()
-    .map((key) => `${JSON.stringify(key)}:${canonical(item[key])}`)
-    .join(",")}}`;
-};
-const sha256 = (value: string | Buffer): string => createHash("sha256").update(value).digest("hex");
-const writeJson = (path: string, value: unknown) => writeFileSync(path, canonical(value));
 const read = (path: string) => JSON.parse(readFileSync(path, "utf8")) as Json;
 const MIT = "MIT License\n\nCopyright (c) 2026 Fixture\n\nPermission is hereby granted.\n";
 const ANALYZERS = ["aih-native", "cisco"];
@@ -79,21 +69,17 @@ interface Options {
   authoring?: (source: Json, files: Record<string, string>) => Json;
 }
 
-const within = (component: Partition, path: string) =>
-  component.paths.some((root) => path === root || path.startsWith(`${root}/`));
-
 /**
- * A whole-repository Scanner publication over a fixture tree: a signed statement over a
- * receipt whose digest is the Scan receipt domain digest, one native annex with per-file
- * hashes bound by that receipt, and a consumer handoff whose mapping covers `mapped`.
+ * A whole-repository Scanner publication over a fixture tree (scanner-publication-fixture.ts):
+ * the signed statement over a receipt and request with Scan's domain digests, one native annex
+ * with per-file hashes and one cisco SARIF annex bound by that receipt, the outer attestation, and
+ * the consumer handoff Scan emits for a mapping that covers `mapped`.
  */
 async function fixture(options: Options) {
   const api = await generator();
   const root = mkdtempSync(join(tmpdir(), "aih-catalog-closure-rows-"));
   temporaryRoots.push(root);
   const sourceRoot = join(root, "source");
-  const publicationRoot = join(root, "publication");
-  mkdirSync(join(publicationRoot, "components"), { recursive: true });
   for (const [path, text] of Object.entries(options.files)) {
     mkdirSync(dirname(join(sourceRoot, path)), { recursive: true });
     writeFileSync(join(sourceRoot, path), text);
@@ -105,253 +91,18 @@ async function fixture(options: Options) {
     repository: "tools",
     treeSha256: api.hashSourceTreeV1(sourceRoot).treeSha256,
   };
-  const trees = new Map(
-    options.partition.map((component) => [
-      component.id,
-      api.hashComponentTreeV1(sourceRoot, component.paths).treeSha256,
-    ]),
-  );
-  const native = {
-    files: Object.keys(options.files)
-      .sort()
-      .map((path) => ({
-        bytes: Buffer.byteLength(options.files[path] as string),
-        path,
-        sha256: options.nativeOverride?.[path] ?? sha256(options.files[path] as string),
-      })),
-    protocol: "BaselineNativeObservationV1",
-    sourceTreeSha256: source.treeSha256,
-  };
-  const nativeBytes = Buffer.from(canonical(native));
-  const requestSha256 = "b".repeat(64);
-  const authoring: Json = {
-    components: options.partition.map((component) => ({
-      content: component.content,
-      id: component.id,
-      observations: ANALYZERS.map((analyzer) => ({
-        analyzer,
-        annexSha256: analyzer === "aih-native" ? sha256(nativeBytes) : "d".repeat(64),
-      })),
-      paths: component.paths,
-      treeSha256: trees.get(component.id),
-    })),
-    observations: [],
-    profile: "fixture",
-    protocol: "BaselineVetReceiptV1",
-    requestSha256,
+  const written = await writeScannerPublication({
+    directory: join(root, "publication"),
     source,
-  };
-  const receiptSha256 = sha256(
-    canonical({ domain: "aih.baseline-vet-receipt-v1", receipt: authoring }),
-  );
-  if (options.tamperReceipt) authoring.profile = "tampered";
-  const signedAt = "2026-01-01T00:00:00.000Z";
-  const expiresAt = "2026-01-01T00:45:00.000Z";
-  const { privateKey, publicKey } = generateKeyPairSync("ed25519");
-  const publicKeyBytes = publicKey.export({ format: "der", type: "spki" });
-  const keyId = `ed25519:${sha256(publicKeyBytes)}`;
-  const signer = {
-    class: "test-ephemeral",
-    identity: "github-actions:aih-scan-baseline-publication",
-    keyId,
-  };
-  const payloadType = "application/vnd.in-toto+json";
-  const payload = Buffer.from(
-    canonical({
-      _type: "https://in-toto.io/Statement/v1",
-      predicate: {
-        claims: { expiresAt, origin: "signer-asserted", provenance: "none", signedAt },
-        protocol: "BaselineVetAttestationV1",
-        receiptSha256,
-        requestSha256,
-        signer,
-      },
-      predicateType: "https://aih.dev/BaselineVetAttestationV1",
-      subject: [{ digest: { sha256: receiptSha256 }, name: "baseline-vet-receipt" }],
-    }),
-  );
-  const pae = Buffer.concat([
-    Buffer.from(`DSSEv1 ${Buffer.byteLength(payloadType)} ${payloadType} ${payload.length} `),
-    payload,
-  ]);
-  const publication = {
-    annexes: [{ bytesBase64: nativeBytes.toString("base64"), path: "annex/aih-native.json" }],
-    envelope: {
-      payload: payload.toString("base64"),
-      payloadType,
-      signatures: [{ keyid: keyId, sig: sign(null, pae, privateKey).toString("base64") }],
-    },
-    protocol: "BaselineVetPublicationV1",
-    receipt: { ...authoring, receiptSha256 },
-    request: {
-      components: options.partition.map((component) => ({
-        analyzers: ANALYZERS,
-        content: component.content,
-        id: component.id,
-        paths: component.paths,
-        treeSha256: trees.get(component.id),
-      })),
-      profile: "fixture",
-      protocol: "BaselineVetRequestV1",
-      requestSha256,
-      source,
-    },
-    verification: {
-      expected: { now: signedAt, signer },
-      root: { ...signer, publicKeySpkiBase64: publicKeyBytes.toString("base64") },
-    },
-  };
-  const publicationPath = join(publicationRoot, "publication.json");
-  writeJson(publicationPath, publication);
-  const publicationSha256 = sha256(readFileSync(publicationPath));
-  const publisherCommit = "e".repeat(40);
-  const summaryOf = (rows: FixtureFinding[]) => ({
-    count: rows.length,
-    byAnalyzer: {},
-    byLevel: {},
-    byRule: {},
+    files: options.files,
+    components: options.partition,
+    analyzers: ANALYZERS,
+    treeOf: (paths) => api.hashComponentTreeV1(sourceRoot, paths).treeSha256,
+    observations: options.findings,
+    mapped: options.mapped,
+    ...(options.nativeOverride ? { nativeOverride: options.nativeOverride } : {}),
+    ...(options.tamperReceipt ? { tamperReceipt: true } : {}),
   });
-  const emptyCoverage = { count: 0, byAnalyzer: {}, byLevel: {}, byMessage: {}, byReasonCode: {} };
-  const mappedComponents = options.partition.filter((component) =>
-    options.mapped.includes(component.id),
-  );
-  let mappedFindings = 0;
-  const handoffComponents = mappedComponents.map((component) => {
-    const suffix = component.id.split(":")[1] as string;
-    const catalogAssetId = `${source.id}/${component.content}:${suffix}`;
-    const own = options.findings.filter((finding) => within(component, finding.path));
-    mappedFindings += own.length;
-    const findings = own.map((finding) => ({
-      analyzer: finding.analyzer,
-      componentIds: [component.id],
-      kind: null,
-      level: "warning",
-      locations: [{ path: finding.path, startColumn: null, startLine: 1 }],
-      message: `${finding.ruleId} fixture`,
-      ruleId: finding.ruleId,
-      runIndex: 0,
-      unmapped: false,
-    }));
-    const artifact = {
-      protocol: "ScannerComponentObservationHandoffV1",
-      authority: "none",
-      outcome: "observed",
-      riskDecision: "consumer_required",
-      publisherCommit,
-      source,
-      requestSha256,
-      receiptSha256,
-      publicationSha256,
-      scannerComponentId: component.id,
-      catalogAssetId,
-      content: component.content,
-      paths: component.paths,
-      treeSha256: trees.get(component.id),
-      requestedAnalyzers: ANALYZERS,
-      analyzerExecution: ANALYZERS.map((analyzer) => ({ analyzer, executionSuccessful: true })),
-      findings,
-      findingSummary: summaryOf(own),
-      locationBoundCoverageNotifications: [],
-      locationBoundCoverageSummary: emptyCoverage,
-      globalCoverageNotifications: [],
-      globalCoverageSummary: emptyCoverage,
-      coverageComplete: true,
-      coverageGaps: [],
-      coverageDisposition: "Complete.",
-    };
-    const artifactPath = join(publicationRoot, "components", `${suffix}.json`);
-    writeJson(artifactPath, artifact);
-    const bytes = readFileSync(artifactPath);
-    return {
-      mapping: {
-        scannerComponentId: component.id,
-        catalogAssetId,
-        paths: component.paths,
-        treeSha256: trees.get(component.id),
-        analyzers: ANALYZERS,
-      },
-      summary: {
-        scannerComponentId: component.id,
-        catalogAssetId,
-        content: component.content,
-        paths: component.paths,
-        treeSha256: trees.get(component.id),
-        requestedAnalyzers: ANALYZERS,
-        findings: summaryOf(own),
-        locationBoundCoverage: emptyCoverage,
-        globalCoverage: emptyCoverage,
-        observationArtifact: {
-          path: artifactPath,
-          byteLength: bytes.length,
-          sha256: sha256(bytes),
-        },
-      },
-    };
-  });
-  const handoff = {
-    protocol: "ScannerPublicationConsumerHandoffV1",
-    authority: "none",
-    outcome: "observed_with_gaps",
-    riskDecision: "consumer_required",
-    api: { package: "@aihq/scan", version: "0.5.0", node: ">=20" },
-    publisherCommit,
-    source,
-    sourceArchive: { provenance: "Exact fixture archive." },
-    requestSha256,
-    receiptSha256,
-    publicationSha256,
-    discoverySha256: "f".repeat(64),
-    inspectionSha256: "1".repeat(64),
-    release: {
-      tag: `baseline-v1-${publisherCommit}-${requestSha256}`,
-      url: `https://github.com/example/scan/releases/tag/baseline-v1-${publisherCommit}-${requestSha256}`,
-      targetCommitish: publisherCommit,
-    },
-    workflow: { status: "completed", conclusion: "success", headSha: publisherCommit },
-    attestation: {
-      subject: { name: "publication.json", digest: { sha256: publicationSha256 } },
-      sourceRepositoryDigest: publisherCommit,
-      sourceRepositoryRef: "refs/heads/main",
-      runnerEnvironment: "github-hosted",
-      verifiedTimestampCount: 1,
-    },
-    envelope: {
-      authority: "none",
-      envelopeValid: true,
-      annexesComplete: true,
-      sameRunArtifactAndReleaseBytesMatch: true,
-      cliInspectionMatchesReleasedInspection: true,
-    },
-    analyzers: [],
-    analyzerGaps: {
-      missingAnalyzers: [],
-      failedAnalyzers: [],
-      errorNotificationCount: 0,
-      coverageWarningCount: 0,
-      completionEvidenceAbsent: ["cisco"],
-      coverageComplete: false,
-    },
-    findings: {
-      mappedToDeclaredClosures: { count: mappedFindings, byAnalyzer: {}, byLevel: {}, byRule: {} },
-    },
-    coverageNotifications: { global: emptyCoverage },
-    mapping: {
-      sourceId: source.id,
-      requestSha256,
-      sourceTreeSha256: source.treeSha256,
-      contentClass: "exact compiler/source-file closure for assessment only",
-      runtimeCapabilityClaim: [],
-      exclusions: options.partition
-        .filter((component) => !options.mapped.includes(component.id))
-        .map((component) => ({ reason: "fixture", scannerComponentId: component.id })),
-      components: handoffComponents.map((item) => item.mapping),
-    },
-    components: handoffComponents.map((item) => item.summary),
-    rawReports: [],
-    localInspection: {},
-  };
-  const handoffPath = join(publicationRoot, "consumer-handoff.json");
-  writeJson(handoffPath, handoff);
   const definitionPath = join(root, "definition.json");
   writeJson(definitionPath, options.definition(source, options.files));
   const authoringPath = join(root, "authoring-catalog.json");
@@ -367,15 +118,24 @@ async function fixture(options: Options) {
   const run = (definition = true) =>
     api.generateSourceAssessmentRowsV1({
       sourceRoot,
-      handoffPath,
-      publicationPath,
+      handoffPath: written.handoffPath,
+      publicationPath: written.publicationPath,
+      attestationPath: written.attestationPath,
       provider: "fixture",
       outputRoot,
       manifestPath,
       ...(definition ? { definitionPath } : {}),
       ...(definition && options.authoring ? { authoringCatalogPath: authoringPath } : {}),
     });
-  return { run, outputRoot, source, definitionPath, publicationPath, authoringPath };
+  return {
+    run,
+    outputRoot,
+    source,
+    definitionPath,
+    publicationPath: written.publicationPath,
+    authoringPath,
+    requestSha256: written.requestSha256,
+  };
 }
 
 const FILES = {
@@ -395,7 +155,7 @@ const PARTITION: Partition[] = [
 const FINDINGS: FixtureFinding[] = [
   { analyzer: "cisco", ruleId: "SKILL_RULE", path: "skills/demo/SKILL.md" },
   { analyzer: "cisco", ruleId: "README_RULE", path: "README.md" },
-  { analyzer: "aih-native", ruleId: "SERVER_RULE", path: "server/index.js" },
+  { analyzer: "cisco", ruleId: "SERVER_RULE", path: "server/index.js" },
 ];
 
 /** The Catalog's pinned component collection declaration for the fixture tree. */
@@ -629,7 +389,7 @@ const BASELINE_PARTITION: Partition[] = [
 ];
 const BASELINE_FINDINGS: FixtureFinding[] = [
   { analyzer: "cisco", ruleId: "SHARED_RULE", path: "mcp-configs/servers.json" },
-  { analyzer: "aih-native", ruleId: "AGENT_RULE", path: "agents/reviewer.md" },
+  { analyzer: "cisco", ruleId: "AGENT_RULE", path: "agents/reviewer.md" },
   { analyzer: "cisco", ruleId: "COPY_RULE", path: ".agents/skills/demo/SKILL.md" },
 ];
 const DECLARATIONS = [".mcp.json", "mcp-configs/servers.json"];
@@ -1050,7 +810,7 @@ describe("closure mapping derivation", () => {
     );
     expect(derived.mapping).toEqual({
       protocol: "ScannerConsumerMappingV1",
-      requestSha256: "b".repeat(64),
+      requestSha256: item.requestSha256,
       contentClass: "exact compiler/source-file closure for assessment only",
       components: [
         {
