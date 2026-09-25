@@ -27,7 +27,7 @@ const fail = (message) => {
   throw new Error(`prepare-core-collection: ${message}`);
 };
 
-function fromPackage(path) {
+export function fromPackage(path) {
   const bytes = readFileSync(path);
   let manifest;
   if (path.endsWith(".tgz")) {
