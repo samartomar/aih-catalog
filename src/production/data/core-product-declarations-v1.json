@@ -3,9 +3,9 @@
   "version": 1,
   "source": {
     "package": "@aihq/core",
-    "version": "0.6.2",
+    "version": "0.7.0",
     "repository": "samartomar/ai-harness",
-    "commit": "80120883aa4cc1ed01a0efe4b5cdc2cf4cb94157"
+    "commit": "48e80f96ea9242c5ba50d5c0ecb5c366e4bb584e"
   },
   "hosts": [
     {
@@ -98,7 +98,7 @@
           "opencode"
         ]
       },
-      "description": "Legacy repository-agnostic Code Review Graph fallback. Root-aware project setup replaces this with AIH's authenticated 2.3.8 launcher and isolated worktree state.",
+      "description": "Legacy repository-agnostic Code Review Graph fallback. Root-aware project setup replaces this with AIH's authenticated 2.3.9 launcher and isolated worktree state.",
       "id": "code-review-graph",
       "server": {
         "args": [
@@ -111,7 +111,7 @@
         "classification": "local",
         "command": "uvx",
         "credentials": "none",
-        "description": "Legacy repository-agnostic Code Review Graph fallback. Root-aware project setup replaces this with AIH's authenticated 2.3.8 launcher and isolated worktree state.",
+        "description": "Legacy repository-agnostic Code Review Graph fallback. Root-aware project setup replaces this with AIH's authenticated 2.3.9 launcher and isolated worktree state.",
         "egress": "none",
         "supplyChain": "pinned",
         "type": "stdio"
@@ -126,7 +126,7 @@
         "projector": "mcp-managed-settings",
         "source": {
           "server": "codebase-memory-mcp",
-          "subject": "mcp-server-sha256:f62a838651c7a720c47bf3adc5751dc958e88578f3c30e4aff4850d34d737598",
+          "subject": "mcp-server-sha256:32d5459844e349657b195df112b01b403fc6b47c8350cbd45c0e220efa19b017",
           "type": "mcp"
         },
         "targets": [
@@ -139,19 +139,19 @@
           "opencode"
         ]
       },
-      "description": "Legacy repository-agnostic Codebase Memory fallback. Root-aware project setup replaces this with AIH's authenticated 0.10.8 native payload and project-specific state. PROVISIONING EGRESS: this older wheel is a launcher shim and may fetch its payload; do not treat --offline as payload authentication.",
+      "description": "Legacy repository-agnostic Codebase Memory fallback. Root-aware project setup replaces this with AIH's authenticated 0.11.0 native payload and project-specific state. PROVISIONING EGRESS: this wheel is a launcher shim and may fetch its payload; do not treat --offline as payload authentication.",
       "id": "codebase-memory-mcp",
       "server": {
         "args": [
           "--offline",
           "--no-python-downloads",
           "--no-env-file",
-          "codebase-memory-mcp@0.10.5"
+          "codebase-memory-mcp@0.11.0"
         ],
         "classification": "local",
         "command": "uvx",
         "credentials": "none",
-        "description": "Legacy repository-agnostic Codebase Memory fallback. Root-aware project setup replaces this with AIH's authenticated 0.10.8 native payload and project-specific state. PROVISIONING EGRESS: this older wheel is a launcher shim and may fetch its payload; do not treat --offline as payload authentication.",
+        "description": "Legacy repository-agnostic Codebase Memory fallback. Root-aware project setup replaces this with AIH's authenticated 0.11.0 native payload and project-specific state. PROVISIONING EGRESS: this wheel is a launcher shim and may fetch its payload; do not treat --offline as payload authentication.",
         "egress": "vendor-incumbent",
         "supplyChain": "pinned",
         "type": "stdio"
@@ -279,14 +279,14 @@
   ],
   "unavailableMcp": [
     {
-      "configuredIdentity": "@playwright/mcp@0.0.81",
+      "configuredIdentity": "@playwright/mcp@0.0.82",
       "description": "Pinned Playwright browser automation MCP for every project (navigate, snapshot, interact). It runs headless with an isolated in-memory profile. The browser can reach any URL — point it at trusted origins.",
       "id": "playwright",
-      "reason": "Unavailable as an AIH control: AIH has no current protected Scanner evidence record for @playwright/mcp@0.0.81. This is an AIH-owned evidence gap; an administrator cannot waive it or manufacture organization approval for it.",
+      "reason": "Unavailable as an AIH control: AIH has no current protected Scanner evidence record for @playwright/mcp@0.0.82. This is an AIH-owned evidence gap; an administrator cannot waive it or manufacture organization approval for it.",
       "server": {
         "args": [
           "-y",
-          "@playwright/mcp@0.0.81",
+          "@playwright/mcp@0.0.82",
           "--headless",
           "--isolated"
         ],
