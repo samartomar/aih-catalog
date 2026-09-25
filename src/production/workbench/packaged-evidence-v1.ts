@@ -1,4 +1,8 @@
-import { parseBaselineEvidenceLockV1 } from "../catalog/baseline-lock-v1.js";
+import {
+  parseBaselineEvidenceLockV1,
+  scanCoverageV1,
+  scanOutcomeV1,
+} from "../catalog/baseline-lock-v1.js";
 import {
   canonicalJsonV1,
   canonicalStrictJsonBytesV1,
@@ -534,6 +538,7 @@ export function projectScannerCollectionEvidenceV1(
           item.receiptSha256 === observation.receiptSha256,
       );
       if (published === undefined) continue;
+      const coverage = scanCoverageV1(report.evidenceProblems);
       // Each compiled asset the component's scan covers gets that scan's evidence.
       for (const subject of componentSubjectsV1(covered)) {
         if (!exactAsset(bundle, subject, evidence)) continue;
@@ -551,9 +556,10 @@ export function projectScannerCollectionEvidenceV1(
             contextDigest: `sha256:${canonicalStrictJsonSha256V1({ record: recordDigest, publication: observation.publicationSha256, receipt: observation.receiptSha256 })}`,
           },
           scan: {
-            // The stored label itself (D50): what the analyzers observed, never a decision.
-            outcome: report.verdict,
-            coverage: "complete",
+            // The stored label (D50): what the analyzers observed, never a decision. Coverage is
+            // what the evidence problems leave; a no-findings label holds only on complete coverage.
+            outcome: scanOutcomeV1(report.verdict, coverage),
+            coverage,
             analyzers: [...report.analyzers].sort((left, right) => {
               const leftKey = `${left.name}\u0000${left.version}`;
               const rightKey = `${right.name}\u0000${right.version}`;

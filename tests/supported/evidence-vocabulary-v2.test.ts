@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 import {
   type BaselineSourceEvidenceV1,
   parseBaselineEvidenceLockV1,
+  scanCoverageV1,
+  scanOutcomeV1,
   trustCodeClassV1,
 } from "../../src/production/catalog/baseline-lock-v1.js";
 import { readCoreProductDeclarationsV1 } from "../../src/production/catalog/core-product-declarations-v1.js";
@@ -515,6 +517,109 @@ describe("evidence problems in evidence-summary/v2 (D56)", () => {
   });
 
   it("fills the packaged collection projection from the report's evidence problems", () => {
+    const long = "p".repeat(1_500);
+    const byComponent = projectedParity({
+      "component:second": Array.from({ length: 60 }, (_, index) => ({
+        code: "trust.detector-unavailable",
+        detail: `${index} ${long}`,
+      })),
+    });
+    expect(byComponent["component:first"]?.evidenceProblems).toEqual([]);
+    const problems = byComponent["component:second"]?.evidenceProblems;
+    expect(problems).toHaveLength(50);
+    expect(problems?.[0]).toBe(`trust.detector-unavailable: 0 ${long}`.slice(0, 1_000));
+    // A detector that did not run: partial coverage, so the no-findings label cannot stand.
+    expect(byComponent["component:second"]?.scan).toMatchObject({
+      outcome: "unknown",
+      coverage: "partial",
+    });
+  });
+
+  // Astra step-8 review P2: a report carrying trust.detector-unavailable was projected as
+  // complete coverage. Coverage is derived from the coverage-relevant evidence problems, each
+  // read as Core states it (src/support/findings.ts); "no-findings requires complete coverage"
+  // stays, so a no-findings label on incomplete coverage becomes unknown, the problem stated.
+  it("derives scan coverage from what each evidence problem says about the scan", () => {
+    const of = (...codes: string[]) =>
+      scanCoverageV1(codes.map((code) => ({ code, detail: "detail" })));
+    expect(of()).toBe("complete");
+    // "The scan ran without this detector, so its coverage is incomplete."
+    expect(of("trust.detector-unavailable")).toBe("partial");
+    // "The sandbox smoke test did not run / did not complete, so runtime behavior is not covered."
+    expect(of("trust.sandbox-smoke-unavailable")).toBe("partial");
+    expect(of("trust.sandbox-smoke-failed")).toBe("partial");
+    // "The source could not be fetched, so there is nothing to scan yet."
+    expect(of("trust.fetch-blocked")).toBe("none");
+    expect(of("trust.detector-unavailable", "trust.fetch-blocked")).toBe("none");
+    // A missing reviewed pin says nothing about what the analyzers covered.
+    expect(of("trust.unsigned-source")).toBe("complete");
+    expect(of("trust.unsigned-source", "trust.detector-unavailable")).toBe("partial");
+    // A code this table does not know never reads as complete coverage.
+    expect(of("trust.not-yet-classified")).toBe("partial");
+    expect(scanOutcomeV1("no-findings", "complete")).toBe("no-findings");
+    expect(scanOutcomeV1("no-findings", "partial")).toBe("unknown");
+    expect(scanOutcomeV1("no-findings", "none")).toBe("unknown");
+    expect(scanOutcomeV1("has-findings", "partial")).toBe("has-findings");
+    expect(scanOutcomeV1("has-findings", "complete")).toBe("has-findings");
+  });
+
+  it("projects a pinned-baseline component whose detector did not run as partial coverage", () => {
+    const quiet = compiledBeta({ evidenceProblems: [PROBLEM] });
+    expect(quiet["evidence:superpowers/skill:alpha"]?.scan).toMatchObject({
+      outcome: "no-findings",
+      coverage: "complete",
+    });
+    expect(quiet["evidence:superpowers/skill:beta"]?.scan).toMatchObject({
+      outcome: "unknown",
+      coverage: "partial",
+    });
+    expect(quiet["evidence:superpowers/skill:beta"]?.evidenceProblems).toEqual([
+      "trust.detector-unavailable: detector semgrep did not run",
+    ]);
+    // Findings observed on partial coverage are still stated as has-findings.
+    const noisy = compiledBeta({
+      verdict: "has-findings",
+      findings: [FINDING],
+      evidenceProblems: [PROBLEM],
+    });
+    expect(noisy["evidence:superpowers/skill:beta"]?.scan).toMatchObject({
+      outcome: "has-findings",
+      coverage: "partial",
+    });
+    const unpinned = compiledBeta({
+      evidenceProblems: [{ code: "trust.unsigned-source", detail: "no reviewed pin" }],
+    });
+    expect(unpinned["evidence:superpowers/skill:beta"]?.scan).toMatchObject({
+      outcome: "no-findings",
+      coverage: "complete",
+    });
+  });
+
+  it("projects packaged collection coverage from the report's evidence problems", () => {
+    const partial = projectedParity({ "component:first": [PROBLEM] });
+    expect(partial["component:first"]?.scan).toMatchObject({
+      outcome: "has-findings",
+      coverage: "partial",
+    });
+    expect(partial["component:second"]?.scan).toMatchObject({
+      outcome: "no-findings",
+      coverage: "complete",
+    });
+    const none = projectedParity({
+      "component:second": [{ code: "trust.fetch-blocked", detail: "not fetched" }],
+    });
+    expect(none["component:second"]?.scan).toMatchObject({ outcome: "unknown", coverage: "none" });
+    expect(none["component:second"]?.evidenceProblems).toEqual([
+      "trust.fetch-blocked: not fetched",
+    ]);
+    for (const summary of [...Object.values(partial), ...Object.values(none)]) {
+      const scan = summary?.scan as { outcome: string; coverage: string };
+      expect(scan.outcome === "no-findings" && scan.coverage !== "complete").toBe(false);
+    }
+  });
+
+  /** The shared parity fixture's record, with evidence problems set per component, projected. */
+  function projectedParity(problems: Record<string, Record<string, unknown>[]>) {
     const { record } = JSON.parse(
       readFileSync(
         resolve(root, "tests", "fixtures", "packaged-evidence-parity", "report-findings.json"),
@@ -522,16 +627,14 @@ describe("evidence problems in evidence-summary/v2 (D56)", () => {
       ),
     ) as { record: Record<string, unknown> };
     const report = record.report as { components: Record<string, unknown>[] };
-    const second = report.components.find((item) => item.id === "component:second");
-    if (second === undefined) throw new Error("the shared fixture has no component:second");
-    const long = "p".repeat(1_500);
-    second.evidenceProblems = Array.from({ length: 60 }, (_, index) => ({
-      code: "trust.detector-unavailable",
-      detail: `${index} ${long}`,
-    }));
-    for (const observation of record.observations as Record<string, unknown>[])
-      if (observation.componentId === "component:second")
-        observation.reportComponentDigest = packagedReportComponentDigestV1(second);
+    for (const [componentId, evidenceProblems] of Object.entries(problems)) {
+      const component = report.components.find((item) => item.id === componentId);
+      if (component === undefined) throw new Error(`the shared fixture has no ${componentId}`);
+      component.evidenceProblems = evidenceProblems;
+      for (const observation of record.observations as Record<string, unknown>[])
+        if (observation.componentId === componentId)
+          observation.reportComponentDigest = packagedReportComponentDigestV1(component);
+    }
     const bytes = canonicalStrictJsonBytesV1(record).toString("utf8");
     const [parsed] = parsePackagedScannerCollectionEvidenceV1([
       { bytes, sha256: `sha256:${sha256HexV1(bytes)}` },
@@ -578,16 +681,11 @@ describe("evidence problems in evidence-summary/v2 (D56)", () => {
       } as unknown as AuthoringCatalogBundleV1,
       [parsed],
     );
-    const byComponent = Object.fromEntries(
+    return Object.fromEntries(
       coverage.components.map(({ componentId, subject }) => [
         componentId,
         projected[`evidence:${subject.assetId}`],
       ]),
     );
-    expect(byComponent["component:first"]?.evidenceProblems).toEqual([]);
-    const problems = byComponent["component:second"]?.evidenceProblems;
-    expect(problems).toHaveLength(50);
-    expect(problems?.[0]).toBe(`trust.detector-unavailable: 0 ${long}`.slice(0, 1_000));
-    expect(byComponent["component:second"]?.scan).toMatchObject({ outcome: "no-findings" });
-  });
+  }
 });
