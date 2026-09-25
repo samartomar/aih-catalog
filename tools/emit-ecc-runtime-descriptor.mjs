@@ -21,7 +21,8 @@ import { descriptorPath, INPUT } from "./generate-catalog-runtime-descriptors.mj
  *   node tools/emit-ecc-runtime-descriptor.mjs [catalog-root]
  *
  * The descriptor is the exact bytes Core sealed inside that record. The record must match its
- * own seal, the descriptor its Core seal (canonical JSON, the record's source revision), and
+ * own seal, the descriptor its Core seal (canonical sorted-key JSON without whitespace, the
+ * record's source revision, a 40-character lowercase commit), and
  * the descriptor must be evaluated under Core's ECC runtime declared evaluation contract v2.
  * The writer puts the bytes at their one path, replaces the ECC entry of the runtime
  * descriptor inputs with the Core seal and the record digest, and removes the descriptor file
@@ -33,6 +34,10 @@ const RECORDS = "src/production/data/packaged-source-data-v1.json";
 const DESCRIPTOR_ROOT = "defaults/runtime-descriptors";
 const FORMAT = "ecc-runtime-descriptor/v1";
 const REPOSITORY = "affaan-m/ECC";
+// The identity checks of tools/generate-catalog-runtime-descriptors.mjs: the write path is built
+// from these two values, so nothing else may reach it.
+const REPOSITORY_SHAPE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
+const GIT_COMMIT = /^[0-9a-f]{40}$/;
 
 /** Core 96453911 src/ecc/runtime-descriptor-evaluation.ts:5-13, copied exactly. */
 export const ECC_RUNTIME_DECLARED_EVALUATION_CONTRACT_V2 = Object.freeze({
@@ -114,6 +119,12 @@ function sealedDescriptor(records) {
   if (descriptor.version !== FORMAT)
     fail(`unsupported runtime descriptor format ${JSON.stringify(descriptor.version)}`);
   const source = object(descriptor.source, "runtime descriptor source");
+  if (typeof source.repository !== "string" || !REPOSITORY_SHAPE.test(source.repository))
+    fail(`the runtime descriptor source repository ${JSON.stringify(source.repository)} is not owner/name`);
+  if (typeof source.commit !== "string" || !GIT_COMMIT.test(source.commit))
+    fail(
+      `the runtime descriptor source commit ${JSON.stringify(source.commit)} is not a 40-character lowercase commit`,
+    );
   const recordSource = object(record.source, "ECC record source");
   if (source.repository !== recordSource.repository || source.commit !== recordSource.commit)
     fail(
@@ -188,6 +199,12 @@ export function emitEccRuntimeDescriptorV1(catalogRoot) {
   )
     fail("the previous ECC runtime descriptor path is unsafe");
   const target = resolve(root, ...descriptor.path.split("/"));
+  // A temporary file left by an interrupted run refuses by name before anything is written.
+  for (const [temporary, label] of [
+    [`${target}.tmp`, `${descriptor.path}.tmp`],
+    [`${inputsPath}.tmp`, `${INPUT}.tmp`],
+  ])
+    if (existsSync(temporary)) fail(`a stale temporary file ${label} exists; remove it and rerun`);
   mkdirSync(dirname(target), { recursive: true });
   writeReplacing(target, descriptor.bytes);
   writeReplacing(inputsPath, `${JSON.stringify({ ...inputs, descriptors }, null, 2)}\n`);

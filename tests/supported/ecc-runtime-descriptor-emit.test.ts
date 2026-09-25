@@ -260,4 +260,38 @@ describe("ECC runtime descriptor writer", () => {
     expect(existsSync(join(item.root, descriptorPath(OLD_PIN)))).toBe(true);
     expect(existsSync(join(item.root, descriptorPath(PIN)))).toBe(false);
   });
+
+  it("refuses a resealed descriptor whose source commit is not a commit, before any write", async () => {
+    const api = await writer();
+    const outside = "../../../../../escape";
+    const item = catalogRoot({
+      descriptor: (descriptor) => ({
+        ...descriptor,
+        source: { ...(descriptor.source as Json), commit: outside },
+      }),
+      record: (record) => ({ ...record, source: { ...(record.source as Json), commit: outside } }),
+    });
+    const before = readFileSync(join(item.root, INPUTS), "utf8");
+    expect(() => api.emitEccRuntimeDescriptorV1(item.root)).toThrow(
+      'ecc-runtime-descriptor: the runtime descriptor source commit "../../../../../escape" is not a 40-character lowercase commit',
+    );
+    expect(existsSync(join(item.root, "escape"))).toBe(false);
+    expect(readFileSync(join(item.root, INPUTS), "utf8")).toBe(before);
+    expect(existsSync(join(item.root, descriptorPath(OLD_PIN)))).toBe(true);
+  });
+
+  it("refuses a stale temporary file by name before any write", async () => {
+    const api = await writer();
+    const item = catalogRoot();
+    const stale = `${descriptorPath(PIN)}.tmp`;
+    mkdirSync(dirname(join(item.root, stale)), { recursive: true });
+    writeFileSync(join(item.root, stale), "partial");
+    const before = readFileSync(join(item.root, INPUTS), "utf8");
+    expect(() => api.emitEccRuntimeDescriptorV1(item.root)).toThrow(
+      `ecc-runtime-descriptor: a stale temporary file ${stale} exists; remove it and rerun`,
+    );
+    expect(readFileSync(join(item.root, INPUTS), "utf8")).toBe(before);
+    expect(existsSync(join(item.root, descriptorPath(PIN)))).toBe(false);
+    expect(existsSync(join(item.root, descriptorPath(OLD_PIN)))).toBe(true);
+  });
 });
