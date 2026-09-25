@@ -10,10 +10,11 @@ import {
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import type * as api from "../../src/index.js";
-import { canonical, sha, signedCatalogRunFixture } from "./signed-catalog-run-fixture.js";
+import { canonical, ROWS, sha, signedCatalogRunFixture } from "./signed-catalog-run-fixture.js";
 
 type Json = Record<string, unknown>;
 type Stager = {
+  windowsNameProblemsV1(entries: { group: string; entryId: string }[]): string[];
   stageCatalogQualificationInputsV1(input: {
     catalogRoot: string;
     runDirectory: string;
@@ -183,5 +184,49 @@ describe("step-9 T5 input directories from a signed-catalog-v2 run", () => {
     expect(tool.stageCatalogQualificationInputsV1({ ...copy, runDirectory: moved }).entries).toBe(
       4,
     );
+  });
+
+  it("refuses output names Windows cannot hold before writing anything", async () => {
+    const tool = await stager();
+    // Device names with or without an extension, and a trailing dot, in a group and an entry.
+    const rows = [
+      { ...ROWS[0], sourceId: "source:con" },
+      { ...ROWS[1], sourceId: "source:nul.x" },
+      ROWS[2],
+      {
+        seedPath: "workbench/mattpocock/alpha-dot/seed.json",
+        entryId: "skill.mattpocock.alpha.",
+        id: "alpha-dot",
+        sourceId: "source:mattpocock",
+      },
+    ] as typeof ROWS;
+    const item = signedCatalogRunFixture(temporaryRoots, rows);
+    expect(() => tool.stageCatalogQualificationInputsV1(item)).toThrow(
+      "catalog-qualification-inputs:windows-names con (device name); nul.x (device name); mattpocock/skill.mattpocock.alpha. (trailing dot or space)",
+    );
+    expect(existsSync(item.outputRoot)).toBe(false);
+    // Case-insensitive device names, a trailing space, and names that collide once case and
+    // trailing dots are ignored.
+    expect(
+      tool.windowsNameProblemsV1([
+        { group: "LPT1", entryId: "skill.a" },
+        { group: "ok", entryId: "Com3.txt" },
+        { group: "ok", entryId: "skill.b " },
+        { group: "ok", entryId: "skill.C" },
+        { group: "ok", entryId: "skill.c" },
+        { group: "Ok", entryId: "skill.d" },
+        { group: "ok", entryId: "skill.e" },
+        { group: "ok", entryId: "skill.e." },
+      ]),
+    ).toEqual([
+      "LPT1 (device name)",
+      "ok/Com3.txt (device name)",
+      "ok/skill.b  (trailing dot or space)",
+      "ok/skill.e. (trailing dot or space)",
+      "Ok, ok (collide)",
+      "ok/skill.C, ok/skill.c (collide)",
+      "ok/skill.e, ok/skill.e. (collide)",
+    ]);
+    expect(tool.windowsNameProblemsV1([{ group: "console", entryId: "skill.nul-x" }])).toEqual([]);
   });
 });

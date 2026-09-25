@@ -20,6 +20,8 @@
 // member digest and head it was issued for; every member must recompute to the head's digest;
 // every closure must match the member's identity and digest; the receipt set must cover the head
 // exactly. Any mismatch refuses the whole run, naming every entry, before anything is written.
+// Output names Windows cannot hold (device names, a trailing dot or space, names that collide
+// once case and trailing dots are ignored) are refused the same way, on every platform.
 // It does not verify signatures or attestations: the workflow and `gh attestation verify`
 // (runbook 9.5) do.
 import { createHash } from "node:crypto";
@@ -39,6 +41,7 @@ const MAX_CLOSURE_BYTES = 1_000_000;
 const MEMBER_DOMAIN = "aih-supported-catalog-member/v2";
 const GROUP = /^[a-z0-9][a-z0-9._-]{0,63}$/;
 const UNSOURCED = "_unsourced";
+const WINDOWS_DEVICE = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\..*)?$/i;
 
 const fail = (message) => {
   throw new TypeError(`catalog-qualification-inputs:${message}`);
@@ -66,6 +69,33 @@ function regularFile(path, maximum, label) {
   }
   if (!stat.isFile() || stat.isSymbolicLink() || stat.size === 0 || stat.size > maximum) fail(`${label} unreadable`);
   return readFileSync(path);
+}
+
+/** Windows folds case and drops trailing dots and spaces: names equal under this are one file. */
+const windowsKey = (name) => name.toLowerCase().replace(/[. ]+$/, "");
+const windowsProblem = (name) =>
+  WINDOWS_DEVICE.test(name) ? "device name" : /[. ]$/.test(name) ? "trailing dot or space" : undefined;
+
+/** Every output directory name (<group>/<entryId>) Windows cannot hold, as labels. */
+export function windowsNameProblemsV1(entries) {
+  const problems = [];
+  const groups = new Map();
+  const names = new Map();
+  const add = (map, key, name) => map.set(key, (map.get(key) ?? new Set()).add(name));
+  for (const { group, entryId } of entries) {
+    const seen = groups.get(windowsKey(group))?.has(group) ?? false;
+    const groupProblem = seen ? undefined : windowsProblem(group);
+    if (groupProblem !== undefined) problems.push(`${group} (${groupProblem})`);
+    add(groups, windowsKey(group), group);
+    const entryProblem = windowsProblem(entryId);
+    if (entryProblem !== undefined) problems.push(`${group}/${entryId} (${entryProblem})`);
+    add(names, `${windowsKey(group)}/${windowsKey(entryId)}`, `${group}/${entryId}`);
+  }
+  const collisions = [...groups.values(), ...names.values()]
+    .filter((set) => set.size > 1)
+    .map((set) => `${[...set].sort(compare).join(", ")} (collide)`)
+    .sort(compare);
+  return [...problems, ...collisions];
 }
 
 function jsonOf(bytes, label) {
@@ -220,6 +250,8 @@ export function stageCatalogQualificationInputsV1({ catalogRoot, runDirectory, o
     else staged.push({ entryId: entry.entryId, group: closureGroup(closureBytes), receiptBytes, memberBytes, closureBytes });
   }
   if (problems.length > 0) fail(`unverified ${problems.join("; ")}`);
+  const windows = windowsNameProblemsV1(staged);
+  if (windows.length > 0) fail(`windows-names ${windows.join("; ")}`);
 
   mkdirSync(dirname(output), { recursive: true });
   mkdirSync(output);
