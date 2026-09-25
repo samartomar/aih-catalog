@@ -186,14 +186,22 @@ export interface PolicyAuthoringCatalogInputsV1 {
   superpowersContentMetadata: unknown;
 }
 
-export function readPolicyAuthoringCatalogInputsV1(root: string): PolicyAuthoringCatalogInputsV1 {
+/**
+ * Reads the true inputs. `vendorLock` names an explicit vetted lock (the assembled lock at a
+ * new pin, before it is byte-copied into src/production/data); the vetted-pin checks in
+ * policyAuthoringCatalogV1 apply to it unchanged.
+ */
+export function readPolicyAuthoringCatalogInputsV1(
+  root: string,
+  vendorLock: unknown = JSON.parse(
+    readFileSync(productionDataPathV1(root, "vendor-lock-v1.json"), "utf8"),
+  ),
+): PolicyAuthoringCatalogInputsV1 {
   const upstream = readUpstreamInputsManifestV1(root);
   const verified = (file: string) => readVerifiedUpstreamInputV1(root, upstream, file).json;
   return {
     core: readCoreProductDeclarationsV1(root),
-    vendorLock: parseBaselineEvidenceLockV1(
-      JSON.parse(readFileSync(productionDataPathV1(root, "vendor-lock-v1.json"), "utf8")),
-    ),
+    vendorLock: parseBaselineEvidenceLockV1(vendorLock),
     upstream,
     eccContentMetadata: verified("ecc-content-metadata-v1.json"),
     eccSkillInventory: verified("ecc-skill-inventory-v1.json"),

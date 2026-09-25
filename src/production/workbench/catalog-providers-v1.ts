@@ -164,6 +164,26 @@ export function builtInCatalogInputV1(catalog: PolicyAuthoringCatalogV1): BuiltI
   };
 }
 
+/** The Matt Pocock collection provider: it compiles from the fetched snapshot alone. */
+export function compileMattPocockProviderV1(snapshot: unknown): CatalogProviderCompilationV1 {
+  return compileCatalogProviderV1(
+    "mattpocock",
+    (value: ReturnType<typeof prepareMattPocockCollectionV1>) => [
+      compileMattPocockSkillCollectionV1(value),
+    ],
+    prepareMattPocockCollectionV1(snapshot),
+  );
+}
+
+/** The Ponytail collection provider: it compiles from the fetched snapshot alone. */
+export function compilePonytailProviderV1(snapshot: unknown): CatalogProviderCompilationV1 {
+  return compileCatalogProviderV1(
+    "ponytail",
+    (value: unknown) => [compilePonytailComponentCollectionV1(value)],
+    snapshot,
+  );
+}
+
 /** Compiles every registered provider from the catalog and its true inputs. */
 export function compileCatalogProvidersV1(input: {
   catalog: PolicyAuthoringCatalogV1;
@@ -192,18 +212,8 @@ export function compileCatalogProvidersV1(input: {
         (value: BuiltInCatalogInputV1) => [builtInAssemblyInputV1(compileBuiltInCatalogV1(value))],
         builtIn,
       ),
-      compileCatalogProviderV1(
-        "mattpocock",
-        (value: ReturnType<typeof prepareMattPocockCollectionV1>) => [
-          compileMattPocockSkillCollectionV1(value),
-        ],
-        prepareMattPocockCollectionV1(input.mattpocockSnapshot),
-      ),
-      compileCatalogProviderV1(
-        "ponytail",
-        (value: unknown) => [compilePonytailComponentCollectionV1(value)],
-        input.ponytailSnapshot,
-      ),
+      compileMattPocockProviderV1(input.mattpocockSnapshot),
+      compilePonytailProviderV1(input.ponytailSnapshot),
     ],
     coreCapabilities: compileBuiltInCatalogV1(builtIn).coreCapabilities,
   };
