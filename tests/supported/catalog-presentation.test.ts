@@ -163,7 +163,7 @@ describe("published catalog presentation", () => {
     const byId = new Map(presentation?.entries.map((entry) => [entry.entryId, entry]));
     expect(byId.get("skill.ecc.content-hash-cache-pattern")).toEqual({
       entryId: "skill.ecc.content-hash-cache-pattern",
-      subjectDigest: "sha256:dfa2e49a1fed3ebafd14c65ea768516b4a0e085ac14205b210e8c2d1bcadbb37",
+      subjectDigest: "sha256:0b6cbb9e050002d71171e96bddd6f6f9f44fb2fc1a016663c1d7a0b758a67ab4",
       source: {
         path: "skills/content-hash-cache-pattern/SKILL.md",
         sha256: "c0242ee2fcb5c096d0625cb6957481fce2266e92985036795f5b5c13c329d802",
