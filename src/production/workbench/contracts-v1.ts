@@ -77,9 +77,9 @@ export interface SelectionTemplateV1 {
   exclusions: string[];
 }
 
-export interface EvidenceSummaryV1 {
+export interface EvidenceSummaryV2 {
   id: string;
-  projectionVersion: "evidence-summary/v1";
+  projectionVersion: "evidence-summary/v2";
   subjects: {
     assetId: string;
     sourceId: string;
@@ -94,7 +94,8 @@ export interface EvidenceSummaryV1 {
     contextDigest?: string;
     validUntil?: string;
   };
-  scan: JsonRecord & { outcome: "pass" | "failed" | "unknown"; coverage: string };
+  /** A label (D50): what the analyzers observed, never a decision. */
+  scan: JsonRecord & { outcome: "no-findings" | "has-findings" | "unknown"; coverage: string };
   qualification: { state: "qualified" | "unqualified" | "unknown" };
   findings: string[];
 }
@@ -106,7 +107,7 @@ export interface AuthoringCatalogBundleV1 {
   groups: Record<string, { id: string; label: string; assetIds: string[] }>;
   relations: CatalogRelationV1[];
   templates: Record<string, SelectionTemplateV1>;
-  evidence: Record<string, EvidenceSummaryV1>;
+  evidence: Record<string, EvidenceSummaryV2>;
   qualifications?: Record<string, JsonRecord & { assetId: string }>;
   provenance: { bundleDigest: string };
   detailChunks: Record<string, { bytes: string; digest: string }>;
@@ -302,7 +303,7 @@ function validateEvidence(value: unknown, key: string): void {
     label,
   );
   id(evidence.id, `${label} id`);
-  if (evidence.projectionVersion !== "evidence-summary/v1")
+  if (evidence.projectionVersion !== "evidence-summary/v2")
     throw new TypeError(`${label} projection version`);
   for (const subject of list(evidence.subjects, `${label} subjects`, 1, 1_000)) {
     const item = exactKeys(
@@ -359,10 +360,14 @@ function validateEvidence(value: unknown, key: string): void {
     "publishedComponentIds",
     "reportFindingCount",
   ]);
-  const outcome = oneOf(scan.outcome, ["pass", "failed", "unknown"], `${label} outcome`);
+  const outcome = oneOf(
+    scan.outcome,
+    ["no-findings", "has-findings", "unknown"],
+    `${label} outcome`,
+  );
   const coverage = oneOf(scan.coverage, ["complete", "partial", "none"], `${label} coverage`);
-  if (outcome === "pass" && coverage !== "complete")
-    throw new TypeError("A passing scan requires complete coverage.");
+  if (outcome === "no-findings" && coverage !== "complete")
+    throw new TypeError("A no-findings scan requires complete coverage.");
   if (scan.analyzers !== undefined) {
     let previous: string | undefined;
     for (const analyzer of list(scan.analyzers, `${label} analyzers`, 0, 32)) {
@@ -536,7 +541,7 @@ export function validateAuthoringCatalogBundleV1(
   }
   for (const [key, value] of Object.entries(record(bundle.evidence, "evidence"))) {
     validateEvidence(value, key);
-    const evidence = value as EvidenceSummaryV1;
+    const evidence = value as EvidenceSummaryV2;
     const subjectIds = evidence.subjects.map((subject) => subject.assetId);
     if (evidence.id !== key || !ordered(subjectIds) || !ordered(evidence.coveredPaths))
       throw new TypeError(`Evidence ${key} key, subjects and paths must be unique and ordered.`);

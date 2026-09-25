@@ -5,7 +5,7 @@ import type {
 } from "../catalog/framework-catalogs-v1.js";
 import { canonicalStrictJsonBytesV1, sha256HexV1 } from "../strict-json-v1.js";
 import type { CompiledDeclarationV1 } from "./compiler-formats-v1.js";
-import type { CompilerAssetDeclarationV1, EvidenceSummaryV1 } from "./contracts-v1.js";
+import type { CompilerAssetDeclarationV1, EvidenceSummaryV2 } from "./contracts-v1.js";
 
 /**
  * Compiles a source-locked upstream inventory without fetching, installing or
@@ -53,7 +53,7 @@ export interface CompiledPinnedBaselineV1 {
     membership?: "required" | "optional";
   }[];
   groups: Record<string, { id: string; label: string; assetIds: string[] }>;
-  evidence: Record<string, EvidenceSummaryV1>;
+  evidence: Record<string, EvidenceSummaryV2>;
   detailBytes: Record<string, string>;
 }
 
@@ -78,7 +78,7 @@ export function compilePinnedBaselineV1(
     const id = `${framework.id}/${asset.id}`;
     const detailChunkId = `detail:${id}`;
     detailBytes[detailChunkId] = canonicalStrictJsonBytesV1({
-      version: "pinned-baseline-detail/v1",
+      version: "pinned-baseline-detail/v2",
       asset: {
         id: asset.id,
         kind: asset.kind,
@@ -118,7 +118,7 @@ export function compilePinnedBaselineV1(
     }),
   );
   detailBytes[methodologyChunkId] = canonicalStrictJsonBytesV1({
-    version: "pinned-baseline-detail/v1",
+    version: "pinned-baseline-detail/v2",
     profile: {
       id: "methodology",
       framework: framework.id,
@@ -180,24 +180,25 @@ export function compilePinnedBaselineV1(
     }),
   );
   const evidence = Object.fromEntries(
-    framework.assets.flatMap((asset): [string, EvidenceSummaryV1][] => {
+    framework.assets.flatMap((asset): [string, EvidenceSummaryV2][] => {
       if (asset.vet === undefined) return [];
       const assetId = `${framework.id}/${asset.id}`;
       const coveredPaths = evidenceCoveredPaths(asset, componentsById);
       const evidenceBytes = canonicalStrictJsonBytesV1({
-        version: "pinned-baseline-evidence/v1",
+        version: "pinned-baseline-evidence/v2",
         source: { repository: framework.repository, commit: framework.commit },
         asset: { id: asset.id, treeSha256: asset.vet.treeSha256, coveredPaths },
         verdict: asset.vet.verdict,
         analyzers: asset.vet.analyzers,
         findings: asset.vet.findings,
+        evidenceProblems: asset.vet.evidenceProblems,
       });
       return [
         [
           `evidence:${assetId}`,
           {
             id: `evidence:${assetId}`,
-            projectionVersion: "evidence-summary/v1",
+            projectionVersion: "evidence-summary/v2",
             subjects: [
               {
                 assetId,
@@ -210,13 +211,14 @@ export function compilePinnedBaselineV1(
             coveredPaths,
             verification: { state: "unverified" },
             scan: {
-              outcome: asset.vet.verdict === "pass" ? "pass" : "failed",
+              // The stored label itself (D50), never a decision.
+              outcome: asset.vet.verdict,
               coverage: "complete",
               analyzers: asset.vet.analyzers.map(({ name, version }) => ({ name, version })),
             },
             qualification: { state: "unknown" },
             findings: asset.vet.findings.map((finding) => `${finding.code}: ${finding.detail}`),
-          } as EvidenceSummaryV1,
+          } as EvidenceSummaryV2,
         ],
       ];
     }),

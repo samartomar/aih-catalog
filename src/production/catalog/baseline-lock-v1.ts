@@ -28,13 +28,19 @@ export interface BaselineEvidenceFindingV1 {
   fingerprints?: string[];
 }
 
+/**
+ * A component's evidence (D50, vendor lock schemaVersion 2). The verdict is a label, never a
+ * decision: `has-findings` when the analyzers observed something, `no-findings` otherwise.
+ * Evidence problems (the evidence is incomplete) are a separate label.
+ */
 export interface BaselineComponentEvidenceV1 {
   id: string;
   paths: string[];
   treeSha256: string;
-  verdict: "pass" | "blocked";
+  verdict: "no-findings" | "has-findings";
   analyzers: BaselineAnalyzerReceiptV1[];
   findings: BaselineEvidenceFindingV1[];
+  evidenceProblems: BaselineEvidenceFindingV1[];
 }
 
 export interface BaselineSourceEvidenceV1 {
@@ -47,7 +53,7 @@ export interface BaselineSourceEvidenceV1 {
 }
 
 export interface BaselineEvidenceLockV1 {
-  schemaVersion: 1;
+  schemaVersion: 2;
   sources: BaselineSourceEvidenceV1[];
 }
 
@@ -63,6 +69,51 @@ export interface BaselineCatalogV1 {
   repo: string;
   pinnedSha: string;
   components: readonly BaselineCatalogComponentV1[];
+}
+
+/**
+ * What a trust code says (D50). Ported from Core 8dd77e53 src/trust/evidence.ts
+ * `trustCodeClassV1`: a FINDING is information about the component, an EVIDENCE PROBLEM says the
+ * evidence is incomplete, an INTEGRITY failure says the evidence cannot be trusted.
+ */
+export type TrustCodeClassV1 = "finding" | "evidence-problem" | "integrity";
+
+const TRUST_CODE_CLASSES_V1: Readonly<Record<string, TrustCodeClassV1>> = {
+  "trust.auto-exec-hook": "finding",
+  "trust.dependency-confusion": "finding",
+  "trust.hidden-unicode": "finding",
+  "trust.malicious-code": "finding",
+  "trust.prompt-injection": "finding",
+  "trust.typosquat": "finding",
+  "trust.unpinned-dependency": "finding",
+  "trust.external-egress": "finding",
+  "trust.license-missing": "finding",
+  "trust.permission-risk": "finding",
+  "trust.skill-metadata-license": "finding",
+  "trust.untrusted-publisher": "finding",
+  "trust.cisco-finding": "finding",
+  "trust.detector-finding": "finding",
+  "trust.legal-text-detector-finding": "finding",
+  "trust.visible-unicode": "finding",
+  "trust.unreviewed-analyzer-rule": "finding",
+  "trust.detector-unavailable": "evidence-problem",
+  "trust.sandbox-smoke-unavailable": "evidence-problem",
+  "trust.sandbox-smoke-failed": "evidence-problem",
+  "trust.fetch-blocked": "evidence-problem",
+  "trust.unsigned-source": "evidence-problem",
+  "trust.source-changed": "integrity",
+  "trust.source-drift": "integrity",
+  "trust.fetch-metadata-missing": "integrity",
+  "trust.fetch-metadata-unreadable": "integrity",
+  "trust.fetch-metadata-malformed": "integrity",
+  "trust.fetch-metadata-mismatched": "integrity",
+};
+
+/** The class of a trust code, or undefined for a code outside the trust lane. */
+export function trustCodeClassV1(code: string | undefined): TrustCodeClassV1 | undefined {
+  return code === undefined || !Object.hasOwn(TRUST_CODE_CLASSES_V1, code)
+    ? undefined
+    : TRUST_CODE_CLASSES_V1[code];
 }
 
 export function isSafeRelativeSourcePathV1(value: string): boolean {
@@ -123,15 +174,41 @@ function finding(value: unknown, label: string): BaselineEvidenceFindingV1 {
 function component(value: unknown, label: string): BaselineComponentEvidenceV1 {
   const input = exactKeys(
     record(value, label),
-    ["id", "paths", "treeSha256", "verdict", "analyzers", "findings"],
+    ["id", "paths", "treeSha256", "verdict", "analyzers", "findings", "evidenceProblems"],
     label,
   );
   const findings = list(input.findings, `${label} findings`).map((item, index) =>
     finding(item, `${label} finding ${String(index)}`),
   );
-  const verdict = oneOf(input.verdict, ["pass", "blocked"] as const, `${label} verdict`);
-  if (verdict === "blocked" && findings.length === 0)
-    throw new TypeError(`${label} blocked evidence must retain at least one blocking finding`);
+  const evidenceProblems = list(input.evidenceProblems, `${label} evidenceProblems`).map(
+    (item, index) => finding(item, `${label} evidence problem ${String(index)}`),
+  );
+  const verdict = oneOf(
+    input.verdict,
+    ["no-findings", "has-findings"] as const,
+    `${label} verdict`,
+  );
+  // Integrity: contradictory evidence is refused; the label must state what the findings are.
+  if (verdict === "has-findings" && findings.length === 0)
+    throw new TypeError(`${label} has-findings evidence must carry at least one finding`);
+  if (verdict === "no-findings" && findings.length > 0)
+    throw new TypeError(`${label} no-findings evidence must carry no finding`);
+  for (const [index, entry] of findings.entries()) {
+    const kind = trustCodeClassV1(entry.code);
+    if (kind === "integrity")
+      throw new TypeError(
+        `${label} finding ${String(index)}: integrity failure ${entry.code} is never stored as a finding`,
+      );
+    if (kind === "evidence-problem")
+      throw new TypeError(
+        `${label} finding ${String(index)}: evidence problem ${entry.code} belongs in evidenceProblems, not findings`,
+      );
+  }
+  for (const [index, entry] of evidenceProblems.entries())
+    if (trustCodeClassV1(entry.code) !== "evidence-problem")
+      throw new TypeError(
+        `${label} evidence problem ${String(index)}: ${entry.code} is not an evidence problem`,
+      );
   return {
     id: text(input.id, `${label} id`, SAFE_COMPONENT_ID),
     paths: componentPaths(input.paths, `${label} paths`),
@@ -146,17 +223,21 @@ function component(value: unknown, label: string): BaselineComponentEvidenceV1 {
       };
     }),
     findings,
+    evidenceProblems,
   };
 }
 
-/** Strict reader for the Scanner-vetted vendor baseline lock (a sealed true input). */
+/**
+ * Strict reader for the Scanner-vetted vendor baseline lock (a sealed true input), schemaVersion 2
+ * only (Core 8dd77e53 src/baseline-evidence/schema.ts). There is no v1 reading.
+ */
 export function parseBaselineEvidenceLockV1(value: unknown): BaselineEvidenceLockV1 {
   const input = exactKeys(
     record(value, "vendor lock"),
     ["schemaVersion", "sources"],
     "vendor lock",
   );
-  literal(input.schemaVersion, 1, "vendor lock schemaVersion");
+  literal(input.schemaVersion, 2, "vendor lock schemaVersion");
   const ids = new Set<string>();
   const origins = new Set<string>();
   const sources = list(input.sources, "vendor lock sources", 1).map((candidate, index) => {
@@ -198,7 +279,7 @@ export function parseBaselineEvidenceLockV1(value: unknown): BaselineEvidenceLoc
       components,
     };
   });
-  return { schemaVersion: 1, sources };
+  return { schemaVersion: 2, sources };
 }
 
 /** Ported from Core 80120883 src/baseline-evidence/catalog.ts `defineBaselineCatalog`. */
