@@ -28,6 +28,11 @@
 //   generators. Everything, the generated views included, is produced in a scratch copy first;
 //   the Catalog root is written only after all of it succeeded.
 //
+// In both modes a profile's Scanner observation is bound to its asset by the record, not by the
+// draft: the record's coverage must bind the component the profile names to the profile's exact
+// asset (asset id and content digest), or the run is refused. A refresh also refuses a profile
+// whose Scanner component binding differs from the seed's.
+//
 // Findings and evidence problems are carried as labels, never cleared or relabeled; generated
 // summaries state facts and carry no outcome label.
 import { createHash } from "node:crypto";
@@ -171,6 +176,7 @@ function sealedRecord(recordBytes, release, reader) {
     sourceId: source.id,
     revisionId: source.revisionId,
     sourceContentDigest: text(source.contentDigest, "record-source-digest"),
+    coverage: array(object(parsed.coverage, "record-coverage").components, "record-coverage"),
     observations: array(parsed.observations, "record-observations"),
     components: array(parsed.report.components, "record-report"),
   };
@@ -231,16 +237,26 @@ function releaseSeeds(catalogRoot, seedRoot, release) {
     });
 }
 
-/** The fields, other than its Scanner observation, in which a draft profile differs from the seed's. */
+/** Keys that differ between two objects, in code-unit order. */
+const changedKeys = (current, next) =>
+  [...new Set([...Object.keys(current), ...Object.keys(next)])]
+    .sort(codeUnitCompare)
+    .filter((key) => !same(current[key], next[key]));
+
+/**
+ * The fields in which a draft profile differs from the seed's. A new scan changes only the Scanner
+ * catalog and observation; every other Scanner key (the component binding) is compared.
+ */
 function changedFields(current, next) {
   const fields = [];
-  for (const key of [...new Set([...Object.keys(current), ...Object.keys(next)])].sort(codeUnitCompare)) {
-    if (key === "scanner" || same(current[key], next[key])) continue;
+  for (const key of changedKeys(current, next)) {
+    if (key === "scanner" && isObject(current.scanner) && isObject(next.scanner)) {
+      for (const field of changedKeys(current.scanner, next.scanner))
+        if (field !== "catalog" && field !== "observation") fields.push(`scanner.${field}`);
+      continue;
+    }
     if (key === "material" && isObject(current.material) && isObject(next.material)) {
-      for (const field of [...new Set([...Object.keys(current.material), ...Object.keys(next.material)])].sort(
-        codeUnitCompare,
-      ))
-        if (!same(current.material[field], next.material[field])) fields.push(field);
+      fields.push(...changedKeys(current.material, next.material));
     } else fields.push(key);
   }
   return fields;
@@ -287,6 +303,16 @@ function renderSeed(context) {
   );
   const scanner = object(profile.scanner, `profile-scanner ${assetId}`);
   const componentId = text(object(scanner.component, `profile-scanner ${assetId}`).componentId, assetId);
+  // The record, not the draft, says which asset a component covers.
+  const covered = record.coverage.filter((item) => item?.componentId === componentId);
+  const bound =
+    covered.length !== 1 ? [] : isObject(covered[0].subject) ? [covered[0].subject] : (covered[0].subjects ?? []);
+  if (
+    !bound.some(
+      (item) => item?.assetId === profile.asset.assetId && item?.contentDigest === profile.asset.contentDigest,
+    )
+  )
+    fail(`scanner-coverage ${assetId}`);
   const observations = record.observations.filter((item) => item?.componentId === componentId);
   const reports = record.components.filter((item) => item?.id === componentId);
   if (observations.length !== 1 || reports.length !== 1) fail(`observation ${assetId}`);

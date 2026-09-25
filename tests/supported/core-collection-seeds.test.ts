@@ -273,7 +273,12 @@ const profile = (subject: Subject, scan: "old" | "new", material: Json, release:
   });
 
 /** A sealed `packaged-scanner-collection-evidence/v2` record of the Core collection. */
-function sealedRecord(subjects: Subject[], revisionId: string, catalogId = "aih") {
+function sealedRecord(
+  subjects: Subject[],
+  revisionId: string,
+  catalogId = "aih",
+  coverageDigestOf?: string,
+) {
   const coverage = {
     authority: "none",
     components: subjects.map((subject) => ({
@@ -281,7 +286,10 @@ function sealedRecord(subjects: Subject[], revisionId: string, catalogId = "aih"
       componentTreeSha256: sha(`${subject.componentId}:new`),
       files: [{ digest: `sha256:${sha(subject.id)}`, path: componentPath(subject) }],
       paths: [componentPath(subject)],
-      subject: asset(subject, revisionId.slice("package:@aihq/core@".length)),
+      subject:
+        subject.assetId === coverageDigestOf
+          ? { ...asset(subject, "other"), sourceRevisionId: revisionId }
+          : asset(subject, revisionId.slice("package:@aihq/core@".length)),
     })),
     scope: "declared-source-files",
     unmappedDerivedAssets: [],
@@ -326,6 +334,7 @@ interface Options {
   recordVersion?: string;
   changeMaterial?: (material: Json) => void;
   tamperRecord?: boolean;
+  coverageDigestOf?: string;
   catalogRoot?: string;
   newSubjects?: Subject[];
   inputs?: Json;
@@ -367,7 +376,7 @@ function fixture(options: Options = {}) {
   );
   const drafted = [...SUBJECTS, ...(options.newSubjects ?? [])];
   const revision = options.recordRevision ?? revisionOf(release);
-  let bytes = sealedRecord(drafted, revision);
+  let bytes = sealedRecord(drafted, revision, "aih", options.coverageDigestOf);
   if (options.recordVersion !== undefined)
     bytes = bytes.replace("packaged-scanner-collection-evidence/v2", options.recordVersion);
   const recordPath = join(root, "collection-aih.json");
@@ -529,6 +538,39 @@ function fixture(options: Options = {}) {
   };
 }
 
+/** Rewrites one draft profile, and re-binds it, to name another subject's Scanner component. */
+function retarget(item: { draftPath: string }, from: Subject, to: Subject) {
+  const draft = read(item.draftPath) as { profiles: Json[]; bindings: Json[] };
+  const index = draft.profiles.findIndex((entry) => entry.assetId === from.assetId);
+  const value = JSON.parse(
+    Buffer.from(String(draft.profiles[index]?.bytesBase64), "base64").toString("utf8"),
+  ) as { scanner: Json };
+  value.scanner.component = { componentId: to.componentId, paths: [componentPath(to)] };
+  value.scanner.observation = observation(to, "new");
+  const bytes = canonical(value);
+  draft.profiles[index] = {
+    assetId: from.assetId,
+    bytesBase64: Buffer.from(bytes).toString("base64"),
+    sha256: `sha256:${sha(bytes)}`,
+  };
+  const binding = draft.bindings.find(
+    (entry) => (entry.asset as Json).assetId === from.assetId,
+  ) as { subject: Json };
+  const source = { ...(binding.subject.source as Json), revision: `sha256:${sha(bytes)}` };
+  const sourceDigest = digest("aih-governance-decision-source/v2", source);
+  binding.subject = {
+    ...binding.subject,
+    source,
+    sourceDigest,
+    subjectDigest: digest("aih-governance-decision-subject/v2", {
+      id: from.id,
+      kind: from.kind,
+      sourceDigest,
+    }),
+  };
+  writeFileSync(item.draftPath, JSON.stringify(draft));
+}
+
 const walk = (directory: string): string[] =>
   readdirSync(directory, { withFileTypes: true }).flatMap((entry) =>
     entry.isDirectory()
@@ -665,6 +707,24 @@ describe("Core collection seed renderer", () => {
     expect(existsSync(item.outputRoot)).toBe(false);
   });
 
+  it("refuses a Scanner component the record's coverage does not bind to the profile's asset", async () => {
+    const api = await renderer();
+    const [quality, github] = SUBJECTS as [Subject, Subject];
+    // The record binds github's component to another content digest than the profile's asset.
+    const other = fixture({ coverageDigestOf: github.assetId });
+    expect(() => api.renderCoreCollectionSeedsV1(other)).toThrow(
+      "core-collection-renderer:scanner-coverage aih/github",
+    );
+    expect(existsSync(other.outputRoot)).toBe(false);
+    // A draft profile naming another asset's component is a changed Scanner binding.
+    const crafted = fixture();
+    retarget(crafted, quality, github);
+    expect(() => api.renderCoreCollectionSeedsV1(crafted)).toThrow(
+      `core-collection-renderer:material-changed ${quality.assetId} (scanner.component)`,
+    );
+    expect(existsSync(crafted.outputRoot)).toBe(false);
+  });
+
   it("refuses a seed the draft does not profile, and a binding that does not bind the draft profile", async () => {
     const api = await renderer();
     const absent = fixture();
@@ -765,6 +825,18 @@ describe("Core collection seed renderer, new-release mode", () => {
       );
     }
     expect(snapshot(same.catalogRoot)).toEqual(before);
+  });
+
+  it("refuses a draft profile naming another asset's Scanner component, with its observation copied", async () => {
+    const api = await renderer();
+    const [quality, github] = SUBJECTS as [Subject, Subject];
+    const crafted = nextRelease();
+    retarget(crafted, quality, github);
+    const before = snapshot(crafted.catalogRoot);
+    expect(() => api.renderCoreCollectionNewReleaseV1(crafted)).toThrow(
+      `core-collection-renderer:scanner-coverage ${quality.assetId}`,
+    );
+    expect(snapshot(crafted.catalogRoot)).toEqual(before);
   });
 
   it("writes nothing when a binding does not verify or the new seed tree already exists", async () => {
