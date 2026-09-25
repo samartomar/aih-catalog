@@ -33,25 +33,28 @@ type Renderer = {
     unseeded: string[];
     unsupported: Json[];
   };
-  renderCoreCollectionNewReleaseV1(input: {
-    catalogRoot: string;
-    recordPath: string;
-    draftPath: string;
-    release: string;
-    packagePath: string;
-    reader: Reader;
-  }): {
-    mode: string;
-    previousRelease: string;
-    release: string;
-    seedRoot: string;
-    rendered: string[];
-    added: string[];
-    retired: string[];
-    removed: string[];
-    unsupported: Json[];
-    written: string[];
-  };
+  renderCoreCollectionNewReleaseV1(input: ReleaseInput): ReleaseResult;
+  renderCoreCollectionInitialReleaseV1(input: ReleaseInput): ReleaseResult;
+};
+type ReleaseInput = {
+  catalogRoot: string;
+  recordPath: string;
+  draftPath: string;
+  release: string;
+  packagePath: string;
+  reader: Reader;
+};
+type ReleaseResult = {
+  mode: string;
+  previousRelease: string | null;
+  release: string;
+  seedRoot: string;
+  rendered: string[];
+  added: string[];
+  retired: string[];
+  removed: string[];
+  unsupported: Json[];
+  written: string[];
 };
 type Generators = {
   index: {
@@ -338,6 +341,8 @@ interface Options {
   catalogRoot?: string;
   newSubjects?: Subject[];
   inputs?: Json;
+  /** No Core seeds at all: the Catalog before the collection's initial release. */
+  noPreviousSeeds?: boolean;
 }
 
 /**
@@ -393,7 +398,7 @@ function fixture(options: Options = {}) {
   for (const subject of drafted) {
     const newMaterial = structuredClone(subject.material);
     options.changeMaterial?.(newMaterial);
-    if (SUBJECTS.includes(subject)) {
+    if (SUBJECTS.includes(subject) && !options.noPreviousSeeds) {
       // The previous seed: the same subject and material at the previous scan.
       const oldMaterial =
         release === previousRelease
@@ -505,7 +510,8 @@ function fixture(options: Options = {}) {
       sha256: `sha256:${sha(unseeded)}`,
     });
   }
-  write(join(seedDirectory, "source-reports", "scanner-report.json"), "previous");
+  if (!options.noPreviousSeeds)
+    write(join(seedDirectory, "source-reports", "scanner-report.json"), "previous");
   const draftPath = join(root, "collection-aih.qualification-draft.json");
   write(
     draftPath,
@@ -793,6 +799,47 @@ describe("Core collection seed renderer", () => {
   });
 });
 
+/** A scratch Catalog root holding a copy of this checkout's package.json and defaults/. */
+function wholeCatalog() {
+  const scratch = mkdtempSync(join(tmpdir(), "aih-core-collection-release-"));
+  temporaryRoots.push(scratch);
+  const catalogRoot = join(scratch, "catalog");
+  mkdirSync(catalogRoot);
+  cpSync(join(repository, "package.json"), join(catalogRoot, "package.json"));
+  cpSync(join(repository, "defaults"), join(catalogRoot, "defaults"), { recursive: true });
+  return catalogRoot;
+}
+
+/** Each generated view of `catalogRoot`, from its own generator, in dependency order. */
+const VIEWS = [
+  [
+    "catalog-index-v1.json",
+    (gen: Generators, root: string) =>
+      gen.index.serializeCatalogIndex(gen.index.generateCatalogIndex(root)),
+  ],
+  [
+    "catalog-collections-v1.json",
+    (gen: Generators, root: string) =>
+      gen.collections.serializeCatalogCollections(gen.collections.generateCatalogCollections(root)),
+  ],
+  [
+    "catalog-runtime-descriptors-v1.json",
+    (gen: Generators, root: string) =>
+      gen.runtime.serializeCatalogRuntimeDescriptors(
+        gen.runtime.generateCatalogRuntimeDescriptors(root),
+      ),
+  ],
+  [
+    "catalog-categories-v1.json",
+    (gen: Generators, root: string) =>
+      gen.categories.serializeCatalogCategories(gen.categories.generateCatalogCategories(root)),
+  ],
+] as const;
+function regenerateViews(gen: Generators, catalogRoot: string) {
+  for (const [path, generate] of VIEWS)
+    writeFileSync(join(catalogRoot, "defaults", path), generate(gen, catalogRoot));
+}
+
 describe("Core collection seed renderer, new-release mode", () => {
   const nextRelease = (options: Options = {}) =>
     fixture({ release: NEXT, previousRelease: RELEASE, newSubjects: [SERENA], ...options });
@@ -933,19 +980,23 @@ describe("Core collection seed renderer, new-release mode", () => {
   it("renders the new release from the record and draft, removes the previous release through the generators, and moves current.release", async () => {
     const api = await renderer();
     const gen = await generators();
-    // A scratch Catalog root: the real defaults, with the Core collection replaced by
-    // synthetic 0.6.2 seeds, so every generator runs over a whole Catalog.
-    const scratch = mkdtempSync(join(tmpdir(), "aih-core-collection-release-"));
-    temporaryRoots.push(scratch);
-    const catalogRoot = join(scratch, "catalog");
-    mkdirSync(catalogRoot);
-    cpSync(join(repository, "package.json"), join(catalogRoot, "package.json"));
-    cpSync(join(repository, "defaults"), join(catalogRoot, "defaults"), { recursive: true });
-    rmSync(join(catalogRoot, "defaults", ...SEED_ROOT.split("/")), {
-      recursive: true,
-      force: true,
-    });
-    const inputs = read(join(repository, "defaults", "catalog-collection-inputs-v1.json"));
+    // A scratch Catalog root: the real defaults plus a synthetic 0.6.2 Core collection and its
+    // seeds, so every generator runs over a whole Catalog. (K1 itself has no Core collection;
+    // its initial release is the initial-release mode below.)
+    const catalogRoot = wholeCatalog();
+    const inputs = read(join(repository, "defaults", "catalog-collection-inputs-v1.json")) as {
+      collections: Json[];
+    };
+    inputs.collections = [
+      {
+        id: "aih-core",
+        owner: { package: "@aihq/core" },
+        sourceType: "aih",
+        current: { release: RELEASE, origin: { kind: "catalog-authored" } },
+        seedRoot: SEED_ROOT,
+      },
+      ...inputs.collections.filter((collection) => collection.id !== "aih-core"),
+    ];
     const item = nextRelease({ catalogRoot, inputs });
     const manifestPath = join(catalogRoot, "defaults", "default-catalog-seed-manifest-v2.json");
     const manifest = read(manifestPath) as { seeds: string[] };
@@ -954,34 +1005,7 @@ describe("Core collection seed renderer, new-release mode", () => {
       ...SUBJECTS.map((subject) => `${SEED_ROOT}${subject.entryId}/seed.json`),
     ].sort();
     writeFileSync(manifestPath, canonical(manifest));
-    for (const [path, generate] of [
-      [
-        "catalog-index-v1.json",
-        () => gen.index.serializeCatalogIndex(gen.index.generateCatalogIndex(catalogRoot)),
-      ],
-      [
-        "catalog-collections-v1.json",
-        () =>
-          gen.collections.serializeCatalogCollections(
-            gen.collections.generateCatalogCollections(catalogRoot),
-          ),
-      ],
-      [
-        "catalog-runtime-descriptors-v1.json",
-        () =>
-          gen.runtime.serializeCatalogRuntimeDescriptors(
-            gen.runtime.generateCatalogRuntimeDescriptors(catalogRoot),
-          ),
-      ],
-      [
-        "catalog-categories-v1.json",
-        () =>
-          gen.categories.serializeCatalogCategories(
-            gen.categories.generateCatalogCategories(catalogRoot),
-          ),
-      ],
-    ] as const)
-      writeFileSync(join(catalogRoot, "defaults", path), generate());
+    regenerateViews(gen, catalogRoot);
 
     // A generator that refuses leaves the Catalog root exactly as it was.
     const rulesPath = join(catalogRoot, "defaults", "catalog-categories-rules-v1.json");
@@ -1123,5 +1147,216 @@ describe("Core collection seed renderer, new-release mode", () => {
         gen.categories.generateCatalogCategories(catalogRoot),
       ),
     );
+  }, 240_000);
+});
+
+// D57 part 2 starts from K1: after part 1 the Catalog carries no Core collection, so the first
+// Core release is created, not moved to. Every binding check of new-release mode applies.
+describe("Core collection seed renderer, initial-release mode", () => {
+  const K1_INPUTS = read(join(repository, "defaults", "catalog-collection-inputs-v1.json"));
+  const initial = (options: Options = {}) =>
+    fixture({
+      release: NEXT,
+      previousRelease: NEXT,
+      newSubjects: [SERENA],
+      noPreviousSeeds: true,
+      inputs: K1_INPUTS,
+      ...options,
+    });
+
+  it("refuses a record of another release, a package of another version, an unbound Scanner component and an existing collection, writing nothing", async () => {
+    const api = await renderer();
+    const [quality, github] = SUBJECTS as [Subject, Subject];
+    const cases: [ReturnType<typeof fixture>, string][] = [];
+    cases.push([
+      initial({ recordRevision: revisionOf("0.7.1") }),
+      "core-collection-renderer:release",
+    ]);
+    const version = initial();
+    writeFileSync(version.packagePath, JSON.stringify({ name: "@aihq/core", version: "0.7.1" }));
+    cases.push([version, "core-collection-renderer:package-version"]);
+    // The record's coverage, not the draft, binds a component to the profile's asset (6168694).
+    cases.push([
+      initial({ coverageDigestOf: quality.assetId }),
+      `core-collection-renderer:scanner-coverage ${quality.assetId}`,
+    ]);
+    const crafted = initial();
+    retarget(crafted, quality, github);
+    cases.push([crafted, `core-collection-renderer:scanner-coverage ${quality.assetId}`]);
+    const unbound = initial();
+    const draft = read(unbound.draftPath) as { bindings: { subject: { id: string } }[] };
+    (draft.bindings[2] as { subject: { id: string } }).subject.id = "serena-2";
+    writeFileSync(unbound.draftPath, JSON.stringify(draft));
+    cases.push([unbound, "core-collection-renderer:binding aih/serena"]);
+    // A Catalog that already has a Core collection moves it with --new-release instead.
+    cases.push([
+      initial({ inputs: undefined }),
+      "core-collection-renderer:initial-collection-exists current.release 0.7.0; use --new-release",
+    ]);
+    for (const [item, message] of cases) {
+      const before = snapshot(item.catalogRoot);
+      expect(() => api.renderCoreCollectionInitialReleaseV1(item)).toThrow(message);
+      expect(snapshot(item.catalogRoot)).toEqual(before);
+    }
+  });
+
+  it("names a Core seed tree or seed path it finds, since none may exist without the collection", async () => {
+    const api = await renderer();
+    const tree = initial();
+    mkdirSync(join(tree.catalogRoot, "defaults", "workbench", "aih-core-0.7.0", "x"), {
+      recursive: true,
+    });
+    const before = snapshot(tree.catalogRoot);
+    expect(() => api.renderCoreCollectionInitialReleaseV1(tree)).toThrow(
+      new TypeError(
+        "core-collection-renderer:partial-release defaults/workbench/aih-core-0.7.0/ (no current release; seed manifest not updated)",
+      ),
+    );
+    expect(snapshot(tree.catalogRoot)).toEqual(before);
+
+    const listed = initial();
+    writeFileSync(
+      join(listed.catalogRoot, "defaults", "default-catalog-seed-manifest-v2.json"),
+      canonical({
+        format: "aih-supported-candidate-seed-manifest",
+        seeds: ["workbench/aih-core-0.6.2/mcp.aih.github.core-0-6-2/seed.json"],
+        version: 1,
+      }),
+    );
+    expect(() => api.renderCoreCollectionInitialReleaseV1(listed)).toThrow(
+      new TypeError(
+        "core-collection-renderer:initial-manifest-seeds workbench/aih-core-0.6.2/mcp.aih.github.core-0-6-2/seed.json",
+      ),
+    );
+  });
+
+  it("creates the Core collection at 0.7.0 over a copy of K1's defaults, all-or-nothing through the generators", async () => {
+    const api = await renderer();
+    const gen = await generators();
+    // K1's actual layout: the collection inputs without aih-core, and no Core seed tree.
+    const catalogRoot = wholeCatalog();
+    const defaults = join(catalogRoot, "defaults");
+    expect((K1_INPUTS.collections as Json[]).map((collection) => collection.id)).not.toContain(
+      "aih-core",
+    );
+    expect(
+      readdirSync(join(defaults, "workbench")).filter((name) => name.startsWith("aih-core-")),
+    ).toEqual([]);
+    const item = initial({ catalogRoot });
+    const inputsPath = join(defaults, "catalog-collection-inputs-v1.json");
+    expect(readFileSync(inputsPath, "utf8")).toBe(
+      readFileSync(join(repository, "defaults", "catalog-collection-inputs-v1.json"), "utf8"),
+    );
+    // The review's scenario: new-release mode cannot start here.
+    expect(() => api.renderCoreCollectionNewReleaseV1(item)).toThrow(
+      "core-collection-renderer:inputs-collection",
+    );
+
+    // A generator that refuses leaves the Catalog root exactly as it was.
+    const rulesPath = join(defaults, "catalog-categories-rules-v1.json");
+    const rules = readFileSync(rulesPath);
+    writeFileSync(rulesPath, "{}");
+    const before = snapshot(defaults);
+    expect(() => api.renderCoreCollectionInitialReleaseV1(item)).toThrow("catalog-categories");
+    expect(snapshot(defaults)).toEqual(before);
+    writeFileSync(rulesPath, rules);
+
+    const manifestPath = join(defaults, "default-catalog-seed-manifest-v2.json");
+    const previousManifest = read(manifestPath) as { seeds: string[] };
+    const result = api.renderCoreCollectionInitialReleaseV1(item);
+    expect(result).toEqual({
+      mode: "initial-release",
+      previousRelease: null,
+      release: NEXT,
+      seedRoot: "workbench/aih-core-0.7.0/",
+      rendered: [
+        "agent.aih.governance-quality.core-0-7-0",
+        "mcp.aih.github.core-0-7-0",
+        "mcp.aih.serena.core-0-7-0",
+      ],
+      added: ["aih/github", "aih/package:skill-pack/governance-quality", "aih/serena"],
+      retired: [],
+      removed: [],
+      unsupported: [
+        { assetId: "aih/usage-metering", reason: "unsupported-governance-subject-kind" },
+      ],
+      written: [
+        "defaults/catalog-categories-v1.json",
+        "defaults/catalog-collection-inputs-v1.json",
+        "defaults/catalog-collections-v1.json",
+        "defaults/catalog-index-v1.json",
+        "defaults/catalog-runtime-descriptors-v1.json",
+        "defaults/default-catalog-seed-manifest-v2.json",
+      ],
+    });
+    const next = join(defaults, "workbench", "aih-core-0.7.0");
+    expect(readdirSync(next).sort()).toEqual([...result.rendered, "source-reports"]);
+    expect(readFileSync(join(next, "source-reports", "scanner-report.json"), "utf8")).toBe(
+      item.bytes,
+    );
+    // No previous rows: every subject is new, with no capability, the Catalog-wide platform and
+    // a license gap; nothing is carried.
+    for (const entryId of result.rendered) {
+      const seed = read(join(next, entryId, "seed.json")) as {
+        capabilities: Json;
+        platforms: Json[];
+        subject: { source: Json };
+      };
+      expect(seed.capabilities).toEqual({
+        commands: [],
+        egress: [],
+        hooks: [],
+        mcpTools: [],
+        permissions: [],
+      });
+      expect(seed.platforms).toEqual([{ architecture: "amd64", os: "linux" }]);
+      expect(seed.subject.source.release).toBe(NEXT);
+      expect(read(join(next, entryId, "evidence", "license-gap.json")).summary).toContain(
+        "License not determined: no previous release row exists for this asset.",
+      );
+    }
+    // The collection enters the inputs in id order; the other collections are untouched.
+    const nextInputs = read(inputsPath) as { collections: Json[] };
+    expect(nextInputs).toEqual({
+      ...K1_INPUTS,
+      collections: [
+        {
+          id: "aih-core",
+          owner: { package: "@aihq/core" },
+          sourceType: "aih",
+          current: {
+            release: NEXT,
+            origin: {
+              kind: "package-file",
+              name: "@aihq/core",
+              sha256: sha(readFileSync(item.packagePath)),
+              version: NEXT,
+            },
+          },
+          seedRoot: "workbench/aih-core-0.7.0/",
+        },
+        ...(K1_INPUTS.collections as Json[]),
+      ],
+    });
+    // The seed manifest gains exactly the new seeds; every view is current.
+    const nextManifest = read(manifestPath) as { seeds: string[] };
+    expect(nextManifest.seeds).toEqual(
+      [
+        ...previousManifest.seeds,
+        ...result.rendered.map((entryId) => `workbench/aih-core-0.7.0/${entryId}/seed.json`),
+      ].sort(),
+    );
+    for (const [path, generate] of VIEWS)
+      expect(readFileSync(join(defaults, path), "utf8"), path).toBe(generate(gen, catalogRoot));
+    expect(readFileSync(join(defaults, "catalog-index-v1.json"), "utf8")).toContain(
+      "mcp.aih.serena.core-0-7-0",
+    );
+
+    // Created once: a second initial run is refused and writes nothing; the next release moves it.
+    const after = snapshot(defaults);
+    expect(() => api.renderCoreCollectionInitialReleaseV1(item)).toThrow(
+      "core-collection-renderer:initial-collection-exists current.release 0.7.0; use --new-release",
+    );
+    expect(snapshot(defaults)).toEqual(after);
   }, 240_000);
 });
