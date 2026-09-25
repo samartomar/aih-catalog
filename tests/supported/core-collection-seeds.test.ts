@@ -805,6 +805,18 @@ describe("Core collection seed renderer, new-release mode", () => {
       "core-collection-renderer:new-release-is-current",
     );
 
+    // A release is newer than the current one by semver precedence; downgrades are refused.
+    for (const older of ["0.5.0", "0.6.1", "0.6.2-rc.1"]) {
+      const downgrade = nextRelease({ release: older });
+      expect(() => api.renderCoreCollectionNewReleaseV1(downgrade)).toThrow(
+        `core-collection-renderer:new-release-not-newer ${older} ${RELEASE}`,
+      );
+    }
+    // Numeric, not lexical: 0.6.10 is newer than 0.6.2 (it stops later, at the fixture's manifest).
+    expect(() =>
+      api.renderCoreCollectionNewReleaseV1(nextRelease({ release: "0.6.10" })),
+    ).not.toThrow("new-release-not-newer");
+
     const other = nextRelease({ recordRevision: revisionOf("0.7.1") });
     expect(() => api.renderCoreCollectionNewReleaseV1(other)).toThrow(
       "core-collection-renderer:release",

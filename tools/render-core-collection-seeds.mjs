@@ -17,7 +17,7 @@
 //
 //   New release: `node tools/render-core-collection-seeds.mjs --record <collection-aih.json>
 //   --draft <draft.json> --new-release <R> --from-package <Core package.json | .tgz of R>` renders
-//   the seeds of Core release R, which must differ from current.release, into
+//   the seeds of Core release R, which must be newer than current.release by semver precedence, into
 //   defaults/workbench/aih-core-<R>/: one seed per draft profile, entry id
 //   <kind>.aih.<id>.core-<R with dashes>. A subject the previous release seeded keeps its
 //   capabilities and platforms; a new one gets no capability and the Catalog-wide linux/amd64
@@ -140,6 +140,33 @@ const json = (bytes, label) => {
 };
 const evidence = (kind, id, subjectDigest, summary) =>
   canonical({ attestor: ATTESTOR, format: "aih-supported-evidence/v2", id, kind, subjectDigest, summary });
+const numeric = (value) => /^[0-9]+$/.test(value);
+const bigOrder = (left, right) => (BigInt(left) < BigInt(right) ? -1 : BigInt(left) > BigInt(right) ? 1 : 0);
+
+/** Semver precedence of two NEW_RELEASE versions: negative when `left` is older. */
+function releaseOrder(left, right) {
+  const parts = (value) => {
+    const index = value.indexOf("-");
+    return index < 0
+      ? { core: value.split("."), pre: [] }
+      : { core: value.slice(0, index).split("."), pre: value.slice(index + 1).split(".") };
+  };
+  const [a, b] = [parts(left), parts(right)];
+  for (let index = 0; index < 3; index += 1) {
+    const order = bigOrder(a.core[index], b.core[index]);
+    if (order !== 0) return order;
+  }
+  // A release without pre-release identifiers is newer than one with them.
+  if (a.pre.length === 0 || b.pre.length === 0) return b.pre.length - a.pre.length;
+  for (let index = 0; index < Math.min(a.pre.length, b.pre.length); index += 1) {
+    const [x, y] = [a.pre[index], b.pre[index]];
+    if (x === y) continue;
+    if (numeric(x) && numeric(y)) return bigOrder(x, y);
+    if (numeric(x) !== numeric(y)) return numeric(x) ? -1 : 1;
+    return codeUnitCompare(x, y);
+  }
+  return a.pre.length - b.pre.length;
+}
 const defaultsPath = (root, seedRoot) => resolve(root, "defaults", ...seedRoot.slice(0, -1).split("/"));
 
 function currentCollection(catalogRoot) {
@@ -558,6 +585,8 @@ export function renderCoreCollectionNewReleaseV1({
   const current = currentCollection(root);
   if (typeof release !== "string" || !NEW_RELEASE.test(release)) fail("new-release");
   if (release === current.release) fail("new-release-is-current");
+  if (!NEW_RELEASE.test(current.release)) fail("inputs-release");
+  if (releaseOrder(release, current.release) <= 0) fail(`new-release-not-newer ${release} ${current.release}`);
   const seedRoot = `workbench/aih-core-${release}/`;
   const suffix = `core-${release.replaceAll(".", "-")}`;
   const nextDirectory = defaultsPath(root, seedRoot);
