@@ -21,7 +21,7 @@
 // Core's publisher shapes naming one publisher; all drafts share the head's one receipt set.
 // Head entries without a draft are reported as information.
 import { createHash } from "node:crypto";
-import { lstatSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, lstatSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { signedCatalogHeadV1 } from "./stage-catalog-qualification-inputs.mjs";
@@ -301,6 +301,10 @@ function mismatches(item, head, headDigest, index) {
  * parseQualificationReceiptV2Json): dist/index.js from the CLI, the source in tests.
  */
 export function mergeCoreQualificationDraftsV1({ catalogRoot, signedCatalogPath, draftsDirectory, outputPath, api }) {
+  const output = resolve(outputPath);
+  // A killed run can leave its temporary file beside the output: named, never overwritten.
+  const temporary = `${output}.tmp`;
+  if (existsSync(temporary)) fail(`leftover-temporary ${temporary}`);
   const signedBytes = boundedFile(signedCatalogPath, MAX_SIGNED_CATALOG_BYTES, "signed-catalog");
   let parsedHead;
   try {
@@ -362,9 +366,12 @@ export function mergeCoreQualificationDraftsV1({ catalogRoot, signedCatalogPath,
     bindings: items.map((item) => item.binding),
     projections: [Object.fromEntries(items.map((item) => [item.summary.assetId, item.summary]))],
   });
-  const output = resolve(outputPath);
-  const temporary = `${output}.tmp`;
-  writeFileSync(temporary, bytes, { flag: "wx" });
+  try {
+    writeFileSync(temporary, bytes, { flag: "wx" });
+  } catch (error) {
+    if (error?.code === "EEXIST") fail(`leftover-temporary ${temporary}`);
+    throw error;
+  }
   try {
     renameSync(temporary, output);
   } finally {

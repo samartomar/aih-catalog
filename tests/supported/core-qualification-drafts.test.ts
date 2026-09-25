@@ -342,6 +342,17 @@ describe("merging Core T5 drafts into the core qualification data", () => {
     expect(readFileSync(item.outputPath, "utf8")).toBe("previous\n");
   });
 
+  it("refuses, naming it, a temporary file a killed run left beside the output", async () => {
+    const tool = await merger();
+    const item = await fixture();
+    writeFileSync(`${item.outputPath}.tmp`, "partial");
+    expect(() => tool.mergeCoreQualificationDraftsV1(item)).toThrow(
+      new TypeError(`core-qualification-drafts:leftover-temporary ${item.outputPath}.tmp`),
+    );
+    expect(readFileSync(item.outputPath, "utf8")).toBe("previous\n");
+    expect(readFileSync(`${item.outputPath}.tmp`, "utf8")).toBe("partial");
+  });
+
   it("encodes version 2 exactly as the committed Core data does", async () => {
     const tool = await merger();
     const committed = readFileSync(

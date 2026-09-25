@@ -511,9 +511,15 @@ function writeTree(output, rendered) {
   }
 }
 
-function replaceFile(target, bytes) {
+/** `name` is the target's Catalog-relative path, for the refusal. */
+function replaceFile(target, bytes, name) {
   const temporary = `${target}.tmp`;
-  writeFileSync(temporary, bytes, { flag: "wx" });
+  try {
+    writeFileSync(temporary, bytes, { flag: "wx" });
+  } catch (error) {
+    if (error?.code === "EEXIST") fail(`leftover-temporary ${name}.tmp`);
+    throw error;
+  }
   try {
     renameSync(temporary, target);
   } finally {
@@ -592,6 +598,11 @@ export function renderCoreCollectionNewReleaseV1({
   const nextDirectory = defaultsPath(root, seedRoot);
   const previousDirectory = defaultsPath(root, current.seedRoot);
   if (existsSync(nextDirectory)) fail("output-exists");
+  // A killed run can leave a temporary file beside a file it replaces: named, never overwritten.
+  const leftovers = [MANIFEST, INPUT, ...GENERATORS.map(([path]) => path)]
+    .map((path) => `${path}.tmp`)
+    .filter((path) => existsSync(resolve(root, path)));
+  if (leftovers.length > 0) fail(`leftover-temporary ${leftovers.join(", ")}`);
   const recordBytes = readFileSync(recordPath);
   const draftBytes = readFileSync(draftPath);
   const record = sealedRecord(recordBytes, release, reader);
@@ -692,7 +703,7 @@ export function renderCoreCollectionNewReleaseV1({
   }
 
   writeTree(nextDirectory, rendered);
-  for (const [path, bytes] of written) replaceFile(resolve(root, path), bytes);
+  for (const [path, bytes] of written) replaceFile(resolve(root, path), bytes, path);
   rmSync(previousDirectory, { recursive: true });
   const drafted = new Set(draft.profiles.keys());
   return {

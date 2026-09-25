@@ -863,6 +863,17 @@ describe("Core collection seed renderer, new-release mode", () => {
     );
     expect(snapshot(unbound.catalogRoot)).toEqual(before);
 
+    // A temporary file a killed run left beside a view is named, not overwritten.
+    const leftover = nextRelease();
+    writeFileSync(join(leftover.catalogRoot, "defaults", "catalog-index-v1.json.tmp"), "partial");
+    const withLeftover = snapshot(leftover.catalogRoot);
+    expect(() => api.renderCoreCollectionNewReleaseV1(leftover)).toThrow(
+      new TypeError(
+        "core-collection-renderer:leftover-temporary defaults/catalog-index-v1.json.tmp",
+      ),
+    );
+    expect(snapshot(leftover.catalogRoot)).toEqual(withLeftover);
+
     const existing = nextRelease();
     mkdirSync(join(existing.catalogRoot, "defaults", "workbench", "aih-core-0.7.0"));
     expect(() => api.renderCoreCollectionNewReleaseV1(existing)).toThrow(
