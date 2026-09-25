@@ -106,6 +106,62 @@ the pin, the bytes of each copy differ from its `skills/`
 original. The copies are generated packaging for the same six skills, so they
 are not separate subjects.
 
+ECC (`affaan-m/ECC@5064474d4d762dc9640234a41617cccb79185cec`): the rules below
+come from source; the reasons from git history. Upstream has 68 `agents/*.md`
+and 44 agent subjects, and declares 36 MCP servers for 37 MCP subjects. No
+commit in Core or the Catalog names any omission below, so none has a recorded
+reason.
+
+- **Agents.** An agent is a subject only when an `agent:<name>` id appears in the
+  hand-authored curation in `src/production/catalog/ecc-components-v1.ts`:
+  `CORE_ECC_COMPONENTS`, `LANGUAGE_COMPONENTS`, `FRAMEWORK_COMPONENTS` or
+  `ECC_DECLARATION_RIDERS` (collected in `DECLARABLE_COMPONENTS`, and read into
+  the Scanner definition by `eccBaselineCatalogV1`). The lists were ported
+  unchanged in 534b3321 ("feat(production): generate the policy authoring catalog
+  from its inputs") from Core `src/ecc/components.ts`. There they were written in
+  b5bdafbf (2026-07-10, "feat(ecc): register scoped component unions (#411)") and
+  6afbdfa6 (2026-07-31, "fix(trust): calibrate baseline qualification (#550)").
+  `git log -S "agent:<name>"` over Core and the Catalog finds none of the 24
+  below. Their files are still scanned, inside `module:agents-core`, which covers
+  all of `agents/`. They are not subjects.
+
+  | Upstream agent | Added upstream | Reason |
+  | --- | --- | --- |
+  | `chief-of-staff` | 71447f66, 2026-02-27, "feat(agents): add chief-of-staff communication triage agent (#280)" | no recorded reason |
+  | `harness-optimizer`, `loop-operator` | 48b883d7, 2026-03-04, "feat: deliver v1.8.0 harness reliability and parity updates" | no recorded reason |
+  | `flutter-reviewer` | 1975a576, 2026-03-20, "feat(agents): add flutter-reviewer agent and skill (#716)" | no recorded reason |
+  | `healthcare-reviewer` | 63737544, 2026-03-27, "feat: add healthcare domain skills and agent" | no recorded reason |
+  | `gan-evaluator`, `gan-generator`, `gan-planner` | 4cdfe709, 2026-03-31, "feat: add GAN-style generator-evaluator harness (#1029)" | no recorded reason |
+  | `opensource-forker`, `opensource-packager`, `opensource-sanitizer` | 477d23a3, 2026-03-31, "feat(agents,skills): add opensource-pipeline — 3-agent workflow for safe public releases (#1036)" | no recorded reason |
+  | `dart-build-resolver` | badccc3d, 2026-04-02, "feat: add C# and Dart language support" | no recorded reason |
+  | `comment-analyzer` | 8a365158, 2026-04-05, "feat: restore review and planning bundles" | no recorded reason |
+  | `conversation-analyzer` | 56bd57c5, 2026-04-05, "feat: restore hookify command bundle" | no recorded reason |
+  | `seo-specialist` | 31afed5b, 2026-04-05, "feat: add SEO audit support" | no recorded reason |
+  | `network-config-reviewer`, `network-troubleshooter` | 0e12267f, 2026-05-11, "docs: salvage network operations patterns" | no recorded reason |
+  | `homelab-architect`, `network-architect` | e17f2bcb, 2026-05-12, "feat: salvage network architect agents" | no recorded reason |
+  | `marketing-agent` | d29dad16, 2026-05-25, "feat: add marketing campaign agent skill and command (#2031)" | no recorded reason |
+  | `agent-evaluator` | bd459479, 2026-06-10, "feat(skills,agents): add agent-self-evaluation skill and agent-evaluator persona" | no recorded reason |
+  | `vue-reviewer` | 6bde9be3, 2026-06-12, "feat(agents): add vue-reviewer agent for Vue.js code review" | no recorded reason |
+  | `spec-miner` | eb5ad2b0, 2026-06-16, "feat(agents): add spec-miner agent for brownfield spec extraction (#2253)" | no recorded reason |
+  | `rag-pipeline-reviewer` | 0e0df5a6, 2026-08-11, "feat(agents): add rag-pipeline-reviewer agent (#2446)" | no recorded reason |
+
+- **`chrome-devtools`.** An MCP server is a subject in one of two ways:
+  - it is one of the six ids in `EXPLICIT_MCP_COMPONENTS`
+    (`ecc-components-v1.ts`, from Core b5bdafbf);
+  - it is a server of upstream `mcp-configs/mcp-servers.json`, as listed in
+    `ECC_MCP_CATALOG_IDS` (`ecc-mcp-inventory-v1.ts`, ported in 534b3321 from
+    Core `src/org-policy/ecc-mcp-catalog.ts`), minus
+    `AIH_OWNED_ECC_MCP_EXCLUSIONS`.
+
+  Upstream `.mcp.json` is read only as a source path of the curated MCP subjects,
+  never as an inventory. It declares one server, `chrome-devtools`
+  (`npx -y chrome-devtools-mcp@latest`), added upstream in d473cf87 (2026-03-27,
+  "feat(codex): add Codex native plugin manifest and fix Claude plugin.json").
+  That server is in neither list, so it is not a subject. Core's Chrome DevTools
+  commits (6938f24e, 4926ed6c, cd1e268c, all 2026-09-24) concern the
+  telemetry opt-out aih checks at install time, not Catalog inclusion. No
+  recorded reason.
+
 ## Evidence
 
 A seed qualification contains one required report path, zero to 64 finding
