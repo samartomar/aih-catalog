@@ -28,16 +28,20 @@ Release and contribution policy: [VERSIONING.md](VERSIONING.md) ·
 ## Source-assessment release train
 
 The 0.3.0 source train keeps bounded receipt-set publication for up to 512
-members (256 KiB canonical manifest). Its default candidate contains 428 exact
-members: the existing default and 25 Matt assessments, plus 14 Anthropic,
+members (256 KiB canonical manifest). Its default candidate contains 433 exact
+members: the existing default and 25 Matt assessments, plus 19 Anthropic,
 7 Ponytail, 14 Superpowers, and 367 ECC source-file assessments. Existing Matt
 member bytes and predecessor history are preserved.
 
 These assessments retain original Scanner findings and timestamps, grant no
 executable capabilities, and do not authorize installation or organization use.
-Anthropic's `docx`, `pdf`, `pptx`, `xlsx`, and `doc-coauthoring` are not included:
-their applicable license grant is restricted or unestablished. Unsupported
-component kinds and derived compositions are not relabeled as qualified members.
+All 19 curated Anthropic skills have rows, and each states its license as found:
+`docx`, `pdf`, `pptx` and `xlsx` carry their own `LICENSE.txt` ("© 2025
+Anthropic, PBC. All rights reserved."; use is governed by the user's agreement
+with Anthropic), and `doc-coauthoring` carries no license file, so its row is
+rendered with the "license not determined" gap. Nothing is withheld on license
+grounds. Unsupported component kinds and derived compositions are not relabeled
+as qualified members.
 Matt Pocock's 13 upstream skills under `skills/in-progress/` (beta, not shipped in
 the upstream plugin) and `skills/misc/` (rarely used, not promoted) are not
 included. Nor are Ponytail's six `.openclaw/skills/*` copies, which upstream

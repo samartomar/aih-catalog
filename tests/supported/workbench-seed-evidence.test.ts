@@ -20,14 +20,40 @@ const digest = (domain: string, value: unknown) =>
     .digest("hex")}`;
 
 describe("registered Workbench source assessments", () => {
-  it("includes exact refreshed review-only assessments without licensing held Anthropic skills or replacing Matt", () => {
+  // The 19 curated anthropics/skills skills (D63/D68). None is withheld: the four that carry
+  // their own restrictive LICENSE.txt are labelled as found, and doc-coauthoring, which carries
+  // none, is rendered with the G21 "license not determined" gap.
+  const ANTHROPIC_SKILLS = [
+    "academy-guide",
+    "algorithmic-art",
+    "brand-guidelines",
+    "canvas-design",
+    "claude-api",
+    "discernment-nudge",
+    "doc-coauthoring",
+    "docx",
+    "frontend-design",
+    "internal-comms",
+    "mcp-builder",
+    "pdf",
+    "pptx",
+    "skill-creator",
+    "slack-gif-creator",
+    "theme-factory",
+    "web-artifacts-builder",
+    "webapp-testing",
+    "xlsx",
+  ];
+  const RESTRICTIVE = ["docx", "pdf", "pptx", "xlsx"];
+  it("includes exact refreshed review-only assessments, every curated Anthropic skill among them, without replacing Matt", () => {
     const manifest = read(resolve(root, "defaults/default-catalog-seed-manifest-v2.json"));
     expect(
       manifest.seeds.filter(
         (path: string) =>
           !path.startsWith("workbench/aih-core-0.6.2/") && !path.startsWith("workbench/npm/"),
       ),
-    ).toHaveLength(430);
+    ).toHaveLength(435);
+    const anthropicSubjects = new Set<string>();
     const expected: Record<
       string,
       {
@@ -40,11 +66,11 @@ describe("registered Workbench source assessments", () => {
       }
     > = {
       anthropic: {
-        count: 14,
+        count: 19,
         commit: "34040c9c568585f6929bedeaad110ad08f079624",
-        publication: "2e4ab845e3f07ae266a0353ff59752c594efc1f929f80aa345914e7a42e7583f",
-        mappedFindings: 180,
-        locationCoverageNotices: 86,
+        publication: "1254488044a151dd95a6a1aae572e30be92effe94432c37192f1400a9220300d",
+        mappedFindings: 257,
+        locationCoverageNotices: 129,
         globalCoverageNotices: 13,
       },
       "ui-ux-pro-max": {
@@ -92,8 +118,10 @@ describe("registered Workbench source assessments", () => {
         const seedPath = resolve(root, "defaults", path);
         const seed = read(seedPath);
         expect(seed.subject.source.commit).toBe(facts.commit);
-        if (provider === "anthropic")
-          expect(["docx", "pdf", "pptx", "xlsx", "doc-coauthoring"]).not.toContain(seed.subject.id);
+        if (provider === "anthropic") {
+          expect(ANTHROPIC_SKILLS).toContain(seed.subject.id);
+          anthropicSubjects.add(seed.subject.id);
+        }
         expect(
           Object.values(seed.capabilities).every(
             (value) => Array.isArray(value) && value.length === 0,
@@ -113,10 +141,29 @@ describe("registered Workbench source assessments", () => {
         expect(report.summary).not.toContain("undefined");
         expect(seed.qualification.rights).toHaveLength(1);
         const right = read(resolve(dirname(seedPath), seed.qualification.rights[0]));
-        expect(right.summary).toMatch(/^Applicable (?:MIT|Apache-2.0) notice/);
-        expect(right.summary).toContain(
-          "No trademark, external-service, or organization-admission rights inferred.",
+        expect(right.summary).toMatch(
+          /^(?:Applicable (?:MIT|Apache-2\.0|Anthropic-Proprietary) notice|No applicable license determined for this closure)/,
         );
+        expect(right.summary).toContain(
+          "external-service, or organization-admission rights inferred.",
+        );
+        // D68: a known restrictive license is stated as found, with the file's own words; the
+        // skill whose closure carries no license file keeps G21's "license not determined" gap.
+        if (provider === "anthropic" && RESTRICTIVE.includes(seed.subject.id)) {
+          expect(right.summary).toContain(
+            `Applicable Anthropic-Proprietary notice at anthropics/skills@${facts.commit}:skills/${seed.subject.id}/LICENSE.txt, sha256:79f6d8f5b427252fa3b1c11ecdbdb6bf610b944f7530b4de78f770f38741cfaa.`,
+          );
+          expect(right.summary).toContain(
+            'The file\'s own words: "© 2025 Anthropic, PBC. All rights reserved."',
+          );
+          expect(right.summary).not.toContain("Apache-2.0");
+        }
+        if (provider === "anthropic" && seed.subject.id === "doc-coauthoring") {
+          expect(seed.qualification.gaps).toContain("evidence/license-gap.json");
+          expect(
+            read(resolve(dirname(seedPath), "evidence/license-gap.json")).summary,
+          ).toContain("License not determined: no license file in the closure.");
+        }
         expect(read(resolve(dirname(seedPath), seed.artifacts.recipe))).toMatchObject({
           kind: "review-only",
           installation: false,
@@ -146,6 +193,7 @@ describe("registered Workbench source assessments", () => {
         expect(locationCoverageNotices).toBe(facts.locationCoverageNotices);
       }
     }
+    expect([...anthropicSubjects].sort()).toEqual(ANTHROPIC_SKILLS);
   });
 
   it("retains exact subjects, canonical source closures, unresolved findings, and review-only scope", () => {
