@@ -155,8 +155,12 @@ reason.
 
   Upstream `.mcp.json` is read only as a source path of the curated MCP subjects,
   never as an inventory. It declares one server, `chrome-devtools`
-  (`npx -y chrome-devtools-mcp@latest`), added upstream in d473cf87 (2026-03-27,
-  "feat(codex): add Codex native plugin manifest and fix Claude plugin.json").
+  (`npx -y chrome-devtools-mcp@latest`); the string enters `.mcp.json` in
+  ff768db3 (2026-06-09, "feat(mcp): single-connector default set + connector
+  policy (#2219)", which reduced the default set to that one connector).
+  d473cf87 (2026-03-27, "feat(codex): add Codex native plugin manifest and fix
+  Claude plugin.json") is what created the file, with six other servers and no
+  `chrome-devtools`.
   That server is in neither list, so it is not a subject. Core's Chrome DevTools
   commits (6938f24e, 4926ed6c, cd1e268c, all 2026-09-24) concern the
   telemetry opt-out aih checks at install time, not Catalog inclusion. No
