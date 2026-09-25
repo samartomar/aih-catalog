@@ -33,6 +33,8 @@ const ECC_INSTALLER_PATHS = [
   "scripts/lib/mcp-config.js",
   "scripts/lib/opencode-paths.js",
   "scripts/lib/path-safety.js",
+  // ECC v2.2.1 scripts/lib/install/claude-settings.js requires ../atomic-write.js.
+  "scripts/lib/atomic-write.js",
   "scripts/codex/merge-codex-config.js",
   "scripts/codex/merge-mcp-config.js",
   ".codex/AGENTS.md",
