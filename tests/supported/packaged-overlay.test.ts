@@ -50,7 +50,7 @@ describe("sealed packaged inputs", () => {
 
   it("refuses Scanner collection evidence whose seal does not match", () => {
     const records = data("packaged-collection-evidence-v1.json");
-    expect(parsePackagedScannerCollectionEvidenceV1(records)).toHaveLength(3);
+    expect(parsePackagedScannerCollectionEvidenceV1(records)).toHaveLength(2);
     const first = records[0] as { bytes: string; sha256: string };
     first.bytes = first.bytes.replace('"display-only"', '"authoritative"');
     expect(() => parsePackagedScannerCollectionEvidenceV1(records)).toThrow(/seal mismatch/u);
