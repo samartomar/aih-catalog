@@ -1,6 +1,7 @@
 import {
   cpSync,
   existsSync,
+  linkSync,
   mkdirSync,
   readdirSync,
   readFileSync,
@@ -228,5 +229,28 @@ describe("step-9 T5 input directories from a signed-catalog-v2 run", () => {
       "ok/skill.e, ok/skill.e. (collide)",
     ]);
     expect(tool.windowsNameProblemsV1([{ group: "console", entryId: "skill.nul-x" }])).toEqual([]);
+  });
+
+  it("refuses a run or closure file with a second hard link, as Core's reader does", async () => {
+    const tool = await stager();
+    const receipt = fixture();
+    const receiptPath = join(receipt.runDirectory, "receipts", "skill.mattpocock.beta.json");
+    linkSync(receiptPath, join(receipt.runDirectory, "..", "beta-link.json"));
+    expect(() => tool.stageCatalogQualificationInputsV1(receipt)).toThrow(
+      "catalog-qualification-inputs:receipt skill.mattpocock.beta hardlinked",
+    );
+    expect(existsSync(receipt.outputRoot)).toBe(false);
+    const closure = fixture();
+    linkSync(
+      join(
+        closure.catalogRoot,
+        "defaults/workbench/mattpocock/skill.mattpocock.alpha/artifacts/closure.json",
+      ),
+      join(closure.catalogRoot, "..", "alpha-closure-link.json"),
+    );
+    expect(() => tool.stageCatalogQualificationInputsV1(closure)).toThrow(
+      "catalog-qualification-inputs:closure skill.mattpocock.alpha hardlinked",
+    );
+    expect(existsSync(closure.outputRoot)).toBe(false);
   });
 });

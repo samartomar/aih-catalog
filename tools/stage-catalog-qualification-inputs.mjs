@@ -68,6 +68,8 @@ function regularFile(path, maximum, label) {
     return fail(`${label} missing`);
   }
   if (!stat.isFile() || stat.isSymbolicLink() || stat.size === 0 || stat.size > maximum) fail(`${label} unreadable`);
+  // As Core's reader: a file with a second hard link can change under another name.
+  if (stat.nlink !== 1) fail(`${label} hardlinked`);
   return readFileSync(path);
 }
 
