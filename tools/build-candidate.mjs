@@ -78,6 +78,10 @@ try {
     console.log(
       `framework ${id}: ${entry.kind === "compiler-input" ? `compiler input ${entry.path} sha256 ${entry.sha256}` : "omitted"}`,
     );
+  for (const [id, entry] of Object.entries(built.candidate.collections ?? {}))
+    console.log(
+      `collection ${id}@${entry.commit}: compiler input ${entry.path} sha256 ${entry.sha256}`,
+    );
   console.log(`omittedSections:\n  ${built.omittedSections.join("\n  ")}`);
   console.log(`next: cd ${outRoot} && npm pack --pack-destination <dir>`);
 } catch (error) {

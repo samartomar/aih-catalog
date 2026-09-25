@@ -7,12 +7,18 @@ import {
   governedTargetsV1,
   readCollectionSnapshotV1,
 } from "./authoring-bundle-v1.js";
-import { compileMattPocockProviderV1, compilePonytailProviderV1 } from "./catalog-providers-v1.js";
+import {
+  compileAnthropicsSkillsProviderV1,
+  compileMattPocockProviderV1,
+  compilePonytailProviderV1,
+} from "./catalog-providers-v1.js";
 import {
   type AuthoringCatalogBundleV1,
+  type CoreAuthoringCapabilityRegistryEntryV1,
   validateAuthoringCatalogBundleV1,
   verifyAuthoringCatalogBundleIntegrityV1,
 } from "./contracts-v1.js";
+import type { CatalogProviderCompilationV1 } from "./provider-compilation-v1.js";
 
 /**
  * The single-source AuthoringCatalogBundleV1 that Core's definition route reads as
@@ -36,12 +42,27 @@ import {
  * Both then run assemble → packaged overlay (assembleCatalogAuthoringBundleV1) and the
  * projection below. The emitted source must be the requested pin: a packaged source record at
  * another commit that the overlay applies makes the emission refuse, never relabel.
+ *
+ * The new-pin route (`newPin`) builds a source at a pin no packaged record carries yet: T3 is
+ * about to produce that record from this bundle. It runs the same stages, with no packaged
+ * source record and no collection evidence entering the overlay. That leaves the named source
+ * exactly as the full overlay would: a record replaces only its own source, and the collection
+ * evidence is projected only onto a replaced source (packaged-source-overlay-v1.ts
+ * replaceSource), so neither can reach a source whose own record is left out. The records of
+ * other sources are therefore not read at all, and a stale one (in a format the readers no
+ * longer admit) cannot stand in. The vetted-pin checks stay: a framework source still binds its
+ * upstream inputs to the vendor lock, a collection snapshot to its fetch pin, and the emitted
+ * revision must be the requested pin.
+ *
+ * anthropics-skills has no snapshot and no provider in the Catalog; only the new-pin route
+ * emits it, compiled from its named T3 compiler input (tools/emit-compiler-input.mjs).
  */
 export const SINGLE_SOURCE_SUBJECTS_V1 = {
   ecc: "framework",
   superpowers: "framework",
   mattpocock: "collection",
   ponytail: "collection",
+  "anthropics-skills": "compiler-input",
 } as const;
 export type SingleSourceSubjectV1 = keyof typeof SINGLE_SOURCE_SUBJECTS_V1;
 
@@ -123,41 +144,67 @@ export function projectAuthoringBundleSourceV1(
   return sealed;
 }
 
+export interface SingleSourceOptionsV1 {
+  /** ecc and superpowers: the assembled vetted lock, before step 8.1 copies it into the data. */
+  readonly vendorLock?: unknown;
+  /** The new-pin route: no packaged source record and no collection evidence is overlaid. */
+  readonly newPin?: boolean;
+  /** anthropics-skills (new-pin route only): its named T3 compiler input. */
+  readonly compilerInput?: unknown;
+}
+
 /** Emits `source:<id>` at `commit` from the Catalog's production inputs (see above). */
 export function produceSingleSourceAuthoringBundleV1(
   root: string,
   id: SingleSourceSubjectV1,
   commit: string,
-  options: { readonly vendorLock?: unknown } = {},
+  options: SingleSourceOptionsV1 = {},
 ): AuthoringCatalogBundleV1 {
   if (!Object.hasOwn(SINGLE_SOURCE_SUBJECTS_V1, id)) fail(`no single-source subject ${id}`);
   if (!/^[0-9a-f]{40}$/.test(commit)) fail("the pin must be a 40-character lowercase commit");
   const kind = SINGLE_SOURCE_SUBJECTS_V1[id];
-  if (kind === "collection" && options.vendorLock !== undefined)
+  const newPin = options.newPin === true;
+  if (kind !== "framework" && options.vendorLock !== undefined)
     fail("a vendor lock applies only to ecc and superpowers");
-  let assembled: AuthoringCatalogBundleV1;
+  if (kind !== "compiler-input" && options.compilerInput !== undefined)
+    fail("a compiler input applies only to anthropics-skills");
+  if (kind === "compiler-input" && !newPin)
+    fail(
+      `${id} is emitted only by the new-pin route: the Catalog compiles it from its named compiler input alone`,
+    );
+  if (kind === "compiler-input" && options.compilerInput === undefined)
+    fail(`${id} needs its named compiler input`);
+  let providers: CatalogProviderCompilationV1[];
+  let coreCapabilities: CoreAuthoringCapabilityRegistryEntryV1[] = [];
   if (kind === "framework") {
     const inputs =
       options.vendorLock === undefined
         ? readPolicyAuthoringCatalogInputsV1(root)
         : readPolicyAuthoringCatalogInputsV1(root, options.vendorLock);
     const { compiled } = compileAuthoringProvidersV1(root, inputs);
-    assembled = assembleCatalogAuthoringBundleV1(
-      root,
-      compiled.providers,
-      compiled.coreCapabilities,
-    ).bundle;
+    providers = compiled.providers;
+    coreCapabilities = compiled.coreCapabilities;
+  } else if (kind === "compiler-input") {
+    providers = [compileAnthropicsSkillsProviderV1(options.compilerInput)];
   } else {
-    const provider =
+    providers = [
       id === "mattpocock"
         ? compileMattPocockProviderV1(readCollectionSnapshotV1(root, "mattpocock.snapshot.json"))
-        : compilePonytailProviderV1(readCollectionSnapshotV1(root, "ponytail.snapshot.json"));
-    assembled = assembleCatalogAuthoringBundleV1(root, [provider], []).bundle;
+        : compilePonytailProviderV1(readCollectionSnapshotV1(root, "ponytail.snapshot.json")),
+    ];
   }
+  const assembled = (
+    newPin
+      ? assembleCatalogAuthoringBundleV1(root, providers, coreCapabilities, [], [])
+      : assembleCatalogAuthoringBundleV1(root, providers, coreCapabilities)
+  ).bundle;
   const sourceId = `source:${id}`;
   const bundle = projectAuthoringBundleSourceV1(root, assembled, sourceId);
   const revision = bundle.sources[sourceId]?.revision.id;
-  if (revision !== commit) fail(`the Catalog emits ${sourceId}@${revision}, not ${commit}`);
+  if (revision !== commit)
+    fail(
+      `the Catalog emits ${sourceId}@${revision}, not ${commit}${newPin ? "" : "; a packaged source record stands in for the source, and the new-pin route builds it without one"}`,
+    );
   return bundle;
 }
 
