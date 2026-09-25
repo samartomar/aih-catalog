@@ -313,6 +313,35 @@ describe("merging Core T5 drafts into the core qualification data", () => {
     expect(readFileSync(item.outputPath, "utf8")).toBe("previous\n");
   });
 
+  it("refuses an unreadable, oversized or malformed signed catalog or index with a typed message", async () => {
+    const tool = await merger();
+    const item = await fixture();
+    const indexPath = join(item.catalogRoot, "defaults", "catalog-index-v1.json");
+    const cases: [string, string, string | Buffer | undefined][] = [
+      [item.signedCatalogPath, "signed-catalog unreadable", undefined],
+      [item.signedCatalogPath, "signed-catalog unreadable", Buffer.alloc(16 * 1024 * 1024 + 1)],
+      [
+        item.signedCatalogPath,
+        "signed-catalog (catalog-qualification-inputs:signed-catalog json)",
+        "{",
+      ],
+      [indexPath, "index unreadable", undefined],
+      [indexPath, "index json", "{"],
+      [indexPath, "index", canonical({ entries: {} })],
+      [indexPath, "index", canonical({ entries: [{ entryId: 7 }] })],
+    ];
+    for (const [path, message, bytes] of cases) {
+      const saved = readFileSync(path);
+      if (bytes === undefined) rmSync(path);
+      else writeFileSync(path, bytes);
+      expect(() => tool.mergeCoreQualificationDraftsV1(item)).toThrow(
+        new TypeError(`core-qualification-drafts:${message}`),
+      );
+      writeFileSync(path, saved);
+    }
+    expect(readFileSync(item.outputPath, "utf8")).toBe("previous\n");
+  });
+
   it("encodes version 2 exactly as the committed Core data does", async () => {
     const tool = await merger();
     const committed = readFileSync(

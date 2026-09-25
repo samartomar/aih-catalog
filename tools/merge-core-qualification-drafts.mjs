@@ -44,6 +44,9 @@ const COMPACT_RECORD_KEYS = ["closures", "member", "publisher", "receipt", "rece
 // subjectName (catalog-qualification-package-v1.ts publisher()).
 const PUBLISHER_KEYS = ["commit", "issuer", "ref", "repository", "workflow"];
 const RECEIPT_SET_SUBJECT = "qualification-receipt-set.json";
+// The staging tool's bound for the signed catalog; the index is about 6 MiB today.
+const MAX_SIGNED_CATALOG_BYTES = 16 * 1024 * 1024;
+const MAX_INDEX_BYTES = 64 * 1024 * 1024;
 const CANONICAL_BASE64 = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
 const SHA256_HEX = /^[0-9a-f]{64}$/;
 
@@ -78,6 +81,36 @@ const decoded = (value, label) => {
   if (bytes.toString("base64") !== value) fail(label);
   return bytes;
 };
+
+/** A regular, unlinked, non-empty file's bytes within a bound, or a typed refusal. */
+function boundedFile(path, maximum, label) {
+  let stat;
+  try {
+    stat = lstatSync(path);
+  } catch {
+    return fail(`${label} unreadable`);
+  }
+  if (!stat.isFile() || stat.isSymbolicLink() || stat.size === 0 || stat.size > maximum) fail(`${label} unreadable`);
+  if (stat.nlink !== 1) fail(`${label} hardlinked`);
+  return readFileSync(path);
+}
+
+/** The Catalog index's entries by entry id. */
+function indexEntries(bytes) {
+  let index;
+  try {
+    index = JSON.parse(bytes.toString("utf8"));
+  } catch {
+    return fail("index json");
+  }
+  if (!isObject(index) || !Array.isArray(index.entries)) fail("index");
+  const entries = new Map();
+  for (const entry of index.entries) {
+    if (!isObject(entry) || typeof entry.entryId !== "string" || entries.has(entry.entryId)) fail("index");
+    entries.set(entry.entryId, entry);
+  }
+  return entries;
+}
 
 /** Core's expandCatalogQualificationPackageInputV2: version 2 back to per-record base64. */
 export function expandCoreQualificationDataV2(data) {
@@ -268,12 +301,16 @@ function mismatches(item, head, headDigest, index) {
  * parseQualificationReceiptV2Json): dist/index.js from the CLI, the source in tests.
  */
 export function mergeCoreQualificationDraftsV1({ catalogRoot, signedCatalogPath, draftsDirectory, outputPath, api }) {
-  const parsedHead = signedCatalogHeadV1(readFileSync(signedCatalogPath), api);
+  const signedBytes = boundedFile(signedCatalogPath, MAX_SIGNED_CATALOG_BYTES, "signed-catalog");
+  let parsedHead;
+  try {
+    parsedHead = signedCatalogHeadV1(signedBytes, api);
+  } catch (error) {
+    fail(`signed-catalog (${error instanceof Error ? error.message : "invalid"})`);
+  }
   const head = { ...parsedHead, members: new Map(parsedHead.entries.map((entry) => [entry.entryId, entry])) };
   const headDigest = `sha256:${parsedHead.catalogHeadSha256}`;
-  const index = new Map(
-    JSON.parse(readFileSync(resolve(catalogRoot, INDEX), "utf8")).entries.map((entry) => [entry.entryId, entry]),
-  );
+  const index = indexEntries(boundedFile(resolve(catalogRoot, INDEX), MAX_INDEX_BYTES, "index"));
   const { drafts, useRecords } = draftFiles(resolve(draftsDirectory));
   const items = drafts.flatMap((draft) => draftRecords(draft, api));
 
