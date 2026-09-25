@@ -432,14 +432,16 @@ describe("candidate packaged source records", () => {
   });
 
   it("refuses an unnamed framework whose record is not at the vendor-lock pin", () => {
-    // Today the ECC record is at v2.2.1 while the unsealed lock still pins 5caf398a.
-    expect(commitOf("affaan-m/ECC")).not.toBe(pinOf("ecc"));
+    // A lock that pins ECC elsewhere than its sealed record.
+    const lock = structuredClone(vendorLock());
+    for (const source of lock.sources) if (source.id === "ecc") source.pinnedSha = OTHER;
+    expect(commitOf("affaan-m/ECC")).not.toBe(OTHER);
     const candidate: CatalogCandidateV1 = {
       inputsSha256: "0".repeat(64),
       frameworks: { superpowers: { kind: "omitted" } },
     };
-    expect(() => candidatePackagedSourceDataV1(records(), vendorLock(), candidate)).toThrow(
-      new RegExp(`affaan-m/ECC.*${commitOf("affaan-m/ECC")}.*${pinOf("ecc")}.*ecc`, "u"),
+    expect(() => candidatePackagedSourceDataV1(records(), lock, candidate)).toThrow(
+      new RegExp(`affaan-m/ECC.*${commitOf("affaan-m/ECC")}.*${OTHER}.*ecc`, "u"),
     );
   });
 
