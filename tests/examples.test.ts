@@ -64,7 +64,7 @@ describe("public-API example", () => {
       const current = run("2026-09-22T12:00:00Z");
       expect(current.status, current.stderr).toBe(0);
       const report = JSON.parse(current.stdout);
-      expect(report.index.entries).toBe(458);
+      expect(report.index.entries).toBe(440);
       expect(report.collections.map((c: { owner: string }) => c.owner)).toEqual([
         "@aihq/core",
         "@aihq/catalog",

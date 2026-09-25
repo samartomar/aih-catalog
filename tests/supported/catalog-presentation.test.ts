@@ -83,7 +83,7 @@ describe("published catalog presentation", () => {
     const covered = new Set(presentation.entries.map((entry) => entry.entryId));
     const absent = index.entries.filter((entry) => !covered.has(entry.entryId));
     expect(absent.map((entry) => entry.subject.source.type).sort()).toEqual([
-      ...Array(28).fill("aih"),
+      ...Array(10).fill("aih"),
       "npm",
     ]);
   });

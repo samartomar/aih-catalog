@@ -1,6 +1,8 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
-import { describe, expect, it } from "vitest";
+import { createHash } from "node:crypto";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
+import { afterEach, describe, expect, it } from "vitest";
 import {
   CATALOG_COLLECTIONS_ROOT_URL,
   type CatalogCollectionsV1,
@@ -10,6 +12,7 @@ import {
 import {
   type CatalogContentV1,
   readCatalogContentV1,
+  readCatalogContentV1Result,
 } from "../../src/content/catalog-content-v1.js";
 
 const root = resolve(import.meta.dirname, "..", "..");
@@ -47,6 +50,112 @@ async function generator() {
   return import("../../tools/generate-catalog-collections.mjs");
 }
 
+const temporaryRoots: string[] = [];
+afterEach(() => {
+  for (const path of temporaryRoots.splice(0)) rmSync(path, { recursive: true, force: true });
+});
+const sha256 = (text: string) => createHash("sha256").update(text).digest("hex");
+const digest = (domain: string, value: unknown) =>
+  `sha256:${sha256(`${domain}\0${canonical(value)}`)}`;
+
+/**
+ * A synthetic Catalog root whose index carries three Core releases (0.6.0 under workbench/aih/,
+ * 0.6.1 and 0.6.2 under workbench/aih-core-<release>/) and the default profile, so membership
+ * changes and cross-release refusals are exercised without superseded seeds in the shipped
+ * Catalog. The index is the real generator's output over these seeds.
+ */
+async function syntheticCatalog() {
+  const base = mkdtempSync(join(tmpdir(), "aih-catalog-collections-"));
+  temporaryRoots.push(base);
+  const write = (path: string, text: string) => {
+    mkdirSync(dirname(join(base, path)), { recursive: true });
+    writeFileSync(join(base, path), text);
+  };
+  write("package.json", JSON.stringify({ name: "@aihq/catalog", version: "0.0.0" }));
+  const seeds: string[] = [];
+  const seed = (seedPath: string, entryId: string, id: string, kind: string, release: string) => {
+    // Seed-relative artifact and evidence paths; the default profile's seed sits in defaults/.
+    const local = dirname(seedPath) === "." ? "profile/" : "";
+    const directory = dirname(seedPath) === "." ? "profile" : dirname(seedPath);
+    const profile = canonical({ entryId, release });
+    const source = { type: "aih", release, revision: `sha256:${sha256(profile)}` };
+    const sourceDigest = digest("aih-governance-decision-source/v2", source);
+    const subjectDigest = digest("aih-governance-decision-subject/v2", { id, kind, sourceDigest });
+    for (const name of ["closure", "prose", "recipe"])
+      write(`defaults/${directory}/artifacts/${name}.json`, canonical({ name }));
+    write(`defaults/${directory}/artifacts/profile.json`, profile);
+    write(
+      `defaults/${directory}/evidence/report.json`,
+      canonical({
+        attestor: "attestor:fixture",
+        format: "aih-supported-evidence/v2",
+        id: "report",
+        kind: "report",
+        subjectDigest,
+        summary: "Synthetic report.",
+      }),
+    );
+    write(
+      `defaults/${seedPath}`,
+      canonical({
+        artifacts: Object.fromEntries(
+          ["closure", "profile", "prose", "recipe"].map((name) => [
+            name,
+            `${local}artifacts/${name}.json`,
+          ]),
+        ),
+        capabilities: { commands: [], egress: [], hooks: [], mcpTools: [], permissions: [] },
+        entryId,
+        platforms: [{ architecture: "amd64", os: "linux" }],
+        qualification: {
+          findings: [],
+          gaps: [],
+          report: `${local}evidence/report.json`,
+          rights: [],
+        },
+        subject: { id, kind, source },
+      }),
+    );
+    seeds.push(seedPath);
+  };
+  seed("default-catalog-v2.json", "recipe.default", "default-profile", "profile", "1.0.0");
+  seed(
+    "workbench/aih/agent.aih.governance-quality/seed.json",
+    "agent.aih.governance-quality",
+    "governance-quality",
+    "agent",
+    "0.6.0",
+  );
+  for (const release of ["0.6.1", "0.6.2"]) {
+    const suffix = `core-${release.replaceAll(".", "-")}`;
+    for (const [kind, id] of [
+      ["agent", "governance-quality"],
+      ["mcp", "github"],
+    ] as const)
+      seed(
+        `workbench/aih-core-${release}/${kind}.aih.${id}.${suffix}/seed.json`,
+        `${kind}.aih.${id}.${suffix}`,
+        id,
+        kind,
+        release,
+      );
+  }
+  write(
+    "defaults/default-catalog-seed-manifest-v2.json",
+    canonical({ format: "aih-supported-candidate-seed-manifest", seeds: seeds.sort(), version: 1 }),
+  );
+  // @ts-expect-error The maintenance generator is intentionally plain ESM JavaScript.
+  const indexGenerator = await import("../../tools/generate-catalog-index.mjs");
+  const read = readCatalogContentV1Result({
+    bytes: Buffer.from(
+      indexGenerator.serializeCatalogIndex(indexGenerator.generateCatalogIndex(base)),
+    ),
+  });
+  if (read.state !== "read") throw new Error(`synthetic index refused: ${JSON.stringify(read)}`);
+  const syntheticIndex = read.content;
+  return { root: base, index: syntheticIndex };
+}
+
 describe("published catalog collections", () => {
   it("is the current generator output for the committed inputs", async () => {
     const { generateCatalogCollections, serializeCatalogCollections } = await generator();
@@ -74,14 +183,15 @@ describe("published catalog collections", () => {
       expect(entry?.subject.source.type).toBe("aih");
       expect(entry?.subject.source.release).toBe(release);
     }
-    // Older Core entries stay in the index for reference but are not current.
+    // The shipped index carries only the current Core release: the superseded 0.6.0 and 0.6.1
+    // seeds are deleted. An older release in the index is exercised on the synthetic root below.
     const older = index.entries.filter(
       (entry) =>
         entry.subject.source.type === "aih" &&
         entry.subject.kind !== "profile" &&
         entry.subject.source.release !== release,
     );
-    expect(older.length).toBeGreaterThan(0);
+    expect(older).toEqual([]);
     const current = new Set(
       collections.collections.flatMap((c) => c.members.map((m) => m.entryId)),
     );
@@ -98,16 +208,21 @@ describe("published catalog collections", () => {
 
   it("changes membership from the inputs alone, with no code edit", async () => {
     const { generateCatalogCollections } = await generator();
+    const synthetic = await syntheticCatalog();
+    const current = core(generateCatalogCollections(synthetic.root, inputs)).members;
+    expect(current.map((member: { entryId: string }) => member.entryId)).toEqual([
+      "agent.aih.governance-quality.core-0-6-2",
+      "mcp.aih.github.core-0-6-2",
+    ]);
     const changed = structuredClone(inputs);
     changed.collections[0].current = { release: "0.6.1", origin: { kind: "catalog-authored" } };
     changed.collections[0].seedRoot = "workbench/aih-core-0.6.1/";
-    const result = generateCatalogCollections(root, changed);
-    const members = core(result).members;
-    expect(members).toHaveLength(9);
+    const members = core(generateCatalogCollections(synthetic.root, changed)).members;
+    expect(members).toHaveLength(2);
     for (const member of members) {
-      expect(index.entries.find((e) => e.entryId === member.entryId)?.subject.source.release).toBe(
-        "0.6.1",
-      );
+      expect(
+        synthetic.index.entries.find((e) => e.entryId === member.entryId)?.subject.source.release,
+      ).toBe("0.6.1");
     }
   }, 30_000);
 
@@ -160,9 +275,10 @@ describe("published catalog collections", () => {
     "generation refuses %s",
     async (_label, mutate, message) => {
       const { generateCatalogCollections } = await generator();
+      const synthetic = await syntheticCatalog();
       const changed = structuredClone(inputs);
       mutate(changed);
-      expect(() => generateCatalogCollections(root, changed)).toThrow(message);
+      expect(() => generateCatalogCollections(synthetic.root, changed)).toThrow(message);
     },
     30_000,
   );
@@ -174,15 +290,6 @@ describe("published catalog collections", () => {
       (v: Doc) => (core(v).members[0].subjectDigest = `sha256:${"1".repeat(64)}`),
     ],
     ["a relabelled release", (v: Doc) => (core(v).current.release = "0.6.1")],
-    [
-      "an entry of another release",
-      (v: Doc) => {
-        const older = index.entries.find(
-          (e) => e.entryId === "agent.aih.governance-quality",
-        ) as CatalogContentV1["entries"][number];
-        core(v).members[0] = { entryId: older.entryId, subjectDigest: older.subject.subjectDigest };
-      },
-    ],
     ["a member listed twice", (v: Doc) => core(v).members.splice(1, 0, core(v).members[0])],
     ["an unknown field", (v: Doc) => (v.collections[0].latest = true)],
     ["an unknown format", (v: Doc) => (v.format = "aih-catalog-collections-x")],
@@ -192,6 +299,20 @@ describe("published catalog collections", () => {
     mutate(value);
     expect(read(value)).toBeUndefined();
   });
+
+  it("reading refuses an entry of another release", async () => {
+    const { generateCatalogCollections } = await generator();
+    const synthetic = await syntheticCatalog();
+    const value = structuredClone(generateCatalogCollections(synthetic.root, inputs));
+    const readSynthetic = (candidate: unknown) =>
+      readCatalogCollectionsV1({ bytes: bytesOf(candidate), index: synthetic.index });
+    expect(readSynthetic(value)).toBeDefined();
+    const older = synthetic.index.entries.find(
+      (e) => e.entryId === "agent.aih.governance-quality.core-0-6-1",
+    ) as CatalogContentV1["entries"][number];
+    core(value).members[0] = { entryId: older.entryId, subjectDigest: older.subject.subjectDigest };
+    expect(readSynthetic(value)).toBeUndefined();
+  }, 30_000);
 
   it("refuses non-canonical bytes and a byte order mark", () => {
     expect(read(clone())).toBeDefined();

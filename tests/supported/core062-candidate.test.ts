@@ -94,24 +94,20 @@ it("binds current declarations while retaining Scanner findings, dates and unsup
   const manifest = read(resolve(root, "defaults/default-catalog-seed-manifest-v2.json"));
   const paths: string[] = manifest.seeds.filter((path: string) => path.startsWith(prefix));
   expect(paths).toHaveLength(9);
-  expect(manifest.seeds).toHaveLength(458);
+  expect(manifest.seeds).toHaveLength(440);
   const wrapper = read(
     resolve(root, "defaults", prefix, "source-reports/verified-report-wrapper.json"),
   );
   expect(sha(wrapper.bytes)).toBe(wrapper.sha256);
   const report = JSON.parse(wrapper.bytes);
-  const old = JSON.parse(
-    read(
-      resolve(
-        root,
-        "defaults/workbench/aih-core-0.6.1/source-reports/verified-report-wrapper.json",
-      ),
-    ).bytes,
+  // The one Scanner scan of Core the 0.6.2 seeds carry (the superseded 0.6.0 and 0.6.1 trees
+  // that reused it are deleted).
+  expect(report.catalog.pinnedCommit).toBe("54ceab4118aade25a8a07608532b434feb0a6e6b");
+  expect(report.catalog.sourceTreeSha256).toBe(
+    "ba9f98bd0948259ddbcaf4411a725df444acb4b037f2b87116b1acf7f8479831",
   );
-  for (const key of ["report", "observations", "publications"])
-    expect(report[key]).toEqual(old[key]);
-  expect(report.catalog.pinnedCommit).toBe(old.catalog.pinnedCommit);
-  expect(report.catalog.sourceTreeSha256).toBe(old.catalog.sourceTreeSha256);
+  expect(report.observations).toHaveLength(10);
+  expect(report.publications).toHaveLength(1);
   expect(report.catalog.source.revisionId).toBe("package:@aihq/core@0.6.2");
   expect(report.coverage.components).toHaveLength(10);
   let blocked = 0;

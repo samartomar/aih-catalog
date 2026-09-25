@@ -9,9 +9,10 @@ reader are unchanged.
 An index entry's source is `type` / `release` / `revision`. That does not say
 which package owns a group of entries, or which release of that group the
 Catalog currently indexes. Neither can be recovered from entry ids or by taking
-the highest release: the index holds Core-derived content for 0.6.0, 0.6.1 and
-0.6.2, and the default profile's release `1.0.0` is a profile version, not a
-Core release.
+the highest release: the index may hold Core-derived content for more than one
+release (it held 0.6.0, 0.6.1 and 0.6.2 until the superseded two were deleted),
+and the default profile's release `1.0.0` is a profile version, not a Core
+release.
 
 ## What it states
 

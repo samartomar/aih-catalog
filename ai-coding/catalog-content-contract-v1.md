@@ -34,10 +34,10 @@ verified scanner report wrapper whose body is the sealed Scanner report.
 
 | Fact | Value |
 | --- | --- |
-| Wrapper | `defaults/workbench/aih/source-reports/verified-report-wrapper.json` |
-| Sealed report digest | `sha256:fb34b793e8b254e97695687f34818d34d5f4ec30e76d7cefa8a65e01716b0d9c` |
+| Wrapper | `defaults/workbench/aih-core-0.6.2/source-reports/verified-report-wrapper.json` |
+| Sealed report digest | `sha256:24ea2b5d84ce735213b894ebed187b90c1d7583d96b095ea550b069c7e84e415` |
 | Recomputed over the wrapper body | identical |
-| Raw `scanner-report.json` | hashes to the same digest |
+| Raw `scanner-report.json` | `sha256:cf4746cb0c3f7ced10471d23d3540ac8e3d82b6514dd8f051db6486ca0f6faaf`: not the wrapper body (it was carried over unchanged from the deleted 0.6.1 tree) |
 | Report format | `packaged-scanner-collection-evidence/v1`, `authority: display-only` |
 | Real detector identities | `aih-native native.014fbd614a5a`; `cisco@uvx 2.0.14+uvlock.aaba1f326049`; `semgrep@uv:1.173.0 1.173.0+uvlock.77f2bf3e7525`; `skillspector@docker 2d198ab9…@sha256:c5d4a181…` |
 | Real findings present | yes — e.g. `trust.external-egress` on `declarations/claude/project/github.json`, verdict `blocked`, fingerprint `trust-raw:355e76fb…` |
@@ -95,7 +95,7 @@ Result shape:
 
 | Field | Shape | Owner note |
 | --- | --- | --- |
-| `entryId` | `"agent.aih.governance-quality"` | Catalog |
+| `entryId` | `"agent.aih.governance-quality.core-0-6-2"` | Catalog |
 | `subject` | `{ id, kind, source, sourceDigest, subjectDigest }` | Copied verbatim; already exact `GovernanceDecisionSubjectV2` |
 | `seed`, `artifacts.<name>` | `{ path, sha256 }` | **bare 64-hex, no `sha256:` prefix** — the UI must prefix for Core |
 | `artifacts.<name>` (verified) | `{ state: "verified", bytes, byteLength, … }` | only when `verifyArtifacts` is on |

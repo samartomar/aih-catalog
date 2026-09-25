@@ -25,10 +25,7 @@ describe("registered Workbench source assessments", () => {
     expect(
       manifest.seeds.filter(
         (path: string) =>
-          !path.startsWith("workbench/aih/") &&
-          !path.startsWith("workbench/aih-core-0.6.1/") &&
-          !path.startsWith("workbench/aih-core-0.6.2/") &&
-          !path.startsWith("workbench/npm/"),
+          !path.startsWith("workbench/aih-core-0.6.2/") && !path.startsWith("workbench/npm/"),
       ),
     ).toHaveLength(430);
     const expected: Record<
@@ -219,5 +216,30 @@ describe("registered Workbench source assessments", () => {
       }
     }
     expect(findingCount).toBeGreaterThan(0);
+  });
+
+  it("keeps exact npm bytes and explicit missing scan coverage without claiming a passing scan", () => {
+    const base = resolve(root, "defaults/workbench/npm/package.picocolors");
+    const seed = read(resolve(base, "seed.json"));
+    expect(seed.subject.source).toMatchObject({
+      package: "picocolors",
+      type: "npm",
+      version: "1.1.1",
+    });
+    const tar = readFileSync(resolve(base, "artifacts/public-projection/picocolors-1.1.1.tgz"));
+    expect(`sha512-${createHash("sha512").update(tar).digest("base64")}`).toBe(
+      seed.subject.source.integrity,
+    );
+    expect(seed.qualification.findings).toHaveLength(0);
+    expect(seed.qualification.gaps).toHaveLength(9);
+    expect(seed.qualification.rights).toHaveLength(1);
+    expect(
+      read(resolve(base, "artifacts/public-projection/preflight-projection.json")).observed,
+    ).toMatchObject({
+      finalVerdict: "warn",
+      scanState: "missing",
+      nativeOnly: true,
+      trustScore: 50,
+    });
   });
 });
