@@ -72,6 +72,16 @@ describe("baseline definition emitter", () => {
     }
   });
 
+  it("covers the install-preview generator's atomic-write helper in runtime:ecc-installer", () => {
+    // Core requires the generator's static require closure to lie inside this component;
+    // ECC v2.2.1 scripts/lib/install/claude-settings.js requires ../atomic-write.js.
+    const definition = emitBaselineDefinitionV1(root, "ecc", recorded("ecc-modules-v1.json")) as {
+      components: { id: string; paths: string[] }[];
+    };
+    const installer = definition.components.find((c) => c.id === "runtime:ecc-installer");
+    expect(installer?.paths).toContain("scripts/lib/atomic-write.js");
+  });
+
   it("emits the Superpowers baseline catalog only at the produced revision", () => {
     const commit = recorded("superpowers-content-metadata-v1.json");
     const definition = emitBaselineDefinitionV1(root, "superpowers", commit) as {
