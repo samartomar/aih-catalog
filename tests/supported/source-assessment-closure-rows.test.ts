@@ -19,6 +19,18 @@ type Generator = {
   hashSourceTreeV1(sourceRoot: string): { treeSha256: string };
 };
 
+type MappingHelper = {
+  deriveClosureMappingV1(
+    publication: unknown,
+    definition: unknown,
+  ): { mapping: Json; rows: string[]; excluded: Json[] };
+};
+
+async function mappingHelper(): Promise<MappingHelper> {
+  // @ts-expect-error The maintenance helper is intentionally plain ESM JavaScript.
+  return (await import("../../tools/derive-closure-mapping.mjs")) as MappingHelper;
+}
+
 async function generator(): Promise<Generator> {
   // @ts-expect-error The maintenance generator is intentionally plain ESM JavaScript.
   return (await import("../../tools/generate-source-assessment-rows.mjs")) as Generator;
@@ -357,7 +369,7 @@ async function fixture(options: Options) {
       manifestPath,
       ...(definition ? { definitionPath } : {}),
     });
-  return { run, outputRoot, source, definitionPath };
+  return { run, outputRoot, source, definitionPath, publicationPath };
 }
 
 const FILES = {
@@ -576,6 +588,64 @@ describe("source-assessment closure-row mode", () => {
     expect(read(join(dir, "evidence", "source-right.json")).summary).toMatch(
       /^No applicable license determined/,
     );
+  });
+});
+
+describe("closure mapping derivation", () => {
+  it("maps every Scanner component that holds a closure file and excludes the rest", async () => {
+    const item = await fixture({ ...base, definition: componentCollection });
+    const helper = await mappingHelper();
+    const derived = helper.deriveClosureMappingV1(
+      read(item.publicationPath),
+      read(item.definitionPath),
+    );
+    expect(derived.mapping).toEqual({
+      protocol: "ScannerConsumerMappingV1",
+      requestSha256: "b".repeat(64),
+      contentClass: "exact compiler/source-file closure for assessment only",
+      components: [
+        {
+          catalogAssetId: "fixture/general:root-000000000001",
+          scannerComponentId: PARTITION[0]?.id,
+        },
+        {
+          catalogAssetId: "fixture/skill:skills-demo-000000000002",
+          scannerComponentId: PARTITION[1]?.id,
+        },
+        {
+          catalogAssetId: "fixture/general:server-000000000003",
+          scannerComponentId: PARTITION[2]?.id,
+        },
+      ],
+      exclusions: [
+        {
+          reason: "holds no file of a curated Catalog row closure",
+          scannerComponentId: PARTITION[3]?.id,
+        },
+      ],
+    });
+    expect(derived.rows).toEqual(["mcp:demo", "skill:demo"]);
+    expect(derived.excluded).toEqual([
+      {
+        id: "hook:start",
+        kind: "hook",
+        reason:
+          "hook is not a supported Catalog subject kind (ai-coding/supported-catalog-v2.md:59-60; README.md:39-40)",
+      },
+    ]);
+  });
+
+  it("refuses a closure file that no Scanner component holds", async () => {
+    const item = await fixture({
+      ...base,
+      partition: PARTITION.slice(1),
+      mapped: PARTITION.slice(1, 3).map((component) => component.id),
+      definition: componentCollection,
+    });
+    const helper = await mappingHelper();
+    expect(() =>
+      helper.deriveClosureMappingV1(read(item.publicationPath), read(item.definitionPath)),
+    ).toThrow("closure-mapping:closure-file-outside-request LICENSE");
   });
 });
 

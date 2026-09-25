@@ -574,6 +574,16 @@ function publicationNativeFiles(publication, handoff, source) {
   return files;
 }
 
+/** A publication's native per-file hashes, bound through its own receipt (see above). */
+export function publicationNativeFilesV1(publication) {
+  const receipt = object(object(publication, "publication").receipt, "publication-receipt");
+  return publicationNativeFiles(
+    publication,
+    { receiptSha256: receipt.receiptSha256 },
+    object(receipt.source, "receipt-source"),
+  );
+}
+
 /**
  * `closureMode`: rows come from the Catalog's curated inventory, so a mapped Scanner component
  * may hold any content (a skill directory, the repository root, a runtime directory); in the
