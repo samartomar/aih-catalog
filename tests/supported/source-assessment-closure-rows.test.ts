@@ -47,6 +47,28 @@ async function generator(): Promise<Generator> {
 
 const read = (path: string) => JSON.parse(readFileSync(path, "utf8")) as Json;
 const MIT = "MIT License\n\nCopyright (c) 2026 Fixture\n\nPermission is hereby granted.\n";
+/**
+ * The restrictive license four anthropics/skills skills carry (D68), in the words its LICENSE.txt
+ * uses; the fragments the Catalog states are the file's own, whitespace-normalized.
+ */
+const ANTHROPIC_PROPRIETARY = [
+  "© 2025 Anthropic, PBC. All rights reserved.",
+  "",
+  "LICENSE: Use of these materials (including all code, prompts, assets, files,",
+  "and other components of this Skill) is governed by your agreement with",
+  "Anthropic regarding use of Anthropic's services. If no separate agreement",
+  "exists, use is governed by Anthropic's Consumer Terms of Service or",
+  'Commercial Terms of Service, as applicable. Your applicable agreement is referred to as the "Agreement."',
+  "",
+  "ADDITIONAL RESTRICTIONS: Notwithstanding anything in the Agreement to the",
+  "contrary, users may not:",
+  "",
+  "- Extract these materials from the Services or retain copies of these materials",
+  "- Create derivative works based on these materials",
+  "",
+  "Anthropic retains all right, title, and interest in these materials.",
+  "",
+].join("\n");
 const ANALYZERS = ["aih-native", "cisco"];
 
 const temporaryRoots: string[] = [];
@@ -274,6 +296,80 @@ describe("source-assessment closure-row mode", () => {
     expect(right).toMatch(/^Applicable MIT notice at example\/tools@a{40}:LICENSE, sha256:/);
   });
 
+  it("states a known restrictive license as found, with the file's own words (D68)", async () => {
+    const item = await fixture({
+      files: {
+        "README.md": "# Fixture\n",
+        "skills/demo/SKILL.md": "# Demo\n",
+        "skills/demo/LICENSE.txt": ANTHROPIC_PROPRIETARY,
+      },
+      partition: [
+        { id: "runtime:root-000000000001", content: "general", paths: ["README.md"] },
+        { id: "skill:skills-demo-000000000002", content: "skill", paths: ["skills/demo"] },
+      ],
+      mapped: ["runtime:root-000000000001", "skill:skills-demo-000000000002"],
+      findings: [],
+      // The anthropics/skills shape: the curated license reference is the README, and each skill
+      // carries its own LICENSE.txt inside its directory.
+      definition: (source, files) => ({
+        version: "pinned-component-collection/v1",
+        source: {
+          id: source.id,
+          repository: `https://github.com/${source.owner}/${source.repository}`,
+          commit: source.pinnedCommit,
+          version: "1.0.0",
+          licenseFileRef: "README.md",
+        },
+        files: Object.entries(files).map(([path, text]) => ({
+          path,
+          bytesBase64: Buffer.from(text).toString("base64"),
+          sha256: `sha256:${sha256(text)}`,
+          size: Buffer.byteLength(text),
+        })),
+        components: [
+          {
+            id: "skill:demo",
+            kind: "skill",
+            label: "Demo",
+            fileRefs: ["skills/demo/LICENSE.txt", "skills/demo/SKILL.md"],
+            description: "Demo skill.",
+            primaryPath: "skills/demo/SKILL.md",
+          },
+        ],
+      }),
+    });
+    const result = item.run();
+    expect(result.entries).toBe(1);
+    const dir = join(item.outputRoot, "skill.fixture.demo");
+    const seed = read(join(dir, "seed.json"));
+    // A stated license is not a gap: the row is rendered with the license it carries.
+    expect((seed.qualification as Json).gaps).not.toContain("evidence/license-gap.json");
+    expect(read(join(dir, "artifacts", "closure.json"))).toMatchObject({
+      scope: {
+        description:
+          "Exact pinned source-file closure and applicable Anthropic-Proprietary notice; review-only assessment, with no execution or organization admission.",
+      },
+    });
+    const right = read(join(dir, "evidence", "source-right.json")).summary as string;
+    expect(right).toContain(
+      `Applicable Anthropic-Proprietary notice at example/tools@${"a".repeat(40)}:skills/demo/LICENSE.txt, sha256:${sha256(ANTHROPIC_PROPRIETARY)}.`,
+    );
+    // The label quotes the file's own words (whitespace runs normalized), bound by its digest.
+    expect(right).toContain('The file\'s own words: "© 2025 Anthropic, PBC. All rights reserved."');
+    expect(right).toContain(
+      '"is governed by your agreement with Anthropic regarding use of Anthropic\'s services"',
+    );
+    expect(right).toContain(
+      '"ADDITIONAL RESTRICTIONS: Notwithstanding anything in the Agreement to the contrary, users may not:"',
+    );
+    expect(right).toContain(
+      "No trademark, external-service, or organization-admission rights inferred.",
+    );
+    // The restrictive license is never relabeled as a license the file does not state.
+    expect(right).not.toContain("Apache-2.0");
+    expect(right).not.toContain("MIT");
+  });
+
   it("refuses a closure file whose native per-file hash differs from the checkout", async () => {
     const item = await fixture({
       ...base,
@@ -365,7 +461,7 @@ describe("source-assessment closure-row mode", () => {
     const gap = read(join(dir, "evidence", "license-gap.json"));
     expect(gap).toMatchObject({ id: "license-not-determined", kind: "gap" });
     expect(gap.summary).toContain(
-      "License not determined: LICENSE is not recognized as MIT or Apache-2.0",
+      "License not determined: LICENSE is not one of the license texts the Catalog states (Apache-2.0, MIT, Anthropic-Proprietary).",
     );
     expect(read(join(dir, "evidence", "source-right.json")).summary).toMatch(
       /^No applicable license determined/,
@@ -886,7 +982,7 @@ describe("license facts in the direct skill mode (G21)", () => {
   it.each([
     [
       { "skills/demo/SKILL.md": "# Demo\n", "skills/demo/LICENSE": "All rights reserved.\n" },
-      "License not determined: skills/demo/LICENSE is not recognized as MIT or Apache-2.0.",
+      "License not determined: skills/demo/LICENSE is not one of the license texts the Catalog states (Apache-2.0, MIT, Anthropic-Proprietary).",
     ],
     [
       { "skills/demo/SKILL.md": "# Demo\n" },
@@ -908,5 +1004,29 @@ describe("license facts in the direct skill mode (G21)", () => {
       "evidence/license-gap.json",
     );
     expect(read(join(dir, "evidence", "license-gap.json")).summary).toContain(expected);
+  });
+
+  it("states a known restrictive license as found, not as a gap (D68)", async () => {
+    const item = await fixture(
+      skillOnly({
+        "skills/demo/SKILL.md": "# Demo\n",
+        "skills/demo/LICENSE.txt": ANTHROPIC_PROPRIETARY,
+      }),
+    );
+    expect(item.run(false).entries).toBe(1);
+    const dir = join(item.outputRoot, "skill.fixture.skills-demo-000000000002");
+    const seed = read(join(dir, "seed.json"));
+    expect((seed.qualification as { gaps: string[] }).gaps).not.toContain(
+      "evidence/license-gap.json",
+    );
+    const right = read(join(dir, "evidence", "source-right.json")).summary as string;
+    expect(right).toContain(
+      `Applicable Anthropic-Proprietary notice at example/tools@${"a".repeat(40)}:skills/demo/LICENSE.txt, sha256:${sha256(ANTHROPIC_PROPRIETARY)}.`,
+    );
+    expect(right).toContain('The file\'s own words: "© 2025 Anthropic, PBC. All rights reserved."');
+    expect(right).toContain(
+      '"ADDITIONAL RESTRICTIONS: Notwithstanding anything in the Agreement to the contrary, users may not:"',
+    );
+    expect(right).not.toContain("Apache-2.0");
   });
 });

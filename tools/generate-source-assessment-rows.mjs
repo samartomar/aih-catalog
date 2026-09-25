@@ -1044,6 +1044,78 @@ function validateHandoff(
 }
 
 const LICENSE_FILE = /^LICENSE(?:\..+)?$/i;
+/**
+ * The license texts the Catalog states as found (G21, D68): the label a row carries and the words
+ * that label quotes from the file. A file carries a label only when every fragment is present in
+ * it, compared with whitespace runs normalized, so a label is never stated over words the file does
+ * not carry and a restrictive license is never relabeled as one it does not state. `quoted` states
+ * the fragments as the file's own words in the row's source-right evidence, which its sha256 binds.
+ */
+const STATED_LICENSES = [
+  { id: "Apache-2.0", fragments: ["Apache License", "Version 2.0"] },
+  { id: "MIT", fragments: ["MIT License", "Permission is hereby granted"] },
+  {
+    id: "Anthropic-Proprietary",
+    fragments: [
+      "© 2025 Anthropic, PBC. All rights reserved.",
+      "is governed by your agreement with Anthropic regarding use of Anthropic's services",
+      "ADDITIONAL RESTRICTIONS: Notwithstanding anything in the Agreement to the contrary, users may not:",
+    ],
+    quoted: true,
+  },
+];
+const STATED_LICENSE_IDS = STATED_LICENSES.map((label) => label.id).join(", ");
+const normalizeLicenseText = (contents) => contents.replace(/\s+/gu, " ");
+
+/** The stated label of one license text, or undefined when the Catalog states none for it. */
+function statedLicense(contents) {
+  const normalized = normalizeLicenseText(contents);
+  return STATED_LICENSES.find((label) =>
+    label.fragments.every((fragment) => normalized.includes(normalizeLicenseText(fragment))),
+  );
+}
+
+function licenseLabel(sourceRoot, path) {
+  const bytes = readPinnedFile(resolve(sourceRoot, ...path.split("/")), 512 * 1024);
+  let contents;
+  try {
+    contents = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes);
+  } catch {
+    return undefined;
+  }
+  return statedLicense(contents);
+}
+/**
+ * The license facts of one row (G21). Exactly one stated license file in the closure is its
+ * applicable notice; a stated restrictive license is carried as its own label with the words the
+ * file uses; any other state is rendered as "license not determined" with the reason, never
+ * refused and never relabeled.
+ */
+function licenseFacts(sourceRoot, files) {
+  const found = files
+    .filter((entry) => LICENSE_FILE.test(posix.basename(entry.path)))
+    .sort((left, right) => codeUnitCompare(left.path, right.path))
+    .map((entry) => ({ ...entry, label: licenseLabel(sourceRoot, entry.path) }));
+  const [only] = found;
+  if (found.length === 1 && only !== undefined && only.label !== undefined) {
+    const { label, ...entry } = only;
+    return {
+      determined: true,
+      ...entry,
+      id: label.id,
+      ...(label.quoted === true ? { quotes: label.fragments } : {}),
+    };
+  }
+  const reason =
+    found.length === 0
+      ? "no license file in the closure"
+      : found.length === 1
+        ? `${found[0].path} is not one of the license texts the Catalog states (${STATED_LICENSE_IDS})`
+        : `${found.length} license files in the closure: ${found
+            .map((entry) => `${entry.path} (${entry.label?.id ?? "not recognized"})`)
+            .join(", ")}`;
+  return { determined: false, reason };
+}
 // The Catalog's supported subject kinds (ai-coding/supported-catalog-v2.md:59-60, enforced by
 // src/signed-catalog-v2.ts): a curated component of any other kind is reported as excluded and
 // is never relabeled as a member (README.md:39-40).
@@ -1064,40 +1136,6 @@ const COMPILERS = {
   },
 };
 
-function licenseKind(sourceRoot, path) {
-  const bytes = readPinnedFile(resolve(sourceRoot, ...path.split("/")), 512 * 1024);
-  let contents;
-  try {
-    contents = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes);
-  } catch {
-    return undefined;
-  }
-  if (contents.includes("Apache License") && contents.includes("Version 2.0")) return "Apache-2.0";
-  if (contents.includes("MIT License") && contents.includes("Permission is hereby granted"))
-    return "MIT";
-  return undefined;
-}
-/**
- * The license facts of one row (G21). Exactly one recognized license file in the closure is its
- * applicable notice; any other state is rendered as "license not determined" with the reason,
- * never refused.
- */
-function licenseFacts(sourceRoot, files) {
-  const found = files
-    .filter((entry) => LICENSE_FILE.test(posix.basename(entry.path)))
-    .sort((left, right) => codeUnitCompare(left.path, right.path))
-    .map((entry) => ({ ...entry, id: licenseKind(sourceRoot, entry.path) }));
-  if (found.length === 1 && found[0].id !== undefined) return { determined: true, ...found[0] };
-  const reason =
-    found.length === 0
-      ? "no license file in the closure"
-      : found.length === 1
-        ? `${found[0].path} is not recognized as MIT or Apache-2.0`
-        : `${found.length} license files in the closure: ${found
-            .map((entry) => `${entry.path} (${entry.id ?? "not recognized"})`)
-            .join(", ")}`;
-  return { determined: false, reason };
-}
 function evidence(kind, id, subjectDigest, summary) {
   if (summary.length > 1_024) fail("evidence-summary-too-long");
   return {
@@ -1810,7 +1848,7 @@ function renderRows(members, provider, sourceRoot, definition, authoring) {
           "source-right",
           subjectDigest,
           license.determined
-            ? `Applicable ${license.id} notice at ${repository}@${validated.source.pinnedCommit}:${license.path}, sha256:${license.sha256}. Preserve all applicable license terms and notices. No trademark, external-service, or organization-admission rights inferred.`
+            ? `Applicable ${license.id} notice at ${repository}@${validated.source.pinnedCommit}:${license.path}, sha256:${license.sha256}.${license.quotes === undefined ? "" : ` The file's own words: ${license.quotes.map((quote) => `"${quote}"`).join(" ")}.`} Preserve all applicable license terms and notices. No trademark, external-service, or organization-admission rights inferred.`
             : `No applicable license determined for this closure at ${repository}@${validated.source.pinnedCommit}: ${license.reason}. No license grant, trademark, external-service, or organization-admission rights inferred.`,
         ),
       ),
