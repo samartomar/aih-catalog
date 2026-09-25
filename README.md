@@ -819,9 +819,11 @@ re-run is the proof.
 ## Version bumps, removal, and revocation
 
 A successor increments `sequence` and binds the previous
-`catalogHeadSha256`. Changing a source version, evidence, capability, signer,
+`catalogHeadSha256`. Changing a source version, rights, capability, signer,
 platform, recipe, prose, schema, or effect produces deterministic promotion
-facts and preserves the last-good head during automatic evaluation. Removing an
+facts and preserves the last-good head during automatic evaluation. A change in
+an entry's findings, gaps or scan report is stated as a promotion fact too, as
+information: it never holds the candidate back on its own. Removing an
 entry produces an `entry-removed` fact; that is catalog revocation for later
 consumers.
 
