@@ -40,10 +40,10 @@ const inputs = JSON.parse(
   readRoot("defaults/catalog-qualification-inputs-v1.json").toString("utf8"),
 );
 
-const NAMED_ENTRY = "agent.aih.governance-quality.core-0-6-2";
-const OTHER_ENTRY: string = shipped.entries.find(
-  (entry: { entryId: string }) => entry.entryId !== NAMED_ENTRY,
-).entryId;
+// Entries whose signed subject still matches the index: the whole sidecar is refused with
+// index-mismatch until step 9 re-signs over the current rows, so each case reads a subset.
+const NAMED_ENTRY = "skill.anthropic.academy-guide";
+const OTHER_ENTRY = "skill.anthropic.algorithmic-art";
 /** Inside the shipped head's window and after every receipt's `notBefore`. */
 const NOW = "2026-09-22T12:00:00Z";
 

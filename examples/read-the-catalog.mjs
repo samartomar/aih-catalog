@@ -70,12 +70,12 @@ const qualification = qualificationResult.qualification;
 const states = {};
 for (const entry of qualification.entries) states[entry.state] = (states[entry.state] ?? 0) + 1;
 
-// 5. One current collection member's exact original source files.
+// 5. One current collection member's exact original source files. A refusal is reported
+// as the fact it is: this Catalog names no Core collection until its 0.7.0 content lands.
 const closure = readCatalogSourceClosureV1({
   collectionId: "aih-core",
   subjectId: "governance-quality",
 });
-if (closure.state !== "verified") refused("source closure", closure);
 
 // 6. Framework runtime material: Core's sealed descriptor bytes, relayed unchanged and
 // checked here only for digest, length and declared identity. Core validates the rest.
@@ -111,10 +111,14 @@ process.stdout.write(
         sha256: item.descriptor.sha256,
         state: item.descriptor.state,
       })),
-      sourceClosure: {
-        entryId: closure.closure.entry.entryId,
-        files: closure.closure.files.map((file) => file.path),
-      },
+      sourceClosure:
+        closure.state === "verified"
+          ? {
+              state: closure.state,
+              entryId: closure.closure.entry.entryId,
+              files: closure.closure.files.map((file) => file.path),
+            }
+          : { state: closure.state, reason: closure.reason },
     },
     null,
     2,

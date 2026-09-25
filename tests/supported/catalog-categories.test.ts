@@ -94,7 +94,7 @@ describe("curated catalog categories", () => {
     expect(categories.entries.map((entry) => entry.entryId)).toEqual(
       index.entries.map((entry) => entry.entryId),
     );
-    expect(categories.coverage).toMatchObject({ entries: 440, curated: 350, notCurated: 90 });
+    expect(categories.coverage).toMatchObject({ entries: 431, curated: 342, notCurated: 89 });
     const ruleIds = new Set(rules.rules.map((rule: { id: string }) => rule.id));
     for (const entry of categories.entries) {
       if (entry.category === null) {

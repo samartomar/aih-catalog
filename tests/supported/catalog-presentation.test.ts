@@ -82,10 +82,7 @@ describe("published catalog presentation", () => {
     // The aih and npm entries are outside this github-only format: absent, not unavailable.
     const covered = new Set(presentation.entries.map((entry) => entry.entryId));
     const absent = index.entries.filter((entry) => !covered.has(entry.entryId));
-    expect(absent.map((entry) => entry.subject.source.type).sort()).toEqual([
-      ...Array(10).fill("aih"),
-      "npm",
-    ]);
+    expect(absent.map((entry) => entry.subject.source.type).sort()).toEqual(["aih", "npm"]);
   });
 
   it("reads a skill declared by its SKILL.md and marks an undeclared MCP source file", () => {

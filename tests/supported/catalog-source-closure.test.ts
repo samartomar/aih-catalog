@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
-import { describe, expect, it } from "vitest";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { CATALOG_COLLECTIONS_ROOT_URL } from "../../src/content/catalog-collections-v1.js";
 import { CATALOG_CONTENT_INDEX_ROOT_URL } from "../../src/content/catalog-content-v1.js";
 import {
@@ -11,8 +12,203 @@ import {
 } from "../../src/content/catalog-source-closure-v1.js";
 import * as publicApi from "../../src/index.js";
 
-const root = resolve(import.meta.dirname, "..", "..");
-const sha256 = (bytes: Uint8Array) => createHash("sha256").update(bytes).digest("hex");
+const sha256 = (bytes: Uint8Array | string) => createHash("sha256").update(bytes).digest("hex");
+const digest = (domain: string, value: unknown) =>
+  `sha256:${sha256(`${domain}\0${canonical(value)}`)}`;
+
+const REVISION = "0123456789abcdef0123456789abcdef01234567";
+/** The synthetic member's original files: this fixture's verification reference. */
+const FILES = [
+  ["aih-packs.json", '{"packs":["governance-quality"]}\n'],
+  ["packs/governance-quality/aih-gov-doctor/LICENSE", "Apache License\nVersion 2.0\n"],
+  ["packs/governance-quality/aih-gov-doctor/SKILL.md", "# aih-gov-doctor\n"],
+  ["packs/governance-quality/aih-gov-doctor/profile.json", '{"id":"aih-gov-doctor"}\n'],
+] as const;
+const EXPECTED = FILES.map(([path, text]) => [path, sha256(text)] as const);
+const TREE_DIGEST = `sha256:${"a7".repeat(32)}`;
+
+/**
+ * A synthetic Catalog package root, built by the real index and collection generators: a Core
+ * collection (release 0.6.2, as the Catalog shipped until D57) whose governance-quality member's
+ * source files are shipped under defaults/sources, a source-file member whose bytes are not
+ * shipped (review-quality), a configuration-only member (context7) and the default profile.
+ * The shipped Catalog names no Core collection until the Core 0.7.0 content lands.
+ */
+async function syntheticPackage(base: string) {
+  const write = (path: string, text: string) => {
+    mkdirSync(dirname(join(base, path)), { recursive: true });
+    writeFileSync(join(base, path), text);
+  };
+  write("package.json", JSON.stringify({ name: "@aihq/catalog", version: "0.0.0" }));
+  const profile = (id: string, kind: string, material: unknown) =>
+    canonical({
+      asset: {
+        assetId: `aih/package:skill-pack/${id}`,
+        contentDigest: `sha256:${sha256(id)}`,
+        sourceId: "source:aih-core",
+        sourceRevisionId: "package:@aihq/core@0.6.2",
+      },
+      compiler: { id: "built-in", inputFormat: "built-in/v1", version: "1" },
+      format: "aih-first-party-qualification-profile",
+      material,
+      scanner: {
+        catalog: {
+          owner: "samartomar",
+          pinnedCommit: REVISION,
+          repository: "ai-harness",
+          sourceTreeSha256: "b".repeat(64),
+        },
+        component: { componentId: `asset:${sha256(id)}`, paths: ["declared"] },
+      },
+      scope: { description: "Synthetic.", kind: "source-files" },
+      subject: { id, kind },
+      version: 1,
+    });
+  const sourceFiles = (paths: readonly (readonly [string, string])[]) => ({
+    files: paths.map(([path, text]) => ({ digest: `sha256:${sha256(text)}`, path })),
+    kind: "source-files",
+    treeDigest: TREE_DIGEST,
+  });
+  const seeds: string[] = [];
+  const seed = (
+    seedPath: string,
+    entryId: string,
+    id: string,
+    kind: string,
+    release: string,
+    profileBytes: string,
+  ) => {
+    const local = dirname(seedPath) === "." ? "profile/" : "";
+    const directory = dirname(seedPath) === "." ? "profile" : dirname(seedPath);
+    const source = { type: "aih", release, revision: `sha256:${sha256(profileBytes)}` };
+    const sourceDigest = digest("aih-governance-decision-source/v2", source);
+    const subjectDigest = digest("aih-governance-decision-subject/v2", { id, kind, sourceDigest });
+    for (const name of ["closure", "prose", "recipe"])
+      write(`defaults/${directory}/artifacts/${name}.json`, canonical({ name }));
+    write(`defaults/${directory}/artifacts/profile.json`, profileBytes);
+    write(
+      `defaults/${directory}/evidence/report.json`,
+      canonical({
+        attestor: "attestor:fixture",
+        format: "aih-supported-evidence/v2",
+        id: "report",
+        kind: "report",
+        subjectDigest,
+        summary: "Synthetic report.",
+      }),
+    );
+    write(
+      `defaults/${seedPath}`,
+      canonical({
+        artifacts: Object.fromEntries(
+          ["closure", "profile", "prose", "recipe"].map((name) => [
+            name,
+            `${local}artifacts/${name}.json`,
+          ]),
+        ),
+        capabilities: { commands: [], egress: [], hooks: [], mcpTools: [], permissions: [] },
+        entryId,
+        platforms: [{ architecture: "amd64", os: "linux" }],
+        qualification: {
+          findings: [],
+          gaps: [],
+          report: `${local}evidence/report.json`,
+          rights: [],
+        },
+        subject: { id, kind, source },
+      }),
+    );
+    seeds.push(seedPath);
+  };
+  seed(
+    "default-catalog-v2.json",
+    "recipe.default",
+    "default-profile",
+    "profile",
+    "1.0.0",
+    canonical({ id: "default" }),
+  );
+  const core = (kind: string, id: string, profileBytes: string) =>
+    seed(
+      `workbench/aih-core-0.6.2/${kind}.aih.${id}.core-0-6-2/seed.json`,
+      `${kind}.aih.${id}.core-0-6-2`,
+      id,
+      kind,
+      "0.6.2",
+      profileBytes,
+    );
+  core("agent", "governance-quality", profile("governance-quality", "agent", sourceFiles(FILES)));
+  core(
+    "agent",
+    "review-quality",
+    profile(
+      "review-quality",
+      "agent",
+      sourceFiles([["packs/review-quality/SKILL.md", "# review\n"]]),
+    ),
+  );
+  core(
+    "mcp",
+    "context7",
+    profile("context7", "mcp", {
+      declarationDigest: `sha256:${"c".repeat(64)}`,
+      kind: "configuration-only",
+      sourceInputDigest: `sha256:${"d".repeat(64)}`,
+    }),
+  );
+  write(
+    "defaults/default-catalog-seed-manifest-v2.json",
+    canonical({ format: "aih-supported-candidate-seed-manifest", seeds: seeds.sort(), version: 1 }),
+  );
+  for (const [path, text] of FILES)
+    write(`${CATALOG_SOURCE_ROOT_URL}/github.com/samartomar/ai-harness/${REVISION}/${path}`, text);
+  // @ts-expect-error The maintenance generators are intentionally plain ESM JavaScript.
+  const indexGenerator = await import("../../tools/generate-catalog-index.mjs");
+  // @ts-expect-error The maintenance generators are intentionally plain ESM JavaScript.
+  const collectionGenerator = await import("../../tools/generate-catalog-collections.mjs");
+  write(
+    CATALOG_CONTENT_INDEX_ROOT_URL,
+    indexGenerator.serializeCatalogIndex(indexGenerator.generateCatalogIndex(base)),
+  );
+  const shippedInputs = JSON.parse(
+    readFileSync(
+      resolve(import.meta.dirname, "..", "..", "defaults/catalog-collection-inputs-v1.json"),
+      "utf8",
+    ),
+  );
+  const inputs = {
+    ...shippedInputs,
+    collections: [
+      {
+        id: "aih-core",
+        owner: { package: "@aihq/core" },
+        sourceType: "aih",
+        current: { release: "0.6.2", origin: { kind: "catalog-authored" } },
+        seedRoot: "workbench/aih-core-0.6.2/",
+      },
+      ...shippedInputs.collections,
+    ],
+  };
+  write(
+    CATALOG_COLLECTIONS_ROOT_URL,
+    collectionGenerator.serializeCatalogCollections(
+      collectionGenerator.generateCatalogCollections(base, inputs),
+    ),
+  );
+}
+
+const root = mkdtempSync(join(tmpdir(), "aih-catalog-source-closure-"));
+// biome-ignore lint/suspicious/noExplicitAny: the tests read untyped published JSON.
+let indexJson: any;
+// biome-ignore lint/suspicious/noExplicitAny: the tests read untyped published JSON.
+let collectionsJson: any;
+beforeAll(async () => {
+  await syntheticPackage(root);
+  indexJson = JSON.parse(readFileSync(resolve(root, CATALOG_CONTENT_INDEX_ROOT_URL), "utf8"));
+  collectionsJson = JSON.parse(readFileSync(resolve(root, CATALOG_COLLECTIONS_ROOT_URL), "utf8"));
+}, 30_000);
+afterAll(() => rmSync(root, { recursive: true, force: true }));
+
 const disk = (path: string): Uint8Array | undefined => {
   try {
     return readFileSync(resolve(root, ...path.split("/")));
@@ -20,10 +216,6 @@ const disk = (path: string): Uint8Array | undefined => {
     return undefined;
   }
 };
-const indexJson = JSON.parse(readFileSync(resolve(root, CATALOG_CONTENT_INDEX_ROOT_URL), "utf8"));
-const collectionsJson = JSON.parse(
-  readFileSync(resolve(root, CATALOG_COLLECTIONS_ROOT_URL), "utf8"),
-);
 const coreMember = (subjectId: string) => {
   const core = collectionsJson.collections.find((c: { id: string }) => c.id === "aih-core");
   return core.members.find((member: { entryId: string }) =>
@@ -72,24 +264,6 @@ function forgeProfile(subjectId: string, mutate: (profile: any) => void) {
     return disk(path);
   };
 }
-
-const REVISION = "54ceab4118aade25a8a07608532b434feb0a6e6b";
-/** This checkpoint's verification reference, not a release-selection constant. */
-const EXPECTED = [
-  ["aih-packs.json", "bc21b9787fb8cfb589085a4f7fb4308a73d30fa9adfa7aa67636efc6ffdce950"],
-  [
-    "packs/governance-quality/aih-gov-doctor/LICENSE",
-    "c7963d5f486ca7f94b9141d20a08f0f2ec6f44447ceab499d8adc6ca516cf71e",
-  ],
-  [
-    "packs/governance-quality/aih-gov-doctor/SKILL.md",
-    "c67ab49713c49abdc53d4d20b97e42c998040dc67e7a2d4db7423efa81cb21b6",
-  ],
-  [
-    "packs/governance-quality/aih-gov-doctor/profile.json",
-    "2c467d7689fe043f5eda45da8ef947bb5ccda64255f430ef4d05ffecdcbe8e5b",
-  ],
-] as const;
 
 describe("catalog original-source closure", () => {
   it("is exported from the public package root", () => {
@@ -144,9 +318,7 @@ describe("catalog original-source closure", () => {
         Buffer.from(disk(`${closure.root}/${file.path}`) ?? []),
       );
     }
-    expect(closure.declaredTreeDigest).toBe(
-      "sha256:a72ef33803283dc2950f50bb238ed915cf86c069964a1971cc3a38510ede4c1c",
-    );
+    expect(closure.declaredTreeDigest).toBe(TREE_DIGEST);
     expect(closure.materialRoots).toEqual([
       {
         kind: "closure",
@@ -164,12 +336,11 @@ describe("catalog original-source closure", () => {
     ]);
   });
 
-  it("reads its own installed package when no root is given", () => {
-    const result = readCatalogSourceClosureV1({
-      collectionId: "aih-core",
-      subjectId: "governance-quality",
-    });
-    expect(result.state).toBe("verified");
+  it("reads its own installed package when no root is given, which names no Core collection yet", () => {
+    // The shipped Catalog carries no Core collection until the Core 0.7.0 content lands (D57).
+    expect(
+      readCatalogSourceClosureV1({ collectionId: "aih-core", subjectId: "governance-quality" }),
+    ).toEqual({ state: "refused", reason: "collection-unknown" });
   });
 
   it("refuses an unknown collection or a subject that is not a current member", () => {

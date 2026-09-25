@@ -98,7 +98,7 @@ describe("Catalog public content reader", () => {
     );
   });
 
-  it("reads the real shipped index to 440 digest-bound entries without reinterpreting v1", () => {
+  it("reads the real shipped index to 431 digest-bound entries without reinterpreting v1", () => {
     const result = readCatalogContentV1({ bytes: shippedBytes });
     expect(result).toBeDefined();
     const content = result as CatalogContentV1;
@@ -114,38 +114,37 @@ describe("Catalog public content reader", () => {
     expect(content.digest).toBe(`sha256:${sha256(shippedBytes)}`);
     expect(content.digest).toMatch(/^sha256:[0-9a-f]{64}$/);
 
-    expect(content.entries).toHaveLength(440);
+    expect(content.entries).toHaveLength(431);
     const entryIds = content.entries.map((entry) => entry.entryId);
-    expect(new Set(entryIds).size).toBe(440);
+    expect(new Set(entryIds).size).toBe(431);
     expect([...entryIds].sort()).toEqual(entryIds);
 
-    const item = content.entries.find(
-      (entry) => entry.entryId === "agent.aih.governance-quality.core-0-6-2",
-    );
+    const item = content.entries.find((entry) => entry.entryId === "skill.mattpocock.tdd");
     expect(item).toBeDefined();
     if (item === undefined) return;
     // Exact identity preservation: the reader copies, it never recomputes or normalizes.
     expect(item.subject).toEqual({
-      id: "governance-quality",
-      kind: "agent",
+      id: "tdd",
+      kind: "skill",
       source: {
-        release: "0.6.2",
-        revision: "sha256:893b4d0b57a2ea240cfd40e4ca222e32fd907c2b100e44b0ba672d0be835c879",
-        type: "aih",
+        commit: "c55ee46073ed923f86ce59a5eb3b6d895095d1b7",
+        path: "skills/engineering/tdd/SKILL.md",
+        repository: "mattpocock/skills",
+        type: "github",
       },
-      sourceDigest: "sha256:036cddc5672e186f3a12a46b5ff8d22e259014500f154e630c295615390cb0fd",
-      subjectDigest: "sha256:a1216d4b75cd8e26b2cf196e9535a7703d9f8d8b4f95425c428aa84c07f32a13",
+      sourceDigest: "sha256:22708e7273e13c97f1b5b85a578f65b978afed1b05a8076aa6d9d282fa2df641",
+      subjectDigest: "sha256:9fe11f716ad4efda23ec7324792e0008a343375f2fd1574db78ad8b4d0e5c566",
     });
     // Artifact digests stay bare 64-hex exactly as published; the UI prefixes for Core.
     expect(item.artifacts.profile?.sha256).toMatch(/^[0-9a-f]{64}$/);
     expect(item.artifacts).toHaveProperty(
       "profile.path",
-      "defaults/workbench/aih-core-0.6.2/agent.aih.governance-quality.core-0-6-2/artifacts/profile.json",
+      "defaults/workbench/mattpocock/skill.mattpocock.tdd/artifacts/profile.json",
     );
     expect(item.qualification.report.subjectDigest).toBe(item.subject.subjectDigest);
     expect(item.qualification.gaps.length).toBeGreaterThan(0);
     expect(item.qualification.report.kind).toBe("report");
-    expect(item.qualification.report.attestor).toBe("operator:catalog-successor-preparation");
+    expect(item.qualification.report.attestor).toBe("attestor:aih-catalog/source-evidence");
     expect(item.qualification.report.format).toBe("aih-supported-evidence/v2");
   });
 
@@ -259,21 +258,19 @@ describe("Catalog public content reader", () => {
     }) as CatalogContentV1;
     expect(content.status).toEqual({ structure: "valid", artifacts: "verified" });
 
-    const item = content.entries.find(
-      (entry) => entry.entryId === "agent.aih.governance-quality.core-0-6-2",
-    );
+    const item = content.entries.find((entry) => entry.entryId === "skill.mattpocock.tdd");
     expect(item?.artifacts.profile).toMatchObject({
       state: "verified",
       bytes: expect.any(Uint8Array),
     });
     expect(item?.artifacts.profile?.path).toBe(
-      "defaults/workbench/aih-core-0.6.2/agent.aih.governance-quality.core-0-6-2/artifacts/profile.json",
+      "defaults/workbench/mattpocock/skill.mattpocock.tdd/artifacts/profile.json",
     );
     if (item?.artifacts.profile !== undefined && item.artifacts.profile.state === "verified") {
-      expect(item.artifacts.profile.bytes.byteLength).toBe(2352);
+      expect(item.artifacts.profile.bytes.byteLength).toBe(198);
     }
 
-    // Every entry in the real index resolves: 440 x 4 artifacts are present and digest-exact.
+    // Every entry in the real index resolves: 431 x 4 artifacts are present and digest-exact.
     let verified = 0;
     let unverified = 0;
     for (const entry of content.entries) {
@@ -282,7 +279,7 @@ describe("Catalog public content reader", () => {
         else unverified += 1;
       }
     }
-    expect(verified).toBe(440 * 4);
+    expect(verified).toBe(431 * 4);
     expect(unverified).toBe(0);
 
     // A root that does not contain the content yields typed absence, never a silent pass.
@@ -292,7 +289,7 @@ describe("Catalog public content reader", () => {
     }) as CatalogContentV1;
     expect(displaced.status.artifacts).toBe("unverified");
     const displacedItem = displaced.entries.find(
-      (entry) => entry.entryId === "agent.aih.governance-quality.core-0-6-2",
+      (entry) => entry.entryId === "skill.mattpocock.tdd",
     );
     expect(displacedItem?.artifacts.profile?.state).toBe("unverified");
     if (displacedItem?.artifacts.profile?.state === "unverified") {
@@ -329,15 +326,13 @@ describe("Catalog public content reader", () => {
 
   it("returns each evidence summary verbatim and refuses an oversize or control-character one", () => {
     const content = readCatalogContentV1({ bytes: shippedBytes }) as CatalogContentV1;
-    const item = content.entries.find(
-      (entry) => entry.entryId === "agent.aih.governance-quality.core-0-6-2",
-    );
+    const item = content.entries.find((entry) => entry.entryId === "skill.mattpocock.tdd");
     const published = (
       shipped.entries as Array<{
         entryId: string;
         qualification: { report: { evidence: { summary: string } } };
       }>
-    ).find((entry) => entry.entryId === "agent.aih.governance-quality.core-0-6-2");
+    ).find((entry) => entry.entryId === "skill.mattpocock.tdd");
     expect(item?.qualification.report.summary).toBe(
       published?.qualification.report.evidence.summary,
     );

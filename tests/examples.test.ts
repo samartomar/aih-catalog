@@ -64,11 +64,8 @@ describe("public-API example", () => {
       const current = run("2026-09-22T12:00:00Z");
       expect(current.status, current.stderr).toBe(0);
       const report = JSON.parse(current.stdout);
-      expect(report.index.entries).toBe(440);
-      expect(report.collections.map((c: { owner: string }) => c.owner)).toEqual([
-        "@aihq/core",
-        "@aihq/catalog",
-      ]);
+      expect(report.index.entries).toBe(431);
+      expect(report.collections.map((c: { owner: string }) => c.owner)).toEqual(["@aihq/catalog"]);
       expect(report.qualification).toMatchObject({
         attestation: "absent",
         organizationAdmission: "not-authoritative",
@@ -84,9 +81,8 @@ describe("public-API example", () => {
           state: "verified",
         },
       ]);
-      expect(report.sourceClosure.files).toContain(
-        "packs/governance-quality/aih-gov-doctor/SKILL.md",
-      );
+      // No Core collection until the Core 0.7.0 content lands (D57): the refusal is reported.
+      expect(report.sourceClosure).toEqual({ state: "refused", reason: "collection-unknown" });
       const expired = JSON.parse(run("2026-12-08T00:47:41Z").stdout);
       expect(expired.qualification.states).toEqual({ expired: 457 });
     },

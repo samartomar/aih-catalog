@@ -208,14 +208,50 @@ describe("named refusals of the content index reader", () => {
 });
 
 describe("named refusals of the collections reader", () => {
-  const base = (): Doc => parse("defaults/catalog-collections-v1.json");
+  // The shipped view holds one single-member collection until the Core 0.7.0 content lands
+  // (D57), so the refusal cases read it with a Core collection of two synthetic members.
+  const coreMembers = ["agent.synthetic.a", "agent.synthetic.b"].map((entryId, at) => ({
+    entryId,
+    subjectDigest: `sha256:${String(at + 1).repeat(64)}`,
+  }));
+  const coreIndex = {
+    ...index,
+    entries: [
+      ...index.entries,
+      ...coreMembers.map(({ entryId, subjectDigest }) => ({
+        entryId,
+        subject: { subjectDigest, source: { type: "aih", release: "0.7.0" } },
+      })),
+    ],
+  } as unknown as CatalogContentV1;
+  const base = (): Doc => {
+    const doc = parse("defaults/catalog-collections-v1.json");
+    doc.collections.unshift({
+      current: {
+        origin: {
+          kind: "package-file",
+          name: "@aihq/core",
+          sha256: "0".repeat(64),
+          version: "0.7.0",
+        },
+        release: "0.7.0",
+      },
+      id: "aih-core",
+      members: structuredClone(coreMembers),
+      owner: { package: "@aihq/core" },
+      sourceType: "aih",
+    });
+    return doc;
+  };
   const mutate = (change: (doc: Doc) => void) => () => {
     const doc = base();
     change(doc);
-    return { bytes: inOrder(doc), index };
+    return { bytes: inOrder(doc), index: coreIndex };
   };
 
   it("reads the shipped view and names every refusal", () => {
+    const shipped = { bytes: readRoot("defaults/catalog-collections-v1.json"), index };
+    expect(readCatalogCollectionsV1Result(shipped as never)).toMatchObject({ state: "read" });
     expect(readCatalogCollectionsV1Result(mutate(() => {})() as never)).toMatchObject({
       state: "read",
     });
@@ -223,15 +259,21 @@ describe("named refusals of the collections reader", () => {
       CATALOG_COLLECTIONS_REFUSALS_V1,
       [
         { reason: "malformed-request", request: () => ({ bytes: inOrder(base()), index: {} }) },
-        { reason: "malformed-bytes", request: () => ({ bytes: new Uint8Array(), index }) },
+        {
+          reason: "malformed-bytes",
+          request: () => ({ bytes: new Uint8Array(), index: coreIndex }),
+        },
         {
           reason: "oversize-bytes",
           request: () => ({
             bytes: Buffer.alloc(CATALOG_COLLECTIONS_MAX_BYTES_V1 + 1, 0x20),
-            index,
+            index: coreIndex,
           }),
         },
-        { reason: "non-canonical-bytes", request: () => ({ bytes: pretty(base()), index }) },
+        {
+          reason: "non-canonical-bytes",
+          request: () => ({ bytes: pretty(base()), index: coreIndex }),
+        },
         {
           reason: "malformed-document",
           request: mutate((doc) => {
@@ -274,7 +316,7 @@ describe("named refusals of the collections reader", () => {
           reason: "unknown-owner",
           request: () => ({
             bytes: inOrder(base()),
-            index,
+            index: coreIndex,
             knownOwners: ["@aihq/catalog"],
           }),
         },

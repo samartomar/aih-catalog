@@ -29,8 +29,10 @@ are both `32ce6e9dea74ba84fe56b71ba6516e032f18aa4132e6ef7ebca507512d8735f7`.
 That is why those 28 entries can be bound to scanned content and the
 `github`/`npm` ones cannot — which matches Core's binding table.
 
-Real retained Scan evidence in the Catalog defaults (not a fixture): a retained
-verified scanner report wrapper whose body is the sealed Scanner report.
+Real retained Scan evidence in the Catalog defaults when this was measured (not a
+fixture): a retained verified scanner report wrapper whose body is the sealed Scanner
+report. The Core 0.6.2 tree holding it was removed (D57); the Core 0.7.0 seeds carry the
+next wrapper.
 
 | Fact | Value |
 | --- | --- |
@@ -95,7 +97,7 @@ Result shape:
 
 | Field | Shape | Owner note |
 | --- | --- | --- |
-| `entryId` | `"agent.aih.governance-quality.core-0-6-2"` | Catalog |
+| `entryId` | `"skill.mattpocock.tdd"` | Catalog |
 | `subject` | `{ id, kind, source, sourceDigest, subjectDigest }` | Copied verbatim; already exact `GovernanceDecisionSubjectV2` |
 | `seed`, `artifacts.<name>` | `{ path, sha256 }` | **bare 64-hex, no `sha256:` prefix** — the UI must prefix for Core |
 | `artifacts.<name>` (verified) | `{ state: "verified", bytes, byteLength, … }` | only when `verifyArtifacts` is on |

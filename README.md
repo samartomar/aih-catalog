@@ -270,7 +270,7 @@ fields, an entry that is not in the index or has a different subject digest, an
 indexed entry left out, and malformed or oversize text. Values are upstream data:
 render them as text only.
 
-Today it covers every GitHub source in the index, 429 of 440 entries, each at
+Today it covers every GitHub source in the index, 429 of 431 entries, each at
 its pinned commit:
 
 | Source | Commit | Entries |
@@ -285,8 +285,8 @@ its pinned commit:
 The ponytail MCP server's declared source is a JavaScript file, not a
 frontmatter or `mcpServers` file, so its values are `no-source-file`.
 
-**Not covered, by design of this format:** the 10 `aih` entries (the Core 0.6.2
-release and `recipe.default`) and the one `npm` entry (`picocolors@1.1.1`). This sidecar
+**Not covered, by design of this format:** the one `aih` entry (`recipe.default`;
+the Core collection returns with its 0.7.0 content) and the one `npm` entry (`picocolors@1.1.1`). This sidecar
 accepts only `github` sources pinned to a 40-hex commit, and `recipe.default` and
 `picocolors` declare no closure file to read even in principle. Those entries are
 absent from the sidecar, not unavailable within it; covering them needs a format
@@ -339,7 +339,7 @@ format, version, basis or member, an unsorted taxonomy, a category outside it, a
 entry not in the index, left out, duplicated or out of order, and a rationale that
 is missing, set on a `null` category, oversize or carries control characters.
 
-The taxonomy is a first curation: 12 categories, 350 of 440 entries curated and 90
+The taxonomy is a first curation: 12 categories, 342 of 431 entries curated and 89
 not curated. It awaits the owner's confirmation. Regenerate with
 `npm run generate:catalog-categories` after editing the rules;
 `npm run check:catalog-index` fails when the committed dataset differs from what
@@ -394,7 +394,8 @@ file refusal: `index-unreadable`, `collections-unreadable`,
 `1`; a profile of any other format is `profile-invalid`. A member whose bytes this
 package does not ship is `source-file-absent`, never an empty closure.
 
-Only the current Core `governance-quality` member's closure is shipped today.
+No member's closure is shipped in this build: the Core 0.6.2 member it served was
+removed (D57), and the Core 0.7.0 members are staged with their content.
 Maintainers stage a member from its exact recorded revision with
 `npm run stage:source-closure -- <collection-id> <subject-id>`, which refuses any
 digest mismatch. Reading never uses the network. Source bytes are not a scan,

@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { resolve } from "node:path";
 import { expect, it } from "vitest";
 import {
   parseCatalogHeadV2Json,
@@ -87,74 +87,4 @@ it("adds only nine Core 0.6.2 members while preserving the exact predecessor and
       now: candidate.validFrom,
     }),
   ).toThrow();
-});
-
-it("binds current declarations while retaining Scanner findings, dates and unsupported hook scope", () => {
-  const prefix = "workbench/aih-core-0.6.2/";
-  const manifest = read(resolve(root, "defaults/default-catalog-seed-manifest-v2.json"));
-  const paths: string[] = manifest.seeds.filter((path: string) => path.startsWith(prefix));
-  expect(paths).toHaveLength(9);
-  expect(manifest.seeds).toHaveLength(440);
-  const wrapper = read(
-    resolve(root, "defaults", prefix, "source-reports/verified-report-wrapper.json"),
-  );
-  expect(sha(wrapper.bytes)).toBe(wrapper.sha256);
-  const report = JSON.parse(wrapper.bytes);
-  // The one Scanner scan of Core the 0.6.2 seeds carry (the superseded 0.6.0 and 0.6.1 trees
-  // that reused it are deleted).
-  expect(report.catalog.pinnedCommit).toBe("54ceab4118aade25a8a07608532b434feb0a6e6b");
-  expect(report.catalog.sourceTreeSha256).toBe(
-    "ba9f98bd0948259ddbcaf4411a725df444acb4b037f2b87116b1acf7f8479831",
-  );
-  expect(report.observations).toHaveLength(10);
-  expect(report.publications).toHaveLength(1);
-  expect(report.catalog.source.revisionId).toBe("package:@aihq/core@0.6.2");
-  expect(report.coverage.components).toHaveLength(10);
-  let withFinding = 0;
-  for (const path of paths) {
-    const seedPath = resolve(root, "defaults", path);
-    const seed = read(seedPath);
-    const profileBytes = readFileSync(resolve(dirname(seedPath), seed.artifacts.profile));
-    const profile = JSON.parse(profileBytes.toString("utf8"));
-    const closure = read(resolve(dirname(seedPath), seed.artifacts.closure));
-    expect(seed.subject.source).toEqual({
-      type: "aih",
-      release: "0.6.2",
-      revision: sha(profileBytes),
-    });
-    expect(closure.sourceRevisionId).toBe("package:@aihq/core@0.6.2");
-    expect(closure.contentDigest).toBe(profile.asset.contentDigest);
-    expect(closure.sourceContentDigest).toBe(report.catalog.source.contentDigest);
-    expect(closure.scope).toEqual(profile.scope);
-    expect(closure.files).toEqual(profile.material.files ?? []);
-    expect(seed.entryId).toMatch(/\.core-0-6-2$/);
-    expect(seed.qualification.gaps).toHaveLength(1);
-    expect(seed.qualification.rights).toHaveLength(1);
-    const observation = report.observations.find(
-      (item: { componentId: string }) => item.componentId === profile.scanner.component.componentId,
-    );
-    expect(observation).toMatchObject(profile.scanner.observation);
-    const recipe = read(resolve(dirname(seedPath), seed.artifacts.recipe));
-    expect(recipe.asset).toEqual(profile.asset);
-    expect(recipe.scannerObservation).toEqual(observation);
-    expect(recipe.scannerReportSha256).toBe(wrapper.sha256);
-    const evidence = read(resolve(dirname(seedPath), seed.qualification.report));
-    expect(evidence.subjectDigest).toBe(closure.subjectDigest);
-    if (seed.subject.id === "github") {
-      // The committed summary quotes the Scanner report in its v1 vocabulary until the
-      // evidence is regenerated with the v2 vocabulary (D50): the component carries a finding.
-      expect(evidence.summary).toContain("verdict blocked");
-      expect(seed.qualification.findings).toHaveLength(1);
-      expect(read(resolve(dirname(seedPath), seed.qualification.findings[0])).summary).toContain(
-        "trust.external-egress",
-      );
-      withFinding++;
-    } else expect(seed.qualification.findings).toHaveLength(0);
-  }
-  expect(withFinding).toBe(1);
-  expect(paths.some((path) => path.includes("usage-metering"))).toBe(false);
-  const draft = read(resolve(root, "defaults", prefix, "source-reports/qualification-draft.json"));
-  expect(draft.unsupported).toEqual([
-    { assetId: "aih/usage-metering", reason: "unsupported-governance-subject-kind" },
-  ]);
 });

@@ -24,6 +24,31 @@ const index = readCatalogContentV1({ bytes: indexBytes }) as CatalogContentV1;
 const shippedBytes = readFileSync(resolve(root, CATALOG_COLLECTIONS_ROOT_URL));
 const shipped = JSON.parse(shippedBytes.toString("utf8"));
 const inputs = readJson("defaults/catalog-collection-inputs-v1.json");
+/**
+ * Inputs naming a Core collection. The shipped Catalog names none until the Core 0.7.0 content
+ * lands (D57), so Core-collection behavior is exercised on the synthetic root below.
+ */
+const coreInputs = {
+  ...inputs,
+  collections: [
+    {
+      id: "aih-core",
+      owner: { package: "@aihq/core" },
+      sourceType: "aih",
+      current: {
+        release: "0.6.2",
+        origin: {
+          kind: "package-file",
+          name: "@aihq/core",
+          version: "0.6.2",
+          sha256: "0".repeat(64),
+        },
+      },
+      seedRoot: "workbench/aih-core-0.6.2/",
+    },
+    ...inputs.collections,
+  ],
+};
 
 const bytesOf = (value: unknown) => Buffer.from(`${canonical(value)}\n`, "utf8");
 function canonical(value: unknown): string {
@@ -156,6 +181,19 @@ async function syntheticCatalog() {
   return { root: base, index: syntheticIndex };
 }
 
+/** The collection view generated over the synthetic root with a Core collection, and its reader. */
+async function syntheticView() {
+  const { generateCatalogCollections } = await generator();
+  const synthetic = await syntheticCatalog();
+  const view = generateCatalogCollections(synthetic.root, coreInputs);
+  return {
+    ...synthetic,
+    clone: () => structuredClone(view),
+    read: (candidate: unknown) =>
+      readCatalogCollectionsV1({ bytes: bytesOf(candidate), index: synthetic.index }),
+  };
+}
+
 describe("published catalog collections", () => {
   it("is the current generator output for the committed inputs", async () => {
     const { generateCatalogCollections, serializeCatalogCollections } = await generator();
@@ -164,57 +202,74 @@ describe("published catalog collections", () => {
     );
   }, 30_000);
 
-  it("names exactly one current Core collection, of that release's own entries", () => {
+  it("names no Core collection and indexes no Core entry until the Core 0.7.0 content lands", () => {
     const collections = readCatalogCollectionsV1({
       bytes: shippedBytes,
       index,
     }) as CatalogCollectionsV1;
     expect(collections).toBeDefined();
     expect(collections.collectedSourceTypes).toEqual(["aih"]);
+    expect(collections.collections.map((c) => c.id)).toEqual(["aih-default-profile"]);
+    expect(collections.collections.filter((c) => c.owner.package === "@aihq/core")).toEqual([]);
+    // The 0.6.2 seeds are deleted (D57); the only aih entry left is the default profile.
+    expect(
+      index.entries
+        .filter((entry) => entry.subject.source.type === "aih")
+        .map((entry) => entry.entryId),
+    ).toEqual(["recipe.default"]);
+  });
+
+  it("names exactly one Core collection, of that release's own entries, when the inputs state one", async () => {
+    const synthetic = await syntheticView();
+    const collections = synthetic.read(synthetic.clone()) as CatalogCollectionsV1;
+    expect(collections).toBeDefined();
     const owned = collections.collections.filter((c) => c.owner.package === "@aihq/core");
     expect(owned).toHaveLength(1);
-    const [coreCollection] = owned;
-    const release = coreCollection?.current.release;
-    expect(release).toBe(inputs.collections[0].current.release);
-    for (const member of coreCollection?.members ?? []) {
-      const entry = index.entries.find((candidate) => candidate.entryId === member.entryId);
+    const release = owned[0]?.current.release;
+    expect(release).toBe("0.6.2");
+    for (const member of owned[0]?.members ?? []) {
+      const entry = synthetic.index.entries.find(
+        (candidate) => candidate.entryId === member.entryId,
+      );
       // Member identity is the index's own, unchanged.
       expect(entry?.subject.subjectDigest).toBe(member.subjectDigest);
       expect(entry?.subject.source.type).toBe("aih");
       expect(entry?.subject.source.release).toBe(release);
     }
-    // The shipped index carries only the current Core release: the superseded 0.6.0 and 0.6.1
-    // seeds are deleted. An older release in the index is exercised on the synthetic root below.
-    const older = index.entries.filter(
+    // Older releases stay in the index for reference and are members of no collection.
+    const current = new Set(
+      collections.collections.flatMap((c) => c.members.map((m) => m.entryId)),
+    );
+    const older = synthetic.index.entries.filter(
       (entry) =>
         entry.subject.source.type === "aih" &&
         entry.subject.kind !== "profile" &&
         entry.subject.source.release !== release,
     );
-    expect(older).toEqual([]);
-    const current = new Set(
-      collections.collections.flatMap((c) => c.members.map((m) => m.entryId)),
-    );
+    expect(older).toHaveLength(3);
     for (const entry of older) expect(current.has(entry.entryId)).toBe(false);
-  });
+  }, 30_000);
 
-  it("keeps the independently versioned default profile out of the Core collection", () => {
-    const collections = readCatalogCollectionsV1({ bytes: shippedBytes, index });
-    const profile = collections?.collections.find((c) => c.id === "aih-default-profile");
-    expect(profile?.owner.package).toBe("@aihq/catalog");
-    expect(profile?.members.map((m) => m.entryId)).toEqual(["recipe.default"]);
-    expect(core(shipped).members.map((m) => m.entryId)).not.toContain("recipe.default");
-  });
+  it("keeps the independently versioned default profile out of the Core collection", async () => {
+    const shippedProfile = readCatalogCollectionsV1({
+      bytes: shippedBytes,
+      index,
+    })?.collections.find((c) => c.id === "aih-default-profile");
+    expect(shippedProfile?.owner.package).toBe("@aihq/catalog");
+    expect(shippedProfile?.members.map((m) => m.entryId)).toEqual(["recipe.default"]);
+    const synthetic = await syntheticView();
+    expect(core(synthetic.clone()).members.map((m) => m.entryId)).not.toContain("recipe.default");
+  }, 30_000);
 
   it("changes membership from the inputs alone, with no code edit", async () => {
     const { generateCatalogCollections } = await generator();
     const synthetic = await syntheticCatalog();
-    const current = core(generateCatalogCollections(synthetic.root, inputs)).members;
+    const current = core(generateCatalogCollections(synthetic.root, coreInputs)).members;
     expect(current.map((member: { entryId: string }) => member.entryId)).toEqual([
       "agent.aih.governance-quality.core-0-6-2",
       "mcp.aih.github.core-0-6-2",
     ]);
-    const changed = structuredClone(inputs);
+    const changed = structuredClone(coreInputs);
     changed.collections[0].current = { release: "0.6.1", origin: { kind: "catalog-authored" } };
     changed.collections[0].seedRoot = "workbench/aih-core-0.6.1/";
     const members = core(generateCatalogCollections(synthetic.root, changed)).members;
@@ -276,7 +331,7 @@ describe("published catalog collections", () => {
     async (_label, mutate, message) => {
       const { generateCatalogCollections } = await generator();
       const synthetic = await syntheticCatalog();
-      const changed = structuredClone(inputs);
+      const changed = structuredClone(coreInputs);
       mutate(changed);
       expect(() => generateCatalogCollections(synthetic.root, changed)).toThrow(message);
     },
@@ -294,18 +349,22 @@ describe("published catalog collections", () => {
     ["an unknown field", (v: Doc) => (v.collections[0].latest = true)],
     ["an unknown format", (v: Doc) => (v.format = "aih-catalog-collections-x")],
     ["an uncollected source type", (v: Doc) => (v.collections[0].sourceType = "npm")],
-  ])("reading refuses %s", (_label, mutate) => {
-    const value = clone();
-    mutate(value);
-    expect(read(value)).toBeUndefined();
-  });
+  ])(
+    "reading refuses %s",
+    async (_label, mutate) => {
+      const synthetic = await syntheticView();
+      expect(synthetic.read(synthetic.clone())).toBeDefined();
+      const value = synthetic.clone();
+      mutate(value);
+      expect(synthetic.read(value)).toBeUndefined();
+    },
+    30_000,
+  );
 
   it("reading refuses an entry of another release", async () => {
-    const { generateCatalogCollections } = await generator();
-    const synthetic = await syntheticCatalog();
-    const value = structuredClone(generateCatalogCollections(synthetic.root, inputs));
-    const readSynthetic = (candidate: unknown) =>
-      readCatalogCollectionsV1({ bytes: bytesOf(candidate), index: synthetic.index });
+    const synthetic = await syntheticView();
+    const value = synthetic.clone();
+    const readSynthetic = synthetic.read;
     expect(readSynthetic(value)).toBeDefined();
     const older = synthetic.index.entries.find(
       (e) => e.entryId === "agent.aih.governance-quality.core-0-6-1",
@@ -322,19 +381,23 @@ describe("published catalog collections", () => {
     expect(readCatalogCollectionsV1({ bytes: bom, index })).toBeUndefined();
   });
 
-  it("refuses an owner outside the consumer's stated owners, and only when it states them", () => {
-    const evil = clone();
+  it("refuses an owner outside the consumer's stated owners, and only when it states them", async () => {
+    const synthetic = await syntheticView();
+    const evil = synthetic.clone();
     (core(evil) as Doc).owner.package = "@evil/pkg";
     (core(evil).current as Doc).origin.name = "@evil/pkg";
     const bytes = bytesOf(evil);
+    const syntheticIndex = synthetic.index;
     // Catalog holds no allowlist of its own: without knownOwners the owner is data.
-    expect(readCatalogCollectionsV1Result({ bytes, index })).toMatchObject({ state: "read" });
+    expect(readCatalogCollectionsV1Result({ bytes, index: syntheticIndex })).toMatchObject({
+      state: "read",
+    });
     const knownOwners = ["@aihq/core", "@aihq/catalog"];
-    expect(readCatalogCollectionsV1Result({ bytes, index, knownOwners })).toEqual({
+    expect(readCatalogCollectionsV1Result({ bytes, index: syntheticIndex, knownOwners })).toEqual({
       state: "refused",
       reason: "unknown-owner",
     });
-    expect(readCatalogCollectionsV1({ bytes, index, knownOwners })).toBeUndefined();
+    expect(readCatalogCollectionsV1({ bytes, index: syntheticIndex, knownOwners })).toBeUndefined();
     // The shipped owners are exactly the ones a consumer names.
     expect(
       readCatalogCollectionsV1Result({ bytes: shippedBytes, index, knownOwners }),
