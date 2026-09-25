@@ -16,8 +16,10 @@
 // asset or receipt appears twice; every receipt names an entry of the signed head, that head and
 // the head's member digest; member and closure bytes match the member digest and the member's
 // closure; the receipt's subject is the Catalog index entry's subject; the projection and binding
-// join the record they describe; all drafts share the head's one receipt set. Head entries without
-// a draft are reported as information.
+// join the record they describe; the record publisher (subject <entryId>.json), the summary's
+// five-field publisher and the receipt-set publisher (subject qualification-receipt-set.json) are
+// Core's publisher shapes naming one publisher; all drafts share the head's one receipt set.
+// Head entries without a draft are reported as information.
 import { createHash } from "node:crypto";
 import { lstatSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -38,7 +40,10 @@ const RECORD_KEYS = [
   "receiptSetPublisher",
 ];
 const COMPACT_RECORD_KEYS = ["closures", "member", "publisher", "receipt", "receiptSet", "receiptSetPublisher"];
+// Core's summary publisher (contracts.ts, strict) is these five fields; a record publisher adds
+// subjectName (catalog-qualification-package-v1.ts publisher()).
 const PUBLISHER_KEYS = ["commit", "issuer", "ref", "repository", "workflow"];
+const RECEIPT_SET_SUBJECT = "qualification-receipt-set.json";
 const CANONICAL_BASE64 = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
 const SHA256_HEX = /^[0-9a-f]{64}$/;
 
@@ -56,11 +61,17 @@ function canonical(value) {
     .map((key) => `${JSON.stringify(key)}:${canonical(value[key])}`)
     .join(",")}}`;
 }
-const exactKeys = (value, keys, label) => {
-  if (!isObject(value) || canonical(Object.keys(value).sort(compare)) !== canonical([...keys].sort(compare)))
-    fail(label);
-  return value;
-};
+const exactKeysMatch = (value, keys) =>
+  isObject(value) && canonical(Object.keys(value).sort(compare)) === canonical([...keys].sort(compare));
+const exactKeys = (value, keys, label) => (exactKeysMatch(value, keys) ? value : fail(label));
+/** Core's publisher(): exactly the six string fields, bounded, with a repository and a commit. */
+const publisherOf = (value, subjectName) =>
+  exactKeysMatch(value, [...PUBLISHER_KEYS, "subjectName"]) &&
+  Object.values(value).every((field) => typeof field === "string" && field.length > 0 && field.length <= 1_000) &&
+  /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(value.repository) &&
+  /^[a-f0-9]{40}$/.test(value.commit) &&
+  value.subjectName === subjectName;
+const samePublisher = (left, right) => PUBLISHER_KEYS.every((key) => left[key] === right[key]);
 const decoded = (value, label) => {
   if (typeof value !== "string" || value.length === 0 || !CANONICAL_BASE64.test(value)) fail(label);
   const bytes = Buffer.from(value, "base64");
@@ -236,13 +247,19 @@ function mismatches(item, head, headDigest, index) {
   )
     labels.push("projection");
   if (!isObject(binding) || binding.subject?.subjectDigest !== summary?.subjectDigest) labels.push("binding");
-  const publisher = isObject(record.publisher) ? record.publisher : {};
+  const publisher = record.publisher;
+  const publisherValid = publisherOf(publisher, `${entryId}.json`);
   if (
-    publisher.subjectName !== `${entryId}.json` ||
-    !isObject(summary?.publisher) ||
-    PUBLISHER_KEYS.some((key) => summary.publisher[key] !== publisher[key])
+    !publisherValid ||
+    !exactKeysMatch(summary?.publisher, PUBLISHER_KEYS) ||
+    !samePublisher(summary.publisher, publisher)
   )
     labels.push("publisher");
+  if (
+    !publisherOf(record.receiptSetPublisher, RECEIPT_SET_SUBJECT) ||
+    (publisherValid && !samePublisher(record.receiptSetPublisher, publisher))
+  )
+    labels.push("receipt-set-publisher");
   return labels;
 }
 

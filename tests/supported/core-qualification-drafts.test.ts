@@ -175,6 +175,17 @@ async function fixture() {
   };
 }
 
+/** Rewrites one fixture draft (canonical plus a newline) through `change`. */
+function rewrite(draftsDirectory: string, name: string, change: (draft: Json) => void) {
+  const path = join(draftsDirectory, ...name.split("/"));
+  const draft = JSON.parse(readFileSync(path, "utf8")) as Json;
+  change(draft);
+  writeFileSync(path, `${canonical(draft)}\n`);
+}
+const firstRecord = (draft: Json) => (draft.records as Json[])[0] as Json;
+const firstSummary = (draft: Json) =>
+  Object.values((draft.projections as Json[])[0] as Json)[0] as Json;
+
 describe("merging Core T5 drafts into the core qualification data", () => {
   it("writes one exact, sorted, canonical version-2 file from the drafts and names head entries without one", async () => {
     const tool = await merger();
@@ -274,6 +285,32 @@ describe("merging Core T5 drafts into the core qualification data", () => {
     expect(() => tool.mergeCoreQualificationDraftsV1(noncanonical)).toThrow(
       "core-qualification-drafts:draft mattpocock/qual-skill.mattpocock.beta.json is not canonical",
     );
+  });
+
+  it("refuses a summary publisher or receipt-set publisher that does not join its record, writing nothing", async () => {
+    const tool = await merger();
+    const item = await fixture();
+    // Core's summary publisher is exactly five fields (contracts.ts); a subject name there,
+    // here another entry's, does not join the record publisher.
+    rewrite(item.draftsDirectory, "mattpocock/qual-skill.mattpocock.alpha.json", (draft) => {
+      firstSummary(draft).publisher = { ...PUBLISHER, subjectName: "skill.mattpocock.beta.json" };
+    });
+    // A receipt-set publisher that is not Core's publisher shape.
+    rewrite(item.draftsDirectory, "mattpocock/qual-skill.mattpocock.beta.json", (draft) => {
+      firstRecord(draft).receiptSetPublisher = { garbage: true };
+    });
+    // A well-formed receipt-set publisher from another commit than the receipt's.
+    rewrite(item.draftsDirectory, "anthropics-skills/qual-skill.anthropic.canvas.json", (draft) => {
+      firstRecord(draft).receiptSetPublisher = {
+        ...PUBLISHER,
+        commit: "d".repeat(40),
+        subjectName: "qualification-receipt-set.json",
+      };
+    });
+    expect(() => tool.mergeCoreQualificationDraftsV1(item)).toThrow(
+      "core-qualification-drafts:unmatched skill.anthropic.canvas (receipt-set-publisher); skill.mattpocock.alpha (publisher); skill.mattpocock.beta (receipt-set-publisher)",
+    );
+    expect(readFileSync(item.outputPath, "utf8")).toBe("previous\n");
   });
 
   it("encodes version 2 exactly as the committed Core data does", async () => {
