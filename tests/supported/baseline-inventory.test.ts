@@ -2,8 +2,9 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
+import { emitBaselineDefinitionV1 } from "../../src/production/catalog/baseline-definitions-v1.js";
 import {
   baselineInventoryFromTreeV1,
   baselineInventoryGitEnvV1,
@@ -202,6 +203,14 @@ describe("whole-repository baseline inventory", () => {
       baselineInventoryFromTreeV1("ui-ux-pro-max-skill", COMMIT, [blob("a.md")]),
     ).toThrow(/unknown subject/);
     expect(() => baselineInventoryFromTreeV1("ecc", "5064474d", [blob("a.md")])).toThrow(/commit/);
+    // anthropics/skills has an inventory route only: the Catalog keeps no definition for it.
+    expect(() =>
+      emitBaselineDefinitionV1(
+        resolve(import.meta.dirname, "..", ".."),
+        "anthropics-skills",
+        COMMIT,
+      ),
+    ).toThrow(/unknown subject/);
   });
 
   it("partitions anthropics/skills, whose curation the Catalog keeps only in its sealed record", () => {
