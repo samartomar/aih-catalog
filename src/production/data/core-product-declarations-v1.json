@@ -5,7 +5,7 @@
     "package": "@aihq/core",
     "version": "0.7.0",
     "repository": "samartomar/ai-harness",
-    "commit": "48e80f96ea9242c5ba50d5c0ecb5c366e4bb584e"
+    "commit": "47ca1d8321e82d8d0fce86c3d82c1547a244cf45"
   },
   "hosts": [
     {
@@ -85,7 +85,7 @@
         "projector": "mcp-managed-settings",
         "source": {
           "server": "code-review-graph",
-          "subject": "mcp-server-sha256:c88e66657360222badb9cbaf2252b129a3ca82c0a7a392a00e193c30da4b7693",
+          "subject": "mcp-server-sha256:315dbcc103746d136e2844d590add6525325f7cd8b4c35881c93b1ea3e3a3328",
           "type": "mcp"
         },
         "targets": [
@@ -126,7 +126,7 @@
         "projector": "mcp-managed-settings",
         "source": {
           "server": "codebase-memory-mcp",
-          "subject": "mcp-server-sha256:32d5459844e349657b195df112b01b403fc6b47c8350cbd45c0e220efa19b017",
+          "subject": "mcp-server-sha256:0e3399b511091483fac100f04fb852d30df6ab35246efadf4cc8d31164e0ba18",
           "type": "mcp"
         },
         "targets": [
@@ -166,7 +166,7 @@
         "projector": "mcp-managed-settings",
         "source": {
           "server": "serena",
-          "subject": "mcp-server-sha256:5e9e3503c7c988fded89724854f0680553c51ea5e470af9a97d0328fe8e6ba82",
+          "subject": "mcp-server-sha256:03ebec6620cf2b46269c978d0fa3498b179a9d3715f6a1812e8666de97151502",
           "type": "mcp"
         },
         "targets": [
