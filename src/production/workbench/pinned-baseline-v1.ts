@@ -1,4 +1,8 @@
-import type { BaselineSourceEvidenceV1 } from "../catalog/baseline-lock-v1.js";
+import {
+  type BaselineSourceEvidenceV1,
+  scanCoverageV1,
+  scanOutcomeV1,
+} from "../catalog/baseline-lock-v1.js";
 import type {
   PolicyAuthoringAssetV1,
   PolicyAuthoringFrameworkV1,
@@ -184,6 +188,7 @@ export function compilePinnedBaselineV1(
       if (asset.vet === undefined) return [];
       const assetId = `${framework.id}/${asset.id}`;
       const coveredPaths = evidenceCoveredPaths(asset, componentsById);
+      const coverage = scanCoverageV1(asset.vet.evidenceProblems);
       const evidenceBytes = canonicalStrictJsonBytesV1({
         version: "pinned-baseline-evidence/v2",
         source: { repository: framework.repository, commit: framework.commit },
@@ -211,9 +216,10 @@ export function compilePinnedBaselineV1(
             coveredPaths,
             verification: { state: "unverified" },
             scan: {
-              // The stored label itself (D50), never a decision.
-              outcome: asset.vet.verdict,
-              coverage: "complete",
+              // The stored label (D50), never a decision; coverage is what the evidence problems
+              // leave, and a no-findings label holds only on complete coverage.
+              outcome: scanOutcomeV1(asset.vet.verdict, coverage),
+              coverage,
               analyzers: asset.vet.analyzers.map(({ name, version }) => ({ name, version })),
             },
             qualification: { state: "unknown" },

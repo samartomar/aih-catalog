@@ -17,6 +17,10 @@ import {
 } from "node:fs";
 import { dirname, isAbsolute, parse, posix, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  reproduceConsumerHandoffV1,
+  verifyAttestationBundleOfflineV1,
+} from "./scanner-consumer-handoff-v1.mjs";
 
 const HANDOFF_KEYS = [
   "analyzerGaps",
@@ -114,6 +118,8 @@ const COMPONENT_ARTIFACT_KEYS = [
 ];
 const SOURCE_KEYS = ["id", "owner", "pinnedCommit", "repository", "treeSha256"];
 const PUBLICATION_KEYS = ["annexes", "envelope", "protocol", "receipt", "request", "verification"];
+const CATALOG_INDEX_FORMAT = "aih-catalog-index";
+const CATALOG_INDEX_VERSION = 1;
 const HEX_40 = /^[0-9a-f]{40}$/;
 const HEX_64 = /^[0-9a-f]{64}$/;
 const ID = /^[a-z0-9][a-z0-9._:/-]{0,199}$/;
@@ -522,7 +528,119 @@ function validatePublication(publicationBytes, handoff) {
     !same(request.source, handoff.source)
   )
     fail("publication-bound-inputs");
-  return { signedAt, expiresAt, value: publication };
+  return { signedAt, expiresAt, predicate, value: publication };
+}
+
+// The handoff fields Scan derives from the publication (reproduceConsumerHandoffV1); the others
+// (api, discovery and inspection digests, release, workflow, attestation, the envelope's custody
+// booleans and the local inspection) are custody facts checked below or stated as trusted.
+const REPRODUCED_KEYS = [
+  "analyzerGaps",
+  "analyzers",
+  "authority",
+  "components",
+  "coverageNotifications",
+  "findings",
+  "mapping",
+  "outcome",
+  "protocol",
+  "publicationSha256",
+  "publisherCommit",
+  "rawReports",
+  "receiptSha256",
+  "requestSha256",
+  "riskDecision",
+  "source",
+  "sourceArchive",
+];
+const ATTESTATION_KEYS = [
+  "buildSignerDigest",
+  "buildSignerURI",
+  "issuer",
+  "predicateType",
+  "runInvocationURI",
+  "runnerEnvironment",
+  "sourceRepositoryDigest",
+  "sourceRepositoryRef",
+  "sourceRepositoryURI",
+  "subject",
+  "subjectCount",
+  "verifiedTimestampCount",
+  "verifiedTimestamps",
+];
+const WORKFLOW_KEYS = [
+  "attempt",
+  "conclusion",
+  "event",
+  "headBranch",
+  "headSha",
+  "runId",
+  "status",
+  "url",
+  "workflowName",
+  "workflowPath",
+];
+
+/**
+ * The handoff is Scan's derived, unsigned projection. Every value it derives from the publication
+ * must equal what the Catalog reproduces from the publication's authenticated bytes, and its
+ * attestation and workflow custody must equal what the Sigstore bundle itself states; any
+ * difference refuses. Returns the reproduced component artifacts by Scanner component id.
+ */
+function reproducedHandoff(handoff, publication, publicationSha256, attestationBytes) {
+  const { fields, artifacts } = reproduceConsumerHandoffV1({
+    publication: publication.value,
+    predicate: publication.predicate,
+    publicationSha256,
+    publisherCommit: handoff.publisherCommit,
+    mapping: handoff.mapping,
+  });
+  // Each component first, so a refusal names the component artifact that differs.
+  const stated = array(handoff.components, "handoff-components");
+  if (stated.length !== fields.components.length) fail("handoff-not-reproduced components");
+  fields.components.forEach((expected, index) => {
+    if (!same(stated[index], expected))
+      fail(`handoff-not-reproduced ${expected.observationArtifact.path}`);
+  });
+  for (const key of REPRODUCED_KEYS)
+    if (!same(handoff[key], fields[key])) fail(`handoff-not-reproduced ${key}`);
+  const envelope = object(handoff.envelope, "handoff-envelope");
+  for (const key of ["authority", "signer", "claims"])
+    if (!same(envelope[key], fields.envelope[key])) fail(`handoff-not-reproduced envelope.${key}`);
+  const attested = verifyAttestationBundleOfflineV1({
+    bundleBytes: attestationBytes,
+    publicationSha256,
+    publisherCommit: handoff.publisherCommit,
+    claims: publication.predicate.claims,
+  });
+  const attestation = object(handoff.attestation, "handoff-attestation");
+  exactKeys(attestation, ATTESTATION_KEYS, "handoff-attestation");
+  const { verifiedTimestamps, ...facts } = attestation;
+  const timestamps = array(verifiedTimestamps, "handoff-attestation-timestamps");
+  if (
+    !same(facts, attested.facts) ||
+    timestamps.length !== attested.integratedTimes.length ||
+    timestamps.some((value, index) => {
+      exactKeys(value, ["timestamp", "type", "uri"], "handoff-attestation-timestamp");
+      return (
+        value.type !== "Tlog" ||
+        value.uri !== "https://rekor.sigstore.dev" ||
+        Date.parse(value.timestamp) !== attested.integratedTimes[index] * 1000
+      );
+    })
+  )
+    fail("handoff-attestation-custody");
+  const workflow = object(handoff.workflow, "workflow");
+  exactKeys(workflow, WORKFLOW_KEYS, "workflow");
+  if (
+    workflow.headSha !== handoff.publisherCommit ||
+    workflow.headBranch !== "main" ||
+    Object.entries(attested.run).some(([key, value]) => workflow[key] !== value)
+  )
+    fail("workflow-custody");
+  const release = object(handoff.release, "release");
+  if (release.url !== `${attested.repositoryUri}/releases/tag/${release.tag}`) fail("release-identity");
+  return artifacts;
 }
 
 const NATIVE_ANNEX_PATH = "annex/aih-native.json";
@@ -673,7 +791,14 @@ export function assertPublicationSetV1(publications) {
  * may hold any content (a skill directory, the repository root, a runtime directory); in the
  * direct skill mode every mapped component is itself one skill row.
  */
-function validateHandoff(handoff, publicationBytes, sourceRoot, handoffPath, closureMode = false) {
+function validateHandoff(
+  handoff,
+  publicationBytes,
+  attestationBytes,
+  sourceRoot,
+  handoffPath,
+  closureMode = false,
+) {
   exactKeys(handoff, HANDOFF_KEYS, "handoff");
   if (
     handoff.protocol !== "ScannerPublicationConsumerHandoffV1" ||
@@ -709,17 +834,6 @@ function validateHandoff(handoff, publicationBytes, sourceRoot, handoffPath, clo
     envelope.cliInspectionMatchesReleasedInspection !== true
   )
     fail("handoff-envelope-custody");
-  const attestation = object(handoff.attestation, "handoff-attestation");
-  if (
-    object(object(attestation.subject, "attestation-subject").digest, "attestation-digest")
-      .sha256 !== handoff.publicationSha256 ||
-    attestation.sourceRepositoryDigest !== handoff.publisherCommit ||
-    attestation.sourceRepositoryRef !== "refs/heads/main" ||
-    attestation.runnerEnvironment !== "github-hosted" ||
-    !Number.isSafeInteger(attestation.verifiedTimestampCount) ||
-    attestation.verifiedTimestampCount < 1
-  )
-    fail("handoff-attestation-custody");
   const analyzerGaps = object(handoff.analyzerGaps, "analyzer-gaps");
   exactKeys(analyzerGaps, ANALYZER_GAP_KEYS, "analyzer-gaps");
   if (
@@ -780,6 +894,12 @@ function validateHandoff(handoff, publicationBytes, sourceRoot, handoffPath, clo
     mappedById.set(scannerComponentId, component);
   }
   const publication = validatePublication(publicationBytes, handoff);
+  const reproduced = reproducedHandoff(
+    handoff,
+    publication,
+    handoff.publicationSha256,
+    attestationBytes,
+  );
   const components = [];
   let mappedFindingCount = 0;
   for (const summary of summarized) {
@@ -809,6 +929,9 @@ function validateHandoff(handoff, publicationBytes, sourceRoot, handoffPath, clo
       sha256(artifactRead.bytes) !== artifactPointer.sha256
     )
       fail("component-artifact-digest");
+    // The artifact states exactly what the publication's authenticated bytes say, byte for byte.
+    if (!artifactRead.bytes.equals(reproduced.get(scannerComponentId)?.bytes ?? Buffer.alloc(0)))
+      fail(`handoff-not-reproduced components/${artifactName}`);
     const artifact = artifactRead.value;
     exactKeys(artifact, COMPONENT_ARTIFACT_KEYS, "component-artifact");
     if (
@@ -1386,6 +1509,86 @@ function closureRows(members, provider, sourceRoot, definition, authoring) {
   return { rows, excluded: inventory.excluded };
 }
 
+/**
+ * The Catalog's curated inventory of one provider at one source and pin, from the Catalog's own
+ * committed catalog index (tools/generate-catalog-index.mjs; defaults/catalog-index-v1.json in the
+ * package). A curated row of a provider is its seed at
+ * `defaults/workbench/<provider>/<entryId>/seed.json`; the index also carries rows of no provider
+ * (the collection recipe), which no provider renders and this inventory skips.
+ */
+function curatedDirectSkillInventory(indexValue, provider, source) {
+  const index = object(indexValue, "catalog-index");
+  if (index.format !== CATALOG_INDEX_FORMAT || index.version !== CATALOG_INDEX_VERSION)
+    fail("catalog-index-format");
+  const repository = `${source.owner}/${source.repository}`;
+  const entries = new Map();
+  for (const value of array(index.entries, "catalog-index-entries")) {
+    const entry = object(value, "catalog-index-entry");
+    const entryId = text(entry.entryId, "catalog-index-entry-id", 300);
+    const subject = object(entry.subject, "catalog-index-subject");
+    const name = text(subject.id, "catalog-index-subject-id", 200);
+    const kind = text(subject.kind, "catalog-index-subject-kind", 40);
+    const seed = object(entry.seed, "catalog-index-seed");
+    const seedPath = text(seed.path, "catalog-index-seed-path", 1_024);
+    // A row of no provider (the collection's own row) is not a provider's curated row; a
+    // defaults/workbench path states its provider and its entry id and must agree with both.
+    if (!seedPath.startsWith("defaults/workbench/")) continue;
+    const row = /^defaults\/workbench\/([^/]+)\/(.+)\/seed\.json$/.exec(seedPath);
+    if (row === null || row[2] !== entryId) fail(`catalog-index-seed-path ${entryId}`);
+    if (row[1] !== provider) continue;
+    hex(seed.sha256, "catalog-index-seed");
+    if (entryId !== `${kind}.${provider}.${name}`) fail(`catalog-index-entry-id ${entryId}`);
+    // A direct skill run replaces every row of its provider in the seed manifest, so an inventory
+    // of another kind can never be rendered as direct skill rows and is refused, never dropped.
+    if (kind !== "skill")
+      fail(`mapping-selection-kind ${entryId}: not a curated skill row of provider ${provider}`);
+    const declared = object(subject.source, "catalog-index-subject-source");
+    if (
+      text(declared.repository, "catalog-index-subject-repository", 200) !== repository ||
+      hex(declared.commit, "catalog-index-subject-commit", HEX_40) !== source.pinnedCommit
+    )
+      fail(
+        `mapping-selection-pin ${entryId}: ${declared.repository}@${declared.commit} is not ${repository}@${source.pinnedCommit}`,
+      );
+    if (entries.has(name)) fail(`catalog-index-duplicate ${entryId}`);
+    entries.set(name, {
+      entryId,
+      entryPath: sourceRelative(declared.path, "catalog-index-subject-path"),
+    });
+  }
+  return { entries, provider, repository, pin: source.pinnedCommit };
+}
+
+/**
+ * A direct skill row's subject is the mapping's `catalogAssetId` (skillRowsOf), and the mapping is
+ * Scan's unsigned copy of the consumer's selection, so the selection itself is the Catalog's
+ * curated inventory: one row per curated skill of the provider, the curated entry point inside the
+ * Scanner component that renders it, and every curated skill covered exactly once. A mapping that
+ * drops, adds or rebinds one refuses.
+ */
+function assertCuratedDirectSkillSelection(inventory, members) {
+  const claimed = new Map();
+  for (const member of members)
+    for (const component of member.validated.components) {
+      const { artifact, files } = component;
+      const scannerComponentId = artifact.scannerComponentId;
+      const prefix = `${member.validated.source.id}/skill:`;
+      const assetId = artifact.catalogAssetId;
+      const name = assetId.startsWith(prefix) ? assetId.slice(prefix.length) : "";
+      const entry = inventory.entries.get(name);
+      if (entry === undefined)
+        fail(
+          `mapping-selection-uncatalogued ${assetId}: no curated skill of provider ${inventory.provider} at ${inventory.repository}@${inventory.pin}`,
+        );
+      if (!files.some((file) => file.path === entry.entryPath))
+        fail(`mapping-selection-unbound ${scannerComponentId} ${entry.entryPath}`);
+      if (claimed.has(name)) fail(`mapping-selection-duplicate ${assetId}`);
+      claimed.set(name, scannerComponentId);
+    }
+  for (const [name, entry] of inventory.entries)
+    if (!claimed.has(name)) fail(`mapping-selection-unmapped ${entry.entryId}`);
+}
+
 /** Direct skill mode: every mapped Scanner component is one skill row with its exact files. */
 function skillRows(members, provider, sourceRoot) {
   return members.flatMap((member) => skillRowsOf(member, provider, sourceRoot));
@@ -1765,32 +1968,60 @@ function updateManifest(prepared) {
   return seedPaths;
 }
 
+/**
+ * Renders the review-only rows of one provider from verified publications.
+ *
+ * The selection never comes from the unsigned handoff. Closure rows (`definitionPath`) are one row
+ * per curated Catalog component of the Catalog's pinned definition, and a mapped component that is
+ * dropped leaves its closure files unowned (`closure-file-unmapped`). Direct skill rows
+ * (`catalogIndexPath`) are one row per mapped Scanner component, and the row's subject is the
+ * mapping's `catalogAssetId`, so the selection and every subject come from the Catalog's own
+ * curated inventory (its committed catalog index; `assertCuratedDirectSkillSelection`).
+ */
 export function generateSourceAssessmentRowsV1({
   sourceRoot,
   handoffPath,
   publicationPath,
+  attestationPath,
   provider,
   outputRoot,
   manifestPath,
   definitionPath,
   authoringCatalogPath,
+  catalogIndexPath,
 }) {
   if (!PROVIDER.test(text(provider, "provider", 80))) fail("provider");
-  // One publication, or the members of one publication set as handoff/publication pairs (D49).
+  // One publication, or the members of one publication set as handoff/publication pairs (D49),
+  // each with the Sigstore bundle of its outer attestation.
   const handoffPaths = Array.isArray(handoffPath) ? handoffPath : [handoffPath];
   const publicationPaths = Array.isArray(publicationPath) ? publicationPath : [publicationPath];
-  if (handoffPaths.length === 0 || handoffPaths.length !== publicationPaths.length)
+  const attestationPaths = Array.isArray(attestationPath) ? attestationPath : [attestationPath];
+  if (
+    handoffPaths.length === 0 ||
+    handoffPaths.length !== publicationPaths.length ||
+    handoffPaths.length !== attestationPaths.length
+  )
     fail("publication-set-pairs");
   for (const [label, value] of [
     ["sourceRoot", sourceRoot],
     ...handoffPaths.map((path) => ["handoffPath", path]),
     ...publicationPaths.map((path) => ["publicationPath", path]),
+    ...attestationPaths.map((path) => ["attestationPath", path]),
     ["outputRoot", outputRoot],
     ["manifestPath", manifestPath],
     ...(definitionPath === undefined ? [] : [["definitionPath", definitionPath]]),
     ...(authoringCatalogPath === undefined ? [] : [["authoringCatalogPath", authoringCatalogPath]]),
+    ...(catalogIndexPath === undefined ? [] : [["catalogIndexPath", catalogIndexPath]]),
   ])
     if (typeof value !== "string" || !isAbsolute(value)) fail(`${label}-absolute`);
+  // A direct skill row states the mapping's catalogAssetId as its subject, so its selection has to
+  // come from the Catalog's curated inventory, never from the handoff's own copy of the mapping.
+  if (definitionPath === undefined && catalogIndexPath === undefined)
+    fail(
+      "direct-skill-selection-unauthored: direct skill rows need the Catalog's curated inventory (--catalog-index <aih-catalog-index>); the handoff's mapping is not a selection authority",
+    );
+  if (definitionPath !== undefined && catalogIndexPath !== undefined)
+    fail("catalog-index-with-definition");
   handoffPaths.forEach((path, index) => {
     if (dirname(resolve(path)) !== dirname(resolve(publicationPaths[index])))
       fail("publication-handoff-directory");
@@ -1800,6 +2031,11 @@ export function generateSourceAssessmentRowsV1({
     definitionPath === undefined
       ? undefined
       : readJson(definitionPath, "definition", 64 * 1024 * 1024).value;
+  // Direct skill rows read the Catalog's curated inventory of the provider (its catalog index).
+  const catalogIndex =
+    catalogIndexPath === undefined
+      ? undefined
+      : readJson(catalogIndexPath, "catalog-index", 64 * 1024 * 1024).value;
   // The external-inventory MCP rows come from the Catalog's policy authoring catalog (D61).
   if (authoringCatalogPath !== undefined && definition === undefined)
     fail("authoring-catalog-without-definition");
@@ -1810,9 +2046,11 @@ export function generateSourceAssessmentRowsV1({
   const members = handoffPaths.map((path, index) => {
     const handoff = readJson(path, "handoff", MAX_INPUT_BYTES).value;
     const publicationBytes = readPinnedFile(publicationPaths[index], MAX_INPUT_BYTES);
+    const attestationBytes = readPinnedFile(attestationPaths[index], 4 * 1024 * 1024);
     const validated = validateHandoff(
       handoff,
       publicationBytes,
+      attestationBytes,
       sourceRoot,
       path,
       definition !== undefined,
@@ -1833,6 +2071,13 @@ export function generateSourceAssessmentRowsV1({
       codeUnitCompare(left.handoff.publicationSha256, right.handoff.publicationSha256),
     );
   }
+  // The direct skill selection is the Catalog's curated inventory of this provider, at this source
+  // and pin; the handoff's mapping is only the claim that is compared with it.
+  if (catalogIndex !== undefined)
+    assertCuratedDirectSkillSelection(
+      curatedDirectSkillInventory(catalogIndex, provider, members[0].validated.source),
+      members,
+    );
   const rendered = renderRows(members, provider, sourceRoot, definition, authoring);
   const layout = destinationLayout(manifestPath, outputRoot, provider);
   const preparedManifest = prepareManifestUpdate(manifestPath, rendered.seedPaths, layout);
@@ -1851,8 +2096,9 @@ export function generateSourceAssessmentRowsV1({
 
 function argumentsFrom(argv) {
   const values = new Map();
-  // A publication set is named as repeated --handoff/--publication pairs, in the same order.
-  const pairs = { handoff: [], publication: [] };
+  // A publication set is named as repeated --handoff/--publication/--attestation triples, in the
+  // same order.
+  const pairs = { handoff: [], publication: [], attestation: [] };
   for (let index = 0; index < argv.length; index += 2) {
     const key = argv[index];
     const value = argv[index + 1];
@@ -1866,16 +2112,21 @@ function argumentsFrom(argv) {
     if (values.has(name)) fail("duplicate-argument");
     values.set(name, value);
   }
-  if (pairs.handoff.length !== pairs.publication.length) fail("arguments");
+  if (
+    pairs.handoff.length !== pairs.publication.length ||
+    pairs.handoff.length !== pairs.attestation.length
+  )
+    fail("arguments");
   const expected = [
     "source-root",
     "handoff",
     "publication",
+    "attestation",
     "provider",
     "output-root",
     "manifest",
   ];
-  const optional = ["definition", "authoring-catalog"];
+  const optional = ["definition", "authoring-catalog", "catalog-index"];
   if (
     expected.some((name) => !values.has(name)) ||
     [...values.keys()].some((name) => !expected.includes(name) && !optional.includes(name))
@@ -1885,12 +2136,16 @@ function argumentsFrom(argv) {
     sourceRoot: resolve(values.get("source-root")),
     handoffPath: pairs.handoff.length === 1 ? pairs.handoff[0] : pairs.handoff,
     publicationPath: pairs.publication.length === 1 ? pairs.publication[0] : pairs.publication,
+    attestationPath: pairs.attestation.length === 1 ? pairs.attestation[0] : pairs.attestation,
     provider: values.get("provider"),
     outputRoot: resolve(values.get("output-root")),
     manifestPath: resolve(values.get("manifest")),
     ...(values.has("definition") ? { definitionPath: resolve(values.get("definition")) } : {}),
     ...(values.has("authoring-catalog")
       ? { authoringCatalogPath: resolve(values.get("authoring-catalog")) }
+      : {}),
+    ...(values.has("catalog-index")
+      ? { catalogIndexPath: resolve(values.get("catalog-index")) }
       : {}),
   };
 }

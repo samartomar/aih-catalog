@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Offline Core collection seed renderer. It reads one sealed Scanner collection record
 // (`packaged-scanner-collection-evidence/v2` only, through the Catalog's v2 reader) and the
-// matching first-party qualification draft, and has two modes:
+// matching first-party qualification draft, and has three modes:
 //
 //   Refresh: `node tools/render-core-collection-seeds.mjs --record <collection-aih.json> --draft
 //   <collection-aih.qualification-draft.json> --output <new directory>` re-renders the current
@@ -28,6 +28,15 @@
 //   generators. Everything, the generated views included, is produced in a scratch copy first;
 //   the Catalog root is written only after all of it succeeded.
 //
+//   Initial release: `node tools/render-core-collection-seeds.mjs --record <collection-aih.json>
+//   --draft <draft.json> --initial-release <R> --from-package <Core package.json | .tgz of R>`
+//   creates the Core collection when the collection inputs have none (as after D57 part 1): the
+//   new-release rendering and checks with no previous rows, so every subject is added with no
+//   capability, the Catalog-wide platform and a license gap. The collection enters the inputs in id
+//   order with current.release R, the package origin and seedRoot workbench/aih-core-<R>/. It
+//   refuses when a Core collection exists (use --new-release), and names any Core seed tree or seed
+//   manifest path it finds, since none may exist without the collection.
+//
 //   Commit phase and recovery. The Catalog root is then written in this order: the new seed tree;
 //   the seed manifest, the collection inputs and the four views, each replaced through
 //   <file>.tmp and a rename; then the previous seed tree is removed. These steps are not one
@@ -38,6 +47,9 @@
 //     partial-release defaults/workbench/aih-core-<previous>/ (current.release <R>; previous tree
 //       not removed)             current.release moved, the previous tree is still there;
 //     leftover-temporary defaults/<file>.tmp   a replacement was cut off mid-write.
+//   An initial-release run cut off before the collection inputs moved names its tree the same
+//   way: partial-release defaults/workbench/aih-core-<R>/ (no current release; seed manifest
+//   updated | not updated).
 //   defaults/ is tracked in git and the tool writes nothing outside it, so recovery is to put
 //   defaults/ back at the last commit and re-run:
 //     git restore --source=HEAD --staged --worktree -- defaults && git clean -fd -- defaults
@@ -185,15 +197,23 @@ function releaseOrder(left, right) {
 }
 const defaultsPath = (root, seedRoot) => resolve(root, "defaults", ...seedRoot.slice(0, -1).split("/"));
 
-function currentCollection(catalogRoot) {
+/** The collection inputs and the Core collection in them, undefined before its initial release. */
+function collectionInputs(catalogRoot) {
   const inputs = object(json(readFileSync(resolve(catalogRoot, INPUT)), "inputs"), "inputs");
   const matches = array(inputs.collections, "inputs").filter((item) => item?.id === COLLECTION);
-  if (matches.length !== 1) fail("inputs-collection");
+  if (matches.length > 1) fail("inputs-collection");
+  if (matches.length === 0) return { inputs, current: undefined };
   const collection = object(matches[0], "inputs-collection");
   const release = text(object(collection.current, "inputs-current").release, "inputs-release");
   const seedRoot = text(collection.seedRoot, "inputs-seed-root");
   if (!SEED_ROOT.test(seedRoot)) fail("inputs-seed-root");
-  return { collection, inputs, release, seedRoot };
+  return { inputs, current: { collection, release, seedRoot } };
+}
+
+function currentCollection(catalogRoot) {
+  const { inputs, current } = collectionInputs(catalogRoot);
+  if (current === undefined) fail("inputs-collection");
+  return { ...current, inputs };
 }
 
 /**
@@ -606,12 +626,7 @@ export function renderCoreCollectionNewReleaseV1({
   const root = resolve(catalogRoot);
   const current = currentCollection(root);
   if (typeof release !== "string" || !NEW_RELEASE.test(release)) fail("new-release");
-  const workbench = resolve(root, "defaults", "workbench");
-  const coreTrees = existsSync(workbench)
-    ? readdirSync(workbench)
-        .filter((name) => name.startsWith(`${COLLECTION}-`))
-        .sort(codeUnitCompare)
-    : [];
+  const coreTrees = coreSeedTrees(root);
   if (release === current.release) {
     // current.release moved and a previous tree is still there: a run cut off before its last step.
     const stale = coreTrees.filter((name) => `workbench/${name}/` !== current.seedRoot);
@@ -623,19 +638,91 @@ export function renderCoreCollectionNewReleaseV1({
   }
   if (!NEW_RELEASE.test(current.release)) fail("inputs-release");
   if (releaseOrder(release, current.release) <= 0) fail(`new-release-not-newer ${release} ${current.release}`);
-  const seedRoot = `workbench/aih-core-${release}/`;
+  return renderRelease({
+    root,
+    inputs: current.inputs,
+    current,
+    release,
+    recordPath,
+    draftPath,
+    packagePath,
+    reader,
+  });
+}
+
+/**
+ * Initial-release mode (D57 part 2): the Catalog carries no Core collection yet, as after D57
+ * part 1. Creates it at release `release` from the sealed record, the draft and the Core package
+ * of that release, with no previous rows: every draft profile is a new subject. Every check of
+ * new-release mode applies (record release, coverage binding, draft bindings, package version),
+ * and the change is all-or-nothing through the same generators.
+ */
+export function renderCoreCollectionInitialReleaseV1({
+  catalogRoot,
+  recordPath,
+  draftPath,
+  release,
+  packagePath,
+  reader,
+}) {
+  const root = resolve(catalogRoot);
+  const { inputs, current } = collectionInputs(root);
+  if (typeof release !== "string" || !NEW_RELEASE.test(release)) fail("initial-release");
+  if (current !== undefined)
+    fail(`initial-collection-exists current.release ${current.release}; use --new-release`);
+  // Without a Core collection no Core seed may exist: a tree or seed path left here is an
+  // interrupted run's (or stale content), named and never overwritten.
+  const trees = coreSeedTrees(root);
+  const listed = manifestSeeds(root).filter((path) => path.startsWith(`workbench/${COLLECTION}-`));
+  if (trees.length > 0)
+    fail(
+      `partial-release ${trees.map((name) => `defaults/workbench/${name}/`).join(", ")} (no current release; seed manifest ${listed.length > 0 ? "updated" : "not updated"})`,
+    );
+  if (listed.length > 0) fail(`initial-manifest-seeds ${listed.join(", ")}`);
+  return renderRelease({
+    root,
+    inputs,
+    current: undefined,
+    release,
+    recordPath,
+    draftPath,
+    packagePath,
+    reader,
+  });
+}
+
+/** The Core seed trees under defaults/workbench/, by directory name. */
+function coreSeedTrees(root) {
+  const workbench = resolve(root, "defaults", "workbench");
+  return existsSync(workbench)
+    ? readdirSync(workbench)
+        .filter((name) => name.startsWith(`${COLLECTION}-`))
+        .sort(codeUnitCompare)
+    : [];
+}
+
+/** The seed manifest's paths, or none when it cannot be read (the generators refuse it later). */
+function manifestSeeds(root) {
+  try {
+    const seeds = JSON.parse(readFileSync(resolve(root, MANIFEST), "utf8")).seeds;
+    return Array.isArray(seeds) ? seeds.filter((path) => typeof path === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Renders release `release` into defaults/ over `current` (the Core collection at its previous
+ * release), or creates the collection when `current` is undefined, then regenerates the views.
+ */
+function renderRelease({ root, inputs, current, release, recordPath, draftPath, packagePath, reader }) {
+  const seedRoot = `workbench/${COLLECTION}-${release}/`;
   const suffix = `core-${release.replaceAll(".", "-")}`;
   const nextDirectory = defaultsPath(root, seedRoot);
-  const previousDirectory = defaultsPath(root, current.seedRoot);
+  const previousDirectory = current === undefined ? undefined : defaultsPath(root, current.seedRoot);
   if (existsSync(nextDirectory)) {
     // current.release has not moved, so this tree is an interrupted run's, not a committed release.
-    let listed = false;
-    try {
-      const seeds = JSON.parse(readFileSync(resolve(root, MANIFEST), "utf8")).seeds;
-      listed = Array.isArray(seeds) && seeds.some((path) => typeof path === "string" && path.startsWith(seedRoot));
-    } catch {
-      listed = false;
-    }
+    const listed = manifestSeeds(root).some((path) => path.startsWith(seedRoot));
     fail(
       `partial-release defaults/${seedRoot} (current.release ${current.release}; seed manifest ${listed ? "updated" : "not updated"})`,
     );
@@ -656,7 +743,7 @@ export function renderCoreCollectionNewReleaseV1({
   }
   if (identified.release !== release || identified.origin.version !== release) fail("package-version");
   const draft = draftProfiles(draftBytes);
-  const previous = releaseSeeds(root, current.seedRoot, current.release);
+  const previous = current === undefined ? [] : releaseSeeds(root, current.seedRoot, current.release);
   const previousByAsset = new Map(previous.map((item) => [item.assetId, item]));
 
   const entries = [...draft.profiles].map(([assetId, next]) => {
@@ -705,13 +792,26 @@ export function renderCoreCollectionNewReleaseV1({
   const manifestBytes = canonical({
     ...manifest,
     seeds: [
-      ...seeds.filter((path) => !path.startsWith(current.seedRoot)),
+      ...seeds.filter((path) => current === undefined || !path.startsWith(current.seedRoot)),
       ...entries.map((item) => `${seedRoot}${item.entryId}/seed.json`),
     ].sort(codeUnitCompare),
   });
-  current.collection.current = { release, origin: identified.origin };
-  current.collection.seedRoot = seedRoot;
-  const inputsBytes = `${JSON.stringify(current.inputs, null, 2)}\n`;
+  if (current === undefined) {
+    // The collection as the Catalog declared it before D57 part 1, placed in id order.
+    const collection = {
+      id: COLLECTION,
+      owner: { package: CORE_PACKAGE },
+      sourceType: "aih",
+      current: { release, origin: identified.origin },
+      seedRoot,
+    };
+    const after = inputs.collections.findIndex((item) => codeUnitCompare(item?.id, COLLECTION) > 0);
+    inputs.collections.splice(after < 0 ? inputs.collections.length : after, 0, collection);
+  } else {
+    current.collection.current = { release, origin: identified.origin };
+    current.collection.seedRoot = seedRoot;
+  }
+  const inputsBytes = `${JSON.stringify(inputs, null, 2)}\n`;
 
   // Stage the whole change, generated views included, before the Catalog root is touched.
   const written = new Map([
@@ -725,7 +825,10 @@ export function renderCoreCollectionNewReleaseV1({
       recursive: true,
       filter: (source) => {
         const path = resolve(source);
-        return path !== previousDirectory && !path.startsWith(`${previousDirectory}${sep}`);
+        return (
+          previousDirectory === undefined ||
+          (path !== previousDirectory && !path.startsWith(`${previousDirectory}${sep}`))
+        );
       },
     });
     writeTree(defaultsPath(staging, seedRoot), rendered);
@@ -746,11 +849,11 @@ export function renderCoreCollectionNewReleaseV1({
 
   writeTree(nextDirectory, rendered);
   for (const [path, bytes] of written) replaceFile(resolve(root, path), bytes, path);
-  rmSync(previousDirectory, { recursive: true });
+  if (previousDirectory !== undefined) rmSync(previousDirectory, { recursive: true });
   const drafted = new Set(draft.profiles.keys());
   return {
-    mode: "new-release",
-    previousRelease: current.release,
+    mode: current === undefined ? "initial-release" : "new-release",
+    previousRelease: current === undefined ? null : current.release,
     release,
     seedRoot,
     rendered: entries.map((item) => item.entryId),
@@ -775,7 +878,9 @@ function argumentsFrom(argv) {
   }
   const expected = values.has("new-release")
     ? ["record", "draft", "new-release", "from-package"]
-    : ["record", "draft", "output"];
+    : values.has("initial-release")
+      ? ["record", "draft", "initial-release", "from-package"]
+      : ["record", "draft", "output"];
   if (values.size !== expected.length || expected.some((name) => !values.has(name)))
     fail("arguments");
   return values;
@@ -799,7 +904,16 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
           packagePath: resolve(values.get("from-package")),
           reader,
         })
-      : renderCoreCollectionSeedsV1({
+      : values.has("initial-release")
+        ? renderCoreCollectionInitialReleaseV1({
+            catalogRoot,
+            recordPath,
+            draftPath,
+            release: values.get("initial-release"),
+            packagePath: resolve(values.get("from-package")),
+            reader,
+          })
+        : renderCoreCollectionSeedsV1({
           catalogRoot,
           recordPath,
           draftPath,

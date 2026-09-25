@@ -1,8 +1,18 @@
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, type TestContext } from "vitest";
 
 // Runbook step 8.4: the ECC runtime descriptor Catalog distributes is the one sealed inside
 // the ECC packaged source record T3 produced. The writer copies its exact bytes and records
@@ -293,5 +303,125 @@ describe("ECC runtime descriptor writer", () => {
     expect(readFileSync(join(item.root, INPUTS), "utf8")).toBe(before);
     expect(existsSync(join(item.root, descriptorPath(PIN)))).toBe(false);
     expect(existsSync(join(item.root, descriptorPath(OLD_PIN)))).toBe(true);
+  });
+
+  // Astra step-8 review P2: containment is physical, not lexical. A link anywhere on the way to
+  // the write target or the replaced file would carry the write or the deletion out of
+  // defaults/runtime-descriptors/, so every existing ancestor is checked without following links.
+  describe("physical containment", () => {
+    const REPOSITORY_DIRECTORY = "defaults/runtime-descriptors/github.com/affaan-m/ECC";
+    /** Links `path` to `target`; skips the test where the host does not allow that link type. */
+    function link(
+      context: TestContext,
+      target: string,
+      path: string,
+      type: "junction" | "dir" | "file",
+    ) {
+      try {
+        symlinkSync(target, path, type);
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === "EPERM") context.skip();
+        throw error;
+      }
+    }
+    /** Moves a directory of the Catalog root outside it and links the old place to the new one. */
+    function relocate(context: TestContext, root: string, path: string, type: "junction" | "dir") {
+      const outside = mkdtempSync(join(tmpdir(), "aih-ecc-outside-"));
+      temporary.push(outside);
+      const moved = join(outside, "moved");
+      renameSync(join(root, path), moved);
+      link(context, moved, join(root, path), type);
+      return moved;
+    }
+    const listing = (directory: string) =>
+      (readdirSync(directory, { recursive: true }) as string[])
+        .map((entry) => entry.replaceAll("\\", "/"))
+        .sort();
+
+    it.for([
+      ["a junction", "junction", REPOSITORY_DIRECTORY],
+      ["a directory symlink", "dir", REPOSITORY_DIRECTORY],
+      ["a junction", "junction", "defaults/runtime-descriptors"],
+      ["a directory symlink", "dir", "defaults/runtime-descriptors"],
+    ] as const)("refuses %s (%s) at %s and writes or deletes nothing", async ([
+      ,
+      type,
+      path,
+    ], context) => {
+      const api = await writer();
+      const item = catalogRoot();
+      const moved = relocate(context, item.root, path, type);
+      const before = readFileSync(join(item.root, INPUTS), "utf8");
+      const outsideBefore = listing(moved);
+      expect(() => api.emitEccRuntimeDescriptorV1(item.root)).toThrow(
+        `ecc-runtime-descriptor: ${path} is a link, junction or reparse point; the writer does not follow links`,
+      );
+      expect(listing(moved)).toEqual(outsideBefore);
+      expect(readFileSync(join(item.root, INPUTS), "utf8")).toBe(before);
+    });
+
+    it("refuses a junction on the replaced descriptor's directory and writes or deletes nothing", async (context) => {
+      const api = await writer();
+      const item = catalogRoot();
+      const old = `${REPOSITORY_DIRECTORY}/${OLD_PIN}`;
+      const moved = relocate(context, item.root, old, "junction");
+      const before = readFileSync(join(item.root, INPUTS), "utf8");
+      expect(() => api.emitEccRuntimeDescriptorV1(item.root)).toThrow(
+        `ecc-runtime-descriptor: ${old} is a link, junction or reparse point; the writer does not follow links`,
+      );
+      expect(listing(moved)).toEqual(["ecc-runtime-descriptor-v1.json"]);
+      expect(existsSync(join(item.root, descriptorPath(PIN)))).toBe(false);
+      expect(readFileSync(join(item.root, INPUTS), "utf8")).toBe(before);
+    });
+
+    it("refuses a replaced descriptor that is a file symlink and writes or deletes nothing", async (context) => {
+      const api = await writer();
+      const item = catalogRoot();
+      const outside = mkdtempSync(join(tmpdir(), "aih-ecc-outside-"));
+      temporary.push(outside);
+      writeFileSync(join(outside, "kept.json"), "{}");
+      rmSync(join(item.root, descriptorPath(OLD_PIN)));
+      link(context, join(outside, "kept.json"), join(item.root, descriptorPath(OLD_PIN)), "file");
+      const before = readFileSync(join(item.root, INPUTS), "utf8");
+      expect(() => api.emitEccRuntimeDescriptorV1(item.root)).toThrow(
+        `ecc-runtime-descriptor: ${descriptorPath(OLD_PIN)} is a link, junction or reparse point; the writer does not follow links`,
+      );
+      expect(readFileSync(join(outside, "kept.json"), "utf8")).toBe("{}");
+      expect(existsSync(join(item.root, descriptorPath(PIN)))).toBe(false);
+      expect(readFileSync(join(item.root, INPUTS), "utf8")).toBe(before);
+    });
+
+    it("refuses a write target that is a file symlink and writes nothing", async (context) => {
+      const api = await writer();
+      const item = catalogRoot();
+      const outside = mkdtempSync(join(tmpdir(), "aih-ecc-outside-"));
+      temporary.push(outside);
+      writeFileSync(join(outside, "kept.json"), "{}");
+      mkdirSync(dirname(join(item.root, descriptorPath(PIN))), { recursive: true });
+      link(context, join(outside, "kept.json"), join(item.root, descriptorPath(PIN)), "file");
+      const before = readFileSync(join(item.root, INPUTS), "utf8");
+      expect(() => api.emitEccRuntimeDescriptorV1(item.root)).toThrow(
+        `ecc-runtime-descriptor: ${descriptorPath(PIN)} is a link, junction or reparse point; the writer does not follow links`,
+      );
+      expect(readFileSync(join(outside, "kept.json"), "utf8")).toBe("{}");
+      expect(existsSync(join(item.root, descriptorPath(OLD_PIN)))).toBe(true);
+      expect(readFileSync(join(item.root, INPUTS), "utf8")).toBe(before);
+    });
+
+    it("refuses a runtime descriptor inputs file that is a link and writes nothing", async (context) => {
+      const api = await writer();
+      const item = catalogRoot();
+      const outside = mkdtempSync(join(tmpdir(), "aih-ecc-outside-"));
+      temporary.push(outside);
+      const before = readFileSync(join(item.root, INPUTS), "utf8");
+      renameSync(join(item.root, INPUTS), join(outside, "inputs.json"));
+      link(context, join(outside, "inputs.json"), join(item.root, INPUTS), "file");
+      expect(() => api.emitEccRuntimeDescriptorV1(item.root)).toThrow(
+        `ecc-runtime-descriptor: ${INPUTS} is a link, junction or reparse point; the writer does not follow links`,
+      );
+      expect(readFileSync(join(outside, "inputs.json"), "utf8")).toBe(before);
+      expect(existsSync(join(item.root, descriptorPath(PIN)))).toBe(false);
+      expect(existsSync(join(item.root, descriptorPath(OLD_PIN)))).toBe(true);
+    });
   });
 });
