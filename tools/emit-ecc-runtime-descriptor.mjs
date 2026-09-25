@@ -1,15 +1,16 @@
 import { createHash } from "node:crypto";
 import {
-  existsSync,
+  lstatSync,
   mkdirSync,
   readdirSync,
   readFileSync,
+  realpathSync,
   renameSync,
   rmdirSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { descriptorPath, INPUT } from "./generate-catalog-runtime-descriptors.mjs";
 
@@ -29,6 +30,13 @@ import { descriptorPath, INPUT } from "./generate-catalog-runtime-descriptors.mj
  * that entry named when it lived elsewhere. `npm run generate:catalog-runtime-descriptors`
  * then runs as today. Nothing is fetched, re-signed or re-evaluated; any mismatch refuses
  * before anything is written.
+ *
+ * Containment is physical, not lexical: the descriptor it writes and the one it removes lie
+ * under defaults/runtime-descriptors/, and every existing ancestor from the Catalog root down is
+ * a plain directory (the file itself a plain file) reached without a symbolic link, junction or
+ * other reparse point, resolving to the same place under the Catalog root. The inputs file is
+ * held to the same rule. All of it is checked before any write, and again right before each
+ * write, replacement and deletion.
  */
 const RECORDS = "src/production/data/packaged-source-data-v1.json";
 const DESCRIPTOR_ROOT = "defaults/runtime-descriptors";
@@ -145,16 +153,63 @@ function sealedDescriptor(records) {
   };
 }
 
+/** The entry at `path`, never following a link: undefined when nothing is there. */
+const entryAt = (path) => {
+  try {
+    return lstatSync(path);
+  } catch (error) {
+    if (error?.code === "ENOENT") return undefined;
+    throw error;
+  }
+};
+
+/**
+ * Checks the Catalog-relative `path` and each of its existing ancestors below the Catalog root
+ * without following links: each is a plain directory (`path` itself of `kind`), not a symbolic
+ * link, junction or other reparse point, and resolves physically to the same place under the
+ * Catalog root. Returns the absolute path and whether `path` exists.
+ */
+function physicalPath(root, path, kind) {
+  const segments = path.split("/");
+  if (segments.some((segment) => ["", ".", ".."].includes(segment) || /[\\:]/.test(segment)))
+    fail(`${path} is not a plain Catalog-relative path`);
+  let lexical = root;
+  let physical = realpathSync.native(root);
+  for (const [index, segment] of segments.entries()) {
+    lexical = join(lexical, segment);
+    physical = join(physical, segment);
+    const entry = entryAt(lexical);
+    if (entry === undefined) return { absolute: resolve(root, ...segments), exists: false };
+    const at = segments.slice(0, index + 1).join("/");
+    if (entry.isSymbolicLink())
+      fail(`${at} is a link, junction or reparse point; the writer does not follow links`);
+    const file = index === segments.length - 1 && kind === "file";
+    if (!(file ? entry.isFile() : entry.isDirectory()))
+      fail(`${at} is not a plain ${file ? "file" : "directory"}`);
+    // A reparse point Node does not report as a link still resolves elsewhere.
+    if (realpathSync.native(lexical) !== physical)
+      fail(`${at} is a link, junction or reparse point; the writer does not follow links`);
+  }
+  return { absolute: resolve(root, ...segments), exists: true };
+}
+
+/** A descriptor file path, physically contained under defaults/runtime-descriptors/. */
+const descriptorFile = (root, path) => {
+  if (!path.startsWith(`${DESCRIPTOR_ROOT}/`)) fail(`${path} is outside ${DESCRIPTOR_ROOT}/`);
+  return physicalPath(root, path, "file");
+};
+
 /** Removes a replaced descriptor file and the directories it leaves empty, up to the root. */
 function removeReplaced(root, path) {
-  rmSync(resolve(root, ...path.split("/")), { force: true });
+  const file = descriptorFile(root, path);
+  if (file.exists) rmSync(file.absolute);
   for (
     let directory = dirname(path);
     directory.startsWith(`${DESCRIPTOR_ROOT}/`);
     directory = dirname(directory)
   ) {
-    const absolute = resolve(root, ...directory.split("/"));
-    if (!existsSync(absolute) || readdirSync(absolute).length > 0) break;
+    const { absolute, exists } = physicalPath(root, directory, "directory");
+    if (!exists || readdirSync(absolute).length > 0) break;
     rmdirSync(absolute);
   }
 }
@@ -172,7 +227,7 @@ const writeReplacing = (path, bytes) => {
 export function emitEccRuntimeDescriptorV1(catalogRoot) {
   const root = resolve(catalogRoot);
   const descriptor = sealedDescriptor(JSON.parse(readFileSync(resolve(root, RECORDS), "utf8")));
-  const inputsPath = resolve(root, INPUT);
+  const inputsPath = physicalPath(root, INPUT, "file").absolute;
   const inputs = object(JSON.parse(readFileSync(inputsPath, "utf8")), "inputs");
   if (inputs.format !== "aih-catalog-runtime-descriptors-inputs" || inputs.version !== 1)
     fail("unsupported runtime descriptor inputs version");
@@ -198,17 +253,22 @@ export function emitEccRuntimeDescriptorV1(catalogRoot) {
       replaced.split("/").some((segment) => ["", ".", ".."].includes(segment) || segment.includes("\\")))
   )
     fail("the previous ECC runtime descriptor path is unsafe");
-  const target = resolve(root, ...descriptor.path.split("/"));
+  const removed = replaced !== undefined && replaced !== descriptor.path ? replaced : undefined;
+  // Every path the writer touches is physically contained before anything is written.
+  const target = descriptorFile(root, descriptor.path).absolute;
+  if (removed !== undefined) descriptorFile(root, removed);
   // A temporary file left by an interrupted run refuses by name before anything is written.
   for (const [temporary, label] of [
     [`${target}.tmp`, `${descriptor.path}.tmp`],
     [`${inputsPath}.tmp`, `${INPUT}.tmp`],
   ])
-    if (existsSync(temporary)) fail(`a stale temporary file ${label} exists; remove it and rerun`);
+    if (entryAt(temporary) !== undefined)
+      fail(`a stale temporary file ${label} exists; remove it and rerun`);
   mkdirSync(dirname(target), { recursive: true });
+  descriptorFile(root, descriptor.path);
   writeReplacing(target, descriptor.bytes);
+  physicalPath(root, INPUT, "file");
   writeReplacing(inputsPath, `${JSON.stringify({ ...inputs, descriptors }, null, 2)}\n`);
-  const removed = replaced !== undefined && replaced !== descriptor.path ? replaced : undefined;
   if (removed !== undefined) removeReplaced(root, removed);
   return {
     coreSeal: descriptor.coreSeal,
