@@ -1010,13 +1010,61 @@ const declaredDigest = (value, label) => {
 };
 
 /**
+ * One supported component of a baseline catalog as a closure row (D59), in exactly one of its
+ * three curated shapes; anything else refuses, naming the component and the shape it misses.
+ * - skill: one directory with a SKILL.md, or several directory roots whose canonical root is
+ *   `skills/<name>` (the compiler's preferred source path) and holds the entry SKILL.md; the
+ *   closure is the union of the roots and every root must hold a file;
+ * - agent: exactly one file, which is the entry;
+ * - mcp: explicit declaration files only, which several components may share; the entry is the
+ *   first one the definition lists (the compiler's preferred source path).
+ */
+function baselineCandidate(id, kind, name, roots, nativePaths) {
+  const unrendered = (reason) => fail(`definition-component-unrendered ${id}: ${reason}`);
+  const under = (root) => nativePaths.filter((path) => path.startsWith(`${root}/`));
+  const isFile = (path) => nativePaths.includes(path);
+  if (kind === "skill") {
+    if (roots.length === 1) {
+      const members = under(roots[0]);
+      const entryPath = `${roots[0]}/SKILL.md`;
+      if (!members.includes(entryPath)) fail("definition-skill-entrypoint");
+      return { id, kind, name, entryPath, members, explicit: [] };
+    }
+    const canonicalRoot = `skills/${name}`;
+    if (!roots.includes(canonicalRoot))
+      unrendered(`a skill with several roots needs its canonical root ${canonicalRoot}`);
+    const members = roots.flatMap((root) => {
+      const files = under(root);
+      if (files.length === 0 || isFile(root)) unrendered(`root ${root} holds no file`);
+      return files;
+    });
+    const entryPath = `${canonicalRoot}/SKILL.md`;
+    if (!members.includes(entryPath)) fail("definition-skill-entrypoint");
+    return { id, kind, name, entryPath, members, explicit: [], roots };
+  }
+  if (kind === "agent") {
+    if (roots.length !== 1 || !isFile(roots[0]) || under(roots[0]).length > 0)
+      unrendered("an agent names exactly one file");
+    return { id, kind, name, entryPath: roots[0], members: roots, roots };
+  }
+  if (kind === "mcp") {
+    for (const root of roots)
+      if (!isFile(root) || under(root).length > 0)
+        unrendered(`an mcp names only explicit declaration files; ${root} is not one file`);
+    return { id, kind, name, entryPath: roots[0], members: roots, roots };
+  }
+  return unrendered("a baseline catalog renders only agent, mcp and skill rows");
+}
+
+/**
  * The curated Catalog rows of one source and their compiler closures, from the Catalog's own
  * pinned definition (tools/emit-baseline-definitions.mjs): a pinned skill collection (its
  * skills' declared files and declared license), a pinned component collection (each
  * component's file references and the declared license file) or a pinned baseline catalog (each
- * skill directory, expanded over the publication's native file list, and the repository-root
- * license files). A definition for another source or pin refuses. `nativePaths` is the
- * publication's native file list.
+ * agent file, mcp declaration files and skill root directories, expanded over the publication's
+ * native file list, and the repository-root license files; baselineCandidate). A file several
+ * rows share must be listed by each. A definition for another source or pin refuses.
+ * `nativePaths` is the publication's native file list.
  */
 export function curatedClosuresV1(definitionValue, source, nativePaths) {
   const definition = object(definitionValue, "definition");
@@ -1101,15 +1149,17 @@ export function curatedClosuresV1(definitionValue, source, nativePaths) {
         candidates.push({ id, kind, name: id.slice(colon + 1), members: [] });
         continue;
       }
-      // A baseline catalog names skills by directory; any other supported kind has no curated
-      // entry point here, so it refuses rather than guess one.
-      if (kind !== "skill" || roots.length !== 1) fail("definition-component-unrendered");
-      const members = nativePaths.filter((path) => path.startsWith(`${roots[0]}/`));
-      const entryPath = `${roots[0]}/SKILL.md`;
-      if (!members.includes(entryPath)) fail("definition-skill-entrypoint");
-      candidates.push({ id, kind, name: id.slice(colon + 1), entryPath, members });
+      candidates.push(baselineCandidate(id, kind, id.slice(colon + 1), roots, nativePaths));
     }
   } else fail("definition-format");
+  // A file two curated rows share must be listed by each of them (D59): a closure never
+  // reaches another row's file through a directory root.
+  const listedBy = new Map();
+  for (const candidate of candidates)
+    for (const path of candidate.members) listedBy.set(path, [...(listedBy.get(path) ?? []), candidate]);
+  for (const [path, holders] of listedBy)
+    if (holders.length > 1 && holders.some((candidate) => !(candidate.explicit ?? candidate.members).includes(path)))
+      fail(`definition-shared-file-implicit ${path}`);
   const rows = [];
   const excluded = [];
   const seen = new Set();
@@ -1131,6 +1181,13 @@ export function curatedClosuresV1(definitionValue, source, nativePaths) {
       files: [...new Set([...licensePaths, ...candidate.members])].sort(codeUnitCompare),
       kind: candidate.kind,
       name: candidate.name,
+      // A baseline catalog's multi-path shapes (D59) state their roots and shared files.
+      ...(candidate.roots === undefined
+        ? {}
+        : {
+            roots: candidate.roots,
+            shared: candidate.members.filter((path) => listedBy.get(path).length > 1),
+          }),
     });
   }
   return {
@@ -1214,6 +1271,7 @@ function closureRows(members, provider, sourceRoot, definition) {
       assetId: `${source.id}/${row.kind}:${row.name}`,
       closureFiles: files.map((entry) => ({ digest: `sha256:${entry.sha256}`, path: entry.path })),
       compiler: inventory.compiler,
+      ...(row.roots === undefined ? {} : { roots: row.roots, shared: row.shared }),
       componentIds: involved.map((component) => component.artifact.scannerComponentId),
       contentDigest: `sha256:${sha256(JSON.stringify(files.map((entry) => ({ type: "file", ...entry }))))}`,
       coverageComplete: involved.every((component) => component.artifact.coverageComplete === true),
@@ -1491,9 +1549,22 @@ function renderRows(members, provider, sourceRoot, definition) {
         source,
       }),
     );
+    const listed = (paths) => paths.map((path) => `\`${path}\``).join(", ");
+    const shape = [
+      ...(row.roots?.length > 1 && kind === "skill"
+        ? [
+            `Curated source roots: ${listed(row.roots)}; the entry is the canonical root's \`${row.entryPath}\`.`,
+          ]
+        : []),
+      ...(row.shared?.length > 0
+        ? [
+            `Shared declaration files, listed by the curated definition for several components: ${listed(row.shared)}. A finding located in a shared file is stated on every row whose closure holds it.`,
+          ]
+        : []),
+    ];
     files.set(
       `${root}/artifacts/prose.md`,
-      `# ${entryId}\n\nExact review-only source-file assessment at ${repository}@${validated.source.pinnedCommit}:${source.path}. Scanner findings, coverage limits, authority, and dates remain unchanged. This is not a clean-scan declaration, installation approval, runtime authority, or organization admission.\n`,
+      `# ${entryId}\n\nExact review-only source-file assessment at ${repository}@${validated.source.pinnedCommit}:${source.path}. Scanner findings, coverage limits, authority, and dates remain unchanged. This is not a clean-scan declaration, installation approval, runtime authority, or organization admission.\n${shape.map((line) => `\n${line}\n`).join("")}`,
     );
     const seed = {
       artifacts: {
