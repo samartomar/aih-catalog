@@ -38,6 +38,11 @@ executable capabilities, and do not authorize installation or organization use.
 Anthropic's `docx`, `pdf`, `pptx`, `xlsx`, and `doc-coauthoring` are not included:
 their applicable license grant is restricted or unestablished. Unsupported
 component kinds and derived compositions are not relabeled as qualified members.
+Matt Pocock's 13 upstream skills under `skills/in-progress/` (beta, not shipped in
+the upstream plugin) and `skills/misc/` (rarely used, not promoted) are not
+included. Nor are Ponytail's six `.openclaw/skills/*` copies, which upstream
+generates from `skills/`. The per-prefix reasons are in
+[Source curation](ai-coding/supported-catalog-v2.md#source-curation).
 Publication still requires the separate protected workflows described above.
 
 ## Node-only interfaces
