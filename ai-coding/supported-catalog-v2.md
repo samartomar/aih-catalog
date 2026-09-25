@@ -70,6 +70,42 @@ For an AIH source, `revision` must equal the SHA-256 of the profile artifact. Fo
 other source kinds, the producer validates and binds the declaration but does not
 contact the provider or claim the package was installed or executed.
 
+### Source curation
+
+The kinds above say what a subject can be. Each source's hand-authored inclusion
+declaration says which upstream files become subjects. Two sources leave
+upstream `SKILL.md` files out on purpose. Every reason below is an upstream fact
+at the pinned commit. Where no reason is recorded, the table says so.
+
+Matt Pocock (`mattpocock/skills@c55ee46073ed923f86ce59a5eb3b6d895095d1b7`, plugin
+1.2.3): `MATTPOCOCK_CANONICAL_SKILL_PATHS_V1`
+(`src/production/workbench/mattpocock-provider-v1.ts`) is exactly the 25 skills in
+upstream `.claude-plugin/plugin.json` `skills`. The snapshot's
+`inclusion.excludedPrefixes` names seven prefixes. The pinned tree has 13
+`SKILL.md` files under them:
+
+| Prefix | Skills at the pin | Reason |
+| --- | --- | --- |
+| `skills/in-progress/` | 9: `claude-handoff`, `implement-spec`, `loop-me`, `pr`, `retro`, `setup-ts-deep-modules`, `writing-beats`, `writing-fragments`, `writing-shape` | Upstream `CLAUDE.md` calls the bucket "beta: public on purpose, feedback wanted, not shipped in the plugin". `skills/in-progress/README.md` says the skills are excluded from the plugin until they graduate and "can change or disappear without warning". It also marks `retro` "STUB: design notes only, not functional yet". |
+| `skills/misc/` | 4: `git-guardrails-claude-code`, `migrate-to-shoehorn`, `scaffold-exercises`, `setup-pre-commit` | Upstream `CLAUDE.md`: "kept around but rarely used, not promoted". None is in `plugin.json`. |
+| `skills/deprecated/` | none (only `README.md`) | Upstream `CLAUDE.md`: "no longer used". The upstream README says the bucket is currently empty. |
+| `docs/` | none | Holds the human-facing docs pages for promoted skills (upstream `CLAUDE.md`). It has no `SKILL.md`. There is no recorded reason beyond that. |
+| `.agents/` | none | Holds maintainer notes: install block, invocation, writing-docs and ADRs. It has no `SKILL.md`. There is no recorded reason beyond that. |
+| `.changeset/` | none | Holds release changesets. It has no `SKILL.md`. There is no recorded reason beyond that. |
+| `scripts/` | none | Holds the repository scripts `link-skills.sh`, `list-skills.sh` and `sync-plugin-version.mjs`. It has no `SKILL.md`. There is no recorded reason beyond that. |
+
+Ponytail (`DietrichGebert/ponytail@1d95ff7d39de12d87014ea40d4e22201bddc501b`,
+4.10.0): upstream has six `SKILL.md` copies under `.openclaw/skills/*`, each a
+counterpart of a `skills/<name>/SKILL.md`. The snapshot declares the six skill
+components from `skills/` only and stages no `.openclaw/` file. Upstream
+`README.md` says: "The OpenClaw skill package (`.openclaw/skills/`) is generated
+from `skills/`". There, `scripts/build-openclaw-skills.js` generates
+`.openclaw/skills/` from `skills/`, and a separate script,
+`scripts/publish-openclaw-skills.js`, publishes the six skills to ClawHub. At
+the pin, the bytes of each copy differ from its `skills/`
+original. The copies are generated packaging for the same six skills, so they
+are not separate subjects.
+
 ## Evidence
 
 A seed qualification contains one required report path, zero to 64 finding

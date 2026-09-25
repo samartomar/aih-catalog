@@ -11,7 +11,10 @@ import {
   pinnedSkillCollectionDigestV1,
 } from "./pinned-skill-collection-v1.js";
 
-/** Hand-authored inclusion declaration: the upstream skills and support files Catalog ships. */
+/**
+ * Hand-authored inclusion declaration: the upstream skills and support files Catalog ships.
+ * Why each excluded upstream prefix is left out: ai-coding/supported-catalog-v2.md, "Source curation".
+ */
 export const MATTPOCOCK_SOURCE_ID_V1 = "mattpocock";
 export const MATTPOCOCK_REPOSITORY_V1 = "https://github.com/mattpocock/skills";
 

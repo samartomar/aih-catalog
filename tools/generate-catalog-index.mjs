@@ -3,8 +3,8 @@ import { lstatSync, readFileSync, renameSync, rmSync, writeFileSync } from "node
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const MANIFEST = "defaults/default-catalog-seed-manifest-v2.json";
-const OUTPUT = "defaults/catalog-index-v1.json";
+export const MANIFEST = "defaults/default-catalog-seed-manifest-v2.json";
+export const OUTPUT = "defaults/catalog-index-v1.json";
 const compare = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 const fail = (message) => { throw new Error(`catalog-index: ${message}`); };
 const text = (value, label) => {
