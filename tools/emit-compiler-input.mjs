@@ -73,6 +73,10 @@ try {
   const input = produceCompilerInputV1(root, options.name, options.commit, {
     ...(vendorLock === undefined ? {} : { vendorLock }),
     ...(options.sourceRoot === undefined ? {} : { checkout: resolve(options.sourceRoot), git }),
+    onProvisionalExclusion: (excluded) => {
+      if (excluded.length > 0)
+        console.log(`PROVISIONAL (D63 interim, K1 only): left out ${excluded.join(", ")}`);
+    },
   });
   const text = serializeCompilerInputV1(input);
   writeFileSync(resolve(options.output), text, { encoding: "utf8", flag: "wx" });

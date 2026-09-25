@@ -14,9 +14,11 @@ import { readCollectionSnapshotV1 } from "../../src/production/workbench/authori
 import {
   collectionCompilerInputAtPinV1,
   frameworkCompilerInputV1,
+  PROVISIONAL_ANTHROPICS_SKILLS_EXCLUSIONS_V1,
   produceCompilerInputV1,
   readCuratedCollectionTemplateV1,
   serializeCompilerInputV1,
+  withoutProvisionalAnthropicsSkillsExclusionsV1,
 } from "../../src/production/workbench/compiler-input-v1.js";
 import { compilePinnedComponentCollectionV1 } from "../../src/production/workbench/pinned-component-collection-v1.js";
 import { curatedVendorLockV2 } from "./v2-fixtures.js";
@@ -317,5 +319,62 @@ describe("T3 compiler input for a collection", () => {
     expect(() => produceCompilerInputV1(root, "aih" as "ecc", "0".repeat(40))).toThrow(
       /no compiler input subject aih/,
     );
+  });
+});
+
+// D63 interim: restored for K2 when the 19-component publication exists.
+describe("PROVISIONAL anthropics-skills exclusion (D63 interim, K1 only)", () => {
+  const EXCLUDED = ["skill:doc-coauthoring", "skill:docx", "skill:pdf", "skill:pptx", "skill:xlsx"];
+  const reference = (path: string) => ({ path, sha256: `sha256:${"0".repeat(64)}`, size: 1 });
+  const skill = (name: string) => ({
+    id: `skill:${name}`,
+    kind: "skill",
+    primaryPath: `skills/${name}/SKILL.md`,
+    fileRefs: [`skills/${name}/LICENSE.txt`, `skills/${name}/SKILL.md`],
+  });
+  const names = ["alpha", "doc-coauthoring", "docx", "pdf", "pptx", "xlsx"];
+  const curated = () => ({
+    version: "pinned-component-collection/v1",
+    source: { id: "anthropics-skills", licenseFileRef: "README.md" },
+    files: ["README.md", ...names.flatMap((name) => skill(name).fileRefs)].map(reference),
+    components: names.map(skill),
+  });
+
+  it("names exactly the five skills the 34040c9c publication does not cover", () => {
+    expect([...PROVISIONAL_ANTHROPICS_SKILLS_EXCLUSIONS_V1]).toEqual(EXCLUDED);
+    expect(Object.isFrozen(PROVISIONAL_ANTHROPICS_SKILLS_EXCLUSIONS_V1)).toBe(true);
+  });
+
+  it("drops exactly those components and the files only they name, and reports them", () => {
+    const template = curated();
+    const before = JSON.stringify(template);
+    const { template: kept, excluded } = withoutProvisionalAnthropicsSkillsExclusionsV1(template);
+    expect(excluded).toEqual(EXCLUDED);
+    expect((kept.components as { id: string }[]).map((component) => component.id)).toEqual([
+      "skill:alpha",
+    ]);
+    expect((kept.files as { path: string }[]).map((file) => file.path)).toEqual([
+      "README.md",
+      "skills/alpha/LICENSE.txt",
+      "skills/alpha/SKILL.md",
+    ]);
+    // The sealed template itself is never changed.
+    expect(JSON.stringify(template)).toBe(before);
+  });
+
+  it("keeps a file another kept component still names", () => {
+    const template = curated();
+    template.components[0]?.fileRefs.push("skills/docx/LICENSE.txt");
+    const { template: kept } = withoutProvisionalAnthropicsSkillsExclusionsV1(template);
+    expect((kept.files as { path: string }[]).map((file) => file.path)).toContain(
+      "skills/docx/LICENSE.txt",
+    );
+  });
+
+  it("reports nothing for a template that already leaves them out", () => {
+    const template = { ...curated(), components: [skill("alpha")] };
+    const { template: kept, excluded } = withoutProvisionalAnthropicsSkillsExclusionsV1(template);
+    expect(excluded).toEqual([]);
+    expect(kept.components).toEqual([skill("alpha")]);
   });
 });

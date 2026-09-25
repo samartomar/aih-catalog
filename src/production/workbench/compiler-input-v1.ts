@@ -145,6 +145,56 @@ export function readCuratedCollectionTemplateV1(
   return template;
 }
 
+/**
+ * PROVISIONAL. D63 interim: restored for K2 when the 19-component publication exists.
+ *
+ * The anthropics-skills publication at 34040c9c (request 5b14bb58) covers 14 of the 19 curated
+ * skills, so Core's containment check refuses the full curation. For the K1 candidate only, the
+ * anthropics-skills compiler input leaves out exactly these five skills and the files only they
+ * name. The authoring view keeps all 19 once anthropics-skills is re-published with them (D63).
+ */
+export const PROVISIONAL_ANTHROPICS_SKILLS_EXCLUSIONS_V1: readonly string[] = Object.freeze([
+  "skill:doc-coauthoring",
+  "skill:docx",
+  "skill:pdf",
+  "skill:pptx",
+  "skill:xlsx",
+]);
+
+/**
+ * The curated anthropics-skills template without the provisional exclusions, and the component
+ * ids it left out, so the caller can state them. A file stays while a kept component names it;
+ * files no component names (the license file) are kept. The template itself is not changed.
+ */
+export function withoutProvisionalAnthropicsSkillsExclusionsV1(template: unknown): {
+  readonly template: JsonRecord;
+  readonly excluded: readonly string[];
+} {
+  const curated = record(template, "curated template");
+  const components = list(curated.components, "curated components", 1).map((item, index) =>
+    record(item, `curated component ${String(index)}`),
+  );
+  const leaving = new Set(PROVISIONAL_ANTHROPICS_SKILLS_EXCLUSIONS_V1);
+  const kept = components.filter((component) => !leaving.has(text(component.id, "component id")));
+  const excluded = components
+    .map((component) => component.id as string)
+    .filter((id) => leaving.has(id));
+  if (excluded.length === 0) return { template: curated, excluded };
+  const named = (component: JsonRecord) =>
+    list(component.fileRefs, `${String(component.id)} fileRefs`, 1).map((ref) =>
+      text(ref, `${String(component.id)} fileRef`),
+    );
+  const onlyExcluded = new Set(
+    components.filter((component) => leaving.has(component.id as string)).flatMap(named),
+  );
+  for (const ref of kept.flatMap(named)) onlyExcluded.delete(ref);
+  const files = list(curated.files, "curated template files", 1).filter(
+    (item, index) =>
+      !onlyExcluded.has(text(record(item, `curated file ${String(index)}`).path, "curated file")),
+  );
+  return { template: { ...curated, components: kept, files }, excluded };
+}
+
 const REGULAR_BLOB = new Set(["100644", "100755"]);
 
 function gitText(git: GitRunnerV1, checkout: string, args: readonly string[]): string {
@@ -267,6 +317,8 @@ export function produceCompilerInputV1(
     readonly vendorLock?: unknown;
     readonly checkout?: string;
     readonly git?: GitRunnerV1;
+    /** Told which curated components the provisional D63 exclusion left out. */
+    readonly onProvisionalExclusion?: (excluded: readonly string[]) => void;
   } = {},
 ): JsonRecord {
   if (!Object.hasOwn(COMPILER_INPUT_SUBJECTS_V1, subject))
@@ -299,12 +351,12 @@ export function produceCompilerInputV1(
   } else {
     if (options.checkout === undefined || options.git === undefined)
       fail("anthropics-skills needs a checkout of anthropics/skills holding the pin");
-    input = collectionCompilerInputAtPinV1(
+    // PROVISIONAL (D63 interim): restored for K2 when the 19-component publication exists.
+    const { template, excluded } = withoutProvisionalAnthropicsSkillsExclusionsV1(
       readCuratedCollectionTemplateV1(root, subject),
-      commit,
-      options.checkout,
-      options.git,
     );
+    options.onProvisionalExclusion?.(excluded);
+    input = collectionCompilerInputAtPinV1(template, commit, options.checkout, options.git);
   }
   return input;
 }
