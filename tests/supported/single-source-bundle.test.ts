@@ -59,13 +59,14 @@ describe("single-source authoring bundle", () => {
 
   it("keeps the vetted-pin guard for the vendor-lock-bound framework sources", () => {
     const pin = recorded("ecc-modules-v1.json");
-    expect(() => produceSingleSourceAuthoringBundleV1(root, "ecc", pin)).toThrow(
-      /was not fetched at the vetted pin/,
-    );
     const lock = JSON.parse(readFileSync(data("vendor-lock-v1.json"), "utf8")) as {
       sources: { id: string; pinnedSha: string }[];
     };
-    expect(lock.sources.find((source) => source.id === "ecc")?.pinnedSha).not.toBe(pin);
+    // The shipped lock vets the pin the ECC inputs were fetched at; a lock that pins ECC
+    // elsewhere refuses them.
+    expect(lock.sources.find((source) => source.id === "ecc")?.pinnedSha).toBe(pin);
+    for (const source of lock.sources)
+      if (source.id === "ecc") source.pinnedSha = "0123456789abcdef0123456789abcdef01234567";
     expect(() =>
       produceSingleSourceAuthoringBundleV1(root, "ecc", pin, { vendorLock: lock }),
     ).toThrow(/was not fetched at the vetted pin/);
