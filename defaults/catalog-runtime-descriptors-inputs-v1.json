@@ -1,12 +1,12 @@
 {
   "descriptors": [
     {
-      "coreSeal": "sha256:52e67554115b2300932fc3976e190364c4c3cd037cdb7877b388a95f74a1df02",
+      "coreSeal": "sha256:ca007dbe7910425ccece63e57bc74c2029a8016532c5222002cae2de90ad2f49",
       "format": "ecc-runtime-descriptor/v1",
       "framework": "ecc",
       "origin": {
         "kind": "core-packaged-source-data",
-        "recordSha256": "785d733ffbd09de31ecc9c46da01e6b698dd62919f5f42d311d316681b9fe7a8"
+        "recordSha256": "d286c6e2dc716ad5fa615b5fd86841ef8d6b210faf2279c785fa934d41e26a51"
       },
       "path": "defaults/runtime-descriptors/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/ecc-runtime-descriptor-v1.json"
     }
