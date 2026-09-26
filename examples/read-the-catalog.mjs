@@ -70,8 +70,9 @@ const qualification = qualificationResult.qualification;
 const states = {};
 for (const entry of qualification.entries) states[entry.state] = (states[entry.state] ?? 0) + 1;
 
-// 5. One current collection member's exact original source files. A refusal is reported
-// as the fact it is: this Catalog names no Core collection until its 0.7.0 content lands.
+// 5. One current collection member's exact original source files. The Core collection carries
+// its 0.7.0 rows; their closure files live in the Core package this checkout does not hold, so
+// the reader reports the absent file as the fact it is.
 const closure = readCatalogSourceClosureV1({
   collectionId: "aih-core",
   subjectId: "governance-quality",

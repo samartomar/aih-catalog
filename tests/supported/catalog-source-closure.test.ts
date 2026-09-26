@@ -186,7 +186,9 @@ async function syntheticPackage(base: string) {
         current: { release: "0.6.2", origin: { kind: "catalog-authored" } },
         seedRoot: "workbench/aih-core-0.6.2/",
       },
-      ...shippedInputs.collections,
+      ...shippedInputs.collections.filter(
+        (collection: { id: string }) => collection.id !== "aih-core",
+      ),
     ],
   };
   write(
@@ -336,11 +338,11 @@ describe("catalog original-source closure", () => {
     ]);
   });
 
-  it("reads its own installed package when no root is given, which names no Core collection yet", () => {
-    // The shipped Catalog carries no Core collection until the Core 0.7.0 content lands (D57).
+  it("reports the Core-owned source file absent from its own installed package", () => {
+    // The shipped Catalog names Core 0.7.0 members but does not carry their original files.
     expect(
       readCatalogSourceClosureV1({ collectionId: "aih-core", subjectId: "governance-quality" }),
-    ).toEqual({ state: "refused", reason: "collection-unknown" });
+    ).toEqual({ state: "refused", reason: "source-file-absent", path: "aih-packs.json" });
   });
 
   it("refuses an unknown collection or a subject that is not a current member", () => {

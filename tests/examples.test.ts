@@ -64,8 +64,11 @@ describe("public-API example", () => {
       const current = run("2026-09-22T12:00:00Z");
       expect(current.status, current.stderr).toBe(0);
       const report = JSON.parse(current.stdout);
-      expect(report.index.entries).toBe(431);
-      expect(report.collections.map((c: { owner: string }) => c.owner)).toEqual(["@aihq/catalog"]);
+      expect(report.index.entries).toBe(446);
+      expect(report.collections.map((c: { owner: string }) => c.owner)).toEqual([
+        "@aihq/core",
+        "@aihq/catalog",
+      ]);
       expect(report.qualification).toMatchObject({
         attestation: "absent",
         organizationAdmission: "not-authoritative",
@@ -81,8 +84,12 @@ describe("public-API example", () => {
           state: "verified",
         },
       ]);
-      // No Core collection until the Core 0.7.0 content lands (D57): the refusal is reported.
-      expect(report.sourceClosure).toEqual({ state: "refused", reason: "collection-unknown" });
+      // Core owns these source files; the Catalog package reports the first absent file.
+      expect(report.sourceClosure).toEqual({
+        state: "refused",
+        reason: "source-file-absent",
+        path: "aih-packs.json",
+      });
       const expired = JSON.parse(run("2026-12-08T00:47:41Z").stdout);
       expect(expired.qualification.states).toEqual({ expired: 457 });
     },
