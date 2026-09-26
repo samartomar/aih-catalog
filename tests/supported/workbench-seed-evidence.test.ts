@@ -160,9 +160,9 @@ describe("registered Workbench source assessments", () => {
         }
         if (provider === "anthropic" && seed.subject.id === "doc-coauthoring") {
           expect(seed.qualification.gaps).toContain("evidence/license-gap.json");
-          expect(
-            read(resolve(dirname(seedPath), "evidence/license-gap.json")).summary,
-          ).toContain("License not determined: no license file in the closure.");
+          expect(read(resolve(dirname(seedPath), "evidence/license-gap.json")).summary).toContain(
+            "License not determined: no license file in the closure.",
+          );
         }
         expect(read(resolve(dirname(seedPath), seed.artifacts.recipe))).toMatchObject({
           kind: "review-only",
