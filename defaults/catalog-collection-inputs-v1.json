@@ -6,6 +6,23 @@
   ],
   "collections": [
     {
+      "id": "aih-core",
+      "owner": {
+        "package": "@aihq/core"
+      },
+      "sourceType": "aih",
+      "current": {
+        "release": "0.7.0",
+        "origin": {
+          "kind": "package-file",
+          "name": "@aihq/core",
+          "version": "0.7.0",
+          "sha256": "3b1e554f6c58090861829be8f94de89aa0a0ab19dd6bc8337441eba60b22a89a"
+        }
+      },
+      "seedRoot": "workbench/aih-core-0.7.0/"
+    },
+    {
       "id": "aih-default-profile",
       "owner": {
         "package": "@aihq/catalog"

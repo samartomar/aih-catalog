@@ -982,8 +982,14 @@ describe("Core collection seed renderer, new-release mode", () => {
     const gen = await generators();
     // A scratch Catalog root: the real defaults plus a synthetic 0.6.2 Core collection and its
     // seeds, so every generator runs over a whole Catalog. (K1 itself has no Core collection;
-    // its initial release is the initial-release mode below.)
+    // its initial release is the initial-release mode below.) The part-2 aih-core 0.7.0 tree and
+    // its manifest paths are not this fixture's: it models a Catalog whose only Core collection is
+    // the synthetic 0.6.2 one.
     const catalogRoot = wholeCatalog();
+    rmSync(join(catalogRoot, "defaults", "workbench", "aih-core-0.7.0"), {
+      recursive: true,
+      force: true,
+    });
     const inputs = read(join(repository, "defaults", "catalog-collection-inputs-v1.json")) as {
       collections: Json[];
     };
@@ -1001,7 +1007,9 @@ describe("Core collection seed renderer, new-release mode", () => {
     const manifestPath = join(catalogRoot, "defaults", "default-catalog-seed-manifest-v2.json");
     const manifest = read(manifestPath) as { seeds: string[] };
     manifest.seeds = [
-      ...manifest.seeds.filter((path) => !path.startsWith(SEED_ROOT)),
+      ...manifest.seeds.filter(
+        (path) => !path.startsWith(SEED_ROOT) && !path.startsWith("workbench/aih-core-0.7.0/"),
+      ),
       ...SUBJECTS.map((subject) => `${SEED_ROOT}${subject.entryId}/seed.json`),
     ].sort();
     writeFileSync(manifestPath, canonical(manifest));
@@ -1153,7 +1161,18 @@ describe("Core collection seed renderer, new-release mode", () => {
 // D57 part 2 starts from K1: after part 1 the Catalog carries no Core collection, so the first
 // Core release is created, not moved to. Every binding check of new-release mode applies.
 describe("Core collection seed renderer, initial-release mode", () => {
-  const K1_INPUTS = read(join(repository, "defaults", "catalog-collection-inputs-v1.json"));
+  // K1's layout, which the initial mode exists for (D57 part 1): the repository's own collection
+  // inputs without the Core collection part 2 re-creates. The repository carries it again now, so
+  // the test states the pre-part-2 inputs explicitly instead of copying them.
+  const K1_INPUTS = (() => {
+    const inputs = read(join(repository, "defaults", "catalog-collection-inputs-v1.json")) as {
+      collections: { id: string }[];
+    };
+    return {
+      ...inputs,
+      collections: inputs.collections.filter((collection) => collection.id !== "aih-core"),
+    };
+  })();
   const initial = (options: Options = {}) =>
     fixture({
       release: NEXT,
@@ -1233,9 +1252,20 @@ describe("Core collection seed renderer, initial-release mode", () => {
   it("creates the Core collection at 0.7.0 over a copy of K1's defaults, all-or-nothing through the generators", async () => {
     const api = await renderer();
     const gen = await generators();
-    // K1's actual layout: the collection inputs without aih-core, and no Core seed tree.
+    // K1's actual layout: the collection inputs without aih-core, and no Core seed tree. The
+    // part-2 tree and its manifest paths are removed from the copy for the same reason.
     const catalogRoot = wholeCatalog();
     const defaults = join(catalogRoot, "defaults");
+    rmSync(join(defaults, "workbench", "aih-core-0.7.0"), { recursive: true, force: true });
+    const k1ManifestPath = join(defaults, "default-catalog-seed-manifest-v2.json");
+    const k1Manifest = read(k1ManifestPath) as { seeds: string[] };
+    writeFileSync(
+      k1ManifestPath,
+      canonical({
+        ...k1Manifest,
+        seeds: k1Manifest.seeds.filter((path) => !path.startsWith("workbench/aih-core-")),
+      }),
+    );
     expect((K1_INPUTS.collections as Json[]).map((collection) => collection.id)).not.toContain(
       "aih-core",
     );
@@ -1244,9 +1274,7 @@ describe("Core collection seed renderer, initial-release mode", () => {
     ).toEqual([]);
     const item = initial({ catalogRoot });
     const inputsPath = join(defaults, "catalog-collection-inputs-v1.json");
-    expect(readFileSync(inputsPath, "utf8")).toBe(
-      readFileSync(join(repository, "defaults", "catalog-collection-inputs-v1.json"), "utf8"),
-    );
+    expect(readFileSync(inputsPath, "utf8")).toBe(`${JSON.stringify(K1_INPUTS, null, 2)}\n`);
     // The review's scenario: new-release mode cannot start here.
     expect(() => api.renderCoreCollectionNewReleaseV1(item)).toThrow(
       "core-collection-renderer:inputs-collection",
