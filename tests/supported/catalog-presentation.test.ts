@@ -74,15 +74,21 @@ describe("published catalog presentation", () => {
       githubEntries.map((entry) => entry.entryId),
     );
     expect(presentation.coverage).toEqual({
-      entries: 429,
-      title: { published: 391, unavailable: 38 },
-      description: { published: 422, unavailable: 7 },
-      category: { published: 3, unavailable: 426 },
+      entries: 434,
+      title: { published: 396, unavailable: 38 },
+      description: { published: 427, unavailable: 7 },
+      category: { published: 3, unavailable: 431 },
     });
     // The aih and npm entries are outside this github-only format: absent, not unavailable.
+    // The aih entries are the default profile and the ten Core 0.7.0 rows.
     const covered = new Set(presentation.entries.map((entry) => entry.entryId));
     const absent = index.entries.filter((entry) => !covered.has(entry.entryId));
-    expect(absent.map((entry) => entry.subject.source.type).sort()).toEqual(["aih", "npm"]);
+    expect([...new Set(absent.map((entry) => entry.subject.source.type))].sort()).toEqual([
+      "aih",
+      "npm",
+    ]);
+    expect(absent.filter((entry) => entry.subject.source.type === "aih")).toHaveLength(11);
+    expect(absent.filter((entry) => entry.subject.source.type === "npm")).toHaveLength(1);
   });
 
   it("reads a skill declared by its SKILL.md and marks an undeclared MCP source file", () => {
@@ -108,7 +114,7 @@ describe("published catalog presentation", () => {
 
   it("checks the committed sidecar against the inputs, index and closures without upstream trees", async () => {
     const { checkCatalogPresentation, serializeCatalogPresentation } = await generator();
-    expect(checkCatalogPresentation(root).entries).toHaveLength(429);
+    expect(checkCatalogPresentation(root).entries).toHaveLength(434);
     const refuse = (mutate: (doc: Doc) => void, message: string) => {
       const doc = clone();
       mutate(doc);

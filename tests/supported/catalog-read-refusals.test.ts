@@ -208,8 +208,9 @@ describe("named refusals of the content index reader", () => {
 });
 
 describe("named refusals of the collections reader", () => {
-  // The shipped view holds one single-member collection until the Core 0.7.0 content lands
-  // (D57), so the refusal cases read it with a Core collection of two synthetic members.
+  // The refusal cases read the shipped view with a Core collection of two synthetic members. The
+  // shipped view names the real aih-core 0.7.0 collection since D57 part 2, so the synthetic one
+  // replaces it here; two collections of one id would refuse for the wrong reason.
   const coreMembers = ["agent.synthetic.a", "agent.synthetic.b"].map((entryId, at) => ({
     entryId,
     subjectDigest: `sha256:${String(at + 1).repeat(64)}`,
@@ -226,6 +227,7 @@ describe("named refusals of the collections reader", () => {
   } as unknown as CatalogContentV1;
   const base = (): Doc => {
     const doc = parse("defaults/catalog-collections-v1.json");
+    doc.collections = doc.collections.filter((collection: Doc) => collection.id !== "aih-core");
     doc.collections.unshift({
       current: {
         origin: {
