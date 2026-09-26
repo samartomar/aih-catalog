@@ -23,6 +23,13 @@ import { INPUT } from "./generate-catalog-collections.mjs";
 const CORE_PACKAGE = "@aihq/core";
 const CORE_COLLECTION = "aih-core";
 const RELEASE = /^[0-9A-Za-z][0-9A-Za-z.+-]{0,63}$/;
+// A deliberately closed set of SPDX identifiers accepted for Core package attribution.
+// An unrecognized identifier cannot become a rights statement by spelling alone.
+const SPDX_LICENSES = new Set([
+  "0BSD", "AGPL-3.0-only", "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "CC0-1.0",
+  "EPL-2.0", "GPL-2.0-only", "GPL-3.0-only", "ISC", "LGPL-2.1-only",
+  "LGPL-3.0-only", "MIT", "MPL-2.0", "Unlicense",
+]);
 const fail = (message) => {
   throw new Error(`prepare-core-collection: ${message}`);
 };
@@ -30,6 +37,7 @@ const fail = (message) => {
 export function fromPackage(path) {
   const bytes = readFileSync(path);
   let manifest;
+  let manifestBytes;
   if (path.endsWith(".tgz")) {
     const extract = spawnSync("tar", ["-xzOf", "-", "package/package.json"], {
       input: bytes,
@@ -38,14 +46,20 @@ export function fromPackage(path) {
       windowsHide: true,
     });
     if (extract.status !== 0) fail(`could not read package/package.json from ${path}`);
+    manifestBytes = Buffer.from(extract.stdout, "utf8");
     manifest = JSON.parse(extract.stdout);
   } else {
+    manifestBytes = bytes;
     manifest = JSON.parse(bytes.toString("utf8"));
   }
   if (manifest.name !== CORE_PACKAGE) fail(`${path} is ${manifest.name}, not ${CORE_PACKAGE}`);
   if (typeof manifest.version !== "string" || !RELEASE.test(manifest.version)) fail("package version");
+  if (typeof manifest.license !== "string" || !SPDX_LICENSES.has(manifest.license))
+    fail("package license");
   return {
     release: manifest.version,
+    license: manifest.license,
+    manifestSha256: createHash("sha256").update(manifestBytes).digest("hex"),
     origin: {
       kind: "package-file",
       name: CORE_PACKAGE,

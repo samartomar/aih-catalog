@@ -26,6 +26,7 @@ type Renderer = {
     recordPath: string;
     draftPath: string;
     outputRoot: string;
+    packagePath: string;
     reader: Reader;
   }): {
     release: string;
@@ -528,7 +529,10 @@ function fixture(options: Options = {}) {
     }),
   );
   const packagePath = join(root, "core-package.json");
-  write(packagePath, `${JSON.stringify({ name: "@aihq/core", version: release }, null, 2)}\n`);
+  write(
+    packagePath,
+    `${JSON.stringify({ name: "@aihq/core", version: release, license: "Apache-2.0" }, null, 2)}\n`,
+  );
   const outputRoot = join(root, "rendered");
   return {
     catalogRoot,
@@ -643,8 +647,8 @@ describe("Core collection seed renderer", () => {
     expect(read(join(governance, "evidence", "report.json")).summary).toContain(
       "Scanner label no-findings; findings 0; evidence problems 1;",
     );
-    expect(read(join(governance, "evidence", "right-core-apache-2.0.json")).summary).toMatch(
-      /^Apache-2\.0 notice packs\/governance-quality\/doctor\/LICENSE sha256:c{64} is part of this closure/,
+    expect(read(join(governance, "evidence", "source-right.json")).summary).toContain(
+      `Applicable Apache-2.0 notice declared by @aihq/core ${RELEASE} (package.json sha256:${sha(readFileSync(item.packagePath))})`,
     );
 
     const github = join(out, "mcp.aih.github.core-0-6-2");
@@ -665,13 +669,9 @@ describe("Core collection seed renderer", () => {
     expect(read(join(github, "evidence", "report.json")).summary).toContain(
       "Scanner label has-findings; findings 2; evidence problems 0;",
     );
-    // The root LICENSE the previous row cited is not in a configuration-only closure (G21).
-    expect(githubSeed.qualification.gaps).toEqual([
-      "evidence/license-gap.json",
-      "evidence/profile-scope-limit.json",
-    ]);
-    expect(read(join(github, "evidence", "license-gap.json")).summary).toContain(
-      `License not determined: the previous row's Apache-2.0 notice LICENSE sha256:${"e".repeat(64)} is not in this closure.`,
+    expect(githubSeed.qualification.gaps).toEqual(["evidence/profile-scope-limit.json"]);
+    expect(read(join(github, "evidence", "source-right.json")).summary).toContain(
+      "aih's own MCP declaration only; the third-party server's license is not stated",
     );
     // Generated prose surfaces facts; it never labels a component with an outcome.
     for (const path of walk(out).filter((path) => !path.startsWith("source-reports/")))
@@ -874,7 +874,10 @@ describe("Core collection seed renderer, new-release mode", () => {
     );
 
     const version = nextRelease();
-    writeFileSync(version.packagePath, JSON.stringify({ name: "@aihq/core", version: "0.7.1" }));
+    writeFileSync(
+      version.packagePath,
+      JSON.stringify({ name: "@aihq/core", version: "0.7.1", license: "Apache-2.0" }),
+    );
     expect(() => api.renderCoreCollectionNewReleaseV1(version)).toThrow(
       "core-collection-renderer:package-version",
     );
@@ -896,6 +899,22 @@ describe("Core collection seed renderer, new-release mode", () => {
       `core-collection-renderer:scanner-coverage ${quality.assetId}`,
     );
     expect(snapshot(crafted.catalogRoot)).toEqual(before);
+  });
+
+  it("refuses a package without a valid SPDX license before changing the catalog", async () => {
+    const api = await renderer();
+    for (const license of [undefined, "", "not a license", "LicenseRef-unknown"]) {
+      const item = nextRelease();
+      writeFileSync(
+        item.packagePath,
+        JSON.stringify({ name: "@aihq/core", version: NEXT, license }),
+      );
+      const before = snapshot(item.catalogRoot);
+      expect(() => api.renderCoreCollectionNewReleaseV1(item)).toThrow(
+        new TypeError("core-collection-renderer:package prepare-core-collection: package license"),
+      );
+      expect(snapshot(item.catalogRoot)).toEqual(before);
+    }
   });
 
   it("writes nothing when a binding does not verify or a temporary file is left over", async () => {
@@ -1089,20 +1108,20 @@ describe("Core collection seed renderer, new-release mode", () => {
       permissions: [],
     });
     expect(serena.platforms).toEqual([{ architecture: "amd64", os: "linux" }]);
-    expect(
-      read(join(next, "mcp.aih.serena.core-0-7-0", "evidence", "license-gap.json")).summary,
-    ).toContain("License not determined: no previous release row exists for this asset.");
-    // G21 as today: the pack's LICENSE is in its closure.
-    expect(
-      read(
-        join(
-          next,
-          "agent.aih.governance-quality.core-0-7-0",
-          "evidence",
-          "right-core-apache-2.0.json",
-        ),
-      ).summary,
-    ).toContain("is part of this closure");
+    for (const entryId of result.rendered) {
+      const seed = read(join(next, entryId, "seed.json")) as {
+        qualification: { gaps: string[]; rights: string[] };
+      };
+      expect(seed.qualification.gaps).not.toContain("evidence/license-gap.json");
+      const right = read(join(next, entryId, seed.qualification.rights[0]!)) as { summary: string };
+      expect(right.summary).toContain(
+        `Applicable Apache-2.0 notice declared by @aihq/core 0.7.0 (package.json sha256:${sha(readFileSync(item.packagePath))})`,
+      );
+      if (entryId.startsWith("mcp.")) {
+        expect(right.summary).toContain("aih's own MCP declaration only");
+        expect(right.summary).toContain("third-party server's license is not stated");
+      }
+    }
     for (const path of walk(next).filter((path) => !path.startsWith("source-reports/")))
       expect(readFileSync(join(next, path), "utf8"), path).not.toMatch(
         /blocked|failing|not authorized/i,
@@ -1192,7 +1211,10 @@ describe("Core collection seed renderer, initial-release mode", () => {
       "core-collection-renderer:release",
     ]);
     const version = initial();
-    writeFileSync(version.packagePath, JSON.stringify({ name: "@aihq/core", version: "0.7.1" }));
+    writeFileSync(
+      version.packagePath,
+      JSON.stringify({ name: "@aihq/core", version: "0.7.1", license: "Apache-2.0" }),
+    );
     cases.push([version, "core-collection-renderer:package-version"]);
     // The record's coverage, not the draft, binds a component to the profile's asset (6168694).
     cases.push([
@@ -1322,8 +1344,7 @@ describe("Core collection seed renderer, initial-release mode", () => {
     expect(readFileSync(join(next, "source-reports", "scanner-report.json"), "utf8")).toBe(
       item.bytes,
     );
-    // No previous rows: every subject is new, with no capability, the Catalog-wide platform and
-    // a license gap; nothing is carried.
+    // No previous rows: every subject is new, with no capability and the Catalog-wide platform.
     for (const entryId of result.rendered) {
       const seed = read(join(next, entryId, "seed.json")) as {
         capabilities: Json;
@@ -1339,9 +1360,20 @@ describe("Core collection seed renderer, initial-release mode", () => {
       });
       expect(seed.platforms).toEqual([{ architecture: "amd64", os: "linux" }]);
       expect(seed.subject.source.release).toBe(NEXT);
-      expect(read(join(next, entryId, "evidence", "license-gap.json")).summary).toContain(
-        "License not determined: no previous release row exists for this asset.",
+      const published = read(join(next, entryId, "seed.json")) as {
+        qualification: { gaps: string[]; rights: string[] };
+      };
+      expect(published.qualification.gaps).not.toContain("evidence/license-gap.json");
+      const right = read(join(next, entryId, published.qualification.rights[0]!)) as {
+        summary: string;
+      };
+      expect(right.summary).toContain(
+        `Applicable Apache-2.0 notice declared by @aihq/core 0.7.0 (package.json sha256:${sha(readFileSync(item.packagePath))})`,
       );
+      if (entryId.startsWith("mcp.")) {
+        expect(right.summary).toContain("aih's own MCP declaration only");
+        expect(right.summary).toContain("third-party server's license is not stated");
+      }
     }
     // The collection enters the inputs in id order; the other collections are untouched.
     const nextInputs = read(inputsPath) as { collections: Json[] };

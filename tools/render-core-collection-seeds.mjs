@@ -4,7 +4,7 @@
 // matching first-party qualification draft, and has three modes:
 //
 //   Refresh: `node tools/render-core-collection-seeds.mjs --record <collection-aih.json> --draft
-//   <collection-aih.qualification-draft.json> --output <new directory>` re-renders the current
+//   <collection-aih.qualification-draft.json> --output <new directory> --from-package <Core package.json | .tgz>` re-renders the current
 //   Core collection's seeds (defaults/catalog-collection-inputs-v1.json, collection aih-core:
 //   current.release and seedRoot) at a newer record of the SAME release, into a new directory for
 //   review. It never writes into defaults/. Each existing seed keeps its subject, entry id,
@@ -32,7 +32,7 @@
 //   --draft <draft.json> --initial-release <R> --from-package <Core package.json | .tgz of R>`
 //   creates the Core collection when the collection inputs have none (as after D57 part 1): the
 //   new-release rendering and checks with no previous rows, so every subject is added with no
-//   capability, the Catalog-wide platform and a license gap. The collection enters the inputs in id
+//   capability and the Catalog-wide platform. The collection enters the inputs in id
 //   order with current.release R, the package origin and seedRoot workbench/aih-core-<R>/. It
 //   refuses when a Core collection exists (use --new-release), and names any Core seed tree or seed
 //   manifest path it finds, since none may exist without the collection.
@@ -112,7 +112,6 @@ const ENTRY_ID = /^[a-z][a-z0-9-]*(?:\.[a-z0-9][a-z0-9-]*)+$/;
 const NEW_RELEASE = /^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9a-z]+(?:\.[0-9a-z]+)*)?$/;
 const SUBJECT_ID = /^[a-z][a-z0-9-]{0,63}$/;
 const SUBJECT_KINDS = ["tool", "skill", "agent", "mcp", "package", "profile"];
-const PREVIOUS_RIGHT = /^Apache-2\.0 notice (\S+) (sha256:[0-9a-f]{64}) /;
 const ARTIFACTS = {
   closure: "artifacts/closure.json",
   profile: "artifacts/profile.json",
@@ -271,7 +270,7 @@ function draftProfiles(draftBytes) {
   return { bindings, profiles, unsupported: array(draft.unsupported ?? [], "draft-unsupported") };
 }
 
-/** The seeds of one release under its seed root, each with its profile and single right. */
+/** The seeds of one release under its seed root, each with its profile. */
 function releaseSeeds(catalogRoot, seedRoot, release) {
   const seedDirectory = defaultsPath(catalogRoot, seedRoot);
   return readdirSync(seedDirectory, { withFileTypes: true })
@@ -291,12 +290,7 @@ function releaseSeeds(catalogRoot, seedRoot, release) {
         entryId,
       );
       const assetId = text(object(profile.asset, entryId).assetId, `seed-profile ${entryId}`);
-      const rights = array(object(seed.qualification, entryId).rights, entryId);
-      const right =
-        rights.length === 1
-          ? object(json(readFileSync(resolve(directory, rights[0])), `seed-right ${entryId}`), entryId).summary
-          : undefined;
-      return { assetId, entryId, profile, right, seed };
+      return { assetId, entryId, profile, seed };
     });
 }
 
@@ -350,9 +344,9 @@ function verifiedBinding(bindings, assetId, profile, draft, subject, release, re
   return { binding, source, subjectDigest };
 }
 
-/** `previous` is the previous row of the same asset ({ profile, right }), or undefined for a new asset. */
+/** Render one aih-owned seed using the release package's declared license. */
 function renderSeed(context) {
-  const { assetId, entryId, seed, previous, draft, record, release, seedRoot, bindings } = context;
+  const { assetId, entryId, seed, draft, record, release, seedRoot, bindings, packageLicense } = context;
   const profile = draft.profile;
   const subject = object(seed.subject, `seed-subject ${entryId}`);
   const { binding, source, subjectDigest } = verifiedBinding(
@@ -472,51 +466,19 @@ function renderSeed(context) {
       ),
     );
   });
-  // G21: the previous row's Apache-2.0 notice applies only when that exact file is in the closure.
-  const cited = PREVIOUS_RIGHT.exec(previous?.right ?? "");
-  const inClosure =
-    cited !== null &&
-    (material.files ?? []).some((file) => file?.path === cited[1] && file?.digest === cited[2]);
-  let rightPath;
-  if (inClosure) {
-    rightPath = "evidence/right-core-apache-2.0.json";
-    files.set(
-      rightPath,
-      evidence(
-        "right",
-        "core-apache-2.0",
-        subjectDigest,
-        `Apache-2.0 notice ${cited[1]} ${cited[2]} is part of this closure and applies to this Core-owned material. This attribution record grants no trademark, external-service, or organization-admission rights.`,
-      ),
-    );
-  } else {
-    const reason =
-      previous === undefined
-        ? "no previous release row exists for this asset"
-        : cited === null
-          ? "the previous row cites no Apache-2.0 notice"
-          : `the previous row's Apache-2.0 notice ${cited[1]} ${cited[2]} is not in this closure`;
-    gaps.push("evidence/license-gap.json");
-    files.set(
-      "evidence/license-gap.json",
-      evidence(
-        "gap",
-        "license-not-determined",
-        subjectDigest,
-        `License not determined: ${reason}. The row is rendered with this gap; no license grant is inferred from it.`,
-      ),
-    );
-    rightPath = "evidence/source-right.json";
-    files.set(
-      rightPath,
-      evidence(
-        "right",
-        "source-right",
-        subjectDigest,
-        `No applicable license determined for this closure: ${reason}. No license grant, trademark, external-service, or organization-admission rights inferred.`,
-      ),
-    );
-  }
+  const rightPath = "evidence/source-right.json";
+  const rightScope = subject.kind === "mcp"
+    ? "This notice covers aih's own MCP declaration only; the third-party server's license is not stated."
+    : "This notice covers this aih-owned material.";
+  files.set(
+    rightPath,
+    evidence(
+      "right",
+      "source-right",
+      subjectDigest,
+      `Applicable ${packageLicense.license} notice declared by ${CORE_PACKAGE} ${release} (package.json sha256:${packageLicense.manifestSha256}). ${rightScope} Preserve all applicable license terms and notices. No trademark, external-service, or organization-admission rights inferred.`,
+    ),
+  );
   files.set(
     "seed.json",
     canonical({
@@ -564,10 +526,11 @@ function replaceFile(target, bytes, name) {
 }
 
 /** Same-release refresh into a new review directory; `reader` is the Catalog's v2 evidence reader. */
-export function renderCoreCollectionSeedsV1({ catalogRoot, recordPath, draftPath, outputRoot, reader }) {
+export function renderCoreCollectionSeedsV1({ catalogRoot, recordPath, draftPath, outputRoot, packagePath, reader }) {
   const output = resolve(outputRoot);
   if (existsSync(output)) fail("output-exists");
   const { release, seedRoot } = currentCollection(catalogRoot);
+  const packageLicense = packageIdentity(packagePath, release);
   const recordBytes = readFileSync(recordPath);
   const draftBytes = readFileSync(draftPath);
   const record = sealedRecord(recordBytes, release, reader);
@@ -585,17 +548,17 @@ export function renderCoreCollectionSeedsV1({ catalogRoot, recordPath, draftPath
   }
   if (changed.length > 0) fail(`material-changed ${changed.join("; ")}`);
   const rendered = new Map();
-  for (const { assetId, entryId, profile, right, seed } of seeds)
+  for (const { assetId, entryId, profile, seed } of seeds)
     for (const [path, bytes] of renderSeed({
       assetId,
       entryId,
       seed,
-      previous: { profile, right },
       draft: draft.profiles.get(assetId),
       record,
       release,
       seedRoot,
       bindings: draft.bindings,
+      packageLicense,
     }))
       rendered.set(`${entryId}/${path}`, bytes);
   sourceReports(rendered, recordBytes, record, draftBytes);
@@ -715,6 +678,17 @@ function manifestSeeds(root) {
  * Renders release `release` into defaults/ over `current` (the Core collection at its previous
  * release), or creates the collection when `current` is undefined, then regenerates the views.
  */
+function packageIdentity(packagePath, release) {
+  let identified;
+  try {
+    identified = fromPackage(resolve(packagePath));
+  } catch (error) {
+    fail(`package ${error instanceof Error ? error.message : "unreadable"}`);
+  }
+  if (identified.release !== release || identified.origin.version !== release) fail("package-version");
+  return identified;
+}
+
 function renderRelease({ root, inputs, current, release, recordPath, draftPath, packagePath, reader }) {
   const seedRoot = `workbench/${COLLECTION}-${release}/`;
   const suffix = `core-${release.replaceAll(".", "-")}`;
@@ -735,13 +709,7 @@ function renderRelease({ root, inputs, current, release, recordPath, draftPath, 
   const recordBytes = readFileSync(recordPath);
   const draftBytes = readFileSync(draftPath);
   const record = sealedRecord(recordBytes, release, reader);
-  let identified;
-  try {
-    identified = fromPackage(resolve(packagePath));
-  } catch (error) {
-    fail(`package ${error instanceof Error ? error.message : "unreadable"}`);
-  }
-  if (identified.release !== release || identified.origin.version !== release) fail("package-version");
+  const identified = packageIdentity(packagePath, release);
   const draft = draftProfiles(draftBytes);
   const previous = current === undefined ? [] : releaseSeeds(root, current.seedRoot, current.release);
   const previousByAsset = new Map(previous.map((item) => [item.assetId, item]));
@@ -775,12 +743,12 @@ function renderRelease({ root, inputs, current, release, recordPath, draftPath, 
       assetId,
       entryId,
       seed,
-      previous: carried === undefined ? undefined : { profile: carried.profile, right: carried.right },
       draft: next,
       record,
       release,
       seedRoot,
       bindings: draft.bindings,
+      packageLicense: identified,
     }))
       rendered.set(`${entryId}/${path}`, bytes);
   }
@@ -880,7 +848,7 @@ function argumentsFrom(argv) {
     ? ["record", "draft", "new-release", "from-package"]
     : values.has("initial-release")
       ? ["record", "draft", "initial-release", "from-package"]
-      : ["record", "draft", "output"];
+      : ["record", "draft", "output", "from-package"];
   if (values.size !== expected.length || expected.some((name) => !values.has(name)))
     fail("arguments");
   return values;
@@ -918,6 +886,7 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
           recordPath,
           draftPath,
           outputRoot: resolve(values.get("output")),
+          packagePath: resolve(values.get("from-package")),
           reader,
         });
     process.stdout.write(`${JSON.stringify(result)}\n`);
