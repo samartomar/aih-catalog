@@ -3,7 +3,7 @@
   "source": {
     "owner": "affaan-m",
     "repo": "ECC",
-    "pinnedSha": "5caf398a91599029a176ca6d806409b00d1052c4"
+    "pinnedSha": "5064474d4d762dc9640234a41617cccb79185cec"
   },
   "operations": [
     {
@@ -2651,6 +2651,14 @@
       "kind": "copy-file",
       "source": "skills/finance-billing-ops/SKILL.md",
       "destination": "<project>/.agents/skills/finance-billing-ops/SKILL.md",
+      "componentId": "capability:operators",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "antigravity",
+      "kind": "copy-file",
+      "source": "skills/github-ops/references/ecc-release-checklist.md",
+      "destination": "<project>/.agents/skills/github-ops/references/ecc-release-checklist.md",
       "componentId": "capability:operators",
       "contingentOn": "evidence-authorization"
     },
@@ -6571,6 +6579,14 @@
     {
       "target": "antigravity",
       "kind": "copy-file",
+      "source": "skills/github-ops/references/ecc-release-checklist.md",
+      "destination": "<project>/.agents/skills/github-ops/references/ecc-release-checklist.md",
+      "componentId": "skill:github-ops",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "antigravity",
+      "kind": "copy-file",
       "source": "skills/github-ops/SKILL.md",
       "destination": "<project>/.agents/skills/github-ops/SKILL.md",
       "componentId": "skill:github-ops",
@@ -9219,14 +9235,6 @@
     {
       "target": "claude",
       "kind": "copy-file",
-      "source": "hooks/hooks.json",
-      "destination": "<home>/.claude/hooks/hooks.json",
-      "componentId": "baseline:hooks",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "claude",
-      "kind": "copy-file",
       "source": "hooks/memory-persistence/hooks.json",
       "destination": "<home>/.claude/hooks/memory-persistence/hooks.json",
       "componentId": "baseline:hooks",
@@ -9373,6 +9381,14 @@
       "kind": "copy-file",
       "source": "scripts/hooks/gateguard-fact-force.js",
       "destination": "<home>/.claude/scripts/hooks/gateguard-fact-force.js",
+      "componentId": "baseline:hooks",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "claude",
+      "kind": "copy-file",
+      "source": "scripts/hooks/gateguard-heredoc.js",
+      "destination": "<home>/.claude/scripts/hooks/gateguard-heredoc.js",
       "componentId": "baseline:hooks",
       "contingentOn": "evidence-authorization"
     },
@@ -9731,6 +9747,14 @@
     {
       "target": "claude",
       "kind": "copy-file",
+      "source": "scripts/lib/claude-dry-run-sandbox.js",
+      "destination": "<home>/.claude/scripts/lib/claude-dry-run-sandbox.js",
+      "componentId": "baseline:hooks",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "claude",
+      "kind": "copy-file",
       "source": "scripts/lib/claude-plugin-setup.js",
       "destination": "<home>/.claude/scripts/lib/claude-plugin-setup.js",
       "componentId": "baseline:hooks",
@@ -9829,14 +9853,6 @@
       "kind": "copy-file",
       "source": "scripts/lib/control-pane/work-item-mutations.js",
       "destination": "<home>/.claude/scripts/lib/control-pane/work-item-mutations.js",
-      "componentId": "baseline:hooks",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "claude",
-      "kind": "copy-file",
-      "source": "scripts/lib/cost-estimate.js",
-      "destination": "<home>/.claude/scripts/lib/cost-estimate.js",
       "componentId": "baseline:hooks",
       "contingentOn": "evidence-authorization"
     },
@@ -10011,6 +10027,14 @@
     {
       "target": "claude",
       "kind": "copy-file",
+      "source": "scripts/lib/install-targets/adal-project.js",
+      "destination": "<home>/.claude/scripts/lib/install-targets/adal-project.js",
+      "componentId": "baseline:hooks",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "claude",
+      "kind": "copy-file",
       "source": "scripts/lib/install-targets/antigravity-project.js",
       "destination": "<home>/.claude/scripts/lib/install-targets/antigravity-project.js",
       "componentId": "baseline:hooks",
@@ -10163,6 +10187,22 @@
     {
       "target": "claude",
       "kind": "copy-file",
+      "source": "scripts/lib/install/claude-settings-lock.js",
+      "destination": "<home>/.claude/scripts/lib/install/claude-settings-lock.js",
+      "componentId": "baseline:hooks",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "claude",
+      "kind": "copy-file",
+      "source": "scripts/lib/install/claude-settings.js",
+      "destination": "<home>/.claude/scripts/lib/install/claude-settings.js",
+      "componentId": "baseline:hooks",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "claude",
+      "kind": "copy-file",
       "source": "scripts/lib/install/claude-skill-migration.js",
       "destination": "<home>/.claude/scripts/lib/install/claude-skill-migration.js",
       "componentId": "baseline:hooks",
@@ -10173,6 +10213,14 @@
       "kind": "copy-file",
       "source": "scripts/lib/install/config.js",
       "destination": "<home>/.claude/scripts/lib/install/config.js",
+      "componentId": "baseline:hooks",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "claude",
+      "kind": "copy-file",
+      "source": "scripts/lib/install/hook-consent.js",
+      "destination": "<home>/.claude/scripts/lib/install/hook-consent.js",
       "componentId": "baseline:hooks",
       "contingentOn": "evidence-authorization"
     },
@@ -10197,6 +10245,14 @@
       "kind": "copy-file",
       "source": "scripts/lib/install/opencode-legacy-migration.js",
       "destination": "<home>/.claude/scripts/lib/install/opencode-legacy-migration.js",
+      "componentId": "baseline:hooks",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "claude",
+      "kind": "copy-file",
+      "source": "scripts/lib/install/ownership-guard.js",
+      "destination": "<home>/.claude/scripts/lib/install/ownership-guard.js",
       "componentId": "baseline:hooks",
       "contingentOn": "evidence-authorization"
     },
@@ -10331,6 +10387,14 @@
     {
       "target": "claude",
       "kind": "copy-file",
+      "source": "scripts/lib/missing-dependency.js",
+      "destination": "<home>/.claude/scripts/lib/missing-dependency.js",
+      "componentId": "baseline:hooks",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "claude",
+      "kind": "copy-file",
       "source": "scripts/lib/multi-harness-setup.js",
       "destination": "<home>/.claude/scripts/lib/multi-harness-setup.js",
       "componentId": "baseline:hooks",
@@ -10429,6 +10493,14 @@
       "kind": "copy-file",
       "source": "scripts/lib/plan-canvas/ui.js",
       "destination": "<home>/.claude/scripts/lib/plan-canvas/ui.js",
+      "componentId": "baseline:hooks",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "claude",
+      "kind": "copy-file",
+      "source": "scripts/lib/powershell-destructive-command.js",
+      "destination": "<home>/.claude/scripts/lib/powershell-destructive-command.js",
       "componentId": "baseline:hooks",
       "contingentOn": "evidence-authorization"
     },
@@ -10746,6 +10818,22 @@
     },
     {
       "target": "claude",
+      "kind": "merge-json",
+      "source": "hooks/hooks.json",
+      "destination": "<home>/.claude/settings.json",
+      "componentId": "baseline:hooks",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "claude",
+      "kind": "copy-file",
+      "source": ".pi/extensions/hook-runtime.js",
+      "destination": "<home>/.claude/.pi/extensions/hook-runtime.js",
+      "componentId": "baseline:platform",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "claude",
       "kind": "copy-file",
       "source": ".pi/extensions/index.ts",
       "destination": "<home>/.claude/.pi/extensions/index.ts",
@@ -10765,14 +10853,6 @@
       "kind": "copy-file",
       "source": ".claude-plugin/marketplace.json",
       "destination": "<home>/.claude/marketplace.json",
-      "componentId": "baseline:platform",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "claude",
-      "kind": "copy-file",
-      "source": "mcp-configs/mcp-servers.json",
-      "destination": "<home>/.claude/mcp-configs/mcp-servers.json",
       "componentId": "baseline:platform",
       "contingentOn": "evidence-authorization"
     },
@@ -13045,6 +13125,14 @@
       "kind": "copy-file",
       "source": "skills/finance-billing-ops/SKILL.md",
       "destination": "<home>/.claude/skills/finance-billing-ops/SKILL.md",
+      "componentId": "capability:operators",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "claude",
+      "kind": "copy-file",
+      "source": "skills/github-ops/references/ecc-release-checklist.md",
+      "destination": "<home>/.claude/skills/github-ops/references/ecc-release-checklist.md",
       "componentId": "capability:operators",
       "contingentOn": "evidence-authorization"
     },
@@ -17277,6 +17365,14 @@
     {
       "target": "claude",
       "kind": "copy-file",
+      "source": "skills/github-ops/references/ecc-release-checklist.md",
+      "destination": "<home>/.claude/skills/github-ops/references/ecc-release-checklist.md",
+      "componentId": "skill:github-ops",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "claude",
+      "kind": "copy-file",
       "source": "skills/github-ops/SKILL.md",
       "destination": "<home>/.claude/skills/github-ops/SKILL.md",
       "componentId": "skill:github-ops",
@@ -19597,6 +19693,14 @@
     {
       "target": "codex",
       "kind": "copy-file",
+      "source": ".pi/extensions/hook-runtime.js",
+      "destination": "<home>/.codex/.pi/extensions/hook-runtime.js",
+      "componentId": "baseline:platform",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "codex",
+      "kind": "copy-file",
       "source": ".pi/extensions/index.ts",
       "destination": "<home>/.codex/.pi/extensions/index.ts",
       "componentId": "baseline:platform",
@@ -19631,14 +19735,6 @@
       "kind": "copy-file",
       "source": ".codex/agents/reviewer.toml",
       "destination": "<home>/.codex/agents/reviewer.toml",
-      "componentId": "baseline:platform",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "codex",
-      "kind": "copy-file",
-      "source": "mcp-configs/mcp-servers.json",
-      "destination": "<home>/.codex/mcp-configs/mcp-servers.json",
       "componentId": "baseline:platform",
       "contingentOn": "evidence-authorization"
     },
@@ -21773,6 +21869,14 @@
     {
       "target": "codex",
       "kind": "copy-file",
+      "source": "skills/github-ops/references/ecc-release-checklist.md",
+      "destination": "<home>/.codex/skills/github-ops/references/ecc-release-checklist.md",
+      "componentId": "capability:operators",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "codex",
+      "kind": "copy-file",
       "source": "skills/github-ops/SKILL.md",
       "destination": "<home>/.codex/skills/github-ops/SKILL.md",
       "componentId": "capability:operators",
@@ -23410,6 +23514,14 @@
       "source": "skills/git-workflow/SKILL.md",
       "destination": "<home>/.codex/skills/git-workflow/SKILL.md",
       "componentId": "skill:git-workflow",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "codex",
+      "kind": "copy-file",
+      "source": "skills/github-ops/references/ecc-release-checklist.md",
+      "destination": "<home>/.codex/skills/github-ops/references/ecc-release-checklist.md",
+      "componentId": "skill:github-ops",
       "contingentOn": "evidence-authorization"
     },
     {
@@ -26207,6 +26319,14 @@
     {
       "target": "cursor",
       "kind": "copy-file",
+      "source": "scripts/hooks/gateguard-heredoc.js",
+      "destination": "<project>/.cursor/scripts/hooks/gateguard-heredoc.js",
+      "componentId": "baseline:hooks",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "cursor",
+      "kind": "copy-file",
       "source": "scripts/hooks/governance-capture.js",
       "destination": "<project>/.cursor/scripts/hooks/governance-capture.js",
       "componentId": "baseline:hooks",
@@ -26559,6 +26679,14 @@
     {
       "target": "cursor",
       "kind": "copy-file",
+      "source": "scripts/lib/claude-dry-run-sandbox.js",
+      "destination": "<project>/.cursor/scripts/lib/claude-dry-run-sandbox.js",
+      "componentId": "baseline:hooks",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "cursor",
+      "kind": "copy-file",
       "source": "scripts/lib/claude-plugin-setup.js",
       "destination": "<project>/.cursor/scripts/lib/claude-plugin-setup.js",
       "componentId": "baseline:hooks",
@@ -26657,14 +26785,6 @@
       "kind": "copy-file",
       "source": "scripts/lib/control-pane/work-item-mutations.js",
       "destination": "<project>/.cursor/scripts/lib/control-pane/work-item-mutations.js",
-      "componentId": "baseline:hooks",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "cursor",
-      "kind": "copy-file",
-      "source": "scripts/lib/cost-estimate.js",
-      "destination": "<project>/.cursor/scripts/lib/cost-estimate.js",
       "componentId": "baseline:hooks",
       "contingentOn": "evidence-authorization"
     },
@@ -26839,6 +26959,14 @@
     {
       "target": "cursor",
       "kind": "copy-file",
+      "source": "scripts/lib/install-targets/adal-project.js",
+      "destination": "<project>/.cursor/scripts/lib/install-targets/adal-project.js",
+      "componentId": "baseline:hooks",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "cursor",
+      "kind": "copy-file",
       "source": "scripts/lib/install-targets/antigravity-project.js",
       "destination": "<project>/.cursor/scripts/lib/install-targets/antigravity-project.js",
       "componentId": "baseline:hooks",
@@ -26991,6 +27119,22 @@
     {
       "target": "cursor",
       "kind": "copy-file",
+      "source": "scripts/lib/install/claude-settings-lock.js",
+      "destination": "<project>/.cursor/scripts/lib/install/claude-settings-lock.js",
+      "componentId": "baseline:hooks",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "cursor",
+      "kind": "copy-file",
+      "source": "scripts/lib/install/claude-settings.js",
+      "destination": "<project>/.cursor/scripts/lib/install/claude-settings.js",
+      "componentId": "baseline:hooks",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "cursor",
+      "kind": "copy-file",
       "source": "scripts/lib/install/claude-skill-migration.js",
       "destination": "<project>/.cursor/scripts/lib/install/claude-skill-migration.js",
       "componentId": "baseline:hooks",
@@ -27001,6 +27145,14 @@
       "kind": "copy-file",
       "source": "scripts/lib/install/config.js",
       "destination": "<project>/.cursor/scripts/lib/install/config.js",
+      "componentId": "baseline:hooks",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "cursor",
+      "kind": "copy-file",
+      "source": "scripts/lib/install/hook-consent.js",
+      "destination": "<project>/.cursor/scripts/lib/install/hook-consent.js",
       "componentId": "baseline:hooks",
       "contingentOn": "evidence-authorization"
     },
@@ -27025,6 +27177,14 @@
       "kind": "copy-file",
       "source": "scripts/lib/install/opencode-legacy-migration.js",
       "destination": "<project>/.cursor/scripts/lib/install/opencode-legacy-migration.js",
+      "componentId": "baseline:hooks",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "cursor",
+      "kind": "copy-file",
+      "source": "scripts/lib/install/ownership-guard.js",
+      "destination": "<project>/.cursor/scripts/lib/install/ownership-guard.js",
       "componentId": "baseline:hooks",
       "contingentOn": "evidence-authorization"
     },
@@ -27159,6 +27319,14 @@
     {
       "target": "cursor",
       "kind": "copy-file",
+      "source": "scripts/lib/missing-dependency.js",
+      "destination": "<project>/.cursor/scripts/lib/missing-dependency.js",
+      "componentId": "baseline:hooks",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "cursor",
+      "kind": "copy-file",
       "source": "scripts/lib/multi-harness-setup.js",
       "destination": "<project>/.cursor/scripts/lib/multi-harness-setup.js",
       "componentId": "baseline:hooks",
@@ -27257,6 +27425,14 @@
       "kind": "copy-file",
       "source": "scripts/lib/plan-canvas/ui.js",
       "destination": "<project>/.cursor/scripts/lib/plan-canvas/ui.js",
+      "componentId": "baseline:hooks",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "cursor",
+      "kind": "copy-file",
+      "source": "scripts/lib/powershell-destructive-command.js",
+      "destination": "<project>/.cursor/scripts/lib/powershell-destructive-command.js",
       "componentId": "baseline:hooks",
       "contingentOn": "evidence-authorization"
     },
@@ -27575,6 +27751,14 @@
     {
       "target": "cursor",
       "kind": "copy-file",
+      "source": ".pi/extensions/hook-runtime.js",
+      "destination": "<project>/.cursor/.pi/extensions/hook-runtime.js",
+      "componentId": "baseline:platform",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "cursor",
+      "kind": "copy-file",
       "source": ".pi/extensions/index.ts",
       "destination": "<project>/.cursor/.pi/extensions/index.ts",
       "componentId": "baseline:platform",
@@ -27585,158 +27769,6 @@
       "kind": "copy-file",
       "source": ".pi/README.md",
       "destination": "<project>/.cursor/.pi/README.md",
-      "componentId": "baseline:platform",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "cursor",
-      "kind": "copy-file",
-      "source": ".cursor/hooks.json",
-      "destination": "<project>/.cursor/hooks.json",
-      "componentId": "baseline:platform",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "cursor",
-      "kind": "copy-file",
-      "source": ".cursor/hooks/adapter.js",
-      "destination": "<project>/.cursor/hooks/adapter.js",
-      "componentId": "baseline:platform",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "cursor",
-      "kind": "copy-file",
-      "source": ".cursor/hooks/after-file-edit.js",
-      "destination": "<project>/.cursor/hooks/after-file-edit.js",
-      "componentId": "baseline:platform",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "cursor",
-      "kind": "copy-file",
-      "source": ".cursor/hooks/after-mcp-execution.js",
-      "destination": "<project>/.cursor/hooks/after-mcp-execution.js",
-      "componentId": "baseline:platform",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "cursor",
-      "kind": "copy-file",
-      "source": ".cursor/hooks/after-shell-execution.js",
-      "destination": "<project>/.cursor/hooks/after-shell-execution.js",
-      "componentId": "baseline:platform",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "cursor",
-      "kind": "copy-file",
-      "source": ".cursor/hooks/after-tab-file-edit.js",
-      "destination": "<project>/.cursor/hooks/after-tab-file-edit.js",
-      "componentId": "baseline:platform",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "cursor",
-      "kind": "copy-file",
-      "source": ".cursor/hooks/before-mcp-execution.js",
-      "destination": "<project>/.cursor/hooks/before-mcp-execution.js",
-      "componentId": "baseline:platform",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "cursor",
-      "kind": "copy-file",
-      "source": ".cursor/hooks/before-read-file.js",
-      "destination": "<project>/.cursor/hooks/before-read-file.js",
-      "componentId": "baseline:platform",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "cursor",
-      "kind": "copy-file",
-      "source": ".cursor/hooks/before-shell-execution-block-no-verify.js",
-      "destination": "<project>/.cursor/hooks/before-shell-execution-block-no-verify.js",
-      "componentId": "baseline:platform",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "cursor",
-      "kind": "copy-file",
-      "source": ".cursor/hooks/before-shell-execution.js",
-      "destination": "<project>/.cursor/hooks/before-shell-execution.js",
-      "componentId": "baseline:platform",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "cursor",
-      "kind": "copy-file",
-      "source": ".cursor/hooks/before-submit-prompt.js",
-      "destination": "<project>/.cursor/hooks/before-submit-prompt.js",
-      "componentId": "baseline:platform",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "cursor",
-      "kind": "copy-file",
-      "source": ".cursor/hooks/before-tab-file-read.js",
-      "destination": "<project>/.cursor/hooks/before-tab-file-read.js",
-      "componentId": "baseline:platform",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "cursor",
-      "kind": "copy-file",
-      "source": ".cursor/hooks/pre-compact.js",
-      "destination": "<project>/.cursor/hooks/pre-compact.js",
-      "componentId": "baseline:platform",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "cursor",
-      "kind": "copy-file",
-      "source": ".cursor/hooks/session-end.js",
-      "destination": "<project>/.cursor/hooks/session-end.js",
-      "componentId": "baseline:platform",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "cursor",
-      "kind": "copy-file",
-      "source": ".cursor/hooks/session-start.js",
-      "destination": "<project>/.cursor/hooks/session-start.js",
-      "componentId": "baseline:platform",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "cursor",
-      "kind": "copy-file",
-      "source": ".cursor/hooks/stop.js",
-      "destination": "<project>/.cursor/hooks/stop.js",
-      "componentId": "baseline:platform",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "cursor",
-      "kind": "copy-file",
-      "source": ".cursor/hooks/subagent-start.js",
-      "destination": "<project>/.cursor/hooks/subagent-start.js",
-      "componentId": "baseline:platform",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "cursor",
-      "kind": "copy-file",
-      "source": ".cursor/hooks/subagent-stop.js",
-      "destination": "<project>/.cursor/hooks/subagent-stop.js",
-      "componentId": "baseline:platform",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "cursor",
-      "kind": "copy-file",
-      "source": "mcp-configs/mcp-servers.json",
-      "destination": "<project>/.cursor/mcp-configs/mcp-servers.json",
       "componentId": "baseline:platform",
       "contingentOn": "evidence-authorization"
     },
@@ -28161,14 +28193,6 @@
       "kind": "copy-file",
       "source": ".cursor/skills/unified-memory/SKILL.md",
       "destination": "<project>/.cursor/skills/unified-memory/SKILL.md",
-      "componentId": "baseline:platform",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "cursor",
-      "kind": "merge-json",
-      "source": ".mcp.json",
-      "destination": "<project>/.cursor/mcp.json",
       "componentId": "baseline:platform",
       "contingentOn": "evidence-authorization"
     },
@@ -30393,6 +30417,14 @@
       "kind": "copy-file",
       "source": "skills/finance-billing-ops/SKILL.md",
       "destination": "<project>/.cursor/skills/finance-billing-ops/SKILL.md",
+      "componentId": "capability:operators",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "cursor",
+      "kind": "copy-file",
+      "source": "skills/github-ops/references/ecc-release-checklist.md",
+      "destination": "<project>/.cursor/skills/github-ops/references/ecc-release-checklist.md",
       "componentId": "capability:operators",
       "contingentOn": "evidence-authorization"
     },
@@ -34329,6 +34361,14 @@
     {
       "target": "cursor",
       "kind": "copy-file",
+      "source": "skills/github-ops/references/ecc-release-checklist.md",
+      "destination": "<project>/.cursor/skills/github-ops/references/ecc-release-checklist.md",
+      "componentId": "skill:github-ops",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "cursor",
+      "kind": "copy-file",
       "source": "skills/github-ops/SKILL.md",
       "destination": "<project>/.cursor/skills/github-ops/SKILL.md",
       "componentId": "skill:github-ops",
@@ -36545,6 +36585,14 @@
     {
       "target": "gemini",
       "kind": "copy-file",
+      "source": ".pi/extensions/hook-runtime.js",
+      "destination": "<project>/.gemini/.pi/extensions/hook-runtime.js",
+      "componentId": "baseline:platform",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "gemini",
+      "kind": "copy-file",
       "source": ".pi/extensions/index.ts",
       "destination": "<project>/.gemini/.pi/extensions/index.ts",
       "componentId": "baseline:platform",
@@ -36563,14 +36611,6 @@
       "kind": "copy-file",
       "source": ".gemini/GEMINI.md",
       "destination": "<project>/.gemini/GEMINI.md",
-      "componentId": "baseline:platform",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "gemini",
-      "kind": "copy-file",
-      "source": "mcp-configs/mcp-servers.json",
-      "destination": "<project>/.gemini/mcp-configs/mcp-servers.json",
       "componentId": "baseline:platform",
       "contingentOn": "evidence-authorization"
     },
@@ -37653,6 +37693,14 @@
     {
       "target": "zed",
       "kind": "copy-file",
+      "source": ".pi/extensions/hook-runtime.js",
+      "destination": "<project>/.zed/.pi/extensions/hook-runtime.js",
+      "componentId": "baseline:platform",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "zed",
+      "kind": "copy-file",
       "source": ".pi/extensions/index.ts",
       "destination": "<project>/.zed/.pi/extensions/index.ts",
       "componentId": "baseline:platform",
@@ -37669,14 +37717,6 @@
     {
       "target": "zed",
       "kind": "copy-file",
-      "source": "mcp-configs/mcp-servers.json",
-      "destination": "<project>/.zed/mcp-configs/mcp-servers.json",
-      "componentId": "baseline:platform",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "zed",
-      "kind": "copy-file",
       "source": "scripts/auto-update.js",
       "destination": "<project>/.zed/scripts/auto-update.js",
       "componentId": "baseline:platform",
@@ -37687,14 +37727,6 @@
       "kind": "copy-file",
       "source": "scripts/setup-package-manager.js",
       "destination": "<project>/.zed/scripts/setup-package-manager.js",
-      "componentId": "baseline:platform",
-      "contingentOn": "evidence-authorization"
-    },
-    {
-      "target": "zed",
-      "kind": "copy-file",
-      "source": ".zed/settings.json",
-      "destination": "<project>/.zed/settings.json",
       "componentId": "baseline:platform",
       "contingentOn": "evidence-authorization"
     },
@@ -39927,6 +39959,14 @@
       "kind": "copy-file",
       "source": "skills/finance-billing-ops/SKILL.md",
       "destination": "<project>/.zed/skills/finance-billing-ops/SKILL.md",
+      "componentId": "capability:operators",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "zed",
+      "kind": "copy-file",
+      "source": "skills/github-ops/references/ecc-release-checklist.md",
+      "destination": "<project>/.zed/skills/github-ops/references/ecc-release-checklist.md",
       "componentId": "capability:operators",
       "contingentOn": "evidence-authorization"
     },
@@ -44098,6 +44138,14 @@
       "source": "skills/git-workflow/SKILL.md",
       "destination": "<project>/.zed/skills/git-workflow/SKILL.md",
       "componentId": "skill:git-workflow",
+      "contingentOn": "evidence-authorization"
+    },
+    {
+      "target": "zed",
+      "kind": "copy-file",
+      "source": "skills/github-ops/references/ecc-release-checklist.md",
+      "destination": "<project>/.zed/skills/github-ops/references/ecc-release-checklist.md",
+      "componentId": "skill:github-ops",
       "contingentOn": "evidence-authorization"
     },
     {

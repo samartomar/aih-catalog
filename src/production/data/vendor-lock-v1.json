@@ -25,11 +25,12 @@
             "scripts/lib/mcp-config.js",
             "scripts/lib/opencode-paths.js",
             "scripts/lib/path-safety.js",
+            "scripts/lib/atomic-write.js",
             "scripts/codex/merge-codex-config.js",
             "scripts/codex/merge-mcp-config.js",
             ".codex/AGENTS.md"
           ],
-          "treeSha256": "0915301d304dd02a9bbe9542abb7d0b6dba5367ab7451639a08667f2a8e816d3",
+          "treeSha256": "64b47f910525503ae20d2ef66df3e4f9365db3464a64d564a1352d3c3c5b60ea",
           "verdict": "no-findings",
           "analyzers": [
             {
@@ -1406,7 +1407,7 @@
             "skills/returns-reverse-logistics"
           ],
           "treeSha256": "c236c7bac8106933c24aaae11d5c405fcaff1590398415f85ec4219923a23a23",
-          "verdict": "no-findings",
+          "verdict": "has-findings",
           "analyzers": [
             {
               "name": "aih-native",
@@ -1425,7 +1426,16 @@
               "version": "c7958a3268d9498644b22edb75d0f051bbc8cbfc@sha256:efe47bd7e073064426541381c8cb284162086950748424d1b4633788a2275bc6"
             }
           ],
-          "findings": [],
+          "findings": [
+            {
+              "code": "trust.unreviewed-analyzer-rule",
+              "detail": "WARN: skills/inventory-demand-planning/SKILL.md:1 — ---",
+              "fingerprint": "trust-raw:68d014ca81b53431c246740b215a0985d3c7003524602d2fc1042de18635e9f4",
+              "fingerprints": [
+                "trust-raw:68d014ca81b53431c246740b215a0985d3c7003524602d2fc1042de18635e9f4"
+              ]
+            }
+          ],
           "evidenceProblems": []
         },
         {
@@ -4420,7 +4430,7 @@
             "skills/returns-reverse-logistics"
           ],
           "treeSha256": "c236c7bac8106933c24aaae11d5c405fcaff1590398415f85ec4219923a23a23",
-          "verdict": "no-findings",
+          "verdict": "has-findings",
           "analyzers": [
             {
               "name": "aih-native",
@@ -4439,7 +4449,16 @@
               "version": "c7958a3268d9498644b22edb75d0f051bbc8cbfc@sha256:efe47bd7e073064426541381c8cb284162086950748424d1b4633788a2275bc6"
             }
           ],
-          "findings": [],
+          "findings": [
+            {
+              "code": "trust.unreviewed-analyzer-rule",
+              "detail": "WARN: skills/inventory-demand-planning/SKILL.md:1 — ---",
+              "fingerprint": "trust-raw:68d014ca81b53431c246740b215a0985d3c7003524602d2fc1042de18635e9f4",
+              "fingerprints": [
+                "trust-raw:68d014ca81b53431c246740b215a0985d3c7003524602d2fc1042de18635e9f4"
+              ]
+            }
+          ],
           "evidenceProblems": []
         },
         {
@@ -8768,7 +8787,7 @@
             "skills/inventory-demand-planning"
           ],
           "treeSha256": "06889888ad5369ed0cd8bc3ee0484d7b8e68dc4682ed84f6af1ee27400776799",
-          "verdict": "no-findings",
+          "verdict": "has-findings",
           "analyzers": [
             {
               "name": "aih-native",
@@ -8787,7 +8806,16 @@
               "version": "c7958a3268d9498644b22edb75d0f051bbc8cbfc@sha256:efe47bd7e073064426541381c8cb284162086950748424d1b4633788a2275bc6"
             }
           ],
-          "findings": [],
+          "findings": [
+            {
+              "code": "trust.unreviewed-analyzer-rule",
+              "detail": "WARN: skills/inventory-demand-planning/SKILL.md:1 — ---",
+              "fingerprint": "trust-raw:68d014ca81b53431c246740b215a0985d3c7003524602d2fc1042de18635e9f4",
+              "fingerprints": [
+                "trust-raw:68d014ca81b53431c246740b215a0985d3c7003524602d2fc1042de18635e9f4"
+              ]
+            }
+          ],
           "evidenceProblems": []
         },
         {
