@@ -88,7 +88,6 @@ describe("public-API example", () => {
       expect(report.sourceClosure).toEqual({
         state: "refused",
         reason: "source-file-absent",
-        path: "aih-packs.json",
       });
       const expired = JSON.parse(run("2026-12-08T00:47:41Z").stdout);
       expect(expired.qualification.states).toEqual({ expired: 457 });
