@@ -49,8 +49,10 @@ describe("registered Workbench source assessments", () => {
     const manifest = read(resolve(root, "defaults/default-catalog-seed-manifest-v2.json"));
     expect(
       manifest.seeds.filter(
+        // Every source-assessment row: the Core collection's own rows (aih-core-*) are the
+        // renderer's and are asserted by core-collection-seeds.test.ts.
         (path: string) =>
-          !path.startsWith("workbench/aih-core-0.6.2/") && !path.startsWith("workbench/npm/"),
+          !path.startsWith("workbench/aih-core-") && !path.startsWith("workbench/npm/"),
       ),
     ).toHaveLength(435);
     const anthropicSubjects = new Set<string>();
