@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import { createHash, generateKeyPairSync, type KeyObject, sign, verify } from "node:crypto";
 import {
   chmodSync,
+  cpSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
@@ -18,6 +19,31 @@ import { describe, expect, it, vi } from "vitest";
 import { runCatalogV2Cli } from "../../src/supported/signed-catalog-v2.js";
 
 const root = resolve(import.meta.dirname, "..", "..");
+
+function disposableBuildRoot(parent: string): string {
+  const copy = resolve(parent, "repository");
+  mkdirSync(copy);
+  for (const path of [
+    "package.json",
+    "package-lock.json",
+    "tsconfig.build.json",
+    "tsconfig.json",
+    "README.md",
+    "LICENSE",
+    "src",
+    "tools",
+    "defaults",
+  ]) {
+    if (existsSync(resolve(root, path)))
+      cpSync(resolve(root, path), resolve(copy, path), { recursive: true });
+  }
+  symlinkSync(
+    resolve(root, "node_modules"),
+    resolve(copy, "node_modules"),
+    process.platform === "win32" ? "junction" : "dir",
+  );
+  return copy;
+}
 const coreCommit = "c31741602b3dbd5f228dafe00591e5679c782878";
 const corePackageManifestSha256 =
   "8dc114f1564af7330e4376aad716a8622766c28e97c2b3fc74ae87da0a2cc185";
@@ -517,6 +543,30 @@ function canCreateFileAndDirectorySymlinks(): boolean {
 }
 
 describe("public signed catalog V2 acceptance contract", () => {
+  it("builds in a disposable repository copy without rewriting checkout defaults or source", () => {
+    const status = () =>
+      spawnSync("git", ["status", "--porcelain", "--", "defaults", "src"], {
+        cwd: root,
+        encoding: "utf8",
+      });
+    const before = status();
+    expect(before.status).toBe(0);
+    const temp = mkdtempSync(join(tmpdir(), "aih-supported-isolated-build-"));
+    try {
+      const buildRoot = disposableBuildRoot(temp);
+      const built = spawnSync(process.execPath, [npmCli(), "run", "build"], {
+        cwd: buildRoot,
+        encoding: "utf8",
+      });
+      expect(built.status, built.stderr).toBe(0);
+      expect(existsSync(resolve(buildRoot, "dist/cli.js"))).toBe(true);
+      const after = status();
+      expect(after.status).toBe(0);
+      expect(after.stdout).toBe(before.stdout);
+    } finally {
+      rmSync(temp, { force: true, recursive: true });
+    }
+  }, 60_000);
   it("prints deterministic help without entering a catalog effect path", () => {
     const output = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     const error = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
@@ -680,15 +730,16 @@ describe("public signed catalog V2 acceptance contract", () => {
     () => {
       const temp = mkdtempSync(join(tmpdir(), "aih-supported-symlink-custody-"));
       try {
+        const buildRoot = disposableBuildRoot(temp);
         const built = spawnSync(process.execPath, [npmCli(), "run", "build"], {
-          cwd: root,
+          cwd: buildRoot,
           encoding: "utf8",
         });
         expect(built.status).toBe(0);
         const packed = spawnSync(
           process.execPath,
           [npmCli(), "pack", "--json", "--pack-destination", temp],
-          { cwd: root, encoding: "utf8", maxBuffer: 4 * 1024 * 1024 },
+          { cwd: buildRoot, encoding: "utf8", maxBuffer: 4 * 1024 * 1024 },
         );
         expect(packed.status).toBe(0);
         const packedManifest = (JSON.parse(packed.stdout) as { filename: string }[])[0];
@@ -4237,31 +4288,32 @@ describe("public signed catalog V2 acceptance contract", () => {
     for (const script of Object.values(packageScripts)) expect(script).not.toMatch(/^true(?:\s|$)/);
     const temp = mkdtempSync(join(tmpdir(), "aih-supported-cold-"));
     try {
-      const staleOutput = resolve(root, "dist/stale.js");
-      mkdirSync(resolve(root, "dist"), { recursive: true });
+      const buildRoot = disposableBuildRoot(temp);
+      const staleOutput = resolve(buildRoot, "dist/stale.js");
+      mkdirSync(resolve(buildRoot, "dist"), { recursive: true });
       writeFileSync(staleOutput, "stale");
       expect((packageJson.scripts as Record<string, string>).build).toMatch(
         /(?:node tools\/clean-dist\.mjs|node -e .*dist.*rmSync).*tsc -p tsconfig\.build\.json/,
       );
       const buildStarted = Date.now();
       const build = spawnSync(process.execPath, [npmCli(), "run", "build"], {
-        cwd: root,
+        cwd: buildRoot,
         encoding: "utf8",
       });
       expect(build.status).toBe(0);
       expect(existsSync(staleOutput)).toBe(false);
       for (const output of ["dist/cli.js", "dist/index.js"] as const) {
-        const outputPath = resolve(root, output);
+        const outputPath = resolve(buildRoot, output);
         expect(existsSync(outputPath)).toBe(true);
         expect(statSync(outputPath).mtimeMs).toBeGreaterThanOrEqual(buildStarted - 1_000);
       }
       if (process.platform !== "win32")
-        expect(statSync(resolve(root, "dist/cli.js")).mode & 0o111).not.toBe(0);
+        expect(statSync(resolve(buildRoot, "dist/cli.js")).mode & 0o111).not.toBe(0);
       const packed = spawnSync(
         process.execPath,
         [npmCli(), "pack", "--json", "--pack-destination", temp],
         {
-          cwd: root,
+          cwd: buildRoot,
           encoding: "utf8",
           maxBuffer: 4 * 1024 * 1024,
         },

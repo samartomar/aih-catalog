@@ -730,7 +730,9 @@ describe("Core collection seed renderer", () => {
     const item = fixture();
     const path = join(item.catalogRoot, "defaults/catalog-collection-inputs-v1.json");
     const inputs = read(path) as { collections: { current: { origin: Json } }[] };
-    inputs.collections[0]!.current.origin = { kind: "catalog-authored" };
+    const current = inputs.collections[0];
+    if (!current) throw new Error("missing Core collection fixture");
+    current.current.origin = { kind: "catalog-authored" };
     writeFileSync(path, canonical(inputs));
     expect(() => api.renderCoreCollectionSeedsV1(item)).toThrow(
       new TypeError("core-collection-renderer:package-origin"),
