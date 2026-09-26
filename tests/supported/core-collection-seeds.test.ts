@@ -593,6 +593,32 @@ const snapshot = (directory: string) =>
   );
 
 describe("Core collection seed renderer", () => {
+  it("publishes the package-declared license for every current Core row and limits MCP scope", () => {
+    const core = join(repository, "defaults", "workbench", "aih-core-0.7.0");
+    const rows = readdirSync(core).filter((name) => name !== "source-reports");
+    expect(rows).toHaveLength(10);
+    expect(rows.filter((name) => name.startsWith("agent."))).toHaveLength(2);
+    expect(rows.filter((name) => name.startsWith("skill."))).toHaveLength(1);
+    expect(rows.filter((name) => name.startsWith("mcp."))).toHaveLength(7);
+    for (const entryId of rows) {
+      const directory = join(core, entryId);
+      const seed = read(join(directory, "seed.json")) as {
+        qualification: { gaps: string[]; rights: string[] };
+      };
+      expect(seed.qualification.gaps).not.toContain("evidence/license-gap.json");
+      expect(existsSync(join(directory, "evidence", "license-gap.json"))).toBe(false);
+      expect(seed.qualification.rights).toEqual(["evidence/source-right.json"]);
+      const right = read(join(directory, "evidence", "source-right.json")) as { summary: string };
+      expect(right.summary).toContain(
+        "Applicable Apache-2.0 notice declared by @aihq/core 0.7.0 (package.json sha256:3b1e554f6c58090861829be8f94de89aa0a0ab19dd6bc8337441eba60b22a89a)",
+      );
+      if (entryId.startsWith("mcp.")) {
+        expect(right.summary).toContain("aih's own MCP declaration only");
+        expect(right.summary).toContain("the third-party server's license is not stated");
+      }
+    }
+  });
+
   it("re-renders every current seed and its source reports from the new record and draft", async () => {
     const api = await renderer();
     const item = fixture();
@@ -1113,7 +1139,10 @@ describe("Core collection seed renderer, new-release mode", () => {
         qualification: { gaps: string[]; rights: string[] };
       };
       expect(seed.qualification.gaps).not.toContain("evidence/license-gap.json");
-      const right = read(join(next, entryId, seed.qualification.rights[0]!)) as { summary: string };
+      expect(seed.qualification.rights).toHaveLength(1);
+      const right = read(join(next, entryId, seed.qualification.rights[0] ?? "missing-right")) as {
+        summary: string;
+      };
       expect(right.summary).toContain(
         `Applicable Apache-2.0 notice declared by @aihq/core 0.7.0 (package.json sha256:${sha(readFileSync(item.packagePath))})`,
       );
@@ -1364,7 +1393,10 @@ describe("Core collection seed renderer, initial-release mode", () => {
         qualification: { gaps: string[]; rights: string[] };
       };
       expect(published.qualification.gaps).not.toContain("evidence/license-gap.json");
-      const right = read(join(next, entryId, published.qualification.rights[0]!)) as {
+      expect(published.qualification.rights).toHaveLength(1);
+      const right = read(
+        join(next, entryId, published.qualification.rights[0] ?? "missing-right"),
+      ) as {
         summary: string;
       };
       expect(right.summary).toContain(
