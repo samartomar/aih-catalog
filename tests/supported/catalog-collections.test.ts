@@ -25,8 +25,9 @@ const shippedBytes = readFileSync(resolve(root, CATALOG_COLLECTIONS_ROOT_URL));
 const shipped = JSON.parse(shippedBytes.toString("utf8"));
 const inputs = readJson("defaults/catalog-collection-inputs-v1.json");
 /**
- * Inputs naming a Core collection. The shipped Catalog names none until the Core 0.7.0 content
- * lands (D57), so Core-collection behavior is exercised on the synthetic root below.
+ * Inputs naming a Core collection. The shipped Catalog names the 0.7.0 collection (D57 part 2);
+ * this fixture names its own synthetic 0.6.2 collection instead, so membership changes and
+ * cross-release refusals are exercised on the synthetic root below.
  */
 const coreInputs = {
   ...inputs,
@@ -46,7 +47,9 @@ const coreInputs = {
       },
       seedRoot: "workbench/aih-core-0.6.2/",
     },
-    ...inputs.collections,
+    ...(inputs.collections as { id: string }[]).filter(
+      (collection) => collection.id !== "aih-core",
+    ),
   ],
 };
 
@@ -202,21 +205,45 @@ describe("published catalog collections", () => {
     );
   }, 30_000);
 
-  it("names no Core collection and indexes no Core entry until the Core 0.7.0 content lands", () => {
+  it("names the shipped Core collection at its release, of that release's own entries", () => {
     const collections = readCatalogCollectionsV1({
       bytes: shippedBytes,
       index,
     }) as CatalogCollectionsV1;
     expect(collections).toBeDefined();
     expect(collections.collectedSourceTypes).toEqual(["aih"]);
-    expect(collections.collections.map((c) => c.id)).toEqual(["aih-default-profile"]);
-    expect(collections.collections.filter((c) => c.owner.package === "@aihq/core")).toEqual([]);
-    // The 0.6.2 seeds are deleted (D57); the only aih entry left is the default profile.
+    expect(collections.collections.map((c) => c.id)).toEqual(["aih-core", "aih-default-profile"]);
+    const owned = collections.collections.filter((c) => c.owner.package === "@aihq/core");
+    expect(owned).toHaveLength(1);
+    expect(owned[0]?.current.release).toBe("0.7.0");
+    expect(owned[0]?.members.map((member) => member.entryId)).toEqual(
+      index.entries
+        .filter(
+          (entry) =>
+            entry.subject.source.type === "aih" &&
+            entry.subject.kind !== "profile" &&
+            entry.entryId !== "recipe.default",
+        )
+        .map((entry) => entry.entryId),
+    );
+    // The aih entries of the index: the ten Core 0.7.0 rows and the default profile.
     expect(
       index.entries
         .filter((entry) => entry.subject.source.type === "aih")
         .map((entry) => entry.entryId),
-    ).toEqual(["recipe.default"]);
+    ).toEqual([
+      "agent.aih.governance-quality.core-0-7-0",
+      "agent.aih.review-quality.core-0-7-0",
+      "mcp.aih.code-review-graph.core-0-7-0",
+      "mcp.aih.codebase-memory-mcp.core-0-7-0",
+      "mcp.aih.context7.core-0-7-0",
+      "mcp.aih.github.core-0-7-0",
+      "mcp.aih.playwright.core-0-7-0",
+      "mcp.aih.sequential-thinking.core-0-7-0",
+      "mcp.aih.serena.core-0-7-0",
+      "recipe.default",
+      "skill.aih.docs-quality.core-0-7-0",
+    ]);
   });
 
   it("names exactly one Core collection, of that release's own entries, when the inputs state one", async () => {
