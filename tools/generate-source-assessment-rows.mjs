@@ -729,13 +729,36 @@ function assertDisjointOwnership(memberComponents) {
   }
 }
 
+function definitionOverlapMode(value) {
+  if (value !== "disjoint" && value !== "compiler-catalog") fail("definition-overlap");
+  return value;
+}
+
+function assertCompilerCatalogOwnership(memberComponents) {
+  const ids = new Map();
+  const digests = new Map();
+  memberComponents.forEach((components, member) => {
+    for (const component of components) {
+      if (ids.has(component.id) && ids.get(component.id) !== member)
+        fail("publication-set-component-overlap");
+      ids.set(component.id, member);
+      for (const file of component.files) {
+        if (digests.has(file.path) && digests.get(file.path) !== file.sha256)
+          fail("publication-set-component-overlap-digest");
+        digests.set(file.path, file.sha256);
+      }
+    }
+  });
+}
+
 /**
  * A publication set (D49): the publications of one Scanner request set, which one execution
  * produced over one source. Its members must agree on the source and its pin, carry the same
  * bytes for every annex path they share, be distinct requests and own disjoint components;
  * any other set is refused, never merged. Each member is still verified on its own.
  */
-export function assertPublicationSetV1(publications) {
+export function assertPublicationSetV1(publications, definitionOverlap = "disjoint") {
+  definitionOverlapMode(definitionOverlap);
   const members = array(publications, "publication-set").map((value) => {
     const publication = object(value, "publication");
     const request = object(publication.request, "publication-request");
@@ -749,6 +772,9 @@ export function assertPublicationSetV1(publications) {
       if (annexes.has(path)) fail("publication-annex-duplicate");
       annexes.set(path, encoded);
     }
+    const native = definitionOverlap === "compiler-catalog"
+      ? publicationNativeFilesV1(publication)
+      : undefined;
     return {
       annexes,
       components: array(request.components, "request-components").map((entry) => {
@@ -758,6 +784,11 @@ export function assertPublicationSetV1(publications) {
           paths: validateStringSet(component.paths, "component-paths").map((path) =>
             sourceRelative(path),
           ),
+          ...(native === undefined ? {} : {
+            files: [...native].filter(([path]) => component.paths.some((root) =>
+              path === root || path.startsWith(`${root}/`),
+            )).map(([path, sha256]) => ({ path, sha256 })),
+          }),
         };
       }),
       requestSha256: hex(request.requestSha256, "request"),
@@ -767,7 +798,6 @@ export function assertPublicationSetV1(publications) {
   const [first] = members;
   if (first === undefined) fail("publication-set-empty");
   const requests = new Set();
-  const annexes = new Map();
   for (const member of members) {
     if (["id", "owner", "repository"].some((key) => member.source[key] !== first.source[key]))
       fail("publication-set-source");
@@ -778,12 +808,18 @@ export function assertPublicationSetV1(publications) {
       fail("publication-set-pin");
     if (requests.has(member.requestSha256)) fail("publication-set-duplicate");
     requests.add(member.requestSha256);
+  }
+  if (definitionOverlap === "compiler-catalog")
+    assertCompilerCatalogOwnership(members.map((member) => member.components));
+  const annexes = new Map();
+  for (const member of members) {
     for (const [path, encoded] of member.annexes) {
       if (annexes.has(path) && annexes.get(path) !== encoded) fail("publication-set-annex-bytes");
       annexes.set(path, encoded);
     }
   }
-  assertDisjointOwnership(members.map((member) => member.components));
+  if (definitionOverlap === "disjoint")
+    assertDisjointOwnership(members.map((member) => member.components));
 }
 
 /**
@@ -1494,8 +1530,11 @@ function closureRows(members, provider, sourceRoot, definition, authoring) {
     for (const component of member.validated.components) {
       memberOf.set(component, member);
       for (const entry of component.files) {
-        if (owners.has(entry.path)) fail("publication-set-component-overlap");
-        owners.set(entry.path, component);
+        const existing = owners.get(entry.path) ?? [];
+        if (existing.some((owner) => owner.files.find((file) => file.path === entry.path)?.sha256 !== entry.sha256))
+          fail("publication-set-component-overlap-digest");
+        existing.push(component);
+        owners.set(entry.path, existing);
       }
     }
   const rows = inventory.rows.map((row) => {
@@ -1512,10 +1551,10 @@ function closureRows(members, provider, sourceRoot, definition, authoring) {
         fail("closure-file-declared-digest");
       const owner = owners.get(path);
       if (owner === undefined) fail("closure-file-unmapped");
-      return { path, ...checkout, owner };
+      return { path, ...checkout, owners: owner };
     });
     const closure = new Set(row.files);
-    const involved = [...new Set(closureFiles.map((entry) => entry.owner))].sort((left, right) =>
+    const involved = [...new Set(closureFiles.flatMap((entry) => entry.owners))].sort((left, right) =>
       codeUnitCompare(left.artifact.scannerComponentId, right.artifact.scannerComponentId),
     );
     const files = closureFiles.map(({ path, bytes, sha256: digest }) => ({ path, bytes, sha256: digest }));
@@ -2027,7 +2066,9 @@ export function generateSourceAssessmentRowsV1({
   definitionPath,
   authoringCatalogPath,
   catalogIndexPath,
+  definitionOverlap = "disjoint",
 }) {
+  definitionOverlapMode(definitionOverlap);
   if (!PROVIDER.test(text(provider, "provider", 80))) fail("provider");
   // One publication, or the members of one publication set as handoff/publication pairs (D49),
   // each with the Sigstore bundle of its outer attestation.
@@ -2096,15 +2137,16 @@ export function generateSourceAssessmentRowsV1({
     return { handoff, validated };
   });
   if (members.length > 1) {
-    assertPublicationSetV1(members.map(({ validated }) => validated.publication.value));
-    assertDisjointOwnership(
-      members.map(({ validated }) =>
-        validated.components.map(({ artifact }) => ({
+    assertPublicationSetV1(members.map(({ validated }) => validated.publication.value), definitionOverlap);
+    const components = members.map(({ validated }) =>
+        validated.components.map(({ artifact, files }) => ({
           id: artifact.scannerComponentId,
           paths: artifact.paths,
+          files,
         })),
-      ),
-    );
+      );
+    if (definitionOverlap === "disjoint") assertDisjointOwnership(components);
+    else assertCompilerCatalogOwnership(components);
     members.sort((left, right) =>
       codeUnitCompare(left.handoff.publicationSha256, right.handoff.publicationSha256),
     );
@@ -2164,7 +2206,7 @@ function argumentsFrom(argv) {
     "output-root",
     "manifest",
   ];
-  const optional = ["definition", "authoring-catalog", "catalog-index"];
+  const optional = ["definition", "authoring-catalog", "catalog-index", "definition-overlap"];
   if (
     expected.some((name) => !values.has(name)) ||
     [...values.keys()].some((name) => !expected.includes(name) && !optional.includes(name))
@@ -2184,6 +2226,9 @@ function argumentsFrom(argv) {
       : {}),
     ...(values.has("catalog-index")
       ? { catalogIndexPath: resolve(values.get("catalog-index")) }
+      : {}),
+    ...(values.has("definition-overlap")
+      ? { definitionOverlap: values.get("definition-overlap") }
       : {}),
   };
 }

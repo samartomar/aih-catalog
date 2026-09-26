@@ -29,11 +29,12 @@ const codeUnitCompare = (left, right) => (left < right ? -1 : left > right ? 1 :
 const holds = (component, path) =>
   component.paths.some((root) => path === root || path.startsWith(`${root}/`));
 
-export function deriveClosureMappingV1(publication, definition, authoringCatalog) {
+export function deriveClosureMappingV1(publication, definition, authoringCatalog, definitionOverlap = "disjoint") {
   const { mappings, rows, excluded } = deriveClosureMappingSetV1(
     [publication],
     definition,
     authoringCatalog,
+    definitionOverlap,
   );
   return { mapping: mappings[0], rows, excluded };
 }
@@ -43,9 +44,10 @@ export function deriveClosureMappingV1(publication, definition, authoringCatalog
  * request set over one source (assertPublicationSetV1); every member's native annex is verified
  * and the curated closure must lie in the union of the members' requests.
  */
-export function deriveClosureMappingSetV1(publications, definition, authoringCatalog) {
+export function deriveClosureMappingSetV1(publications, definition, authoringCatalog, definitionOverlap = "disjoint") {
   if (!Array.isArray(publications) || publications.length === 0) fail("publication-set");
-  if (publications.length > 1) assertPublicationSetV1(publications);
+  if (definitionOverlap !== "disjoint" && definitionOverlap !== "compiler-catalog") fail("definition-overlap");
+  if (publications.length > 1) assertPublicationSetV1(publications, definitionOverlap);
   const natives = publications.map((publication) => publicationNativeFilesV1(publication));
   const requests = publications.map((publication) => {
     const request = publication.request;
@@ -111,7 +113,7 @@ function argumentsFrom(argv) {
     values.set(name, value);
   }
   const expected = ["publication", "definition", "output"];
-  const optional = ["authoring-catalog"];
+  const optional = ["authoring-catalog", "definition-overlap"];
   if (
     values.size !== expected.length + optional.filter((name) => values.has(name)).length ||
     expected.some((name) => !values.has(name)) ||
@@ -125,6 +127,7 @@ function argumentsFrom(argv) {
       ? { authoringCatalog: resolve(values.get("authoring-catalog")) }
       : {}),
     ...pairs,
+    definitionOverlap: values.get("definition-overlap") ?? "disjoint",
   };
 }
 
@@ -138,6 +141,7 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
       values.publication.map(readJson),
       readJson(values.definition),
       values.authoringCatalog === undefined ? undefined : readJson(values.authoringCatalog),
+      values.definitionOverlap,
     );
     derived.mappings.forEach((mapping, index) =>
       writeFileSync(values.output[index], `${JSON.stringify(mapping)}\n`, {

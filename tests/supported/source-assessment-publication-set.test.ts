@@ -13,6 +13,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  canonical,
   catalogIndex,
   sha256,
   type WrittenPublication,
@@ -35,7 +36,9 @@ type Generator = {
     manifestPath: string;
     definitionPath?: string;
     catalogIndexPath?: string;
+    definitionOverlap?: string;
   }): { entries: number; seedPaths: string[]; excluded?: Json[] };
+  assertPublicationSetV1(publications: unknown[], definitionOverlap?: string): void;
   hashComponentTreeV1(sourceRoot: string, paths: string[]): { treeSha256: string };
   hashSourceTreeV1(sourceRoot: string): { treeSha256: string };
 };
@@ -44,6 +47,8 @@ type MappingHelper = {
   deriveClosureMappingSetV1(
     publications: unknown[],
     definition: unknown,
+    authoringCatalog?: unknown,
+    definitionOverlap?: string,
   ): { mappings: Json[]; rows: string[]; excluded: Json[] };
 };
 
@@ -232,6 +237,13 @@ const SET: Member[] = [
   { name: "one", partition: [ROOT, DEMO] },
   { name: "two", partition: [OTHER, SERVER] },
 ];
+const OVERLAP: Member[] = [
+  SET[0] as Member,
+  {
+    name: "two",
+    partition: [OTHER, SERVER, { ...DEMO, id: "skill:skills-demo-copy-05" }],
+  },
+];
 const evidenceOf = (outputRoot: string, row: string) => join(outputRoot, row, "evidence");
 const summaryOf = (path: string) => read(path).summary as string;
 const listFiles = (directory: string): string[] =>
@@ -241,6 +253,133 @@ const listFiles = (directory: string): string[] =>
     .sort();
 
 describe("source-assessment rows over a publication set", () => {
+  it("accepts equal-digest overlap only in compiler-catalog mode across mapping and rows", async () => {
+    const set = await publicationSet(OVERLAP);
+    const publications = set.built.map((item) => read(item.publicationPath));
+    const mapping = await mappingHelper();
+    expect(() => mapping.deriveClosureMappingSetV1(publications, read(set.definitionPath))).toThrow(
+      "publication-set-component-overlap",
+    );
+    expect(
+      mapping.deriveClosureMappingSetV1(
+        publications,
+        read(set.definitionPath),
+        undefined,
+        "compiler-catalog",
+      ).mappings,
+    ).toHaveLength(2);
+    expect(() => set.run()).toThrow("publication-set-component-overlap");
+    const api = await generator();
+    expect(
+      api.generateSourceAssessmentRowsV1({
+        ...set.input(),
+        definitionOverlap: "compiler-catalog",
+      }).entries,
+    ).toBe(2);
+  });
+
+  it("refuses unknown overlap modes at the mapping and row boundaries", async () => {
+    const set = await publicationSet(SET);
+    const mapping = await mappingHelper();
+    expect(() =>
+      mapping.deriveClosureMappingSetV1(
+        set.built.map((item) => read(item.publicationPath)),
+        read(set.definitionPath),
+        undefined,
+        "unknown",
+      ),
+    ).toThrow("definition-overlap");
+    const api = await generator();
+    expect(() =>
+      api.generateSourceAssessmentRowsV1({ ...set.input(), definitionOverlap: "unknown" }),
+    ).toThrow("definition-overlap");
+  });
+
+  it("refuses different native digests for one file in compiler-catalog mode", async () => {
+    const set = await publicationSet(OVERLAP);
+    const api = await generator();
+    const publications = set.built.map((item) => read(item.publicationPath));
+    const second = publications[1] as Json;
+    const annexes = second.annexes as { path: string; bytesBase64: string }[];
+    const native = annexes.find((item) => item.path === "annex/aih-native.json");
+    if (native === undefined) throw new Error("native annex absent");
+    const payload = JSON.parse(Buffer.from(native.bytesBase64, "base64").toString("utf8")) as {
+      files: { path: string; sha256: string }[];
+    };
+    const file = payload.files.find((item) => item.path === "skills/demo/SKILL.md");
+    if (file === undefined) throw new Error("shared file absent");
+    file.sha256 = "0".repeat(64);
+    native.bytesBase64 = Buffer.from(canonical(payload)).toString("base64");
+    const receipt = second.receipt as Json;
+    const components = receipt.components as {
+      observations: { analyzer: string; annexSha256: string }[];
+    }[];
+    for (const component of components)
+      for (const observation of component.observations)
+        if (observation.analyzer === "aih-native")
+          observation.annexSha256 = sha256(Buffer.from(native.bytesBase64, "base64"));
+    const { receiptSha256: _old, ...authoring } = receipt;
+    receipt.receiptSha256 = sha256(
+      canonical({ domain: "aih.baseline-vet-receipt-v1", receipt: authoring }),
+    );
+    expect(() => api.assertPublicationSetV1(publications, "compiler-catalog")).toThrow(
+      "publication-set-component-overlap-digest",
+    );
+  });
+
+  it("passes compiler-catalog mode through both command lines", async () => {
+    const set = await publicationSet(OVERLAP);
+    const outputs = set.built.map((item) => join(dirname(item.publicationPath), "mapping.json"));
+    const mapping = spawnSync(
+      process.execPath,
+      [
+        resolve(dirname(TOOL), "derive-closure-mapping.mjs"),
+        "--definition",
+        set.definitionPath,
+        "--definition-overlap",
+        "compiler-catalog",
+        ...set.built.flatMap((item, index) => [
+          "--publication",
+          item.publicationPath,
+          "--output",
+          outputs[index] as string,
+        ]),
+      ],
+      { encoding: "utf8" },
+    );
+    expect(mapping.status).toBe(0);
+    expect(outputs.every(existsSync)).toBe(true);
+    const input = set.input();
+    const rows = spawnSync(
+      process.execPath,
+      [
+        TOOL,
+        "--source-root",
+        input.sourceRoot,
+        "--provider",
+        input.provider,
+        "--output-root",
+        input.outputRoot,
+        "--manifest",
+        input.manifestPath,
+        "--definition",
+        set.definitionPath,
+        "--definition-overlap",
+        "compiler-catalog",
+        ...set.built.flatMap((item) => [
+          "--handoff",
+          item.handoffPath,
+          "--publication",
+          item.publicationPath,
+          "--attestation",
+          item.attestationPath,
+        ]),
+      ],
+      { encoding: "utf8" },
+    );
+    expect(rows.status).toBe(0);
+    expect(JSON.parse(rows.stdout).entries).toBe(2);
+  });
   it("renders the curated rows once over the union, citing each row's own publications", async () => {
     const set = await publicationSet(SET);
     const result = set.run();
