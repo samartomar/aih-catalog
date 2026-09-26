@@ -405,8 +405,9 @@ file refusal: `index-unreadable`, `collections-unreadable`,
 `1`; a profile of any other format is `profile-invalid`. A member whose bytes this
 package does not ship is `source-file-absent`, never an empty closure.
 
-No member's closure is shipped in this build: the Core 0.6.2 member it served was
-removed (D57), and the Core 0.7.0 members are staged with their content.
+The Core 0.7.0 governance-quality member's original four-file closure is shipped
+at its pinned source revision. Other members can be staged when their original
+files are needed by a consumer.
 Maintainers stage a member from its exact recorded revision with
 `npm run stage:source-closure -- <collection-id> <subject-id>`, which refuses any
 digest mismatch. Reading never uses the network. Source bytes are not a scan,

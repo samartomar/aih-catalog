@@ -32,7 +32,7 @@ const TREE_DIGEST = `sha256:${"a7".repeat(32)}`;
  * collection (release 0.6.2, as the Catalog shipped until D57) whose governance-quality member's
  * source files are shipped under defaults/sources, a source-file member whose bytes are not
  * shipped (review-quality), a configuration-only member (context7) and the default profile.
- * The shipped Catalog names no Core collection until the Core 0.7.0 content lands.
+ * The shipped Catalog carries the Core 0.7.0 collection separately from this synthetic fixture.
  */
 async function syntheticPackage(base: string) {
   const write = (path: string, text: string) => {
@@ -338,11 +338,21 @@ describe("catalog original-source closure", () => {
     ]);
   });
 
-  it("reports the Core-owned source file absent from its own installed package", () => {
-    // The shipped Catalog names Core 0.7.0 members but does not carry their original files.
-    expect(
-      readCatalogSourceClosureV1({ collectionId: "aih-core", subjectId: "governance-quality" }),
-    ).toEqual({ state: "refused", reason: "source-file-absent", path: "aih-packs.json" });
+  it("verifies the shipped Core 0.7.0 governance-quality closure", () => {
+    const result = readCatalogSourceClosureV1({
+      collectionId: "aih-core",
+      subjectId: "governance-quality",
+    });
+    expect(result.state).toBe("verified");
+    if (result.state !== "verified") return;
+    expect(result.closure.collection).toEqual({ id: "aih-core", release: "0.7.0" });
+    expect(result.closure.files.map((file) => file.path)).toEqual([
+      "aih-packs.json",
+      "packs/governance-quality/aih-gov-doctor/LICENSE",
+      "packs/governance-quality/aih-gov-doctor/SKILL.md",
+      "packs/governance-quality/aih-gov-doctor/profile.json",
+    ]);
+    for (const file of result.closure.files) expect(sha256(file.bytes)).toBe(file.sha256);
   });
 
   it("refuses an unknown collection or a subject that is not a current member", () => {

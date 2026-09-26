@@ -84,10 +84,16 @@ describe("public-API example", () => {
           state: "verified",
         },
       ]);
-      // Core owns these source files; the Catalog package reports the first absent file.
+      // Catalog ships the Core member's exact pinned source closure.
       expect(report.sourceClosure).toEqual({
-        state: "refused",
-        reason: "source-file-absent",
+        state: "verified",
+        entryId: "agent.aih.governance-quality.core-0-7-0",
+        files: [
+          "aih-packs.json",
+          "packs/governance-quality/aih-gov-doctor/LICENSE",
+          "packs/governance-quality/aih-gov-doctor/SKILL.md",
+          "packs/governance-quality/aih-gov-doctor/profile.json",
+        ],
       });
       const expired = JSON.parse(run("2026-12-08T00:47:41Z").stdout);
       expect(expired.qualification.states).toEqual({ expired: 457 });

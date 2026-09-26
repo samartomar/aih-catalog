@@ -71,8 +71,7 @@ const states = {};
 for (const entry of qualification.entries) states[entry.state] = (states[entry.state] ?? 0) + 1;
 
 // 5. One current collection member's exact original source files. The Core collection carries
-// its 0.7.0 rows; their closure files live in the Core package this checkout does not hold, so
-// the reader reports the absent file as the fact it is.
+// its 0.7.0 rows and their original files at the recorded Core source revision.
 const closure = readCatalogSourceClosureV1({
   collectionId: "aih-core",
   subjectId: "governance-quality",
