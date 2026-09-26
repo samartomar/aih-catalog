@@ -268,25 +268,27 @@ only verbatim from that file, after its bytes match the digest in the entry's
 closure artifact. An item's skill `SKILL.md` or agent file frontmatter supplies
 `name`, `description` and `category`. An MCP server supplies only its declared
 `description`, because its key is an id, not a name. Otherwise the value is
-`unavailable` with a reason: `not-declared`, `unparsed`, `no-source-file` or
-`not-in-source-file`. Nothing is inferred, classified or summarized. Every
+`unavailable` with a reason: `not-declared`, `unparsed`, `no-source-file`,
+`not-in-source-file`, `license-restricted` or `license-not-determined`. For the
+last two, a Catalog-written message cites the row's source-right license label;
+the upstream description is not reproduced. Every
 indexed entry of a listed source appears exactly once, so a missing value is an
 explicit result, not a missing item. `coverage` counts published and unavailable
 values from the data.
 
 The reader refuses (`undefined`) non-canonical or malformed bytes, unknown
 fields, an entry that is not in the index or has a different subject digest, an
-indexed entry left out, and malformed or oversize text. Values are upstream data:
-render them as text only.
+indexed entry left out, and malformed or oversize text. Render published values
+and Catalog-written unavailability messages as text only.
 
-Today it covers every GitHub source in the index, 429 of 431 entries, each at
+Today it covers every GitHub source in the index, 434 of 446 entries, each at
 its pinned commit:
 
 | Source | Commit | Entries |
 | --- | --- | --- |
 | `affaan-m/ECC` | `5064474d4d762dc9640234a41617cccb79185cec` | 367 |
 | `mattpocock/skills` | `c55ee46073ed923f86ce59a5eb3b6d895095d1b7` | 25 |
-| `anthropics/skills` | `34040c9c568585f6929bedeaad110ad08f079624` | 14 |
+| `anthropics/skills` | `34040c9c568585f6929bedeaad110ad08f079624` | 19 |
 | `obra/Superpowers` | `5bf4e78011075bcfc0dc295f0724994cd123ee71` | 15 |
 | `DietrichGebert/ponytail` | `1d95ff7d39de12d87014ea40d4e22201bddc501b` | 7 |
 | `nextlevelbuilder/ui-ux-pro-max-skill` | `a38d04c3d5c298c851dbe5e6ee1965ee3de42cb5` | 1 |
@@ -294,8 +296,8 @@ its pinned commit:
 The ponytail MCP server's declared source is a JavaScript file, not a
 frontmatter or `mcpServers` file, so its values are `no-source-file`.
 
-**Not covered, by design of this format:** the one `aih` entry (`recipe.default`;
-the Core collection returns with its 0.7.0 content) and the one `npm` entry (`picocolors@1.1.1`). This sidecar
+**Not covered, by design of this format:** the eleven `aih` entries (`recipe.default`
+and ten Core 0.7.0 rows) and the one `npm` entry (`picocolors@1.1.1`). This sidecar
 accepts only `github` sources pinned to a 40-hex commit, and `recipe.default` and
 `picocolors` declare no closure file to read even in principle. Those entries are
 absent from the sidecar, not unavailable within it; covering them needs a format
@@ -348,7 +350,7 @@ format, version, basis or member, an unsorted taxonomy, a category outside it, a
 entry not in the index, left out, duplicated or out of order, and a rationale that
 is missing, set on a `null` category, oversize or carries control characters.
 
-The taxonomy is a first curation: 12 categories, 342 of 431 entries curated and 89
+The taxonomy is a first curation: 12 categories, 352 of 446 entries curated and 94
 not curated. It awaits the owner's confirmation. Regenerate with
 `npm run generate:catalog-categories` after editing the rules;
 `npm run check:catalog-index` fails when the committed dataset differs from what

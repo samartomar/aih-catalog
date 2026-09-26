@@ -5,7 +5,8 @@ import { fileURLToPath } from "node:url";
 
 /**
  * Generates the published presentation sidecar: each indexed item's publisher
- * name, description and category as the upstream source declares them.
+ * name, description and category as the upstream source declares them, except
+ * descriptions whose row-level license label does not permit reproduction.
  *
  * Every index entry of a listed source is covered. A value is published only
  * when it is read verbatim from the exact file the entry's closure artifact
@@ -39,6 +40,21 @@ const canonical = (value) => {
 };
 
 const unavailable = (reason) => ({ state: "unavailable", reason });
+function licenseDescription(entry) {
+  if (entry.subject.kind !== "skill") return undefined;
+  const rights = entry.qualification?.rights ?? [];
+  if (rights.length !== 1) return undefined;
+  const summary = rights[0].evidence?.summary;
+  if (typeof summary !== "string") return undefined;
+  if (summary.startsWith("No applicable license determined")) {
+    return { state: "unavailable", reason: "license-not-determined", message: "Description not reproduced: License not determined for this skill's own text." };
+  }
+  const restricted = /^Applicable (Anthropic-Proprietary) notice at .*?, sha256:([0-9a-f]{64})\./.exec(summary);
+  if (restricted !== null) {
+    return { state: "unavailable", reason: "license-restricted", message: `Description not reproduced: this skill's own license (${restricted[1]}, LICENSE.txt sha256:${restricted[2]}) does not permit copying its text.` };
+  }
+  return undefined;
+}
 const published = (value, field) => {
   // Text is kept exactly; one that is empty, oversize or carries control characters is not published.
   if (typeof value !== "string" || value.length === 0) return unavailable("not-declared");
@@ -285,6 +301,7 @@ export function generateCatalogPresentation(root, upstream) {
           ? unavailable("not-in-source-file")
           : published(server.description, `mcpServers.${entry.subject.id}.description`);
     }
+    record.description = licenseDescription(entry) ?? record.description;
     entries.push(record);
   }
   entries.sort((a, b) => compare(a.entryId, b.entryId));
@@ -298,6 +315,21 @@ export function generateCatalogPresentation(root, upstream) {
 
 export function serializeCatalogPresentation(value) {
   return `${canonical(value)}\n`;
+}
+
+/** Reapply digest-bound row license labels to an existing sidecar without upstream trees. */
+export function relabelCatalogPresentation(root) {
+  const value = JSON.parse(readFileSync(resolve(root, OUTPUT), "utf8"));
+  const members = listedMembers(root, readInputs(root));
+  if (!Array.isArray(value.entries) || value.entries.length !== members.length) fail("presentation coverage");
+  const byId = new Map(members.map(({ entry }) => [entry.entryId, entry]));
+  for (const record of value.entries) {
+    const entry = byId.get(record.entryId);
+    if (entry === undefined || record.subjectDigest !== entry.subject.subjectDigest) fail("presentation index binding");
+    const licensed = licenseDescription(entry);
+    if (licensed !== undefined) record.description = licensed;
+  }
+  return value;
 }
 
 const sameValue = (a, b) => canonical(a) === canonical(b);
@@ -395,12 +427,17 @@ export function checkCatalogPresentation(root, upstream, committedText) {
     }
     const markdown = path.endsWith(".md");
     checkFileValue(entry.entryId, "title", record.title, markdown ? "frontmatter.name" : undefined);
-    checkFileValue(
-      entry.entryId,
-      "description",
-      record.description,
-      markdown ? "frontmatter.description" : `mcpServers.${entry.subject.id}.description`,
-    );
+    const licensed = licenseDescription(entry);
+    if (licensed === undefined) {
+      checkFileValue(
+        entry.entryId,
+        "description",
+        record.description,
+        markdown ? "frontmatter.description" : `mcpServers.${entry.subject.id}.description`,
+      );
+    } else if (!sameValue(record.description, licensed)) {
+      fail(`${entry.entryId}: description must cite its source-right license label`);
+    }
     checkFileValue(
       entry.entryId,
       "category",
@@ -432,8 +469,10 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     const args = process.argv.slice(2);
     const check = args[0] === "--check";
     if (check) args.shift();
+    const relabel = args[0] === "--relabel";
+    if (relabel) args.shift();
     const upstream = upstreamArgument(args);
-    if ((!check && upstream === undefined) || args.length > 1 || args[0]?.startsWith("-")) {
+    if ((!check && !relabel && upstream === undefined) || (relabel && (check || upstream !== undefined)) || args.length > 1 || args[0]?.startsWith("-")) {
       fail(
         "usage: node tools/generate-catalog-presentation.mjs [--check] (--from <upstream-root> | --trees <trees-root>) [catalog-root]",
       );
@@ -451,7 +490,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       const mode = upstream === undefined ? "structure and sources" : "regenerated bytes";
       console.log(`Checked ${OUTPUT} (${mode}): ${summary(value)}`);
     } else {
-      const value = generateCatalogPresentation(root, upstream);
+      const value = relabel ? relabelCatalogPresentation(root) : generateCatalogPresentation(root, upstream);
       const output = resolve(root, OUTPUT);
       const temporary = `${output}.tmp`;
       writeFileSync(temporary, serializeCatalogPresentation(value), { flag: "wx" });

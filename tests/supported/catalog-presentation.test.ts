@@ -76,7 +76,7 @@ describe("published catalog presentation", () => {
     expect(presentation.coverage).toEqual({
       entries: 434,
       title: { published: 396, unavailable: 38 },
-      description: { published: 427, unavailable: 7 },
+      description: { published: 422, unavailable: 12 },
       category: { published: 3, unavailable: 431 },
     });
     // The aih and npm entries are outside this github-only format: absent, not unavailable.
@@ -110,6 +110,25 @@ describe("published catalog presentation", () => {
     });
     expect(ponytailMcp?.source).toBeNull();
     expect(ponytailMcp?.description).toEqual({ state: "unavailable", reason: "no-source-file" });
+  });
+
+  it("withholds descriptions when the row's source-right label does not permit copying", async () => {
+    const { checkCatalogPresentation } = await generator();
+    for (const id of ["docx", "pdf", "pptx", "xlsx"]) {
+      const entry = record(shipped, `skill.anthropic.${id}`);
+      expect(entry.description).toEqual({
+        state: "unavailable",
+        reason: "license-restricted",
+        message: expect.stringContaining("Anthropic-Proprietary"),
+      });
+    }
+    expect(record(shipped, "skill.anthropic.doc-coauthoring").description).toEqual({
+      state: "unavailable",
+      reason: "license-not-determined",
+      message: expect.stringContaining("License not determined"),
+    });
+    expect(record(shipped, "skill.anthropic.academy-guide").description.state).toBe("published");
+    expect(() => checkCatalogPresentation(root)).not.toThrow();
   });
 
   it("checks the committed sidecar against the inputs, index and closures without upstream trees", async () => {

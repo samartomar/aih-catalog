@@ -44,7 +44,14 @@ const PATH_SEGMENT = /^[A-Za-z0-9_.@+-]+$/;
 const FIELD = /^(?:frontmatter\.[A-Za-z0-9_-]+|mcpServers\.[A-Za-z0-9_.@-]+\.description)$/;
 // biome-ignore lint/suspicious/noControlCharactersInRegex: control characters are what is refused.
 const CONTROL = /[\u0000-\u0009\u000b-\u001f\u007f]/;
-const REASONS = ["not-declared", "unparsed", "no-source-file", "not-in-source-file"] as const;
+const REASONS = [
+  "not-declared",
+  "unparsed",
+  "no-source-file",
+  "not-in-source-file",
+  "license-restricted",
+  "license-not-determined",
+] as const;
 const FIELDS = ["title", "description", "category"] as const;
 
 export type CatalogPresentationUnavailableReasonV1 = (typeof REASONS)[number];
@@ -58,7 +65,11 @@ export type CatalogPresentationValueV1 =
       /** Where in the source file it was read, e.g. `frontmatter.description`. */
       readonly field: string;
     }
-  | { readonly state: "unavailable"; readonly reason: CatalogPresentationUnavailableReasonV1 };
+  | {
+      readonly state: "unavailable";
+      readonly reason: CatalogPresentationUnavailableReasonV1;
+      readonly message?: string;
+    };
 
 export interface CatalogPresentationEntryV1 {
   readonly entryId: string;
@@ -145,11 +156,23 @@ function presentationValue(
 ): CatalogPresentationValueV1 | undefined {
   if (!isObject(value)) return undefined;
   if (value.state === "unavailable") {
-    if (!exactKeys(value, ["reason", "state"])) return undefined;
     if (!(REASONS as readonly unknown[]).includes(value.reason)) return undefined;
+    const licensed =
+      value.reason === "license-restricted" || value.reason === "license-not-determined";
+    if (!exactKeys(value, licensed ? ["message", "reason", "state"] : ["reason", "state"]))
+      return undefined;
+    if (
+      licensed &&
+      (typeof value.message !== "string" ||
+        value.message.length === 0 ||
+        value.message.length > CATALOG_PRESENTATION_MAX_TEXT_V1 ||
+        CONTROL.test(value.message))
+    )
+      return undefined;
     return Object.freeze({
       state: "unavailable",
       reason: value.reason as CatalogPresentationUnavailableReasonV1,
+      ...(licensed ? { message: value.message as string } : {}),
     });
   }
   if (value.state !== "published" || !exactKeys(value, ["field", "state", "value"]))
