@@ -361,6 +361,9 @@ function fixture(options: Options = {}) {
     mkdirSync(dirname(path), { recursive: true });
     writeFileSync(path, text);
   };
+  const packagePath = join(root, "core-package.json");
+  const packageBytes = `${JSON.stringify({ name: "@aihq/core", version: release, license: "Apache-2.0" }, null, 2)}\n`;
+  write(packagePath, packageBytes);
   write(
     join(catalogRoot, "defaults", "catalog-collection-inputs-v1.json"),
     options.inputs === undefined
@@ -368,7 +371,15 @@ function fixture(options: Options = {}) {
           collectedSourceTypes: ["aih"],
           collections: [
             {
-              current: { origin: { kind: "catalog-authored" }, release: previousRelease },
+              current: {
+                origin: {
+                  kind: "package-file",
+                  name: "@aihq/core",
+                  version: previousRelease,
+                  sha256: sha(packageBytes),
+                },
+                release: previousRelease,
+              },
               id: "aih-core",
               owner: { package: "@aihq/core" },
               seedRoot: SEED_ROOT,
@@ -527,11 +538,6 @@ function fixture(options: Options = {}) {
       ],
       version: 1,
     }),
-  );
-  const packagePath = join(root, "core-package.json");
-  write(
-    packagePath,
-    `${JSON.stringify({ name: "@aihq/core", version: release, license: "Apache-2.0" }, null, 2)}\n`,
   );
   const outputRoot = join(root, "rendered");
   return {
@@ -706,6 +712,32 @@ describe("Core collection seed renderer", () => {
       );
   });
 
+  it("refuses refresh from a same-version manifest with different bytes", async () => {
+    const api = await renderer();
+    const item = fixture();
+    writeFileSync(
+      item.packagePath,
+      `${JSON.stringify({ name: "@aihq/core", version: RELEASE, license: "MIT" })}\n`,
+    );
+    expect(() => api.renderCoreCollectionSeedsV1(item)).toThrow(
+      new TypeError("core-collection-renderer:package-origin"),
+    );
+    expect(existsSync(item.outputRoot)).toBe(false);
+  });
+
+  it("refuses refresh when the recorded origin is catalog-authored", async () => {
+    const api = await renderer();
+    const item = fixture();
+    const path = join(item.catalogRoot, "defaults/catalog-collection-inputs-v1.json");
+    const inputs = read(path) as { collections: { current: { origin: Json } }[] };
+    inputs.collections[0]!.current.origin = { kind: "catalog-authored" };
+    writeFileSync(path, canonical(inputs));
+    expect(() => api.renderCoreCollectionSeedsV1(item)).toThrow(
+      new TypeError("core-collection-renderer:package-origin"),
+    );
+    expect(existsSync(item.outputRoot)).toBe(false);
+  });
+
   it("reads only packaged-scanner-collection-evidence/v2 records, through the Catalog's v2 reader", async () => {
     const api = await renderer();
     const v1 = fixture({ recordVersion: "packaged-scanner-collection-evidence/v1" });
@@ -795,7 +827,15 @@ describe("Core collection seed renderer", () => {
         collectedSourceTypes: ["aih"],
         collections: [
           {
-            current: { origin: { kind: "catalog-authored" }, release: "0.6.3" },
+            current: {
+              origin: {
+                kind: "package-file",
+                name: "@aihq/core",
+                version: "0.6.3",
+                sha256: sha(readFileSync(inputs.packagePath)),
+              },
+              release: "0.6.3",
+            },
             id: "aih-core",
             owner: { package: "@aihq/core" },
             seedRoot: SEED_ROOT,
@@ -1043,7 +1083,15 @@ describe("Core collection seed renderer, new-release mode", () => {
         id: "aih-core",
         owner: { package: "@aihq/core" },
         sourceType: "aih",
-        current: { release: RELEASE, origin: { kind: "catalog-authored" } },
+        current: {
+          release: RELEASE,
+          origin: {
+            kind: "package-file",
+            name: "@aihq/core",
+            version: RELEASE,
+            sha256: sha("synthetic previous package manifest"),
+          },
+        },
         seedRoot: SEED_ROOT,
       },
       ...inputs.collections.filter((collection) => collection.id !== "aih-core"),

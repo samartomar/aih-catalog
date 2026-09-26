@@ -529,8 +529,9 @@ function replaceFile(target, bytes, name) {
 export function renderCoreCollectionSeedsV1({ catalogRoot, recordPath, draftPath, outputRoot, packagePath, reader }) {
   const output = resolve(outputRoot);
   if (existsSync(output)) fail("output-exists");
-  const { release, seedRoot } = currentCollection(catalogRoot);
+  const { release, seedRoot, collection } = currentCollection(catalogRoot);
   const packageLicense = packageIdentity(packagePath, release);
+  requirePackageOrigin(collection.current.origin, packageLicense.origin);
   const recordBytes = readFileSync(recordPath);
   const draftBytes = readFileSync(draftPath);
   const record = sealedRecord(recordBytes, release, reader);
@@ -601,6 +602,7 @@ export function renderCoreCollectionNewReleaseV1({
   }
   if (!NEW_RELEASE.test(current.release)) fail("inputs-release");
   if (releaseOrder(release, current.release) <= 0) fail(`new-release-not-newer ${release} ${current.release}`);
+  requireRecordedPackageOrigin(current.collection.current.origin, current.release);
   return renderRelease({
     root,
     inputs: current.inputs,
@@ -687,6 +689,15 @@ function packageIdentity(packagePath, release) {
   }
   if (identified.release !== release || identified.origin.version !== release) fail("package-version");
   return identified;
+}
+
+function requireRecordedPackageOrigin(origin, release) {
+  if (origin?.kind !== "package-file" || origin.name !== "@aihq/core" || origin.version !== release || !/^[0-9a-f]{64}$/.test(origin.sha256 ?? "")) fail("package-origin");
+}
+
+function requirePackageOrigin(recorded, supplied) {
+  requireRecordedPackageOrigin(recorded, supplied.version);
+  if (recorded.sha256 !== supplied.sha256) fail("package-origin");
 }
 
 function renderRelease({ root, inputs, current, release, recordPath, draftPath, packagePath, reader }) {
