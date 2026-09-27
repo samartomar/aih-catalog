@@ -248,9 +248,9 @@ private key, signs nothing and fetches nothing.
 ## Presentation metadata
 
 `@aihq/catalog/catalog-presentation.json` (`defaults/catalog-presentation-v1.json`),
-read with `readCatalogPresentationV1({ bytes, index })`, gives each indexed item
-of a listed upstream source its publisher `title`, `description` and
-`category`, exactly as that source declares them. It is an additive, display-only
+read with `readCatalogPresentationV1({ bytes, index })`, gives listed GitHub
+entries their upstream `title`, `description` and `category`, and listed aih MCP
+entries their Core-declared description. It is an additive, display-only
 sidecar. Entry ids, subject digests, artifacts and evidence do not change, and
 it says nothing about scanning, qualification, admission or policy.
 
@@ -262,7 +262,7 @@ const presentation = readCatalogPresentationV1({ bytes: presentationBytes, index
 //   | { state: "unavailable", reason }
 ```
 
-Each record names the upstream file its values came from (`source.path` and
+Each GitHub record names the upstream file its values came from (`source.path` and
 `source.sha256`) at the entry's own repository and commit. A value is published
 only verbatim from that file, after its bytes match the digest in the entry's
 closure artifact. An item's skill `SKILL.md` or agent file frontmatter supplies
