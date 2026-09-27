@@ -377,4 +377,21 @@ describe("merging Core T5 drafts into the core qualification data", () => {
     expect(() => tool.expandCoreQualificationDataV2(data)).toThrow("unreferenced artifact");
     expect(tool.pruneUnreferencedCoreQualificationArtifactsV2(data)).toBe(committed);
   });
+
+  it("refuses absent and malformed compact artifacts before pruning", async () => {
+    const tool = await merger();
+    const committed = readFileSync(
+      join(repository, "src", "production", "data", "core-qualification-data-v1.json"),
+      "utf8",
+    );
+    const base = JSON.parse(committed) as Json & { artifacts: Record<string, string>; records: Json[] };
+    const absent = structuredClone(base);
+    absent.records[0].receipt = "0".repeat(64);
+    expect(() => tool.pruneUnreferencedCoreQualificationArtifactsV2(absent)).toThrow("absent artifact");
+
+    const malformed = structuredClone(base);
+    const address = Object.keys(malformed.artifacts)[0];
+    malformed.artifacts[address] = "not canonical base64";
+    expect(() => tool.pruneUnreferencedCoreQualificationArtifactsV2(malformed)).toThrow(`artifact ${address}`);
+  });
 });

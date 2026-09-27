@@ -85,6 +85,21 @@ describe("curated catalog categories", () => {
     );
   });
 
+  it("refuses a presentation record from another index entry or digest", async () => {
+    const { generateCatalogCategories } = await generator();
+    const directory = fixture(rules);
+    const presentationPath = join(directory, "defaults/catalog-presentation-v1.json");
+    for (const mutate of [
+      (doc: Doc) => { doc.entries[0].entryId = "foreign.entry"; },
+      (doc: Doc) => { doc.entries[0].subjectDigest = `sha256:${"0".repeat(64)}`; },
+    ]) {
+      const doc = JSON.parse(readFileSync(join(root, "defaults/catalog-presentation-v1.json"), "utf8"));
+      mutate(doc);
+      writeFileSync(presentationPath, bytesOf(doc));
+      expect(() => generateCatalogCategories(directory)).toThrow("presentation record is not this index's entry");
+    }
+  });
+
   it("covers every index entry once, as curation with a taxonomy from the rules file", () => {
     const categories = readCatalogCategoriesV1({ bytes: shippedBytes, index });
     if (categories === undefined) throw new Error("shipped categories refused");
