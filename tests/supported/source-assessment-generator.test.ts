@@ -279,6 +279,13 @@ function rebindCuratedSkill(
 }
 
 describe("direct skill rows take their selection from the Catalog's curated inventory", () => {
+  it("keeps the Scan-produced handoff bytes unchanged while rendering rows", async () => {
+    const item = await fixture();
+    const handoffBefore = readFileSync(item.written.handoffPath);
+    expect(generate(item).entries).toBe(1);
+    expect(readFileSync(item.written.handoffPath).equals(handoffBefore)).toBe(true);
+  });
+
   it("renders one row per curated skill when the mapping is the curated selection", async () => {
     const item = await twoSkillFixture();
     expect(generateTwo(item)).toEqual({

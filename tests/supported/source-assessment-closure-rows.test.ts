@@ -956,7 +956,7 @@ describe("closure mapping derivation", () => {
     ]);
   });
 
-  it("refuses a closure file that no Scanner component holds", async () => {
+  it("maps an outside-request root license as source evidence, not scanned payload", async () => {
     const item = await fixture({
       ...base,
       partition: PARTITION.slice(1),
@@ -964,9 +964,59 @@ describe("closure mapping derivation", () => {
       definition: componentCollection,
     });
     const helper = await mappingHelper();
-    expect(() =>
-      helper.deriveClosureMappingV1(read(item.publicationPath), read(item.definitionPath)),
-    ).toThrow("closure-mapping:closure-file-outside-request LICENSE");
+    const derived = helper.deriveClosureMappingV1(
+      read(item.publicationPath),
+      read(item.definitionPath),
+    );
+    expect(derived.mapping.components).toHaveLength(2);
+    expect(item.run().entries).toBe(2);
+    const closure = read(join(item.outputRoot, "skill.fixture.demo", "artifacts", "closure.json"));
+    expect((closure.files as Json[]).map((file) => file.path)).toEqual([
+      "skills/demo/SKILL.md",
+      "skills/demo/ref.md",
+    ]);
+    const licenseRecord = read(join(item.outputRoot, "source-license.json"));
+    expect(licenseRecord).toMatchObject({
+      sourceId: "fixture",
+      files: [{ path: "LICENSE", sha256: sha256(MIT) }],
+      annex: { path: "annex/aih-native.json" },
+    });
+    expect(closure.sourceLicense).toMatchObject({
+      path: "defaults/workbench/fixture/source-license.json",
+      sha256: sha256(readFileSync(join(item.outputRoot, "source-license.json"))),
+    });
+    expect(
+      read(join(item.outputRoot, "mcp.fixture.demo", "artifacts", "closure.json")).sourceLicense,
+    ).toEqual(closure.sourceLicense);
+    expect(
+      read(join(item.outputRoot, "skill.fixture.demo", "evidence", "source-right.json")).summary,
+    ).toMatch(/^Applicable MIT notice at example\/tools@a{40}:LICENSE, sha256:/);
+  });
+
+  it("refuses an annex license digest that differs from the pinned source", async () => {
+    const item = await fixture({
+      ...base,
+      partition: PARTITION.slice(1),
+      mapped: PARTITION.slice(1, 3).map((component) => component.id),
+      nativeOverride: { LICENSE: "0".repeat(64) },
+      definition: componentCollection,
+    });
+    expect(() => item.run()).toThrow("source-assessment-generator:source-license-native-digest");
+  });
+
+  it("refuses a source license record missing from the authenticated annex", async () => {
+    const item = await fixture({
+      ...base,
+      partition: PARTITION.slice(1),
+      mapped: PARTITION.slice(1, 3).map((component) => component.id),
+      definition: (source, files) => {
+        const definition = componentCollection(source, files);
+        (definition.source as Json).licenseFileRef = "COPYING";
+        (definition.files as Json[]).push({ path: "COPYING", sha256: `sha256:${sha256(MIT)}` });
+        return definition;
+      },
+    });
+    expect(() => item.run()).toThrow("source-assessment-generator:source-license-record-missing");
   });
 });
 

@@ -1337,7 +1337,7 @@ function externalMcpCandidates(value, source, repository, curated, nativePaths, 
  * rows share must be listed by each. A definition for another source or pin refuses.
  * `nativePaths` is the publication's native file list.
  */
-export function curatedClosuresV1(definitionValue, source, nativePaths, authoringValue) {
+export function curatedClosuresV1(definitionValue, source, nativePaths, authoringValue, requestedPaths) {
   const definition = object(definitionValue, "definition");
   const repository = `${source.owner}/${source.repository}`;
   const declared = new Map();
@@ -1436,6 +1436,8 @@ export function curatedClosuresV1(definitionValue, source, nativePaths, authorin
         ...externalMcpCandidates(authoringValue, source, repository, curatedMcp, nativePaths, declare),
       );
   } else fail("definition-format");
+  if (licensePaths.length === 0 || licensePaths.some((path) => !nativePaths.includes(path)))
+    fail("source-license-record-missing");
   // A file two curated rows share must be listed by each of them (D59): a closure never
   // reaches another row's file through a directory root.
   const listedBy = new Map();
@@ -1462,7 +1464,10 @@ export function curatedClosuresV1(definitionValue, source, nativePaths, authorin
       fail("catalog-subject-id");
     rows.push({
       entryPath: candidate.entryPath,
-      files: [...new Set([...licensePaths, ...candidate.members])].sort(codeUnitCompare),
+      files: [...new Set([
+        ...licensePaths.filter((path) => requestedPaths === undefined || requestedPaths.has(path)),
+        ...candidate.members,
+      ])].sort(codeUnitCompare),
       kind: candidate.kind,
       name: candidate.name,
       // A baseline catalog's multi-path shapes (D59) state their roots and shared files.
@@ -1478,6 +1483,7 @@ export function curatedClosuresV1(definitionValue, source, nativePaths, authorin
     compiler: COMPILERS[format],
     declared,
     excluded: excluded.sort((left, right) => codeUnitCompare(left.id, right.id)),
+    sourceLicensePaths: licensePaths,
     rows: rows.sort((left, right) =>
       codeUnitCompare(`${left.kind}:${left.name}`, `${right.kind}:${right.name}`),
     ),
@@ -1517,13 +1523,46 @@ function closureRows(members, provider, sourceRoot, definition, authoring) {
   );
   const [native] = natives;
   const { source } = members[0].validated;
+  const requestedPaths = new Set([...native.keys()].filter((path) =>
+    members.some(({ validated }) => validated.publication.value.request.components.some((component) =>
+      component.paths.some((componentRoot) =>
+        path === componentRoot || path.startsWith(`${componentRoot}/`),
+      ),
+    )),
+  ));
   const inventory = curatedClosuresV1(
     definition,
     source,
     [...native.keys()].sort(codeUnitCompare),
     authoring,
+    requestedPaths,
   );
   const root = rootOf(sourceRoot);
+  const sourceLicenseFiles = inventory.sourceLicensePaths.map((path) => {
+    const nativeDigest = native.get(path);
+    if (nativeDigest === undefined) fail("source-license-record-missing");
+    const target = resolve(root, ...path.split("/"));
+    const { stat } = unlinkedSourcePath(root, target);
+    if (!stat.isFile() || stat.nlink > 1) fail("source-license-shape");
+    const checkout = file(target);
+    if (checkout.sha256 !== nativeDigest) fail("source-license-native-digest");
+    const declared = inventory.declared.get(path);
+    if (declared !== undefined && declared !== checkout.sha256)
+      fail("source-license-declared-digest");
+    return { path, ...checkout };
+  });
+  const nativeAnnex = members[0].validated.publication.value.annexes.find(
+    (annex) => annex.path === NATIVE_ANNEX_PATH,
+  );
+  const sourceLicenseRecord = {
+    annex: { path: NATIVE_ANNEX_PATH, sha256: sha256(Buffer.from(nativeAnnex.bytesBase64, "base64")) },
+    files: sourceLicenseFiles.map(({ path, sha256: digest }) => ({ path, sha256: digest })),
+    format: "aih-supported-source-license",
+    sourceContentDigest: `sha256:${source.treeSha256}`,
+    sourceId: source.id,
+    sourceRevisionId: source.pinnedCommit,
+    version: 1,
+  };
   const owners = new Map();
   const memberOf = new Map();
   for (const member of members)
@@ -1572,7 +1611,9 @@ function closureRows(members, provider, sourceRoot, definition, authoring) {
       findings: unique(involved.flatMap((component) => component.findings).filter(locatedIn(closure))),
       globalCoverage: unique(involved.flatMap((component) => component.globalCoverage)),
       kind: row.kind,
-      license: licenseFacts(root, files),
+      license: licenseFacts(root, [...new Map([...files, ...sourceLicenseFiles].map((entry) =>
+        [entry.path, entry],
+      )).values()]),
       locationCoverage: unique(
         involved.flatMap((component) => component.locationCoverage).filter(locatedIn(closure)),
       ),
@@ -1583,7 +1624,7 @@ function closureRows(members, provider, sourceRoot, definition, authoring) {
       subjectId: row.name,
     };
   });
-  return { rows, excluded: inventory.excluded };
+  return { rows, excluded: inventory.excluded, sourceLicenseRecord };
 }
 
 /**
@@ -1726,6 +1767,8 @@ function renderRows(members, provider, sourceRoot, definition, authoring) {
   const selected = closureMode
     ? closureRows(members, provider, sourceRoot, definition, authoring)
     : { rows: skillRows(members, provider, sourceRoot), excluded: undefined };
+  const sourceLicenseBytes = closureMode ? canonical(selected.sourceLicenseRecord) : undefined;
+  if (sourceLicenseBytes !== undefined) files.set("source-license.json", sourceLicenseBytes);
   for (const row of [...selected.rows].sort((left, right) =>
     codeUnitCompare(left.assetId, right.assetId),
   )) {
@@ -1774,6 +1817,10 @@ function renderRows(members, provider, sourceRoot, definition, authoring) {
       contentDigest: row.contentDigest,
       files: row.closureFiles,
       format: "aih-supported-catalog-member-closure",
+      ...(sourceLicenseBytes === undefined ? {} : { sourceLicense: {
+        path: `defaults/workbench/${provider}/source-license.json`,
+        sha256: sha256(sourceLicenseBytes),
+      } }),
       scope: {
         description: license.determined
           ? `Exact pinned source-file closure and applicable ${license.id} notice; review-only assessment, with no execution or organization admission.`

@@ -60,6 +60,9 @@ export function deriveClosureMappingSetV1(publications, definition, authoringCat
     requests[0].source,
     [...natives[0].keys()].sort(codeUnitCompare),
     authoringCatalog,
+    new Set([...natives[0].keys()].filter((path) =>
+      requests.some((request) => request.components.some((component) => holds(component, path))),
+    )),
   );
   const closure = [...new Set(inventory.rows.flatMap((row) => row.files))].sort(codeUnitCompare);
   for (const path of closure)

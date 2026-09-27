@@ -580,6 +580,33 @@ describe("source-assessment rows over a publication set", () => {
 });
 
 describe("closure mapping derivation over a publication set", () => {
+  it("keeps one annex-bound license record when no request contains root LICENSE", async () => {
+    const set = await publicationSet([
+      { name: "one", partition: [DEMO] },
+      { name: "two", partition: [SERVER, OTHER] },
+    ]);
+    const helper = await mappingHelper();
+    const derived = helper.deriveClosureMappingSetV1(
+      set.built.map((item) => read(item.publicationPath)),
+      read(set.definitionPath),
+    );
+    expect(
+      derived.mappings.map((mapping) =>
+        (mapping.components as Json[]).map((component) => component.scannerComponentId),
+      ),
+    ).toEqual([[DEMO.id], [SERVER.id]]);
+    expect(set.run().entries).toBe(2);
+    const record = read(join(set.outputRoot, "source-license.json"));
+    expect(record.files).toEqual([{ path: "LICENSE", sha256: sha256(MIT) }]);
+    for (const id of ["mcp.fixture.demo", "skill.fixture.demo"]) {
+      const closure = read(join(set.outputRoot, id, "artifacts", "closure.json"));
+      expect((closure.files as Json[]).some((file) => file.path === "LICENSE")).toBe(false);
+      expect(closure.sourceLicense).toMatchObject({
+        path: "defaults/workbench/fixture/source-license.json",
+      });
+    }
+  });
+
   it("maps each member's components against the union and refuses a file outside every request", async () => {
     const set = await publicationSet(SET);
     const helper = await mappingHelper();
