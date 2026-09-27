@@ -44,7 +44,7 @@ const citations: ReadonlyArray<readonly [file: string, line: number, holds: stri
     "CATALOG_PRESENTATION_MAX_BYTES_V1 = 8 * 1024 * 1024",
   ],
   ["src/content/catalog-presentation-v1.ts", 37, "CATALOG_PRESENTATION_MAX_TEXT_V1 = 4096"],
-  ["src/content/catalog-presentation-v1.ts", 106, "CATALOG_PRESENTATION_REFUSALS_V1 = ["],
+  ["src/content/catalog-presentation-v1.ts", 117, "CATALOG_PRESENTATION_REFUSALS_V1 = ["],
   [
     "src/content/catalog-qualification-v1.ts",
     48,

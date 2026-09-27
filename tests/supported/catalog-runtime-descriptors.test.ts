@@ -23,9 +23,9 @@ const shipped = JSON.parse(shippedBytes.toString("utf8"));
 /** The ECC revision the index publishes and Core's packaged source data compiled. */
 const ECC_COMMIT = "5064474d4d762dc9640234a41617cccb79185cec";
 /** Core's own seal over the descriptor, as its packaged source-data record declares it. */
-const CORE_SEAL = "sha256:52e67554115b2300932fc3976e190364c4c3cd037cdb7877b388a95f74a1df02";
+const CORE_SEAL = "sha256:ca007dbe7910425ccece63e57bc74c2029a8016532c5222002cae2de90ad2f49";
 /** The sealed Core record (`packaged-source-data-data.json`) the bytes were taken from. */
-const CORE_RECORD = "785d733ffbd09de31ecc9c46da01e6b698dd62919f5f42d311d316681b9fe7a8";
+const CORE_RECORD = "d286c6e2dc716ad5fa615b5fd86841ef8d6b210faf2279c785fa934d41e26a51";
 
 function canonical(value: unknown): string {
   if (value === null || typeof value !== "object") return JSON.stringify(value);
