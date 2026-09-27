@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
-import { describe, expect, it } from "vitest";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
+import { afterEach, describe, expect, it } from "vitest";
 import {
   type CatalogContentV1,
   readCatalogContentV1,
@@ -37,6 +38,28 @@ const read = (value: unknown) => readCatalogPresentationV1({ bytes: bytesOf(valu
 // biome-ignore lint/suspicious/noExplicitAny: the tests mutate untyped published JSON.
 type Doc = any;
 const clone = (): Doc => structuredClone(shipped);
+const temporaryRoots: string[] = [];
+function aihFixture(mutate: (inputs: Doc, declaration: Doc) => void): string {
+  const directory = mkdtempSync(join(tmpdir(), "aih-presentation-declaration-"));
+  temporaryRoots.push(directory);
+  const inputs = JSON.parse(readFileSync(join(root, "defaults/catalog-presentation-inputs-v1.json"), "utf8"));
+  const declaration = JSON.parse(readFileSync(join(root, inputs.aih.declarationPath), "utf8"));
+  mutate(inputs, declaration);
+  const declarationBytes = Buffer.from(JSON.stringify(declaration));
+  inputs.aih.declarationSha256 = createHash("sha256").update(declarationBytes).digest("hex");
+  for (const [path, bytes] of [
+    [inputs.aih.declarationPath, declarationBytes],
+    ["defaults/catalog-presentation-inputs-v1.json", Buffer.from(JSON.stringify(inputs))],
+    ["defaults/catalog-presentation-v1.json", shippedBytes],
+  ] as const) {
+    mkdirSync(dirname(join(directory, path)), { recursive: true });
+    writeFileSync(join(directory, path), bytes);
+  }
+  return directory;
+}
+afterEach(() => {
+  for (const directory of temporaryRoots.splice(0)) rmSync(directory, { recursive: true, force: true });
+});
 const record = (doc: Doc, entryId: string) =>
   doc.entries.find((entry: { entryId: string }) => entry.entryId === entryId);
 
@@ -160,6 +183,35 @@ describe("published catalog presentation", () => {
     expect(() =>
       checkCatalogPresentation(root, undefined, `${JSON.stringify(shipped, null, 2)}\n`),
     ).toThrow("not canonical");
+  });
+
+  it("binds every aih description to its declaration row", async () => {
+    const { checkCatalogPresentation, serializeCatalogPresentation } = await generator();
+    for (const id of ["code-review-graph", "codebase-memory-mcp", "serena", "github", "context7", "playwright", "sequential-thinking"]) {
+      const doc = clone();
+      record(doc, `mcp.aih.${id}.core-0-7-0`).description.value = `Native launcher for ${id}`;
+      expect(() => checkCatalogPresentation(root, undefined, serializeCatalogPresentation(doc)), id).toThrow("aih presentation differs");
+    }
+  });
+
+  it("refuses a parallel input description that differs from the declaration", async () => {
+    const { checkCatalogPresentation } = await generator();
+    const directory = aihFixture((inputs) => {
+      inputs.aih.entries.serena = "Native Serena launcher";
+    });
+    expect(() => checkCatalogPresentation(directory)).toThrow("inputs aih description");
+  });
+
+  it("refuses a declaration with a missing or duplicate MCP id", async () => {
+    const { checkCatalogPresentation } = await generator();
+    const missing = aihFixture((_inputs, declaration) => {
+      declaration.mcp = declaration.mcp.filter((item: Doc) => item.id !== "serena");
+    });
+    expect(() => checkCatalogPresentation(missing)).toThrow("inputs aih MCP coverage");
+    const duplicate = aihFixture((_inputs, declaration) => {
+      declaration.mcp.push(structuredClone(declaration.mcp[0]));
+    });
+    expect(() => checkCatalogPresentation(duplicate)).toThrow("duplicate");
   });
 
   it("reads each value from the exact file the entry's closure declares", () => {

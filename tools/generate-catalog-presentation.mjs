@@ -213,13 +213,20 @@ function readInputs(root) {
     if (!/^[0-9a-f]{40}$/.test(source.commit ?? "")) fail("inputs source commit");
   }
   const aih = inputs.aih;
-  if (aih?.release !== "0.7.0" || aih.declarationPath !== "src/production/data/core-product-declarations-v1.json" || !/^[0-9a-f]{64}$/.test(aih.declarationSha256 ?? "") || !/^[0-9a-f]{8,40}$/.test(aih.coreCommit ?? "") || aih.entries === null || typeof aih.entries !== "object" || Array.isArray(aih.entries)) fail("inputs aih declaration");
+  if (aih?.release !== "0.7.0" || aih.declarationPath !== "src/production/data/core-product-declarations-v1.json" || !/^[0-9a-f]{64}$/.test(aih.declarationSha256 ?? "") || aih.entries === null || typeof aih.entries !== "object" || Array.isArray(aih.entries)) fail("inputs aih declaration");
   const bytes = readFileSync(resolve(root, aih.declarationPath));
   if (sha256(bytes) !== aih.declarationSha256) fail("inputs aih declaration digest");
   const declaration = JSON.parse(bytes.toString("utf8"));
-  const names = [...(declaration.mcp ?? []), ...(declaration.nonProjectableMcp ?? []), ...(declaration.unavailableMcp ?? [])].map((item) => item.id).sort(compare);
-  if (!sameValue(Object.keys(aih.entries).sort(compare), names)) fail("inputs aih MCP coverage");
-  for (const value of Object.values(aih.entries)) if (published(value, "coreMcp.description").state !== "published") fail("inputs aih description");
+  const rows = new Map();
+  for (const item of [...(declaration.mcp ?? []), ...(declaration.nonProjectableMcp ?? []), ...(declaration.unavailableMcp ?? [])]) {
+    if (typeof item?.id !== "string" || item.id.length === 0 || rows.has(item.id)) fail("inputs aih duplicate or missing MCP id");
+    if (published(item.description, "coreMcp.description").state !== "published" ||
+        (item.server !== undefined && item.description !== item.server.description)) fail("inputs aih declaration description");
+    rows.set(item.id, item);
+  }
+  if (!sameValue(Object.keys(aih.entries).sort(compare), [...rows.keys()].sort(compare))) fail("inputs aih MCP coverage");
+  for (const [id, value] of Object.entries(aih.entries)) if (value !== rows.get(id).description) fail("inputs aih description differs from declaration");
+  aih.rows = rows;
   return inputs;
 }
 
@@ -252,10 +259,10 @@ function listedMembers(root, inputs) {
   }
   const aih = inputs.aih;
   const aihEntries = index.entries.filter((entry) => entry.subject.kind === "mcp" && entry.subject.source.type === "aih" && entry.subject.source.release === aih.release);
-  if (aihEntries.length !== Object.keys(aih.entries).length) fail("aih MCP index coverage");
+  if (aihEntries.length !== aih.rows.size) fail("aih MCP index coverage");
   for (const entry of aihEntries) {
     const name = entry.subject.id;
-    if (typeof aih.entries[name] !== "string") fail(`${entry.entryId}: no Core-authored description`);
+    if (!aih.rows.has(name)) fail(`${entry.entryId}: no Core-authored description`);
     members.push({ source: { type: "aih", release: aih.release }, entry, path: aih.declarationPath, declared: { digest: `sha256:${aih.declarationSha256}` }, aih });
   }
   return members;
@@ -272,7 +279,7 @@ function aihRecord(entry, aih) {
     subjectDigest: entry.subject.subjectDigest,
     source: { path: aih.declarationPath, sha256: aih.declarationSha256 },
     title: unavailable("not-declared"),
-    description: published(aih.entries[entry.subject.id], `coreMcp.${entry.subject.id}.description`),
+    description: published(aih.rows.get(entry.subject.id).description, `coreMcp.${entry.subject.id}.description`),
     category: unavailable("not-declared"),
     availability: "available",
     management: hosted ? "developer-managed" : "aih-managed",

@@ -5,15 +5,14 @@
     "release": "0.7.0",
     "declarationPath": "src/production/data/core-product-declarations-v1.json",
     "declarationSha256": "6bb30bd0fb2dfb819139ea60c71a0841c856d09298c03d512e60cc2ca39d3daf",
-    "coreCommit": "fbc8749c",
     "entries": {
-      "code-review-graph": "AIH-owned Code Review Graph 2.3.9 launcher for this canonical worktree. It exposes five reviewed operations, strips cloud-provider settings, and refuses provider/model refresh arguments. This is an environment and protocol boundary, not an operating-system network sandbox.",
-      "codebase-memory-mcp": "AIH-owned Codebase Memory MCP 0.11.0 launcher with a verified native payload cache, project-specific index, and a short authenticated coordination root. Setup downloads the exact release payload; steady-state launch is offline.",
+      "code-review-graph": "Legacy repository-agnostic Code Review Graph fallback. Root-aware project setup replaces this with AIH's authenticated 2.3.9 launcher and isolated worktree state.",
+      "codebase-memory-mcp": "Legacy repository-agnostic Codebase Memory fallback. Root-aware project setup replaces this with AIH's authenticated 0.11.0 native payload and project-specific state. PROVISIONING EGRESS: this wheel is a launcher shim and may fetch its payload; do not treat --offline as payload authentication.",
       "context7": "Up-to-date, version-matched library docs. THIRD-PARTY hosted endpoint (Upstash) — your queries leave the host; an optional CONTEXT7_API_KEY raises rate limits. Self-host or fall back to vendor docs where third-party egress is disallowed.",
       "github": "GitHub's official remote MCP (repos, issues, PRs, Actions). OAuth via the client — no token stored in this file. Egress to GitHub (vendor-incumbent).",
       "playwright": "Pinned Playwright browser automation MCP for every project (navigate, snapshot, interact). It runs headless with an isolated in-memory profile. The browser can reach any URL — point it at trusted origins.",
       "sequential-thinking": "Structured step-by-step reasoning scratchpad — no network, no filesystem, no credentials. Safe in any repo.",
-      "serena": "AIH-owned Serena 1.7.0 launcher for this canonical worktree, using the authenticated dependency closure, isolated state, disabled memories and a reviewed semantic-tool allowlist."
+      "serena": "Local Serena semantic code tools for the client project, with memories disabled; provisioned from the exact 1.7.0 dependency closure before offline launch."
     }
   },
   "sources": [
