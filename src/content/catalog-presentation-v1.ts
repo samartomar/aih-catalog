@@ -22,6 +22,11 @@ import {
  * missing value is an explicit result, never a missing item.
  *
  * Text is upstream data: render it as text, never as markup or instructions.
+ * Aih MCP availability is `available` or `request-only`; a request-only value
+ * carries bounded declaration reason text. Management is `aih-managed` for
+ * available local controls, `aih-owned-unavailable` for unavailable local
+ * controls, or `developer-managed` for hosted services. The generator and
+ * checker bind these fields to the digest-named Core declaration.
  * This reader performs no network access, executes nothing and writes nothing.
  * `readCatalogPresentationV1Result` names every refusal;
  * `readCatalogPresentationV1` returns `undefined` for each of them.
@@ -80,8 +85,9 @@ export interface CatalogPresentationEntryV1 {
   readonly title: CatalogPresentationValueV1;
   readonly description: CatalogPresentationValueV1;
   readonly category: CatalogPresentationValueV1;
-  readonly availability?: "available";
-  readonly management?: "aih-managed" | "developer-managed";
+  readonly availability?: "available" | "request-only";
+  readonly availabilityReason?: string;
+  readonly management?: "aih-managed" | "developer-managed" | "aih-owned-unavailable";
   readonly managementNote?: string;
 }
 
@@ -309,9 +315,11 @@ function readPresentation(request: ReadCatalogPresentationV1Request): CatalogPre
     }
     const aih = entry.subject.source.type === "aih";
     const required = ["category", "description", "entryId", "source", "subjectDigest", "title"];
+    const hosted = aih && (entry.subject.id === "github" || entry.subject.id === "context7");
+    const requestOnly = aih && raw.availability === "request-only";
     if (aih) required.push("availability", "management");
-    if (aih && (entry.subject.id === "github" || entry.subject.id === "context7"))
-      required.push("managementNote");
+    if (requestOnly) required.push("availabilityReason");
+    if (hosted) required.push("managementNote");
     if (!exactKeys(raw, required)) return refuse("malformed-entry");
 
     let source: CatalogPresentationEntryV1["source"] = null;
@@ -332,10 +340,18 @@ function readPresentation(request: ReadCatalogPresentationV1Request): CatalogPre
         source.sha256 !== listed.declarationSha256
       )
         return refuse("index-mismatch");
-      const hosted = entry.subject.id === "github" || entry.subject.id === "context7";
       if (
-        raw.availability !== "available" ||
-        raw.management !== (hosted ? "developer-managed" : "aih-managed")
+        (raw.availability !== "available" && raw.availability !== "request-only") ||
+        raw.management !==
+          (hosted ? "developer-managed" : requestOnly ? "aih-owned-unavailable" : "aih-managed")
+      )
+        return refuse("malformed-entry");
+      if (
+        requestOnly &&
+        (typeof raw.availabilityReason !== "string" ||
+          raw.availabilityReason.length === 0 ||
+          raw.availabilityReason.length > CATALOG_PRESENTATION_MAX_TEXT_V1 ||
+          CONTROL.test(raw.availabilityReason))
       )
         return refuse("malformed-entry");
       if (
@@ -361,8 +377,14 @@ function readPresentation(request: ReadCatalogPresentationV1Request): CatalogPre
         category,
         ...(aih
           ? {
-              availability: "available" as const,
-              management: raw.management as "aih-managed" | "developer-managed",
+              availability: raw.availability as "available" | "request-only",
+              management: raw.management as
+                | "aih-managed"
+                | "developer-managed"
+                | "aih-owned-unavailable",
+              ...(raw.availabilityReason === undefined
+                ? {}
+                : { availabilityReason: raw.availabilityReason as string }),
               ...(raw.managementNote === undefined
                 ? {}
                 : { managementNote: raw.managementNote as string }),

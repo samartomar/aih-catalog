@@ -218,11 +218,15 @@ function readInputs(root) {
   if (sha256(bytes) !== aih.declarationSha256) fail("inputs aih declaration digest");
   const declaration = JSON.parse(bytes.toString("utf8"));
   const rows = new Map();
-  for (const item of [...(declaration.mcp ?? []), ...(declaration.nonProjectableMcp ?? []), ...(declaration.unavailableMcp ?? [])]) {
+  for (const [section, items] of [["mcp", declaration.mcp], ["nonProjectableMcp", declaration.nonProjectableMcp], ["unavailableMcp", declaration.unavailableMcp]]) {
+    if (!Array.isArray(items)) fail(`inputs aih declaration ${section}`);
+    for (const item of items) {
     if (typeof item?.id !== "string" || item.id.length === 0 || rows.has(item.id)) fail("inputs aih duplicate or missing MCP id");
     if (published(item.description, "coreMcp.description").state !== "published" ||
         (item.server !== undefined && item.description !== item.server.description)) fail("inputs aih declaration description");
-    rows.set(item.id, item);
+    if (section !== "mcp" && (typeof item.reason !== "string" || item.reason.length === 0 || item.reason.length > 4096 || /[\u0000-\u0009\u000b-\u001f\u007f]/.test(item.reason))) fail("inputs aih declaration availability reason");
+    rows.set(item.id, { ...item, section });
+    }
   }
   if (!sameValue(Object.keys(aih.entries).sort(compare), [...rows.keys()].sort(compare))) fail("inputs aih MCP coverage");
   for (const [id, value] of Object.entries(aih.entries)) if (value !== rows.get(id).description) fail("inputs aih description differs from declaration");
@@ -274,15 +278,18 @@ const listedSources = (inputs) =>
 
 function aihRecord(entry, aih) {
   const hosted = entry.subject.id === "github" || entry.subject.id === "context7";
+  const row = aih.rows.get(entry.subject.id);
+  const requestOnly = row.section !== "mcp";
   return {
     entryId: entry.entryId,
     subjectDigest: entry.subject.subjectDigest,
     source: { path: aih.declarationPath, sha256: aih.declarationSha256 },
     title: unavailable("not-declared"),
-    description: published(aih.rows.get(entry.subject.id).description, `coreMcp.${entry.subject.id}.description`),
+    description: published(row.description, `coreMcp.${entry.subject.id}.description`),
     category: unavailable("not-declared"),
-    availability: "available",
-    management: hosted ? "developer-managed" : "aih-managed",
+    availability: requestOnly ? "request-only" : "available",
+    ...(requestOnly ? { availabilityReason: row.reason } : {}),
+    management: hosted ? "developer-managed" : requestOnly ? "aih-owned-unavailable" : "aih-managed",
     ...(hosted ? { managementNote: "hosted service; network egress; selecting records intent; aih does not run or project it" } : {}),
   };
 }

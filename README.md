@@ -297,11 +297,15 @@ declaration at `src/production/data/core-product-declarations-v1.json`. Their
 `source` names that file and its SHA-256. The generator and drift checker require
 each published description to equal the declaration row's description and, when
 present, its `server.description`. These records also carry `availability`,
-`management` and, for hosted services, `managementNote`. Code Review Graph,
-Codebase Memory, Sequential Thinking, Serena and Playwright are `available` and
-`aih-managed`; GitHub and Context7 are `available` and `developer-managed` hosted
-services. The reader accepts this record shape, while source-text equality is
-enforced by the generator and checker.
+`management` and, for hosted services, `managementNote`. The reader's closed
+availability values are `available` and `request-only`. A request-only row
+includes the declaration's bounded `availabilityReason`; selecting it records a
+request. Code Review Graph, Codebase Memory, Sequential Thinking and Serena are
+`available` and `aih-managed`. Playwright is `request-only` and
+`aih-owned-unavailable` because the Core declaration names a protected Scanner
+evidence gap. GitHub and Context7 are `request-only` and `developer-managed`
+hosted services. The reader validates this shape, while the generator and checker
+bind the values and reason text to the declaration.
 
 Four other aih entries (`recipe.default` and three Core 0.7.0 agent/skill rows)
 and the one npm entry (`picocolors@1.1.1`) are outside this sidecar.

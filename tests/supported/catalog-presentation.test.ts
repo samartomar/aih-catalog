@@ -208,6 +208,66 @@ describe("published catalog presentation", () => {
     }
   });
 
+  it("labels declaration availability and refuses a false managed Playwright claim", async () => {
+    const { checkCatalogPresentation, serializeCatalogPresentation } = await generator();
+    const declaration = JSON.parse(
+      readFileSync(resolve(root, "src/production/data/core-product-declarations-v1.json"), "utf8"),
+    );
+    const presentation = read(shipped);
+    expect(presentation).toBeDefined();
+    const playwright = presentation?.entries.find(
+      (entry) => entry.entryId === "mcp.aih.playwright.core-0-7-0",
+    );
+    expect(playwright).toMatchObject({
+      availability: "request-only",
+      management: "aih-owned-unavailable",
+      availabilityReason: declaration.unavailableMcp[0].reason,
+    });
+    for (const item of declaration.mcp) {
+      expect(
+        presentation?.entries.find((entry) => entry.entryId === `mcp.aih.${item.id}.core-0-7-0`),
+      ).toMatchObject({ availability: "available", management: "aih-managed" });
+    }
+    for (const item of declaration.nonProjectableMcp) {
+      expect(
+        presentation?.entries.find((entry) => entry.entryId === `mcp.aih.${item.id}.core-0-7-0`),
+      ).toMatchObject({
+        availability: "request-only",
+        management: "developer-managed",
+        availabilityReason: item.reason,
+      });
+    }
+    for (const [key, value] of [
+      ["availability", "available"],
+      ["management", "aih-managed"],
+      ["availabilityReason", "Different evidence claim"],
+    ] as const) {
+      const doc = clone();
+      record(doc, "mcp.aih.playwright.core-0-7-0")[key] = value;
+      expect(() =>
+        checkCatalogPresentation(root, undefined, serializeCatalogPresentation(doc)),
+      ).toThrow("aih presentation differs");
+    }
+  });
+
+  it("refuses unknown availability and malformed request reasons", () => {
+    for (const mutate of [
+      (row: Doc) => {
+        row.availability = "maybe";
+      },
+      (row: Doc) => {
+        row.availabilityReason = "x".repeat(4097);
+      },
+      (row: Doc) => {
+        row.availabilityReason = "bad\u0007text";
+      },
+    ]) {
+      const doc = clone();
+      mutate(record(doc, "mcp.aih.playwright.core-0-7-0"));
+      expect(read(doc)).toBeUndefined();
+    }
+  });
+
   it("refuses a parallel input description that differs from the declaration", async () => {
     const { checkCatalogPresentation } = await generator();
     const directory = aihFixture((inputs) => {
