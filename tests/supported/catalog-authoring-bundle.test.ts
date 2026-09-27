@@ -11,6 +11,38 @@ const root = resolve(import.meta.dirname, "..", "..");
 const path = "defaults/catalog-authoring-bundle-v1.json";
 
 describe("Catalog authoring production", () => {
+  it("keeps the six curated ECC MCP duplicates out of the final built bundle", () => {
+    const generated = buildCatalogFrameworkDefaultsV1(root);
+    const output = generated[path] as {
+      prepared: {
+        bundle: {
+          assets: Record<string, unknown>;
+          groups: Record<string, { assetIds: string[] }>;
+        };
+      };
+      sourceRecords: { bytes: string }[];
+    };
+    const finalBundle = output.prepared.bundle;
+    const removed = [
+      "code-review-graph",
+      "codebase-memory-mcp",
+      "context7",
+      "exa",
+      "github",
+      "sequential-thinking",
+    ].map((name) => `ecc/mcp:${name}`);
+    for (const id of removed) {
+      expect(finalBundle.assets, id).not.toHaveProperty(id);
+      expect(JSON.stringify(finalBundle), id).not.toContain(JSON.stringify(id));
+    }
+    expect(finalBundle.assets).toHaveProperty("ecc/mcp:exa-web-search");
+    expect(finalBundle.groups["group:ecc/mcp"]?.assetIds).toContain("ecc/mcp:exa-web-search");
+    expect(finalBundle.groups["group:ecc/mcp"]?.assetIds).toHaveLength(31);
+    expect(output.sourceRecords.some((record) => record.bytes.includes('"ecc/mcp:exa"'))).toBe(
+      true,
+    );
+  });
+
   it("generates and reads the committed authoring bundle with its sealed records", () => {
     const generated = buildCatalogFrameworkDefaultsV1(root);
     expect(serializeCatalogDefaultV1(generated[path])).toBe(

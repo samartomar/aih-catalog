@@ -209,6 +209,54 @@ const REPLACED_FIELDS = [
   "qualifications",
 ] as const;
 
+// D105 curates the current projection, while the sealed source record remains intact.
+const CURATED_ECC_MCP_ASSETS = new Set(
+  [
+    "code-review-graph",
+    "codebase-memory-mcp",
+    "context7",
+    "exa",
+    "github",
+    "sequential-thinking",
+  ].map((name) => `ecc/mcp:${name}`),
+);
+
+function curateCurrentEccMcpAssets(result: AuthoringCatalogBundleV1): void {
+  for (const assetId of CURATED_ECC_MCP_ASSETS) {
+    const asset = result.assets[assetId];
+    if (asset === undefined) continue;
+    if (asset.sourceId !== "source:ecc" || asset.kind !== "mcp")
+      fail(`curated ECC MCP identity differs: ${assetId}`);
+    delete result.assets[assetId];
+    if (!Object.values(result.assets).some((item) => item.detailChunkId === asset.detailChunkId))
+      delete result.detailChunks[asset.detailChunkId];
+    delete result.qualifications?.[assetId];
+  }
+  for (const [groupId, group] of Object.entries(result.groups)) {
+    group.assetIds = group.assetIds.filter((id) => !CURATED_ECC_MCP_ASSETS.has(id));
+    if (group.assetIds.length === 0) delete result.groups[groupId];
+  }
+  for (const [evidenceId, evidence] of Object.entries(result.evidence)) {
+    if (!evidence.subjects.some((subject) => CURATED_ECC_MCP_ASSETS.has(subject.assetId))) continue;
+    if (evidence.subjects.some((subject) => !CURATED_ECC_MCP_ASSETS.has(subject.assetId)))
+      fail(`curated ECC MCP has shared evidence: ${evidenceId}`);
+    delete result.evidence[evidenceId];
+  }
+  if (
+    result.relations.some(
+      (relation) =>
+        CURATED_ECC_MCP_ASSETS.has(relation.fromAssetId) ||
+        CURATED_ECC_MCP_ASSETS.has(relation.toAssetId),
+    ) ||
+    Object.values(result.templates).some((template) =>
+      [...template.roots.map((root) => root.assetId), ...template.exclusions].some((id) =>
+        CURATED_ECC_MCP_ASSETS.has(id),
+      ),
+    )
+  )
+    fail("curated ECC MCP has a relation or template reference");
+}
+
 function replaceSource(
   result: AuthoringCatalogBundleV1,
   chosen: AuthoringCatalogBundleV1,
@@ -324,6 +372,7 @@ export function applyPackagedSourceBundlesV1(
     seen.add(source.id);
     replaceSource(result, structuredClone(item.sourceBundle), source.id, evidenceRecords);
   }
+  curateCurrentEccMcpAssets(result);
   result.provenance.bundleDigest = `sha256:${canonicalStrictJsonSha256V1({ ...result, provenance: {} })}`;
   const sealed = validateAuthoringCatalogBundleV1(result, governedTargets);
   verifyAuthoringCatalogBundleIntegrityV1(sealed);
