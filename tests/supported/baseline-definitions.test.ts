@@ -62,10 +62,22 @@ describe("baseline definition emitter", () => {
     };
     const locked = vendor.sources.find((source) => source.id === "ecc");
     if (locked?.pinnedSha === commit) {
-      expect(definition.components.map((c) => c.id).sort()).toEqual(
-        locked.components.map((c) => c.id).sort(),
+      const removedDuplicateMcps = [
+        "mcp:code-review-graph",
+        "mcp:codebase-memory-mcp",
+        "mcp:context7",
+        "mcp:exa",
+        "mcp:github",
+        "mcp:sequential-thinking",
+      ];
+      const currentLocked = locked.components.filter(
+        (component) => !removedDuplicateMcps.includes(component.id),
       );
-      const byId = new Map(locked.components.map((c) => [c.id, [...c.paths].sort()]));
+      expect(locked.components.length - currentLocked.length).toBe(6);
+      expect(definition.components.map((c) => c.id).sort()).toEqual(
+        currentLocked.map((c) => c.id).sort(),
+      );
+      const byId = new Map(currentLocked.map((c) => [c.id, [...c.paths].sort()]));
       for (const component of definition.components)
         expect([...component.paths].sort()).toEqual(byId.get(component.id));
     }

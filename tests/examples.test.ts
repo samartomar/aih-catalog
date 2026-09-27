@@ -64,7 +64,7 @@ describe("public-API example", () => {
       const current = run("2026-09-22T12:00:00Z");
       expect(current.status, current.stderr).toBe(0);
       const report = JSON.parse(current.stdout);
-      expect(report.index.entries).toBe(446);
+      expect(report.index.entries).toBe(433);
       expect(report.collections.map((c: { owner: string }) => c.owner)).toEqual([
         "@aihq/core",
         "@aihq/catalog",
@@ -80,7 +80,7 @@ describe("public-API example", () => {
           framework: "ecc",
           format: "ecc-runtime-descriptor/v1",
           source: "affaan-m/ECC@5064474d4d762dc9640234a41617cccb79185cec",
-          sha256: "52e67554115b2300932fc3976e190364c4c3cd037cdb7877b388a95f74a1df02",
+          sha256: "ca007dbe7910425ccece63e57bc74c2029a8016532c5222002cae2de90ad2f49",
           state: "verified",
         },
       ]);

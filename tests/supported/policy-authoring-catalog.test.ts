@@ -39,7 +39,7 @@ describe("policy authoring catalog generator", () => {
     ) as { production: { admission: { catalogDigest: string } } };
     const catalog = policyAuthoringCatalogV1(readPolicyAuthoringCatalogInputsV1(root));
     expect(canonicalDigestV1(catalog)).toBe(published.production.admission.catalogDigest);
-    expect(catalog.frameworks.map((framework) => framework.assets.length)).toEqual([442, 16]);
+    expect(catalog.frameworks.map((framework) => framework.assets.length)).toEqual([436, 16]);
   });
 
   it("refuses a fetched input whose bytes differ from the recorded sha256", () => {

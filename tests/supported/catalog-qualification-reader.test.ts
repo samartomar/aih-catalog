@@ -15,6 +15,7 @@ import {
   CATALOG_SIGNED_CATALOG_ROOT_URL,
   CATALOG_SIGNED_CATALOG_SUBPATH_V1,
   readCatalogQualificationV1,
+  readCatalogQualificationV1Result,
   resolveCatalogQualificationPathV1,
 } from "../../src/content/catalog-qualification-v1.js";
 import * as publicApi from "../../src/index.js";
@@ -91,15 +92,15 @@ const stateOf = (doc: Doc, overrides: Record<string, Uint8Array | undefined> = {
 
 describe("published catalog qualification basis", () => {
   it("qualifies every shipped member against the signed head it ships", () => {
-    const document = readCatalogQualificationV1({
+    const result = readCatalogQualificationV1Result({
       bytes: shippedBytes,
       index,
       now: NOW,
       expectedDigest: `sha256:${sha256(shippedBytes)}`,
       input: { root, verifyReceipts: true, verifySignature: true },
     });
-    expect(document).toBeDefined();
-    if (document === undefined) throw new Error("the shipped qualification basis was refused");
+    if (result.state === "refused") throw new Error(`qualification refused: ${result.reason}`);
+    const document = result.qualification;
     expect(document.format).toBe(CATALOG_QUALIFICATION_FORMAT_V1);
     expect(document.version).toBe(CATALOG_QUALIFICATION_VERSION_V1);
     expect(document.organizationAdmission).toBe("not-authoritative");
@@ -200,10 +201,13 @@ describe("published catalog qualification basis", () => {
   });
 
   it("evaluates nothing without receipt verification or a clock", () => {
-    const declared = readCatalogQualificationV1({ bytes: shippedBytes, index });
-    expect(declared?.signature).toBe("not-evaluated");
-    expect(declared?.attestation).toBe("absent");
-    expect(declared?.entries.every((entry) => entry.state === "not-evaluated")).toBe(true);
+    const declared = readCatalogQualificationV1Result({ bytes: shippedBytes, index });
+    if (declared.state === "refused") throw new Error(`qualification refused: ${declared.reason}`);
+    expect(declared.qualification.signature).toBe("not-evaluated");
+    expect(declared.qualification.attestation).toBe("absent");
+    expect(declared.qualification.entries.every((entry) => entry.state === "not-evaluated")).toBe(
+      true,
+    );
     const clockless = readCatalogQualificationV1({
       bytes: bytesOf(subset()),
       index,

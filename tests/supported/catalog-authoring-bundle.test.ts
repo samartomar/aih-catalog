@@ -22,7 +22,7 @@ describe("Catalog authoring production", () => {
       authoring: { format: "aih-catalog-authoring-bundle", version: 1 },
     });
     if (result.state !== "read") throw new Error(result.reason);
-    expect(result.authoring.sourceRecords).toHaveLength(4);
+    expect(result.authoring.sourceRecords).toHaveLength(3);
     expect(result.authoring.prepared.bundle.version).toBe("authoring-catalog-bundle/v1");
   });
 

@@ -98,7 +98,7 @@ describe("Catalog public content reader", () => {
     );
   });
 
-  it("reads the real shipped index to 446 digest-bound entries without reinterpreting v1", () => {
+  it("reads the real shipped index to 433 digest-bound entries without reinterpreting v1", () => {
     const result = readCatalogContentV1({ bytes: shippedBytes });
     expect(result).toBeDefined();
     const content = result as CatalogContentV1;
@@ -114,9 +114,9 @@ describe("Catalog public content reader", () => {
     expect(content.digest).toBe(`sha256:${sha256(shippedBytes)}`);
     expect(content.digest).toMatch(/^sha256:[0-9a-f]{64}$/);
 
-    expect(content.entries).toHaveLength(446);
+    expect(content.entries).toHaveLength(433);
     const entryIds = content.entries.map((entry) => entry.entryId);
-    expect(new Set(entryIds).size).toBe(446);
+    expect(new Set(entryIds).size).toBe(433);
     expect([...entryIds].sort()).toEqual(entryIds);
 
     const item = content.entries.find((entry) => entry.entryId === "skill.mattpocock.tdd");
@@ -270,7 +270,7 @@ describe("Catalog public content reader", () => {
       expect(item.artifacts.profile.bytes.byteLength).toBe(198);
     }
 
-    // Every entry in the real index resolves: 446 x 4 artifacts are present and digest-exact.
+    // Every entry in the real index resolves: 433 x 4 artifacts are present and digest-exact.
     let verified = 0;
     let unverified = 0;
     for (const entry of content.entries) {
@@ -279,7 +279,7 @@ describe("Catalog public content reader", () => {
         else unverified += 1;
       }
     }
-    expect(verified).toBe(446 * 4);
+    expect(verified).toBe(433 * 4);
     expect(unverified).toBe(0);
 
     // A root that does not contain the content yields typed absence, never a silent pass.

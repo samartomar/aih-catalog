@@ -54,7 +54,7 @@ describe("registered Workbench source assessments", () => {
         (path: string) =>
           !path.startsWith("workbench/aih-core-") && !path.startsWith("workbench/npm/"),
       ),
-    ).toHaveLength(435);
+    ).toHaveLength(422);
     const anthropicSubjects = new Set<string>();
     const expected: Record<
       string,
@@ -99,7 +99,7 @@ describe("registered Workbench source assessments", () => {
         locationCoverageNotices: 13,
         globalCoverageNotices: 14,
       },
-      ecc: { count: 367, commit: "5064474d4d762dc9640234a41617cccb79185cec" },
+      ecc: { count: 361, commit: "5064474d4d762dc9640234a41617cccb79185cec" },
     };
     for (const [provider, facts] of Object.entries(expected)) {
       const paths = manifest.seeds.filter((path: string) =>

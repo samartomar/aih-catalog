@@ -459,7 +459,9 @@ describe("named refusals of the qualification reader", () => {
   };
 
   it("reads the shipped sidecar and names every structural refusal", () => {
-    expect(readCatalogQualificationV1Result(mutate(() => {})() as never)).toMatchObject({
+    const shipped = readCatalogQualificationV1Result(mutate(() => {})() as never);
+    if (shipped.state === "refused") throw new Error(`qualification refused: ${shipped.reason}`);
+    expect(shipped).toMatchObject({
       state: "read",
     });
     expectEveryRefusal(
