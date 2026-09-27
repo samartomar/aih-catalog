@@ -29,8 +29,9 @@ Release and contribution policy: [VERSIONING.md](VERSIONING.md) ·
 
 The 0.3.0 source train keeps bounded receipt-set publication for up to 512
 members (256 KiB canonical manifest). Its default candidate contains 433 exact
-members: the existing default and 25 Matt assessments, plus 19 Anthropic,
-14 Superpowers, and 367 ECC source-file assessments. Existing Matt
+members: the existing default, 25 Matt assessments, 19 Anthropic,
+15 Superpowers, 361 ECC source-file assessments, one ui-ux-pro-max assessment,
+ten Core 0.7.0 rows and one npm package row. Existing Matt
 member bytes and predecessor history are preserved.
 
 These assessments retain original Scanner findings and timestamps, grant no
@@ -280,23 +281,30 @@ fields, an entry that is not in the index or has a different subject digest, an
 indexed entry left out, and malformed or oversize text. Render published values
 and Catalog-written unavailability messages as text only.
 
-Today it covers every GitHub source in the index, 434 of 446 entries, each at
-its pinned commit:
+Today it covers all 421 GitHub entries at their pinned commits and seven aih MCP
+entries, 428 of 433 index entries:
 
 | Source | Commit | Entries |
 | --- | --- | --- |
-| `affaan-m/ECC` | `5064474d4d762dc9640234a41617cccb79185cec` | 367 |
+| `affaan-m/ECC` | `5064474d4d762dc9640234a41617cccb79185cec` | 361 |
 | `mattpocock/skills` | `c55ee46073ed923f86ce59a5eb3b6d895095d1b7` | 25 |
 | `anthropics/skills` | `34040c9c568585f6929bedeaad110ad08f079624` | 19 |
 | `obra/Superpowers` | `5bf4e78011075bcfc0dc295f0724994cd123ee71` | 15 |
 | `nextlevelbuilder/ui-ux-pro-max-skill` | `a38d04c3d5c298c851dbe5e6ee1965ee3de42cb5` | 1 |
 
-**Not covered, by design of this format:** the eleven `aih` entries (`recipe.default`
-and ten Core 0.7.0 rows) and the one `npm` entry (`picocolors@1.1.1`). This sidecar
-accepts only `github` sources pinned to a 40-hex commit, and `recipe.default` and
-`picocolors` declare no closure file to read even in principle. Those entries are
-absent from the sidecar, not unavailable within it; covering them needs a format
-change, which has not been made.
+The seven aih MCP records take their descriptions from the digest-bound Core
+declaration at `src/production/data/core-product-declarations-v1.json`. Their
+`source` names that file and its SHA-256. The generator and drift checker require
+each published description to equal the declaration row's description and, when
+present, its `server.description`. These records also carry `availability`,
+`management` and, for hosted services, `managementNote`. Code Review Graph,
+Codebase Memory, Sequential Thinking, Serena and Playwright are `available` and
+`aih-managed`; GitHub and Context7 are `available` and `developer-managed` hosted
+services. The reader accepts this record shape, while source-text equality is
+enforced by the generator and checker.
+
+Four other aih entries (`recipe.default` and three Core 0.7.0 agent/skill rows)
+and the one npm entry (`picocolors@1.1.1`) are outside this sidecar.
 
 Maintainers regenerate it from trees extracted at exactly those commits, laid out
 as `<trees-root>/<owner>/<repository>/<commit>`, with
@@ -308,7 +316,8 @@ check:catalog-index` runs `generate-catalog-presentation.mjs --check` without
 trees and without the network: it re-derives the source list from the inputs
 file, the entry set and subject digests from the index, each record's source
 path and digest from its closure, and the one field each value may come from,
-but not the published text itself. `--check --trees <trees-root>` also
+and the seven aih descriptions from the bound declaration, but not GitHub
+published text itself. `--check --trees <trees-root>` also
 regenerates the text and compares bytes. Reading never uses the network.
 
 ## Curated categories
@@ -345,7 +354,7 @@ format, version, basis or member, an unsorted taxonomy, a category outside it, a
 entry not in the index, left out, duplicated or out of order, and a rationale that
 is missing, set on a `null` category, oversize or carries control characters.
 
-The taxonomy is a first curation: 12 categories, 352 of 446 entries curated and 94
+The taxonomy is a first curation: 12 categories, 344 of 433 entries curated and 89
 not curated. It awaits the owner's confirmation. Regenerate with
 `npm run generate:catalog-categories` after editing the rules;
 `npm run check:catalog-index` fails when the committed dataset differs from what
