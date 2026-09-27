@@ -142,6 +142,35 @@ export function expandCoreQualificationDataV2(data) {
   return { version: 1, records, bindings: data.bindings, projections: data.projections };
 }
 
+/** Explicit maintenance after approved row removal; ordinary expansion still refuses orphans. */
+export function pruneUnreferencedCoreQualificationArtifactsV2(data) {
+  exactKeys(data, ["artifacts", "bindings", "projections", "records", "version"], "data");
+  if (data.version !== 2 || !isObject(data.artifacts) || !Array.isArray(data.records)) fail("data version");
+  for (const [address, value] of Object.entries(data.artifacts))
+    if (!SHA256_HEX.test(address) || sha256(decoded(value, `artifact ${address}`)) !== address)
+      fail(`artifact ${address}`);
+  const used = new Set();
+  const keep = (address) => {
+    if (typeof address !== "string" || !Object.hasOwn(data.artifacts, address))
+      fail(`absent artifact ${String(address)}`);
+    used.add(address);
+  };
+  for (const record of data.records) {
+    exactKeys(record, COMPACT_RECORD_KEYS, "data record");
+    if (!isObject(record.closures)) fail("data record closures");
+    keep(record.receipt);
+    keep(record.receiptSet);
+    keep(record.member);
+    for (const address of Object.values(record.closures)) keep(address);
+  }
+  const pruned = {
+    ...data,
+    artifacts: Object.fromEntries(Object.entries(data.artifacts).filter(([address]) => used.has(address))),
+  };
+  expandCoreQualificationDataV2(pruned);
+  return `${canonical(pruned)}\n`;
+}
+
 /** Core's encodeCatalogQualificationPackageInputV2, as canonical bytes plus a newline. */
 export function encodeCoreQualificationDataV2(data) {
   exactKeys(data, ["bindings", "projections", "records", "version"], "data");

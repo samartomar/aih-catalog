@@ -29,6 +29,7 @@ type Merger = {
   };
   encodeCoreQualificationDataV2(data: Json): string;
   expandCoreQualificationDataV2(data: Json): Json;
+  pruneUnreferencedCoreQualificationArtifactsV2(data: Json): string;
 };
 type Stager = {
   stageCatalogQualificationInputsV1(input: {
@@ -360,7 +361,20 @@ describe("merging Core T5 drafts into the core qualification data", () => {
       "utf8",
     );
     const expanded = tool.expandCoreQualificationDataV2(JSON.parse(committed));
-    expect((expanded.records as unknown[]).length).toBe(436);
+    expect((expanded.records as unknown[]).length).toBe(429);
     expect(tool.encodeCoreQualificationDataV2(expanded)).toBe(committed);
+  });
+
+  it("prunes orphaned compact artifacts only through an explicit maintenance step", async () => {
+    const tool = await merger();
+    const committed = readFileSync(
+      join(repository, "src", "production", "data", "core-qualification-data-v1.json"),
+      "utf8",
+    );
+    const data = JSON.parse(committed) as Json & { artifacts: Record<string, string> };
+    const orphan = Buffer.from("removed current row");
+    data.artifacts[sha(orphan)] = b64(orphan);
+    expect(() => tool.expandCoreQualificationDataV2(data)).toThrow("unreferenced artifact");
+    expect(tool.pruneUnreferencedCoreQualificationArtifactsV2(data)).toBe(committed);
   });
 });
