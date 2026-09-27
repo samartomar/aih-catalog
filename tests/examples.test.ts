@@ -15,6 +15,12 @@ const packageJson = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8
   exports: Record<string, unknown>;
   files: string[];
 };
+const committedIndex = JSON.parse(
+  readFileSync(resolve(root, "defaults/catalog-index-v1.json"), "utf8"),
+);
+const committedQualification = JSON.parse(
+  readFileSync(resolve(root, "defaults/catalog-qualification-v1.json"), "utf8"),
+);
 
 describe("public-API example", () => {
   it("uses only the package root, its declared subpaths and Node builtins", () => {
@@ -61,10 +67,10 @@ describe("public-API example", () => {
     () => {
       const run = (now: string) =>
         spawnSync(process.execPath, [example, "--now", now], { cwd: root, encoding: "utf8" });
-      const current = run("2026-09-22T12:00:00Z");
+      const current = run(committedQualification.issuedAt);
       expect(current.status, current.stderr).toBe(0);
       const report = JSON.parse(current.stdout);
-      expect(report.index.entries).toBe(433);
+      expect(report.index.entries).toBe(committedIndex.entries.length);
       expect(report.collections.map((c: { owner: string }) => c.owner)).toEqual([
         "@aihq/core",
         "@aihq/catalog",
@@ -73,7 +79,7 @@ describe("public-API example", () => {
         attestation: "absent",
         organizationAdmission: "not-authoritative",
         signature: "not-evaluated",
-        states: { qualified: 457 },
+        states: { qualified: committedIndex.entries.length },
       });
       expect(report.runtimeDescriptors).toEqual([
         {
@@ -95,8 +101,8 @@ describe("public-API example", () => {
           "packs/governance-quality/aih-gov-doctor/profile.json",
         ],
       });
-      const expired = JSON.parse(run("2026-12-08T00:47:41Z").stdout);
-      expect(expired.qualification.states).toEqual({ expired: 457 });
+      const expired = JSON.parse(run(committedQualification.catalog.validUntil).stdout);
+      expect(expired.qualification.states).toEqual({ expired: committedIndex.entries.length });
     },
     60_000,
   );

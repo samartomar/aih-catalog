@@ -45,8 +45,8 @@ const inputs = JSON.parse(
 // index-mismatch until step 9 re-signs over the current rows, so each case reads a subset.
 const NAMED_ENTRY = "skill.anthropic.academy-guide";
 const OTHER_ENTRY = "skill.anthropic.algorithmic-art";
-/** Inside the shipped head's window and after every receipt's `notBefore`. */
-const NOW = "2026-09-22T12:00:00Z";
+/** Issuance is inside the committed head's window and at every receipt's `notBefore`. */
+const NOW = inputs.issuedAt;
 
 function canonical(value: unknown): string {
   if (value === null || typeof value !== "object") return JSON.stringify(value);
@@ -307,7 +307,7 @@ describe("published catalog qualification basis", () => {
     const early = readCatalogQualificationV1({
       bytes: bytesOf(subset()),
       index,
-      now: "2026-09-21T23:59:59Z",
+      now: new Date(Date.parse(NOW) - 1000).toISOString().replace(".000Z", "Z"),
       input: { root, verifyReceipts: true, readFile: reader() },
     });
     expect(early?.entries[0]?.state).toBe("not-yet-valid");
