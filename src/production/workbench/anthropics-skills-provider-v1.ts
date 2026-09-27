@@ -1,5 +1,5 @@
 import type { CatalogCompilerAssemblyInputV1 } from "./compiler-formats-v1.js";
-import { compileIdentifiedComponentCollectionV1 } from "./ponytail-provider-v1.js";
+import { compileIdentifiedComponentCollectionV1 } from "./identified-component-collection-v1.js";
 
 export const ANTHROPICS_SKILLS_SOURCE_ID_V1 = "anthropics-skills";
 export const ANTHROPICS_SKILLS_REPOSITORY_V1 = "https://github.com/anthropics/skills";

@@ -20,7 +20,6 @@ import {
   prepareMattPocockCollectionV1,
 } from "./mattpocock-provider-v1.js";
 import { compilePinnedBaselineV1 } from "./pinned-baseline-v1.js";
-import { compilePonytailComponentCollectionV1 } from "./ponytail-provider-v1.js";
 import {
   type CatalogProviderCompilationV1,
   compileCatalogProviderV1,
@@ -28,7 +27,7 @@ import {
 
 /**
  * The registered Catalog content providers, in Core's reviewed enrollment order
- * (ecc, superpowers, aih, mattpocock, ponytail). Ported from Core 80120883
+ * (ecc, superpowers, aih, mattpocock). Ported from Core 80120883
  * src/org-policy/workbench/providers/{registry,pinned,ecc,superpowers,aih}.ts.
  */
 type TemplateV1 = AuthoringCatalogBundleV1["templates"][string];
@@ -176,15 +175,6 @@ export function compileMattPocockProviderV1(snapshot: unknown): CatalogProviderC
   );
 }
 
-/** The Ponytail collection provider: it compiles from the fetched snapshot alone. */
-export function compilePonytailProviderV1(snapshot: unknown): CatalogProviderCompilationV1 {
-  return compileCatalogProviderV1(
-    "ponytail",
-    (value: unknown) => [compilePonytailComponentCollectionV1(value)],
-    snapshot,
-  );
-}
-
 /**
  * The anthropics/skills collection provider. It is not a registered provider: the full build
  * carries anthropics/skills only as its sealed packaged source record. It compiles a named T3
@@ -205,7 +195,6 @@ export function compileCatalogProvidersV1(input: {
   catalog: PolicyAuthoringCatalogV1;
   vendorSources: readonly BaselineSourceEvidenceV1[];
   mattpocockSnapshot: unknown;
-  ponytailSnapshot: unknown;
 }): CompiledCatalogProvidersV1 {
   const { catalog } = input;
   const pinned = (id: "ecc" | "superpowers"): PinnedProviderInputV1 => {
@@ -229,7 +218,6 @@ export function compileCatalogProvidersV1(input: {
         builtIn,
       ),
       compileMattPocockProviderV1(input.mattpocockSnapshot),
-      compilePonytailProviderV1(input.ponytailSnapshot),
     ],
     coreCapabilities: compileBuiltInCatalogV1(builtIn).coreCapabilities,
   };

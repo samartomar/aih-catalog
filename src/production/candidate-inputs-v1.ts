@@ -31,13 +31,12 @@ import {
  * `compilerInput` is resolved against the inputs file's directory; `omit`
  * leaves the framework's component definitions out of the candidate entirely.
  *
- * T3 of a collection (anthropics-skills, ponytail) admits the source from the
+ * T3 of a collection (anthropics-skills) admits the source from the
  * candidate's own authoring bundle, so a collection whose pin moved is named
  * too, with its T3 compiler input: `"collections": { "anthropics-skills":
  * { "compilerInput": "compiler/anthropics-skills.json", "sha256": "<hex>" } }`.
- * Its record is never overlaid: ponytail compiles from the Catalog's fetched
- * snapshot, which the named input must equal; anthropics-skills, which has no
- * provider, compiles from the named input.
+ * Its record is never overlaid: anthropics-skills has no registered provider
+ * and compiles from the named input.
  */
 export const CATALOG_CANDIDATE_INPUTS_FORMAT_V1 = "aih-catalog-candidate-inputs";
 
@@ -47,7 +46,6 @@ const FRAMEWORK_IDS: readonly CandidateFrameworkIdV1[] = ["ecc", "superpowers"];
 /** The collections T3 prepares source data for, by their GitHub repositories. */
 export const CANDIDATE_COLLECTION_REPOSITORIES_V1 = {
   "anthropics-skills": "anthropics/skills",
-  ponytail: "DietrichGebert/ponytail",
 } as const;
 export type CandidateCollectionIdV1 = keyof typeof CANDIDATE_COLLECTION_REPOSITORIES_V1;
 const COLLECTION_IDS = Object.keys(
@@ -436,7 +434,6 @@ export function candidateOmittedSectionsV1(candidate: CatalogCandidateV1): strin
     const repository = CANDIDATE_COLLECTION_REPOSITORIES_V1[id];
     omitted.push(`./catalog-authoring-bundle.json#packagedSource:${repository}`);
     omitted.push(`./catalog-scanner-evidence.json#sourceProofs:${repository}`);
-    if (id === "ponytail") omitted.push("./catalog-scanner-providers.json#collections.ponytail");
   }
   return omitted.sort(codeUnitCompare);
 }

@@ -11,7 +11,6 @@ import {
   readCatalogCandidateInputsV1,
 } from "../../src/production/candidate-inputs-v1.js";
 import { buildCatalogFrameworkDefaultsV1 } from "../../src/production/catalog-defaults-v1.js";
-import { readCollectionSnapshotV1 } from "../../src/production/workbench/authoring-bundle-v1.js";
 import type { AuthoringCatalogBundleV1 } from "../../src/production/workbench/contracts-v1.js";
 import {
   produceSingleSourceAuthoringBundleV1,
@@ -19,7 +18,7 @@ import {
 } from "../../src/production/workbench/single-source-bundle-v1.js";
 import { curatedVendorLockV2 } from "./v2-fixtures.js";
 
-// T3 of a collection (anthropics-skills, ponytail) admits the source from the candidate
+// T3 of a collection (anthropics-skills) admits the source from the candidate
 // Catalog's own authoring bundle (Core scanner-catalog-consumer.ts admittedSourceV1), so the
 // candidate must carry the collection at its new pin: its stale record is never overlaid.
 
@@ -32,11 +31,6 @@ const records = () =>
       "utf8",
     ),
   ) as { bytes: string; sha256: string }[];
-const PONYTAIL_PIN = (
-  readCollectionSnapshotV1(root, "ponytail.snapshot.json") as {
-    source: { commit: string };
-  }
-).source.commit;
 const ANTHROPICS_PIN = "3".repeat(40);
 
 const temporary: string[] = [];
@@ -117,21 +111,19 @@ describe("candidate collection inputs", () => {
     const candidate = readCatalogCandidateInputsV1(
       inputsFor({
         "anthropics-skills": anthropicsInput(),
-        ponytail: readCollectionSnapshotV1(root, "ponytail.snapshot.json"),
       }),
       lock(),
     );
     expect(candidate.collections?.["anthropics-skills"]?.commit).toBe(ANTHROPICS_PIN);
     expect(candidate.collections?.["anthropics-skills"]?.compilerInput).toEqual(anthropicsInput());
-    expect(candidate.collections?.ponytail?.commit).toBe(PONYTAIL_PIN);
   });
 
   it.each([
     ["an unknown collection", { mattpocock: anthropicsInput() }, /mattpocock/u],
     [
       "another source id",
-      { "anthropics-skills": anthropicsInput({ id: "ponytail" }) },
-      /anthropics-skills.*ponytail/u,
+      { "anthropics-skills": anthropicsInput({ id: "other-collection" }) },
+      /anthropics-skills.*other-collection/u,
     ],
     [
       "another repository",
@@ -176,16 +168,6 @@ describe("candidate collections in the generated defaults", () => {
         commit: ANTHROPICS_PIN,
         compilerInput: anthropicsInput(),
       },
-      ponytail: {
-        kind: "compiler-input",
-        path: "compiler/ponytail.json",
-        sha256: "0".repeat(64),
-        commit: PONYTAIL_PIN,
-        compilerInput: readCollectionSnapshotV1(root, "ponytail.snapshot.json") as Record<
-          string,
-          unknown
-        >,
-      },
     },
   });
 
@@ -198,9 +180,6 @@ describe("candidate collections in the generated defaults", () => {
     for (const section of [
       "./catalog-authoring-bundle.json#packagedSource:anthropics/skills",
       "./catalog-scanner-evidence.json#sourceProofs:anthropics/skills",
-      "./catalog-authoring-bundle.json#packagedSource:DietrichGebert/ponytail",
-      "./catalog-scanner-evidence.json#sourceProofs:DietrichGebert/ponytail",
-      "./catalog-scanner-providers.json#collections.ponytail",
     ])
       expect(omitted).toContain(section);
   });
@@ -211,7 +190,6 @@ describe("candidate collections in the generated defaults", () => {
         bundle: {
           sources: {
             "source:anthropics-skills": { inputFormat, revision: { id: revision } },
-            "source:ponytail": { inputFormat, revision: { id: PONYTAIL_PIN } },
           },
         },
       },
@@ -248,14 +226,12 @@ describe("candidate collections in the generated defaults", () => {
       Object.values(bundle.sources).map((source) => [source.id, source.revision.id]),
     );
     expect(pins["source:anthropics-skills"]).toBe(ANTHROPICS_PIN);
-    expect(pins["source:ponytail"]).toBe(PONYTAIL_PIN);
     const providers = files["defaults/catalog-scanner-providers-v1.json"] as {
       collections: Record<string, unknown>;
     };
     expect(Object.keys(providers.collections)).toEqual(["mattpocock"]);
     const expected = [
       ["anthropics-skills", ANTHROPICS_PIN, { compilerInput: anthropicsInput() }],
-      ["ponytail", PONYTAIL_PIN, {}],
       ...(
         vendorLock as { sources: { id: "ecc" | "superpowers"; pinnedSha: string }[] }
       ).sources.map((source) => [source.id, source.pinnedSha, { vendorLock }] as const),
@@ -264,27 +240,5 @@ describe("candidate collections in the generated defaults", () => {
       expect(projectAuthoringBundleSourceV1(copy, bundle, `source:${id}`)).toEqual(
         produceSingleSourceAuthoringBundleV1(copy, id, pin, { newPin: true, ...options }),
       );
-  });
-
-  it("refuses a ponytail compiler input that is not the Catalog's fetched snapshot", () => {
-    const copy = tempDir("aih-candidate-root-");
-    cpSync(resolve(root, "src", "production", "data"), join(copy, "src", "production", "data"), {
-      recursive: true,
-    });
-    writeFileSync(
-      join(copy, "src", "production", "data", "vendor-lock-v1.json"),
-      `${JSON.stringify(lock())}\n`,
-    );
-    writeFileSync(
-      join(copy, "src", "production", "data", "packaged-collection-evidence-v1.json"),
-      "[]\n",
-    );
-    const changed = candidate();
-    const ponytail = changed.collections?.ponytail;
-    if (ponytail === undefined) throw new Error("no ponytail");
-    (ponytail.compilerInput.source as { version: string }).version = "0.0.1";
-    expect(() => buildCatalogFrameworkDefaultsV1(copy, changed)).toThrow(
-      /ponytail compiler input is not the Catalog's fetched ponytail snapshot/u,
-    );
   });
 });

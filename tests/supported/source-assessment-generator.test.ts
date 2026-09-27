@@ -378,7 +378,7 @@ describe("direct skill rows take their selection from the Catalog's curated inve
   });
 
   it("refuses a direct skill run over a provider that carries another curated kind", async () => {
-    // A ponytail-style provider (skills and an mcp row): the render replaces every row of the
+    // A component provider (skills and an mcp row): the render replaces every row of the
     // provider, so the inventory authority refuses rather than dropping the other kind.
     const mixed = await twoSkillFixture();
     writeJson(

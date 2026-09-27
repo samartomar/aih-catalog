@@ -33,12 +33,11 @@ afterEach(() => {
 });
 
 describe("baseline definition emitter", () => {
-  it("names the four producers and their repositories", () => {
+  it("names the current producers and their repositories", () => {
     expect(BASELINE_DEFINITION_SUBJECTS_V1).toEqual({
       ecc: "affaan-m/ECC",
       superpowers: "obra/Superpowers",
       mattpocock: "mattpocock/skills",
-      ponytail: "DietrichGebert/ponytail",
     });
   });
 
@@ -102,24 +101,10 @@ describe("baseline definition emitter", () => {
     );
   });
 
-  it("emits the Ponytail component collection from the produced snapshot", () => {
-    const commit = recorded("ponytail.snapshot.json");
-    const definition = emitBaselineDefinitionV1(root, "ponytail", commit) as {
-      version: string;
-      source: { commit: string; repository: string };
-    };
-    expect(definition.version).toBe("pinned-component-collection/v1");
-    expect(definition.source).toMatchObject({
-      commit,
-      repository: "https://github.com/DietrichGebert/ponytail",
-    });
-  });
-
   it.each([
     "ecc",
     "superpowers",
     "mattpocock",
-    "ponytail",
   ] as const)("refuses %s at a commit the produced inputs were not fetched at", (name) => {
     expect(() => emitBaselineDefinitionV1(root, name, "0".repeat(40))).toThrow(
       /was produced at [0-9a-f]{40}, not 0{40}/,
@@ -151,7 +136,6 @@ describe("baseline definition emitter", () => {
       ],
       superpowers: ["superpowers-content-metadata-v1.json", "superpowers-hook-sources-v1.json"],
       mattpocock: ["mattpocock.snapshot.json"],
-      ponytail: ["ponytail.snapshot.json"],
     });
   });
 
@@ -166,7 +150,6 @@ describe("baseline definition emitter", () => {
       ],
       superpowers: ["superpowers-hook-sources-v1.json", "superpowers-content-metadata-v1.json"],
       mattpocock: ["mattpocock.snapshot.json"],
-      ponytail: ["ponytail.snapshot.json"],
     }).flatMap(([name, files]) => files.map((file) => [name, file] as const)),
   )("refuses %s when %s and its manifest entry are removed", (name, file) => {
     const copy = copiedRoot();
@@ -223,15 +206,6 @@ describe("baseline definition emitter", () => {
     expect(() => emitBaselineDefinitionV1(copy, "ecc", commit)).toThrow(
       "ecc-extra-v1.json is recorded for affaan-m/ECC but produce:ecc does not write it",
     );
-  });
-
-  it("refuses produced bytes that no longer match their recorded sha256", () => {
-    const copy = copiedRoot();
-    const path = join(copy, "src", "production", "data", "ponytail.snapshot.json");
-    writeFileSync(path, `${readFileSync(path, "utf8")} `);
-    expect(() =>
-      emitBaselineDefinitionV1(copy, "ponytail", recorded("ponytail.snapshot.json")),
-    ).toThrow("does not match its recorded sha256");
   });
 
   it.each([

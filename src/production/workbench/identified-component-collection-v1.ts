@@ -4,9 +4,6 @@ import {
 } from "./compiler-formats-v1.js";
 import { compilePinnedComponentCollectionV1 } from "./pinned-component-collection-v1.js";
 
-export const PONYTAIL_SOURCE_ID_V1 = "ponytail";
-export const PONYTAIL_REPOSITORY_V1 = "https://github.com/DietrichGebert/ponytail";
-
 /**
  * A pinned component collection compiled as the assembly input of one exact source, the way
  * Core compiled the packaged collection records (distributor @aihq/core, git upstream origin).
@@ -37,19 +34,4 @@ export function compileIdentifiedComponentCollectionV1(
     templates: result.templates,
     detailBytes: result.detailBytes,
   };
-}
-
-/**
- * The Ponytail snapshot is the hand-authored component declaration plus the
- * upstream file bytes `produce:ponytail` fetched at the pinned commit.
- */
-export function compilePonytailComponentCollectionV1(
-  input: unknown,
-): CatalogCompilerAssemblyInputV1 {
-  return compileIdentifiedComponentCollectionV1(
-    input,
-    PONYTAIL_SOURCE_ID_V1,
-    PONYTAIL_REPOSITORY_V1,
-    "Ponytail",
-  );
 }

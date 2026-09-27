@@ -22,9 +22,7 @@ import {
   SHA256_HEX,
   text,
 } from "../validate-v1.js";
-import { readCollectionSnapshotV1 } from "./authoring-bundle-v1.js";
 import { compilePinnedComponentCollectionV1 } from "./pinned-component-collection-v1.js";
-import { compilePonytailComponentCollectionV1 } from "./ponytail-provider-v1.js";
 
 /**
  * The `--compiler-input` Core's T3 (`prepare:packaged-workbench-source-data`) reads at a pin
@@ -35,8 +33,6 @@ import { compilePonytailComponentCollectionV1 } from "./ponytail-provider-v1.js"
  *   96453911 src/baseline-evidence/source-data-baseline-preparation.ts:17-68). That schema
  *   admits curated inventory only; the vet (a report claim) and the ECC runtime identity are
  *   not input fields there. The vetted-pin checks of the policy authoring catalog apply;
- * - ponytail: the fetched snapshot, verified against the upstream inputs manifest; the
- *   ponytail provider compiles exactly these bytes;
  * - anthropics-skills: the Catalog carries no snapshot and no provider for it, only the
  *   curated component template inside its sealed record. The curated components and file
  *   list are kept; every file's bytes, digest and size are read again from the pinned
@@ -45,7 +41,6 @@ import { compilePonytailComponentCollectionV1 } from "./ponytail-provider-v1.js"
 export const COMPILER_INPUT_SUBJECTS_V1 = {
   ecc: "framework",
   superpowers: "framework",
-  ponytail: "collection",
   "anthropics-skills": "collection",
 } as const;
 export type CompilerInputSubjectV1 = keyof typeof COMPILER_INPUT_SUBJECTS_V1;
@@ -291,11 +286,6 @@ export function produceCompilerInputV1(
     at = framework.commit;
     if (at !== commit) fail(`the Catalog curates ${subject} at ${String(at)}, not ${commit}`);
     input = frameworkCompilerInputV1(framework);
-  } else if (subject === "ponytail") {
-    input = record(readCollectionSnapshotV1(root, "ponytail.snapshot.json"), "ponytail snapshot");
-    at = record(input.source, "ponytail snapshot source").commit;
-    if (at !== commit) fail(`the Catalog curates ponytail at ${String(at)}, not ${commit}`);
-    compilePonytailComponentCollectionV1(input);
   } else {
     if (options.checkout === undefined || options.git === undefined)
       fail("anthropics-skills needs a checkout of anthropics/skills holding the pin");

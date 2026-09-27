@@ -18,7 +18,7 @@ const COMMIT = /^[a-f0-9]{40}$/u;
 function usage(message) {
   console.error(`produce-upstream-inputs: ${message}`);
   console.error(
-    "usage: node tools/produce-upstream-inputs.mjs <ecc|superpowers|mattpocock|ponytail> --commit <40-hex> [--check]",
+    "usage: node tools/produce-upstream-inputs.mjs <ecc|superpowers|mattpocock> --commit <40-hex> [--check]",
   );
   process.exit(2);
 }

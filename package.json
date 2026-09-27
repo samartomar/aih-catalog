@@ -69,7 +69,6 @@
     "produce:ecc": "npm run build:dist && node tools/produce-upstream-inputs.mjs ecc",
     "produce:superpowers": "npm run build:dist && node tools/produce-upstream-inputs.mjs superpowers",
     "produce:mattpocock": "npm run build:dist && node tools/produce-upstream-inputs.mjs mattpocock",
-    "produce:ponytail": "npm run build:dist && node tools/produce-upstream-inputs.mjs ponytail",
     "verify": "npm run typecheck && npm run lint && npm run build:dist && npm run check:catalog-index && npm run build && npm test",
     "generate:catalog-index": "node tools/generate-catalog-index.mjs",
     "check:catalog-index": "node tools/check-not-candidate.mjs && node tools/generate-catalog-index.mjs --check && node tools/generate-catalog-collections.mjs --check && node tools/generate-catalog-qualification.mjs --check && node tools/generate-catalog-presentation.mjs --check && node tools/generate-catalog-categories.mjs --check && node tools/generate-catalog-runtime-descriptors.mjs --check && node dist/production/catalog-defaults-v1.js --check && node tools/check-committed-catalog-defaults.mjs",

@@ -172,7 +172,6 @@ describe("the base authoring bundle under a vendor lock at the upstream-input pi
       catalog,
       vendorSources: lock.sources,
       mattpocockSnapshot: readCollectionSnapshotV1(root, "mattpocock.snapshot.json"),
-      ponytailSnapshot: readCollectionSnapshotV1(root, "ponytail.snapshot.json"),
     });
     const base = assembleCompilerOutputsV1(
       compiled.providers.flatMap((provider) => provider.inputs),
@@ -425,7 +424,7 @@ describe("candidate packaged source records", () => {
       frameworks: { superpowers: { kind: "omitted" }, ecc: { kind: "omitted" } },
     };
     const kept = candidatePackagedSourceDataV1(records(), vendorLock(), candidate);
-    expect(repositories(kept).sort()).toEqual(["DietrichGebert/ponytail", "anthropics/skills"]);
+    expect(repositories(kept).sort()).toEqual(["anthropics/skills"]);
     // The kept wrappers are byte-identical to the sealed ones.
     for (const wrapper of kept as { bytes: string; sha256: string }[])
       expect(records()).toContainEqual(wrapper);

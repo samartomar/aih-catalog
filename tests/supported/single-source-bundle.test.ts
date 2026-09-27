@@ -1,14 +1,13 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { readPolicyAuthoringCatalogInputsV1 } from "../../src/production/catalog/policy-authoring-catalog-v1.js";
 import {
   assembleCatalogAuthoringBundleV1,
+  compileAuthoringProvidersV1,
   readCollectionSnapshotV1,
 } from "../../src/production/workbench/authoring-bundle-v1.js";
-import {
-  compileMattPocockProviderV1,
-  compilePonytailProviderV1,
-} from "../../src/production/workbench/catalog-providers-v1.js";
+import { compileMattPocockProviderV1 } from "../../src/production/workbench/catalog-providers-v1.js";
 import {
   produceSingleSourceAuthoringBundleV1,
   projectAuthoringBundleSourceV1,
@@ -39,10 +38,7 @@ describe("single-source authoring bundle", () => {
     const pin = recorded("mattpocock.snapshot.json");
     const { bundle: assembled } = assembleCatalogAuthoringBundleV1(
       root,
-      [
-        compileMattPocockProviderV1(readCollectionSnapshotV1(root, "mattpocock.snapshot.json")),
-        compilePonytailProviderV1(readCollectionSnapshotV1(root, "ponytail.snapshot.json")),
-      ],
+      [compileMattPocockProviderV1(readCollectionSnapshotV1(root, "mattpocock.snapshot.json"))],
       [],
     );
     expect(Object.keys(assembled.sources).length).toBeGreaterThan(1);
@@ -73,16 +69,17 @@ describe("single-source authoring bundle", () => {
   });
 
   it("refuses a projection that would cut a cross-source closure", () => {
+    const { compiled } = compileAuthoringProvidersV1(
+      root,
+      readPolicyAuthoringCatalogInputsV1(root),
+    );
     const { bundle } = assembleCatalogAuthoringBundleV1(
       root,
-      [
-        compileMattPocockProviderV1(readCollectionSnapshotV1(root, "mattpocock.snapshot.json")),
-        compilePonytailProviderV1(readCollectionSnapshotV1(root, "ponytail.snapshot.json")),
-      ],
-      [],
+      compiled.providers,
+      compiled.coreCapabilities,
     );
     const from = Object.values(bundle.assets).find((a) => a.sourceId === "source:mattpocock");
-    const to = Object.values(bundle.assets).find((a) => a.sourceId === "source:ponytail");
+    const to = Object.values(bundle.assets).find((a) => a.sourceId === "source:ecc");
     if (from === undefined || to === undefined) throw new Error("the fixture needs both sources");
     const crossed = structuredClone(bundle);
     crossed.relations.push({

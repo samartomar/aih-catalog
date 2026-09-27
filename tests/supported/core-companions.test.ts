@@ -39,7 +39,7 @@ describe("Core companion materials", () => {
     expect(evidence.records).toEqual(data("packaged-collection-evidence-v1.json"));
     expect(
       evidence.sourceProofs.map((proof) => (proof.source as { repository: string }).repository),
-    ).toEqual(["anthropics/skills", "DietrichGebert/ponytail", "affaan-m/ECC", "obra/Superpowers"]);
+    ).toEqual(["anthropics/skills", "affaan-m/ECC", "obra/Superpowers"]);
   });
 
   it("reads the qualification data as content-addressed artifacts", () => {

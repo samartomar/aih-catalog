@@ -94,18 +94,6 @@ upstream `.claude-plugin/plugin.json` `skills`. The snapshot's
 | `.changeset/` | none | Holds release changesets. It has no `SKILL.md`. There is no recorded reason beyond that. |
 | `scripts/` | none | Holds the repository scripts `link-skills.sh`, `list-skills.sh` and `sync-plugin-version.mjs`. It has no `SKILL.md`. There is no recorded reason beyond that. |
 
-Ponytail (`DietrichGebert/ponytail@1d95ff7d39de12d87014ea40d4e22201bddc501b`,
-4.10.0): upstream has six `SKILL.md` copies under `.openclaw/skills/*`, each a
-counterpart of a `skills/<name>/SKILL.md`. The snapshot declares the six skill
-components from `skills/` only and stages no `.openclaw/` file. Upstream
-`README.md` says: "The OpenClaw skill package (`.openclaw/skills/`) is generated
-from `skills/`". There, `scripts/build-openclaw-skills.js` generates
-`.openclaw/skills/` from `skills/`, and a separate script,
-`scripts/publish-openclaw-skills.js`, publishes the six skills to ClawHub. At
-the pin, the bytes of each copy differ from its `skills/`
-original. The copies are generated packaging for the same six skills, so they
-are not separate subjects.
-
 ECC (`affaan-m/ECC@5064474d4d762dc9640234a41617cccb79185cec`): the rules below
 come from source; the reasons from git history. Upstream has 68 `agents/*.md`
 and 44 agent subjects, and declares 36 MCP servers for 37 MCP subjects. No

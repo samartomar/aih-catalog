@@ -106,18 +106,6 @@
         "cldr": "48.0"
       }
     },
-    "ponytail.snapshot.json": {
-      "repository": "DietrichGebert/ponytail",
-      "commit": "1d95ff7d39de12d87014ea40d4e22201bddc501b",
-      "sha256": "50aaeee96c77376c37a1343cc79fc87d79c47d85f5e73a9bfba20cc94607738e",
-      "sources": {},
-      "runtime": {
-        "node": "26.4.0",
-        "icu": "78.3",
-        "unicode": "17.0",
-        "cldr": "48.0"
-      }
-    },
     "superpowers-content-metadata-v1.json": {
       "repository": "obra/Superpowers",
       "commit": "5bf4e78011075bcfc0dc295f0724994cd123ee71",

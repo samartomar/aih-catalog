@@ -10,7 +10,6 @@ import {
   policyAuthoringCatalogV1,
   readPolicyAuthoringCatalogInputsV1,
 } from "../../src/production/catalog/policy-authoring-catalog-v1.js";
-import { readCollectionSnapshotV1 } from "../../src/production/workbench/authoring-bundle-v1.js";
 import {
   collectionCompilerInputAtPinV1,
   frameworkCompilerInputV1,
@@ -130,16 +129,6 @@ describe("T3 compiler input for a framework", () => {
 });
 
 describe("T3 compiler input for a collection", () => {
-  it("is ponytail's verified snapshot at its fetched pin", () => {
-    const pin = recorded("ponytail.snapshot.json");
-    expect(produceCompilerInputV1(root, "ponytail", pin)).toEqual(
-      readCollectionSnapshotV1(root, "ponytail.snapshot.json"),
-    );
-    expect(() => produceCompilerInputV1(root, "ponytail", "0".repeat(40))).toThrow(
-      new RegExp(`curates ponytail at ${pin}, not 0{40}`),
-    );
-  });
-
   it("reads the curated anthropics-skills template from its sealed record", () => {
     const template = readCuratedCollectionTemplateV1(root, "anthropics-skills") as {
       version: string;
@@ -304,13 +293,13 @@ describe("T3 compiler input for a collection", () => {
       /anthropics-skills needs a checkout/,
     );
     expect(() =>
-      produceCompilerInputV1(root, "ponytail", recorded("ponytail.snapshot.json"), {
+      produceCompilerInputV1(root, "ecc", recorded("ecc-modules-v1.json"), {
         checkout: root,
         git,
       }),
     ).toThrow(/a checkout applies only to anthropics-skills/);
     expect(() =>
-      produceCompilerInputV1(root, "ponytail", recorded("ponytail.snapshot.json"), {
+      produceCompilerInputV1(root, "anthropics-skills", "0".repeat(40), {
         vendorLock: {},
       }),
     ).toThrow(/a vendor lock applies only to ecc and superpowers/);

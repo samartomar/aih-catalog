@@ -7,10 +7,7 @@ import {
   assembleCatalogAuthoringBundleV1,
   readCollectionSnapshotV1,
 } from "../../src/production/workbench/authoring-bundle-v1.js";
-import {
-  compileMattPocockProviderV1,
-  compilePonytailProviderV1,
-} from "../../src/production/workbench/catalog-providers-v1.js";
+import { compileMattPocockProviderV1 } from "../../src/production/workbench/catalog-providers-v1.js";
 import {
   produceSingleSourceAuthoringBundleV1,
   projectAuthoringBundleSourceV1,
@@ -65,31 +62,18 @@ function anthropicsInput(commit = ANTHROPICS_PIN, id = "anthropics-skills"): Jso
 
 describe("single-source bundle at a new pin (no packaged record overlay)", () => {
   it("emits each collection at its curated pin, whatever record the Catalog still carries", () => {
-    for (const [id, file] of [
-      ["mattpocock", "mattpocock.snapshot.json"],
-      ["ponytail", "ponytail.snapshot.json"],
-    ] as const) {
+    for (const [id, file] of [["mattpocock", "mattpocock.snapshot.json"]] as const) {
       const pin = recorded(file);
       const bundle = produceSingleSourceAuthoringBundleV1(root, id, pin, {
         newPin: true,
       }) as unknown as Json;
       assertCoreAdmitsV1(bundle, `source:${id}`, pin);
     }
-    const ponytail = readCollectionSnapshotV1(root, "ponytail.snapshot.json") as {
-      components: unknown[];
-    };
-    const bundle = produceSingleSourceAuthoringBundleV1(
-      root,
-      "ponytail",
-      recorded("ponytail.snapshot.json"),
-      { newPin: true },
-    );
-    expect(Object.keys(bundle.assets).length).toBeGreaterThanOrEqual(ponytail.components.length);
   });
 
   it("is the named source exactly as the full overlay leaves it: other records cannot reach it", () => {
-    const pin = recorded("ponytail.snapshot.json");
-    const alone = produceSingleSourceAuthoringBundleV1(root, "ponytail", pin, { newPin: true });
+    const pin = recorded("mattpocock.snapshot.json");
+    const alone = produceSingleSourceAuthoringBundleV1(root, "mattpocock", pin, { newPin: true });
     const anthropics = produceSingleSourceAuthoringBundleV1(
       root,
       "anthropics-skills",
@@ -111,16 +95,13 @@ describe("single-source bundle at a new pin (no packaged record overlay)", () =>
     const bytes = canonicalJsonV1(record);
     const { bundle: overlaid } = assembleCatalogAuthoringBundleV1(
       root,
-      [
-        compileMattPocockProviderV1(readCollectionSnapshotV1(root, "mattpocock.snapshot.json")),
-        compilePonytailProviderV1(readCollectionSnapshotV1(root, "ponytail.snapshot.json")),
-      ],
+      [compileMattPocockProviderV1(readCollectionSnapshotV1(root, "mattpocock.snapshot.json"))],
       [],
       [{ bytes, sha256: sha256HexV1(bytes) }],
       [],
     );
     expect(overlaid.sources["source:anthropics-skills"]?.revision.id).toBe(ANTHROPICS_PIN);
-    expect(projectAuthoringBundleSourceV1(root, overlaid, "source:ponytail")).toEqual(alone);
+    expect(projectAuthoringBundleSourceV1(root, overlaid, "source:mattpocock")).toEqual(alone);
   });
 
   it("emits ecc and superpowers at the vendor-lock pin and keeps the vetted-pin guard", () => {
@@ -167,7 +148,7 @@ describe("single-source bundle at a new pin (no packaged record overlay)", () =>
   });
 
   it("refuses what the route cannot build truthfully", () => {
-    const pin = recorded("ponytail.snapshot.json");
+    const pin = recorded("mattpocock.snapshot.json");
     expect(() =>
       produceSingleSourceAuthoringBundleV1(root, "anthropics-skills", ANTHROPICS_PIN, {
         compilerInput: anthropicsInput(),
@@ -179,7 +160,7 @@ describe("single-source bundle at a new pin (no packaged record overlay)", () =>
       }),
     ).toThrow(/anthropics-skills needs its named compiler input/);
     expect(() =>
-      produceSingleSourceAuthoringBundleV1(root, "ponytail", pin, {
+      produceSingleSourceAuthoringBundleV1(root, "mattpocock", pin, {
         newPin: true,
         compilerInput: anthropicsInput(),
       }),
@@ -197,7 +178,7 @@ describe("single-source bundle at a new pin (no packaged record overlay)", () =>
       }),
     ).toThrow(/anthropics-skills provider requires its exact source identity/);
     expect(() =>
-      produceSingleSourceAuthoringBundleV1(root, "ponytail", "0".repeat(40), { newPin: true }),
-    ).toThrow(new RegExp(`emits source:ponytail@${pin}, not 0{40}`));
+      produceSingleSourceAuthoringBundleV1(root, "mattpocock", "0".repeat(40), { newPin: true }),
+    ).toThrow(new RegExp(`emits source:mattpocock@${pin}, not 0{40}`));
   });
 });

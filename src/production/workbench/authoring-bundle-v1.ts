@@ -36,18 +36,14 @@ function readData(root: string, file: string): unknown {
  * Reads a fetched collection snapshot, verified against the upstream inputs
  * manifest, and refuses one whose own pin is not the commit it was fetched at.
  */
-export function readCollectionSnapshotV1(
-  root: string,
-  file: "mattpocock.snapshot.json" | "ponytail.snapshot.json",
-): unknown {
+export function readCollectionSnapshotV1(root: string, file: "mattpocock.snapshot.json"): unknown {
   const { provenance, json } = readVerifiedUpstreamInputV1(
     root,
     readUpstreamInputsManifestV1(root),
     file,
   );
   const snapshot = json as { upstream?: { pin?: unknown }; source?: { commit?: unknown } };
-  const pin =
-    file === "mattpocock.snapshot.json" ? snapshot.upstream?.pin : snapshot.source?.commit;
+  const pin = snapshot.upstream?.pin;
   if (pin !== provenance.commit)
     throw new TypeError(`${file} pins ${String(pin)} but was fetched at ${provenance.commit}`);
   return json;
@@ -96,14 +92,13 @@ export function compileAuthoringProvidersV1(root: string, inputs: PolicyAuthorin
     catalog,
     vendorSources: inputs.vendorLock.sources,
     mattpocockSnapshot: readCollectionSnapshotV1(root, "mattpocock.snapshot.json"),
-    ponytailSnapshot: readCollectionSnapshotV1(root, "ponytail.snapshot.json"),
   });
   return { catalog, compiled };
 }
 
 /**
  * Generates `defaults/catalog-authoring-bundle-v1.json` from the true inputs:
- * the policy authoring catalog inputs, the Matt Pocock and Ponytail snapshots,
+ * the policy authoring catalog inputs, the Matt Pocock snapshot,
  * the sealed packaged source records and the sealed Scanner collection
  * evidence. This is Core 80120883's compile → packaged overlay → admission
  * pipeline, with bindings left empty: Core derives bindings from what it admits.

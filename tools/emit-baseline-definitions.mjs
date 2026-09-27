@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Offline `node tools/emit-baseline-definitions.mjs <ecc|superpowers|mattpocock|ponytail>
+// Offline `node tools/emit-baseline-definitions.mjs <ecc|superpowers|mattpocock>
 // --commit <40-hex> --output <new file>` step. It runs after `npm run produce:<name>` and
 // `tsc -p tsconfig.build.json`, reads only the produced upstream inputs under
 // src/production/data (never vendor-lock-v1.json) and writes the definition Core's
@@ -20,7 +20,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 function usage(message) {
   console.error(`emit-baseline-definitions: ${message}`);
   console.error(
-    "usage: node tools/emit-baseline-definitions.mjs <ecc|superpowers|mattpocock|ponytail> --commit <40-hex> --output <new file>\n       node tools/emit-baseline-definitions.mjs <ecc|superpowers|mattpocock|ponytail|anthropics-skills> --commit <40-hex> --output <new file> --inventory <checkout>",
+    "usage: node tools/emit-baseline-definitions.mjs <ecc|superpowers|mattpocock> --commit <40-hex> --output <new file>\n       node tools/emit-baseline-definitions.mjs <ecc|superpowers|mattpocock|anthropics-skills> --commit <40-hex> --output <new file> --inventory <checkout>",
   );
   process.exit(2);
 }

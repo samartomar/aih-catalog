@@ -1,6 +1,5 @@
 import { readCollectionSnapshotV1 } from "../workbench/authoring-bundle-v1.js";
 import { prepareMattPocockCollectionV1 } from "../workbench/mattpocock-provider-v1.js";
-import { compilePinnedComponentCollectionV1 } from "../workbench/pinned-component-collection-v1.js";
 import { eccBaselineCatalogV1, superpowersBaselineCatalogV1 } from "./baseline-catalogs-v1.js";
 import { eccComponentModelV1 } from "./ecc-components-v1.js";
 import { parseEccModulesSnapshotV1, parseEccProfilesSnapshotV1 } from "./ecc-snapshots-v1.js";
@@ -16,7 +15,6 @@ export const BASELINE_DEFINITION_SUBJECTS_V1 = {
   ecc: "affaan-m/ECC",
   superpowers: "obra/Superpowers",
   mattpocock: "mattpocock/skills",
-  ponytail: "DietrichGebert/ponytail",
 } as const;
 export type BaselineDefinitionSubjectV1 = keyof typeof BASELINE_DEFINITION_SUBJECTS_V1;
 
@@ -82,10 +80,5 @@ export function emitBaselineDefinitionV1(root: string, name: string, commit: str
       return prepareMattPocockCollectionV1(
         readCollectionSnapshotV1(root, "mattpocock.snapshot.json"),
       );
-    case "ponytail": {
-      const snapshot = readCollectionSnapshotV1(root, "ponytail.snapshot.json");
-      compilePinnedComponentCollectionV1(snapshot);
-      return snapshot;
-    }
   }
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Offline `node tools/emit-single-source-bundle.mjs
-// <ecc|superpowers|mattpocock|ponytail|anthropics-skills> --commit <40-hex> --output <new file>
+// <ecc|superpowers|mattpocock|anthropics-skills> --commit <40-hex> --output <new file>
 // [--new-pin] [--vendor-lock <file>] [--compiler-input <file> --compiler-input-sha256 <hex>]` step. It runs after
 // `tsc -p tsconfig.build.json` and emits the sealed single-source AuthoringCatalogBundleV1 that
 // Core's definition route reads as `--source-bundle`, from the Catalog's production inputs through
@@ -22,7 +22,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 function usage(message) {
   console.error(`emit-single-source-bundle: ${message}`);
   console.error(
-    "usage: node tools/emit-single-source-bundle.mjs <ecc|superpowers|mattpocock|ponytail|anthropics-skills> --commit <40-hex> --output <new file> [--new-pin] [--vendor-lock <file>] [--compiler-input <file> --compiler-input-sha256 <hex>]",
+    "usage: node tools/emit-single-source-bundle.mjs <ecc|superpowers|mattpocock|anthropics-skills> --commit <40-hex> --output <new file> [--new-pin] [--vendor-lock <file>] [--compiler-input <file> --compiler-input-sha256 <hex>]",
   );
   process.exit(2);
 }

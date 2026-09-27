@@ -33,7 +33,6 @@ function compile() {
     catalog,
     vendorSources: inputs.vendorLock.sources,
     mattpocockSnapshot: json("src", "production", "data", "mattpocock.snapshot.json"),
-    ponytailSnapshot: json("src", "production", "data", "ponytail.snapshot.json"),
   });
   return { inputs, compiled };
 }
@@ -79,7 +78,6 @@ describe("catalog provider compilation", () => {
       "source:aih-core",
       "source:ecc",
       "source:mattpocock",
-      "source:ponytail",
       "source:superpowers",
     ]);
     expect(bundle.provenance.bundleDigest).toMatch(/^sha256:[a-f0-9]{64}$/u);

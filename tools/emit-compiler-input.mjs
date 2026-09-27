@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Offline `node tools/emit-compiler-input.mjs <ecc|superpowers|ponytail|anthropics-skills>
+// Offline `node tools/emit-compiler-input.mjs <ecc|superpowers|anthropics-skills>
 // --commit <40-hex> --output <new file> [--vendor-lock <file>] [--source-root <checkout>]` step.
 // It runs after `tsc -p tsconfig.build.json` and writes the `--compiler-input` Core's T3
 // (`prepare:packaged-workbench-source-data`) reads at a new pin, derived from the Catalog's own
@@ -19,7 +19,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 function usage(message) {
   console.error(`emit-compiler-input: ${message}`);
   console.error(
-    "usage: node tools/emit-compiler-input.mjs <ecc|superpowers|ponytail|anthropics-skills> --commit <40-hex> --output <new file> [--vendor-lock <file>] [--source-root <checkout>]",
+    "usage: node tools/emit-compiler-input.mjs <ecc|superpowers|anthropics-skills> --commit <40-hex> --output <new file> [--vendor-lock <file>] [--source-root <checkout>]",
   );
   process.exit(2);
 }

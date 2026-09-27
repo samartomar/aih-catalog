@@ -38,7 +38,7 @@ import type { AuthoringCatalogBundleV1, EvidenceSummaryV2 } from "./contracts-v1
  * commits) is Core's and stays only in Core: Catalog is a carrier, never an
  * authority, so a record read here is never an admitted record.
  */
-const CATALOG_IDS = ["aih", "mattpocock", "ponytail", "ecc", "superpowers"] as const;
+const CATALOG_IDS = ["aih", "mattpocock", "ecc", "superpowers"] as const;
 const EVIDENCE_MAX_AGE_SECONDS = 90 * 86_400;
 const UTC = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/u;
 

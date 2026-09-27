@@ -28,7 +28,6 @@ import {
 } from "./catalog/upstream-inputs-v1.js";
 import { type CatalogProductionRuntimeV1, catalogProductionRuntimeV1 } from "./collation-v1.js";
 import { ECC_HOOK_SOURCES_FILE_V1, eccHookControlInventoryV1 } from "./ecc-hook-controls-v1.js";
-import { canonicalJsonV1 } from "./strict-json-v1.js";
 import {
   produceCatalogAuthoringBundleV1,
   readCollectionSnapshotV1,
@@ -222,20 +221,10 @@ export function serializeCatalogDefaultV1(value: unknown): string {
 }
 
 /**
- * The providers a candidate adds for its named collections. ponytail's registered provider
- * already compiles the fetched snapshot, so its named input must be exactly that snapshot;
- * anthropics-skills has no registered provider and compiles from its named input.
+ * The providers a candidate adds for its named collections. anthropics-skills
+ * has no registered provider and compiles from its named input.
  */
-function candidateCollectionProvidersV1(root: string, candidate: CatalogCandidateV1) {
-  const ponytail = candidate.collections?.ponytail;
-  if (
-    ponytail !== undefined &&
-    canonicalJsonV1(ponytail.compilerInput) !==
-      canonicalJsonV1(readCollectionSnapshotV1(root, "ponytail.snapshot.json"))
-  )
-    throw new TypeError(
-      "the named ponytail compiler input is not the Catalog's fetched ponytail snapshot, the only input its provider compiles",
-    );
+function candidateCollectionProvidersV1(candidate: CatalogCandidateV1) {
   const anthropics = candidate.collections?.["anthropics-skills"];
   return anthropics === undefined
     ? []
@@ -258,7 +247,7 @@ export function buildCatalogFrameworkDefaultsV1(
   const authoringBundle = produceCatalogAuthoringBundleV1(
     root,
     sourceRecords,
-    candidate === undefined ? [] : candidateCollectionProvidersV1(root, candidate),
+    candidate === undefined ? [] : candidateCollectionProvidersV1(candidate),
   );
   if (candidate !== undefined) assertCandidateBaseSourcesV1(authoringBundle, vendorLock, candidate);
   return {
@@ -269,10 +258,6 @@ export function buildCatalogFrameworkDefaultsV1(
         mattpocock: prepareMattPocockCollectionV1(
           readCollectionSnapshotV1(root, "mattpocock.snapshot.json"),
         ),
-        // A named ponytail's record is never read: the candidate leaves its template out.
-        ...(candidate?.collections?.ponytail === undefined
-          ? { ponytail: recordFor(root, "DietrichGebert/ponytail").compilerTemplate }
-          : {}),
       },
     },
     "defaults/catalog-authoring-bundle-v1.json": authoringBundle,

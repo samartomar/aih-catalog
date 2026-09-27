@@ -25,13 +25,12 @@ import {
   ECC_HOOK_SOURCES_FILE_V1,
 } from "../ecc-hook-controls-v1.js";
 import { assertSafeRelativePosixPathV1, codeUnitCompare, sha256HexV1 } from "../strict-json-v1.js";
-import { COMMIT_SHA, exactKeys, type JsonRecord, list, record, text } from "../validate-v1.js";
+import { COMMIT_SHA, type JsonRecord, list, record, text } from "../validate-v1.js";
 import {
   compileMattPocockSkillCollectionV1,
   mattPocockLeadingFrontmatterV1,
   prepareMattPocockCollectionV1,
 } from "../workbench/mattpocock-provider-v1.js";
-import { compilePonytailComponentCollectionV1 } from "../workbench/ponytail-provider-v1.js";
 import { markdownFrontmatterV1, parseYamlFrontmatterV1 } from "../yaml-frontmatter-v1.js";
 
 /**
@@ -61,7 +60,6 @@ export const UPSTREAM_PRODUCERS_V1 = {
   ecc: "affaan-m/ECC",
   superpowers: "obra/Superpowers",
   mattpocock: "mattpocock/skills",
-  ponytail: "DietrichGebert/ponytail",
 } as const;
 
 export type UpstreamProducerNameV1 = keyof typeof UPSTREAM_PRODUCERS_V1;
@@ -331,41 +329,6 @@ function mattPocockSnapshot(tree: UpstreamTreeV1, root: string): ProducedUpstrea
   };
 }
 
-/** Refreshes the Ponytail file bytes; the component declaration is kept as authored. */
-function ponytailSnapshot(tree: UpstreamTreeV1, root: string): ProducedUpstreamFileV1 {
-  const current = readCurrent(root, "ponytail.snapshot.json");
-  const source = record(current.source, "Ponytail source");
-  if (source.repository !== `https://github.com/${tree.repository}`)
-    throw new TypeError("Ponytail snapshot repository does not match the fetched repository");
-  const packageJson = record(JSON.parse(textOf(tree, "package.json")), "Ponytail package.json");
-  const files = list(current.files, "Ponytail files").map((item) => {
-    const entry = exactKeys(
-      record(item, "Ponytail file"),
-      ["path", "bytesBase64", "sha256", "size"],
-      "Ponytail file",
-    );
-    const path = text(entry.path, "Ponytail file path");
-    const bytes = bytesOf(tree, path);
-    return {
-      path,
-      bytesBase64: bytes.toString("base64"),
-      sha256: `sha256:${sha256HexV1(bytes)}`,
-      size: bytes.byteLength,
-    };
-  });
-  const snapshot = {
-    ...current,
-    source: {
-      ...source,
-      commit: tree.commit,
-      version: text(packageJson.version, "Ponytail package.json version"),
-    },
-    files,
-  };
-  compilePonytailComponentCollectionV1(snapshot);
-  return { file: "ponytail.snapshot.json", bytes: pretty(snapshot), sources: {} };
-}
-
 /**
  * What the ECC profile evidence reads at the fetched commit: the package
  * identity, the three install manifests as text, and the digest, size and git
@@ -463,9 +426,7 @@ export function produceUpstreamInputsV1(
             },
             superpowersHookSources(tree),
           ]
-        : name === "mattpocock"
-          ? [mattPocockSnapshot(tree, root)]
-          : [ponytailSnapshot(tree, root)];
+        : [mattPocockSnapshot(tree, root)];
   const files = produced.map((item) => item.file);
   if (JSON.stringify(files) !== JSON.stringify(UPSTREAM_PRODUCED_FILES_V1[name]))
     throw new TypeError(

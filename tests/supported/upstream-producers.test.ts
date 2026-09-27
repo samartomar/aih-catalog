@@ -225,12 +225,6 @@ describe("networked upstream producers (offline transforms)", () => {
         "mattpocock/skills",
         "c55ee46073ed923f86ce59a5eb3b6d895095d1b7",
       ],
-      [
-        "ponytail",
-        "ponytail.snapshot.json",
-        "DietrichGebert/ponytail",
-        "1d95ff7d39de12d87014ea40d4e22201bddc501b",
-      ],
     ] as const) {
       const snapshot = JSON.parse(dataText(file)) as {
         entries?: { path: string; base64: string }[];
@@ -416,11 +410,6 @@ describe("networked upstream producers (offline transforms)", () => {
         "5bf4e78011075bcfc0dc295f0724994cd123ee71",
       ],
       ["mattpocock.snapshot.json", "mattpocock/skills", "c55ee46073ed923f86ce59a5eb3b6d895095d1b7"],
-      [
-        "ponytail.snapshot.json",
-        "DietrichGebert/ponytail",
-        "1d95ff7d39de12d87014ea40d4e22201bddc501b",
-      ],
     ] as const) {
       expect(manifest.files[file], file).toMatchObject({ repository, commit });
       expect(manifest.files[file]?.sha256, file).toBe(sha256HexV1(readFileSync(dataPath(file))));
@@ -428,11 +417,7 @@ describe("networked upstream producers (offline transforms)", () => {
   });
 
   it("refuses to build from a fetched input whose bytes differ from the manifest", () => {
-    for (const file of [
-      "superpowers-content-metadata-v1.json",
-      "mattpocock.snapshot.json",
-      "ponytail.snapshot.json",
-    ]) {
+    for (const file of ["superpowers-content-metadata-v1.json", "mattpocock.snapshot.json"]) {
       const copy = mkdtempSync(join(tmpdir(), "aih-catalog-inputs-"));
       try {
         const data = join(copy, "src", "production", "data");
@@ -449,7 +434,7 @@ describe("networked upstream producers (offline transforms)", () => {
     const { scripts } = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8")) as {
       scripts: Record<string, string>;
     };
-    for (const name of ["ecc", "superpowers", "mattpocock", "ponytail"])
+    for (const name of ["ecc", "superpowers", "mattpocock"])
       expect(scripts[`produce:${name}`]).toBe(
         `npm run build:dist && node tools/produce-upstream-inputs.mjs ${name}`,
       );

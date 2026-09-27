@@ -34,7 +34,6 @@ describe("sealed packaged inputs", () => {
     );
     expect(records.map((item) => item.source.repository)).toEqual([
       "anthropics/skills",
-      "DietrichGebert/ponytail",
       "affaan-m/ECC",
       "obra/Superpowers",
     ]);

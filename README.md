@@ -30,7 +30,7 @@ Release and contribution policy: [VERSIONING.md](VERSIONING.md) ·
 The 0.3.0 source train keeps bounded receipt-set publication for up to 512
 members (256 KiB canonical manifest). Its default candidate contains 433 exact
 members: the existing default and 25 Matt assessments, plus 19 Anthropic,
-7 Ponytail, 14 Superpowers, and 367 ECC source-file assessments. Existing Matt
+14 Superpowers, and 367 ECC source-file assessments. Existing Matt
 member bytes and predecessor history are preserved.
 
 These assessments retain original Scanner findings and timestamps, grant no
@@ -44,8 +44,7 @@ grounds. Unsupported component kinds and derived compositions are not relabeled
 as qualified members.
 Matt Pocock's 13 upstream skills under `skills/in-progress/` (beta, not shipped in
 the upstream plugin) and `skills/misc/` (rarely used, not promoted) are not
-included. Nor are Ponytail's six `.openclaw/skills/*` copies, which upstream
-generates from `skills/`. The per-prefix reasons are in
+included. The per-prefix reasons are in
 [Source curation](ai-coding/supported-catalog-v2.md#source-curation).
 Publication still requires the separate protected workflows described above.
 
@@ -290,11 +289,7 @@ its pinned commit:
 | `mattpocock/skills` | `c55ee46073ed923f86ce59a5eb3b6d895095d1b7` | 25 |
 | `anthropics/skills` | `34040c9c568585f6929bedeaad110ad08f079624` | 19 |
 | `obra/Superpowers` | `5bf4e78011075bcfc0dc295f0724994cd123ee71` | 15 |
-| `DietrichGebert/ponytail` | `1d95ff7d39de12d87014ea40d4e22201bddc501b` | 7 |
 | `nextlevelbuilder/ui-ux-pro-max-skill` | `a38d04c3d5c298c851dbe5e6ee1965ee3de42cb5` | 1 |
-
-The ponytail MCP server's declared source is a JavaScript file, not a
-frontmatter or `mcpServers` file, so its values are `no-source-file`.
 
 **Not covered, by design of this format:** the eleven `aih` entries (`recipe.default`
 and ten Core 0.7.0 rows) and the one `npm` entry (`picocolors@1.1.1`). This sidecar

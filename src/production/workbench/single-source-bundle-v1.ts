@@ -10,7 +10,6 @@ import {
 import {
   compileAnthropicsSkillsProviderV1,
   compileMattPocockProviderV1,
-  compilePonytailProviderV1,
 } from "./catalog-providers-v1.js";
 import {
   type AuthoringCatalogBundleV1,
@@ -33,7 +32,7 @@ import type { CatalogProviderCompilationV1 } from "./provider-compilation-v1.js"
  *   vendor lock. Before runbook step 8.1 copies the assembled lock into src/production/data,
  *   that lock is named explicitly (`vendorLock`); a lock at another pin is refused exactly as
  *   the build refuses it;
- * - a collection source (mattpocock, ponytail) is compiled by its own provider from its
+ * - a collection source (mattpocock) is compiled by its own provider from its
  *   fetched snapshot alone (catalog-providers-v1.ts), so no framework pin enters it. The
  *   built-in Core capabilities are left out: each names source:aih-core (built-in-v1.ts:113,
  *   169-171) and the assembly matches a capability by its source identity
@@ -61,7 +60,6 @@ export const SINGLE_SOURCE_SUBJECTS_V1 = {
   ecc: "framework",
   superpowers: "framework",
   mattpocock: "collection",
-  ponytail: "collection",
   "anthropics-skills": "compiler-input",
 } as const;
 export type SingleSourceSubjectV1 = keyof typeof SINGLE_SOURCE_SUBJECTS_V1;
@@ -188,9 +186,7 @@ export function produceSingleSourceAuthoringBundleV1(
     providers = [compileAnthropicsSkillsProviderV1(options.compilerInput)];
   } else {
     providers = [
-      id === "mattpocock"
-        ? compileMattPocockProviderV1(readCollectionSnapshotV1(root, "mattpocock.snapshot.json"))
-        : compilePonytailProviderV1(readCollectionSnapshotV1(root, "ponytail.snapshot.json")),
+      compileMattPocockProviderV1(readCollectionSnapshotV1(root, "mattpocock.snapshot.json")),
     ];
   }
   const assembled = (

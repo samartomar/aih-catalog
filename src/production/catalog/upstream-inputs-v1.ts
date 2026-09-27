@@ -32,7 +32,6 @@ export const UPSTREAM_PRODUCED_FILES_V1 = {
   ],
   superpowers: ["superpowers-content-metadata-v1.json", "superpowers-hook-sources-v1.json"],
   mattpocock: ["mattpocock.snapshot.json"],
-  ponytail: ["ponytail.snapshot.json"],
 } as const satisfies Record<string, readonly string[]>;
 
 export interface UpstreamInputRecordV1 {

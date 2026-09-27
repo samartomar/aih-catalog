@@ -91,14 +91,6 @@ describe("registered Workbench source assessments", () => {
         locationCoverageNotices: 1,
         globalCoverageNotices: 13,
       },
-      ponytail: {
-        count: 7,
-        commit: "1d95ff7d39de12d87014ea40d4e22201bddc501b",
-        publication: "7651e06f56c4f17a37478fd03980c8b6499bb9db00f7c2a7e056020779666fd0",
-        mappedFindings: 70,
-        locationCoverageNotices: 8,
-        globalCoverageNotices: 2,
-      },
       superpowers: {
         count: 15,
         commit: "5bf4e78011075bcfc0dc295f0724994cd123ee71",
