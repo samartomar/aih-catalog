@@ -29,6 +29,48 @@ const codeUnitCompare = (left, right) => (left < right ? -1 : left > right ? 1 :
 const holds = (component, path) =>
   component.paths.some((root) => path === root || path.startsWith(`${root}/`));
 
+const currentEccRowIds = () => {
+  const path = fileURLToPath(new URL("../defaults/catalog-index-v1.json", import.meta.url));
+  const index = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(readFileSync(path)));
+  if (!Array.isArray(index.entries)) fail("ecc-catalog-index");
+  const ids = index.entries.map((entry) => entry.entryId).filter((id) =>
+    typeof id === "string" && /^(agent|skill|mcp)\.ecc\.[a-z0-9][a-z0-9-]*$/u.test(id));
+  if (new Set(ids).size !== ids.length || ids.length === 0) fail("ecc-catalog-index");
+  return new Set(ids);
+};
+
+/** ECC's committed index is generated from the declarable component source and MCP curation. */
+export function selectMappingComponentsV1(sourceId, candidates, closure, eccRowIds = new Set()) {
+  const components = [];
+  const exclusions = [];
+  const assets = new Set();
+  for (const component of candidates) {
+    const separator = component.id.indexOf(":");
+    const kind = component.id.slice(0, separator);
+    const name = component.id.slice(separator + 1);
+    const rowId = `${kind}.ecc.${name}`;
+    if (sourceId === "ecc" && !eccRowIds.has(rowId)) {
+      exclusions.push({
+        reason: "not a committed declarable ECC Catalog row",
+        scannerComponentId: component.id,
+      });
+      continue;
+    }
+    if (!closure.some((path) => holds(component, path))) {
+      exclusions.push({
+        reason: "holds no file of a curated Catalog row closure",
+        scannerComponentId: component.id,
+      });
+      continue;
+    }
+    const catalogAssetId = `${sourceId}/${component.content}:${name}`;
+    if (assets.has(catalogAssetId)) fail(`duplicate-catalog-asset-id ${catalogAssetId}`);
+    assets.add(catalogAssetId);
+    components.push({ catalogAssetId, scannerComponentId: component.id });
+  }
+  return { components, exclusions };
+}
+
 export function deriveClosureMappingV1(publication, definition, authoringCatalog, definitionOverlap = "disjoint") {
   const { mappings, rows, excluded } = deriveClosureMappingSetV1(
     [publication],
@@ -70,21 +112,11 @@ export function deriveClosureMappingSetV1(publications, definition, authoringCat
       !requests.some((request) => request.components.some((component) => holds(component, path)))
     )
       fail(`closure-file-outside-request ${path}`);
+  const eccRows = requests[0].source.id === "ecc" ? currentEccRowIds() : new Set();
   const mappings = requests.map((request) => {
-    const components = [];
-    const exclusions = [];
-    for (const component of request.components) {
-      if (closure.some((path) => holds(component, path)))
-        components.push({
-          catalogAssetId: `${request.source.id}/${component.content}:${component.id.slice(component.id.indexOf(":") + 1)}`,
-          scannerComponentId: component.id,
-        });
-      else
-        exclusions.push({
-          reason: "holds no file of a curated Catalog row closure",
-          scannerComponentId: component.id,
-        });
-    }
+    const { components, exclusions } = selectMappingComponentsV1(
+      request.source.id, request.components, closure, eccRows,
+    );
     return {
       protocol: "ScannerConsumerMappingV1",
       requestSha256: request.requestSha256,
