@@ -69,4 +69,28 @@ describe("retaining committed P-prime MCP rows during P-double-prime regeneratio
       tool.preserveUnmappedMcpRowsV1({ ...args, names: ["skill.ecc.api-design"] }),
     ).toThrow("retained-row-kind");
   });
+
+  it("refuses duplicate current index IDs before selection or preservation", async () => {
+    const tool = await api();
+    const duplicate = structuredClone(index);
+    duplicate.entries.push(
+      structuredClone(
+        duplicate.entries.find(
+          (entry: { entryId: string }) => entry.entryId === "mcp.ecc.browser-use",
+        ),
+      ),
+    );
+    expect(() => tool.selectCurrentClosureRowsV1([], duplicate, "ecc")).toThrow(
+      "current-index-duplicate-entry-id",
+    );
+    expect(() =>
+      tool.preserveUnmappedMcpRowsV1({
+        root,
+        index: duplicate,
+        provider: "ecc",
+        names: ["browser-use"],
+        sourceCommit,
+      }),
+    ).toThrow("current-index-duplicate-entry-id");
+  });
 });

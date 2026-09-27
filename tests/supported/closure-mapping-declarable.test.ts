@@ -51,7 +51,7 @@ describe("D110 ECC closure mapping", () => {
     );
   });
 
-  it("refuses an asset collision only when both colliding components are declarable", async () => {
+  it("refuses a declarable component whose content class conflicts with its id kind", async () => {
     const { selectMappingComponentsV1 } = await mapping();
     const components: Component[] = [
       { id: "skill:shared", content: "skill", paths: ["shared"] },
@@ -64,10 +64,17 @@ describe("D110 ECC closure mapping", () => {
         ["shared/file"],
         new Set(["skill.ecc.shared", "mcp.ecc.shared"]),
       ),
-    ).toThrow("closure-mapping:duplicate-catalog-asset-id ecc/skill:shared");
-    expect(
-      selectMappingComponentsV1("ecc", components, ["shared/file"], new Set(["skill.ecc.shared"]))
-        .components,
-    ).toHaveLength(1);
+    ).toThrow("closure-mapping:component-kind-content-mismatch mcp:shared");
+    expect(() =>
+      selectMappingComponentsV1("ecc", components, ["shared/file"], new Set(["skill.ecc.shared"])),
+    ).toThrow("closure-mapping:component-kind-content-mismatch mcp:shared");
+    expect(() =>
+      selectMappingComponentsV1(
+        "ecc",
+        [{ id: "skill:shared", content: "mcp", paths: ["shared"] }],
+        ["shared/file"],
+        new Set(["skill.ecc.shared"]),
+      ),
+    ).toThrow("closure-mapping:component-kind-content-mismatch skill:shared");
   });
 });

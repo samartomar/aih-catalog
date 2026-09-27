@@ -48,6 +48,8 @@ export function selectMappingComponentsV1(sourceId, candidates, closure, eccRowI
     const separator = component.id.indexOf(":");
     const kind = component.id.slice(0, separator);
     const name = component.id.slice(separator + 1);
+    if (["agent", "skill", "mcp"].includes(kind) && component.content !== kind)
+      fail(`component-kind-content-mismatch ${component.id}`);
     const rowId = `${kind}.ecc.${name}`;
     if (sourceId === "ecc" && !eccRowIds.has(rowId)) {
       exclusions.push({

@@ -1517,15 +1517,26 @@ const unique = (items) => {
  * receipt and native annex are verified (the set shares the annex bytes), the mapped components
  * are the union of the members' and a row cites exactly the members that own its closure.
  */
-export function selectCurrentClosureRowsV1(rows, index, provider) {
+function currentIndexEntriesV1(index) {
   const entries = array(object(index, "current-index").entries, "current-index-entries");
-  const current = new Set(entries.map((value) => text(object(value, "current-entry").entryId, "current-entry-id", 300)));
+  const seen = new Set();
+  for (const value of entries) {
+    const id = text(object(value, "current-entry").entryId, "current-entry-id", 300);
+    if (seen.has(id)) fail(`current-index-duplicate-entry-id ${id}`);
+    seen.add(id);
+  }
+  return entries;
+}
+
+export function selectCurrentClosureRowsV1(rows, index, provider) {
+  const entries = currentIndexEntriesV1(index);
+  const current = new Set(entries.map((value) => value.entryId));
   return rows.filter((row) => current.has(`${row.kind}.${provider}.${row.name}`));
 }
 
 /** Copy only index-bound files of an uncovered committed MCP row, without changing its P' evidence. */
 export function preserveUnmappedMcpRowsV1({ root, index, provider, names, sourceCommit }) {
-  const entries = array(object(index, "current-index").entries, "current-index-entries");
+  const entries = currentIndexEntriesV1(index);
   const byId = new Map(entries.map((value) => {
     const entry = object(value, "current-entry");
     return [text(entry.entryId, "current-entry-id", 300), entry];
