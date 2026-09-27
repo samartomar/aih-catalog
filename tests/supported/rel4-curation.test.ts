@@ -1,7 +1,8 @@
-import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { cpSync, mkdtempSync, readFileSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { verifySignedHistoryDigests } from "./signed-history-digests.js";
 
 const root = resolve(import.meta.dirname, "..", "..");
 const json = (path: string) => JSON.parse(readFileSync(resolve(root, path), "utf8"));
@@ -9,6 +10,7 @@ const index = json("defaults/catalog-index-v1.json");
 const presentation = json("defaults/catalog-presentation-v1.json");
 const declaration = json("src/production/data/core-product-declarations-v1.json");
 const ids = index.entries.map((entry: { entryId: string }) => entry.entryId);
+const signedHistory = json("tests/fixtures/catalog-signed-history-sha256.json");
 
 describe("REL4 current curation", () => {
   it("has one indexed row per server and keeps the distinct ECC integrations", () => {
@@ -73,16 +75,31 @@ describe("REL4 current curation", () => {
   });
 
   it("has no Ponytail in current Catalog surfaces, while preserving signed history", () => {
+    expect(signedHistory).toHaveLength(20);
     expect(ids.some((id: string) => id.includes("ponytail"))).toBe(false);
     expect(
       presentation.sources.some((source: { repository?: string }) =>
         source.repository?.includes("ponytail"),
       ),
     ).toBe(false);
-    const status = execFileSync("git", ["diff", "--name-only", "c7d421b4", "--", "catalog"], {
-      cwd: root,
-      encoding: "utf8",
-    });
-    expect(status).toBe("");
+    expect(() => verifySignedHistoryDigests(root, signedHistory)).not.toThrow();
+  });
+
+  it("rejects changes or deletion of signed history, but permits a successor file", () => {
+    const temporaryRoot = mkdtempSync(resolve(tmpdir(), "catalog-signed-history-"));
+    try {
+      cpSync(resolve(root, "catalog"), resolve(temporaryRoot, "catalog"), { recursive: true });
+      const listedPath = resolve(temporaryRoot, signedHistory[0].path);
+      writeFileSync(listedPath, "changed signed history");
+      expect(() => verifySignedHistoryDigests(temporaryRoot, signedHistory)).toThrow();
+      cpSync(resolve(root, signedHistory[0].path), listedPath);
+      unlinkSync(listedPath);
+      expect(() => verifySignedHistoryDigests(temporaryRoot, signedHistory)).toThrow();
+      cpSync(resolve(root, signedHistory[0].path), listedPath);
+      writeFileSync(resolve(temporaryRoot, "catalog", "successor-seq7.json"), "new history");
+      expect(() => verifySignedHistoryDigests(temporaryRoot, signedHistory)).not.toThrow();
+    } finally {
+      rmSync(temporaryRoot, { recursive: true, force: true });
+    }
   });
 });
