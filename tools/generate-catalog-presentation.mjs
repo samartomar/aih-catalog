@@ -212,6 +212,14 @@ function readInputs(root) {
     }
     if (!/^[0-9a-f]{40}$/.test(source.commit ?? "")) fail("inputs source commit");
   }
+  const aih = inputs.aih;
+  if (aih?.release !== "0.7.0" || aih.declarationPath !== "src/production/data/core-product-declarations-v1.json" || !/^[0-9a-f]{64}$/.test(aih.declarationSha256 ?? "") || !/^[0-9a-f]{8,40}$/.test(aih.coreCommit ?? "") || aih.entries === null || typeof aih.entries !== "object" || Array.isArray(aih.entries)) fail("inputs aih declaration");
+  const bytes = readFileSync(resolve(root, aih.declarationPath));
+  if (sha256(bytes) !== aih.declarationSha256) fail("inputs aih declaration digest");
+  const declaration = JSON.parse(bytes.toString("utf8"));
+  const names = [...(declaration.mcp ?? []), ...(declaration.nonProjectableMcp ?? []), ...(declaration.unavailableMcp ?? [])].map((item) => item.id).sort(compare);
+  if (!sameValue(Object.keys(aih.entries).sort(compare), names)) fail("inputs aih MCP coverage");
+  for (const value of Object.values(aih.entries)) if (published(value, "coreMcp.description").state !== "published") fail("inputs aih description");
   return inputs;
 }
 
@@ -242,13 +250,35 @@ function listedMembers(root, inputs) {
       members.push({ source, entry, path, declared });
     }
   }
+  const aih = inputs.aih;
+  const aihEntries = index.entries.filter((entry) => entry.subject.kind === "mcp" && entry.subject.source.type === "aih" && entry.subject.source.release === aih.release);
+  if (aihEntries.length !== Object.keys(aih.entries).length) fail("aih MCP index coverage");
+  for (const entry of aihEntries) {
+    const name = entry.subject.id;
+    if (typeof aih.entries[name] !== "string") fail(`${entry.entryId}: no Core-authored description`);
+    members.push({ source: { type: "aih", release: aih.release }, entry, path: aih.declarationPath, declared: { digest: `sha256:${aih.declarationSha256}` }, aih });
+  }
   return members;
 }
 
 const listedSources = (inputs) =>
-  inputs.sources
-    .map((source) => ({ type: source.type, repository: source.repository, commit: source.commit }))
-    .sort((a, b) => compare(`${a.repository}@${a.commit}`, `${b.repository}@${b.commit}`));
+  [...inputs.sources.map((source) => ({ type: source.type, repository: source.repository, commit: source.commit })), { type: "aih", release: inputs.aih.release, declarationPath: inputs.aih.declarationPath, declarationSha256: inputs.aih.declarationSha256 }]
+    .sort((a, b) => compare(a.type === "aih" ? `aih:${a.release}` : `${a.repository}@${a.commit}`, b.type === "aih" ? `aih:${b.release}` : `${b.repository}@${b.commit}`));
+
+function aihRecord(entry, aih) {
+  const hosted = entry.subject.id === "github" || entry.subject.id === "context7";
+  return {
+    entryId: entry.entryId,
+    subjectDigest: entry.subject.subjectDigest,
+    source: { path: aih.declarationPath, sha256: aih.declarationSha256 },
+    title: unavailable("not-declared"),
+    description: published(aih.entries[entry.subject.id], `coreMcp.${entry.subject.id}.description`),
+    category: unavailable("not-declared"),
+    availability: "available",
+    management: hosted ? "developer-managed" : "aih-managed",
+    ...(hosted ? { managementNote: "hosted service; network egress; selecting records intent; aih does not run or project it" } : {}),
+  };
+}
 
 /**
  * `upstream` is one extracted tree (every listed source is read from it) or a
@@ -258,7 +288,8 @@ export function generateCatalogPresentation(root, upstream) {
   const treeOf = typeof upstream === "function" ? upstream : () => upstream;
   const inputs = readInputs(root);
   const entries = [];
-  for (const { source, entry, path, declared } of listedMembers(root, inputs)) {
+  for (const { source, entry, path, declared, aih } of listedMembers(root, inputs)) {
+    if (aih !== undefined) { entries.push(aihRecord(entry, aih)); continue; }
     const record = {
       entryId: entry.entryId,
       subjectDigest: entry.subject.subjectDigest,
@@ -321,14 +352,16 @@ export function serializeCatalogPresentation(value) {
 export function relabelCatalogPresentation(root) {
   const value = JSON.parse(readFileSync(resolve(root, OUTPUT), "utf8"));
   const members = listedMembers(root, readInputs(root));
-  if (!Array.isArray(value.entries) || value.entries.length !== members.length) fail("presentation coverage");
-  const byId = new Map(members.map(({ entry }) => [entry.entryId, entry]));
-  for (const record of value.entries) {
-    const entry = byId.get(record.entryId);
-    if (entry === undefined || record.subjectDigest !== entry.subject.subjectDigest) fail("presentation index binding");
+  const prior = new Map(value.entries.map((record) => [record.entryId, record]));
+  value.sources = listedSources(readInputs(root));
+  value.entries = members.map(({ entry, aih }) => {
+    if (aih !== undefined) return aihRecord(entry, aih);
+    const record = prior.get(entry.entryId);
+    if (record === undefined || record.subjectDigest !== entry.subject.subjectDigest) fail("presentation index binding");
     const licensed = licenseDescription(entry);
     if (licensed !== undefined) record.description = licensed;
-  }
+    return record;
+  }).sort((a, b) => compare(a.entryId, b.entryId));
   return value;
 }
 
@@ -396,10 +429,14 @@ export function checkCatalogPresentation(root, upstream, committedText) {
   if (!Array.isArray(value.entries) || value.entries.length !== members.length) {
     fail("presentation does not cover every entry of its listed sources");
   }
-  members.forEach(({ entry, path, declared }, position) => {
+  members.forEach(({ entry, path, declared, aih }, position) => {
     const record = value.entries[position];
     if (record.entryId !== entry.entryId || record.subjectDigest !== entry.subject.subjectDigest) {
       fail(`${entry.entryId}: presentation record is not this index entry`);
+    }
+    if (aih !== undefined) {
+      if (!sameValue(record, aihRecord(entry, aih))) fail(`${entry.entryId}: aih presentation differs from its declaration-bound Core text`);
+      return;
     }
     if (
       !sameValue(Object.keys(record).sort(), [

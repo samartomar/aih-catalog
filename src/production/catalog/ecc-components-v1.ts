@@ -144,14 +144,7 @@ const DECLARABLE_COMPONENTS = new Set<string>([
   "skill:mle-workflow",
 ]);
 
-const EXPLICIT_MCP_COMPONENTS = new Set<EccMcpComponentId>([
-  "mcp:sequential-thinking",
-  "mcp:code-review-graph",
-  "mcp:codebase-memory-mcp",
-  "mcp:github",
-  "mcp:context7",
-  "mcp:exa",
-]);
+const EXPLICIT_MCP_COMPONENTS = new Set<EccMcpComponentId>();
 
 export const ECC_DECLARABLE_COMPONENT_IDS = [...DECLARABLE_COMPONENTS] as readonly EccComponentId[];
 

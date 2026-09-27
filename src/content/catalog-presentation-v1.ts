@@ -41,7 +41,8 @@ const PREFIXED_SHA256 = /^sha256:[0-9a-f]{64}$/;
 const GIT_COMMIT = /^[0-9a-f]{40}$/;
 const REPOSITORY = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 const PATH_SEGMENT = /^[A-Za-z0-9_.@+-]+$/;
-const FIELD = /^(?:frontmatter\.[A-Za-z0-9_-]+|mcpServers\.[A-Za-z0-9_.@-]+\.description)$/;
+const FIELD =
+  /^(?:frontmatter\.[A-Za-z0-9_-]+|mcpServers\.[A-Za-z0-9_.@-]+\.description|coreMcp\.[A-Za-z0-9-]+\.description)$/;
 // biome-ignore lint/suspicious/noControlCharactersInRegex: control characters are what is refused.
 const CONTROL = /[\u0000-\u0009\u000b-\u001f\u007f]/;
 const REASONS = [
@@ -79,13 +80,19 @@ export interface CatalogPresentationEntryV1 {
   readonly title: CatalogPresentationValueV1;
   readonly description: CatalogPresentationValueV1;
   readonly category: CatalogPresentationValueV1;
+  readonly availability?: "available";
+  readonly management?: "aih-managed" | "developer-managed";
+  readonly managementNote?: string;
 }
 
-export interface CatalogPresentationSourceV1 {
-  readonly type: "github";
-  readonly repository: string;
-  readonly commit: string;
-}
+export type CatalogPresentationSourceV1 =
+  | { readonly type: "github"; readonly repository: string; readonly commit: string }
+  | {
+      readonly type: "aih";
+      readonly release: string;
+      readonly declarationPath: string;
+      readonly declarationSha256: string;
+    };
 
 export interface CatalogPresentationV1 {
   readonly format: typeof CATALOG_PRESENTATION_FORMAT_V1;
@@ -241,24 +248,48 @@ function readPresentation(request: ReadCatalogPresentationV1Request): CatalogPre
   const sources: CatalogPresentationSourceV1[] = [];
   const sourceKeys = new Set<string>();
   for (const source of value.sources) {
-    if (!isObject(source) || !exactKeys(source, ["commit", "repository", "type"])) {
+    if (!isObject(source)) {
       return refuse("malformed-source");
     }
-    if (source.type !== "github" || !matches(source.repository, REPOSITORY)) {
-      return refuse("malformed-source");
-    }
-    if (!matches(source.commit, GIT_COMMIT)) return refuse("malformed-source");
-    const key = `${source.repository}@${source.commit}`;
+    let key: string;
+    if (
+      source.type === "github" &&
+      exactKeys(source, ["commit", "repository", "type"]) &&
+      matches(source.repository, REPOSITORY) &&
+      matches(source.commit, GIT_COMMIT)
+    ) {
+      key = `github:${source.repository}@${source.commit}`;
+      sources.push(
+        Object.freeze({ type: "github", repository: source.repository, commit: source.commit }),
+      );
+    } else if (
+      source.type === "aih" &&
+      exactKeys(source, ["declarationPath", "declarationSha256", "release", "type"]) &&
+      source.release === "0.7.0" &&
+      source.declarationPath === "src/production/data/core-product-declarations-v1.json" &&
+      matches(source.declarationSha256, SHA256_HEX)
+    ) {
+      key = `aih:${source.release}`;
+      sources.push(
+        Object.freeze({
+          type: "aih",
+          release: source.release,
+          declarationPath: source.declarationPath,
+          declarationSha256: source.declarationSha256,
+        }),
+      );
+    } else return refuse("malformed-source");
     if (sourceKeys.has(key)) return refuse("malformed-source");
     sourceKeys.add(key);
-    sources.push(
-      Object.freeze({ type: "github", repository: source.repository, commit: source.commit }),
-    );
   }
 
   const indexed = index.entries.filter((entry) => {
     const source = entry.subject.source;
-    return source.type === "github" && sourceKeys.has(`${source.repository}@${source.commit}`);
+    return source.type === "github"
+      ? sourceKeys.has(`github:${source.repository}@${source.commit}`)
+      : source.type === "aih" &&
+          entry.subject.kind === "mcp" &&
+          sourceKeys.has(`aih:${source.release}`);
   });
   const byId = new Map(indexed.map((entry) => [entry.entryId, entry]));
 
@@ -266,11 +297,6 @@ function readPresentation(request: ReadCatalogPresentationV1Request): CatalogPre
   const entries: CatalogPresentationEntryV1[] = [];
   for (const raw of value.entries) {
     if (!isObject(raw)) return refuse("malformed-entry");
-    if (
-      !exactKeys(raw, ["category", "description", "entryId", "source", "subjectDigest", "title"])
-    ) {
-      return refuse("malformed-entry");
-    }
     const { entryId, subjectDigest } = raw;
     if (typeof entryId !== "string" || !matches(subjectDigest, PREFIXED_SHA256)) {
       return refuse("malformed-entry");
@@ -281,6 +307,12 @@ function readPresentation(request: ReadCatalogPresentationV1Request): CatalogPre
     if (entry === undefined || entry.subject.subjectDigest !== subjectDigest) {
       return refuse("index-mismatch");
     }
+    const aih = entry.subject.source.type === "aih";
+    const required = ["category", "description", "entryId", "source", "subjectDigest", "title"];
+    if (aih) required.push("availability", "management");
+    if (aih && (entry.subject.id === "github" || entry.subject.id === "context7"))
+      required.push("managementNote");
+    if (!exactKeys(raw, required)) return refuse("malformed-entry");
 
     let source: CatalogPresentationEntryV1["source"] = null;
     if (raw.source !== null) {
@@ -292,13 +324,52 @@ function readPresentation(request: ReadCatalogPresentationV1Request): CatalogPre
       if (!sourcePath(declared.path)) return refuse("unsafe-path");
       source = Object.freeze({ path: declared.path, sha256: declared.sha256 });
     }
+    if (aih) {
+      const listed = sources.find((candidate) => candidate.type === "aih");
+      if (
+        listed?.type !== "aih" ||
+        source?.path !== listed.declarationPath ||
+        source.sha256 !== listed.declarationSha256
+      )
+        return refuse("index-mismatch");
+      const hosted = entry.subject.id === "github" || entry.subject.id === "context7";
+      if (
+        raw.availability !== "available" ||
+        raw.management !== (hosted ? "developer-managed" : "aih-managed")
+      )
+        return refuse("malformed-entry");
+      if (
+        hosted &&
+        raw.managementNote !==
+          "hosted service; network egress; selecting records intent; aih does not run or project it"
+      )
+        return refuse("malformed-entry");
+    }
     const title = presentationValue(raw.title, source !== null);
     const description = presentationValue(raw.description, source !== null);
     const category = presentationValue(raw.category, source !== null);
     if (title === undefined || description === undefined || category === undefined) {
       return refuse("malformed-entry");
     }
-    entries.push(Object.freeze({ entryId, subjectDigest, source, title, description, category }));
+    entries.push(
+      Object.freeze({
+        entryId,
+        subjectDigest,
+        source,
+        title,
+        description,
+        category,
+        ...(aih
+          ? {
+              availability: "available" as const,
+              management: raw.management as "aih-managed" | "developer-managed",
+              ...(raw.managementNote === undefined
+                ? {}
+                : { managementNote: raw.managementNote as string }),
+            }
+          : {}),
+      }),
+    );
   }
   // Every indexed entry of a listed source is covered.
   if (entries.length !== indexed.length) return refuse("coverage-incomplete");

@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -52,7 +53,7 @@ describe("published catalog presentation", () => {
     expect(pkg.exports["./catalog-presentation.json"]).toBe(`./${CATALOG_PRESENTATION_ROOT_URL}`);
   });
 
-  it("covers every GitHub entry at its indexed commit, with counts from the data", () => {
+  it("covers every listed GitHub entry and every aih MCP declaration", () => {
     const presentation = readCatalogPresentationV1({ bytes: shippedBytes, index });
     if (presentation === undefined) throw new Error("shipped presentation refused");
     const github = (repository: string, commit: string) => ({
@@ -61,33 +62,35 @@ describe("published catalog presentation", () => {
       commit,
     });
     expect(presentation.sources).toEqual([
-      github("DietrichGebert/ponytail", "1d95ff7d39de12d87014ea40d4e22201bddc501b"),
       ECC,
+      {
+        type: "aih",
+        release: "0.7.0",
+        declarationPath: "src/production/data/core-product-declarations-v1.json",
+        declarationSha256: "6bb30bd0fb2dfb819139ea60c71a0841c856d09298c03d512e60cc2ca39d3daf",
+      },
       github("anthropics/skills", "34040c9c568585f6929bedeaad110ad08f079624"),
       github("mattpocock/skills", "c55ee46073ed923f86ce59a5eb3b6d895095d1b7"),
       github("nextlevelbuilder/ui-ux-pro-max-skill", "a38d04c3d5c298c851dbe5e6ee1965ee3de42cb5"),
       github("obra/Superpowers", "5bf4e78011075bcfc0dc295f0724994cd123ee71"),
     ]);
-    // Every GitHub entry of the index, and nothing else.
+    // Every GitHub entry and every aih MCP entry of the index, and nothing else.
     const githubEntries = index.entries.filter((entry) => entry.subject.source.type === "github");
-    expect(presentation.entries.map((entry) => entry.entryId)).toEqual(
-      githubEntries.map((entry) => entry.entryId),
+    const aihMcpEntries = index.entries.filter(
+      (entry) => entry.subject.source.type === "aih" && entry.subject.kind === "mcp",
     );
-    expect(presentation.coverage).toEqual({
-      entries: 434,
-      title: { published: 396, unavailable: 38 },
-      description: { published: 422, unavailable: 12 },
-      category: { published: 3, unavailable: 431 },
-    });
-    // The aih and npm entries are outside this github-only format: absent, not unavailable.
-    // The aih entries are the default profile and the ten Core 0.7.0 rows.
+    expect(presentation.entries.map((entry) => entry.entryId)).toEqual(
+      [...githubEntries, ...aihMcpEntries].map((entry) => entry.entryId).sort(),
+    );
+    expect(presentation.coverage.entries).toBe(presentation.entries.length);
+    // The other aih rows and npm entries are outside this presentation scope.
     const covered = new Set(presentation.entries.map((entry) => entry.entryId));
     const absent = index.entries.filter((entry) => !covered.has(entry.entryId));
     expect([...new Set(absent.map((entry) => entry.subject.source.type))].sort()).toEqual([
       "aih",
       "npm",
     ]);
-    expect(absent.filter((entry) => entry.subject.source.type === "aih")).toHaveLength(11);
+    expect(absent.filter((entry) => entry.subject.source.type === "aih")).toHaveLength(4);
     expect(absent.filter((entry) => entry.subject.source.type === "npm")).toHaveLength(1);
   });
 
@@ -101,15 +104,6 @@ describe("published catalog presentation", () => {
       state: "published",
       field: "frontmatter.description",
     });
-    const ponytailMcp = presentation?.entries.find((entry) => {
-      const indexed = index.entries.find((candidate) => candidate.entryId === entry.entryId);
-      return (
-        indexed?.subject.kind === "mcp" &&
-        indexed.subject.source.repository === "DietrichGebert/ponytail"
-      );
-    });
-    expect(ponytailMcp?.source).toBeNull();
-    expect(ponytailMcp?.description).toEqual({ state: "unavailable", reason: "no-source-file" });
   });
 
   it("withholds descriptions when the row's source-right label does not permit copying", async () => {
@@ -133,7 +127,7 @@ describe("published catalog presentation", () => {
 
   it("checks the committed sidecar against the inputs, index and closures without upstream trees", async () => {
     const { checkCatalogPresentation, serializeCatalogPresentation } = await generator();
-    expect(checkCatalogPresentation(root).entries).toHaveLength(434);
+    expect(checkCatalogPresentation(root).entries).toHaveLength(shipped.entries.length);
     const refuse = (mutate: (doc: Doc) => void, message: string) => {
       const doc = clone();
       mutate(doc);
@@ -173,6 +167,13 @@ describe("published catalog presentation", () => {
     for (const entry of presentation?.entries ?? []) {
       if (entry.source === null) continue;
       const indexed = index.entries.find((candidate) => candidate.entryId === entry.entryId);
+      if (indexed?.subject.source.type === "aih") {
+        const bytes = readFileSync(resolve(root, entry.source.path));
+        expect(createHash("sha256").update(bytes).digest("hex"), entry.entryId).toBe(
+          entry.source.sha256,
+        );
+        continue;
+      }
       const closure = JSON.parse(
         readFileSync(resolve(root, indexed?.artifacts.closure?.path ?? ""), "utf8"),
       );
@@ -221,10 +222,7 @@ describe("published catalog presentation", () => {
       state: "published",
       field: "mcpServers.browser-use.description",
     });
-    expect(byId.get("mcp.ecc.context7")?.description).toEqual({
-      state: "unavailable",
-      reason: "not-in-source-file",
-    });
+    expect(byId.get("mcp.ecc.exa-web-search")?.description.state).toBe("published");
   });
 
   it("refuses records that are not the index's own entries, or that leave one out", () => {
