@@ -34,17 +34,17 @@ const citations: ReadonlyArray<readonly [file: string, line: number, holds: stri
   ["src/content/catalog-collections-v1.ts", 107, "CATALOG_COLLECTIONS_REFUSALS_V1 = ["],
   [
     "src/content/catalog-presentation-v1.ts",
-    30,
+    35,
     'CATALOG_PRESENTATION_FORMAT_V1 = "aih-catalog-presentation"',
   ],
-  ["src/content/catalog-presentation-v1.ts", 31, "CATALOG_PRESENTATION_VERSION_V1 = 1"],
+  ["src/content/catalog-presentation-v1.ts", 36, "CATALOG_PRESENTATION_VERSION_V1 = 1"],
   [
     "src/content/catalog-presentation-v1.ts",
-    36,
+    41,
     "CATALOG_PRESENTATION_MAX_BYTES_V1 = 8 * 1024 * 1024",
   ],
-  ["src/content/catalog-presentation-v1.ts", 37, "CATALOG_PRESENTATION_MAX_TEXT_V1 = 4096"],
-  ["src/content/catalog-presentation-v1.ts", 124, "CATALOG_PRESENTATION_REFUSALS_V1 = ["],
+  ["src/content/catalog-presentation-v1.ts", 42, "CATALOG_PRESENTATION_MAX_TEXT_V1 = 4096"],
+  ["src/content/catalog-presentation-v1.ts", 130, "CATALOG_PRESENTATION_REFUSALS_V1 = ["],
   [
     "src/content/catalog-qualification-v1.ts",
     48,
