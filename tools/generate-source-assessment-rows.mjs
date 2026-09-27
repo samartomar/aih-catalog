@@ -1517,7 +1517,63 @@ const unique = (items) => {
  * receipt and native annex are verified (the set shares the annex bytes), the mapped components
  * are the union of the members' and a row cites exactly the members that own its closure.
  */
-function closureRows(members, provider, sourceRoot, definition, authoring) {
+export function selectCurrentClosureRowsV1(rows, index, provider) {
+  const entries = array(object(index, "current-index").entries, "current-index-entries");
+  const current = new Set(entries.map((value) => text(object(value, "current-entry").entryId, "current-entry-id", 300)));
+  return rows.filter((row) => current.has(`${row.kind}.${provider}.${row.name}`));
+}
+
+/** Copy only index-bound files of an uncovered committed MCP row, without changing its P' evidence. */
+export function preserveUnmappedMcpRowsV1({ root, index, provider, names, sourceCommit }) {
+  const entries = array(object(index, "current-index").entries, "current-index-entries");
+  const byId = new Map(entries.map((value) => {
+    const entry = object(value, "current-entry");
+    return [text(entry.entryId, "current-entry-id", 300), entry];
+  }));
+  const preserved = new Map();
+  if (new Set(names).size !== names.length) fail("retained-row-duplicate");
+  const source = unlinkedAbsolutePath(root, "retained-root");
+  if (!source.exists || !source.stat.isDirectory()) fail("retained-root-directory");
+  for (const name of names) {
+    const entryId = name.startsWith(`mcp.${provider}.`) ? name : `mcp.${provider}.${name}`;
+    if (!entryId.startsWith(`mcp.${provider}.`)) fail("retained-row-kind");
+    const entry = byId.get(entryId);
+    if (entry === undefined || object(entry.subject, "retained-subject").kind !== "mcp")
+      fail("retained-row-kind");
+    if (object(entry.subject.source, "retained-source").commit !== sourceCommit)
+      fail("retained-row-pin");
+    const references = [];
+    const collect = (value) => {
+      if (Array.isArray(value)) return value.forEach(collect);
+      if (value === null || typeof value !== "object") return;
+      if (typeof value.path === "string" && typeof value.sha256 === "string") {
+        references.push({ path: value.path, sha256: value.sha256 });
+        return;
+      }
+      for (const child of Object.values(value)) collect(child);
+    };
+    collect({ seed: entry.seed, artifacts: entry.artifacts, qualification: entry.qualification });
+    if (references.length === 0) fail("retained-row-files");
+    const seen = new Set();
+    for (const reference of references) {
+      const expected = `defaults/workbench/${provider}/${entryId}/`;
+      if (!reference.path.startsWith(expected) || !HEX_64.test(reference.sha256))
+        fail("retained-row-reference");
+      const suffix = sourceRelative(reference.path.slice(expected.length), "retained-file");
+      if (seen.has(suffix)) fail("retained-row-duplicate-file");
+      seen.add(suffix);
+      const filePath = resolve(root, entryId, ...suffix.split("/"));
+      const item = unlinkedAbsolutePath(filePath, "retained-file");
+      if (!item.exists || !item.stat.isFile()) fail("retained-row-file");
+      const bytes = readPinnedFile(filePath);
+      if (sha256(bytes) !== reference.sha256) fail("retained-row-digest");
+      preserved.set(`${entryId}/${suffix}`, bytes);
+    }
+  }
+  return preserved;
+}
+
+function closureRows(members, provider, sourceRoot, definition, authoring, currentIndex) {
   const natives = members.map(({ handoff, validated }) =>
     publicationNativeFiles(validated.publication.value, handoff, validated.source),
   );
@@ -1576,7 +1632,17 @@ function closureRows(members, provider, sourceRoot, definition, authoring) {
         owners.set(entry.path, existing);
       }
     }
-  const rows = inventory.rows.map((row) => {
+  const selectedRows = currentIndex === undefined ? inventory.rows :
+    selectCurrentClosureRowsV1(inventory.rows, currentIndex, provider);
+  const preservedNames = [];
+  const rows = selectedRows.filter((row) => {
+    const missing = row.files.some((path) => !owners.has(path));
+    if (!missing) return true;
+    if (currentIndex === undefined || row.kind !== "mcp") fail("closure-file-unmapped");
+    if (row.files.some((path) => owners.has(path))) fail("retained-row-partial-coverage");
+    preservedNames.push(row.name);
+    return false;
+  }).map((row) => {
     const closureFiles = row.files.map((path) => {
       const nativeDigest = native.get(path);
       if (nativeDigest === undefined) fail("closure-file-native-missing");
@@ -1624,7 +1690,7 @@ function closureRows(members, provider, sourceRoot, definition, authoring) {
       subjectId: row.name,
     };
   });
-  return { rows, excluded: inventory.excluded, sourceLicenseRecord };
+  return { rows, excluded: inventory.excluded, sourceLicenseRecord, preservedNames };
 }
 
 /**
@@ -1750,7 +1816,7 @@ function skillRowsOf(member, provider, sourceRoot) {
  * ordered by publication digest. Rows are rendered once over their union; each row cites the
  * publications its closure comes from, and a row of one publication renders as it always has.
  */
-function renderRows(members, provider, sourceRoot, definition, authoring) {
+function renderRows(members, provider, sourceRoot, definition, authoring, currentIndex, preserveRoot) {
   const files = new Map();
   const seedPaths = [];
   const validated = { source: members[0].validated.source };
@@ -1765,10 +1831,19 @@ function renderRows(members, provider, sourceRoot, definition, authoring) {
   );
   const closureMode = definition !== undefined;
   const selected = closureMode
-    ? closureRows(members, provider, sourceRoot, definition, authoring)
+    ? closureRows(members, provider, sourceRoot, definition, authoring, currentIndex)
     : { rows: skillRows(members, provider, sourceRoot), excluded: undefined };
   const sourceLicenseBytes = closureMode ? canonical(selected.sourceLicenseRecord) : undefined;
   if (sourceLicenseBytes !== undefined) files.set("source-license.json", sourceLicenseBytes);
+  if (selected.preservedNames?.length > 0) {
+    if (preserveRoot === undefined) fail("retained-root-required");
+    const retained = preserveUnmappedMcpRowsV1({
+      root: preserveRoot, index: currentIndex, provider,
+      names: selected.preservedNames, sourceCommit: validated.source.pinnedCommit,
+    });
+    for (const [path, bytes] of retained) files.set(path, bytes);
+    for (const name of selected.preservedNames) seedPaths.push(`mcp.${provider}.${name}/seed.json`);
+  }
   for (const row of [...selected.rows].sort((left, right) =>
     codeUnitCompare(left.assetId, right.assetId),
   )) {
@@ -2113,6 +2188,8 @@ export function generateSourceAssessmentRowsV1({
   definitionPath,
   authoringCatalogPath,
   catalogIndexPath,
+  currentIndexPath,
+  preserveRoot,
   definitionOverlap = "disjoint",
 }) {
   definitionOverlapMode(definitionOverlap);
@@ -2138,6 +2215,8 @@ export function generateSourceAssessmentRowsV1({
     ...(definitionPath === undefined ? [] : [["definitionPath", definitionPath]]),
     ...(authoringCatalogPath === undefined ? [] : [["authoringCatalogPath", authoringCatalogPath]]),
     ...(catalogIndexPath === undefined ? [] : [["catalogIndexPath", catalogIndexPath]]),
+    ...(currentIndexPath === undefined ? [] : [["currentIndexPath", currentIndexPath]]),
+    ...(preserveRoot === undefined ? [] : [["preserveRoot", preserveRoot]]),
   ])
     if (typeof value !== "string" || !isAbsolute(value)) fail(`${label}-absolute`);
   // A direct skill row states the mapping's catalogAssetId as its subject, so its selection has to
@@ -2148,6 +2227,9 @@ export function generateSourceAssessmentRowsV1({
     );
   if (definitionPath !== undefined && catalogIndexPath !== undefined)
     fail("catalog-index-with-definition");
+  if ((currentIndexPath === undefined) !== (preserveRoot === undefined) ||
+      (currentIndexPath !== undefined && definitionPath === undefined))
+    fail("retained-row-arguments");
   handoffPaths.forEach((path, index) => {
     if (dirname(resolve(path)) !== dirname(resolve(publicationPaths[index])))
       fail("publication-handoff-directory");
@@ -2162,6 +2244,8 @@ export function generateSourceAssessmentRowsV1({
     catalogIndexPath === undefined
       ? undefined
       : readJson(catalogIndexPath, "catalog-index", 64 * 1024 * 1024).value;
+  const currentIndex = currentIndexPath === undefined ? undefined :
+    readJson(currentIndexPath, "current-index", 64 * 1024 * 1024).value;
   // The external-inventory MCP rows come from the Catalog's policy authoring catalog (D61).
   if (authoringCatalogPath !== undefined && definition === undefined)
     fail("authoring-catalog-without-definition");
@@ -2205,7 +2289,7 @@ export function generateSourceAssessmentRowsV1({
       curatedDirectSkillInventory(catalogIndex, provider, members[0].validated.source),
       members,
     );
-  const rendered = renderRows(members, provider, sourceRoot, definition, authoring);
+  const rendered = renderRows(members, provider, sourceRoot, definition, authoring, currentIndex, preserveRoot);
   const layout = destinationLayout(manifestPath, outputRoot, provider);
   const preparedManifest = prepareManifestUpdate(manifestPath, rendered.seedPaths, layout);
   writeGeneratedRows(outputRoot, rendered.files);
@@ -2253,7 +2337,7 @@ function argumentsFrom(argv) {
     "output-root",
     "manifest",
   ];
-  const optional = ["definition", "authoring-catalog", "catalog-index", "definition-overlap"];
+  const optional = ["definition", "authoring-catalog", "catalog-index", "definition-overlap", "current-index", "preserve-root"];
   if (
     expected.some((name) => !values.has(name)) ||
     [...values.keys()].some((name) => !expected.includes(name) && !optional.includes(name))
@@ -2273,6 +2357,12 @@ function argumentsFrom(argv) {
       : {}),
     ...(values.has("catalog-index")
       ? { catalogIndexPath: resolve(values.get("catalog-index")) }
+      : {}),
+    ...(values.has("current-index")
+      ? { currentIndexPath: resolve(values.get("current-index")) }
+      : {}),
+    ...(values.has("preserve-root")
+      ? { preserveRoot: resolve(values.get("preserve-root")) }
       : {}),
     ...(values.has("definition-overlap")
       ? { definitionOverlap: values.get("definition-overlap") }
