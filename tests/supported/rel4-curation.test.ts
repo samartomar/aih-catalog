@@ -7,6 +7,7 @@ const root = resolve(import.meta.dirname, "..", "..");
 const json = (path: string) => JSON.parse(readFileSync(resolve(root, path), "utf8"));
 const index = json("defaults/catalog-index-v1.json");
 const presentation = json("defaults/catalog-presentation-v1.json");
+const declaration = json("src/production/data/core-product-declarations-v1.json");
 const ids = index.entries.map((entry: { entryId: string }) => entry.entryId);
 
 describe("REL4 current curation", () => {
@@ -45,6 +46,10 @@ describe("REL4 current curation", () => {
         (candidate: { entryId: string }) => candidate.entryId === `mcp.aih.${name}.core-0-7-0`,
       );
       expect(entry?.management).toBe("developer-managed");
+      expect(entry?.availability).toBe("request-only");
+      expect(entry?.availabilityReason).toBe(
+        declaration.nonProjectableMcp.find((item: { id: string }) => item.id === name)?.reason,
+      );
       expect(entry?.managementNote).toContain("hosted service; network egress");
     }
     for (const name of [
@@ -52,13 +57,19 @@ describe("REL4 current curation", () => {
       "codebase-memory-mcp",
       "sequential-thinking",
       "serena",
-      "playwright",
     ]) {
       const entry = aih.find(
         (candidate: { entryId: string }) => candidate.entryId === `mcp.aih.${name}.core-0-7-0`,
       );
       expect(entry?.management).toBe("aih-managed");
+      expect(entry?.availability).toBe("available");
     }
+    const playwright = aih.find(
+      (candidate: { entryId: string }) => candidate.entryId === "mcp.aih.playwright.core-0-7-0",
+    );
+    expect(playwright?.management).toBe("aih-owned-unavailable");
+    expect(playwright?.availability).toBe("request-only");
+    expect(playwright?.availabilityReason).toBe(declaration.unavailableMcp[0].reason);
   });
 
   it("has no Ponytail in current Catalog surfaces, while preserving signed history", () => {
