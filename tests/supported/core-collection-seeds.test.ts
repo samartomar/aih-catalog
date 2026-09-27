@@ -875,6 +875,20 @@ function wholeCatalog() {
   mkdirSync(catalogRoot);
   cpSync(join(repository, "package.json"), join(catalogRoot, "package.json"));
   cpSync(join(repository, "defaults"), join(catalogRoot, "defaults"), { recursive: true });
+  // These synthetic release scenarios have only three Core subjects. The checkout's seven
+  // declaration-bound aih MCP presentation rows belong to its real index, and none publishes
+  // a category. Keep the upstream category evidence while removing those foreign rows.
+  const presentationPath = join(catalogRoot, "defaults", "catalog-presentation-v1.json");
+  const presentation = read(presentationPath) as {
+    entries: { entryId: string; category: { state: string } }[];
+  };
+  const aihRows = presentation.entries.filter((record) => record.entryId.startsWith("mcp.aih."));
+  expect(aihRows).toHaveLength(7);
+  expect(aihRows.every((record) => record.category.state === "unavailable")).toBe(true);
+  presentation.entries = presentation.entries.filter(
+    (record) => !record.entryId.startsWith("mcp.aih."),
+  );
+  writeFileSync(presentationPath, canonical(presentation));
   return catalogRoot;
 }
 
