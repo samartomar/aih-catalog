@@ -384,17 +384,24 @@ describe("merging Core T5 drafts into the core qualification data", () => {
       join(repository, "src", "production", "data", "core-qualification-data-v1.json"),
       "utf8",
     );
-    const base = JSON.parse(committed) as Json & { artifacts: Record<string, string>; records: Json[] };
+    const base = JSON.parse(committed) as Json & {
+      artifacts: Record<string, string>;
+      records: Json[];
+    };
     const absent = structuredClone(base);
     const first = absent.records[0];
     if (first === undefined) throw new Error("committed qualification has no records");
     first.receipt = "0".repeat(64);
-    expect(() => tool.pruneUnreferencedCoreQualificationArtifactsV2(absent)).toThrow("absent artifact");
+    expect(() => tool.pruneUnreferencedCoreQualificationArtifactsV2(absent)).toThrow(
+      "absent artifact",
+    );
 
     const malformed = structuredClone(base);
     const address = Object.keys(malformed.artifacts)[0];
     if (address === undefined) throw new Error("committed qualification has no artifacts");
     malformed.artifacts[address] = "not canonical base64";
-    expect(() => tool.pruneUnreferencedCoreQualificationArtifactsV2(malformed)).toThrow(`artifact ${address}`);
+    expect(() => tool.pruneUnreferencedCoreQualificationArtifactsV2(malformed)).toThrow(
+      `artifact ${address}`,
+    );
   });
 });

@@ -42,7 +42,9 @@ const temporaryRoots: string[] = [];
 function aihFixture(mutate: (inputs: Doc, declaration: Doc) => void): string {
   const directory = mkdtempSync(join(tmpdir(), "aih-presentation-declaration-"));
   temporaryRoots.push(directory);
-  const inputs = JSON.parse(readFileSync(join(root, "defaults/catalog-presentation-inputs-v1.json"), "utf8"));
+  const inputs = JSON.parse(
+    readFileSync(join(root, "defaults/catalog-presentation-inputs-v1.json"), "utf8"),
+  );
   const declaration = JSON.parse(readFileSync(join(root, inputs.aih.declarationPath), "utf8"));
   mutate(inputs, declaration);
   const declarationBytes = Buffer.from(JSON.stringify(declaration));
@@ -58,7 +60,8 @@ function aihFixture(mutate: (inputs: Doc, declaration: Doc) => void): string {
   return directory;
 }
 afterEach(() => {
-  for (const directory of temporaryRoots.splice(0)) rmSync(directory, { recursive: true, force: true });
+  for (const directory of temporaryRoots.splice(0))
+    rmSync(directory, { recursive: true, force: true });
 });
 const record = (doc: Doc, entryId: string) =>
   doc.entries.find((entry: { entryId: string }) => entry.entryId === entryId);
@@ -187,10 +190,21 @@ describe("published catalog presentation", () => {
 
   it("binds every aih description to its declaration row", async () => {
     const { checkCatalogPresentation, serializeCatalogPresentation } = await generator();
-    for (const id of ["code-review-graph", "codebase-memory-mcp", "serena", "github", "context7", "playwright", "sequential-thinking"]) {
+    for (const id of [
+      "code-review-graph",
+      "codebase-memory-mcp",
+      "serena",
+      "github",
+      "context7",
+      "playwright",
+      "sequential-thinking",
+    ]) {
       const doc = clone();
       record(doc, `mcp.aih.${id}.core-0-7-0`).description.value = `Native launcher for ${id}`;
-      expect(() => checkCatalogPresentation(root, undefined, serializeCatalogPresentation(doc)), id).toThrow("aih presentation differs");
+      expect(
+        () => checkCatalogPresentation(root, undefined, serializeCatalogPresentation(doc)),
+        id,
+      ).toThrow("aih presentation differs");
     }
   });
 

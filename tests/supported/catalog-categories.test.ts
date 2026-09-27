@@ -90,13 +90,21 @@ describe("curated catalog categories", () => {
     const directory = fixture(rules);
     const presentationPath = join(directory, "defaults/catalog-presentation-v1.json");
     for (const mutate of [
-      (doc: Doc) => { doc.entries[0].entryId = "foreign.entry"; },
-      (doc: Doc) => { doc.entries[0].subjectDigest = `sha256:${"0".repeat(64)}`; },
+      (doc: Doc) => {
+        doc.entries[0].entryId = "foreign.entry";
+      },
+      (doc: Doc) => {
+        doc.entries[0].subjectDigest = `sha256:${"0".repeat(64)}`;
+      },
     ]) {
-      const doc = JSON.parse(readFileSync(join(root, "defaults/catalog-presentation-v1.json"), "utf8"));
+      const doc = JSON.parse(
+        readFileSync(join(root, "defaults/catalog-presentation-v1.json"), "utf8"),
+      );
       mutate(doc);
       writeFileSync(presentationPath, bytesOf(doc));
-      expect(() => generateCatalogCategories(directory)).toThrow("presentation record is not this index's entry");
+      expect(() => generateCatalogCategories(directory)).toThrow(
+        "presentation record is not this index's entry",
+      );
     }
   });
 
