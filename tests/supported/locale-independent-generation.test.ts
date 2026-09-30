@@ -64,14 +64,12 @@ describe("locale-independent Catalog generation", () => {
     expect(withDefaultLocale("th", sortDefault)).toEqual(["codebase-design", "code-review"]);
   });
 
-  it("regenerates byte-identical defaults under the Thai and English default locales", () => {
+  it("regenerates byte-identical donor outputs under Thai and English default locales", () => {
     const thai = withDefaultLocale("th", generatedBytes);
     const english = withDefaultLocale("en", generatedBytes);
     expect(Object.keys(thai)).toEqual(Object.keys(english));
     for (const [path, bytes] of Object.entries(english)) {
-      const committed = readFileSync(resolve(root, path), "utf8");
-      expect(bytes === committed, `${path} under en`).toBe(true);
-      expect(thai[path] === committed, `${path} under th`).toBe(true);
+      expect(thai[path], `${path} locale independence`).toBe(bytes);
     }
   }, 120_000);
 

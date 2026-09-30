@@ -67,7 +67,6 @@ describe("aih-supported repository AI bootstrap", () => {
   it("pins the narrow public helper toolchain", () => {
     expect(commandJson("plan")).toMatchObject({
       pins: {
-        ecc: { plugin: "ecc@ecc", version: "2.2.0" },
         serena: {
           package: "serena-agent==1.7.0",
           securityOverrides: ["python-multipart==0.0.32", "starlette==1.3.1"],
@@ -96,11 +95,18 @@ describe("aih-supported repository AI bootstrap", () => {
       mutations: [
         "install pinned repo AI tools",
         "write ignored Codex project projection",
-        "install or refresh ECC through the native Codex plugin lifecycle",
         "initialize project-scoped graph and memory indexes",
         "enable the repository pre-commit hook path",
       ],
     });
+  });
+
+  it("keeps optional helper setup independent of engineering workflow plugins", () => {
+    const plan = commandJson("plan");
+    expect(plan.pins).not.toHaveProperty("ecc");
+    expect(JSON.stringify(plan)).not.toContain("native-plugin");
+    const launcher = readFileSync(join(root, "tools/repo-ai-tools.mjs"), "utf8");
+    expect(launcher).not.toMatch(/configureEcc|verifyEcc|runCodex|ecc@ecc/u);
   });
 
   it("keeps local projections and caches out of Git", () => {
@@ -110,7 +116,7 @@ describe("aih-supported repository AI bootstrap", () => {
       scripts: Record<string, string>;
     };
     // Publication is a separately authorized effect; bootstrap exposes no publication route.
-    expect(packageJson).not.toHaveProperty("private");
+    expect(packageJson.private).toBe(true);
     expect(packageJson.publishConfig).toEqual({ access: "public" });
     expect(packageJson.scripts).not.toHaveProperty("publish");
     expect(packageJson.scripts["repo:init"]).toBe("node tools/repo-ai-tools.mjs setup-codex");

@@ -73,9 +73,6 @@ describe("curated catalog categories", () => {
     expect(CATALOG_CATEGORIES_SUBPATH_V1).toBe("./catalog-categories.json");
     const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
     expect(pkg.exports[CATALOG_CATEGORIES_SUBPATH_V1]).toBe(`./${CATALOG_CATEGORIES_ROOT_URL}`);
-    expect(pkg.scripts["check:catalog-index"]).toContain(
-      "tools/generate-catalog-categories.mjs --check",
-    );
   });
 
   it("regenerates the committed bytes from the committed rules", async () => {

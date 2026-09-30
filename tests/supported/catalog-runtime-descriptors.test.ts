@@ -395,7 +395,7 @@ describe("published runtime descriptors", () => {
     });
   });
 
-  it("publishes through a declared subpath and the drift gate", () => {
+  it("reads through the donor package subpath", () => {
     const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8")) as {
       exports: Record<string, string>;
       scripts: Record<string, string>;
@@ -406,9 +406,6 @@ describe("published runtime descriptors", () => {
     );
     expect(pkg.scripts["generate:catalog-runtime-descriptors"]).toBe(
       "node tools/generate-catalog-runtime-descriptors.mjs",
-    );
-    expect(pkg.scripts["check:catalog-index"]).toContain(
-      "tools/generate-catalog-runtime-descriptors.mjs --check",
     );
   });
 });

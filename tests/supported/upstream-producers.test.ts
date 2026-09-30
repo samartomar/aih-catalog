@@ -438,7 +438,7 @@ describe("networked upstream producers (offline transforms)", () => {
       expect(scripts[`produce:${name}`]).toBe(
         `npm run build:dist && node tools/produce-upstream-inputs.mjs ${name}`,
       );
-    for (const offline of ["build", "build:dist", "check:catalog-index", "verify", "test"])
+    for (const offline of ["build", "build:dist", "check:materials", "verify", "test"])
       expect(scripts[offline], offline).not.toMatch(/produce/u);
   });
 });

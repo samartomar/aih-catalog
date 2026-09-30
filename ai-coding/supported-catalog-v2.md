@@ -1,4 +1,9 @@
-# Supported Catalog V2 contract
+# Historical Catalog V2 donor reference
+
+**Historical implementation only.** [The transition](../docs/TRANSITION.md) owns
+the direction, active checks and publication block. Release/signing instructions
+below describe retired workflows, not current authorization or a compatibility
+requirement.
 
 This document is the operator and maintainer contract for the public Catalog V2
 surface in `@aihq/catalog`; its command remains `aih-supported` and its V2

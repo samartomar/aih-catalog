@@ -1,7 +1,8 @@
 # Repository AI tools
 
-Never run an installed aih-supported against this checkout. `npm run repo:init`
-creates ignored local helper projections and indexes; first inspect
+Never run an installed aih-supported against this checkout. Navigation helpers
+are optional; use source and tests directly when unavailable or unnecessary.
+`npm run repo:init` creates ignored local helper projections and indexes; first inspect
 `node tools/repo-ai-tools.mjs setup-codex --dry-run`.
 
 Use Token Savior for compact read-only orientation. Use Serena for exact symbols
