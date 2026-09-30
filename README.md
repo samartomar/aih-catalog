@@ -1,29 +1,15 @@
 # @aihq/catalog
 
-[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+**Migration in progress; publication is blocked.** The new release manifest,
+contracts/reader/node entry points and executable recipes are not implemented.
+[The transition](docs/TRANSITION.md) owns current status and completion criteria;
+[CONTRIBUTING.md](CONTRIBUTING.md) owns checks, and
+[RELEASING.md](RELEASING.md) / [VERSIONING.md](VERSIONING.md) own delivery policy.
 
-`@aihq/catalog` is AIH Catalog, the public Catalog V2 producer and verifier for
-AI Development Assurance. It binds exact tool, skill, agent, MCP, package, and profile
-sources to byte-addressed evidence, explicit capabilities, an administrator
-Ed25519 signature, continuity, and bounded validity.
-
-**Core governs. Scan produces evidence. Catalog provides AIH qualification. The
-organization provides authority.**
-
-The package is `@aihq/catalog`; the command remains `aih-supported`. It is
-Apache-2.0 licensed. Package and GitHub Release availability are live state:
-verify the exact version and tag with the commands below rather than inferring a
-registry effect from source text. The release workflow uses the
-protected `npm-publish` environment and the exact Trusted Publisher tuple
-documented in [RELEASING.md](RELEASING.md); it rejects token credentials at the
-final effect boundary. Package publication and the manual catalog/receipt
-outer-attestation workflow are separate effects, and publishing never grants
-catalog-signing or organization authority. Candidate bytes publish first under
-npm `next`; only public installed acceptance and separate authorization can
-promote those same bytes to `latest`.
-
-Release and contribution policy: [VERSIONING.md](VERSIONING.md) ·
-[RELEASING.md](RELEASING.md) · [CONTRIBUTING.md](CONTRIBUTING.md).
+The retained 0.3.0 source and documentation below describe historical Catalog V2
+donor behavior, not a working greenfield interface or a compatibility requirement.
+Old release/signing/promotion instructions below are historical and cannot
+authorize execution. The package remains Apache-2.0 licensed.
 
 ## Source-assessment release train
 

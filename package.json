@@ -1,7 +1,7 @@
 {
   "name": "@aihq/catalog",
   "version": "0.3.0",
-  "description": "AIH Catalog qualification producer for AI Development Assurance.",
+  "description": "Catalog material and producer migration workspace; publication blocked.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/samartomar/aih-catalog.git"
@@ -51,27 +51,23 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "node tools/check-not-candidate.mjs && node tools/generate-catalog-index.mjs && node tools/generate-catalog-collections.mjs && node tools/check-not-candidate.mjs && node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node dist/production/catalog-defaults-v1.js && node tools/ensure-cli-executable.mjs",
-    "build:dist": "node tools/check-not-candidate.mjs && node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node dist/production/catalog-defaults-v1.js && node tools/ensure-cli-executable.mjs",
+    "build": "npm run build:dist",
+    "build:dist": "node tools/check-not-candidate.mjs && node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node tools/ensure-cli-executable.mjs",
     "build:candidate": "node tools/build-candidate.mjs",
     "generate:default-candidate": "node dist/cli.js generate-candidate",
     "lint": "biome check .",
     "repo:doctor": "node tools/repo-ai-tools.mjs doctor-codex",
     "repo:init": "node tools/repo-ai-tools.mjs setup-codex",
-    "test": "vitest run",
+    "test": "vitest run --config vitest.transition.config.ts",
     "sign:candidate": "node dist/cli.js sign-candidate",
-    "test:cov": "vitest run --coverage",
+    "test:cov": "vitest run --config vitest.transition.config.ts --coverage",
     "typecheck": "tsc --noEmit",
-    "verify:core-v2-lock": "node tools/verify-core-v2-lock.mjs",
     "verify:workflow-action-pins": "node tools/verify-pinned-actions.mjs",
-    "verify:cold-external-admin": "node tools/verify-cold-external-admin.mjs",
-    "verify:default-evidence-chain": "vitest run tests/supported/default-evidence-chain.test.ts",
     "produce:ecc": "npm run build:dist && node tools/produce-upstream-inputs.mjs ecc",
     "produce:superpowers": "npm run build:dist && node tools/produce-upstream-inputs.mjs superpowers",
     "produce:mattpocock": "npm run build:dist && node tools/produce-upstream-inputs.mjs mattpocock",
-    "verify": "npm run typecheck && npm run lint && npm run build:dist && npm run check:catalog-index && npm run build && npm test",
+    "verify": "npm run typecheck && npm run lint && npm run build:dist && npm run check:materials && npm test && npm run verify:workflow-action-pins",
     "generate:catalog-index": "node tools/generate-catalog-index.mjs",
-    "check:catalog-index": "node tools/check-not-candidate.mjs && node tools/generate-catalog-index.mjs --check && node tools/generate-catalog-collections.mjs --check && node tools/generate-catalog-qualification.mjs --check && node tools/generate-catalog-presentation.mjs --check && node tools/generate-catalog-categories.mjs --check && node tools/generate-catalog-runtime-descriptors.mjs --check && node dist/production/catalog-defaults-v1.js --check && node tools/check-committed-catalog-defaults.mjs",
     "generate:catalog-collections": "node tools/generate-catalog-collections.mjs",
     "generate:catalog-qualification": "node tools/generate-catalog-qualification.mjs",
     "prepare:core-collection": "node tools/prepare-core-collection.mjs",
@@ -79,7 +75,13 @@
     "generate:catalog-presentation": "node tools/generate-catalog-presentation.mjs",
     "generate:catalog-categories": "node tools/generate-catalog-categories.mjs",
     "generate:catalog-runtime-descriptors": "node tools/generate-catalog-runtime-descriptors.mjs",
-    "prepublishOnly": "node tools/check-not-candidate.mjs"
+    "prepublishOnly": "node tools/refuse-publication.mjs",
+    "test:historical": "vitest run --config vitest.config.ts",
+    "check:materials": "node tools/check-not-candidate.mjs && node tools/generate-catalog-index.mjs --check && node tools/generate-catalog-collections.mjs --check && node tools/generate-catalog-presentation.mjs --check && node tools/generate-catalog-categories.mjs --check && node tools/generate-catalog-runtime-descriptors.mjs --check",
+    "historical:verify:core-v2-lock": "node tools/verify-core-v2-lock.mjs",
+    "historical:verify:cold-external-admin": "node tools/verify-cold-external-admin.mjs",
+    "historical:verify:default-evidence-chain": "vitest run tests/supported/default-evidence-chain.test.ts",
+    "historical:check:catalog-index": "node tools/check-not-candidate.mjs && node tools/generate-catalog-index.mjs --check && node tools/generate-catalog-collections.mjs --check && node tools/generate-catalog-qualification.mjs --check && node tools/generate-catalog-presentation.mjs --check && node tools/generate-catalog-categories.mjs --check && node tools/generate-catalog-runtime-descriptors.mjs --check && node dist/production/catalog-defaults-v1.js --check && node tools/check-committed-catalog-defaults.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.1",
@@ -99,5 +101,6 @@
     "dist/production/source-data-v1.*",
     "defaults",
     "README.md"
-  ]
+  ],
+  "private": true
 }

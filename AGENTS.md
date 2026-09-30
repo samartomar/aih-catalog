@@ -3,9 +3,10 @@
 This repository builds `@aihq/catalog` and the `aih-supported` CLI.
 [README.md](README.md) owns usage, [CONTRIBUTING.md](CONTRIBUTING.md) owns
 contributor checks, and [RELEASING.md](RELEASING.md) owns release gates.
-For producer/verifier/evidence changes, read the current
-[Catalog V2 contract](ai-coding/supported-catalog-v2.md); its technical boundaries
-remain in force until the corresponding migration is implemented.
+For source, tests, CI or release changes, read [the transition](docs/TRANSITION.md)
+for the accepted direction, donor-code disposition and unfinished release gates.
+The retained Catalog V2 references describe historical implementation, not a
+compatibility requirement or the target public interface.
 
 ## Source and safety boundaries
 

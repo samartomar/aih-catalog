@@ -1,10 +1,9 @@
-# @aihq/catalog contracts
+# Historical Catalog donor contracts
 
-Every format this package publishes or mirrors, with the source that defines
-it and what a reader does with a version it does not know. This inventory is not
-prose that can drift on its own: `tests/contracts/contracts-inventory.test.ts`
-re-reads each constant named here from source, checks its value, and fails when
-a cited `file:line` no longer holds the constant it names.
+This inventory describes retained 0.3.0 donor code, not the target interface.
+[The transition](docs/TRANSITION.md) owns direction and active checks. The old
+source-line/Core-lock inventory tests are historical; the new release schema and
+public reader contract are not implemented.
 
 Line references are into this repository at the commit that carries this file.
 Refusal names are the exact strings a reader returns or throws.
