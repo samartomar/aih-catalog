@@ -7,7 +7,6 @@ import { fileURLToPath } from "node:url";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const pins = {
-  ecc: { marketplace: "affaan-m/ECC", plugin: "ecc@ecc", version: "2.2.0" },
   serena: {
     package: "serena-agent==1.7.0",
     securityOverrides: ["python-multipart==0.0.32", "starlette==1.3.1"],
@@ -94,7 +93,6 @@ const serenaOverridesPath = join(installRoot, "serena-security-overrides.txt");
 const serenaContextPath = join(installRoot, "serena-codex-context.yml");
 const codexConfigPath = join(repoRoot, ".codex", "config.toml");
 const scriptPath = fileURLToPath(import.meta.url);
-const codexCommand = process.platform === "win32" ? "codex.cmd" : "codex";
 const blockBegin = "# BEGIN AIH-SUPPORTED REPO TOOLING (managed by npm run repo:init)";
 const blockEnd = "# END AIH-SUPPORTED REPO TOOLING";
 
@@ -121,7 +119,6 @@ const plan = {
       setupCommand: "setup-codex",
       doctorCommand: "doctor-codex",
       projection: ".codex/config.toml",
-      ecc: { marketplace: pins.ecc.marketplace, plugin: pins.ecc.plugin, version: pins.ecc.version, lifecycle: "native-plugin" },
       tokenOptimizer: { integration: "on-demand", commands: ["token-optimizer-report", "token-optimizer-coach"] },
       mcpServers: Object.fromEntries(mcpServers.map(([name, launcher, tools]) => [name, { launcher, enabledTools: tools }])),
     },
@@ -281,7 +278,7 @@ function installTools() {
 
 function renderCodexConfig(override = process.env.CBM_CACHE_DIR) {
   const memory = codebaseMemoryConfiguration(override);
-  const lines = [blockBegin, "# Machine-local projection; ai-coding is authoritative.", ""];
+  const lines = [blockBegin, "# Machine-local optional helper projection; AGENTS.md owns project instructions.", ""];
   for (const [name, launcher, enabledTools, startupTimeout] of mcpServers) {
     lines.push(`[mcp_servers.${JSON.stringify(name)}]`, `command = ${JSON.stringify("node")}`, `args = ${JSON.stringify([scriptPath, launcher])}`, `cwd = ${JSON.stringify(repoRoot)}`, `enabled_tools = ${JSON.stringify(enabledTools)}`, `startup_timeout_sec = ${startupTimeout}`, "");
     if (name === "codebase-memory-mcp") lines.push(`[mcp_servers.${JSON.stringify(name)}.env]`, `CBM_CACHE_DIR = ${JSON.stringify(memory.cacheDir)}`, `CBM_ALLOWED_ROOT = ${JSON.stringify(memory.allowedRoot)}`, 'CBM_LOG_LEVEL = "warn"', "");
@@ -311,29 +308,8 @@ function writeCodexProjection() {
   writeFileSync(codexConfigPath, `${existing.trimEnd()}\n\n${expected}`, "utf8");
 }
 
-function runCodex(args, options = {}) {
-  if (process.platform === "win32") {
-    if (args.some((arg) => typeof arg !== "string" || /[\u0000\r\n&|<>^]/.test(arg)))
-      throw new Error("unsafe native Codex arguments");
-    return run(process.env.ComSpec || "cmd.exe", ["/d", "/s", "/c", `${codexCommand} ${args.join(" ")}`], options);
-  }
-  return run(codexCommand, args, options);
-}
-
 function verifyCommandEnvironment() {
   for (const command of ["node", "git", "uv", "rg", "fd", "tree"]) commandExists(command);
-  runCodex(["--version"]);
-}
-
-function configureEcc() {
-  const market = parseJson(runCodex(["plugin", "marketplace", "list", "--json"]), "Codex marketplace inventory");
-  const marketplaces = Array.isArray(market.marketplaces) ? market.marketplaces : [];
-  if (!marketplaces.some((entry) => entry?.name?.toLowerCase?.() === "ecc"))
-    runCodex(["plugin", "marketplace", "add", pins.ecc.marketplace, "--json"]);
-  const plugins = parseJson(runCodex(["plugin", "list", "--json"]), "Codex plugin inventory");
-  const installed = Array.isArray(plugins.installed) ? plugins.installed : [];
-  if (!installed.some((entry) => entry?.pluginId === pins.ecc.plugin))
-    runCodex(["plugin", "add", pins.ecc.plugin, "--json"]);
 }
 
 function codeReviewGraphEnv() {
@@ -380,15 +356,6 @@ function verifyTools() {
   const overrides = run(toolPython("serena-agent"), ["-c", "import importlib.metadata as m; print('|'.join(m.version(n) for n in ('python-multipart','starlette')))"]);
   if (overrides !== "0.0.32|1.3.1") throw new Error(`Serena security override mismatch: ${overrides}`);
   verifyTokenOptimizer();
-}
-
-function verifyEcc() {
-  const plugins = parseJson(runCodex(["plugin", "list", "--json"]), "Codex plugin inventory");
-  const installed = Array.isArray(plugins.installed) ? plugins.installed : [];
-  const ecc = installed.find((entry) => entry?.pluginId === pins.ecc.plugin);
-  if (!ecc?.installed || !ecc?.enabled || ecc.version !== pins.ecc.version)
-    throw new Error("ECC 2.2.0 is not installed and enabled in Codex");
-  return { pluginId: ecc.pluginId, version: ecc.version };
 }
 
 function verifyProjection() {
@@ -450,20 +417,18 @@ function doctor() {
   verifyProjection();
   if (!hasPositiveMetric(graphStatus())) throw new Error("code-review-graph has no populated repository index");
   const memory = codebaseMemoryStatus();
-  const ecc = verifyEcc();
-  process.stdout.write(`${JSON.stringify({ ok: true, repository: repoRoot, cacheGeneration, projection: ".codex/config.toml", ecc, indexes: { codeReviewGraph: "populated", codebaseMemory: memory }, tokenOptimizer: { integration: "on-demand", pin: { tag: pins.tokenOptimizer.tag, commit: pins.tokenOptimizer.commit, tree: pins.tokenOptimizer.tree } } }, null, 2)}\n`);
+  process.stdout.write(`${JSON.stringify({ ok: true, repository: repoRoot, cacheGeneration, projection: ".codex/config.toml", indexes: { codeReviewGraph: "populated", codebaseMemory: memory }, tokenOptimizer: { integration: "on-demand", pin: { tag: pins.tokenOptimizer.tag, commit: pins.tokenOptimizer.commit, tree: pins.tokenOptimizer.tree } } }, null, 2)}\n`);
 }
 
 function setup({ dryRun = false } = {}) {
   if (dryRun) {
-    process.stdout.write(`${JSON.stringify({ command: "setup-codex", dryRun: true, mutations: ["install pinned repo AI tools", "write ignored Codex project projection", "install or refresh ECC through the native Codex plugin lifecycle", "initialize project-scoped graph and memory indexes", "enable the repository pre-commit hook path"] }, null, 2)}\n`);
+    process.stdout.write(`${JSON.stringify({ command: "setup-codex", dryRun: true, mutations: ["install pinned repo AI tools", "write ignored Codex project projection", "initialize project-scoped graph and memory indexes", "enable the repository pre-commit hook path"] }, null, 2)}\n`);
     return;
   }
   verifyCommandEnvironment();
   run("git", ["config", "core.hooksPath", ".githooks"]);
   installTools();
   writeCodexProjection();
-  configureEcc();
   initializeIndexes();
   doctor();
 }

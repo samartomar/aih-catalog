@@ -1,9 +1,9 @@
-# aih-supported rule router
+# Catalog technical reference navigation
 
-Read `ai-coding/rules/agent-behavior-core.md` and `ai-coding/project.md` before
-implementation. For repository helper tooling, also read
-`ai-coding/rules/repo-ai-tools.md`; for commits and CI, read
-`ai-coding/rules/git-ci-discipline.md`.
+[AGENTS.md](../AGENTS.md) owns agent workflow and issue routing. This retained
+path is technical navigation for existing links, not another workflow router.
+Read `ai-coding/project.md` for current product facts and
+`ai-coding/rules/git-ci-discipline.md` for CI/provenance constraints.
 
 For the public V2 producer, verifier, evidence, promotion, or package surface,
 also read `ai-coding/supported-catalog-v2.md`.
@@ -22,7 +22,6 @@ also read `ai-coding/supported-catalog-v2.md`.
 
 ## Verification
 
-Use `npm run typecheck`, `npm test`, `npm run lint`, and `npm run build` as
-direct repository checks. `npm run repo:init` creates ignored local tooling
-state; inspect its dry run first. `npm run repo:doctor` proves local setup, not
-product behavior.
+Use [CONTRIBUTING.md](../CONTRIBUTING.md) for repository checks. Local navigation
+helper setup is optional and does not establish product behavior or select the
+engineering workflow.

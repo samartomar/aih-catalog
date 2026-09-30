@@ -1,5 +1,9 @@
 # Contributing
 
+Start with [AGENTS.md](AGENTS.md) for issue ownership and repository boundaries.
+Accepted bugs/enhancements use the owning Catalog issue; link the PR and verified
+release outcome there. Keep private planning and reproductions out of public text.
+
 Install dependencies with `npm ci --ignore-scripts` and run `npm run verify` before
 requesting review. Keep changes scoped, preserve the separation between package
 publication and Catalog signing authority, and add focused tests for changed behavior.
