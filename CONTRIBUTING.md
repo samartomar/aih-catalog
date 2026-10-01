@@ -6,7 +6,9 @@ release outcome there. Keep private planning and reproductions out of public tex
 
 Install dependencies with `npm ci --ignore-scripts` and run `npm run verify` before
 requesting review. The active checks cover the release reader, acquisition,
-configuration, selection and packed material alongside retained producer checks. Read
+configuration, selection and packed material, the targeted candidate producer
+([docs/PRODUCER.md](docs/PRODUCER.md)) and its whole-package check
+(`npm run check:release`), alongside retained donor producer checks. Read
 [the transition](docs/TRANSITION.md) when changing these checks. Keep changes scoped
 and add focused tests for changed behavior. Publication is blocked during migration.
 

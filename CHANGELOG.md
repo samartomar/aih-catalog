@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Add the targeted content producer: pin one upstream commit, regenerate only the
+  affected items and their dependents, carry unaffected records, member bytes and
+  provenance over unchanged, and report provenance-only changes separately.
+  Incomplete upstream inventories never remove items. The complete candidate passes
+  whole-package integrity, is packed and read back, and can run the bounded Core
+  consumer handoff, without waiting for Scan. `npm run prepare:candidate`,
+  `measure:candidate` (cold-install and retained-cache timing summaries against the
+  3,600-second ceiling) and `check:release` are maintainer tools, not package entries.
+  `tools/verify-core-consumer.mjs` now accepts a prepared Catalog tarball and derives
+  its scenario from the release.
+
 - Validate acquired recipe JSON and structure against Core's pinned recipe schema;
   check each item's mirror even when recipe paths are shared. Keep configuration
   values and archive URLs aligned with Core, and emit unique dependency IDs.

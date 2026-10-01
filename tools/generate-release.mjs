@@ -15,6 +15,10 @@ import { fileURLToPath } from "node:url";
  * files, qualification, Scan or Workbench. Nothing is fetched or executed.
  *
  *   node tools/generate-release.mjs [--check] [catalog-root]
+ *
+ * This is the seed generator for the carried donor snapshot. Once a targeted candidate
+ * (tools/prepare-candidate.mjs) has advanced release/ beyond that snapshot, `--check`
+ * reports the advance and defers to tools/check-release.mjs instead of failing.
  */
 export const OUTPUT_ROOT = "release";
 export const RELEASE_PATH = "release/release.json";
@@ -135,6 +139,19 @@ function recipeFor(item, origin, materials) {
   };
 }
 
+/** True when the committed release no longer comes solely from the donor snapshot pin. */
+export function advancedBeyondSnapshot(root) {
+  let release;
+  try {
+    release = readJson(root, RELEASE_PATH);
+  } catch {
+    return false;
+  }
+  const pin = readJson(root, SNAPSHOT).upstream?.pin;
+  const revisions = new Set((release.sources ?? []).map((source) => source.origin?.revision));
+  return revisions.size !== 1 || !revisions.has(pin);
+}
+
 /** Returns every output file (package-relative path → bytes), the release document last. */
 export function generateRelease(root) {
   const pkg = readJson(root, "package.json");
@@ -233,6 +250,10 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       fail("usage: node tools/generate-release.mjs [--check] [catalog-root]");
     }
     const root = resolve(args[0] ?? resolve(dirname(fileURLToPath(import.meta.url)), ".."));
+    if (check && advancedBeyondSnapshot(root)) {
+      console.log("Skipped: release/ has advanced beyond the donor snapshot; run npm run check:release.");
+      process.exit(0);
+    }
     const files = generateRelease(root);
     const stale = existingFiles(root).filter((path) => !files.has(path));
     if (check) {
