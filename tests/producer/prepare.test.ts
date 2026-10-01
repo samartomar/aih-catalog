@@ -281,7 +281,7 @@ describe("timing summary", () => {
     expect(summary.clock.startedAt).toBe("2026-09-30T23:10:00.000Z");
     expect(summary.clock.elapsedSeconds).toBe(3_700);
     expect(summary.clock.withinCeiling).toBe(false);
-    expect(summary.misses).toEqual([{ phase: "fetch-inputs", overBySeconds: 100 }]);
+    expect(summary.misses).toEqual([{ phase: "queue", overBySeconds: 100 }]);
     expect(summary.simulated).toEqual([
       {
         phase: "fetch-inputs",

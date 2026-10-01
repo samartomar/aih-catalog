@@ -12,6 +12,8 @@ export interface IntegrityCheck {
   readonly name: string;
   readonly ok: boolean;
   readonly detail?: string;
+  /** Present on checks that can honestly report they did not run; `ok` is then true. */
+  readonly status?: "passed" | "failed" | "not-run";
 }
 
 export interface IntegrityResult {

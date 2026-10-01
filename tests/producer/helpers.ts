@@ -95,6 +95,7 @@ export function makePackageRoot(
 ): string {
   for (const entry of [
     "package.json",
+    "package-lock.json",
     "LICENSE",
     "README.md",
     "CHANGELOG.md",

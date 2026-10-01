@@ -13,6 +13,7 @@ import {
   stagePackage,
   verifyPacked,
 } from "./package.js";
+import { assertFreshOutput } from "./paths.js";
 import { renderReview } from "./review.js";
 import {
   type CacheCondition,
@@ -46,7 +47,9 @@ export interface PrepareOptions {
   /** Replace `sourceRoot/release` with the verified candidate. Off: the candidate stays staged. */
   readonly apply?: boolean;
   /** Optional bounded consumer handoff over the packed artifact (e.g. the Core packed consumer). */
-  readonly handoff?: (artifact: PackedArtifact) => Promise<{ ok: boolean; detail?: string }>;
+  readonly handoff?: (
+    artifact: PackedArtifact,
+  ) => Promise<{ ok: boolean; detail?: string; status?: "passed" | "not-run" }>;
   readonly clock?: Clock;
   readonly detectedAt?: Date;
   readonly condition?: CacheCondition;
@@ -56,6 +59,10 @@ export interface PrepareOptions {
   readonly git?: { readonly commit?: string; readonly dirty: boolean };
   /** Test seam passed to the installer. */
   readonly beforeSwap?: () => void;
+  /** Test seam: runs against the installed release before its post-install check. */
+  readonly afterSwap?: () => void;
+  /** Where reports are written (default: the filesystem). A seam for failure tests. */
+  readonly write?: (path: string, content: string) => void;
 }
 
 export interface PrepareResult {
@@ -63,6 +70,11 @@ export interface PrepareResult {
   readonly report?: CandidateReport;
   readonly artifact?: PackedArtifact;
   readonly installed: boolean;
+  /**
+   * Set only when the release WAS replaced but a later report could not be written.
+   * The candidate is applied; nothing before the swap can leave it half-done.
+   */
+  readonly reportError?: string;
 }
 
 const stamp = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`;
@@ -71,8 +83,14 @@ const stamp = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`;
  * Prepares one content candidate from an explicit upstream pin: acquire the
  * pinned tree, produce only what the delta affects, check the complete result,
  * pack and verify the real artifact, prepare review material and (on request)
- * swap it in atomically. The path never waits for, requires or records Scan;
- * a refusal leaves the published `release/` exactly as it was.
+ * swap it in atomically. The path never waits for, requires or records Scan.
+ *
+ * Everything fallible happens before the swap, and the swap itself is verified and
+ * rolled back, so a refusal leaves the published `release/` exactly as it was. Once
+ * the swap and its post-install check succeed the candidate is applied; a later
+ * failure to write the final summary is reported as `reportError`, never as a refusal.
+ * The output directory must be new or empty and disjoint from the package: nothing
+ * the caller already had is deleted or overwritten.
  */
 export async function prepareCandidate(options: PrepareOptions): Promise<PrepareResult> {
   const clock = options.clock ?? realClock;
@@ -82,6 +100,8 @@ export async function prepareCandidate(options: PrepareOptions): Promise<Prepare
   if (options.detectedAt && options.detectedAt.getTime() > startedAt.getTime()) {
     return refuse("detected-at-invalid", "the delta cannot be detected after preparation started");
   }
+  assertFreshOutput({ sourceRoot: options.sourceRoot, outDir: options.outDir });
+  const write = options.write ?? ((path: string, content: string) => writeFileSync(path, content));
   const manifest = JSON.parse(readFileSync(join(options.sourceRoot, "package.json"), "utf8")) as {
     name: string;
     version: string;
@@ -147,6 +167,7 @@ export async function prepareCandidate(options: PrepareOptions): Promise<Prepare
         files: built.files,
         identity,
         manifest,
+        sourceRoot: options.sourceRoot,
       });
       context.checks(verified.checks);
       if (!verified.ok) {
@@ -169,6 +190,7 @@ export async function prepareCandidate(options: PrepareOptions): Promise<Prepare
           {
             name: "core-consumer-handoff",
             ok: result.ok,
+            status: result.ok ? (result.status ?? "passed") : "failed",
             ...(result.detail ? { detail: result.detail } : {}),
           },
         ]);
@@ -179,8 +201,8 @@ export async function prepareCandidate(options: PrepareOptions): Promise<Prepare
     }
     await recorder.phase("review-preparation", () => {
       mkdirSync(options.outDir, { recursive: true });
-      writeFileSync(join(options.outDir, "candidate-report.json"), stamp(report));
-      writeFileSync(
+      write(join(options.outDir, "candidate-report.json"), stamp(report));
+      write(
         join(options.outDir, "candidate-review.md"),
         renderReview({
           report: report as CandidateReport,
@@ -201,12 +223,15 @@ export async function prepareCandidate(options: PrepareOptions): Promise<Prepare
           root: options.sourceRoot,
           files: built.files,
           ...(options.beforeSwap ? { beforeSwap: options.beforeSwap } : {}),
+          verifyInstalled: () => {
+            options.afterSwap?.();
+            const after = checkCandidateFiles(readReleaseDirectory(options.sourceRoot), identity);
+            context.checks(after.checks);
+            if (!after.ok)
+              refuse("post-install-check-failed", "the installed release failed its checks");
+          },
         });
         installed = true;
-        const after = checkCandidateFiles(readReleaseDirectory(options.sourceRoot), identity);
-        context.checks(after.checks);
-        if (!after.ok)
-          refuse("post-install-check-failed", "the installed release failed its checks");
       });
     } else {
       recorder.skip(
@@ -263,6 +288,7 @@ export async function prepareCandidate(options: PrepareOptions): Promise<Prepare
       candidateFiles: candidateFiles?.size ?? null,
       candidateReleaseBytes: report?.release.byteLength ?? null,
       upstreamInventoryFiles: tree?.inventory.paths.size ?? null,
+      originVerified: tree?.originVerified ?? null,
       delta: report?.summary ?? null,
     },
     runner: runnerInfo(npm),
@@ -272,8 +298,20 @@ export async function prepareCandidate(options: PrepareOptions): Promise<Prepare
       sourceObjects: tree?.cache ?? "not-used",
     },
   });
-  mkdirSync(options.outDir, { recursive: true });
-  writeFileSync(join(options.outDir, "timing-summary.json"), stamp(summary));
+  let reportError: string | undefined;
+  try {
+    mkdirSync(options.outDir, { recursive: true });
+    write(join(options.outDir, "timing-summary.json"), stamp(summary));
+  } catch (error) {
+    if (!installed) throw error;
+    reportError = error instanceof Error ? error.message : String(error);
+  }
   if (failure !== undefined) throw failure;
-  return { summary, ...(report ? { report } : {}), ...(artifact ? { artifact } : {}), installed };
+  return {
+    summary,
+    ...(report ? { report } : {}),
+    ...(artifact ? { artifact } : {}),
+    installed,
+    ...(reportError ? { reportError } : {}),
+  };
 }

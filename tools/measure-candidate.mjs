@@ -2,31 +2,39 @@
 // Measures detected-delta-to-content-ready elapsed time for one candidate under one
 // stated cache condition, with the real clock. It wraps tools/prepare-candidate.mjs:
 //
-//   cold-install    a fresh workspace: checkout, `npm ci --ignore-scripts`, build,
+//   cold-install    a new workspace holding exactly the bytes of one clean commit
+//                   (never the live working tree), `npm ci --ignore-scripts`, the build,
 //                   then preparation with an empty source-object cache
-//   retained-cache  an existing workspace from a cold run (dependencies, build and the
-//                   fetched-commit cache kept), then preparation again
+//   retained-cache  the workspace of an earlier cold run, kept as it was (dependencies,
+//                   build and the fetched-commit cache): it is checked against the cold
+//                   run's recorded snapshot first and refused if anything differs
 //
 //   node tools/measure-candidate.mjs --condition cold-install --commit <40-hex> --workspace <new dir> [...]
 //   node tools/measure-candidate.mjs --condition retained-cache --commit <40-hex> --workspace <same dir> [...]
 //
-// Everything after `--` is passed to prepare-candidate (for example --core-artifact,
-// --source-git-dir with --allow-unverified-origin, --simulate-delay). It records
-// measurements; it never invents a benchmark. The npm package cache of the machine is
-// not cleared, and the summary says so. It starts no service and publishes nothing.
-import { execFileSync, spawnSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+// Only the options listed under `--` below may follow `--`; the measurement owns
+// everything else (root, output, cache, condition, pin, detection time, apply).
+// This records one local execution on this runner; it is not a benchmark claim, and the
+// machine's npm package cache is not cleared. It starts no service and publishes nothing.
+import { spawnSync } from "node:child_process";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const COMMIT = /^[a-f0-9]{40}$/u;
 const USAGE = `usage: node tools/measure-candidate.mjs --condition cold-install|retained-cache --commit <40-hex>
-  --workspace <dir> [--out <dir>] [--cache-dir <dir>] [--detected-at <ISO time>] [-- <prepare-candidate options>]`;
+  --workspace <dir> [--out <dir>] [--cache-dir <dir>] [--detected-at <ISO time>] [--source-root <git root>]
+  [-- --core-artifact <tgz> | --source-git-dir <dir> --allow-unverified-origin | --declaration <file>
+      | --source <id> | --advance-provenance | --simulate-delay <phase>=<ms>]`;
 const usage = (message) => {
   console.error(`measure-candidate: ${message}\n${USAGE}`);
   process.exit(2);
 };
+
+const OWN = new Set(["--condition", "--commit", "--workspace", "--out", "--cache-dir", "--detected-at", "--source-root"]);
+const PASS_VALUE = new Set(["--core-artifact", "--source-git-dir", "--declaration", "--source", "--simulate-delay"]);
+const PASS_FLAG = new Set(["--allow-unverified-origin", "--advance-provenance"]);
 
 const argv = process.argv.slice(2);
 const split = argv.indexOf("--");
@@ -36,80 +44,107 @@ const options = {};
 for (let index = 0; index < own.length; index += 2) {
   const flag = own[index];
   const value = own[index + 1];
-  if (!["--condition", "--commit", "--workspace", "--out", "--cache-dir", "--detected-at"].includes(flag)) {
-    usage(`unexpected argument ${flag}`);
-  }
+  if (!OWN.has(flag)) usage(`unexpected argument ${flag}`);
   if (value === undefined || value.startsWith("--")) usage(`${flag} needs a value`);
+  if (Object.hasOwn(options, flag.slice(2))) usage(`${flag} was given more than once`);
   options[flag.slice(2)] = value;
+}
+const passArgs = [];
+const seenPass = new Set();
+for (let index = 0; index < passthrough.length; index += 1) {
+  const flag = passthrough[index];
+  if (PASS_FLAG.has(flag)) {
+    passArgs.push(flag);
+  } else if (PASS_VALUE.has(flag)) {
+    const value = passthrough[index + 1];
+    if (value === undefined || value.startsWith("--")) usage(`${flag} needs a value`);
+    if (flag !== "--simulate-delay" && seenPass.has(flag)) usage(`${flag} was given more than once`);
+    seenPass.add(flag);
+    passArgs.push(flag, value);
+    index += 1;
+  } else {
+    usage(`${flag} cannot be passed through: the measurement owns the root, output, cache, condition, pin, detection time and apply`);
+  }
 }
 if (!["cold-install", "retained-cache"].includes(options.condition ?? "")) usage("--condition is required");
 if (!COMMIT.test(options.commit ?? "")) usage("--commit must be an explicit full 40-character lowercase commit");
 if (!options.workspace) usage("--workspace is required");
-const workspace = resolve(options.workspace);
-const out = resolve(options.out ?? join(workspace, "..", `${options.condition}-measurement`));
-const cacheDir = resolve(options["cache-dir"] ?? join(workspace, "..", "source-object-cache"));
 const cold = options.condition === "cold-install";
-if (cold && existsSync(workspace)) usage("a cold-install run needs a workspace directory that does not exist yet");
-if (!cold && !existsSync(join(workspace, "node_modules", "typescript"))) {
-  usage("a retained-cache run needs the workspace of an earlier cold-install run");
-}
-if (cold && existsSync(cacheDir)) usage("a cold-install run needs an empty source-object cache: remove or choose another --cache-dir");
+const workspace = resolve(options.workspace);
+const out = resolve(options.out ?? join(dirname(workspace), `${basename(workspace)}-${options.condition}`));
+const cacheDir = resolve(options["cache-dir"] ?? join(dirname(workspace), `${basename(workspace)}-source-cache`));
+const sourceRoot = resolve(options["source-root"] ?? root);
 
-const timing = await import(`${new URL("../dist/producer/timing.js", import.meta.url)}`);
+const producer = (file) => import(`${new URL(`../dist/producer/${file}`, import.meta.url)}`);
+const [timing, packaging, snapshots, { ProducerRefusal }] = await Promise.all([
+  producer("timing.js"),
+  producer("package.js"),
+  producer("snapshot.js"),
+  producer("errors.js"),
+]).catch((error) => {
+  console.error(`measure-candidate: build the package first (npm run build:dist): ${error.message}`);
+  process.exit(2);
+});
 const { PhaseRecorder, realClock, runnerInfo, summarize } = timing;
-const { npmVersion } = await import(`${new URL("../dist/producer/package.js", import.meta.url)}`);
+const { npmCliPath, npmVersion } = packaging;
+
+const detectedAt = options["detected-at"] ? new Date(options["detected-at"]) : undefined;
+if (detectedAt && (Number.isNaN(detectedAt.getTime()) || detectedAt > new Date())) {
+  usage("--detected-at must be a past ISO time");
+}
+const guard = (action) => {
+  try {
+    return action();
+  } catch (error) {
+    if (error instanceof ProducerRefusal) usage(error.message);
+    throw error;
+  }
+};
+
+// Validate everything that could make the numbers meaningless before the clock starts.
+let committed;
+let snapshot;
+if (cold) {
+  if (existsSync(workspace) && readdirSync(workspace).length > 0) usage("a cold-install run needs a workspace directory that is new or empty");
+  if (existsSync(cacheDir)) usage("a cold-install run needs an empty source-object cache: remove it or choose another --cache-dir");
+  guard(() => snapshots.assertCleanTracked(sourceRoot));
+  committed = guard(() => snapshots.readCommittedFiles(sourceRoot));
+  snapshot = snapshots.snapshotOf(committed);
+} else {
+  if (!existsSync(workspace)) usage("a retained-cache run needs the workspace of an earlier cold-install run");
+  snapshot = guard(() => snapshots.readSnapshot(workspace));
+  const problems = guard(() => snapshots.verifyWorkspace(workspace, snapshot));
+  if (problems.length > 0) {
+    usage(`the workspace no longer matches its cold-install snapshot (${snapshot.commit}); run a new cold-install measurement:\n  ${problems.slice(0, 20).join("\n  ")}`);
+  }
+}
 
 const recorder = new PhaseRecorder(realClock);
 const startedAt = realClock.wall();
 const startedMono = realClock.now();
-const detectedAt = options["detected-at"] ? new Date(options["detected-at"]) : undefined;
-if (detectedAt && (Number.isNaN(detectedAt.getTime()) || detectedAt > startedAt)) usage("--detected-at must be a past ISO time");
-
 const run = (command, args, cwd) => {
-  const result = spawnSync(command, args, { cwd, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+  // npm refuses an inherited allow-scripts setting in project installs; scripts stay disabled by flag.
+  const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => key.toLowerCase() !== "npm_config_allow_scripts"));
+  const result = spawnSync(command, args, { cwd, env, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
   if (result.status !== 0) throw new Error(`${command} ${args.join(" ")} failed: ${(result.stderr || result.stdout).slice(0, 400)}`);
   return result.stdout;
 };
-const npmCli = [process.env.npm_execpath, join(dirname(process.execPath), "node_modules", "npm", "bin", "npm-cli.js")].find(
-  (candidate) => candidate && existsSync(candidate),
-);
-if (!npmCli) usage("run this with a Node distribution that has its npm beside it");
-const npm = (...args) => run(process.execPath, [npmCli, ...args], workspace);
-
-let candidateCommit;
-let dirty = false;
-try {
-  candidateCommit = execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim();
-  dirty = execFileSync("git", ["status", "--porcelain"], { cwd: root, encoding: "utf8" }).trim() !== "";
-} catch {
-  // not a git worktree
-}
+const npm = (...args) => run(process.execPath, [npmCliPath(), ...args], workspace);
 
 let outcome = "ready";
 let refusal;
 let child;
 try {
   if (cold) {
-    await recorder.phase("checkout", () => {
-      const files = execFileSync("git", ["ls-files", "-z", "--cached", "--others", "--exclude-standard"], {
-        cwd: root,
-        maxBuffer: 64 * 1024 * 1024,
-      })
-        .toString("utf8")
-        .split("\0")
-        .filter(Boolean);
-      for (const file of files) {
-        const target = join(workspace, file);
-        mkdirSync(dirname(target), { recursive: true });
-        copyFileSync(join(root, file), target);
-      }
-    });
+    await recorder.phase("checkout", () => snapshots.writeCommittedFiles(workspace, committed.files));
     await recorder.phase("install-dependencies", () => npm("ci", "--ignore-scripts", "--no-audit", "--no-fund"));
     await recorder.phase("build", () => npm("run", "build:dist"));
+    snapshot = snapshots.withBuild(snapshot, workspace);
+    snapshots.writeSnapshot(workspace, snapshot);
   } else {
-    recorder.skip("checkout", "retained workspace");
-    recorder.skip("install-dependencies", "retained node_modules");
-    recorder.skip("build", "retained build output");
+    recorder.skip("checkout", "retained workspace, verified against its cold-install snapshot");
+    recorder.skip("install-dependencies", "retained node_modules, verified against the cold run");
+    recorder.skip("build", "retained build output, verified against the cold run");
   }
 
   const prepareOut = join(out, "prepare");
@@ -119,7 +154,7 @@ try {
     "--out", prepareOut,
     "--cache-dir", cacheDir,
     "--condition", options.condition,
-    ...passthrough,
+    ...passArgs,
   ];
   const result = spawnSync(process.execPath, args, { cwd: workspace, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
   process.stderr.write(result.stderr ?? "");
@@ -151,7 +186,12 @@ const summary = summarize({
   ...(detectedAt ? { detectedAt } : {}),
   outcome,
   ...(refusal ? { refusal } : {}),
-  candidate: { ...(candidateCommit ? { commit: candidateCommit } : {}), dirty, ...(child?.candidate?.artifactSha256 ? { artifactSha256: child.candidate.artifactSha256, artifactBytes: child.candidate.artifactBytes } : {}) },
+  // The measured code is the recorded commit; the workspace is clean by construction.
+  candidate: {
+    commit: snapshot.commit,
+    dirty: false,
+    ...(child?.candidate?.artifactSha256 ? { artifactSha256: child.candidate.artifactSha256, artifactBytes: child.candidate.artifactBytes } : {}),
+  },
   package: child?.package ?? { name: "unknown", version: "unknown" },
   workload: child?.workload ?? {},
   runner: runnerInfo(npmId),
@@ -159,16 +199,42 @@ const summary = summarize({
     condition: options.condition,
     dependencies: cold
       ? "installed fresh in this run (`npm ci --ignore-scripts`); the machine's npm package cache was not cleared"
-      : "retained from an earlier cold-install run (node_modules and build output reused)",
+      : "retained from the cold-install run and re-verified against its snapshot before this run",
     sourceObjects: child?.cache?.sourceObjects ?? "not-used",
   },
 });
 mkdirSync(out, { recursive: true });
 const target = join(out, "measurement-summary.json");
-writeFileSync(target, `${JSON.stringify({ ...summary, measurement: { tool: "tools/measure-candidate.mjs", condition: options.condition, note: "Measured with the real clock on this runner; not a benchmark claim." } }, null, 2)}\n`);
+writeFileSync(
+  target,
+  `${JSON.stringify(
+    {
+      ...summary,
+      measurement: {
+        tool: "tools/measure-candidate.mjs",
+        condition: options.condition,
+        note: "One local execution on this runner; not a benchmark claim.",
+        snapshot: {
+          commit: snapshot.commit,
+          tree: snapshot.tree,
+          snapshotSha256: snapshot.snapshotSha256,
+          manifestSha256: snapshot.manifestSha256,
+          lockSha256: snapshot.lockSha256,
+          distSha256: snapshot.dist?.sha256,
+          installedDependenciesSha256: snapshot.installedSha256,
+        },
+        originVerified: child?.workload?.originVerified ?? null,
+        passedThrough: passArgs,
+      },
+    },
+    null,
+    2,
+  )}\n`,
+);
 for (const phase of summary.phases) {
   console.log(`${phase.status.padEnd(7)} ${phase.name.padEnd(22)} ${(phase.durationMs / 1000).toFixed(2).padStart(8)}s${phase.simulatedDelayMs ? "  SIMULATED" : ""}`);
 }
 console.log(`${summary.outcome.toUpperCase()} (${options.condition}): ${summary.clock.elapsedSeconds}s elapsed against ${summary.clock.ceilingSeconds}s${summary.clock.withinCeiling ? "" : " — CEILING MISSED"}`);
+if (summary.refusal) console.error(`${summary.refusal.reason}: ${summary.refusal.message}`);
 console.log(`summary: ${target}`);
 process.exitCode = summary.outcome === "ready" ? 0 : 1;

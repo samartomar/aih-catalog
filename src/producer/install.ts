@@ -53,7 +53,22 @@ export interface InstallOptions {
   readonly dir?: string;
   /** Test seam: runs after the new tree is fully written and read back, before the swap. */
   readonly beforeSwap?: () => void;
+  /**
+   * Runs against the swapped-in tree. If it throws, the previous release is put back
+   * before the error propagates, so a refusal never leaves a rejected candidate live.
+   */
+  readonly verifyInstalled?: () => void;
 }
+
+/** Existence without following links, so a dangling link still counts as occupied. */
+const occupied = (path: string): boolean => {
+  try {
+    lstatSync(path);
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 /**
  * Replaces the published `release/` with a verified candidate without ever
@@ -65,10 +80,11 @@ export function installCandidate(options: InstallOptions): void {
   const live = join(root, dir);
   const next = join(root, `${dir}.next`);
   const previous = join(root, `${dir}.previous`);
-  if (existsSync(next) || existsSync(previous)) {
+  const rejected = join(root, `${dir}.rejected`);
+  if (occupied(next) || occupied(previous) || occupied(rejected)) {
     refuse(
       "install-leftover",
-      `${dir}.next or ${dir}.previous already exists; inspect and remove it`,
+      `${dir}.next, ${dir}.previous or ${dir}.rejected already exists; inspect and remove it`,
     );
   }
   try {
@@ -108,5 +124,14 @@ export function installCandidate(options: InstallOptions): void {
     rmSync(next, { recursive: true, force: true });
     throw error;
   }
-  rmSync(previous, { recursive: true, force: true });
+  try {
+    options.verifyInstalled?.();
+  } catch (error) {
+    // Put the previous release back; every directory touched here was created by this call.
+    renameSync(live, rejected);
+    if (moved) renameSync(previous, live);
+    rmSync(rejected, { recursive: true, force: true });
+    throw error;
+  }
+  if (moved) rmSync(previous, { recursive: true, force: true });
 }

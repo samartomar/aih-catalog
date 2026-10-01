@@ -164,8 +164,11 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
         (item) => !removed.includes(item.id) && item.requires.some((id) => removed.includes(id)),
       ),
     ].map((item) => item.id);
+    // Declared items of the target source are judged by their NEW edges (the declaration);
+    // only released items this run does not regenerate keep the edges they were released with.
+    const declaredIds = new Set(plan.items.map((item) => item.id));
     const releasedRequirers = (base?.items ?? [])
-      .filter((item) => !removed.includes(item.id as string))
+      .filter((item) => !declaredIds.has(item.id as string))
       .filter((item) =>
         (asRecord(item.dependencies).requires as Json[]).some((ref) =>
           removed.includes(asRecord(ref).itemId as string),
@@ -300,15 +303,19 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
         : entry,
     ),
   ].sort((a, b) => compare(a.id, b.id));
-  // Items from other sources are carried untouched; report them as unchanged for completeness.
+  // Released items this run does not produce (other sources) are carried untouched. Those that
+  // require, directly or through other items, something added or changed are revalidated against
+  // the resulting graph and reported as dependents; their bytes and provenance stay as released.
+  const dependentsOf = externalDependents(finalItems, plan.items, states);
   for (const item of finalItems) {
     if (!states.has(item.id as string)) {
+      const dependsOnChanged = dependentsOf.get(item.id as string) ?? [];
       reports.push({
         id: item.id as string,
-        state: "unchanged",
+        state: dependsOnChanged.length > 0 ? "dependent-confirmed" : "unchanged",
         operational: [],
         provenance: [],
-        dependsOnChanged: [],
+        dependsOnChanged,
         ...(baseItemSha.has(item.id as string)
           ? { itemSha256Before: baseItemSha.get(item.id as string) as string }
           : {}),
@@ -392,4 +399,42 @@ export function assertRequiredClosure(items: readonly Record_[]): void {
     }
   }
   assertAcyclic(graph);
+}
+
+/** Items outside the target source mapped to the changed/added items they depend on. */
+function externalDependents(
+  finalItems: readonly Record_[],
+  planned: readonly ItemDelta[],
+  states: ReadonlyMap<string, ItemReport>,
+): Map<string, string[]> {
+  const declaredRequires = new Map(planned.map((delta) => [delta.id, delta.declared.requires]));
+  const reverse = new Map<string, string[]>();
+  for (const item of finalItems) {
+    const id = item.id as string;
+    const requires =
+      declaredRequires.get(id) ??
+      (asRecord(item.dependencies).requires as Json[]).flatMap((ref) => {
+        const record = asRecord(ref);
+        return typeof record.itemId === "string" && record.release === undefined
+          ? [record.itemId]
+          : [];
+      });
+    for (const required of requires) reverse.set(required, [...(reverse.get(required) ?? []), id]);
+  }
+  const roots = [...states.values()]
+    .filter((entry) => entry.state === "added" || entry.state === "changed")
+    .map((entry) => entry.id);
+  const reached = new Map<string, Set<string>>();
+  for (const root of roots) {
+    const pending = [...(reverse.get(root) ?? [])];
+    const seen = new Set<string>();
+    while (pending.length > 0) {
+      const id = pending.pop() as string;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      reached.set(id, (reached.get(id) ?? new Set()).add(root));
+      pending.push(...(reverse.get(id) ?? []));
+    }
+  }
+  return new Map([...reached].map(([id, from]) => [id, [...from].sort(compare)]));
 }

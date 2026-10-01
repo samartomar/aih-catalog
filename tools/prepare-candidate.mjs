@@ -12,7 +12,8 @@
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { homedir } from "node:os";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -45,6 +46,9 @@ function parseArgs(argv) {
       const value = argv[index + 1];
       if (value === undefined || value.startsWith("--")) usage(`${arg} needs a value`);
       index += 1;
+      if (arg !== "--simulate-delay" && Object.hasOwn(options, arg.slice(2))) {
+        usage(`${arg} was given more than once`);
+      }
       if (arg === "--simulate-delay") {
         const match = /^([a-z-]+)=(\d{1,9})$/u.exec(value);
         if (!match) usage("--simulate-delay needs <phase>=<milliseconds>");
@@ -74,22 +78,32 @@ function parseArgs(argv) {
 const options = parseArgs(process.argv.slice(2));
 const sourceRoot = resolve(options.root ?? root);
 const producer = (file) => import(`${new URL(`../dist/producer/${file}`, import.meta.url)}`);
-const [{ parseDeclaration }, { fetchSourceTree }, { readCommitTree }, { prepareCandidate }, { ProducerRefusal }] =
-  await Promise.all([
+const [
+  { parseDeclaration },
+  { fetchSourceTree },
+  { readCommitTree },
+  { prepareCandidate },
+  { ProducerRefusal },
+  { defaultCacheDir },
+  { assertFreshOutput },
+] = await Promise.all([
     producer("declaration.js"),
     producer("fetch.js"),
     producer("git-tree.js"),
     producer("prepare.js"),
     producer("errors.js"),
+    producer("cache.js"),
+    producer("paths.js"),
   ]).catch((error) => {
     console.error(`prepare-candidate: build the package first (npm run build:dist): ${error.message}`);
     process.exit(2);
   });
 
+// Replacement refs are never honored: bytes under a pinned commit are that commit's own.
 const git = (args, cwd) =>
   execFileSync("git", args, {
     cwd,
-    env: { ...process.env, GIT_TERMINAL_PROMPT: "0" },
+    env: { ...process.env, GIT_TERMINAL_PROMPT: "0", GIT_NO_REPLACE_OBJECTS: "1" },
     maxBuffer: 256 * 1024 * 1024,
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -121,11 +135,16 @@ try {
   const { repository } = candidates[0];
 
   const out = resolve(options.out ?? mkdtempSync(join(tmpdir(), "aih-catalog-candidate-")));
-  const underRelease = relative(join(sourceRoot, "release"), out);
-  if (!underRelease.startsWith("..") && !isAbsolute(underRelease)) {
-    usage("--out must not be inside the published release/ directory");
+  try {
+    assertFreshOutput({ sourceRoot, outDir: out });
+  } catch (error) {
+    if (error instanceof ProducerRefusal) usage(`--out is not usable: ${error.message}`);
+    throw error;
   }
-  const cacheDir = resolve(options["cache-dir"] ?? join(out, "..", "aih-catalog-source-cache"));
+  const cacheDir = resolve(
+    options["cache-dir"] ??
+      defaultCacheDir({ env: process.env, platform: process.platform, home: homedir() }),
+  );
 
   let candidateGit = { dirty: false };
   try {
@@ -142,7 +161,7 @@ try {
       const tree = readCommitTree({
         repository,
         commit: options.commit,
-        run: (...args) => git(["-C", gitDir, ...args]),
+        run: (...args) => git(["-C", gitDir, "--no-replace-objects", ...args]),
       });
       context.detail("local git directory; origin NOT verified");
       return { ...tree, originVerified: false };
@@ -177,7 +196,14 @@ try {
             { encoding: "utf8", timeout: 300_000, maxBuffer: 16 * 1024 * 1024 },
           );
           const result = JSON.parse(output);
-          return { ok: result.staleMaterialRejected === true && result.dependencyMapping === true };
+          if (result.status === "not-run") {
+            return { ok: true, status: "not-run", detail: `NOT RUN: ${result.reason} (${result.items} items, ${result.configurationRequired} need configuration, ${result.conflicting} conflict)` };
+          }
+          return {
+            ok: result.status === "passed" && result.staleMaterialRejected === true && result.dependencyMapping === true,
+            status: "passed",
+            detail: `selected ${(result.selected ?? []).join(" + ")}`,
+          };
         } catch (error) {
           return { ok: false, detail: String(error.stderr ?? error.message).slice(0, 500) };
         }
@@ -214,9 +240,13 @@ try {
   );
   if (summary.refusal) console.error(`refused: ${summary.refusal.message}`);
   console.log(`report, review page, artifact and timing summary: ${out}`);
+  if (result.reportError) {
+    console.error(`release/ WAS replaced, but the final report could not be written: ${result.reportError}`);
+    process.exitCode = 1;
+  }
   if (result.installed) console.log("release/ was replaced; review the diff and commit it.");
   else if (summary.outcome === "ready") console.log("dry run: release/ is unchanged; re-run with --apply to install it.");
-  process.exitCode = summary.outcome === "ready" ? 0 : 1;
+  if (!result.reportError) process.exitCode = summary.outcome === "ready" ? 0 : 1;
 } catch (error) {
   if (error instanceof ProducerRefusal) {
     console.error(`prepare-candidate refused: ${error.message}`);

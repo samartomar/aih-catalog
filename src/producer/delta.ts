@@ -104,8 +104,22 @@ export function classifyDelta(input: {
     }
   }
   const license = pathStatus(tree, source.licensePath);
+  // Identity belongs to a source: a released item is this source's only if it came from this
+  // repository. Taking over another source's id by declaring it is a collision, not an update.
+  const ownedIds = new Set(
+    base === undefined
+      ? []
+      : ownedBaseItems(base, source.repository).map((item) => item.id as string),
+  );
   const items = mine.map((declared): ItemDelta => {
     const prior = baseItems.get(declared.id);
+    if (prior !== undefined && !ownedIds.has(declared.id)) {
+      return refuse(
+        "item-id-collision",
+        `${declared.id} is already released by another source; a declaration cannot take it over`,
+        { itemId: declared.id },
+      );
+    }
     const skillStatus = pathStatus(tree, declared.skillPath);
     if (skillStatus === "irregular" || license === "irregular") {
       return refuse("source-file-unavailable", `${declared.id} names a non-regular upstream file`, {

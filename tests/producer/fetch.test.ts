@@ -110,6 +110,7 @@ describe("redirect-safe pinned fetch", () => {
     const tree = await fetchSourceTree(request({ git, http }));
     expect(urls).toEqual([API]);
     expect(GIT_CONFIG).toEqual([
+      "--no-replace-objects",
       "-c",
       "http.followRedirects=false",
       "-c",

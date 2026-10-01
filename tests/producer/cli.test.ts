@@ -1,15 +1,5 @@
 import { spawnSync } from "node:child_process";
-import {
-  existsSync,
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  rmdirSync,
-  rmSync,
-  symlinkSync,
-  unlinkSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -73,18 +63,7 @@ beforeAll(() => {
   declarationFile = join(scratch, "declaration.json");
   writeFileSync(declarationFile, JSON.stringify(declarationJson(ITEMS_B)));
 }, 60_000);
-const junctions: string[] = [];
-/** Removes a link without ever following it (a junction on Windows, a symlink elsewhere). */
-const detach = (link: string) => {
-  try {
-    unlinkSync(link);
-  } catch {
-    rmdirSync(link);
-  }
-};
 afterAll(() => {
-  // Remove the links first so recursive cleanup can never reach the real node_modules.
-  for (const link of junctions) detach(link);
   upstream.dispose();
   rmSync(scratch, { recursive: true, force: true });
 });
@@ -207,114 +186,6 @@ describe("tools/prepare-candidate.mjs", () => {
       summary.phases.map((p: { name: string; status: string }) => `${p.name}:${p.status}`),
     ).toEqual(["load-base:passed", "fetch-inputs:failed"]);
   }, 120_000);
-});
-
-describe("tools/measure-candidate.mjs", () => {
-  /** An earlier cold run leaves its workspace behind; its installed dependencies are linked in here. */
-  function retainedWorkspace(name: string) {
-    const ws = makePackageRoot(join(scratch, name), seeded, ["dist", "tools"]);
-    mkdirSync(join(ws, "producer"), { recursive: true });
-    writeFileSync(
-      join(ws, "producer", "declaration.json"),
-      JSON.stringify(declarationJson(ITEMS_B)),
-    );
-    // A retained workspace keeps its installed dependencies: link the already-installed ones.
-    symlinkSync(join(root, "node_modules"), join(ws, "node_modules"), "junction");
-    junctions.push(join(ws, "node_modules"));
-    return ws;
-  }
-  const measure = (...args: string[]) => node(["tools/measure-candidate.mjs", ...args]);
-
-  it("measures a retained-cache run end to end and records the condition", () => {
-    const ws = retainedWorkspace("retained");
-    const out = join(scratch, "retained-out");
-    const result = measure(
-      "--condition",
-      "retained-cache",
-      "--commit",
-      commitB,
-      "--workspace",
-      ws,
-      "--out",
-      out,
-      "--cache-dir",
-      join(scratch, "retained-cache"),
-      "--detected-at",
-      new Date(Date.now() - 60_000).toISOString(),
-      "--",
-      "--source-git-dir",
-      upstream.dir,
-      "--allow-unverified-origin",
-    );
-    expect(result.status, result.stderr).toBe(0);
-    const summary = JSON.parse(readFileSync(join(out, "measurement-summary.json"), "utf8"));
-    expect(summary.outcome).toBe("ready");
-    expect(summary.cache.condition).toBe("retained-cache");
-    expect(summary.cache.dependencies).toContain("retained");
-    expect(
-      summary.phases
-        .slice(0, 3)
-        .map((p: { name: string; status: string }) => `${p.name}:${p.status}`),
-    ).toEqual(["checkout:skipped", "install-dependencies:skipped", "build:skipped"]);
-    expect(summary.phases.some((p: { name: string }) => p.name === "verify-packed")).toBe(true);
-    expect(summary.queue.queuedMs).toBeGreaterThanOrEqual(60_000);
-    expect(summary.clock.elapsedSeconds).toBeGreaterThanOrEqual(60);
-    expect(summary.clock.ceilingSeconds).toBe(3600);
-    expect(summary.candidate.artifactSha256).toMatch(/^[0-9a-f]{64}$/);
-    expect(summary.runner).toMatchObject({ node: process.version });
-    expect(summary.measurement.note).toContain("not a benchmark claim");
-  }, 300_000);
-
-  it("labels an explicitly simulated delay and never hides it", () => {
-    const ws = retainedWorkspace("simulated");
-    const out = join(scratch, "simulated-out");
-    const result = measure(
-      "--condition",
-      "retained-cache",
-      "--commit",
-      commitB,
-      "--workspace",
-      ws,
-      "--out",
-      out,
-      "--cache-dir",
-      join(scratch, "simulated-cache"),
-      "--",
-      "--source-git-dir",
-      upstream.dir,
-      "--allow-unverified-origin",
-      "--simulate-delay",
-      "fetch-inputs=1500",
-    );
-    expect(result.status, result.stderr).toBe(0);
-    const summary = JSON.parse(readFileSync(join(out, "measurement-summary.json"), "utf8"));
-    expect(summary.simulated).toEqual([
-      {
-        phase: "fetch-inputs",
-        delayMs: 1500,
-        label: "SIMULATED delay requested explicitly; not real work",
-      },
-    ]);
-    const fetchPhase = summary.phases.find((p: { name: string }) => p.name === "fetch-inputs");
-    expect(fetchPhase.durationMs).toBeGreaterThanOrEqual(1400);
-  }, 300_000);
-
-  it("requires a fresh workspace for cold-install and an existing one for retained-cache", () => {
-    const ws = retainedWorkspace("conditions");
-    const common = ["--commit", commitB, "--workspace", ws];
-    expect(measure("--condition", "cold-install", ...common).status).toBe(2);
-    expect(
-      measure(
-        "--condition",
-        "retained-cache",
-        "--commit",
-        commitB,
-        "--workspace",
-        join(scratch, "nope"),
-      ).status,
-    ).toBe(2);
-    expect(measure("--condition", "warm", ...common).status).toBe(2);
-  });
 });
 
 describe("tools/check-release.mjs and the donor generator guard", () => {

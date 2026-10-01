@@ -70,7 +70,7 @@ export function renderReview(input: {
   );
   for (const check of checks)
     lines.push(
-      `- ${check.ok ? "pass" : "FAIL"} \`${check.name}\`${check.detail ? ` — ${check.detail}` : ""}`,
+      `- ${check.status === "not-run" ? "NOT RUN" : check.ok ? "pass" : "FAIL"} \`${check.name}\`${check.detail ? ` — ${check.detail}` : ""}`,
     );
   lines.push(
     "",

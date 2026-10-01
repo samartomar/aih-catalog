@@ -210,7 +210,10 @@ export function summarize(input: {
   const phases = recorder.phases;
   const byPhase: Record<string, number> = {};
   for (const phase of phases) if (phase.retries > 0) byPhase[phase.name] = phase.retries;
-  const longest = [...phases].sort((a, b) => b.durationMs - a.durationMs)[0];
+  const longest = [
+    ...phases,
+    ...(queuedMs === null ? [] : [{ name: "queue", durationMs: queuedMs }]),
+  ].sort((a, b) => b.durationMs - a.durationMs)[0];
   const over = elapsedMs / 1000 - CEILING_SECONDS;
   return {
     schema: "aihq-catalog-candidate-timing",

@@ -53,6 +53,34 @@ describe("the producer path stays independent of retired obligations", () => {
     expect(timing).toContain('status: "not-awaited"');
   });
 
+  it("removes recursively only directories this code just created", () => {
+    // Every recursive removal must name a directory made by mkdtemp/staging in the same module.
+    const owned: Record<string, string[]> = {
+      "install.ts": ["next", "rejected", "previous"],
+      "package.ts": ["consumer"],
+    };
+    const found: string[] = [];
+    for (const file of producerSources) {
+      const source = readFileSync(file, "utf8");
+      for (const match of source.matchAll(
+        /rmSync\(\s*([A-Za-z_.]+)\s*,\s*\{[^}]*recursive: true/g,
+      )) {
+        const name = file.split(/[\\/]/).pop() as string;
+        found.push(`${name}:${match[1]}`);
+        expect(owned[name] ?? [], `${name} removes ${match[1]} recursively`).toContain(
+          match[1] as string,
+        );
+      }
+    }
+    expect(found.length).toBeGreaterThan(0);
+    expect(readFileSync(resolve(root, "src/producer/package.ts"), "utf8")).not.toMatch(
+      /rmSync\(\s*stageDir/,
+    );
+    expect(readFileSync(resolve(root, "src/producer/install.ts"), "utf8")).toMatch(
+      /mkdirSync\(dirname\(target\)/,
+    );
+  });
+
   it("starts no scheduler, service or listener", () => {
     for (const file of [...producerSources, ...producerTools]) {
       const source = readFileSync(file, "utf8");

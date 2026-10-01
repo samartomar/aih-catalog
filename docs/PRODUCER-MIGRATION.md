@@ -33,28 +33,37 @@ for this document.
   with rollback; the donor wrote files in place.
 - The Core consumer handoff is optional and takes an explicit reviewed packed Core
   artifact. No sibling checkout, lock or qualification input is read.
+- Git replacement refs are never honored, and the retained object cache defaults to a
+  per-user directory that must be owned by the user and closed to others; the donor
+  used a scratch directory per run. Like the donor, the fetch identifies a commit by its
+  id after an API check of the declared repository; it does not prove the commit belongs
+  to that repository's own history (GitHub serves bare commit ids across a fork network).
+- The output directory must be new or empty and apart from the package, and nothing is
+  cleared or overwritten; the donor wrote into the checkout in place.
+- Dependencies are judged on the resulting graph (an item and its dependent's edge can go
+  in one step), other sources' dependents are revalidated and reported, and an item
+  identifier belongs to the source that released it.
+- The packed package is compared to the source package's intended runtime byte for byte,
+  and its public entries are executed from the extracted tarball; the bounded selection
+  skips valid items that need configuration or conflict, and says `NOT RUN` when none can run.
 
 ## Actual results
 
-Run on Windows 11, Node 24.19.0, npm 11.17.0, from a working tree with uncommitted
-changes (the summaries record `dirty: true`):
+Final verification and timing evidence are recorded by the release host from the committed
+candidate, not in this document. The checks run while implementing are summarized here as
+history only.
 
 | Check | Result |
 | --- | --- |
-| `npx tsc --noEmit` | passed |
-| `npx vitest run --config vitest.transition.config.ts tests/producer` | 9 files, 73 tests passed |
-| `npm run verify` (typecheck, lint, build, materials, full active suite, action pins) | passed: 35 files, 422 tests; lint reports 22 warnings in files this change does not touch |
-| `node tools/verify-core-consumer.mjs <reviewed Core tarball>` (committed release) | passed, local and archive prepare/apply, dependency mapping, stale material refused |
-| `tools/measure-candidate.mjs`, fixture upstream (two local commits derived from the pinned bytes; change plus dependent), cold-install, with Core handoff | ready in 21.8 s (dependencies 1.8 s, build 0.8 s, Core handoff 14.4 s) |
-| same, retained-cache | ready in 15.2 s (Core handoff 14.0 s); the packed artifact digest equals the cold run's |
-| `tools/measure-candidate.mjs`, real upstream at the pinned commit (no delta), cold-install | ready in 8.9 s; fetch 1.3 s; produced release identical to the committed one |
-| same, retained-cache (fetched-commit cache hit) | ready in 1.4 s (fetch 0.1 s) |
+| `npx tsc --noEmit`, focused `tests/producer` suites, `npm run verify` | passed during implementation and again after review repairs; the host records the committed-head results |
+| `node tools/verify-core-consumer.mjs <reviewed Core tarball>` on the committed release and on prepared candidates, including mixed content | passed; reports `NOT RUN` when nothing is selectable |
 
-All four were far inside the 3,600-second ceiling. They are measurements of one
-developer machine with a warm npm package cache, not CI or benchmark claims; the fixture
-workload is two files of skill text, and its origin is a local directory (unverified, so
-it can never be applied). Runner and CI evidence for a real candidate, and the CI job
-that uploads the summary, belong to release activation.
+Provisional history, superseded: earlier local measurements were taken from a dirty
+working tree at the base commit, with a change-plus-dependent fixture workload, an
+unmeasured queue, an unverified local origin and a warm npm cache, so they are not
+acceptance evidence and are not repeated here. Acceptance timing comes from cold-install
+and retained-cache runs of `tools/measure-candidate.mjs` on a clean committed head, which
+record that head, a snapshot digest and the real elapsed clock.
 
 Not run for this document: a CI run, a real upstream delta (provider refresh is separate
 work), npm publication, and a signed or versioned candidate.

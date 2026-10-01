@@ -1,5 +1,6 @@
-import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
+import { appendFileSync, existsSync, lstatSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { ensureOwnedCacheDir } from "./cache.js";
 import type { ProducerDeclaration } from "./declaration.js";
 import { refuse } from "./errors.js";
 import { type GitRunner, readCommitTree } from "./git-tree.js";
@@ -24,7 +25,12 @@ export type HttpRunner = (
   url: string,
 ) => Promise<{ status: number; location?: string; body: string }>;
 
+/**
+ * Options for every production Git call. Replacement refs (refs/replace) are never
+ * honored: the bytes read under a pinned commit id are that commit's own objects.
+ */
 export const GIT_CONFIG = [
+  "--no-replace-objects",
   "-c",
   "http.followRedirects=false",
   "-c",
@@ -131,7 +137,12 @@ export async function fetchSourceTree(input: {
   const gitDir = join(cacheDir, `${cacheKey(repository)}.git`);
   const marker = join(cacheDir, `${cacheKey(repository)}.verified`);
   const run = (...args: string[]) => git(["-C", gitDir, ...GIT_CONFIG, ...args]);
-  mkdirSync(cacheDir, { recursive: true });
+  ensureOwnedCacheDir(cacheDir);
+  for (const entry of [gitDir, marker]) {
+    if (existsSync(entry) && lstatSync(entry).isSymbolicLink()) {
+      return refuse("cache-unsafe", "a cache entry is a link; refusing to read through it");
+    }
+  }
 
   const verified = existsSync(marker) && readFileSync(marker, "utf8").split("\n").includes(commit);
   let hit = false;

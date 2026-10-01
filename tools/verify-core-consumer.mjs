@@ -76,16 +76,48 @@ assert(contractSupport);
 const root = dirname(fileURLToPath(import.meta.resolve("@aihq/catalog/package.json")));
 const installed = await readInstalledRelease({ root });
 assert.equal(installed.valid, true, JSON.stringify(installed.diagnostics));
-// One bounded scenario derived from the release itself: an item that requires another
-// (when any does) and its required closure, selected explicitly.
+// One bounded scenario derived from the release itself: the first item (preferring one with
+// an explicit required closure) whose closure needs no configuration and holds no conflict.
+// Valid unselected items that need configuration or conflict with each other do not block
+// readiness; when nothing is selectable the check says so instead of claiming a pass.
 const allItems = listItems(checked.release);
 assert(allItems.length > 0, "The release must carry an item to select.");
-const chosenItem = allItems.find(item => item.dependencies.requires.length > 0) ?? allItems[0];
-const carriedIds = [chosenItem.id];
-for (let index = 0; index < carriedIds.length; index += 1) {
-  for (const ref of getItem(checked.release, carriedIds[index]).item.dependencies.requires) {
-    if (!carriedIds.includes(ref.itemId)) carriedIds.push(ref.itemId);
+const closureOf = id => {
+  const order = [id];
+  for (let index = 0; index < order.length; index += 1) {
+    for (const ref of getItem(checked.release, order[index]).item.dependencies.requires) {
+      if (ref.release !== undefined || !allItems.some(item => item.id === ref.itemId)) return undefined;
+      if (!order.includes(ref.itemId)) order.push(ref.itemId);
+    }
   }
+  return order;
+};
+const viable = [];
+const skipped = { configurationRequired: 0, conflicting: 0, unresolved: 0 };
+for (const item of allItems) {
+  const ids = closureOf(item.id);
+  if (ids === undefined) { skipped.unresolved += 1; continue; }
+  const attempts = ids.map(itemId => configureItem({ release: checked.release, itemId, configuration: {}, materialSource: installed.source }));
+  const bad = attempts.flatMap(attempt => attempt.valid ? [] : attempt.diagnostics);
+  if (bad.length > 0) {
+    assert(bad.every(d => d.reason === "input-required"), JSON.stringify(bad));
+    skipped.configurationRequired += 1;
+    continue;
+  }
+  const trial = validateSelectionSet({ releases: { [expectedSha256]: checked.release }, selections: ids.map((itemId, index) => ({
+    id: "t" + index, item: { releaseSha256: expectedSha256, itemId, itemSha256: getItem(checked.release, itemId).item.itemSha256 }, configuration: {} })) });
+  if (!trial.valid) {
+    assert(trial.diagnostics.every(d => d.reason === "conflict-selected"), JSON.stringify(trial.diagnostics));
+    skipped.conflicting += 1;
+    continue;
+  }
+  viable.push(ids);
+}
+const carriedIds = viable.find(ids => ids.length > 1) ?? viable[0];
+if (carriedIds === undefined) {
+  console.log(JSON.stringify({ status: "not-run", releaseSha256: expectedSha256, items: allItems.length, ...skipped,
+    reason: "no item is selectable with defaults and a conflict-free required closure" }));
+  process.exit(0);
 }
 for (const id of carriedIds) assert(allItems.some(item => item.id === id));
 const selectionId = index => index === 0 ? "chosen-skill" : carriedIds.length === 2 ? "required-skill" : "required-skill-" + index;
@@ -181,7 +213,7 @@ try {
   assert.equal(rejected.completion, "rejected", JSON.stringify(rejected.diagnostics));
   assert.equal(existsSync(join(staleProject, ".claude")), false);
 } finally { writeFileSync(materialPath, original); }
-console.log(JSON.stringify({ releaseSha256: expectedSha256, publicImports: true,
+console.log(JSON.stringify({ status: "passed", selected: carriedIds, skipped, releaseSha256: expectedSha256, publicImports: true,
   dependencyMapping: true, defaultOrigin: "default", sameClosure: true, staleMaterialRejected: true, results }));
 `);
   const result = JSON.parse(execFileSync(process.execPath, [join(consumer, "consume.mjs"), catalogTarball], {
