@@ -12,6 +12,7 @@ import {
 import { tmpdir } from "node:os";
 import { basename, isAbsolute, join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { seedConsumerLock } from "../tools/seed-consumer-lock.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const read = (path: string) => readFileSync(resolve(root, path), "utf8").replace(/\r\n/g, "\n");
@@ -115,6 +116,7 @@ describe("Catalog migration boundary", () => {
       const tarball = join(fixture, packed.filename);
       const originalHash = hash(readFileSync(tarball));
       const consumer = join(fixture, "consumer");
+      seedConsumerLock(consumer, root);
       execFileSync(
         process.execPath,
         [

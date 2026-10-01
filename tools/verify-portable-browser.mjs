@@ -5,6 +5,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { basename, isAbsolute, join, resolve, sep } from "node:path";
+import { seedConsumerLock } from "./seed-consumer-lock.mjs";
 
 const [artifact] = process.argv.slice(2);
 assert(artifact, "Usage: node tools/verify-portable-browser.mjs <catalog-tarball>");
@@ -18,6 +19,7 @@ const fixture = mkdtempSync(join(tmpdir(), "aih-catalog-browser-"));
 try {
   const environment = Object.fromEntries(Object.entries(process.env)
     .filter(([key]) => key.toLowerCase() !== "npm_config_allow_scripts"));
+  seedConsumerLock(fixture, resolve(import.meta.dirname, ".."));
   execFileSync(process.execPath, [npm, "install", "--prefix", fixture,
     "--ignore-scripts", "--offline", "--no-audit", "--no-fund", resolve(artifact)],
   { encoding: "utf8", env: environment, timeout: 120_000 });

@@ -5,6 +5,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from "node:os";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { seedConsumerLock } from "./seed-consumer-lock.mjs";
 
 // The caller supplies a reviewed Core artifact. This check never chooses a
 // registry version, imports a source checkout or publishes either package.
@@ -41,6 +42,7 @@ try {
   const catalogTarball = join(fixture, packed.filename);
   const catalogSha256 = hash(catalogTarball);
   const consumer = join(fixture, "consumer");
+  seedConsumerLock(consumer, root);
   runNpm([
     "install", "--prefix", consumer, "--ignore-scripts", "--offline",
     "--no-audit", "--no-fund", coreTarball, catalogTarball,

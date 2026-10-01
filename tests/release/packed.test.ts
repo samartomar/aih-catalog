@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { contractSupport } from "../../src/release/contracts.js";
+import { seedConsumerLock } from "../../tools/seed-consumer-lock.mjs";
 import { sha256 } from "./fixtures.js";
 
 const root = resolve(import.meta.dirname, "../..");
@@ -75,6 +76,7 @@ describe("exact packed consumer", () => {
     if (!packed) throw new Error("npm pack produced no artifact");
     packedPaths = packed.files.map(({ path }) => path);
     consumer = join(fixture, "consumer");
+    seedConsumerLock(consumer, root);
     execFileSync(
       process.execPath,
       [
