@@ -158,11 +158,167 @@ try {
   assert.equal(rejected.completion, "rejected", JSON.stringify(rejected.diagnostics));
   assert.equal(existsSync(join(staleProject, ".claude")), false);
 } finally { writeFileSync(materialPath, original); }
+
+// Shared project context through the generic Core lifecycle: explicit client
+// deselection, shared entry-file retention, marker-precise removal and
+// changed/unowned preservation. Delivery only — native loading is out of scope.
+const CLIENT_POINTERS = {
+  "aihq.client.claude": ["aihq.project-context-pointer.claude-md"],
+  "aihq.client.codex": ["aihq.project-context-pointer.agents-md"],
+  "aihq.client.opencode": ["aihq.project-context-pointer.agents-md"],
+};
+const contextIds = (clients) => {
+  const pointers = new Set();
+  for (const client of clients) for (const pointer of CLIENT_POINTERS[client]) pointers.add(pointer);
+  return ["aihq.project-context", ...[...pointers].sort(), ...[...clients].sort()];
+};
+const contextPolicy = (ids) => {
+  const configured = ids.map(itemId => configureItem({ release: installed.release, itemId, configuration: {}, materialSource: installed.source }));
+  for (const item of configured) assert.equal(item.valid, true, JSON.stringify(item.diagnostics));
+  const selections = configured.map(item => ({ id: item.provenance.itemId,
+    item: { releaseSha256: item.provenance.manifestSha256, itemId: item.provenance.itemId,
+      itemSha256: item.provenance.itemSha256 }, configuration: {} }));
+  const set = validateSelectionSet({ releases: { [expectedSha256]: installed.release }, selections });
+  assert.equal(set.valid, true, JSON.stringify(set.diagnostics));
+  return { schema: "urn:aihq:core:execution-policy:1.0.0", mode: "vibe",
+    managedSelections: [{ id: "ai-context", scope: "project", members: ids }],
+    selections: configured.map(item => ({ ...item.selection, id: item.provenance.itemId,
+      managementId: item.provenance.itemId, scope: "project",
+      requires: set.requiresBySelectionId[item.provenance.itemId] })) };
+};
+const contextControls = { logging: "off", materialRoots: installed.materialRoots };
+const prepareApply = async (policy, project) => {
+  const prepared = await prepare({ useCase: "policy", policy, target: { project } }, contextControls);
+  assert.equal(prepared.status, "ready", JSON.stringify(prepared.diagnostics));
+  const applied = await apply(prepared.prepared, { approved: true, origin: "automation",
+    reviewDigest: prepared.review.reviewDigest }, contextControls);
+  assert.equal(applied.completion, "complete", JSON.stringify(applied.diagnostics));
+  assert(applied.checks.every(check => check.status === "passed"));
+  return applied;
+};
+const clients = ["aihq.client.claude", "aihq.client.codex", "aihq.client.opencode"];
+const read = (path) => readFileSync(path, "utf8");
+const contextProject = join(dirname(fileURLToPath(import.meta.url)), "context");
+mkdirSync(contextProject);
+const userClaude = "# My own notes\\n\\nKeep this hand-written line.\\n";
+writeFileSync(join(contextProject, "CLAUDE.md"), userClaude);
+
+await prepareApply(contextPolicy(contextIds(clients)), contextProject);
+const merged = read(join(contextProject, "CLAUDE.md"));
+assert(merged.includes("Keep this hand-written line."), "User text outside the markers is preserved");
+assert(merged.indexOf("Keep this hand-written line.") < merged.indexOf("<!-- BEGIN aihq:context:shared -->"));
+assert(read(join(contextProject, "AGENTS.md")).includes("<!-- BEGIN aihq:context:shared -->"));
+for (const name of ["claude", "codex", "opencode"])
+  assert(existsSync(join(contextProject, "ai-coding/adapters", name + ".md")), name + " adapter note");
+const router = getItem(checked.release, "aihq.project-context").item.materials.find(m => m.id === "rule-router");
+assert.equal(sha(readFileSync(join(contextProject, "ai-coding/RULE_ROUTER.md"))), router.sha256);
+
+// Deselect codex explicitly: its adapter note is pruned while the shared
+// AGENTS.md entry stays for the remaining opencode selection.
+await prepareApply(contextPolicy(contextIds(["aihq.client.claude", "aihq.client.opencode"])), contextProject);
+assert.equal(existsSync(join(contextProject, "ai-coding/adapters/codex.md")), false, "codex note pruned");
+assert(existsSync(join(contextProject, "ai-coding/adapters/opencode.md")), "opencode note retained");
+assert(read(join(contextProject, "AGENTS.md")).includes("<!-- BEGIN aihq:context:shared -->"), "shared AGENTS.md block retained");
+assert(read(join(contextProject, "CLAUDE.md")).includes("<!-- BEGIN aihq:context:shared -->"));
+assert(existsSync(join(contextProject, "ai-coding/RULE_ROUTER.md")), "shared context retained");
+
+// Deselect the whole family through an explicitly empty managed set: owned
+// members are removed marker-precisely; user text and custody survive.
+const emptyPolicy = { schema: "urn:aihq:core:execution-policy:1.0.0", mode: "vibe", selections: [],
+  managedSelections: [{ id: "ai-context", scope: "project", members: [] }] };
+await prepareApply(emptyPolicy, contextProject);
+const stripped = read(join(contextProject, "CLAUDE.md"));
+assert(stripped.includes("Keep this hand-written line."), "Hand-written text survives full deselection");
+assert(!stripped.includes("aihq:context:shared"), "The managed block is subtracted");
+const agentsPath = join(contextProject, "AGENTS.md");
+assert(!existsSync(agentsPath) || !read(agentsPath).includes("aihq:context:shared"), "AGENTS.md block removed");
+assert.equal(existsSync(join(contextProject, "ai-coding/RULE_ROUTER.md")), false, "context files pruned");
+assert.equal(existsSync(join(contextProject, "ai-coding/adapters/claude.md")), false, "adapter notes pruned");
+
+// A differing pre-existing unowned block is a conflict, never an implicit adoption.
+const conflictProject = join(dirname(fileURLToPath(import.meta.url)), "conflict");
+mkdirSync(conflictProject);
+const expectedBlock = merged.slice(merged.indexOf("<!-- BEGIN aihq:context:shared -->"));
+const edited = userClaude + "\\n" + expectedBlock.replace("## Working agreement", "## Edited by hand");
+writeFileSync(join(conflictProject, "CLAUDE.md"), edited);
+const conflict = await prepare({ useCase: "policy", policy: contextPolicy(contextIds(clients)),
+  target: { project: conflictProject } }, contextControls);
+assert.notEqual(conflict.status, "ready", "An edited managed block cannot prepare as ready");
+assert.equal(read(join(conflictProject, "CLAUDE.md")), edited, "Edited content is preserved");
+
+// A previously saved client dependency retains shared members even when neither
+// the client nor its dependencies are reselected during another set's cleanup.
+const savedProject = join(dirname(fileURLToPath(import.meta.url)), "saved-dependency");
+mkdirSync(savedProject);
+const sharedIds = contextIds(["aihq.client.codex", "aihq.client.opencode"]);
+const sharedPolicy = contextPolicy(sharedIds);
+const splitPolicy = { ...sharedPolicy, managedSelections: [
+  { id: "codex-set", scope: "project", members: sharedIds.filter(id => id !== "aihq.client.opencode") },
+  { id: "opencode-set", scope: "project", members: ["aihq.client.opencode"] },
+] };
+await prepareApply(splitPolicy, savedProject);
+const savedAgents = read(join(savedProject, "AGENTS.md"));
+const savedRouter = read(join(savedProject, "ai-coding/RULE_ROUTER.md"));
+const removeCodex = { ...emptyPolicy,
+  managedSelections: [{ id: "codex-set", scope: "project", members: [] }] };
+await prepareApply(removeCodex, savedProject);
+assert.equal(existsSync(join(savedProject, "ai-coding/adapters/codex.md")), false);
+assert(existsSync(join(savedProject, "ai-coding/adapters/opencode.md")));
+assert.equal(read(join(savedProject, "AGENTS.md")), savedAgents);
+assert.equal(read(join(savedProject, "ai-coding/RULE_ROUTER.md")), savedRouter);
+await prepareApply({ ...removeCodex, managedSelections: [
+  ...removeCodex.managedSelections, { id: "opencode-set", scope: "project", members: [] },
+] }, savedProject);
+assert.equal(existsSync(join(savedProject, "ai-coding/RULE_ROUTER.md")), false);
+const savedAgentsPath = join(savedProject, "AGENTS.md");
+assert(!existsSync(savedAgentsPath) || !read(savedAgentsPath).includes("aihq:context:shared"));
+
+// Matching unowned blocks/files remain unowned and survive managed cleanup.
+const unownedProject = join(dirname(fileURLToPath(import.meta.url)), "matching-unowned");
+mkdirSync(join(unownedProject, "ai-coding"), { recursive: true });
+writeFileSync(join(unownedProject, "AGENTS.md"), savedAgents);
+writeFileSync(join(unownedProject, "ai-coding/RULE_ROUTER.md"), savedRouter);
+const unownedReview = await prepare({ useCase: "policy", policy: sharedPolicy,
+  target: { project: unownedProject } }, contextControls);
+assert.equal(unownedReview.status, "ready", JSON.stringify(unownedReview.diagnostics));
+for (const destination of ["AGENTS.md", "RULE_ROUTER.md"]) {
+  const operation = unownedReview.review.operations.find(op => op.details.target.endsWith(destination));
+  assert.equal(operation?.ownership, "unowned", JSON.stringify(operation));
+  assert.equal(operation?.effects, "already-satisfied", JSON.stringify(operation));
+}
+await prepareApply(sharedPolicy, unownedProject);
+await prepareApply(emptyPolicy, unownedProject);
+assert.equal(read(join(unownedProject, "AGENTS.md")), savedAgents);
+assert.equal(read(join(unownedProject, "ai-coding/RULE_ROUTER.md")), savedRouter);
+
+// Actual ownership precedes the edit: both update and cleanup expose conflicts
+// for changed owned blocks/files and preserve the edited bytes.
+for (const [name, member] of [["block", "AGENTS.md"], ["file", "ai-coding/RULE_ROUTER.md"]]) {
+  const driftProject = join(dirname(fileURLToPath(import.meta.url)), "owned-drift-" + name);
+  mkdirSync(driftProject);
+  await prepareApply(sharedPolicy, driftProject);
+  const target = join(driftProject, member);
+  const original = read(target);
+  const changed = original.replace(name === "block" ? "## Working agreement" : "# AI Rule Router",
+    "# User edited guidance");
+  assert.notEqual(changed, original);
+  writeFileSync(target, changed);
+  for (const policy of [sharedPolicy, emptyPolicy]) {
+    const review = await prepare({ useCase: "policy", policy, target: { project: driftProject } }, contextControls);
+    assert.notEqual(review.status, "ready", JSON.stringify(review.diagnostics));
+    assert(review.review.operations.some(op => op.effects === "conflict"), JSON.stringify(review.diagnostics));
+    assert.equal(read(target), changed);
+  }
+}
+
 console.log(JSON.stringify({ releaseSha256: expectedSha256, publicImports: true,
-  dependencyMapping: true, defaultOrigin: "default", sameClosure: true, staleMaterialRejected: true, results }));
+  dependencyMapping: true, defaultOrigin: "default", sameClosure: true, staleMaterialRejected: true,
+  contextLifecycle: { clientsSelected: clients.length, deselectionRetainedShared: true,
+    pruneMarkerPrecise: true, unownedBlockConflict: true, savedDependencyRetention: true,
+    matchingUnownedPreserved: true, ownedBlockAndFileDriftPreserved: true }, results }));
 `);
   const result = JSON.parse(execFileSync(process.execPath, [join(consumer, "consume.mjs"), catalogTarball], {
-    cwd: consumer, env: environment, encoding: "utf8", timeout: 120_000,
+    cwd: consumer, env: environment, encoding: "utf8", timeout: 300_000,
     maxBuffer: 8 * 1024 * 1024,
   }));
   console.log(JSON.stringify({ ...result, coreSha256, catalogSha256 }, null, 2));
