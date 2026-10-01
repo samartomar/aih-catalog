@@ -14,8 +14,8 @@ import { refuse } from "./errors.js";
 /**
  * Identity of a measured workspace. A cold measurement copies exactly the bytes of one
  * commit (never the live tree), so the commit it records is the code it ran. A retained
- * measurement is only meaningful for the same workspace, so it re-derives that identity
- * and refuses on any difference before claiming anything.
+ * measurement rechecks committed and built bytes plus npm's hidden lock metadata.
+ * Individual installed dependency files are not hashed.
  */
 export interface WorkspaceSnapshot {
   readonly schema: "aihq-catalog-workspace-snapshot";
@@ -29,7 +29,7 @@ export interface WorkspaceSnapshot {
   /** sha256 over commit, tree and every committed path with its digest. */
   readonly snapshotSha256: string;
   readonly dist?: { readonly sha256: string; readonly files: number };
-  /** sha256 of npm's hidden lockfile describing what is actually installed. */
+  /** sha256 of npm's hidden lockfile; does not verify individual installed files. */
   readonly installedSha256?: string;
 }
 
@@ -179,7 +179,7 @@ export function hashDirectory(dir: string): { sha256: string; files: number } {
   return { sha256: sha(lines.join("\n")), files: lines.length };
 }
 
-/** Adds what the cold run built and installed to the snapshot. */
+/** Adds build bytes and installed-dependency lock metadata to the snapshot. */
 export function withBuild(snapshot: WorkspaceSnapshot, workspace: string): WorkspaceSnapshot {
   const hidden = join(workspace, "node_modules", ".package-lock.json");
   if (!existsSync(hidden) || !existsSync(join(workspace, "dist"))) {
@@ -213,7 +213,7 @@ export function readSnapshot(workspace: string): WorkspaceSnapshot {
 
 /**
  * Compares a workspace with its recorded snapshot: the same committed bytes, no extra
- * files, the same build output and the same installed dependencies. Returns problems
+ * files, the same build output and installed-dependency lock metadata. Returns problems
  * rather than throwing so the caller can name them all before refusing.
  */
 export function verifyWorkspace(workspace: string, snapshot: WorkspaceSnapshot): string[] {

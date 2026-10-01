@@ -67,7 +67,7 @@ implementation commit; the product's committed `release/` is unchanged.
 | Run | Detected-delta-to-ready | Queue counted | Result |
 | --- | --- | --- | --- |
 | Cold install: fresh workspace, dependencies and build | 174.778 s | 149816 ms | ready; all applicable checks and packed Core handoff passed |
-| Retained workspace: source/build/dependencies reverified | 18.069 s | 1008 ms | ready; identical packed artifact |
+| Retained workspace: source/build/installed lock metadata reverified | 18.069 s | 1008 ms | ready; identical packed artifact |
 
 Both runs are below the 3,600-second ceiling. The cold clock also includes two failed
 harness starts (a missing bootstrap dependency, then timestamp formatting) and their
@@ -89,7 +89,8 @@ version allocation, distribution to users, signed candidate or npm publication.
 A separate real GitHub fetch of the existing pinned source at
 `c55ee46073ed923f86ce59a5eb3b6d895095d1b7` completed in 12.963 s
 (cold, source-cache miss) and 4.278 s (retained, source-cache hit).
-Repository API identity was verified in both runs. Both reproduced the committed
+The cold run verified repository API identity; the retained hit reused that earlier
+verification without another API request. Both reproduced the committed
 release byte for byte; this was a fetch/cache check with no content delta.
 
 Committed-head verification: `npm run verify` with the reviewed Core artifact supplied

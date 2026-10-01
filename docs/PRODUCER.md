@@ -133,8 +133,9 @@ rule: public read, explicit dependency selection, prepare/apply in disposable ro
 refusal after selected material changes. It reports `NOT RUN` when nothing is selectable.
 No sibling checkout or lock is read.
 
-**What the fetch proves.** The GitHub API is asked whether the declared repository is
-still served as itself, and the fetch must return exactly the pinned commit id, whose
+**What the fetch proves.** On a cache miss, the GitHub API is asked whether the declared
+repository is still served as itself. A cache hit reuses that earlier identity check;
+it does not make a fresh API request. The fetch must return exactly the pinned commit id, whose
 objects are content-addressed. That identifies the commit's bytes; it does not prove the
 commit belongs to the declared repository's own history, because GitHub serves objects
 across a repository's fork network for a bare commit id. Review the pin like any other
@@ -174,11 +175,14 @@ node tools/measure-candidate.mjs --condition retained-cache --commit <sha> --wor
 
 A cold run requires clean tracked files and copies exactly the bytes committed at `HEAD`
 (never the live tree or untracked files), then records the commit, tree, a digest of every
-committed file, the manifest and lock digests, the build-output digest and the installed
-dependency digest. A retained run first re-derives all of that from the workspace and
-refuses (exit 2, naming each difference) if any tracked file changed, a file appeared or
-vanished, the build output or installed dependencies differ, or the record is missing; it
-then measures that same code. Only `--core-artifact`, `--source-git-dir` (with
+committed file, the manifest and lock digests, the build-output digest and the digest of
+npm's hidden `node_modules/.package-lock.json`. A retained run rechecks these recorded
+values and refuses (exit 2, naming each difference) if a committed file changed, a file
+appeared or vanished outside `dist` and `node_modules`, the build output or hidden lock
+metadata changed, or the record is missing. Individual installed dependency files are
+not hashed: changes to them that leave the hidden lock unchanged are not detected.
+Use a cold run when the retained dependency installation may have been modified.
+Only `--core-artifact`, `--source-git-dir` (with
 `--allow-unverified-origin`), `--declaration`, `--source`, `--advance-provenance` and
 `--simulate-delay` may follow `--`; the root, output, cache, condition, pin, detection time
 and apply belong to the measurement and are refused there.

@@ -30,7 +30,7 @@ import type { SourceTree } from "./tree.js";
 export interface AcquiredTree extends SourceTree {
   readonly cache?: "hit" | "miss";
   readonly attempts?: number;
-  /** True only when the repository identity was verified against GitHub in this run. */
+  /** Repository identity was verified against GitHub on this fetch or the cached fetch. */
   readonly originVerified: boolean;
 }
 
