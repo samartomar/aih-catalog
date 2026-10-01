@@ -12,6 +12,7 @@ import {
 import { tmpdir } from "node:os";
 import { basename, isAbsolute, join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { seedConsumerLock } from "../tools/seed-consumer-lock.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const read = (path: string) => readFileSync(resolve(root, path), "utf8").replace(/\r\n/g, "\n");
@@ -73,7 +74,7 @@ describe("Catalog migration boundary", () => {
       rmSync(fixture, { recursive: true, force: true });
     }
   });
-  it("packs actual donor bytes and reads verified content in a disposable installed consumer", () => {
+  it("packs public release bytes and reads verified material in a disposable installed consumer", () => {
     const fixture = mkdtempSync(join(tmpdir(), "aih-catalog-packed-migration-"));
     const npm = npmCli();
     try {
@@ -90,13 +91,21 @@ describe("Catalog migration boundary", () => {
       );
       const [packed] = JSON.parse(raw) as Array<{
         filename: string;
-        files: Array<{ path: string }>;
+        files: Array<{ path: string; mode: number }>;
       }>;
       if (!packed) throw new Error("npm pack produced no artifact");
       const paths = packed.files.map(({ path }) => path);
       expect(paths).toContain("LICENSE");
-      expect(paths).toContain("dist/index.js");
-      expect(paths).toContain("defaults/catalog-index-v1.json");
+      expect(paths).toContain("dist/release/contracts.js");
+      expect(paths).toContain("dist/release/reader.js");
+      expect(paths).toContain("dist/release/node.js");
+      expect(paths).toContain("release/release.json");
+      expect(paths).toContain("schemas/release/1.0.0.json");
+      expect(paths.length).toBeLessThanOrEqual(4096);
+      expect(manifest().bin).toBeUndefined();
+      expect(paths).not.toContain("dist/cli.js");
+      expect(paths).not.toContain("defaults/catalog-index-v1.json");
+      for (const file of packed.files) expect(file.mode & 0o111, file.path).toBe(0);
       for (const path of paths) {
         expect(path, path).not.toMatch(
           /^(?:ai-coding|tools|tests|docs|\.git|\.codex|\.serena|\.code-review-graph|\.codebase-memory|catalog)\//u,
@@ -107,6 +116,7 @@ describe("Catalog migration boundary", () => {
       const tarball = join(fixture, packed.filename);
       const originalHash = hash(readFileSync(tarball));
       const consumer = join(fixture, "consumer");
+      seedConsumerLock(consumer, root);
       execFileSync(
         process.execPath,
         [
@@ -138,12 +148,16 @@ describe("Catalog migration boundary", () => {
         'import { readFileSync } from "node:fs";',
         'import { dirname } from "node:path";',
         'import { fileURLToPath } from "node:url";',
-        'import { readCatalogContentV1 } from "@aihq/catalog";',
+        'import { createHash } from "node:crypto";',
+        'import { readRelease, listItems } from "@aihq/catalog/reader";',
+        'import { readInstalledRelease } from "@aihq/catalog/node";',
         'const packageRoot = dirname(fileURLToPath(import.meta.resolve("@aihq/catalog/package.json")));',
-        'const bytes = readFileSync(fileURLToPath(import.meta.resolve("@aihq/catalog/catalog-index.json")));',
-        "const content = readCatalogContentV1({bytes, input:{root:packageRoot,verifyArtifacts:true}});",
-        'if (!content || content.status.artifacts !== "verified" || content.entries.length === 0) throw new Error("packed donor content failed verification");',
-        "process.stdout.write(JSON.stringify({structure:content.status.structure,artifacts:content.status.artifacts,entries:content.entries.length}));",
+        'const bytes = readFileSync(fileURLToPath(import.meta.resolve("@aihq/catalog/release.json")));',
+        'const expectedSha256 = createHash("sha256").update(bytes).digest("hex");',
+        "const content = readRelease(bytes,{expectedSha256});",
+        "const installed = await readInstalledRelease({root:packageRoot});",
+        'if (!content.valid || !installed.valid) throw new Error("packed release failed verification: " + JSON.stringify(installed.diagnostics));',
+        "process.stdout.write(JSON.stringify({valid:content.valid,installed:installed.valid,items:listItems(content.release).length}));",
       ].join("\n");
       writeFileSync(join(consumer, "inspect.mjs"), script);
       const inspected = JSON.parse(
@@ -154,8 +168,8 @@ describe("Catalog migration boundary", () => {
           timeout: 60_000,
         }),
       );
-      expect(inspected).toMatchObject({ structure: "valid", artifacts: "verified" });
-      expect(inspected.entries).toBeGreaterThan(0);
+      expect(inspected).toMatchObject({ valid: true, installed: true });
+      expect(inspected.items).toBeGreaterThan(0);
       expect(readFileSync(join(installed, "LICENSE"), "utf8")).toContain("Apache License");
     } finally {
       rmSync(fixture, { recursive: true, force: true });

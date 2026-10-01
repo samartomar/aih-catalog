@@ -1,7 +1,7 @@
 {
   "name": "@aihq/catalog",
   "version": "0.3.0",
-  "description": "Catalog material and producer migration workspace; publication blocked.",
+  "description": "Canonical Catalog content, pinned material and generic executable recipes; publication blocked during migration.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/samartomar/aih-catalog.git"
@@ -23,32 +23,25 @@
   },
   "license": "Apache-2.0",
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+    "./contracts": {
+      "types": "./dist/release/contracts.d.ts",
+      "import": "./dist/release/contracts.js"
     },
-    "./catalog-index.json": "./defaults/catalog-index-v1.json",
-    "./catalog-collections.json": "./defaults/catalog-collections-v1.json",
-    "./catalog-presentation.json": "./defaults/catalog-presentation-v1.json",
-    "./catalog-qualification.json": "./defaults/catalog-qualification-v1.json",
-    "./signed-catalog.json": "./defaults/signed-catalog-v2.json",
-    "./catalog-categories.json": "./defaults/catalog-categories-v1.json",
-    "./catalog-runtime-descriptors.json": "./defaults/catalog-runtime-descriptors-v1.json",
-    "./catalog-authoring-bundle.json": "./defaults/catalog-authoring-bundle-v1.json",
-    "./catalog-core-qualification.json": "./defaults/catalog-core-qualification-v1.json",
-    "./catalog-scanner-evidence.json": "./defaults/catalog-scanner-evidence-v1.json",
-    "./catalog-scanner-providers.json": "./defaults/catalog-scanner-providers-v1.json",
-    "./catalog-public-baseline.json": "./defaults/catalog-public-baseline-v1.json",
-    "./catalog-framework-ecc.json": "./defaults/catalog-framework-ecc-v1.json",
-    "./catalog-framework-superpowers.json": "./defaults/catalog-framework-superpowers-v1.json",
-    "./catalog-framework-plugins.json": "./defaults/catalog-framework-plugins-v1.json",
+    "./reader": {
+      "types": "./dist/release/reader.d.ts",
+      "import": "./dist/release/reader.js"
+    },
+    "./node": {
+      "types": "./dist/release/node.d.ts",
+      "import": "./dist/release/node.js"
+    },
+    "./release.json": "./release/release.json",
+    "./schemas/release/1.0.0.json": "./schemas/release/1.0.0.json",
     "./package.json": "./package.json"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=24.15.0 <25"
   },
   "scripts": {
     "build": "npm run build:dist",
@@ -77,7 +70,8 @@
     "generate:catalog-runtime-descriptors": "node tools/generate-catalog-runtime-descriptors.mjs",
     "prepublishOnly": "node tools/refuse-publication.mjs",
     "test:historical": "vitest run --config vitest.config.ts",
-    "check:materials": "node tools/check-not-candidate.mjs && node tools/generate-catalog-index.mjs --check && node tools/generate-catalog-collections.mjs --check && node tools/generate-catalog-presentation.mjs --check && node tools/generate-catalog-categories.mjs --check && node tools/generate-catalog-runtime-descriptors.mjs --check",
+    "generate:release": "node tools/generate-release.mjs",
+    "check:materials": "node tools/check-not-candidate.mjs && node tools/generate-release.mjs --check && node tools/generate-catalog-index.mjs --check && node tools/generate-catalog-collections.mjs --check && node tools/generate-catalog-presentation.mjs --check && node tools/generate-catalog-categories.mjs --check && node tools/generate-catalog-runtime-descriptors.mjs --check",
     "historical:verify:core-v2-lock": "node tools/verify-core-v2-lock.mjs",
     "historical:verify:cold-external-admin": "node tools/verify-cold-external-admin.mjs",
     "historical:verify:default-evidence-chain": "vitest run tests/supported/default-evidence-chain.test.ts",
@@ -87,20 +81,20 @@
     "@biomejs/biome": "2.5.1",
     "@types/node": "26.1.1",
     "@vitest/coverage-v8": "4.1.11",
-    "ajv": "8.20.0",
     "typescript": "7.0.2",
     "vitest": "4.1.11"
   },
-  "dependencies": {},
-  "bin": {
-    "aih-supported": "dist/cli.js"
+  "dependencies": {
+    "ajv": "8.20.0",
+    "jsonc-parser": "3.3.1"
   },
   "files": [
-    "dist",
-    "!dist/production/**",
-    "dist/production/source-data-v1.*",
-    "defaults",
-    "README.md"
+    "dist/release",
+    "release",
+    "schemas/release",
+    "schemas/core-recipe",
+    "README.md",
+    "CHANGELOG.md"
   ],
   "private": true
 }

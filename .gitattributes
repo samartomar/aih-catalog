@@ -2,3 +2,4 @@
 *.png binary
 *.ico binary
 defaults/sources/** -text
+release/materials/** -text

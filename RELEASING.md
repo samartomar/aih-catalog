@@ -6,8 +6,8 @@ private to npm and its publication lifecycle refuses unconditionally. The old
 tag publication, signed-Catalog and sibling-promotion workflows are retired.
 
 Maintainers may compile and pack migration bytes for inspection with scripts
-disabled, then test them in disposable consumers. This is not a release candidate
-and does not certify the pending release, reader or recipe interfaces.
+disabled, then test them in disposable consumers. Packing alone does not satisfy
+the transition completion criteria or authorize publication.
 
 When a reviewed implementation satisfies the transition completion criteria,
 establish independent Catalog release checks and an explicitly authorized path.

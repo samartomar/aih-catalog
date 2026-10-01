@@ -86,11 +86,11 @@ function syntheticIndex(overrides: Record<string, unknown> = {}): {
 }
 
 describe("Catalog public content reader", () => {
-  it("exposes the published index through a stable subpath export", () => {
+  it("keeps the donor index path while its legacy subpath is no longer packed", () => {
     const packageJson = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8")) as {
       exports: Record<string, unknown>;
     };
-    expect(packageJson.exports["./catalog-index.json"]).toBe("./defaults/catalog-index-v1.json");
+    expect(packageJson.exports["./catalog-index.json"]).toBeUndefined();
     expect(CATALOG_CONTENT_INDEX_SUBPATH_V1).toBe("./catalog-index.json");
     // The subpath target is the exact file this reader validates.
     expect(resolve(root, CATALOG_CONTENT_INDEX_ROOT_URL)).toBe(
