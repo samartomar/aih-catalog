@@ -107,6 +107,43 @@ describe("aihq.project-context item", () => {
     expect(block).toContain("author requires stopping");
   });
 
+  it("routes every client to shared author-owned project guidance without managing that file", () => {
+    const block = contextMaterial("shared-block").text;
+    const router = contextMaterial("rule-router").text;
+    expect(block).toContain("`ai-coding/PROJECT.md`");
+    expect(router).toContain("`ai-coding/PROJECT.md`");
+    expect(router).toContain("author-owned");
+    const release = carried();
+    for (const item of listItems(release)) {
+      expect(item.materials.some((material) => material.path.endsWith("/PROJECT.md"))).toBe(false);
+      const recipe = JSON.parse(textAt(item.recipe.path));
+      for (const operation of recipe.operations) {
+        expect(
+          operation.target?.segments?.some(
+            (segment: { literal?: string }) => segment.literal === "PROJECT.md",
+          ),
+        ).not.toBe(true);
+      }
+    }
+  });
+
+  it("keeps the retained principle order aligned in compact and long-form guidance", () => {
+    const block = contextMaterial("shared-block").text;
+    const core = contextMaterial("behavior-core").text;
+    expect([...block.matchAll(/^- \*\*(.+?)\*\*/gm)].map((match) => match[1])).toEqual([
+      "Think before coding",
+      "Simplicity first",
+      "Surgical changes",
+      "Goal-driven",
+    ]);
+    expect([...core.matchAll(/^## \d+\. (.+)$/gm)].map((match) => match[1])).toEqual([
+      "Think before coding",
+      "Simplicity first",
+      "Surgical changes",
+      "Goal-driven execution",
+    ]);
+  });
+
   it("keeps retired engine and vendor routes out of every context file", () => {
     for (const id of ["rule-router", "shared-block", "behavior-core"]) {
       const { path, text } = contextMaterial(id);

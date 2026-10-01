@@ -1,11 +1,18 @@
 # Shared project context and native client entries
 
 Catalog carries the shared project AI context and the supported clients' native
-entry pointers as ordinary selectable content. Users maintain the context once
-under `ai-coding/`; each selected client receives its native entry file and
+entry pointers as ordinary selectable content. Authors maintain their own coding
+practices, project guidelines and tool-use rules once in `ai-coding/PROJECT.md`;
+each selected client receives its native entry file and
 adapter note through the same generic Core recipes, ownership and lifecycle
 contracts as every other item. Client filenames, marker text, frontmatter and
 human guidance live in this supplied content — never in the Core engine.
+
+`ai-coding/PROJECT.md` is an optional author-owned file. The router and inline
+entry guidance point to it, but no Catalog recipe creates, updates, adopts or
+removes it. Authors create and edit it directly and may link further project
+documents from it. The supplied router, shared templates and adapters remain
+managed content; author guidance survives their updates and complete removal.
 
 ## Item model
 
@@ -75,6 +82,8 @@ of these against exact packed bytes with public `prepare`/`apply`. It checks bot
 reselection and persisted dependencies from an omitted managed set, matching
 unowned blocks/files surviving cleanup, and install-then-edit conflicts on both
 update and removal. A differing pre-existing unowned block is checked separately.
+The same scenario edits `PROJECT.md` after installation, then verifies those
+author bytes survive a managed update and complete deselection.
 
 ## Delivery is not native loading
 
@@ -88,7 +97,7 @@ packed Catalog material through public Catalog and Core APIs:
 | Surface | Observation | Limit |
 | --- | --- | --- |
 | Codex CLI 0.159.3, `debug prompt-input` | The exact delivered `AGENTS.md` entry and inline shared essentials appeared in native prompt composition. No model request was made. | The fuller `RULE_ROUTER.md` bytes did not appear; the pointer is not a verified native import. |
-| Claude Code 2.1.285, fresh Sonnet session with Read only | The agent read the delivered `CLAUDE.md`, then the router; an observed Read returned a unique verification token added only to the disposable router copy, and the answer matched. | Model-followed reading only. No `InstructionsLoaded` event was observed, so native startup composition or transitive import is not established. |
+| Claude Code 2.1.285, fresh Sonnet session with Read only | An observed Read returned a unique verification token from the disposable author-owned `PROJECT.md`, and the answer matched. The delivered entry and router pointed to that file without edits to their managed bytes. | Model-followed reading only. No `InstructionsLoaded` event was observed, so native startup composition or transitive import is not established. |
 | Other nine baseline clients | Entry templates, activation bytes and explicit selection dependencies are covered by the content tests. | Native loading remains unverified. |
 
 The probes isolated ambient project instructions and left the applied source
@@ -111,7 +120,8 @@ that exact commit (clean checkout). Only the affected behavior is mapped.
 | `canon.ts` — `bootloaderPreamble`; `src/internals/markers.ts` — `mergeManagedBlock`/`stripManagedBlock` | Adapt: marker-fenced shared block delivered through generic Core `text.block` (Core owns merge/subtract and custody). Preamble moves inside the managed block because Core creates only the block on a new file. Marker renamed `aihq:context:shared`. Cursor/Kiro files become canon-owned `file.write` because activation frontmatter must lead the file. | Pointer item recipes | Pointer tests; packed Core consumer lifecycle scenario (merge, subtract, retention, conflict) |
 | `src/bootstrap-ai/index.ts` — plan orchestration, drift/presence/lint probes, `.aih-config.json` intent, Kiro hook extras | Drop: engine planning, drift gates, lint and hook execution are retired-engine runtime behavior. Core `prepare`/`apply` and recipe `file.sha256` checks cover verification; hook execution is out of content scope. | — | Existing suite stays green without them |
 | `src/internals/cli-detect.ts`, `baseline-sources.ts`, `canon-mode.ts`, org-policy coupling in the bootstrap plan | Drop: host detection, vendor baselines and governance wiring are engine concerns, not supplied content. | — | — |
-| `tests/bootstrap-ai/generated-output-consistency.test.ts` | Adapt the carried assertions: invariant drift guard, adapter delta shape, registry-derived reader list, no hand-edit invitations in regenerated files. | `tests/release/context-content.test.ts` | Same-named tests run in `npm test` |
+| `tests/bootstrap-ai/generated-output-consistency.test.ts` — invariant/discipline rendering and reader list | Adapt invariant equality, retained principle order across compact/long forms, registry-derived entry labels and adapter entry/loading/router fields. | `tests/release/context-content.test.ts` | Focused output regressions in `npm test` |
+| Same donor test — compact adapter delta and generated empty-state command prose | Drop the six-line/no-Boundaries/required-Baseline shape: vendor baselines are removed and adapters now disclose loading limits. Drop the empty-state `aih` regeneration-command expectation with that retired engine. Managed templates instead direct changes through selections, while `PROJECT.md` is explicitly author-owned. | Qualified adapter notes and shared author-guidance route | Retired-route absence, adapter fields/loading disclaimer and unmanaged author-path checks; packed consumer preserves author edits |
 | `tests/bootstrap-ai/canon-must-map.test.ts` + the donor control matrix | Drop: the MUST-map policed the donor's own control matrix. No separate context contract matrix is reintroduced. | — | — |
 | `tests/bootstrap-ai/bootstrap-ai.test.ts`, `fleet-regeneration.test.ts`, `lint.test.ts` | Drop with the retired engine command; the replacement seams are Core's generic lifecycle tests plus the packed consumer scenario here. | — | `tools/verify-core-consumer.mjs` output |
 

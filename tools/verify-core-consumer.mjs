@@ -200,6 +200,9 @@ const clients = ["aihq.client.claude", "aihq.client.codex", "aihq.client.opencod
 const read = (path) => readFileSync(path, "utf8");
 const contextProject = join(dirname(fileURLToPath(import.meta.url)), "context");
 mkdirSync(contextProject);
+mkdirSync(join(contextProject, "ai-coding"));
+const authorPath = join(contextProject, "ai-coding/PROJECT.md");
+writeFileSync(authorPath, "# Project guidance\\nUse the repository's documented test command.\\n");
 const userClaude = "# My own notes\\n\\nKeep this hand-written line.\\n";
 writeFileSync(join(contextProject, "CLAUDE.md"), userClaude);
 
@@ -212,6 +215,12 @@ for (const name of ["claude", "codex", "opencode"])
   assert(existsSync(join(contextProject, "ai-coding/adapters", name + ".md")), name + " adapter note");
 const router = getItem(checked.release, "aihq.project-context").item.materials.find(m => m.id === "rule-router");
 assert.equal(sha(readFileSync(join(contextProject, "ai-coding/RULE_ROUTER.md"))), router.sha256);
+
+// Authors edit their shared guidance once, outside Catalog's managed members.
+const authorEdited = "# Project guidance\\nUse the focused package checks first.\\n";
+writeFileSync(authorPath, authorEdited);
+await prepareApply(contextPolicy(contextIds(clients)), contextProject);
+assert.equal(read(authorPath), authorEdited, "Author edits survive a managed update");
 
 // Deselect codex explicitly: its adapter note is pruned while the shared
 // AGENTS.md entry stays for the remaining opencode selection.
@@ -234,6 +243,7 @@ const agentsPath = join(contextProject, "AGENTS.md");
 assert(!existsSync(agentsPath) || !read(agentsPath).includes("aihq:context:shared"), "AGENTS.md block removed");
 assert.equal(existsSync(join(contextProject, "ai-coding/RULE_ROUTER.md")), false, "context files pruned");
 assert.equal(existsSync(join(contextProject, "ai-coding/adapters/claude.md")), false, "adapter notes pruned");
+assert.equal(read(authorPath), authorEdited, "Author guidance survives full managed cleanup");
 
 // A differing pre-existing unowned block is a conflict, never an implicit adoption.
 const conflictProject = join(dirname(fileURLToPath(import.meta.url)), "conflict");
@@ -244,6 +254,7 @@ writeFileSync(join(conflictProject, "CLAUDE.md"), edited);
 const conflict = await prepare({ useCase: "policy", policy: contextPolicy(contextIds(clients)),
   target: { project: conflictProject } }, contextControls);
 assert.notEqual(conflict.status, "ready", "An edited managed block cannot prepare as ready");
+assert(conflict.review.operations.some(op => op.effects === "conflict"), JSON.stringify(conflict.diagnostics));
 assert.equal(read(join(conflictProject, "CLAUDE.md")), edited, "Edited content is preserved");
 
 // A previously saved client dependency retains shared members even when neither
@@ -315,7 +326,8 @@ console.log(JSON.stringify({ releaseSha256: expectedSha256, publicImports: true,
   dependencyMapping: true, defaultOrigin: "default", sameClosure: true, staleMaterialRejected: true,
   contextLifecycle: { clientsSelected: clients.length, deselectionRetainedShared: true,
     pruneMarkerPrecise: true, unownedBlockConflict: true, savedDependencyRetention: true,
-    matchingUnownedPreserved: true, ownedBlockAndFileDriftPreserved: true }, results }));
+    matchingUnownedPreserved: true, ownedBlockAndFileDriftPreserved: true,
+    authorGuidancePreserved: true }, results }));
 `);
   const result = JSON.parse(execFileSync(process.execPath, [join(consumer, "consume.mjs"), catalogTarball], {
     cwd: consumer, env: environment, encoding: "utf8", timeout: 300_000,

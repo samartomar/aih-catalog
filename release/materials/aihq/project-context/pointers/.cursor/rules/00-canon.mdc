@@ -17,6 +17,10 @@ Read `ai-coding/RULE_ROUTER.md` first — this repo's routing entry point. Load
 only task-relevant rules, then verify against repo evidence (PR diff, files, tests,
 schemas, CI) — never model memory or local notes.
 
+Read `ai-coding/PROJECT.md` when present for author-owned project guidance.
+Authors maintain coding practices, project guidelines and tool-use rules there
+once for every selected client; Catalog never writes or removes that file.
+
 Full working discipline: `ai-coding/rules/agent-behavior-core.md`. Read it before
 any non-trivial change; the essentials are inline below.
 
