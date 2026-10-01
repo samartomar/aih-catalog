@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Carry the shared project AI context and native client entry pointers as
+  selectable content: `aihq.project-context` (router, shared canonical block and
+  behavior core under `ai-coding/`), seven entry-file pointer items and eleven
+  per-client adapter items for the supported client baseline, using generic
+  recipes, explicit dependencies and Core ownership/prune semantics. Delivery is
+  documented as distinct from native client loading. See docs/CONTEXT-CONTENT.md.
 - Add the targeted content producer: pin one upstream commit, regenerate only the
   affected items and their dependents, carry unaffected records, member bytes and
   provenance over unchanged, and report provenance-only changes separately.

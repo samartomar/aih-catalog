@@ -201,7 +201,7 @@ describe("tools/check-release.mjs and the donor generator guard", () => {
     expect(result.stdout).toContain("FAIL member-bytes");
   });
 
-  it("does not fail the donor equality check once a candidate has advanced release/", () => {
+  it("rejects missing authored context even when the upstream pin advances", () => {
     const dir = join(scratch, "advanced");
     mkdirSync(join(dir, "src/production/data"), { recursive: true });
     mkdirSync(join(dir, "release"), { recursive: true });
@@ -209,11 +209,14 @@ describe("tools/check-release.mjs and the donor generator guard", () => {
       join(dir, "src/production/data/mattpocock.snapshot.json"),
       JSON.stringify({ upstream: { pin: "c55ee46073ed923f86ce59a5eb3b6d895095d1b7" } }),
     );
-    const advanced = JSON.stringify({ sources: [{ origin: { revision: "d".repeat(40) } }] });
+    const advanced = JSON.stringify({
+      sources: [{ origin: { kind: "git", revision: "d".repeat(40) } }],
+    });
     writeFileSync(join(dir, "release/release.json"), advanced);
     const result = node(["tools/generate-release.mjs", "--check", dir]);
-    expect(result.status, result.stderr).toBe(0);
-    expect(result.stdout).toContain("advanced beyond the donor snapshot");
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("authored context records are stale");
+    expect(readFileSync(join(dir, "release/release.json"), "utf8")).toBe(advanced);
     // Unchanged for the committed release: still compared against the donor inputs.
     expect(sha256(readFileSync(join(root, "release/release.json")))).toMatch(/^[0-9a-f]{64}$/);
     expect(node(["tools/generate-release.mjs", "--check"]).stdout).toContain(

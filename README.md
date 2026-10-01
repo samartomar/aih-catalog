@@ -56,6 +56,12 @@ Select required items explicitly, then call `validateSelectionSet` and copy its
 `requiresBySelectionId` into your Core policy. Catalog never installs dependencies
 or silently selects optional suggestions. See [the execution example](docs/CATALOG-CONTENT.md#explicit-dependencies-and-core-handoff).
 
+The `aihq.project-context` family supplies shared project AI context
+(`ai-coding/`), native entry pointers and adapter notes for the supported
+client baseline as ordinary selectable items with the same contracts; see
+[the context content contract](docs/CONTEXT-CONTENT.md). Delivering a client
+entry file does not prove the client loads it.
+
 ## Prepare a content candidate
 
 ```sh

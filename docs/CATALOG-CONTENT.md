@@ -35,6 +35,10 @@ dependency mapping emits unique policy selection IDs.
 
 Publication remains blocked until the remaining producer and release completion criteria are met. The maintainer owns candidate allocation and release activation; this interface delivery does not allocate a new per-ticket version or run signing/publication.
 
+## Carried content
+
+Two Matt Pocock skills carry complete executable recipes with pinned upstream material. The `aihq.project-context` family carries the shared project AI context (`ai-coding/` router, shared canonical block and behavior core), seven native client entry pointers and eleven per-client adapter notes as ordinary selectable items with explicit `requires` dependencies — see [the context content contract](CONTEXT-CONTENT.md) for the item model, deselection/preservation semantics, the delivery-versus-loading boundary and the donor migration mapping.
+
 ## Explicit dependencies and Core handoff
 
 The host supplies an explicitly chosen installed package root. Sensitive inputs,

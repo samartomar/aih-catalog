@@ -12,6 +12,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { buildCandidate } from "../../src/producer/candidate.js";
 import { ProducerRefusal } from "../../src/producer/errors.js";
 import { installCandidate, readReleaseDirectory } from "../../src/producer/install.js";
 import { checkCandidateFiles } from "../../src/producer/integrity.js";
@@ -23,7 +24,17 @@ import {
   verifyPacked,
 } from "../../src/producer/package.js";
 import { AUTHORED_SOURCE, emptyRelease, HETEROGENEOUS, withAuthoredItems } from "./authored.js";
-import { committedRelease, makePackageRoot, packageIdentity, root, sha256 } from "./helpers.js";
+import {
+  committedRelease,
+  declaration,
+  makePackageRoot,
+  memoryTree,
+  PINNED_REVISION,
+  packageIdentity,
+  pinnedUpstreamFiles,
+  root,
+  sha256,
+} from "./helpers.js";
 
 const identity = packageIdentity();
 const manifest = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as {
@@ -54,6 +65,12 @@ const check = (result: { checks: readonly { name: string }[] }, name: string) =>
   result.checks.find((c) => c.name === name) as
     | { name: string; ok: boolean; detail?: string; status?: string }
     | undefined;
+const selectedContextDetail = `selected ${[
+  "aihq.client.antigravity",
+  "aihq.project-context-pointer.gemini-md",
+  "aihq.project-context",
+  "aihq.project-context-pointer.agents-md",
+].join(" + ")}`;
 
 describe("packed candidate", () => {
   const files = committedRelease();
@@ -92,8 +109,8 @@ describe("packed candidate", () => {
       ok: true,
       status: "passed",
     });
-    expect(check(outcome.result, "reader-selection-smoke")?.detail).toContain(
-      "mattpocock.grill-me + mattpocock.grilling",
+    expect(check(outcome.result, "reader-selection-smoke")?.detail?.split(";")[0]).toBe(
+      selectedContextDetail,
     );
   });
 
@@ -212,7 +229,7 @@ describe("bounded selection with realistic mixed content", () => {
     const smoke = check(result, "reader-selection-smoke");
     expect(smoke).toMatchObject({ ok: true, status: "passed" });
     // The scenario is deterministic: the first viable item that has an explicit required closure.
-    expect(smoke?.detail).toContain("selected mattpocock.grill-me + mattpocock.grilling");
+    expect(smoke?.detail?.split(";")[0]).toBe(selectedContextDetail);
     expect(smoke?.detail).toContain("1 configuration-required");
     expect(smoke?.detail).toContain("1 conflicting");
   }, 240_000);
@@ -331,13 +348,41 @@ describe.skipIf(!process.env.AIH_CORE_ARTIFACT)("optional Core handoff over mixe
       selected?: string[];
       staleMaterialRejected?: boolean;
       configurationRequired?: number;
+      defaultOrigin?: string;
+      defaultInputsChecked?: number;
+      contextLifecycle?: { status: string };
     };
 
   it("selects the bounded scenario although other valid items need configuration or conflict", async () => {
     const { artifact } = await packAndVerify(withAuthoredItems(committedRelease(), HETEROGENEOUS));
     const result = handoff(artifact.tarball);
     expect(result).toMatchObject({ status: "passed", staleMaterialRejected: true });
+    expect(result.selected).toEqual([
+      "aihq.client.antigravity",
+      "aihq.project-context-pointer.agents-md",
+      "aihq.project-context-pointer.gemini-md",
+      "aihq.project-context",
+    ]);
+    expect(result.defaultOrigin).toBe("not-applicable");
+    expect(result.contextLifecycle?.status).toBe("passed");
+  }, 400_000);
+
+  it("retains skill default-origin coverage and skips absent context for an upstream-only candidate", async () => {
+    const files = buildCandidate({
+      declaration: declaration(),
+      tree: memoryTree(PINNED_REVISION, pinnedUpstreamFiles()),
+      package: identity,
+    }).files;
+    const { artifact } = await packAndVerify(files);
+    const result = handoff(artifact.tarball);
+    expect(result).toMatchObject({
+      status: "passed",
+      defaultOrigin: "default",
+      staleMaterialRejected: true,
+    });
     expect(result.selected).toEqual(["mattpocock.grill-me", "mattpocock.grilling"]);
+    expect(result.defaultInputsChecked).toBeGreaterThan(0);
+    expect(result.contextLifecycle?.status).toBe("not-run");
   }, 400_000);
 
   it("reports NOT RUN, not a pass, when nothing is selectable with defaults", async () => {

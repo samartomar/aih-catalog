@@ -43,10 +43,11 @@ describe("carried release", () => {
     expect(output).toContain("Checked release/release.json");
   });
 
-  it("describes the containing package and the pinned upstream source", () => {
+  it("describes the containing package and the pinned upstream sources", () => {
     const release = carried();
     expect(release.package).toEqual({ name: pkg.name, version: pkg.version });
     expect(release.sources).toEqual([
+      { id: "aihq-project-context", origin: { kind: "authored" } },
       {
         id: "mattpocock-skills",
         origin: {
@@ -56,7 +57,11 @@ describe("carried release", () => {
         },
       },
     ]);
-    expect(listItems(release).map((item) => [item.id, item.dependencies.requires])).toEqual([
+    expect(
+      listItems(release)
+        .filter((item) => item.id.startsWith("mattpocock."))
+        .map((item) => [item.id, item.dependencies.requires]),
+    ).toEqual([
       ["mattpocock.grill-me", [{ itemId: "mattpocock.grilling" }]],
       ["mattpocock.grilling", []],
     ]);
@@ -64,9 +69,9 @@ describe("carried release", () => {
 
   it("carries the exact upstream bytes named by the donor assessment closures", () => {
     const members = Object.fromEntries(
-      listItems(carried()).flatMap((item) =>
-        item.materials.map((m) => [`${item.id}/${m.id}`, m.sha256]),
-      ),
+      listItems(carried())
+        .filter((item) => item.id.startsWith("mattpocock."))
+        .flatMap((item) => item.materials.map((m) => [`${item.id}/${m.id}`, m.sha256])),
     );
     expect(members).toEqual({
       "mattpocock.grill-me/license": MIT_LICENSE_SHA256,
