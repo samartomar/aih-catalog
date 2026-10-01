@@ -37,7 +37,7 @@ Publication remains blocked until the remaining producer and release completion 
 
 ## Carried content
 
-Two Matt Pocock skills carry complete executable recipes with pinned upstream material. The `aihq.project-context` family carries the shared project AI context (`ai-coding/` router, shared canonical block and behavior core), seven native client entry pointers and eleven per-client adapter notes as ordinary selectable items with explicit `requires` dependencies — see [the context content contract](docs/CONTEXT-CONTENT.md) for the item model, deselection/preservation semantics, the delivery-versus-loading boundary and the donor migration mapping.
+Two Matt Pocock skills carry complete executable recipes with pinned upstream material. The `aihq.project-context` family carries the shared project AI context (`ai-coding/` router, shared canonical block and behavior core), seven native client entry pointers and eleven per-client adapter notes as ordinary selectable items with explicit `requires` dependencies — see [the context content contract](CONTEXT-CONTENT.md) for the item model, deselection/preservation semantics, the delivery-versus-loading boundary and the donor migration mapping.
 
 ## Explicit dependencies and Core handoff
 

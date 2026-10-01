@@ -124,6 +124,18 @@ const literalTarget = (segments) => ({
   segments: segments.map((segment) => ({ literal: segment })),
 });
 
+function registerContextRecipe(put, itemId, bytes) {
+  const path = `${OUTPUT_ROOT}/recipes/${itemId}.json`;
+  put(path, bytes);
+  return {
+    id: itemId,
+    schema: "urn:aihq:core:recipe:1.0.0",
+    path,
+    sha256: sha256(bytes),
+    byteLength: bytes.length,
+  };
+}
+
 /**
  * The shared project-context item and its family: one file.write per pinned
  * context document, each with a file.sha256 check. Returns the item record and
@@ -177,8 +189,7 @@ function contextItem(put) {
       sha256: member.sha256,
     })),
   });
-  const recipePath = `${OUTPUT_ROOT}/recipes/${CONTEXT_ITEM_ID}.json`;
-  put(recipePath, recipeBytes);
+  const recipeReference = registerContextRecipe(put, CONTEXT_ITEM_ID, recipeBytes);
   return {
     id: CONTEXT_ITEM_ID,
     label: "Shared project AI context",
@@ -188,13 +199,7 @@ function contextItem(put) {
     targets: [],
     scopes: ["project"],
     inputs: {},
-    recipe: {
-      id: CONTEXT_ITEM_ID,
-      schema: "urn:aihq:core:recipe:1.0.0",
-      path: recipePath,
-      sha256: sha256(recipeBytes),
-      byteLength: recipeBytes.length,
-    },
+    recipe: recipeReference,
     materials: materials.map(({ id, path, sha256: hash, byteLength }) => ({
       id,
       path,
@@ -283,8 +288,7 @@ function pointerItems(put) {
       };
     }
     const recipeBytes = document(recipe);
-    const recipePath = `${OUTPUT_ROOT}/recipes/${itemId}.json`;
-    put(recipePath, recipeBytes);
+    const recipeReference = registerContextRecipe(put, itemId, recipeBytes);
     return {
       id: itemId,
       label: pointer.label,
@@ -294,13 +298,7 @@ function pointerItems(put) {
       targets: [],
       scopes: ["project"],
       inputs: {},
-      recipe: {
-        id: itemId,
-        schema: "urn:aihq:core:recipe:1.0.0",
-        path: recipePath,
-        sha256: sha256(recipeBytes),
-        byteLength: recipeBytes.length,
-      },
+      recipe: recipeReference,
       materials,
       dependencies: { requires: [{ itemId: CONTEXT_ITEM_ID }], optional: [], conflicts: [] },
       metadata: { adaptedFrom: DONOR_PROVENANCE },
@@ -351,8 +349,7 @@ function clientItems(put) {
         },
       ],
     });
-    const recipePath = `${OUTPUT_ROOT}/recipes/${itemId}.json`;
-    put(recipePath, recipeBytes);
+    const recipeReference = registerContextRecipe(put, itemId, recipeBytes);
     return {
       id: itemId,
       label: `${client.label} context wiring`,
@@ -362,13 +359,7 @@ function clientItems(put) {
       targets: [],
       scopes: ["project"],
       inputs: {},
-      recipe: {
-        id: itemId,
-        schema: "urn:aihq:core:recipe:1.0.0",
-        path: recipePath,
-        sha256: sha256(recipeBytes),
-        byteLength: recipeBytes.length,
-      },
+      recipe: recipeReference,
       materials,
       dependencies: {
         requires: client.pointers.map((key) => ({ itemId: `aihq.project-context-pointer.${key}` })),
