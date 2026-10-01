@@ -25,10 +25,12 @@ function decimalIdentity(token: string): string {
   if (!match) throw new TypeError("recipe number grammar");
   const digits = `${match[2]}${match[3] ?? ""}`.replace(/^0+/, "");
   if (!digits) return `${match[1]}0`;
-  const trailingZeros = /0+$/.exec(digits)?.[0].length ?? 0;
+  let end = digits.length;
+  while (digits.charCodeAt(end - 1) === 0x30) end -= 1;
+  const trailingZeros = digits.length - end;
   const power = Number(match[4] ?? 0) - (match[3]?.length ?? 0) + trailingZeros;
   if (!Number.isSafeInteger(power)) throw new TypeError("recipe number exponent");
-  return `${match[1]}${digits.slice(0, digits.length - trailingZeros)}e${power}`;
+  return `${match[1]}${digits.slice(0, end)}e${power}`;
 }
 
 /** Core permits ordinary JSON spacing; strict admission preserves keys and number values. */
