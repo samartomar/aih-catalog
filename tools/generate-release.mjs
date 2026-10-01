@@ -29,6 +29,11 @@ import {
  * files, qualification, Scan or Workbench. Nothing is fetched or executed.
  *
  *   node tools/generate-release.mjs [--check] [catalog-root]
+ *
+ * This is the seed generator for the carried donor snapshot. Once a targeted candidate
+ * (tools/prepare-candidate.mjs) has advanced release/ beyond that snapshot, `--check`
+ * checks the authored context separately and defers upstream integrity to
+ * tools/check-release.mjs instead of restoring the older upstream snapshot.
  */
 export const OUTPUT_ROOT = "release";
 export const RELEASE_PATH = "release/release.json";
@@ -371,6 +376,29 @@ function clientItems(put) {
   });
 }
 
+function contextFamily(put) {
+  return [contextItem(put), ...pointerItems(put), ...clientItems(put)]
+    .sort((a, b) => compare(a.id, b.id));
+}
+
+/** Authored content remains reproducible independently of the upstream pin. */
+function checkContextContent(root) {
+  const files = new Map();
+  const expected = contextFamily((path, bytes) => files.set(path, bytes));
+  const release = readJson(root, RELEASE_PATH);
+  const actual = (release.items ?? [])
+    .filter((item) => item.sourceIds?.includes(CONTEXT_SOURCE_ID))
+    .sort((a, b) => compare(a.id, b.id));
+  if (canonical(actual) !== canonical(expected)) fail("authored context records are stale");
+  const source = (release.sources ?? []).find((item) => item.id === CONTEXT_SOURCE_ID);
+  if (canonical(source) !== canonical({ id: CONTEXT_SOURCE_ID, origin: { kind: "authored" } })) {
+    fail("authored context source is stale");
+  }
+  for (const [path, bytes] of files) {
+    if (!readFileSync(resolve(root, path)).equals(bytes)) fail(`${path} is stale`);
+  }
+}
+
 const target = (name, file) => ({
   root: "project",
   segments: [{ input: "agentDirectory" }, { literal: "skills" }, { literal: name }, { literal: file }],
@@ -407,6 +435,21 @@ function recipeFor(item, origin, materials) {
       sha256: materials.find((member) => member.id === step.material).sha256,
     })),
   };
+}
+
+/** True when the committed release no longer comes solely from the donor snapshot pin. */
+export function advancedBeyondSnapshot(root) {
+  let release;
+  try {
+    release = readJson(root, RELEASE_PATH);
+  } catch {
+    return false;
+  }
+  const pin = readJson(root, SNAPSHOT).upstream?.pin;
+  const revisions = new Set((release.sources ?? [])
+    .filter((source) => source.origin?.kind === "git")
+    .map((source) => source.origin.revision));
+  return revisions.size !== 1 || !revisions.has(pin);
 }
 
 /** Returns every output file (package-relative path → bytes), the release document last. */
@@ -467,9 +510,7 @@ export function generateRelease(root) {
   }).sort((a, b) => compare(a.id, b.id));
   const items = [
     ...mattpocockItems,
-    contextItem(put),
-    ...pointerItems(put),
-    ...clientItems(put),
+    ...contextFamily(put),
   ].sort((a, b) => compare(a.id, b.id));
   const release = {
     schema: "urn:aihq:catalog:release:1.0.0",
@@ -514,6 +555,11 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       fail("usage: node tools/generate-release.mjs [--check] [catalog-root]");
     }
     const root = resolve(args[0] ?? resolve(dirname(fileURLToPath(import.meta.url)), ".."));
+    if (check && advancedBeyondSnapshot(root)) {
+      checkContextContent(root);
+      console.log("Checked authored context; upstream release advanced beyond the donor snapshot. Run npm run check:release.");
+      process.exit(0);
+    }
     const files = generateRelease(root);
     const stale = existingFiles(root).filter((path) => !files.has(path));
     if (check) {

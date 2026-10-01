@@ -4,10 +4,11 @@ Catalog carries canonical content, pinned source material and generic executable
 recipes. Read and select content through portable APIs, acquire explicit package
 material through the Node adapter, then hand the selected recipes to Core.
 
-**Publication remains blocked during migration.** These interfaces are implemented
-for packed consumer checks; selective producer refresh and release activation are
+**Publication remains blocked during migration.** These interfaces and the targeted
+candidate producer are implemented for packed consumer checks; release activation is
 still pending. See [the transition](docs/TRANSITION.md) for status,
 [the content contract](docs/CATALOG-CONTENT.md) for integrity and execution boundaries,
+[the producer guide](docs/PRODUCER.md) for preparing candidates,
 and [CONTRIBUTING.md](CONTRIBUTING.md) for contributor checks.
 
 ## Public entries
@@ -61,6 +62,20 @@ client baseline as ordinary selectable items with the same contracts; see
 [the context content contract](docs/CONTEXT-CONTENT.md). Delivering a client
 entry file does not prove the client loads it.
 
+## Prepare a content candidate
+
+```sh
+npm run build:dist
+node tools/prepare-candidate.mjs --commit <full upstream commit>
+```
+
+A maintainer pins one upstream commit; the producer fetches it, regenerates only the
+affected items and their real dependents, carries everything else over byte for byte,
+checks and packs the complete result and writes a review page and a timing summary.
+It does not wait for Scan, allocate a version or publish. Without `--apply` it is a
+dry run. See [the producer guide](docs/PRODUCER.md) and
+[its migration evidence](docs/PRODUCER-MIGRATION.md).
+
 ## Verify packed consumers
 
 ```sh
@@ -73,7 +88,8 @@ The consumer check packs Catalog, installs those exact Catalog and Core artifact
 with lifecycle scripts disabled, and runs public prepare/apply in disposable roots.
 It checks local/archive identity, explicit dependencies, default origin, applied
 material hashes and refusal after selected material changes. Supply a reviewed Core
-artifact; the check does not choose a moving registry version.
+artifact; the check does not choose a moving registry version. Pass a prepared Catalog tarball as a second argument to check that exact
+candidate instead of packing this checkout.
 
 For a real browser check, pack Catalog and run
 `node tools/verify-portable-browser.mjs /absolute/path/to/catalog.tgz`.

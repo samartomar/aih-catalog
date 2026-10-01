@@ -1,6 +1,7 @@
 import { defineConfig } from "vitest/config";
 
-// Reviewed donor checks plus the release contract tests under tests/release.
+// Reviewed donor checks plus the release contract tests under tests/release and the
+// targeted producer tests under tests/producer.
 export default defineConfig({
   test: {
     environment: "node",
@@ -23,6 +24,7 @@ export default defineConfig({
       "tests/supported/upstream-producers.test.ts",
       "tests/supported/production-generators.test.ts",
       "tests/release/**/*.test.ts",
+      "tests/producer/**/*.test.ts",
     ],
   },
 });

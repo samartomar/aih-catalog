@@ -85,6 +85,15 @@ update and removal. A differing pre-existing unowned block is checked separately
 The same scenario edits `PROJECT.md` after installation, then verifies those
 author bytes survive a managed update and complete deselection.
 
+The consumer derives its initial scenario from the supplied release. It runs the
+context lifecycle cases only when that release contains their required client
+items, so an upstream-only candidate remains checkable. Default input origin is
+checked when the selected closure has defaults; a separate skill-only regression
+retains that coverage. Targeted upstream refreshes preserve these authored items,
+their source record and member bytes. The seed check continues to validate the
+authored context after the upstream pin advances; the whole-package check handles
+the updated upstream material.
+
 ## Delivery is not native loading
 
 These items deliver files. Loading behavior is client-version and surface

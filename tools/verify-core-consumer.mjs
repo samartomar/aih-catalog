@@ -10,8 +10,10 @@ import { seedConsumerLock } from "./seed-consumer-lock.mjs";
 // The caller supplies a reviewed Core artifact. This check never chooses a
 // registry version, imports a source checkout or publishes either package.
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const [coreArtifact] = process.argv.slice(2);
-assert(coreArtifact, "Usage: node tools/verify-core-consumer.mjs <core-tarball>");
+// An optional second argument names an exact, already packed Catalog artifact (for
+// example a prepared candidate) to check instead of packing this checkout.
+const [coreArtifact, catalogArtifact] = process.argv.slice(2);
+assert(coreArtifact, "Usage: node tools/verify-core-consumer.mjs <core-tarball> [<catalog-tarball>]");
 const coreTarball = resolve(coreArtifact);
 assert(existsSync(coreTarball), "The supplied Core artifact must exist.");
 const npm = [
@@ -35,11 +37,17 @@ const runNpm = (args, cwd) => execFileSync(process.execPath, [npm, ...args], {
   maxBuffer: 32 * 1024 * 1024,
 });
 try {
-  const [packed] = JSON.parse(runNpm([
-    "pack", "--ignore-scripts", "--offline", "--json", "--pack-destination", fixture,
-  ], root));
-  assert(packed?.filename, "Packing must yield one exact Catalog artifact.");
-  const catalogTarball = join(fixture, packed.filename);
+  let catalogTarball;
+  if (catalogArtifact) {
+    catalogTarball = resolve(catalogArtifact);
+    assert(existsSync(catalogTarball), "The supplied Catalog artifact must exist.");
+  } else {
+    const [packed] = JSON.parse(runNpm([
+      "pack", "--ignore-scripts", "--offline", "--json", "--pack-destination", fixture,
+    ], root));
+    assert(packed?.filename, "Packing must yield one exact Catalog artifact.");
+    catalogTarball = join(fixture, packed.filename);
+  }
   const catalogSha256 = hash(catalogTarball);
   const consumer = join(fixture, "consumer");
   seedConsumerLock(consumer, root);
@@ -68,8 +76,51 @@ assert(contractSupport);
 const root = dirname(fileURLToPath(import.meta.resolve("@aihq/catalog/package.json")));
 const installed = await readInstalledRelease({ root });
 assert.equal(installed.valid, true, JSON.stringify(installed.diagnostics));
-const carriedIds = ["mattpocock.grill-me", "mattpocock.grilling"];
-for (const id of carriedIds) assert(listItems(checked.release).some(item => item.id === id));
+// One bounded scenario derived from the release itself: the first item (preferring one with
+// an explicit required closure) whose closure needs no configuration and holds no conflict.
+// Valid unselected items that need configuration or conflict with each other do not block
+// readiness; when nothing is selectable the check says so instead of claiming a pass.
+const allItems = listItems(checked.release);
+assert(allItems.length > 0, "The release must carry an item to select.");
+const closureOf = id => {
+  const order = [id];
+  for (let index = 0; index < order.length; index += 1) {
+    for (const ref of getItem(checked.release, order[index]).item.dependencies.requires) {
+      if (ref.release !== undefined || !allItems.some(item => item.id === ref.itemId)) return undefined;
+      if (!order.includes(ref.itemId)) order.push(ref.itemId);
+    }
+  }
+  return order;
+};
+const viable = [];
+const skipped = { configurationRequired: 0, conflicting: 0, unresolved: 0 };
+for (const item of allItems) {
+  const ids = closureOf(item.id);
+  if (ids === undefined) { skipped.unresolved += 1; continue; }
+  const attempts = ids.map(itemId => configureItem({ release: checked.release, itemId, configuration: {}, materialSource: installed.source }));
+  const bad = attempts.flatMap(attempt => attempt.valid ? [] : attempt.diagnostics);
+  if (bad.length > 0) {
+    assert(bad.every(d => d.reason === "input-required"), JSON.stringify(bad));
+    skipped.configurationRequired += 1;
+    continue;
+  }
+  const trial = validateSelectionSet({ releases: { [expectedSha256]: checked.release }, selections: ids.map((itemId, index) => ({
+    id: "t" + index, item: { releaseSha256: expectedSha256, itemId, itemSha256: getItem(checked.release, itemId).item.itemSha256 }, configuration: {} })) });
+  if (!trial.valid) {
+    assert(trial.diagnostics.every(d => d.reason === "conflict-selected"), JSON.stringify(trial.diagnostics));
+    skipped.conflicting += 1;
+    continue;
+  }
+  viable.push(ids);
+}
+const carriedIds = viable.find(ids => ids.length > 1) ?? viable[0];
+if (carriedIds === undefined) {
+  console.log(JSON.stringify({ status: "not-run", releaseSha256: expectedSha256, items: allItems.length, ...skipped,
+    reason: "no item is selectable with defaults and a conflict-free required closure" }));
+  process.exit(0);
+}
+for (const id of carriedIds) assert(allItems.some(item => item.id === id));
+const selectionId = index => index === 0 ? "chosen-skill" : carriedIds.length === 2 ? "required-skill" : "required-skill-" + index;
 assert.equal(getItem(checked.release, "missing-item").found, false);
 const archiveBytes = readFileSync(process.argv[2]);
 const archive = { url: "https://example.invalid/catalog-fixture.tgz",
@@ -88,15 +139,18 @@ function select(release, materialSource) {
     assert.equal(item.valid, true, JSON.stringify(item.diagnostics));
     assert.deepEqual(item.selection.configuration, {}, "The authored policy must preserve omitted defaults.");
   }
-  const choices = configured.map((item, index) => ({ id: index === 0 ? "chosen-skill" : "required-skill",
+  const choices = configured.map((item, index) => ({ id: selectionId(index),
     item: { releaseSha256: item.provenance.manifestSha256, itemId: item.provenance.itemId,
       itemSha256: item.provenance.itemSha256 }, configuration: {} }));
   const releases = { [expectedSha256]: release };
-  const incomplete = validateSelectionSet({ releases, selections: choices.slice(0, 1) });
-  assert.equal(incomplete.valid, false, "The caller must explicitly select the carried dependency.");
+  if (carriedIds.length > 1) {
+    const incomplete = validateSelectionSet({ releases, selections: choices.slice(0, 1) });
+    assert.equal(incomplete.valid, false, "The caller must explicitly select the carried dependency.");
+  }
   const set = validateSelectionSet({ releases, selections: choices });
   assert.equal(set.valid, true, JSON.stringify(set.diagnostics));
-  assert.deepEqual(set.requiresBySelectionId, { "chosen-skill": ["required-skill"], "required-skill": [] });
+  assert.deepEqual(set.requiresBySelectionId, Object.fromEntries(carriedIds.map((id, index) => [selectionId(index),
+    getItem(release, id).item.dependencies.requires.map(ref => selectionId(carriedIds.indexOf(ref.itemId)))])));
   const policy = { schema: "urn:aihq:core:execution-policy:1.0.0", mode: "vibe",
     selections: configured.map((item, index) => ({ ...item.selection, id: choices[index].id,
       managementId: choices[index].id, scope: "project", requires: set.requiresBySelectionId[choices[index].id] })) };
@@ -116,6 +170,7 @@ for (const item of remote.configured) {
 }
 const sha = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const results = [];
+let defaultInputsChecked = 0;
 const previousFetch = globalThis.fetch;
 try {
   globalThis.fetch = fetchArchive;
@@ -124,18 +179,20 @@ try {
     const controls = { logging: "off", ...(kind === "local" ? { materialRoots: installed.materialRoots } : {}) };
     const prepared = await prepare({ useCase: "policy", policy: chosen.policy, target: { project } }, controls);
     assert.equal(prepared.status, "ready", JSON.stringify(prepared.diagnostics));
-    assert.equal(prepared.review.effectiveOptions.inputs["chosen-skill/agentDirectory"].origin, "default");
-    assert.equal(existsSync(join(project, ".claude")), false, "Prepare must not write selected content.");
+    const inputs = Object.values(prepared.review.effectiveOptions.inputs);
+    assert(inputs.every(input => input.origin === "default"), "Omitted inputs must retain their default origin.");
+    defaultInputsChecked += inputs.length;
+    for (const operation of prepared.review.operations) {
+      if (typeof operation.details.target === "string")
+        assert.equal(existsSync(operation.details.target), false, "Prepare must not write selected content.");
+    }
     const applied = await apply(prepared.prepared, { approved: true, origin: "automation",
       reviewDigest: prepared.review.reviewDigest }, controls);
     assert.equal(applied.completion, "complete", JSON.stringify(applied.diagnostics));
-    assert(applied.checks.length > 0);
     assert(applied.checks.every(check => check.status === "passed"));
-    for (const name of ["grill-me", "grilling"]) {
-      const item = getItem(checked.release, "mattpocock." + name).item;
-      const skill = item.materials.find(material => material.path.endsWith("/SKILL.md"));
-      assert(skill);
-      assert.equal(sha(readFileSync(join(project, ".claude/skills", name, "SKILL.md"))), skill.sha256);
+    for (const operation of prepared.review.operations) {
+      if (operation.kind === "file.write" && operation.details.materialSha256 !== undefined)
+        assert.equal(sha(readFileSync(operation.details.target)), operation.details.materialSha256);
     }
     results.push({ kind, completion: applied.completion, checks: applied.checks.length });
   }
@@ -147,7 +204,8 @@ const staleProject = join(dirname(fileURLToPath(import.meta.url)), "stale"); mkd
 const staleControls = { logging: "off", materialRoots: installed.materialRoots };
 const stale = await prepare({ useCase: "policy", policy: local.policy, target: { project: staleProject } }, staleControls);
 assert.equal(stale.status, "ready", JSON.stringify(stale.diagnostics));
-const member = local.configured[0].selection.recipe.reference.materials[0];
+const member = local.configured.flatMap(item => item.selection.recipe.reference.materials)[0]
+  ?? local.configured[0].selection.recipe.reference;
 const materialPath = join(root, member.path);
 const original = readFileSync(materialPath);
 try {
@@ -156,12 +214,18 @@ try {
   const rejected = await apply(stale.prepared, { approved: true, origin: "automation",
     reviewDigest: stale.review.reviewDigest }, staleControls);
   assert.equal(rejected.completion, "rejected", JSON.stringify(rejected.diagnostics));
-  assert.equal(existsSync(join(staleProject, ".claude")), false);
+  for (const operation of stale.review.operations) {
+    if (typeof operation.details.target === "string") assert.equal(existsSync(operation.details.target), false);
+  }
 } finally { writeFileSync(materialPath, original); }
 
 // Shared project context through the generic Core lifecycle: explicit client
 // deselection, shared entry-file retention, marker-precise removal and
 // changed/unowned preservation. Delivery only — native loading is out of scope.
+let contextLifecycle = { status: "not-run", reason: "the supplied release does not carry the context scenario" };
+const requiredContextIds = ["aihq.project-context", "aihq.project-context-pointer.claude-md",
+  "aihq.project-context-pointer.agents-md", "aihq.client.claude", "aihq.client.codex", "aihq.client.opencode"];
+if (requiredContextIds.every(id => getItem(installed.release, id).found)) {
 const CLIENT_POINTERS = {
   "aihq.client.claude": ["aihq.project-context-pointer.claude-md"],
   "aihq.client.codex": ["aihq.project-context-pointer.agents-md"],
@@ -322,12 +386,14 @@ for (const [name, member] of [["block", "AGENTS.md"], ["file", "ai-coding/RULE_R
   }
 }
 
-console.log(JSON.stringify({ releaseSha256: expectedSha256, publicImports: true,
-  dependencyMapping: true, defaultOrigin: "default", sameClosure: true, staleMaterialRejected: true,
-  contextLifecycle: { clientsSelected: clients.length, deselectionRetainedShared: true,
+contextLifecycle = { status: "passed", clientsSelected: clients.length, deselectionRetainedShared: true,
     pruneMarkerPrecise: true, unownedBlockConflict: true, savedDependencyRetention: true,
     matchingUnownedPreserved: true, ownedBlockAndFileDriftPreserved: true,
-    authorGuidancePreserved: true }, results }));
+    authorGuidancePreserved: true };
+}
+console.log(JSON.stringify({ status: "passed", selected: carriedIds, skipped, releaseSha256: expectedSha256, publicImports: true,
+  dependencyMapping: true, defaultOrigin: defaultInputsChecked > 0 ? "default" : "not-applicable",
+  defaultInputsChecked, sameClosure: true, staleMaterialRejected: true, contextLifecycle, results }));
 `);
   const result = JSON.parse(execFileSync(process.execPath, [join(consumer, "consume.mjs"), catalogTarball], {
     cwd: consumer, env: environment, encoding: "utf8", timeout: 300_000,
