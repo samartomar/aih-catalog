@@ -76,11 +76,12 @@ const cacheDir = resolve(options["cache-dir"] ?? join(dirname(workspace), `${bas
 const sourceRoot = resolve(options["source-root"] ?? root);
 
 const producer = (file) => import(`${new URL(`../dist/producer/${file}`, import.meta.url)}`);
-const [timing, packaging, snapshots, { ProducerRefusal }] = await Promise.all([
+const [timing, packaging, snapshots, { ProducerRefusal }, paths] = await Promise.all([
   producer("timing.js"),
   producer("package.js"),
   producer("snapshot.js"),
   producer("errors.js"),
+  producer("paths.js"),
 ]).catch((error) => {
   console.error(`measure-candidate: build the package first (npm run build:dist): ${error.message}`);
   process.exit(2);
@@ -102,6 +103,15 @@ const guard = (action) => {
 };
 
 // Validate everything that could make the numbers meaningless before the clock starts.
+guard(() => {
+  paths.assertFreshOutput({ sourceRoot, outDir: out });
+  paths.assertFreshOutput({ sourceRoot: workspace, outDir: out });
+  paths.assertDisjoint(
+    { label: "the measurement output", path: out },
+    { label: "the source cache", path: cacheDir },
+    "out-overlap",
+  );
+});
 let committed;
 let snapshot;
 if (cold) {
@@ -162,6 +172,9 @@ try {
   if (!existsSync(summaryPath)) throw new Error(`preparation wrote no timing summary (exit ${result.status}): ${(result.stderr ?? "").slice(0, 300)}`);
   child = JSON.parse(readFileSync(summaryPath, "utf8"));
   for (const phase of child.phases) recorder.phases.push(phase);
+  if (result.status !== 0 && child.outcome === "ready") {
+    throw new Error(`preparation exited ${result.status} despite a ready summary; refusing to report success`);
+  }
   outcome = child.outcome;
   refusal = child.refusal;
 } catch (error) {

@@ -245,6 +245,22 @@ describe("a cold measurement records the committed code it ran", () => {
     );
     expect(ok.status, ok.stdout + ok.stderr).toBe(0);
   }, 600_000);
+
+  it("refuses an occupied output instead of reporting a previous candidate as a new success", () => {
+    const out = join(scratch, "cold-out");
+    const before = readFileSync(join(out, "measurement-summary.json"));
+    const preparedBefore = readFileSync(join(out, "prepare", "timing-summary.json"));
+    const result = measure(
+      ...common(workspace, out, "retained-cache"),
+      "--cache-dir",
+      cache,
+      ...withUpstream(),
+    );
+    expect(result.status, result.stdout + result.stderr).toBe(2);
+    expect(result.stderr).toContain("out-not-empty");
+    expect(readFileSync(join(out, "measurement-summary.json"))).toEqual(before);
+    expect(readFileSync(join(out, "prepare", "timing-summary.json"))).toEqual(preparedBefore);
+  }, 300_000);
 });
 
 describe("the measurement owns its own options", () => {
