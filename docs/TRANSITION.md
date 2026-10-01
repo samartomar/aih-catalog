@@ -22,8 +22,10 @@ consumer tools exercise public Core prepare/apply and browser imports.
 
 The package ships only the new release entries and their material. Retained root
 exports, legacy JSON payloads and the CLI remain source for migration investigation.
-Selective producer refresh and release activation remain pending; passing these
-interface checks does not qualify the tarball for publication.
+The targeted candidate producer ([docs/PRODUCER.md](PRODUCER.md)) is implemented:
+it prepares, checks and packs a content candidate from an explicit upstream pin
+without Scan. Release activation remains pending; passing these interface checks does
+not qualify the tarball for publication.
 
 The package is marked `private: true`, `prepublishOnly` unconditionally refuses
 publication, and the old publication, Catalog signing and sibling-promotion
@@ -39,7 +41,7 @@ no readiness toggle.
 | --- | --- |
 | Strict JSON, canonical bytes, bounded input, immutable results | Keep integrity checks; adapt the new envelope in its feature work. |
 | Canonical root-relative paths, traversal/symlink refusal, file hashes and missing/changed-byte refusal | Keep donor material checks; replace profile-dependent closure envelopes in generic material feature work. |
-| Exact source identities/pins, fetched-byte verification, producer provenance, preservation of unrelated records | Keep focused offline fixture tests; selective refresh of the new release remains pending. |
+| Exact source identities/pins, fetched-byte verification, producer provenance, preservation of unrelated records | Adapted into `src/producer` for the release format ([migration evidence](PRODUCER-MIGRATION.md)); the donor fixture tests stay as historical checks. |
 | Index/collection/presentation/category/runtime-descriptor generation | Check deterministic donor bytes and metadata; these legacy formats are not the new release contract. |
 | Package identity, license, exclusion of secrets/private tool state, packed bytes and disposable installed content read | Keep focused migration checks; they do not certify pending public entry points. |
 | Core/profile lock checkouts, qualification-reader/receipt chains, signed heads, cold external-admin proof and sibling promotion matrices | Retire as mandatory CI/release conditions. Retain source and historical tests for deliberate extraction or retirement during feature migration. |
@@ -67,8 +69,8 @@ only four assertions for retired package exports changed. The new packed tests
 retain identity, license, byte equality and publication-refusal checks.
 The qualification-only section formerly mixed into `catalog-read-refusals` lives
 in `catalog-qualification-refusals`; all other named-refusal cases stay active.
-The producer tests exercise existing preservation behavior without claiming the
-new selective release producer exists. Locale tests compare regenerated donor
+The donor producer tests still exercise the retained donor transforms; the new
+producer has its own tests under `tests/producer`. Locale tests compare regenerated donor
 bytes across locales without requiring a rebuilt qualification/default payload.
 
 `npm run test:historical` runs retained historical tests for migration investigation.
@@ -82,7 +84,7 @@ likewise do not define the new contract.
 
 Run `npm ci --ignore-scripts`, then `npm run verify`. Verification typechecks and
 lints once, compiles without rewriting committed defaults, checks the carried release
-and retained generated material, runs the active tests once, and checks action pins.
+(including the offline whole-package `check:release`) and retained generated material, runs the active tests once, and checks action pins.
 Read-only CI uses Node 24, audits dependencies and checks whitespace, with one
 20-minute job. The Node adapter declares Node 24.15–24.x; portable entries also
 run in a browser.
@@ -107,7 +109,8 @@ Feature work must implement and demonstrate all of:
 - Selection/configuration and dependencies using the actual recipe inputs,
   including host-only sensitive values; no separate binding framework.
 - Targeted producer refresh preserving unaffected items and provenance, without
-  requiring Scan to release content.
+  requiring Scan to release content. **Implemented** ([docs/PRODUCER.md](PRODUCER.md));
+  elapsed-time measurements are recorded per candidate against the 3,600-second ceiling.
 - A focused public consumer handoff using exact packed bytes and declared runtime:
   one bounded scenario for a changed contract, not a family-wide matrix.
 

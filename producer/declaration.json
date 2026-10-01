@@ -1,0 +1,30 @@
+{
+  "format": "aihq-catalog-producer-declaration",
+  "version": 1,
+  "sources": [
+    {
+      "id": "mattpocock-skills",
+      "repository": "mattpocock/skills",
+      "licensePath": "LICENSE",
+      "license": "MIT"
+    }
+  ],
+  "items": [
+    {
+      "id": "mattpocock.grill-me",
+      "source": "mattpocock-skills",
+      "label": "Grill me",
+      "skillPath": "skills/productivity/grill-me/SKILL.md",
+      "requires": [
+        "mattpocock.grilling"
+      ]
+    },
+    {
+      "id": "mattpocock.grilling",
+      "source": "mattpocock-skills",
+      "label": "Grilling",
+      "skillPath": "skills/productivity/grilling/SKILL.md",
+      "requires": []
+    }
+  ]
+}

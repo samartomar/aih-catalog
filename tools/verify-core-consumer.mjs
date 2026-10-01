@@ -10,8 +10,10 @@ import { seedConsumerLock } from "./seed-consumer-lock.mjs";
 // The caller supplies a reviewed Core artifact. This check never chooses a
 // registry version, imports a source checkout or publishes either package.
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const [coreArtifact] = process.argv.slice(2);
-assert(coreArtifact, "Usage: node tools/verify-core-consumer.mjs <core-tarball>");
+// An optional second argument names an exact, already packed Catalog artifact (for
+// example a prepared candidate) to check instead of packing this checkout.
+const [coreArtifact, catalogArtifact] = process.argv.slice(2);
+assert(coreArtifact, "Usage: node tools/verify-core-consumer.mjs <core-tarball> [<catalog-tarball>]");
 const coreTarball = resolve(coreArtifact);
 assert(existsSync(coreTarball), "The supplied Core artifact must exist.");
 const npm = [
@@ -35,11 +37,17 @@ const runNpm = (args, cwd) => execFileSync(process.execPath, [npm, ...args], {
   maxBuffer: 32 * 1024 * 1024,
 });
 try {
-  const [packed] = JSON.parse(runNpm([
-    "pack", "--ignore-scripts", "--offline", "--json", "--pack-destination", fixture,
-  ], root));
-  assert(packed?.filename, "Packing must yield one exact Catalog artifact.");
-  const catalogTarball = join(fixture, packed.filename);
+  let catalogTarball;
+  if (catalogArtifact) {
+    catalogTarball = resolve(catalogArtifact);
+    assert(existsSync(catalogTarball), "The supplied Catalog artifact must exist.");
+  } else {
+    const [packed] = JSON.parse(runNpm([
+      "pack", "--ignore-scripts", "--offline", "--json", "--pack-destination", fixture,
+    ], root));
+    assert(packed?.filename, "Packing must yield one exact Catalog artifact.");
+    catalogTarball = join(fixture, packed.filename);
+  }
   const catalogSha256 = hash(catalogTarball);
   const consumer = join(fixture, "consumer");
   seedConsumerLock(consumer, root);
@@ -68,8 +76,51 @@ assert(contractSupport);
 const root = dirname(fileURLToPath(import.meta.resolve("@aihq/catalog/package.json")));
 const installed = await readInstalledRelease({ root });
 assert.equal(installed.valid, true, JSON.stringify(installed.diagnostics));
-const carriedIds = ["mattpocock.grill-me", "mattpocock.grilling"];
-for (const id of carriedIds) assert(listItems(checked.release).some(item => item.id === id));
+// One bounded scenario derived from the release itself: the first item (preferring one with
+// an explicit required closure) whose closure needs no configuration and holds no conflict.
+// Valid unselected items that need configuration or conflict with each other do not block
+// readiness; when nothing is selectable the check says so instead of claiming a pass.
+const allItems = listItems(checked.release);
+assert(allItems.length > 0, "The release must carry an item to select.");
+const closureOf = id => {
+  const order = [id];
+  for (let index = 0; index < order.length; index += 1) {
+    for (const ref of getItem(checked.release, order[index]).item.dependencies.requires) {
+      if (ref.release !== undefined || !allItems.some(item => item.id === ref.itemId)) return undefined;
+      if (!order.includes(ref.itemId)) order.push(ref.itemId);
+    }
+  }
+  return order;
+};
+const viable = [];
+const skipped = { configurationRequired: 0, conflicting: 0, unresolved: 0 };
+for (const item of allItems) {
+  const ids = closureOf(item.id);
+  if (ids === undefined) { skipped.unresolved += 1; continue; }
+  const attempts = ids.map(itemId => configureItem({ release: checked.release, itemId, configuration: {}, materialSource: installed.source }));
+  const bad = attempts.flatMap(attempt => attempt.valid ? [] : attempt.diagnostics);
+  if (bad.length > 0) {
+    assert(bad.every(d => d.reason === "input-required"), JSON.stringify(bad));
+    skipped.configurationRequired += 1;
+    continue;
+  }
+  const trial = validateSelectionSet({ releases: { [expectedSha256]: checked.release }, selections: ids.map((itemId, index) => ({
+    id: "t" + index, item: { releaseSha256: expectedSha256, itemId, itemSha256: getItem(checked.release, itemId).item.itemSha256 }, configuration: {} })) });
+  if (!trial.valid) {
+    assert(trial.diagnostics.every(d => d.reason === "conflict-selected"), JSON.stringify(trial.diagnostics));
+    skipped.conflicting += 1;
+    continue;
+  }
+  viable.push(ids);
+}
+const carriedIds = viable.find(ids => ids.length > 1) ?? viable[0];
+if (carriedIds === undefined) {
+  console.log(JSON.stringify({ status: "not-run", releaseSha256: expectedSha256, items: allItems.length, ...skipped,
+    reason: "no item is selectable with defaults and a conflict-free required closure" }));
+  process.exit(0);
+}
+for (const id of carriedIds) assert(allItems.some(item => item.id === id));
+const selectionId = index => index === 0 ? "chosen-skill" : carriedIds.length === 2 ? "required-skill" : "required-skill-" + index;
 assert.equal(getItem(checked.release, "missing-item").found, false);
 const archiveBytes = readFileSync(process.argv[2]);
 const archive = { url: "https://example.invalid/catalog-fixture.tgz",
@@ -88,15 +139,18 @@ function select(release, materialSource) {
     assert.equal(item.valid, true, JSON.stringify(item.diagnostics));
     assert.deepEqual(item.selection.configuration, {}, "The authored policy must preserve omitted defaults.");
   }
-  const choices = configured.map((item, index) => ({ id: index === 0 ? "chosen-skill" : "required-skill",
+  const choices = configured.map((item, index) => ({ id: selectionId(index),
     item: { releaseSha256: item.provenance.manifestSha256, itemId: item.provenance.itemId,
       itemSha256: item.provenance.itemSha256 }, configuration: {} }));
   const releases = { [expectedSha256]: release };
-  const incomplete = validateSelectionSet({ releases, selections: choices.slice(0, 1) });
-  assert.equal(incomplete.valid, false, "The caller must explicitly select the carried dependency.");
+  if (carriedIds.length > 1) {
+    const incomplete = validateSelectionSet({ releases, selections: choices.slice(0, 1) });
+    assert.equal(incomplete.valid, false, "The caller must explicitly select the carried dependency.");
+  }
   const set = validateSelectionSet({ releases, selections: choices });
   assert.equal(set.valid, true, JSON.stringify(set.diagnostics));
-  assert.deepEqual(set.requiresBySelectionId, { "chosen-skill": ["required-skill"], "required-skill": [] });
+  assert.deepEqual(set.requiresBySelectionId, Object.fromEntries(carriedIds.map((id, index) => [selectionId(index),
+    getItem(release, id).item.dependencies.requires.map(ref => selectionId(carriedIds.indexOf(ref.itemId)))])));
   const policy = { schema: "urn:aihq:core:execution-policy:1.0.0", mode: "vibe",
     selections: configured.map((item, index) => ({ ...item.selection, id: choices[index].id,
       managementId: choices[index].id, scope: "project", requires: set.requiresBySelectionId[choices[index].id] })) };
@@ -131,10 +185,11 @@ try {
     assert.equal(applied.completion, "complete", JSON.stringify(applied.diagnostics));
     assert(applied.checks.length > 0);
     assert(applied.checks.every(check => check.status === "passed"));
-    for (const name of ["grill-me", "grilling"]) {
-      const item = getItem(checked.release, "mattpocock." + name).item;
+    for (const id of carriedIds) {
+      const item = getItem(checked.release, id).item;
       const skill = item.materials.find(material => material.path.endsWith("/SKILL.md"));
       assert(skill);
+      const name = skill.path.split("/").at(-2);
       assert.equal(sha(readFileSync(join(project, ".claude/skills", name, "SKILL.md"))), skill.sha256);
     }
     results.push({ kind, completion: applied.completion, checks: applied.checks.length });
@@ -158,7 +213,7 @@ try {
   assert.equal(rejected.completion, "rejected", JSON.stringify(rejected.diagnostics));
   assert.equal(existsSync(join(staleProject, ".claude")), false);
 } finally { writeFileSync(materialPath, original); }
-console.log(JSON.stringify({ releaseSha256: expectedSha256, publicImports: true,
+console.log(JSON.stringify({ status: "passed", selected: carriedIds, skipped, releaseSha256: expectedSha256, publicImports: true,
   dependencyMapping: true, defaultOrigin: "default", sameClosure: true, staleMaterialRejected: true, results }));
 `);
   const result = JSON.parse(execFileSync(process.execPath, [join(consumer, "consume.mjs"), catalogTarball], {

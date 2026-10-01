@@ -6,7 +6,10 @@ private to npm and its publication lifecycle refuses unconditionally. The old
 tag publication, signed-Catalog and sibling-promotion workflows are retired.
 
 Maintainers may compile and pack migration bytes for inspection with scripts
-disabled, then test them in disposable consumers. Packing alone does not satisfy
+disabled, then test them in disposable consumers. `tools/prepare-candidate.mjs`
+([docs/PRODUCER.md](docs/PRODUCER.md)) prepares and checks a content candidate from an
+explicit upstream pin and measures the elapsed time; it allocates no version and
+publishes nothing. Packing alone does not satisfy
 the transition completion criteria or authorize publication.
 
 When a reviewed implementation satisfies the transition completion criteria,
