@@ -19,7 +19,19 @@ const schema = JSON.parse(
 );
 const validateRecipe = new Ajv2020({ strict: true, allErrors: false }).compile(schema);
 
-/** Core permits ordinary JSON spacing; strict admission still refuses erased duplicate keys. */
+/** Compare decimal values independently of spelling, as in Core's strict JSON profile. */
+function decimalIdentity(token: string): string {
+  const match = /^(-?)(\d+)(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/.exec(token);
+  if (!match) throw new TypeError("recipe number grammar");
+  const digits = `${match[2]}${match[3] ?? ""}`.replace(/^0+/, "");
+  if (!digits) return `${match[1]}0`;
+  const trailingZeros = /0+$/.exec(digits)?.[0].length ?? 0;
+  const power = Number(match[4] ?? 0) - (match[3]?.length ?? 0) + trailingZeros;
+  if (!Number.isSafeInteger(power)) throw new TypeError("recipe number exponent");
+  return `${match[1]}${digits.slice(0, digits.length - trailingZeros)}e${power}`;
+}
+
+/** Core permits ordinary JSON spacing; strict admission preserves keys and number values. */
 function readRecipe(bytes: Uint8Array): unknown {
   if (bytes.byteLength > RECIPE_MAX_BYTES) throw new TypeError("recipe byte limit");
   const text = fatalUtf8.decode(bytes);
@@ -44,6 +56,11 @@ function readRecipe(bytes: Uint8Array): unknown {
       }
     } else if (node.type === "array") {
       for (const child of node.children ?? []) pending.push(child);
+    } else if (node.type === "number") {
+      const token = text.slice(node.offset, node.offset + node.length);
+      if (decimalIdentity(token) !== decimalIdentity(JSON.stringify(node.value))) {
+        throw new TypeError("recipe number loses its authored value");
+      }
     }
   }
   return value;

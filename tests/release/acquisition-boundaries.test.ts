@@ -84,4 +84,38 @@ describe("recipe admission for every advertised item", () => {
       fixture.cleanup();
     }
   });
+
+  it.each([
+    ["64.000000000000000001", false],
+    ["64000000000000000001e-18", false],
+    ["1e-999", false],
+    ["6.4e1", true],
+    ["64.0", true],
+  ])("preserves the authored value of recipe number %s", async (token, valid) => {
+    const fixture = installedRoot("recipe-number-token");
+    try {
+      const manifestPath = join(fixture.root, "release/release.json");
+      const release = JSON.parse(readFileSync(manifestPath, "utf8"));
+      const item = release.items.find(
+        (candidate: { id: string }) => candidate.id === "mattpocock.grilling",
+      );
+      const recipePath = join(fixture.root, item.recipe.path);
+      const bytes = Buffer.from(
+        readFileSync(recipePath, "utf8").replace('"maxLength":64', `"maxLength":${token}`),
+      );
+      writeFileSync(recipePath, bytes);
+      item.recipe.sha256 = sha256(bytes);
+      item.recipe.byteLength = bytes.length;
+      writeFileSync(manifestPath, `${canonical(release)}\n`);
+      const checked = await readInstalledRelease({ root: fixture.root });
+      expect(checked.valid).toBe(valid);
+      if (!valid) {
+        expect(checked.diagnostics).toContainEqual(
+          expect.objectContaining({ reason: "recipe-unreadable" }),
+        );
+      }
+    } finally {
+      fixture.cleanup();
+    }
+  });
 });
