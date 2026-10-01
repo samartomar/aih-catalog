@@ -395,15 +395,16 @@ describe("published runtime descriptors", () => {
     });
   });
 
-  it("reads through the donor package subpath", () => {
+  it("keeps the donor generator while its legacy package subpath is no longer packed", () => {
     const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8")) as {
       exports: Record<string, string>;
       scripts: Record<string, string>;
     };
     expect(CATALOG_RUNTIME_DESCRIPTORS_SUBPATH_V1).toBe("./catalog-runtime-descriptors.json");
-    expect(pkg.exports[CATALOG_RUNTIME_DESCRIPTORS_SUBPATH_V1]).toBe(
-      `./${CATALOG_RUNTIME_DESCRIPTORS_ROOT_URL}`,
+    expect(CATALOG_RUNTIME_DESCRIPTORS_ROOT_URL).toBe(
+      "defaults/catalog-runtime-descriptors-v1.json",
     );
+    expect(pkg.exports[CATALOG_RUNTIME_DESCRIPTORS_SUBPATH_V1]).toBeUndefined();
     expect(pkg.scripts["generate:catalog-runtime-descriptors"]).toBe(
       "node tools/generate-catalog-runtime-descriptors.mjs",
     );

@@ -13,10 +13,17 @@ implementation. They are not the target interface and are not being maintained a
 a compatibility promise. Existing identity-only `recipe.json` examples are review
 data; they are not executable recipes.
 
-The new `@aihq/catalog/contracts`, `@aihq/catalog/reader` and
-`@aihq/catalog/node` entry points, `@aihq/catalog/release.json`, the release schema,
-and generic executable recipes are **not implemented**. Passing migration CI
-does not prove those interfaces work or qualify this tarball for publication.
+The new `@aihq/catalog/contracts`, portable `@aihq/catalog/reader` and
+`@aihq/catalog/node` entry points, `@aihq/catalog/release.json` and release schema
+are implemented. Two carried skills have complete generic executable recipes,
+explicit dependencies and verified material closure. Focused tests cover release
+admission, configuration, selection and installed/archive acquisition. The packed
+consumer tools exercise public Core prepare/apply and browser imports.
+
+The package ships only the new release entries and their material. Retained root
+exports, legacy JSON payloads and the CLI remain source for migration investigation.
+Selective producer refresh and release activation remain pending; passing these
+interface checks does not qualify the tarball for publication.
 
 The package is marked `private: true`, `prepublishOnly` unconditionally refuses
 publication, and the old publication, Catalog signing and sibling-promotion
@@ -43,6 +50,21 @@ no readiness toggle.
 content, collections, categories, presentation, runtime-descriptor, source-closure,
 strict-JSON, deterministic-generation, fetch/producer and helper-isolation checks.
 Legacy envelopes are test fixtures, not required greenfield contracts.
+
+The new `src/release` module adapts the donor's canonical admission, path/hash
+and source-closure checks to a portable envelope. Release generation extracts
+ordinary provenance from committed assessment metadata and cross-checks snapshot
+bytes; installed and archive readers consume only the resulting release and
+material. The carried recipes use Core's scalar inputs and generic material
+references. Qualification envelopes and Workbench enrollment are absent from that
+consumer route.
+
+The packed inventory is bounded to the release module, schema and carried material.
+This replaces the donor's thousands of unrelated assessment files and executable
+CLI, which exceeded Core's archive-member ceiling or required unrelated executable
+members. Donor source, generation inputs and integrity tests remain in the repository;
+only four assertions for retired package exports changed. The new packed tests
+retain identity, license, byte equality and publication-refusal checks.
 The qualification-only section formerly mixed into `catalog-read-refusals` lives
 in `catalog-qualification-refusals`; all other named-refusal cases stay active.
 The producer tests exercise existing preservation behavior without claiming the
@@ -59,15 +81,15 @@ likewise do not define the new contract.
 ## Active verification
 
 Run `npm ci --ignore-scripts`, then `npm run verify`. Verification typechecks and
-lints once, compiles without rewriting committed defaults, checks retained
-generated material, runs the active donor suite once, and checks action pins.
+lints once, compiles without rewriting committed defaults, checks the carried release
+and retained generated material, runs the active tests once, and checks action pins.
 Read-only CI uses Node 24, audits dependencies and checks whitespace, with one
-20-minute job. The existing consumer engine declaration is unchanged; it is not
-a declaration of the future runtime contract.
+20-minute job. The Node adapter declares Node 24.15–24.x; portable entries also
+run in a browser.
 
 The package test packs actual bytes into a task-owned temporary directory,
 installs that exact tarball with lifecycle scripts disabled, checks identity and
-license/content byte equality, and reads the donor index. It also checks that the
+license/content byte equality, and reads the new release and material. It also checks that the
 configured publication lifecycle refuses independently of private metadata.
 Product commands never run against this source checkout.
 

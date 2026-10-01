@@ -72,11 +72,12 @@ async function generator() {
 }
 
 describe("published catalog presentation", () => {
-  it("is exported from the public package root and subpath", () => {
+  it("keeps the donor root API while its legacy package subpath is no longer packed", () => {
     expect(publicApi.readCatalogPresentationV1).toBe(readCatalogPresentationV1);
     expect(publicApi.CATALOG_PRESENTATION_SUBPATH_V1).toBe("./catalog-presentation.json");
+    expect(CATALOG_PRESENTATION_ROOT_URL).toBe("defaults/catalog-presentation-v1.json");
     const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
-    expect(pkg.exports["./catalog-presentation.json"]).toBe(`./${CATALOG_PRESENTATION_ROOT_URL}`);
+    expect(pkg.exports["./catalog-presentation.json"]).toBeUndefined();
   });
 
   it("covers every listed GitHub entry and every aih MCP declaration", () => {

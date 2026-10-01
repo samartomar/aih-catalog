@@ -1,6 +1,7 @@
 # AIH Catalog
 
-This repository builds `@aihq/catalog` and the `aih-supported` CLI.
+This repository builds the `@aihq/catalog` content package. The retained
+`aih-supported` CLI is historical donor source and is excluded from the package.
 [README.md](README.md) owns usage, [CONTRIBUTING.md](CONTRIBUTING.md) owns
 contributor checks, and [RELEASING.md](RELEASING.md) owns release gates.
 For source, tests, CI or release changes, read [the transition](docs/TRANSITION.md)

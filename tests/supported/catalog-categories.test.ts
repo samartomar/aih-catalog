@@ -68,11 +68,12 @@ afterEach(() => {
 });
 
 describe("curated catalog categories", () => {
-  it("is exported from the package root and a subpath", () => {
+  it("keeps the donor root API while its legacy package subpath is no longer packed", () => {
     expect(publicApi.readCatalogCategoriesV1).toBe(readCatalogCategoriesV1);
     expect(CATALOG_CATEGORIES_SUBPATH_V1).toBe("./catalog-categories.json");
+    expect(CATALOG_CATEGORIES_ROOT_URL).toBe("defaults/catalog-categories-v1.json");
     const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
-    expect(pkg.exports[CATALOG_CATEGORIES_SUBPATH_V1]).toBe(`./${CATALOG_CATEGORIES_ROOT_URL}`);
+    expect(pkg.exports[CATALOG_CATEGORIES_SUBPATH_V1]).toBeUndefined();
   });
 
   it("regenerates the committed bytes from the committed rules", async () => {

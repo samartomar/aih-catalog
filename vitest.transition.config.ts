@@ -1,6 +1,6 @@
 import { defineConfig } from "vitest/config";
 
-// Reviewed donor checks, not an assertion that the greenfield public API exists.
+// Reviewed donor checks plus the release contract tests under tests/release.
 export default defineConfig({
   test: {
     environment: "node",
@@ -22,6 +22,7 @@ export default defineConfig({
       "tests/supported/upstream-fetch.test.ts",
       "tests/supported/upstream-producers.test.ts",
       "tests/supported/production-generators.test.ts",
+      "tests/release/**/*.test.ts",
     ],
   },
 });

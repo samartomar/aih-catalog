@@ -1,0 +1,270 @@
+import { createHash } from "node:crypto";
+import { mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { dirname, join, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+/**
+ * Generates the carried Catalog release (`urn:aihq:catalog:release:1.0.0`): the
+ * release document, Core recipes (`urn:aihq:core:recipe:1.0.0`) and the exact
+ * upstream material bytes they deliver.
+ *
+ * Inputs are committed files only. Material bytes come from the pinned upstream
+ * snapshot; their provenance (repository, revision, path and digests) is taken
+ * from the donor's assessment-shaped closure/profile metadata and must agree
+ * with those bytes. Reading the generated release never needs those assessment
+ * files, qualification, Scan or Workbench. Nothing is fetched or executed.
+ *
+ *   node tools/generate-release.mjs [--check] [catalog-root]
+ */
+export const OUTPUT_ROOT = "release";
+export const RELEASE_PATH = "release/release.json";
+const SNAPSHOT = "src/production/data/mattpocock.snapshot.json";
+const ASSESSMENT = (entry) => `defaults/workbench/mattpocock/skill.mattpocock.${entry}/artifacts`;
+const SOURCE_ID = "mattpocock-skills";
+const REPOSITORY = "mattpocock/skills";
+const LICENSE_PATH = "LICENSE";
+const AGENT_DIRECTORY_INPUT = {
+  type: "string",
+  required: true,
+  default: ".claude",
+  minLength: 1,
+  maxLength: 64,
+  description: "Project directory that receives skills/<name>/ (Claude Code reads .claude).",
+};
+
+/** The carried items. `entry` names the donor assessment directory for provenance. */
+const ITEMS = [
+  {
+    id: "mattpocock.grill-me",
+    entry: "grill-me",
+    label: "Grill me",
+    requires: ["mattpocock.grilling"],
+  },
+  {
+    id: "mattpocock.grilling",
+    entry: "grilling",
+    label: "Grilling",
+    requires: [],
+  },
+];
+
+const compare = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
+const fail = (message) => {
+  throw new Error(`generate-release: ${message}`);
+};
+export const canonical = (value) => {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
+  return `{${Object.keys(value)
+    .sort(compare)
+    .map((key) => `${JSON.stringify(key)}:${canonical(value[key])}`)
+    .join(",")}}`;
+};
+const document = (value) => Buffer.from(`${canonical(value)}\n`, "utf8");
+const readJson = (root, path) => JSON.parse(readFileSync(resolve(root, path), "utf8"));
+const bare = (digest, label) => {
+  if (typeof digest !== "string" || !/^sha256:[0-9a-f]{64}$/.test(digest)) fail(`${label}: digest`);
+  return digest.slice("sha256:".length);
+};
+
+/** Provenance from the donor assessment closure/profile, cross-checked against the snapshot bytes. */
+function provenance(root, snapshot, entry) {
+  const closure = readJson(root, `${ASSESSMENT(entry)}/closure.json`);
+  const profile = readJson(root, `${ASSESSMENT(entry)}/profile.json`);
+  const source = profile.source;
+  if (source?.type !== "github" || source.repository !== REPOSITORY) fail(`${entry}: profile source`);
+  if (closure.sourceRevisionId !== source.commit || snapshot.upstream.pin !== source.commit) {
+    fail(`${entry}: closure, profile and snapshot revisions differ`);
+  }
+  if (closure.scope?.kind !== "source-files" || !Array.isArray(closure.files)) fail(`${entry}: closure`);
+  const declared = new Map(closure.files.map((file) => [file.path, bare(file.digest, `${entry} ${file.path}`)]));
+  if (declared.size !== 2 || !declared.has(LICENSE_PATH) || !declared.has(source.path)) {
+    fail(`${entry}: closure must be exactly the skill file and its license`);
+  }
+  const files = [...declared].map(([path, digest]) => {
+    const record = snapshot.entries.find((candidate) => candidate.path === path);
+    if (record === undefined) fail(`${entry}: snapshot lacks ${path}`);
+    const bytes = Buffer.from(record.base64, "base64");
+    if (sha256(bytes) !== digest || record.sha256 !== digest || record.sizeBytes !== bytes.length) {
+      fail(`${entry}: ${path} bytes disagree with the assessment closure`);
+    }
+    return { path, bytes, sha256: digest };
+  });
+  const frontmatter = snapshot.entries.find((candidate) => candidate.path === source.path)?.frontmatter;
+  const description = /^description: (.+)$/m.exec(frontmatter ?? "")?.[1];
+  if (description === undefined) fail(`${entry}: snapshot frontmatter description`);
+  return { revision: source.commit, skillPath: source.path, files, description };
+}
+
+const target = (name, file) => ({
+  root: "project",
+  segments: [{ input: "agentDirectory" }, { literal: "skills" }, { literal: name }, { literal: file }],
+});
+
+function recipeFor(item, origin, materials) {
+  const deliver = [
+    { material: "skill", file: "SKILL.md", purpose: `Write the pinned ${item.entry} SKILL.md` },
+    { material: "license", file: "LICENSE", purpose: "Write the upstream MIT license notice beside the skill" },
+  ];
+  return {
+    schema: "urn:aihq:core:recipe:1.0.0",
+    id: item.id,
+    description: `Install the ${item.entry} skill from ${REPOSITORY} at ${origin.revision} with its MIT license notice.`,
+    inputs: { agentDirectory: AGENT_DIRECTORY_INPUT },
+    materials: materials.map(({ id, sha256: hash, byteLength }) => ({ id, sha256: hash, byteLength })),
+    targets: ["project"],
+    prerequisites: [],
+    operations: deliver.map((step) => ({
+      id: `write-${step.material}`,
+      purpose: step.purpose,
+      kind: "file.write",
+      scope: "project",
+      target: target(item.entry, step.file),
+      material: step.material,
+      requires: [],
+      checks: [`${step.material}-sha256`],
+    })),
+    checks: deliver.map((step) => ({
+      id: `${step.material}-sha256`,
+      purpose: `The installed ${step.file} has the pinned bytes`,
+      kind: "file.sha256",
+      target: target(item.entry, step.file),
+      sha256: materials.find((member) => member.id === step.material).sha256,
+    })),
+  };
+}
+
+/** Returns every output file (package-relative path → bytes), the release document last. */
+export function generateRelease(root) {
+  const pkg = readJson(root, "package.json");
+  const snapshot = readJson(root, SNAPSHOT);
+  const files = new Map();
+  const put = (path, bytes) => {
+    const prior = files.get(path);
+    if (prior !== undefined && !prior.equals(bytes)) fail(`${path}: two different byte sequences`);
+    files.set(path, bytes);
+  };
+  let revision;
+  const items = ITEMS.map((item) => {
+    const origin = provenance(root, snapshot, item.entry);
+    revision ??= origin.revision;
+    if (origin.revision !== revision) fail("items must share the pinned source revision");
+    const base = `${OUTPUT_ROOT}/materials/github.com/${REPOSITORY}/${origin.revision}`;
+    const materials = origin.files
+      .map((file) => {
+        const path = `${base}/${file.path}`;
+        put(path, file.bytes);
+        return {
+          id: file.path === LICENSE_PATH ? "license" : "skill",
+          path,
+          sha256: file.sha256,
+          byteLength: file.bytes.length,
+        };
+      })
+      .sort((a, b) => compare(a.id, b.id));
+    const recipePath = `${OUTPUT_ROOT}/recipes/${item.id}.json`;
+    const recipeBytes = document(recipeFor(item, origin, materials));
+    put(recipePath, recipeBytes);
+    return {
+      id: item.id,
+      label: item.label,
+      description: origin.description,
+      kind: "skill",
+      sourceIds: [SOURCE_ID],
+      targets: [],
+      scopes: ["project"],
+      inputs: { agentDirectory: AGENT_DIRECTORY_INPUT },
+      recipe: {
+        id: item.id,
+        schema: "urn:aihq:core:recipe:1.0.0",
+        path: recipePath,
+        sha256: sha256(recipeBytes),
+        byteLength: recipeBytes.length,
+      },
+      materials,
+      dependencies: {
+        requires: item.requires.map((itemId) => ({ itemId })),
+        optional: [],
+        conflicts: [],
+      },
+      metadata: { upstream: { path: origin.skillPath, license: "MIT" } },
+    };
+  }).sort((a, b) => compare(a.id, b.id));
+  const release = {
+    schema: "urn:aihq:catalog:release:1.0.0",
+    package: { name: pkg.name, version: pkg.version },
+    sources: [
+      {
+        id: SOURCE_ID,
+        origin: { kind: "git", repository: `https://github.com/${REPOSITORY}`, revision },
+      },
+    ],
+    items,
+  };
+  put(RELEASE_PATH, document(release));
+  return files;
+}
+
+function existingFiles(root) {
+  const base = resolve(root, OUTPUT_ROOT);
+  const walk = (dir) => {
+    let entries;
+    try {
+      entries = readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return [];
+    }
+    return entries.flatMap((entry) =>
+      entry.isDirectory()
+        ? walk(join(dir, entry.name))
+        : [relative(root, join(dir, entry.name)).replaceAll("\\", "/")],
+    );
+  };
+  return walk(base);
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  try {
+    const args = process.argv.slice(2);
+    const check = args[0] === "--check";
+    if (check) args.shift();
+    if (args.length > 1 || args[0]?.startsWith("-")) {
+      fail("usage: node tools/generate-release.mjs [--check] [catalog-root]");
+    }
+    const root = resolve(args[0] ?? resolve(dirname(fileURLToPath(import.meta.url)), ".."));
+    const files = generateRelease(root);
+    const stale = existingFiles(root).filter((path) => !files.has(path));
+    if (check) {
+      for (const [path, bytes] of files) {
+        let existing;
+        try {
+          existing = readFileSync(resolve(root, path));
+        } catch {
+          existing = undefined;
+        }
+        if (existing === undefined || !existing.equals(bytes)) {
+          fail(`${path} is stale; run npm run generate:release`);
+        }
+      }
+      if (stale.length > 0) fail(`unexpected release files: ${stale.join(", ")}`);
+    } else {
+      for (const path of stale) rmSync(resolve(root, path));
+      for (const [path, bytes] of files) {
+        const output = resolve(root, path);
+        mkdirSync(dirname(output), { recursive: true });
+        const temporary = `${output}.tmp`;
+        writeFileSync(temporary, bytes, { flag: "wx" });
+        try {
+          renameSync(temporary, output);
+        } finally {
+          rmSync(temporary, { force: true });
+        }
+      }
+    }
+    console.log(`${check ? "Checked" : "Generated"} ${RELEASE_PATH}: ${files.size - 1} recipe/material files`);
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exitCode = 1;
+  }
+}

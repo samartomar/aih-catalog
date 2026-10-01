@@ -5,8 +5,8 @@ Accepted bugs/enhancements use the owning Catalog issue; link the PR and verifie
 release outcome there. Keep private planning and reproductions out of public text.
 
 Install dependencies with `npm ci --ignore-scripts` and run `npm run verify` before
-requesting review. The active checks protect reusable material and producer code;
-they do not certify the unfinished release/reader/recipe interface. Read
+requesting review. The active checks cover the release reader, acquisition,
+configuration, selection and packed material alongside retained producer checks. Read
 [the transition](docs/TRANSITION.md) when changing these checks. Keep changes scoped
 and add focused tests for changed behavior. Publication is blocked during migration.
 
