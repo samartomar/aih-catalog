@@ -26,6 +26,13 @@ Plain content reading and execution require no qualification receipt, Scan, Work
 
 The consumer verification command accepts an explicit reviewed Core tarball, packs the current Catalog bytes and installs those exact two artifacts with scripts disabled in a disposable root. It exercises public portable/host entries and Core's public prepare/apply handoff. It chooses no moving registry release and makes no publication claim.
 
+The Node adapter admits strict recipe JSON within Core's byte/depth limits, rejects
+duplicate decoded keys and validates structure against a pinned copy of Core's
+recipe schema. It compares every item's advertised inputs and material closure,
+including items sharing recipe bytes. Core retains authoritative execution semantics
+at Prepare. Ordinary configuration follows the same strict scalar profile, and
+dependency mapping emits unique policy selection IDs.
+
 Publication remains blocked until the remaining producer and release completion criteria are met. The maintainer owns candidate allocation and release activation; this interface delivery does not allocate a new per-ticket version or run signing/publication.
 
 ## Explicit dependencies and Core handoff

@@ -20,7 +20,7 @@ import {
 import { isAbsolute, join, relative, sep } from "node:path";
 import { ARCHIVE_LIMITS, readPackageArchive } from "./archive.js";
 import type { CatalogDiagnostic, CatalogRelease } from "./contracts.js";
-import { ID, isRecord, safeMemberPath } from "./document.js";
+import { coreArchiveUrl, ID, isRecord, safeMemberPath } from "./document.js";
 import { AcquisitionFailure } from "./node-errors.js";
 import { readRelease } from "./reader.js";
 import { checkRecipeAgreement } from "./recipe-agreement.js";
@@ -220,7 +220,8 @@ export function verifyPackageRelease(
     for (const member of [item.recipe, ...item.materials]) {
       if (signal?.aborted) failWith("cancelled");
       const prior = verified.get(member.path);
-      if (prior === `${member.sha256}:${member.byteLength}`) continue;
+      // Byte reuse cannot establish agreement with another item's advertised inputs.
+      if (prior === `${member.sha256}:${member.byteLength}` && member !== item.recipe) continue;
       try {
         const bytes = read(member.path, MEMBER_MAX_BYTES, member.byteLength);
         if (sha256(bytes) !== member.sha256) failWith("member-sha256-mismatch", member.path);
@@ -306,24 +307,6 @@ export interface ResolvedReleaseResult {
     readonly manifestSha256: string;
   };
   readonly diagnostics: readonly CatalogDiagnostic[];
-}
-
-/** Core's archive URL rule: HTTPS, a host, no credentials or fragment, default port. */
-function coreArchiveUrl(value: unknown): value is string {
-  if (typeof value !== "string" || value.length > 2048) return false;
-  try {
-    const url = new URL(value);
-    return (
-      url.protocol === "https:" &&
-      url.hostname !== "" &&
-      url.username === "" &&
-      url.password === "" &&
-      url.hash === "" &&
-      (url.port === "" || url.port === "443")
-    );
-  } catch {
-    return false;
-  }
 }
 
 function registryBase(value: unknown): string | undefined {

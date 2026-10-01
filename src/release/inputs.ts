@@ -4,10 +4,15 @@
  * canonical enum membership. Core repeats these checks and owns binding.
  */
 import type { InputSpec, Json } from "./contracts.js";
-import { canonicalJson } from "./json.js";
+import { assertStrictValues, canonicalJson } from "./json.js";
 
 export function inputAccepts(spec: InputSpec, value: unknown): value is Json {
   if (spec.type === "integer" ? !Number.isSafeInteger(value) : typeof value !== spec.type) {
+    return false;
+  }
+  try {
+    assertStrictValues(value);
+  } catch {
     return false;
   }
   if (typeof value === "string") {

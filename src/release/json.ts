@@ -37,7 +37,7 @@ export class JsonAdmissionError extends Error {
 const fatalUtf8 = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
 
 /** Deepest container nesting of JSON text, scanning iteratively; the root is level 1. */
-function textDepth(text: string): number {
+export function textDepth(text: string): number {
   let depth = 0;
   let deepest = 0;
   let inString = false;
@@ -68,13 +68,15 @@ function assertString(value: string): void {
 }
 
 /** Well-formed NFC strings and keys, safe integers; walked iteratively. */
-function assertStrictValues(root: unknown): void {
+export function assertStrictValues(root: unknown): void {
   const pending: unknown[] = [root];
   while (pending.length > 0) {
     const value = pending.pop();
     if (typeof value === "string") {
       assertString(value);
     } else if (typeof value === "number") {
+      if (!Number.isFinite(value) || Object.is(value, -0))
+        throw new JsonAdmissionError("non-canonical-number");
       if (Number.isInteger(value) && !Number.isSafeInteger(value)) {
         throw new JsonAdmissionError("unsafe-integer");
       }

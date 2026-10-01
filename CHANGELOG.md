@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Validate acquired recipe JSON and structure against Core's pinned recipe schema;
+  check each item's mirror even when recipe paths are shared. Keep configuration
+  values and archive URLs aligned with Core, and emit unique dependency IDs.
+
 - Add canonical Catalog release data and its public versioned schema, portable
   contracts/readers, ordinary configuration and explicit dependency validation.
 - Add read-only Node installed-release and exact archive/registry acquisition.

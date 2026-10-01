@@ -98,6 +98,7 @@ describe("carried release", () => {
   it("uses complete Core recipes whose definitions agree with each item", () => {
     const schemaBytes = bytesAt(CORE_RECIPE_SCHEMA);
     expect(sha256(schemaBytes)).toBe(CORE_RECIPE_SCHEMA_SHA256);
+    expect(sha256(bytesAt("schemas/core-recipe/1.0.0.json"))).toBe(CORE_RECIPE_SCHEMA_SHA256);
     const schema = JSON.parse(schemaBytes.toString("utf8"));
     expect(sha256(canonical(schema))).toBe(CORE_RECIPE_SCHEMA_CANONICAL_SHA256);
     const validate = new Ajv2020({ allErrors: true, strict: true }).compile(schema);

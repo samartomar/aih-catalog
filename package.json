@@ -81,15 +81,18 @@
     "@biomejs/biome": "2.5.1",
     "@types/node": "26.1.1",
     "@vitest/coverage-v8": "4.1.11",
-    "ajv": "8.20.0",
     "typescript": "7.0.2",
     "vitest": "4.1.11"
   },
-  "dependencies": {},
+  "dependencies": {
+    "ajv": "8.20.0",
+    "jsonc-parser": "3.3.1"
+  },
   "files": [
     "dist/release",
     "release",
     "schemas/release",
+    "schemas/core-recipe",
     "README.md",
     "CHANGELOG.md"
   ],

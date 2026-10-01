@@ -12,7 +12,7 @@ import {
   RELEASE_SCHEMA_ID,
 } from "./contracts.js";
 import { checkInputSpec } from "./inputs.js";
-import { canonicalJson } from "./json.js";
+import { assertStrictValues, canonicalJson } from "./json.js";
 import { sha256Hex } from "./sha256.js";
 
 export const ID = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
@@ -57,6 +57,25 @@ export const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 export const httpsUrl = (value: unknown): value is string =>
   typeof value === "string" && value.length <= 2048 && HTTPS_URL.test(value);
+
+/** Core's archive URL rule, shared by portable mapping and Node acquisition. */
+export function coreArchiveUrl(value: unknown): value is string {
+  if (typeof value !== "string" || value.length > 2048) return false;
+  try {
+    assertStrictValues(value);
+    const url = new URL(value);
+    return (
+      url.protocol === "https:" &&
+      url.hostname !== "" &&
+      url.username === "" &&
+      url.password === "" &&
+      url.hash === "" &&
+      (url.port === "" || url.port === "443")
+    );
+  } catch {
+    return false;
+  }
+}
 
 const isId = (value: unknown): value is string =>
   typeof value === "string" && value.length <= 128 && ID.test(value);
@@ -151,7 +170,7 @@ export function checkMaterialSource(d: Diagnostics, value: unknown, path: string
   if (isRecord(value) && value.kind === "archive") {
     const ok =
       fields(d, value, path, ["kind", "url", "sha256", "byteLength"]) &&
-      httpsUrl(value.url) &&
+      coreArchiveUrl(value.url) &&
       typeof value.sha256 === "string" &&
       SHA256.test(value.sha256) &&
       typeof value.byteLength === "number" &&

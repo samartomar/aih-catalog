@@ -387,6 +387,7 @@ export function validateSelectionSet(request: ValidateSelectionSetRequest): Sele
       }
     });
   }
+  for (const id of Object.keys(requires)) requires[id] = [...new Set(requires[id])];
   if (findCycle(requires)) {
     report("dependency-cycle", "Required selections form a cycle.");
   }

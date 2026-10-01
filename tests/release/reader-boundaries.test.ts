@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readRelease, validateSelectionSet } from "../../src/release/reader.js";
+import { configureItem, readRelease, validateSelectionSet } from "../../src/release/reader.js";
 import { fixtureRelease, type Json, releaseBytes, sha256 } from "./fixtures.js";
 
 describe("release admission at byte boundaries", () => {
@@ -28,6 +28,48 @@ describe("release admission at byte boundaries", () => {
       expect.objectContaining({ reason: "malformed-unicode", blocking: true }),
     ]);
   });
+});
+
+it.each([
+  ["malformed Unicode", "string", "\ud800"],
+  ["non-NFC text", "string", "e\u0301"],
+  ["an unsafe integer", "number", 9_007_199_254_740_992],
+])("refuses %s in ordinary configuration", (_label, type, value) => {
+  const document = fixtureRelease();
+  const item = (document.items as Record<string, Json>[])[0];
+  if (!item) throw new Error("fixture lacks an item");
+  item.inputs = { setting: { type: type as string, required: true } };
+  const bytes = releaseBytes(document);
+  const checked = readRelease(bytes, { expectedSha256: sha256(bytes) });
+  if (!checked.valid) throw new Error(JSON.stringify(checked.diagnostics));
+  const configured = configureItem({
+    release: checked.release,
+    itemId: "alpha",
+    configuration: { setting: value as Json },
+    materialSource: { kind: "local", input: "catalog" },
+  });
+  expect(configured.valid).toBe(false);
+  expect(configured.diagnostics).toContainEqual(expect.objectContaining({ reason: "input-value" }));
+});
+
+it.each([
+  "https://example.test:8443/a.tgz",
+  "https://user:password@example.test/a.tgz",
+  "https://example.test/a.tgz#fragment",
+])("refuses an archive URL outside Core's shared source grammar: %s", (url) => {
+  const bytes = releaseBytes(fixtureRelease());
+  const checked = readRelease(bytes, { expectedSha256: sha256(bytes) });
+  if (!checked.valid) throw new Error(JSON.stringify(checked.diagnostics));
+  const configured = configureItem({
+    release: checked.release,
+    itemId: "alpha",
+    configuration: {},
+    materialSource: { kind: "archive", url, sha256: sha256("archive"), byteLength: 512 },
+  });
+  expect(configured.valid).toBe(false);
+  expect(configured.diagnostics).toContainEqual(
+    expect.objectContaining({ reason: "invalid-source" }),
+  );
 });
 
 describe("unselected advisory references", () => {
@@ -79,4 +121,28 @@ describe("unselected advisory references", () => {
     expect(result.diagnostics.length).toBeGreaterThan(0);
     expect(result.diagnostics.every((diagnostic) => !diagnostic.blocking)).toBe(true);
   });
+});
+
+it("maps repeated references to one unique Core selection dependency", () => {
+  const document = fixtureRelease();
+  const items = document.items as Record<string, Json>[];
+  const dependent = items[1];
+  if (!dependent) throw new Error("fixture lacks a dependent item");
+  dependent.dependencies = { requires: [{ itemId: "alpha" }, { itemId: "alpha" }] };
+  const bytes = releaseBytes(document);
+  const checked = readRelease(bytes, { expectedSha256: sha256(bytes) });
+  if (!checked.valid) throw new Error(JSON.stringify(checked.diagnostics));
+  const selected = validateSelectionSet({
+    releases: { [checked.release.sha256]: checked.release },
+    selections: checked.release.items.map((item) => ({
+      id: item.id,
+      item: { releaseSha256: checked.release.sha256, itemId: item.id, itemSha256: item.itemSha256 },
+      configuration: (item.id === "beta" ? { serverUrl: "https://example.test" } : {}) as Record<
+        string,
+        Json
+      >,
+    })),
+  });
+  expect(selected.valid).toBe(true);
+  expect(selected.requiresBySelectionId).toEqual({ alpha: [], beta: ["alpha"] });
 });
