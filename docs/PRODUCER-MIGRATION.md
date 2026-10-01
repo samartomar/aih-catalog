@@ -49,21 +49,56 @@ for this document.
 
 ## Actual results
 
-Final verification and timing evidence are recorded by the release host from the committed
-candidate, not in this document. The checks run while implementing are summarized here as
-history only.
+The committed producer at `6a827f216866f72fe7643058634f09870ffb6c42` was measured on
+win32 10.0.26200, x64, Node v24.19.0, npm 11.17.0.
+The complete public-safe [measurement excerpts](evidence/producer-acceptance.json)
+record artifact and snapshot digests, item identities, runtime, real detection and queue
+timestamps, phase durations, checks, retries and ceiling outcomes.
 
-| Check | Result |
-| --- | --- |
-| `npx tsc --noEmit`, focused `tests/producer` suites, `npm run verify` | passed during implementation and again after review repairs; the host records the committed-head results |
-| `node tools/verify-core-consumer.mjs <reviewed Core tarball>` on the committed release and on prepared candidates, including mixed content | passed; reports `NOT RUN` when nothing is selectable |
+The representative workload uses the synthetic text in `tests/producer/git-fixture.ts`:
+source commit `9731d71f24e2308bb3ed715bf246a9c9d196ea63` supplies a five-item baseline;
+`83a02e44425568a0e66b4270008bfa65e908f068` changes two items (including a shared requirement),
+adds one and removes one. The required dependent is confirmed and an unrelated item
+remains byte-identical, including its record and provenance. These are controlled local
+commits, not commits published by the upstream repository. Local fixture candidate
+`c3328674a41da0d2d8f51f04d1f747006150cd04` adds only the fixture baseline/declaration to the
+implementation commit; the product's committed `release/` is unchanged.
 
-Provisional history, superseded: earlier local measurements were taken from a dirty
-working tree at the base commit, with a change-plus-dependent fixture workload, an
-unmeasured queue, an unverified local origin and a warm npm cache, so they are not
-acceptance evidence and are not repeated here. Acceptance timing comes from cold-install
-and retained-cache runs of `tools/measure-candidate.mjs` on a clean committed head, which
-record that head, a snapshot digest and the real elapsed clock.
+| Run | Detected-delta-to-ready | Queue counted | Result |
+| --- | --- | --- | --- |
+| Cold install: fresh workspace, dependencies and build | 174.778 s | 149816 ms | ready; all applicable checks and packed Core handoff passed |
+| Retained workspace: source/build/dependencies reverified | 18.069 s | 1008 ms | ready; identical packed artifact |
 
-Not run for this document: a CI run, a real upstream delta (provider refresh is separate
-work), npm publication, and a signed or versioned candidate.
+Both runs are below the 3,600-second ceiling. The cold clock also includes two failed
+harness starts (a missing bootstrap dependency, then timestamp formatting) and their
+correction time; its original detection timestamp was never reset. Their separate
+failure records are retained in the measurement excerpts. Input acquisition read the actual local
+Git objects (unverified origin, so these candidates cannot be applied). The machine's
+npm download cache was warm; the cold run installed fresh `node_modules`. Both runs
+included package validation, the real packed public reader, an explicit packed Core
+prepare/apply/stale-material handoff, and automated review preparation. Scan was
+deliberately absent and was not awaited. There were no producer-recorded retries, simulated
+delays or human approval waits in these runs. These are measurements of this local
+runner, not benchmark or CI claims.
+
+The resulting Catalog artifact SHA-256 is
+`e1a18031ecbb4a0b35af4a1b81634bbee5ae625061508db170c1b2fce074817b` (41427 bytes).
+The checkout manifest remains 0.3.0; this is a disposable development artifact, not a
+version allocation, distribution to users, signed candidate or npm publication.
+
+A separate real GitHub fetch of the existing pinned source at
+`c55ee46073ed923f86ce59a5eb3b6d895095d1b7` completed in 12.963 s
+(cold, source-cache miss) and 4.278 s (retained, source-cache hit).
+Repository API identity was verified in both runs. Both reproduced the committed
+release byte for byte; this was a fetch/cache check with no content delta.
+
+Committed-head verification: `npm run verify` with the reviewed Core artifact supplied
+passed 42 files / 481 tests, including both optional Core cases. The 22 pre-existing
+lint warnings remain outside this change. Regression coverage includes staging
+preservation, complete packed runtime/schema/license checks, heterogeneous selections,
+replacement-ref immunity, dependency/source ownership, snapshot identity, queue-dominated
+ceiling misses, and refusal to reuse stale measurement outputs.
+
+Not claimed here: a real upstream update (provider refresh is separate work), CI timing,
+npm publication, production signing or release activation. Publication remains governed
+by [RELEASING.md](../RELEASING.md).
