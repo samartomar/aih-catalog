@@ -86,8 +86,9 @@ only letters, digits, `.`, `_` and `-`, does not start with `-`, and is not `.gi
 any case. Anything else is refused as `declaration-invalid`.
 `npm run generate:release` and `generate-release.mjs --check` read the declaration of
 the catalog root they generate. They also refuse a directory that collides with a
-generated entry file, or one that equals or lies inside a rule directory a client
-loads natively (`.cursor/rules`, `.kiro/steering`). Other natively loaded rule
+generated entry file, or one that would place any generated file inside a rule
+directory a client loads natively (`.cursor/rules`, `.kiro/steering`; so `.cursor`
+itself is refused). Other natively loaded rule
 directories, such as `.claude/rules`, are unsupported locations because the content
 would load twice. The `aihq-project-context` allowance must list
 `<dir>/PROJECT.md` and keep its external paths under `<dir>/`. Changing the key

@@ -6,8 +6,9 @@
   the optional `instructionDirectory` key of `producer/declaration.json` (default
   `ai-coding`) moves every context target, material path, recipe description and
   router, entry-pointer and adapter reference together. Absolute, escaping, `.git`,
-  non-portable and entry-file-colliding directories, and natively loaded rule
-  directories (`.cursor/rules`, `.kiro/steering`), are refused, and the
+  non-portable and entry-file-colliding directories, and directories that would
+  place generated files in a natively loaded rule directory (`.cursor/rules`,
+  `.kiro/steering`), are refused, and the
   `aihq-project-context` allowance must list `<dir>/PROJECT.md`. Item IDs and the
   default release bytes are unchanged; no existing directory is moved.
   `npm run generate:release` now builds the producer first, and

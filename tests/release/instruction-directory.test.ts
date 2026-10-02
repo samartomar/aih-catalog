@@ -347,6 +347,8 @@ describe("refused instruction directory configurations", () => {
     ".cursor/rules/ai",
     ".cursor/rules/00-canon.mdc",
     ".KIRO/steering/00-canon.md/nested",
+    ".cursor",
+    ".CURSOR",
   ])("refuses %s, a client-native rule directory that would load the canon twice", (directory) => {
     expect(refused(declarationFor(directory))).toMatch(/natively loaded rule directory/u);
   });

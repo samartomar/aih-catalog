@@ -88,11 +88,12 @@ uses a release generated for it. Generation refuses:
 - a segment outside letters, digits, `.`, `_` and `-`, a segment starting with `-`,
   or a `.git` segment in any case;
 - a directory that collides, under case folding, with a generated entry file, for
-  example `AGENTS.md`, `claude.md`, `.windsurfrules` or a path below
-  `.cursor/rules/00-canon.mdc`;
-- a directory equal to or inside a rule directory a client loads natively, derived
-  from the canon-owned entry files: `.cursor/rules` and `.kiro/steering`, in any
-  case. Clients would load the whole canon there in addition to their entry file;
+  example `AGENTS.md`, `claude.md`, `.windsurfrules` or `GEMINI.md/context`;
+- a directory that would place any generated file inside a rule directory a client
+  loads natively, derived from the canon-owned entry files: `.cursor/rules` and
+  `.kiro/steering`, in any case. This also refuses `.cursor` itself, whose
+  `rules/` subdirectory is Cursor's. Clients would load the whole canon there in
+  addition to their entry file;
 - an `aihq-project-context` allowance that does not list `<dir>/PROJECT.md` or that
   names an external path outside `<dir>/`.
 

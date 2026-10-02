@@ -209,16 +209,6 @@ const underDir = (dir, ...rest) => [...dir.split("/"), ...rest];
  */
 function contextDirectory(declaration) {
   const dir = declaration.instructionDirectory;
-  const folded = dir.toLowerCase();
-  for (const pointer of POINTERS.filter((entry) => entry.delivery === "owned")) {
-    const native = pointer.path.slice(0, -1).join("/");
-    const key = native.toLowerCase();
-    if (key !== "" && (folded === key || folded.startsWith(`${key}/`))) {
-      fail(
-        `instruction directory ${dir} lies in the natively loaded rule directory ${native}/; the canon would load twice`,
-      );
-    }
-  }
   const allowance = declaration.authored.find((entry) => entry.source === CONTEXT_SOURCE_ID);
   if (allowance === undefined) {
     fail(`${DECLARATION_PATH} lacks the authored allowance for ${CONTEXT_SOURCE_ID}`);
@@ -232,12 +222,24 @@ function contextDirectory(declaration) {
       fail(`the ${CONTEXT_SOURCE_ID} allowance is stale: ${path} lies outside ${dir}/`);
     }
   }
-  const targets = [
+  const underDirectory = [
     ...CONTEXT_DOCUMENTS.map((doc) => underDir(dir, ...doc.target).join("/")),
     ...CLIENTS.map((client) => underDir(dir, "adapters", `${client.id}.md`).join("/")),
-    ...POINTERS.map((pointer) => pointer.path.join("/")),
     ...allowance.externalPaths,
   ];
+  // Any file under the directory, not only the directory itself: `.cursor` would
+  // place rules/agent-behavior-core.md inside Cursor's natively loaded .cursor/rules.
+  for (const pointer of POINTERS.filter((entry) => entry.delivery === "owned")) {
+    const native = pointer.path.slice(0, -1).join("/");
+    const key = `${native.toLowerCase()}/`;
+    const inside = underDirectory.find((path) => path.toLowerCase().startsWith(key));
+    if (native !== "" && inside !== undefined) {
+      fail(
+        `instruction directory ${dir} places ${inside} in the natively loaded rule directory ${native}/; the canon would load twice`,
+      );
+    }
+  }
+  const targets = [...underDirectory, ...POINTERS.map((pointer) => pointer.path.join("/"))];
   assertPrefixFree(targets, `instruction directory ${dir}`);
   return dir;
 }
