@@ -6,6 +6,7 @@ import {
   adapterNote,
   BLOCK_ID,
   CLIENTS,
+  CONTEXT_DIR,
   END_MARKER,
   mergedPointerContent,
   ownedPointerDocument,
@@ -128,13 +129,15 @@ function provenance(root, snapshot, entry) {
   return { revision: source.commit, skillPath: source.path, files, description };
 }
 
-const CONTEXT_SOURCE_ID = "aihq-project-context";
+export const CONTEXT_SOURCE_ID = "aihq-project-context";
 const CONTEXT_ITEM_ID = "aihq.project-context";
 const CONTEXT_MATERIALS = `${OUTPUT_ROOT}/materials/aihq/project-context`;
 const DONOR_PROVENANCE = {
   repository: "https://github.com/samartomar/ai-harness",
   revision: "f5d5f84b9006b628778983dab56dd92dc8888156",
 };
+
+const producer = (file) => import(`${new URL(`../dist/producer/${file}`, import.meta.url)}`);
 
 /**
  * The catalog root's parsed producer declaration. Parsing (and so instruction
@@ -143,9 +146,7 @@ const DONOR_PROVENANCE = {
 export async function readDeclaration(root) {
   let parseDeclaration;
   try {
-    ({ parseDeclaration } = await import(
-      `${new URL("../dist/producer/declaration.js", import.meta.url)}`
-    ));
+    ({ parseDeclaration } = await producer("declaration.js"));
   } catch {
     fail("the built producer is missing; run npm run build:dist first");
   }
@@ -156,6 +157,24 @@ export async function readDeclaration(root) {
     fail(`${DECLARATION_PATH} is missing from the catalog root`);
   }
   return parseDeclaration(bytes);
+}
+
+/**
+ * A copy of a raw declaration value selecting `directory`, with the project-context
+ * allowance paths under the previously declared directory moved along. It neither
+ * validates nor moves any project file; generation admits the result.
+ */
+export function retargetDeclaration(declaration, directory) {
+  const copy = structuredClone(declaration);
+  const current = copy.instructionDirectory ?? CONTEXT_DIR;
+  copy.instructionDirectory = directory;
+  for (const entry of copy.authored ?? []) {
+    if (entry.source !== CONTEXT_SOURCE_ID) continue;
+    entry.externalPaths = entry.externalPaths.map((path) =>
+      path.startsWith(`${current}/`) ? `${directory}/${path.slice(current.length + 1)}` : path,
+    );
+  }
+  return copy;
 }
 
 /** Fails when one path equals, or is a directory of, another under case folding. */
@@ -180,12 +199,26 @@ const CONTEXT_DOCUMENTS = [
   { id: "behavior-core", target: ["rules", "agent-behavior-core.md"], render: behaviorCoreDoc },
 ];
 
+/** Project path segments of `rest` under the instruction directory. */
+const underDir = (dir, ...rest) => [...dir.split("/"), ...rest];
+
 /**
  * The project directory every authored context document lives under, checked against
- * the declaration's author-owned allowance and against every generated entry file.
+ * the declaration's author-owned allowance, every generated entry file and the
+ * directories clients load natively (the parents of canon-owned entry files).
  */
-function contextLayout(declaration) {
+function contextDirectory(declaration) {
   const dir = declaration.instructionDirectory;
+  const folded = dir.toLowerCase();
+  for (const pointer of POINTERS.filter((entry) => entry.delivery === "owned")) {
+    const native = pointer.path.slice(0, -1).join("/");
+    const key = native.toLowerCase();
+    if (key !== "" && (folded === key || folded.startsWith(`${key}/`))) {
+      fail(
+        `instruction directory ${dir} lies in the natively loaded rule directory ${native}/; the canon would load twice`,
+      );
+    }
+  }
   const allowance = declaration.authored.find((entry) => entry.source === CONTEXT_SOURCE_ID);
   if (allowance === undefined) {
     fail(`${DECLARATION_PATH} lacks the authored allowance for ${CONTEXT_SOURCE_ID}`);
@@ -200,13 +233,13 @@ function contextLayout(declaration) {
     }
   }
   const targets = [
-    ...CONTEXT_DOCUMENTS.map((doc) => [dir, ...doc.target].join("/")),
-    ...CLIENTS.map((client) => `${dir}/adapters/${client.id}.md`),
+    ...CONTEXT_DOCUMENTS.map((doc) => underDir(dir, ...doc.target).join("/")),
+    ...CLIENTS.map((client) => underDir(dir, "adapters", `${client.id}.md`).join("/")),
     ...POINTERS.map((pointer) => pointer.path.join("/")),
     ...allowance.externalPaths,
   ];
   assertPrefixFree(targets, `instruction directory ${dir}`);
-  return { dir };
+  return dir;
 }
 
 const literalTarget = (segments) => ({
@@ -231,10 +264,10 @@ function registerContextRecipe(put, itemId, bytes) {
  * context document, each with a file.sha256 check. Returns the item record and
  * registers its recipe/material bytes through `put`.
  */
-function contextItem(put, { dir }) {
+function contextItem(put, dir) {
   const materials = CONTEXT_DOCUMENTS.map((doc) => ({
     id: doc.id,
-    target: [...dir.split("/"), ...doc.target],
+    target: underDir(dir, ...doc.target),
     text: doc.render(dir),
   }))
     .map((doc) => {
@@ -297,7 +330,7 @@ function contextItem(put, { dir }) {
  * (user text outside the markers survives, and no whole-file check is claimed);
  * wholly canon-owned entry files use file.write with a pinned byte check.
  */
-function pointerItems(put, { dir }) {
+function pointerItems(put, dir) {
   return POINTERS.map((pointer) => {
     const itemId = `aihq.project-context-pointer.${pointer.key}`;
     const common = {
@@ -388,10 +421,10 @@ function pointerItems(put, { dir }) {
 }
 
 /** The per-client selection surface: the adapter note plus explicit pointer dependencies. */
-function clientItems(put, { dir }) {
+function clientItems(put, dir) {
   return CLIENTS.map((client) => {
     const itemId = `aihq.client.${client.id}`;
-    const target = [...dir.split("/"), "adapters", `${client.id}.md`];
+    const target = underDir(dir, "adapters", `${client.id}.md`);
     const bytes = Buffer.from(adapterNote(client, dir), "utf8");
     const path = `${CONTEXT_MATERIALS}/${target.join("/")}`;
     put(path, bytes);
@@ -452,16 +485,16 @@ function clientItems(put, { dir }) {
   });
 }
 
-function contextFamily(put, layout) {
-  return [contextItem(put, layout), ...pointerItems(put, layout), ...clientItems(put, layout)]
+function contextFamily(put, dir) {
+  return [contextItem(put, dir), ...pointerItems(put, dir), ...clientItems(put, dir)]
     .sort((a, b) => compare(a.id, b.id));
 }
 
 /** Authored content remains reproducible independently of the upstream pin. */
 async function checkContextContent(root) {
-  const layout = contextLayout(await readDeclaration(root));
+  const dir = contextDirectory(await readDeclaration(root));
   const files = new Map();
-  const expected = contextFamily((path, bytes) => files.set(path, bytes), layout);
+  const expected = contextFamily((path, bytes) => files.set(path, bytes), dir);
   const release = readJson(root, RELEASE_PATH);
   const actual = (release.items ?? [])
     .filter((item) => item.sourceIds?.includes(CONTEXT_SOURCE_ID))
@@ -534,7 +567,7 @@ export function advancedBeyondSnapshot(root) {
  * last, for the catalog root's own declaration.
  */
 export async function generateRelease(root) {
-  const layout = contextLayout(await readDeclaration(root));
+  const dir = contextDirectory(await readDeclaration(root));
   const pkg = readJson(root, "package.json");
   const snapshot = readJson(root, SNAPSHOT);
   const files = new Map();
@@ -591,7 +624,7 @@ export async function generateRelease(root) {
   }).sort((a, b) => compare(a.id, b.id));
   const items = [
     ...mattpocockItems,
-    ...contextFamily(put, layout),
+    ...contextFamily(put, dir),
   ].sort((a, b) => compare(a.id, b.id));
   const release = {
     schema: "urn:aihq:catalog:release:1.0.0",

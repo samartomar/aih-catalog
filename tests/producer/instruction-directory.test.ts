@@ -29,9 +29,14 @@ const refusal = (value: unknown): ProducerRefusal => {
   throw new Error("expected a declaration refusal");
 };
 
+// @ts-expect-error The context content source is intentionally plain ESM JavaScript.
+const content: { CONTEXT_DIR: string } = await import("../../tools/context-content.mjs");
+
 describe("declaration instructionDirectory", () => {
   it("defaults to ai-coding when the key is absent, as in the committed declaration", () => {
     expect(DEFAULT_INSTRUCTION_DIRECTORY).toBe("ai-coding");
+    // The renderer default must be the declaration's single default.
+    expect(content.CONTEXT_DIR).toBe(DEFAULT_INSTRUCTION_DIRECTORY);
     expect("instructionDirectory" in committedJson()).toBe(false);
     expect(declaration().instructionDirectory).toBe("ai-coding");
   });

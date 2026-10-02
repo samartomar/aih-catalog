@@ -30,16 +30,24 @@ import { committedRelease, packageIdentity, readTree, root, sha256 } from "../pr
  * result through the public reader and the whole-candidate integrity checks.
  */
 
-const CONTEXT_SOURCE = "aihq-project-context";
-const INPUTS = [
-  "package.json",
-  "src/production/data/mattpocock.snapshot.json",
-  ...["grill-me", "grilling"].flatMap((entry) =>
-    ["closure.json", "profile.json"].map(
-      (file) => `defaults/workbench/mattpocock/skill.mattpocock.${entry}/artifacts/${file}`,
-    ),
-  ),
-];
+interface Generator {
+  CONTEXT_SOURCE_ID: string;
+  DECLARATION_PATH: string;
+  GENERATION_INPUTS: readonly string[];
+  retargetDeclaration(declaration: unknown, directory: string): Declaration;
+}
+interface Content {
+  CONTEXT_DIR: string;
+  CLIENTS: readonly { id: string }[];
+  POINTERS: readonly { key: string; path: readonly string[]; delivery: string }[];
+}
+// @ts-expect-error The release generator is intentionally plain ESM JavaScript.
+const generatorTool: Generator = await import("../../tools/generate-release.mjs");
+// @ts-expect-error The context content source is intentionally plain ESM JavaScript.
+const content: Content = await import("../../tools/context-content.mjs");
+const CONTEXT_SOURCE = generatorTool.CONTEXT_SOURCE_ID;
+const DEFAULT_DIR = content.CONTEXT_DIR;
+const INPUTS = ["package.json", ...generatorTool.GENERATION_INPUTS];
 
 const scratch = mkdtempSync(join(tmpdir(), "aih-instruction-directory-"));
 let count = 0;
@@ -60,18 +68,8 @@ const committedDeclaration = (): Declaration =>
   JSON.parse(readFileSync(join(root, "producer/declaration.json"), "utf8"));
 
 /** The committed declaration retargeted at `directory`, its author-owned allowance moved along. */
-function declarationFor(directory: string): Declaration {
-  const value = committedDeclaration();
-  value.instructionDirectory = directory;
-  for (const entry of value.authored) {
-    if (entry.source === CONTEXT_SOURCE) {
-      entry.externalPaths = entry.externalPaths.map((path) =>
-        path.replace(/^ai-coding\//u, `${directory}/`),
-      );
-    }
-  }
-  return value;
-}
+const declarationFor = (directory: string): Declaration =>
+  generatorTool.retargetDeclaration(committedDeclaration(), directory);
 
 /** A disposable catalog root holding only the generation inputs and `declaration`. */
 function stage(declaration: unknown): string {
@@ -111,15 +109,47 @@ const contextItems = (release: CatalogRelease) =>
 type Target = { root: string; segments: { literal?: string }[] };
 const targetPath = (target: Target) => target.segments.map((segment) => segment.literal).join("/");
 
-const POINTER_PATHS = [
-  "AGENTS.md",
-  "CLAUDE.md",
-  ".github/copilot-instructions.md",
-  ".cursor/rules/00-canon.mdc",
-  "GEMINI.md",
-  ".kiro/steering/00-canon.md",
-  ".windsurfrules",
-];
+const POINTER_PATHS = content.POINTERS.map((pointer) => pointer.path.join("/"));
+/** The shared context item, one pointer item per entry file and one item per client. */
+const FAMILY_SIZE = 1 + content.POINTERS.length + content.CLIENTS.length;
+
+describe("retargetDeclaration", () => {
+  it("sets the directory and moves only the project-context allowance under the old one", () => {
+    const original = {
+      ...committedDeclaration(),
+      authored: [
+        {
+          source: CONTEXT_SOURCE,
+          externalPaths: [`${DEFAULT_DIR}/PROJECT.md`, `${DEFAULT_DIR}/notes/A.md`],
+          templatePlaceholders: ["<your-tool>"],
+        },
+        {
+          source: "other-source",
+          externalPaths: [`${DEFAULT_DIR}/X.md`],
+          templatePlaceholders: [],
+        },
+      ],
+    };
+    const snapshot = JSON.stringify(original);
+    const moved = generatorTool.retargetDeclaration(original, ".ai/context");
+    expect(JSON.stringify(original)).toBe(snapshot);
+    expect(moved.instructionDirectory).toBe(".ai/context");
+    expect(moved.authored).toEqual([
+      {
+        source: CONTEXT_SOURCE,
+        externalPaths: [".ai/context/PROJECT.md", ".ai/context/notes/A.md"],
+        templatePlaceholders: ["<your-tool>"],
+      },
+      { source: "other-source", externalPaths: [`${DEFAULT_DIR}/X.md`], templatePlaceholders: [] },
+    ]);
+    // Retargeting again moves from the declared directory, not from the default.
+    expect(generatorTool.retargetDeclaration(moved, "docs/ai").authored[0]?.externalPaths).toEqual([
+      "docs/ai/PROJECT.md",
+      "docs/ai/notes/A.md",
+    ]);
+    expect(parseDeclaration(moved).instructionDirectory).toBe(".ai/context");
+  });
+});
 
 describe("default instruction directory", () => {
   it("regenerates exactly the committed release bytes from the committed declaration", () => {
@@ -172,10 +202,10 @@ describe("custom instruction directory", () => {
       listItems(committed).map((item) => item.id),
     );
     for (const item of contextItems(release)) {
-      expect(JSON.stringify(item), item.id).not.toContain("ai-coding");
+      expect(JSON.stringify(item), item.id).not.toContain(DEFAULT_DIR);
       for (const path of [item.recipe.path, ...item.materials.map((member) => member.path)]) {
         expect((generated.files.get(path) as Buffer).toString("utf8"), path).not.toContain(
-          "ai-coding",
+          DEFAULT_DIR,
         );
       }
     }
@@ -249,7 +279,7 @@ describe("custom instruction directory", () => {
         configuration: {},
       };
     });
-    expect(selections).toHaveLength(19);
+    expect(selections).toHaveLength(FAMILY_SIZE);
     const validated = validateSelectionSet({ releases: { [release.sha256]: release }, selections });
     expect(validated.valid, JSON.stringify(validated.diagnostics)).toBe(true);
   });
@@ -303,11 +333,31 @@ describe("refused instruction directory configurations", () => {
     "AGENTS.md",
     "claude.md",
     ".windsurfrules",
-    ".cursor/rules/00-canon.mdc",
-    ".KIRO/steering/00-canon.md/nested",
     ".github/copilot-instructions.md",
+    "GEMINI.md/context",
   ])("refuses %s, which collides with a generated entry file", (directory) => {
     expect(refused(declarationFor(directory))).toMatch(/collide/u);
+  });
+
+  it.each([
+    ".cursor/rules",
+    ".kiro/steering",
+    ".Cursor/Rules",
+    ".KIRO/Steering/context",
+    ".cursor/rules/ai",
+    ".cursor/rules/00-canon.mdc",
+    ".KIRO/steering/00-canon.md/nested",
+  ])("refuses %s, a client-native rule directory that would load the canon twice", (directory) => {
+    expect(refused(declarationFor(directory))).toMatch(/natively loaded rule directory/u);
+  });
+
+  it("admits a sibling of a client-native rule directory", () => {
+    for (const directory of [".cursor/context", ".kiro"]) {
+      const { files } = generate(declarationFor(directory));
+      expect(files.has(`release/materials/aihq/project-context/${directory}/RULE_ROUTER.md`)).toBe(
+        true,
+      );
+    }
   });
 
   it("refuses an unsafe directory through the declaration parser", () => {

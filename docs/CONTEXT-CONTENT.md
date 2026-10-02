@@ -73,11 +73,14 @@ preambles and generated note, the Cursor frontmatter description and the Kiro
 `#[[file:<dir>/RULE_ROUTER.md]]` reference. Native entry-file paths and item IDs do
 not change.
 
-It is a generation-time configuration, not an item input. Core recipe slots
-substitute whole values only, while the directory also appears inside entry and
-router text, so it cannot be a selection-time option. One release therefore carries
-one directory; a project that needs another directory uses a release generated for
-it. Generation refuses:
+The directory is chosen when a release is generated, by whoever produces that
+release: through the declaration, or through the packed consumer check's
+`--instruction-directory` staging below. It is not chosen at install time, and
+`configureItem` has no input for it. Core recipe slots substitute whole values
+only, and the directory also appears inside router, entry and adapter text whose
+bytes the release pins and hashes, so it cannot be a selection-time option. One
+release therefore carries one directory; a project that needs another directory
+uses a release generated for it. Generation refuses:
 
 - a value that is not a safe relative path (absolute, drive or colon, backslash,
   empty, `.` or `..` segment, trailing dot or space, control character, non-NFC text,
@@ -87,8 +90,15 @@ it. Generation refuses:
 - a directory that collides, under case folding, with a generated entry file, for
   example `AGENTS.md`, `claude.md`, `.windsurfrules` or a path below
   `.cursor/rules/00-canon.mdc`;
+- a directory equal to or inside a rule directory a client loads natively, derived
+  from the canon-owned entry files: `.cursor/rules` and `.kiro/steering`, in any
+  case. Clients would load the whole canon there in addition to their entry file;
 - an `aihq-project-context` allowance that does not list `<dir>/PROJECT.md` or that
   names an external path outside `<dir>/`.
+
+Other clients also load some directories natively, for example `.claude/rules`.
+Catalog does not track those, so it cannot refuse them, but they are unsupported
+locations for the same reason: the content would load twice.
 
 Changing the directory never moves or renames an existing project directory, and
 no recipe touches the author-owned `PROJECT.md`. Files applied earlier under another

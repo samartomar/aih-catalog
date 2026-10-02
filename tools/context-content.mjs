@@ -1,16 +1,18 @@
 /**
  * Authored source for the shared project-context content (the carried canon,
  * under `ai-coding/` by default). The working discipline is authored ONCE as
- * principle/invariant/reporting records and rendered at both depths — the compact shared block every client
- * entry file carries, and the long-form behavior core — so the pair is reviewed
- * and drift-guarded together. Adapted from the retired ai-harness bootstrap-ai
- * canon (public donor, commit f5d5f84b9006b628778983dab56dd92dc8888156); retired
- * engine commands, vendor baselines, stack inference and tool-routing prose are
- * deliberately absent. No private paths or links appear in the emitted text.
+ * principle/invariant/reporting records and rendered at both depths — the
+ * compact shared block every client entry file carries, and the long-form
+ * behavior core — so the pair is reviewed and drift-guarded together. Adapted
+ * from the retired ai-harness bootstrap-ai canon (public donor, commit
+ * f5d5f84b9006b628778983dab56dd92dc8888156); retired engine commands, vendor
+ * baselines, stack inference and tool-routing prose are deliberately absent. No
+ * private paths or links appear in the emitted text.
  *
  * Every renderer takes the project instruction directory (`dir`) the generated
- * content routes to; it defaults to CONTEXT_DIR. The generator passes the directory
- * the producer declaration selects, already validated as a portable relative path.
+ * content routes to; it defaults to CONTEXT_DIR, which equals the producer
+ * declaration's default. The generator passes the directory the declaration
+ * selects, already validated as a portable relative path.
  */
 
 /** The default project instruction directory. */
