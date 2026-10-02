@@ -156,29 +156,32 @@ involved; the checks read only the candidate's own recipes and materials.
   resolved for texts installed in the project; texts installed elsewhere are still
   checked for residue.
 - *What counts as a reference.* Markdown inline links and images and link reference
-  definitions (`[label]: destination`), resolved relative to the text's own installed
-  target (a leading `/` means the project root; a destination in `<…>` is unwrapped;
-  links with a URI scheme or only a `#fragment` are ignored, and `#fragment` and
-  `?query` are stripped); Kiro `#[[file:…]]` references; and inline code that plainly
-  names a path (contains `/`, no whitespace, none of `* ? [ ] { } ( ) $ |`, no `://`,
-  no leading `-`), taken relative to the project root. Link or Kiro syntax inside inline
-  code is quoted description, not a reference. A path leaving the project root is
+  definitions (`[label]: destination`; footnotes `[^1]:` are not links), resolved
+  relative to the text's own installed target (a leading `/` means the project root; a
+  destination in `<…>` is unwrapped; links with a URI scheme or only a `#fragment` are
+  ignored, and `#fragment` and `?query` are stripped); Kiro `#[[file:…]]` references;
+  and inline code that plainly names a path (contains `/`, no whitespace, none of
+  `* ? [ ] { } ( ) $ |`, no `://`, no leading `-`), taken relative to the project root.
+  Fenced code blocks are samples, and link or Kiro syntax inside inline code is quoted
+  description; neither makes a reference. A path leaving the project root is
   unresolved.
 - *Resolution.* A reference resolves when it is a delivered target in the boundary, a
   directory prefix of one, or exactly a declared external path. A declared template
   token inside a reference matches text within one path segment, never across `/`.
 - *Placeholder residue.* `${…}`, `{{…}}`, `{%…%}`, `<%…%>`, `[object Object]`, the word
-  `undefined`, `<lower-kebab>` or `<lower_snake>` tokens, `<UPPER_SNAKE>` tokens and
-  `__UPPER_SNAKE__`. Angle tokens need a `-` or `_` separator, so HTML elements such as
-  `<details>` or `<BR>` are not residue. Residue is detected everywhere in a text,
-  including inline code and HTML comments. An occurrence exactly equal to a declared
-  template token of the item's source is allowed.
+  `undefined`, `<lower-kebab>` or `<lower_snake>` tokens, upper-case tokens such as
+  `<NAME>` or `<TOOL_NAME>` and `__UPPER_SNAKE__`. Lower-case angle tokens need a `-` or
+  `_` separator and upper-case ones at least two characters that do not spell an HTML
+  element, so `<details>`, `<BR>` or `<IMG>` are not residue. Residue is detected
+  everywhere in a text, including inline code, code blocks and HTML comments. An
+  occurrence exactly equal to a declared template token of the item's source is allowed.
 
 A finding reads `item member target:line -> text`: the item, the material id or
 `operation:<id>`, the installed target (`*` for a wildcard segment), the 1-based line,
 and the reference or token as written. A recipe that cannot be parsed is reported, not
-thrown, as `item recipe <recipe path>:0 -> recipe unreadable`. Both checks run in the integrity phase, in
-`packed-release-integrity` and in the post-install check of `--apply`, with the
+thrown, as `item recipe <recipe path>:0 -> recipe unreadable`. Both checks run in the
+integrity phase, in `packed-release-integrity` and in the post-install check of
+`--apply`, with the
 allowances of the declaration in use (`--declaration`), and in `npm run check:release`
 with the allowances of this checkout's `producer/declaration.json`.
 
@@ -257,6 +260,7 @@ labeled `originVerified: false` in its summary.
   above, never a link crawl or a style review.
 - The authored boundary is the whole source, not one selection: a reference that
   resolves only through an item the consumer did not select still passes. Bare file
-  names without `/` in inline code, HTML `href`/`src` attributes and authored material
-  that is not UTF-8 are not checked.
+  names without `/` in inline code, HTML `href`/`src` attributes, link definitions
+  whose destination starts on the next line and authored material that is not UTF-8 are
+  not checked. A deliberate `${…}` in a code sample must be declared as a template token.
 - It prepares content. It allocates no version, signs nothing and publishes nothing.

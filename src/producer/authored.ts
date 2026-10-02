@@ -81,9 +81,14 @@ const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\
  * so a link whose label holds brackets or an image (`[![b](i.png)](x.md)`) is
  * still checked.
  */
-const MARKDOWN_LINK = /\]\(\s*([^\s)]+)/gu;
-/** Markdown link reference definitions (`[label]: destination`) at the start of a line. */
-const LINK_DEFINITION = /^ {0,3}\[[^\]\n]+\]:[ \t]*(\S+)/gmu;
+const MARKDOWN_LINK = /\]\(\s*(<[^>\n]*>|[^\s)]+)/gu;
+/**
+ * Markdown link reference definitions (`[label]: destination`) at the start of a
+ * line; footnote definitions (`[^1]: text`) are not links.
+ */
+const LINK_DEFINITION = /^ {0,3}\[(?!\^)[^\]\n]+\]:[ \t]*(<[^>\n]*>|\S+)/gmu;
+/** Fenced code blocks (``` or ~~~); an unterminated fence runs to the end. */
+const FENCE = /^ {0,3}(`{3,}|~{3,})[^\n]*\n[\s\S]*?(?:^ {0,3}\1[ \t]*$|(?![\s\S]))/gmu;
 /** Kiro file references, always project-root relative. */
 const KIRO_FILE = /#\[\[file:([^\]\s]+)\]\]/gu;
 /** Inline code spans; only plainly path-like ones count as mentions. */
@@ -91,11 +96,23 @@ const INLINE_CODE = /`([^`\n]+)`/gu;
 const URI_SCHEME = /^[A-Za-z][A-Za-z0-9+.-]*:/u;
 const PATH_LIKE_EXCLUDED = /[*?[\]{}()$|]/u;
 
+const UPPER_ANGLE = /<[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*>/gu;
+/** HTML element names an upper-case angle token may spell; those are markup, not residue. */
+const HTML_ELEMENTS = new Set(
+  (
+    "a abbr b bdi bdo blockquote br caption cite code col colgroup dd del details dfn div dl dt em " +
+    "figcaption figure footer h1 h2 h3 h4 h5 h6 header hr i img ins kbd li main mark nav ol p " +
+    "picture pre q s samp section small source span strong sub summary sup table tbody td tfoot th " +
+    "thead time tr u ul var video wbr"
+  ).split(" "),
+);
+
 /**
- * Placeholder residue patterns, matched anywhere in a text (inline code and HTML
- * comments included). Angle tokens need a `-` or `_` separator so HTML elements
- * such as `<details>` or `<BR>` are not residue. An occurrence equal to a declared
- * template placeholder token of the item's authored source is allowed.
+ * Placeholder residue patterns, matched anywhere in a text (inline code, code
+ * blocks and HTML comments included). Lower-case angle tokens need a `-` or `_`
+ * separator and upper-case ones at least two characters, so HTML elements such as
+ * `<details>` or `<BR>` are not residue. An occurrence equal to a declared template
+ * placeholder token of the item's authored source is allowed.
  */
 const PLACEHOLDER_PATTERNS: readonly RegExp[] = [
   /\$\{[^\n]*?\}/gu,
@@ -105,7 +122,7 @@ const PLACEHOLDER_PATTERNS: readonly RegExp[] = [
   /\[object Object\]/gu,
   /\bundefined\b/gu,
   /<[a-z][a-z0-9]*(?:[-_][a-z0-9]+)+>/gu,
-  /<[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+>/gu,
+  UPPER_ANGLE,
   /__[A-Z][A-Z0-9_]*__/gu,
 ];
 
@@ -131,13 +148,16 @@ function lineIndex(text: string): (index: number) => number {
   };
 }
 
-/** `[start, stop)` spans of inline code. */
-function codeSpans(text: string): readonly (readonly [number, number])[] {
-  return [...text.matchAll(INLINE_CODE)].map((match) => {
+/** `[start, stop)` spans of every match of a pattern. */
+function spans(text: string, pattern: RegExp): readonly (readonly [number, number])[] {
+  return [...text.matchAll(pattern)].map((match) => {
     const start = match.index ?? 0;
     return [start, start + match[0].length] as const;
   });
 }
+
+const within = (ranges: readonly (readonly [number, number])[], index: number): boolean =>
+  ranges.some(([start, stop]) => index >= start && index < stop);
 
 /** Inline code is a path-like mention only when it plainly names one. */
 function isPathLike(span: string): boolean {
@@ -153,15 +173,17 @@ function isPathLike(span: string): boolean {
 const stripDotSlash = (span: string): string => (span.startsWith("./") ? span.slice(2) : span);
 
 /**
- * The references a text makes. Link and Kiro syntax inside inline code is quoted
- * (for example `#[[file:...]]` describing the syntax) and is not a reference;
- * inline code itself counts only when it plainly names a path.
+ * The references a text makes. Fenced code blocks are samples and quote nothing
+ * live. Link and Kiro syntax inside inline code is quoted (for example
+ * `#[[file:...]]` describing the syntax) and is not a reference; inline code itself
+ * counts only when it plainly names a path.
  */
 function mentionsOf(text: string): readonly Mention[] {
   const mentions: Mention[] = [];
   const lineAt = lineIndex(text);
-  const code = codeSpans(text);
-  const quoted = (index: number) => code.some(([start, stop]) => index >= start && index < stop);
+  const fences = spans(text, FENCE);
+  const code = spans(text, INLINE_CODE);
+  const quoted = (index: number) => within(fences, index) || within(code, index);
   const links = [...text.matchAll(MARKDOWN_LINK), ...text.matchAll(LINK_DEFINITION)];
   for (const match of links) {
     if (quoted(match.index ?? 0)) continue;
@@ -173,7 +195,7 @@ function mentionsOf(text: string): readonly Mention[] {
     const path = destination.split(/[#?]/u)[0] as string;
     if (path.length === 0) continue;
     mentions.push({
-      text: destination,
+      text: written,
       path,
       absolute: path.startsWith("/"),
       line: lineAt(match.index ?? 0),
@@ -186,7 +208,7 @@ function mentionsOf(text: string): readonly Mention[] {
   }
   for (const match of text.matchAll(INLINE_CODE)) {
     const span = match[1] as string;
-    if (!isPathLike(span)) continue;
+    if (within(fences, match.index ?? 0) || !isPathLike(span)) continue;
     mentions.push({
       text: span,
       path: stripDotSlash(span),
@@ -203,6 +225,10 @@ function placeholderMatches(
   const found: { token: string; index: number }[] = [];
   for (const pattern of PLACEHOLDER_PATTERNS) {
     for (const match of text.matchAll(pattern)) {
+      const name = match[0].slice(1, -1);
+      if (pattern === UPPER_ANGLE && (name.length < 2 || HTML_ELEMENTS.has(name.toLowerCase()))) {
+        continue;
+      }
       found.push({ token: match[0], index: match.index ?? 0 });
     }
   }

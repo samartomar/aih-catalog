@@ -150,7 +150,7 @@ describe("packed candidate", () => {
     expect(check(result, "packed-runtime-bytes")?.ok).toBe(false);
   }, 60_000);
 
-  it("checks the packed authored content with the declared allowances", async () => {
+  it("fails the packed release integrity on authored content without allowances", async () => {
     const result = await verifyPacked({
       artifact,
       files,

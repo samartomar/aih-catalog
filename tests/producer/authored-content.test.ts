@@ -215,11 +215,22 @@ describe("authored content checks", () => {
         "",
         "[g]: ../nope/guide.md",
         "[s]: <../two/README.txt>",
+        "[^1]: See the note.",
+        "Spaced: [x](<docs/no such.md>).",
+        "```js",
+        "const o = {",
+        "[key]: value,",
+        "};",
+        "See [sample](missing.md) and `docs/nope/x.md`.",
+        "```",
         "",
       ].join("\n"),
     );
     const result = checkAuthoredContent(releaseOf(files), files, COMMITTED_ALLOWANCES);
-    expect(result.references.map((f) => [f.line, f.text])).toEqual([[3, "../nope/guide.md"]]);
+    expect(result.references.map((f) => [f.line, f.text])).toEqual([
+      [3, "../nope/guide.md"],
+      [6, "<docs/no such.md>"],
+    ]);
   });
 
   it("checks residue but resolves no references in a text installed outside the project", () => {
@@ -228,7 +239,7 @@ describe("authored content checks", () => {
       "one",
       (recipe) => {
         for (const operation of recipe.operations) {
-          operation.target = { ...(operation.target as Record<string, unknown>), root: "user" };
+          operation.target = { ...(operation.target as Record<string, unknown>), root: "userHome" };
         }
       },
     );
@@ -365,7 +376,7 @@ describe("authored content checks", () => {
         "const token = __PLACEHOLDER__;",
         "<!-- BEGIN aihq:context:shared -->",
         "<!-- generated; source {{dir}}/block.md -->",
-        "Inline `{{inline}}`, HTML <BR> and <details> stay.",
+        "Inline `{{inline}}`, HTML <BR>, <IMG>, <A> and <details> stay; <VERSION> does not.",
         "",
       ].join("\n"),
     );
@@ -379,6 +390,7 @@ describe("authored content checks", () => {
       [5, "<TOOL_NAME>"],
       [6, "__PLACEHOLDER__"],
       [8, "{{dir}}"],
+      [9, "<VERSION>"],
       [9, "{{inline}}"],
     ]);
     expect(result.placeholders.some((f) => f.text.includes("BEGIN"))).toBe(false);
