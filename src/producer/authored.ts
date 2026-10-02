@@ -87,8 +87,8 @@ const MARKDOWN_LINK = /\]\(\s*(<[^>\n]*>|[^\s)]+)/gu;
  * line; footnote definitions (`[^1]: text`) are not links.
  */
 const LINK_DEFINITION = /^ {0,3}\[(?!\^)[^\]\n]+\]:[ \t]*(<[^>\n]*>|\S+)/gmu;
-/** Fenced code blocks (``` or ~~~); an unterminated fence runs to the end. */
-const FENCE = /^ {0,3}(`{3,}|~{3,})[^\n]*\n[\s\S]*?(?:^ {0,3}\1[ \t]*$|(?![\s\S]))/gmu;
+/** A fence line: up to three spaces, then a run of at least three backticks or tildes. */
+const FENCE_LINE = /^ {0,3}(`{3,}|~{3,})(.*)$/u;
 /** Kiro file references, always project-root relative. */
 const KIRO_FILE = /#\[\[file:([^\]\s]+)\]\]/gu;
 /** Inline code spans; only plainly path-like ones count as mentions. */
@@ -97,14 +97,13 @@ const URI_SCHEME = /^[A-Za-z][A-Za-z0-9+.-]*:/u;
 const PATH_LIKE_EXCLUDED = /[*?[\]{}()$|]/u;
 
 const UPPER_ANGLE = /<[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*>/gu;
-/** HTML element names an upper-case angle token may spell; those are markup, not residue. */
+/**
+ * Short HTML elements still written in upper case (`<BR>`, `<IMG>`); those are markup,
+ * not residue. Element names that double as placeholder words (`<SOURCE>`, `<CODE>`)
+ * are deliberately absent.
+ */
 const HTML_ELEMENTS = new Set(
-  (
-    "a abbr b bdi bdo blockquote br caption cite code col colgroup dd del details dfn div dl dt em " +
-    "figcaption figure footer h1 h2 h3 h4 h5 h6 header hr i img ins kbd li main mark nav ol p " +
-    "picture pre q s samp section small source span strong sub summary sup table tbody td tfoot th " +
-    "thead time tr u ul var video wbr"
-  ).split(" "),
+  "a b br em h1 h2 h3 h4 h5 h6 hr i img li ol p td th tr u ul".split(" "),
 );
 
 /**
@@ -159,6 +158,38 @@ function spans(text: string, pattern: RegExp): readonly (readonly [number, numbe
 const within = (ranges: readonly (readonly [number, number])[], index: number): boolean =>
   ranges.some(([start, stop]) => index >= start && index < stop);
 
+/**
+ * `[start, stop)` spans of fenced code blocks. As in CommonMark, a fence closes on a
+ * bare line of the same character at least as long as the opening one; an
+ * unterminated fence runs to the end of the text.
+ */
+function fenceSpans(text: string): readonly (readonly [number, number])[] {
+  const ranges: (readonly [number, number])[] = [];
+  let open: { readonly start: number; readonly run: string } | undefined;
+  let offset = 0;
+  for (const line of text.split("\n")) {
+    const fence = FENCE_LINE.exec(line.endsWith("\r") ? line.slice(0, -1) : line);
+    const run = fence?.[1];
+    if (open === undefined) {
+      // A backtick fence's info string cannot itself hold a backtick.
+      if (run !== undefined && !(run.startsWith("`") && fence?.[2]?.includes("`"))) {
+        open = { start: offset, run };
+      }
+    } else if (
+      run !== undefined &&
+      run[0] === open.run[0] &&
+      run.length >= open.run.length &&
+      fence?.[2]?.trim() === ""
+    ) {
+      ranges.push([open.start, offset + line.length]);
+      open = undefined;
+    }
+    offset += line.length + 1;
+  }
+  if (open !== undefined) ranges.push([open.start, text.length]);
+  return ranges;
+}
+
 /** Inline code is a path-like mention only when it plainly names one. */
 function isPathLike(span: string): boolean {
   return (
@@ -181,7 +212,7 @@ const stripDotSlash = (span: string): string => (span.startsWith("./") ? span.sl
 function mentionsOf(text: string): readonly Mention[] {
   const mentions: Mention[] = [];
   const lineAt = lineIndex(text);
-  const fences = spans(text, FENCE);
+  const fences = fenceSpans(text);
   const code = spans(text, INLINE_CODE);
   const quoted = (index: number) => within(fences, index) || within(code, index);
   const links = [...text.matchAll(MARKDOWN_LINK), ...text.matchAll(LINK_DEFINITION)];

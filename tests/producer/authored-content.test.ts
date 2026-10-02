@@ -220,6 +220,8 @@ describe("authored content checks", () => {
         "```js",
         "const o = {",
         "[key]: value,",
+        // biome-ignore lint/suspicious/noTemplateCurlyInString: the sample carries literal residue.
+        'const greeting = "${name}";',
         "};",
         "See [sample](missing.md) and `docs/nope/x.md`.",
         "```",
@@ -231,6 +233,17 @@ describe("authored content checks", () => {
       [3, "../nope/guide.md"],
       [6, "<docs/no such.md>"],
     ]);
+    // A code sample quotes no references, but residue in it is still reported.
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: the reported token is literal residue.
+    expect(result.placeholders.map((f) => [f.line, f.text])).toEqual([[10, "${name}"]]);
+  });
+
+  it("closes a fence on a longer closing fence and checks what follows", () => {
+    const files = authoredPair(
+      ["```", "[sample](missing.md)", "````", "After: [x](docs/after.md)", ""].join("\n"),
+    );
+    const result = checkAuthoredContent(releaseOf(files), files, COMMITTED_ALLOWANCES);
+    expect(result.references.map((f) => [f.line, f.text])).toEqual([[4, "docs/after.md"]]);
   });
 
   it("checks residue but resolves no references in a text installed outside the project", () => {

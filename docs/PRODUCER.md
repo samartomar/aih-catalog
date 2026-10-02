@@ -171,19 +171,23 @@ involved; the checks read only the candidate's own recipes and materials.
 - *Placeholder residue.* `${…}`, `{{…}}`, `{%…%}`, `<%…%>`, `[object Object]`, the word
   `undefined`, `<lower-kebab>` or `<lower_snake>` tokens, upper-case tokens such as
   `<NAME>` or `<TOOL_NAME>` and `__UPPER_SNAKE__`. Lower-case angle tokens need a `-` or
-  `_` separator and upper-case ones at least two characters that do not spell an HTML
-  element, so `<details>`, `<BR>` or `<IMG>` are not residue. Residue is detected
-  everywhere in a text, including inline code, code blocks and HTML comments. An
-  occurrence exactly equal to a declared template token of the item's source is allowed.
+  `_` separator and upper-case ones at least two characters, so `<details>` is not
+  residue. A short fixed list of HTML elements still written in upper case (`<A>`,
+  `<B>`, `<BR>`, `<EM>`, `<H1>`–`<H6>`, `<HR>`, `<I>`, `<IMG>`, `<LI>`, `<OL>`, `<P>`,
+  `<TD>`, `<TH>`, `<TR>`, `<U>`, `<UL>`) is spared; any other upper-case token, such as
+  `<HTML>` in a sample, must be declared. Residue is detected everywhere in a text,
+  including inline code, code blocks and HTML comments. An occurrence exactly equal to a
+  declared template token of the item's source is allowed.
 
 A finding reads `item member target:line -> text`: the item, the material id or
 `operation:<id>`, the installed target (`*` for a wildcard segment), the 1-based line,
 and the reference or token as written. A recipe that cannot be parsed is reported, not
 thrown, as `item recipe <recipe path>:0 -> recipe unreadable`. Both checks run in the
 integrity phase, in `packed-release-integrity` and in the post-install check of
-`--apply`, with the
-allowances of the declaration in use (`--declaration`), and in `npm run check:release`
-with the allowances of this checkout's `producer/declaration.json`.
+`--apply`, with the allowances of the declaration in use (`--declaration`), and in
+`npm run check:release` with the allowances of this checkout's
+`producer/declaration.json`. A fence closes on a bare line of the same character at
+least as long as the opening one; an unterminated fence runs to the end of the text.
 
 With `--core-artifact`, one explicit reviewed packed Core artifact then runs the
 existing consumer check against the exact candidate tarball, with the same scenario
