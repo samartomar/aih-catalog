@@ -56,7 +56,7 @@ const member = (files: Map<string, Buffer>, suffix: string) =>
 describe("whole-candidate integrity", () => {
   it("passes every check for a produced candidate and for the committed release", () => {
     for (const files of [genesis(), committedRelease()]) {
-      const result = checkCandidateFiles(files, identity);
+      const result = checkCandidateFiles(files, identity, { authored: declaration().authored });
       expect(result.checks.map((c) => c.name)).toEqual([...INTEGRITY_CHECKS]);
       expect(result.checks.filter((c) => !c.ok)).toEqual([]);
       expect(result.ok).toBe(true);

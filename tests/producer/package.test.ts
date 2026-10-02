@@ -56,7 +56,14 @@ async function packAndVerify(
   stagePackage({ sourceRoot, files, stageDir: stage });
   options.tamper?.(stage);
   const artifact = packStaged(stage, join(scratch, `pack-${counter}`));
-  const result = await verifyPacked({ artifact, files, identity, manifest, sourceRoot });
+  const result = await verifyPacked({
+    artifact,
+    files,
+    identity,
+    manifest,
+    sourceRoot,
+    authored: declaration().authored,
+  });
   return { result, artifact, sourceRoot, stage };
 }
 const failed = (result: { checks: readonly { name: string; ok: boolean }[] }) =>
@@ -124,6 +131,7 @@ describe("packed candidate", () => {
       identity,
       manifest,
       sourceRoot: outcome.sourceRoot,
+      authored: declaration().authored,
     });
     expect(check(result, "packed-release-bytes")?.ok).toBe(false);
   });
@@ -136,6 +144,7 @@ describe("packed candidate", () => {
       identity,
       manifest: narrower,
       sourceRoot: outcome.sourceRoot,
+      authored: declaration().authored,
     });
     expect(check(result, "packed-inventory-intended")?.ok).toBe(false);
     expect(check(result, "packed-runtime-bytes")?.ok).toBe(false);
@@ -223,7 +232,9 @@ describe("bounded selection with realistic mixed content", () => {
 
   it("keeps a valid release with configuration-required, conflicting and platform-gated items ready", async () => {
     const files = mixed();
-    expect(checkCandidateFiles(files, identity).ok).toBe(true);
+    expect(checkCandidateFiles(files, identity, { authored: declaration().authored }).ok).toBe(
+      true,
+    );
     const { result } = await packAndVerify(files);
     expect(failed(result)).toEqual([]);
     const smoke = check(result, "reader-selection-smoke");
@@ -253,7 +264,9 @@ describe("bounded selection with realistic mixed content", () => {
     const files = mixed();
     const [path] = [...files.keys()].filter((key) => key.includes("/authored/ext.server/"));
     files.set(path as string, Buffer.from("tampered"));
-    expect(failed(checkCandidateFiles(files, identity))).toContain("member-bytes");
+    expect(
+      failed(checkCandidateFiles(files, identity, { authored: declaration().authored })),
+    ).toContain("member-bytes");
   });
 });
 

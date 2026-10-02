@@ -154,7 +154,9 @@ export async function prepareCandidate(options: PrepareOptions): Promise<Prepare
     candidateFiles = built.files;
     let checks: readonly IntegrityCheck[] = [];
     await recorder.phase("integrity", (context) => {
-      checks = assertCandidateIntegrity(built.files, identity).checks;
+      checks = assertCandidateIntegrity(built.files, identity, {
+        authored: options.declaration.authored,
+      }).checks;
       context.checks(checks);
     });
     artifact = await recorder.phase("stage-and-pack", () => {
@@ -168,6 +170,7 @@ export async function prepareCandidate(options: PrepareOptions): Promise<Prepare
         identity,
         manifest,
         sourceRoot: options.sourceRoot,
+        authored: options.declaration.authored,
       });
       context.checks(verified.checks);
       if (!verified.ok) {
@@ -225,7 +228,9 @@ export async function prepareCandidate(options: PrepareOptions): Promise<Prepare
           ...(options.beforeSwap ? { beforeSwap: options.beforeSwap } : {}),
           verifyInstalled: () => {
             options.afterSwap?.();
-            const after = checkCandidateFiles(readReleaseDirectory(options.sourceRoot), identity);
+            const after = checkCandidateFiles(readReleaseDirectory(options.sourceRoot), identity, {
+              authored: options.declaration.authored,
+            });
             context.checks(after.checks);
             if (!after.ok)
               refuse("post-install-check-failed", "the installed release failed its checks");

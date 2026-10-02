@@ -1,4 +1,5 @@
 import { ID, isRecord, safeMemberPath } from "../release/document.js";
+import type { AuthoredAllowance } from "./authored.js";
 import { refuse } from "./errors.js";
 import { REPOSITORY } from "./tree.js";
 
@@ -30,18 +31,28 @@ export interface DeclaredItem {
 export interface ProducerDeclaration {
   readonly sources: readonly DeclaredSource[];
   readonly items: readonly DeclaredItem[];
+  /** Declared allowances for Catalog-authored content; empty when the key is absent. */
+  readonly authored: readonly AuthoredAllowance[];
 }
 
 export const DECLARATION_FORMAT = "aihq-catalog-producer-declaration";
 const ENTRY = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const SPDX = /^[A-Za-z0-9][A-Za-z0-9.+-]{0,63}$/;
+const PLACEHOLDER_MAX = 64;
 
-function keys(value: unknown, allowed: readonly string[], at: string): Record<string, unknown> {
+function keys(
+  value: unknown,
+  required: readonly string[],
+  at: string,
+  optional: readonly string[] = [],
+): Record<string, unknown> {
   if (!isRecord(value)) return refuse("declaration-invalid", `${at} must be an object`);
   for (const key of Object.keys(value)) {
-    if (!allowed.includes(key)) refuse("declaration-invalid", `${at} has unknown key ${key}`);
+    if (!required.includes(key) && !optional.includes(key)) {
+      refuse("declaration-invalid", `${at} has unknown key ${key}`);
+    }
   }
-  for (const key of allowed) {
+  for (const key of required) {
     if (!(key in value)) refuse("declaration-invalid", `${at} lacks ${key}`);
   }
   return value;
@@ -59,6 +70,50 @@ function path(value: unknown, at: string): string {
   return value;
 }
 
+/** The optional authored-content allowances, validated and ordered by source id. */
+function parseAuthored(value: unknown): readonly AuthoredAllowance[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) {
+    return refuse("declaration-invalid", "declaration/authored must be an array");
+  }
+  const entries = value.map((raw, index): AuthoredAllowance => {
+    const at = `authored/${index}`;
+    const entry = keys(raw, ["source", "externalPaths", "templatePlaceholders"], at);
+    const source = text(entry.source, ID, `${at}/source`);
+    if (!Array.isArray(entry.externalPaths)) {
+      refuse("declaration-invalid", `${at}/externalPaths must be an array`);
+    }
+    const externalPaths = (entry.externalPaths as unknown[]).map((item, position) =>
+      path(item, `${at}/externalPaths/${position}`),
+    );
+    if (new Set(externalPaths).size !== externalPaths.length) {
+      refuse("declaration-invalid", `${at}/externalPaths has duplicates`);
+    }
+    if (!Array.isArray(entry.templatePlaceholders)) {
+      refuse("declaration-invalid", `${at}/templatePlaceholders must be an array`);
+    }
+    const templatePlaceholders = (entry.templatePlaceholders as unknown[]).map((item, position) => {
+      if (
+        typeof item !== "string" ||
+        item.length === 0 ||
+        item.length > PLACEHOLDER_MAX ||
+        /\s/u.test(item)
+      ) {
+        return refuse("declaration-invalid", `${at}/templatePlaceholders/${position} is malformed`);
+      }
+      return item;
+    });
+    if (new Set(templatePlaceholders).size !== templatePlaceholders.length) {
+      refuse("declaration-invalid", `${at}/templatePlaceholders has duplicates`);
+    }
+    return { source, externalPaths, templatePlaceholders };
+  });
+  if (new Set(entries.map((entry) => entry.source)).size !== entries.length) {
+    refuse("declaration-invalid", "authored sources must be unique");
+  }
+  return [...entries].sort((a, b) => (a.source < b.source ? -1 : a.source > b.source ? 1 : 0));
+}
+
 /** Strictly parses declaration bytes (or an already parsed value). */
 export function parseDeclaration(input: Uint8Array | unknown): ProducerDeclaration {
   let value: unknown = input;
@@ -69,7 +124,7 @@ export function parseDeclaration(input: Uint8Array | unknown): ProducerDeclarati
       return refuse("declaration-invalid", "the declaration is not UTF-8 JSON");
     }
   }
-  const top = keys(value, ["format", "version", "sources", "items"], "declaration");
+  const top = keys(value, ["format", "version", "sources", "items"], "declaration", ["authored"]);
   if (top.format !== DECLARATION_FORMAT || top.version !== 1) {
     return refuse("declaration-invalid", "unsupported declaration format or version");
   }
@@ -139,7 +194,11 @@ export function parseDeclaration(input: Uint8Array | unknown): ProducerDeclarati
     refuse("declaration-invalid", "two items would write the same skill directory");
   }
   assertAcyclic(items);
-  return { sources, items: [...items].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)) };
+  return {
+    sources,
+    items: [...items].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)),
+    authored: parseAuthored(top.authored),
+  };
 }
 
 /** Throws unless the declared required-dependency graph is acyclic. */

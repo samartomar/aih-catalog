@@ -8,6 +8,7 @@ import { readCommitTree } from "../../src/producer/git-tree.js";
 import { readReleaseDirectory } from "../../src/producer/install.js";
 import { type AcquiredTree, prepareCandidate } from "../../src/producer/prepare.js";
 import type { Clock } from "../../src/producer/timing.js";
+import { withAuthoredItems } from "./authored.js";
 import { FixtureRepository, UPSTREAM_A, UPSTREAM_B_CHANGES } from "./git-fixture.js";
 import { makePackageRoot, REPOSITORY, root, sha256 } from "./helpers.js";
 
@@ -147,6 +148,30 @@ describe("prepareCandidate", () => {
     expect(result.summary.phases.find((p) => p.name === "install")?.status).toBe("skipped");
     expect(result.artifact && existsSync(result.artifact.tarball)).toBe(true);
   }, 120_000);
+
+  it("refuses carried authored content with a broken reference and changes nothing", async () => {
+    const dir = packageRoot(
+      "authored-broken",
+      withAuthoredItems(seeded, [{ id: "notes", text: "Read `docs/missing/README.txt`.\n" }]),
+    );
+    const before = digestTree(dir);
+    const result = await prepareCandidate({
+      sourceRoot: dir,
+      declaration: declarationB,
+      commit: commitB,
+      acquire: acquireAt(commitB),
+      outDir: join(scratch, "authored-broken-out"),
+      apply: true,
+    });
+    expect(result.summary.outcome).toBe("refused");
+    expect(result.summary.refusal?.reason).toBe("integrity-failed");
+    expect(result.summary.refusal?.message).toContain(
+      "authored-references (unresolved notes readme docs/notes/README.txt:1 -> docs/missing/README.txt)",
+    );
+    expect(result.installed).toBe(false);
+    expect(digestTree(dir)).toEqual(before);
+    expect(result.summary.phases.find((p) => p.name === "integrity")?.status).toBe("failed");
+  }, 60_000);
 
   it("refuses an incomplete inventory, records the failed run and changes nothing", async () => {
     const dir = packageRoot("incomplete", seeded);
