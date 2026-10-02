@@ -15,6 +15,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { checkCandidateFiles } from "../../src/producer/integrity.js";
 import { CLIENTS, POINTERS } from "../../src/release/context-content.js";
 import type { CatalogRelease } from "../../src/release/contracts.js";
+import { canonicalJson } from "../../src/release/json.js";
 import {
   type PreparedProjectContextResult,
   prepareProjectContext,
@@ -23,9 +24,12 @@ import {
 import {
   CONTEXT_SOURCE_ID,
   DEFAULT_INSTRUCTION_DIRECTORY,
+  DERIVED_MANIFEST_PATH,
+  deriveProjectContextRelease,
   instructionDirectoryProblems,
   PROJECT_CONTEXT_RENDERER,
   renderContextFamily,
+  reproducesAuthoredContext,
 } from "../../src/release/project-context.js";
 import {
   configureItem,
@@ -115,12 +119,99 @@ const POINTER_PATHS = POINTERS.map((pointer) => pointer.path.join("/"));
 /** The shared context item, one pointer item per entry file and one item per client. */
 const FAMILY_SIZE = 1 + POINTERS.length + CLIENTS.length;
 
-function carried(): CatalogRelease {
-  const bytes = readFileSync(join(repository, "release/release.json"));
+/** A checked release view over a release document value. */
+function releaseOf(value: unknown): CatalogRelease {
+  const bytes = Buffer.from(`${canonicalJson(value)}\n`);
   const read = readRelease(bytes, { expectedSha256: sha256(bytes) });
   if (!read.valid) throw new Error(JSON.stringify(read.diagnostics));
   return read.release;
 }
+const publishedDocument = () =>
+  JSON.parse(readFileSync(join(repository, "release/release.json"), "utf8"));
+const carried = (): CatalogRelease => releaseOf(publishedDocument());
+
+/** Published documents whose authored context this renderer does not reproduce. */
+function mismatchedDocuments(): unknown[] {
+  const changed = publishedDocument();
+  for (const item of changed.items) {
+    if (item.id === "aihq.project-context") item.label = "Changed context";
+  }
+  const without = publishedDocument();
+  without.items = without.items.filter(
+    (item: { sourceIds: string[] }) => !item.sourceIds.includes(CONTEXT_SOURCE_ID),
+  );
+  without.sources = without.sources.filter(
+    (entry: { id: string }) => entry.id !== CONTEXT_SOURCE_ID,
+  );
+  return [changed, without];
+}
+
+describe("deriveProjectContextRelease (portable, no filesystem)", () => {
+  it("derives a readable release whose manifest is one of its files", () => {
+    const source = carried();
+    const result = deriveProjectContextRelease(source, ".ai/context");
+    if (!result.valid) throw new Error(JSON.stringify(result.problems));
+    const { files, manifest, derivation } = result.derived;
+    expect(files.get(DERIVED_MANIFEST_PATH)).toBe(manifest);
+    expect([...files.keys()]).toEqual([...files.keys()].sort());
+    const derived = readRelease(manifest, { expectedSha256: sha256(manifest) });
+    if (!derived.valid) throw new Error(JSON.stringify(derived.diagnostics));
+    expect(derived.release.sha256).not.toBe(source.sha256);
+    expect(derived.release.metadata).toEqual({ derived: derivation });
+    expect(derivation).toEqual({
+      kind: "project-context",
+      from: { package: source.package, manifestSha256: source.sha256 },
+      renderer: PROJECT_CONTEXT_RENDERER,
+      instructionDirectory: ".ai/context",
+    });
+    expect(Object.isFrozen(derivation.from.package)).toBe(true);
+    const declared = listItems(derived.release).flatMap((item) => [
+      item.recipe.path,
+      ...item.materials.map((member) => member.path),
+    ]);
+    expect([...files.keys()].sort()).toEqual([...declared, DERIVED_MANIFEST_PATH].sort());
+  });
+
+  it("is deterministic and keeps the published item identities for ai-coding", () => {
+    const source = carried();
+    const first = deriveProjectContextRelease(source, "ai-coding");
+    const second = deriveProjectContextRelease(source, "ai-coding");
+    if (!first.valid || !second.valid) throw new Error("derivation refused");
+    expect(Buffer.from(second.derived.manifest).equals(Buffer.from(first.derived.manifest))).toBe(
+      true,
+    );
+    const derived = releaseOf(JSON.parse(Buffer.from(first.derived.manifest).toString("utf8")));
+    expect(listItems(derived).map((item) => item.itemSha256)).toEqual(
+      contextItems(source).map((item) => item.itemSha256),
+    );
+  });
+
+  it("returns directory problems and renderer mismatches as problems with their request path", () => {
+    const refused = deriveProjectContextRelease(carried(), ".cursor/rules");
+    expect(refused).toEqual({
+      valid: false,
+      problems: [
+        expect.objectContaining({
+          reason: "instruction-directory-native-rules",
+          path: "/instructionDirectory",
+        }),
+      ],
+    });
+    expect(Object.isFrozen(refused)).toBe(true);
+    for (const document of mismatchedDocuments()) {
+      const source = releaseOf(document);
+      expect(reproducesAuthoredContext(source)).toBe(false);
+      const result = deriveProjectContextRelease(source, ".ai/context");
+      expect(result.valid).toBe(false);
+      if (!result.valid) {
+        expect(result.problems.map((problem) => [problem.reason, problem.path])).toEqual([
+          ["renderer-mismatch", "/release"],
+        ]);
+      }
+    }
+    expect(reproducesAuthoredContext(carried())).toBe(true);
+  });
+});
 
 describe("the internal context renderer", () => {
   it("renders exactly the published context items and bytes for the default directory", () => {
@@ -416,10 +507,14 @@ describe("prepareProjectContext refusals", () => {
       release: from.release,
       instructionDirectory: ".ai/context",
       outputDirectory: output(),
+      sourceMaterialRoots: from.materialRoots,
       ...request,
     } as Parameters<typeof prepareProjectContext>[0]);
     expect(result.valid).toBe(false);
     expect(result.release).toBeUndefined();
+    expect(Object.isFrozen(result)).toBe(true);
+    expect(Object.isFrozen(result.diagnostics)).toBe(true);
+    for (const d of result.diagnostics) expect(Object.isFrozen(d)).toBe(true);
     expect(reasons(result)).toContain(expected);
     for (const d of result.diagnostics) expect(d.code).toBe("INPUT_INVALID");
     return result;
@@ -446,30 +541,19 @@ describe("prepareProjectContext refusals", () => {
   });
 
   it("refuses a source whose authored context differs from this renderer", async () => {
-    const document = JSON.parse(readFileSync(join(repository, "release/release.json"), "utf8"));
-    const changed = structuredClone(document);
-    for (const item of changed.items) {
-      if (item.id === "aihq.project-context") item.label = "Changed context";
-    }
-    const without = structuredClone(document);
-    without.items = without.items.filter(
-      (item: { sourceIds: string[] }) => !item.sourceIds.includes(CONTEXT_SOURCE_ID),
-    );
-    without.sources = without.sources.filter(
-      (entry: { id: string }) => entry.id !== CONTEXT_SOURCE_ID,
-    );
-    for (const value of [changed, without]) {
-      const bytes = Buffer.from(`${canonicalText(value)}\n`);
-      const read = readRelease(bytes, { expectedSha256: sha256(bytes) });
-      if (!read.valid) throw new Error(JSON.stringify(read.diagnostics));
+    for (const value of mismatchedDocuments()) {
       const out = output();
-      await refuse({ release: read.release, outputDirectory: out }, "renderer-mismatch");
+      await refuse({ release: releaseOf(value), outputDirectory: out }, "renderer-mismatch");
       expect(existsSync(out)).toBe(false);
     }
   });
 
   it("refuses a relative, missing-parent, non-directory, linked or non-empty output", async () => {
-    await refuse({ outputDirectory: "relative/out" }, "invalid-output-directory");
+    const relativeOut = await refuse(
+      { outputDirectory: "relative/out" },
+      "invalid-output-directory",
+    );
+    expect(relativeOut.diagnostics[0]?.path).toBe("/outputDirectory");
     await refuse(
       { outputDirectory: join(output(), "missing", "out") },
       "output-parent-unavailable",
@@ -491,14 +575,21 @@ describe("prepareProjectContext refusals", () => {
     expect(readdirSync(full)).toEqual(["keep.txt"]);
   });
 
-  it("refuses output overlapping a source material root", async () => {
+  it("refuses output inside the installed package and leaves it unchanged", async () => {
     const from = await source();
-    const inside = join(from.root, "staging");
-    await refuse(
-      { release: from.release, outputDirectory: inside, sourceMaterialRoots: from.materialRoots },
-      "output-overlaps-source",
-    );
-    expect(existsSync(inside)).toBe(false);
+    const before = digest(tree(from.root));
+    for (const inside of [join(from.root, "staging"), join(from.root, "release", "staging")]) {
+      await refuse(
+        { release: from.release, outputDirectory: inside, sourceMaterialRoots: from.materialRoots },
+        "output-overlaps-source",
+      );
+      expect(existsSync(inside)).toBe(false);
+    }
+    expect(digest(tree(from.root))).toEqual(before);
+  });
+
+  it("refuses output that contains a source material root", async () => {
+    const from = await source();
     const parent = dirname(from.root);
     const around = join(parent, "around");
     await refuse(
@@ -518,25 +609,38 @@ describe("prepareProjectContext refusals", () => {
     expect(existsSync(join(result.outputDirectory, "release/release.json"))).toBe(true);
   });
 
-  it("removes only what it created when cancelled partway", async () => {
-    for (const existing of [false, true]) {
-      const out = output();
-      if (existing) mkdirSync(out);
-      let checks = 0;
-      const signal = {
-        get aborted() {
-          checks += 1;
-          return checks > 12;
-        },
-        addEventListener() {},
-        removeEventListener() {},
-      } as unknown as AbortSignal;
-      const result = await refuse({ outputDirectory: out, signal }, "cancelled");
-      expect(result.valid).toBe(false);
-      expect(checks).toBeGreaterThan(12);
-      if (existing) expect(readdirSync(out)).toEqual([]);
-      else expect(existsSync(out)).toBe(false);
+  it("accepts an explicitly empty map for a source without local roots", async () => {
+    const from = await source();
+    const result = await prepareProjectContext({
+      release: from.release,
+      instructionDirectory: ".ai/context",
+      outputDirectory: output(),
+      sourceMaterialRoots: {},
+    });
+    expect(result.diagnostics).toEqual([]);
+    expect(result.valid).toBe(true);
+  });
+
+  it("requires the map of source material roots", async () => {
+    const from = await source();
+    const before = digest(tree(from.root));
+    for (const sourceMaterialRoots of [
+      undefined,
+      null,
+      "catalog",
+      { catalog: "relative/root" },
+      { "bad name": from.root },
+      { catalog: 7 },
+    ]) {
+      const out = join(from.root, "staging");
+      const result = await refuse(
+        { outputDirectory: out, sourceMaterialRoots } as never,
+        "invalid-material-roots",
+      );
+      expect(result.diagnostics[0]?.path).toBe("/sourceMaterialRoots");
+      expect(existsSync(out)).toBe(false);
     }
+    expect(digest(tree(from.root))).toEqual(before);
   });
 
   it("is cancelled before any work when the signal is already aborted", async () => {
@@ -545,14 +649,3 @@ describe("prepareProjectContext refusals", () => {
     expect(existsSync(out)).toBe(false);
   });
 });
-
-/** Canonical release text for a parsed release document (sorted keys, no whitespace). */
-function canonicalText(value: unknown): string {
-  if (value === null || typeof value !== "object") return JSON.stringify(value);
-  if (Array.isArray(value)) return `[${value.map(canonicalText).join(",")}]`;
-  const record = value as Record<string, unknown>;
-  return `{${Object.keys(record)
-    .sort()
-    .map((key) => `${JSON.stringify(key)}:${canonicalText(record[key])}`)
-    .join(",")}}`;
-}

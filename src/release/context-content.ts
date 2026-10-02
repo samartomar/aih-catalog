@@ -11,12 +11,12 @@
  *
  * Internal and portable (no Node built-ins); not a package export. Every renderer
  * takes the project instruction directory (`dir`) the content routes to; it defaults
- * to CONTEXT_DIR, the published default. Callers pass a directory already admitted
- * by `instructionDirectoryProblems` in project-context.ts.
+ * to DEFAULT_INSTRUCTION_DIRECTORY. Callers pass a directory already admitted by
+ * `instructionDirectoryProblems` in project-context.ts.
  */
 
-/** The default project instruction directory. */
-export const CONTEXT_DIR = "ai-coding";
+/** The instruction directory the published release carries. */
+export const DEFAULT_INSTRUCTION_DIRECTORY = "ai-coding";
 export const BLOCK_ID = "aih-context-shared";
 export const START_MARKER = `<!-- BEGIN aihq:context:shared -->`;
 export const END_MARKER = `<!-- END aihq:context:shared -->`;
@@ -30,8 +30,9 @@ const stripTrailingNewlines = (text: string): string => {
 type Part = string | readonly string[] | readonly (string | readonly string[])[];
 /**
  * Joins one level of parts with LF. A deeper array is stringified by `Array#join`
- * (comma-separated), exactly as the published bytes were rendered; changing that is
- * a content change with new identities, not a refactor.
+ * (comma-separated), exactly as the published bytes were rendered: the principle
+ * sections of the behavior core read as comma-joined lines. Fixing that changes the
+ * published content and its identities, so it is tracked separately, not here.
  */
 const join = (...parts: Part[]): string => `${stripTrailingNewlines(parts.flat().join("\n"))}\n`;
 
@@ -150,7 +151,7 @@ const EXTERNAL_ACTION_BOUNDARY = [
 // ---- shared context documents ----------------------------------------------
 
 /** The shared canonical block body — identical in `_shared-canonical-block.md` and in every client entry file's managed block. */
-export function sharedBlockBody(dir: string = CONTEXT_DIR): string {
+export function sharedBlockBody(dir: string = DEFAULT_INSTRUCTION_DIRECTORY): string {
   return join(
     "## Start here",
     "",
@@ -191,7 +192,7 @@ export function sharedBlockBody(dir: string = CONTEXT_DIR): string {
 }
 
 /** The long-form working discipline the shared block and router route to. */
-export function behaviorCoreDoc(dir: string = CONTEXT_DIR): string {
+export function behaviorCoreDoc(dir: string = DEFAULT_INSTRUCTION_DIRECTORY): string {
   return join(
     "# Agent behavior core",
     "",
@@ -213,7 +214,7 @@ export function behaviorCoreDoc(dir: string = CONTEXT_DIR): string {
 }
 
 /** The static RULE_ROUTER — the entry point every selected client is pointed at. */
-export function ruleRouterDoc(dir: string = CONTEXT_DIR): string {
+export function ruleRouterDoc(dir: string = DEFAULT_INSTRUCTION_DIRECTORY): string {
   return join(
     "# AI Rule Router",
     "",
@@ -343,7 +344,10 @@ const generatedNote = (dir: string): string =>
   `<!-- generated; source ${dir}/adapters/_shared-canonical-block.md — do not edit this block by hand -->`;
 
 /** The literal content of a merged client entry block (preamble + note + shared body). */
-export function mergedPointerContent(key: string, dir: string = CONTEXT_DIR): string {
+export function mergedPointerContent(
+  key: string,
+  dir: string = DEFAULT_INSTRUCTION_DIRECTORY,
+): string {
   return join(preamble(key, dir), "", generatedNote(dir), "", sharedBlockBody(dir)).replace(
     /\n$/u,
     "",
@@ -365,7 +369,10 @@ function frontmatter(
 }
 
 /** Complete bytes for a wholly canon-owned client entry file (activation frontmatter first). */
-export function ownedPointerDocument(key: string, dir: string = CONTEXT_DIR): string {
+export function ownedPointerDocument(
+  key: string,
+  dir: string = DEFAULT_INSTRUCTION_DIRECTORY,
+): string {
   const block = `${START_MARKER}\n\n${generatedNote(dir)}\n\n${sharedBlockBody(dir)}\n${END_MARKER}`;
   switch (key) {
     case "cursor-rules":
@@ -518,7 +525,10 @@ function agentsMdReaderLabels(): string {
 }
 
 /** The per-client adapter note delivered at `<dir>/adapters/<cli>.md`. */
-export function adapterNote(client: ContextClient, dir: string = CONTEXT_DIR): string {
+export function adapterNote(
+  client: ContextClient,
+  dir: string = DEFAULT_INSTRUCTION_DIRECTORY,
+): string {
   return join(
     `# ${client.label} adapter`,
     "",

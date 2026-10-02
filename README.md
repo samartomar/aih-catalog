@@ -57,15 +57,16 @@ Select required items explicitly, then call `validateSelectionSet` and copy its
 or silently selects optional suggestions. See [the execution example](docs/CATALOG-CONTENT.md#explicit-dependencies-and-core-handoff).
 
 The `aihq.project-context` family supplies shared project AI context
-(under `ai-coding/` by default), native entry pointers and adapter notes for the
-supported client baseline as ordinary selectable items with the same contracts; see
-[the context content contract](docs/CONTEXT-CONTENT.md). A project that wants
-another instruction directory calls `prepareProjectContext` from
-`@aihq/catalog/node` with that directory and a caller-owned staging directory. It
-writes a derived release with its own identities there and returns the checked
-release, a local material source and its `materialRoots` entry for the ordinary
-configure, validate and Core prepare/apply flow; the installed package is not changed
-and no release is regenerated. Delivering a client entry file does not prove the
+(under `ai-coding/` in the published release), native entry pointers and adapter
+notes for the supported client baseline as ordinary selectable items with the same
+contracts; see [the context content contract](docs/CONTEXT-CONTENT.md). A project
+that wants another instruction directory calls `prepareProjectContext` from
+`@aihq/catalog/node` with that required directory, a caller-owned staging directory
+and the installed release's `materialRoots`. It writes a derived release with its
+own identities to the staging directory and returns the checked release, a local
+material source and its `materialRoots` entry for the ordinary configure, validate
+and Core prepare/apply flow. Output overlapping the installed package is refused, and
+no release is regenerated. Delivering a client entry file does not prove the
 client loads it.
 
 ## Prepare a content candidate

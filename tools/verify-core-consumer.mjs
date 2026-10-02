@@ -331,6 +331,8 @@ if (requestedDirectory !== undefined) {
 }
 const customDirectory = DIR !== DEFAULT_DIR;
 const familyItems = listItems(contextRelease).filter(item => item.sourceIds.includes(CONTEXT_SOURCE_ID));
+const familyOf = (kind) => familyItems.filter(item => item.kind === kind);
+const CLIENT_KEYS = familyOf("client-adapter").map(item => item.id.slice("aihq.client.".length));
 if (customDirectory) {
   for (const item of familyItems) {
     assert(!JSON.stringify(item).includes(DEFAULT_DIR), item.id);
@@ -543,12 +545,19 @@ const delivered = [...new Set(familyPrepared.review.operations.map(op => op.deta
   .filter(target => typeof target === "string"))];
 for (const target of delivered) assert(!projectPath(target).startsWith(".."), target);
 const contextDelivered = delivered.filter(target => !projectPath(target).startsWith(".claude/"));
-assert.equal(contextDelivered.length, 3 + 7 + 11, JSON.stringify(delivered));
+// One delivered file per distinct operation target across the family recipes.
+const familyTargets = new Set(familyItems.flatMap(item =>
+  JSON.parse(readFileSync(join(contextRoot, item.recipe.path), "utf8")).operations
+    .map(op => op.target.segments.map(segment => segment.literal).join("/"))));
+assert.equal(familyTargets.size, contextItem.materials.length + familyOf("client-entry-pointer").length +
+  CLIENT_KEYS.length, JSON.stringify([...familyTargets]));
+assert.equal(contextDelivered.length, familyTargets.size, JSON.stringify(delivered));
 if (installedAlongside > 0) {
   assert(delivered.length > contextDelivered.length, "Installed items are delivered beside the derived context.");
   for (const target of delivered.filter(target => !contextDelivered.includes(target))) assert(existsSync(target), target);
 }
-for (const name of ["claude", "codex", "cursor", "antigravity", "gemini", "copilot", "windsurf", "opencode", "zed", "kimi", "kiro"])
+assert.equal(CLIENT_KEYS.length, 11, JSON.stringify(CLIENT_KEYS));
+for (const name of CLIENT_KEYS)
   assert(existsSync(join(familyProject, DIR, "adapters", name + ".md")), name + " adapter note under " + DIR);
 if (customDirectory) {
   assert.equal(existsSync(join(familyProject, DEFAULT_DIR)), false, "No default directory is created");
@@ -564,8 +573,9 @@ const reviewRecipeIdentities = JSON.stringify(familyPrepared.review).includes("r
   ? "exposed" : "not-exposed";
 if (derivation !== undefined) {
   // Staging lifetime: kept until prepare and apply complete, then deleted by its owner.
-  rmSync(derivation.staging, { recursive: true, force: true });
-  derivation = { ...derivation, staging: undefined, stagingRemoved: !existsSync(derivation.staging),
+  const { staging, ...recorded } = derivation;
+  rmSync(staging, { recursive: true, force: true });
+  derivation = { ...recorded, stagingRemoved: !existsSync(staging),
     installedItemsAlongside: installedAlongside };
 }
 

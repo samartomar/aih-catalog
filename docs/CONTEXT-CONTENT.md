@@ -67,8 +67,10 @@ be detected or that every agent will comply; native permissions still apply.
 `<dir>` defaults to `ai-coding`, the directory the published release carries. A
 consuming project that wants another project-relative directory, such as
 `.ai/context`, prepares the context family for it with `prepareProjectContext` from
-`@aihq/catalog/node`. Nobody regenerates or republishes a Catalog release, and the
-installed package is never changed.
+`@aihq/catalog/node`. Nobody regenerates or republishes a Catalog release. The
+helper requires the source release's material roots and refuses any output that
+overlaps them, so the installed package is never changed. A source without local
+roots, such as an archive resolved by `resolveRelease`, passes an explicit empty map.
 
 The directory cannot be a recipe input. Core recipe slots substitute whole values
 only, and the directory also appears inside router, entry and adapter text whose
@@ -93,7 +95,7 @@ const context = await prepareProjectContext({
   release: installed.release,
   instructionDirectory: ".ai/context",
   outputDirectory: stagingDirectory, // absolute; absent or empty; owned by the caller
-  sourceMaterialRoots: installed.materialRoots,
+  sourceMaterialRoots: installed.materialRoots, // required; the output never overlaps them
 });
 if (!context.valid) throw new Error(JSON.stringify(context.diagnostics));
 
@@ -117,8 +119,10 @@ their dependencies from the derived release only: their `requires` name items of
 that same release. Skills and other items stay on the installed release; both
 releases are supplied to `validateSelectionSet`, keyed by manifest SHA-256.
 
-Failures are diagnostics, never exceptions, and nothing is written for a refused
-request. The helper refuses:
+Refusals and write or cleanup failures are diagnostics, each with a `reason` and the
+request member it concerns as `path`, and nothing is written for a refused request.
+The helper takes the release `readInstalledRelease` returns together with that
+result's `materialRoots`. It refuses:
 
 - a directory that is not a safe relative path (absolute, drive or colon, backslash,
   empty, `.` or `..` segment, trailing dot or space, control character, non-NFC text,
@@ -136,8 +140,11 @@ request. The helper refuses:
 - a source release whose authored context this package's renderer does not reproduce
   exactly for `ai-coding`, including one without the context family
   (`renderer-mismatch`);
+- missing or empty source material roots, or roots that are not identifiers mapped
+  to absolute paths (`invalid-material-roots`);
 - an output directory that is relative, has no existing parent, is a file, link or
-  junction, is not empty, or overlaps a supplied source material root.
+  junction, is not empty, or is inside or contains a source material root
+  (`output-overlaps-source`).
 
 Other clients also load some directories natively, for example `.claude/rules`.
 Catalog does not track those, so it cannot refuse them, but they are unsupported
@@ -149,8 +156,8 @@ The derived release holds only the context family rendered for the directory and
 authored source record. Its item records, recipe hashes and material hashes are
 computed from the derived bytes. For `ai-coding` they equal the published records;
 for any other directory they are new identities. Its `package` names the Catalog
-package whose renderer produced it, and its `metadata.derived` records the
-derivation:
+package whose renderer produced the bytes; that is not an origin or publisher
+claim. Its `metadata.derived` records the derivation:
 
 ```json
 { "derived": { "kind": "project-context",
@@ -180,9 +187,11 @@ output and the same derived manifest SHA-256; only the `materialRoots` path depe
 where the output is written. The renderer version changes whenever the rendered bytes
 for any directory change.
 
-The helper writes only under `outputDirectory`. It never touches the installed
-package, project files or anything outside that directory. On failure or
-cancellation it removes only what it created. The caller owns the staging directory.
+The helper writes only under `outputDirectory`, which never overlaps the installed
+package's material roots. It never touches project files or anything outside that
+directory. On failure it removes only what it created; if that removal itself fails,
+an `output-cleanup-failed` diagnostic names the output directory for the caller to
+clean up. The caller owns the staging directory.
 Keep it until Core prepare and apply complete, because Core reads the selected
 material when preparing and checks it again when applying. For a later update or
 removal that still selects context items, prepare the same directory again into a

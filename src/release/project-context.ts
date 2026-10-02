@@ -3,15 +3,15 @@
  * context item, one pointer item per native client entry file and one item per
  * client, with their recipe and material bytes. `tools/generate-release.mjs` renders
  * the published default through this module, and the Node helper
- * `prepareProjectContext` renders a project's chosen directory through it, so one
- * implementation produces both. No Node built-ins; not a package export.
+ * `prepareProjectContext` derives a project's chosen directory through it, so one
+ * implementation produces both. No Node built-ins or filesystem; not a package export.
  */
 import {
   adapterNote,
   BLOCK_ID,
   behaviorCoreDoc,
   CLIENTS,
-  CONTEXT_DIR,
+  DEFAULT_INSTRUCTION_DIRECTORY,
   END_MARKER,
   mergedPointerContent,
   ownedPointerDocument,
@@ -20,9 +20,9 @@ import {
   START_MARKER,
   sharedBlockBody,
 } from "./context-content.js";
-import type { Json } from "./contracts.js";
+import type { CatalogRelease, Json } from "./contracts.js";
 import { safeMemberPath } from "./document.js";
-import { canonicalJson } from "./json.js";
+import { canonicalJson, deepFreeze } from "./json.js";
 import { sha256Hex } from "./sha256.js";
 
 /**
@@ -30,8 +30,7 @@ import { sha256Hex } from "./sha256.js";
  * whenever the rendered bytes for any directory change.
  */
 export const PROJECT_CONTEXT_RENDERER = "aihq-project-context-renderer@1";
-/** The published default instruction directory. */
-export const DEFAULT_INSTRUCTION_DIRECTORY = CONTEXT_DIR;
+export { DEFAULT_INSTRUCTION_DIRECTORY };
 export const CONTEXT_SOURCE_ID = "aihq-project-context";
 export const CONTEXT_SOURCE = Object.freeze({
   id: CONTEXT_SOURCE_ID,
@@ -64,8 +63,10 @@ const CONTEXT_DOCUMENTS = [
 ] as const;
 
 export interface DirectoryProblem {
-  /** `instruction-directory-invalid`, `-collision` or `-native-rules`. */
-  readonly reason: string;
+  readonly reason:
+    | "instruction-directory-invalid"
+    | "instruction-directory-collision"
+    | "instruction-directory-native-rules";
   readonly message: string;
 }
 
@@ -127,9 +128,8 @@ function prefixCollision(paths: readonly string[]): [string, string] | undefined
  * rule directory a client loads natively (the parents of canon-owned entry files).
  */
 export function instructionDirectoryProblems(directory: unknown): readonly DirectoryProblem[] {
-  const invalid = (message: string) => [
-    Object.freeze({ reason: "instruction-directory-invalid", message }),
-  ];
+  const invalid = (message: string): readonly DirectoryProblem[] =>
+    Object.freeze([Object.freeze({ reason: "instruction-directory-invalid" as const, message })]);
   if (typeof directory !== "string") return invalid("The instruction directory is a string.");
   if (directory.length === 0 || directory.length > INSTRUCTION_DIRECTORY_MAX) {
     return invalid(`The instruction directory is 1-${INSTRUCTION_DIRECTORY_MAX} characters.`);
@@ -191,22 +191,25 @@ const literalTarget = (segments: readonly string[]) => ({
   segments: segments.map((segment) => ({ literal: segment })),
 });
 
-interface Member {
+type Member = {
   readonly id: string;
   readonly path: string;
   readonly sha256: string;
   readonly byteLength: number;
-}
+};
 type Put = (path: string, bytes: Uint8Array) => void;
 
-const pinned = (put: Put, id: string, path: string, text: string): Member => {
+/** Registers one material's bytes and returns its pinned member record. */
+const pinMaterial = (put: Put, id: string, path: string, text: string): Member => {
   const bytes = encoder.encode(text);
   put(path, bytes);
   return { id, path, sha256: sha256Hex(bytes), byteLength: bytes.length };
 };
-const declared = (members: readonly Member[]) =>
+/** Material declarations as a recipe lists them (no package path). */
+const recipeMaterials = (members: readonly Member[]) =>
   members.map(({ id, sha256, byteLength }) => ({ id, sha256, byteLength }));
-const membersOf = (members: readonly Member[]) =>
+/** Material members as a release item lists them. */
+const itemMaterials = (members: readonly Member[]) =>
   members.map(({ id, path, sha256, byteLength }) => ({ id, path, sha256, byteLength }));
 
 function registerRecipe(put: Put, itemId: string, recipe: Record<string, unknown>) {
@@ -230,7 +233,7 @@ const itemRecord = (fields: {
   recipe: ReturnType<typeof registerRecipe>;
   materials: readonly Member[];
   requires: readonly string[];
-}) => ({
+}): Record<string, Json> => ({
   id: fields.id,
   label: fields.label,
   description: fields.description,
@@ -240,7 +243,7 @@ const itemRecord = (fields: {
   scopes: ["project"],
   inputs: {},
   recipe: fields.recipe,
-  materials: membersOf(fields.materials),
+  materials: itemMaterials(fields.materials),
   dependencies: {
     requires: fields.requires.map((itemId) => ({ itemId })),
     optional: [],
@@ -255,7 +258,7 @@ function contextItem(put: Put, dir: string) {
     const target = underDir(dir, ...doc.target);
     return {
       target,
-      ...pinned(put, doc.id, `${CONTEXT_MATERIALS}/${target.join("/")}`, doc.render(dir)),
+      ...pinMaterial(put, doc.id, `${CONTEXT_MATERIALS}/${target.join("/")}`, doc.render(dir)),
     };
   }).sort((a, b) => compare(a.id, b.id));
   const recipe = registerRecipe(put, CONTEXT_ITEM_ID, {
@@ -263,7 +266,7 @@ function contextItem(put: Put, dir: string) {
     id: CONTEXT_ITEM_ID,
     description: `Deliver the shared project AI context under ${dir}/ (router, shared block source, behavior core).`,
     inputs: {},
-    materials: declared(documents),
+    materials: recipeMaterials(documents),
     targets: ["project"],
     prerequisites: [],
     operations: documents.map((member) => ({
@@ -337,7 +340,7 @@ function pointerItems(put: Put, dir: string) {
         checks: [],
       };
     } else {
-      const member = pinned(
+      const member = pinMaterial(
         put,
         "pointer",
         `${CONTEXT_MATERIALS}/pointers/${entry}`,
@@ -347,7 +350,7 @@ function pointerItems(put: Put, dir: string) {
       recipe = {
         ...common,
         description: `Deliver the canon-owned ${entry} entry file with its activation frontmatter.`,
-        materials: declared(materials),
+        materials: recipeMaterials(materials),
         operations: [
           {
             id: "write-pointer",
@@ -388,7 +391,7 @@ function clientItems(put: Put, dir: string) {
   return CLIENTS.map((client) => {
     const itemId = clientItemId(client.id);
     const target = underDir(dir, "adapters", `${client.id}.md`);
-    const member = pinned(
+    const member = pinMaterial(
       put,
       "adapter-note",
       `${CONTEXT_MATERIALS}/${target.join("/")}`,
@@ -399,7 +402,7 @@ function clientItems(put: Put, dir: string) {
       id: itemId,
       description: `Deliver the ${client.label} adapter note under ${dir}/adapters/.`,
       inputs: {},
-      materials: declared([member]),
+      materials: recipeMaterials([member]),
       targets: ["project"],
       prerequisites: [],
       operations: [
@@ -455,14 +458,126 @@ export function renderContextFamily(directory: string): RenderedContextFamily {
     contextItem(put, directory),
     ...pointerItems(put, directory),
     ...clientItems(put, directory),
-  ].sort((a, b) => compare(a.id, b.id));
-  return {
-    directory,
-    files,
-    items: JSON.parse(JSON.stringify(items)) as Record<string, Json>[],
-  };
+  ].sort((a, b) => compare(a.id as string, b.id as string));
+  return { directory, files, items: deepFreeze(items) };
 }
 
 /** The `itemSha256` a release reader computes for a rendered item record. */
 export const renderedItemSha256 = (item: Record<string, Json>): string =>
   sha256Hex(encoder.encode(canonicalJson(item)));
+
+/** Where a derived release document lives under its output root. */
+export const DERIVED_MANIFEST_PATH = `${OUTPUT_ROOT}/release.json`;
+
+export interface DeriveProblem {
+  readonly reason: DirectoryProblem["reason"] | "renderer-mismatch";
+  readonly message: string;
+  /** The request member the problem concerns. */
+  readonly path: "/instructionDirectory" | "/release";
+}
+
+/** Descriptive record of a derivation. It is not an origin or publisher claim. */
+export interface ProjectContextDerivation {
+  readonly kind: "project-context";
+  readonly from: {
+    readonly package: { readonly name: string; readonly version: string };
+    readonly manifestSha256: string;
+  };
+  readonly renderer: string;
+  readonly instructionDirectory: string;
+}
+
+export interface DerivedProjectContext {
+  /** Every derived file, release document included, keyed by package path in path order. */
+  readonly files: ReadonlyMap<string, Uint8Array>;
+  /** The derived release document bytes, also in `files` at DERIVED_MANIFEST_PATH. */
+  readonly manifest: Uint8Array;
+  readonly derivation: ProjectContextDerivation;
+}
+
+export type DeriveProjectContextResult =
+  | { readonly valid: true; readonly derived: DerivedProjectContext }
+  | { readonly valid: false; readonly problems: readonly DeriveProblem[] };
+
+/**
+ * True when `release` carries exactly the authored context family and source record
+ * this renderer produces for the published default directory.
+ */
+export function reproducesAuthoredContext(
+  release: Pick<CatalogRelease, "items" | "sources">,
+): boolean {
+  const published = renderContextFamily(DEFAULT_INSTRUCTION_DIRECTORY).items.map(
+    (item) => `${item.id as string} ${renderedItemSha256(item)}`,
+  );
+  const authored = release.items
+    .filter((item) => item.sourceIds.includes(CONTEXT_SOURCE_ID))
+    .map((item) => `${item.id} ${item.itemSha256}`);
+  const record = release.sources.find((entry) => entry.id === CONTEXT_SOURCE_ID);
+  return (
+    published.join("\n") === authored.join("\n") &&
+    canonicalJson(record ?? null) === canonicalJson(CONTEXT_SOURCE)
+  );
+}
+
+/**
+ * Derives the project-context release for `directory` from a checked source release:
+ * only the context family rendered for that directory and the authored source record,
+ * with `metadata.derived` naming the source release, the renderer and the directory.
+ * Its `package` names the Catalog package whose renderer produced the bytes; that is
+ * not an origin or publisher claim. Refuses a directory `instructionDirectoryProblems`
+ * rejects and a source whose authored context this renderer does not reproduce.
+ * Deterministic for the same source release, renderer and directory.
+ */
+export function deriveProjectContextRelease(
+  source: CatalogRelease,
+  directory: unknown,
+): DeriveProjectContextResult {
+  const problems = instructionDirectoryProblems(directory);
+  if (problems.length > 0) {
+    return Object.freeze({
+      valid: false,
+      problems: Object.freeze(
+        problems.map((problem) =>
+          Object.freeze({ ...problem, path: "/instructionDirectory" as const }),
+        ),
+      ),
+    });
+  }
+  if (!reproducesAuthoredContext(source)) {
+    return Object.freeze({
+      valid: false,
+      problems: Object.freeze([
+        Object.freeze({
+          reason: "renderer-mismatch" as const,
+          message:
+            "The source release's authored project context differs from this package's renderer.",
+          path: "/release" as const,
+        }),
+      ]),
+    });
+  }
+  const family = renderContextFamily(directory as string);
+  const derivation: ProjectContextDerivation = deepFreeze({
+    kind: "project-context",
+    from: {
+      package: { name: source.package.name, version: source.package.version },
+      manifestSha256: source.sha256,
+    },
+    renderer: PROJECT_CONTEXT_RENDERER,
+    instructionDirectory: directory as string,
+  });
+  const manifest = documentBytes({
+    schema: source.schema,
+    package: derivation.from.package,
+    sources: [CONTEXT_SOURCE],
+    items: family.items,
+    metadata: { derived: derivation },
+  });
+  const files = new Map(
+    [...family.files, [DERIVED_MANIFEST_PATH, manifest] as const].sort(([a], [b]) => compare(a, b)),
+  );
+  return Object.freeze({
+    valid: true,
+    derived: Object.freeze({ files, manifest, derivation }),
+  });
+}
