@@ -2,18 +2,24 @@
 
 ## Unreleased
 
-- Configure the shared project context's instruction directory at generation time:
-  the optional `instructionDirectory` key of `producer/declaration.json` (default
-  `ai-coding`) moves every context target, material path, recipe description and
-  router, entry-pointer and adapter reference together. Absolute, escaping, `.git`,
-  non-portable and entry-file-colliding directories, and directories that would
-  place generated files in a natively loaded rule directory (`.cursor/rules`,
-  `.kiro/steering`), are refused, and the
-  `aihq-project-context` allowance must list `<dir>/PROJECT.md`. Item IDs and the
-  default release bytes are unchanged; no existing directory is moved.
-  `npm run generate:release` now builds the producer first, and
-  `tools/verify-core-consumer.mjs --instruction-directory <dir>` runs the packed
-  consumer for a custom directory. See docs/CONTEXT-CONTENT.md.
+- Add `prepareProjectContext` to `@aihq/catalog/node`: a consuming project supplies
+  its instruction directory (default `ai-coding`) and a caller-owned staging
+  directory, and receives a derived release of the shared project-context family
+  rendered for that directory, with its local material source and `materialRoots`
+  entry for configureItem, validateSelectionSet and Core prepare/apply. Every context
+  target, material path, description and router, entry-pointer and adapter reference
+  follows the directory. The derived release always has its own manifest identity,
+  and its recipe and material identities follow the derived bytes (equal to the
+  published ones only for `ai-coding`). It records its source release, renderer and
+  directory in `metadata.derived` and carries no publisher authentication. Unsafe, `.git`,
+  non-portable and entry-file-colliding directories, directories inside a natively
+  loaded rule directory (`.cursor/rules`, `.kiro/steering`), a source the renderer
+  does not reproduce, and unsafe or non-empty output are refused as diagnostics. The
+  installed package and published release bytes are unchanged, and no existing
+  directory is moved. The context renderer moved into the internal release module;
+  `npm run generate:release` builds it first. `tools/verify-core-consumer.mjs
+  --instruction-directory <dir>` runs the packed consumer through the helper. See
+  docs/CONTEXT-CONTENT.md.
 - Validate Catalog-authored content in whole-package integrity: new
   `authored-references` and `authored-placeholders` checks resolve internal links,
   Kiro file references and path-like inline code within the content delivered by the

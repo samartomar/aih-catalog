@@ -77,24 +77,6 @@ non-array value and duplicates are refused as `declaration-invalid`. When the ke
 absent no allowance exists, so nothing is excused. An entry whose source is not an
 authored source of the checked release is ignored.
 
-The optional `instructionDirectory` key selects the project directory that receives
-the shared project context; when it is absent the directory is `ai-coding`. The value
-is a project-relative path of at most 128 characters that passes the material member
-path rule (no absolute, drive, backslash, empty, `.` or `..` segment, trailing dot or
-space, control character, non-NFC text or reserved device name). Each segment uses
-only letters, digits, `.`, `_` and `-`, does not start with `-`, and is not `.git` in
-any case. Anything else is refused as `declaration-invalid`.
-`npm run generate:release` and `generate-release.mjs --check` read the declaration of
-the catalog root they generate. They also refuse a directory that collides with a
-generated entry file, or one that would place any generated file inside a rule
-directory a client loads natively (`.cursor/rules`, `.kiro/steering`; so `.cursor`
-itself is refused). Other natively loaded rule
-directories, such as `.claude/rules`, are unsupported locations because the content
-would load twice. The `aihq-project-context` allowance must list
-`<dir>/PROJECT.md` and keep its external paths under `<dir>/`. Changing the key
-regenerates content for the new directory. It never moves an existing directory;
-see [the context content contract](CONTEXT-CONTENT.md#instruction-directory).
-
 ## What happens to each item
 
 The producer reads and digests only the declared files of each item (the skill and

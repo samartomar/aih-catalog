@@ -9,10 +9,10 @@
  * baselines, stack inference and tool-routing prose are deliberately absent. No
  * private paths or links appear in the emitted text.
  *
- * Every renderer takes the project instruction directory (`dir`) the generated
- * content routes to; it defaults to CONTEXT_DIR, which equals the producer
- * declaration's default. The generator passes the directory the declaration
- * selects, already validated as a portable relative path.
+ * Internal and portable (no Node built-ins); not a package export. Every renderer
+ * takes the project instruction directory (`dir`) the content routes to; it defaults
+ * to CONTEXT_DIR, the published default. Callers pass a directory already admitted
+ * by `instructionDirectoryProblems` in project-context.ts.
  */
 
 /** The default project instruction directory. */
@@ -21,13 +21,19 @@ export const BLOCK_ID = "aih-context-shared";
 export const START_MARKER = `<!-- BEGIN aihq:context:shared -->`;
 export const END_MARKER = `<!-- END aihq:context:shared -->`;
 
-const stripTrailingNewlines = (text) => {
+const stripTrailingNewlines = (text: string): string => {
   let end = text.length;
   while (end > 0 && text.charCodeAt(end - 1) === 10) end--;
   return text.slice(0, end);
 };
 
-const join = (...parts) => `${stripTrailingNewlines(parts.flat().join("\n"))}\n`;
+type Part = string | readonly string[] | readonly (string | readonly string[])[];
+/**
+ * Joins one level of parts with LF. A deeper array is stringified by `Array#join`
+ * (comma-separated), exactly as the published bytes were rendered; changing that is
+ * a content change with new identities, not a refactor.
+ */
+const join = (...parts: Part[]): string => `${stripTrailingNewlines(parts.flat().join("\n"))}\n`;
 
 // ---- single-source discipline ---------------------------------------------
 
@@ -78,7 +84,7 @@ const PRINCIPLES = [
       lines: [
         "Touch only what the task requires; clean up only your own mess.",
         "",
-        '- Don\'t reformat, rename, or "improve" adjacent code that isn\'t broken.',
+        "- Don't reformat, rename, or \"improve\" adjacent code that isn't broken.",
         "- Match the nearest peer file's style even if you'd do it differently.",
         "- Remove only the orphans YOUR change created; flag unrelated dead code, don't delete it.",
         "- Every changed line should trace directly to the request.",
@@ -144,7 +150,7 @@ const EXTERNAL_ACTION_BOUNDARY = [
 // ---- shared context documents ----------------------------------------------
 
 /** The shared canonical block body — identical in `_shared-canonical-block.md` and in every client entry file's managed block. */
-export function sharedBlockBody(dir = CONTEXT_DIR) {
+export function sharedBlockBody(dir: string = CONTEXT_DIR): string {
   return join(
     "## Start here",
     "",
@@ -185,7 +191,7 @@ export function sharedBlockBody(dir = CONTEXT_DIR) {
 }
 
 /** The long-form working discipline the shared block and router route to. */
-export function behaviorCoreDoc(dir = CONTEXT_DIR) {
+export function behaviorCoreDoc(dir: string = CONTEXT_DIR): string {
   return join(
     "# Agent behavior core",
     "",
@@ -207,7 +213,7 @@ export function behaviorCoreDoc(dir = CONTEXT_DIR) {
 }
 
 /** The static RULE_ROUTER — the entry point every selected client is pointed at. */
-export function ruleRouterDoc(dir = CONTEXT_DIR) {
+export function ruleRouterDoc(dir: string = CONTEXT_DIR): string {
   return join(
     "# AI Rule Router",
     "",
@@ -280,11 +286,11 @@ export function ruleRouterDoc(dir = CONTEXT_DIR) {
 
 // ---- client entry pointers ---------------------------------------------------
 
-const seeGenerated = (dir) =>
+const seeGenerated = (dir: string): string =>
   `The shared block below is generated from \`${dir}/\`; it is maintained as explicitly selected Catalog content — update the selection to update it.`;
 
 /** Tool-specific preamble rendered above the shared body inside each managed block. */
-function preamble(key, dir) {
+function preamble(key: string, dir: string): string {
   switch (key) {
     case "claude-md":
       return join(
@@ -333,11 +339,11 @@ function preamble(key, dir) {
 }
 
 /** The note pinned inside every managed block, naming the single source. */
-const generatedNote = (dir) =>
+const generatedNote = (dir: string): string =>
   `<!-- generated; source ${dir}/adapters/_shared-canonical-block.md — do not edit this block by hand -->`;
 
 /** The literal content of a merged client entry block (preamble + note + shared body). */
-export function mergedPointerContent(key, dir = CONTEXT_DIR) {
+export function mergedPointerContent(key: string, dir: string = CONTEXT_DIR): string {
   return join(preamble(key, dir), "", generatedNote(dir), "", sharedBlockBody(dir)).replace(
     /\n$/u,
     "",
@@ -345,7 +351,9 @@ export function mergedPointerContent(key, dir = CONTEXT_DIR) {
 }
 
 /** YAML frontmatter in the donor's deterministic shape. */
-function frontmatter(fields) {
+function frontmatter(
+  fields: Readonly<Record<string, string | boolean | readonly string[]>>,
+): string {
   const body = Object.entries(fields)
     .map(([key, value]) =>
       Array.isArray(value)
@@ -357,7 +365,7 @@ function frontmatter(fields) {
 }
 
 /** Complete bytes for a wholly canon-owned client entry file (activation frontmatter first). */
-export function ownedPointerDocument(key, dir = CONTEXT_DIR) {
+export function ownedPointerDocument(key: string, dir: string = CONTEXT_DIR): string {
   const block = `${START_MARKER}\n\n${generatedNote(dir)}\n\n${sharedBlockBody(dir)}\n${END_MARKER}`;
   switch (key) {
     case "cursor-rules":
@@ -401,88 +409,107 @@ export function ownedPointerDocument(key, dir = CONTEXT_DIR) {
  * Detection signals, MCP projections, governed contracts, TLS origins and probe
  * records are runtime/engine concerns and are deliberately not carried.
  */
-export const CLIENTS = [
+export interface ContextClient {
+  readonly id: string;
+  readonly label: string;
+  readonly pointers: readonly string[];
+  readonly entry: string;
+  readonly loads: string;
+}
+
+export const CLIENTS: readonly ContextClient[] = [
   {
     id: "claude",
     label: "Claude Code",
     pointers: ["claude-md"],
     entry: "root `CLAUDE.md`",
-    loads: "The template targets `CLAUDE.md`; read the router from there before non-trivial work. Verify discovery in the installed Claude Code version.",
+    loads:
+      "The template targets `CLAUDE.md`; read the router from there before non-trivial work. Verify discovery in the installed Claude Code version.",
   },
   {
     id: "codex",
     label: "Codex CLI",
     pointers: ["agents-md"],
     entry: "root `AGENTS.md`",
-    loads: "The `AGENTS.md` entry carries shared essentials inline and points to the router. Referenced files are separate reads, not guaranteed native imports.",
+    loads:
+      "The `AGENTS.md` entry carries shared essentials inline and points to the router. Referenced files are separate reads, not guaranteed native imports.",
   },
   {
     id: "cursor",
     label: "Cursor",
     pointers: ["cursor-rules"],
     entry: "`.cursor/rules/00-canon.mdc`",
-    loads: "The MDC entry declares `alwaysApply: true`. Verify activation and referenced-file loading in the selected Cursor editor or CLI surface.",
+    loads:
+      "The MDC entry declares `alwaysApply: true`. Verify activation and referenced-file loading in the selected Cursor editor or CLI surface.",
   },
   {
     id: "antigravity",
     label: "Antigravity",
     pointers: ["agents-md", "gemini-md"],
     entry: "root `GEMINI.md` + `AGENTS.md`",
-    loads: "The template supplies both root `AGENTS.md` and `GEMINI.md`; verify which entries the selected Antigravity surface loads, then read the router.",
+    loads:
+      "The template supplies both root `AGENTS.md` and `GEMINI.md`; verify which entries the selected Antigravity surface loads, then read the router.",
   },
   {
     id: "gemini",
     label: "Gemini CLI",
     pointers: ["gemini-md"],
     entry: "root `GEMINI.md`",
-    loads: "The template targets project `GEMINI.md`; verify its composition with other instructions in the installed Gemini CLI version.",
+    loads:
+      "The template targets project `GEMINI.md`; verify its composition with other instructions in the installed Gemini CLI version.",
   },
   {
     id: "copilot",
     label: "GitHub Copilot",
     pointers: ["copilot-instructions"],
     entry: "`.github/copilot-instructions.md`",
-    loads: "The template targets `.github/copilot-instructions.md`; verify instruction discovery in the selected Copilot surface.",
+    loads:
+      "The template targets `.github/copilot-instructions.md`; verify instruction discovery in the selected Copilot surface.",
   },
   {
     id: "windsurf",
     label: "Windsurf",
     pointers: ["windsurfrules"],
     entry: "`.windsurfrules`",
-    loads: "The historical template targets root `.windsurfrules`; verify support in the selected Windsurf surface before relying on it.",
+    loads:
+      "The historical template targets root `.windsurfrules`; verify support in the selected Windsurf surface before relying on it.",
   },
   {
     id: "opencode",
     label: "OpenCode",
     pointers: ["agents-md"],
     entry: "root `AGENTS.md`",
-    loads: "The template targets root `AGENTS.md`; verify discovery and reference behavior in the installed OpenCode major version.",
+    loads:
+      "The template targets root `AGENTS.md`; verify discovery and reference behavior in the installed OpenCode major version.",
   },
   {
     id: "zed",
     label: "Zed",
     pointers: ["agents-md"],
     entry: "root `AGENTS.md`",
-    loads: "The template targets root `AGENTS.md`; verify which instruction file Zed selects when other client entries are also present.",
+    loads:
+      "The template targets root `AGENTS.md`; verify which instruction file Zed selects when other client entries are also present.",
   },
   {
     id: "kimi",
     label: "Kimi Code",
     pointers: ["agents-md"],
     entry: "root `AGENTS.md`",
-    loads: "The template targets root `AGENTS.md`; verify that the selected Kimi agent prompt includes that guidance.",
+    loads:
+      "The template targets root `AGENTS.md`; verify that the selected Kimi agent prompt includes that guidance.",
   },
   {
     id: "kiro",
     label: "Kiro",
     pointers: ["kiro-steering"],
     entry: "`.kiro/steering/00-canon.md` (workspace)",
-    loads: "The steering template declares `inclusion: always` and a `#[[file:...]]` reference. Verify activation and file expansion for the selected Kiro IDE, CLI or custom agent.",
+    loads:
+      "The steering template declares `inclusion: always` and a `#[[file:...]]` reference. Verify activation and file expansion for the selected Kiro IDE, CLI or custom agent.",
   },
 ];
 
 /** Historical baseline labels associated with the root `AGENTS.md` entry. */
-function agentsMdReaderLabels() {
+function agentsMdReaderLabels(): string {
   const labels = CLIENTS.filter(
     (client) => client.pointers.includes("agents-md") || client.id === "kiro",
   ).map((client) => client.label);
@@ -491,7 +518,7 @@ function agentsMdReaderLabels() {
 }
 
 /** The per-client adapter note delivered at `<dir>/adapters/<cli>.md`. */
-export function adapterNote(client, dir = CONTEXT_DIR) {
+export function adapterNote(client: ContextClient, dir: string = CONTEXT_DIR): string {
   return join(
     `# ${client.label} adapter`,
     "",
@@ -515,7 +542,14 @@ export function adapterNote(client, dir = CONTEXT_DIR) {
 // ---- pointer file inventory ----------------------------------------------------
 
 /** Every client entry file this content can deliver, keyed by pointer id. */
-export const POINTERS = [
+export interface ContextPointer {
+  readonly key: string;
+  readonly label: string;
+  readonly path: readonly string[];
+  readonly delivery: "merge" | "owned";
+}
+
+export const POINTERS: readonly ContextPointer[] = [
   { key: "agents-md", label: "AGENTS.md entry", path: ["AGENTS.md"], delivery: "merge" },
   { key: "claude-md", label: "CLAUDE.md entry", path: ["CLAUDE.md"], delivery: "merge" },
   {
@@ -537,5 +571,10 @@ export const POINTERS = [
     path: [".kiro", "steering", "00-canon.md"],
     delivery: "owned",
   },
-  { key: "windsurfrules", label: ".windsurfrules entry", path: [".windsurfrules"], delivery: "merge" },
+  {
+    key: "windsurfrules",
+    label: ".windsurfrules entry",
+    path: [".windsurfrules"],
+    delivery: "merge",
+  },
 ];

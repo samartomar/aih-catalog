@@ -205,11 +205,6 @@ describe("tools/check-release.mjs and the donor generator guard", () => {
     const dir = join(scratch, "advanced");
     mkdirSync(join(dir, "src/production/data"), { recursive: true });
     mkdirSync(join(dir, "release"), { recursive: true });
-    mkdirSync(join(dir, "producer"), { recursive: true });
-    writeFileSync(
-      join(dir, "producer/declaration.json"),
-      readFileSync(join(root, "producer/declaration.json")),
-    );
     writeFileSync(
       join(dir, "src/production/data/mattpocock.snapshot.json"),
       JSON.stringify({ upstream: { pin: "c55ee46073ed923f86ce59a5eb3b6d895095d1b7" } }),

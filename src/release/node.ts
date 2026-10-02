@@ -12,17 +12,31 @@ import {
   constants,
   fstatSync,
   lstatSync,
+  mkdirSync,
   openSync,
+  readdirSync,
   readSync,
   realpathSync,
+  rmSync,
   statSync,
+  writeFileSync,
 } from "node:fs";
-import { isAbsolute, join, relative, sep } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { ARCHIVE_LIMITS, readPackageArchive } from "./archive.js";
 import type { CatalogDiagnostic, CatalogRelease } from "./contracts.js";
 import { coreArchiveUrl, ID, isRecord, safeMemberPath } from "./document.js";
+import { canonicalJson } from "./json.js";
 import { AcquisitionFailure } from "./node-errors.js";
-import { readRelease } from "./reader.js";
+import {
+  CONTEXT_SOURCE,
+  CONTEXT_SOURCE_ID,
+  DEFAULT_INSTRUCTION_DIRECTORY,
+  instructionDirectoryProblems,
+  PROJECT_CONTEXT_RENDERER,
+  renderContextFamily,
+  renderedItemSha256,
+} from "./project-context.js";
+import { isCheckedRelease, readRelease } from "./reader.js";
 import { checkRecipeAgreement } from "./recipe-agreement.js";
 
 const PACKAGE_JSON_MAX_BYTES = 1024 * 1024;
@@ -99,6 +113,19 @@ const MESSAGES: Record<string, string> = {
   "archive-duplicate-entry":
     "The archive names one member more than once or by a case-folded duplicate.",
   "archive-executable-member": "The archive has an executable member no release item declares.",
+  "release-unchecked":
+    "Expected a release view returned by readRelease, readInstalledRelease or resolveRelease.",
+  "source-input-conflict":
+    "The derived material source input already names a source material root.",
+  "invalid-material-roots": "Source material roots map identifiers to absolute paths.",
+  "renderer-mismatch":
+    "The source release's authored project context differs from this package's renderer.",
+  "invalid-output-directory": "Expected an absolute output directory.",
+  "output-parent-unavailable": "The output directory's parent is not an existing directory.",
+  "unsafe-output-directory": "The output path is not a plain directory (a file, link or junction).",
+  "output-not-empty": "The output directory exists and is not empty.",
+  "output-overlaps-source": "The output directory overlaps a source material root.",
+  "output-write-failed": "The derived release could not be written to the output directory.",
 };
 
 /**
@@ -608,6 +635,296 @@ export async function readInstalledRelease(
       diagnostics: Object.freeze([]),
     });
   } catch (error) {
+    return failureResult(error);
+  }
+}
+
+const DERIVED_SOURCE_INPUT = "catalog-project-context";
+const DERIVED_MANIFEST_PATH = "release/release.json";
+
+export interface ProjectContextRequest {
+  /** The checked source release returned by `readInstalledRelease` or `resolveRelease`. */
+  readonly release: CatalogRelease;
+  /** Project-relative directory that receives the shared context, such as `.ai/context`. */
+  readonly instructionDirectory: string;
+  /**
+   * Absolute, caller-owned staging directory: absent (its parent exists) or an existing
+   * empty plain directory. Keep it until Core prepare and apply complete.
+   */
+  readonly outputDirectory: string;
+  /** Name of the Core `controls.materialRoots` entry; defaults to `catalog-project-context`. */
+  readonly sourceInput?: string;
+  /** The source release's Core material roots: the output never overlaps them. */
+  readonly sourceMaterialRoots?: Readonly<Record<string, string>>;
+  readonly signal?: AbortSignal;
+}
+
+export interface PreparedProjectContextResult {
+  readonly valid: boolean;
+  /** The checked derived release, read back from the bytes written under the output directory. */
+  readonly release?: CatalogRelease;
+  readonly source?: { readonly kind: "local"; readonly input: string };
+  /** Merge with the source's material roots into Core `controls.materialRoots`. */
+  readonly materialRoots?: Readonly<Record<string, string>>;
+  /** Describes the derivation. It does not authenticate the derived bytes. */
+  readonly provenance?: {
+    readonly kind: "derived";
+    readonly from: {
+      readonly package: { readonly name: string; readonly version: string };
+      readonly manifestSha256: string;
+    };
+    readonly renderer: string;
+    readonly instructionDirectory: string;
+    readonly manifestPath: string;
+    readonly manifestSha256: string;
+  };
+  readonly diagnostics: readonly CatalogDiagnostic[];
+}
+
+/** Validated source material roots (identifier → absolute path); empty when absent. */
+function sourceRoots(value: unknown): Record<string, string> {
+  if (value === undefined) return {};
+  if (!isRecord(value)) return failWith("invalid-material-roots");
+  for (const [name, path] of Object.entries(value)) {
+    if (name.length > 128 || !ID.test(name) || typeof path !== "string" || !isAbsolute(path)) {
+      failWith("invalid-material-roots");
+    }
+  }
+  return value as Record<string, string>;
+}
+
+/** `path` through its nearest existing ancestor's real path (links and short names resolved). */
+function canonicalPath(path: string): string {
+  const rest: string[] = [];
+  let current = resolve(path);
+  for (;;) {
+    try {
+      return join(realpathSync.native(current), ...rest.reverse());
+    } catch {
+      const parent = dirname(current);
+      if (parent === current) return resolve(path);
+      rest.push(relative(parent, current));
+      current = parent;
+    }
+  }
+}
+const contains = (parent: string, child: string): boolean => {
+  const rel = relative(parent, child);
+  return rel === "" || (rel !== ".." && !rel.startsWith(`..${sep}`) && !isAbsolute(rel));
+};
+
+/**
+ * Checks the requested output directory and returns its canonical path: absolute,
+ * absent with an existing parent or an existing empty plain directory, and disjoint
+ * from every source material root.
+ */
+function outputRoot(
+  outputDirectory: unknown,
+  roots: Readonly<Record<string, string>>,
+): { path: string; existed: boolean } {
+  if (typeof outputDirectory !== "string" || !isAbsolute(outputDirectory)) {
+    return failWith("invalid-output-directory");
+  }
+  const target = resolve(outputDirectory);
+  let named: ReturnType<typeof lstatSync> | undefined;
+  try {
+    named = lstatSync(target);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") failWith("unsafe-output-directory");
+  }
+  let path: string;
+  if (named !== undefined) {
+    if (named.isSymbolicLink() || !named.isDirectory()) failWith("unsafe-output-directory");
+    let entries: number;
+    try {
+      entries = readdirSync(target).length;
+      path = realpathSync.native(target);
+    } catch {
+      return failWith("unsafe-output-directory");
+    }
+    if (entries > 0) failWith("output-not-empty");
+  } else {
+    let parent: string;
+    try {
+      parent = realpathSync.native(dirname(target));
+      if (!statSync(parent).isDirectory()) failWith("output-parent-unavailable");
+    } catch (error) {
+      if (error instanceof AcquisitionFailure) throw error;
+      return failWith("output-parent-unavailable");
+    }
+    path = join(parent, relative(dirname(target), target));
+  }
+  for (const root of Object.values(roots)) {
+    const source = canonicalPath(root);
+    if (contains(source, path) || contains(path, source)) failWith("output-overlaps-source");
+  }
+  return { path, existed: named !== undefined };
+}
+
+/**
+ * Prepares the authored project context for a consuming project's chosen
+ * instruction directory, as a derived release in caller-owned staging output.
+ *
+ * The derived release holds only the context family rendered for that directory and
+ * the authored source record; its `metadata.derived` names the source release, the
+ * renderer and the directory, so its manifest SHA-256 always differs from the
+ * source's. For the published default directory its items equal the published ones.
+ * Configure its items with the returned local source and merge `materialRoots` into
+ * Core's controls; Core captures recipe identities from those exact bytes.
+ *
+ * Refuses, before writing, a directory `instructionDirectoryProblems` rejects and a
+ * source whose authored context this renderer does not reproduce. Writes only under
+ * `outputDirectory`, never touches the source, and on failure removes only what it
+ * created. Deterministic for the same source release, renderer and directory.
+ */
+export async function prepareProjectContext(
+  request: ProjectContextRequest,
+): Promise<PreparedProjectContextResult> {
+  // What this call created and removes on failure: the output itself, or release/ in it.
+  let created: string | undefined;
+  try {
+    const { release, instructionDirectory, outputDirectory, signal } = (request ??
+      {}) as ProjectContextRequest;
+    const sourceInput = request?.sourceInput ?? DERIVED_SOURCE_INPUT;
+    const checkpoint = () => {
+      if (signal?.aborted) failWith("cancelled");
+    };
+    checkpoint();
+    if (!isCheckedRelease(release)) failWith("release-unchecked");
+    if (typeof sourceInput !== "string" || sourceInput.length > 128 || !ID.test(sourceInput)) {
+      failWith("invalid-source-input");
+    }
+    const roots = sourceRoots(request?.sourceMaterialRoots);
+    if (Object.hasOwn(roots, sourceInput)) failWith("source-input-conflict");
+    const problems = instructionDirectoryProblems(instructionDirectory);
+    if (problems.length > 0) {
+      throw Object.assign(new AcquisitionFailure("instruction-directory-invalid"), {
+        diagnostics: problems.map((problem) =>
+          Object.freeze({
+            code: "INPUT_INVALID" as const,
+            reason: problem.reason,
+            message: problem.message,
+            blocking: true,
+            path: "/instructionDirectory",
+          }),
+        ),
+      });
+    }
+
+    // The renderer must reproduce the source's authored context exactly.
+    const published = renderContextFamily(DEFAULT_INSTRUCTION_DIRECTORY).items.map(
+      (item) => `${item.id as string} ${renderedItemSha256(item)}`,
+    );
+    const authored = release.items
+      .filter((item) => item.sourceIds.includes(CONTEXT_SOURCE_ID))
+      .map((item) => `${item.id} ${item.itemSha256}`);
+    const record = release.sources.find((entry) => entry.id === CONTEXT_SOURCE_ID);
+    if (
+      published.join("\n") !== authored.join("\n") ||
+      canonicalJson(record ?? null) !== canonicalJson(CONTEXT_SOURCE)
+    ) {
+      failWith("renderer-mismatch");
+    }
+    checkpoint();
+
+    const directory = instructionDirectory as string;
+    const family = renderContextFamily(directory);
+    const from = {
+      package: { name: release.package.name, version: release.package.version },
+      manifestSha256: release.sha256,
+    };
+    const manifest = new TextEncoder().encode(
+      `${canonicalJson({
+        schema: release.schema,
+        package: from.package,
+        sources: [CONTEXT_SOURCE],
+        items: family.items,
+        metadata: {
+          derived: {
+            kind: "project-context",
+            from,
+            renderer: PROJECT_CONTEXT_RENDERER,
+            instructionDirectory: directory,
+          },
+        },
+      })}\n`,
+    );
+    const files = [...family.files, [DERIVED_MANIFEST_PATH, manifest] as const].sort(([a], [b]) =>
+      a < b ? -1 : a > b ? 1 : 0,
+    );
+
+    const output = outputRoot(outputDirectory, roots);
+    checkpoint();
+    const made = new Set<string>();
+    try {
+      if (!output.existed) {
+        mkdirSync(output.path);
+        created = output.path;
+      }
+      for (const [path, bytes] of files) {
+        checkpoint();
+        const segments = path.split("/");
+        let current = output.path;
+        for (const segment of segments.slice(0, -1)) {
+          current = join(current, segment);
+          if (made.has(current)) continue;
+          mkdirSync(current);
+          made.add(current);
+          // In an existing empty output, only the subtree this call creates is removed.
+          created ??= current;
+        }
+        writeFileSync(join(current, segments[segments.length - 1] as string), bytes, {
+          flag: "wx",
+        });
+      }
+    } catch (error) {
+      if (error instanceof AcquisitionFailure) throw error;
+      if (created === undefined && (error as NodeJS.ErrnoException).code === "EEXIST") {
+        failWith("output-not-empty");
+      }
+      failWith("output-write-failed");
+    }
+    checkpoint();
+
+    // The result describes the bytes actually written, read back and verified.
+    const canonical = realpathSync.native(output.path);
+    const descriptor = new TextEncoder().encode(
+      JSON.stringify({
+        ...from.package,
+        exports: { "./release.json": `./${DERIVED_MANIFEST_PATH}` },
+      }),
+    );
+    const checked = verifyPackageRelease(
+      (path, limit, expected) =>
+        path === "package.json" ? descriptor : readMember(canonical, path, limit, expected),
+      signal,
+    );
+    if (checked.diagnostics.length > 0) {
+      throw Object.assign(new AcquisitionFailure("output-write-failed"), {
+        diagnostics: checked.diagnostics,
+      });
+    }
+    if (checked.manifestSha256 !== sha256(manifest)) failWith("output-write-failed");
+    return Object.freeze({
+      valid: true,
+      release: checked.release,
+      source: Object.freeze({ kind: "local", input: sourceInput }),
+      materialRoots: Object.freeze({ [sourceInput]: canonical }),
+      provenance: Object.freeze({
+        kind: "derived",
+        from: Object.freeze({
+          package: Object.freeze(from.package),
+          manifestSha256: from.manifestSha256,
+        }),
+        renderer: PROJECT_CONTEXT_RENDERER,
+        instructionDirectory: directory,
+        manifestPath: DERIVED_MANIFEST_PATH,
+        manifestSha256: checked.manifestSha256,
+      }),
+      diagnostics: Object.freeze([]),
+    });
+  } catch (error) {
+    if (created !== undefined) rmSync(created, { recursive: true, force: true });
     return failureResult(error);
   }
 }

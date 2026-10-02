@@ -1,19 +1,32 @@
-import { spawnSync } from "node:child_process";
 import {
-  cpSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
+  realpathSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { parseDeclaration } from "../../src/producer/declaration.js";
+import { dirname, join, relative, resolve } from "node:path";
+import { afterAll, describe, expect, it } from "vitest";
 import { checkCandidateFiles } from "../../src/producer/integrity.js";
+import { CLIENTS, POINTERS } from "../../src/release/context-content.js";
 import type { CatalogRelease } from "../../src/release/contracts.js";
+import {
+  type PreparedProjectContextResult,
+  prepareProjectContext,
+  readInstalledRelease,
+} from "../../src/release/node.js";
+import {
+  CONTEXT_SOURCE_ID,
+  DEFAULT_INSTRUCTION_DIRECTORY,
+  instructionDirectoryProblems,
+  PROJECT_CONTEXT_RENDERER,
+  renderContextFamily,
+} from "../../src/release/project-context.js";
 import {
   configureItem,
   getItem,
@@ -21,167 +34,257 @@ import {
   readRelease,
   validateSelectionSet,
 } from "../../src/release/reader.js";
-import { committedRelease, packageIdentity, readTree, root, sha256 } from "../producer/helpers.js";
+import { sha256 } from "./fixtures.js";
+import { installedRoot } from "./installed-fixture.js";
 
 /**
- * The instruction directory is a generation-time configuration of the authored
- * project context (Catalog #55). These tests generate disposable package roots
- * through the owning generator with a default or custom declaration, then admit the
- * result through the public reader and the whole-candidate integrity checks.
+ * A consuming project chooses its instruction directory (Catalog #55) through the
+ * Node helper prepareProjectContext: it renders the authored context family for that
+ * directory into caller-owned staging output as a derived release, without
+ * regenerating or changing the installed Catalog release.
  */
 
-interface Generator {
-  CONTEXT_SOURCE_ID: string;
-  DECLARATION_PATH: string;
-  GENERATION_INPUTS: readonly string[];
-  retargetDeclaration(declaration: unknown, directory: string): Declaration;
-}
-interface Content {
-  CONTEXT_DIR: string;
-  CLIENTS: readonly { id: string }[];
-  POINTERS: readonly { key: string; path: readonly string[]; delivery: string }[];
-}
-// @ts-expect-error The release generator is intentionally plain ESM JavaScript.
-const generatorTool: Generator = await import("../../tools/generate-release.mjs");
-// @ts-expect-error The context content source is intentionally plain ESM JavaScript.
-const content: Content = await import("../../tools/context-content.mjs");
-const CONTEXT_SOURCE = generatorTool.CONTEXT_SOURCE_ID;
-const DEFAULT_DIR = content.CONTEXT_DIR;
-const INPUTS = ["package.json", ...generatorTool.GENERATION_INPUTS];
-
+const repository = resolve(import.meta.dirname, "../..");
 const scratch = mkdtempSync(join(tmpdir(), "aih-instruction-directory-"));
-let count = 0;
-
-beforeAll(() => {
-  if (!existsSync(join(root, "dist/producer/declaration.js")))
-    throw new Error("run npm run build:dist first");
-});
+const cleanups: (() => void)[] = [];
 afterAll(() => {
+  for (const cleanup of cleanups.splice(0)) cleanup();
   expect(scratch.startsWith(join(tmpdir(), "aih-instruction-directory-"))).toBe(true);
   rmSync(scratch, { recursive: true, force: true });
 });
-
-type Declaration = Record<string, unknown> & {
-  authored: { source: string; externalPaths: string[]; templatePlaceholders: string[] }[];
-};
-const committedDeclaration = (): Declaration =>
-  JSON.parse(readFileSync(join(root, "producer/declaration.json"), "utf8"));
-
-/** The committed declaration retargeted at `directory`, its author-owned allowance moved along. */
-const declarationFor = (directory: string): Declaration =>
-  generatorTool.retargetDeclaration(committedDeclaration(), directory);
-
-/** A disposable catalog root holding only the generation inputs and `declaration`. */
-function stage(declaration: unknown): string {
+let count = 0;
+/** A fresh absent output path whose parent exists. */
+const output = (name = "out") => {
   count += 1;
-  const dir = join(scratch, `root-${count}`);
-  for (const path of INPUTS) cpSync(join(root, path), join(dir, path), { recursive: true });
-  mkdirSync(join(dir, "producer"), { recursive: true });
-  writeFileSync(
-    join(dir, "producer/declaration.json"),
-    `${JSON.stringify(declaration, null, 2)}\n`,
-  );
-  return dir;
+  const parent = join(scratch, `case-${count}`);
+  mkdirSync(parent);
+  return join(parent, name);
+};
+
+function installed() {
+  const fixture = installedRoot("context-source");
+  cleanups.push(fixture.cleanup);
+  return fixture.root;
 }
 
-const generator = (...args: string[]) =>
-  spawnSync(process.execPath, [join(root, "tools/generate-release.mjs"), ...args], {
-    encoding: "utf8",
+/** Every regular file under `dir`, package-relative path → bytes. */
+function tree(dir: string): Map<string, Buffer> {
+  const files = new Map<string, Buffer>();
+  const walk = (current: string) => {
+    for (const entry of readdirSync(current, { withFileTypes: true })) {
+      const path = join(current, entry.name);
+      if (entry.isDirectory()) walk(path);
+      else files.set(relative(dir, path).replaceAll("\\", "/"), readFileSync(path));
+    }
+  };
+  if (existsSync(dir)) walk(dir);
+  return files;
+}
+const digest = (files: Map<string, Buffer>) =>
+  [...files].map(([path, bytes]) => `${path}:${sha256(bytes)}`).sort();
+
+async function source(root = installed()) {
+  const read = await readInstalledRelease({ root });
+  if (!read.valid || read.release === undefined) throw new Error(JSON.stringify(read.diagnostics));
+  return { root, release: read.release, materialRoots: read.materialRoots ?? {} };
+}
+
+async function prepared(
+  instructionDirectory: string,
+  outputDirectory = output(),
+): Promise<PreparedProjectContextResult & { outputDirectory: string }> {
+  const from = await source();
+  const result = await prepareProjectContext({
+    release: from.release,
+    instructionDirectory,
+    outputDirectory,
+    sourceMaterialRoots: from.materialRoots,
   });
-
-function generate(declaration: unknown): { dir: string; files: Map<string, Buffer> } {
-  const dir = stage(declaration);
-  const result = generator(dir);
-  if (result.status !== 0) throw new Error(result.stderr);
-  return { dir, files: readTree(join(dir, "release"), dir) };
+  expect(result.diagnostics).toEqual([]);
+  expect(result.valid).toBe(true);
+  return { ...result, outputDirectory };
 }
 
-function releaseOf(files: Map<string, Buffer>): CatalogRelease {
-  const bytes = files.get("release/release.json") as Buffer;
+const reasons = (result: { diagnostics: readonly { reason: string }[] }) =>
+  result.diagnostics.map((d) => d.reason);
+const contextItems = (release: CatalogRelease) =>
+  listItems(release).filter((item) => item.sourceIds.includes(CONTEXT_SOURCE_ID));
+type Target = { segments: { literal?: string }[] };
+const targetPath = (target: Target) => target.segments.map((segment) => segment.literal).join("/");
+const POINTER_PATHS = POINTERS.map((pointer) => pointer.path.join("/"));
+/** The shared context item, one pointer item per entry file and one item per client. */
+const FAMILY_SIZE = 1 + POINTERS.length + CLIENTS.length;
+
+function carried(): CatalogRelease {
+  const bytes = readFileSync(join(repository, "release/release.json"));
   const read = readRelease(bytes, { expectedSha256: sha256(bytes) });
   if (!read.valid) throw new Error(JSON.stringify(read.diagnostics));
   return read.release;
 }
 
-const contextItems = (release: CatalogRelease) =>
-  listItems(release).filter((item) => item.sourceIds.includes(CONTEXT_SOURCE));
+describe("the internal context renderer", () => {
+  it("renders exactly the published context items and bytes for the default directory", () => {
+    expect(DEFAULT_INSTRUCTION_DIRECTORY).toBe("ai-coding");
+    const family = renderContextFamily(DEFAULT_INSTRUCTION_DIRECTORY);
+    const published = contextItems(carried());
+    expect(family.items.map((item) => item.id)).toEqual(published.map((item) => item.id));
+    const document = JSON.parse(readFileSync(join(repository, "release/release.json"), "utf8"));
+    const records = document.items.filter((item: { sourceIds: string[] }) =>
+      item.sourceIds.includes(CONTEXT_SOURCE_ID),
+    );
+    expect(family.items).toEqual(records);
+    for (const [path, bytes] of family.files) {
+      expect(Buffer.from(bytes).equals(readFileSync(join(repository, path))), path).toBe(true);
+    }
+  });
 
-type Target = { root: string; segments: { literal?: string }[] };
-const targetPath = (target: Target) => target.segments.map((segment) => segment.literal).join("/");
+  it("is deterministic and names its renderer version", () => {
+    expect(PROJECT_CONTEXT_RENDERER).toBe("aihq-project-context-renderer@1");
+    const first = renderContextFamily(".ai/context");
+    const second = renderContextFamily(".ai/context");
+    expect(second.items).toEqual(first.items);
+    expect([...second.files.keys()]).toEqual([...first.files.keys()]);
+    for (const [path, bytes] of first.files) {
+      expect(Buffer.from(second.files.get(path) as Uint8Array).equals(Buffer.from(bytes))).toBe(
+        true,
+      );
+    }
+  });
 
-const POINTER_PATHS = content.POINTERS.map((pointer) => pointer.path.join("/"));
-/** The shared context item, one pointer item per entry file and one item per client. */
-const FAMILY_SIZE = 1 + content.POINTERS.length + content.CLIENTS.length;
-
-describe("retargetDeclaration", () => {
-  it("sets the directory and moves only the project-context allowance under the old one", () => {
-    const original = {
-      ...committedDeclaration(),
-      authored: [
-        {
-          source: CONTEXT_SOURCE,
-          externalPaths: [`${DEFAULT_DIR}/PROJECT.md`, `${DEFAULT_DIR}/notes/A.md`],
-          templatePlaceholders: ["<your-tool>"],
-        },
-        {
-          source: "other-source",
-          externalPaths: [`${DEFAULT_DIR}/X.md`],
-          templatePlaceholders: [],
-        },
-      ],
+  it("stays portable: no Node built-ins, process, Buffer or network", () => {
+    const seen = new Set<string>();
+    const visit = (file: string) => {
+      if (seen.has(file)) return;
+      seen.add(file);
+      const text = readFileSync(file, "utf8");
+      const specifiers = [
+        ...text.matchAll(
+          /\b(?:import|export)\b[^"';]*?from\s*["']([^"']+)["']|\bimport\s*\(\s*["']([^"']+)["']/g,
+        ),
+      ].map((match) => (match[1] ?? match[2]) as string);
+      for (const specifier of specifiers) {
+        expect(specifier, `${file} imports ${specifier}`).toMatch(/^\.\.?\//);
+        visit(resolve(dirname(file), specifier.replace(/\.js$/u, ".ts")));
+      }
+      expect(text, file).not.toMatch(/\b(?:require\s*\(|process\.|Buffer\b|fetch\s*\()/);
     };
-    const snapshot = JSON.stringify(original);
-    const moved = generatorTool.retargetDeclaration(original, ".ai/context");
-    expect(JSON.stringify(original)).toBe(snapshot);
-    expect(moved.instructionDirectory).toBe(".ai/context");
-    expect(moved.authored).toEqual([
-      {
-        source: CONTEXT_SOURCE,
-        externalPaths: [".ai/context/PROJECT.md", ".ai/context/notes/A.md"],
-        templatePlaceholders: ["<your-tool>"],
+    visit(join(repository, "src/release/project-context.ts"));
+    expect([...seen].map((file) => relative(repository, file).replaceAll("\\", "/"))).not.toContain(
+      "src/release/node.ts",
+    );
+    // The portable reader does not reach the renderer either.
+    const reader = readFileSync(join(repository, "src/release/reader.ts"), "utf8");
+    expect(reader).not.toMatch(/project-context|context-content/u);
+  });
+
+  it.each([
+    ["../outside", "instruction-directory-invalid"],
+    ["C:/abs", "instruction-directory-invalid"],
+    ["/abs", "instruction-directory-invalid"],
+    ["a b", "instruction-directory-invalid"],
+    ["a\\b", "instruction-directory-invalid"],
+    ["-rules", "instruction-directory-invalid"],
+    ["docs/.git/ai", "instruction-directory-invalid"],
+    ["", "instruction-directory-invalid"],
+    ["x".repeat(129), "instruction-directory-invalid"],
+    [Array.from({ length: 60 }, () => "a").join("/"), "instruction-directory-invalid"],
+    ["AGENTS.md", "instruction-directory-collision"],
+    ["claude.md", "instruction-directory-collision"],
+    [".windsurfrules", "instruction-directory-collision"],
+    [".github/copilot-instructions.md", "instruction-directory-collision"],
+    ["GEMINI.md/context", "instruction-directory-collision"],
+    ["pointers/.cursor/rules/00-canon.mdc", "instruction-directory-collision"],
+    [".cursor/rules", "instruction-directory-native-rules"],
+    [".kiro/steering", "instruction-directory-native-rules"],
+    [".Cursor/Rules", "instruction-directory-native-rules"],
+    [".KIRO/Steering/context", "instruction-directory-native-rules"],
+    [".cursor", "instruction-directory-native-rules"],
+    [".CURSOR", "instruction-directory-native-rules"],
+  ])("refuses %s as %s", (directory, reason) => {
+    const problems = instructionDirectoryProblems(directory);
+    expect(problems.map((problem) => problem.reason)).toContain(reason);
+    expect(() => renderContextFamily(directory)).toThrow(TypeError);
+  });
+
+  it("admits siblings of client-native rule directories and nested project paths", () => {
+    for (const directory of [".cursor/context", ".kiro", ".ai/context", "docs/ai_rules-1"]) {
+      expect(instructionDirectoryProblems(directory), directory).toEqual([]);
+    }
+  });
+});
+
+describe("prepareProjectContext with the default directory", () => {
+  it("writes a derived release whose context items equal the published ones", async () => {
+    const from = await source();
+    const out = output();
+    const result = await prepareProjectContext({
+      release: from.release,
+      instructionDirectory: "ai-coding",
+      outputDirectory: out,
+      sourceMaterialRoots: from.materialRoots,
+    });
+    expect(reasons(result)).toEqual([]);
+    expect(result.valid).toBe(true);
+    const release = result.release as CatalogRelease;
+    // New release identity, distinct from the source release.
+    expect(release.sha256).not.toBe(from.release.sha256);
+    const written = readFileSync(join(out, "release/release.json"));
+    expect(release.sha256).toBe(sha256(written));
+    expect(release.package).toEqual(from.release.package);
+    expect(release.sources).toEqual([{ id: CONTEXT_SOURCE_ID, origin: { kind: "authored" } }]);
+    expect(release.metadata).toEqual({
+      derived: {
+        kind: "project-context",
+        from: { package: from.release.package, manifestSha256: from.release.sha256 },
+        renderer: PROJECT_CONTEXT_RENDERER,
+        instructionDirectory: "ai-coding",
       },
-      { source: "other-source", externalPaths: [`${DEFAULT_DIR}/X.md`], templatePlaceholders: [] },
+    });
+    // Only the authored context family; item identities equal the published records.
+    expect(listItems(release).map((item) => [item.id, item.itemSha256])).toEqual(
+      contextItems(from.release).map((item) => [item.id, item.itemSha256]),
+    );
+    expect(result.source).toEqual({ kind: "local", input: "catalog-project-context" });
+    expect(result.materialRoots).toEqual({ "catalog-project-context": realpathSync.native(out) });
+    expect(result.provenance).toEqual({
+      kind: "derived",
+      from: { package: from.release.package, manifestSha256: from.release.sha256 },
+      renderer: PROJECT_CONTEXT_RENDERER,
+      instructionDirectory: "ai-coding",
+      manifestPath: "release/release.json",
+      manifestSha256: release.sha256,
+    });
+    expect(Object.isFrozen(result)).toBe(true);
+    // The output holds exactly the release document and its declared members.
+    const declared = new Set([
+      "release/release.json",
+      ...listItems(release).flatMap((item) => [
+        item.recipe.path,
+        ...item.materials.map((member) => member.path),
+      ]),
     ]);
-    // Retargeting again moves from the declared directory, not from the default.
-    expect(generatorTool.retargetDeclaration(moved, "docs/ai").authored[0]?.externalPaths).toEqual([
-      "docs/ai/PROJECT.md",
-      "docs/ai/notes/A.md",
-    ]);
-    expect(parseDeclaration(moved).instructionDirectory).toBe(".ai/context");
+    expect([...tree(out).keys()].sort()).toEqual([...declared].sort());
   });
 });
 
-describe("default instruction directory", () => {
-  it("regenerates exactly the committed release bytes from the committed declaration", () => {
-    const { files } = generate(committedDeclaration());
-    const committed = committedRelease();
-    expect([...files.keys()].sort()).toEqual([...committed.keys()].sort());
-    for (const [path, bytes] of files)
-      expect(bytes.equals(committed.get(path) as Buffer), path).toBe(true);
-  });
-});
-
-describe("custom instruction directory", () => {
+describe("prepareProjectContext with a custom directory", () => {
   const directory = ".ai/context";
-  let generated: { dir: string; files: Map<string, Buffer> };
-  beforeAll(() => {
-    generated = generate(declarationFor(directory));
-  });
 
-  it("places every context target and material under the selected directory", () => {
-    const release = releaseOf(generated.files);
+  it("routes every target, material and reference to the directory with no default left", async () => {
+    const result = await prepared(directory);
+    const release = result.release as CatalogRelease;
+    expect(contextItems(release)).toHaveLength(FAMILY_SIZE);
+    const files = tree(result.outputDirectory);
     const targets: string[] = [];
-    for (const item of contextItems(release)) {
-      const recipe = JSON.parse((generated.files.get(item.recipe.path) as Buffer).toString("utf8"));
+    for (const item of listItems(release)) {
+      expect(JSON.stringify(item), item.id).not.toContain("ai-coding");
+      const recipe = JSON.parse((files.get(item.recipe.path) as Buffer).toString("utf8"));
       for (const operation of recipe.operations) targets.push(targetPath(operation.target));
       for (const check of recipe.checks) targets.push(targetPath(check.target));
-      for (const material of item.materials) {
-        if (!material.path.startsWith("release/materials/aihq/project-context/pointers/")) {
-          expect(material.path).toMatch(
-            /^release\/materials\/aihq\/project-context\/\.ai\/context\//u,
-          );
-        }
-      }
+    }
+    for (const [path, bytes] of files) {
+      expect(path).not.toContain("ai-coding");
+      expect(bytes.toString("utf8"), path).not.toContain("ai-coding");
     }
     for (const target of new Set(targets)) {
       expect(target.startsWith(`${directory}/`) || POINTER_PATHS.includes(target), target).toBe(
@@ -189,203 +292,267 @@ describe("custom instruction directory", () => {
       );
     }
     expect(targets).toContain(".ai/context/RULE_ROUTER.md");
-    expect(targets).toContain(".ai/context/adapters/_shared-canonical-block.md");
-    expect(targets).toContain(".ai/context/rules/agent-behavior-core.md");
     expect(targets).toContain(".ai/context/adapters/kiro.md");
-    for (const path of POINTER_PATHS) expect(targets).toContain(path);
-  });
-
-  it("keeps item identities and leaves no default directory text anywhere in the context family", () => {
-    const release = releaseOf(generated.files);
-    const committed = releaseOf(committedRelease());
-    expect(listItems(release).map((item) => item.id)).toEqual(
-      listItems(committed).map((item) => item.id),
-    );
-    for (const item of contextItems(release)) {
-      expect(JSON.stringify(item), item.id).not.toContain(DEFAULT_DIR);
-      for (const path of [item.recipe.path, ...item.materials.map((member) => member.path)]) {
-        expect((generated.files.get(path) as Buffer).toString("utf8"), path).not.toContain(
-          DEFAULT_DIR,
-        );
-      }
-    }
-    // The upstream skill items are unaffected by the context configuration.
-    for (const id of ["mattpocock.grill-me", "mattpocock.grilling"]) {
-      const custom = getItem(release, id);
-      const base = getItem(committed, id);
-      expect(custom.found && base.found && custom.item.itemSha256 === base.item.itemSha256).toBe(
-        true,
-      );
-    }
-  });
-
-  it("routes the router, pointers and adapter notes to the selected directory", () => {
-    const release = releaseOf(generated.files);
-    const text = (path: string) => (generated.files.get(path) as Buffer).toString("utf8");
-    const material = (itemId: string, id: string) => {
+    const text = (itemId: string, id: string) => {
       const found = getItem(release, itemId);
       if (!found.found) throw new Error(itemId);
       const member = found.item.materials.find((entry) => entry.id === id);
-      if (member === undefined) throw new Error(`${itemId}/${id}`);
-      return text(member.path);
+      return (files.get(member?.path as string) as Buffer).toString("utf8");
     };
-    const router = material("aihq.project-context", "rule-router");
-    expect(router).toContain("`.ai/context/PROJECT.md`");
-    expect(router).toContain("`.ai/context/rules/agent-behavior-core.md`");
-    expect(router).toContain("`.ai/context/adapters/<your-tool>.md`");
-    expect(router).toContain("The files under `.ai/context/`");
-    const block = material("aihq.project-context", "shared-block");
-    expect(block).toContain("`.ai/context/RULE_ROUTER.md`");
-    const core = material("aihq.project-context", "behavior-core");
-    expect(core).toContain("`.ai/context/RULE_ROUTER.md`");
-    const cursor = material("aihq.project-context-pointer.cursor-rules", "pointer");
-    expect(
-      cursor.startsWith(
-        '---\ndescription: Routes to the AI canon in .ai/context/ (RULE_ROUTER.md)\nglobs: ["**/*"]\nalwaysApply: true\n---',
-      ),
-    ).toBe(true);
-    const kiro = material("aihq.project-context-pointer.kiro-steering", "pointer");
-    expect(kiro).toContain("#[[file:.ai/context/RULE_ROUTER.md]]");
-    expect(kiro).toContain("`.ai/context/adapters/kiro.md`");
-    expect(kiro).toContain("source .ai/context/adapters/_shared-canonical-block.md");
-    const found = getItem(release, "aihq.project-context-pointer.claude-md");
-    if (!found.found) throw new Error("claude-md");
-    const recipe = JSON.parse(text(found.item.recipe.path));
-    const merged = recipe.operations[0].content.literal as string;
-    expect(merged).toContain("`.ai/context/adapters/claude.md`");
-    expect(merged).toContain(block.replace(/\n$/u, ""));
-    expect(material("aihq.client.codex", "adapter-note")).toContain("`.ai/context/RULE_ROUTER.md`");
+    expect(text("aihq.project-context", "rule-router")).toContain("`.ai/context/PROJECT.md`");
+    expect(text("aihq.project-context-pointer.kiro-steering", "pointer")).toContain(
+      "#[[file:.ai/context/RULE_ROUTER.md]]",
+    );
+    expect(text("aihq.project-context-pointer.cursor-rules", "pointer")).toContain(
+      "description: Routes to the AI canon in .ai/context/ (RULE_ROUTER.md)",
+    );
+    // Derived identities differ from the published ones for a changed directory.
+    const published = new Map(contextItems(carried()).map((item) => [item.id, item]));
+    for (const item of listItems(release)) {
+      expect(item.itemSha256).not.toBe(published.get(item.id)?.itemSha256);
+    }
+    expect(release.metadata).toMatchObject({ derived: { instructionDirectory: directory } });
   });
 
-  it("is admitted by the public reader, configuration and selection validation", () => {
-    const release = releaseOf(generated.files);
-    const materialSource = { kind: "local", input: "catalog" } as const;
-    const selections = contextItems(release).map((item) => {
+  it("is byte-identical across preparations", async () => {
+    const first = await prepared(directory);
+    const second = await prepared(directory);
+    expect(second.release?.sha256).toBe(first.release?.sha256);
+    expect(digest(tree(second.outputDirectory))).toEqual(digest(tree(first.outputDirectory)));
+  });
+
+  it("configures and validates context items beside installed items, keyed by release", async () => {
+    const from = await source();
+    const out = output();
+    const result = await prepareProjectContext({
+      release: from.release,
+      instructionDirectory: directory,
+      outputDirectory: out,
+      sourceMaterialRoots: from.materialRoots,
+    });
+    const derived = result.release as CatalogRelease;
+    const choose = (release: CatalogRelease, itemId: string, input: string) => {
       const configured = configureItem({
         release,
-        itemId: item.id,
+        itemId,
         configuration: {},
-        materialSource,
+        materialSource: { kind: "local", input },
       });
-      const provenance = configured.valid ? configured.provenance : undefined;
-      if (provenance === undefined) throw new Error(JSON.stringify(configured.diagnostics));
+      expect(configured.valid, JSON.stringify(configured.diagnostics)).toBe(true);
       return {
-        id: item.id,
+        id: itemId,
         item: {
-          releaseSha256: provenance.manifestSha256,
-          itemId: item.id,
-          itemSha256: provenance.itemSha256,
+          releaseSha256: configured.provenance?.manifestSha256 as string,
+          itemId,
+          itemSha256: configured.provenance?.itemSha256 as string,
         },
         configuration: {},
       };
+    };
+    const selections = [
+      ...listItems(derived).map((item) => choose(derived, item.id, "catalog-project-context")),
+      choose(from.release, "mattpocock.grill-me", "catalog"),
+      choose(from.release, "mattpocock.grilling", "catalog"),
+    ];
+    const set = validateSelectionSet({
+      releases: { [derived.sha256]: derived, [from.release.sha256]: from.release },
+      selections,
     });
-    expect(selections).toHaveLength(FAMILY_SIZE);
-    const validated = validateSelectionSet({ releases: { [release.sha256]: release }, selections });
-    expect(validated.valid, JSON.stringify(validated.diagnostics)).toBe(true);
+    expect(set.valid, JSON.stringify(set.diagnostics)).toBe(true);
+    expect(set.requiresBySelectionId?.["aihq.client.claude"]).toEqual([
+      "aihq.project-context-pointer.claude-md",
+    ]);
+    // Context dependencies resolve within the derived release only.
+    const mixed = validateSelectionSet({
+      releases: { [derived.sha256]: derived, [from.release.sha256]: from.release },
+      selections: [
+        choose(derived, "aihq.client.claude", "catalog-project-context"),
+        choose(derived, "aihq.project-context-pointer.claude-md", "catalog-project-context"),
+        { ...choose(from.release, "aihq.project-context", "catalog"), id: "published-context" },
+      ],
+    });
+    expect(reasons(mixed)).toContain("dependency-missing");
   });
 
-  it("passes whole-candidate integrity with the moved author-owned allowance", () => {
-    const declared = parseDeclaration(declarationFor(directory));
-    const result = checkCandidateFiles(generated.files, packageIdentity(), {
-      authored: declared.authored,
+  it("passes whole-candidate integrity with the author allowance moved to the directory", async () => {
+    const result = await prepared(directory);
+    const release = result.release as CatalogRelease;
+    const checked = checkCandidateFiles(tree(result.outputDirectory), release.package, {
+      authored: [
+        {
+          source: CONTEXT_SOURCE_ID,
+          externalPaths: [`${directory}/PROJECT.md`],
+          templatePlaceholders: ["<your-tool>"],
+        },
+      ],
     });
-    expect(result.checks.filter((check) => !check.ok)).toEqual([]);
-    expect(result.checks.map((check) => check.name)).toContain("authored-references");
-    expect(result.checks.map((check) => check.name)).toContain("authored-placeholders");
-    expect(result.ok).toBe(true);
+    expect(checked.checks.filter((check) => !check.ok)).toEqual([]);
+    expect(checked.checks.map((check) => check.name)).toContain("authored-references");
+    expect(checked.ok).toBe(true);
   });
 
-  it("checks the generated root against its own declaration, also after the upstream pin advances", () => {
-    expect(generator("--check", generated.dir).status).toBe(0);
-    const releasePath = join(generated.dir, "release/release.json");
-    const document = JSON.parse(readFileSync(releasePath, "utf8"));
-    for (const source of document.sources) {
-      if (source.origin.kind === "git") source.origin.revision = "d".repeat(40);
-    }
-    writeFileSync(releasePath, `${JSON.stringify(document)}\n`);
-    const advanced = generator("--check", generated.dir);
-    expect(advanced.status, advanced.stderr).toBe(0);
-    expect(advanced.stdout).toContain("Checked authored context");
-    // The same advanced root is stale for the default directory.
-    const declarationPath = join(generated.dir, "producer/declaration.json");
-    const custom = readFileSync(declarationPath);
-    try {
-      writeFileSync(declarationPath, JSON.stringify(committedDeclaration()));
-      const stale = generator("--check", generated.dir);
-      expect(stale.status).toBe(1);
-      expect(stale.stderr).toContain("authored context records are stale");
-    } finally {
-      writeFileSync(declarationPath, custom);
-    }
+  it("leaves the installed package root untouched", async () => {
+    const from = await source();
+    const before = digest(tree(from.root));
+    const result = await prepareProjectContext({
+      release: from.release,
+      instructionDirectory: directory,
+      outputDirectory: output(),
+      sourceMaterialRoots: from.materialRoots,
+    });
+    expect(result.valid).toBe(true);
+    expect(digest(tree(from.root))).toEqual(before);
+    expect(existsSync(join(from.root, "IMPORTED"))).toBe(false);
   });
 });
 
-describe("refused instruction directory configurations", () => {
-  const refused = (declaration: unknown) => {
-    const dir = stage(declaration);
-    const result = generator(dir);
-    expect(result.status).toBe(1);
-    expect(existsSync(join(dir, "release"))).toBe(false);
-    return result.stderr;
+describe("prepareProjectContext refusals", () => {
+  const refuse = async (
+    request: Partial<Parameters<typeof prepareProjectContext>[0]>,
+    expected: string,
+  ) => {
+    const from = await source();
+    const result = await prepareProjectContext({
+      release: from.release,
+      instructionDirectory: ".ai/context",
+      outputDirectory: output(),
+      ...request,
+    } as Parameters<typeof prepareProjectContext>[0]);
+    expect(result.valid).toBe(false);
+    expect(result.release).toBeUndefined();
+    expect(reasons(result)).toContain(expected);
+    for (const d of result.diagnostics) expect(d.code).toBe("INPUT_INVALID");
+    return result;
   };
 
   it.each([
-    "AGENTS.md",
-    "claude.md",
-    ".windsurfrules",
-    ".github/copilot-instructions.md",
-    "GEMINI.md/context",
-  ])("refuses %s, which collides with a generated entry file", (directory) => {
-    expect(refused(declarationFor(directory))).toMatch(/collide/u);
+    ["../outside", "instruction-directory-invalid"],
+    ["AGENTS.md", "instruction-directory-collision"],
+    [".cursor/rules", "instruction-directory-native-rules"],
+  ])("returns %s as a %s diagnostic and writes nothing", async (directory, reason) => {
+    const out = output();
+    const result = await refuse({ instructionDirectory: directory, outputDirectory: out }, reason);
+    expect(result.diagnostics[0]?.path).toBe("/instructionDirectory");
+    expect(existsSync(out)).toBe(false);
   });
 
-  it.each([
-    ".cursor/rules",
-    ".kiro/steering",
-    ".Cursor/Rules",
-    ".KIRO/Steering/context",
-    ".cursor/rules/ai",
-    ".cursor/rules/00-canon.mdc",
-    ".KIRO/steering/00-canon.md/nested",
-    ".cursor",
-    ".CURSOR",
-  ])("refuses %s, a client-native rule directory that would load the canon twice", (directory) => {
-    expect(refused(declarationFor(directory))).toMatch(/natively loaded rule directory/u);
+  it("refuses an unchecked release and an invalid source input", async () => {
+    await refuse({ release: { ...(await source()).release } }, "release-unchecked");
+    await refuse({ sourceInput: "bad input" }, "invalid-source-input");
+    await refuse(
+      { sourceInput: "catalog", sourceMaterialRoots: { catalog: scratch } },
+      "source-input-conflict",
+    );
   });
 
-  it("admits a sibling of a client-native rule directory", () => {
-    for (const directory of [".cursor/context", ".kiro"]) {
-      const { files } = generate(declarationFor(directory));
-      expect(files.has(`release/materials/aihq/project-context/${directory}/RULE_ROUTER.md`)).toBe(
-        true,
-      );
+  it("refuses a source whose authored context differs from this renderer", async () => {
+    const document = JSON.parse(readFileSync(join(repository, "release/release.json"), "utf8"));
+    const changed = structuredClone(document);
+    for (const item of changed.items) {
+      if (item.id === "aihq.project-context") item.label = "Changed context";
+    }
+    const without = structuredClone(document);
+    without.items = without.items.filter(
+      (item: { sourceIds: string[] }) => !item.sourceIds.includes(CONTEXT_SOURCE_ID),
+    );
+    without.sources = without.sources.filter(
+      (entry: { id: string }) => entry.id !== CONTEXT_SOURCE_ID,
+    );
+    for (const value of [changed, without]) {
+      const bytes = Buffer.from(`${canonicalText(value)}\n`);
+      const read = readRelease(bytes, { expectedSha256: sha256(bytes) });
+      if (!read.valid) throw new Error(JSON.stringify(read.diagnostics));
+      const out = output();
+      await refuse({ release: read.release, outputDirectory: out }, "renderer-mismatch");
+      expect(existsSync(out)).toBe(false);
     }
   });
 
-  it("refuses an unsafe directory through the declaration parser", () => {
-    for (const directory of ["../outside", "C:/abs", "/abs", "a b"]) {
-      const stderr = refused({ ...committedDeclaration(), instructionDirectory: directory });
-      expect(stderr).toContain("declaration-invalid");
-      expect(stderr).toContain("instructionDirectory");
+  it("refuses a relative, missing-parent, non-directory, linked or non-empty output", async () => {
+    await refuse({ outputDirectory: "relative/out" }, "invalid-output-directory");
+    await refuse(
+      { outputDirectory: join(output(), "missing", "out") },
+      "output-parent-unavailable",
+    );
+    const file = output();
+    writeFileSync(file, "not a directory");
+    await refuse({ outputDirectory: file }, "unsafe-output-directory");
+    expect(readFileSync(file, "utf8")).toBe("not a directory");
+    const target = output();
+    mkdirSync(target);
+    const link = output();
+    symlinkSync(target, link, process.platform === "win32" ? "junction" : "dir");
+    await refuse({ outputDirectory: link }, "unsafe-output-directory");
+    expect(readdirSync(target)).toEqual([]);
+    const full = output();
+    mkdirSync(full);
+    writeFileSync(join(full, "keep.txt"), "unrelated");
+    await refuse({ outputDirectory: full }, "output-not-empty");
+    expect(readdirSync(full)).toEqual(["keep.txt"]);
+  });
+
+  it("refuses output overlapping a source material root", async () => {
+    const from = await source();
+    const inside = join(from.root, "staging");
+    await refuse(
+      { release: from.release, outputDirectory: inside, sourceMaterialRoots: from.materialRoots },
+      "output-overlaps-source",
+    );
+    expect(existsSync(inside)).toBe(false);
+    const parent = dirname(from.root);
+    const around = join(parent, "around");
+    await refuse(
+      {
+        release: from.release,
+        outputDirectory: around,
+        sourceMaterialRoots: { catalog: join(around, "nested") },
+      },
+      "output-overlaps-source",
+    );
+  });
+
+  it("accepts an existing empty directory and keeps it", async () => {
+    const out = output();
+    mkdirSync(out);
+    const result = await prepared(".ai/context", out);
+    expect(existsSync(join(result.outputDirectory, "release/release.json"))).toBe(true);
+  });
+
+  it("removes only what it created when cancelled partway", async () => {
+    for (const existing of [false, true]) {
+      const out = output();
+      if (existing) mkdirSync(out);
+      let checks = 0;
+      const signal = {
+        get aborted() {
+          checks += 1;
+          return checks > 12;
+        },
+        addEventListener() {},
+        removeEventListener() {},
+      } as unknown as AbortSignal;
+      const result = await refuse({ outputDirectory: out, signal }, "cancelled");
+      expect(result.valid).toBe(false);
+      expect(checks).toBeGreaterThan(12);
+      if (existing) expect(readdirSync(out)).toEqual([]);
+      else expect(existsSync(out)).toBe(false);
     }
   });
 
-  it("refuses an author-owned allowance that was not moved with the directory", () => {
-    const unmoved = { ...committedDeclaration(), instructionDirectory: ".ai" };
-    expect(refused(unmoved)).toMatch(/stale.*\.ai\/PROJECT\.md/u);
-  });
-
-  it("refuses an allowance that keeps an external path outside the directory", () => {
-    const declaration = declarationFor(".ai");
-    for (const entry of declaration.authored) {
-      if (entry.source === CONTEXT_SOURCE) entry.externalPaths.push("docs/OTHER.md");
-    }
-    expect(refused(declaration)).toMatch(/stale.*docs\/OTHER\.md/u);
-  });
-
-  it("refuses a declaration without the project-context allowance", () => {
-    const declaration = declarationFor(".ai");
-    declaration.authored = [];
-    expect(refused(declaration)).toContain(CONTEXT_SOURCE);
+  it("is cancelled before any work when the signal is already aborted", async () => {
+    const out = output();
+    await refuse({ outputDirectory: out, signal: AbortSignal.abort() }, "cancelled");
+    expect(existsSync(out)).toBe(false);
   });
 });
+
+/** Canonical release text for a parsed release document (sorted keys, no whitespace). */
+function canonicalText(value: unknown): string {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(canonicalText).join(",")}]`;
+  const record = value as Record<string, unknown>;
+  return `{${Object.keys(record)
+    .sort()
+    .map((key) => `${JSON.stringify(key)}:${canonicalText(record[key])}`)
+    .join(",")}}`;
+}

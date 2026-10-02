@@ -91,13 +91,9 @@ describe("upstream refresh with authored context", () => {
       mkdirSync(dirname(join(scratch, path)), { recursive: true });
       writeFileSync(join(scratch, path), bytes);
     }
-    for (const input of [
-      "src/production/data/mattpocock.snapshot.json",
-      "producer/declaration.json",
-    ]) {
-      mkdirSync(dirname(join(scratch, input)), { recursive: true });
-      writeFileSync(join(scratch, input), readFileSync(join(root, input)));
-    }
+    const snapshot = "src/production/data/mattpocock.snapshot.json";
+    mkdirSync(dirname(join(scratch, snapshot)), { recursive: true });
+    writeFileSync(join(scratch, snapshot), readFileSync(join(root, snapshot)));
     const args = [join(root, "tools/generate-release.mjs"), "--check", scratch];
     expect(execFileSync(process.execPath, args, { encoding: "utf8" })).toContain(
       "Checked authored context",

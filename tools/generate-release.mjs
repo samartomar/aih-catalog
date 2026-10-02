@@ -2,20 +2,12 @@ import { createHash } from "node:crypto";
 import { mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  adapterNote,
-  BLOCK_ID,
-  CLIENTS,
-  CONTEXT_DIR,
-  END_MARKER,
-  mergedPointerContent,
-  ownedPointerDocument,
-  POINTERS,
-  behaviorCoreDoc,
-  ruleRouterDoc,
-  sharedBlockBody,
-  START_MARKER,
-} from "./context-content.mjs";
+// The authored project context has one renderer: the built, portable release module
+// that the Node helper prepareProjectContext also uses (npm run build:dist first).
+const renderer = await import(new URL("../dist/release/project-context.js", import.meta.url).href)
+  .catch(() => {
+    throw new Error("generate-release: the built release module is missing; run npm run build:dist first");
+  });
 
 /**
  * Generates the carried Catalog release (`urn:aihq:catalog:release:1.0.0`): the
@@ -30,9 +22,8 @@ import {
  *
  *   node tools/generate-release.mjs [--check] [catalog-root]
  *
- * The authored project context follows the `instructionDirectory` of the catalog
- * root's own `producer/declaration.json` (`ai-coding` when absent), parsed by the
- * built producer (`npm run build:dist` first). One release carries one directory.
+ * The authored project context is rendered for the published default instruction
+ * directory (`ai-coding`) by the built renderer in dist/release/project-context.js.
  *
  * This is the seed generator for the carried donor snapshot. Once a targeted candidate
  * (tools/prepare-candidate.mjs) has advanced release/ beyond that snapshot, `--check`
@@ -43,7 +34,6 @@ export const OUTPUT_ROOT = "release";
 export const RELEASE_PATH = "release/release.json";
 const SNAPSHOT = "src/production/data/mattpocock.snapshot.json";
 const ASSESSMENT = (entry) => `defaults/workbench/mattpocock/skill.mattpocock.${entry}/artifacts`;
-export const DECLARATION_PATH = "producer/declaration.json";
 const SOURCE_ID = "mattpocock-skills";
 const REPOSITORY = "mattpocock/skills";
 const LICENSE_PATH = "LICENSE";
@@ -70,14 +60,6 @@ const ITEMS = [
     label: "Grilling",
     requires: [],
   },
-];
-
-/** Every committed file generation reads besides `package.json` and the declaration. */
-export const GENERATION_INPUTS = [
-  SNAPSHOT,
-  ...ITEMS.flatMap((item) =>
-    ["closure.json", "profile.json"].map((file) => `${ASSESSMENT(item.entry)}/${file}`),
-  ),
 ];
 
 const compare = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
@@ -129,381 +111,27 @@ function provenance(root, snapshot, entry) {
   return { revision: source.commit, skillPath: source.path, files, description };
 }
 
-export const CONTEXT_SOURCE_ID = "aihq-project-context";
-const CONTEXT_ITEM_ID = "aihq.project-context";
-const CONTEXT_MATERIALS = `${OUTPUT_ROOT}/materials/aihq/project-context`;
-const DONOR_PROVENANCE = {
-  repository: "https://github.com/samartomar/ai-harness",
-  revision: "f5d5f84b9006b628778983dab56dd92dc8888156",
-};
+const { CONTEXT_SOURCE, CONTEXT_SOURCE_ID, DEFAULT_INSTRUCTION_DIRECTORY, renderContextFamily } =
+  renderer;
 
-const producer = (file) => import(`${new URL(`../dist/producer/${file}`, import.meta.url)}`);
-
-/**
- * The catalog root's parsed producer declaration. Parsing (and so instruction
- * directory admission) is the built producer's single implementation.
- */
-export async function readDeclaration(root) {
-  let parseDeclaration;
-  try {
-    ({ parseDeclaration } = await producer("declaration.js"));
-  } catch {
-    fail("the built producer is missing; run npm run build:dist first");
-  }
-  let bytes;
-  try {
-    bytes = readFileSync(resolve(root, DECLARATION_PATH));
-  } catch {
-    fail(`${DECLARATION_PATH} is missing from the catalog root`);
-  }
-  return parseDeclaration(bytes);
-}
-
-/**
- * A copy of a raw declaration value selecting `directory`, with the project-context
- * allowance paths under the previously declared directory moved along. It neither
- * validates nor moves any project file; generation admits the result.
- */
-export function retargetDeclaration(declaration, directory) {
-  const copy = structuredClone(declaration);
-  const current = copy.instructionDirectory ?? CONTEXT_DIR;
-  copy.instructionDirectory = directory;
-  for (const entry of copy.authored ?? []) {
-    if (entry.source !== CONTEXT_SOURCE_ID) continue;
-    entry.externalPaths = entry.externalPaths.map((path) =>
-      path.startsWith(`${current}/`) ? `${directory}/${path.slice(current.length + 1)}` : path,
-    );
-  }
-  return copy;
-}
-
-/** Fails when one path equals, or is a directory of, another under case folding. */
-function assertPrefixFree(paths, label) {
-  const folded = paths.map((path) => [path, path.toLowerCase()]);
-  for (const [index, [path, key]] of folded.entries()) {
-    for (const [other, otherKey] of folded.slice(index + 1)) {
-      if (key === otherKey || otherKey.startsWith(`${key}/`) || key.startsWith(`${otherKey}/`)) {
-        fail(`${label}: ${path} and ${other} collide`);
-      }
-    }
-  }
-}
-
-const CONTEXT_DOCUMENTS = [
-  { id: "rule-router", target: ["RULE_ROUTER.md"], render: ruleRouterDoc },
-  {
-    id: "shared-block",
-    target: ["adapters", "_shared-canonical-block.md"],
-    render: sharedBlockBody,
-  },
-  { id: "behavior-core", target: ["rules", "agent-behavior-core.md"], render: behaviorCoreDoc },
-];
-
-/** Project path segments of `rest` under the instruction directory. */
-const underDir = (dir, ...rest) => [...dir.split("/"), ...rest];
-
-/**
- * The project directory every authored context document lives under, checked against
- * the declaration's author-owned allowance, every generated entry file and the
- * directories clients load natively (the parents of canon-owned entry files).
- */
-function contextDirectory(declaration) {
-  const dir = declaration.instructionDirectory;
-  const allowance = declaration.authored.find((entry) => entry.source === CONTEXT_SOURCE_ID);
-  if (allowance === undefined) {
-    fail(`${DECLARATION_PATH} lacks the authored allowance for ${CONTEXT_SOURCE_ID}`);
-  }
-  const project = `${dir}/PROJECT.md`;
-  if (!allowance.externalPaths.includes(project)) {
-    fail(`the ${CONTEXT_SOURCE_ID} allowance is stale: it must list ${project}`);
-  }
-  for (const path of allowance.externalPaths) {
-    if (!path.startsWith(`${dir}/`)) {
-      fail(`the ${CONTEXT_SOURCE_ID} allowance is stale: ${path} lies outside ${dir}/`);
-    }
-  }
-  const underDirectory = [
-    ...CONTEXT_DOCUMENTS.map((doc) => underDir(dir, ...doc.target).join("/")),
-    ...CLIENTS.map((client) => underDir(dir, "adapters", `${client.id}.md`).join("/")),
-    ...allowance.externalPaths,
-  ];
-  // Any file under the directory, not only the directory itself: `.cursor` would
-  // place rules/agent-behavior-core.md inside Cursor's natively loaded .cursor/rules.
-  for (const pointer of POINTERS.filter((entry) => entry.delivery === "owned")) {
-    const native = pointer.path.slice(0, -1).join("/");
-    const key = `${native.toLowerCase()}/`;
-    const inside = underDirectory.find((path) => path.toLowerCase().startsWith(key));
-    if (native !== "" && inside !== undefined) {
-      fail(
-        `instruction directory ${dir} places ${inside} in the natively loaded rule directory ${native}/; the canon would load twice`,
-      );
-    }
-  }
-  const targets = [...underDirectory, ...POINTERS.map((pointer) => pointer.path.join("/"))];
-  assertPrefixFree(targets, `instruction directory ${dir}`);
-  return dir;
-}
-
-const literalTarget = (segments) => ({
-  root: "project",
-  segments: segments.map((segment) => ({ literal: segment })),
-});
-
-function registerContextRecipe(put, itemId, bytes) {
-  const path = `${OUTPUT_ROOT}/recipes/${itemId}.json`;
-  put(path, bytes);
-  return {
-    id: itemId,
-    schema: "urn:aihq:core:recipe:1.0.0",
-    path,
-    sha256: sha256(bytes),
-    byteLength: bytes.length,
-  };
-}
-
-/**
- * The shared project-context item and its family: one file.write per pinned
- * context document, each with a file.sha256 check. Returns the item record and
- * registers its recipe/material bytes through `put`.
- */
-function contextItem(put, dir) {
-  const materials = CONTEXT_DOCUMENTS.map((doc) => ({
-    id: doc.id,
-    target: underDir(dir, ...doc.target),
-    text: doc.render(dir),
-  }))
-    .map((doc) => {
-      const bytes = Buffer.from(doc.text, "utf8");
-      const path = `${CONTEXT_MATERIALS}/${doc.target.join("/")}`;
-      put(path, bytes);
-      return { id: doc.id, path, sha256: sha256(bytes), byteLength: bytes.length, target: doc.target };
-    })
-    .sort((a, b) => compare(a.id, b.id));
-  const recipeBytes = document({
-    schema: "urn:aihq:core:recipe:1.0.0",
-    id: CONTEXT_ITEM_ID,
-    description: `Deliver the shared project AI context under ${dir}/ (router, shared block source, behavior core).`,
-    inputs: {},
-    materials: materials.map(({ id, sha256: hash, byteLength }) => ({ id, sha256: hash, byteLength })),
-    targets: ["project"],
-    prerequisites: [],
-    operations: materials.map((member) => ({
-      id: `write-${member.id}`,
-      purpose: `Write the pinned ${member.target.join("/")}`,
-      kind: "file.write",
-      scope: "project",
-      target: literalTarget(member.target),
-      material: member.id,
-      requires: [],
-      checks: [`${member.id}-sha256`],
-    })),
-    checks: materials.map((member) => ({
-      id: `${member.id}-sha256`,
-      purpose: `The installed ${member.target.join("/")} has the pinned bytes`,
-      kind: "file.sha256",
-      target: literalTarget(member.target),
-      sha256: member.sha256,
-    })),
-  });
-  const recipeReference = registerContextRecipe(put, CONTEXT_ITEM_ID, recipeBytes);
-  return {
-    id: CONTEXT_ITEM_ID,
-    label: "Shared project AI context",
-    description: `Project-owned AI context (router, shared canonical block, behavior core) under ${dir}/.`,
-    kind: "project-context",
-    sourceIds: [CONTEXT_SOURCE_ID],
-    targets: [],
-    scopes: ["project"],
-    inputs: {},
-    recipe: recipeReference,
-    materials: materials.map(({ id, path, sha256: hash, byteLength }) => ({
-      id,
-      path,
-      sha256: hash,
-      byteLength,
-    })),
-    dependencies: { requires: [], optional: [], conflicts: [] },
-    metadata: { adaptedFrom: DONOR_PROVENANCE },
-  };
-}
-
-/**
- * One explicit owner per native client entry file. Merged entries use text.block
- * (user text outside the markers survives, and no whole-file check is claimed);
- * wholly canon-owned entry files use file.write with a pinned byte check.
- */
-function pointerItems(put, dir) {
-  return POINTERS.map((pointer) => {
-    const itemId = `aihq.project-context-pointer.${pointer.key}`;
-    const common = {
-      schema: "urn:aihq:core:recipe:1.0.0",
-      id: itemId,
-      inputs: {},
-      targets: ["project"],
-      prerequisites: [],
-    };
-    let materials = [];
-    let recipe;
-    if (pointer.delivery === "merge") {
-      recipe = {
-        ...common,
-        description: `Merge the shared AI context block into ${pointer.path.join("/")}, preserving text outside the markers.`,
-        materials: [],
-        operations: [
-          {
-            id: "merge-context-block",
-            purpose: `Add or refresh the shared context block in ${pointer.path.join("/")}`,
-            kind: "text.block",
-            scope: "project",
-            target: literalTarget(pointer.path),
-            blockId: BLOCK_ID,
-            startMarker: START_MARKER,
-            endMarker: END_MARKER,
-            action: "set",
-            content: { literal: mergedPointerContent(pointer.key, dir) },
-            requires: [],
-            checks: [],
-          },
-        ],
-        checks: [],
-      };
-    } else {
-      const bytes = Buffer.from(ownedPointerDocument(pointer.key, dir), "utf8");
-      const path = `${CONTEXT_MATERIALS}/pointers/${pointer.path.join("/")}`;
-      put(path, bytes);
-      materials = [{ id: "pointer", path, sha256: sha256(bytes), byteLength: bytes.length }];
-      recipe = {
-        ...common,
-        description: `Deliver the canon-owned ${pointer.path.join("/")} entry file with its activation frontmatter.`,
-        materials: materials.map(({ id, sha256: hash, byteLength }) => ({
-          id,
-          sha256: hash,
-          byteLength,
-        })),
-        operations: [
-          {
-            id: "write-pointer",
-            purpose: `Write the pinned ${pointer.path.join("/")}`,
-            kind: "file.write",
-            scope: "project",
-            target: literalTarget(pointer.path),
-            material: "pointer",
-            requires: [],
-            checks: ["pointer-sha256"],
-          },
-        ],
-        checks: [
-          {
-            id: "pointer-sha256",
-            purpose: `The installed ${pointer.path.join("/")} has the pinned bytes`,
-            kind: "file.sha256",
-            target: literalTarget(pointer.path),
-            sha256: materials[0].sha256,
-          },
-        ],
-      };
-    }
-    const recipeBytes = document(recipe);
-    const recipeReference = registerContextRecipe(put, itemId, recipeBytes);
-    return {
-      id: itemId,
-      label: pointer.label,
-      description: recipe.description,
-      kind: "client-entry-pointer",
-      sourceIds: [CONTEXT_SOURCE_ID],
-      targets: [],
-      scopes: ["project"],
-      inputs: {},
-      recipe: recipeReference,
-      materials,
-      dependencies: { requires: [{ itemId: CONTEXT_ITEM_ID }], optional: [], conflicts: [] },
-      metadata: { adaptedFrom: DONOR_PROVENANCE },
-    };
-  });
-}
-
-/** The per-client selection surface: the adapter note plus explicit pointer dependencies. */
-function clientItems(put, dir) {
-  return CLIENTS.map((client) => {
-    const itemId = `aihq.client.${client.id}`;
-    const target = underDir(dir, "adapters", `${client.id}.md`);
-    const bytes = Buffer.from(adapterNote(client, dir), "utf8");
-    const path = `${CONTEXT_MATERIALS}/${target.join("/")}`;
-    put(path, bytes);
-    const materials = [{ id: "adapter-note", path, sha256: sha256(bytes), byteLength: bytes.length }];
-    const recipeBytes = document({
-      schema: "urn:aihq:core:recipe:1.0.0",
-      id: itemId,
-      description: `Deliver the ${client.label} adapter note under ${dir}/adapters/.`,
-      inputs: {},
-      materials: materials.map(({ id, sha256: hash, byteLength }) => ({
-        id,
-        sha256: hash,
-        byteLength,
-      })),
-      targets: ["project"],
-      prerequisites: [],
-      operations: [
-        {
-          id: "write-adapter-note",
-          purpose: `Write the pinned ${target.join("/")}`,
-          kind: "file.write",
-          scope: "project",
-          target: literalTarget(target),
-          material: "adapter-note",
-          requires: [],
-          checks: ["adapter-note-sha256"],
-        },
-      ],
-      checks: [
-        {
-          id: "adapter-note-sha256",
-          purpose: `The installed ${target.join("/")} has the pinned bytes`,
-          kind: "file.sha256",
-          target: literalTarget(target),
-          sha256: materials[0].sha256,
-        },
-      ],
-    });
-    const recipeReference = registerContextRecipe(put, itemId, recipeBytes);
-    return {
-      id: itemId,
-      label: `${client.label} context wiring`,
-      description: `${client.label} adapter note and its native entry pointer(s): ${client.pointers.join(", ")}.`,
-      kind: "client-adapter",
-      sourceIds: [CONTEXT_SOURCE_ID],
-      targets: [],
-      scopes: ["project"],
-      inputs: {},
-      recipe: recipeReference,
-      materials,
-      dependencies: {
-        requires: client.pointers.map((key) => ({ itemId: `aihq.project-context-pointer.${key}` })),
-        optional: [],
-        conflicts: [],
-      },
-      metadata: { adaptedFrom: DONOR_PROVENANCE },
-    };
-  });
-}
-
-function contextFamily(put, dir) {
-  return [contextItem(put, dir), ...pointerItems(put, dir), ...clientItems(put, dir)]
-    .sort((a, b) => compare(a.id, b.id));
+/** The authored context family for the published default directory, its bytes registered through `put`. */
+function contextFamily(put) {
+  const family = renderContextFamily(DEFAULT_INSTRUCTION_DIRECTORY);
+  for (const [path, bytes] of family.files) put(path, Buffer.from(bytes));
+  return family.items;
 }
 
 /** Authored content remains reproducible independently of the upstream pin. */
-async function checkContextContent(root) {
-  const dir = contextDirectory(await readDeclaration(root));
+function checkContextContent(root) {
   const files = new Map();
-  const expected = contextFamily((path, bytes) => files.set(path, bytes), dir);
+  const expected = contextFamily((path, bytes) => files.set(path, bytes));
   const release = readJson(root, RELEASE_PATH);
   const actual = (release.items ?? [])
     .filter((item) => item.sourceIds?.includes(CONTEXT_SOURCE_ID))
     .sort((a, b) => compare(a.id, b.id));
   if (canonical(actual) !== canonical(expected)) fail("authored context records are stale");
   const source = (release.sources ?? []).find((item) => item.id === CONTEXT_SOURCE_ID);
-  if (canonical(source) !== canonical({ id: CONTEXT_SOURCE_ID, origin: { kind: "authored" } })) {
+  if (canonical(source) !== canonical(CONTEXT_SOURCE)) {
     fail("authored context source is stale");
   }
   for (const [path, bytes] of files) {
@@ -564,12 +192,8 @@ export function advancedBeyondSnapshot(root) {
   return revisions.size !== 1 || !revisions.has(pin);
 }
 
-/**
- * Returns every output file (package-relative path → bytes), the release document
- * last, for the catalog root's own declaration.
- */
-export async function generateRelease(root) {
-  const dir = contextDirectory(await readDeclaration(root));
+/** Returns every output file (package-relative path → bytes), the release document last. */
+export function generateRelease(root) {
   const pkg = readJson(root, "package.json");
   const snapshot = readJson(root, SNAPSHOT);
   const files = new Map();
@@ -626,13 +250,13 @@ export async function generateRelease(root) {
   }).sort((a, b) => compare(a.id, b.id));
   const items = [
     ...mattpocockItems,
-    ...contextFamily(put, dir),
+    ...contextFamily(put),
   ].sort((a, b) => compare(a.id, b.id));
   const release = {
     schema: "urn:aihq:catalog:release:1.0.0",
     package: { name: pkg.name, version: pkg.version },
     sources: [
-      { id: CONTEXT_SOURCE_ID, origin: { kind: "authored" } },
+      { id: CONTEXT_SOURCE.id, origin: { kind: CONTEXT_SOURCE.origin.kind } },
       {
         id: SOURCE_ID,
         origin: { kind: "git", repository: `https://github.com/${REPOSITORY}`, revision },
@@ -641,7 +265,6 @@ export async function generateRelease(root) {
     items,
   };
   put(RELEASE_PATH, document(release));
-  assertPrefixFree([...files.keys()], "release files");
   return files;
 }
 
@@ -673,11 +296,11 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     }
     const root = resolve(args[0] ?? resolve(dirname(fileURLToPath(import.meta.url)), ".."));
     if (check && advancedBeyondSnapshot(root)) {
-      await checkContextContent(root);
+      checkContextContent(root);
       console.log("Checked authored context; upstream release advanced beyond the donor snapshot. Run npm run check:release.");
       process.exit(0);
     }
-    const files = await generateRelease(root);
+    const files = generateRelease(root);
     const stale = existingFiles(root).filter((path) => !files.has(path));
     if (check) {
       for (const [path, bytes] of files) {

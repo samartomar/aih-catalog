@@ -17,7 +17,7 @@ and [CONTRIBUTING.md](CONTRIBUTING.md) for contributor checks.
 | --- | --- | --- |
 | `@aihq/catalog/contracts` | Public types, format identity and support declaration | Portable |
 | `@aihq/catalog/reader` | Read, browse, configure and validate explicit selections | Portable |
-| `@aihq/catalog/node` | Read an installed root or resolve an exact archive/registry version | Node 24.15–24.x |
+| `@aihq/catalog/node` | Read an installed root, resolve an exact archive/registry version, or prepare the project context for a chosen instruction directory | Node 24.15–24.x |
 | `@aihq/catalog/release.json` | Canonical release inventory | Data |
 | `@aihq/catalog/schemas/release/1.0.0.json` | Release structural schema | Data |
 | `@aihq/catalog/package.json` | Installed package identity and location | Data |
@@ -59,9 +59,14 @@ or silently selects optional suggestions. See [the execution example](docs/CATAL
 The `aihq.project-context` family supplies shared project AI context
 (under `ai-coding/` by default), native entry pointers and adapter notes for the
 supported client baseline as ordinary selectable items with the same contracts; see
-[the context content contract](docs/CONTEXT-CONTENT.md). The instruction directory
-is chosen when the release is generated, not per selection. Delivering a client
-entry file does not prove the client loads it.
+[the context content contract](docs/CONTEXT-CONTENT.md). A project that wants
+another instruction directory calls `prepareProjectContext` from
+`@aihq/catalog/node` with that directory and a caller-owned staging directory. It
+writes a derived release with its own identities there and returns the checked
+release, a local material source and its `materialRoots` entry for the ordinary
+configure, validate and Core prepare/apply flow; the installed package is not changed
+and no release is regenerated. Delivering a client entry file does not prove the
+client loads it.
 
 ## Prepare a content candidate
 
@@ -90,9 +95,9 @@ with lifecycle scripts disabled, and runs public prepare/apply in disposable roo
 It checks local/archive identity, explicit dependencies, default origin, applied
 material hashes and refusal after selected material changes. Supply a reviewed Core
 artifact; the check does not choose a moving registry version. Pass a prepared Catalog tarball as a second argument to check that exact
-candidate instead of packing this checkout. Pass `--instruction-directory <dir>`
-instead to pack a disposable copy regenerated for that project instruction
-directory and run the same scenario; the checkout is not modified.
+candidate instead of packing this checkout. Add `--instruction-directory <dir>` to
+prepare the project context for that directory through the installed package's
+`prepareProjectContext` and run the context scenario against the derived release.
 
 For a real browser check, pack Catalog and run
 `node tools/verify-portable-browser.mjs /absolute/path/to/catalog.tgz`.

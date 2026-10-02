@@ -3,7 +3,7 @@
 Catalog carries the shared project AI context and the supported clients' native
 entry pointers as ordinary selectable content. Authors maintain their own coding
 practices, project guidelines and tool-use rules once in `<dir>/PROJECT.md`, where
-`<dir>` is the release's [instruction directory](#instruction-directory)
+`<dir>` is the project's [instruction directory](#instruction-directory)
 (`ai-coding` by default);
 each selected client receives its native entry file and
 adapter note through the same generic Core recipes, ownership and lifecycle
@@ -51,7 +51,9 @@ canonical block body). In the bounded Codex probe below, the entry bytes were
 composed while the referenced router was not imported. The block body,
 `_shared-canonical-block.md` and
 `agent-behavior-core.md` render from one authored source in
-`tools/context-content.mjs`, drift-guarded by focused tests.
+`src/release/context-content.ts`, drift-guarded by focused tests. The same internal
+renderer (`src/release/project-context.ts`) builds the published release and every
+project-side preparation below.
 
 The shipped guidance uses next-new-session update timing; explicit native reload
 is optional where supported. It asks the agent to warn and continue with the
@@ -62,47 +64,133 @@ be detected or that every agent will comply; native permissions still apply.
 
 ## Instruction directory
 
-`<dir>` defaults to `ai-coding`. A maintainer selects another project-relative
-directory with the optional `instructionDirectory` key of
-`producer/declaration.json` (see [the producer guide](PRODUCER.md#the-declaration)),
-then regenerates with `npm run generate:release`. Every generated context path and
-reference follows it together: the three context documents, the adapter notes,
-their package material paths (`release/materials/aihq/project-context/<dir>/…`),
+`<dir>` defaults to `ai-coding`, the directory the published release carries. A
+consuming project that wants another project-relative directory, such as
+`.ai/context`, prepares the context family for it with `prepareProjectContext` from
+`@aihq/catalog/node`. Nobody regenerates or republishes a Catalog release, and the
+installed package is never changed.
+
+The directory cannot be a recipe input. Core recipe slots substitute whole values
+only, and the directory also appears inside router, entry and adapter text whose
+bytes are pinned and hashed. A different directory therefore means different recipe
+and material bytes. The helper renders those bytes with the installed package's own
+renderer and writes them as a separate, derived release. Every context path and
+reference follows the directory together: the three context documents, the adapter
+notes, their material paths (`release/materials/aihq/project-context/<dir>/…`),
 recipe and item descriptions, the router and shared block, the merged entry
 preambles and generated note, the Cursor frontmatter description and the Kiro
 `#[[file:<dir>/RULE_ROUTER.md]]` reference. Native entry-file paths and item IDs do
 not change.
 
-The directory is chosen when a release is generated, by whoever produces that
-release: through the declaration, or through the packed consumer check's
-`--instruction-directory` staging below. It is not chosen at install time, and
-`configureItem` has no input for it. Core recipe slots substitute whole values
-only, and the directory also appears inside router, entry and adapter text whose
-bytes the release pins and hashes, so it cannot be a selection-time option. One
-release therefore carries one directory; a project that needs another directory
-uses a release generated for it. Generation refuses:
+### Project-side flow
 
-- a value that is not a safe relative path (absolute, drive or colon, backslash,
+```js
+import { prepareProjectContext, readInstalledRelease } from "@aihq/catalog/node";
+import { configureItem, validateSelectionSet } from "@aihq/catalog/reader";
+
+const installed = await readInstalledRelease({ root: catalogPackageRoot });
+const context = await prepareProjectContext({
+  release: installed.release,
+  instructionDirectory: ".ai/context",
+  outputDirectory: stagingDirectory, // absolute; absent or empty; owned by the caller
+  sourceMaterialRoots: installed.materialRoots,
+});
+if (!context.valid) throw new Error(JSON.stringify(context.diagnostics));
+
+// Context items come from the derived release; other items from the installed one.
+const configured = ["aihq.project-context", "aihq.project-context-pointer.claude-md",
+  "aihq.client.claude"].map((itemId) => configureItem({ release: context.release,
+  itemId, configuration: {}, materialSource: context.source }));
+const checked = validateSelectionSet({
+  releases: { [context.release.sha256]: context.release,
+    [installed.release.sha256]: installed.release },
+  selections, // built from configured[i].provenance, as for any item
+});
+// Pass both roots to Core prepare and apply, then delete stagingDirectory.
+const controls = { materialRoots: { ...installed.materialRoots, ...context.materialRoots } };
+```
+
+The result carries the checked derived `release`, a local `source` (input
+`catalog-project-context` unless `sourceInput` names another), the `materialRoots`
+entry for the output directory and a `provenance` record. Select context items and
+their dependencies from the derived release only: their `requires` name items of
+that same release. Skills and other items stay on the installed release; both
+releases are supplied to `validateSelectionSet`, keyed by manifest SHA-256.
+
+Failures are diagnostics, never exceptions, and nothing is written for a refused
+request. The helper refuses:
+
+- a directory that is not a safe relative path (absolute, drive or colon, backslash,
   empty, `.` or `..` segment, trailing dot or space, control character, non-NFC text,
-  a reserved device name) or is longer than 128 characters;
-- a segment outside letters, digits, `.`, `_` and `-`, a segment starting with `-`,
-  or a `.git` segment in any case;
+  a reserved device name), is longer than 128 characters, uses a segment outside
+  letters, digits, `.`, `_` and `-` or starting with `-`, names `.git` in any case,
+  or makes a package member path too deep (`instruction-directory-invalid`);
 - a directory that collides, under case folding, with a generated entry file, for
-  example `AGENTS.md`, `claude.md`, `.windsurfrules` or `GEMINI.md/context`;
-- a directory that would place any generated file inside a rule directory a client
-  loads natively, derived from the canon-owned entry files: `.cursor/rules` and
-  `.kiro/steering`, in any case. This also refuses `.cursor` itself, whose
-  `rules/` subdirectory is Cursor's. Clients would load the whole canon there in
-  addition to their entry file;
-- an `aihq-project-context` allowance that does not list `<dir>/PROJECT.md` or that
-  names an external path outside `<dir>/`.
+  example `AGENTS.md`, `claude.md`, `.windsurfrules` or `GEMINI.md/context`
+  (`instruction-directory-collision`);
+- a directory that would place any generated file, or `<dir>/PROJECT.md`, inside a
+  rule directory a client loads natively, derived from the canon-owned entry files:
+  `.cursor/rules` and `.kiro/steering`, in any case. This also refuses `.cursor`
+  itself, whose `rules/` subdirectory is Cursor's. Clients would load the whole canon
+  there in addition to their entry file (`instruction-directory-native-rules`);
+- a source release whose authored context this package's renderer does not reproduce
+  exactly for `ai-coding`, including one without the context family
+  (`renderer-mismatch`);
+- an output directory that is relative, has no existing parent, is a file, link or
+  junction, is not empty, or overlaps a supplied source material root.
 
 Other clients also load some directories natively, for example `.claude/rules`.
 Catalog does not track those, so it cannot refuse them, but they are unsupported
 locations for the same reason: the content would load twice.
 
-Changing the directory never moves or renames an existing project directory, and
-no recipe touches the author-owned `PROJECT.md`. Files applied earlier under another
+### Identity and derivation
+
+The derived release holds only the context family rendered for the directory and the
+authored source record. Its item records, recipe hashes and material hashes are
+computed from the derived bytes. For `ai-coding` they equal the published records;
+for any other directory they are new identities. Its `package` names the Catalog
+package whose renderer produced it, and its `metadata.derived` records the
+derivation:
+
+```json
+{ "derived": { "kind": "project-context",
+  "from": { "package": { "name": "@aihq/catalog", "version": "<version>" },
+    "manifestSha256": "<source release SHA-256>" },
+  "renderer": "aihq-project-context-renderer@1", "instructionDirectory": ".ai/context" } }
+```
+
+The derived manifest SHA-256 therefore always differs from the source release's,
+also for `ai-coding`, and `configureItem` provenance names the derived manifest.
+The derived bytes are produced locally from the installed package. No publisher
+signs or attests them; the metadata is descriptive and is not evidence that the
+publisher authored the changed bytes.
+
+Enterprise admission needs no Catalog claim. Core computes each selection's recipe
+identity from the recipe and material bytes it captures from the selected reference,
+and organization admission compares that identity with the policy's
+`recipeIdentity`. For a custom directory those identities follow the derived recipe
+bytes and differ from the published ones, so an organization that admits these
+recipes lists the derived identities. Determinism makes them reproducible from the
+same inputs.
+
+### Determinism and staging lifetime
+
+The same source release, renderer version and directory always yield byte-identical
+output and the same derived manifest SHA-256; only the `materialRoots` path depends on
+where the output is written. The renderer version changes whenever the rendered bytes
+for any directory change.
+
+The helper writes only under `outputDirectory`. It never touches the installed
+package, project files or anything outside that directory. On failure or
+cancellation it removes only what it created. The caller owns the staging directory.
+Keep it until Core prepare and apply complete, because Core reads the selected
+material when preparing and checks it again when applying. For a later update or
+removal that still selects context items, prepare the same directory again into a
+fresh staging directory: the bytes and identities are identical. Delete the staging
+directory afterwards; the helper never deletes it after success.
+
+Choosing a directory never moves or renames an existing project directory, and no
+recipe touches the author-owned `PROJECT.md`. Files applied earlier under another
 directory are reconciled only through ordinary Core ownership and selection; moving
 author guidance to the new directory is the author's decision.
 
@@ -130,17 +218,24 @@ unowned blocks/files surviving cleanup, and install-then-edit conflicts on both
 update and removal. A differing pre-existing unowned block is checked separately.
 The same scenario edits `PROJECT.md` after installation, then verifies those
 author bytes survive a managed update and complete deselection. The consumer reads
-the instruction directory from the release's router target and also applies the
-whole context family once. With `--instruction-directory <dir>`, the consumer
-check packs a disposable copy of the checkout regenerated for `<dir>` and runs the
-same scenario:
+the instruction directory from the context release's router target and also applies
+the whole context family once. With `--instruction-directory <dir>`, the check
+installs the same Catalog tarball unchanged, then calls the packed
+`prepareProjectContext` with a fresh staging directory and runs the same scenario
+against the derived release, with both material roots supplied to Core:
 
 ```sh
 node tools/verify-core-consumer.mjs /absolute/path/to/reviewed-core.tgz --instruction-directory .ai/context
 ```
 
-It additionally requires that no delivered path, context record or delivered text
-names `ai-coding/`.
+In that mode it also requires a second preparation to be byte-identical, the
+installed package files to be unchanged, a derived manifest SHA-256 that differs
+from the installed one, the derivation metadata, and context item identities equal to
+the published ones for `ai-coding` and different from them otherwise. For a custom
+directory, no delivered path, context record or delivered text names `ai-coding`.
+The whole-family step also selects an installed skill closure in the same policy,
+then the staging directory is deleted. Core's public prepare review does not expose
+recipe identities, so the check does not assert enterprise admission.
 
 The consumer derives its initial scenario from the supplied release. It runs the
 context lifecycle cases only when that release contains their required client
@@ -179,8 +274,8 @@ that exact commit (clean checkout). Only the affected behavior is mapped.
 
 | Donor source/test | Decision | New location | Regression evidence |
 | --- | --- | --- | --- |
-| `src/internals/cli-registry.ts` — eleven-client table: labels, bootloader files, `readsAgentsMd`, Cursor/Kiro activation frontmatter | Adapt labels, entry files and activation into `CLIENTS`/`POINTERS`; replace unverified loading claims with surface-specific verification instructions. Drop detection signals, MCP profiles, governed contracts, TLS origins and `dryRunProbe` (host-detection and engine concerns; every probe was manual, so no load proof existed to carry). | `tools/context-content.mjs`; pointer/client items | `tests/release/context-content.test.ts`: baseline completeness, exact entry paths, exact `alwaysApply`/`inclusion` bytes, historical AGENTS.md label derivation |
-| `src/bootstrap-ai/canon.ts` — `DISCIPLINE_PRINCIPLES`/`INVARIANTS`/`REPORTING` single-source discipline and `sharedCanonicalBlockBody` | Retain the single-source renderer and four generic principles; drop the `canon-tools` principle and graph-advisory invariant (routing to specific optional tools), generalize the secrets invariant (no `aih secrets`), drop all `aih` command prose. | `tools/context-content.mjs` | Byte-identical invariant lists across both depths; retired-route absence tests |
+| `src/internals/cli-registry.ts` — eleven-client table: labels, bootloader files, `readsAgentsMd`, Cursor/Kiro activation frontmatter | Adapt labels, entry files and activation into `CLIENTS`/`POINTERS`; replace unverified loading claims with surface-specific verification instructions. Drop detection signals, MCP profiles, governed contracts, TLS origins and `dryRunProbe` (host-detection and engine concerns; every probe was manual, so no load proof existed to carry). | `src/release/context-content.ts`; pointer/client items | `tests/release/context-content.test.ts`: baseline completeness, exact entry paths, exact `alwaysApply`/`inclusion` bytes, historical AGENTS.md label derivation |
+| `src/bootstrap-ai/canon.ts` — `DISCIPLINE_PRINCIPLES`/`INVARIANTS`/`REPORTING` single-source discipline and `sharedCanonicalBlockBody` | Retain the single-source renderer and four generic principles; drop the `canon-tools` principle and graph-advisory invariant (routing to specific optional tools), generalize the secrets invariant (no `aih secrets`), drop all `aih` command prose. | `src/release/context-content.ts` | Byte-identical invariant lists across both depths; retired-route absence tests |
 | `canon.ts` — `ruleRouterDoc` (compact) | Adapt to a static template: no stack inference, baseline layers, contract/scaffold commands or regeneration instructions. | `<dir>/RULE_ROUTER.md` material | Router routing/section tests |
 | `canon.ts` — `adapterNote`/`CLI_META` | Adapt per-client notes; drop the vendor baseline layer; add the explicit delivery-is-not-loading line. | `aihq.client.*` items | Client item tests, retired-route absence |
 | `canon.ts` — `bootloaderPreamble`; `src/internals/markers.ts` — `mergeManagedBlock`/`stripManagedBlock` | Adapt: marker-fenced shared block delivered through generic Core `text.block` (Core owns merge/subtract and custody). Preamble moves inside the managed block because Core creates only the block on a new file. Marker renamed `aihq:context:shared`. Cursor/Kiro files become canon-owned `file.write` because activation frontmatter must lead the file. | Pointer item recipes | Pointer tests; packed Core consumer lifecycle scenario (merge, subtract, retention, conflict) |
@@ -191,8 +286,8 @@ that exact commit (clean checkout). Only the affected behavior is mapped.
 | `tests/bootstrap-ai/canon-must-map.test.ts` + the donor control matrix | Drop: the MUST-map policed the donor's own control matrix. No separate context contract matrix is reintroduced. | — | — |
 | `tests/bootstrap-ai/bootstrap-ai.test.ts`, `fleet-regeneration.test.ts`, `lint.test.ts` | Drop with the retired engine command; the replacement seams are Core's generic lifecycle tests plus the packed consumer scenario here. | — | `tools/verify-core-consumer.mjs` output |
 
-Intentional contract differences versus the donor: the context directory is
-chosen when the release is generated rather than as an install-time option;
-merged pointer content sits wholly inside the markers; two entry files are wholly
+Intentional contract differences versus the donor: a project chooses its context
+directory by preparing a derived release rather than through an install-time recipe
+option; merged pointer content sits wholly inside the markers; two entry files are wholly
 canon-owned instead of merged; and no runtime detection, intent file, hooks or drift
 command accompanies delivery.
