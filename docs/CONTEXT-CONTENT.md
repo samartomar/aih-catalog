@@ -71,6 +71,8 @@ consuming project that wants another project-relative directory, such as
 helper requires the source release's material roots and refuses any output that
 overlaps them, so the installed package is never changed. A source without local
 roots, such as an archive resolved by `resolveRelease`, passes an explicit empty map.
+For a release read by `readInstalledRelease` the helper also refuses output inside
+that installed root itself, whatever roots the caller passes.
 
 The directory cannot be a recipe input. Core recipe slots substitute whole values
 only, and the directory also appears inside router, entry and adapter text whose
@@ -122,7 +124,8 @@ releases are supplied to `validateSelectionSet`, keyed by manifest SHA-256.
 Refusals and write or cleanup failures are diagnostics, each with a `reason` and the
 request member it concerns as `path`, and nothing is written for a refused request.
 The helper takes the release `readInstalledRelease` returns together with that
-result's `materialRoots`. It refuses:
+result's `materialRoots` (an explicit `{}` for a source without local roots). It
+refuses:
 
 - a directory that is not a safe relative path (absolute, drive or colon, backslash,
   empty, `.` or `..` segment, trailing dot or space, control character, non-NFC text,
@@ -140,8 +143,8 @@ result's `materialRoots`. It refuses:
 - a source release whose authored context this package's renderer does not reproduce
   exactly for `ai-coding`, including one without the context family
   (`renderer-mismatch`);
-- missing or empty source material roots, or roots that are not identifiers mapped
-  to absolute paths (`invalid-material-roots`);
+- missing source material roots, or roots that are not identifiers mapped to
+  absolute paths (`invalid-material-roots`);
 - an output directory that is relative, has no existing parent, is a file, link or
   junction, is not empty, or is inside or contains a source material root
   (`output-overlaps-source`).

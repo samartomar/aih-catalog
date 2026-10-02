@@ -595,6 +595,12 @@ export async function resolveRelease(
   }
 }
 
+/**
+ * The installed package root each release view from `readInstalledRelease` was read
+ * from, so project-context output never lands inside it whatever roots a caller passes.
+ */
+const installedRoots = new WeakMap<CatalogRelease, string>();
+
 export async function readInstalledRelease(
   request: InstalledReleaseRequest,
 ): Promise<InstalledReleaseResult> {
@@ -622,6 +628,7 @@ export async function readInstalledRelease(
     if (checked.diagnostics.length > 0) {
       return Object.freeze({ valid: false, diagnostics: Object.freeze(checked.diagnostics) });
     }
+    installedRoots.set(checked.release, canonical);
     return Object.freeze({
       valid: true,
       release: checked.release,
@@ -660,6 +667,7 @@ export interface ProjectContextRequest {
   readonly sourceMaterialRoots: Readonly<Record<string, string>>;
   /** Name of the Core `controls.materialRoots` entry; defaults to `catalog-project-context`. */
   readonly sourceInput?: string;
+  /** Checked once before any work; preparation is synchronous and cannot stop midway. */
   readonly signal?: AbortSignal;
 }
 
@@ -685,7 +693,7 @@ export interface PreparedProjectContextResult {
   readonly diagnostics: readonly CatalogDiagnostic[];
 }
 
-/** A frozen copy of the source material roots: a non-empty map of identifiers to absolute paths. */
+/** A frozen copy of the source material roots: identifiers mapped to absolute paths. */
 function sourceRoots(value: unknown): Readonly<Record<string, string>> {
   const at = "/sourceMaterialRoots";
   if (!isRecord(value)) {
@@ -820,7 +828,7 @@ function removeCreated(path: string): CatalogDiagnostic | undefined {
  * identities from those exact bytes.
  *
  * Refuses before writing: an invalid directory, a source whose authored context this
- * renderer does not reproduce, missing or empty source material roots, and an output
+ * renderer does not reproduce, missing source material roots, and an output
  * that is unsafe, non-empty or overlaps a source root. Writes only under
  * `outputDirectory` and on failure removes only what it created. Deterministic for
  * the same source release, renderer and directory. Refusals, write and cleanup
@@ -862,7 +870,13 @@ export async function prepareProjectContext(
     }
     const { files, manifest, derivation } = derived.derived;
 
-    const output = outputRoot(outputDirectory, roots);
+    const installedRoot = installedRoots.get(release);
+    const output = outputRoot(
+      outputDirectory,
+      installedRoot === undefined
+        ? roots
+        : { ...roots, [`${sourceInput}-installed`]: installedRoot },
+    );
     try {
       writeDerived(output, files, (path) => {
         created ??= path;

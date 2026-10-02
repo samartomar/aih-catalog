@@ -621,6 +621,25 @@ describe("prepareProjectContext refusals", () => {
     expect(result.valid).toBe(true);
   });
 
+  it("still refuses output inside an installed root when the roots map omits it", async () => {
+    const from = await source();
+    const before = digest(tree(from.root));
+    const omitting: Record<string, string>[] = [{}, { other: output() }];
+    for (const sourceMaterialRoots of omitting) {
+      const out = join(from.root, "staging");
+      const result = await prepareProjectContext({
+        release: from.release,
+        instructionDirectory: ".ai/context",
+        outputDirectory: out,
+        sourceMaterialRoots,
+      });
+      expect(result.valid).toBe(false);
+      expect(reasons(result)).toEqual(["output-overlaps-source"]);
+      expect(existsSync(out)).toBe(false);
+    }
+    expect(digest(tree(from.root))).toEqual(before);
+  });
+
   it("requires the map of source material roots", async () => {
     const from = await source();
     const before = digest(tree(from.root));
