@@ -152,27 +152,32 @@ involved; the checks read only the candidate's own recipes and materials.
   (other bytes are skipped) and every `text.block` operation with literal content.
 - *Boundary.* The installed project targets of all release items that carry the same
   authored source. A target segment taken from a recipe input uses the input's default
-  when it has one, otherwise it matches any single path segment.
-- *What counts as a reference.* Markdown links and images, resolved relative to the
-  text's own installed target (a leading `/` means the project root; links with a URI
-  scheme or only a `#fragment` are ignored, and `#fragment` and `?query` are stripped);
-  Kiro `#[[file:…]]` references; and inline code that plainly names a path (contains
-  `/`, no whitespace, none of `* ? [ ] { } ( ) $ |`, no `://`, no leading `-`), taken
-  relative to the project root. Link or Kiro syntax inside inline code is quoted
-  description, not a reference. A path leaving the project root is unresolved.
+  when it has one, otherwise it matches any single path segment. References are
+  resolved for texts installed in the project; texts installed elsewhere are still
+  checked for residue.
+- *What counts as a reference.* Markdown inline links and images and link reference
+  definitions (`[label]: destination`), resolved relative to the text's own installed
+  target (a leading `/` means the project root; a destination in `<…>` is unwrapped;
+  links with a URI scheme or only a `#fragment` are ignored, and `#fragment` and
+  `?query` are stripped); Kiro `#[[file:…]]` references; and inline code that plainly
+  names a path (contains `/`, no whitespace, none of `* ? [ ] { } ( ) $ |`, no `://`,
+  no leading `-`), taken relative to the project root. Link or Kiro syntax inside inline
+  code is quoted description, not a reference. A path leaving the project root is
+  unresolved.
 - *Resolution.* A reference resolves when it is a delivered target in the boundary, a
   directory prefix of one, or exactly a declared external path. A declared template
-  token inside a reference matches one path segment.
+  token inside a reference matches text within one path segment, never across `/`.
 - *Placeholder residue.* `${…}`, `{{…}}`, `{%…%}`, `<%…%>`, `[object Object]`, the word
-  `undefined`, `<lower-kebab>` or `<lower_snake>` tokens, `<UPPER_SNAKE>` tokens of at
-  least two characters and `__UPPER_SNAKE__`. They are detected everywhere in a text,
+  `undefined`, `<lower-kebab>` or `<lower_snake>` tokens, `<UPPER_SNAKE>` tokens and
+  `__UPPER_SNAKE__`. Angle tokens need a `-` or `_` separator, so HTML elements such as
+  `<details>` or `<BR>` are not residue. Residue is detected everywhere in a text,
   including inline code and HTML comments. An occurrence exactly equal to a declared
   template token of the item's source is allowed.
 
 A finding reads `item member target:line -> text`: the item, the material id or
 `operation:<id>`, the installed target (`*` for a wildcard segment), the 1-based line,
-and the reference or token as written. An unreadable recipe is reported as
-`recipe unreadable` rather than thrown. Both checks run in the integrity phase, in
+and the reference or token as written. A recipe that cannot be parsed is reported, not
+thrown, as `item recipe <recipe path>:0 -> recipe unreadable`. Both checks run in the integrity phase, in
 `packed-release-integrity` and in the post-install check of `--apply`, with the
 allowances of the declaration in use (`--declaration`), and in `npm run check:release`
 with the allowances of this checkout's `producer/declaration.json`.
@@ -250,4 +255,8 @@ labeled `originVerified: false` in its summary.
 - Upstream skill text is not examined for references or placeholders; only
   Catalog-authored content is. Reference checking is local resolution of the forms
   above, never a link crawl or a style review.
+- The authored boundary is the whole source, not one selection: a reference that
+  resolves only through an item the consumer did not select still passes. Bare file
+  names without `/` in inline code, HTML `href`/`src` attributes and authored material
+  that is not UTF-8 are not checked.
 - It prepares content. It allocates no version, signs nothing and publishes nothing.

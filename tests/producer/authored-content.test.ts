@@ -186,6 +186,114 @@ describe("authored content checks", () => {
     ]);
   });
 
+  it("reports a broken relative link inside the project", () => {
+    const files = authoredPair("Intro.\n\nSee [the guide](../nope/README.txt#usage).\n");
+    const result = checkAuthoredContent(releaseOf(files), files, COMMITTED_ALLOWANCES);
+    expect(result.references).toEqual([
+      {
+        itemId: "one",
+        member: "readme",
+        target: "docs/one/README.txt",
+        line: 3,
+        text: "../nope/README.txt#usage",
+      },
+    ]);
+  });
+
+  it("checks the destination of links whose label holds brackets or an image", () => {
+    const files = authoredPair(
+      "[![badge](../two/README.txt)](gone.md) and [see [x] here](lost.md).\n",
+    );
+    const result = checkAuthoredContent(releaseOf(files), files, COMMITTED_ALLOWANCES);
+    expect(result.references.map((f) => f.text)).toEqual(["gone.md", "lost.md"]);
+  });
+
+  it("checks link reference definitions and angle-bracket destinations", () => {
+    const files = authoredPair(
+      [
+        "Read [the guide][g] and [the sibling](<../two/README.txt>).",
+        "",
+        "[g]: ../nope/guide.md",
+        "[s]: <../two/README.txt>",
+        "",
+      ].join("\n"),
+    );
+    const result = checkAuthoredContent(releaseOf(files), files, COMMITTED_ALLOWANCES);
+    expect(result.references.map((f) => [f.line, f.text])).toEqual([[3, "../nope/guide.md"]]);
+  });
+
+  it("checks residue but resolves no references in a text installed outside the project", () => {
+    const files = rewriteRecipe(
+      authoredPair("User notes: `docs/nope/missing.txt` {{left}}.\n"),
+      "one",
+      (recipe) => {
+        for (const operation of recipe.operations) {
+          operation.target = { ...(operation.target as Record<string, unknown>), root: "user" };
+        }
+      },
+    );
+    const result = checkAuthoredContent(releaseOf(files), files, COMMITTED_ALLOWANCES);
+    expect(result.references).toEqual([]);
+    expect(result.placeholders.map((f) => f.text)).toEqual(["{{left}}"]);
+  });
+
+  it("ignores URI and fragment-only links and strips a query or fragment before resolving", () => {
+    const files = authoredPair(
+      [
+        "[web](https://example.com/x.md) [mail](mailto:a@example.com) [top](#intro)",
+        "[part](../two/README.txt#part) [raw](../two/README.txt?raw=1)",
+        "",
+      ].join("\n"),
+    );
+    const result = checkAuthoredContent(releaseOf(files), files, COMMITTED_ALLOWANCES);
+    expect(result.references).toEqual([]);
+  });
+
+  it("resolves through an input target segment by its default, or any segment without one", () => {
+    const placed = (input: Record<string, unknown>) =>
+      rewriteRecipe(
+        authoredPair(
+          "Read `docs/fixed/README.txt`, `docs/other/README.txt` and `docs/a/b/README.txt`.\n",
+        ),
+        "two",
+        (recipe) => {
+          recipe.inputs = { place: input };
+          for (const operation of recipe.operations) {
+            operation.target = {
+              root: "project",
+              segments: [{ literal: "docs" }, { input: "place" }, { literal: "README.txt" }],
+            };
+          }
+        },
+      );
+    const unresolved = (files: Map<string, Buffer>) =>
+      checkAuthoredContent(releaseOf(files), files, COMMITTED_ALLOWANCES).references.map(
+        (f) => f.text,
+      );
+    // With a default only that segment is delivered.
+    expect(unresolved(placed({ type: "string", required: true, default: "fixed" }))).toEqual([
+      "docs/a/b/README.txt",
+      "docs/other/README.txt",
+    ]);
+    // Without one the wildcard stands for exactly one segment.
+    expect(unresolved(placed({ type: "string", required: true }))).toEqual(["docs/a/b/README.txt"]);
+  });
+
+  it("reports an authored recipe that cannot be parsed instead of throwing", () => {
+    const files = authoredPair("Plain notes.\n");
+    files.set(itemOf(readDoc(files), "one").recipe.path, Buffer.from("not json"));
+    const result = checkAuthoredContent(releaseOf(files), files, COMMITTED_ALLOWANCES);
+    expect(result.references).toEqual([
+      {
+        itemId: "one",
+        member: "recipe",
+        target: "release/recipes/one.json",
+        line: 0,
+        text: "recipe unreadable",
+      },
+    ]);
+  });
+
   it("reports a relative link that escapes the project root", () => {
     const files = authoredPair("Up: [outside](../../../outside.txt).\n");
     const result = checkAuthoredContent(releaseOf(files), files, COMMITTED_ALLOWANCES);
@@ -257,6 +365,7 @@ describe("authored content checks", () => {
         "const token = __PLACEHOLDER__;",
         "<!-- BEGIN aihq:context:shared -->",
         "<!-- generated; source {{dir}}/block.md -->",
+        "Inline `{{inline}}`, HTML <BR> and <details> stay.",
         "",
       ].join("\n"),
     );
@@ -270,6 +379,7 @@ describe("authored content checks", () => {
       [5, "<TOOL_NAME>"],
       [6, "__PLACEHOLDER__"],
       [8, "{{dir}}"],
+      [9, "{{inline}}"],
     ]);
     expect(result.placeholders.some((f) => f.text.includes("BEGIN"))).toBe(false);
   });
@@ -401,6 +511,15 @@ describe("declaration authored allowances", () => {
 
   it("refuses a duplicate source across entries", () => {
     expect(refusal(withAuthored([entry({}), entry({})])).reason).toBe("declaration-invalid");
+  });
+
+  it("refuses duplicate external paths and duplicate placeholder tokens", () => {
+    expect(
+      refusal(withAuthored([entry({ externalPaths: ["docs/a.md", "docs/a.md"] })])).reason,
+    ).toBe("declaration-invalid");
+    expect(
+      refusal(withAuthored([entry({ templatePlaceholders: ["<x-y>", "<x-y>"] })])).reason,
+    ).toBe("declaration-invalid");
   });
 
   it("refuses an unsafe external path", () => {

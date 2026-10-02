@@ -134,7 +134,7 @@ describe("packed candidate", () => {
       authored: declaration().authored,
     });
     expect(check(result, "packed-release-bytes")?.ok).toBe(false);
-  });
+  }, 60_000);
 
   it("flags anything packed outside the declared runtime entries", async () => {
     const narrower = { files: manifest.files.filter((entry) => entry !== "schemas/core-recipe") };
@@ -148,7 +148,22 @@ describe("packed candidate", () => {
     });
     expect(check(result, "packed-inventory-intended")?.ok).toBe(false);
     expect(check(result, "packed-runtime-bytes")?.ok).toBe(false);
-  });
+  }, 60_000);
+
+  it("checks the packed authored content with the declared allowances", async () => {
+    const result = await verifyPacked({
+      artifact,
+      files,
+      identity,
+      manifest,
+      sourceRoot: outcome.sourceRoot,
+      authored: [],
+    });
+    expect(check(result, "packed-release-integrity")).toMatchObject({
+      ok: false,
+      detail: "authored-references, authored-placeholders",
+    });
+  }, 60_000);
 
   it("refuses to stage without a built package, a license, or into an occupied stage", () => {
     const empty = mkdtempSync(join(scratch, "no-build-"));

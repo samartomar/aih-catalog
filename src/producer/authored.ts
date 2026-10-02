@@ -1,4 +1,5 @@
 import type { CatalogItem, CatalogRelease, Json } from "../release/contracts.js";
+import type { Record_ } from "./base.js";
 
 /**
  * Allowances for one Catalog-authored source, declared by the maintainer:
@@ -17,9 +18,12 @@ export interface AuthoredFinding {
   readonly itemId: string;
   /** Material id, or `operation:<id>` for a text.block literal. */
   readonly member: string;
-  /** Installed project path of the text (wildcard segments shown as `*`). */
+  /**
+   * Installed path of the text (wildcard segments shown as `*`), or the recipe's
+   * package path for a recipe that cannot be read.
+   */
   readonly target: string;
-  /** 1-based line of the match within the text. */
+  /** 1-based line of the match within the text; 0 for a whole-recipe finding. */
   readonly line: number;
   /** The reference destination or the placeholder token exactly as written. */
   readonly text: string;
@@ -34,7 +38,6 @@ export interface AuthoredContentResult {
 export const describeFinding: (finding: AuthoredFinding) => string = (finding) =>
   `${finding.itemId} ${finding.member} ${finding.target}:${finding.line} -> ${finding.text}`;
 
-type Record_ = { [key: string]: Json };
 /** One path segment part: a literal, or a single-segment wildcard (`[^/]+`). */
 type Part = { readonly literal: string } | { readonly any: true };
 /** A whole path as segments, each a sequence of literal and wildcard parts. */
@@ -58,6 +61,8 @@ interface Mention {
 interface ExaminedText {
   readonly member: string;
   readonly target: Target;
+  /** References are resolved only for project-scoped texts, like the boundary. */
+  readonly project: boolean;
   readonly text: string;
 }
 
@@ -71,20 +76,26 @@ const asRecord = (value: Json | undefined): Record_ | undefined =>
 const compare = (left: string, right: string): number => (left < right ? -1 : left > right ? 1 : 0);
 const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
 
-/** Markdown inline links and images; the destination is the first token in the parentheses. */
-const MARKDOWN_LINK = /!?\[[^\]\n]*\]\(\s*([^\s)]+)/gu;
+/**
+ * Markdown inline link and image destinations: the first token after every `](`,
+ * so a link whose label holds brackets or an image (`[![b](i.png)](x.md)`) is
+ * still checked.
+ */
+const MARKDOWN_LINK = /\]\(\s*([^\s)]+)/gu;
+/** Markdown link reference definitions (`[label]: destination`) at the start of a line. */
+const LINK_DEFINITION = /^ {0,3}\[[^\]\n]+\]:[ \t]*(\S+)/gmu;
 /** Kiro file references, always project-root relative. */
 const KIRO_FILE = /#\[\[file:([^\]\s]+)\]\]/gu;
 /** Inline code spans; only plainly path-like ones count as mentions. */
 const INLINE_CODE = /`([^`\n]+)`/gu;
 const URI_SCHEME = /^[A-Za-z][A-Za-z0-9+.-]*:/u;
 const PATH_LIKE_EXCLUDED = /[*?[\]{}()$|]/u;
-const UPPER_ANGLE = /<[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*>/gu;
 
 /**
  * Placeholder residue patterns, matched anywhere in a text (inline code and HTML
- * comments included). An occurrence equal to a declared template placeholder
- * token of the item's authored source is allowed.
+ * comments included). Angle tokens need a `-` or `_` separator so HTML elements
+ * such as `<details>` or `<BR>` are not residue. An occurrence equal to a declared
+ * template placeholder token of the item's authored source is allowed.
  */
 const PLACEHOLDER_PATTERNS: readonly RegExp[] = [
   /\$\{[^\n]*?\}/gu,
@@ -94,17 +105,30 @@ const PLACEHOLDER_PATTERNS: readonly RegExp[] = [
   /\[object Object\]/gu,
   /\bundefined\b/gu,
   /<[a-z][a-z0-9]*(?:[-_][a-z0-9]+)+>/gu,
-  UPPER_ANGLE,
+  /<[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+>/gu,
   /__[A-Z][A-Z0-9_]*__/gu,
 ];
 
-/** 1-based line of a character index within the text. */
-function lineAt(text: string, index: number): number {
-  let line = 1;
-  for (let position = 0; position < index; position += 1) {
-    if (text.charCodeAt(position) === 10) line += 1;
+/** Maps a character index of the text to its 1-based line, from line starts computed once. */
+function lineIndex(text: string): (index: number) => number {
+  const starts = [0];
+  for (
+    let position = text.indexOf("\n");
+    position >= 0;
+    position = text.indexOf("\n", position + 1)
+  ) {
+    starts.push(position + 1);
   }
-  return line;
+  return (index) => {
+    let low = 0;
+    let high = starts.length - 1;
+    while (low < high) {
+      const middle = (low + high + 1) >> 1;
+      if ((starts[middle] as number) <= index) low = middle;
+      else high = middle - 1;
+    }
+    return low + 1;
+  };
 }
 
 /** `[start, stop)` spans of inline code. */
@@ -135,11 +159,16 @@ const stripDotSlash = (span: string): string => (span.startsWith("./") ? span.sl
  */
 function mentionsOf(text: string): readonly Mention[] {
   const mentions: Mention[] = [];
+  const lineAt = lineIndex(text);
   const code = codeSpans(text);
   const quoted = (index: number) => code.some(([start, stop]) => index >= start && index < stop);
-  for (const match of text.matchAll(MARKDOWN_LINK)) {
+  const links = [...text.matchAll(MARKDOWN_LINK), ...text.matchAll(LINK_DEFINITION)];
+  for (const match of links) {
     if (quoted(match.index ?? 0)) continue;
-    const destination = match[1] as string;
+    const written = match[1] as string;
+    // A destination may be written in angle brackets: `[x](<docs/a.md>)`.
+    const destination =
+      written.startsWith("<") && written.endsWith(">") ? written.slice(1, -1) : written;
     if (destination.startsWith("#") || URI_SCHEME.test(destination)) continue;
     const path = destination.split(/[#?]/u)[0] as string;
     if (path.length === 0) continue;
@@ -147,13 +176,13 @@ function mentionsOf(text: string): readonly Mention[] {
       text: destination,
       path,
       absolute: path.startsWith("/"),
-      line: lineAt(text, match.index ?? 0),
+      line: lineAt(match.index ?? 0),
     });
   }
   for (const match of text.matchAll(KIRO_FILE)) {
     if (quoted(match.index ?? 0)) continue;
     const path = match[1] as string;
-    mentions.push({ text: path, path, absolute: true, line: lineAt(text, match.index ?? 0) });
+    mentions.push({ text: path, path, absolute: true, line: lineAt(match.index ?? 0) });
   }
   for (const match of text.matchAll(INLINE_CODE)) {
     const span = match[1] as string;
@@ -162,7 +191,7 @@ function mentionsOf(text: string): readonly Mention[] {
       text: span,
       path: stripDotSlash(span),
       absolute: true,
-      line: lineAt(text, match.index ?? 0),
+      line: lineAt(match.index ?? 0),
     });
   }
   return mentions;
@@ -174,8 +203,6 @@ function placeholderMatches(
   const found: { token: string; index: number }[] = [];
   for (const pattern of PLACEHOLDER_PATTERNS) {
     for (const match of text.matchAll(pattern)) {
-      // Upper-snake angle tokens are reported only when at least two characters wide.
-      if (pattern === UPPER_ANGLE && match[0].length < 4) continue;
       found.push({ token: match[0], index: match.index ?? 0 });
     }
   }
@@ -331,13 +358,18 @@ function examineRecipe(
       } catch {
         continue;
       }
-      texts.push({ member: id, target: installed.target, text });
+      texts.push({ member: id, target: installed.target, project: installed.project, text });
       continue;
     }
     const content = asRecord(operation.content);
     if (content === undefined || typeof content.literal !== "string") continue;
     const id = typeof operation.id === "string" ? operation.id : "";
-    texts.push({ member: `operation:${id}`, target: installed.target, text: content.literal });
+    texts.push({
+      member: `operation:${id}`,
+      target: installed.target,
+      project: installed.project,
+      text: content.literal,
+    });
   }
   return { targets, texts };
 }
@@ -397,9 +429,10 @@ function placeholderFindings(
   allowed: ReadonlySet<string>,
 ): readonly AuthoredFinding[] {
   const findings: AuthoredFinding[] = [];
+  const lineAt = lineIndex(text);
   for (const { token, index } of placeholderMatches(text)) {
     if (allowed.has(token)) continue;
-    findings.push({ itemId, member, target: target.path, line: lineAt(text, index), text: token });
+    findings.push({ itemId, member, target: target.path, line: lineAt(index), text: token });
   }
   return findings;
 }
@@ -420,7 +453,8 @@ const sortFindings = (findings: AuthoredFinding[]): readonly AuthoredFinding[] =
  * the source's declared template tokens. Upstream `git` items are not examined.
  *
  * The content boundary of an authored source is the set of installed project
- * targets delivered by all release items carrying that source. Reference and
+ * targets delivered by all release items carrying that source; references are
+ * resolved for project-scoped texts, while every text is checked for residue. Reference and
  * placeholder findings are reported with their item, member, target and line; a
  * recipe that cannot be parsed is reported, never thrown. Pure: no fs, clock or
  * network.
@@ -458,7 +492,7 @@ export function checkAuthoredContent(
       references.push({
         itemId: item.id,
         member: "recipe",
-        target: "",
+        target: item.recipe.path,
         line: 0,
         text: "recipe unreadable",
       });
@@ -479,10 +513,12 @@ export function checkAuthoredContent(
     const allowed = new Set(tokens);
     const targets = sources.flatMap((id) => boundaries.get(id) ?? []);
     const externals = itemAllowances.flatMap((entry) => entry.externalPaths.map(externalTarget));
-    for (const { member, target, text } of texts) {
-      references.push(
-        ...referenceFindings(item.id, member, target, text, targets, externals, tokens),
-      );
+    for (const { member, target, project, text } of texts) {
+      if (project) {
+        references.push(
+          ...referenceFindings(item.id, member, target, text, targets, externals, tokens),
+        );
+      }
       placeholders.push(...placeholderFindings(item.id, member, target, text, allowed));
     }
   }
