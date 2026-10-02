@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Configure the shared project context's instruction directory at generation time:
+  the optional `instructionDirectory` key of `producer/declaration.json` (default
+  `ai-coding`) moves every context target, material path, recipe description and
+  router, entry-pointer and adapter reference together. Absolute, escaping, `.git`,
+  non-portable and entry-file-colliding directories are refused, and the
+  `aihq-project-context` allowance must list `<dir>/PROJECT.md`. Item IDs and the
+  default release bytes are unchanged; no existing directory is moved.
+  `npm run generate:release` now builds the producer first, and
+  `tools/verify-core-consumer.mjs --instruction-directory <dir>` runs the packed
+  consumer for a custom directory. See docs/CONTEXT-CONTENT.md.
 - Validate Catalog-authored content in whole-package integrity: new
   `authored-references` and `authored-placeholders` checks resolve internal links,
   Kiro file references and path-like inline code within the content delivered by the

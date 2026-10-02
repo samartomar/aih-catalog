@@ -2,13 +2,15 @@
 
 Catalog carries the shared project AI context and the supported clients' native
 entry pointers as ordinary selectable content. Authors maintain their own coding
-practices, project guidelines and tool-use rules once in `ai-coding/PROJECT.md`;
+practices, project guidelines and tool-use rules once in `<dir>/PROJECT.md`, where
+`<dir>` is the release's [instruction directory](#instruction-directory)
+(`ai-coding` by default);
 each selected client receives its native entry file and
 adapter note through the same generic Core recipes, ownership and lifecycle
 contracts as every other item. Client filenames, marker text, frontmatter and
 human guidance live in this supplied content — never in the Core engine.
 
-`ai-coding/PROJECT.md` is an optional author-owned file. The router and inline
+`<dir>/PROJECT.md` is an optional author-owned file. The router and inline
 entry guidance point to it, but no Catalog recipe creates, updates, adopts or
 removes it. Authors create and edit it directly and may link further project
 documents from it. The supplied router, shared templates and adapters remain
@@ -18,12 +20,10 @@ managed content; author guidance survives their updates and complete removal.
 
 Three layers, linked by explicit same-release `requires` dependencies:
 
-1. `aihq.project-context` — the shared context: `ai-coding/RULE_ROUTER.md`,
-   `ai-coding/adapters/_shared-canonical-block.md` and
-   `ai-coding/rules/agent-behavior-core.md`, delivered by `file.write` with
-   pinned `file.sha256` checks. The context directory is fixed at `ai-coding`
-   (the historical default); slot binding substitutes whole values only, so a
-   configurable directory cannot appear inside pointer text.
+1. `aihq.project-context` — the shared context: `<dir>/RULE_ROUTER.md`,
+   `<dir>/adapters/_shared-canonical-block.md` and
+   `<dir>/rules/agent-behavior-core.md`, delivered by `file.write` with
+   pinned `file.sha256` checks.
 2. `aihq.project-context-pointer.<key>` — one explicit owner per native entry
    file, so simultaneous client selections never create overlapping custody of
    a shared file. Each requires `aihq.project-context`.
@@ -42,7 +42,7 @@ Three layers, linked by explicit same-release `requires` dependencies:
      overwrite.
 3. `aihq.client.<cli>` — the eleven supported clients (Claude Code, Codex CLI,
    Cursor, Antigravity, Gemini CLI, GitHub Copilot, Windsurf, OpenCode, Zed,
-   Kimi Code, Kiro). Each delivers its `ai-coding/adapters/<cli>.md` note and
+   Kimi Code, Kiro). Each delivers its `<dir>/adapters/<cli>.md` note and
    requires its pointer item(s); Antigravity requires both the `AGENTS.md` and
    `GEMINI.md` pointers, Kiro only its steering file.
 
@@ -59,6 +59,41 @@ context that loaded when required shared guidance is missing or exceeds loading
 limits. For unavailable tools, it follows the author's declared fallback or
 stopping rule. These are instructions, not guarantees that silent omissions can
 be detected or that every agent will comply; native permissions still apply.
+
+## Instruction directory
+
+`<dir>` defaults to `ai-coding`. A maintainer selects another project-relative
+directory with the optional `instructionDirectory` key of
+`producer/declaration.json` (see [the producer guide](PRODUCER.md#the-declaration)),
+then regenerates with `npm run generate:release`. Every generated context path and
+reference follows it together: the three context documents, the adapter notes,
+their package material paths (`release/materials/aihq/project-context/<dir>/…`),
+recipe and item descriptions, the router and shared block, the merged entry
+preambles and generated note, the Cursor frontmatter description and the Kiro
+`#[[file:<dir>/RULE_ROUTER.md]]` reference. Native entry-file paths and item IDs do
+not change.
+
+It is a generation-time configuration, not an item input. Core recipe slots
+substitute whole values only, while the directory also appears inside entry and
+router text, so it cannot be a selection-time option. One release therefore carries
+one directory; a project that needs another directory uses a release generated for
+it. Generation refuses:
+
+- a value that is not a safe relative path (absolute, drive or colon, backslash,
+  empty, `.` or `..` segment, trailing dot or space, control character, non-NFC text,
+  a reserved device name) or is longer than 128 characters;
+- a segment outside letters, digits, `.`, `_` and `-`, a segment starting with `-`,
+  or a `.git` segment in any case;
+- a directory that collides, under case folding, with a generated entry file, for
+  example `AGENTS.md`, `claude.md`, `.windsurfrules` or a path below
+  `.cursor/rules/00-canon.mdc`;
+- an `aihq-project-context` allowance that does not list `<dir>/PROJECT.md` or that
+  names an external path outside `<dir>/`.
+
+Changing the directory never moves or renames an existing project directory, and
+no recipe touches the author-owned `PROJECT.md`. Files applied earlier under another
+directory are reconciled only through ordinary Core ownership and selection; moving
+author guidance to the new directory is the author's decision.
 
 ## Selection, deselection and preservation
 
@@ -83,7 +118,18 @@ reselection and persisted dependencies from an omitted managed set, matching
 unowned blocks/files surviving cleanup, and install-then-edit conflicts on both
 update and removal. A differing pre-existing unowned block is checked separately.
 The same scenario edits `PROJECT.md` after installation, then verifies those
-author bytes survive a managed update and complete deselection.
+author bytes survive a managed update and complete deselection. The consumer reads
+the instruction directory from the release's router target and also applies the
+whole context family once. With `--instruction-directory <dir>`, the consumer
+check packs a disposable copy of the checkout regenerated for `<dir>` and runs the
+same scenario:
+
+```sh
+node tools/verify-core-consumer.mjs /absolute/path/to/reviewed-core.tgz --instruction-directory .ai/context
+```
+
+It additionally requires that no delivered path, context record or delivered text
+names `ai-coding/`.
 
 The consumer derives its initial scenario from the supplied release. It runs the
 context lifecycle cases only when that release contains their required client
@@ -124,7 +170,7 @@ that exact commit (clean checkout). Only the affected behavior is mapped.
 | --- | --- | --- | --- |
 | `src/internals/cli-registry.ts` — eleven-client table: labels, bootloader files, `readsAgentsMd`, Cursor/Kiro activation frontmatter | Adapt labels, entry files and activation into `CLIENTS`/`POINTERS`; replace unverified loading claims with surface-specific verification instructions. Drop detection signals, MCP profiles, governed contracts, TLS origins and `dryRunProbe` (host-detection and engine concerns; every probe was manual, so no load proof existed to carry). | `tools/context-content.mjs`; pointer/client items | `tests/release/context-content.test.ts`: baseline completeness, exact entry paths, exact `alwaysApply`/`inclusion` bytes, historical AGENTS.md label derivation |
 | `src/bootstrap-ai/canon.ts` — `DISCIPLINE_PRINCIPLES`/`INVARIANTS`/`REPORTING` single-source discipline and `sharedCanonicalBlockBody` | Retain the single-source renderer and four generic principles; drop the `canon-tools` principle and graph-advisory invariant (routing to specific optional tools), generalize the secrets invariant (no `aih secrets`), drop all `aih` command prose. | `tools/context-content.mjs` | Byte-identical invariant lists across both depths; retired-route absence tests |
-| `canon.ts` — `ruleRouterDoc` (compact) | Adapt to a static template: no stack inference, baseline layers, contract/scaffold commands or regeneration instructions. | `ai-coding/RULE_ROUTER.md` material | Router routing/section tests |
+| `canon.ts` — `ruleRouterDoc` (compact) | Adapt to a static template: no stack inference, baseline layers, contract/scaffold commands or regeneration instructions. | `<dir>/RULE_ROUTER.md` material | Router routing/section tests |
 | `canon.ts` — `adapterNote`/`CLI_META` | Adapt per-client notes; drop the vendor baseline layer; add the explicit delivery-is-not-loading line. | `aihq.client.*` items | Client item tests, retired-route absence |
 | `canon.ts` — `bootloaderPreamble`; `src/internals/markers.ts` — `mergeManagedBlock`/`stripManagedBlock` | Adapt: marker-fenced shared block delivered through generic Core `text.block` (Core owns merge/subtract and custody). Preamble moves inside the managed block because Core creates only the block on a new file. Marker renamed `aihq:context:shared`. Cursor/Kiro files become canon-owned `file.write` because activation frontmatter must lead the file. | Pointer item recipes | Pointer tests; packed Core consumer lifecycle scenario (merge, subtract, retention, conflict) |
 | `src/bootstrap-ai/index.ts` — plan orchestration, drift/presence/lint probes, `.aih-config.json` intent, Kiro hook extras | Drop: engine planning, drift gates, lint and hook execution are retired-engine runtime behavior. Core `prepare`/`apply` and recipe `file.sha256` checks cover verification; hook execution is out of content scope. | — | Existing suite stays green without them |
@@ -135,6 +181,7 @@ that exact commit (clean checkout). Only the affected behavior is mapped.
 | `tests/bootstrap-ai/bootstrap-ai.test.ts`, `fleet-regeneration.test.ts`, `lint.test.ts` | Drop with the retired engine command; the replacement seams are Core's generic lifecycle tests plus the packed consumer scenario here. | — | `tools/verify-core-consumer.mjs` output |
 
 Intentional contract differences versus the donor: the context directory is
-fixed rather than an option; merged pointer content sits wholly inside the
-markers; two entry files are wholly canon-owned instead of merged; and no
-runtime detection, intent file, hooks or drift command accompanies delivery.
+chosen when the release is generated rather than as an install-time option;
+merged pointer content sits wholly inside the markers; two entry files are wholly
+canon-owned instead of merged; and no runtime detection, intent file, hooks or drift
+command accompanies delivery.

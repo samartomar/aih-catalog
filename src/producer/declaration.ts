@@ -33,12 +33,49 @@ export interface ProducerDeclaration {
   readonly items: readonly DeclaredItem[];
   /** Declared allowances for Catalog-authored content; empty when the key is absent. */
   readonly authored: readonly AuthoredAllowance[];
+  /**
+   * Project-relative directory that receives the generated shared project context;
+   * {@link DEFAULT_INSTRUCTION_DIRECTORY} when the key is absent.
+   */
+  readonly instructionDirectory: string;
 }
 
 export const DECLARATION_FORMAT = "aihq-catalog-producer-declaration";
 const ENTRY = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const SPDX = /^[A-Za-z0-9][A-Za-z0-9.+-]{0,63}$/;
 const PLACEHOLDER_MAX = 64;
+
+/** The instruction directory a release carries when the declaration names none. */
+export const DEFAULT_INSTRUCTION_DIRECTORY = "ai-coding";
+const INSTRUCTION_DIRECTORY_MAX = 128;
+/**
+ * Portable segment characters that stay literal inside Markdown code spans, YAML
+ * frontmatter and Kiro `#[[file:...]]` references; a leading `-` reads as an option.
+ */
+const INSTRUCTION_SEGMENT = /^[A-Za-z0-9._][A-Za-z0-9._-]*$/;
+
+/**
+ * Why `value` cannot be the instruction directory, or undefined when it can: a safe
+ * project-relative member path (no absolute, drive, backslash, empty, `.` or `..`
+ * segment, trailing dot or space, control character, non-NFC text or reserved device
+ * name), at most 128 characters of portable segment characters, never inside `.git`.
+ */
+export function instructionDirectoryProblem(value: unknown): string | undefined {
+  if (typeof value !== "string") return "must be a string";
+  if (value.length === 0 || value.length > INSTRUCTION_DIRECTORY_MAX) {
+    return `must be 1-${INSTRUCTION_DIRECTORY_MAX} characters`;
+  }
+  if (!safeMemberPath(value)) {
+    return "must be a safe project-relative path without absolute, drive, backslash, empty, '.' or '..' segments";
+  }
+  for (const segment of value.split("/")) {
+    if (!INSTRUCTION_SEGMENT.test(segment)) {
+      return `segment ${JSON.stringify(segment)} is unsupported: use letters, digits, '.', '_' and '-' (not leading)`;
+    }
+    if (segment.toLowerCase() === ".git") return "must not name a .git directory";
+  }
+  return undefined;
+}
 
 function keys(
   value: unknown,
@@ -114,6 +151,16 @@ function parseAuthored(value: unknown): readonly AuthoredAllowance[] {
   return [...entries].sort((a, b) => (a.source < b.source ? -1 : a.source > b.source ? 1 : 0));
 }
 
+/** The optional instruction directory; the default when the key is absent. */
+function parseInstructionDirectory(value: unknown): string {
+  if (value === undefined) return DEFAULT_INSTRUCTION_DIRECTORY;
+  const problem = instructionDirectoryProblem(value);
+  if (problem !== undefined) {
+    return refuse("declaration-invalid", `declaration/instructionDirectory ${problem}`);
+  }
+  return value as string;
+}
+
 /** Strictly parses declaration bytes (or an already parsed value). */
 export function parseDeclaration(input: Uint8Array | unknown): ProducerDeclaration {
   let value: unknown = input;
@@ -124,13 +171,18 @@ export function parseDeclaration(input: Uint8Array | unknown): ProducerDeclarati
       return refuse("declaration-invalid", "the declaration is not UTF-8 JSON");
     }
   }
-  const top = keys(value, ["format", "version", "sources", "items"], "declaration", ["authored"]);
+  const top = keys(value, ["format", "version", "sources", "items"], "declaration", [
+    "authored",
+    "instructionDirectory",
+  ]);
   if (top.format !== DECLARATION_FORMAT || top.version !== 1) {
     return refuse("declaration-invalid", "unsupported declaration format or version");
   }
   if (!Array.isArray(top.sources) || !Array.isArray(top.items)) {
     return refuse("declaration-invalid", "sources and items must be arrays");
   }
+  // Checked first: an allowance moved with an inadmissible directory is refused for it.
+  const instructionDirectory = parseInstructionDirectory(top.instructionDirectory);
   const sources = top.sources.map((raw, index): DeclaredSource => {
     const at = `sources/${index}`;
     const source = keys(raw, ["id", "repository", "licensePath", "license"], at);
@@ -198,6 +250,7 @@ export function parseDeclaration(input: Uint8Array | unknown): ProducerDeclarati
     sources,
     items: [...items].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)),
     authored: parseAuthored(top.authored),
+    instructionDirectory,
   };
 }
 

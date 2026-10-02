@@ -70,7 +70,7 @@
     "generate:catalog-runtime-descriptors": "node tools/generate-catalog-runtime-descriptors.mjs",
     "prepublishOnly": "node tools/refuse-publication.mjs",
     "test:historical": "vitest run --config vitest.config.ts",
-    "generate:release": "node tools/generate-release.mjs",
+    "generate:release": "npm run build:dist && node tools/generate-release.mjs",
     "check:release": "node tools/check-release.mjs",
     "prepare:candidate": "npm run build:dist && node tools/prepare-candidate.mjs",
     "measure:candidate": "node tools/measure-candidate.mjs",

@@ -57,9 +57,10 @@ Select required items explicitly, then call `validateSelectionSet` and copy its
 or silently selects optional suggestions. See [the execution example](docs/CATALOG-CONTENT.md#explicit-dependencies-and-core-handoff).
 
 The `aihq.project-context` family supplies shared project AI context
-(`ai-coding/`), native entry pointers and adapter notes for the supported
-client baseline as ordinary selectable items with the same contracts; see
-[the context content contract](docs/CONTEXT-CONTENT.md). Delivering a client
+(under `ai-coding/` by default), native entry pointers and adapter notes for the
+supported client baseline as ordinary selectable items with the same contracts; see
+[the context content contract](docs/CONTEXT-CONTENT.md). The instruction directory
+is chosen when the release is generated, not per selection. Delivering a client
 entry file does not prove the client loads it.
 
 ## Prepare a content candidate
@@ -89,7 +90,9 @@ with lifecycle scripts disabled, and runs public prepare/apply in disposable roo
 It checks local/archive identity, explicit dependencies, default origin, applied
 material hashes and refusal after selected material changes. Supply a reviewed Core
 artifact; the check does not choose a moving registry version. Pass a prepared Catalog tarball as a second argument to check that exact
-candidate instead of packing this checkout.
+candidate instead of packing this checkout. Pass `--instruction-directory <dir>`
+instead to pack a disposable copy regenerated for that project instruction
+directory and run the same scenario; the checkout is not modified.
 
 For a real browser check, pack Catalog and run
 `node tools/verify-portable-browser.mjs /absolute/path/to/catalog.tgz`.

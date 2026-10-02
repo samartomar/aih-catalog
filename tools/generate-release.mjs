@@ -6,7 +6,6 @@ import {
   adapterNote,
   BLOCK_ID,
   CLIENTS,
-  CONTEXT_DIR,
   END_MARKER,
   mergedPointerContent,
   ownedPointerDocument,
@@ -30,6 +29,10 @@ import {
  *
  *   node tools/generate-release.mjs [--check] [catalog-root]
  *
+ * The authored project context follows the `instructionDirectory` of the catalog
+ * root's own `producer/declaration.json` (`ai-coding` when absent), parsed by the
+ * built producer (`npm run build:dist` first). One release carries one directory.
+ *
  * This is the seed generator for the carried donor snapshot. Once a targeted candidate
  * (tools/prepare-candidate.mjs) has advanced release/ beyond that snapshot, `--check`
  * checks the authored context separately and defers upstream integrity to
@@ -39,6 +42,7 @@ export const OUTPUT_ROOT = "release";
 export const RELEASE_PATH = "release/release.json";
 const SNAPSHOT = "src/production/data/mattpocock.snapshot.json";
 const ASSESSMENT = (entry) => `defaults/workbench/mattpocock/skill.mattpocock.${entry}/artifacts`;
+export const DECLARATION_PATH = "producer/declaration.json";
 const SOURCE_ID = "mattpocock-skills";
 const REPOSITORY = "mattpocock/skills";
 const LICENSE_PATH = "LICENSE";
@@ -65,6 +69,14 @@ const ITEMS = [
     label: "Grilling",
     requires: [],
   },
+];
+
+/** Every committed file generation reads besides `package.json` and the declaration. */
+export const GENERATION_INPUTS = [
+  SNAPSHOT,
+  ...ITEMS.flatMap((item) =>
+    ["closure.json", "profile.json"].map((file) => `${ASSESSMENT(item.entry)}/${file}`),
+  ),
 ];
 
 const compare = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
@@ -124,6 +136,79 @@ const DONOR_PROVENANCE = {
   revision: "f5d5f84b9006b628778983dab56dd92dc8888156",
 };
 
+/**
+ * The catalog root's parsed producer declaration. Parsing (and so instruction
+ * directory admission) is the built producer's single implementation.
+ */
+export async function readDeclaration(root) {
+  let parseDeclaration;
+  try {
+    ({ parseDeclaration } = await import(
+      `${new URL("../dist/producer/declaration.js", import.meta.url)}`
+    ));
+  } catch {
+    fail("the built producer is missing; run npm run build:dist first");
+  }
+  let bytes;
+  try {
+    bytes = readFileSync(resolve(root, DECLARATION_PATH));
+  } catch {
+    fail(`${DECLARATION_PATH} is missing from the catalog root`);
+  }
+  return parseDeclaration(bytes);
+}
+
+/** Fails when one path equals, or is a directory of, another under case folding. */
+function assertPrefixFree(paths, label) {
+  const folded = paths.map((path) => [path, path.toLowerCase()]);
+  for (const [index, [path, key]] of folded.entries()) {
+    for (const [other, otherKey] of folded.slice(index + 1)) {
+      if (key === otherKey || otherKey.startsWith(`${key}/`) || key.startsWith(`${otherKey}/`)) {
+        fail(`${label}: ${path} and ${other} collide`);
+      }
+    }
+  }
+}
+
+const CONTEXT_DOCUMENTS = [
+  { id: "rule-router", target: ["RULE_ROUTER.md"], render: ruleRouterDoc },
+  {
+    id: "shared-block",
+    target: ["adapters", "_shared-canonical-block.md"],
+    render: sharedBlockBody,
+  },
+  { id: "behavior-core", target: ["rules", "agent-behavior-core.md"], render: behaviorCoreDoc },
+];
+
+/**
+ * The project directory every authored context document lives under, checked against
+ * the declaration's author-owned allowance and against every generated entry file.
+ */
+function contextLayout(declaration) {
+  const dir = declaration.instructionDirectory;
+  const allowance = declaration.authored.find((entry) => entry.source === CONTEXT_SOURCE_ID);
+  if (allowance === undefined) {
+    fail(`${DECLARATION_PATH} lacks the authored allowance for ${CONTEXT_SOURCE_ID}`);
+  }
+  const project = `${dir}/PROJECT.md`;
+  if (!allowance.externalPaths.includes(project)) {
+    fail(`the ${CONTEXT_SOURCE_ID} allowance is stale: it must list ${project}`);
+  }
+  for (const path of allowance.externalPaths) {
+    if (!path.startsWith(`${dir}/`)) {
+      fail(`the ${CONTEXT_SOURCE_ID} allowance is stale: ${path} lies outside ${dir}/`);
+    }
+  }
+  const targets = [
+    ...CONTEXT_DOCUMENTS.map((doc) => [dir, ...doc.target].join("/")),
+    ...CLIENTS.map((client) => `${dir}/adapters/${client.id}.md`),
+    ...POINTERS.map((pointer) => pointer.path.join("/")),
+    ...allowance.externalPaths,
+  ];
+  assertPrefixFree(targets, `instruction directory ${dir}`);
+  return { dir };
+}
+
 const literalTarget = (segments) => ({
   root: "project",
   segments: segments.map((segment) => ({ literal: segment })),
@@ -146,21 +231,12 @@ function registerContextRecipe(put, itemId, bytes) {
  * context document, each with a file.sha256 check. Returns the item record and
  * registers its recipe/material bytes through `put`.
  */
-function contextItem(put) {
-  const documents = [
-    { id: "rule-router", target: [CONTEXT_DIR, "RULE_ROUTER.md"], text: ruleRouterDoc() },
-    {
-      id: "shared-block",
-      target: [CONTEXT_DIR, "adapters", "_shared-canonical-block.md"],
-      text: sharedBlockBody(),
-    },
-    {
-      id: "behavior-core",
-      target: [CONTEXT_DIR, "rules", "agent-behavior-core.md"],
-      text: behaviorCoreDoc(),
-    },
-  ];
-  const materials = documents
+function contextItem(put, { dir }) {
+  const materials = CONTEXT_DOCUMENTS.map((doc) => ({
+    id: doc.id,
+    target: [...dir.split("/"), ...doc.target],
+    text: doc.render(dir),
+  }))
     .map((doc) => {
       const bytes = Buffer.from(doc.text, "utf8");
       const path = `${CONTEXT_MATERIALS}/${doc.target.join("/")}`;
@@ -171,7 +247,7 @@ function contextItem(put) {
   const recipeBytes = document({
     schema: "urn:aihq:core:recipe:1.0.0",
     id: CONTEXT_ITEM_ID,
-    description: `Deliver the shared project AI context under ${CONTEXT_DIR}/ (router, shared block source, behavior core).`,
+    description: `Deliver the shared project AI context under ${dir}/ (router, shared block source, behavior core).`,
     inputs: {},
     materials: materials.map(({ id, sha256: hash, byteLength }) => ({ id, sha256: hash, byteLength })),
     targets: ["project"],
@@ -198,7 +274,7 @@ function contextItem(put) {
   return {
     id: CONTEXT_ITEM_ID,
     label: "Shared project AI context",
-    description: `Project-owned AI context (router, shared canonical block, behavior core) under ${CONTEXT_DIR}/.`,
+    description: `Project-owned AI context (router, shared canonical block, behavior core) under ${dir}/.`,
     kind: "project-context",
     sourceIds: [CONTEXT_SOURCE_ID],
     targets: [],
@@ -221,7 +297,7 @@ function contextItem(put) {
  * (user text outside the markers survives, and no whole-file check is claimed);
  * wholly canon-owned entry files use file.write with a pinned byte check.
  */
-function pointerItems(put) {
+function pointerItems(put, { dir }) {
   return POINTERS.map((pointer) => {
     const itemId = `aihq.project-context-pointer.${pointer.key}`;
     const common = {
@@ -249,7 +325,7 @@ function pointerItems(put) {
             startMarker: START_MARKER,
             endMarker: END_MARKER,
             action: "set",
-            content: { literal: mergedPointerContent(pointer.key) },
+            content: { literal: mergedPointerContent(pointer.key, dir) },
             requires: [],
             checks: [],
           },
@@ -257,7 +333,7 @@ function pointerItems(put) {
         checks: [],
       };
     } else {
-      const bytes = Buffer.from(ownedPointerDocument(pointer.key), "utf8");
+      const bytes = Buffer.from(ownedPointerDocument(pointer.key, dir), "utf8");
       const path = `${CONTEXT_MATERIALS}/pointers/${pointer.path.join("/")}`;
       put(path, bytes);
       materials = [{ id: "pointer", path, sha256: sha256(bytes), byteLength: bytes.length }];
@@ -312,18 +388,18 @@ function pointerItems(put) {
 }
 
 /** The per-client selection surface: the adapter note plus explicit pointer dependencies. */
-function clientItems(put) {
+function clientItems(put, { dir }) {
   return CLIENTS.map((client) => {
     const itemId = `aihq.client.${client.id}`;
-    const target = [CONTEXT_DIR, "adapters", `${client.id}.md`];
-    const bytes = Buffer.from(adapterNote(client), "utf8");
+    const target = [...dir.split("/"), "adapters", `${client.id}.md`];
+    const bytes = Buffer.from(adapterNote(client, dir), "utf8");
     const path = `${CONTEXT_MATERIALS}/${target.join("/")}`;
     put(path, bytes);
     const materials = [{ id: "adapter-note", path, sha256: sha256(bytes), byteLength: bytes.length }];
     const recipeBytes = document({
       schema: "urn:aihq:core:recipe:1.0.0",
       id: itemId,
-      description: `Deliver the ${client.label} adapter note under ${CONTEXT_DIR}/adapters/.`,
+      description: `Deliver the ${client.label} adapter note under ${dir}/adapters/.`,
       inputs: {},
       materials: materials.map(({ id, sha256: hash, byteLength }) => ({
         id,
@@ -376,15 +452,16 @@ function clientItems(put) {
   });
 }
 
-function contextFamily(put) {
-  return [contextItem(put), ...pointerItems(put), ...clientItems(put)]
+function contextFamily(put, layout) {
+  return [contextItem(put, layout), ...pointerItems(put, layout), ...clientItems(put, layout)]
     .sort((a, b) => compare(a.id, b.id));
 }
 
 /** Authored content remains reproducible independently of the upstream pin. */
-function checkContextContent(root) {
+async function checkContextContent(root) {
+  const layout = contextLayout(await readDeclaration(root));
   const files = new Map();
-  const expected = contextFamily((path, bytes) => files.set(path, bytes));
+  const expected = contextFamily((path, bytes) => files.set(path, bytes), layout);
   const release = readJson(root, RELEASE_PATH);
   const actual = (release.items ?? [])
     .filter((item) => item.sourceIds?.includes(CONTEXT_SOURCE_ID))
@@ -452,8 +529,12 @@ export function advancedBeyondSnapshot(root) {
   return revisions.size !== 1 || !revisions.has(pin);
 }
 
-/** Returns every output file (package-relative path → bytes), the release document last. */
-export function generateRelease(root) {
+/**
+ * Returns every output file (package-relative path → bytes), the release document
+ * last, for the catalog root's own declaration.
+ */
+export async function generateRelease(root) {
+  const layout = contextLayout(await readDeclaration(root));
   const pkg = readJson(root, "package.json");
   const snapshot = readJson(root, SNAPSHOT);
   const files = new Map();
@@ -510,7 +591,7 @@ export function generateRelease(root) {
   }).sort((a, b) => compare(a.id, b.id));
   const items = [
     ...mattpocockItems,
-    ...contextFamily(put),
+    ...contextFamily(put, layout),
   ].sort((a, b) => compare(a.id, b.id));
   const release = {
     schema: "urn:aihq:catalog:release:1.0.0",
@@ -525,6 +606,7 @@ export function generateRelease(root) {
     items,
   };
   put(RELEASE_PATH, document(release));
+  assertPrefixFree([...files.keys()], "release files");
   return files;
 }
 
@@ -556,11 +638,11 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     }
     const root = resolve(args[0] ?? resolve(dirname(fileURLToPath(import.meta.url)), ".."));
     if (check && advancedBeyondSnapshot(root)) {
-      checkContextContent(root);
+      await checkContextContent(root);
       console.log("Checked authored context; upstream release advanced beyond the donor snapshot. Run npm run check:release.");
       process.exit(0);
     }
-    const files = generateRelease(root);
+    const files = await generateRelease(root);
     const stale = existingFiles(root).filter((path) => !files.has(path));
     if (check) {
       for (const [path, bytes] of files) {
