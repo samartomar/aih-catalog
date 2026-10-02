@@ -63,6 +63,20 @@ items it requires. It is data, not a permission for arbitrary authors; unknown k
 unknown or cyclic requirements and unsafe paths are refused. Adding an item means
 adding its entry. Keep an entry until the candidate that removes the item has merged.
 
+The optional `authored` key lists allowances for content Catalog itself authors (a
+release source whose origin is `authored`). Each entry has exactly three keys:
+
+- `source`: the release source identifier; unique across entries.
+- `externalPaths`: author-owned project paths that content may reference but Catalog
+  never delivers. Each is a safe relative path; no duplicates.
+- `templatePlaceholders`: exact tokens the author is expected to fill in, for example
+  `<your-tool>`. Each is 1–64 characters with no whitespace; no duplicates.
+
+Parsing is strict like the rest of the declaration: unknown or missing keys, a
+non-array value and duplicates are refused as `declaration-invalid`. When the key is
+absent no allowance exists, so nothing is excused. An entry whose source is not an
+authored source of the checked release is ignored.
+
 ## What happens to each item
 
 The producer reads and digests only the declared files of each item (the skill and
@@ -104,9 +118,11 @@ another source already released is refused as `item-id-collision`.
 Before anything can be installed the whole candidate must pass, in order:
 `release-envelope`, `package-identity`, `format-support`, `member-bytes`,
 `recipe-configuration-agreement`, `inventory-exact`, `dependency-closure`,
-`source-references` and `provenance-paths`. These reuse the public release reader and
-the Node package verifier. The candidate is then staged as a real package, packed
-with `npm pack --ignore-scripts`, and the actual tarball is read back:
+`source-references`, `provenance-paths`, `authored-references` and
+`authored-placeholders`. The first nine reuse the public release reader and the Node
+package verifier; the last two are described below. The candidate is then staged as a
+real package, packed with `npm pack --ignore-scripts`, and the actual tarball is read
+back:
 
 - `packed-release-bytes`: every release member is byte-identical to the candidate.
 - `packed-inventory-intended` and `packed-runtime-bytes`: the rest of the package is
@@ -126,6 +142,52 @@ with `npm pack --ignore-scripts`, and the actual tarball is read back:
   with `validateSelectionSet`. Whole-release integrity covers every item; valid items that
   need configuration, or that conflict with each other, do not block readiness. If no item
   is selectable the check is recorded as `NOT RUN` with the counts, never as a pass.
+
+**Authored content.** `authored-references` and `authored-placeholders` examine only
+items that carry an `authored` source. Upstream git skills are carried bytes and are
+not examined. Nothing is fetched, no Markdown style rule applies and no Core linter is
+involved; the checks read only the candidate's own recipes and materials.
+
+- *Texts.* For each such item: every `file.write` material that decodes as UTF-8
+  (other bytes are skipped) and every `text.block` operation with literal content.
+- *Boundary.* The installed project targets of all release items that carry the same
+  authored source. A target segment taken from a recipe input uses the input's default
+  when it has one, otherwise it matches any single path segment. References are
+  resolved for texts installed in the project; texts installed elsewhere are still
+  checked for residue.
+- *What counts as a reference.* Markdown inline links and images and link reference
+  definitions (`[label]: destination`; footnotes `[^1]:` are not links), resolved
+  relative to the text's own installed target (a leading `/` means the project root; a
+  destination in `<…>` is unwrapped; links with a URI scheme or only a `#fragment` are
+  ignored, and `#fragment` and `?query` are stripped); Kiro `#[[file:…]]` references;
+  and inline code that plainly names a path (contains `/`, no whitespace, none of
+  `* ? [ ] { } ( ) $ |`, no `://`, no leading `-`), taken relative to the project root.
+  Fenced code blocks are samples, and link or Kiro syntax inside inline code is quoted
+  description; neither makes a reference. A path leaving the project root is
+  unresolved.
+- *Resolution.* A reference resolves when it is a delivered target in the boundary, a
+  directory prefix of one, or exactly a declared external path. A declared template
+  token inside a reference matches text within one path segment, never across `/`.
+- *Placeholder residue.* `${…}`, `{{…}}`, `{%…%}`, `<%…%>`, `[object Object]`, the word
+  `undefined`, `<lower-kebab>` or `<lower_snake>` tokens, upper-case tokens such as
+  `<NAME>` or `<TOOL_NAME>` and `__UPPER_SNAKE__`. Lower-case angle tokens need a `-` or
+  `_` separator and upper-case ones at least two characters, so `<details>` is not
+  residue. A short fixed list of HTML elements still written in upper case (`<A>`,
+  `<B>`, `<BR>`, `<EM>`, `<H1>`–`<H6>`, `<HR>`, `<I>`, `<IMG>`, `<LI>`, `<OL>`, `<P>`,
+  `<TD>`, `<TH>`, `<TR>`, `<U>`, `<UL>`) is spared; any other upper-case token, such as
+  `<HTML>` in a sample, must be declared. Residue is detected everywhere in a text,
+  including inline code, code blocks and HTML comments. An occurrence exactly equal to a
+  declared template token of the item's source is allowed.
+
+A finding reads `item member target:line -> text`: the item, the material id or
+`operation:<id>`, the installed target (`*` for a wildcard segment), the 1-based line,
+and the reference or token as written. A recipe that cannot be parsed is reported, not
+thrown, as `item recipe <recipe path>:0 -> recipe unreadable`. Both checks run in the
+integrity phase, in `packed-release-integrity` and in the post-install check of
+`--apply`, with the allowances of the declaration in use (`--declaration`), and in
+`npm run check:release` with the allowances of this checkout's
+`producer/declaration.json`. A fence closes on a bare line of the same character at
+least as long as the opening one; an unterminated fence runs to the end of the text.
 
 With `--core-artifact`, one explicit reviewed packed Core artifact then runs the
 existing consumer check against the exact candidate tarball, with the same scenario
@@ -197,4 +259,12 @@ labeled `originVerified: false` in its summary.
 - One declared skill shape: a `SKILL.md` and its license, written by a Core `file.write`
   recipe. Support files and other item kinds need new producer transforms.
 - The producer carries only declared repositories and is not an arbitrary-author gate.
+- Upstream skill text is not examined for references or placeholders; only
+  Catalog-authored content is. Reference checking is local resolution of the forms
+  above, never a link crawl or a style review.
+- The authored boundary is the whole source, not one selection: a reference that
+  resolves only through an item the consumer did not select still passes. Bare file
+  names without `/` in inline code, HTML `href`/`src` attributes, link definitions
+  whose destination starts on the next line and authored material that is not UTF-8 are
+  not checked. A deliberate `${…}` in a code sample must be declared as a template token.
 - It prepares content. It allocates no version, signs nothing and publishes nothing.

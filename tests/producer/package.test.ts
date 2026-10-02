@@ -56,7 +56,14 @@ async function packAndVerify(
   stagePackage({ sourceRoot, files, stageDir: stage });
   options.tamper?.(stage);
   const artifact = packStaged(stage, join(scratch, `pack-${counter}`));
-  const result = await verifyPacked({ artifact, files, identity, manifest, sourceRoot });
+  const result = await verifyPacked({
+    artifact,
+    files,
+    identity,
+    manifest,
+    sourceRoot,
+    authored: declaration().authored,
+  });
   return { result, artifact, sourceRoot, stage };
 }
 const failed = (result: { checks: readonly { name: string; ok: boolean }[] }) =>
@@ -124,9 +131,10 @@ describe("packed candidate", () => {
       identity,
       manifest,
       sourceRoot: outcome.sourceRoot,
+      authored: declaration().authored,
     });
     expect(check(result, "packed-release-bytes")?.ok).toBe(false);
-  });
+  }, 60_000);
 
   it("flags anything packed outside the declared runtime entries", async () => {
     const narrower = { files: manifest.files.filter((entry) => entry !== "schemas/core-recipe") };
@@ -136,10 +144,26 @@ describe("packed candidate", () => {
       identity,
       manifest: narrower,
       sourceRoot: outcome.sourceRoot,
+      authored: declaration().authored,
     });
     expect(check(result, "packed-inventory-intended")?.ok).toBe(false);
     expect(check(result, "packed-runtime-bytes")?.ok).toBe(false);
-  });
+  }, 60_000);
+
+  it("fails the packed release integrity on authored content without allowances", async () => {
+    const result = await verifyPacked({
+      artifact,
+      files,
+      identity,
+      manifest,
+      sourceRoot: outcome.sourceRoot,
+      authored: [],
+    });
+    expect(check(result, "packed-release-integrity")).toMatchObject({
+      ok: false,
+      detail: "authored-references, authored-placeholders",
+    });
+  }, 60_000);
 
   it("refuses to stage without a built package, a license, or into an occupied stage", () => {
     const empty = mkdtempSync(join(scratch, "no-build-"));
@@ -223,7 +247,9 @@ describe("bounded selection with realistic mixed content", () => {
 
   it("keeps a valid release with configuration-required, conflicting and platform-gated items ready", async () => {
     const files = mixed();
-    expect(checkCandidateFiles(files, identity).ok).toBe(true);
+    expect(checkCandidateFiles(files, identity, { authored: declaration().authored }).ok).toBe(
+      true,
+    );
     const { result } = await packAndVerify(files);
     expect(failed(result)).toEqual([]);
     const smoke = check(result, "reader-selection-smoke");
@@ -253,7 +279,9 @@ describe("bounded selection with realistic mixed content", () => {
     const files = mixed();
     const [path] = [...files.keys()].filter((key) => key.includes("/authored/ext.server/"));
     files.set(path as string, Buffer.from("tampered"));
-    expect(failed(checkCandidateFiles(files, identity))).toContain("member-bytes");
+    expect(
+      failed(checkCandidateFiles(files, identity, { authored: declaration().authored })),
+    ).toContain("member-bytes");
   });
 });
 

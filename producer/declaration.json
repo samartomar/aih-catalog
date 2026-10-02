@@ -26,5 +26,16 @@
       "skillPath": "skills/productivity/grilling/SKILL.md",
       "requires": []
     }
+  ],
+  "authored": [
+    {
+      "source": "aihq-project-context",
+      "externalPaths": [
+        "ai-coding/PROJECT.md"
+      ],
+      "templatePlaceholders": [
+        "<your-tool>"
+      ]
+    }
   ]
 }

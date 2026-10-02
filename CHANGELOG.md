@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Validate Catalog-authored content in whole-package integrity: new
+  `authored-references` and `authored-placeholders` checks resolve internal links,
+  Kiro file references and path-like inline code within the content delivered by the
+  same authored source, and reject unintended generation placeholders. The optional
+  `authored` key of `producer/declaration.json` declares external paths and intended
+  template tokens. Upstream skill bytes are not examined; no network is used.
+  `check:release` applies the same checks.
 - Carry the shared project AI context and native client entry pointers as
   selectable content: `aihq.project-context` (router, shared canonical block and
   behavior core under `ai-coding/`), seven entry-file pointer items and eleven

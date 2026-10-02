@@ -13,6 +13,7 @@ import {
 import { tmpdir } from "node:os";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { readPackageArchive } from "../release/archive.js";
+import type { AuthoredAllowance } from "./authored.js";
 import { refuse } from "./errors.js";
 import { checkCandidateFiles, type IntegrityCheck } from "./integrity.js";
 import { assertDisjoint, assertFreshDirectory } from "./paths.js";
@@ -294,8 +295,10 @@ export async function verifyPacked(input: {
   identity: { name: string; version: string };
   manifest: { files?: string[] };
   sourceRoot: string;
+  /** Authored-content allowances for the packed release integrity check. */
+  authored?: readonly AuthoredAllowance[];
 }): Promise<PackedVerification> {
-  const { artifact, files, identity, manifest, sourceRoot } = input;
+  const { artifact, files, identity, manifest, sourceRoot, authored } = input;
   const checks: IntegrityCheck[] = [];
   const record = (name: string, ok: boolean, detail?: string, status?: IntegrityCheck["status"]) =>
     checks.push({
@@ -399,7 +402,7 @@ export async function verifyPacked(input: {
     unlisted.join(", ") || undefined,
   );
 
-  const packedRelease = checkCandidateFiles(new Map(releaseMembers), identity);
+  const packedRelease = checkCandidateFiles(new Map(releaseMembers), identity, { authored });
   record(
     "packed-release-integrity",
     packedRelease.ok,

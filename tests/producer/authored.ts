@@ -10,6 +10,8 @@ export interface AuthoredSpec {
   readonly conflicts?: readonly string[];
   readonly inputs?: Record<string, InputDefinition>;
   readonly prerequisites?: readonly Record<string, unknown>[];
+  /** The delivered notes text; a fixed sentence naming the item by default. */
+  readonly text?: string;
 }
 
 type Doc = {
@@ -38,7 +40,7 @@ export function withAuthoredItems(
     document.sources.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   }
   for (const spec of specs) {
-    const text = Buffer.from(`Authored content for ${spec.id}.\n`);
+    const text = Buffer.from(spec.text ?? `Authored content for ${spec.id}.\n`);
     const materialPath = `release/materials/authored/${spec.id}/README.txt`;
     const material = { id: "readme", sha256: sha256Hex(text), byteLength: text.length };
     const target = {

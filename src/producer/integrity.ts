@@ -3,6 +3,7 @@ import { contractSupport } from "../release/contracts.js";
 import { verifyPackageRelease } from "../release/node.js";
 import { AcquisitionFailure } from "../release/node-errors.js";
 import { readRelease } from "../release/reader.js";
+import { type AuthoredAllowance, checkAuthoredContent, describeFinding } from "./authored.js";
 import type { Record_ } from "./base.js";
 import { assertRequiredClosure } from "./candidate.js";
 import { ProducerRefusal } from "./errors.js";
@@ -35,18 +36,27 @@ export const INTEGRITY_CHECKS = [
   "dependency-closure",
   "source-references",
   "provenance-paths",
+  "authored-references",
+  "authored-placeholders",
 ] as const;
+
+/** The declared allowances the authored-content checks run with; absent means none. */
+export interface IntegrityOptions {
+  readonly authored?: readonly AuthoredAllowance[];
+}
 
 /**
  * Checks a complete candidate as it would be packed: envelope, identifiers,
  * recipe/configuration agreement, member paths/lengths/hashes, the exact member
- * inventory, required-dependency closure and source provenance. Every check is
- * evaluated so one report names everything that is wrong. It uses the public
- * release reader and the Node package verifier, not a second validator.
+ * inventory, required-dependency closure, source provenance and the internal
+ * references and generation placeholders of Catalog-authored content. Every
+ * check is evaluated so one report names everything that is wrong. It uses the
+ * public release reader and the Node package verifier, not a second validator.
  */
 export function checkCandidateFiles(
   files: ReadonlyMap<string, Uint8Array>,
   identity: { readonly name: string; readonly version: string },
+  options: IntegrityOptions = {},
 ): IntegrityResult {
   const checks: IntegrityCheck[] = [];
   const record = (name: string, ok: boolean, detail?: string) =>
@@ -164,6 +174,22 @@ export function checkCandidateFiles(
     misplaced.length === 0,
     misplaced.length ? `outside their pinned revision: ${misplaced.join(", ")}` : undefined,
   );
+
+  const authored = checkAuthoredContent(release, files, options.authored ?? []);
+  record(
+    "authored-references",
+    authored.references.length === 0,
+    authored.references.length
+      ? authored.references.map((finding) => `unresolved ${describeFinding(finding)}`).join("; ")
+      : undefined,
+  );
+  record(
+    "authored-placeholders",
+    authored.placeholders.length === 0,
+    authored.placeholders.length
+      ? authored.placeholders.map((finding) => `placeholder ${describeFinding(finding)}`).join("; ")
+      : undefined,
+  );
   return { ok: checks.every((check) => check.ok), checks, release };
 }
 
@@ -171,8 +197,9 @@ export function checkCandidateFiles(
 export function assertCandidateIntegrity(
   files: ReadonlyMap<string, Uint8Array>,
   identity: { readonly name: string; readonly version: string },
+  options: IntegrityOptions = {},
 ): IntegrityResult & { release: CatalogRelease } {
-  const result = checkCandidateFiles(files, identity);
+  const result = checkCandidateFiles(files, identity, options);
   if (!result.ok || result.release === undefined) {
     const failed = result.checks.filter((check) => !check.ok);
     throw new ProducerRefusal(
