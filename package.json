@@ -1,6 +1,6 @@
 {
   "name": "@aihq/catalog",
-  "version": "0.3.0",
+  "version": "0.1.0",
   "description": "Canonical Catalog content, pinned material and generic executable recipes; publication blocked during migration.",
   "repository": {
     "type": "git",
@@ -37,7 +37,9 @@
       "import": "./dist/release/node.js"
     },
     "./release.json": "./release/release.json",
+    "./release-1.1.json": "./release/release-1.1.json",
     "./schemas/release/1.0.0.json": "./schemas/release/1.0.0.json",
+    "./schemas/release/1.1.0.json": "./schemas/release/1.1.0.json",
     "./package.json": "./package.json"
   },
   "engines": {

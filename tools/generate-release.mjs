@@ -2,6 +2,13 @@ import { createHash } from "node:crypto";
 import { mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+const hooks = await import(new URL("../dist/release/hook-content.js", import.meta.url).href)
+  .catch((error) => {
+    throw new Error(
+      "generate-release: the built release module is missing; run npm run build:dist first",
+      { cause: error },
+    );
+  });
 // The authored project context has one renderer: the built, portable release module
 // that the Node helper prepareProjectContext also uses (npm run build:dist first).
 const renderer = await import(new URL("../dist/release/project-context.js", import.meta.url).href)
@@ -35,6 +42,7 @@ const renderer = await import(new URL("../dist/release/project-context.js", impo
  */
 export const OUTPUT_ROOT = "release";
 export const RELEASE_PATH = "release/release.json";
+export const HOOK_RELEASE_PATH = "release/release-1.1.json";
 const SNAPSHOT = "src/production/data/mattpocock.snapshot.json";
 const ASSESSMENT = (entry) => `defaults/workbench/mattpocock/skill.mattpocock.${entry}/artifacts`;
 const SOURCE_ID = "mattpocock-skills";
@@ -127,6 +135,37 @@ function contextFamily(put) {
   const family = renderContextFamily(DEFAULT_INSTRUCTION_DIRECTORY);
   for (const [path, bytes] of family.files) put(path, Buffer.from(bytes));
   return family.items;
+}
+
+/** The 1.1 release of authored client hook items, its bytes registered through `put`. */
+function hookRelease(pkg, put) {
+  const family = hooks.renderHookFamily();
+  for (const [path, bytes] of family.files) put(path, Buffer.from(bytes));
+  put(
+    HOOK_RELEASE_PATH,
+    document({
+      schema: "urn:aihq:catalog:release:1.1.0",
+      package: { name: pkg.name, version: pkg.version },
+      sources: [hooks.HOOK_SOURCE],
+      items: family.items,
+    }),
+  );
+}
+
+/** The hook release is authored and independent of the upstream pin; it must match its generator. */
+function checkHookRelease(root) {
+  const files = new Map();
+  // Its embedded package identity is checked against package.json by npm run check:release.
+  hookRelease(readJson(root, HOOK_RELEASE_PATH).package, (path, bytes) => files.set(path, bytes));
+  for (const [path, bytes] of files) {
+    let existing;
+    try {
+      existing = readFileSync(resolve(root, path));
+    } catch {
+      existing = undefined;
+    }
+    if (existing === undefined || !existing.equals(bytes)) fail(`${path} is stale; run npm run generate:release`);
+  }
 }
 
 /** Authored content remains reproducible independently of the upstream pin. */
@@ -272,6 +311,7 @@ export function generateRelease(root) {
     items,
   };
   put(RELEASE_PATH, document(release));
+  hookRelease(pkg, put);
   return files;
 }
 
@@ -304,10 +344,20 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     const root = resolve(args[0] ?? resolve(dirname(fileURLToPath(import.meta.url)), ".."));
     if (check && advancedBeyondSnapshot(root)) {
       checkContextContent(root);
-      console.log("Checked authored context; upstream release advanced beyond the donor snapshot. Run npm run check:release.");
+      checkHookRelease(root);
+      console.log("Checked authored context and release/release-1.1.json; upstream release advanced beyond the donor snapshot. Run npm run check:release.");
       process.exit(0);
     }
     const files = generateRelease(root);
+    if (!check) {
+      // Authoring guard: a direct selector change under an existing hook group ID is refused
+      // against the previously committed 1.1 release before anything is overwritten.
+      const { assertHookSelectorContinuity } = await import(new URL("../dist/producer/hook-release.js", import.meta.url).href);
+      const previous = existingFiles(root).includes(HOOK_RELEASE_PATH)
+        ? new Map(existingFiles(root).map((path) => [path, readFileSync(resolve(root, path))]))
+        : undefined;
+      assertHookSelectorContinuity(previous, files);
+    }
     const stale = existingFiles(root).filter((path) => !files.has(path));
     if (check) {
       for (const [path, bytes] of files) {
@@ -336,7 +386,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
         }
       }
     }
-    console.log(`${check ? "Checked" : "Generated"} ${RELEASE_PATH}: ${files.size - 1} recipe/material files`);
+    console.log(`${check ? "Checked" : "Generated"} ${RELEASE_PATH} and ${HOOK_RELEASE_PATH}: ${files.size - 2} recipe/material files`);
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
     process.exitCode = 1;

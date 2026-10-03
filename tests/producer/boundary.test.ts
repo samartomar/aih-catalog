@@ -131,12 +131,14 @@ describe("the published package keeps its intended runtime subset", () => {
       "./reader",
       "./node",
       "./release.json",
+      "./release-1.1.json",
       "./schemas/release/1.0.0.json",
+      "./schemas/release/1.1.0.json",
       "./package.json",
     ]);
     expect(manifest.private).toBe(true);
     expect(manifest.scripts.prepublishOnly).toBe("node tools/refuse-publication.mjs");
-    expect(manifest.version).toBe("0.3.0");
+    expect(manifest.version).toBe("0.1.0");
   });
 
   it("wires the producer through explicit maintainer scripts only", () => {

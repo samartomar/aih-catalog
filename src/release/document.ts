@@ -6,10 +6,11 @@
 import {
   type CatalogDiagnostic,
   type CatalogItem,
-  CORE_RECIPE_SCHEMA_ID,
   type InputSpec,
   type Json,
-  RELEASE_SCHEMA_ID,
+  RELEASE_RECIPE_SCHEMAS,
+  type RecipeSchemaId,
+  type ReleaseSchemaId,
 } from "./contracts.js";
 import { checkInputSpec } from "./inputs.js";
 import { assertStrictValues, canonicalJson } from "./json.js";
@@ -329,6 +330,7 @@ function checkItem(
   value: unknown,
   path: string,
   sources: ReadonlySet<string>,
+  recipeSchemas: readonly RecipeSchemaId[],
 ): void {
   if (
     !fields(
@@ -406,11 +408,16 @@ function checkItem(
   const recipe = value.recipe;
   if (fields(d, recipe, `${path}/recipe`, ["id", "schema", "path", "sha256", "byteLength"])) {
     id(d, recipe.id, `${path}/recipe/id`);
-    if (recipe.schema !== CORE_RECIPE_SCHEMA_ID) {
-      d.add("unsupported-recipe-schema", `${path}/recipe/schema`, "Items use Core recipe 1.0.0.", {
-        encountered: typeof recipe.schema === "string" ? recipe.schema.slice(0, 128) : undefined,
-        supported: [CORE_RECIPE_SCHEMA_ID],
-      });
+    if (!recipeSchemas.includes(recipe.schema as RecipeSchemaId)) {
+      d.add(
+        "unsupported-recipe-schema",
+        `${path}/recipe/schema`,
+        "This release format does not admit that Core recipe format.",
+        {
+          encountered: typeof recipe.schema === "string" ? recipe.schema.slice(0, 128) : undefined,
+          supported: recipeSchemas,
+        },
+      );
     }
     memberPath(d, recipe.path, `${path}/recipe/path`);
     sha(d, recipe.sha256, `${path}/recipe/sha256`);
@@ -504,6 +511,7 @@ function checkRequiredClosure(d: Diagnostics, items: readonly Record<string, unk
 }
 
 export interface CheckedDocument {
+  readonly schema: ReleaseSchemaId;
   readonly package: { readonly name: string; readonly version: string };
   readonly sources: readonly Json[];
   readonly items: readonly CatalogItem[];
@@ -516,7 +524,12 @@ export function checkReleaseDocument(value: unknown): {
   readonly document?: CheckedDocument;
 } {
   const d = new Diagnostics();
-  if (isRecord(value) && Object.hasOwn(value, "schema") && value.schema !== RELEASE_SCHEMA_ID) {
+  const supportedSchemas = Object.keys(RELEASE_RECIPE_SCHEMAS) as ReleaseSchemaId[];
+  if (
+    isRecord(value) &&
+    Object.hasOwn(value, "schema") &&
+    !supportedSchemas.includes(value.schema as ReleaseSchemaId)
+  ) {
     d.list.push(
       Object.freeze({
         code: "SCHEMA_UNSUPPORTED",
@@ -526,7 +539,7 @@ export function checkReleaseDocument(value: unknown): {
         path: "/schema",
         encountered:
           typeof value.schema === "string" ? value.schema.slice(0, 128) : String(value.schema),
-        supported: [RELEASE_SCHEMA_ID],
+        supported: supportedSchemas,
       }),
     );
     return { diagnostics: d.list };
@@ -565,7 +578,13 @@ export function checkReleaseDocument(value: unknown): {
   if (!Array.isArray(value.items)) d.add("invalid-type", "/items", "Expected an array.");
   else {
     for (const [index, item] of value.items.entries()) {
-      checkItem(d, item, `/items/${index}`, sourceIds);
+      checkItem(
+        d,
+        item,
+        `/items/${index}`,
+        sourceIds,
+        RELEASE_RECIPE_SCHEMAS[value.schema as ReleaseSchemaId] ?? [],
+      );
     }
     ascending(
       d,
@@ -593,6 +612,7 @@ export function checkReleaseDocument(value: unknown): {
   return {
     diagnostics: [],
     document: {
+      schema: value.schema as ReleaseSchemaId,
       package: pkg as { name: string; version: string },
       sources: value.sources as Json[],
       items: checked,

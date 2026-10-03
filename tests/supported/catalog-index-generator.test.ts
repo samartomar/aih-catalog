@@ -64,7 +64,7 @@ describe("catalog consumer index generator", () => {
     expect(result).toMatchObject({
       format: "aih-catalog-index",
       version: 1,
-      package: { name: "@aihq/catalog", version: "0.3.0" },
+      package: { name: "@aihq/catalog", version: "0.1.0" },
       organizationAdmission: "not-authoritative",
     });
     expect(result.entries).toHaveLength(manifest.seeds.length);

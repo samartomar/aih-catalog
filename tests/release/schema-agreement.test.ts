@@ -300,7 +300,7 @@ describe("release schema and reader agree", () => {
       code: "SCHEMA_UNSUPPORTED",
       reason: "unsupported-schema",
       encountered: "urn:aihq:catalog:release:2.0.0",
-      supported: ["urn:aihq:catalog:release:1.0.0"],
+      supported: ["urn:aihq:catalog:release:1.0.0", "urn:aihq:catalog:release:1.1.0"],
     });
   });
 

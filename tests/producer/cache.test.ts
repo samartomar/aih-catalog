@@ -110,7 +110,7 @@ describe("immutable cached bytes (planted replacement ref)", () => {
       const base = buildCandidate({
         declaration: fixtureDeclaration(declarationJson),
         tree: readCommitTree({ repository: REPOSITORY, commit: a, run: upstream.run }),
-        package: { name: "@aihq/catalog", version: "0.3.0" },
+        package: { name: "@aihq/catalog", version: "0.1.0" },
       });
       const pkg = makePackageRoot(join(scratch, "tool-pkg"), base.files);
       upstream.git("replace", a, b);

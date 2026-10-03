@@ -54,6 +54,10 @@ untouched refusal.
 tool; `npm run check:release` runs the offline whole-package check on the committed
 `release/` and is part of `npm run verify`.
 
+## The 1.1 release
+
+`release/release-1.1.json` (authored hook items, see [the content contract](CATALOG-CONTENT.md#client-hook-items-release-11)) is not produced from upstream pins. A candidate carries it, its recipes and its members byte for byte, restamping only the package identity it embeds, and a base whose 1.1 members are absent, changed or undeclared is refused like any damaged base. Every whole-package check below covers both documents (a 1.1 failure names `release/release-1.1.json`), and the declared inventory is the union of their members. The packed probe also reads the 1.1 release through its own export. The producer compares the previous committed 1.1 release with the candidate and refuses a direct selector change under the same item and group ID (`hook-selector-changed`); `tools/generate-release.mjs` applies the same guard before it rewrites authored hook items.
+
 ## The declaration
 
 `producer/declaration.json` is the maintainer-authored list of what the producer may

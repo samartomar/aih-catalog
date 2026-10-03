@@ -3,7 +3,7 @@
  * It imports only through the package's own public specifiers, so a broken or tampered
  * packed runtime fails here even when the producer's own copy of the reader is fine.
  *
- *   node probe.mjs <release sha256> <package name> <package version>
+ *   node probe.mjs <release sha256> <package name> <package version> [<1.1 release sha256>]
  *
  * It prints one JSON object. The selection step is bounded: it picks the first item
  * (preferring one with an explicit required closure) whose closure needs no
@@ -15,7 +15,7 @@ import { readFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const [expectedSha, name, version] = process.argv.slice(2);
+const [expectedSha, name, version, expectedHookSha] = process.argv.slice(2);
 const out = { imports: false, release: false, schema: false, installed: false, support: false };
 const fail = (stage, error) => {
   out.failure = stage + ": " + String(error && error.message ? error.message : error).slice(0, 300);
@@ -45,6 +45,21 @@ try {
   if (!installed.valid) throw new Error(installed.diagnostics.map((d) => d.reason).join(","));
   out.installed = installed.release.sha256 === sha;
   const release = installed.release;
+  if (expectedHookSha !== undefined) {
+    // The 1.1 release is read only through its own explicit export and schema.
+    const hookBytes = readFileSync(fileURLToPath(import.meta.resolve("@aihq/catalog/release-1.1.json")));
+    const hookSha = createHash("sha256").update(hookBytes).digest("hex");
+    if (hookSha !== expectedHookSha) throw new Error("packed release-1.1.json differs from the candidate");
+    const hookRead = reader.readRelease(hookBytes, { expectedSha256: hookSha });
+    if (!hookRead.valid) throw new Error("1.1 " + hookRead.diagnostics.map((d) => d.reason).join(","));
+    const hookSchema = JSON.parse(readFileSync(fileURLToPath(import.meta.resolve("@aihq/catalog/schemas/release/1.1.0.json")), "utf8"));
+    const hookInstalled = await node.readInstalledRelease({ root, release: "./release-1.1.json" });
+    if (!hookInstalled.valid) throw new Error("1.1 " + hookInstalled.diagnostics.map((d) => d.reason).join(","));
+    out.hook =
+      hookRead.release.schema === hookSchema.$id &&
+      support.contracts.some((contract) => contract.id === hookSchema.$id) &&
+      hookInstalled.release.sha256 === hookSha;
+  }
   const items = reader.listItems(release);
   const byId = new Map(items.map((item) => [item.id, item]));
   const closure = (id) => {

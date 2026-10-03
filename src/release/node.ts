@@ -34,7 +34,22 @@ const PACKAGE_JSON_MAX_BYTES = 1024 * 1024;
 const RELEASE_MAX_BYTES = 16 * 1024 * 1024;
 const MEMBER_MAX_BYTES = 16 * 1024 * 1024;
 
+/**
+ * The release documents a package can export. A caller names one explicitly; the
+ * default is always the 1.0 release and is never replaced by 1.1.
+ */
+export type ReleaseExport = "./release.json" | "./release-1.1.json";
+const RELEASE_EXPORTS: readonly string[] = ["./release.json", "./release-1.1.json"];
+const releaseExport = (value: unknown): ReleaseExport =>
+  value === undefined
+    ? "./release.json"
+    : RELEASE_EXPORTS.includes(value as string)
+      ? (value as ReleaseExport)
+      : failWith("invalid-request");
+
 export interface InstalledReleaseRequest {
+  /** Package export of the release to read; defaults to `./release.json`. */
+  readonly release?: ReleaseExport;
   /** Absolute path of the installed package root the caller selected. */
   readonly root: string;
   /** Name of the Core `controls.materialRoots` entry; defaults to `catalog`. */
@@ -206,8 +221,11 @@ function readMember(root: string, path: string, limit: number, expected?: number
   }
 }
 
-/** The package manifest's identity and its `./release.json` export path, read as data. */
-export function packageIdentity(bytes: Uint8Array): {
+/** The package manifest's identity and the chosen release export path, read as data. */
+export function packageIdentity(
+  bytes: Uint8Array,
+  releaseExportName: ReleaseExport = "./release.json",
+): {
   name: string;
   version: string;
   releasePath: string;
@@ -225,7 +243,7 @@ export function packageIdentity(bytes: Uint8Array): {
   ) {
     return failWith("invalid-package-json", "package.json");
   }
-  const exported = isRecord(manifest.exports) ? manifest.exports["./release.json"] : undefined;
+  const exported = isRecord(manifest.exports) ? manifest.exports[releaseExportName] : undefined;
   const releasePath =
     typeof exported === "string" && exported.startsWith("./") ? exported.slice(2) : undefined;
   if (releasePath === undefined || !safeMemberPath(releasePath))
@@ -240,13 +258,14 @@ export function packageIdentity(bytes: Uint8Array): {
 export function verifyPackageRelease(
   read: (path: string, limit: number, expected?: number) => Uint8Array,
   signal?: AbortSignal,
+  releaseExportName: ReleaseExport = "./release.json",
 ): {
   release: CatalogRelease;
   manifestPath: string;
   manifestSha256: string;
   diagnostics: CatalogDiagnostic[];
 } {
-  const identity = packageIdentity(read("package.json", PACKAGE_JSON_MAX_BYTES));
+  const identity = packageIdentity(read("package.json", PACKAGE_JSON_MAX_BYTES), releaseExportName);
   const manifestBytes = read(identity.releasePath, RELEASE_MAX_BYTES);
   const manifestSha256 = sha256(manifestBytes);
   // Integrity here is the installed/archived bytes the host selected; provenance records which.
@@ -303,6 +322,8 @@ const METADATA_MAX_BYTES = 8 * 1024 * 1024;
 const DEFAULT_TIMEOUT_MS = 60_000;
 
 export interface RegistryReleaseRequest {
+  /** Package export of the release to read; defaults to `./release.json`. */
+  readonly release?: ReleaseExport;
   /** HTTPS registry base, for example https://registry.npmjs.org */
   readonly registry: string;
   readonly package: string;
@@ -313,6 +334,8 @@ export interface RegistryReleaseRequest {
 }
 
 export interface ArchiveReleaseRequest {
+  /** Package export of the release to read; defaults to `./release.json`. */
+  readonly release?: ReleaseExport;
   /** An explicitly reviewed HTTPS tar-gzip archive pinned by SHA-256 and length. */
   readonly archive: {
     readonly url: string;
@@ -462,6 +485,7 @@ export async function resolveRelease(
     ) {
       failWith("invalid-request");
     }
+    const exportName = releaseExport((request as { release?: unknown } | undefined)?.release);
     if (controls.signal?.aborted) failWith("cancelled");
     controls.signal?.addEventListener("abort", onAbort, { once: true });
     timer = setTimeout(() => controller.abort(new AcquisitionFailure("timeout")), timeoutMs);
@@ -553,14 +577,18 @@ export async function resolveRelease(
       if (!integrityMatches(integrity, archiveBytes)) failWith("integrity-mismatch");
     }
     const archive = await readPackageArchive(archiveBytes, signal);
-    const checked = verifyPackageRelease((path, limit, expected) => {
-      const bytes = archive.files.get(path);
-      if (bytes === undefined) return failWith("member-missing", path);
-      if (bytes.length > limit || (expected !== undefined && bytes.length !== expected)) {
-        failWith("member-length-mismatch", path);
-      }
-      return bytes;
-    }, signal);
+    const checked = verifyPackageRelease(
+      (path, limit, expected) => {
+        const bytes = archive.files.get(path);
+        if (bytes === undefined) return failWith("member-missing", path);
+        if (bytes.length > limit || (expected !== undefined && bytes.length !== expected)) {
+          failWith("member-length-mismatch", path);
+        }
+        return bytes;
+      },
+      signal,
+      exportName,
+    );
     if (signal.aborted) failWith(abortReason(signal) ?? "cancelled");
     const declared = new Set(
       checked.release.items.flatMap((item) => [
@@ -622,6 +650,7 @@ export async function readInstalledRelease(
     if (typeof sourceInput !== "string" || sourceInput.length > 128 || !ID.test(sourceInput)) {
       failWith("invalid-source-input");
     }
+    const exportName = releaseExport((request as { release?: unknown }).release);
     if (typeof root !== "string" || !isAbsolute(root)) failWith("invalid-root");
     let canonical: string;
     try {
@@ -634,6 +663,7 @@ export async function readInstalledRelease(
     const checked = verifyPackageRelease(
       (path, limit, expected) => readMember(canonical, path, limit, expected),
       signal,
+      exportName,
     );
     if (signal?.aborted) failWith("cancelled");
     if (checked.diagnostics.length > 0) {

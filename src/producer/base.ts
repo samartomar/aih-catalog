@@ -1,7 +1,7 @@
 import type { CatalogRelease, Json } from "../release/contracts.js";
 import { readRelease } from "../release/reader.js";
 import { refuse } from "./errors.js";
-import { RELEASE_PATH, sha256Hex } from "./generate.js";
+import { HOOK_RELEASE_PATH, RELEASE_PATH, sha256Hex } from "./generate.js";
 
 export type Record_ = { [key: string]: Json };
 
@@ -16,6 +16,8 @@ export interface BaseRelease {
   readonly sources: readonly Record_[];
   readonly items: readonly Record_[];
   readonly metadata?: Json;
+  /** The previously published 1.1 release document, validated, when the base carries one. */
+  readonly hookDocument?: Record_;
 }
 
 const asRecord = (value: Json | undefined): Record_ => value as Record_;
@@ -56,6 +58,41 @@ export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRe
       referenced.add(path);
     }
   }
+  let hookDocument: Record_ | undefined;
+  const hookBytes = files.get(HOOK_RELEASE_PATH);
+  if (hookBytes !== undefined) {
+    const hookRead = readRelease(hookBytes, { expectedSha256: sha256Hex(hookBytes) });
+    if (!hookRead.valid) {
+      return refuse("base-invalid", `the base ${HOOK_RELEASE_PATH} is not a valid release`, {
+        diagnostics: hookRead.diagnostics.map((d) => d.reason),
+      });
+    }
+    hookDocument = JSON.parse(hookBytes.toString("utf8")) as Record_;
+    referenced.add(HOOK_RELEASE_PATH);
+    for (const item of (hookDocument.items as Json[]).map(asRecord)) {
+      for (const member of memberList(item)) {
+        const path = member.path as string;
+        const bytes = files.get(path);
+        if (bytes === undefined) {
+          return refuse("base-member-missing", `${path} is declared but absent`, {
+            itemId: item.id,
+            path,
+          });
+        }
+        if (bytes.length !== member.byteLength || sha256Hex(bytes) !== member.sha256) {
+          return refuse(
+            "base-member-mismatch",
+            `${path} differs from its recorded hash or length`,
+            {
+              itemId: item.id,
+              path,
+            },
+          );
+        }
+        referenced.add(path);
+      }
+    }
+  }
   const orphans = [...files.keys()].filter((path) => !referenced.has(path)).sort();
   if (orphans.length > 0) {
     return refuse("base-orphan-file", `files not declared by the release: ${orphans.join(", ")}`, {
@@ -68,5 +105,6 @@ export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRe
     sources: (document.sources as Json[]).map(asRecord),
     items,
     ...(document.metadata === undefined ? {} : { metadata: document.metadata }),
+    ...(hookDocument === undefined ? {} : { hookDocument }),
   };
 }

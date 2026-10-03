@@ -9,9 +9,11 @@ import {
   documentBytes,
   type GeneratedItem,
   generateItem,
+  HOOK_RELEASE_PATH,
   RELEASE_PATH,
   sha256Hex,
 } from "./generate.js";
+import { assertHookSelectorContinuity } from "./hook-release.js";
 import type { SourceTree } from "./tree.js";
 
 export type ReportedState =
@@ -288,6 +290,21 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
   }
   const releaseBytes = documentBytes(document);
   put(RELEASE_PATH, releaseBytes);
+  if (base?.hookDocument !== undefined) {
+    // The 1.1 release is carried as published: its items and members are untouched and only
+    // the package identity it embeds follows this candidate's package.
+    const hookDocument: Record_ = {
+      ...base.hookDocument,
+      package: { name: input.package.name, version: input.package.version },
+    };
+    for (const item of (hookDocument.items as Json[]).map(asRecord)) {
+      for (const member of [asRecord(item.recipe), ...(item.materials as Json[]).map(asRecord)]) {
+        put(member.path as string, files.get(member.path as string) as Buffer);
+      }
+    }
+    put(HOOK_RELEASE_PATH, documentBytes(hookDocument));
+    assertHookSelectorContinuity(base.files, out);
+  }
 
   const checked = readRelease(releaseBytes, { expectedSha256: sha256Hex(releaseBytes) });
   if (!checked.valid) {

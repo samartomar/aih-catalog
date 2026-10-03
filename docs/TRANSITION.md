@@ -20,6 +20,8 @@ explicit dependencies and verified material closure. Focused tests cover release
 admission, configuration, selection and installed/archive acquisition. The packed
 consumer tools exercise public Core prepare/apply and browser imports.
 
+A separate 1.1 release (`@aihq/catalog/release-1.1.json`, format `urn:aihq:catalog:release:1.1.0`) carries Core recipe 1.1 items that register an owned client hook group; the 1.0 release and its item identities are unchanged. Its checks and consumer scenario are described in [the content contract](CATALOG-CONTENT.md#client-hook-items-release-11).
+
 The package ships only the new release entries and their material. Retained root
 exports, legacy JSON payloads and the CLI remain source for migration investigation.
 The targeted candidate producer ([docs/PRODUCER.md](PRODUCER.md)) is implemented:
