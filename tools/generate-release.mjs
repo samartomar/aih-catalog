@@ -2,20 +2,15 @@ import { createHash } from "node:crypto";
 import { mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  adapterNote,
-  BLOCK_ID,
-  CLIENTS,
-  CONTEXT_DIR,
-  END_MARKER,
-  mergedPointerContent,
-  ownedPointerDocument,
-  POINTERS,
-  behaviorCoreDoc,
-  ruleRouterDoc,
-  sharedBlockBody,
-  START_MARKER,
-} from "./context-content.mjs";
+// The authored project context has one renderer: the built, portable release module
+// that the Node helper prepareProjectContext also uses (npm run build:dist first).
+const renderer = await import(new URL("../dist/release/project-context.js", import.meta.url).href)
+  .catch((error) => {
+    throw new Error(
+      "generate-release: the built release module is missing; run npm run build:dist first",
+      { cause: error },
+    );
+  });
 
 /**
  * Generates the carried Catalog release (`urn:aihq:catalog:release:1.0.0`): the
@@ -29,6 +24,9 @@ import {
  * files, qualification, Scan or Workbench. Nothing is fetched or executed.
  *
  *   node tools/generate-release.mjs [--check] [catalog-root]
+ *
+ * The authored project context is rendered for the published default instruction
+ * directory (`ai-coding`) by the built renderer in dist/release/project-context.js.
  *
  * This is the seed generator for the carried donor snapshot. Once a targeted candidate
  * (tools/prepare-candidate.mjs) has advanced release/ beyond that snapshot, `--check`
@@ -116,284 +114,33 @@ function provenance(root, snapshot, entry) {
   return { revision: source.commit, skillPath: source.path, files, description };
 }
 
-const CONTEXT_SOURCE_ID = "aihq-project-context";
-const CONTEXT_ITEM_ID = "aihq.project-context";
-const CONTEXT_MATERIALS = `${OUTPUT_ROOT}/materials/aihq/project-context`;
-const DONOR_PROVENANCE = {
-  repository: "https://github.com/samartomar/ai-harness",
-  revision: "f5d5f84b9006b628778983dab56dd92dc8888156",
-};
+const {
+  CONTEXT_SOURCE,
+  DEFAULT_INSTRUCTION_DIRECTORY,
+  renderedItemSha256,
+  renderContextFamily,
+  reproducesAuthoredContext,
+} = renderer;
 
-const literalTarget = (segments) => ({
-  root: "project",
-  segments: segments.map((segment) => ({ literal: segment })),
-});
-
-function registerContextRecipe(put, itemId, bytes) {
-  const path = `${OUTPUT_ROOT}/recipes/${itemId}.json`;
-  put(path, bytes);
-  return {
-    id: itemId,
-    schema: "urn:aihq:core:recipe:1.0.0",
-    path,
-    sha256: sha256(bytes),
-    byteLength: bytes.length,
-  };
-}
-
-/**
- * The shared project-context item and its family: one file.write per pinned
- * context document, each with a file.sha256 check. Returns the item record and
- * registers its recipe/material bytes through `put`.
- */
-function contextItem(put) {
-  const documents = [
-    { id: "rule-router", target: [CONTEXT_DIR, "RULE_ROUTER.md"], text: ruleRouterDoc() },
-    {
-      id: "shared-block",
-      target: [CONTEXT_DIR, "adapters", "_shared-canonical-block.md"],
-      text: sharedBlockBody(),
-    },
-    {
-      id: "behavior-core",
-      target: [CONTEXT_DIR, "rules", "agent-behavior-core.md"],
-      text: behaviorCoreDoc(),
-    },
-  ];
-  const materials = documents
-    .map((doc) => {
-      const bytes = Buffer.from(doc.text, "utf8");
-      const path = `${CONTEXT_MATERIALS}/${doc.target.join("/")}`;
-      put(path, bytes);
-      return { id: doc.id, path, sha256: sha256(bytes), byteLength: bytes.length, target: doc.target };
-    })
-    .sort((a, b) => compare(a.id, b.id));
-  const recipeBytes = document({
-    schema: "urn:aihq:core:recipe:1.0.0",
-    id: CONTEXT_ITEM_ID,
-    description: `Deliver the shared project AI context under ${CONTEXT_DIR}/ (router, shared block source, behavior core).`,
-    inputs: {},
-    materials: materials.map(({ id, sha256: hash, byteLength }) => ({ id, sha256: hash, byteLength })),
-    targets: ["project"],
-    prerequisites: [],
-    operations: materials.map((member) => ({
-      id: `write-${member.id}`,
-      purpose: `Write the pinned ${member.target.join("/")}`,
-      kind: "file.write",
-      scope: "project",
-      target: literalTarget(member.target),
-      material: member.id,
-      requires: [],
-      checks: [`${member.id}-sha256`],
-    })),
-    checks: materials.map((member) => ({
-      id: `${member.id}-sha256`,
-      purpose: `The installed ${member.target.join("/")} has the pinned bytes`,
-      kind: "file.sha256",
-      target: literalTarget(member.target),
-      sha256: member.sha256,
-    })),
-  });
-  const recipeReference = registerContextRecipe(put, CONTEXT_ITEM_ID, recipeBytes);
-  return {
-    id: CONTEXT_ITEM_ID,
-    label: "Shared project AI context",
-    description: `Project-owned AI context (router, shared canonical block, behavior core) under ${CONTEXT_DIR}/.`,
-    kind: "project-context",
-    sourceIds: [CONTEXT_SOURCE_ID],
-    targets: [],
-    scopes: ["project"],
-    inputs: {},
-    recipe: recipeReference,
-    materials: materials.map(({ id, path, sha256: hash, byteLength }) => ({
-      id,
-      path,
-      sha256: hash,
-      byteLength,
-    })),
-    dependencies: { requires: [], optional: [], conflicts: [] },
-    metadata: { adaptedFrom: DONOR_PROVENANCE },
-  };
-}
-
-/**
- * One explicit owner per native client entry file. Merged entries use text.block
- * (user text outside the markers survives, and no whole-file check is claimed);
- * wholly canon-owned entry files use file.write with a pinned byte check.
- */
-function pointerItems(put) {
-  return POINTERS.map((pointer) => {
-    const itemId = `aihq.project-context-pointer.${pointer.key}`;
-    const common = {
-      schema: "urn:aihq:core:recipe:1.0.0",
-      id: itemId,
-      inputs: {},
-      targets: ["project"],
-      prerequisites: [],
-    };
-    let materials = [];
-    let recipe;
-    if (pointer.delivery === "merge") {
-      recipe = {
-        ...common,
-        description: `Merge the shared AI context block into ${pointer.path.join("/")}, preserving text outside the markers.`,
-        materials: [],
-        operations: [
-          {
-            id: "merge-context-block",
-            purpose: `Add or refresh the shared context block in ${pointer.path.join("/")}`,
-            kind: "text.block",
-            scope: "project",
-            target: literalTarget(pointer.path),
-            blockId: BLOCK_ID,
-            startMarker: START_MARKER,
-            endMarker: END_MARKER,
-            action: "set",
-            content: { literal: mergedPointerContent(pointer.key) },
-            requires: [],
-            checks: [],
-          },
-        ],
-        checks: [],
-      };
-    } else {
-      const bytes = Buffer.from(ownedPointerDocument(pointer.key), "utf8");
-      const path = `${CONTEXT_MATERIALS}/pointers/${pointer.path.join("/")}`;
-      put(path, bytes);
-      materials = [{ id: "pointer", path, sha256: sha256(bytes), byteLength: bytes.length }];
-      recipe = {
-        ...common,
-        description: `Deliver the canon-owned ${pointer.path.join("/")} entry file with its activation frontmatter.`,
-        materials: materials.map(({ id, sha256: hash, byteLength }) => ({
-          id,
-          sha256: hash,
-          byteLength,
-        })),
-        operations: [
-          {
-            id: "write-pointer",
-            purpose: `Write the pinned ${pointer.path.join("/")}`,
-            kind: "file.write",
-            scope: "project",
-            target: literalTarget(pointer.path),
-            material: "pointer",
-            requires: [],
-            checks: ["pointer-sha256"],
-          },
-        ],
-        checks: [
-          {
-            id: "pointer-sha256",
-            purpose: `The installed ${pointer.path.join("/")} has the pinned bytes`,
-            kind: "file.sha256",
-            target: literalTarget(pointer.path),
-            sha256: materials[0].sha256,
-          },
-        ],
-      };
-    }
-    const recipeBytes = document(recipe);
-    const recipeReference = registerContextRecipe(put, itemId, recipeBytes);
-    return {
-      id: itemId,
-      label: pointer.label,
-      description: recipe.description,
-      kind: "client-entry-pointer",
-      sourceIds: [CONTEXT_SOURCE_ID],
-      targets: [],
-      scopes: ["project"],
-      inputs: {},
-      recipe: recipeReference,
-      materials,
-      dependencies: { requires: [{ itemId: CONTEXT_ITEM_ID }], optional: [], conflicts: [] },
-      metadata: { adaptedFrom: DONOR_PROVENANCE },
-    };
-  });
-}
-
-/** The per-client selection surface: the adapter note plus explicit pointer dependencies. */
-function clientItems(put) {
-  return CLIENTS.map((client) => {
-    const itemId = `aihq.client.${client.id}`;
-    const target = [CONTEXT_DIR, "adapters", `${client.id}.md`];
-    const bytes = Buffer.from(adapterNote(client), "utf8");
-    const path = `${CONTEXT_MATERIALS}/${target.join("/")}`;
-    put(path, bytes);
-    const materials = [{ id: "adapter-note", path, sha256: sha256(bytes), byteLength: bytes.length }];
-    const recipeBytes = document({
-      schema: "urn:aihq:core:recipe:1.0.0",
-      id: itemId,
-      description: `Deliver the ${client.label} adapter note under ${CONTEXT_DIR}/adapters/.`,
-      inputs: {},
-      materials: materials.map(({ id, sha256: hash, byteLength }) => ({
-        id,
-        sha256: hash,
-        byteLength,
-      })),
-      targets: ["project"],
-      prerequisites: [],
-      operations: [
-        {
-          id: "write-adapter-note",
-          purpose: `Write the pinned ${target.join("/")}`,
-          kind: "file.write",
-          scope: "project",
-          target: literalTarget(target),
-          material: "adapter-note",
-          requires: [],
-          checks: ["adapter-note-sha256"],
-        },
-      ],
-      checks: [
-        {
-          id: "adapter-note-sha256",
-          purpose: `The installed ${target.join("/")} has the pinned bytes`,
-          kind: "file.sha256",
-          target: literalTarget(target),
-          sha256: materials[0].sha256,
-        },
-      ],
-    });
-    const recipeReference = registerContextRecipe(put, itemId, recipeBytes);
-    return {
-      id: itemId,
-      label: `${client.label} context wiring`,
-      description: `${client.label} adapter note and its native entry pointer(s): ${client.pointers.join(", ")}.`,
-      kind: "client-adapter",
-      sourceIds: [CONTEXT_SOURCE_ID],
-      targets: [],
-      scopes: ["project"],
-      inputs: {},
-      recipe: recipeReference,
-      materials,
-      dependencies: {
-        requires: client.pointers.map((key) => ({ itemId: `aihq.project-context-pointer.${key}` })),
-        optional: [],
-        conflicts: [],
-      },
-      metadata: { adaptedFrom: DONOR_PROVENANCE },
-    };
-  });
-}
-
+/** The authored context family for the published default directory, its bytes registered through `put`. */
 function contextFamily(put) {
-  return [contextItem(put), ...pointerItems(put), ...clientItems(put)]
-    .sort((a, b) => compare(a.id, b.id));
+  const family = renderContextFamily(DEFAULT_INSTRUCTION_DIRECTORY);
+  for (const [path, bytes] of family.files) put(path, Buffer.from(bytes));
+  return family.items;
 }
 
 /** Authored content remains reproducible independently of the upstream pin. */
 function checkContextContent(root) {
   const files = new Map();
-  const expected = contextFamily((path, bytes) => files.set(path, bytes));
+  contextFamily((path, bytes) => files.set(path, bytes));
   const release = readJson(root, RELEASE_PATH);
-  const actual = (release.items ?? [])
-    .filter((item) => item.sourceIds?.includes(CONTEXT_SOURCE_ID))
-    .sort((a, b) => compare(a.id, b.id));
-  if (canonical(actual) !== canonical(expected)) fail("authored context records are stale");
-  const source = (release.sources ?? []).find((item) => item.id === CONTEXT_SOURCE_ID);
-  if (canonical(source) !== canonical({ id: CONTEXT_SOURCE_ID, origin: { kind: "authored" } })) {
-    fail("authored context source is stale");
-  }
+  // The same reproduction check the Node helper applies to a source release, over
+  // the committed records with the item hashes a reader would compute for them.
+  const view = {
+    items: (release.items ?? []).map((item) => ({ ...item, itemSha256: renderedItemSha256(item) })),
+    sources: release.sources ?? [],
+  };
+  if (!reproducesAuthoredContext(view)) fail("authored context records or source are stale");
   for (const [path, bytes] of files) {
     if (!readFileSync(resolve(root, path)).equals(bytes)) fail(`${path} is stale`);
   }
@@ -516,7 +263,7 @@ export function generateRelease(root) {
     schema: "urn:aihq:catalog:release:1.0.0",
     package: { name: pkg.name, version: pkg.version },
     sources: [
-      { id: CONTEXT_SOURCE_ID, origin: { kind: "authored" } },
+      { id: CONTEXT_SOURCE.id, origin: { kind: CONTEXT_SOURCE.origin.kind } },
       {
         id: SOURCE_ID,
         origin: { kind: "git", repository: `https://github.com/${REPOSITORY}`, revision },

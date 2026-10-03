@@ -17,7 +17,7 @@ and [CONTRIBUTING.md](CONTRIBUTING.md) for contributor checks.
 | --- | --- | --- |
 | `@aihq/catalog/contracts` | Public types, format identity and support declaration | Portable |
 | `@aihq/catalog/reader` | Read, browse, configure and validate explicit selections | Portable |
-| `@aihq/catalog/node` | Read an installed root or resolve an exact archive/registry version | Node 24.15–24.x |
+| `@aihq/catalog/node` | Read an installed root, resolve an exact archive/registry version, or prepare the project context for a chosen instruction directory | Node 24.15–24.x |
 | `@aihq/catalog/release.json` | Canonical release inventory | Data |
 | `@aihq/catalog/schemas/release/1.0.0.json` | Release structural schema | Data |
 | `@aihq/catalog/package.json` | Installed package identity and location | Data |
@@ -57,10 +57,17 @@ Select required items explicitly, then call `validateSelectionSet` and copy its
 or silently selects optional suggestions. See [the execution example](docs/CATALOG-CONTENT.md#explicit-dependencies-and-core-handoff).
 
 The `aihq.project-context` family supplies shared project AI context
-(`ai-coding/`), native entry pointers and adapter notes for the supported
-client baseline as ordinary selectable items with the same contracts; see
-[the context content contract](docs/CONTEXT-CONTENT.md). Delivering a client
-entry file does not prove the client loads it.
+(under `ai-coding/` in the published release), native entry pointers and adapter
+notes for the supported client baseline as ordinary selectable items with the same
+contracts; see [the context content contract](docs/CONTEXT-CONTENT.md). A project
+that wants another instruction directory calls `prepareProjectContext` from
+`@aihq/catalog/node` with that required directory, a caller-owned staging directory
+and the installed release's `materialRoots`. It writes a derived release with its
+own identities to the staging directory and returns the checked release, a local
+material source and its `materialRoots` entry for the ordinary configure, validate
+and Core prepare/apply flow. Output overlapping the installed package is refused, and
+no release is regenerated. Delivering a client entry file does not prove the
+client loads it.
 
 ## Prepare a content candidate
 
@@ -89,7 +96,9 @@ with lifecycle scripts disabled, and runs public prepare/apply in disposable roo
 It checks local/archive identity, explicit dependencies, default origin, applied
 material hashes and refusal after selected material changes. Supply a reviewed Core
 artifact; the check does not choose a moving registry version. Pass a prepared Catalog tarball as a second argument to check that exact
-candidate instead of packing this checkout.
+candidate instead of packing this checkout. Add `--instruction-directory <dir>` to
+prepare the project context for that directory through the installed package's
+`prepareProjectContext` and run the context scenario against the derived release.
 
 For a real browser check, pack Catalog and run
 `node tools/verify-portable-browser.mjs /absolute/path/to/catalog.tgz`.

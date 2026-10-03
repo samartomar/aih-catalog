@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
@@ -36,6 +36,9 @@ function carried() {
 
 describe("carried release", () => {
   it("is exactly what the generator produces from committed donor inputs", () => {
+    // The generator renders the authored context through the built release module.
+    if (!existsSync(resolve(root, "dist/release/project-context.js")))
+      throw new Error("run npm run build:dist first");
     const output = execFileSync(process.execPath, ["tools/generate-release.mjs", "--check"], {
       cwd: root,
       encoding: "utf8",

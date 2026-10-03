@@ -12,17 +12,22 @@ import {
   constants,
   fstatSync,
   lstatSync,
+  mkdirSync,
   openSync,
+  readdirSync,
   readSync,
   realpathSync,
+  rmSync,
   statSync,
+  writeFileSync,
 } from "node:fs";
-import { isAbsolute, join, relative, sep } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { ARCHIVE_LIMITS, readPackageArchive } from "./archive.js";
 import type { CatalogDiagnostic, CatalogRelease } from "./contracts.js";
 import { coreArchiveUrl, ID, isRecord, safeMemberPath } from "./document.js";
 import { AcquisitionFailure } from "./node-errors.js";
-import { readRelease } from "./reader.js";
+import { DERIVED_MANIFEST_PATH, deriveProjectContextRelease } from "./project-context.js";
+import { isCheckedRelease, readRelease } from "./reader.js";
 import { checkRecipeAgreement } from "./recipe-agreement.js";
 
 const PACKAGE_JSON_MAX_BYTES = 1024 * 1024;
@@ -59,12 +64,26 @@ const failWith = (reason: string, path?: string): never => {
 export const sha256 = (bytes: Uint8Array): string =>
   createHash("sha256").update(bytes).digest("hex");
 
-export function diagnostic(reason: string, path?: string, itemId?: string): CatalogDiagnostic {
-  return Object.freeze({
+/** A frozen blocking INPUT_INVALID diagnostic with optional path and itemId. */
+const frozenDiagnostic = (fields: {
+  reason: string;
+  message: string;
+  path?: string;
+  itemId?: string;
+}): CatalogDiagnostic =>
+  Object.freeze({
     code: "INPUT_INVALID",
+    reason: fields.reason,
+    message: fields.message,
+    blocking: true,
+    ...(fields.path === undefined ? {} : { path: fields.path }),
+    ...(fields.itemId === undefined ? {} : { itemId: fields.itemId }),
+  });
+
+export function diagnostic(reason: string, path?: string, itemId?: string): CatalogDiagnostic {
+  return frozenDiagnostic({
     reason,
     message: MESSAGES[reason] ?? "The package could not be read under the release contract.",
-    blocking: true,
     ...(path === undefined ? {} : { path }),
     ...(itemId === undefined ? {} : { itemId }),
   });
@@ -99,7 +118,36 @@ const MESSAGES: Record<string, string> = {
   "archive-duplicate-entry":
     "The archive names one member more than once or by a case-folded duplicate.",
   "archive-executable-member": "The archive has an executable member no release item declares.",
+  "release-unchecked":
+    "Expected a release view returned by readRelease, readInstalledRelease or resolveRelease.",
+  "source-input-conflict":
+    "The derived material source input already names a source material root.",
+  "invalid-material-roots":
+    "Source material roots are required: identifiers mapped to absolute paths (an empty map when the source has no local roots).",
+  "invalid-output-directory": "Expected an absolute output directory.",
+  "output-parent-unavailable": "The output directory's parent is not an existing directory.",
+  "unsafe-output-directory": "The output path is not a plain directory (a file, link or junction).",
+  "output-not-empty": "The output directory exists and is not empty.",
+  "output-overlaps-source": "The output directory overlaps a source material root.",
+  "output-write-failed": "The derived release could not be written to the output directory.",
+  "output-cleanup-failed":
+    "Files this call created in the output directory could not be removed after a failure.",
 };
+
+/** True when `child` lies strictly inside `parent`. */
+const within = (parent: string, child: string): boolean => {
+  const rel = relative(parent, child);
+  return rel !== "" && rel !== ".." && !rel.startsWith(`..${sep}`) && !isAbsolute(rel);
+};
+/** True when `child` is `parent` or lies inside it. */
+const contains = (parent: string, child: string): boolean =>
+  relative(parent, child) === "" || within(parent, child);
+
+/**
+ * The installed package root each release view from `readInstalledRelease` was read
+ * from, so project-context output never lands inside it whatever roots a caller passes.
+ */
+const installedRoots = new WeakMap<CatalogRelease, string>();
 
 /**
  * Reads one member under a canonical root: every directory is a real directory
@@ -120,9 +168,7 @@ function readMember(root: string, path: string, limit: number, expected?: number
     failWith("member-missing", path);
   }
   const file = join(root, ...segments);
-  const rel = relative(root, file);
-  if (!rel || rel === ".." || rel.startsWith(`..${sep}`) || isAbsolute(rel))
-    failWith("unsafe-member", path);
+  if (!within(root, file)) failWith("unsafe-member", path);
   let named: ReturnType<typeof lstatSync>;
   try {
     named = lstatSync(file);
@@ -571,8 +617,7 @@ export async function readInstalledRelease(
   request: InstalledReleaseRequest,
 ): Promise<InstalledReleaseResult> {
   try {
-    const { root, signal } = (request ?? {}) as InstalledReleaseRequest;
-    const sourceInput = request?.sourceInput ?? "catalog";
+    const { root, sourceInput = "catalog", signal } = (request ?? {}) as InstalledReleaseRequest;
     if (signal?.aborted) failWith("cancelled");
     if (typeof sourceInput !== "string" || sourceInput.length > 128 || !ID.test(sourceInput)) {
       failWith("invalid-source-input");
@@ -594,6 +639,7 @@ export async function readInstalledRelease(
     if (checked.diagnostics.length > 0) {
       return Object.freeze({ valid: false, diagnostics: Object.freeze(checked.diagnostics) });
     }
+    installedRoots.set(checked.release, canonical);
     return Object.freeze({
       valid: true,
       release: checked.release,
@@ -609,5 +655,316 @@ export async function readInstalledRelease(
     });
   } catch (error) {
     return failureResult(error);
+  }
+}
+
+const DERIVED_SOURCE_INPUT = "catalog-project-context";
+
+export interface ProjectContextRequest {
+  /** The checked source release, for example from `readInstalledRelease`. */
+  readonly release: CatalogRelease;
+  /** Project-relative directory that receives the shared context, such as `.ai/context`. */
+  readonly instructionDirectory: string;
+  /**
+   * Absolute, caller-owned staging directory: absent (its parent exists) or an existing
+   * empty plain directory. Keep it until Core prepare and apply complete.
+   */
+  readonly outputDirectory: string;
+  /**
+   * The source release's Core material roots, such as `installed.materialRoots`.
+   * Required: the output must not overlap any of them. Pass `{}` explicitly only for
+   * a source without local roots, such as an archive resolved by `resolveRelease`.
+   */
+  readonly sourceMaterialRoots: Readonly<Record<string, string>>;
+  /** Name of the Core `controls.materialRoots` entry; defaults to `catalog-project-context`. */
+  readonly sourceInput?: string;
+  /** Checked once before any work; preparation is synchronous and cannot stop midway. */
+  readonly signal?: AbortSignal;
+}
+
+export interface PreparedProjectContextResult {
+  readonly valid: boolean;
+  /** The checked derived release, read back from the bytes written under the output directory. */
+  readonly release?: CatalogRelease;
+  readonly source?: { readonly kind: "local"; readonly input: string };
+  /** Merge with the source's material roots into Core `controls.materialRoots`. */
+  readonly materialRoots?: Readonly<Record<string, string>>;
+  /** Describes the derivation. It is not an origin or publisher claim for the derived bytes. */
+  readonly provenance?: {
+    readonly kind: "derived";
+    readonly from: {
+      readonly package: { readonly name: string; readonly version: string };
+      readonly manifestSha256: string;
+    };
+    readonly renderer: string;
+    readonly instructionDirectory: string;
+    readonly manifestPath: string;
+    readonly manifestSha256: string;
+  };
+  readonly diagnostics: readonly CatalogDiagnostic[];
+}
+
+/** A frozen copy of the source material roots: identifiers mapped to absolute paths. */
+function sourceRoots(value: unknown): Readonly<Record<string, string>> {
+  const at = "/sourceMaterialRoots";
+  if (!isRecord(value)) {
+    return failWith("invalid-material-roots", at);
+  }
+  const copy: Record<string, string> = {};
+  for (const [name, path] of Object.entries(value)) {
+    if (name.length > 128 || !ID.test(name) || typeof path !== "string" || !isAbsolute(path)) {
+      return failWith("invalid-material-roots", at);
+    }
+    copy[name] = path;
+  }
+  return Object.freeze(copy);
+}
+
+/** True when a realpath failure means the path is absent, so resolution may walk up. */
+const missingPath = (error: unknown): boolean => {
+  const code = (error as NodeJS.ErrnoException).code;
+  return code === "ENOENT" || code === "ENOTDIR";
+};
+
+/**
+ * `path` through its nearest existing ancestor's real path (links and short names
+ * resolved). Walks up only while a component is absent; any other resolution error
+ * (a permission failure, a link loop, …) fails closed with `reason` at `at` instead
+ * of being treated as absent.
+ */
+function canonicalPath(path: string, reason: string, at: string): string {
+  const rest: string[] = [];
+  let current = resolve(path);
+  for (;;) {
+    try {
+      return join(realpathSync.native(current), ...rest.reverse());
+    } catch (error) {
+      if (!missingPath(error)) failWith(reason, at);
+      const parent = dirname(current);
+      if (parent === current) return resolve(path);
+      rest.push(relative(parent, current));
+      current = parent;
+    }
+  }
+}
+
+/**
+ * Checks the requested output directory and returns its canonical path: absolute,
+ * absent with an existing parent or an existing empty plain directory, and disjoint
+ * from every source material root.
+ */
+function outputRoot(
+  outputDirectory: unknown,
+  roots: readonly string[],
+): { path: string; existed: boolean } {
+  const at = "/outputDirectory";
+  if (typeof outputDirectory !== "string" || !isAbsolute(outputDirectory)) {
+    return failWith("invalid-output-directory", at);
+  }
+  const target = resolve(outputDirectory);
+  let named: ReturnType<typeof lstatSync> | undefined;
+  try {
+    named = lstatSync(target);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+      return failWith("unsafe-output-directory", at);
+    }
+  }
+  let path: string;
+  if (named !== undefined) {
+    if (named.isSymbolicLink() || !named.isDirectory()) {
+      return failWith("unsafe-output-directory", at);
+    }
+    let entries: number;
+    try {
+      entries = readdirSync(target).length;
+      path = realpathSync.native(target);
+    } catch {
+      return failWith("unsafe-output-directory", at);
+    }
+    if (entries > 0) return failWith("output-not-empty", at);
+  } else {
+    let parent: string;
+    try {
+      parent = realpathSync.native(dirname(target));
+      if (!statSync(parent).isDirectory()) return failWith("output-parent-unavailable", at);
+    } catch (error) {
+      if (error instanceof AcquisitionFailure) throw error;
+      return failWith("output-parent-unavailable", at);
+    }
+    path = join(parent, relative(dirname(target), target));
+  }
+  for (const root of roots) {
+    const source = canonicalPath(root, "invalid-material-roots", "/sourceMaterialRoots");
+    if (contains(source, path) || contains(path, source)) {
+      return failWith("output-overlaps-source", at);
+    }
+  }
+  return { path, existed: named !== undefined };
+}
+
+/**
+ * Writes every file under the output, reporting each directory this call creates.
+ * Every derived file lives under one top-level directory (`release/`) and `files`
+ * is in path order, so in an existing output the first path reported is that
+ * directory and removing it removes everything this call made inside the output.
+ */
+function writeDerived(
+  output: { path: string; existed: boolean },
+  files: ReadonlyMap<string, Uint8Array>,
+  onCreated: (path: string) => void,
+): void {
+  if (!output.existed) {
+    mkdirSync(output.path);
+    onCreated(output.path);
+  }
+  const made = new Set<string>();
+  for (const [path, bytes] of files) {
+    const segments = path.split("/");
+    let current = output.path;
+    for (const segment of segments.slice(0, -1)) {
+      current = join(current, segment);
+      if (made.has(current)) continue;
+      mkdirSync(current);
+      made.add(current);
+      // In an existing empty output, only the subtree this call creates is removed.
+      onCreated(current);
+    }
+    writeFileSync(join(current, segments[segments.length - 1] as string), bytes, { flag: "wx" });
+  }
+}
+
+/** Removes what this call created; a failure becomes a diagnostic, never an exception. */
+function removeCreated(path: string): CatalogDiagnostic | undefined {
+  try {
+    rmSync(path, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+    return undefined;
+  } catch {
+    return diagnostic("output-cleanup-failed", "/outputDirectory");
+  }
+}
+
+/**
+ * Prepares the authored project context for a consuming project's chosen
+ * instruction directory, as a derived release in caller-owned staging output.
+ *
+ * `deriveProjectContextRelease` renders the derived release (only the context family
+ * for that directory and the authored source record, with `metadata.derived`); this
+ * adapter checks the output directory, writes the bytes, reads them back and returns
+ * the checked release with its local material source. Configure its items with that
+ * source and merge `materialRoots` into Core's controls; Core captures recipe
+ * identities from those exact bytes.
+ *
+ * Refuses before writing: an invalid directory, a source whose authored context this
+ * renderer does not reproduce, missing source material roots, and an output
+ * that is unsafe, non-empty or overlaps a source root. Writes only under
+ * `outputDirectory` and on failure removes only what it created. Deterministic for
+ * the same source release, renderer and directory. Refusals, write and cleanup
+ * failures are returned as diagnostics.
+ */
+export async function prepareProjectContext(
+  request: ProjectContextRequest,
+): Promise<PreparedProjectContextResult> {
+  // What this call created and removes on failure: the output itself, or release/ in it.
+  let created: string | undefined;
+  try {
+    const {
+      release,
+      instructionDirectory,
+      outputDirectory,
+      sourceMaterialRoots,
+      sourceInput = DERIVED_SOURCE_INPUT,
+      signal,
+    } = (request ?? {}) as ProjectContextRequest;
+    // The work below is synchronous and bounded (one fixed family), so a signal can
+    // only take effect before it starts.
+    if (signal?.aborted) return failWith("cancelled");
+    if (!isCheckedRelease(release)) return failWith("release-unchecked", "/release");
+    if (typeof sourceInput !== "string" || sourceInput.length > 128 || !ID.test(sourceInput)) {
+      return failWith("invalid-source-input", "/sourceInput");
+    }
+    const roots = sourceRoots(sourceMaterialRoots);
+    if (Object.hasOwn(roots, sourceInput)) {
+      return failWith("source-input-conflict", "/sourceInput");
+    }
+    const derived = deriveProjectContextRelease(release, instructionDirectory);
+    if (!derived.valid) {
+      throw Object.assign(new AcquisitionFailure(derived.problems[0]?.reason ?? "invalid"), {
+        diagnostics: derived.problems.map((problem) =>
+          frozenDiagnostic({
+            reason: problem.reason,
+            message: problem.message,
+            path: problem.path,
+          }),
+        ),
+      });
+    }
+    const { files, manifest, derivation } = derived.derived;
+
+    const installedRoot = installedRoots.get(release);
+    // The installed root is checked beside every caller root, never keyed among them.
+    const protectedRoots = Object.values(roots);
+    if (installedRoot !== undefined) protectedRoots.push(installedRoot);
+    const output = outputRoot(outputDirectory, protectedRoots);
+    try {
+      writeDerived(output, files, (path) => {
+        // The first path reported roots everything this call makes: the output
+        // itself, or release/ inside an existing output (see writeDerived).
+        created ??= path;
+      });
+    } catch (error) {
+      if (created === undefined && (error as NodeJS.ErrnoException).code === "EEXIST") {
+        return failWith("output-not-empty", "/outputDirectory");
+      }
+      return failWith("output-write-failed", "/outputDirectory");
+    }
+
+    // The result describes the bytes actually written, read back and verified.
+    let canonical: string;
+    try {
+      canonical = realpathSync.native(output.path);
+    } catch {
+      return failWith("output-write-failed", "/outputDirectory");
+    }
+    const descriptor = new TextEncoder().encode(
+      JSON.stringify({
+        ...derivation.from.package,
+        exports: { "./release.json": `./${DERIVED_MANIFEST_PATH}` },
+      }),
+    );
+    const checked = verifyPackageRelease((path, limit, expected) =>
+      path === "package.json" ? descriptor : readMember(canonical, path, limit, expected),
+    );
+    if (checked.diagnostics.length > 0) {
+      throw Object.assign(new AcquisitionFailure("output-write-failed"), {
+        diagnostics: checked.diagnostics,
+      });
+    }
+    if (checked.manifestSha256 !== sha256(manifest)) {
+      return failWith("output-write-failed", "/outputDirectory");
+    }
+    return Object.freeze({
+      valid: true,
+      release: checked.release,
+      source: Object.freeze({ kind: "local", input: sourceInput }),
+      materialRoots: Object.freeze({ [sourceInput]: canonical }),
+      provenance: Object.freeze({
+        kind: "derived",
+        from: derivation.from,
+        renderer: derivation.renderer,
+        instructionDirectory: derivation.instructionDirectory,
+        manifestPath: DERIVED_MANIFEST_PATH,
+        manifestSha256: checked.manifestSha256,
+      }),
+      diagnostics: Object.freeze([]),
+    });
+  } catch (error) {
+    const cleanup = created === undefined ? undefined : removeCreated(created);
+    const result = failureResult(error);
+    if (cleanup === undefined) return result;
+    return Object.freeze({
+      valid: false,
+      diagnostics: Object.freeze([...result.diagnostics, cleanup]),
+    });
   }
 }

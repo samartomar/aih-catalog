@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+- Add `prepareProjectContext` to `@aihq/catalog/node` so a consuming project can
+  choose the directory that receives the shared project context (the published
+  release uses `ai-coding`). See docs/CONTEXT-CONTENT.md.
+  - The caller supplies the required instruction directory, a caller-owned staging
+    directory and the installed release's material roots. It receives a derived
+    release of the context family rendered for that directory, with a local material
+    source and `materialRoots` entry for configureItem, validateSelectionSet and Core
+    prepare/apply.
+  - Every context target, material path, description and router, entry-pointer and
+    adapter reference follows the directory. Item IDs do not change.
+  - The derived release always has its own manifest identity; its recipe and material
+    identities follow the derived bytes and equal the published ones only for
+    `ai-coding`. `metadata.derived` records the source release, renderer and
+    directory; it is not an origin or publisher claim, and nothing authenticates the
+    derived bytes.
+  - Unsafe, `.git`, non-portable and entry-file-colliding directories, directories in
+    a natively loaded rule directory (`.cursor/rules`, `.kiro/steering`), a source
+    the renderer does not reproduce, missing material roots, and unsafe, non-empty or
+    overlapping output are refused as diagnostics.
+  - The installed package and the published release bytes are unchanged, and no
+    existing project directory is moved.
+  - The context renderer moved into the internal release module, and
+    `npm run generate:release` builds it first. `tools/verify-core-consumer.mjs
+    --instruction-directory <dir>` runs the packed consumer through the helper.
 - Validate Catalog-authored content in whole-package integrity: new
   `authored-references` and `authored-placeholders` checks resolve internal links,
   Kiro file references and path-like inline code within the content delivered by the

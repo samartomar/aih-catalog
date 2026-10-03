@@ -272,6 +272,8 @@ describe("declaration", () => {
       return refusal(() => parseDeclaration(mutate(value))).reason;
     };
     expect(bad((v) => ({ ...v, extra: true }))).toBe("declaration-invalid");
+    // The instruction directory is chosen by consuming projects, not by the declaration.
+    expect(bad((v) => ({ ...v, instructionDirectory: ".ai/context" }))).toBe("declaration-invalid");
     expect(bad((v) => ({ ...v, items: [{ ...v.items[0], requires: ["fx.ghost"] }] }))).toBe(
       "declaration-invalid",
     );
