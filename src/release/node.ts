@@ -732,7 +732,7 @@ function canonicalPath(path: string): string {
  */
 function outputRoot(
   outputDirectory: unknown,
-  roots: Readonly<Record<string, string>>,
+  roots: readonly string[],
 ): { path: string; existed: boolean } {
   const at = "/outputDirectory";
   if (typeof outputDirectory !== "string" || !isAbsolute(outputDirectory)) {
@@ -771,7 +771,7 @@ function outputRoot(
     }
     path = join(parent, relative(dirname(target), target));
   }
-  for (const root of Object.values(roots)) {
+  for (const root of roots) {
     const source = canonicalPath(root);
     if (contains(source, path) || contains(path, source)) {
       return failWith("output-overlaps-source", at);
@@ -871,12 +871,10 @@ export async function prepareProjectContext(
     const { files, manifest, derivation } = derived.derived;
 
     const installedRoot = installedRoots.get(release);
-    const output = outputRoot(
-      outputDirectory,
-      installedRoot === undefined
-        ? roots
-        : { ...roots, [`${sourceInput}-installed`]: installedRoot },
-    );
+    // The installed root is checked beside every caller root, never keyed among them.
+    const protectedRoots = Object.values(roots);
+    if (installedRoot !== undefined) protectedRoots.push(installedRoot);
+    const output = outputRoot(outputDirectory, protectedRoots);
     try {
       writeDerived(output, files, (path) => {
         created ??= path;

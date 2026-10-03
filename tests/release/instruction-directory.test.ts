@@ -624,7 +624,11 @@ describe("prepareProjectContext refusals", () => {
   it("still refuses output inside an installed root when the roots map omits it", async () => {
     const from = await source();
     const before = digest(tree(from.root));
-    const omitting: Record<string, string>[] = [{}, { other: output() }];
+    const omitting: Record<string, string>[] = [
+      {},
+      { other: output() },
+      { "catalog-project-context-installed": output() },
+    ];
     for (const sourceMaterialRoots of omitting) {
       const out = join(from.root, "staging");
       const result = await prepareProjectContext({
@@ -638,6 +642,21 @@ describe("prepareProjectContext refusals", () => {
       expect(existsSync(out)).toBe(false);
     }
     expect(digest(tree(from.root))).toEqual(before);
+  });
+
+  it("checks every caller root beside the installed root", async () => {
+    const from = await source();
+    const other = output();
+    mkdirSync(other);
+    const out = join(other, "staging");
+    const result = await prepareProjectContext({
+      release: from.release,
+      instructionDirectory: ".ai/context",
+      outputDirectory: out,
+      sourceMaterialRoots: { "catalog-project-context-installed": other },
+    });
+    expect(reasons(result)).toEqual(["output-overlaps-source"]);
+    expect(existsSync(out)).toBe(false);
   });
 
   it("requires the map of source material roots", async () => {
