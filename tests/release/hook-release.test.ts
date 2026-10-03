@@ -124,10 +124,13 @@ describe("carried hook release 1.1", () => {
     expect(blocked.status).toBe(2);
     expect(blocked.stderr).toContain(".env");
     expect(run(edit("C:\\work\\app\\.env.local")).status).toBe(2);
+    expect(run(edit("C:\\work\\app\\.ENV")).status).toBe(2);
+    expect(run(edit("C:\\work\\app\\.ENV.Local")).status).toBe(2);
     expect(
       run({ tool_name: "Write", tool_input: { file_path: "/work/app/.env.production" } }).status,
     ).toBe(2);
     expect(run(edit("/work/app/.env.example")).status).toBe(0);
+    expect(run(edit("C:\\work\\app\\.ENV.EXAMPLE")).status).toBe(0);
     expect(run(edit("/work/app/src/environment.ts")).status).toBe(0);
     expect(run({ tool_name: "Bash", tool_input: { command: "ls" } }).status).toBe(0);
     expect(spawnSync(process.execPath, [script], { input: "{", encoding: "utf8" }).status).toBe(2);

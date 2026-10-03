@@ -43,8 +43,9 @@ if (payload?.tool_name === "Edit" || payload?.tool_name === "Write") {
     process.exit(2);
   }
   const name = path.replaceAll("\\\\", "/").split("/").at(-1);
-  if (name && /^\\.env(?:\\..+)?$/.test(name) &&
-      ![".env.example", ".env.sample", ".env.template"].includes(name)) {
+  const normalizedName = name?.toLowerCase();
+  if (normalizedName && /^\\.env(?:\\..+)?$/.test(normalizedName) &&
+      ![".env.example", ".env.sample", ".env.template"].includes(normalizedName)) {
     console.error("Blocked by AIHQ: " + name + " is a local environment file. Ask the user to change it.");
     process.exit(2);
   }
