@@ -333,13 +333,23 @@ const customDirectory = DIR !== DEFAULT_DIR;
 const familyItems = listItems(contextRelease).filter(item => item.sourceIds.includes(CONTEXT_SOURCE_ID));
 const familyOf = (kind) => familyItems.filter(item => item.kind === kind);
 const CLIENT_KEYS = familyOf("client-adapter").map(item => item.id.slice("aihq.client.".length));
+// A requested directory may itself contain the default name. Remove only the
+// complete requested reference before checking for a stale default reference.
+const assertNoStaleDefault = (value, label) =>
+  assert(!value.replaceAll(DIR, "<instruction-directory>").includes(DEFAULT_DIR), label);
 if (customDirectory) {
   for (const item of familyItems) {
-    assert(!JSON.stringify(item).includes(DEFAULT_DIR), item.id);
+    const publishedItem = getItem(installed.release, item.id).item;
+    const publishedRecipe = JSON.parse(readFileSync(join(root, publishedItem.recipe.path), "utf8"));
+    const selectedRecipe = JSON.parse(readFileSync(join(contextRoot, item.recipe.path), "utf8"));
+    const targets = recipe => recipe.operations.map(op => op.target.segments.map(segment => segment.literal).join("/"));
+    assert.deepEqual(targets(selectedRecipe), targets(publishedRecipe).map(target =>
+      target.startsWith(DEFAULT_DIR + "/") ? DIR + target.slice(DEFAULT_DIR.length) : target), item.id);
     for (const member of [item.recipe, ...item.materials]) {
-      assert(!member.path.includes(DEFAULT_DIR), member.path);
-      assert(!readFileSync(join(contextRoot, member.path), "utf8").includes(DEFAULT_DIR), member.path);
+      assertNoStaleDefault(member.path, member.path);
     }
+    for (const material of item.materials)
+      assertNoStaleDefault(readFileSync(join(contextRoot, material.path), "utf8"), material.path);
   }
 }
 const CLIENT_POINTERS = {
@@ -503,7 +513,7 @@ for (const [name, member] of [["block", "AGENTS.md"], ["file", DIR + "/RULE_ROUT
 }
 
 // The whole family: every delivered context, pointer and adapter file follows the
-// release's directory; a custom directory leaves no default-directory path or text.
+// release's directory; a custom directory leaves no stale default references.
 // With a derived release the same policy also selects the installed release's
 // required closure, validated together with both releases keyed by manifest SHA-256.
 const familyProject = join(here, "full-family");
@@ -544,11 +554,11 @@ const projectPath = (target) => relative(familyBase, target).replaceAll("\\\\", 
 const delivered = [...new Set(familyPrepared.review.operations.map(op => op.details.target)
   .filter(target => typeof target === "string"))];
 for (const target of delivered) assert(!projectPath(target).startsWith(".."), target);
-const contextDelivered = delivered.filter(target => !projectPath(target).startsWith(".claude/"));
 // One delivered file per distinct operation target across the family recipes.
 const familyTargets = new Set(familyItems.flatMap(item =>
   JSON.parse(readFileSync(join(contextRoot, item.recipe.path), "utf8")).operations
     .map(op => op.target.segments.map(segment => segment.literal).join("/"))));
+const contextDelivered = delivered.filter(target => familyTargets.has(projectPath(target)));
 assert.equal(familyTargets.size, contextItem.materials.length + familyOf("client-entry-pointer").length +
   CLIENT_KEYS.length, JSON.stringify([...familyTargets]));
 assert.equal(contextDelivered.length, familyTargets.size, JSON.stringify(delivered));
@@ -560,17 +570,93 @@ assert.equal(CLIENT_KEYS.length, 11, JSON.stringify(CLIENT_KEYS));
 for (const name of CLIENT_KEYS)
   assert(existsSync(join(familyProject, DIR, "adapters", name + ".md")), name + " adapter note under " + DIR);
 if (customDirectory) {
-  assert.equal(existsSync(join(familyProject, DEFAULT_DIR)), false, "No default directory is created");
-  assert.equal(existsSync(join(contextProject, DEFAULT_DIR)), false, "No default directory is created");
+  for (const target of familyTargets) {
+    if (!target.startsWith(DIR + "/")) continue;
+    const staleTarget = DEFAULT_DIR + target.slice(DIR.length);
+    if (familyTargets.has(staleTarget)) continue;
+    assert.equal(existsSync(join(familyProject, staleTarget)), false, "No stale default target: " + staleTarget);
+  }
   for (const target of contextDelivered) {
-    assert(!projectPath(target).split("/").includes(DEFAULT_DIR), projectPath(target));
-    assert(!read(target).includes(DEFAULT_DIR), projectPath(target) + " mentions the default directory");
+    assertNoStaleDefault(projectPath(target), projectPath(target));
+    assertNoStaleDefault(read(target), projectPath(target) + " mentions the default directory");
   }
 }
-// Core captures recipe identities from the selected bytes; the public prepare review
-// does not expose them, so enterprise admission is not asserted here.
-const reviewRecipeIdentities = JSON.stringify(familyPrepared.review).includes("recipeIdentity")
-  ? "exposed" : "not-exposed";
+// Verify admission through Core's public boundary with a controlled GitHub
+// organization-policy response. Identity follows the documented descriptor;
+// no Core internals or public-review identity field are needed.
+const canonicalJson = value => Array.isArray(value) ? "[" + value.map(canonicalJson).join(",") + "]"
+  : value !== null && typeof value === "object" ? "{" + Object.keys(value).sort()
+    .map(key => JSON.stringify(key) + ":" + canonicalJson(value[key])).join(",") + "}" : JSON.stringify(value);
+const identityOf = item => "sha256:" + sha(canonicalJson({
+  schema: "urn:aihq:core:recipe-identity:1.0.0", recipeSha256: item.recipe.sha256,
+  materials: item.materials.map(({ id, sha256, byteLength }) => ({ id, sha256, byteLength }))
+    .sort((left, right) => left.id < right.id ? -1 : left.id > right.id ? 1 : 0),
+}));
+const selectedIdentity = identityOf(contextItem);
+const publishedIdentity = identityOf(getItem(installed.release, contextItem.id).item);
+assert.equal(selectedIdentity === publishedIdentity, !customDirectory);
+const deniedIdentity = customDirectory ? publishedIdentity : "sha256:" + "0".repeat(64);
+const enterprisePolicy = contextPolicy([contextItem.id]);
+enterprisePolicy.mode = "enterprise";
+enterprisePolicy.selections[0].organizationSelectionId = "project-context";
+const commit = "a".repeat(40);
+const organizationSource = { provider: "github", repository: { owner: "Example-Org", name: "Org-Policy" },
+  path: "policy/org.json", revision: { kind: "commit", value: commit } };
+const originalFetch = globalThis.fetch;
+let enterpriseAdmission;
+try {
+  for (const [name, recipeIdentity] of [["admitted", selectedIdentity], ["denied", deniedIdentity]]) {
+    const orgBytes = Buffer.from(JSON.stringify({ schema: "urn:aihq:core:organization-policy:1.0.0",
+      id: "consumer-org-policy", selections: [{ selectionId: "project-context", recipeIdentity,
+        scopes: ["project"], inputs: {} }] }));
+    const blob = createHash("sha1").update(Buffer.concat([
+      Buffer.from("blob " + orgBytes.length + String.fromCharCode(0)), orgBytes])).digest("hex");
+    const base = "/repos/example-org/org-policy/git/";
+    const tree1 = "1".padStart(40, "0");
+    const tree2 = "2".padStart(40, "0");
+    const routes = new Map([
+      [base + "commits/" + commit, { sha: commit, tree: { sha: tree1 } }],
+      [base + "trees/" + tree1, { sha: tree1, truncated: false,
+        tree: [{ path: "policy", mode: "040000", type: "tree", sha: tree2 }] }],
+      [base + "trees/" + tree2, { sha: tree2, truncated: false,
+        tree: [{ path: "org.json", mode: "100644", type: "blob", sha: blob, size: orgBytes.length }] }],
+      [base + "blobs/" + blob, { sha: blob, size: orgBytes.length, encoding: "base64", content: orgBytes.toString("base64") }],
+    ]);
+    let requests = 0;
+    globalThis.fetch = async url => {
+      const request = new URL(String(url));
+      assert.equal(request.origin, "https://api.github.com");
+      assert.equal(request.search, "");
+      assert(routes.has(request.pathname), request.href);
+      requests += 1;
+      return new Response(JSON.stringify(routes.get(request.pathname)), { headers: { "content-type": "application/json" } });
+    };
+    const project = join(here, "enterprise-" + name);
+    mkdirSync(project);
+    const prepared = await prepare({ useCase: "policy", policy: enterprisePolicy,
+      target: { project }, organizationSource }, contextControls);
+    assert.equal(requests, 4, "The organization policy is read from the controlled fixture.");
+    if (name === "admitted") {
+      assert.equal(prepared.status, "ready", JSON.stringify(prepared.diagnostics));
+      const applied = await apply(prepared.prepared, { approved: true, origin: "automation",
+        reviewDigest: prepared.review.reviewDigest }, contextControls);
+      assert.equal(applied.completion, "complete", JSON.stringify(applied.diagnostics));
+      assert(applied.checks.every(check => check.status === "passed"));
+      assert.equal(requests, 8, "Apply revalidates the organization policy.");
+      assert.equal(sha(readFileSync(join(project, DIR, "RULE_ROUTER.md"))), router.sha256);
+    } else {
+      assert.equal(prepared.status, "blocked", JSON.stringify(prepared.diagnostics));
+      assert.equal(prepared.prepared, undefined);
+      assert(prepared.diagnostics.some(d => d.code === "AUTHORITY_DENIED" && d.reason === "recipe-identity"),
+        JSON.stringify(prepared.diagnostics));
+      assert.equal(existsSync(join(project, DIR, "RULE_ROUTER.md")), false);
+    }
+  }
+  enterpriseAdmission = { status: "passed", selectedIdentity, deniedIdentity,
+    deniedPublishedIdentity: customDirectory, applyCompleted: true };
+} finally {
+  globalThis.fetch = originalFetch;
+}
 if (derivation !== undefined) {
   // Staging lifetime: kept until prepare and apply complete. This check owns the
   // staging directory and removes it here itself; stagingRemoved records that this
@@ -582,7 +668,7 @@ if (derivation !== undefined) {
 }
 
 contextLifecycle = { status: "passed", instructionDirectory: DIR, familyFilesDelivered: contextDelivered.length,
-    derivation, reviewRecipeIdentities,
+    derivation, enterpriseAdmission,
     clientsSelected: clients.length, deselectionRetainedShared: true,
     pruneMarkerPrecise: true, unownedBlockConflict: true, savedDependencyRetention: true,
     matchingUnownedPreserved: true, ownedBlockAndFileDriftPreserved: true,

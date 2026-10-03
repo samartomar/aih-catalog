@@ -257,10 +257,15 @@ In that mode it also requires a second preparation to be byte-identical, the
 installed package files to be unchanged, a derived manifest SHA-256 that differs
 from the installed one, the derivation metadata, and context item identities equal to
 the published ones for `ai-coding` and different from them otherwise. For a custom
-directory, no delivered path, context record or delivered text names `ai-coding`.
+directory, recipe targets and delivered text use the requested directory without
+stale `ai-coding` references; the requested directory may itself contain that name.
 The whole-family step also selects an installed skill closure in the same policy,
-then the staging directory is deleted. Core's public prepare review does not expose
-recipe identities, so the check does not assert enterprise admission.
+including when context targets live under `.claude/`. Before staging is deleted,
+the check supplies a controlled GitHub organization-policy fixture to Core's public
+`prepare`/`apply`: the selected recipe identity is admitted and applied, while a
+wrong identity is denied without a prepared handle or context output. For a custom
+directory, that denied identity is the published context identity. This verifies
+Enterprise admission without requiring identities in the public prepare review.
 
 The consumer derives its initial scenario from the supplied release. It runs the
 context lifecycle cases only when that release contains their required client
