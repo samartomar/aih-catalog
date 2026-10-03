@@ -215,7 +215,7 @@ describe("tools/check-release.mjs and the donor generator guard", () => {
     writeFileSync(join(dir, "release/release.json"), advanced);
     const result = node(["tools/generate-release.mjs", "--check", dir]);
     expect(result.status).toBe(1);
-    expect(result.stderr).toContain("authored context records are stale");
+    expect(result.stderr).toContain("authored context records or source are stale");
     expect(readFileSync(join(dir, "release/release.json"), "utf8")).toBe(advanced);
     // Unchanged for the committed release: still compared against the donor inputs.
     expect(sha256(readFileSync(join(root, "release/release.json")))).toMatch(/^[0-9a-f]{64}$/);

@@ -64,12 +64,26 @@ const failWith = (reason: string, path?: string): never => {
 export const sha256 = (bytes: Uint8Array): string =>
   createHash("sha256").update(bytes).digest("hex");
 
-export function diagnostic(reason: string, path?: string, itemId?: string): CatalogDiagnostic {
-  return Object.freeze({
+/** A frozen blocking INPUT_INVALID diagnostic with optional path and itemId. */
+const frozenDiagnostic = (fields: {
+  reason: string;
+  message: string;
+  path?: string;
+  itemId?: string;
+}): CatalogDiagnostic =>
+  Object.freeze({
     code: "INPUT_INVALID",
+    reason: fields.reason,
+    message: fields.message,
+    blocking: true,
+    ...(fields.path === undefined ? {} : { path: fields.path }),
+    ...(fields.itemId === undefined ? {} : { itemId: fields.itemId }),
+  });
+
+export function diagnostic(reason: string, path?: string, itemId?: string): CatalogDiagnostic {
+  return frozenDiagnostic({
     reason,
     message: MESSAGES[reason] ?? "The package could not be read under the release contract.",
-    blocking: true,
     ...(path === undefined ? {} : { path }),
     ...(itemId === undefined ? {} : { itemId }),
   });
@@ -109,9 +123,7 @@ const MESSAGES: Record<string, string> = {
   "source-input-conflict":
     "The derived material source input already names a source material root.",
   "invalid-material-roots":
-    "Source material roots are required: a map of identifiers to absolute paths, empty only for a source without local roots.",
-  "renderer-mismatch":
-    "The source release's authored project context differs from this package's renderer.",
+    "Source material roots are required: identifiers mapped to absolute paths (an empty map when the source has no local roots).",
   "invalid-output-directory": "Expected an absolute output directory.",
   "output-parent-unavailable": "The output directory's parent is not an existing directory.",
   "unsafe-output-directory": "The output path is not a plain directory (a file, link or junction).",
@@ -130,6 +142,12 @@ const within = (parent: string, child: string): boolean => {
 /** True when `child` is `parent` or lies inside it. */
 const contains = (parent: string, child: string): boolean =>
   relative(parent, child) === "" || within(parent, child);
+
+/**
+ * The installed package root each release view from `readInstalledRelease` was read
+ * from, so project-context output never lands inside it whatever roots a caller passes.
+ */
+const installedRoots = new WeakMap<CatalogRelease, string>();
 
 /**
  * Reads one member under a canonical root: every directory is a real directory
@@ -595,18 +613,11 @@ export async function resolveRelease(
   }
 }
 
-/**
- * The installed package root each release view from `readInstalledRelease` was read
- * from, so project-context output never lands inside it whatever roots a caller passes.
- */
-const installedRoots = new WeakMap<CatalogRelease, string>();
-
 export async function readInstalledRelease(
   request: InstalledReleaseRequest,
 ): Promise<InstalledReleaseResult> {
   try {
-    const { root, signal } = (request ?? {}) as InstalledReleaseRequest;
-    const sourceInput = request?.sourceInput ?? "catalog";
+    const { root, sourceInput = "catalog", signal } = (request ?? {}) as InstalledReleaseRequest;
     if (signal?.aborted) failWith("cancelled");
     if (typeof sourceInput !== "string" || sourceInput.length > 128 || !ID.test(sourceInput)) {
       failWith("invalid-source-input");
@@ -709,14 +720,26 @@ function sourceRoots(value: unknown): Readonly<Record<string, string>> {
   return Object.freeze(copy);
 }
 
-/** `path` through its nearest existing ancestor's real path (links and short names resolved). */
-function canonicalPath(path: string): string {
+/** True when a realpath failure means the path is absent, so resolution may walk up. */
+const missingPath = (error: unknown): boolean => {
+  const code = (error as NodeJS.ErrnoException).code;
+  return code === "ENOENT" || code === "ENOTDIR";
+};
+
+/**
+ * `path` through its nearest existing ancestor's real path (links and short names
+ * resolved). Walks up only while a component is absent; any other resolution error
+ * (a permission failure, a link loop, …) fails closed with `reason` at `at` instead
+ * of being treated as absent.
+ */
+function canonicalPath(path: string, reason: string, at: string): string {
   const rest: string[] = [];
   let current = resolve(path);
   for (;;) {
     try {
       return join(realpathSync.native(current), ...rest.reverse());
-    } catch {
+    } catch (error) {
+      if (!missingPath(error)) failWith(reason, at);
       const parent = dirname(current);
       if (parent === current) return resolve(path);
       rest.push(relative(parent, current));
@@ -772,7 +795,7 @@ function outputRoot(
     path = join(parent, relative(dirname(target), target));
   }
   for (const root of roots) {
-    const source = canonicalPath(root);
+    const source = canonicalPath(root, "invalid-material-roots", "/sourceMaterialRoots");
     if (contains(source, path) || contains(path, source)) {
       return failWith("output-overlaps-source", at);
     }
@@ -780,7 +803,12 @@ function outputRoot(
   return { path, existed: named !== undefined };
 }
 
-/** Writes every file under the output, reporting each directory this call creates. */
+/**
+ * Writes every file under the output, reporting each directory this call creates.
+ * Every derived file lives under one top-level directory (`release/`) and `files`
+ * is in path order, so in an existing output the first path reported is that
+ * directory and removing it removes everything this call made inside the output.
+ */
 function writeDerived(
   output: { path: string; existed: boolean },
   files: ReadonlyMap<string, Uint8Array>,
@@ -840,9 +868,14 @@ export async function prepareProjectContext(
   // What this call created and removes on failure: the output itself, or release/ in it.
   let created: string | undefined;
   try {
-    const { release, instructionDirectory, outputDirectory, signal } = (request ??
-      {}) as ProjectContextRequest;
-    const sourceInput = request?.sourceInput ?? DERIVED_SOURCE_INPUT;
+    const {
+      release,
+      instructionDirectory,
+      outputDirectory,
+      sourceMaterialRoots,
+      sourceInput = DERIVED_SOURCE_INPUT,
+      signal,
+    } = (request ?? {}) as ProjectContextRequest;
     // The work below is synchronous and bounded (one fixed family), so a signal can
     // only take effect before it starts.
     if (signal?.aborted) return failWith("cancelled");
@@ -850,7 +883,7 @@ export async function prepareProjectContext(
     if (typeof sourceInput !== "string" || sourceInput.length > 128 || !ID.test(sourceInput)) {
       return failWith("invalid-source-input", "/sourceInput");
     }
-    const roots = sourceRoots(request?.sourceMaterialRoots);
+    const roots = sourceRoots(sourceMaterialRoots);
     if (Object.hasOwn(roots, sourceInput)) {
       return failWith("source-input-conflict", "/sourceInput");
     }
@@ -858,11 +891,9 @@ export async function prepareProjectContext(
     if (!derived.valid) {
       throw Object.assign(new AcquisitionFailure(derived.problems[0]?.reason ?? "invalid"), {
         diagnostics: derived.problems.map((problem) =>
-          Object.freeze({
-            code: "INPUT_INVALID" as const,
+          frozenDiagnostic({
             reason: problem.reason,
             message: problem.message,
-            blocking: true,
             path: problem.path,
           }),
         ),
@@ -877,6 +908,8 @@ export async function prepareProjectContext(
     const output = outputRoot(outputDirectory, protectedRoots);
     try {
       writeDerived(output, files, (path) => {
+        // The first path reported roots everything this call makes: the output
+        // itself, or release/ inside an existing output (see writeDerived).
         created ??= path;
       });
     } catch (error) {

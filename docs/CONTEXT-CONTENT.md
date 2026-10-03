@@ -105,10 +105,13 @@ if (!context.valid) throw new Error(JSON.stringify(context.diagnostics));
 const configured = ["aihq.project-context", "aihq.project-context-pointer.claude-md",
   "aihq.client.claude"].map((itemId) => configureItem({ release: context.release,
   itemId, configuration: {}, materialSource: context.source }));
+const selections = configured.map((item) => ({ id: item.provenance.itemId,
+  item: { releaseSha256: item.provenance.manifestSha256, itemId: item.provenance.itemId,
+    itemSha256: item.provenance.itemSha256 }, configuration: {} }));
 const checked = validateSelectionSet({
   releases: { [context.release.sha256]: context.release,
     [installed.release.sha256]: installed.release },
-  selections, // built from configured[i].provenance, as for any item
+  selections,
 });
 // Pass both roots to Core prepare and apply, then delete stagingDirectory.
 const controls = { materialRoots: { ...installed.materialRoots, ...context.materialRoots } };
@@ -143,11 +146,21 @@ refuses:
 - a source release whose authored context this package's renderer does not reproduce
   exactly for `ai-coding`, including one without the context family
   (`renderer-mismatch`);
+- a release view that did not come from `readRelease`, `readInstalledRelease` or
+  `resolveRelease` (`release-unchecked`), a source input name that is not an
+  identifier (`invalid-source-input`) or already names a source material root
+  (`source-input-conflict`), or a signal that is already aborted (`cancelled`);
 - missing source material roots, or roots that are not identifiers mapped to
   absolute paths (`invalid-material-roots`);
-- an output directory that is relative, has no existing parent, is a file, link or
-  junction, is not empty, or is inside or contains a source material root
-  (`output-overlaps-source`).
+- an output directory that is not absolute (`invalid-output-directory`), whose
+  parent is not an existing directory (`output-parent-unavailable`), that is a
+  file, link or junction (`unsafe-output-directory`), that exists and is not empty
+  (`output-not-empty`), or that is inside or contains a source material root or the
+  installed root (`output-overlaps-source`).
+
+A write or cleanup failure is reported the same way: `output-write-failed` when the
+derived release could not be written to the output directory, and
+`output-cleanup-failed` when removing what a failed call created itself fails.
 
 Other clients also load some directories natively, for example `.claude/rules`.
 Catalog does not track those, so it cannot refuse them, but they are unsupported

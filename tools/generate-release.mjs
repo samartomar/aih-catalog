@@ -5,8 +5,11 @@ import { fileURLToPath } from "node:url";
 // The authored project context has one renderer: the built, portable release module
 // that the Node helper prepareProjectContext also uses (npm run build:dist first).
 const renderer = await import(new URL("../dist/release/project-context.js", import.meta.url).href)
-  .catch(() => {
-    throw new Error("generate-release: the built release module is missing; run npm run build:dist first");
+  .catch((error) => {
+    throw new Error(
+      "generate-release: the built release module is missing; run npm run build:dist first",
+      { cause: error },
+    );
   });
 
 /**
@@ -111,8 +114,13 @@ function provenance(root, snapshot, entry) {
   return { revision: source.commit, skillPath: source.path, files, description };
 }
 
-const { CONTEXT_SOURCE, CONTEXT_SOURCE_ID, DEFAULT_INSTRUCTION_DIRECTORY, renderContextFamily } =
-  renderer;
+const {
+  CONTEXT_SOURCE,
+  DEFAULT_INSTRUCTION_DIRECTORY,
+  renderedItemSha256,
+  renderContextFamily,
+  reproducesAuthoredContext,
+} = renderer;
 
 /** The authored context family for the published default directory, its bytes registered through `put`. */
 function contextFamily(put) {
@@ -124,16 +132,15 @@ function contextFamily(put) {
 /** Authored content remains reproducible independently of the upstream pin. */
 function checkContextContent(root) {
   const files = new Map();
-  const expected = contextFamily((path, bytes) => files.set(path, bytes));
+  contextFamily((path, bytes) => files.set(path, bytes));
   const release = readJson(root, RELEASE_PATH);
-  const actual = (release.items ?? [])
-    .filter((item) => item.sourceIds?.includes(CONTEXT_SOURCE_ID))
-    .sort((a, b) => compare(a.id, b.id));
-  if (canonical(actual) !== canonical(expected)) fail("authored context records are stale");
-  const source = (release.sources ?? []).find((item) => item.id === CONTEXT_SOURCE_ID);
-  if (canonical(source) !== canonical(CONTEXT_SOURCE)) {
-    fail("authored context source is stale");
-  }
+  // The same reproduction check the Node helper applies to a source release, over
+  // the committed records with the item hashes a reader would compute for them.
+  const view = {
+    items: (release.items ?? []).map((item) => ({ ...item, itemSha256: renderedItemSha256(item) })),
+    sources: release.sources ?? [],
+  };
+  if (!reproducesAuthoredContext(view)) fail("authored context records or source are stale");
   for (const [path, bytes] of files) {
     if (!readFileSync(resolve(root, path)).equals(bytes)) fail(`${path} is stale`);
   }

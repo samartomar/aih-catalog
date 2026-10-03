@@ -572,7 +572,9 @@ if (customDirectory) {
 const reviewRecipeIdentities = JSON.stringify(familyPrepared.review).includes("recipeIdentity")
   ? "exposed" : "not-exposed";
 if (derivation !== undefined) {
-  // Staging lifetime: kept until prepare and apply complete, then deleted by its owner.
+  // Staging lifetime: kept until prepare and apply complete. This check owns the
+  // staging directory and removes it here itself; stagingRemoved records that this
+  // script's own removal succeeded (the helper never deletes staging after success).
   const { staging, ...recorded } = derivation;
   rmSync(staging, { recursive: true, force: true });
   derivation = { ...recorded, stagingRemoved: !existsSync(staging),

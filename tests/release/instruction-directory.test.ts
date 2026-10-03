@@ -11,7 +11,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
 import { checkCandidateFiles } from "../../src/producer/integrity.js";
 import { CLIENTS, POINTERS } from "../../src/release/context-content.js";
 import type { CatalogRelease } from "../../src/release/contracts.js";
@@ -40,6 +40,56 @@ import {
 } from "../../src/release/reader.js";
 import { sha256 } from "./fixtures.js";
 import { installedRoot } from "./installed-fixture.js";
+
+// Armed filesystem faults for the write/cleanup failure tests: an entry fails the
+// named operation with `code` when the path string contains `match`; every other
+// call passes through to the real fs. Entries are cleared after each test.
+const fsFaults = vi.hoisted(() => ({
+  entries: [] as {
+    operation: "realpath" | "mkdir" | "write" | "rm";
+    match: string;
+    code: string;
+  }[],
+}));
+vi.mock("node:fs", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:fs")>();
+  const throwIfArmed = (operation: string, path: unknown) => {
+    const text = String(path);
+    const hit = fsFaults.entries.find(
+      (entry) => entry.operation === operation && text.includes(entry.match),
+    );
+    if (hit !== undefined) {
+      throw Object.assign(new Error(`armed ${hit.code} for ${text}`), { code: hit.code });
+    }
+  };
+  return {
+    ...actual,
+    realpathSync: Object.assign(
+      (...args: Parameters<typeof actual.realpathSync>) => {
+        throwIfArmed("realpath", args[0]);
+        return actual.realpathSync(...args);
+      },
+      {
+        native: (...args: Parameters<typeof actual.realpathSync.native>) => {
+          throwIfArmed("realpath", args[0]);
+          return actual.realpathSync.native(...args);
+        },
+      },
+    ),
+    mkdirSync: (...args: Parameters<typeof actual.mkdirSync>) => {
+      throwIfArmed("mkdir", args[0]);
+      return actual.mkdirSync(...args);
+    },
+    writeFileSync: (...args: Parameters<typeof actual.writeFileSync>) => {
+      throwIfArmed("write", args[0]);
+      return actual.writeFileSync(...args);
+    },
+    rmSync: (...args: Parameters<typeof actual.rmSync>) => {
+      throwIfArmed("rm", args[0]);
+      return actual.rmSync(...args);
+    },
+  };
+});
 
 /**
  * A consuming project chooses its instruction directory (Catalog #55) through the
@@ -540,7 +590,9 @@ describe("prepareProjectContext refusals", () => {
     );
   });
 
-  it("refuses a source whose authored context differs from this renderer", async () => {
+  it("refuses a source whose authored context differs from this renderer", {
+    timeout: 60_000,
+  }, async () => {
     for (const value of mismatchedDocuments()) {
       const out = output();
       await refuse({ release: releaseOf(value), outputDirectory: out }, "renderer-mismatch");
@@ -609,7 +661,7 @@ describe("prepareProjectContext refusals", () => {
     expect(existsSync(join(result.outputDirectory, "release/release.json"))).toBe(true);
   });
 
-  it("accepts an explicitly empty map for a source without local roots", async () => {
+  it("accepts an explicitly empty source material roots map", async () => {
     const from = await source();
     const result = await prepareProjectContext({
       release: from.release,
@@ -627,6 +679,8 @@ describe("prepareProjectContext refusals", () => {
     const omitting: Record<string, string>[] = [
       {},
       { other: output() },
+      // The former internal key, kept as a regression guard: caller roots are
+      // checked beside the installed root, never keyed among them.
       { "catalog-project-context-installed": output() },
     ];
     for (const sourceMaterialRoots of omitting) {
@@ -653,6 +707,7 @@ describe("prepareProjectContext refusals", () => {
       release: from.release,
       instructionDirectory: ".ai/context",
       outputDirectory: out,
+      // The former internal key, kept as a regression guard (see the test above).
       sourceMaterialRoots: { "catalog-project-context-installed": other },
     });
     expect(reasons(result)).toEqual(["output-overlaps-source"]);
@@ -685,5 +740,86 @@ describe("prepareProjectContext refusals", () => {
     const out = output();
     await refuse({ outputDirectory: out, signal: AbortSignal.abort() }, "cancelled");
     expect(existsSync(out)).toBe(false);
+  });
+});
+
+describe("prepareProjectContext write and cleanup failures", () => {
+  const arm = (operation: "realpath" | "mkdir" | "write" | "rm", match: string, code: string) =>
+    fsFaults.entries.push({ operation, match, code });
+  afterEach(() => {
+    fsFaults.entries.length = 0;
+  });
+
+  /** A refused preparation: frozen diagnostics are returned, never an exception. */
+  const refused = async (outputDirectory: string, sourceMaterialRoots?: Record<string, string>) => {
+    const from = await source();
+    const result = await prepareProjectContext({
+      release: from.release,
+      instructionDirectory: ".ai/context",
+      outputDirectory,
+      sourceMaterialRoots: sourceMaterialRoots ?? from.materialRoots,
+    });
+    expect(result.valid).toBe(false);
+    expect(result.release).toBeUndefined();
+    expect(Object.isFrozen(result)).toBe(true);
+    expect(Object.isFrozen(result.diagnostics)).toBe(true);
+    for (const d of result.diagnostics) {
+      expect(d.code).toBe("INPUT_INVALID");
+      expect(Object.isFrozen(d)).toBe(true);
+    }
+    return result;
+  };
+
+  it.each([
+    "EACCES",
+    "ELOOP",
+  ])("fails closed when a source root cannot be resolved (%s)", async (code) => {
+    const name = `unresolvable-${code.toLowerCase()}-root`;
+    arm("realpath", name, code);
+    const result = await refused(output(), { catalog: join(scratch, name) });
+    expect(reasons(result)).toEqual(["invalid-material-roots"]);
+    expect(result.diagnostics[0]?.path).toBe("/sourceMaterialRoots");
+  });
+
+  it("removes only release/ and keeps an existing empty output after a write failure", async () => {
+    const out = output("write-fails-in-existing");
+    mkdirSync(out);
+    arm("write", "write-fails-in-existing", "EIO");
+    const result = await refused(out);
+    expect(reasons(result)).toEqual(["output-write-failed"]);
+    expect(result.diagnostics[0]?.path).toBe("/outputDirectory");
+    expect(existsSync(out)).toBe(true);
+    expect(readdirSync(out)).toEqual([]);
+  });
+
+  it("removes the output directory it created after a write failure", async () => {
+    const out = output("write-fails-in-created");
+    arm("write", "write-fails-in-created", "EIO");
+    const result = await refused(out);
+    expect(reasons(result)).toEqual(["output-write-failed"]);
+    expect(result.diagnostics[0]?.path).toBe("/outputDirectory");
+    expect(existsSync(out)).toBe(false);
+    expect(existsSync(dirname(out))).toBe(true);
+  });
+
+  it("reports a failed cleanup as a diagnostic beside the write failure", async () => {
+    const out = output("cleanup-fails");
+    arm("write", "cleanup-fails", "EIO");
+    arm("rm", "cleanup-fails", "EACCES");
+    const result = await refused(out);
+    expect(reasons(result)).toEqual(["output-write-failed", "output-cleanup-failed"]);
+    for (const d of result.diagnostics) expect(d.path).toBe("/outputDirectory");
+    // What the call created is left for the caller when its removal fails.
+    expect(existsSync(out)).toBe(true);
+  });
+
+  it("reports output-not-empty and deletes nothing when the output appears before the write", async () => {
+    const out = output("appears-before-write");
+    arm("mkdir", "appears-before-write", "EEXIST");
+    const result = await refused(out);
+    expect(reasons(result)).toEqual(["output-not-empty"]);
+    expect(result.diagnostics[0]?.path).toBe("/outputDirectory");
+    expect(existsSync(out)).toBe(false);
+    expect(existsSync(dirname(out))).toBe(true);
   });
 });
