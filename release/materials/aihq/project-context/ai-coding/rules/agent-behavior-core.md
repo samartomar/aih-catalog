@@ -4,19 +4,37 @@ Canonical working discipline for every AI tool in this repo — the rulebook `ai
 
 ## 1. Think before coding
 
-Don't assume; don't hide confusion; surface tradeoffs.,,- State assumptions explicitly. If uncertain, ask — or, in an autonomous run,,  record the assumption and proceed with the most defensible reading.,- If multiple interpretations exist, name them; don't pick one silently.,- If a simpler approach exists, say so. Push back when warranted.
+Don't assume; don't hide confusion; surface tradeoffs.
+
+- State assumptions explicitly. If uncertain, ask — or, in an autonomous run,
+  record the assumption and proceed with the most defensible reading.
+- If multiple interpretations exist, name them; don't pick one silently.
+- If a simpler approach exists, say so. Push back when warranted.
 
 ## 2. Simplicity first
 
-The minimum code that solves the problem; nothing speculative.,,- No features beyond what was asked.,- No configurability or error handling for cases that cannot occur.,- If 200 lines could be 50, rewrite it.
+The minimum code that solves the problem; nothing speculative.
+
+- No features beyond what was asked.
+- No configurability or error handling for cases that cannot occur.
+- If 200 lines could be 50, rewrite it.
 
 ## 3. Surgical changes
 
-Touch only what the task requires; clean up only your own mess.,,- Don't reformat, rename, or "improve" adjacent code that isn't broken.,- Match the nearest peer file's style even if you'd do it differently.,- Remove only the orphans YOUR change created; flag unrelated dead code, don't delete it.,- Every changed line should trace directly to the request.
+Touch only what the task requires; clean up only your own mess.
+
+- Don't reformat, rename, or "improve" adjacent code that isn't broken.
+- Match the nearest peer file's style even if you'd do it differently.
+- Remove only the orphans YOUR change created; flag unrelated dead code, don't delete it.
+- Every changed line should trace directly to the request.
 
 ## 4. Goal-driven execution
 
-Define success criteria, then loop until verified.,,- "Add validation" → write tests for invalid input, then make them pass.,- "Fix the bug" → write a failing test that reproduces it, then make it pass.,- For multi-step work, state a short plan with a verify step for each step.
+Define success criteria, then loop until verified.
+
+- "Add validation" → write tests for invalid input, then make them pass.
+- "Fix the bug" → write a failing test that reproduces it, then make it pass.
+- For multi-step work, state a short plan with a verify step for each step.
 
 ## Invariants (always hold)
 

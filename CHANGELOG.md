@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Correct the shared behavior core's four principle sections to render paragraphs
+  and bullets on separate Markdown lines instead of joining them with commas.
+  Default release generation and `prepareProjectContext` use the same correction;
+  derived context records `aihq-project-context-renderer@2`.
 - Add `prepareProjectContext` to `@aihq/catalog/node` so a consuming project can
   choose the directory that receives the shared project context (the published
   release uses `ai-coding`). See docs/CONTEXT-CONTENT.md.
