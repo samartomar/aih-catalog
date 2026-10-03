@@ -28,13 +28,9 @@ const stripTrailingNewlines = (text: string): string => {
 };
 
 type Part = string | readonly string[] | readonly (string | readonly string[])[];
-/**
- * Joins one level of parts with LF. A deeper array is stringified by `Array#join`
- * (comma-separated), exactly as the published bytes were rendered: the principle
- * sections of the behavior core read as comma-joined lines. Fixing that changes the
- * published content and its identities, so it is tracked separately, not here.
- */
-const join = (...parts: Part[]): string => `${stripTrailingNewlines(parts.flat().join("\n"))}\n`;
+/** Joins every nested part with LF, preserving paragraph breaks and one final LF. */
+const join = (...parts: Part[]): string =>
+  `${stripTrailingNewlines(parts.flat(Infinity).join("\n"))}\n`;
 
 // ---- single-source discipline ---------------------------------------------
 

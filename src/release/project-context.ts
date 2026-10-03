@@ -29,7 +29,7 @@ import { sha256Hex } from "./sha256.js";
  * Names the rendering this module performs. Derived releases record it; change it
  * whenever the rendered bytes for any directory change.
  */
-export const PROJECT_CONTEXT_RENDERER = "aihq-project-context-renderer@1";
+export const PROJECT_CONTEXT_RENDERER = "aihq-project-context-renderer@2";
 export { DEFAULT_INSTRUCTION_DIRECTORY };
 export const CONTEXT_SOURCE_ID = "aihq-project-context";
 export const CONTEXT_SOURCE = Object.freeze({

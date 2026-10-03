@@ -179,7 +179,7 @@ claim. Its `metadata.derived` records the derivation:
 { "derived": { "kind": "project-context",
   "from": { "package": { "name": "@aihq/catalog", "version": "<version>" },
     "manifestSha256": "<source release SHA-256>" },
-  "renderer": "aihq-project-context-renderer@1", "instructionDirectory": ".ai/context" } }
+  "renderer": "aihq-project-context-renderer@2", "instructionDirectory": ".ai/context" } }
 ```
 
 The derived manifest SHA-256 therefore always differs from the source release's,
