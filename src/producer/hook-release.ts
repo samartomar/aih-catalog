@@ -1,6 +1,7 @@
 import type { Json } from "../release/contracts.js";
 import { canonicalJson } from "../release/json.js";
 import { readRelease } from "../release/reader.js";
+import { checkRecipeAgreement } from "../release/recipe-agreement.js";
 import type { Record_ } from "./base.js";
 import { refuse } from "./errors.js";
 import { HOOK_RELEASE_PATH, sha256Hex } from "./generate.js";
@@ -31,7 +32,12 @@ function hookGroups(files: Files, label: string): Map<string, HookGroup[]> {
   const groups = new Map<string, HookGroup[]>();
   for (const item of read.release.items) {
     const recipeBytes = files.get(item.recipe.path);
-    if (recipeBytes === undefined || sha256Hex(recipeBytes) !== item.recipe.sha256) {
+    if (
+      recipeBytes === undefined ||
+      recipeBytes.byteLength !== item.recipe.byteLength ||
+      sha256Hex(recipeBytes) !== item.recipe.sha256 ||
+      checkRecipeAgreement(item, recipeBytes).length > 0
+    ) {
       return refuse("base-invalid", `the ${label} recipe of ${item.id} is absent or changed`, {
         itemId: item.id,
       });

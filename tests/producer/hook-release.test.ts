@@ -138,6 +138,15 @@ describe("hook group selector continuity", () => {
       "base-invalid",
     );
   });
+
+  it("refuses a re-pinned but structurally invalid committed recipe", () => {
+    const damaged = withHookOperation((hook) => {
+      hook.action = "remove";
+    });
+    expect(refusal(() => assertHookSelectorContinuity(damaged, committedRelease())).reason).toBe(
+      "base-invalid",
+    );
+  });
 });
 
 describe("candidate carrying the 1.1 release", () => {

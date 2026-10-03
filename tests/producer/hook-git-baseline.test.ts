@@ -57,4 +57,18 @@ it("compares with a committed hook release after working-tree deletion and repin
   expect(() => committedHookBaseline(root, "0000000000000000000000000000000000000000")).toThrow(
     /unavailable/u,
   );
+  mkdirSync(dirname(join(root, recipePath)), { recursive: true });
+  writeFileSync(join(root, path), files.get(path) as Uint8Array);
+  writeFileSync(join(root, recipePath), "{}\n");
+  run("add", "release");
+  run(
+    "-c",
+    "user.name=Fixture",
+    "-c",
+    "user.email=fixture@example.invalid",
+    "commit",
+    "-qm",
+    "damaged recipe",
+  );
+  expect(() => committedHookBaseline(root, run("rev-parse", "HEAD"))).toThrow(/damaged/u);
 });

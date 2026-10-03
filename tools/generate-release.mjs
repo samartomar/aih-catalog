@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, readdirSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { committedHookBaseline } from "./hook-git-baseline.mjs";
@@ -353,11 +353,15 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     } catch {
       gitRoot = undefined;
     }
-    if (gitRoot !== root && (!check || process.env.AIHQ_RELEASE_BASELINE !== undefined)) {
+    const sameRoot = gitRoot !== undefined &&
+      (process.platform === "win32"
+        ? realpathSync(gitRoot).toLowerCase() === realpathSync(root).toLowerCase()
+        : realpathSync(gitRoot) === realpathSync(root));
+    if (!sameRoot && (!check || process.env.AIHQ_RELEASE_BASELINE !== undefined)) {
       fail("selector continuity needs a Git root and a committed baseline");
     }
     const continuity = async (files) => {
-      if (gitRoot !== root) {
+      if (!sameRoot) {
         console.log("Detached fixture: checked generated content; selector continuity unavailable without a Git baseline.");
         return;
       }

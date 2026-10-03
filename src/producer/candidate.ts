@@ -13,7 +13,6 @@ import {
   RELEASE_PATH,
   sha256Hex,
 } from "./generate.js";
-import { assertHookSelectorContinuity } from "./hook-release.js";
 import type { SourceTree } from "./tree.js";
 
 export type ReportedState =
@@ -303,7 +302,6 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
       }
     }
     put(HOOK_RELEASE_PATH, documentBytes(hookDocument));
-    assertHookSelectorContinuity(base.files, out);
   }
 
   const checked = readRelease(releaseBytes, { expectedSha256: sha256Hex(releaseBytes) });

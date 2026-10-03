@@ -83,7 +83,7 @@ runner, not benchmark or CI claims.
 
 The resulting Catalog artifact SHA-256 is
 `e1a18031ecbb4a0b35af4a1b81634bbee5ae625061508db170c1b2fce074817b` (41427 bytes).
-The checkout manifest remains 0.3.0; this is a disposable development artifact, not a
+At the time of this measurement the checkout manifest was 0.3.0; this was a disposable development artifact, not a
 version allocation, distribution to users, signed candidate or npm publication.
 
 A separate real GitHub fetch of the existing pinned source at
