@@ -26,12 +26,20 @@ const settings = `${JSON.stringify({ hooks: { PreToolUse: [] } }, null, 2)}\n`;
 writeFileSync(join(project, ".claude", "settings.json"), settings);
 const controls = { logging: "off", materialRoots: installed.materialRoots };
 const refusals = [];
+const expected = new Map([
+  ["urn:aihq:core:execution-policy:1.1.0", "SCHEMA_UNSUPPORTED/schema-id"],
+  ["urn:aihq:core:execution-policy:1.0.0", "INPUT_INVALID/recipe-invalid"],
+]);
 for (const schema of ["urn:aihq:core:execution-policy:1.1.0", "urn:aihq:core:execution-policy:1.0.0"]) {
   const prepared = await prepare({ useCase: "policy", target: { project }, policy: {
     schema, mode: "vibe", selections: [{ ...configured.selection, id: ITEM, managementId: ITEM,
       scope: "project", requires: [] }] } }, controls);
   assert.notEqual(prepared.status, "ready", `${schema} must not prepare the hook item`);
   assert.equal(prepared.prepared, undefined);
+  assert.equal(prepared.status, "invalid");
+  assert.deepEqual(prepared.diagnostics.map((d) => `${d.code}/${d.reason}`), [expected.get(schema)]);
+  assert.equal(readFileSync(join(project, ".claude", "settings.json"), "utf8"), settings);
+  assert.equal(existsSync(join(project, ".claude", "hooks")), false);
   refusals.push({ schema, status: prepared.status, reasons: prepared.diagnostics.map((d) => `${d.code}/${d.reason}`) });
 }
 assert.equal(readFileSync(join(project, ".claude", "settings.json"), "utf8"), settings);

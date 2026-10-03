@@ -56,12 +56,19 @@ const MATCHER = hookOperation.group.literal.matcher;
 /** A second recipe revision of the same item: same group ID and selector, new group content. */
 const secondRoot = join(scratch, "catalog-v2");
 cpSync(join(root, "release"), join(secondRoot, "release"), { recursive: true });
+cpSync(join(root, "package.json"), join(secondRoot, "package.json"));
 const secondRecipePath = join(secondRoot, configured.selection.recipe.reference.path);
 const second = JSON.parse(readFileSync(secondRecipePath, "utf8"));
 second.operations.find((operation) => operation.kind === "hook.group").group.literal.matcher =
   `${MATCHER}|NotebookEdit`;
 const secondBytes = Buffer.from(`${canonical(second)}\n`);
 writeFileSync(secondRecipePath, secondBytes);
+const secondManifestPath = join(secondRoot, "release", "release-1.1.json");
+const secondManifest = JSON.parse(readFileSync(secondManifestPath, "utf8"));
+const secondItem = secondManifest.items.find((item) => item.id === ITEM);
+secondItem.recipe.sha256 = sha(secondBytes);
+secondItem.recipe.byteLength = secondBytes.length;
+writeFileSync(secondManifestPath, `${canonical(secondManifest)}\n`);
 
 function canonical(value) {
   if (value === null || typeof value !== "object") return JSON.stringify(value);
@@ -69,18 +76,28 @@ function canonical(value) {
   return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonical(value[key])}`).join(",")}}`;
 }
 
-const controls = { logging: "off", materialRoots: { ...installed.materialRoots, "catalog-v2": secondRoot } };
-const selection = (revision) => revision === 1
-  ? configured.selection
-  : { ...configured.selection, recipe: { reference: {
-    ...configured.selection.recipe.reference, source: { kind: "local", input: "catalog-v2" },
-    sha256: sha(secondBytes), byteLength: secondBytes.length } } };
+const secondInstalled = await readInstalledRelease({ root: secondRoot, release: "./release-1.1.json",
+  sourceInput: "catalog-v2" });
+assert.equal(secondInstalled.valid, true, JSON.stringify(secondInstalled.diagnostics));
+const secondConfigured = configureItem({ release: secondInstalled.release, itemId: ITEM,
+  configuration: {}, materialSource: secondInstalled.source });
+assert.equal(secondConfigured.valid, true, JSON.stringify(secondConfigured.diagnostics));
+const secondSet = validateSelectionSet({
+  releases: { [secondInstalled.release.sha256]: secondInstalled.release },
+  selections: [{ id: ITEM, item: { releaseSha256: secondConfigured.provenance.manifestSha256,
+    itemId: ITEM, itemSha256: secondConfigured.provenance.itemSha256 }, configuration: {} }],
+});
+assert.equal(secondSet.valid, true, JSON.stringify(secondSet.diagnostics));
+const controls = { logging: "off", materialRoots: { ...installed.materialRoots, ...secondInstalled.materialRoots } };
+const versionData = (number) => number === 1
+  ? { configured, set } : { configured: secondConfigured, set: secondSet };
 /** The 1.1 policy: members are managed together so an empty set removes the item's content. */
 const policy = (members, revision = 1, schema = "urn:aihq:core:execution-policy:1.1.0") => ({
   schema, mode: "vibe",
   managedSelections: [{ id: "hooks", scope: "project", members }],
-  selections: members.map((id) => ({ ...selection(revision), id, managementId: id, scope: "project",
-    requires: set.requiresBySelectionId[id] })),
+  selections: members.map((id) => ({ ...versionData(revision).configured.selection,
+    id, managementId: id, scope: "project",
+    requires: versionData(revision).set.requiresBySelectionId[id] })),
 });
 const hookOf = (prepared) => prepared.review.operations.find((operation) => operation.kind === "hook.group");
 const settingsOf = (project) => join(project, ".claude", "settings.json");

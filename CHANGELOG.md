@@ -2,13 +2,16 @@
 
 ## Unreleased
 
-- Add release format `urn:aihq:catalog:release:1.1.0`, published as
+- Set the local, unpublished package baseline to `0.1.0` under the independent
+  release plan. This is a candidate identity, not a registry publication.
+- Add release format `urn:aihq:catalog:release:1.1.0`, exported as
   `@aihq/catalog/release-1.1.json` with schema
   `@aihq/catalog/schemas/release/1.1.0.json`, for Core recipe
   `urn:aihq:core:recipe:1.1.0` items. The 1.0 release, its schema export and unchanged
   item identities remain; a 1.0-only reader refuses a 1.1 document as a whole. The reader
   and Node adapter read 1.0 and 1.1 and take an explicit `release` export (default
-  `./release.json`); `contractSupport` declares both.
+  `./release.json`); `contractSupport` declares the formats Catalog reads and
+  produces. Core, not Catalog, accepts the execution policy 1.1 document.
 - Add the opt-in `aihq.hook.claude.protect-env` item, which writes a wrapper script and
   registers one Claude Code `PreToolUse` group through Core's owned `hook.group`
   operation, leaving neighboring groups in place. It needs a Core with recipe and policy

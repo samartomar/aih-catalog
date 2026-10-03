@@ -1,7 +1,9 @@
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { committedHookBaseline } from "./hook-git-baseline.mjs";
 const hooks = await import(new URL("../dist/release/hook-content.js", import.meta.url).href)
   .catch((error) => {
     throw new Error(
@@ -342,22 +344,39 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       fail("usage: node tools/generate-release.mjs [--check] [catalog-root]");
     }
     const root = resolve(args[0] ?? resolve(dirname(fileURLToPath(import.meta.url)), ".."));
+    const baseline = process.env.AIHQ_RELEASE_BASELINE ?? "HEAD";
+    let gitRoot;
+    try {
+      gitRoot = resolve(execFileSync("git", ["-C", root, "rev-parse", "--show-toplevel"], {
+        encoding: "utf8", stdio: ["ignore", "pipe", "ignore"],
+      }).trim());
+    } catch {
+      gitRoot = undefined;
+    }
+    if (gitRoot !== root && (!check || process.env.AIHQ_RELEASE_BASELINE !== undefined)) {
+      fail("selector continuity needs a Git root and a committed baseline");
+    }
+    const continuity = async (files) => {
+      if (gitRoot !== root) {
+        console.log("Detached fixture: checked generated content; selector continuity unavailable without a Git baseline.");
+        return;
+      }
+      const { assertHookSelectorContinuity } = await import(new URL("../dist/producer/hook-release.js", import.meta.url).href);
+      assertHookSelectorContinuity(committedHookBaseline(root, baseline), files);
+    };
     if (check && advancedBeyondSnapshot(root)) {
       checkContextContent(root);
       checkHookRelease(root);
+      const hookFiles = new Map();
+      hookRelease(readJson(root, HOOK_RELEASE_PATH).package, (path, bytes) => hookFiles.set(path, bytes));
+      await continuity(hookFiles);
       console.log("Checked authored context and release/release-1.1.json; upstream release advanced beyond the donor snapshot. Run npm run check:release.");
       process.exit(0);
     }
     const files = generateRelease(root);
-    if (!check) {
-      // Authoring guard: a direct selector change under an existing hook group ID is refused
-      // against the previously committed 1.1 release before anything is overwritten.
-      const { assertHookSelectorContinuity } = await import(new URL("../dist/producer/hook-release.js", import.meta.url).href);
-      const previous = existingFiles(root).includes(HOOK_RELEASE_PATH)
-        ? new Map(existingFiles(root).map((path) => [path, readFileSync(resolve(root, path))]))
-        : undefined;
-      assertHookSelectorContinuity(previous, files);
-    }
+    // Compare with one immutable commit before checking or writing output. The working
+    // tree cannot redefine its own baseline by deleting or regenerating release/.
+    await continuity(files);
     const stale = existingFiles(root).filter((path) => !files.has(path));
     if (check) {
       for (const [path, bytes] of files) {
