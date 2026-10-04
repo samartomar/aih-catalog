@@ -1251,6 +1251,8 @@ export function emitQualificationReceiptSet(v: unknown): R {
   canonicalQualificationReceiptSetBytes(manifest);
   return frozen({ manifest, receipts });
 }
+/** Promotion surfaces that state what was observed about an entry, never a reason to hold it. */
+const PROMOTION_INFORMATION_SURFACES: ReadonlySet<string> = new Set(["finding", "gap", "report"]);
 export function planCatalogPromotionV2(v: unknown): R {
   const x = rec(v, "promotion");
   keys(x, ["candidateHead", "lastGood", "now"], "promotion");
@@ -1368,8 +1370,13 @@ export function planCatalogPromotionV2(v: unknown): R {
         });
     }
   }
+  // D50: findings, gaps and the report that states them are information about an entry. Their
+  // change is stated as a fact and never holds the candidate; only a material change keeps
+  // last-good, and then every fact, information included, is stated with it.
+  if (facts.some((fact) => !PROMOTION_INFORMATION_SURFACES.has(fact.surface as string)))
+    return frozen({ kind: "last-good", head: l, facts });
   return facts.length
-    ? frozen({ kind: "last-good", head: l, facts })
+    ? frozen({ kind: "promoted", head: c, facts })
     : frozen({ kind: "promoted", head: c });
 }
 

@@ -1,0 +1,45 @@
+{
+  "format": "aih-catalog-presentation-inputs",
+  "version": 1,
+  "aih": {
+    "release": "0.7.0",
+    "declarationPath": "src/production/data/core-product-declarations-v1.json",
+    "declarationSha256": "6bb30bd0fb2dfb819139ea60c71a0841c856d09298c03d512e60cc2ca39d3daf",
+    "entries": {
+      "code-review-graph": "Legacy repository-agnostic Code Review Graph fallback. Root-aware project setup replaces this with AIH's authenticated 2.3.9 launcher and isolated worktree state.",
+      "codebase-memory-mcp": "Legacy repository-agnostic Codebase Memory fallback. Root-aware project setup replaces this with AIH's authenticated 0.11.0 native payload and project-specific state. PROVISIONING EGRESS: this wheel is a launcher shim and may fetch its payload; do not treat --offline as payload authentication.",
+      "context7": "Up-to-date, version-matched library docs. THIRD-PARTY hosted endpoint (Upstash) — your queries leave the host; an optional CONTEXT7_API_KEY raises rate limits. Self-host or fall back to vendor docs where third-party egress is disallowed.",
+      "github": "GitHub's official remote MCP (repos, issues, PRs, Actions). OAuth via the client — no token stored in this file. Egress to GitHub (vendor-incumbent).",
+      "playwright": "Pinned Playwright browser automation MCP for every project (navigate, snapshot, interact). It runs headless with an isolated in-memory profile. The browser can reach any URL — point it at trusted origins.",
+      "sequential-thinking": "Structured step-by-step reasoning scratchpad — no network, no filesystem, no credentials. Safe in any repo.",
+      "serena": "Local Serena semantic code tools for the client project, with memories disabled; provisioned from the exact 1.7.0 dependency closure before offline launch."
+    }
+  },
+  "sources": [
+    {
+      "type": "github",
+      "repository": "affaan-m/ECC",
+      "commit": "5064474d4d762dc9640234a41617cccb79185cec"
+    },
+    {
+      "type": "github",
+      "repository": "anthropics/skills",
+      "commit": "34040c9c568585f6929bedeaad110ad08f079624"
+    },
+    {
+      "type": "github",
+      "repository": "mattpocock/skills",
+      "commit": "c55ee46073ed923f86ce59a5eb3b6d895095d1b7"
+    },
+    {
+      "type": "github",
+      "repository": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "commit": "a38d04c3d5c298c851dbe5e6ee1965ee3de42cb5"
+    },
+    {
+      "type": "github",
+      "repository": "obra/Superpowers",
+      "commit": "5bf4e78011075bcfc0dc295f0724994cd123ee71"
+    }
+  ]
+}

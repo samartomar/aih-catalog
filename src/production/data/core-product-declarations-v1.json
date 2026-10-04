@@ -1,0 +1,371 @@
+{
+  "format": "aih-catalog-core-product-declarations",
+  "version": 1,
+  "source": {
+    "package": "@aihq/core",
+    "version": "0.7.0",
+    "repository": "samartomar/ai-harness",
+    "commit": "47ca1d8321e82d8d0fce86c3d82c1547a244cf45"
+  },
+  "hosts": [
+    {
+      "id": "claude",
+      "label": "Claude Code",
+      "mcpSupport": "native",
+      "policyTarget": true
+    },
+    {
+      "id": "codex",
+      "label": "Codex CLI",
+      "mcpSupport": "native",
+      "policyTarget": true
+    },
+    {
+      "id": "cursor",
+      "label": "Cursor",
+      "mcpSupport": "native",
+      "policyTarget": true
+    },
+    {
+      "id": "antigravity",
+      "label": "Antigravity",
+      "mcpSupport": "native",
+      "policyTarget": false
+    },
+    {
+      "id": "gemini",
+      "label": "Gemini CLI",
+      "mcpSupport": "native",
+      "policyTarget": false
+    },
+    {
+      "id": "copilot",
+      "label": "GitHub Copilot",
+      "mcpSupport": "native",
+      "policyTarget": true
+    },
+    {
+      "id": "windsurf",
+      "label": "Windsurf",
+      "mcpSupport": "native",
+      "policyTarget": false
+    },
+    {
+      "id": "opencode",
+      "label": "OpenCode",
+      "mcpSupport": "native",
+      "policyTarget": true
+    },
+    {
+      "id": "zed",
+      "label": "Zed",
+      "mcpSupport": "native",
+      "policyTarget": false
+    },
+    {
+      "id": "kimi",
+      "label": "Kimi Code",
+      "mcpSupport": "native",
+      "policyTarget": true
+    },
+    {
+      "id": "kiro",
+      "label": "Kiro",
+      "mcpSupport": "native",
+      "policyTarget": true
+    }
+  ],
+  "mcp": [
+    {
+      "availability": "always",
+      "control": {
+        "id": "code-review-graph",
+        "kind": "mcp",
+        "lifecycle": "supported",
+        "projector": "mcp-managed-settings",
+        "source": {
+          "server": "code-review-graph",
+          "subject": "mcp-server-sha256:315dbcc103746d136e2844d590add6525325f7cd8b4c35881c93b1ea3e3a3328",
+          "type": "mcp"
+        },
+        "targets": [
+          "claude",
+          "codex",
+          "copilot",
+          "cursor",
+          "kimi",
+          "kiro",
+          "opencode"
+        ]
+      },
+      "description": "Legacy repository-agnostic Code Review Graph fallback. Root-aware project setup replaces this with AIH's authenticated 2.3.9 launcher and isolated worktree state.",
+      "id": "code-review-graph",
+      "server": {
+        "args": [
+          "--offline",
+          "--no-python-downloads",
+          "--no-env-file",
+          "code-review-graph@2.3.7",
+          "serve"
+        ],
+        "classification": "local",
+        "command": "uvx",
+        "credentials": "none",
+        "description": "Legacy repository-agnostic Code Review Graph fallback. Root-aware project setup replaces this with AIH's authenticated 2.3.9 launcher and isolated worktree state.",
+        "egress": "none",
+        "supplyChain": "pinned",
+        "type": "stdio"
+      }
+    },
+    {
+      "availability": "always",
+      "control": {
+        "id": "codebase-memory-mcp",
+        "kind": "mcp",
+        "lifecycle": "supported",
+        "projector": "mcp-managed-settings",
+        "source": {
+          "server": "codebase-memory-mcp",
+          "subject": "mcp-server-sha256:0e3399b511091483fac100f04fb852d30df6ab35246efadf4cc8d31164e0ba18",
+          "type": "mcp"
+        },
+        "targets": [
+          "claude",
+          "codex",
+          "copilot",
+          "cursor",
+          "kimi",
+          "kiro",
+          "opencode"
+        ]
+      },
+      "description": "Legacy repository-agnostic Codebase Memory fallback. Root-aware project setup replaces this with AIH's authenticated 0.11.0 native payload and project-specific state. PROVISIONING EGRESS: this wheel is a launcher shim and may fetch its payload; do not treat --offline as payload authentication.",
+      "id": "codebase-memory-mcp",
+      "server": {
+        "args": [
+          "--offline",
+          "--no-python-downloads",
+          "--no-env-file",
+          "codebase-memory-mcp@0.11.0"
+        ],
+        "classification": "local",
+        "command": "uvx",
+        "credentials": "none",
+        "description": "Legacy repository-agnostic Codebase Memory fallback. Root-aware project setup replaces this with AIH's authenticated 0.11.0 native payload and project-specific state. PROVISIONING EGRESS: this wheel is a launcher shim and may fetch its payload; do not treat --offline as payload authentication.",
+        "egress": "vendor-incumbent",
+        "supplyChain": "pinned",
+        "type": "stdio"
+      }
+    },
+    {
+      "availability": "always",
+      "control": {
+        "id": "serena",
+        "kind": "mcp",
+        "lifecycle": "supported",
+        "projector": "mcp-managed-settings",
+        "source": {
+          "server": "serena",
+          "subject": "mcp-server-sha256:03ebec6620cf2b46269c978d0fa3498b179a9d3715f6a1812e8666de97151502",
+          "type": "mcp"
+        },
+        "targets": [
+          "claude",
+          "codex",
+          "copilot",
+          "cursor",
+          "kimi",
+          "kiro",
+          "opencode"
+        ]
+      },
+      "description": "Local Serena semantic code tools for the client project, with memories disabled; provisioned from the exact 1.7.0 dependency closure before offline launch.",
+      "id": "serena",
+      "server": {
+        "args": [
+          "--offline",
+          "--no-python-downloads",
+          "--no-env-file",
+          "--from",
+          "serena-agent==1.7.0",
+          "serena",
+          "start-mcp-server",
+          "--context",
+          "ide-assistant",
+          "--mode",
+          "no-memories",
+          "--project",
+          "."
+        ],
+        "classification": "local",
+        "command": "uvx",
+        "credentials": "none",
+        "description": "Local Serena semantic code tools for the client project, with memories disabled; provisioned from the exact 1.7.0 dependency closure before offline launch.",
+        "egress": "none",
+        "supplyChain": "unpinned",
+        "type": "stdio"
+      }
+    },
+    {
+      "availability": "always",
+      "control": {
+        "id": "sequential-thinking",
+        "kind": "mcp",
+        "lifecycle": "supported",
+        "projector": "mcp-managed-settings",
+        "source": {
+          "server": "sequential-thinking",
+          "subject": "mcp-server-sha256:510dae776ce101a36da1057a75e694bc243cd1f2e4cf6494b79f8ddff556cf20",
+          "type": "mcp"
+        },
+        "targets": [
+          "claude",
+          "codex",
+          "copilot",
+          "cursor",
+          "kimi",
+          "kiro",
+          "opencode"
+        ]
+      },
+      "description": "Structured step-by-step reasoning scratchpad — no network, no filesystem, no credentials. Safe in any repo.",
+      "id": "sequential-thinking",
+      "server": {
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-sequential-thinking@2026.8.31"
+        ],
+        "classification": "local",
+        "command": "npx",
+        "credentials": "none",
+        "description": "Structured step-by-step reasoning scratchpad — no network, no filesystem, no credentials. Safe in any repo.",
+        "egress": "none",
+        "supplyChain": "pinned",
+        "type": "stdio"
+      }
+    }
+  ],
+  "nonProjectableMcp": [
+    {
+      "description": "GitHub's official remote MCP (repos, issues, PRs, Actions). OAuth via the client — no token stored in this file. Egress to GitHub (vendor-incumbent).",
+      "id": "github",
+      "reason": "Not policy-projectable: AIH's runtime identity for this id uses the http transport and the managed stdio projector cannot own it. Selecting it records requested intent only.",
+      "server": {
+        "classification": "third-party-hosted",
+        "credentials": "oauth",
+        "description": "GitHub's official remote MCP (repos, issues, PRs, Actions). OAuth via the client — no token stored in this file. Egress to GitHub (vendor-incumbent).",
+        "egress": "vendor-incumbent",
+        "supplyChain": "hosted-remote",
+        "type": "http",
+        "url": "https://api.githubcopilot.com/mcp/"
+      },
+      "transport": "http"
+    },
+    {
+      "description": "Up-to-date, version-matched library docs. THIRD-PARTY hosted endpoint (Upstash) — your queries leave the host; an optional CONTEXT7_API_KEY raises rate limits. Self-host or fall back to vendor docs where third-party egress is disallowed.",
+      "id": "context7",
+      "reason": "Not policy-projectable: AIH's runtime identity for this id uses the http transport and the managed stdio projector cannot own it. Selecting it records requested intent only.",
+      "server": {
+        "classification": "third-party-hosted",
+        "credentials": "none",
+        "description": "Up-to-date, version-matched library docs. THIRD-PARTY hosted endpoint (Upstash) — your queries leave the host; an optional CONTEXT7_API_KEY raises rate limits. Self-host or fall back to vendor docs where third-party egress is disallowed.",
+        "egress": "third-party",
+        "supplyChain": "hosted-remote",
+        "type": "http",
+        "url": "https://mcp.context7.com/mcp"
+      },
+      "transport": "http"
+    }
+  ],
+  "unavailableMcp": [
+    {
+      "configuredIdentity": "@playwright/mcp@0.0.82",
+      "description": "Pinned Playwright browser automation MCP for every project (navigate, snapshot, interact). It runs headless with an isolated in-memory profile. The browser can reach any URL — point it at trusted origins.",
+      "id": "playwright",
+      "reason": "Unavailable as an AIH control: AIH has no current protected Scanner evidence record for @playwright/mcp@0.0.82. This is an AIH-owned evidence gap; an administrator cannot waive it or manufacture organization approval for it.",
+      "server": {
+        "args": [
+          "-y",
+          "@playwright/mcp@0.0.82",
+          "--headless",
+          "--isolated"
+        ],
+        "classification": "local",
+        "command": "npx",
+        "credentials": "none",
+        "description": "Pinned Playwright browser automation MCP for every project (navigate, snapshot, interact). It runs headless with an isolated in-memory profile. The browser can reach any URL — point it at trusted origins.",
+        "egress": "local-only",
+        "supplyChain": "pinned",
+        "type": "stdio"
+      },
+      "transport": "stdio"
+    }
+  ],
+  "hooks": [
+    {
+      "behaviour": {
+        "artifact": ".aih/usage.jsonl",
+        "failureMode": "Best-effort: a failure never blocks a commit or an agent turn",
+        "records": "one JSON event per tool call — timestamp, CLI, kind (tool, mcp, skill or subagent), name, and a best-effort source",
+        "trigger": "PostToolUse"
+      },
+      "control": {
+        "id": "usage-metering",
+        "kind": "hook",
+        "lifecycle": "supported",
+        "projector": "usage-hook",
+        "source": {
+          "handler": "usage-metering",
+          "scriptDigest": "sha256:2eb808eb6e8e039ad740d2a280aa69e295fb2b98569397461b61868ade11a666",
+          "type": "hook"
+        },
+        "targets": [
+          "claude",
+          "codex"
+        ]
+      },
+      "description": "Appends one usage event per tool call so `aih track` can report this repository's agent activity.",
+      "id": "usage-metering"
+    }
+  ],
+  "hookRegistry": {
+    "entries": [
+      {
+        "description": "Appends one usage event per tool call so `aih track` can report this repository's agent activity.",
+        "enforcement": "aih-enforced",
+        "id": "usage-metering",
+        "owner": "aih",
+        "ownerLabel": "AIH",
+        "selectable": true,
+        "source": "AIH"
+      }
+    ],
+    "registrations": [
+      {
+        "command": "node .aih/usage-record.mjs --from claude; exit 0",
+        "event": "PostToolUse",
+        "functionTags": [
+          "usage-metering"
+        ],
+        "id": "usage-metering",
+        "owner": {
+          "kind": "aih"
+        },
+        "spawns": 1
+      }
+    ],
+    "overlaps": [],
+    "spawnProjection": {
+      "events": [
+        {
+          "entries": 1,
+          "event": "PostToolUse",
+          "spawns": 1
+        }
+      ],
+      "sourceDisabledSpawns": 0,
+      "totalEntries": 1,
+      "totalSpawns": 1
+    }
+  }
+}

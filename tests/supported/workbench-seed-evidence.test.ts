@@ -20,17 +20,42 @@ const digest = (domain: string, value: unknown) =>
     .digest("hex")}`;
 
 describe("registered Workbench source assessments", () => {
-  it("includes exact refreshed review-only assessments without licensing held Anthropic skills or replacing Matt", () => {
+  // The 19 curated anthropics/skills skills (D63/D68). None is withheld: the four that carry
+  // their own restrictive LICENSE.txt are labelled as found, and doc-coauthoring, which carries
+  // none, is rendered with the G21 "license not determined" gap.
+  const ANTHROPIC_SKILLS = [
+    "academy-guide",
+    "algorithmic-art",
+    "brand-guidelines",
+    "canvas-design",
+    "claude-api",
+    "discernment-nudge",
+    "doc-coauthoring",
+    "docx",
+    "frontend-design",
+    "internal-comms",
+    "mcp-builder",
+    "pdf",
+    "pptx",
+    "skill-creator",
+    "slack-gif-creator",
+    "theme-factory",
+    "web-artifacts-builder",
+    "webapp-testing",
+    "xlsx",
+  ];
+  const RESTRICTIVE = ["docx", "pdf", "pptx", "xlsx"];
+  it("includes exact refreshed review-only assessments, every curated Anthropic skill among them, without replacing Matt", () => {
     const manifest = read(resolve(root, "defaults/default-catalog-seed-manifest-v2.json"));
     expect(
       manifest.seeds.filter(
+        // Every source-assessment row: the Core collection's own rows (aih-core-*) are the
+        // renderer's and are asserted by core-collection-seeds.test.ts.
         (path: string) =>
-          !path.startsWith("workbench/aih/") &&
-          !path.startsWith("workbench/aih-core-0.6.1/") &&
-          !path.startsWith("workbench/aih-core-0.6.2/") &&
-          !path.startsWith("workbench/npm/"),
+          !path.startsWith("workbench/aih-core-") && !path.startsWith("workbench/npm/"),
       ),
-    ).toHaveLength(429);
+    ).toHaveLength(422);
+    const anthropicSubjects = new Set<string>();
     const expected: Record<
       string,
       {
@@ -43,24 +68,38 @@ describe("registered Workbench source assessments", () => {
       }
     > = {
       anthropic: {
-        count: 14,
+        count: 19,
         commit: "34040c9c568585f6929bedeaad110ad08f079624",
-        publication: "bbda9be7b3cba505db10e6e61e38133a05ab17799bd4f8e155704c6900ffb914",
-        mappedFindings: 163,
-        locationCoverageNotices: 56,
-        globalCoverageNotices: 18,
+        publication: "1254488044a151dd95a6a1aae572e30be92effe94432c37192f1400a9220300d",
+        mappedFindings: 257,
+        locationCoverageNotices: 129,
+        globalCoverageNotices: 13,
       },
       "ui-ux-pro-max": {
         count: 1,
         commit: "a38d04c3d5c298c851dbe5e6ee1965ee3de42cb5",
-        publication: "3a2c67b989fd9def7db7b3f75e4223744ef33e59475d149224f847ae244fa123",
-        mappedFindings: 80,
-        locationCoverageNotices: 0,
-        globalCoverageNotices: 19,
+        publication: "709f6bcc031fe2a93e461ebe7b57b6a126e0179fcd6b16cb8e98ac9c8ce7068e",
+        mappedFindings: 79,
+        locationCoverageNotices: 70,
+        globalCoverageNotices: 15,
       },
-      ponytail: { count: 7, commit: "356918eba965ee1eac64bd3a7f0dd02108350de5" },
-      superpowers: { count: 14, commit: "b36e0829c6d0140e93cfef2ca599b1b07d4a7797" },
-      ecc: { count: 367, commit: "5064474d4d762dc9640234a41617cccb79185cec" },
+      mattpocock: {
+        count: 25,
+        commit: "c55ee46073ed923f86ce59a5eb3b6d895095d1b7",
+        publication: "ab1a0b3c76d1962970195621fdd906fe200317ef30bef78e25fd0a82f853e518",
+        mappedFindings: 31,
+        locationCoverageNotices: 1,
+        globalCoverageNotices: 13,
+      },
+      superpowers: {
+        count: 15,
+        commit: "5bf4e78011075bcfc0dc295f0724994cd123ee71",
+        publication: "cf939d5447eaae3e16b2bfa15ebad25620f0953a89d4d5fda51e14844bba288b",
+        mappedFindings: 82,
+        locationCoverageNotices: 13,
+        globalCoverageNotices: 14,
+      },
+      ecc: { count: 361, commit: "5064474d4d762dc9640234a41617cccb79185cec" },
     };
     for (const [provider, facts] of Object.entries(expected)) {
       const paths = manifest.seeds.filter((path: string) =>
@@ -73,8 +112,10 @@ describe("registered Workbench source assessments", () => {
         const seedPath = resolve(root, "defaults", path);
         const seed = read(seedPath);
         expect(seed.subject.source.commit).toBe(facts.commit);
-        if (provider === "anthropic")
-          expect(["docx", "pdf", "pptx", "xlsx", "doc-coauthoring"]).not.toContain(seed.subject.id);
+        if (provider === "anthropic") {
+          expect(ANTHROPIC_SKILLS).toContain(seed.subject.id);
+          anthropicSubjects.add(seed.subject.id);
+        }
         expect(
           Object.values(seed.capabilities).every(
             (value) => Array.isArray(value) && value.length === 0,
@@ -94,16 +135,35 @@ describe("registered Workbench source assessments", () => {
         expect(report.summary).not.toContain("undefined");
         expect(seed.qualification.rights).toHaveLength(1);
         const right = read(resolve(dirname(seedPath), seed.qualification.rights[0]));
-        expect(right.summary).toMatch(/^Applicable (?:MIT|Apache-2.0) notice/);
-        expect(right.summary).toContain(
-          "No trademark, external-service, or organization-admission rights inferred.",
+        expect(right.summary).toMatch(
+          /^(?:Applicable (?:MIT|Apache-2\.0|Anthropic-Proprietary) notice|No applicable license determined for this closure)/,
         );
+        expect(right.summary).toContain(
+          "external-service, or organization-admission rights inferred.",
+        );
+        // D68: a known restrictive license is stated as found, with the file's own words; the
+        // skill whose closure carries no license file keeps G21's "license not determined" gap.
+        if (provider === "anthropic" && RESTRICTIVE.includes(seed.subject.id)) {
+          expect(right.summary).toContain(
+            `Applicable Anthropic-Proprietary notice at anthropics/skills@${facts.commit}:skills/${seed.subject.id}/LICENSE.txt, sha256:79f6d8f5b427252fa3b1c11ecdbdb6bf610b944f7530b4de78f770f38741cfaa.`,
+          );
+          expect(right.summary).toContain(
+            'The file\'s own words: "© 2025 Anthropic, PBC. All rights reserved."',
+          );
+          expect(right.summary).not.toContain("Apache-2.0");
+        }
+        if (provider === "anthropic" && seed.subject.id === "doc-coauthoring") {
+          expect(seed.qualification.gaps).toContain("evidence/license-gap.json");
+          expect(read(resolve(dirname(seedPath), "evidence/license-gap.json")).summary).toContain(
+            "License not determined: no license file in the closure.",
+          );
+        }
         expect(read(resolve(dirname(seedPath), seed.artifacts.recipe))).toMatchObject({
           kind: "review-only",
           installation: false,
           organizationAdmission: "not-authoritative",
         });
-        if (provider === "anthropic" || provider === "ui-ux-pro-max") {
+        if (facts.publication !== undefined) {
           expect(seed.qualification.gaps).toContain("evidence/coverage-gap.json");
           const coverageGap = read(resolve(dirname(seedPath), "evidence/coverage-gap.json"));
           expect(coverageGap.summary).toContain("Unresolved Scanner coverage notifications:");
@@ -127,6 +187,7 @@ describe("registered Workbench source assessments", () => {
         expect(locationCoverageNotices).toBe(facts.locationCoverageNotices);
       }
     }
+    expect([...anthropicSubjects].sort()).toEqual(ANTHROPIC_SKILLS);
   });
 
   it("retains exact subjects, canonical source closures, unresolved findings, and review-only scope", () => {
@@ -145,7 +206,7 @@ describe("registered Workbench source assessments", () => {
       expect(seed.subject.source).toMatchObject({
         type: "github",
         repository: "mattpocock/skills",
-        commit: "3cca18b368ae95cdbdebbff572ccafa662551015",
+        commit: "c55ee46073ed923f86ce59a5eb3b6d895095d1b7",
       });
       const sourceDigest = digest("aih-governance-decision-source/v2", seed.subject.source);
       const subjectDigest = digest("aih-governance-decision-subject/v2", {
@@ -180,13 +241,47 @@ describe("registered Workbench source assessments", () => {
             format: "aih-supported-evidence/v2",
           });
           if (kind === "finding") {
-            expect(evidence.summary).toMatch(/^Unresolved .*canonical finding SHA256 [0-9a-f]{64}/);
+            expect(evidence.summary).toMatch(
+              /^Unresolved original annex\/\S+\.json findings: \d+\. Canonical full ordered finding group SHA256 [0-9a-f]{64}\./,
+            );
             findingCount++;
           }
-          if (kind === "gap") expect(evidence.summary).toContain("no runtime safety, clean scan");
+          if (kind === "gap")
+            expect(evidence.summary).toContain(
+              {
+                "coverage-gap": "is not a complete or clean scan",
+                "publication-1": "Catalog does not re-sign or refresh them",
+                "scope-gap": "No runtime safety, clean scan",
+              }[evidence.id as string],
+            );
         }
       }
     }
     expect(findingCount).toBeGreaterThan(0);
+  });
+
+  it("keeps exact npm bytes and explicit missing scan coverage without claiming a passing scan", () => {
+    const base = resolve(root, "defaults/workbench/npm/package.picocolors");
+    const seed = read(resolve(base, "seed.json"));
+    expect(seed.subject.source).toMatchObject({
+      package: "picocolors",
+      type: "npm",
+      version: "1.1.1",
+    });
+    const tar = readFileSync(resolve(base, "artifacts/public-projection/picocolors-1.1.1.tgz"));
+    expect(`sha512-${createHash("sha512").update(tar).digest("base64")}`).toBe(
+      seed.subject.source.integrity,
+    );
+    expect(seed.qualification.findings).toHaveLength(0);
+    expect(seed.qualification.gaps).toHaveLength(9);
+    expect(seed.qualification.rights).toHaveLength(1);
+    expect(
+      read(resolve(base, "artifacts/public-projection/preflight-projection.json")).observed,
+    ).toMatchObject({
+      finalVerdict: "warn",
+      scanState: "missing",
+      nativeOnly: true,
+      trustScore: 50,
+    });
   });
 });

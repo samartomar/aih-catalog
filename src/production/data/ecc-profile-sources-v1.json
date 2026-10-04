@@ -1,0 +1,3782 @@
+{
+  "version": 1,
+  "repository": "affaan-m/ECC",
+  "commit": "5064474d4d762dc9640234a41617cccb79185cec",
+  "package": {
+    "name": "ecc-universal",
+    "version": "2.2.1"
+  },
+  "licensePath": "LICENSE",
+  "manifests": [
+    {
+      "path": "manifests/install-components.json",
+      "text": "{\n  \"version\": 1,\n  \"components\": [\n    {\n      \"id\": \"baseline:rules\",\n      \"family\": \"baseline\",\n      \"description\": \"Core shared rules and supported language rule packs.\",\n      \"modules\": [\n        \"rules-core\"\n      ]\n    },\n    {\n      \"id\": \"baseline:agents\",\n      \"family\": \"baseline\",\n      \"description\": \"Baseline agent definitions and shared AGENTS guidance.\",\n      \"modules\": [\n        \"agents-core\"\n      ]\n    },\n    {\n      \"id\": \"baseline:commands\",\n      \"family\": \"baseline\",\n      \"description\": \"Core command library and workflow command docs.\",\n      \"modules\": [\n        \"commands-core\"\n      ]\n    },\n    {\n      \"id\": \"baseline:hooks\",\n      \"family\": \"baseline\",\n      \"description\": \"Hook runtime configs and hook helper scripts.\",\n      \"modules\": [\n        \"hooks-runtime\"\n      ]\n    },\n    {\n      \"id\": \"baseline:platform\",\n      \"family\": \"baseline\",\n      \"description\": \"Platform configs, package-manager setup, and MCP catalog defaults.\",\n      \"modules\": [\n        \"platform-configs\"\n      ]\n    },\n    {\n      \"id\": \"baseline:workflow\",\n      \"family\": \"baseline\",\n      \"description\": \"Evaluation, TDD, verification, compaction, learning, and cross-harness memory workflow support.\",\n      \"modules\": [\n        \"workflow-quality\"\n      ]\n    },\n    {\n      \"id\": \"lang:typescript\",\n      \"family\": \"language\",\n      \"description\": \"TypeScript and frontend/backend application-engineering guidance. Currently resolves through the shared framework-language module.\",\n      \"modules\": [\n        \"framework-language\"\n      ]\n    },\n    {\n      \"id\": \"lang:python\",\n      \"family\": \"language\",\n      \"description\": \"Python and Django-oriented engineering guidance. Currently resolves through the shared framework-language module.\",\n      \"modules\": [\n        \"framework-language\"\n      ]\n    },\n    {\n      \"id\": \"lang:go\",\n      \"family\": \"language\",\n      \"description\": \"Go-focused coding and testing guidance. Currently resolves through the shared framework-language module.\",\n      \"modules\": [\n        \"framework-language\"\n      ]\n    },\n    {\n      \"id\": \"lang:java\",\n      \"family\": \"language\",\n      \"description\": \"Java and Spring application guidance. Currently resolves through the shared framework-language module.\",\n      \"modules\": [\n        \"framework-language\"\n      ]\n    },\n    {\n      \"id\": \"framework:angular\",\n      \"family\": \"framework\",\n      \"description\": \"Angular-focused engineering guidance and rules. Currently resolves through the shared framework-language module.\",\n      \"modules\": [\n        \"framework-language\"\n      ]\n    },\n    {\n      \"id\": \"framework:react\",\n      \"family\": \"framework\",\n      \"description\": \"React-focused engineering guidance. Currently resolves through the shared framework-language module.\",\n      \"modules\": [\n        \"framework-language\"\n      ]\n    },\n    {\n      \"id\": \"framework:vue\",\n      \"family\": \"framework\",\n      \"description\": \"Vue.js, Nuxt, Pinia, and Vue Router engineering guidance. Currently resolves through the shared framework-language module.\",\n      \"modules\": [\n        \"framework-language\"\n      ]\n    },\n    {\n      \"id\": \"framework:nextjs\",\n      \"family\": \"framework\",\n      \"description\": \"Next.js-focused engineering guidance. Currently resolves through the shared framework-language module.\",\n      \"modules\": [\n        \"framework-language\"\n      ]\n    },\n    {\n      \"id\": \"framework:django\",\n      \"family\": \"framework\",\n      \"description\": \"Django-focused engineering guidance. Currently resolves through the shared framework-language module.\",\n      \"modules\": [\n        \"framework-language\"\n      ]\n    },\n    {\n      \"id\": \"framework:springboot\",\n      \"family\": \"framework\",\n      \"description\": \"Spring Boot-focused engineering guidance. Currently resolves through the shared framework-language module.\",\n      \"modules\": [\n        \"framework-language\"\n      ]\n    },\n    {\n      \"id\": \"framework:quarkus\",\n      \"family\": \"framework\",\n      \"description\": \"Quarkus-focused engineering guidance for REST, Panache, security, testing, and verification.\",\n      \"modules\": [\n        \"framework-language\",\n        \"security\"\n      ]\n    },\n    {\n      \"id\": \"capability:database\",\n      \"family\": \"capability\",\n      \"description\": \"Database and persistence-oriented skills.\",\n      \"modules\": [\n        \"database\"\n      ]\n    },\n    {\n      \"id\": \"capability:security\",\n      \"family\": \"capability\",\n      \"description\": \"Security review and security-focused framework guidance.\",\n      \"modules\": [\n        \"security\"\n      ]\n    },\n    {\n      \"id\": \"capability:research\",\n      \"family\": \"capability\",\n      \"description\": \"Research and API-integration skills for deep investigations and external tooling.\",\n      \"modules\": [\n        \"research-apis\"\n      ]\n    },\n    {\n      \"id\": \"capability:content\",\n      \"family\": \"capability\",\n      \"description\": \"Business, writing, market, investor communication, and reusable voice-system skills.\",\n      \"modules\": [\n        \"business-content\"\n      ]\n    },\n    {\n      \"id\": \"capability:operators\",\n      \"family\": \"capability\",\n      \"description\": \"Connected-app operator workflows for setup audits, billing operations, program tracking, Google Workspace, and network optimization.\",\n      \"modules\": [\n        \"operator-workflows\"\n      ]\n    },\n    {\n      \"id\": \"capability:optimization\",\n      \"family\": \"capability\",\n      \"description\": \"Parallel execution, benchmarking, throughput, latency, and recursive decision-ledger skills.\",\n      \"modules\": [\n        \"optimization-workflows\"\n      ]\n    },\n    {\n      \"id\": \"capability:prediction-markets\",\n      \"family\": \"capability\",\n      \"description\": \"Public, non-advisory prediction-market and Ito basket research workflows with gated Ito API access.\",\n      \"modules\": [\n        \"prediction-market-skills\"\n      ]\n    },\n    {\n      \"id\": \"capability:ito-compute\",\n      \"family\": \"capability\",\n      \"description\": \"Authenticated Itô GPU inventory, RFQ, status, device revocation, and explicitly gated node-qualification workflows through the separately installed canonical CLI.\",\n      \"modules\": [\n        \"ito-compute\"\n      ]\n    },\n    {\n      \"id\": \"capability:nasiko-control-plane\",\n      \"family\": \"capability\",\n      \"description\": \"Experimental Nasiko CLI lifecycle bridge guidance for pinned installation, read-only status, qualified uninstall, and opt-in telemetry boundaries.\",\n      \"modules\": [\n        \"nasiko-control-plane\"\n      ]\n    },\n    {\n      \"id\": \"capability:social\",\n      \"family\": \"capability\",\n      \"description\": \"Social publishing and distribution skills.\",\n      \"modules\": [\n        \"social-distribution\"\n      ]\n    },\n    {\n      \"id\": \"capability:media\",\n      \"family\": \"capability\",\n      \"description\": \"Media generation, technical explainers, and AI-assisted editing skills.\",\n      \"modules\": [\n        \"media-generation\"\n      ]\n    },\n    {\n      \"id\": \"capability:orchestration\",\n      \"family\": \"capability\",\n      \"description\": \"Worktree and tmux orchestration runtime and workflow docs.\",\n      \"modules\": [\n        \"orchestration\"\n      ]\n    },\n    {\n      \"id\": \"lang:swift\",\n      \"family\": \"language\",\n      \"description\": \"Swift, SwiftUI, and Apple platform engineering guidance.\",\n      \"modules\": [\n        \"swift-apple\"\n      ]\n    },\n    {\n      \"id\": \"lang:cpp\",\n      \"family\": \"language\",\n      \"description\": \"C++ coding standards and testing guidance. Currently resolves through the shared framework-language module.\",\n      \"modules\": [\n        \"framework-language\"\n      ]\n    },\n    {\n      \"id\": \"lang:c\",\n      \"family\": \"language\",\n      \"description\": \"C engineering guidance using the shared C/C++ standards and testing stack. Currently resolves through the shared framework-language module.\",\n      \"modules\": [\n        \"framework-language\"\n      ]\n    },\n    {\n      \"id\": \"lang:kotlin\",\n      \"family\": \"language\",\n      \"description\": \"Kotlin, Ktor, Exposed, Coroutines, and Compose Multiplatform guidance. Currently resolves through the shared framework-language module.\",\n      \"modules\": [\n        \"framework-language\"\n      ]\n    },\n    {\n      \"id\": \"lang:arkts\",\n      \"family\": \"language\",\n      \"description\": \"HarmonyOS, ArkTS, and ArkUI development guidance including V2 state management, Navigation routing, and HarmonyOS API best practices.\",\n      \"modules\": [\n        \"framework-language\"\n      ]\n    },\n    {\n      \"id\": \"lang:perl\",\n      \"family\": \"language\",\n      \"description\": \"Modern Perl patterns, testing, and security guidance. Currently resolves through framework-language and security modules.\",\n      \"modules\": [\n        \"framework-language\",\n        \"security\"\n      ]\n    },\n    {\n      \"id\": \"lang:ruby\",\n      \"family\": \"language\",\n      \"description\": \"Ruby and Rails coding, testing, and security guidance. Resolves through framework-language and security modules.\",\n      \"modules\": [\n        \"framework-language\",\n        \"security\"\n      ]\n    },\n    {\n      \"id\": \"framework:rails\",\n      \"family\": \"framework\",\n      \"description\": \"Rails 8 application guidance for MVC, Hotwire, Solid Queue/Cache/Cable, authentication, testing, and security.\",\n      \"modules\": [\n        \"framework-language\",\n        \"security\"\n      ]\n    },\n    {\n      \"id\": \"lang:rust\",\n      \"family\": \"language\",\n      \"description\": \"Rust patterns and testing guidance. Currently resolves through the shared framework-language module.\",\n      \"modules\": [\n        \"framework-language\"\n      ]\n    },\n    {\n      \"id\": \"lang:csharp\",\n      \"family\": \"language\",\n      \"description\": \"C# coding standards and patterns guidance. Currently resolves through the shared framework-language module.\",\n      \"modules\": [\n        \"framework-language\"\n      ]\n    },\n    {\n      \"id\": \"lang:fsharp\",\n      \"family\": \"language\",\n      \"description\": \"F# functional patterns and testing guidance. Currently resolves through the shared framework-language module.\",\n      \"modules\": [\n        \"framework-language\"\n      ]\n    },\n    {\n      \"id\": \"framework:laravel\",\n      \"family\": \"framework\",\n      \"description\": \"Laravel patterns, TDD, verification, and security guidance. Resolves through framework-language and security modules.\",\n      \"modules\": [\n        \"framework-language\",\n        \"security\"\n      ]\n    },\n    {\n      \"id\": \"capability:agentic\",\n      \"family\": \"capability\",\n      \"description\": \"Agentic engineering, autonomous loops, and LLM pipeline optimization.\",\n      \"modules\": [\n        \"agentic-patterns\"\n      ]\n    },\n    {\n      \"id\": \"capability:devops\",\n      \"family\": \"capability\",\n      \"description\": \"Deployment, Docker, and infrastructure patterns.\",\n      \"modules\": [\n        \"devops-infra\"\n      ]\n    },\n    {\n      \"id\": \"capability:machine-learning\",\n      \"family\": \"capability\",\n      \"description\": \"Production machine-learning engineering workflows for data contracts, reproducible training, evaluation, deployment, monitoring, and rollback.\",\n      \"modules\": [\n        \"machine-learning\"\n      ]\n    },\n    {\n      \"id\": \"capability:supply-chain\",\n      \"family\": \"capability\",\n      \"description\": \"Supply chain, logistics, procurement, and manufacturing domain skills.\",\n      \"modules\": [\n        \"supply-chain-domain\"\n      ]\n    },\n    {\n      \"id\": \"capability:documents\",\n      \"family\": \"capability\",\n      \"description\": \"Document processing, conversion, and translation skills.\",\n      \"modules\": [\n        \"document-processing\"\n      ]\n    },\n    {\n      \"id\": \"agent:architect\",\n      \"family\": \"agent\",\n      \"description\": \"System design and architecture agent.\",\n      \"modules\": [\n        \"agents-core\"\n      ]\n    },\n    {\n      \"id\": \"agent:code-reviewer\",\n      \"family\": \"agent\",\n      \"description\": \"Code review agent for quality and security checks.\",\n      \"modules\": [\n        \"agents-core\"\n      ]\n    },\n    {\n      \"id\": \"agent:security-reviewer\",\n      \"family\": \"agent\",\n      \"description\": \"Security vulnerability analysis agent.\",\n      \"modules\": [\n        \"agents-core\"\n      ]\n    },\n    {\n      \"id\": \"agent:tdd-guide\",\n      \"family\": \"agent\",\n      \"description\": \"Test-driven development guidance agent.\",\n      \"modules\": [\n        \"agents-core\"\n      ]\n    },\n    {\n      \"id\": \"agent:planner\",\n      \"family\": \"agent\",\n      \"description\": \"Feature implementation planning agent.\",\n      \"modules\": [\n        \"agents-core\"\n      ]\n    },\n    {\n      \"id\": \"agent:build-error-resolver\",\n      \"family\": \"agent\",\n      \"description\": \"Build error resolution agent.\",\n      \"modules\": [\n        \"agents-core\"\n      ]\n    },\n    {\n      \"id\": \"agent:e2e-runner\",\n      \"family\": \"agent\",\n      \"description\": \"Playwright E2E testing agent.\",\n      \"modules\": [\n        \"agents-core\"\n      ]\n    },\n    {\n      \"id\": \"agent:harmonyos-app-resolver\",\n      \"family\": \"agent\",\n      \"description\": \"HarmonyOS application development expert agent.\",\n      \"modules\": [\n        \"agents-core\"\n      ]\n    },\n    {\n      \"id\": \"agent:fsharp-reviewer\",\n      \"family\": \"agent\",\n      \"description\": \"F# code review agent for functional idioms, type safety, and .NET testing.\",\n      \"modules\": [\n        \"agents-core\"\n      ]\n    },\n    {\n      \"id\": \"agent:refactor-cleaner\",\n      \"family\": \"agent\",\n      \"description\": \"Dead code cleanup and refactoring agent.\",\n      \"modules\": [\n        \"agents-core\"\n      ]\n    },\n    {\n      \"id\": \"agent:doc-updater\",\n      \"family\": \"agent\",\n      \"description\": \"Documentation update agent.\",\n      \"modules\": [\n        \"agents-core\"\n      ]\n    },\n    {\n      \"id\": \"agent:mle-reviewer\",\n      \"family\": \"agent\",\n      \"description\": \"Production machine-learning engineering reviewer for ML pipelines, evals, serving, monitoring, and rollback.\",\n      \"modules\": [\n        \"agents-core\"\n      ]\n    },\n    {\n      \"id\": \"skill:plan-canvas\",\n      \"family\": \"skill\",\n      \"description\": \"Browser review canvas for plan artifacts: annotate, chat, approve or request changes.\",\n      \"modules\": [\n        \"workflow-quality\"\n      ]\n    },\n    {\n      \"id\": \"skill:unified-memory\",\n      \"family\": \"skill\",\n      \"description\": \"Cross-harness memory guidance that requires the separately installed ecc-universal CLI runtime.\",\n      \"modules\": [\n        \"skill-unified-memory\"\n      ]\n    },\n    {\n      \"id\": \"skill:tdd-workflow\",\n      \"family\": \"skill\",\n      \"description\": \"Test-driven development workflow skill.\",\n      \"modules\": [\n        \"workflow-quality\"\n      ]\n    },\n    {\n      \"id\": \"skill:continuous-learning\",\n      \"family\": \"skill\",\n      \"description\": \"Legacy v1 Stop-hook session pattern extraction skill; prefer continuous-learning-v2 for new installs.\",\n      \"modules\": [\n        \"workflow-quality\"\n      ]\n    },\n    {\n      \"id\": \"skill:eval-harness\",\n      \"family\": \"skill\",\n      \"description\": \"Evaluation harness for AI regression testing.\",\n      \"modules\": [\n        \"workflow-quality\"\n      ]\n    },\n    {\n      \"id\": \"skill:verification-loop\",\n      \"family\": \"skill\",\n      \"description\": \"Verification loop for code quality assurance.\",\n      \"modules\": [\n        \"workflow-quality\"\n      ]\n    },\n    {\n      \"id\": \"skill:windows-desktop-e2e\",\n      \"family\": \"skill\",\n      \"description\": \"E2E testing for Windows native desktop apps with pywinauto and Windows UI Automation.\",\n      \"modules\": [\n        \"workflow-quality\"\n      ]\n    },\n    {\n      \"id\": \"skill:strategic-compact\",\n      \"family\": \"skill\",\n      \"description\": \"Strategic context compaction for long sessions.\",\n      \"modules\": [\n        \"workflow-quality\"\n      ]\n    },\n    {\n      \"id\": \"skill:coding-standards\",\n      \"family\": \"skill\",\n      \"description\": \"Language-agnostic coding standards and best practices.\",\n      \"modules\": [\n        \"framework-language\"\n      ]\n    },\n    {\n      \"id\": \"skill:frontend-patterns\",\n      \"family\": \"skill\",\n      \"description\": \"React and frontend engineering patterns.\",\n      \"modules\": [\n        \"framework-language\"\n      ]\n    },\n    {\n      \"id\": \"skill:vue-patterns\",\n      \"family\": \"skill\",\n      \"description\": \"Vue.js 3 Composition API, reactivity, Pinia, Vue Router, and Nuxt SSR patterns.\",\n      \"modules\": [\n        \"framework-language\"\n      ]\n    },\n    {\n      \"id\": \"skill:backend-patterns\",\n      \"family\": \"skill\",\n      \"description\": \"API design, database, and backend engineering patterns.\",\n      \"modules\": [\n        \"framework-language\"\n      ]\n    },\n    {\n      \"id\": \"skill:security-review\",\n      \"family\": \"skill\",\n      \"description\": \"Security review checklist and vulnerability analysis.\",\n      \"modules\": [\n        \"security\"\n      ]\n    },\n    {\n      \"id\": \"skill:deep-research\",\n      \"family\": \"skill\",\n      \"description\": \"Deep research and investigation workflows.\",\n      \"modules\": [\n        \"research-apis\"\n      ]\n    },\n    {\n      \"id\": \"skill:mle-workflow\",\n      \"family\": \"skill\",\n      \"description\": \"Production machine-learning engineering workflow for data contracts, reproducible training, evaluation, deployment, monitoring, and rollback.\",\n      \"modules\": [\n        \"machine-learning\"\n      ]\n    },\n    {\n      \"id\": \"locale:ja\",\n      \"family\": \"locale\",\n      \"description\": \"Japanese (ja-JP) translated reference docs installed to ~/.claude/docs/ja-JP/.\",\n      \"modules\": [\n        \"docs-ja-jp\"\n      ]\n    },\n    {\n      \"id\": \"locale:zh-cn\",\n      \"family\": \"locale\",\n      \"description\": \"Simplified Chinese (zh-CN) translated reference docs installed to ~/.claude/docs/zh-CN/.\",\n      \"modules\": [\n        \"docs-zh-cn\"\n      ]\n    },\n    {\n      \"id\": \"locale:ko-kr\",\n      \"family\": \"locale\",\n      \"description\": \"Korean (ko-KR) translated reference docs installed to ~/.claude/docs/ko-KR/.\",\n      \"modules\": [\n        \"docs-ko-kr\"\n      ]\n    },\n    {\n      \"id\": \"locale:pt-br\",\n      \"family\": \"locale\",\n      \"description\": \"Brazilian Portuguese (pt-BR) translated reference docs installed to ~/.claude/docs/pt-BR/.\",\n      \"modules\": [\n        \"docs-pt-br\"\n      ]\n    },\n    {\n      \"id\": \"locale:ru\",\n      \"family\": \"locale\",\n      \"description\": \"Russian (ru) translated reference docs installed to ~/.claude/docs/ru/.\",\n      \"modules\": [\n        \"docs-ru\"\n      ]\n    },\n    {\n      \"id\": \"locale:tr\",\n      \"family\": \"locale\",\n      \"description\": \"Turkish (tr) translated reference docs installed to ~/.claude/docs/tr/.\",\n      \"modules\": [\n        \"docs-tr\"\n      ]\n    },\n    {\n      \"id\": \"locale:vi-vn\",\n      \"family\": \"locale\",\n      \"description\": \"Vietnamese (vi-VN) translated reference docs installed to ~/.claude/docs/vi-VN/.\",\n      \"modules\": [\n        \"docs-vi-vn\"\n      ]\n    },\n    {\n      \"id\": \"locale:zh-tw\",\n      \"family\": \"locale\",\n      \"description\": \"Traditional Chinese (zh-TW) translated reference docs installed to ~/.claude/docs/zh-TW/.\",\n      \"modules\": [\n        \"docs-zh-tw\"\n      ]\n    },\n    {\n      \"id\": \"locale:de-de\",\n      \"family\": \"locale\",\n      \"description\": \"German (de-DE) translated reference docs installed to ~/.claude/docs/de-DE/.\",\n      \"modules\": [\n        \"docs-de-de\"\n      ]\n    },\n    {\n      \"id\": \"locale:uk-ua\",\n      \"family\": \"locale\",\n      \"description\": \"Ukrainian (uk-UA) translated reference docs installed to ~/.claude/docs/uk-UA/.\",\n      \"modules\": [\n        \"docs-uk-ua\"\n      ]\n    }\n  ]\n}\n"
+    },
+    {
+      "path": "manifests/install-modules.json",
+      "text": "{\n  \"version\": 1,\n  \"modules\": [\n    {\n      \"id\": \"rules-core\",\n      \"kind\": \"rules\",\n      \"description\": \"Shared and language rules for supported harness targets.\",\n      \"paths\": [\n        \"rules\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"cursor\",\n        \"antigravity\",\n        \"codebuddy\",\n        \"joycode\",\n        \"qwen\",\n        \"zed\",\n        \"hermes\",\n        \"openclaw\",\n        \"kimi\",\n        \"adal\"\n      ],\n      \"dependencies\": [],\n      \"defaultInstall\": true,\n      \"cost\": \"light\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"agents-core\",\n      \"kind\": \"agents\",\n      \"description\": \"Agent definitions and project-level agent guidance.\",\n      \"paths\": [\n        \".agents\",\n        \"agents\",\n        \"AGENTS.md\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"cursor\",\n        \"antigravity\",\n        \"codex\",\n        \"codebuddy\",\n        \"joycode\",\n        \"qwen\",\n        \"zed\",\n        \"hermes\",\n        \"openclaw\",\n        \"kimi\",\n        \"adal\"\n      ],\n      \"dependencies\": [],\n      \"defaultInstall\": true,\n      \"cost\": \"light\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"commands-core\",\n      \"kind\": \"commands\",\n      \"description\": \"Core slash-command library and command docs.\",\n      \"paths\": [\n        \"commands\",\n        \"scripts/harness-audit.js\",\n        \"scripts/skills-health.js\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"cursor\",\n        \"antigravity\",\n        \"opencode\",\n        \"codebuddy\",\n        \"joycode\",\n        \"qwen\",\n        \"zed\",\n        \"hermes\",\n        \"openclaw\",\n        \"kimi\",\n        \"adal\"\n      ],\n      \"dependencies\": [],\n      \"defaultInstall\": true,\n      \"cost\": \"medium\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"hooks-runtime\",\n      \"kind\": \"hooks\",\n      \"description\": \"Runtime hook configs and hook script helpers.\",\n      \"paths\": [\n        \"hooks\",\n        \"scripts/hooks\",\n        \"scripts/lib\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"cursor\",\n        \"opencode\",\n        \"codebuddy\"\n      ],\n      \"dependencies\": [],\n      \"defaultInstall\": true,\n      \"cost\": \"medium\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"platform-configs\",\n      \"kind\": \"platform\",\n      \"description\": \"Baseline platform configs, package-manager setup, and MCP catalog.\",\n      \"paths\": [\n        \".claude-plugin\",\n        \".codex\",\n        \".cursor\",\n        \".gemini\",\n        \".opencode\",\n        \".pi\",\n        \".qwen\",\n        \".zed\",\n        \"mcp-configs\",\n        \"scripts/auto-update.js\",\n        \"scripts/setup-package-manager.js\",\n        \".hermes\",\n        \".openclaw\",\n        \".kimi\",\n        \".adal\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"cursor\",\n        \"antigravity\",\n        \"codex\",\n        \"gemini\",\n        \"opencode\",\n        \"codebuddy\",\n        \"joycode\",\n        \"qwen\",\n        \"zed\",\n        \"hermes\",\n        \"openclaw\",\n        \"kimi\",\n        \"adal\"\n      ],\n      \"dependencies\": [],\n      \"defaultInstall\": true,\n      \"cost\": \"light\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"framework-language\",\n      \"kind\": \"skills\",\n      \"description\": \"Core framework, language, and application-engineering skills.\",\n      \"paths\": [\n        \"skills/android-clean-architecture\",\n        \"skills/angular-developer\",\n        \"skills/api-design\",\n        \"skills/backend-patterns\",\n        \"skills/coding-standards\",\n        \"skills/compose-multiplatform-patterns\",\n        \"skills/contract-first\",\n        \"skills/csharp-testing\",\n        \"skills/fsharp-testing\",\n        \"skills/cpp-coding-standards\",\n        \"skills/cpp-testing\",\n        \"skills/dart-flutter-patterns\",\n        \"skills/django-patterns\",\n        \"skills/django-tdd\",\n        \"skills/django-verification\",\n        \"skills/dotnet-patterns\",\n        \"skills/fastapi-patterns\",\n        \"skills/frontend-design-direction\",\n        \"skills/frontend-patterns\",\n        \"skills/frontend-slides\",\n        \"skills/make-interfaces-feel-better\",\n        \"skills/motion-ui\",\n        \"skills/golang-patterns\",\n        \"skills/golang-testing\",\n        \"skills/java-coding-standards\",\n        \"skills/kotlin-coroutines-flows\",\n        \"skills/kotlin-exposed-patterns\",\n        \"skills/kotlin-ktor-patterns\",\n        \"skills/kotlin-patterns\",\n        \"skills/kotlin-testing\",\n        \"skills/laravel-plugin-discovery\",\n        \"skills/laravel-patterns\",\n        \"skills/laravel-tdd\",\n        \"skills/laravel-verification\",\n        \"skills/mcp-server-patterns\",\n        \"skills/nestjs-patterns\",\n        \"skills/perl-patterns\",\n        \"skills/perl-testing\",\n        \"skills/python-patterns\",\n        \"skills/python-testing\",\n        \"skills/quarkus-patterns\",\n        \"skills/quarkus-tdd\",\n        \"skills/quarkus-verification\",\n        \"skills/react-patterns\",\n        \"skills/react-performance\",\n        \"skills/react-testing\",\n        \"skills/rust-patterns\",\n        \"skills/rust-testing\",\n        \"skills/springboot-patterns\",\n        \"skills/springboot-tdd\",\n        \"skills/springboot-verification\",\n        \"skills/ui-to-vue\",\n        \"skills/vue-patterns\",\n        \"skills/accessibility\",\n        \"skills/bun-runtime\",\n        \"skills/design-system\",\n        \"skills/django-celery\",\n        \"skills/flutter-dart-code-review\",\n        \"skills/frontend-a11y\",\n        \"skills/generating-python-installer\",\n        \"skills/hexagonal-architecture\",\n        \"skills/motion-advanced\",\n        \"skills/motion-foundations\",\n        \"skills/motion-patterns\",\n        \"skills/nextjs-turbopack\",\n        \"skills/nuxt4-patterns\",\n        \"skills/react-native-patterns\",\n        \"skills/tinystruct-patterns\",\n        \"skills/vite-patterns\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"cursor\",\n        \"antigravity\",\n        \"codex\",\n        \"opencode\",\n        \"codebuddy\",\n        \"joycode\",\n        \"qwen\",\n        \"zed\"\n      ],\n      \"dependencies\": [\n        \"rules-core\",\n        \"agents-core\",\n        \"commands-core\",\n        \"platform-configs\"\n      ],\n      \"defaultInstall\": false,\n      \"cost\": \"medium\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"database\",\n      \"kind\": \"skills\",\n      \"description\": \"Database and persistence-focused skills.\",\n      \"paths\": [\n        \"skills/clickhouse-io\",\n        \"skills/database-migrations\",\n        \"skills/jpa-patterns\",\n        \"skills/mysql-patterns\",\n        \"skills/postgres-patterns\",\n        \"skills/prisma-patterns\",\n        \"skills/redis-patterns\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"cursor\",\n        \"antigravity\",\n        \"codex\",\n        \"opencode\",\n        \"codebuddy\",\n        \"joycode\",\n        \"qwen\",\n        \"zed\"\n      ],\n      \"dependencies\": [\n        \"platform-configs\"\n      ],\n      \"defaultInstall\": false,\n      \"cost\": \"medium\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"skill-unified-memory\",\n      \"kind\": \"skills\",\n      \"description\": \"Single-skill unified-memory guidance; requires the separately installed ecc-universal CLI runtime.\",\n      \"paths\": [\n        \"skills/unified-memory\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"cursor\",\n        \"antigravity\",\n        \"codex\",\n        \"gemini\",\n        \"opencode\",\n        \"codebuddy\",\n        \"joycode\",\n        \"qwen\",\n        \"zed\",\n        \"hermes\",\n        \"openclaw\",\n        \"kimi\",\n        \"adal\"\n      ],\n      \"dependencies\": [\n        \"platform-configs\"\n      ],\n      \"defaultInstall\": false,\n      \"cost\": \"light\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"workflow-quality\",\n      \"kind\": \"skills\",\n      \"description\": \"Evaluation, TDD, verification, compaction, learning, and cross-harness memory skills, including the legacy continuous-learning v1 path. The unified-memory workflow requires the separately installed ecc-universal CLI runtime.\",\n      \"paths\": [\n        \"skills/agent-sort\",\n        \"skills/agent-introspection-debugging\",\n        \"skills/ai-regression-testing\",\n        \"skills/configure-ecc\",\n        \"skills/code-tour\",\n        \"skills/continuous-learning\",\n        \"skills/continuous-learning-v2\",\n        \"skills/council\",\n        \"skills/council-multi-model\",\n        \"skills/dev-team\",\n        \"skills/e2e-testing\",\n        \"skills/error-handling\",\n        \"skills/eval-harness\",\n        \"skills/hookify-rules\",\n        \"skills/iterative-retrieval\",\n        \"skills/plan-canvas\",\n        \"skills/plankton-code-quality\",\n        \"skills/production-audit\",\n        \"skills/skill-comply\",\n        \"skills/skill-scout\",\n        \"skills/skill-stocktake\",\n        \"skills/strategic-compact\",\n        \"skills/tdd-workflow\",\n        \"skills/verification-loop\",\n        \"skills/windows-desktop-e2e\",\n        \"skills/agent-self-evaluation\",\n        \"skills/architecture-decision-records\",\n        \"skills/browser-qa\",\n        \"skills/ck\",\n        \"skills/click-path-audit\",\n        \"skills/codebase-onboarding\",\n        \"skills/codehealth-mcp\",\n        \"skills/config-gc\",\n        \"skills/context-budget\",\n        \"skills/delivery-gate\",\n        \"skills/ecc-guide\",\n        \"skills/ecc-recipes\",\n        \"skills/growth-log\",\n        \"skills/inherit-legacy-style\",\n        \"skills/intent-driven-development\",\n        \"skills/living-docs-governance\",\n        \"skills/loop-design-check\",\n        \"skills/product-lens\",\n        \"skills/repo-scan\",\n        \"skills/rules-distill\",\n        \"skills/santa-method\",\n        \"skills/git-workflow\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"cursor\",\n        \"antigravity\",\n        \"codex\",\n        \"opencode\",\n        \"codebuddy\",\n        \"joycode\",\n        \"qwen\",\n        \"zed\",\n        \"hermes\",\n        \"openclaw\",\n        \"kimi\",\n        \"adal\"\n      ],\n      \"dependencies\": [\n        \"skill-unified-memory\"\n      ],\n      \"defaultInstall\": true,\n      \"cost\": \"medium\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"optimization-workflows\",\n      \"kind\": \"skills\",\n      \"description\": \"Parallel execution, benchmarking, data-throughput, latency, and recursive decision-ledger skills for faster evidence-backed work.\",\n      \"paths\": [\n        \"skills/benchmark-optimization-loop\",\n        \"skills/data-throughput-accelerator\",\n        \"skills/latency-critical-systems\",\n        \"skills/parallel-execution-optimizer\",\n        \"skills/recursive-decision-ledger\",\n        \"skills/agent-eval\",\n        \"skills/benchmark\",\n        \"skills/benchmark-methodology\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"cursor\",\n        \"antigravity\",\n        \"codex\",\n        \"opencode\",\n        \"codebuddy\",\n        \"joycode\",\n        \"qwen\",\n        \"zed\"\n      ],\n      \"dependencies\": [\n        \"workflow-quality\",\n        \"operator-workflows\"\n      ],\n      \"defaultInstall\": false,\n      \"cost\": \"medium\",\n      \"stability\": \"beta\"\n    },\n    {\n      \"id\": \"security\",\n      \"kind\": \"skills\",\n      \"description\": \"Security review and security-focused framework guidance.\",\n      \"paths\": [\n        \"skills/defi-amm-security\",\n        \"skills/django-security\",\n        \"skills/healthcare-phi-compliance\",\n        \"skills/hipaa-compliance\",\n        \"skills/laravel-security\",\n        \"skills/llm-trading-agent-security\",\n        \"skills/nodejs-keccak256\",\n        \"skills/perl-security\",\n        \"skills/quarkus-security\",\n        \"skills/security-review\",\n        \"skills/security-scan\",\n        \"skills/security-bounty-hunter\",\n        \"skills/springboot-security\",\n        \"skills/evm-token-decimals\",\n        \"the-security-guide.md\",\n        \"skills/gateguard\",\n        \"skills/healthcare-cdss-patterns\",\n        \"skills/healthcare-emr-patterns\",\n        \"skills/healthcare-eval-harness\",\n        \"skills/safety-guard\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"cursor\",\n        \"antigravity\",\n        \"codex\",\n        \"opencode\",\n        \"codebuddy\",\n        \"joycode\",\n        \"qwen\",\n        \"zed\"\n      ],\n      \"dependencies\": [\n        \"workflow-quality\"\n      ],\n      \"defaultInstall\": false,\n      \"cost\": \"medium\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"research-apis\",\n      \"kind\": \"skills\",\n      \"description\": \"Research and API integration skills for deep investigations and model integrations.\",\n      \"paths\": [\n        \"skills/deep-research\",\n        \"skills/exa-search\",\n        \"skills/research-ops\",\n        \"skills/scientific-db-pubmed-database\",\n        \"skills/scientific-db-uspto-database\",\n        \"skills/scientific-pkg-gget\",\n        \"skills/scientific-thinking-literature-review\",\n        \"skills/scientific-thinking-scholar-evaluation\",\n        \"skills/documentation-lookup\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"cursor\",\n        \"antigravity\",\n        \"codex\",\n        \"opencode\",\n        \"codebuddy\",\n        \"joycode\",\n        \"qwen\",\n        \"zed\"\n      ],\n      \"dependencies\": [\n        \"platform-configs\"\n      ],\n      \"defaultInstall\": false,\n      \"cost\": \"medium\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"business-content\",\n      \"kind\": \"skills\",\n      \"description\": \"Business, writing, market, and investor communication skills.\",\n      \"paths\": [\n        \"skills/article-writing\",\n        \"skills/brand-voice\",\n        \"skills/content-engine\",\n        \"skills/investor-materials\",\n        \"skills/investor-outreach\",\n        \"skills/lead-intelligence\",\n        \"skills/product-capability\",\n        \"skills/social-graph-ranker\",\n        \"skills/seo\",\n        \"skills/market-research\",\n        \"skills/brand-discovery\",\n        \"skills/competitive-platform-analysis\",\n        \"skills/competitive-report-structure\",\n        \"skills/marketing-campaign\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"cursor\",\n        \"antigravity\",\n        \"codex\",\n        \"opencode\",\n        \"codebuddy\",\n        \"joycode\",\n        \"qwen\",\n        \"zed\"\n      ],\n      \"dependencies\": [\n        \"platform-configs\"\n      ],\n      \"defaultInstall\": false,\n      \"cost\": \"heavy\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"operator-workflows\",\n      \"kind\": \"skills\",\n      \"description\": \"Connected-app operator workflows for setup audits, billing operations, program tracking, Google Workspace, and network optimization.\",\n      \"paths\": [\n        \"skills/automation-audit-ops\",\n        \"skills/api-connector-builder\",\n        \"skills/connections-optimizer\",\n        \"skills/cost-tracking\",\n        \"skills/customer-billing-ops\",\n        \"skills/dashboard-builder\",\n        \"skills/ecc-tools-cost-audit\",\n        \"skills/email-ops\",\n        \"skills/finance-billing-ops\",\n        \"skills/github-ops\",\n        \"skills/google-workspace-ops\",\n        \"skills/jira-integration\",\n        \"skills/knowledge-ops\",\n        \"skills/messages-ops\",\n        \"skills/project-flow-ops\",\n        \"skills/terminal-ops\",\n        \"skills/unified-notifications-ops\",\n        \"skills/workspace-surface-audit\",\n        \"skills/mailtrap-email-integration\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"cursor\",\n        \"antigravity\",\n        \"codex\",\n        \"opencode\",\n        \"codebuddy\",\n        \"joycode\",\n        \"qwen\",\n        \"zed\"\n      ],\n      \"dependencies\": [\n        \"platform-configs\"\n      ],\n      \"defaultInstall\": false,\n      \"cost\": \"medium\",\n      \"stability\": \"beta\"\n    },\n    {\n      \"id\": \"prediction-market-skills\",\n      \"kind\": \"skills\",\n      \"description\": \"Public, non-advisory prediction-market workflows and the consolidated read-only Ito baskets data skill with gated Ito API access.\",\n      \"paths\": [\n        \"skills/ito-baskets\",\n        \"skills/prediction-market-oracle-research\",\n        \"skills/prediction-market-risk-review\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"cursor\",\n        \"antigravity\",\n        \"codex\",\n        \"opencode\",\n        \"codebuddy\",\n        \"joycode\",\n        \"qwen\",\n        \"zed\"\n      ],\n      \"dependencies\": [\n        \"research-apis\",\n        \"business-content\",\n        \"security\"\n      ],\n      \"defaultInstall\": false,\n      \"cost\": \"medium\",\n      \"stability\": \"beta\"\n    },\n    {\n      \"id\": \"ito-compute\",\n      \"kind\": \"skills\",\n      \"description\": \"Authenticated Itô GPU inventory, RFQ, status, device revocation, and explicitly gated node-qualification workflows through the separately installed canonical CLI.\",\n      \"paths\": [\n        \"skills/ito-compute\",\n        \"skills/ito-inference\",\n        \"skills/ito-training\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"cursor\",\n        \"antigravity\",\n        \"codex\",\n        \"gemini\",\n        \"opencode\",\n        \"codebuddy\",\n        \"joycode\",\n        \"qwen\",\n        \"zed\",\n        \"hermes\",\n        \"openclaw\",\n        \"kimi\",\n        \"adal\"\n      ],\n      \"dependencies\": [\n        \"platform-configs\"\n      ],\n      \"defaultInstall\": false,\n      \"cost\": \"light\",\n      \"stability\": \"beta\"\n    },\n    {\n      \"id\": \"nasiko-control-plane\",\n      \"kind\": \"skills\",\n      \"description\": \"Experimental Nasiko CLI lifecycle bridge guidance for pinned installation, read-only status, qualified uninstall, and opt-in telemetry boundaries.\",\n      \"paths\": [\n        \"skills/nasiko-control-plane\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"cursor\",\n        \"antigravity\",\n        \"codex\",\n        \"gemini\",\n        \"opencode\",\n        \"codebuddy\",\n        \"joycode\",\n        \"qwen\",\n        \"zed\",\n        \"hermes\",\n        \"openclaw\",\n        \"kimi\"\n      ],\n      \"dependencies\": [\n        \"platform-configs\"\n      ],\n      \"defaultInstall\": false,\n      \"cost\": \"light\",\n      \"stability\": \"experimental\"\n    },\n    {\n      \"id\": \"social-distribution\",\n      \"kind\": \"skills\",\n      \"description\": \"Social publishing and distribution skills.\",\n      \"paths\": [\n        \"skills/crosspost\",\n        \"skills/x-api\",\n        \"skills/social-publisher\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"cursor\",\n        \"antigravity\",\n        \"codex\",\n        \"opencode\",\n        \"codebuddy\",\n        \"joycode\",\n        \"qwen\",\n        \"zed\"\n      ],\n      \"dependencies\": [\n        \"business-content\"\n      ],\n      \"defaultInstall\": false,\n      \"cost\": \"medium\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"media-generation\",\n      \"kind\": \"skills\",\n      \"description\": \"Media generation, technical explainers, and AI-assisted editing skills.\",\n      \"paths\": [\n        \"skills/blender-motion-state-inspection\",\n        \"skills/fal-ai-media\",\n        \"skills/manim-video\",\n        \"skills/remotion-video-creation\",\n        \"skills/ui-demo\",\n        \"skills/video-editing\",\n        \"skills/videodb\",\n        \"skills/taste\",\n        \"skills/tasteforge-video\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"cursor\",\n        \"codex\",\n        \"opencode\",\n        \"codebuddy\",\n        \"joycode\",\n        \"qwen\",\n        \"zed\"\n      ],\n      \"dependencies\": [\n        \"platform-configs\"\n      ],\n      \"defaultInstall\": false,\n      \"cost\": \"heavy\",\n      \"stability\": \"beta\"\n    },\n    {\n      \"id\": \"orchestration\",\n      \"kind\": \"orchestration\",\n      \"description\": \"Worktree/tmux orchestration runtime and workflow docs.\",\n      \"paths\": [\n        \"scripts/lib/orchestration-session.js\",\n        \"scripts/lib/tmux-worktree-orchestrator.js\",\n        \"scripts/orchestrate-codex-worker.sh\",\n        \"scripts/orchestrate-worktrees.js\",\n        \"scripts/orchestration-status.js\",\n        \"skills/dmux-workflows\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"codex\",\n        \"opencode\"\n      ],\n      \"dependencies\": [\n        \"commands-core\",\n        \"platform-configs\"\n      ],\n      \"defaultInstall\": false,\n      \"cost\": \"medium\",\n      \"stability\": \"beta\"\n    },\n    {\n      \"id\": \"swift-apple\",\n      \"kind\": \"skills\",\n      \"description\": \"Swift, SwiftUI, and Apple platform skills including concurrency, persistence, and design patterns.\",\n      \"paths\": [\n        \"skills/foundation-models-on-device\",\n        \"skills/liquid-glass-design\",\n        \"skills/swift-actor-persistence\",\n        \"skills/swift-concurrency-6-2\",\n        \"skills/swift-protocol-di-testing\",\n        \"skills/swiftui-patterns\",\n        \"skills/ios-icon-gen\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"cursor\",\n        \"antigravity\",\n        \"codex\",\n        \"opencode\",\n        \"codebuddy\",\n        \"joycode\",\n        \"qwen\",\n        \"zed\"\n      ],\n      \"dependencies\": [\n        \"platform-configs\"\n      ],\n      \"defaultInstall\": false,\n      \"cost\": \"medium\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"agentic-patterns\",\n      \"kind\": \"skills\",\n      \"description\": \"Agentic engineering, autonomous loops, agent harness construction, and LLM pipeline optimization skills.\",\n      \"paths\": [\n        \"scripts/claw.js\",\n        \"skills/agent-architecture-audit\",\n        \"skills/agent-harness-construction\",\n        \"skills/agentic-engineering\",\n        \"skills/agentic-os\",\n        \"skills/ai-first-engineering\",\n        \"skills/autonomous-loops\",\n        \"skills/blueprint\",\n        \"skills/claude-devfleet\",\n        \"skills/content-hash-cache-pattern\",\n        \"skills/continuous-agent-loop\",\n        \"skills/cost-aware-llm-pipeline\",\n        \"skills/data-scraper-agent\",\n        \"skills/dynamic-workflow-mode\",\n        \"skills/enterprise-agent-ops\",\n        \"skills/nanoclaw-repl\",\n        \"skills/prompt-optimizer\",\n        \"skills/ralphinho-rfc-pipeline\",\n        \"skills/regex-vs-llm-structured-text\",\n        \"skills/search-first\",\n        \"skills/team-agent-orchestration\",\n        \"skills/token-budget-advisor\",\n        \"skills/team-builder\",\n        \"skills/agent-payment-x402\",\n        \"skills/autonomous-agent-harness\",\n        \"skills/gan-style-harness\",\n        \"skills/hermes-imports\",\n        \"skills/openclaw-persona-forge\",\n        \"skills/opensource-pipeline\",\n        \"skills/orch-add-feature\",\n        \"skills/orch-build-mvp\",\n        \"skills/orch-change-feature\",\n        \"skills/orch-fix-defect\",\n        \"skills/orch-pipeline\",\n        \"skills/orch-refine-code\",\n        \"skills/plan-orchestrate\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"cursor\",\n        \"antigravity\",\n        \"codex\",\n        \"opencode\",\n        \"codebuddy\",\n        \"joycode\",\n        \"qwen\",\n        \"zed\"\n      ],\n      \"dependencies\": [\n        \"platform-configs\"\n      ],\n      \"defaultInstall\": false,\n      \"cost\": \"medium\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"devops-infra\",\n      \"kind\": \"skills\",\n      \"description\": \"Deployment workflows, Docker patterns, and infrastructure skills.\",\n      \"paths\": [\n        \"skills/cisco-ios-patterns\",\n        \"skills/deployment-patterns\",\n        \"skills/docker-patterns\",\n        \"skills/terminal-opener\",\n        \"skills/homelab-network-readiness\",\n        \"skills/homelab-network-setup\",\n        \"skills/netmiko-ssh-automation\",\n        \"skills/network-bgp-diagnostics\",\n        \"skills/network-config-validation\",\n        \"skills/network-interface-health\",\n        \"skills/canary-watch\",\n        \"skills/flox-environments\",\n        \"skills/homelab-pihole-dns\",\n        \"skills/homelab-vlan-segmentation\",\n        \"skills/homelab-wireguard-vpn\",\n        \"skills/kubernetes-patterns\",\n        \"skills/uncloud\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"cursor\",\n        \"antigravity\",\n        \"codex\",\n        \"opencode\",\n        \"codebuddy\",\n        \"joycode\",\n        \"qwen\",\n        \"zed\"\n      ],\n      \"dependencies\": [\n        \"platform-configs\"\n      ],\n      \"defaultInstall\": false,\n      \"cost\": \"medium\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"machine-learning\",\n      \"kind\": \"skills\",\n      \"description\": \"Production machine-learning engineering workflows for data contracts, reproducible training, evaluation, deployment, monitoring, and rollback.\",\n      \"paths\": [\n        \"skills/mle-workflow\",\n        \"skills/ml-adoption-playbook\",\n        \"skills/pytorch-patterns\",\n        \"skills/recsys-pipeline-architect\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"cursor\",\n        \"antigravity\",\n        \"codex\",\n        \"opencode\",\n        \"codebuddy\",\n        \"joycode\",\n        \"qwen\",\n        \"zed\"\n      ],\n      \"dependencies\": [\n        \"framework-language\",\n        \"workflow-quality\",\n        \"database\",\n        \"devops-infra\",\n        \"security\"\n      ],\n      \"defaultInstall\": false,\n      \"cost\": \"medium\",\n      \"stability\": \"beta\"\n    },\n    {\n      \"id\": \"supply-chain-domain\",\n      \"kind\": \"skills\",\n      \"description\": \"Supply chain, logistics, procurement, and manufacturing domain skills.\",\n      \"paths\": [\n        \"skills/carrier-relationship-management\",\n        \"skills/customs-trade-compliance\",\n        \"skills/energy-procurement\",\n        \"skills/inventory-demand-planning\",\n        \"skills/logistics-exception-management\",\n        \"skills/production-scheduling\",\n        \"skills/quality-nonconformance\",\n        \"skills/returns-reverse-logistics\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"cursor\",\n        \"antigravity\",\n        \"codex\",\n        \"opencode\",\n        \"codebuddy\",\n        \"joycode\",\n        \"qwen\",\n        \"zed\"\n      ],\n      \"dependencies\": [\n        \"platform-configs\"\n      ],\n      \"defaultInstall\": false,\n      \"cost\": \"heavy\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"document-processing\",\n      \"kind\": \"skills\",\n      \"description\": \"Document processing, conversion, and translation skills.\",\n      \"paths\": [\n        \"skills/nutrient-document-processing\",\n        \"skills/visa-doc-translate\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\",\n        \"cursor\",\n        \"antigravity\",\n        \"codex\",\n        \"opencode\",\n        \"codebuddy\",\n        \"joycode\",\n        \"qwen\",\n        \"zed\"\n      ],\n      \"dependencies\": [\n        \"platform-configs\"\n      ],\n      \"defaultInstall\": false,\n      \"cost\": \"medium\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"docs-ja-jp\",\n      \"kind\": \"docs\",\n      \"description\": \"Japanese (ja-JP) translated reference docs for agents, commands, skills, and rules.\",\n      \"paths\": [\n        \"docs/ja-JP\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\"\n      ],\n      \"dependencies\": [],\n      \"defaultInstall\": false,\n      \"cost\": \"heavy\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"docs-zh-cn\",\n      \"kind\": \"docs\",\n      \"description\": \"Simplified Chinese (zh-CN) translated reference docs for agents, commands, skills, and rules.\",\n      \"paths\": [\n        \"docs/zh-CN\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\"\n      ],\n      \"dependencies\": [],\n      \"defaultInstall\": false,\n      \"cost\": \"heavy\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"docs-ko-kr\",\n      \"kind\": \"docs\",\n      \"description\": \"Korean (ko-KR) translated reference docs for agents, commands, skills, and rules.\",\n      \"paths\": [\n        \"docs/ko-KR\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\"\n      ],\n      \"dependencies\": [],\n      \"defaultInstall\": false,\n      \"cost\": \"heavy\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"docs-pt-br\",\n      \"kind\": \"docs\",\n      \"description\": \"Brazilian Portuguese (pt-BR) translated reference docs for agents, commands, skills, and rules.\",\n      \"paths\": [\n        \"docs/pt-BR\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\"\n      ],\n      \"dependencies\": [],\n      \"defaultInstall\": false,\n      \"cost\": \"heavy\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"docs-ru\",\n      \"kind\": \"docs\",\n      \"description\": \"Russian (ru) translated reference docs for agents, commands, skills, and rules.\",\n      \"paths\": [\n        \"docs/ru\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\"\n      ],\n      \"dependencies\": [],\n      \"defaultInstall\": false,\n      \"cost\": \"heavy\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"docs-tr\",\n      \"kind\": \"docs\",\n      \"description\": \"Turkish (tr) translated reference docs for agents, commands, skills, and rules.\",\n      \"paths\": [\n        \"docs/tr\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\"\n      ],\n      \"dependencies\": [],\n      \"defaultInstall\": false,\n      \"cost\": \"heavy\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"docs-vi-vn\",\n      \"kind\": \"docs\",\n      \"description\": \"Vietnamese (vi-VN) translated reference docs for agents, commands, skills, and rules.\",\n      \"paths\": [\n        \"docs/vi-VN\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\"\n      ],\n      \"dependencies\": [],\n      \"defaultInstall\": false,\n      \"cost\": \"heavy\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"docs-zh-tw\",\n      \"kind\": \"docs\",\n      \"description\": \"Traditional Chinese (zh-TW) translated reference docs for agents, commands, skills, and rules.\",\n      \"paths\": [\n        \"docs/zh-TW\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\"\n      ],\n      \"dependencies\": [],\n      \"defaultInstall\": false,\n      \"cost\": \"heavy\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"docs-de-de\",\n      \"kind\": \"docs\",\n      \"description\": \"German (de-DE) translated reference docs for agents, commands, skills, and rules.\",\n      \"paths\": [\n        \"docs/de-DE\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\"\n      ],\n      \"dependencies\": [],\n      \"defaultInstall\": false,\n      \"cost\": \"heavy\",\n      \"stability\": \"stable\"\n    },\n    {\n      \"id\": \"docs-uk-ua\",\n      \"kind\": \"docs\",\n      \"description\": \"Ukrainian (uk-UA) translated reference docs for agents, commands, skills, and rules.\",\n      \"paths\": [\n        \"docs/uk-UA\"\n      ],\n      \"targets\": [\n        \"claude\",\n        \"claude-project\"\n      ],\n      \"dependencies\": [],\n      \"defaultInstall\": false,\n      \"cost\": \"heavy\",\n      \"stability\": \"stable\"\n    }\n  ]\n}\n"
+    },
+    {
+      "path": "manifests/install-profiles.json",
+      "text": "{\n  \"version\": 1,\n  \"profiles\": {\n    \"minimal\": {\n      \"description\": \"Low-context Claude Code setup with rules, agents, commands, platform configs, and quality workflow support, but no hook runtime.\",\n      \"modules\": [\n        \"rules-core\",\n        \"agents-core\",\n        \"commands-core\",\n        \"platform-configs\",\n        \"workflow-quality\"\n      ]\n    },\n    \"opencode\": {\n      \"description\": \"Default OpenCode setup with commands, platform configs, and quality workflow support. It intentionally excludes hooks-runtime; opt in with --modules hooks-runtime.\",\n      \"modules\": [\n        \"commands-core\",\n        \"platform-configs\",\n        \"workflow-quality\"\n      ]\n    },\n    \"core\": {\n      \"description\": \"Minimal harness baseline with commands, hooks, platform configs, and quality workflow support.\",\n      \"modules\": [\n        \"rules-core\",\n        \"agents-core\",\n        \"commands-core\",\n        \"hooks-runtime\",\n        \"platform-configs\",\n        \"workflow-quality\"\n      ]\n    },\n    \"developer\": {\n      \"description\": \"Default engineering profile for most ECC users working across app codebases.\",\n      \"modules\": [\n        \"rules-core\",\n        \"agents-core\",\n        \"commands-core\",\n        \"hooks-runtime\",\n        \"platform-configs\",\n        \"workflow-quality\",\n        \"framework-language\",\n        \"database\",\n        \"orchestration\"\n      ]\n    },\n    \"security\": {\n      \"description\": \"Security-heavy setup with baseline runtime support and security-specific guidance.\",\n      \"modules\": [\n        \"rules-core\",\n        \"agents-core\",\n        \"commands-core\",\n        \"hooks-runtime\",\n        \"platform-configs\",\n        \"workflow-quality\",\n        \"security\"\n      ]\n    },\n    \"research\": {\n      \"description\": \"Research and content-oriented setup for investigation, synthesis, and publishing workflows.\",\n      \"modules\": [\n        \"rules-core\",\n        \"agents-core\",\n        \"commands-core\",\n        \"hooks-runtime\",\n        \"platform-configs\",\n        \"workflow-quality\",\n        \"research-apis\",\n        \"business-content\",\n        \"social-distribution\"\n      ]\n    },\n    \"full\": {\n      \"description\": \"Complete ECC install with all currently classified modules.\",\n      \"modules\": [\n        \"rules-core\",\n        \"agents-core\",\n        \"commands-core\",\n        \"hooks-runtime\",\n        \"platform-configs\",\n        \"framework-language\",\n        \"database\",\n        \"workflow-quality\",\n        \"skill-unified-memory\",\n        \"security\",\n        \"research-apis\",\n        \"business-content\",\n        \"operator-workflows\",\n        \"optimization-workflows\",\n        \"prediction-market-skills\",\n        \"ito-compute\",\n        \"nasiko-control-plane\",\n        \"social-distribution\",\n        \"media-generation\",\n        \"orchestration\",\n        \"swift-apple\",\n        \"agentic-patterns\",\n        \"devops-infra\",\n        \"machine-learning\",\n        \"supply-chain-domain\",\n        \"document-processing\"\n      ]\n    }\n  }\n}\n"
+    }
+  ],
+  "files": [
+    {
+      "path": "agents/a11y-architect.md",
+      "sha256": "88e684476cbc449a2444a1218a79034d275465f375ce45b6d86ab99958bf45e7",
+      "bytes": 7339,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/agent-evaluator.md",
+      "sha256": "ea9f0a419e0fa0844df5e0951c6ad087a059dff43b59bba03018801c1b53a545",
+      "bytes": 8124,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/architect.md",
+      "sha256": "6b8e1e8bd274995f3949691731f4334820c061d3054eaea3be2ce163386d1f24",
+      "bytes": 7276,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/build-error-resolver.md",
+      "sha256": "acc9e14df59dd28d00f966b3a6cf0d9aeeda7e8a9ab7f1bc442466c0219c35ec",
+      "bytes": 4749,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/chief-of-staff.md",
+      "sha256": "d3dca9a474011410256dfcd0cc553f926bd30b4efdaaf6ec41b4f6ec86e88e6f",
+      "bytes": 6600,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/code-architect.md",
+      "sha256": "1a2ce1d231b7427ff863522f6f19e7738cd668279ac60af520aa0c45ac14772b",
+      "bytes": 2525,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/code-explorer.md",
+      "sha256": "3dbb33769147f6c7ffb739c550b7b8867e1b8ea84f1179197fdbc3028dc34fb7",
+      "bytes": 2585,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/code-reviewer.md",
+      "sha256": "9dd23be23d65f18126e10f7680fc1eb2576ec54a427d076ff2f870bd0bafd5d2",
+      "bytes": 13877,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/code-simplifier.md",
+      "sha256": "4020b1466f4a635ed33b87a3d734bda45363514defc7d1613b81d5c59e426c6b",
+      "bytes": 2265,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/comment-analyzer.md",
+      "sha256": "ce7fdf759885ba9ef5ee1bdc9da4ce88d78ba65501facf53e581082fcf402b07",
+      "bytes": 2034,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/conversation-analyzer.md",
+      "sha256": "f86fcf4317a41158dc55641f606c97a8d4d3ccacf7157ff70e0811ca7b42ba75",
+      "bytes": 2435,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/cpp-build-resolver.md",
+      "sha256": "0a06faff0f6be85989a22c79647743d872c3348ca772ee860f048035473c1675",
+      "bytes": 4108,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/cpp-reviewer.md",
+      "sha256": "c34ee3291505ea66d4330268babbd9cbc899e32b7869ca71cca1690b4ce3cf22",
+      "bytes": 3972,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/csharp-reviewer.md",
+      "sha256": "34652d6a39387d0d008a90804b1b271ae62bba77abaf9537b79bd7705b1724e0",
+      "bytes": 5692,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/dart-build-resolver.md",
+      "sha256": "2715aa7b58fae3667493a089afbfa891dfe20d24e555e90ddfdd732d10104d1f",
+      "bytes": 7671,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/database-reviewer.md",
+      "sha256": "945c107dea01ca74e3e9bc3a5841e79e744673e8f14697e88cf1cfd9c01a1cc5",
+      "bytes": 5314,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/django-build-resolver.md",
+      "sha256": "643f1445336ef801f49cc56a00ad09af3435124ef841f4b023be19ee50662b29",
+      "bytes": 9519,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/django-reviewer.md",
+      "sha256": "d116bccee67db3d1f52f54f819a04467fe7dd2b0004ec85d21f218a6aacf6346",
+      "bytes": 7985,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/doc-updater.md",
+      "sha256": "5018d3a0bf740d2263fd4b7a92412d53a62d4be151a71221d6549cacba62d72c",
+      "bytes": 4376,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/docs-lookup.md",
+      "sha256": "11560171e4535419e7917158d0de3bc7bbbf0408f83f61f0f3558b356802419e",
+      "bytes": 4566,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/e2e-runner.md",
+      "sha256": "94811f4bbc491c351cdf220ab103d6bd251fb1d88d9d46ba4c8162637a236a5b",
+      "bytes": 5079,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/fastapi-reviewer.md",
+      "sha256": "d8704e52fda045fa72cfc51de7937aa4e313b2161279ff8e11d878f6ab8a0d81",
+      "bytes": 3514,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/flutter-reviewer.md",
+      "sha256": "26a78d27db9a035204c9c517314c880a5ea4419500da319acdb643b84d59b0b8",
+      "bytes": 15239,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/fsharp-reviewer.md",
+      "sha256": "24200e4814ddbdb32ed2eeb5b6aecabbb3d655d5ba0de7b2a054638fe12e7c5a",
+      "bytes": 5618,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/gan-evaluator.md",
+      "sha256": "ed41b2ab30893c66216def0334887bd29e05d62ccd0a759e0cd90f14566cdfc4",
+      "bytes": 8753,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/gan-generator.md",
+      "sha256": "52411e8bb705284ef0be36a86b9df69d7365cda84a2780d5e3c2d64e6019a352",
+      "bytes": 5891,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/gan-planner.md",
+      "sha256": "852f8ac7cc1761186ec6f48e1b1be65cc32307a182062e0cebb84aae2d3ca901",
+      "bytes": 4502,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/go-build-resolver.md",
+      "sha256": "fa191d2a3c66915402b343a8f2da21090bb330968e62a8615739acccfce90424",
+      "bytes": 4245,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/go-reviewer.md",
+      "sha256": "be174fc66f6be1ade25f496548ba7040c00894aec81da163863b046d44233e39",
+      "bytes": 3771,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/harmonyos-app-resolver.md",
+      "sha256": "2385d05160744130f6f5fadbae0314a7500db92da13719779dac41eb53ae1202",
+      "bytes": 9383,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/harness-optimizer.md",
+      "sha256": "16b5cd0cd03ba4de2a9cc6b737c8cc0d4e52d3fdc423a1c2bcdd6496d65d4cfd",
+      "bytes": 4923,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/healthcare-reviewer.md",
+      "sha256": "ffe0855862276f94bd47fbbdeba0d233b7ca2c8647bce784c94f61c382e3cc69",
+      "bytes": 4304,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/homelab-architect.md",
+      "sha256": "d851727c8d07d2c44ea953d1ccab812865de3ba4b693d0392e86ba52187664bc",
+      "bytes": 4505,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/java-build-resolver.md",
+      "sha256": "6dc1da9c6ac9f39671dcf1013a8e8ab30cccf3604808d7da1b0a21935c1ac537",
+      "bytes": 12181,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/java-reviewer.md",
+      "sha256": "e768811020978d62930e8a1de33d674f07fbd479073de570df57c143b8eb33b6",
+      "bytes": 13333,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/kotlin-build-resolver.md",
+      "sha256": "db6796bdc2294d795bac286f7c04f4e6048af8acb3faf80edfc110285172e16b",
+      "bytes": 5203,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/kotlin-reviewer.md",
+      "sha256": "be82de3435c4b7b48e4ff9589e8c211d80fafa5c8c9ac98d6572c88004519858",
+      "bytes": 7679,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/loop-operator.md",
+      "sha256": "51f8283a56b799c2bd2c2455b3480e949656cbf997ea2feb34a972d3d6400f22",
+      "bytes": 1903,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/marketing-agent.md",
+      "sha256": "9d9cdcde2f90ba36ac488065beaa4fc3b74ff5a91507e504b9ea2cc608213cf8",
+      "bytes": 7275,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/mle-reviewer.md",
+      "sha256": "c505be5fccea9d067775b86fed76bc4b84e63e17090855ac135694adbc83a7f8",
+      "bytes": 10253,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/network-architect.md",
+      "sha256": "1b434aa8496a1cb8c39add08d0c68a4b27af8378de725f370d7682c02a56997e",
+      "bytes": 4823,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/network-config-reviewer.md",
+      "sha256": "12b2b04d8235941f6a9a0d42a679c581ce89963172d5fb0f63abb4202521593f",
+      "bytes": 4351,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/network-troubleshooter.md",
+      "sha256": "64528c41b59eea2cb4ac642bd3197bbadc8c456f3601520e410cf606e848fb07",
+      "bytes": 4292,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/opensource-forker.md",
+      "sha256": "3b302c2d4b080509a1f290e74412eb8076bec9aa42438e74c52fe519f8ff0242",
+      "bytes": 7385,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/opensource-packager.md",
+      "sha256": "996f528ac789b3c19ded6bf7c25217a3e9e7c1e6d320a4f9d69f17252815cb16",
+      "bytes": 7940,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/opensource-sanitizer.md",
+      "sha256": "cee1d6cf26759c085fe090ca5ac92d37c5dbeceef0f1b00434369a6e812da371",
+      "bytes": 7153,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/performance-optimizer.md",
+      "sha256": "76d00a70fcc07a0b207f6b517d54078fa7a59f29e157fea72bf5f1d9cab8f9b2",
+      "bytes": 13454,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/php-reviewer.md",
+      "sha256": "5ea9c18d0adedcf6ef7d46cc35ec91cdde2fa8fc3cfe1d1ece477347cb1a4a30",
+      "bytes": 5712,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/planner.md",
+      "sha256": "63aba865206bac9cb5887542fb01b97656e7701faff98e091aa77057ba9860bc",
+      "bytes": 8055,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/pr-test-analyzer.md",
+      "sha256": "5432aaf7e5fcb0813ac21828382971cc00f17d56ee95eac6d0ce180fc5d58016",
+      "bytes": 1937,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/python-reviewer.md",
+      "sha256": "d2180b115f5840383268c13d5d075b0541fe7ef2a1ac8ecd5d835266ca1b27ce",
+      "bytes": 4391,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/pytorch-build-resolver.md",
+      "sha256": "5ec08de6c6b616b068e7075be4496edd3e4ef3b041f0095a2e073131a58a9f7c",
+      "bytes": 6499,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/rag-pipeline-reviewer.md",
+      "sha256": "793432a0c4e44aa4c640cb85ec24b47062ed044782852b0ba67323d860154fec",
+      "bytes": 6249,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/react-build-resolver.md",
+      "sha256": "a29dec6de18ac3d7b65c746f8133c1f14de5886592fa340c5c2a62fe7c4584e0",
+      "bytes": 11187,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/react-reviewer.md",
+      "sha256": "17d0286b4f101e27b818cad026a6bfc1f9fd3e7f9b52c8414e6ea2a05481995a",
+      "bytes": 11411,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/refactor-cleaner.md",
+      "sha256": "13704c3aee163bcbf6bcbf7a7933630a70d6c312ff3ee5a29bff63b8800484cc",
+      "bytes": 3686,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/rust-build-resolver.md",
+      "sha256": "78c75c6be38ff376963b3c5b26d60dce0491064481d1a61e842a6d2879534e82",
+      "bytes": 6857,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/rust-reviewer.md",
+      "sha256": "10af67c5764677596d43f32a952d8ec28662bb353fd986d726daefd3382ebeca",
+      "bytes": 5656,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/security-reviewer.md",
+      "sha256": "813e4062bed5f42ab25dd02a0070f682058ffe9508198fcfdbb2c31296f93b7b",
+      "bytes": 5446,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/seo-specialist.md",
+      "sha256": "40a66d601113669585cf6abbf4c9ae2bf134ef23ffdb78c45223733dbde90a2c",
+      "bytes": 2846,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/silent-failure-hunter.md",
+      "sha256": "e5e2094c6f50cc515a77376331c78e4955d5ff16c7a0e5d8f6edec692b7ebd8d",
+      "bytes": 1989,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/spec-miner.md",
+      "sha256": "a9270c2012e2dc979f153a481cdfdc7c5413e8774f579ada0319c00ea8903ba2",
+      "bytes": 15108,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/swift-build-resolver.md",
+      "sha256": "219e9e37151e385c0eae69b28306897e2a21ba1dbad5ed3077801c822c98b156",
+      "bytes": 7234,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/swift-reviewer.md",
+      "sha256": "b8de7f16fafef82645aca3923b0c4fdbe619433c5df9386b3737fb6591545e8b",
+      "bytes": 7325,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/tdd-guide.md",
+      "sha256": "979afbb40c42bfdd02fc308c130d7e257f5d6dd5f6531ef2562644862f6b7771",
+      "bytes": 3865,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/type-design-analyzer.md",
+      "sha256": "753908aadd759d4710e07ac1a0ba8a6fbc0bc35fe369cadd3ede9655da5d1c49",
+      "bytes": 1881,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/typescript-reviewer.md",
+      "sha256": "6b012db1a9039870c4f040975144a0d4e3592510d6332e2d260f02859ec66da1",
+      "bytes": 9068,
+      "mode": "100644"
+    },
+    {
+      "path": "agents/vue-reviewer.md",
+      "sha256": "c675814544f06703cf34347c24c630267073d6ee605e70820fc1c1a74e71358a",
+      "bytes": 15319,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/aside.md",
+      "sha256": "828d2739fce0b0d1cce5b5c69b277c445f21c853547e23b317d7fb0cb63ed800",
+      "bytes": 5946,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/auto-update.md",
+      "sha256": "c354e4b09a0de0cc04a3df8f352bb309abadcaa881ee3865baeb01b49c40ec07",
+      "bytes": 1954,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/build-fix.md",
+      "sha256": "2620e3b8733d227205b0d48c3ac0b68db026c6bb97a3049bf927917d7eb51189",
+      "bytes": 2423,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/checkpoint.md",
+      "sha256": "92926e49d18f18d52244f14d5f0962e69b2fc9c65dcf3b5775b1649a2aa494be",
+      "bytes": 1622,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/code-review.md",
+      "sha256": "20f4b8fcf132d6563ae0afb3d6d695ac8d4d85f3d36b15da83de30b041cce107",
+      "bytes": 8179,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/cost-report.md",
+      "sha256": "65ce57cef961ad6bde521014f212cbbc020eca0def7b5524438139b2b2054fbe",
+      "bytes": 3916,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/cpp-build.md",
+      "sha256": "0850ec6adad0e96d832ebf584c34788a8d98998a8e05743166c1c1e0057c23ef",
+      "bytes": 4030,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/cpp-review.md",
+      "sha256": "58a0e058207bb8e96d6fe02f1a71db77157f30121dd5c7aec32c0f4a91523576",
+      "bytes": 3456,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/cpp-test.md",
+      "sha256": "6bd5d550a008568a9227c942c9b71038c430ab63b32fcf96d0a9b5f416eacb9f",
+      "bytes": 5880,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/ecc-guide.md",
+      "sha256": "1d1a16c9d0341674744039586bcb55d90fb329cbf8dac68a910cc4a610340ccf",
+      "bytes": 3052,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/epic-claim.md",
+      "sha256": "fab151e31f5ed680cff1e171c65870ab18dbdd481fe5b94378dc57f98b0eb6ab",
+      "bytes": 608,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/epic-decompose.md",
+      "sha256": "cc5ddee38eb6f87bc995e686b474b8b57e04aaf35394cfaaa3fd1ae5a579d5b1",
+      "bytes": 528,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/epic-publish.md",
+      "sha256": "d13da877f7e0a4a632a7bbc2acf5e9fb1e28ad1d6b554f2c7cd7dd3198ce4cd4",
+      "bytes": 484,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/epic-review.md",
+      "sha256": "4c9ce11bb8d7375f6d2128e0883071ccbf4162df8ed445e565706983f6c17b42",
+      "bytes": 519,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/epic-sync.md",
+      "sha256": "b191bedc4bfafb8a03818042dbc87ed175930e27a042c112c219912626dceb79",
+      "bytes": 517,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/epic-unblock.md",
+      "sha256": "48c1868f03b6ceda7a923d98c76206a35eefa91774a61a0d9d4c18ea5713a4e7",
+      "bytes": 493,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/epic-validate.md",
+      "sha256": "894516dd4de62c6c28254c841f11a6ae461869cb8e78c4eff984fb108c2d92ad",
+      "bytes": 504,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/evolve.md",
+      "sha256": "c8f94e2d2517539fd3e3cf05edb5a7187a887d76f2c936798e93e546f8b30ebb",
+      "bytes": 4521,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/fastapi-review.md",
+      "sha256": "758f6c55befc3255e5b1c1dc6df41453b21543a93b6aa9df0fb1be9e334831a8",
+      "bytes": 1007,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/feature-dev.md",
+      "sha256": "b446c316f680a1ab709f2eabff15d5e88b57396f4581ea8b0f9260d04bd4be34",
+      "bytes": 1282,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/flutter-build.md",
+      "sha256": "589c18404b15703bd306023d0210b8f974a395dc4b00c5bc70d41cb64a0da627",
+      "bytes": 4085,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/flutter-review.md",
+      "sha256": "631142330e5884cd0dae2d404d183b0dda4c5f6b1752a21e7d1e70b0be6d2e28",
+      "bytes": 3955,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/flutter-test.md",
+      "sha256": "22d547f9a255ddbbcebdcc90ca48a6865896f8cf00d39ed5d3e49504d716c363",
+      "bytes": 3839,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/gan-build.md",
+      "sha256": "b3c4b47a40cfcdf386b9bff327a7237ea405e97fdafdc8cd421075dfd35175ea",
+      "bytes": 3253,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/gan-design.md",
+      "sha256": "0f0d80a171d4637b1cd38998f5f260cdc445473b7b81a170f50b8491103f9723",
+      "bytes": 1796,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/go-build.md",
+      "sha256": "916659397d2e01f9bf211fca43a8a2f79eb73d6382fccd516b240b5d0e5f37a0",
+      "bytes": 3792,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/go-review.md",
+      "sha256": "73a29ec62007e25490d0962ed52fe196eac3df31c6ccd774b10c9a8e07b63b39",
+      "bytes": 3436,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/go-test.md",
+      "sha256": "4e091753684305224b5b8f5f497cb66f14383530659a95b9d327f3c8b3b2c0e3",
+      "bytes": 5635,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/gradle-build.md",
+      "sha256": "c2aa086148316326ae10ee97229d040a0b7a9b743c016bfad4032ce96bb097a9",
+      "bytes": 2550,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/harness-audit.md",
+      "sha256": "8fb765c7fbad1ee9f8e43ed5f09c9239799102636a05541fea5f646bec189e2a",
+      "bytes": 3051,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/hookify-configure.md",
+      "sha256": "a059c23f885d36e3597daa03b7bf77cbb79a2a87e5856ca4bede4eb3b816082a",
+      "bytes": 390,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/hookify-help.md",
+      "sha256": "11c4beec77187548978f4022cf76b3e077c0a04365f0b0d2464d06ca053c91a2",
+      "bytes": 1187,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/hookify-list.md",
+      "sha256": "b513140d7a93527d5d8beabd4cb1aacaa296c00ac96586bc946466014f31a3cc",
+      "bytes": 484,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/hookify.md",
+      "sha256": "2fd94b585a1267717ed88276054e320251ceb47f95e6b53bfc31d9527193e8b5",
+      "bytes": 1235,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/instinct-export.md",
+      "sha256": "cd2052ae1b9c49f75ad81aae6e236be959cc6656d32e3b8f3e6e13d2d3bd2d3c",
+      "bytes": 1645,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/instinct-import.md",
+      "sha256": "30514ada563953a1eafa46a09644831969aaae7672068777267e0b801814e7d9",
+      "bytes": 2839,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/instinct-status.md",
+      "sha256": "4c6dfbea0a0a9105121410391b05983f71f4317ccf166a52955fc5972600fcce",
+      "bytes": 2648,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/jira.md",
+      "sha256": "0503ced85e1144d03c1bb32f0f34003c9cc6c8f17d05a516ce6d5902a5f62c8b",
+      "bytes": 3069,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/kotlin-build.md",
+      "sha256": "2a5ea5ae245b5ab54d22cd2c539890fee4695ad0bb93b38898f15d4452044564",
+      "bytes": 4351,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/kotlin-review.md",
+      "sha256": "3b18cb5e03a577a411d77c44bd47cfd1007666701d7aa3c0d850bbb73ab3e3c7",
+      "bytes": 3628,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/kotlin-test.md",
+      "sha256": "4c6dd961714ecacddf8fc7c72e9930b323100a7a5eef8cc0f40e176f2ee2044c",
+      "bytes": 7609,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/learn-eval.md",
+      "sha256": "130ca626905237a4f6c75314c304f26a49f291794fc4a5e8e8747d7850db9082",
+      "bytes": 7439,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/learn.md",
+      "sha256": "09b017864835f3b730bd21eb234263d52dc4162df60887c0b56b956f8388037c",
+      "bytes": 3519,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/loop-start.md",
+      "sha256": "fa36f7396f07e70e9110e9f5920f9229aa87d7f0a122190b3d85d031aa3bc29e",
+      "bytes": 997,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/loop-status.md",
+      "sha256": "74ca3ff7a7249f5d0bc7f87cdec882ef1f682ebc6567653eac5bb7ebaeae8b2e",
+      "bytes": 2617,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/marketing-campaign.md",
+      "sha256": "a9889cd3ad985c8985505d737dc36858f67562abec182cf956f73e3faf42a62b",
+      "bytes": 3940,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/model-route.md",
+      "sha256": "2e9789cb610bfa1a382dbaa46480a03aa976445d23b9ff719e4358bafa7292eb",
+      "bytes": 697,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/multi-backend.md",
+      "sha256": "38512263b611f3fb7139366dfcdb0b40b9d782520e50042f177160dd76bc5d8b",
+      "bytes": 5604,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/multi-execute.md",
+      "sha256": "6a72e5d5f8ee3c2fd00e812b5b5c60046b11fef3c7789ce620f25c4ffb8c715b",
+      "bytes": 11067,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/multi-frontend.md",
+      "sha256": "c95b83bd46b7c219905ab2bba68a05fe14d0499e71756aedd0f064874c349024",
+      "bytes": 5712,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/multi-plan.md",
+      "sha256": "f533ede8158bcbb32b4361c6f94a8548437d5a13de09df2cd733544a324b4d72",
+      "bytes": 9807,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/multi-workflow.md",
+      "sha256": "6a519875b519d52aaa68d2695d5252ba419021b420c45c6605cb68169ab2d95a",
+      "bytes": 8063,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/orch-add-feature.md",
+      "sha256": "e46c1d23fc4f269713c6743b0ba403f13916c0c617ca2e4e0526efc897c133ed",
+      "bytes": 1173,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/orch-build-mvp.md",
+      "sha256": "2180c00649cd6c73e2e1a204f0039b317c192e9ca4dbb69d1cfae88aa23543b5",
+      "bytes": 1309,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/orch-change-feature.md",
+      "sha256": "9315a445ddeeb50410e5a3893f930a2db3a19ca14ec5121b3071fe4b834375e8",
+      "bytes": 1388,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/orch-fix-defect.md",
+      "sha256": "9f1269a9103f49425fa24303b82846a170093e2ddf32d95b4dc12b14690652a0",
+      "bytes": 1272,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/orch-refine-code.md",
+      "sha256": "2f282b49d84b15cfcd5a0c75c31d03f7f30a8ba4936bac1029ad246402d94af8",
+      "bytes": 1477,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/orch-review.md",
+      "sha256": "c22fe6fb312e788e3c3779774aafdfa26295a0748724eb7e4b32306c3f8191b1",
+      "bytes": 4362,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/plan-canvas.md",
+      "sha256": "8afc9d0bf73f79088ada2109310e988c7e961c0fb049b2b35ecc4b3706d253f9",
+      "bytes": 1699,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/plan-prd.md",
+      "sha256": "61cf11dd2a3d64bd47808fed6c74a97cefffdfda82dca90e4911bd6a813737f0",
+      "bytes": 5282,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/plan.md",
+      "sha256": "8158d2df36af26669cf45ccf7e7d89f9884ecd4b5eae80f2c8d4a4f6d09a228c",
+      "bytes": 7559,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/pm2.md",
+      "sha256": "daef0378434ae10f9c329d67854eb9750732dfe52d83e0c28fba30fcbda2323e",
+      "bytes": 6804,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/pr.md",
+      "sha256": "52405eef320c18004d2bbd3b803ffdf944a146fcec90cbc376c00397cfa27530",
+      "bytes": 4826,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/project-init.md",
+      "sha256": "efd4a7859eab26f9017b9e7be0c13fb85419817720384719e6380735043e1164",
+      "bytes": 4074,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/projects.md",
+      "sha256": "dc939242028d24119b985e6ad4fee3d6c8185f6bd19c716535384149bc9876f3",
+      "bytes": 853,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/promote.md",
+      "sha256": "8d2faf47b1322c24a1dfa221b2f5e85b9e766fcd1d460c157c472246a3b86846",
+      "bytes": 1263,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/prp-commit.md",
+      "sha256": "b0714d5d50c87b645a47d31192ce13c216a3717d9a0f95b6cce21f9157e5a0be",
+      "bytes": 3057,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/prp-implement.md",
+      "sha256": "c7b2715c7068a2457ad9d5da9bb9da51ad0a8f4ed2596806ff02825c5927590b",
+      "bytes": 8949,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/prp-plan.md",
+      "sha256": "d7dfc27704dac9b98b8755e1324de141503565bbb39e236422307e8046af5acb",
+      "bytes": 13917,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/prp-pr.md",
+      "sha256": "1813771b08c2ad8c1216cde43284a3744d22cddb272b9aa1f9c403f0e08f0ffc",
+      "bytes": 4746,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/prp-prd.md",
+      "sha256": "ccd0082c4df1395a272d735765a593891736c48a0bcfbf2f296f84eca5b8509b",
+      "bytes": 14093,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/prune.md",
+      "sha256": "b2ff4b7ff2eef3893975736b899f84043665c765972609c0ff816be18cf42b82",
+      "bytes": 751,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/python-review.md",
+      "sha256": "7982b50c59cad83941400a436c1d1001d73fe9bdba6cb84a3ac7c6d43f394c99",
+      "bytes": 6657,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/quality-gate.md",
+      "sha256": "a3ed90f43a1cfc2cf9b85163ed22ddb6102c10f7ad4d02b76b4e2545e3330298",
+      "bytes": 1909,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/react-build.md",
+      "sha256": "940f084f8558e1f459f30e7144fce83e069efa180601650485869d329df8f607",
+      "bytes": 5454,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/react-review.md",
+      "sha256": "e2a41010af97104e3f6819b7a6ddc381b529c8b6a0cac46e8cfc13578dc51cde",
+      "bytes": 5820,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/react-test.md",
+      "sha256": "1c87ad417400006ad380bccc7c17b1f1fe71148f99f4a3015c0b6a7d5baf4edc",
+      "bytes": 7335,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/refactor-clean.md",
+      "sha256": "be911e404a89e79cc878e20ba28b0feeacc2350db8710624622d88a453bf13db",
+      "bytes": 2901,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/resume-session.md",
+      "sha256": "b09bcb22feb10adbba50accd5dd97d09b60897aa94d05c6c12b6e579cb69cbac",
+      "bytes": 8105,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/review-pr.md",
+      "sha256": "dd6a610a4fa1ba61bb12ecaab9e2fddd1cbb57faff58d3601da019031e880a4c",
+      "bytes": 1056,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/rust-build.md",
+      "sha256": "94f2eba2a0ea2d4178583ba86808cf7117d7e0bcf76dd3729f840cebcda01560",
+      "bytes": 4578,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/rust-review.md",
+      "sha256": "19e9eb0c5805e982f9d864202dde19c49b394e8d8e28030b3aeac33c157d812c",
+      "bytes": 3898,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/rust-test.md",
+      "sha256": "1c73649d877a9b023e1c0b013f54fa9f7e733a14fbcbf2e49e7742d4e80bc86f",
+      "bytes": 7003,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/santa-loop.md",
+      "sha256": "c0e5d72aa0289201606b00d4f75cfa9a58f12d09bfbc48341a2378b2084f3bde",
+      "bytes": 6258,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/save-session.md",
+      "sha256": "a9488a8819d6c65fe4777f07ea72de6b0c4ee94f90c6bb33b3b8841916222db4",
+      "bytes": 9702,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/security-scan.md",
+      "sha256": "f6fde80d1af1ad582926371a741e2cc48e872585acd0a38d4907f7fc1e59fce1",
+      "bytes": 2625,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/sessions.md",
+      "sha256": "87d9eccf2c89fc7dc26f79c83ea1713f3ef51bfe7357c6ff5fa2e09c2d76d5e0",
+      "bytes": 14834,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/setup-pm.md",
+      "sha256": "163b3cd106028d21dbd2a91b47f1cf99957e40a78ed9e5e5dc8507e225f73a2d",
+      "bytes": 1675,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/skill-create.md",
+      "sha256": "0f13edf02faa01e91ef893574c379434b86a3973e6ba1db61ec016c2442a39bd",
+      "bytes": 6865,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/skill-health.md",
+      "sha256": "952342b941be50bff65683303f5c98e681ded31ea10edaeed5ab848a1d2cbae0",
+      "bytes": 4112,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/test-coverage.md",
+      "sha256": "f492c2dac27b98118cf965ae3071e044d7292ae9299e661bb01e2e6109d20711",
+      "bytes": 2742,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/update-codemaps.md",
+      "sha256": "dee7709ae4044862fd947e17048f8af170145b70ac53dfe01caa672a903853ea",
+      "bytes": 2488,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/update-docs.md",
+      "sha256": "f0f4645d697c7c5874b79c64218cd2057a291cc6301f6a044cb2bac5ccc14f4a",
+      "bytes": 3121,
+      "mode": "100644"
+    },
+    {
+      "path": "commands/vue-review.md",
+      "sha256": "bd9fe40b1fc015a8d39a7db5e955ccd54f57eafb6e9db367a195dcd037b3c67a",
+      "bytes": 5813,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/accessibility/SKILL.md",
+      "sha256": "d8578fe750e7321658450386e2112a46ea1aedca0235fbf97f3db2457e599b3a",
+      "bytes": 6563,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/agent-architecture-audit/SKILL.md",
+      "sha256": "64f57e232c3533877403703bc95b3c75df9de23f657899a306f13c703009ff57",
+      "bytes": 10278,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/agent-eval/SKILL.md",
+      "sha256": "57fa683e356b6f5612bc6d7dc101ae39c126e6edf9a48f4ec53afea3e80d7e5d",
+      "bytes": 4696,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/agent-harness-construction/SKILL.md",
+      "sha256": "e7fb390a6663b46ea5d3c2876753a5ce32ba3bad1889686b21a42894caa1742d",
+      "bytes": 2100,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/agent-introspection-debugging/SKILL.md",
+      "sha256": "0cdbfe3c822ff50d21df8cd0e20c72407a6f5658089edc0e96e79a03927cb956",
+      "bytes": 5627,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/agent-payment-x402/SKILL.md",
+      "sha256": "78ac50508665d894f1cbf02fe7d121c6ffc5c72cc66d68174db77ffdb30b6b89",
+      "bytes": 10715,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/agent-self-evaluation/SKILL.md",
+      "sha256": "96bb21eb37760f596789f84ec0a5dad4ef92fc2255e35cd7b88dc4234062b8c1",
+      "bytes": 7625,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/agent-self-evaluation/examples/high-score-example.md",
+      "sha256": "59467219aaaa41365953f904d7ffebb46b55c13d497e3646b0561a9ef5f56b0e",
+      "bytes": 3545,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/agent-self-evaluation/examples/low-score-example.md",
+      "sha256": "ee286d3adcbab489c5f277ae094a25e38e9401dc01b6c39987c3f5bf3b61706e",
+      "bytes": 3702,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/agent-self-evaluation/references/evaluation-criteria.md",
+      "sha256": "d1ccdbc90dfe2485a42e7aef2f06b71506dca3010da1ea8765382b8f038f7c61",
+      "bytes": 5820,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/agent-self-evaluation/references/hook-integration.md",
+      "sha256": "65888876994a12410c17723ca768f6715cb33a8ad963264a7caef67e3ef2fa8a",
+      "bytes": 2500,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/agent-self-evaluation/scripts/evaluate.py",
+      "sha256": "5f21321971c23ffa845a8f25a99338705ff057981681c97cb79c653ce7e505d6",
+      "bytes": 14975,
+      "mode": "100755"
+    },
+    {
+      "path": "skills/agent-self-evaluation/templates/evaluation-report.md",
+      "sha256": "5fc8a0820de9bc74e0a1470e55aaa50b3957aa1b0f947c4b458213b8e39fedbe",
+      "bytes": 3485,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/agent-sort/SKILL.md",
+      "sha256": "5847fc20cf0fd0d00c0c2dbacca03472c5a43af429978cf874dd41ecc144dc53",
+      "bytes": 5922,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/agentic-engineering/SKILL.md",
+      "sha256": "41c32c20ec97469341f5d83d8beb15f03d1b6f1c40fb1bdf534c50cd9a38cb6f",
+      "bytes": 1830,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/agentic-os/SKILL.md",
+      "sha256": "e1d1207353652456ac84a821e5522def1d108677318630af4fd7ac16735b5c04",
+      "bytes": 12349,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ai-first-engineering/SKILL.md",
+      "sha256": "114913bdcb6127392df56d96f7f1312f36c74d69c278dece6d377b9bd92123a5",
+      "bytes": 1454,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ai-regression-testing/SKILL.md",
+      "sha256": "83f2f5c4083af5762dd658f742d4a390eb3a6f969d835f69e8f47efba296c127",
+      "bytes": 11659,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/android-clean-architecture/SKILL.md",
+      "sha256": "20cbb9d7778462c549ccd32c830c0004fc7b92cfa009db99900d773373115f12",
+      "bytes": 8887,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/SKILL.md",
+      "sha256": "28ee37a8cf63add48fffc7c8676c6368aee35f3042525e79769b5a3d4e01aed1",
+      "bytes": 11021,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/angular-animations.md",
+      "sha256": "0361278cabc4925807c8a93ebce717f1c8d52d553870ddd8634b1075b0395dbc",
+      "bytes": 3955,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/angular-aria.md",
+      "sha256": "96daed398824f2947c5f4221065cdeabf82ac020874f99cb4338e5e84cd96aa1",
+      "bytes": 12642,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/cli.md",
+      "sha256": "b7a5f9f85125659966fe087b623939fe2b89ea5d7cdf53265476adf1666e37d9",
+      "bytes": 3714,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/component-harnesses.md",
+      "sha256": "ffa4258a4877fe4e200c2fca5eb65507dafc85296e2861ba420765f43cd98d16",
+      "bytes": 2903,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/component-styling.md",
+      "sha256": "de3351fdb72174361c6eee150940193f20d148afaceab0f22107758a3cb2d787",
+      "bytes": 2531,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/components.md",
+      "sha256": "dbfb520f2dddd017acb617369c45544374440fcb0b178d9648fab7ada0178468",
+      "bytes": 3422,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/creating-services.md",
+      "sha256": "9b0d8b6d627ec33e5957638049877eac655cd31444cd4afa440597e191e4cb94",
+      "bytes": 2700,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/data-resolvers.md",
+      "sha256": "0a6eb7ee89b29d1766941ed88881803b32870e705f2e438a7cae1c4e59ed8289",
+      "bytes": 1587,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/define-routes.md",
+      "sha256": "1288b38bad6cc9749e9d0fd35a294771ea2181dd712bfc2887d80e8b40fab7e6",
+      "bytes": 1727,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/defining-providers.md",
+      "sha256": "e654c23a080c642cf7031b5cc5de1101b8c75030c15256f7e3b81b0336953c6d",
+      "bytes": 2256,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/di-fundamentals.md",
+      "sha256": "45d4431765c46d7492d1daeb2de2aecc326e3255518e95b7b8303e259a4d8a64",
+      "bytes": 3594,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/e2e-testing.md",
+      "sha256": "50aa1fa9a832666407b66c524ffc05fb2fe8e7063300fb26e304dc278cb907fc",
+      "bytes": 1904,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/effects.md",
+      "sha256": "c06ad02460be7f57d024bb8e263a3390e72059815879bf6bcd0583e510a2b4ad",
+      "bytes": 2758,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/hierarchical-injectors.md",
+      "sha256": "05546d8043b93a2ab8deccdc2bd9c1704350883107701139e790ff8adb0f626a",
+      "bytes": 2091,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/host-elements.md",
+      "sha256": "b898bab74d518feba3c527dbf9694abe6d3ec7bfa44d81b34cff119016984080",
+      "bytes": 2114,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/injection-context.md",
+      "sha256": "0ab76274d761da9c8ad5d789be2a4b4158d637f06074908d6fb4540cb8f45a34",
+      "bytes": 1927,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/inputs.md",
+      "sha256": "229a6e37f7006a6f3426cc2bc42baa67ecbbab77c343d141e44b10c1bb11de09",
+      "bytes": 2445,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/linked-signal.md",
+      "sha256": "4971692a36c4d470b5c8efec1a8106418ac28cdc33601e554ecff9dded95d289",
+      "bytes": 2584,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/loading-strategies.md",
+      "sha256": "fa82c48573532a7f5e3ccf7eaa50dc7a2db1f23a8599638d9c18e023dbd73e2f",
+      "bytes": 1457,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/mcp.md",
+      "sha256": "7197d06d79bb57084a5c4ff203ddf9d86a30116dddb103b9d4fc138bf2dd8cb1",
+      "bytes": 4079,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/navigate-to-routes.md",
+      "sha256": "ea3c3d53b5db47b4f8d8b05124330e72bea92fc908d42c06aa7edb9e652b425e",
+      "bytes": 1639,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/outputs.md",
+      "sha256": "a191f8982d9ac6868023d56c887f362052c4fccc70a89adc8a6bc546f851e5dc",
+      "bytes": 2604,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/reactive-forms.md",
+      "sha256": "e71118562247c94141dfaca74efd246e38226bf26ffedbd7f3337f1866113283",
+      "bytes": 3561,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/rendering-strategies.md",
+      "sha256": "329aa9aa35c85dd2048c899f26025439d3b0244067dbb508e724d291fdad7c97",
+      "bytes": 1828,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/resource.md",
+      "sha256": "ff03e5f21219cb0cb6e8ea9fe3c47ead2308471a15a925cbcaf051473669c40c",
+      "bytes": 2714,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/route-animations.md",
+      "sha256": "eda1452f85ce05f3f28753cc77cd8c31c7a52515d7ccebbb35de0ec1e3beb374",
+      "bytes": 1688,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/route-guards.md",
+      "sha256": "491a93cb49fbcba04f7e8ffcd0f784fce7319ca3e2fe393c553f3d683a68424c",
+      "bytes": 1397,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/router-lifecycle.md",
+      "sha256": "4abc8cb8dfeb2e9f57dc11c117d5f4a5b756b39dc076910d9ced9da640effc2d",
+      "bytes": 1534,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/router-testing.md",
+      "sha256": "42bdaa9ac7d523093fb44ab945f3235ff72715ac4faeb99176bb0ae2fc406213",
+      "bytes": 3840,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/show-routes-with-outlets.md",
+      "sha256": "43a2ed62ea2edafa8569bf7045f20928110f8f844d5890bfb6a2f2dde45e754b",
+      "bytes": 1672,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/signal-forms.md",
+      "sha256": "7ff19051876697eeb43058fb52ab01ec9bc6bd486fd8674be723978dcde16b90",
+      "bytes": 24203,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/signals-overview.md",
+      "sha256": "f0a4d5fe4a88a3f06d81683cedddf1b65ee1c771ef3eaaec4ff1ca5d804e45a3",
+      "bytes": 2841,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/tailwind-css.md",
+      "sha256": "bdb952d0dd2d415560a796ecaf843cacff5ac20d8ef961eaaf75656fef9b9263",
+      "bytes": 1868,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/template-driven-forms.md",
+      "sha256": "52e83e576b0c6dc05f854e903c4cfda1222bcd55c50ddee07344d1e53d02c1df",
+      "bytes": 3752,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/angular-developer/references/testing-fundamentals.md",
+      "sha256": "94fe1a3b42f4cc299d71d3dcc12190485913bba00fc1d0757097c91306084356",
+      "bytes": 2640,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/api-connector-builder/SKILL.md",
+      "sha256": "00a0d01e234f213d343f0040bbebd56e042978768ce5bb7117776a75bd9547e8",
+      "bytes": 2664,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/api-design/SKILL.md",
+      "sha256": "bfae53167acc91caff0ff9ab73a80ee3fd92caccdfa445c88302c3bf95255156",
+      "bytes": 13227,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/architecture-decision-records/SKILL.md",
+      "sha256": "525e51b4ed98222cd49ea7d2e42b51a010ecab391b25022a86164258c14b8bb0",
+      "bytes": 7131,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/article-writing/SKILL.md",
+      "sha256": "4aa61709450a2148ef4036896d870da748e93ad68528bb7679b74f3597ffb021",
+      "bytes": 2926,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/automation-audit-ops/SKILL.md",
+      "sha256": "71aa878fd06ef02f0c8ca50eaaee0ec45995981d769d8701806b9b83ca8a2f2c",
+      "bytes": 4167,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/autonomous-agent-harness/SKILL.md",
+      "sha256": "74afde3fa6e8423bdbf43f53b24c7b4a8b441648a1ad8f23953dc6eba3378409",
+      "bytes": 12864,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/autonomous-loops/SKILL.md",
+      "sha256": "c2db797295500b9c2b31d9dd2451ef28727346c739b5d1d3366f0f9ea2e823dc",
+      "bytes": 24851,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/backend-patterns/SKILL.md",
+      "sha256": "9b983d0297a983110fdfda8dce55d19b750ca3e53ef155d75a3eff740d3874b8",
+      "bytes": 13349,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/benchmark-methodology/SKILL.md",
+      "sha256": "f2cba14bb87ff43f80c2eaec6311eee7ead4d8b89949864442362eb368acbbac",
+      "bytes": 9811,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/benchmark-optimization-loop/SKILL.md",
+      "sha256": "51a766eba273a30c24b8f3851e115e72335f3e3851a82235b9f9c1fedfb423a4",
+      "bytes": 2433,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/benchmark/SKILL.md",
+      "sha256": "3b4d32317cb906904ab192b6e50389e34bad88887cb085c8ef1a345c382609dc",
+      "bytes": 2356,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/blender-motion-state-inspection/SKILL.md",
+      "sha256": "97b8aee8822a8603e2fc930f66b4bd18507c11ca756accd1419a2a3526196f5c",
+      "bytes": 8146,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/blueprint/SKILL.md",
+      "sha256": "bc7118400659cfffbfd238c529baf597a9a726bd8dd6bb956d29fe263037d502",
+      "bytes": 5356,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/brand-discovery/SKILL.md",
+      "sha256": "0c6ef1b72b0fe635d1681abf3857ec34214fd6580fad7708a96a8f4abc096ef5",
+      "bytes": 7514,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/brand-discovery/references/10_purpose-why.md",
+      "sha256": "d70beb1dcf73512e235a377c59ca43f544de084dd555701f99a65574b17939ea",
+      "bytes": 1179,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/brand-discovery/references/20_positioning.md",
+      "sha256": "50e2c71b8b4d6a44d59b45609c06aa258f6c16871a4d2a184f68983433e954c4",
+      "bytes": 1481,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/brand-discovery/references/30_audience-niche.md",
+      "sha256": "189e8d41d08df421fa5bad5d15e814334dc8fe706255701b277e258100b6007d",
+      "bytes": 1496,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/brand-discovery/references/40_personality-archetype.md",
+      "sha256": "58b04b09cf1e206d1240fc01d8c77c22fcc9b9c0d8ef326ad418476589072182",
+      "bytes": 1925,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/brand-discovery/references/50_voice-tone.md",
+      "sha256": "cf69dc9573ed00561cfb8e7e489450ae644b90703a2d9315b77d8629af69bde3",
+      "bytes": 1767,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/brand-discovery/references/60_narrative-story.md",
+      "sha256": "46a6184f00ffa8d6900d59d58164f5e767012bc12dd67dc2b2ba53976d6811b9",
+      "bytes": 1560,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/brand-discovery/references/70_founder-tension.md",
+      "sha256": "88e7149f2ace5d3f726d33e5fb7ca2caddb7e3301574e849517e16277590ab39",
+      "bytes": 1517,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/brand-discovery/references/90_SYNTHESIS.md",
+      "sha256": "04d0215bb054685ab8f6956f8369a7eb9d39e16acd1f7ae5ffe46725f2c00c61",
+      "bytes": 3063,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/brand-voice/SKILL.md",
+      "sha256": "57c7f8440b7bd4c91c0d325640b5c6fb7a3dc7fc05595946c7bc705761a987a7",
+      "bytes": 3648,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/brand-voice/references/voice-profile-schema.md",
+      "sha256": "3c5c2b04fd4b68642d2d3279829541bc56d211fdefc3498e86c1486abee8261b",
+      "bytes": 1063,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/browser-qa/SKILL.md",
+      "sha256": "c501257d2c9ca711342b56d7adfb04897f17c6946dc6cdb88a5c75c87e4aa951",
+      "bytes": 3727,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/bun-runtime/SKILL.md",
+      "sha256": "8015a977827ddd8536e89c4693a575b8deb5b04073b8a483c320c5419abc35da",
+      "bytes": 2608,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/canary-watch/SKILL.md",
+      "sha256": "d2cb536f8ccb201266e094542cb20af8a4d6474feb5b16116cfb4497c2b8149f",
+      "bytes": 3128,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/carrier-relationship-management/SKILL.md",
+      "sha256": "af44a99f4d5f8fa616cf17e4f7a2f68403c30bf9cf6525e4c149d55e532b3c14",
+      "bytes": 23765,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/cisco-ios-patterns/SKILL.md",
+      "sha256": "85b6a97574cc236d4a9336b1c74b42aaf4386338417e787cbed0c88677bf1179",
+      "bytes": 5305,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ck/SKILL.md",
+      "sha256": "cce8ed0d543fe932b469f6a191d9e5fe912477bea1b94f68e1a7f7cfc66fd7c3",
+      "bytes": 4944,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ck/commands/forget.mjs",
+      "sha256": "af9995621bd68eb3d848a37f5d63b9f0d22a49665ba19c1afd00eeb912e3adfc",
+      "bytes": 1304,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ck/commands/info.mjs",
+      "sha256": "f294480e80aafe155d789ab3e005891efd7aa22635f0392886c36457dd46ba75",
+      "bytes": 650,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ck/commands/init.mjs",
+      "sha256": "3ab39c2610548da4252726b7b5212ff5375314b54cd0c2e0b71a41d515ef923d",
+      "bytes": 6146,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ck/commands/list.mjs",
+      "sha256": "902d5ef9370d07217492d59968fbe904a7961741c601f8a4420787d98910c2a3",
+      "bytes": 1092,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ck/commands/migrate.mjs",
+      "sha256": "7703062eb780c63785870b26290bc4fc386b42eb697e24d91fa87bcb2f13d6b7",
+      "bytes": 7416,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ck/commands/resume.mjs",
+      "sha256": "773a706247bfeb45d7206ec363e695cb42262cccb14851e67d194ace760b309f",
+      "bytes": 949,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ck/commands/save.mjs",
+      "sha256": "1d096ffd0ce5776ac69f01a8d80b2a158fa3b465d2b5faa33bd539887e63f32b",
+      "bytes": 7574,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ck/commands/shared.mjs",
+      "sha256": "8da746463ae5e90700e29bdae1e738f54a7bd279cfb0ca6d90b292170a2e1abe",
+      "bytes": 15267,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ck/hooks/session-start.mjs",
+      "sha256": "4ad0b843a0e1256e72d3b371e126ce1dbdf1baf45819fb3f55f614d1c386bf29",
+      "bytes": 8835,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/claude-devfleet/SKILL.md",
+      "sha256": "5fe6efbb5663699ba8e348b2a77fbf7c396ed1903bb95fa0c05c1174f81fabfc",
+      "bytes": 6216,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/click-path-audit/SKILL.md",
+      "sha256": "662fc5d02483bcd8ff799d6d3109a38da673182341cfc14445e9076fcd920162",
+      "bytes": 7975,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/clickhouse-io/SKILL.md",
+      "sha256": "9f0f2b632f3feb1bd4ca7bae119fe05454668ab763b7d3c3d304f8740b8fd415",
+      "bytes": 10731,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/code-tour/SKILL.md",
+      "sha256": "416c7eb9229554a1ef113bbb873ff0b260a2ad9ae6e6075a75c375955d3fcf6f",
+      "bytes": 8030,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/codebase-onboarding/SKILL.md",
+      "sha256": "ef88873a4b0d0fe155c0a196ffecd5c7b5e28edd00fbbdb5c1fd2ca8fd0eb6f0",
+      "bytes": 8235,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/codehealth-mcp/SKILL.md",
+      "sha256": "c5943c4c353b02dcd87b751de15bb087caae2f11c36e84a74e181fe2eadee394",
+      "bytes": 7463,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/coding-standards/SKILL.md",
+      "sha256": "e80544c3d1eac5b14f22022146bd91a6b0ecc30e099cf5181894853aeb81dee1",
+      "bytes": 12866,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/competitive-platform-analysis/SKILL.md",
+      "sha256": "060f50513003731e9c0e7f78e6a6a9b8cb178a74a2ec2a6ca75cdae804f0d564",
+      "bytes": 11991,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/competitive-report-structure/SKILL.md",
+      "sha256": "fe3ad1b5b6caa4709b2a75e22772771946f36c9592c281012e5d2df087412800",
+      "bytes": 8464,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/compose-multiplatform-patterns/SKILL.md",
+      "sha256": "37a50a5eb0a717eebac646360dbd8828f626236ec04d98d8c4a6b191a5efb0d0",
+      "bytes": 8229,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/config-gc/SKILL.md",
+      "sha256": "e8ade5c8d48728db6c1137e4392308b6d56290a19d4f78d365122d7ab05276a1",
+      "bytes": 7942,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/configure-ecc/SKILL.md",
+      "sha256": "a01e64075c0c68206f2e8b45fd131a32dfc425d24494e3c8e4db9a3ab34e4c19",
+      "bytes": 7713,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/connections-optimizer/SKILL.md",
+      "sha256": "499c7e7e361ec17afdad57b725b4d105efb21f707b5724115f71152fe1755c67",
+      "bytes": 5477,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/content-engine/SKILL.md",
+      "sha256": "a1ccc0ecfe30ae53db26a73159a80ecad8c63a6a96c461a297789d889bf9ad2c",
+      "bytes": 4370,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/content-hash-cache-pattern/SKILL.md",
+      "sha256": "c0242ee2fcb5c096d0625cb6957481fce2266e92985036795f5b5c13c329d802",
+      "bytes": 5732,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/context-budget/SKILL.md",
+      "sha256": "920c5edde48e495b267fb0d42d8411c8b75ce1d8ab76e793b2eb6d23da01b0f1",
+      "bytes": 5840,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/continuous-agent-loop/SKILL.md",
+      "sha256": "f228cd383a9063b3a0116c5aea02565e859992f63fae5e799adf9c9e44e2454d",
+      "bytes": 1190,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/continuous-learning-v2/SKILL.md",
+      "sha256": "ddad12451a0d582c6ef1b197b7be193bef613cbc74eba4117fcb74fc7a4ecd00",
+      "bytes": 14149,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/continuous-learning-v2/agents/observer-loop.sh",
+      "sha256": "a6d119252c8ff2eda7aa7b345c2254fd6bdaf14056f6b5bf54835a2738ff310d",
+      "bytes": 19899,
+      "mode": "100755"
+    },
+    {
+      "path": "skills/continuous-learning-v2/agents/observer.md",
+      "sha256": "320d50ff2965efeabd6f07c2be134e11da160293e958c1bc27c309d613839ad2",
+      "bytes": 6892,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/continuous-learning-v2/agents/session-guardian.sh",
+      "sha256": "ee6e4c0990f8d538cae1c85aa194e01e9ca2336e5d993ef68eb608b96cb0d82c",
+      "bytes": 6392,
+      "mode": "100755"
+    },
+    {
+      "path": "skills/continuous-learning-v2/agents/start-observer.sh",
+      "sha256": "1f9a22da11e23d3551b8f8d0951a656150a532b326818627d9914ffd484a86e6",
+      "bytes": 8117,
+      "mode": "100755"
+    },
+    {
+      "path": "skills/continuous-learning-v2/config.json",
+      "sha256": "6f17e7a99aafe252ecd0b9212fb5f606be50b8ce1685f5a6435e46e87ffeb970",
+      "bytes": 135,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/continuous-learning-v2/hooks/observe.sh",
+      "sha256": "90575005307d1df31166a2da239cf8c362608524f6aeaa849df3d0b4e3e35f79",
+      "bytes": 28106,
+      "mode": "100755"
+    },
+    {
+      "path": "skills/continuous-learning-v2/scripts/detect-project.sh",
+      "sha256": "43215ad15ce0c6585c13b1c45cbba6bf8df0dc459b663ddca77c0b86c459c283",
+      "bytes": 11036,
+      "mode": "100755"
+    },
+    {
+      "path": "skills/continuous-learning-v2/scripts/instinct-cli.py",
+      "sha256": "a2e90e34ee589827592248dbc801bee90f1d5db6d2330e2d5004e4694b8e06f9",
+      "bytes": 91144,
+      "mode": "100755"
+    },
+    {
+      "path": "skills/continuous-learning-v2/scripts/lib/homunculus-dir.sh",
+      "sha256": "99dfa99ae0f7c6e2e15ed5b5bf3c46e91a5f089f4060ba93d5da5e85e04fd308",
+      "bytes": 1010,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/continuous-learning-v2/scripts/migrate-homunculus.sh",
+      "sha256": "34f121c143a676d330f06209618aae8cb08f8155298cb5fa70c893314bf9b303",
+      "bytes": 2256,
+      "mode": "100755"
+    },
+    {
+      "path": "skills/continuous-learning-v2/scripts/test_parse_instinct.py",
+      "sha256": "acf556e8a8023347b35988bb490927a4e9f65f2579b03f26cad610687656605b",
+      "bytes": 51338,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/continuous-learning/SKILL.md",
+      "sha256": "d494867b456999cad53c51c89fa2cf8da101f76ea875286987f52e5d45f72221",
+      "bytes": 4536,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/continuous-learning/config.json",
+      "sha256": "8af9150b6dca782cc3cb938e0c2267ad85ee4772eaf3ec30c0b91a848d108a44",
+      "bytes": 391,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/continuous-learning/evaluate-session.sh",
+      "sha256": "3e07e0b2916fbcdd7670648548d418ee87bdce0c6548c48e298965e5db387fcd",
+      "bytes": 2391,
+      "mode": "100755"
+    },
+    {
+      "path": "skills/contract-first/SKILL.md",
+      "sha256": "dc23ee49437e4d914ea9a9e37eec0dfe59dc16b11fcbc3a6e5c72f25dbd3cc5c",
+      "bytes": 9521,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/cost-aware-llm-pipeline/SKILL.md",
+      "sha256": "2d6c19c2d21a473db8720c4f723f17d265eeec48f84614f0169be2df2fbe28ff",
+      "bytes": 5992,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/cost-tracking/SKILL.md",
+      "sha256": "486b8289ec3f481e75c477f9e209ab4d008c9fe05dde7c1d0b7813010c3463ba",
+      "bytes": 4465,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/council-multi-model/SKILL.md",
+      "sha256": "3c67816efdab97c89f8433b8a88d720ca736871467f7d6d1ff344fee59f18ce5",
+      "bytes": 5987,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/council-multi-model/scripts/review-with-codex.js",
+      "sha256": "af1af9e76f89a321a7148077c5cae6ca62fc0d912329195c49c264359d3becdf",
+      "bytes": 9479,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/council/SKILL.md",
+      "sha256": "2104d002d301a061a16d21ea2e00292f80b66b20c9883a33525a7de404153502",
+      "bytes": 6358,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/cpp-coding-standards/SKILL.md",
+      "sha256": "f870b47d3493b0ad0b6e3808a679ac3c429b60f03193af6c9dc0e0d9e6981436",
+      "bytes": 22291,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/cpp-testing/SKILL.md",
+      "sha256": "a92fb5da9b7e3cd1b4dee185b3eb9d0a55352af6396bf996d2eef72d683784df",
+      "bytes": 9175,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/crosspost/SKILL.md",
+      "sha256": "03bd2ef6e08191cd336e9b8e7a55c29040e7a3225defdaeab1b51d983565661f",
+      "bytes": 4345,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/csharp-testing/SKILL.md",
+      "sha256": "ee93aae975fa9d44bebc33be010b24435d38177e77395c697048622d9be68ad1",
+      "bytes": 8726,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/customer-billing-ops/SKILL.md",
+      "sha256": "4214d79be7d1bcb62587cf6364e96ed3b70b875ec41871ac632e827ef96b370e",
+      "bytes": 4289,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/customs-trade-compliance/SKILL.md",
+      "sha256": "dafcf2ece4e85fcffd345d286a6c0b06fb85ad02ed3c18b3b773656c2ef838ab",
+      "bytes": 29049,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/dart-flutter-patterns/SKILL.md",
+      "sha256": "d0a5a1881005ae78f1bca3d73c194057302c653efedb24332a27d55f6c85112e",
+      "bytes": 16033,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/dashboard-builder/SKILL.md",
+      "sha256": "6823d9984c060597a312b867c317e0969e1cb0a2dec19730ce944fe789f41d38",
+      "bytes": 2358,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/data-scraper-agent/SKILL.md",
+      "sha256": "662e884d58f4089bd8e090ef8d32042b85a5d9b4715906a89072002704451c0a",
+      "bytes": 25520,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/data-throughput-accelerator/SKILL.md",
+      "sha256": "ed164d18536a456f71b876a84c54a94a5fc0a0f6aca25299c1c4a2b8f5476449",
+      "bytes": 2612,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/database-migrations/SKILL.md",
+      "sha256": "ad7f2f04ca03e592a16e2a539d8c6e90bf4e08892408820ce99a53e9d07775de",
+      "bytes": 11957,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/deep-research/SKILL.md",
+      "sha256": "72e184f5d0f31ca4d45286753409d8c8431b025e8ac3800dcc9f32d9e930f58a",
+      "bytes": 5891,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/defi-amm-security/SKILL.md",
+      "sha256": "06f662a81b1faebb9930118302d88d649dbc5bcbf7dfe87c3780ddc72f2d6516",
+      "bytes": 5390,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/delivery-gate/SKILL.md",
+      "sha256": "147a971c26b7bf4f9fbc3e1f624ec7c888eb8d74911d8ffbbe0418d9aaaa9767",
+      "bytes": 5140,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/delivery-gate/hooks/quality-gate.py",
+      "sha256": "76aa0fe8c136be8a760ce74e614463ffb05fb16f1e165c5938daa86f516b87ef",
+      "bytes": 7826,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/deployment-patterns/SKILL.md",
+      "sha256": "b864abd1954570c4a469b7e1deb897e57858d25db2fd98d035ff7bca4a15b9b6",
+      "bytes": 11113,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/design-system/SKILL.md",
+      "sha256": "baa6057bec07334f531789d07fbdd656afd725c0540992bd04db7589cac36d26",
+      "bytes": 2610,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/dev-team/SKILL.md",
+      "sha256": "727b093c8f8284923e54619b9193e5dee9e9ae0ea87b5fb65e1e01e0206fe621",
+      "bytes": 8318,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/django-celery/SKILL.md",
+      "sha256": "1f9189ece910eb90a5d2cd520a9a6238ccb89a3e48629ac1ad9b55ec3eb21f88",
+      "bytes": 13134,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/django-patterns/SKILL.md",
+      "sha256": "14abe2b635054dff872c07d4993057e614b48ac718c0431f1299931be7d69516",
+      "bytes": 21116,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/django-security/SKILL.md",
+      "sha256": "e043c9d300695aea5a9bb4c72a6f47e47ba1f2c7ddc1e82b8191acd0ad70c54a",
+      "bytes": 17269,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/django-tdd/SKILL.md",
+      "sha256": "20bd5378fb9b76b396916daa8781dd45eef6336e5d4b3a46edb0c3e4eefaf074",
+      "bytes": 21031,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/django-verification/SKILL.md",
+      "sha256": "cb1b6c5938c8c41dffb1f7bb752e307df6ced2577af2fc40786bde4c53799cea",
+      "bytes": 11491,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/dmux-workflows/SKILL.md",
+      "sha256": "6e4028d61a556d58fa2cdc6162d6837c082974a7161b2d703967bec472308c56",
+      "bytes": 6336,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/docker-patterns/SKILL.md",
+      "sha256": "2a880cf2f6401874151daa9bcc0eacd10cf79f5f48b97f98e93a877a8f3fd12b",
+      "bytes": 14937,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/documentation-lookup/SKILL.md",
+      "sha256": "81ad2b5b4acbe02259f4b6cbfd9111d81d5cfe51025051b6048959c45f6516c1",
+      "bytes": 4912,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/dotnet-patterns/SKILL.md",
+      "sha256": "61bc21a6c6d6d1230d90f0bbebca55101b1b63de68ece8574152cbad152cef07",
+      "bytes": 9316,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/dynamic-workflow-mode/SKILL.md",
+      "sha256": "bdf7902e4e213c6f2e7bdc417757004d118e8e36267239b707670e2875ebf7bf",
+      "bytes": 5389,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/e2e-testing/SKILL.md",
+      "sha256": "b0e00e7e17cb259101139900816c5528aed18dd10bcf5f9cb42cfc35baf8a755",
+      "bytes": 8170,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ecc-guide/SKILL.md",
+      "sha256": "b6e30828406e562ef65d323f1366629239313f076a7a53ba7e8dbaec0e96b203",
+      "bytes": 5611,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ecc-recipes/SKILL.md",
+      "sha256": "5184f7e0655dccbf769b52df9c8f7a587e9c2d6b13dcb33aaafefae5fa542137",
+      "bytes": 6567,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ecc-tools-cost-audit/SKILL.md",
+      "sha256": "d5c4c7925166703eb5fca83c0f1dcdeffb9c5808dc3cc08c337136f512fddbac",
+      "bytes": 6496,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/email-ops/SKILL.md",
+      "sha256": "188b226ec0dfd4304d6c9b60498b5f0dc2b3c97b14e159e5bde5db323ad45721",
+      "bytes": 4401,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/energy-procurement/SKILL.md",
+      "sha256": "adb80378247afb4d66055df84eb736a3fc7a233835fe24bcea26fcd0f5985b10",
+      "bytes": 30081,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/enterprise-agent-ops/SKILL.md",
+      "sha256": "ad6fa3fc7cc96b6e8d949880252b1d74d700b90286509318a2952f51b784e364",
+      "bytes": 1328,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/error-handling/SKILL.md",
+      "sha256": "e8eec6756c950b570486493e64e3bf14c12baf6bf0858bf3928097fe2bfeaf79",
+      "bytes": 10984,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/eval-harness/SKILL.md",
+      "sha256": "9d3afbeca1479975c2575daa7467ca3666e7627fcebe02ea050f2db93917c4fd",
+      "bytes": 6592,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/evm-token-decimals/SKILL.md",
+      "sha256": "4e3fd13794f55a2a424cabdfe90935effb35d37155fda3fcacd27cfe20102838",
+      "bytes": 3988,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/exa-search/SKILL.md",
+      "sha256": "ebc8e7ab299a6649f575e218f0c25f4d869017b8ad4b5f7725cedceaf82700e5",
+      "bytes": 4425,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/fal-ai-media/SKILL.md",
+      "sha256": "84df7b48ef1dd67a6dff5bb7e00059ee12e7f3b6b02c25e143ecd7c984342143",
+      "bytes": 7158,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/fastapi-patterns/SKILL.md",
+      "sha256": "f54c2bf5a61eeda47c939da265b1431d609c231611e71b688b0b734a064b18f3",
+      "bytes": 15637,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/finance-billing-ops/SKILL.md",
+      "sha256": "823a1b8f75495022227bb9af4537eb5c0b1c62793d68b74c6bd1af14eea79786",
+      "bytes": 3831,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/flox-environments/SKILL.md",
+      "sha256": "d15e0af4d6f57ea085482f163d0d1658279301202b161087e9e6f66e7f4b91c9",
+      "bytes": 14220,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/flutter-dart-code-review/SKILL.md",
+      "sha256": "5ceac13c9b99c97340f9a47c081737aceee1f803ed9045b7fbc980243b01db03",
+      "bytes": 23194,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/foundation-models-on-device/SKILL.md",
+      "sha256": "4f239588e43f7ff0d6415cdcd2c85528a854cdd712986c00c690c6d3cb09491e",
+      "bytes": 8255,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/frontend-a11y/SKILL.md",
+      "sha256": "62afdfd4e616ed21bf9037d47f771f3504d21838c898b9e9de8ac0da9b0bf3f7",
+      "bytes": 12724,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/frontend-design-direction/SKILL.md",
+      "sha256": "fa254de821f708e5791c4c80d30309ac7da89c2888301e967becb3b21ac73331",
+      "bytes": 4360,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/frontend-patterns/SKILL.md",
+      "sha256": "a5b971eb9e74cd763c7e3308bfd888e0d9cf69f8b88477659889d77182479740",
+      "bytes": 15432,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/frontend-slides/SKILL.md",
+      "sha256": "9d58ad7d4555a9d6ea1944a5084fd0428ee44276ac13ee8df02c1c4e63925291",
+      "bytes": 6559,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/frontend-slides/STYLE_PRESETS.md",
+      "sha256": "f3448493022f8fa3f858319b14c0c48a35d441864dc78a2411f7938c28e7a265",
+      "bytes": 9145,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/frontend-slides/animation-patterns.md",
+      "sha256": "152ac81e87eba92dea96ef5ac488e3e0a341836aca034e908b0c1b6d60bff204",
+      "bytes": 4233,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/frontend-slides/html-template.md",
+      "sha256": "0ba1acf5016472f0f902ee2a67cf2d6e20e8dbd3f733df9cd8f5ee67d5ca0adf",
+      "bytes": 12533,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/frontend-slides/scripts/export-pdf.sh",
+      "sha256": "d1a45b2516883dc761ecf2a5d838ec515974c8d7660753b5c4945a1825cbdc77",
+      "bytes": 12280,
+      "mode": "100755"
+    },
+    {
+      "path": "skills/frontend-slides/scripts/extract-pptx.py",
+      "sha256": "4f5e7603c99b8b53e20c5b2a65abdf5edf9422b4c490dca9f2b872a752c17d2a",
+      "bytes": 2917,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/frontend-slides/viewport-base.css",
+      "sha256": "dab42c1a556a0fa51d3c39f7edfb93d8303e5c29625ade479a18ba97f2640734",
+      "bytes": 4037,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/fsharp-testing/SKILL.md",
+      "sha256": "d89f8cb5235f7896b014aae4aa94026bd1a38bc6add956d3fc7ccf2963f2adb7",
+      "bytes": 7941,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/gan-style-harness/SKILL.md",
+      "sha256": "d91da8ca4a77a797d9ab78bb748aeb16567d75a1b109c894dc07d8815aa19dde",
+      "bytes": 12431,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/gateguard/SKILL.md",
+      "sha256": "68fa6e19ead99d37e0f1fb26bf9297b4938366c602f7ff7308f676c8b613f470",
+      "bytes": 8226,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/generating-python-installer/SKILL.md",
+      "sha256": "47e73ef601d900be3b5ccb5d1a1ba2371d3e46c67b5243c1810e51cd2d8f62f3",
+      "bytes": 30327,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/git-workflow/SKILL.md",
+      "sha256": "d34cfc7114b4479cac2b802f2463c39312cbab4a509313128cb83ac12a1b1eb6",
+      "bytes": 15191,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/github-ops/SKILL.md",
+      "sha256": "e475484ce751d87c3df591879a98d917e9380ff687ac588fbd68578df526e92d",
+      "bytes": 6074,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/github-ops/references/ecc-release-checklist.md",
+      "sha256": "abeda37b5364854c0b3610227d3029706d6f42ec287573397abe795f4af8a463",
+      "bytes": 6940,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/golang-patterns/SKILL.md",
+      "sha256": "d643e354683167727cfeb76934855db988468cd15b3ca01db9a32db43902edf7",
+      "bytes": 14136,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/golang-testing/SKILL.md",
+      "sha256": "e3399562c58590dfcbd09bfcbf8f401120a2ded0418eb33bbfca6c697ac485ad",
+      "bytes": 16744,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/google-workspace-ops/SKILL.md",
+      "sha256": "93ab16b44764e3c00472c7dfb0b58cf59a3c7493ac99ab93fcabf280f164b6a1",
+      "bytes": 2736,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/growth-log/SKILL.md",
+      "sha256": "8f90db7c9e84a570f68480a32075026fd98dc4c0dbc7ead0af8357e756274cee",
+      "bytes": 6766,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/healthcare-cdss-patterns/SKILL.md",
+      "sha256": "439875d2fff3bbf14e0b46b7310b4c815c2596e54a6cafaafb4b2b93b4865626",
+      "bytes": 9461,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/healthcare-emr-patterns/SKILL.md",
+      "sha256": "117e1861c5313f1874c82791c73798d28e9985cac8964a95d73bed915a8aff39",
+      "bytes": 6746,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/healthcare-eval-harness/SKILL.md",
+      "sha256": "0c74bb0309d4fb7e3bf04b0f779909156520c73bd6162bd405f7232af19c0a68",
+      "bytes": 7849,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/healthcare-phi-compliance/SKILL.md",
+      "sha256": "18c698c348e1affe90ccdd4dca56b74e6d43a83a8334df65b7da916d80615583",
+      "bytes": 5696,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/hermes-imports/SKILL.md",
+      "sha256": "4e425b32c9830c936f845b3f63352f6f199d869eb27eef484ce28ddc8ce4f3b4",
+      "bytes": 3006,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/hexagonal-architecture/SKILL.md",
+      "sha256": "1579f70e4cd5a2dde39d29a2055d18b39f06b063a308d3b43a498900c99495b7",
+      "bytes": 11520,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/hipaa-compliance/SKILL.md",
+      "sha256": "4bc1f29a3be7986f89bdd7b5ec3894451e67c687a558b683cab62bd8d1fd2264",
+      "bytes": 3631,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/homelab-network-readiness/SKILL.md",
+      "sha256": "056835b13ab04b672bd8e6c19376b58afb2893b5411428c1588fd07b19571c9d",
+      "bytes": 7571,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/homelab-network-setup/SKILL.md",
+      "sha256": "8104e87516857c7f773da9aba0dd13b61c3e490913adb4555d036614a9a937be",
+      "bytes": 4432,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/homelab-pihole-dns/SKILL.md",
+      "sha256": "23a801545a4839c4fc04dc287e1122cc3913016a116b2cb5c7720e193edfa6c2",
+      "bytes": 9592,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/homelab-vlan-segmentation/SKILL.md",
+      "sha256": "a6e5d6574566881d31e949cc0fad927e1e547d2ebe6f11d1f94f2890ed6ddd5e",
+      "bytes": 10290,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/homelab-wireguard-vpn/SKILL.md",
+      "sha256": "38df424e399549d3ba42d6f50c77554d9a88a46b3bac4dd1436158874535c13c",
+      "bytes": 10628,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/hookify-rules/SKILL.md",
+      "sha256": "b604608e30ac2b8f4f62dea3023efe2d3247b41a38c4156a6b6297173f2405a8",
+      "bytes": 3534,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/inherit-legacy-style/SKILL.md",
+      "sha256": "14e7b20424f123b594d3ee3d6ac3e722b21e5a6816fe90bacf8a23e6c3af5b6d",
+      "bytes": 8552,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/intent-driven-development/SKILL.md",
+      "sha256": "e34045f7b3bf6a6fbd364f85c7bc81d8208e18bb929ceff80bbc987f78aadea8",
+      "bytes": 17199,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/inventory-demand-planning/SKILL.md",
+      "sha256": "27f2f103cf872ab272ac0137f2e3fd89e6dfec3681f9a685d4ffbae12dc0b878",
+      "bytes": 24512,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/investor-materials/SKILL.md",
+      "sha256": "e2c8d64412e2af9a2def3144b3d1e32f0fd69c724f2d17615fcf5a9bfa5f01cc",
+      "bytes": 2735,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/investor-outreach/SKILL.md",
+      "sha256": "e5d4918dcbc62eb25d42829b56683ae6befe3a623f7ce6ed66bef37ce1a57c65",
+      "bytes": 2655,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ios-icon-gen/SKILL.md",
+      "sha256": "893627c44e6d209f9b2e02de2f4879188649d22ae9723cd5b9445de6df3d6482",
+      "bytes": 5653,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ios-icon-gen/scripts/generate_icons.swift",
+      "sha256": "41efd2b2dc30a744e65252d7715b36ae951c489262262b42d96e06d42fd3ca2e",
+      "bytes": 8371,
+      "mode": "100755"
+    },
+    {
+      "path": "skills/ios-icon-gen/scripts/iconify_gen.sh",
+      "sha256": "5a0efeece4dfd4b60d345b5e2034ab152557793a4248ef6cba2f8fa4d6533c4a",
+      "bytes": 7098,
+      "mode": "100755"
+    },
+    {
+      "path": "skills/iterative-retrieval/SKILL.md",
+      "sha256": "b453b16d3e36174b8487c05ab807d0321a66c2d058812b2ae129d82824183725",
+      "bytes": 6786,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ito-baskets/SKILL.md",
+      "sha256": "ef5e4353d1d90a75ad0b9c435d831c178187b4be407b9270e2d32b2bb64589bc",
+      "bytes": 13385,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ito-baskets/agents/openai.yaml",
+      "sha256": "b5fc7bf3b938608ae9794248dc64e6aaf71942c12caae4131289e95056c1c441",
+      "bytes": 326,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ito-baskets/scripts/ito-baskets.js",
+      "sha256": "696d05df7600ce3babcc5887a997b7e799e331015384bd5d6a0b4fd6a2ea51ee",
+      "bytes": 9956,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ito-compute/SKILL.md",
+      "sha256": "ed0664f44307b1243cd7fa7521b05ca3f50a1dd4460e93b55edb8bcda988e815",
+      "bytes": 6619,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ito-compute/agents/openai.yaml",
+      "sha256": "75e87ae788bd1431fb25c0a1e070313e4e4a5d2ea8cb5f85b228b7a22f969e08",
+      "bytes": 253,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ito-inference/SKILL.md",
+      "sha256": "60d2094ff4e8eb43f4599eaf806331231525a7a6cc5fee609f1764a0f848cc7b",
+      "bytes": 6147,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ito-training/SKILL.md",
+      "sha256": "43ce5354855709d10d7171bae301157b0b88e6ac9a3775c9acd9599c0b7617d5",
+      "bytes": 6087,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/java-coding-standards/SKILL.md",
+      "sha256": "c7088a434cd7efb4f3bb449bed2178cf683c1d71bc50f8ae5234a8880d3633f4",
+      "bytes": 11550,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/jira-integration/SKILL.md",
+      "sha256": "ce0a0c815e3112a1e80d4dbd1d2d0c804c2af0371628d325e04d7ffbddf4247e",
+      "bytes": 9897,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/jpa-patterns/SKILL.md",
+      "sha256": "bcdd45c5e435df259856b20aae47182209b0467b542eacfc7e32bcf452326839",
+      "bytes": 4679,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/knowledge-ops/SKILL.md",
+      "sha256": "958529713af2ab29c7b31b3cb758953271174b8909c94f1238dd7c78671672c2",
+      "bytes": 6752,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/kotlin-coroutines-flows/SKILL.md",
+      "sha256": "ed7d895ecd6c717fbdbf7f1469110df74a6337792acd1232c4ad7286abee76e4",
+      "bytes": 7869,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/kotlin-exposed-patterns/SKILL.md",
+      "sha256": "dda4952840ddff31a9ea4ad7161dd75fbc13ff73ebf73d5ee9fa42fcce287167",
+      "bytes": 22119,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/kotlin-ktor-patterns/SKILL.md",
+      "sha256": "f2fa0b135ad0f37ee7a79dd346d236758f25c60c525de451bba28678659a5261",
+      "bytes": 19536,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/kotlin-patterns/SKILL.md",
+      "sha256": "e519234772a3697763ad484908d180c4c653439fea75a56c03440c272f9f0896",
+      "bytes": 18951,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/kotlin-testing/SKILL.md",
+      "sha256": "13e39ad65e86e86c22fbdb6273bdc8d17d3784c221a8f08207a1e9e2e9c29a0a",
+      "bytes": 20800,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/kubernetes-patterns/SKILL.md",
+      "sha256": "808b2ec032224e251f1bef9f6e9879e88e2e7abd0feb393632fb6042d8ac5ecc",
+      "bytes": 20099,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/laravel-patterns/SKILL.md",
+      "sha256": "6fa9d96a7b944ef9775e2ecb93a56bc29d6219e34eb5af491792638fc5cb46b4",
+      "bytes": 10664,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/laravel-plugin-discovery/SKILL.md",
+      "sha256": "6cf2b48ae39f26df7f8d17cf6480635b5203f6942a756a290efa27cf339169d3",
+      "bytes": 6393,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/laravel-security/SKILL.md",
+      "sha256": "0440ddff450c63a9338f15b765ec35486f3f3266b321e0b27128faa3c29784fe",
+      "bytes": 26556,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/laravel-tdd/SKILL.md",
+      "sha256": "505fa6c5caad022a5db0c359aebdcdcce1ad16e5863dc13ef862aec48cfa1628",
+      "bytes": 17863,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/laravel-verification/SKILL.md",
+      "sha256": "577f592e4d570e8a6c4a0106acb8102063f67bea53c98eb6eae222191c038c35",
+      "bytes": 4376,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/latency-critical-systems/SKILL.md",
+      "sha256": "5df315a5b5dd306a569ba8b3220f4eab80302c3d7f90128c290398b64bb76275",
+      "bytes": 2495,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/lead-intelligence/SKILL.md",
+      "sha256": "1b24027c5ef0ebfb046990433905b80d8df63d93f83fff9fdef4f74ad883a5f2",
+      "bytes": 13111,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/lead-intelligence/agents/enrichment-agent.md",
+      "sha256": "ad0e369651b45f2ab82e9aa8b0419d551c918614ba70d84b43f3ca74faf57092",
+      "bytes": 2319,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/lead-intelligence/agents/mutual-mapper.md",
+      "sha256": "fb741c0f2ee3d08df81f7569424a5e542c4549ce6d16c90296bfffa3b1049ba9",
+      "bytes": 2549,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/lead-intelligence/agents/outreach-drafter.md",
+      "sha256": "e7406e69a0f3dfb8e6457bd43e51e8624c54fea43e3ad77a696d723a325c789c",
+      "bytes": 3065,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/lead-intelligence/agents/signal-scorer.md",
+      "sha256": "d6aa79f50c93259e37d20adc6cbe8cc6629b1ecde621cfa3e45508e8d53d20c5",
+      "bytes": 2028,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/liquid-glass-design/SKILL.md",
+      "sha256": "6e424b8daba26c92a8283cd3e5b35c7b2bc78a0a9fc07821a5939027090b8e43",
+      "bytes": 9119,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/living-docs-governance/SKILL.md",
+      "sha256": "e8c22a1f69743e256c6d6df138d99e49d22e29effbf008dfe2328b7fdc76247e",
+      "bytes": 8482,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/llm-trading-agent-security/SKILL.md",
+      "sha256": "8a59b241f6ae86d8f96b88122643b4d27d70adb6c15b31f5163f9586cb81b293",
+      "bytes": 4632,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/logistics-exception-management/SKILL.md",
+      "sha256": "66b91a1ea6af1f6f73a05fa125dcb44dc6de4ec00c4834b0bf597281bfb7964c",
+      "bytes": 16881,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/loop-design-check/SKILL.md",
+      "sha256": "fc929d24cdbf2349deb56613d312f4731a911c2bf2d67c3834e9e45614aec658",
+      "bytes": 12492,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/mailtrap-email-integration/SKILL.md",
+      "sha256": "917fe931b1ce8e796768d71686d4f90b37e413529593e5f7cf108c4c73b35ce4",
+      "bytes": 3820,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/make-interfaces-feel-better/SKILL.md",
+      "sha256": "aff91aef917cba9c65681ae77197cee93ce9b697ee8916ea684ef8537c99fb52",
+      "bytes": 4795,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/manim-video/SKILL.md",
+      "sha256": "bb890b019664a995ca2bf6c08add444a85099caf4c0085de50e9ad6f62d62d5f",
+      "bytes": 2906,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/manim-video/assets/network_graph_scene.py",
+      "sha256": "5d8ef9a5c55b244610a910229d195b10a5bb0b7d7e2add584b9915be6aa8a306",
+      "bytes": 2897,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/market-research/SKILL.md",
+      "sha256": "8cfc36dc8a93476d092115f3fc70c631dcab14fcd6e04371160fc4fb29547800",
+      "bytes": 3185,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/marketing-campaign/SKILL.md",
+      "sha256": "f4d2501b1abb19f7ef5f73b21afa5a7ea51c5dc3d766e8dbd239ec548899213f",
+      "bytes": 5293,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/mcp-server-patterns/SKILL.md",
+      "sha256": "eacb07c953e0440c758e3ee7d92984d2c9128e3444005ea7ad5da7bc0201d43d",
+      "bytes": 4192,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/messages-ops/SKILL.md",
+      "sha256": "c2036d3ff01fd13258a2d8af88c04b94f68a10808c799be4e62b975874b263af",
+      "bytes": 2896,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ml-adoption-playbook/SKILL.md",
+      "sha256": "488f83a5c3766043e0ff98466f8d5534f69863d9adebda8b4d2903f00860e312",
+      "bytes": 3899,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/mle-workflow/SKILL.md",
+      "sha256": "2497888dd543ca7bdf5d0cb4d90fce023eb2c1c14f860f0af8e8be42423131b4",
+      "bytes": 22450,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/motion-advanced/SKILL.md",
+      "sha256": "1ee09b942bf328ffa97148bed838ecc8789c1891ca441abccdca52b4c47a9742",
+      "bytes": 18800,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/motion-foundations/SKILL.md",
+      "sha256": "ac0dd6de088e8cf2bff57230b365469e893c5f3a9578815a7f113689d0401972",
+      "bytes": 9797,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/motion-patterns/SKILL.md",
+      "sha256": "9d78bcd2c3b52abdb6fb29162f289b9c709547de264ad064b12e00bedb031907",
+      "bytes": 13418,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/motion-ui/SKILL.md",
+      "sha256": "0c43aa186d64c5e094de946927581683e986fee496b744bc29433bbad3d169d2",
+      "bytes": 13867,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/mysql-patterns/SKILL.md",
+      "sha256": "cab57c6a6d7e0bab99329945edda900811c40ec929b47aa95611f9df58f7391d",
+      "bytes": 12169,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/nanoclaw-repl/SKILL.md",
+      "sha256": "459d8467dbd6fb475d49f75124c2c92fb2120cfde3418312b77c575ad723d649",
+      "bytes": 916,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/nasiko-control-plane/SKILL.md",
+      "sha256": "30cf6f536cb55faa49ac02b22eed0282af4a6a59ce20e087c667bb35ddf4c744",
+      "bytes": 2470,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/nasiko-control-plane/agents/openai.yaml",
+      "sha256": "765d863356ba7de108816a62247a3748c6878fee0ff018e8ab1ea07c6fa92b27",
+      "bytes": 277,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/nestjs-patterns/SKILL.md",
+      "sha256": "7f41406abaf10185d9a784e894108ded771a0177b1051e0b2c65d14f226bd581",
+      "bytes": 6533,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/netmiko-ssh-automation/SKILL.md",
+      "sha256": "6dc91c80144c2ad86a5f457c5377dc5193fd0b64dd3e1ca4433f70188a38e104",
+      "bytes": 6046,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/network-bgp-diagnostics/SKILL.md",
+      "sha256": "44a8d9ba4644f33cb86227e54641930a280fc4417ebce5c1744985b9f4913d03",
+      "bytes": 5641,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/network-config-validation/SKILL.md",
+      "sha256": "08ba871a685d55e14e0866de27eb98a37ebf91dc2d0d06976c4acb4e99f76550",
+      "bytes": 7727,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/network-interface-health/SKILL.md",
+      "sha256": "612cd44e1b80e10dd56f9a2296348cb48882fe24e2435654dae3b6447555e0a3",
+      "bytes": 5754,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/nextjs-turbopack/SKILL.md",
+      "sha256": "44b68f7c74b237742bee4f39660f8a9160f755004cab0658594fdf494a42e681",
+      "bytes": 2892,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/nodejs-keccak256/SKILL.md",
+      "sha256": "973c1194e28b51f56895617abcbcca82a37d25282e7603700a6bf284459bebdb",
+      "bytes": 2992,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/nutrient-document-processing/SKILL.md",
+      "sha256": "2a8096af72efaeb29a4221929ac1f1ea9d97b95d44316720764fb7c191c7a5b9",
+      "bytes": 6015,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/nuxt4-patterns/SKILL.md",
+      "sha256": "8f99946d5aa8e11dae8ba1ade746a6a803efcba63ba8b618dbf7748331c14e47",
+      "bytes": 4761,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/openclaw-persona-forge/SKILL.md",
+      "sha256": "3498442cf72ee7efbc4cc56553b48dbbb1a26d1d95eca4037aede69e164a9875",
+      "bytes": 12525,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/openclaw-persona-forge/gacha.py",
+      "sha256": "032aed98c1c93ced971ac223357b2d3a4162f7e6ca8ecd7eb3e35a121fe5d5bc",
+      "bytes": 7969,
+      "mode": "100755"
+    },
+    {
+      "path": "skills/openclaw-persona-forge/gacha.sh",
+      "sha256": "7f37efda4df83e547e37df7fb19d2ce34500cce7a6ab62e6983a2095b3761b67",
+      "bytes": 211,
+      "mode": "100755"
+    },
+    {
+      "path": "skills/openclaw-persona-forge/references/avatar-style.md",
+      "sha256": "b422938377812dff985dd6887756af87a4f866bc27a5fa33f9be1f0db60d8df1",
+      "bytes": 4746,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/openclaw-persona-forge/references/boundary-rules.md",
+      "sha256": "10ceeed8f1290d30de994efc42375619b458083b60d1b49d3a8f4abc645d2bfe",
+      "bytes": 2452,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/openclaw-persona-forge/references/error-handling.md",
+      "sha256": "2e22cdd76b1b119b04f076b71d6fb3834d5a422fc952b3478237de85683bd243",
+      "bytes": 2136,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/openclaw-persona-forge/references/identity-tension.md",
+      "sha256": "e0f0c7ac300ed9c755fa6460197bdc3efe8f8186e738806a0591c779da4d16a9",
+      "bytes": 1656,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/openclaw-persona-forge/references/naming-system.md",
+      "sha256": "ca0e8710c330222d03abf05e25e7a67d1ae3200fb239ebaea2fcb880c6bbb563",
+      "bytes": 1293,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/openclaw-persona-forge/references/output-template.md",
+      "sha256": "4a832227b34b69aec997ae2c4b08cc1df81abcbb048b03e80173ea3f97c8e202",
+      "bytes": 3363,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/opensource-pipeline/SKILL.md",
+      "sha256": "7032623ed2108d638c1ce5afa7a0738d632551aea2adc9767385375782993a81",
+      "bytes": 7083,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/orch-add-feature/SKILL.md",
+      "sha256": "6ba858d94cfaa05f3b1e63ad09656285a4a33009e9cd837ebcaf093d39d29a25",
+      "bytes": 1803,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/orch-build-mvp/SKILL.md",
+      "sha256": "b54a9e1819611a2404c6783e743206760f5395faee582d030aa9c11ae9e84cbb",
+      "bytes": 2415,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/orch-change-feature/SKILL.md",
+      "sha256": "d35ee5dfdf5f64e60e8905124eccf73267bc59852e7d11ba5ca5acf7d765c6f8",
+      "bytes": 1711,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/orch-fix-defect/SKILL.md",
+      "sha256": "399e142bbf3751b5a0fdec1ae450f5673bd1a038304a221748c865280e885b2d",
+      "bytes": 1684,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/orch-pipeline/SKILL.md",
+      "sha256": "a0e647de4f8486cc5d12cf470c1d8c468f7b44ca5e3dc26cd65e50f9012d9cb2",
+      "bytes": 6339,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/orch-refine-code/SKILL.md",
+      "sha256": "5f0f468ffa4e220bd8f76684b3df6a14b67b34333e1ae52e0de49ed2c16fa17b",
+      "bytes": 1819,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/parallel-execution-optimizer/SKILL.md",
+      "sha256": "b44def0f7c24ab2505bd2eee10ceb777d591724dbe32dfdf5220354385e1e3ab",
+      "bytes": 2633,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/perl-patterns/SKILL.md",
+      "sha256": "617ced86628e866a6242ef763ec736d5f7ee3fa0a5afc34236d808db6de9c4b3",
+      "bytes": 11591,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/perl-security/SKILL.md",
+      "sha256": "fd6dd778ed3b612dd8ee5f856d557b9328a1f92f87d5b69b91a53d58657531f6",
+      "bytes": 13856,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/perl-testing/SKILL.md",
+      "sha256": "17723ed2249fa98d4ee7affc53bb479898725eb1a7466d46871bf215317fb79e",
+      "bytes": 11282,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/plan-canvas/SKILL.md",
+      "sha256": "e1167d890b697567858f47e3963c6cc0ab74307572b1df9e11e9c7a33c11c1d1",
+      "bytes": 8586,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/plan-orchestrate/SKILL.md",
+      "sha256": "d104fb71594fd9385c4a7c23e4835907be124b8effb34f49fa5cf7d28e3494e3",
+      "bytes": 17965,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/plankton-code-quality/SKILL.md",
+      "sha256": "22c6818a532d47b1499fcb40a23749491d5b611c5d56e76b0ed09ba7a67ab57f",
+      "bytes": 8047,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/postgres-patterns/SKILL.md",
+      "sha256": "9c8c391ae9e9aa87faa7ca091e1d395c97766df14080d0bfbea8a97721776163",
+      "bytes": 3914,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/prediction-market-oracle-research/SKILL.md",
+      "sha256": "63f91f6e71839efc4b10be347fa160e402b9b72307f0a7e6ac0a50bd4b9fd8cb",
+      "bytes": 2306,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/prediction-market-risk-review/SKILL.md",
+      "sha256": "19195e218716ed298fd8de9743e78462d17d95233b14e052c3bd1d1d7df31f91",
+      "bytes": 1882,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/prisma-patterns/SKILL.md",
+      "sha256": "fb0c7644f32b22ee030071c71fa00bda1825f955f7304a375ef299a7290227f2",
+      "bytes": 15281,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/product-capability/SKILL.md",
+      "sha256": "c26114356edb15f0340e5af66b6f4444892bdf376b053a7152312fd04d22aced",
+      "bytes": 4436,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/product-lens/SKILL.md",
+      "sha256": "d082be7c3dd9fed8523ce757a6e2b823a53003d57d2488ead5cec5d5e0a4270f",
+      "bytes": 3102,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/production-audit/SKILL.md",
+      "sha256": "3ab3dd8a364ee17566e9361f0ebed2aec3b3146ede44e1db0a72c5ceae1ca0a4",
+      "bytes": 7727,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/production-scheduling/SKILL.md",
+      "sha256": "1191c7dc9cf2ed78197cff039e67ec0a08b6118951de1c4fee947cb5e2ac5792",
+      "bytes": 28577,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/project-flow-ops/SKILL.md",
+      "sha256": "6d59e4118a91419fdc66cf51925371a3f9fad66881c5a1720ed1c5cc490df1f7",
+      "bytes": 3145,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/prompt-optimizer/SKILL.md",
+      "sha256": "0a86553a2860d263e3e5cbe5ab42e88971ead105e0bbdcd1613ba2f97d826ef9",
+      "bytes": 16429,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/python-patterns/SKILL.md",
+      "sha256": "103e0130dac33a49d26705fc5a2df804980fcab6a0138d65bc7f370a987d49f6",
+      "bytes": 16914,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/python-testing/SKILL.md",
+      "sha256": "b9f7a158dae3b6c06c9c75ffe84e27a1edc86092d2afdcb39e96fc2569902eb7",
+      "bytes": 18955,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/pytorch-patterns/SKILL.md",
+      "sha256": "168c8740f548414a75f576265ddb03329be98ed57f06c5edaf79c7cd4b6a9cf4",
+      "bytes": 11797,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/quality-nonconformance/SKILL.md",
+      "sha256": "ac4e11fc75258853091c020471ccceca62d3153a956bba23c29b9adee2f2f6a3",
+      "bytes": 30391,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/quarkus-patterns/SKILL.md",
+      "sha256": "5f91bed186170a23837452508fc731ec4cada0a337ae95b1327f80311fa6ab6b",
+      "bytes": 21520,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/quarkus-security/SKILL.md",
+      "sha256": "61e25b00d47d64f0685219988c2605c95a87146bfe0bbb52f1a28d877456d07f",
+      "bytes": 12174,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/quarkus-tdd/SKILL.md",
+      "sha256": "556d1c2d04e3e0ef10f474ed413013646088ff057f9be02d3a3c4f833ccc33c5",
+      "bytes": 25526,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/quarkus-verification/SKILL.md",
+      "sha256": "567633c745c497a8b8f5489d806244772d0c20289b9ff8e26e790f8e6398ff5c",
+      "bytes": 10552,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ralphinho-rfc-pipeline/SKILL.md",
+      "sha256": "44e25676d06f83540c0e1c58bc0be98f906d8523703943093520101bfd47cee8",
+      "bytes": 1622,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/react-native-patterns/SKILL.md",
+      "sha256": "caf04da7ea1f20213b010f24dc19a8a20f1939c928156caa2f0482f26c31b12b",
+      "bytes": 11752,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/react-patterns/SKILL.md",
+      "sha256": "f3208d44a5d553038c42e046cec4dc16e4a3d90a9dbf931f883a2e21919a64a9",
+      "bytes": 11466,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/react-performance/SKILL.md",
+      "sha256": "ac76e8694d4f802a7bccc3c07a73ac68ace6d82a65ea10f10d8b7384dda61a8f",
+      "bytes": 18184,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/react-testing/SKILL.md",
+      "sha256": "51c18b4e28285bb876ef469e47c6f53108b5a9f900950a60e897c3c24826a65e",
+      "bytes": 13168,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/recsys-pipeline-architect/SKILL.md",
+      "sha256": "309fe65f0ffdb44b62005c63ab9f460ddbe813f994e010316f7a2e55fc52e436",
+      "bytes": 7788,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/recursive-decision-ledger/SKILL.md",
+      "sha256": "2a7af89f104edb01f33406ba7e7f2d7eb9cd9efb0bd0c8404be0c91947f9325e",
+      "bytes": 2547,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/redis-patterns/SKILL.md",
+      "sha256": "6cabb1cd03174a0584ff3538371c780aba90da156db15260691278ed3307d8fe",
+      "bytes": 11977,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/regex-vs-llm-structured-text/SKILL.md",
+      "sha256": "35ba82a9b1b7253fd84b6873c4350b974528c744ffd825544f2a4f8ccbef6d44",
+      "bytes": 6493,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/SKILL.md",
+      "sha256": "dd727cadc4c1e179932b9736955ff3e537f75eeb759c038345ad9fe7d1bc55a9",
+      "bytes": 3642,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/3d.md",
+      "sha256": "d5f3f412ba540d10a98f330dea3cd949d4fc4f9a6bf0d9788cf3f2b21a90f3f4",
+      "bytes": 2279,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/animations.md",
+      "sha256": "3b2a9055f720fb5da70af86d4d43ab5722b6229f2c3f7c70100972df0fe4863b",
+      "bytes": 784,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/assets.md",
+      "sha256": "664160a48fe6ef76c9b25ea51b3796d39d371cb3632f380b014492412902ad42",
+      "bytes": 1590,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/assets/charts-bar-chart.tsx",
+      "sha256": "6e5e219c596c8515336570a5bc89c233e32e695d5816dec88eb929e798eeea61",
+      "bytes": 3429,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/assets/text-animations-typewriter.tsx",
+      "sha256": "92b5f47d6d18387a0aa008ce9dceefd30f673ae5879e16892bd4b4ea97f5dddb",
+      "bytes": 2183,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/assets/text-animations-word-highlight.tsx",
+      "sha256": "5dbba688b875baaa62555c7a243f54739e81edbf34148c87048594a210c3ec2c",
+      "bytes": 2387,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/audio.md",
+      "sha256": "06d859b2f463d0e0e823655548e314b59a1d6321377857fca52a09c629170b12",
+      "bytes": 3822,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/calculate-metadata.md",
+      "sha256": "b258c788fb3337187245c814f2fd4ddf10f7330ec97cb8117202a0145d4d27a6",
+      "bytes": 2920,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/can-decode.md",
+      "sha256": "fb3f9933e45103d72530915b72a844b3454c6acc03289db5efe8f4541b088fad",
+      "bytes": 1587,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/charts.md",
+      "sha256": "d79d7a4e41f4939959017a8a43aa5cc79e7c437496e0125afca34ab38aaa22dd",
+      "bytes": 1748,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/compositions.md",
+      "sha256": "8939e6ce84d00e98f1813d781b554729d637b932b86fbbbbf6a3b3b34943220f",
+      "bytes": 3442,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/display-captions.md",
+      "sha256": "96abde72e0bcb88cdc5871b80b5d6eb0c6aedf0ea9611e6c5157cb0ee980ba99",
+      "bytes": 3698,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/extract-frames.md",
+      "sha256": "b7a63f6509a1a33d624f36d3f6772abbc364b0c883520803f3701c26541e7cd7",
+      "bytes": 5496,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/fonts.md",
+      "sha256": "1749e4cf82e8b157d4b0a26f46721152d3ef9e5e9a1686753b8bb6a1be83ddbc",
+      "bytes": 3484,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/get-audio-duration.md",
+      "sha256": "d5098e8d20b227464e3519c761cba1e03396c77da636d1893c7be3061a0a8e40",
+      "bytes": 1354,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/get-video-dimensions.md",
+      "sha256": "839867aa115e09a719096a902a6ad5e304135f2053cce9928776fb4fcb5bf3e1",
+      "bytes": 1627,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/get-video-duration.md",
+      "sha256": "7b31fab3cbf9b0771bae41e2c41c9abed2b59d495ffac7160e562fdf86848726",
+      "bytes": 1341,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/gifs.md",
+      "sha256": "53d9d658e3093dba4a798945d5c1b7004688ed96a09521cfb22b4cec418a8ae7",
+      "bytes": 3868,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/images.md",
+      "sha256": "91d32f6e528b1f1cddc9a0cf70d0faa74491e3a2fe4a32933da0e21010e9aa74",
+      "bytes": 2783,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/import-srt-captions.md",
+      "sha256": "38d33be5439714a2ddb577d8c8a6b7bf09bd10f66c0540415fb70536d4374e87",
+      "bytes": 2113,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/lottie.md",
+      "sha256": "327673644c436b9f0b52f03ef2f2a6a9cf75d9e18d3384b88969b86942e2b8a1",
+      "bytes": 1776,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/measuring-dom-nodes.md",
+      "sha256": "4017103b03f14a041ac433be78c521ec2e9961629fae419c8b196d349637585b",
+      "bytes": 973,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/measuring-text.md",
+      "sha256": "88905cbd701e247306645c19f18e01aebe27c4eb0178a4e5d0377687f5ac1478",
+      "bytes": 3000,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/sequencing.md",
+      "sha256": "a6bc2ecf64c43d2c496c4a10f00d78151e23dd73f5ec73a09d950436eb5bcee1",
+      "bytes": 2385,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/tailwind.md",
+      "sha256": "e6025d703b69d9b4f9b240a80bbe4619872013ebd57c4511912d4be1a1c048a7",
+      "bytes": 423,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/text-animations.md",
+      "sha256": "40ac6b1bccf1c57d9edd46c74e847ec6e86fe775d3ef4fd14e1338f4a2606171",
+      "bytes": 700,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/timing.md",
+      "sha256": "25d44384f42a2bbf4806e2e1aa6bd0acd0b1bd52160341f0f16dd1332b2a5d3d",
+      "bytes": 3927,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/transcribe-captions.md",
+      "sha256": "c3324f7dc728cdb8d6a28ff664581b6a7ec2f1bae10727316b2b596d77d3df62",
+      "bytes": 856,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/transitions.md",
+      "sha256": "1b105c06bb968f9ea03678178047da59b82a216e7a879b96d8ec821a8b6dea1e",
+      "bytes": 3726,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/trimming.md",
+      "sha256": "9f71fc28200d18a4e75e727cc81506ee30b4e6bf73ca735686dfd55f4bcaee70",
+      "bytes": 1209,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/remotion-video-creation/rules/videos.md",
+      "sha256": "6c663a2325df97483c123cc7f26c4db3eca3fcd38135bf7719d2969ce942c489",
+      "bytes": 3507,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/repo-scan/SKILL.md",
+      "sha256": "b3318f6263629467d895d71a281cb64575d9d5de12c96d97cd1d19c66734e98e",
+      "bytes": 7242,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/research-ops/SKILL.md",
+      "sha256": "114d0e5480ce3ad263316c639ce0c401396e1d9fbec3cf15b3c962ae16f376db",
+      "bytes": 3605,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/returns-reverse-logistics/SKILL.md",
+      "sha256": "f1e3189fdec11570544f859cb084981ca6b2dfc0ba47764c2bd5e6c3782f2a60",
+      "bytes": 24703,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/rules-distill/SKILL.md",
+      "sha256": "c451a63f96077f92ef6b40c4310f5a470a5d05103a181af518b115c4e828292c",
+      "bytes": 9586,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/rules-distill/scripts/scan-rules.sh",
+      "sha256": "0cfac69aff6c6ea37eeb914639625b4f6d3d3dacbcaef99c6e0ab4a7d376ed9d",
+      "bytes": 1604,
+      "mode": "100755"
+    },
+    {
+      "path": "skills/rules-distill/scripts/scan-skills.sh",
+      "sha256": "de6a938e14ce44d45e37fff24442ff3276b3cf1446cd2025e565426fb33d5cb5",
+      "bytes": 3893,
+      "mode": "100755"
+    },
+    {
+      "path": "skills/rust-patterns/SKILL.md",
+      "sha256": "51379df2bd92a482309e109e5a210210842594f660cceeb2d68d18e995108edf",
+      "bytes": 13500,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/rust-testing/SKILL.md",
+      "sha256": "02a9a40dcc42dd21d14730d29b13ee0a8b274694360585dc0fadb2602eb56ddf",
+      "bytes": 11798,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/safety-guard/SKILL.md",
+      "sha256": "9247b4a05dde847b93d28997477fd3be53dfed967a6279f5d0fc9fab104528ee",
+      "bytes": 1945,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/santa-method/SKILL.md",
+      "sha256": "190176ee80a72c1642f255a4dfdeb3bb12799212d5c04b05c9be914764749f6b",
+      "bytes": 12875,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/scientific-db-pubmed-database/SKILL.md",
+      "sha256": "516c24ed8c74713191ec2424accf11f8f5518356b046561e5017f40687289838",
+      "bytes": 4813,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/scientific-db-uspto-database/SKILL.md",
+      "sha256": "96849e8dc762df699fea11a283e9424660dd3b606e7e513617e4e9a9ce2011be",
+      "bytes": 6317,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/scientific-pkg-gget/SKILL.md",
+      "sha256": "8338ad65c24cd95a622cd9ffb947cb54478645ed0713519b49174a96439ec9fe",
+      "bytes": 5074,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/scientific-thinking-literature-review/SKILL.md",
+      "sha256": "456e7ef6b33300bfefeeee46fc8dae55fec62e4a8b418ba2323e12779de70195",
+      "bytes": 5181,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/scientific-thinking-scholar-evaluation/SKILL.md",
+      "sha256": "e9f8a3bce2bce769a96611a52804a2b3955f2796ee2749bc8275aea38a26cd2d",
+      "bytes": 4886,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/search-first/SKILL.md",
+      "sha256": "d66d744228b9cf860acf35f8a90cbbe8195e61367860da9d3632f9fc65706733",
+      "bytes": 8021,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/security-bounty-hunter/SKILL.md",
+      "sha256": "c94945165ca16ec06a04727dcbcf7a7593810d83fe168247c9c2d88c5a078611",
+      "bytes": 3628,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/security-review/SKILL.md",
+      "sha256": "fe6f9151fb15c1dffd47a55080c3ad147af7c95dd0ad3714735dec6824b060b7",
+      "bytes": 12493,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/security-review/cloud-infrastructure-security.md",
+      "sha256": "7d9a83852475a9396e04c59c73df84ac24ee0f41322016de7c11c62138c2a8ca",
+      "bytes": 10171,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/security-scan/SKILL.md",
+      "sha256": "74bc3006fb15eef9cea6bf70a4e9cc45ec118ef00733d1c8226c9dc428f8d658",
+      "bytes": 4592,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/seo/SKILL.md",
+      "sha256": "4b744d2ff5c9313e903e4e5139322cc98adb9f9778a7231d4826216ab0f6873a",
+      "bytes": 4320,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/skill-comply/SKILL.md",
+      "sha256": "e26cbbc30a32ea8c76c56d09ba9a3a921e82ad6e2360f825ec63d3f8df6b1f5a",
+      "bytes": 2500,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/skill-comply/fixtures/compliant_trace.jsonl",
+      "sha256": "1b58f5b9797bddaf14b1835652fccff04f822668b74a50e480edd0634bda81a8",
+      "bytes": 1070,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/skill-comply/fixtures/noncompliant_trace.jsonl",
+      "sha256": "9c3d2564bd32b126cccfd119df55c55f885aeb6ac91fd854d68597eb21d7a432",
+      "bytes": 629,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/skill-comply/fixtures/tdd_spec.yaml",
+      "sha256": "0bd9ce7e26fef1274240f97a6d86ee3398638e93f29077aa695c98d4095b863a",
+      "bytes": 1266,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/skill-comply/prompts/classifier.md",
+      "sha256": "8374ccb93bbb7908b7bb0d41223f8c5c38347c7421014bec3d7d534a71d5842e",
+      "bytes": 1064,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/skill-comply/prompts/scenario_generator.md",
+      "sha256": "ba508c9560dcc5c632bbf916d5f38369b03cb0b216fb8dfdcd6ade8c962952e2",
+      "bytes": 1974,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/skill-comply/prompts/spec_generator.md",
+      "sha256": "dd702f91352cde35e394419a307a6498cad369e934c1babb0a4b22e669156c74",
+      "bytes": 1645,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/skill-comply/pyproject.toml",
+      "sha256": "df59c2204d2873c542deb60cecba3add4c9485e1701f4c586e4f7ef92b77655c",
+      "bytes": 360,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/skill-comply/scripts/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/skill-comply/scripts/classifier.py",
+      "sha256": "f9847e0cb5475e81a0b8fd7fa70f802bf653c0867ea0c39b71de13c05763cbc9",
+      "bytes": 2414,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/skill-comply/scripts/grader.py",
+      "sha256": "01ba072b5a5535f98aa71bca30ccde493a501b86e2b95f65af73a74dd8dd1259",
+      "bytes": 4404,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/skill-comply/scripts/parser.py",
+      "sha256": "ccb2a27cccd3b4af41e618a7b64c8753b24a8298e6c77e80271fe4f71ca82629",
+      "bytes": 2777,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/skill-comply/scripts/report.py",
+      "sha256": "fc188fb8c64c5d429e0333e7277a6a3ba87ba7f8eaa33ee4de29673bd37e725f",
+      "bytes": 6470,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/skill-comply/scripts/run.py",
+      "sha256": "9bd9af2a98490d5dbbbb9de9c42be3c883d61a1cf8014c4604eb46380293e223",
+      "bytes": 4294,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/skill-comply/scripts/runner.py",
+      "sha256": "1901b9084756be518d86ed3f205b8f8f945b772af7b022700d70ad0e7a4eb59f",
+      "bytes": 9114,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/skill-comply/scripts/scenario_generator.py",
+      "sha256": "b900df39ea775494d716751b095beb0e01af5b2288caf5afd7207afe197f16f8",
+      "bytes": 1835,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/skill-comply/scripts/spec_generator.py",
+      "sha256": "3d22f61dd77c1e1589effe556f58155794e67b9b8f90867ae06f1e59b80756c4",
+      "bytes": 2202,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/skill-comply/scripts/utils.py",
+      "sha256": "7a5b1509ac0785f330314e0b59f57dd495ca83e8111738e30169ed49e85d0d22",
+      "bytes": 411,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/skill-comply/tests/test_grader.py",
+      "sha256": "311007f79f744190b22b3239503891e4900bdc3a822505fce7a881ea059ff1e5",
+      "bytes": 8185,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/skill-comply/tests/test_parser.py",
+      "sha256": "c56055fd0927d38debb564f48e2b5432a7daaf3ecf8ff7d020bd98af3acd924e",
+      "bytes": 3140,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/skill-comply/tests/test_runner.py",
+      "sha256": "a4b8009cfe9646b77f065c57aa3ac858dc054938c466d2960f43062e798c14f5",
+      "bytes": 12265,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/skill-scout/SKILL.md",
+      "sha256": "71b1e8a4aedebeaf4468838389c0a93e4d3bf4e2779bd0a99e0396b045f82d32",
+      "bytes": 4496,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/skill-stocktake/SKILL.md",
+      "sha256": "aa8f287c48c5a33bf15094358ffccbe0d4faff9eee9fa2ffcd70c8e9f3d22cdd",
+      "bytes": 7819,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/skill-stocktake/scripts/quick-diff.sh",
+      "sha256": "ebb95f8bb38e2cc1624d16b9f4eaa075b0f2aaff352cd1d1c8b6f04a7e75beca",
+      "bytes": 4474,
+      "mode": "100755"
+    },
+    {
+      "path": "skills/skill-stocktake/scripts/save-results.sh",
+      "sha256": "250968532dc3bf1074f024a710d5d8aeec930e6798269703072f062fad1905bd",
+      "bytes": 1952,
+      "mode": "100755"
+    },
+    {
+      "path": "skills/skill-stocktake/scripts/scan.sh",
+      "sha256": "366cbf75ec4ecb7bb1609e843ebb16917d42a81b983ad90cb69341f764456cb6",
+      "bytes": 7303,
+      "mode": "100755"
+    },
+    {
+      "path": "skills/social-graph-ranker/SKILL.md",
+      "sha256": "24657648f76eb7b835fa71275980e704ebf798853565856623c1e3cd4fd7a183",
+      "bytes": 4156,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/social-publisher/SKILL.md",
+      "sha256": "c2fde5ac9d953cb649ce69331ca49be1df854d051ebc31eb54423c5d262337f6",
+      "bytes": 4520,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/springboot-patterns/SKILL.md",
+      "sha256": "ff1884a8492d078d1bbb35f3ce0a8ae25f1ad95dab8596f4944a7c3110680946",
+      "bytes": 10047,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/springboot-security/SKILL.md",
+      "sha256": "566ecf928bf76812d15efd62e2f00841652e1618f0a97d8dda93e1c247a162c5",
+      "bytes": 8133,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/springboot-tdd/SKILL.md",
+      "sha256": "e4bd145484d93fb569eb0e1a09ffeb5cca68533d63c83805146b111c48bba172",
+      "bytes": 3786,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/springboot-verification/SKILL.md",
+      "sha256": "6797bb91f5b122f84a8490099d997d7339cf8c65f66b15049a9cfa6e8ce213d0",
+      "bytes": 5833,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/strategic-compact/SKILL.md",
+      "sha256": "44a71c6dcc3fdde8061b8a78296c5d37233e4accc8cf3c794e29ac5b9f2eee28",
+      "bytes": 8608,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/swift-actor-persistence/SKILL.md",
+      "sha256": "438f75a3f37db2b8db699fb5d27a7207d0f31eace31d057b775ad152d6462c5c",
+      "bytes": 4906,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/swift-concurrency-6-2/SKILL.md",
+      "sha256": "00aed6a804ff7dc9b37d119cdb115d0869643dd84caf3c01d7f058398ab1955a",
+      "bytes": 8117,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/swift-protocol-di-testing/SKILL.md",
+      "sha256": "1e0b9fddf0a731956cdc686fb55dfa1862a5f172a5140299f4ec9d95c7a5e6e9",
+      "bytes": 6112,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/swiftui-patterns/SKILL.md",
+      "sha256": "79e3c8b5b7c38fa04778b1084cddc2f8db5f671e682b0e9c1d5bd2f95800f690",
+      "bytes": 7039,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/taste/SKILL.md",
+      "sha256": "0b8683366ab51d4d45882710c9086ca43123eae25484838c7c290bdd4568bb32",
+      "bytes": 15568,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/taste/references/genre-taxonomy.md",
+      "sha256": "56b0a37d643c79b0b18f67053e4733ffc383f82c7c9e1134f3c6e21e295d8c77",
+      "bytes": 4869,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/tasteforge-video/SKILL.md",
+      "sha256": "f1610b6385e6fd505252488f91d8e1b7e822830e1ebb61e4c3e50c416a655986",
+      "bytes": 10469,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/tdd-workflow/SKILL.md",
+      "sha256": "e3a0051a99e82f7047b29a2a98c662d8ef8d0ede186acc085436fced7f2591b7",
+      "bytes": 21462,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/team-agent-orchestration/SKILL.md",
+      "sha256": "4fc52cb4eaba14f8a08ede50423a8be9198175e6c9b5dbbdfb3d00aa81c75055",
+      "bytes": 4775,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/team-builder/SKILL.md",
+      "sha256": "87d2f35b976616f505684db89a6f93ebba3c47020ce2b23d893e2eaf45ca009a",
+      "bytes": 7220,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/terminal-opener/SKILL.md",
+      "sha256": "679b8aca9af3f47450d437fed7a71ac9c1272b6196224ddad8fead218f5f16ab",
+      "bytes": 2539,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/terminal-opener/agents/openai.yaml",
+      "sha256": "b48803241c40fec74ad08e209217b9ba4dd576643500e350072cb98bbb88da66",
+      "bytes": 219,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/terminal-opener/scripts/open-terminal.js",
+      "sha256": "d7dceb3d0fd1bdb7f7061dc7a78f1b74df172b56c9d78df943b4c18353a4be9f",
+      "bytes": 11931,
+      "mode": "100755"
+    },
+    {
+      "path": "skills/terminal-ops/SKILL.md",
+      "sha256": "f26e518e6922fe0796f5b6a55349a409f5b03745c4eeed9be80b4c66d890d852",
+      "bytes": 2997,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/tinystruct-patterns/SKILL.md",
+      "sha256": "6f5d16090aa5b1913002480ecfb00feb3ad894a05c9b84d8f3645e2297b6024b",
+      "bytes": 11879,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/tinystruct-patterns/references/architecture.md",
+      "sha256": "68b3e856ca7b4e1c7ea6ea49b90dbf9937ff304070f398eb33a67f7f4aeee87f",
+      "bytes": 4057,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/tinystruct-patterns/references/data-handling.md",
+      "sha256": "4f14344808d3468228cb2f99215c6a340f25e3e34217147709c60f579742bdcf",
+      "bytes": 1893,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/tinystruct-patterns/references/database.md",
+      "sha256": "904b731361ad3cbdededc50c55ad782676441090a252e88a618e4e496c09df75",
+      "bytes": 2648,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/tinystruct-patterns/references/routing.md",
+      "sha256": "5accd76c48394eeb0b8f97733c1e928a58c0ee28080951c66979b35b0029cd24",
+      "bytes": 2477,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/tinystruct-patterns/references/system-usage.md",
+      "sha256": "6ff5f0ffab18340a298712e93170ff2e3207785c6ec3eb65b3e7f84cae2f06bf",
+      "bytes": 2881,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/tinystruct-patterns/references/testing.md",
+      "sha256": "a4c82b7b9b9877049dcba49b8dbfd88e2713e32ad90ac37f598f9be6b2b864f4",
+      "bytes": 1988,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/token-budget-advisor/SKILL.md",
+      "sha256": "d092defef257ce470bf364c55a2f2a51cdb37655779a66f1993cbd4295317d03",
+      "bytes": 6117,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ui-demo/SKILL.md",
+      "sha256": "893eee77f98f52d28bffa6bbababa7481300cc13535dea519fa0cc1b0168b2f8",
+      "bytes": 15256,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/ui-to-vue/SKILL.md",
+      "sha256": "cb6c17f7ae28a53b31fb2904180521ccdaa31ad0deafa96c6b4f5b2f4bfea480",
+      "bytes": 4809,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/uncloud/SKILL.md",
+      "sha256": "cc2383ca4459a686ccda87ac08b2a1953028d91076e6a83f29e4c99de5f2fb7f",
+      "bytes": 9282,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/unified-memory/SKILL.md",
+      "sha256": "a6eb9a96b92dfd4a700bceff15195ca1fd4b7fad2944bb014c08812d1a0dc8b0",
+      "bytes": 6032,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/unified-notifications-ops/SKILL.md",
+      "sha256": "0ade130619dfc73781d6a4beaf79b65b6d3ac70f0751dce0844a8f9fd39167aa",
+      "bytes": 5630,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/verification-loop/SKILL.md",
+      "sha256": "f0d56107f79e607d4de6c5543b8edfb1b58ab9ae4019b39831689cd91116543e",
+      "bytes": 2625,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/video-editing/SKILL.md",
+      "sha256": "828d210fa227d83dfdc234f89e39b0b2a5ce4883494e3a5049acea754b0986cc",
+      "bytes": 9737,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/videodb/SKILL.md",
+      "sha256": "1d252c32d309be70786e5b97e40423ec654c6ec1e61180499449b4b52e624798",
+      "bytes": 14245,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/videodb/reference/api-reference.md",
+      "sha256": "fa15b0239185cc807ee77f201818c49cdaf74a50142a04ab8acfa0d90eef43b9",
+      "bytes": 20455,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/videodb/reference/capture-reference.md",
+      "sha256": "c84989ef482bbb5504d6952ee5733b2a5f1e70c5bc0478dd475041b647351c6b",
+      "bytes": 12190,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/videodb/reference/capture.md",
+      "sha256": "e0021243fda7da46f4d080af9a2fc9b3e067a0554cdc64bba5313b269e05f948",
+      "bytes": 4847,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/videodb/reference/editor.md",
+      "sha256": "5f0d0ac43c9534f4eed8e1459a17a3879ee5e4e4d36aed5d6b58561f379a668e",
+      "bytes": 16558,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/videodb/reference/generative.md",
+      "sha256": "2004debb4e62aa904f7163c1d5252bbd21e7400c5495caaaf91fdb752371ff9f",
+      "bytes": 10263,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/videodb/reference/rtstream-reference.md",
+      "sha256": "e73dc675c9a433986cea6a78a36085e0552ee4a74317d7f7e0eb988ea4271dcf",
+      "bytes": 15286,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/videodb/reference/rtstream.md",
+      "sha256": "bd929e5583ff6377b7b5d72fb8c3416f97c8548450dc6d570fb75586753fea73",
+      "bytes": 1881,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/videodb/reference/search.md",
+      "sha256": "c26a1eab8b4adde439f1bdf252ef4dc1dd17275ebc65c3524ed8c6061b836797",
+      "bytes": 7928,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/videodb/reference/streaming.md",
+      "sha256": "8963e4a52985dd2b274a259d815dd2ef23bdc2b75930d7f42cb2b8d6a6e0f935",
+      "bytes": 11867,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/videodb/reference/use-cases.md",
+      "sha256": "b64966f872d036191747050c5c8121601f54ce8099716665cf09bc0a66c69905",
+      "bytes": 4451,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/videodb/scripts/ws_listener.py",
+      "sha256": "1b8867e19cca1509993a9136554e3330b4a0d7942bf1b01c3b9469bfe5da06cd",
+      "bytes": 8422,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/visa-doc-translate/README.md",
+      "sha256": "34c2550bd066d0dbfb976704da8c532f52f7c788b9ecad31f1262754d426e152",
+      "bytes": 1836,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/visa-doc-translate/SKILL.md",
+      "sha256": "56699405b7ed8ae0641c5e823ce29010d454915e9128c45471b27b91df26a4f9",
+      "bytes": 3952,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/vite-patterns/SKILL.md",
+      "sha256": "2238d353196b6732ba897e32f1872078fde7a9d11f5aca43b53da8bfc7e3917d",
+      "bytes": 17115,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/vue-patterns/SKILL.md",
+      "sha256": "65e322383510de25bd5fc6fce4b0980d99d38b341f09bea662bd9a410e20c016",
+      "bytes": 13182,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/windows-desktop-e2e/SKILL.md",
+      "sha256": "cbc93a1e2514ecdcee30da744aa13eb6c0ebe4948ca3dfff52b287df4f9f0814",
+      "bytes": 30577,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/workspace-surface-audit/SKILL.md",
+      "sha256": "ca6eadae6bd303713da56344bedbd8b246fe07bde1d20a26c9f21844d919cd6f",
+      "bytes": 5163,
+      "mode": "100644"
+    },
+    {
+      "path": "skills/x-api/SKILL.md",
+      "sha256": "997937ac9dc11779c6bb6c16833630836a22f1b2f115482982f6350474fa8ff1",
+      "bytes": 7438,
+      "mode": "100644"
+    }
+  ]
+}
