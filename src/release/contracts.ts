@@ -9,6 +9,19 @@ export const RELEASE_SCHEMA_ID = "urn:aihq:catalog:release:1.0.0" as const;
 export const RELEASE_SCHEMA_EXPORT = "@aihq/catalog/schemas/release/1.0.0.json" as const;
 /** The Core-owned generic recipe format every carried item's recipe uses. */
 export const CORE_RECIPE_SCHEMA_ID = "urn:aihq:core:recipe:1.0.0" as const;
+/** Release 1.1 additionally admits Core recipe 1.1 items; 1.0 documents and names stay as they were. */
+export const RELEASE_SCHEMA_ID_1_1 = "urn:aihq:catalog:release:1.1.0" as const;
+export const RELEASE_SCHEMA_EXPORT_1_1 = "@aihq/catalog/schemas/release/1.1.0.json" as const;
+/** Core's recipe format that adds the owned `hook.group` operation. */
+export const CORE_RECIPE_SCHEMA_ID_1_1 = "urn:aihq:core:recipe:1.1.0" as const;
+export type ReleaseSchemaId = typeof RELEASE_SCHEMA_ID | typeof RELEASE_SCHEMA_ID_1_1;
+export type RecipeSchemaId = typeof CORE_RECIPE_SCHEMA_ID | typeof CORE_RECIPE_SCHEMA_ID_1_1;
+/** The recipe formats each release format admits. */
+export const RELEASE_RECIPE_SCHEMAS: Readonly<Record<ReleaseSchemaId, readonly RecipeSchemaId[]>> =
+  Object.freeze({
+    [RELEASE_SCHEMA_ID]: Object.freeze([CORE_RECIPE_SCHEMA_ID]),
+    [RELEASE_SCHEMA_ID_1_1]: Object.freeze([CORE_RECIPE_SCHEMA_ID, CORE_RECIPE_SCHEMA_ID_1_1]),
+  });
 /** Release documents: UTF-8 bytes including the single trailing LF. */
 export const RELEASE_MAX_BYTES = 16 * 1024 * 1024;
 export const RELEASE_MAX_DEPTH = 32;
@@ -17,7 +30,7 @@ export const ARCHIVE_PACKAGE_PREFIX = "package/" as const;
 
 export const CATALOG_PACKAGE_NAME = "@aihq/catalog" as const;
 /** Kept equal to package.json `version` by the release tests. */
-export const CATALOG_PACKAGE_VERSION = "0.3.0" as const;
+export const CATALOG_PACKAGE_VERSION = "0.1.0" as const;
 
 export const contractSupport = Object.freeze({
   schema: "urn:aihq:package-support:1.0.0",
@@ -28,6 +41,16 @@ export const contractSupport = Object.freeze({
       id: CORE_RECIPE_SCHEMA_ID,
       role: "produces",
       schemaExport: "@aihq/core/schemas/recipe/1.0.0.json",
+    }),
+    Object.freeze({
+      id: RELEASE_SCHEMA_ID_1_1,
+      role: "produces",
+      schemaExport: RELEASE_SCHEMA_EXPORT_1_1,
+    }),
+    Object.freeze({
+      id: CORE_RECIPE_SCHEMA_ID_1_1,
+      role: "produces",
+      schemaExport: "@aihq/core/schemas/recipe/1.1.0.json",
     }),
   ]),
   entries: Object.freeze([
@@ -96,7 +119,7 @@ export type Prerequisite =
 
 export interface RecipeDescriptor {
   readonly id: string;
-  readonly schema: typeof CORE_RECIPE_SCHEMA_ID;
+  readonly schema: RecipeSchemaId;
   readonly path: string;
   readonly sha256: string;
   readonly byteLength: number;
@@ -143,7 +166,7 @@ export interface CatalogItem {
 
 /** An immutable view returned only by `readRelease`; other reader calls accept only these. */
 export interface CatalogRelease {
-  readonly schema: typeof RELEASE_SCHEMA_ID;
+  readonly schema: ReleaseSchemaId;
   /** SHA-256 of the exact release bytes, terminator included. */
   readonly sha256: string;
   readonly byteLength: number;

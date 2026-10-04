@@ -6,6 +6,8 @@ import { refuse } from "./errors.js";
 
 export const OUTPUT_ROOT = "release";
 export const RELEASE_PATH = `${OUTPUT_ROOT}/release.json`;
+/** The optional 1.1 release of Core recipe 1.1 items, published beside the 1.0 release. */
+export const HOOK_RELEASE_PATH = `${OUTPUT_ROOT}/release-1.1.json`;
 const RECIPE_SCHEMA = "urn:aihq:core:recipe:1.0.0";
 const utf8 = new TextDecoder("utf-8", { fatal: true });
 

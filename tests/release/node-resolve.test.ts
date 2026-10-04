@@ -18,8 +18,8 @@ function packageRoot() {
 }
 
 const REGISTRY = "https://registry.example.org";
-const TARBALL = `${REGISTRY}/@aihq/catalog/-/catalog-0.3.0.tgz`;
-const METADATA = `${REGISTRY}/@aihq%2fcatalog/0.3.0`;
+const TARBALL = `${REGISTRY}/@aihq/catalog/-/catalog-0.1.0.tgz`;
+const METADATA = `${REGISTRY}/@aihq%2fcatalog/0.1.0`;
 const reasons = (result: { diagnostics: readonly { reason: string }[] }) =>
   result.diagnostics.map((d) => d.reason);
 
@@ -28,7 +28,7 @@ function registry(archive: Buffer, metadata: Record<string, unknown> = {}) {
     [METADATA]: () =>
       Response.json({
         name: "@aihq/catalog",
-        version: "0.3.0",
+        version: "0.1.0",
         dist: { tarball: TARBALL, integrity: sri("sha512", archive) },
         ...metadata,
       }),
@@ -36,13 +36,13 @@ function registry(archive: Buffer, metadata: Record<string, unknown> = {}) {
       new Response(archive, { headers: { "content-length": String(archive.length) } }),
   });
 }
-const request = { registry: REGISTRY, package: "@aihq/catalog", version: "0.3.0" };
+const request = { registry: REGISTRY, package: "@aihq/catalog", version: "0.1.0" };
 const version = () =>
   JSON.parse(readFileSync(join(packageRoot(), "package.json"), "utf8")).version as string;
 
 describe("resolveRelease", () => {
   it("resolves an exact registry version into a checked release and pinned archive source", async () => {
-    expect(version()).toBe("0.3.0");
+    expect(version()).toBe("0.1.0");
     const archive = tarGz(packageEntries(packageRoot()));
     const network = registry(archive);
     const result = await resolveRelease(request, { fetch: network.fetch });
@@ -57,7 +57,7 @@ describe("resolveRelease", () => {
       kind: "registry",
       registry: REGISTRY,
       package: "@aihq/catalog",
-      version: "0.3.0",
+      version: "0.1.0",
       integrity: sri("sha512", archive),
       tarball: TARBALL,
       archiveSha256: sha256(archive),
@@ -107,7 +107,7 @@ describe("resolveRelease", () => {
 
   it("accepts an explicitly reviewed archive by exact hash and length", async () => {
     const archive = tarGz(packageEntries(packageRoot()));
-    const url = "https://downloads.example.org/catalog-0.3.0.tgz";
+    const url = "https://downloads.example.org/catalog-0.1.0.tgz";
     const network = fakeFetch({ [url]: () => new Response(archive) });
     const pinned = { url, sha256: sha256(archive), byteLength: archive.length };
     const result = await resolveRelease({ archive: pinned }, { fetch: network.fetch });
@@ -151,7 +151,7 @@ describe("resolveRelease", () => {
   });
 
   it.each([
-    ["a version range", { ...request, version: "^0.3.0" }],
+    ["a version range", { ...request, version: "^0.1.0" }],
     ["a dist-tag", { ...request, version: "latest" }],
     ["an HTTP registry", { ...request, registry: "http://registry.example.org" }],
     [

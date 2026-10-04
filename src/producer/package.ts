@@ -187,6 +187,8 @@ interface ProbeOutput {
   release?: boolean;
   schema?: boolean;
   installed?: boolean;
+  /** Present only when the candidate carries a 1.1 release. */
+  hook?: boolean;
   support?: boolean;
   failure?: string;
   selection?: {
@@ -208,6 +210,8 @@ function runPackedProbe(input: {
   sourceRoot: string;
   expectedSha256: string;
   identity: { name: string; version: string };
+  /** SHA-256 of the candidate's 1.1 release document, when it carries one. */
+  expectedHookSha256?: string;
 }): { output?: ProbeOutput; failure?: string } {
   const lockPath = join(input.sourceRoot, "package-lock.json");
   if (!existsSync(lockPath)) {
@@ -268,7 +272,13 @@ function runPackedProbe(input: {
     writeFileSync(join(consumer, "probe.mjs"), PROBE_SOURCE);
     const stdout = execFileSync(
       process.execPath,
-      ["probe.mjs", input.expectedSha256, input.identity.name, input.identity.version],
+      [
+        "probe.mjs",
+        input.expectedSha256,
+        input.identity.name,
+        input.identity.version,
+        ...(input.expectedHookSha256 === undefined ? [] : [input.expectedHookSha256]),
+      ],
       { cwd: consumer, env, encoding: "utf8", timeout: 120_000, maxBuffer: 8 * 1024 * 1024 },
     );
     return { output: JSON.parse(stdout) as ProbeOutput };
@@ -413,6 +423,7 @@ export async function verifyPacked(input: {
   );
 
   const releaseBytes = files.get("release/release.json");
+  const hookBytes = files.get("release/release-1.1.json");
   const probe =
     releaseBytes === undefined
       ? { failure: "the candidate has no release document" }
@@ -421,6 +432,9 @@ export async function verifyPacked(input: {
           sourceRoot,
           expectedSha256: createHash("sha256").update(releaseBytes).digest("hex"),
           identity,
+          ...(hookBytes === undefined
+            ? {}
+            : { expectedHookSha256: createHash("sha256").update(hookBytes).digest("hex") }),
         });
   const out = probe.output;
   const importsOk =
@@ -430,6 +444,7 @@ export async function verifyPacked(input: {
     out.release === true &&
     out.schema === true &&
     out.installed === true &&
+    (hookBytes === undefined || out.hook === true) &&
     out.support === true;
   record(
     "packed-public-imports",
@@ -438,7 +453,7 @@ export async function verifyPacked(input: {
       ? undefined
       : (probe.failure ??
           out?.failure ??
-          `imports ${out?.imports}, release ${out?.release}, schema ${out?.schema}, installed ${out?.installed}, support ${out?.support}`),
+          `imports ${out?.imports}, release ${out?.release}, schema ${out?.schema}, installed ${out?.installed}, hook ${out?.hook}, support ${out?.support}`),
   );
   const selection = out?.selection;
   if (selection === undefined) {

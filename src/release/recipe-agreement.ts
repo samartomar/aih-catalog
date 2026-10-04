@@ -8,16 +8,29 @@
 import { readFileSync } from "node:fs";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { type Node as JsonNode, type ParseError, parseTree } from "jsonc-parser";
-import { type CatalogDiagnostic, type CatalogItem, CORE_RECIPE_SCHEMA_ID } from "./contracts.js";
+import {
+  type CatalogDiagnostic,
+  type CatalogItem,
+  CORE_RECIPE_SCHEMA_ID,
+  CORE_RECIPE_SCHEMA_ID_1_1,
+} from "./contracts.js";
 import { isRecord } from "./document.js";
 import { assertStrictValues, canonicalJson, textDepth } from "./json.js";
 
 const RECIPE_MAX_BYTES = 1_000_000;
 const fatalUtf8 = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
-const schema = JSON.parse(
-  readFileSync(new URL("../../schemas/core-recipe/1.0.0.json", import.meta.url), "utf8"),
-);
-const validateRecipe = new Ajv2020({ strict: true, allErrors: false }).compile(schema);
+const ajv = new Ajv2020({ strict: true, allErrors: false });
+const compileRecipe = (version: string) =>
+  ajv.compile(
+    JSON.parse(
+      readFileSync(new URL(`../../schemas/core-recipe/${version}.json`, import.meta.url), "utf8"),
+    ),
+  );
+/** Core's owned structural schema for each recipe format Catalog admits. */
+const validators = {
+  [CORE_RECIPE_SCHEMA_ID]: compileRecipe("1.0.0"),
+  [CORE_RECIPE_SCHEMA_ID_1_1]: compileRecipe("1.1.0"),
+};
 
 /** Compare decimal values independently of spelling, as in Core's strict JSON profile. */
 function decimalIdentity(token: string): string {
@@ -92,7 +105,8 @@ export function checkRecipeAgreement(item: CatalogItem, bytes: Uint8Array): Cata
     report("recipe-unreadable", "The recipe is not a JSON object.");
     return diagnostics;
   }
-  if (recipe.schema !== CORE_RECIPE_SCHEMA_ID) {
+  const validateRecipe = validators[item.recipe.schema];
+  if (recipe.schema !== item.recipe.schema || validateRecipe === undefined) {
     report("recipe-schema-mismatch", "The recipe is not the advertised Core recipe format.");
     return diagnostics;
   }

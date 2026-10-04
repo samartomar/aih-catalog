@@ -18,7 +18,11 @@ export function installedRoot(prefix: string): { root: string; cleanup: () => vo
       version: pkg.version,
       type: "module",
       main: "./index.js",
-      exports: { ".": "./index.js", "./release.json": "./release/release.json" },
+      exports: {
+        ".": "./index.js",
+        "./release.json": "./release/release.json",
+        "./release-1.1.json": "./release/release-1.1.json",
+      },
       scripts: { postinstall: "node index.js" },
     }),
   );
@@ -38,8 +42,9 @@ export function rewriteRecipe(
   root: string,
   itemId: string,
   change: (recipe: Record<string, unknown>) => void,
+  releaseFile = "release.json",
 ) {
-  const releasePath = join(root, "release", "release.json");
+  const releasePath = join(root, "release", releaseFile);
   const release = JSON.parse(readFileSync(releasePath, "utf8")) as Document;
   const item = release.items.find((candidate) => candidate.id === itemId) as Record<
     string,

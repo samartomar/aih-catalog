@@ -20,7 +20,6 @@ import {
   type MaterialSource,
   RELEASE_MAX_BYTES,
   RELEASE_MAX_DEPTH,
-  RELEASE_SCHEMA_ID,
   type ReadReleaseResult,
   type SelectionRequest,
   type SelectionSetResult,
@@ -89,7 +88,6 @@ export function readRelease(
   const checked = checkReleaseDocument(value);
   if (checked.document === undefined) return refused(...checked.diagnostics);
   const release = deepFreeze({
-    schema: RELEASE_SCHEMA_ID,
     sha256: actual,
     byteLength: bytes.byteLength,
     ...checked.document,

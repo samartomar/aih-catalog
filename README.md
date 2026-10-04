@@ -19,7 +19,9 @@ and [CONTRIBUTING.md](CONTRIBUTING.md) for contributor checks.
 | `@aihq/catalog/reader` | Read, browse, configure and validate explicit selections | Portable |
 | `@aihq/catalog/node` | Read an installed root, resolve an exact archive/registry version, or prepare the project context for a chosen instruction directory | Node 24.15–24.x |
 | `@aihq/catalog/release.json` | Canonical release inventory | Data |
+| `@aihq/catalog/release-1.1.json` | Release of Core recipe 1.1 items (client hook groups); read it explicitly | Data |
 | `@aihq/catalog/schemas/release/1.0.0.json` | Release structural schema | Data |
+| `@aihq/catalog/schemas/release/1.1.0.json` | Release 1.1 structural schema | Data |
 | `@aihq/catalog/package.json` | Installed package identity and location | Data |
 
 The portable entries use standard JavaScript and `Uint8Array`; they access neither
@@ -69,6 +71,10 @@ and Core prepare/apply flow. Output overlapping the installed package is refused
 no release is regenerated. Delivering a client entry file does not prove the
 client loads it.
 
+## Client hook items
+
+`release-1.1.json` carries opt-in client hook items that add, update and remove only their own group in a shared client settings array through Core's generic `hook.group` operation (Core recipe and execution policy 1.1). The first item, `aihq.hook.claude.protect-env`, blocks Claude Code edits to local `.env` files. Read it with `readInstalledRelease({ root, release: "./release-1.1.json" })`; a reader or Core without 1.1 support refuses it as unsupported rather than installing part of it. See [the content contract](docs/CATALOG-CONTENT.md#client-hook-items-release-11).
+
 ## Prepare a content candidate
 
 ```sh
@@ -96,7 +102,7 @@ with lifecycle scripts disabled, and runs public prepare/apply in disposable roo
 It checks local/archive identity, explicit dependencies, default origin, applied
 material hashes and refusal after selected material changes. Supply a reviewed Core
 artifact; the check does not choose a moving registry version. Pass a prepared Catalog tarball as a second argument to check that exact
-candidate instead of packing this checkout. Add `--instruction-directory <dir>` to
+candidate instead of packing this checkout. Run `node tools/verify-hook-consumer.mjs /absolute/path/to/reviewed-core.tgz` for the same packed-consumer check of the hook group lifecycle; the Core artifact must support recipe and execution-policy 1.1. Add `--instruction-directory <dir>` to
 prepare the project context for that directory through the installed package's
 `prepareProjectContext` and run the context scenario against the derived release.
 

@@ -85,8 +85,13 @@ describe("carried release", () => {
   });
 
   it("has every declared recipe and material byte-exact at its package path, and nothing else", () => {
-    const declared = new Set<string>(["release/release.json"]);
-    for (const item of listItems(carried())) {
+    // The 1.1 release of authored hook items is checked in hook-release.test.ts; its members
+    // share the release directory and are declared here with the 1.0 release.
+    const hookBytes = bytesAt("release/release-1.1.json");
+    const hookRead = readRelease(hookBytes, { expectedSha256: sha256(hookBytes) });
+    if (!hookRead.valid) throw new Error(JSON.stringify(hookRead.diagnostics));
+    const declared = new Set<string>(["release/release.json", "release/release-1.1.json"]);
+    for (const item of [...listItems(carried()), ...listItems(hookRead.release)]) {
       for (const member of [item.recipe, ...item.materials]) {
         const bytes = bytesAt(member.path);
         expect(sha256(bytes), member.path).toBe(member.sha256);

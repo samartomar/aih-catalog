@@ -332,7 +332,7 @@ describe("timing summary", () => {
     expect(summary.retries).toEqual({ total: 2, byPhase: { "fetch-inputs": 2 } });
     expect(summary.candidate).toMatchObject({ commit: "a".repeat(40), dirty: true });
     expect(summary.candidate.artifactSha256).toMatch(/^[0-9a-f]{64}$/);
-    expect(summary.package).toEqual({ name: "@aihq/catalog", version: "0.3.0" });
+    expect(summary.package).toEqual({ name: "@aihq/catalog", version: "0.1.0" });
     expect(summary.runner).toMatchObject({ node: process.version });
     expect(summary.runner.npm).toMatch(/^\d+\.\d+\.\d+/);
     expect(summary.workload).toMatchObject({

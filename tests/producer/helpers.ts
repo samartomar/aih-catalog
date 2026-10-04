@@ -87,6 +87,21 @@ export function pinnedUpstreamFiles(): Record<string, Buffer> {
   return files;
 }
 
+/** Adds the committed 1.1 hook release and its members to a candidate that lacks them. */
+export function withHookRelease(files: ReadonlyMap<string, Buffer>): Map<string, Buffer> {
+  const next = new Map(files);
+  for (const [path, bytes] of committedRelease()) {
+    if (
+      path === "release/release-1.1.json" ||
+      path.includes("/client-hooks/") ||
+      path.includes("aihq.hook.")
+    ) {
+      next.set(path, bytes);
+    }
+  }
+  return next;
+}
+
 /** A disposable package root: the real manifest and built entries, with `release/` seeded from `release`. */
 export function makePackageRoot(
   dir: string,
@@ -105,7 +120,11 @@ export function makePackageRoot(
   ]) {
     cpSync(join(root, entry), join(dir, entry), { recursive: true });
   }
-  for (const [path, bytes] of release) {
+  // The manifest exports the 1.1 release, so a package root always carries it beside the 1.0 release.
+  const seeded = release.has("release/release-1.1.json")
+    ? release
+    : withHookRelease(release as never);
+  for (const [path, bytes] of seeded) {
     mkdirSync(dirname(join(dir, path)), { recursive: true });
     writeFileSync(join(dir, path), bytes);
   }
