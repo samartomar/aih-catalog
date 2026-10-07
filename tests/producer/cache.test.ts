@@ -167,6 +167,45 @@ describe("immutable cached bytes (planted replacement ref)", () => {
 });
 
 describe("cached source object integrity", () => {
+  it.skipIf(process.platform !== "win32")(
+    "refuses an individual loose object writable by Everyone",
+    async () => {
+      const upstream = new FixtureRepository();
+      try {
+        const commit = upstream.commit(UPSTREAM_A, "first");
+        const blob = upstream.git("rev-parse", `${commit}:skills/productivity/grilling/SKILL.md`);
+        const cache = join(scratch, "object-permissions-cache");
+        ensureOwnedCacheDir(cache);
+        const gitDir = join(cache, "mattpocock__skills.git");
+        execFileSync("git", ["clone", "-q", "--bare", "--no-hardlinks", upstream.dir, gitDir]);
+        writeFileSync(join(cache, "mattpocock__skills.verified"), `${commit}\n`);
+        prepareFixtureEvidence(cache);
+        execFileSync(
+          "icacls.exe",
+          [join(gitDir, "objects", blob.slice(0, 2), blob.slice(2)), "/grant", "*S-1-1-0:M"],
+          { windowsHide: true },
+        );
+        let requests = 0;
+        await expect(
+          fetchSourceTree({
+            declaration: declaration(),
+            repository: REPOSITORY,
+            commit,
+            cacheDir: cache,
+            git: realGit,
+            http: async () => {
+              requests += 1;
+              throw new Error("no network expected");
+            },
+          }),
+        ).rejects.toMatchObject({ reason: "cache-unsafe" });
+        expect(requests).toBe(0);
+      } finally {
+        upstream.dispose();
+      }
+    },
+  );
+
   it("refuses substituted loose blob bytes under a verified pinned commit", async () => {
     const upstream = new FixtureRepository();
     try {

@@ -219,7 +219,12 @@ current user SID; write, delete and permission-changing grants are limited to th
 SID, SYSTEM and Administrators. Newly created roots receive a private ACL. Existing
 cache permissions are inspected, never repaired, and unavailable or ambiguous ACL
 inspection is refused. Verification receipts and Git object evidence must be regular
-owned entries; object alternates are refused.
+owned entries; object alternates are refused. Every loose object and pack/index entry
+is inspected in one bounded Windows ACL walk, with links and device entries refused.
+Git-created descendants may belong to the current SID, SYSTEM or Administrators,
+the same privileged principals already allowed to write; the cache root and receipt
+still require the current SID. Inspection has an eight-second process timeout and a
+65,536-entry limit and refuses if either is exceeded.
 
 The fetch must return exactly the pinned commit id. It rehashes the raw commit and
 reachable tree objects, then each regular blob when read, against their Git object

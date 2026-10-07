@@ -18,6 +18,7 @@ try {
   if ($null -eq $request -or [string]::IsNullOrWhiteSpace([string]$request.path)) { throw 'invalid request' }
   $currentSid = [System.Security.Principal.WindowsIdentity]::GetCurrent().User
   if ($null -eq $currentSid) { throw 'missing current SID' }
+  $trusted = @($currentSid.Value, 'S-1-5-18', 'S-1-5-32-544')
 
   if ($request.provision -eq $true) {
     if ($request.kind -eq 'file') {
@@ -27,7 +28,6 @@ try {
     }
     $acl.SetAccessRuleProtection($true, $false)
     $acl.SetOwner($currentSid)
-    $trusted = @($currentSid.Value, 'S-1-5-18', 'S-1-5-32-544')
     foreach ($sidText in $trusted) {
       $sid = [System.Security.Principal.SecurityIdentifier]::new($sidText)
       if ($request.kind -eq 'file') {
@@ -74,6 +74,29 @@ try {
     currentSid = $currentSid.Value
     ownerSid = $ownerSid
     rules = $rules
+  }
+  if ($request.descendants -eq $true) {
+    $pending = [System.Collections.Generic.Stack[System.IO.DirectoryInfo]]::new()
+    $pending.Push([System.IO.DirectoryInfo]::new([string]$request.path))
+    $count = 0
+    while ($pending.Count -gt 0) {
+      foreach ($entry in $pending.Pop().EnumerateFileSystemInfos()) {
+        $count += 1
+        if ($count -gt 65536) { throw 'object entry limit' }
+        if (($entry.Attributes -band ([System.IO.FileAttributes]::ReparsePoint -bor [System.IO.FileAttributes]::Device)) -ne 0) { throw 'unsafe object type' }
+        $childAcl = $entry.GetAccessControl()
+        $childDescriptor = [System.Security.AccessControl.RawSecurityDescriptor]::new($childAcl.GetSecurityDescriptorBinaryForm(), 0)
+        if ($null -eq $childDescriptor.DiscretionaryAcl) { throw 'null object DACL' }
+        if ($trusted -notcontains $childAcl.GetOwner([System.Security.Principal.SecurityIdentifier]).Value) { throw 'unsafe object owner' }
+        foreach ($rule in $childAcl.GetAccessRules($true, $true, [System.Security.Principal.SecurityIdentifier])) {
+          if ($rule.AccessControlType -eq [System.Security.AccessControl.AccessControlType]::Allow -and
+              ([int]$rule.FileSystemRights -band [int]$request.writeRights) -ne 0 -and
+              $trusted -notcontains $rule.IdentityReference.Value) { throw 'unsafe object write grant' }
+        }
+        if ($entry -is [System.IO.DirectoryInfo]) { $pending.Push($entry) }
+      }
+    }
+    $result | Add-Member -NotePropertyName descendantsChecked -NotePropertyValue $true
   }
   [Console]::Out.WriteLine((ConvertTo-Json -InputObject $result -Compress -Depth 4))
 } catch {
@@ -129,6 +152,7 @@ export function assertWindowsCacheAcl(
   path: string,
   provisionNewEntry = false,
   kind: "file" | "directory" = "directory",
+  descendants = false,
 ): void {
   let snapshot: AclSnapshot;
   try {
@@ -136,14 +160,24 @@ export function assertWindowsCacheAcl(
       "powershell.exe",
       ["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", POWERSHELL_ACL_SCRIPT],
       {
-        input: JSON.stringify({ path, provision: provisionNewEntry, kind }),
+        input: JSON.stringify({
+          path,
+          provision: provisionNewEntry,
+          kind,
+          descendants,
+          writeRights: WRITE_RIGHTS,
+        }),
         encoding: "utf8",
         windowsHide: true,
         timeout: 8_000,
         maxBuffer: 64 * 1024,
       },
     );
-    snapshot = parseSnapshot(JSON.parse(output) as unknown);
+    const result: unknown = JSON.parse(output);
+    snapshot = parseSnapshot(result);
+    if (descendants && (result as Record<string, unknown>).descendantsChecked !== true) {
+      throw new ProducerRefusal("cache-unsafe", "Windows object entry inspection was incomplete");
+    }
   } catch {
     throw new ProducerRefusal(
       "cache-unsafe",

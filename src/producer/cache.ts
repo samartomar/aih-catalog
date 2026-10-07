@@ -107,3 +107,8 @@ export function assertOwnedCacheEntry(
   }
   if (process.platform === "win32") assertWindowsCacheAcl(path, provisionNewEntry, kind);
 }
+
+/** Inspect every backing object, including loose blobs and pack/index files. */
+export function assertCacheObjectPermissions(path: string): void {
+  if (process.platform === "win32") assertWindowsCacheAcl(path, false, "directory", true);
+}

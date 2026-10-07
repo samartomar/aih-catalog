@@ -1,6 +1,10 @@
 import { appendFileSync, lstatSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { assertOwnedCacheEntry, ensureOwnedCacheDir } from "./cache.js";
+import {
+  assertCacheObjectPermissions,
+  assertOwnedCacheEntry,
+  ensureOwnedCacheDir,
+} from "./cache.js";
 import type { ProducerDeclaration } from "./declaration.js";
 import { ProducerRefusal, refuse } from "./errors.js";
 import { type GitRunner, readCommitTree } from "./git-tree.js";
@@ -112,6 +116,7 @@ function validateGitObjectEvidence(gitDir: string, freshlyInitialized = false): 
       );
     }
   }
+  assertCacheObjectPermissions(objects);
 }
 
 async function servedAs(repository: string, http: HttpRunner): Promise<string> {
