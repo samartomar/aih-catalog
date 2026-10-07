@@ -5,7 +5,7 @@ import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { contractSupport } from "../../src/release/contracts.js";
 import { seedConsumerLock } from "../../tools/seed-consumer-lock.mjs";
-import { sha256 } from "./fixtures.js";
+import { MATT_ITEM_IDS, sha256 } from "./fixtures.js";
 
 const root = resolve(import.meta.dirname, "../..");
 const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
@@ -203,8 +203,7 @@ describe("exact packed consumer", () => {
       "aihq.project-context-pointer.gemini-md",
       "aihq.project-context-pointer.kiro-steering",
       "aihq.project-context-pointer.windsurfrules",
-      "mattpocock.grill-me",
-      "mattpocock.grilling",
+      ...MATT_ITEM_IDS,
     ];
     const expectedRequires: Record<string, string[]> = {
       "aihq.client.antigravity": [

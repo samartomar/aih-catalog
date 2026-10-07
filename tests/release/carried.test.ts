@@ -4,7 +4,7 @@ import { join, relative, resolve } from "node:path";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
 import { listItems, readRelease } from "../../src/release/reader.js";
-import { canonical, sha256 } from "./fixtures.js";
+import { canonical, MATT_ITEM_IDS, MATT_SOURCE_REVISION, sha256 } from "./fixtures.js";
 
 const root = resolve(import.meta.dirname, "../..");
 const bytesAt = (path: string) => readFileSync(resolve(root, path));
@@ -21,8 +21,8 @@ const CORE_RECIPE_SCHEMA_SHA256 =
 const CORE_RECIPE_SCHEMA_CANONICAL_SHA256 =
   "14288dff370dffcfd9ac258b17d1fd5dfe6107f4ffb0b6605681913c00272a7f";
 
-/** Known-good literals from the donor's pinned assessment closures (mattpocock/skills@c55ee46). */
-const UPSTREAM_REVISION = "c55ee46073ed923f86ce59a5eb3b6d895095d1b7";
+/** These two unchanged skill bytes and MIT license retain their independent donor digests. */
+const UPSTREAM_REVISION = MATT_SOURCE_REVISION;
 const GRILLING_SKILL_SHA256 = "10ff989e7498b23b5acb49d5048f11dcd906757d2f79c5cdf8a00001381296f2";
 const GRILL_ME_SKILL_SHA256 = "caaf8b8de1684f96e26b28f3c29189db5c89cce4b73e1c93d86164f66ef88637";
 const MIT_LICENSE_SHA256 = "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5";
@@ -35,7 +35,7 @@ function carried() {
 }
 
 describe("carried release", () => {
-  it("is exactly what the generator produces from committed donor inputs", () => {
+  it("checks authored content independently after the targeted release advances", () => {
     // The generator renders the authored context through the built release module.
     if (!existsSync(resolve(root, "dist/release/project-context.js")))
       throw new Error("run npm run build:dist first");
@@ -43,7 +43,7 @@ describe("carried release", () => {
       cwd: root,
       encoding: "utf8",
     });
-    expect(output).toContain("Checked release/release.json");
+    expect(output).toContain("Checked authored context");
   });
 
   it("describes the containing package and the pinned upstream sources", () => {
@@ -52,7 +52,7 @@ describe("carried release", () => {
     expect(release.sources).toEqual([
       { id: "aihq-project-context", origin: { kind: "authored" } },
       {
-        id: "mattpocock-skills",
+        id: "mattpocock-skills-d81f3a183412",
         origin: {
           kind: "git",
           repository: "https://github.com/mattpocock/skills",
@@ -63,25 +63,29 @@ describe("carried release", () => {
     expect(
       listItems(release)
         .filter((item) => item.id.startsWith("mattpocock."))
-        .map((item) => [item.id, item.dependencies.requires]),
-    ).toEqual([
-      ["mattpocock.grill-me", [{ itemId: "mattpocock.grilling" }]],
-      ["mattpocock.grilling", []],
-    ]);
+        .map((item) => item.id),
+    ).toEqual(MATT_ITEM_IDS);
+    for (const item of listItems(release).filter((entry) => entry.id.startsWith("mattpocock."))) {
+      expect(item.sourceIds).toEqual(["mattpocock-skills-d81f3a183412"]);
+      expect(item.dependencies.requires).toEqual(
+        item.id === "mattpocock.grill-me" ? [{ itemId: "mattpocock.grilling" }] : [],
+      );
+    }
   });
 
-  it("carries the exact upstream bytes named by the donor assessment closures", () => {
+  it("retains unchanged upstream skill bytes and the exact MIT notice for every refreshed skill", () => {
     const members = Object.fromEntries(
       listItems(carried())
         .filter((item) => item.id.startsWith("mattpocock."))
         .flatMap((item) => item.materials.map((m) => [`${item.id}/${m.id}`, m.sha256])),
     );
-    expect(members).toEqual({
+    expect(members).toMatchObject({
       "mattpocock.grill-me/license": MIT_LICENSE_SHA256,
       "mattpocock.grill-me/skill": GRILL_ME_SKILL_SHA256,
       "mattpocock.grilling/license": MIT_LICENSE_SHA256,
       "mattpocock.grilling/skill": GRILLING_SKILL_SHA256,
     });
+    for (const id of MATT_ITEM_IDS) expect(members[`${id}/license`]).toBe(MIT_LICENSE_SHA256);
   });
 
   it("has every declared recipe and material byte-exact at its package path, and nothing else", () => {

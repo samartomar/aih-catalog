@@ -7,6 +7,8 @@ material through the Node adapter, then hand the selected recipes to Core.
 **Publication remains blocked during migration.** These interfaces and the targeted
 candidate producer are implemented for packed consumer checks; release activation is
 still pending. See [the transition](docs/TRANSITION.md) for status,
+[the greenfield integration scope](docs/GREENFIELD-INTEGRATION.md) for the replacement
+of the old release proposal,
 [the content contract](docs/CATALOG-CONTENT.md) for integrity and execution boundaries,
 [the producer guide](docs/PRODUCER.md) for preparing candidates,
 and [CONTRIBUTING.md](CONTRIBUTING.md) for contributor checks.
@@ -48,6 +50,9 @@ const configured = configureItem({
 if (!configured.valid) throw new Error(JSON.stringify(configured.diagnostics));
 ```
 
+The Matt Pocock inventory carries all 27 skills in the pinned upstream plugin,
+including 23 referenced support files. [The refresh record](docs/MATTPOCOCK-REFRESH.md)
+records the exact commit, curation and version metadata.
 The carried `mattpocock.grill-me` item requires `mattpocock.grilling`. Both contain
 complete Core `file.write` recipes for their pinned `SKILL.md` and license bytes,
 with hash checks. Their `agentDirectory` input defaults to `.claude`; configure it
@@ -70,6 +75,10 @@ material source and its `materialRoots` entry for the ordinary configure, valida
 and Core prepare/apply flow. Output overlapping the installed package is refused, and
 no release is regenerated. Delivering a client entry file does not prove the
 client loads it.
+
+Catalog-side preparation for persistent MCP configuration can proceed while native
+acceptance continues separately. [The preparation and acceptance lanes](docs/NATIVE-PREPARATION.md)
+keep the full client roster explicit; this integration admits no native cell.
 
 ## Client hook items
 

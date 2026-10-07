@@ -74,6 +74,10 @@ const node = (args: string[], cwd = root) =>
     encoding: "utf8",
     maxBuffer: 32 * 1024 * 1024,
     timeout: 280_000,
+    // A detached fixture cannot resolve CI's source-repository baseline.
+    env: Object.fromEntries(
+      Object.entries(process.env).filter(([key]) => key !== "AIHQ_RELEASE_BASELINE"),
+    ),
   });
 const prepare = (...args: string[]) => node(["tools/prepare-candidate.mjs", ...args]);
 
@@ -217,10 +221,30 @@ describe("tools/check-release.mjs and the donor generator guard", () => {
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("authored context records or source are stale");
     expect(readFileSync(join(dir, "release/release.json"), "utf8")).toBe(advanced);
-    // Unchanged for the committed release: still compared against the donor inputs.
+    // The committed release is advanced too; authored checks still run without reseeding it.
     expect(sha256(readFileSync(join(root, "release/release.json")))).toMatch(/^[0-9a-f]{64}$/);
     expect(node(["tools/generate-release.mjs", "--check"]).stdout).toContain(
-      "Checked release/release.json",
+      "Checked authored context",
     );
+  });
+
+  it("refuses seed generation when the targeted upstream release has advanced", () => {
+    const dir = join(scratch, "advanced-seed-write");
+    mkdirSync(join(dir, "src/production/data"), { recursive: true });
+    mkdirSync(join(dir, "release"), { recursive: true });
+    writeFileSync(
+      join(dir, "src/production/data/mattpocock.snapshot.json"),
+      JSON.stringify({ upstream: { pin: "c55ee46073ed923f86ce59a5eb3b6d895095d1b7" } }),
+    );
+    const advanced = JSON.stringify({
+      sources: [{ origin: { kind: "git", revision: "d".repeat(40) } }],
+    });
+    writeFileSync(join(dir, "release/release.json"), advanced);
+
+    const result = node(["tools/generate-release.mjs", dir]);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("the targeted release has advanced beyond the donor snapshot");
+    expect(readFileSync(join(dir, "release/release.json"), "utf8")).toBe(advanced);
   });
 });

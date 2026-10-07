@@ -12,7 +12,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { readInstalledRelease } from "../../src/release/node.js";
 import { configureItem } from "../../src/release/reader.js";
-import { sha256 } from "./fixtures.js";
+import { MATT_SOURCE_REVISION, sha256 } from "./fixtures.js";
 import { installedRoot, rewriteRecipe } from "./installed-fixture.js";
 
 const cleanups: (() => void)[] = [];
@@ -32,7 +32,7 @@ const material = (base: string, file: string) =>
     "github.com",
     "mattpocock",
     "skills",
-    "c55ee46073ed923f86ce59a5eb3b6d895095d1b7",
+    MATT_SOURCE_REVISION,
     ...file.split("/"),
   );
 const reasons = (result: { diagnostics: readonly { reason: string }[] }) =>
@@ -106,7 +106,7 @@ describe("readInstalledRelease", () => {
     expect(missing.diagnostics).toContainEqual(
       expect.objectContaining({
         reason: "member-missing",
-        path: "release/materials/github.com/mattpocock/skills/c55ee46073ed923f86ce59a5eb3b6d895095d1b7/skills/productivity/grilling/SKILL.md",
+        path: `release/materials/github.com/mattpocock/skills/${MATT_SOURCE_REVISION}/skills/productivity/grilling/SKILL.md`,
       }),
     );
   });

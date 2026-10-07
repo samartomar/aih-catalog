@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Refresh all 27 Matt Pocock plugin skills at the immutable v1.3 commit, carrying
+  23 referenced support files with checked Core writes. Refuse ambiguous plugin
+  manifests and prevent the donor seed generator from overwriting an advanced release.
+- Prepare the greenfield Catalog candidate for one integration into `main`,
+  superseding the historical 0.3.0 release proposal. Npm publication remains disabled.
+- Separate Catalog-side configuration preparation from per-cell native acceptance;
+  the persistent-session coordinator stays open and no native client is admitted.
+- Update the development lockfile to patched `source-map-js` 1.2.2 and run hook
+  selector continuity checks inside the single CI verification pass.
 - Set the local, unpublished package baseline to `0.1.0` under the independent
   release plan. This is a candidate identity, not a registry publication.
 - Add release format `urn:aihq:catalog:release:1.1.0`, exported as

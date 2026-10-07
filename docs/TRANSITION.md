@@ -5,6 +5,11 @@ and generic executable recipes. Ordinary reading and selection must not require
 Workbench enrollment, a Core lock, qualification receipts, assessment profiles or
 Scan. Scan can contribute optional evidence; it cannot admit a content release.
 
+[The greenfield integration](GREENFIELD-INTEGRATION.md) uses `q1/rel-license` as
+the candidate for `main` and supersedes the old 0.3.0 release proposal. This changes
+the integration scope, not the publication guards. [Catalog native preparation](NATIVE-PREPARATION.md)
+can proceed while per-cell native acceptance remains open under Catalog #53.
+
 ## Implemented status
 
 This checkout retains the 0.3.0 implementation as migration donor code. Its root
@@ -15,8 +20,9 @@ data; they are not executable recipes.
 
 The new `@aihq/catalog/contracts`, portable `@aihq/catalog/reader` and
 `@aihq/catalog/node` entry points, `@aihq/catalog/release.json` and release schema
-are implemented. Two carried skills have complete generic executable recipes,
-explicit dependencies and verified material closure. Focused tests cover release
+are implemented. The 27 carried Matt Pocock skills have complete generic executable recipes,
+explicit dependencies and verified material closure, including 23 referenced support files.
+Focused tests cover release
 admission, configuration, selection and installed/archive acquisition. The packed
 consumer tools exercise public Core prepare/apply and browser imports.
 

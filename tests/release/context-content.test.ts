@@ -318,7 +318,9 @@ const CLIENT_BASELINE: Array<[string, string, string[]]> = [
 describe("aihq.client items", () => {
   it("carries every approved client with its adapter note and explicit pointer dependencies", () => {
     const items = listItems(carried());
-    expect(items).toHaveLength(2 + 1 + 7 + 11);
+    expect(items.filter((item) => item.sourceIds.includes("aihq-project-context"))).toHaveLength(
+      1 + 7 + 11,
+    );
     for (const [id, label, pointers] of CLIENT_BASELINE) {
       const found = getItem(carried(), `aihq.client.${id}`);
       expect(found.found, id).toBe(true);

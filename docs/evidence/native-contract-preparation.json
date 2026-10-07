@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "package": {
+    "name": "@aihq/core",
+    "version": "1.0.0-dev.10"
+  },
+  "schemaExports": [
+    "urn:aihq:core:native-verification-request:1.0.0",
+    "urn:aihq:core:native-verification-result:1.0.0",
+    "urn:aihq:core:native-verification-bundle:1.0.0"
+  ],
+  "nativeVerifierExport": true,
+  "portableValidators": true,
+  "validRequest": true,
+  "invalidBundleRefused": true,
+  "nativeExecution": false,
+  "admittedCells": 0,
+  "artifactSha256": "e0d26cf43add77247ca00177278e978aaf1459af28ea3dc7d9952f1a8a1773fc"
+}

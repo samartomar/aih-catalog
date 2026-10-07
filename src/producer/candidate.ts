@@ -202,6 +202,7 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
       revision: tree.commit,
       skill: delta.skill as Buffer,
       license: delta.license as Buffer,
+      supportFiles: delta.supportFiles ?? [],
     });
     generated.set(delta.id, item);
     return item;

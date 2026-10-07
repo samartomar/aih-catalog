@@ -15,6 +15,8 @@ export interface DeclaredSource {
   readonly licensePath: string;
   /** SPDX identifier of the license text at `licensePath`. */
   readonly license: string;
+  /** Optional plugin manifest whose skill list independently defines item inclusion. */
+  readonly pluginManifestPath?: string;
 }
 
 export interface DeclaredItem {
@@ -22,8 +24,12 @@ export interface DeclaredItem {
   readonly source: string;
   /** Directory that receives the skill: the name of the directory holding SKILL.md. */
   readonly entry: string;
+  /** Upstream directory containing SKILL.md. */
+  readonly directory: string;
   readonly label: string;
   readonly skillPath: string;
+  /** Declared support files, relative to the skill directory and installed beside SKILL.md. */
+  readonly supportPaths: readonly string[];
   /** Same-release required item ids. */
   readonly requires: readonly string[];
 }
@@ -133,12 +139,17 @@ export function parseDeclaration(input: Uint8Array | unknown): ProducerDeclarati
   }
   const sources = top.sources.map((raw, index): DeclaredSource => {
     const at = `sources/${index}`;
-    const source = keys(raw, ["id", "repository", "licensePath", "license"], at);
+    const source = keys(raw, ["id", "repository", "licensePath", "license"], at, [
+      "pluginManifestPath",
+    ]);
     return {
       id: text(source.id, ID, `${at}/id`),
       repository: text(source.repository, REPOSITORY, `${at}/repository`),
       licensePath: path(source.licensePath, `${at}/licensePath`),
       license: text(source.license, SPDX, `${at}/license`),
+      ...(source.pluginManifestPath === undefined
+        ? {}
+        : { pluginManifestPath: path(source.pluginManifestPath, `${at}/pluginManifestPath`) }),
     };
   });
   if (new Set(sources.map((source) => source.id)).size !== sources.length) {
@@ -149,8 +160,26 @@ export function parseDeclaration(input: Uint8Array | unknown): ProducerDeclarati
   }
   const items = top.items.map((raw, index): DeclaredItem => {
     const at = `items/${index}`;
-    const item = keys(raw, ["id", "source", "label", "skillPath", "requires"], at);
+    const item = keys(raw, ["id", "source", "label", "skillPath", "requires"], at, [
+      "supportPaths",
+    ]);
     if (!Array.isArray(item.requires)) refuse("declaration-invalid", `${at}/requires`);
+    const supportPaths = item.supportPaths ?? [];
+    if (!Array.isArray(supportPaths)) {
+      refuse("declaration-invalid", `${at}/supportPaths must be an array`);
+    }
+    const parsedSupportPaths = (supportPaths as unknown[]).map((supportPath, position) =>
+      path(supportPath, `${at}/supportPaths/${position}`),
+    );
+    const foldedSupportPaths = parsedSupportPaths.map((supportPath) => supportPath.toLowerCase());
+    if (
+      new Set(foldedSupportPaths).size !== foldedSupportPaths.length ||
+      foldedSupportPaths.some(
+        (supportPath) => supportPath === "skill.md" || supportPath === "license",
+      )
+    ) {
+      refuse("declaration-invalid", `${at}/supportPaths has duplicates or a reserved filename`);
+    }
     const requires = (item.requires as unknown[]).map((id, position) =>
       text(id, ID, `${at}/requires/${position}`),
     );
@@ -171,8 +200,10 @@ export function parseDeclaration(input: Uint8Array | unknown): ProducerDeclarati
       id: text(item.id, ID, `${at}/id`),
       source: text(item.source, ID, `${at}/source`),
       entry,
+      directory: segments.slice(0, -1).join("/"),
       label: label as string,
       skillPath,
+      supportPaths: parsedSupportPaths.sort(),
       requires: [...requires].sort(),
     };
   });

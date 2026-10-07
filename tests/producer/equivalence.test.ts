@@ -33,8 +33,20 @@ describe("genesis candidate from the pinned upstream tree", () => {
         .items.map((item) => item.id)
         .sort(),
     );
-    for (const item of generated.items)
-      expect(item).toEqual(base.items.find((existing) => existing.id === item.id));
+    for (const item of generated.items) {
+      const existing = base.items.find((found) => found.id === item.id);
+      expect({ ...item, sourceIds: [] }).toEqual({ ...existing, sourceIds: [] });
+      // A genesis source ID has no historical collision suffix; its exact origin is the same.
+      expect(
+        (item.sourceIds as string[]).map(
+          (id) => generated.sources.find((source) => source.id === id)?.origin,
+        ),
+      ).toEqual(
+        (existing?.sourceIds as string[]).map(
+          (id) => base.sources.find((source) => source.id === id)?.origin,
+        ),
+      );
+    }
     for (const [path, bytes] of files) {
       if (path !== "release/release.json")
         expect(sha256(bytes), path).toBe(sha256(committed.get(path) ?? ""));
@@ -95,12 +107,15 @@ describe("upstream refresh with authored context", () => {
     mkdirSync(dirname(join(scratch, snapshot)), { recursive: true });
     writeFileSync(join(scratch, snapshot), readFileSync(join(root, snapshot)));
     const args = [join(root, "tools/generate-release.mjs"), "--check", scratch];
-    expect(execFileSync(process.execPath, args, { encoding: "utf8" })).toContain(
+    const env = Object.fromEntries(
+      Object.entries(process.env).filter(([key]) => key !== "AIHQ_RELEASE_BASELINE"),
+    );
+    expect(execFileSync(process.execPath, args, { encoding: "utf8", env })).toContain(
       "Checked authored context",
     );
     const router = join(scratch, "release/materials/aihq/project-context/ai-coding/RULE_ROUTER.md");
     writeFileSync(router, "changed authored template");
-    const refused = spawnSync(process.execPath, args, { encoding: "utf8" });
+    const refused = spawnSync(process.execPath, args, { encoding: "utf8", env });
     expect(refused.status).toBe(1);
     expect(refused.stderr).toContain("is stale");
     expect(readFileSync(router, "utf8")).toBe("changed authored template");

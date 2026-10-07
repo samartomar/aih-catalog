@@ -24,11 +24,9 @@ jobs:
           node-version: "24"
           cache: npm
       - run: npm ci --ignore-scripts
-      - name: Check hook selectors against prior committed release
+      - name: Verify release, producer and committed hook selectors
         env:
           AIHQ_RELEASE_BASELINE: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
-        run: npm run build:dist && npm run check:materials
-      - name: Verify retained material and producer integrity
         run: npm run verify
       - run: npm audit --audit-level=high
       - run: git diff --check

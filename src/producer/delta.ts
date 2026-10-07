@@ -1,8 +1,11 @@
 import type { Json } from "../release/contracts.js";
+import { isRecord, safeMemberPath } from "../release/document.js";
+import { JsonAdmissionError } from "../release/json.js";
 import type { BaseRelease, Record_ } from "./base.js";
 import type { DeclaredItem, DeclaredSource, ProducerDeclaration } from "./declaration.js";
 import { refuse } from "./errors.js";
-import { sha256Hex } from "./generate.js";
+import { sha256Hex, supportMaterialId } from "./generate.js";
+import { readUpstreamObject } from "./json.js";
 import { pathStatus, readPresent, type SourceTree } from "./tree.js";
 
 /**
@@ -35,6 +38,7 @@ export interface ItemDelta {
   readonly base?: Record_;
   readonly skill?: Buffer;
   readonly license?: Buffer;
+  readonly supportFiles?: readonly { readonly path: string; readonly bytes: Buffer }[];
 }
 
 export interface DeltaPlan {
@@ -67,6 +71,57 @@ function baseMember(item: Record_, id: string): Record_ | undefined {
 const sameList = (left: readonly string[], right: readonly string[]) =>
   left.length === right.length && left.every((value, index) => value === right[index]);
 
+/** Reads the upstream plugin's explicit inclusion list, when this source declares one. */
+function pluginSkillPaths(
+  tree: SourceTree,
+  source: DeclaredSource,
+  declared: readonly DeclaredItem[],
+): ReadonlySet<string> | undefined {
+  const manifestPath = source.pluginManifestPath;
+  if (manifestPath === undefined) return undefined;
+  let manifest: unknown;
+  try {
+    manifest = readUpstreamObject(readPresent(tree, manifestPath));
+  } catch (error) {
+    if (error instanceof TypeError || error instanceof JsonAdmissionError) {
+      return refuse("plugin-manifest-invalid", `${manifestPath} is not valid UTF-8 JSON`);
+    }
+    throw error;
+  }
+  if (!isRecord(manifest) || !Array.isArray(manifest.skills)) {
+    return refuse("plugin-manifest-invalid", `${manifestPath} has no skills array`);
+  }
+  const paths = new Set<string>();
+  for (const [index, value] of manifest.skills.entries()) {
+    if (typeof value !== "string") {
+      return refuse("plugin-manifest-invalid", `${manifestPath} skills/${index} is not a path`);
+    }
+    const directory = value.startsWith("./") ? value.slice(2) : value;
+    if (
+      !safeMemberPath(directory) ||
+      !directory.startsWith("skills/") ||
+      directory.endsWith("/SKILL.md")
+    ) {
+      return refuse("plugin-manifest-invalid", `${manifestPath} skills/${index} is unsafe`);
+    }
+    const skillPath = `${directory}/SKILL.md`;
+    if (paths.has(skillPath)) {
+      return refuse("plugin-manifest-invalid", `${manifestPath} lists ${directory} more than once`);
+    }
+    paths.add(skillPath);
+  }
+  const declaredPaths = new Set(declared.map((item) => item.skillPath));
+  const undeclared = [...paths].filter((path) => !declaredPaths.has(path)).sort();
+  if (undeclared.length > 0) {
+    return refuse(
+      "plugin-skill-undeclared",
+      `${manifestPath} lists undeclared skill(s): ${undeclared.join(", ")}`,
+      { paths: undeclared },
+    );
+  }
+  return paths;
+}
+
 function baseRequires(item: Record_): string[] | undefined {
   const requires = (asRecord(item.dependencies).requires as Json[]).map(asRecord);
   if (requires.some((ref) => Object.keys(ref).join() !== "itemId")) return undefined;
@@ -89,6 +144,7 @@ export function classifyDelta(input: {
     );
   }
   const mine = declaration.items.filter((item) => item.source === source.id);
+  const pluginPaths = pluginSkillPaths(tree, source, mine);
   const baseItems = new Map((base?.items ?? []).map((item) => [item.id as string, item]));
   if (base !== undefined) {
     const declared = new Set(declaration.items.map((item) => item.id));
@@ -120,7 +176,12 @@ export function classifyDelta(input: {
         { itemId: declared.id },
       );
     }
-    const skillStatus = pathStatus(tree, declared.skillPath);
+    const listedByPlugin = pluginPaths === undefined || pluginPaths.has(declared.skillPath);
+    const skillStatus = listedByPlugin
+      ? pathStatus(tree, declared.skillPath)
+      : tree.inventory.complete
+        ? "absent"
+        : "unknown";
     if (skillStatus === "irregular" || license === "irregular") {
       return refuse("source-file-unavailable", `${declared.id} names a non-regular upstream file`, {
         itemId: declared.id,
@@ -160,6 +221,41 @@ export function classifyDelta(input: {
     }
     const skill = readPresent(tree, declared.skillPath);
     const licenseBytes = readPresent(tree, source.licensePath);
+    const supportStates = declared.supportPaths.map((path) => ({
+      path,
+      sourcePath: `${declared.directory}/${path}`,
+      status: pathStatus(tree, `${declared.directory}/${path}`),
+    }));
+    const irregularSupport = supportStates.find((support) => support.status === "irregular");
+    if (irregularSupport !== undefined) {
+      return refuse(
+        "source-file-unavailable",
+        `${declared.id} names a non-regular support file ${irregularSupport.sourcePath}`,
+        { itemId: declared.id, path: irregularSupport.sourcePath },
+      );
+    }
+    if (supportStates.some((support) => support.status === "unknown")) {
+      return {
+        id: declared.id,
+        state: "unknown",
+        operational: [],
+        provenance: [],
+        declared,
+        ...(prior ? { base: prior } : {}),
+      };
+    }
+    const missingSupport = supportStates.find((support) => support.status !== "present");
+    if (missingSupport !== undefined) {
+      return refuse(
+        "source-file-unavailable",
+        `${declared.id} references missing support file ${missingSupport.sourcePath}`,
+        { itemId: declared.id, path: missingSupport.sourcePath },
+      );
+    }
+    const supportFiles = supportStates.map(({ path, sourcePath }) => ({
+      path,
+      bytes: readPresent(tree, sourcePath),
+    }));
     if (prior === undefined) {
       return {
         id: declared.id,
@@ -169,6 +265,7 @@ export function classifyDelta(input: {
         declared,
         skill,
         license: licenseBytes,
+        supportFiles,
       };
     }
     const operational: string[] = [];
@@ -177,6 +274,17 @@ export function classifyDelta(input: {
     const licenseMember = baseMember(prior, "license");
     if (skillMember?.sha256 !== sha256Hex(skill)) operational.push("material:skill");
     if (licenseMember?.sha256 !== sha256Hex(licenseBytes)) operational.push("material:license");
+    const priorSupport = (prior.materials as Json[])
+      .map(asRecord)
+      .filter((member) => (member.id as string).startsWith("support-"));
+    if (priorSupport.length !== supportFiles.length) operational.push("support-files");
+    for (const support of supportFiles) {
+      const id = supportMaterialId(support.path);
+      const member = baseMember(prior, id);
+      if (member?.sha256 !== sha256Hex(support.bytes)) {
+        operational.push(`material:${id}`);
+      }
+    }
     if (prior.label !== declared.label) operational.push("label");
     const priorRequires = baseRequires(prior);
     if (priorRequires === undefined || !sameList(priorRequires, declared.requires)) {
@@ -200,6 +308,7 @@ export function classifyDelta(input: {
       base: prior,
       skill,
       license: licenseBytes,
+      supportFiles,
     };
   });
 

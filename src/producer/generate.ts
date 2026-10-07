@@ -27,6 +27,14 @@ const AGENT_DIRECTORY_INPUT: Json = {
   description: "Project directory that receives skills/<name>/ (Claude Code reads .claude).",
 };
 
+/** Stable, collision-resistant recipe member id derived from one declared support path. */
+export const supportMaterialId = (path: string): string => `support-${sha256Hex(path)}`;
+
+export interface GeneratedSupportFile {
+  readonly path: string;
+  readonly bytes: Buffer;
+}
+
 export interface GeneratedMember {
   readonly id: string;
   readonly path: string;
@@ -76,7 +84,7 @@ const target = (name: string, file: string): Json => ({
     { input: "agentDirectory" },
     { literal: "skills" },
     { literal: name },
-    { literal: file },
+    ...file.split("/").map((segment) => ({ literal: segment })),
   ],
 });
 
@@ -91,8 +99,9 @@ export function generateItem(args: {
   revision: string;
   skill: Buffer;
   license: Buffer;
+  supportFiles: readonly GeneratedSupportFile[];
 }): GeneratedItem {
-  const { item, source, sourceId, revision, skill, license } = args;
+  const { item, source, sourceId, revision, skill, license, supportFiles } = args;
   const members: GeneratedMember[] = [
     {
       id: "license",
@@ -108,7 +117,16 @@ export function generateItem(args: {
       byteLength: skill.length,
       bytes: skill,
     },
-  ];
+    ...supportFiles.map(
+      ({ path, bytes }): GeneratedMember => ({
+        id: supportMaterialId(path),
+        path: materialPath(source.repository, revision, `${item.directory}/${path}`),
+        sha256: sha256Hex(bytes),
+        byteLength: bytes.length,
+        bytes,
+      }),
+    ),
+  ].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   const sha = (id: string) =>
     (members.find((member) => member.id === id) as GeneratedMember).sha256;
   const deliver = [
@@ -118,13 +136,20 @@ export function generateItem(args: {
       file: "LICENSE",
       purpose: `Write the upstream ${source.license} license notice beside the skill`,
     },
+    ...supportFiles.map(({ path }): { material: string; file: string; purpose: string } => ({
+      material: supportMaterialId(path),
+      file: path,
+      purpose: `Write the referenced ${item.entry} support file ${path}`,
+    })),
   ];
   const recipe = {
     schema: RECIPE_SCHEMA,
     id: item.id,
     description: `Install the ${item.entry} skill from ${source.repository} at ${revision} with its ${source.license} license notice.`,
     inputs: { agentDirectory: AGENT_DIRECTORY_INPUT },
-    materials: members.map(({ id, sha256, byteLength }) => ({ id, sha256, byteLength })),
+    materials: members
+      .map(({ id, sha256, byteLength }) => ({ id, sha256, byteLength }))
+      .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)),
     targets: ["project"],
     prerequisites: [],
     operations: deliver.map((step) => ({
@@ -174,7 +199,13 @@ export function generateItem(args: {
       optional: [],
       conflicts: [],
     },
-    metadata: { upstream: { path: item.skillPath, license: source.license } },
+    metadata: {
+      upstream: {
+        path: item.skillPath,
+        license: source.license,
+        supportPaths: [...item.supportPaths],
+      },
+    },
   };
   return { record, recipePath, recipeBytes, members };
 }

@@ -39,7 +39,7 @@ export const committedRelease = (): Map<string, Buffer> => {
 };
 
 export const REPOSITORY = "mattpocock/skills";
-export const PINNED_REVISION = "c55ee46073ed923f86ce59a5eb3b6d895095d1b7";
+export const PINNED_REVISION = "d81f3a183412e71a5b1e84ca21bc1a35eea03a60";
 export const SKILL_ME = "skills/productivity/grill-me/SKILL.md";
 export const SKILL_GRILLING = "skills/productivity/grilling/SKILL.md";
 
@@ -84,6 +84,10 @@ export function pinnedUpstreamFiles(): Record<string, Buffer> {
   for (const [path, bytes] of committedRelease()) {
     if (path.startsWith(prefix)) files[path.slice(prefix.length)] = bytes;
   }
+  // The upstream manifest is an admission input, not an installed release member.
+  files[".claude-plugin/plugin.json"] = readFileSync(
+    resolve(root, "tests/producer/fixtures/mattpocock-plugin-v1-3.json"),
+  );
   return files;
 }
 

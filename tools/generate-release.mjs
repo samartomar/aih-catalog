@@ -40,7 +40,7 @@ const renderer = await import(new URL("../dist/release/project-context.js", impo
  * This is the seed generator for the carried donor snapshot. Once a targeted candidate
  * (tools/prepare-candidate.mjs) has advanced release/ beyond that snapshot, `--check`
  * checks the authored context separately and defers upstream integrity to
- * tools/check-release.mjs instead of restoring the older upstream snapshot.
+ * tools/check-release.mjs; generation refuses instead of restoring the older snapshot.
  */
 export const OUTPUT_ROOT = "release";
 export const RELEASE_PATH = "release/release.json";
@@ -240,8 +240,17 @@ export function advancedBeyondSnapshot(root) {
   return revisions.size !== 1 || !revisions.has(pin);
 }
 
+function assertSeedGenerationAllowed(root) {
+  if (advancedBeyondSnapshot(root)) {
+    fail(
+      "the targeted release has advanced beyond the donor snapshot; this seed generator cannot replace it (use tools/prepare-candidate.mjs)",
+    );
+  }
+}
+
 /** Returns every output file (package-relative path → bytes), the release document last. */
 export function generateRelease(root) {
+  assertSeedGenerationAllowed(root);
   const pkg = readJson(root, "package.json");
   const snapshot = readJson(root, SNAPSHOT);
   const files = new Map();
@@ -344,6 +353,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       fail("usage: node tools/generate-release.mjs [--check] [catalog-root]");
     }
     const root = resolve(args[0] ?? resolve(dirname(fileURLToPath(import.meta.url)), ".."));
+    if (!check) assertSeedGenerationAllowed(root);
     const baseline = process.env.AIHQ_RELEASE_BASELINE ?? "HEAD";
     let gitRoot;
     try {

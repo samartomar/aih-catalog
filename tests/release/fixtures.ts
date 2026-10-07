@@ -113,3 +113,35 @@ export function fixtureRelease(): { [key: string]: Json } {
     ],
   };
 }
+/** Independent accepted v1.3 plugin roster, not read from the generated release. */
+export const MATT_ITEM_IDS = [
+  "ask-matt",
+  "code-review",
+  "codebase-design",
+  "diagnosing-bugs",
+  "domain-modeling",
+  "grill-me",
+  "grill-with-docs",
+  "grilling",
+  "handoff",
+  "implement",
+  "implement-spec",
+  "improve-codebase-architecture",
+  "pr",
+  "prototype",
+  "research",
+  "retro",
+  "setup-matt-pocock-skills",
+  "tdd",
+  "teach",
+  "to-questionnaire",
+  "to-spec",
+  "to-tickets",
+  "triage",
+  "wait-what",
+  "wayfinder",
+  "wizard",
+  "writing-for-agents",
+].map((name) => `mattpocock.${name}`);
+
+export const MATT_SOURCE_REVISION = "d81f3a183412e71a5b1e84ca21bc1a35eea03a60";

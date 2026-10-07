@@ -1,4 +1,4 @@
 process.stderr.write(
-  "Catalog publication is blocked: the greenfield release, reader and recipe interfaces are not implemented. See docs/TRANSITION.md.\n",
+  "Catalog publication is blocked: this greenfield candidate requires a separately reviewed and authorized release path. See RELEASING.md.\n",
 );
 process.exitCode = 1;

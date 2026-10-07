@@ -88,7 +88,7 @@ beforeAll(() => {
   upstream.commit({ ...pinnedUpstreamFiles() }, "carried bytes");
   commitB = upstream.commit(
     {
-      [GRILLING]: `${readFileSync(join(root, "release/materials/github.com/mattpocock/skills/c55ee46073ed923f86ce59a5eb3b6d895095d1b7", GRILLING), "utf8")}\nAlso summarize.\n`,
+      [GRILLING]: `${pinnedUpstreamFiles()[GRILLING]?.toString("utf8")}\nAlso summarize.\n`,
     },
     "change grilling",
   );

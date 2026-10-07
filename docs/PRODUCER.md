@@ -63,9 +63,22 @@ tool; `npm run check:release` runs the offline whole-package check on the commit
 `producer/declaration.json` is the maintainer-authored list of what the producer may
 carry. It names each upstream repository (with its license file) and each item built
 from it: identifier, label, the `<dir>/SKILL.md` it comes from and the same-release
-items it requires. It is data, not a permission for arbitrary authors; unknown keys,
+items it requires. A source may declare `pluginManifestPath`: its upstream JSON
+`skills` array independently defines inclusion. Every listed skill must be declared;
+an excluded released skill is removed only with a complete inventory, even if its
+file remains upstream. Manifests are UTF-8 objects, at most 1 MiB and 32 container
+levels; duplicate keys, unsafe paths, malformed Unicode and non-strict values are refused.
+It is data, not a permission for arbitrary authors; unknown keys,
 unknown or cyclic requirements and unsafe paths are refused. Adding an item means
 adding its entry. Keep an entry until the candidate that removes the item has merged.
+
+Each item may declare `supportPaths`, safe paths relative to its skill directory.
+The producer carries their exact bytes and writes them beside `SKILL.md`, including
+nested directories, with a hash check for each. Missing, non-regular or unknown
+support files refuse the candidate; duplicate or case-alias paths and the reserved
+`SKILL.md` and `LICENSE` names are refused. Changes to support membership or bytes
+are operational changes. The declaration is the reviewed support closure, not a
+Markdown crawler. See [the pinned Matt Pocock refresh](MATTPOCOCK-REFRESH.md).
 
 The optional `authored` key lists allowances for content Catalog itself authors (a
 release source whose origin is `authored`). Each entry has exactly three keys:
@@ -84,7 +97,7 @@ authored source of the checked release is ignored.
 ## What happens to each item
 
 The producer reads and digests only the declared files of each item (the skill and
-its license) from the pinned commit. Whole-tree enumeration is cheap and allowed;
+its license and declared support files) from the pinned commit. Whole-tree enumeration is cheap and allowed;
 expensive production runs only for items that need it.
 
 | State | Meaning | Record and members |
@@ -260,8 +273,8 @@ labeled `originVerified: false` in its summary.
 
 ## Limits
 
-- One declared skill shape: a `SKILL.md` and its license, written by a Core `file.write`
-  recipe. Support files and other item kinds need new producer transforms.
+- One declared skill shape: a `SKILL.md`, its license and declared support files,
+  written by a Core `file.write` recipe. Other item kinds need new producer transforms.
 - The producer carries only declared repositories and is not an arbitrary-author gate.
 - Upstream skill text is not examined for references or placeholders; only
   Catalog-authored content is. Reference checking is local resolution of the forms
@@ -272,3 +285,7 @@ labeled `originVerified: false` in its summary.
   whose destination starts on the next line and authored material that is not UTF-8 are
   not checked. A deliberate `${…}` in a code sample must be declared as a template token.
 - It prepares content. It allocates no version, signs nothing and publishes nothing.
+
+`tools/generate-release.mjs` is the donor seed generator. Once the upstream release
+has advanced beyond that seed, generation refuses and directs maintainers to the
+targeted producer. Its `--check` mode still checks authored context and hook output.
