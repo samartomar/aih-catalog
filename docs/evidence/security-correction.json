@@ -24,8 +24,10 @@
       "pinnedCommitAndTreesRehashed": true,
       "returnedBlobsRehashed": true,
       "realWindowsWritableCacheRegression": "passed",
+      "individualObjectWriteGrantRegression": "passed",
+      "everyBackingObjectEntryInspected": true,
       "substitutedLooseBlobRegression": "passed",
-      "focusedCacheAndFetchTestsPassed": 15
+      "focusedCacheAndFetchTestsPassed": 16
     },
     "hook": {
       "windowsDefaultDataStreamRegression": "passed",
@@ -52,9 +54,10 @@
     "releaseBaseline": "07cf5daceae07561fe5fb7fae47f4d37fd9441ed",
     "status": "passed",
     "testFilesPassed": 52,
-    "testsPassed": 642,
+    "verifiedSourceHead": "aca9640b735c21450e39c0dfa4506de1e846e5e1",
+    "testsPassed": 643,
     "testsSkipped": 3,
-    "testsTotal": 645,
+    "testsTotal": 646,
     "skipped": "optional explicitly supplied Core-artifact tests; exact packed consumers ran separately",
     "platform": "win32",
     "node": "v24.18.0",
@@ -62,6 +65,13 @@
     "registrySignaturesVerified": 75,
     "attestationsVerified": 34,
     "publicationLifecycle": "refused with exit 1"
+  },
+  "review": {
+    "sourceHead": "aca9640b735c21450e39c0dfa4506de1e846e5e1",
+    "reviewer": "independent Sol agent",
+    "standards": "passed; zero remaining actionable findings",
+    "spec": "passed; zero remaining actionable findings",
+    "unsafeObjectEntryProbe": "refused before HTTP; safe reuse passed"
   },
   "consumers": {
     "core": {
