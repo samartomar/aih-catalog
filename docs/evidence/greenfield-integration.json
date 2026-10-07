@@ -1,0 +1,310 @@
+{
+  "schema": "aihq-catalog-greenfield-integration-evidence",
+  "version": 1,
+  "integrationBase": "07cf5daceae07561fe5fb7fae47f4d37fd9441ed",
+  "candidateBase": "a1059df9c1543fd8326424053280b4b94e93397e",
+  "publication": "disabled",
+  "nativeCellsAdmitted": 0,
+  "artifact": {
+    "name": "@aihq/catalog",
+    "version": "0.1.0",
+    "filename": "aihq-catalog-0.1.0.tgz",
+    "sha256": "4dc2eb5a52e549b09b85c8737c5e1b8634b42e90b1415eb85af88ca8283932ed",
+    "byteLength": 174032,
+    "lifecycleScripts": "disabled",
+    "source": "integration working tree after final runtime/content edits; docs evidence excluded from tarball"
+  },
+  "refresh": {
+    "repository": "mattpocock/skills",
+    "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+    "upstreamCommitLabel": "v1.3",
+    "upstreamPluginVersion": "1.2.3",
+    "skills": 27,
+    "supportFiles": 23,
+    "sourceOriginVerified": true,
+    "delta": {
+      "added": 25,
+      "changed": 0,
+      "removed": 0,
+      "unchanged": 19,
+      "dependent-confirmed": 0,
+      "provenance-only": 2
+    },
+    "release": {
+      "sha256": "2f5027598424a38599b2fefd670d1d4ecc496253d66310a89834f0db989c0b55",
+      "byteLength": 63351,
+      "baseSha256": "16ffeabe53e5f9b42705ce1e25e913cd73b7214f0f03449141e8ccdf872a507a"
+    },
+    "elapsedSeconds": 245.298,
+    "ceilingSeconds": 3600,
+    "withinCeiling": true,
+    "cache": {
+      "condition": "retained-cache",
+      "dependencies": "not reported by this run",
+      "sourceObjects": "miss"
+    },
+    "queue": {
+      "startedAt": "2026-10-06T23:23:34.391Z",
+      "queuedMs": null,
+      "note": "no detection time supplied: the clock starts when preparation starts and queue time is unmeasured"
+    },
+    "measurement": "real apply run with retained local dependencies and a source cache miss; not a cold-install benchmark",
+    "phases": [
+      {
+        "name": "load-base",
+        "status": "passed",
+        "durationMs": 91.77049999999997,
+        "retries": 0
+      },
+      {
+        "name": "fetch-inputs",
+        "status": "passed",
+        "durationMs": 1955.4896999999999,
+        "retries": 0
+      },
+      {
+        "name": "affected-production",
+        "status": "passed",
+        "durationMs": 4509.748299999999,
+        "retries": 0
+      },
+      {
+        "name": "integrity",
+        "status": "passed",
+        "durationMs": 68.1899000000003,
+        "retries": 0
+      },
+      {
+        "name": "stage-and-pack",
+        "status": "passed",
+        "durationMs": 1806.4002,
+        "retries": 0
+      },
+      {
+        "name": "verify-packed",
+        "status": "passed",
+        "durationMs": 6781.746500000001,
+        "retries": 0
+      },
+      {
+        "name": "consumer-handoff",
+        "status": "passed",
+        "durationMs": 229587.19929999998,
+        "retries": 0
+      },
+      {
+        "name": "review-preparation",
+        "status": "passed",
+        "durationMs": 4.699099999997998,
+        "retries": 0
+      },
+      {
+        "name": "install",
+        "status": "passed",
+        "durationMs": 489.3037999999942,
+        "retries": 0
+      }
+    ],
+    "optionalScan": {
+      "awaited": false,
+      "status": "not-awaited",
+      "note": "Optional Scan evidence is separate: it is neither awaited nor required, and no result is produced or implied here."
+    }
+  },
+  "preservation": {
+    "status": "passed",
+    "candidateBase": "a1059df9c1543fd8326424053280b4b94e93397e",
+    "integrationBase": "07cf5daceae07561fe5fb7fae47f4d37fd9441ed",
+    "authoredSources": 1,
+    "authoredItems": 19,
+    "authoredMembers": 35,
+    "release11Sha256": "c81c368010567d63edbb5175fdd0d9acb2644c148564011972406e6c6e1e6205",
+    "release11Members": 2,
+    "signedHistoricalJsonUnchanged": true
+  },
+  "verification": {
+    "command": "npm ci --ignore-scripts; npm run verify",
+    "releaseBaseline": "07cf5daceae07561fe5fb7fae47f4d37fd9441ed",
+    "status": "passed",
+    "testsPassed": 636,
+    "testsSkipped": 3,
+    "testsTotal": 639,
+    "skipped": "three optional tests requiring an explicitly supplied Core artifact; exact-artifact consumers below ran separately",
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    }
+  },
+  "consumers": {
+    "core": {
+      "status": "passed",
+      "selected": [
+        "aihq.client.antigravity",
+        "aihq.project-context-pointer.agents-md",
+        "aihq.project-context-pointer.gemini-md",
+        "aihq.project-context"
+      ],
+      "skipped": {
+        "configurationRequired": 0,
+        "conflicting": 0,
+        "unresolved": 0
+      },
+      "releaseSha256": "2f5027598424a38599b2fefd670d1d4ecc496253d66310a89834f0db989c0b55",
+      "publicImports": true,
+      "dependencyMapping": true,
+      "defaultOrigin": "not-applicable",
+      "defaultInputsChecked": 0,
+      "sameClosure": true,
+      "staleMaterialRejected": true,
+      "contextLifecycle": {
+        "status": "passed",
+        "instructionDirectory": "ai-coding",
+        "familyFilesDelivered": 21,
+        "enterpriseAdmission": {
+          "status": "passed",
+          "selectedIdentity": "sha256:28a016876512a48b0936dd51fa57b3d52ec389dbe174bff10b95a19c44219884",
+          "deniedIdentity": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+          "deniedPublishedIdentity": false,
+          "applyCompleted": true
+        },
+        "clientsSelected": 3,
+        "deselectionRetainedShared": true,
+        "pruneMarkerPrecise": true,
+        "unownedBlockConflict": true,
+        "savedDependencyRetention": true,
+        "matchingUnownedPreserved": true,
+        "ownedBlockAndFileDriftPreserved": true,
+        "authorGuidancePreserved": true
+      },
+      "results": [
+        {
+          "kind": "local",
+          "completion": "complete",
+          "checks": 4
+        },
+        {
+          "kind": "archive",
+          "completion": "complete",
+          "checks": 4
+        }
+      ],
+      "coreSha256": "e0d26cf43add77247ca00177278e978aaf1459af28ea3dc7d9952f1a8a1773fc",
+      "catalogSha256": "4dc2eb5a52e549b09b85c8737c5e1b8634b42e90b1415eb85af88ca8283932ed"
+    },
+    "customInstructionDirectory": {
+      "status": "passed",
+      "selected": [
+        "aihq.client.antigravity",
+        "aihq.project-context-pointer.agents-md",
+        "aihq.project-context-pointer.gemini-md",
+        "aihq.project-context"
+      ],
+      "skipped": {
+        "configurationRequired": 0,
+        "conflicting": 0,
+        "unresolved": 0
+      },
+      "releaseSha256": "2f5027598424a38599b2fefd670d1d4ecc496253d66310a89834f0db989c0b55",
+      "publicImports": true,
+      "dependencyMapping": true,
+      "defaultOrigin": "not-applicable",
+      "defaultInputsChecked": 0,
+      "sameClosure": true,
+      "staleMaterialRejected": true,
+      "contextLifecycle": {
+        "status": "passed",
+        "instructionDirectory": ".ai/context",
+        "familyFilesDelivered": 21,
+        "derivation": {
+          "installedReleaseSha256": "2f5027598424a38599b2fefd670d1d4ecc496253d66310a89834f0db989c0b55",
+          "derivedReleaseSha256": "1fdef6c002dcb514d8afe7fea5cc7741a6a7494489930306b093db959ac3060f",
+          "renderer": "aihq-project-context-renderer@2",
+          "deterministic": true,
+          "installedPackageUnchanged": true,
+          "contextItemIdentities": "derived",
+          "stagingRemoved": true,
+          "installedItemsAlongside": 1
+        },
+        "enterpriseAdmission": {
+          "status": "passed",
+          "selectedIdentity": "sha256:3340dc9fda0d5c6c52338cdae002bf51e9602bde7c61263f753da9c7fcd2a5d0",
+          "deniedIdentity": "sha256:28a016876512a48b0936dd51fa57b3d52ec389dbe174bff10b95a19c44219884",
+          "deniedPublishedIdentity": true,
+          "applyCompleted": true
+        },
+        "clientsSelected": 3,
+        "deselectionRetainedShared": true,
+        "pruneMarkerPrecise": true,
+        "unownedBlockConflict": true,
+        "savedDependencyRetention": true,
+        "matchingUnownedPreserved": true,
+        "ownedBlockAndFileDriftPreserved": true,
+        "authorGuidancePreserved": true
+      },
+      "results": [
+        {
+          "kind": "local",
+          "completion": "complete",
+          "checks": 4
+        },
+        {
+          "kind": "archive",
+          "completion": "complete",
+          "checks": 4
+        }
+      ],
+      "coreSha256": "e0d26cf43add77247ca00177278e978aaf1459af28ea3dc7d9952f1a8a1773fc",
+      "catalogSha256": "4dc2eb5a52e549b09b85c8737c5e1b8634b42e90b1415eb85af88ca8283932ed"
+    },
+    "hookOwnership": {
+      "status": "passed",
+      "releaseSha256": "c81c368010567d63edbb5175fdd0d9acb2644c148564011972406e6c6e1e6205",
+      "item": "aihq.hook.claude.protect-env",
+      "addUpdateRemoveWithNeighbors": true,
+      "indexMovedOwnedUpdated": true,
+      "unownedSelectorConflict": true,
+      "neighborEditAfterPrepareRejected": true,
+      "policy10Refused": true,
+      "cli": "add-remove",
+      "coreSha256": "e0d26cf43add77247ca00177278e978aaf1459af28ea3dc7d9952f1a8a1773fc",
+      "catalogSha256": "4dc2eb5a52e549b09b85c8737c5e1b8634b42e90b1415eb85af88ca8283932ed"
+    },
+    "browser": {
+      "status": "passed",
+      "runtime": "real Codex in-app browser",
+      "items": 46,
+      "portable": true,
+      "nodeGlobals": false,
+      "acquisition": false,
+      "requiresBySelectionId": {
+        "chosen": [
+          "required"
+        ],
+        "required": []
+      }
+    }
+  },
+  "nativePreparation": {
+    "status": "passed",
+    "package": {
+      "name": "@aihq/core",
+      "version": "1.0.0-dev.10"
+    },
+    "schemaExports": [
+      "urn:aihq:core:native-verification-request:1.0.0",
+      "urn:aihq:core:native-verification-result:1.0.0",
+      "urn:aihq:core:native-verification-bundle:1.0.0"
+    ],
+    "nativeVerifierExport": true,
+    "portableValidators": true,
+    "validRequest": true,
+    "invalidBundleRefused": true,
+    "nativeExecution": false,
+    "admittedCells": 0,
+    "artifactSha256": "e0d26cf43add77247ca00177278e978aaf1459af28ea3dc7d9952f1a8a1773fc"
+  }
+}
