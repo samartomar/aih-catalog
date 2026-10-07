@@ -1,8 +1,8 @@
-import { appendFileSync, existsSync, lstatSync, mkdirSync, readFileSync } from "node:fs";
+import { appendFileSync, lstatSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { ensureOwnedCacheDir } from "./cache.js";
+import { assertOwnedCacheEntry, ensureOwnedCacheDir } from "./cache.js";
 import type { ProducerDeclaration } from "./declaration.js";
-import { refuse } from "./errors.js";
+import { ProducerRefusal, refuse } from "./errors.js";
 import { type GitRunner, readCommitTree } from "./git-tree.js";
 import { COMMIT, REPOSITORY, type SourceTree } from "./tree.js";
 
@@ -66,6 +66,53 @@ export const DEFAULT_RETRY: RetryPolicy = {
 const TRANSIENT =
   /could not resolve host|timed out|timeout|connection (?:reset|refused|was reset)|rpc failed|early eof|unexpected disconnect|returned error: 5\d\d|fetch failed|econnreset|etimedout|econnrefused|temporary failure/iu;
 const UTF8 = new TextDecoder("utf-8", { fatal: true });
+
+function optionalEntry(path: string): ReturnType<typeof lstatSync> | undefined {
+  try {
+    return lstatSync(path);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined;
+    return refuse("cache-unsafe", "a retained cache evidence entry cannot be inspected");
+  }
+}
+
+function verifiedCommits(marker: string): Set<string> {
+  const stat = optionalEntry(marker);
+  if (stat === undefined) return new Set();
+  assertOwnedCacheEntry(marker, "file");
+  if (stat.size > 1024 * 1024) {
+    return refuse("cache-unsafe", "the retained cache verification marker is too large");
+  }
+  let text: string;
+  try {
+    text = UTF8.decode(readFileSync(marker));
+  } catch {
+    return refuse("cache-unsafe", "the retained cache verification marker is unreadable");
+  }
+  if (!/^(?:[0-9a-f]{40}\n)+$/u.test(text)) {
+    return refuse("cache-unsafe", "the retained cache verification marker is malformed");
+  }
+  return new Set(text.trimEnd().split("\n"));
+}
+
+function validateGitObjectEvidence(gitDir: string, freshlyInitialized = false): void {
+  assertOwnedCacheEntry(gitDir, "directory");
+  const objects = join(gitDir, "objects");
+  assertOwnedCacheEntry(objects, "directory", freshlyInitialized);
+  for (const name of ["info", "pack"]) {
+    const directory = join(objects, name);
+    const stat = optionalEntry(directory);
+    if (stat !== undefined) assertOwnedCacheEntry(directory, "directory", freshlyInitialized);
+  }
+  for (const name of ["alternates", "http-alternates"]) {
+    if (optionalEntry(join(objects, "info", name)) !== undefined) {
+      throw new ProducerRefusal(
+        "cache-unsafe",
+        "the cached repository uses an unverified object alternate",
+      );
+    }
+  }
+}
 
 async function servedAs(repository: string, http: HttpRunner): Promise<string> {
   const answer = await http(`https://api.github.com/repos/${repository}`);
@@ -138,15 +185,11 @@ export async function fetchSourceTree(input: {
   const marker = join(cacheDir, `${cacheKey(repository)}.verified`);
   const run = (...args: string[]) => git(["-C", gitDir, ...GIT_CONFIG, ...args]);
   ensureOwnedCacheDir(cacheDir);
-  for (const entry of [gitDir, marker]) {
-    if (existsSync(entry) && lstatSync(entry).isSymbolicLink()) {
-      return refuse("cache-unsafe", "a cache entry is a link; refusing to read through it");
-    }
-  }
-
-  const verified = existsSync(marker) && readFileSync(marker, "utf8").split("\n").includes(commit);
+  const knownCommits = verifiedCommits(marker);
+  const gitStat = optionalEntry(gitDir);
+  if (gitStat !== undefined) validateGitObjectEvidence(gitDir);
   let hit = false;
-  if (verified && existsSync(gitDir)) {
+  if (knownCommits.has(commit) && gitStat !== undefined) {
     try {
       run("cat-file", "-e", `${commit}^{commit}`);
       hit = true;
@@ -159,11 +202,13 @@ export async function fetchSourceTree(input: {
   if (!hit) {
     const fetched = await withRetry(retry, async () => {
       const name = await servedAs(repository, http);
-      if (!existsSync(gitDir)) {
-        mkdirSync(gitDir, { recursive: true });
+      if (optionalEntry(gitDir) === undefined) {
+        ensureOwnedCacheDir(gitDir);
         run("init", "--bare", "-q");
+        validateGitObjectEvidence(gitDir, true);
       }
       run("fetch", "-q", "--depth", "1", "--no-tags", url, commit);
+      validateGitObjectEvidence(gitDir);
       return name;
     });
     identity = fetched.value;
@@ -177,7 +222,17 @@ export async function fetchSourceTree(input: {
     }
   }
   const tree = readCommitTree({ repository, commit, run });
-  if (!hit) appendFileSync(marker, `${commit}\n`);
+  if (!hit && !knownCommits.has(commit)) {
+    const currentMarker = optionalEntry(marker);
+    if (currentMarker === undefined) {
+      writeFileSync(marker, `${commit}\n`, { encoding: "utf8", flag: "wx", mode: 0o600 });
+      assertOwnedCacheEntry(marker, "file", true);
+    } else {
+      assertOwnedCacheEntry(marker, "file");
+      appendFileSync(marker, `${commit}\n`);
+      assertOwnedCacheEntry(marker, "file");
+    }
+  }
   return Object.assign(tree, {
     url,
     ...(identity === undefined ? {} : { servedAs: identity }),

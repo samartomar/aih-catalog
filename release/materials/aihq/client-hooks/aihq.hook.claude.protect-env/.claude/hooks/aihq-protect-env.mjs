@@ -16,7 +16,8 @@ if (payload?.tool_name === "Edit" || payload?.tool_name === "Write") {
     process.exit(2);
   }
   const name = path.replaceAll("\\", "/").split("/").at(-1);
-  const normalizedName = name?.toLowerCase();
+  // Windows stream syntax addresses the base file, including its default $DATA stream.
+  const normalizedName = (process.platform === "win32" ? name?.split(":")[0] : name)?.toLowerCase();
   if (normalizedName && /^\.env(?:\..+)?$/.test(normalizedName) &&
       ![".env.example", ".env.sample", ".env.template"].includes(normalizedName)) {
     console.error("Blocked by AIHQ: " + name + " is a local environment file. Ask the user to change it.");

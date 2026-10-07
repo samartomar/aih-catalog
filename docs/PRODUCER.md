@@ -214,8 +214,17 @@ No sibling checkout or lock is read.
 
 **What the fetch proves.** On a cache miss, the GitHub API is asked whether the declared
 repository is still served as itself. A cache hit reuses that earlier identity check;
-it does not make a fresh API request. The fetch must return exactly the pinned commit id, whose
-objects are content-addressed. That identifies the commit's bytes; it does not prove the
+it does not make a fresh API request. On Windows, the cache root must belong to the
+current user SID; write, delete and permission-changing grants are limited to that
+SID, SYSTEM and Administrators. Newly created roots receive a private ACL. Existing
+cache permissions are inspected, never repaired, and unavailable or ambiguous ACL
+inspection is refused. Verification receipts and Git object evidence must be regular
+owned entries; object alternates are refused.
+
+The fetch must return exactly the pinned commit id. It rehashes the raw commit and
+reachable tree objects, then each regular blob when read, against their Git object
+IDs. A substituted object is refused even when Git can read it. That identifies the
+commit's bytes; it does not prove the
 commit belongs to the declared repository's own history, because GitHub serves objects
 across a repository's fork network for a bare commit id. Review the pin like any other
 input. Git replacement refs are never honored (`--no-replace-objects` on every Git call),
@@ -289,8 +298,8 @@ labeled `originVerified: false` in its summary.
 `tools/generate-release.mjs` is the donor seed generator. Once the upstream release
 has advanced beyond that seed, generation refuses and directs maintainers to the
 targeted producer. Its `--check` mode still checks authored context and hook output.
-There is currently no separate authored-only regeneration command after a pin
-advances: the targeted producer preserves authored bytes, while checks require
-them to match the renderer. A future intentional context/hook renderer change
-needs a reviewed regeneration path that preserves upstream content; using the
-donor seed is not a remedy. This integration retains the verified authored bytes.
+After an intentional hook renderer change, build and run
+`node tools/generate-release.mjs --hooks-only`. This mode regenerates the authored
+release 1.1 hook closure, verifies selector continuity and preserves release 1.0
+and its upstream content. Context changes still need a reviewed regeneration path;
+using the donor seed after an upstream pin advances is not a remedy.

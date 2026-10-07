@@ -1,6 +1,8 @@
 {
   "schema": "aihq-catalog-greenfield-integration-evidence",
   "version": 1,
+  "evidenceStage": "initial integration before the security correction",
+  "supersededArtifactEvidence": "security-correction.json",
   "integrationBase": "07cf5daceae07561fe5fb7fae47f4d37fd9441ed",
   "candidateBase": "a1059df9c1543fd8326424053280b4b94e93397e",
   "publication": "disabled",

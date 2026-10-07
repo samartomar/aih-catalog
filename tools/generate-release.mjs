@@ -32,7 +32,7 @@ const renderer = await import(new URL("../dist/release/project-context.js", impo
  * with those bytes. Reading the generated release never needs those assessment
  * files, qualification, Scan or Workbench. Nothing is fetched or executed.
  *
- *   node tools/generate-release.mjs [--check] [catalog-root]
+ *   node tools/generate-release.mjs [--check | --hooks-only] [catalog-root]
  *
  * The authored project context is rendered for the published default instruction
  * directory (`ai-coding`) by the built renderer in dist/release/project-context.js.
@@ -41,6 +41,8 @@ const renderer = await import(new URL("../dist/release/project-context.js", impo
  * (tools/prepare-candidate.mjs) has advanced release/ beyond that snapshot, `--check`
  * checks the authored context separately and defers upstream integrity to
  * tools/check-release.mjs; generation refuses instead of restoring the older snapshot.
+ * --hooks-only regenerates just the authored 1.1 hook closure, with selector continuity
+ * checked against the committed baseline, and never rewrites the 1.0 release.
  */
 export const OUTPUT_ROOT = "release";
 export const RELEASE_PATH = "release/release.json";
@@ -152,6 +154,13 @@ function hookRelease(pkg, put) {
       items: family.items,
     }),
   );
+}
+
+/** The authored 1.1 closure only; preserves the targeted upstream/context release. */
+export function generateHookRelease(root) {
+  const files = new Map();
+  hookRelease(readJson(root, "package.json"), (path, bytes) => files.set(path, bytes));
+  return files;
 }
 
 /** The hook release is authored and independent of the upstream pin; it must match its generator. */
@@ -348,12 +357,13 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   try {
     const args = process.argv.slice(2);
     const check = args[0] === "--check";
-    if (check) args.shift();
+    const hooksOnly = args[0] === "--hooks-only";
+    if (check || hooksOnly) args.shift();
     if (args.length > 1 || args[0]?.startsWith("-")) {
-      fail("usage: node tools/generate-release.mjs [--check] [catalog-root]");
+      fail("usage: node tools/generate-release.mjs [--check | --hooks-only] [catalog-root]");
     }
     const root = resolve(args[0] ?? resolve(dirname(fileURLToPath(import.meta.url)), ".."));
-    if (!check) assertSeedGenerationAllowed(root);
+    if (!check && !hooksOnly) assertSeedGenerationAllowed(root);
     const baseline = process.env.AIHQ_RELEASE_BASELINE ?? "HEAD";
     let gitRoot;
     try {
@@ -365,7 +375,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     }
     const sameRoot = gitRoot !== undefined &&
       (process.platform === "win32"
-        ? realpathSync(gitRoot).toLowerCase() === realpathSync(root).toLowerCase()
+        ? realpathSync.native(gitRoot).toLowerCase() === realpathSync.native(root).toLowerCase()
         : realpathSync(gitRoot) === realpathSync(root));
     if (!sameRoot && (!check || process.env.AIHQ_RELEASE_BASELINE !== undefined)) {
       fail("selector continuity needs a Git root and a committed baseline");
@@ -387,11 +397,11 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       console.log("Checked authored context and release/release-1.1.json; upstream release advanced beyond the donor snapshot. Run npm run check:release.");
       process.exit(0);
     }
-    const files = generateRelease(root);
+    const files = hooksOnly ? generateHookRelease(root) : generateRelease(root);
     // Compare with one immutable commit before checking or writing output. The working
     // tree cannot redefine its own baseline by deleting or regenerating release/.
     await continuity(files);
-    const stale = existingFiles(root).filter((path) => !files.has(path));
+    const stale = hooksOnly ? [] : existingFiles(root).filter((path) => !files.has(path));
     if (check) {
       for (const [path, bytes] of files) {
         let existing;
@@ -419,7 +429,9 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
         }
       }
     }
-    console.log(`${check ? "Checked" : "Generated"} ${RELEASE_PATH} and ${HOOK_RELEASE_PATH}: ${files.size - 2} recipe/material files`);
+    console.log(hooksOnly
+      ? `Generated ${HOOK_RELEASE_PATH}: ${files.size - 1} hook recipe/material files; ${RELEASE_PATH} unchanged`
+      : `${check ? "Checked" : "Generated"} ${RELEASE_PATH} and ${HOOK_RELEASE_PATH}: ${files.size - 2} recipe/material files`);
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
     process.exitCode = 1;

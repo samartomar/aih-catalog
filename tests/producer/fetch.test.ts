@@ -1,7 +1,8 @@
+import { execFileSync } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ProducerRefusal } from "../../src/producer/errors.js";
 import {
   type FetchedSourceTree,
@@ -11,18 +12,40 @@ import {
   type RetryPolicy,
 } from "../../src/producer/fetch.js";
 import type { GitRunner } from "../../src/producer/git-tree.js";
+import { FixtureRepository } from "./git-fixture.js";
 import { declaration, REPOSITORY } from "./helpers.js";
 
-const COMMIT = "5bf4e78011075bcfc0dc295f0724994cd123ee71";
 const API = `https://api.github.com/repos/${REPOSITORY}`;
+if (process.platform === "win32") vi.setConfig({ testTimeout: 60_000 });
 const FILES: Record<string, string> = { LICENSE: "mit", "skills/a/SKILL.md": "---\n---\n" };
 const out = (text: string) => new TextEncoder().encode(text);
+// Serve real content-addressed objects while controlling only the fetch/HTTP boundary.
+const source = new FixtureRepository();
+const first = source.commit(FILES, "fetch fixture");
+const linkBlob = source.git("rev-parse", `${first}:LICENSE`);
+source.git("update-index", "--add", "--cacheinfo", `120000,${linkBlob},link`);
+source.git("update-index", "--add", "--cacheinfo", `160000,${first},vendor/sub`);
+source.git(
+  "-c",
+  "user.name=Fixture",
+  "-c",
+  "user.email=fixture@example.invalid",
+  "-c",
+  "commit.gpgsign=false",
+  "commit",
+  "-qm",
+  "typed paths",
+);
+const COMMIT = source.git("rev-parse", "HEAD");
+afterAll(() => source.dispose());
 
 let cacheDir = "";
+let cacheParent = "";
 beforeEach(() => {
-  cacheDir = mkdtempSync(join(tmpdir(), "aih-producer-fetch-"));
+  cacheParent = mkdtempSync(join(tmpdir(), "aih-producer-fetch-"));
+  cacheDir = join(cacheParent, "cache");
 });
-afterEach(() => rmSync(cacheDir, { recursive: true, force: true }));
+afterEach(() => rmSync(cacheParent, { recursive: true, force: true }));
 
 /** A fake git that records every argument vector and serves one commit's tree. */
 function fakeGit(options: { fetchHead?: string; failFetch?: () => string | undefined } = {}) {
@@ -33,6 +56,7 @@ function fakeGit(options: { fetchHead?: string; failFetch?: () => string | undef
     const command = args.slice(2 + GIT_CONFIG.length);
     switch (command[0]) {
       case "init":
+        execFileSync("git", ["-C", String(args[1]), "init", "--bare", "-q"]);
         return out("");
       case "fetch": {
         const failure = options.failFetch?.();
@@ -49,17 +73,9 @@ function fakeGit(options: { fetchHead?: string; failFetch?: () => string | undef
           if (!objects.has(COMMIT)) throw new Error("fatal: Not a valid object name");
           return out("");
         }
-        if (command[1] === "-t") return out("commit\n");
-        return out(FILES[String(command[2]).slice(COMMIT.length + 1)] ?? "");
+        return source.run(...command);
       case "ls-tree":
-        return out(
-          [
-            ...Object.keys(FILES).map((path) => `100644 blob ${"1".repeat(40)}\t${path}`),
-            `120000 blob ${"2".repeat(40)}\tlink`,
-            `160000 commit ${"4".repeat(40)}\tvendor/sub`,
-            "",
-          ].join("\0"),
-        );
+        return source.run(...command);
       default:
         throw new Error(`unexpected git ${command.join(" ")}`);
     }

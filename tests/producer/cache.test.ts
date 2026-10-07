@@ -13,8 +13,13 @@ import {
 } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { dirname, join, sep } from "node:path";
-import { afterAll, describe, expect, it } from "vitest";
-import { defaultCacheDir, ensureOwnedCacheDir } from "../../src/producer/cache.js";
+import { deflateSync } from "node:zlib";
+import { afterAll, describe, expect, it, vi } from "vitest";
+import {
+  assertOwnedCacheEntry,
+  defaultCacheDir,
+  ensureOwnedCacheDir,
+} from "../../src/producer/cache.js";
 import { buildCandidate } from "../../src/producer/candidate.js";
 import { parseDeclaration as fixtureDeclaration } from "../../src/producer/declaration.js";
 import { ProducerRefusal } from "../../src/producer/errors.js";
@@ -24,6 +29,8 @@ import { FixtureRepository, UPSTREAM_A, UPSTREAM_B_CHANGES } from "./git-fixture
 import { declaration, makePackageRoot, REPOSITORY, root } from "./helpers.js";
 
 const scratch = mkdtempSync(join(tmpdir(), "aih-producer-cache-"));
+// Native ACL process checks are bounded individually and need more than Vitest's default.
+if (process.platform === "win32") vi.setConfig({ testTimeout: 60_000 });
 const links: string[] = [];
 afterAll(() => {
   for (const link of links) {
@@ -51,6 +58,20 @@ const realGit = (args: readonly string[]) =>
     env: { ...process.env, GIT_TERMINAL_PROMPT: "0" },
   });
 
+// These fixtures create a verified cache themselves instead of performing a fetch.
+function prepareFixtureEvidence(cache: string): void {
+  const gitDir = join(cache, "mattpocock__skills.git");
+  for (const path of [
+    gitDir,
+    join(gitDir, "objects"),
+    join(gitDir, "objects/info"),
+    join(gitDir, "objects/pack"),
+  ]) {
+    assertOwnedCacheEntry(path, "directory", true);
+  }
+  assertOwnedCacheEntry(join(cache, "mattpocock__skills.verified"), "file", true);
+}
+
 describe("immutable cached bytes (planted replacement ref)", () => {
   it("serves the pinned commit's own bytes even when refs/replace redirects it", async () => {
     const upstream = new FixtureRepository();
@@ -58,11 +79,12 @@ describe("immutable cached bytes (planted replacement ref)", () => {
       const a = upstream.commit(UPSTREAM_A, "first");
       const b = upstream.commit(UPSTREAM_B_CHANGES, "second");
       const cache = join(scratch, "replace-cache");
-      mkdirSync(cache);
+      ensureOwnedCacheDir(cache);
       const gitDir = join(cache, "mattpocock__skills.git");
       execFileSync("git", ["clone", "-q", "--bare", upstream.dir, gitDir]);
       execFileSync("git", ["-C", gitDir, "replace", a, b]);
       writeFileSync(join(cache, "mattpocock__skills.verified"), `${a}\n`);
+      prepareFixtureEvidence(cache);
       const tree = await fetchSourceTree({
         declaration: declaration(),
         repository: REPOSITORY,
@@ -142,6 +164,79 @@ describe("immutable cached bytes (planted replacement ref)", () => {
       upstream.dispose();
     }
   }, 120_000);
+});
+
+describe("cached source object integrity", () => {
+  it("refuses substituted loose blob bytes under a verified pinned commit", async () => {
+    const upstream = new FixtureRepository();
+    try {
+      const commit = upstream.commit(UPSTREAM_A, "first");
+      const path = "skills/productivity/grilling/SKILL.md";
+      const blob = upstream.git("rev-parse", `${commit}:${path}`);
+      const cache = join(scratch, "substituted-blob-cache");
+      ensureOwnedCacheDir(cache);
+      const gitDir = join(cache, "mattpocock__skills.git");
+      execFileSync("git", ["clone", "-q", "--bare", "--no-hardlinks", upstream.dir, gitDir]);
+      writeFileSync(join(cache, "mattpocock__skills.verified"), commit + "\n");
+      prepareFixtureEvidence(cache);
+
+      const replacement = Buffer.from("---\ndescription: Substituted.\n---\nUntrusted bytes.\n");
+      const looseObject = Buffer.concat([
+        Buffer.from("blob " + replacement.length + "\0", "utf8"),
+        replacement,
+      ]);
+      writeFileSync(
+        join(gitDir, "objects", blob.slice(0, 2), blob.slice(2)),
+        deflateSync(looseObject),
+      );
+
+      const tree = await fetchSourceTree({
+        declaration: declaration(),
+        repository: REPOSITORY,
+        commit,
+        cacheDir: cache,
+        git: realGit,
+        http: async () => {
+          throw new Error("network must not be used for this cache-hit check");
+        },
+      });
+
+      expect(tree.cache).toBe("hit");
+      expect(() => tree.read(path)).toThrowError(
+        expect.objectContaining({ reason: "cache-object-invalid" }),
+      );
+    } finally {
+      upstream.dispose();
+    }
+  });
+
+  it.skipIf(process.platform !== "win32")(
+    "refuses a retained cache writable by Everyone before contacting the upstream",
+    async () => {
+      const cache = join(scratch, "everyone-modify-cache");
+      ensureOwnedCacheDir(cache);
+      execFileSync("icacls.exe", [cache, "/grant", "*S-1-1-0:(OI)(CI)M"], {
+        encoding: "utf8",
+        windowsHide: true,
+      });
+      let requests = 0;
+
+      await expect(
+        fetchSourceTree({
+          declaration: declaration(),
+          repository: REPOSITORY,
+          commit: "a".repeat(40),
+          cacheDir: cache,
+          git: realGit,
+          http: async () => {
+            requests += 1;
+            return { status: 404, body: "{}" };
+          },
+        }),
+      ).rejects.toMatchObject({ reason: "cache-unsafe" });
+      expect(requests).toBe(0);
+    },
+  );
 });
 
 describe("the retained cache location", () => {

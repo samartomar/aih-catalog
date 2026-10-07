@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Require verified Windows cache ownership and write permissions, and verify
+  pinned Git object bytes before serving cached content.
+- Cover Windows data-stream targets in the carried env hook and regenerate its
+  authored 1.1 closure without replacing the refreshed upstream release.
 - Refresh all 27 Matt Pocock plugin skills at the immutable v1.3 commit, carrying
   23 referenced support files with checked Core writes. Refuse ambiguous plugin
   manifests and prevent the donor seed generator from overwriting an advanced release.
