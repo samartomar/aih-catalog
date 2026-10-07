@@ -47,6 +47,18 @@ const fixtureFiles = (manifest: string | Uint8Array) => ({
 });
 
 describe("declared Matt Pocock support files", () => {
+  it("accepts a wide valid manifest inside the advertised byte and nesting bounds", () => {
+    const manifest = JSON.stringify({
+      skills: ["./skills/engineering/tdd"],
+      extra: Array(150000).fill(0),
+    });
+    const candidate = buildCandidate({
+      declaration: fixtureDeclaration(),
+      package: packageIdentity(),
+      tree: memoryTree(REVISION, fixtureFiles(manifest)),
+    });
+    expect(candidate.report.summary.added).toBe(1);
+  });
   it("refuses an ambiguous manifest instead of silently taking the last skills list", () => {
     expect(() =>
       buildCandidate({

@@ -5,7 +5,7 @@ import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { contractSupport } from "../../src/release/contracts.js";
 import { seedConsumerLock } from "../../tools/seed-consumer-lock.mjs";
-import { MATT_ITEM_IDS, sha256 } from "./fixtures.js";
+import { MATT_ITEM_IDS, MATT_REQUIRED, sha256 } from "./fixtures.js";
 
 const root = resolve(import.meta.dirname, "../..");
 const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
@@ -228,8 +228,7 @@ describe("exact packed consumer", () => {
       "aihq.project-context-pointer.gemini-md": ["aihq.project-context"],
       "aihq.project-context-pointer.kiro-steering": ["aihq.project-context"],
       "aihq.project-context-pointer.windsurfrules": ["aihq.project-context"],
-      "mattpocock.grill-me": ["mattpocock.grilling"],
-      "mattpocock.grilling": [],
+      ...MATT_REQUIRED,
     };
     const requires = Object.fromEntries(
       expectedItems.map((id, index) => [

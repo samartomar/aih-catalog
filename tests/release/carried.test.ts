@@ -4,7 +4,13 @@ import { join, relative, resolve } from "node:path";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
 import { listItems, readRelease } from "../../src/release/reader.js";
-import { canonical, MATT_ITEM_IDS, MATT_SOURCE_REVISION, sha256 } from "./fixtures.js";
+import {
+  canonical,
+  MATT_ITEM_IDS,
+  MATT_REQUIRED,
+  MATT_SOURCE_REVISION,
+  sha256,
+} from "./fixtures.js";
 
 const root = resolve(import.meta.dirname, "../..");
 const bytesAt = (path: string) => readFileSync(resolve(root, path));
@@ -68,7 +74,7 @@ describe("carried release", () => {
     for (const item of listItems(release).filter((entry) => entry.id.startsWith("mattpocock."))) {
       expect(item.sourceIds).toEqual(["mattpocock-skills-d81f3a183412"]);
       expect(item.dependencies.requires).toEqual(
-        item.id === "mattpocock.grill-me" ? [{ itemId: "mattpocock.grilling" }] : [],
+        (MATT_REQUIRED[item.id] ?? []).map((itemId) => ({ itemId })),
       );
     }
   });

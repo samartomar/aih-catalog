@@ -145,3 +145,18 @@ export const MATT_ITEM_IDS = [
 ].map((name) => `mattpocock.${name}`);
 
 export const MATT_SOURCE_REVISION = "d81f3a183412e71a5b1e84ca21bc1a35eea03a60";
+
+/** Mandatory composition read from the pinned upstream skill instructions. */
+export const MATT_REQUIRED: Record<string, string[]> = {
+  "mattpocock.grill-me": ["mattpocock.grilling"],
+  "mattpocock.grill-with-docs": ["mattpocock.domain-modeling", "mattpocock.grilling"],
+  "mattpocock.implement": ["mattpocock.code-review"],
+  "mattpocock.implement-spec": ["mattpocock.code-review", "mattpocock.tdd"],
+  "mattpocock.improve-codebase-architecture": [
+    "mattpocock.codebase-design",
+    "mattpocock.domain-modeling",
+    "mattpocock.grilling",
+  ],
+  "mattpocock.retro": ["mattpocock.writing-for-agents"],
+  "mattpocock.wayfinder": ["mattpocock.domain-modeling", "mattpocock.grilling"],
+};

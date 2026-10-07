@@ -289,3 +289,8 @@ labeled `originVerified: false` in its summary.
 `tools/generate-release.mjs` is the donor seed generator. Once the upstream release
 has advanced beyond that seed, generation refuses and directs maintainers to the
 targeted producer. Its `--check` mode still checks authored context and hook output.
+There is currently no separate authored-only regeneration command after a pin
+advances: the targeted producer preserves authored bytes, while checks require
+them to match the renderer. A future intentional context/hook renderer change
+needs a reviewed regeneration path that preserves upstream content; using the
+donor seed is not a remedy. This integration retains the verified authored bytes.

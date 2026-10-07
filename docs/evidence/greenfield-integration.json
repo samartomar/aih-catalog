@@ -9,8 +9,8 @@
     "name": "@aihq/catalog",
     "version": "0.1.0",
     "filename": "aihq-catalog-0.1.0.tgz",
-    "sha256": "4dc2eb5a52e549b09b85c8737c5e1b8634b42e90b1415eb85af88ca8283932ed",
-    "byteLength": 174032,
+    "sha256": "a321c48acdf7bbf7f1d0e202c03c0ac20c8bb273df694d94e8a1f297ea261012",
+    "byteLength": 174075,
     "lifecycleScripts": "disabled",
     "source": "integration working tree after final runtime/content edits; docs evidence excluded from tarball"
   },
@@ -31,9 +31,9 @@
       "provenance-only": 2
     },
     "release": {
-      "sha256": "2f5027598424a38599b2fefd670d1d4ecc496253d66310a89834f0db989c0b55",
-      "byteLength": 63351,
-      "baseSha256": "16ffeabe53e5f9b42705ce1e25e913cd73b7214f0f03449141e8ccdf872a507a"
+      "sha256": "aabdf1fb75d4798c6da5aeda728c4c9150f37de0e618fb0e8048f7088309a100",
+      "byteLength": 63747,
+      "baseSha256": "2f5027598424a38599b2fefd670d1d4ecc496253d66310a89834f0db989c0b55"
     },
     "elapsedSeconds": 245.298,
     "ceilingSeconds": 3600,
@@ -109,6 +109,68 @@
       "awaited": false,
       "status": "not-awaited",
       "note": "Optional Scan evidence is separate: it is neither awaited nor required, and no result is produced or implied here."
+    },
+    "initialRelease": {
+      "sha256": "2f5027598424a38599b2fefd670d1d4ecc496253d66310a89834f0db989c0b55",
+      "byteLength": 63351,
+      "baseSha256": "16ffeabe53e5f9b42705ce1e25e913cd73b7214f0f03449141e8ccdf872a507a"
+    },
+    "dependencyCorrection": {
+      "reason": "independent review found mandatory skill composition missing from declarations",
+      "delta": {
+        "added": 0,
+        "changed": 6,
+        "removed": 0,
+        "unchanged": 40,
+        "dependent-confirmed": 0,
+        "provenance-only": 0
+      },
+      "elapsedSeconds": 12.574,
+      "cache": {
+        "condition": "retained-cache",
+        "dependencies": "not reported by this run",
+        "sourceObjects": "hit"
+      },
+      "originVerified": true,
+      "checks": [
+        {
+          "name": "load-base",
+          "status": "passed"
+        },
+        {
+          "name": "fetch-inputs",
+          "status": "passed"
+        },
+        {
+          "name": "affected-production",
+          "status": "passed"
+        },
+        {
+          "name": "integrity",
+          "status": "passed"
+        },
+        {
+          "name": "stage-and-pack",
+          "status": "passed"
+        },
+        {
+          "name": "verify-packed",
+          "status": "passed"
+        },
+        {
+          "name": "consumer-handoff",
+          "status": "skipped"
+        },
+        {
+          "name": "review-preparation",
+          "status": "passed"
+        },
+        {
+          "name": "install",
+          "status": "passed"
+        }
+      ],
+      "consumerHandoff": "exact final-artifact consumers recorded below; no Core artifact supplied to this bounded producer re-apply"
     }
   },
   "preservation": {
@@ -126,9 +188,9 @@
     "command": "npm ci --ignore-scripts; npm run verify",
     "releaseBaseline": "07cf5daceae07561fe5fb7fae47f4d37fd9441ed",
     "status": "passed",
-    "testsPassed": 636,
+    "testsPassed": 638,
     "testsSkipped": 3,
-    "testsTotal": 639,
+    "testsTotal": 641,
     "skipped": "three optional tests requiring an explicitly supplied Core artifact; exact-artifact consumers below ran separately",
     "vulnerabilities": {
       "info": 0,
@@ -153,7 +215,7 @@
         "conflicting": 0,
         "unresolved": 0
       },
-      "releaseSha256": "2f5027598424a38599b2fefd670d1d4ecc496253d66310a89834f0db989c0b55",
+      "releaseSha256": "aabdf1fb75d4798c6da5aeda728c4c9150f37de0e618fb0e8048f7088309a100",
       "publicImports": true,
       "dependencyMapping": true,
       "defaultOrigin": "not-applicable",
@@ -193,7 +255,7 @@
         }
       ],
       "coreSha256": "e0d26cf43add77247ca00177278e978aaf1459af28ea3dc7d9952f1a8a1773fc",
-      "catalogSha256": "4dc2eb5a52e549b09b85c8737c5e1b8634b42e90b1415eb85af88ca8283932ed"
+      "catalogSha256": "a321c48acdf7bbf7f1d0e202c03c0ac20c8bb273df694d94e8a1f297ea261012"
     },
     "customInstructionDirectory": {
       "status": "passed",
@@ -208,7 +270,7 @@
         "conflicting": 0,
         "unresolved": 0
       },
-      "releaseSha256": "2f5027598424a38599b2fefd670d1d4ecc496253d66310a89834f0db989c0b55",
+      "releaseSha256": "aabdf1fb75d4798c6da5aeda728c4c9150f37de0e618fb0e8048f7088309a100",
       "publicImports": true,
       "dependencyMapping": true,
       "defaultOrigin": "not-applicable",
@@ -220,8 +282,8 @@
         "instructionDirectory": ".ai/context",
         "familyFilesDelivered": 21,
         "derivation": {
-          "installedReleaseSha256": "2f5027598424a38599b2fefd670d1d4ecc496253d66310a89834f0db989c0b55",
-          "derivedReleaseSha256": "1fdef6c002dcb514d8afe7fea5cc7741a6a7494489930306b093db959ac3060f",
+          "installedReleaseSha256": "aabdf1fb75d4798c6da5aeda728c4c9150f37de0e618fb0e8048f7088309a100",
+          "derivedReleaseSha256": "aa30edc0f445605de9a7bc351d3ea0828a5b5f6fa82cc7a92eff7cd2fd7e3502",
           "renderer": "aihq-project-context-renderer@2",
           "deterministic": true,
           "installedPackageUnchanged": true,
@@ -258,7 +320,7 @@
         }
       ],
       "coreSha256": "e0d26cf43add77247ca00177278e978aaf1459af28ea3dc7d9952f1a8a1773fc",
-      "catalogSha256": "4dc2eb5a52e549b09b85c8737c5e1b8634b42e90b1415eb85af88ca8283932ed"
+      "catalogSha256": "a321c48acdf7bbf7f1d0e202c03c0ac20c8bb273df694d94e8a1f297ea261012"
     },
     "hookOwnership": {
       "status": "passed",
@@ -271,7 +333,7 @@
       "policy10Refused": true,
       "cli": "add-remove",
       "coreSha256": "e0d26cf43add77247ca00177278e978aaf1459af28ea3dc7d9952f1a8a1773fc",
-      "catalogSha256": "4dc2eb5a52e549b09b85c8737c5e1b8634b42e90b1415eb85af88ca8283932ed"
+      "catalogSha256": "a321c48acdf7bbf7f1d0e202c03c0ac20c8bb273df694d94e8a1f297ea261012"
     },
     "browser": {
       "status": "passed",

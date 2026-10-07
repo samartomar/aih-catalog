@@ -18,6 +18,25 @@ Every skill receives the exact upstream MIT license notice. Support files retain
 their upstream bytes, hash, byte length and revision-addressed material location;
 their recipes install nested support paths beside the skill and verify each hash.
 
+Mandatory composition is declared from the pinned skill instructions, rather than
+inferred from every slash mention. Consumers must explicitly select these callees:
+
+| Skill | Required skills |
+| --- | --- |
+| `grill-me` | `grilling` |
+| `grill-with-docs` | `domain-modeling`, `grilling` |
+| `implement` | `code-review` |
+| `implement-spec` | `code-review`, `tdd` |
+| `improve-codebase-architecture` | `codebase-design`, `domain-modeling`, `grilling` |
+| `retro` | `writing-for-agents` |
+| `wayfinder` | `domain-modeling`, `grilling` |
+
+Conditional helpers are deliberately not unconditional required edges: triage's
+grill-if-needed path, TDD's interface-question reference, implementation's TDD-where-
+possible guidance, Wayfinder research/prototype ticket branches, suggested skills
+and missing-setup advice. A caller choosing those flows selects the relevant
+helpers explicitly. This producer does not synthesize optional recommendations.
+
 The run uses `--advance-provenance` so every Matt Pocock item identifies the new
 immutable pin. Provenance-only movement is reported separately from operational
 changes. Authored project-context records and members, the hook release and its

@@ -20,7 +20,7 @@ export function readUpstreamObject(bytes: Uint8Array): Record<string, unknown> {
         keys.add(key);
       }
     }
-    pending.push(...(node.children ?? []));
+    for (const child of node.children ?? []) pending.push(child);
   }
   const value = getNodeValue(root) as Record<string, unknown>;
   assertStrictValues(value);

@@ -32,7 +32,7 @@
       "source": "mattpocock-skills",
       "label": "Grill with Docs",
       "skillPath": "skills/engineering/grill-with-docs/SKILL.md",
-      "requires": []
+      "requires": ["mattpocock.domain-modeling", "mattpocock.grilling"]
     },
     {
       "id": "mattpocock.triage",
@@ -48,7 +48,7 @@
       "label": "Improve Codebase Architecture",
       "skillPath": "skills/engineering/improve-codebase-architecture/SKILL.md",
       "supportPaths": ["HTML-REPORT.md"],
-      "requires": []
+      "requires": ["mattpocock.codebase-design", "mattpocock.domain-modeling", "mattpocock.grilling"]
     },
     {
       "id": "mattpocock.setup-matt-pocock-skills",
@@ -91,21 +91,21 @@
       "source": "mattpocock-skills",
       "label": "Wayfinder",
       "skillPath": "skills/engineering/wayfinder/SKILL.md",
-      "requires": []
+      "requires": ["mattpocock.domain-modeling", "mattpocock.grilling"]
     },
     {
       "id": "mattpocock.implement",
       "source": "mattpocock-skills",
       "label": "Implement",
       "skillPath": "skills/engineering/implement/SKILL.md",
-      "requires": []
+      "requires": ["mattpocock.code-review"]
     },
     {
       "id": "mattpocock.implement-spec",
       "source": "mattpocock-skills",
       "label": "Implement Spec",
       "skillPath": "skills/engineering/implement-spec/SKILL.md",
-      "requires": []
+      "requires": ["mattpocock.code-review", "mattpocock.tdd"]
     },
     {
       "id": "mattpocock.prototype",
@@ -157,7 +157,7 @@
       "source": "mattpocock-skills",
       "label": "Retro",
       "skillPath": "skills/engineering/retro/SKILL.md",
-      "requires": []
+      "requires": ["mattpocock.writing-for-agents"]
     },
     {
       "id": "mattpocock.wizard",
