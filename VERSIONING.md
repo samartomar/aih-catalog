@@ -1,27 +1,19 @@
-# Versioning and release trains
+# Versioning
 
-`@aihq/catalog` uses Semantic Versioning on its public CLI, package exports, Catalog and
-Qualification Receipt formats, verdicts, and exit codes. Every merged PR carries exactly
-one of:
+Catalog uses Semantic Versioning for public package bytes and interfaces. Every
+merged PR carries exactly one of:
 
-- `semver:none` — docs, tests, CI, or maintainer tooling that needs no new package bytes;
+- `semver:none` — repository docs, tests, CI or tooling needing no public package bytes;
 - `semver:patch` — a compatible defect or security correction;
-- `semver:minor` — an additive public capability or format/verdict change; or
-- `semver:major` — an incompatible CLI, API, schema, receipt, or evidence change.
+- `semver:minor` — an additive public capability;
+- `semver:major` — an incompatible public interface or format change.
 
-`semver:none` work rides the open train but cannot start or bump a package cut. The
-highest package-bearing label in a coherent train determines the version. Related fixes
-accumulate in one release PR; an immediate hotfix train is reserved for security defects,
-installation blockers, evidence corruption, data loss, or comparable installed-user harm.
+Related changes accumulate in a coherent train; `semver:none` cannot start or bump
+a package cut. Bundled content changes require a new Catalog package version.
+An immediate hotfix is reserved for installed-user harm needing prompt correction.
 
-Merge, cut, candidate publication, installed acceptance, and stable promotion are
-separate effects. A package tag publishes immutable bytes under npm `next` and creates a
-prerelease GitHub Release. It never changes `latest`. Public installed acceptance must
-exercise the exact registry candidate with its compatible Core and Scanner baseline.
-Only a separate full-SHA owner authorization may promote the same bytes to npm `latest`
-and stable GitHub Release status; promotion never rebuilds or republishes.
-
-The promoted package train is independent of the signed Catalog head lifecycle. npm
-promotion neither signs nor advances a catalog head or Qualification Receipt, and catalog
-head promotion cannot publish npm bytes. The promoted stable package train is the
-supported default; release notes state the adoption action.
+The checkout is a migration workspace, not a publishable greenfield package.
+This setup does not reserve a future version or add compatibility commitments for
+retired V2 interfaces. Publication is blocked until
+[the transition completion criteria](docs/TRANSITION.md#completion-before-publication-can-resume)
+are implemented and verified; [RELEASING.md](RELEASING.md) owns publication policy.

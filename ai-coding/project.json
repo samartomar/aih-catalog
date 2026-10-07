@@ -2,27 +2,31 @@
   "schemaVersion": 1,
   "name": "aih-supported",
   "contextDir": "ai-coding",
-  "targets": ["claude", "codex"],
-  "description": "Public @aihq/catalog Catalog V2 producer and verifier.",
-  "languages": ["TypeScript/Node.js"],
+  "targets": [
+    "claude",
+    "codex"
+  ],
+  "description": "Catalog migration workspace; retained V2 donor implementation.",
+  "languages": [
+    "TypeScript/Node.js"
+  ],
   "packageManager": "npm",
-  "entrypoints": ["dist/cli.js"],
+  "entrypoints": [
+    "dist/cli.js"
+  ],
   "commands": {
     "typecheck": "npm run typecheck",
     "test": "npm test",
     "lint": "npm run lint",
-    "build": "npm run build",
+    "build": "npm run build:dist",
     "repoInit": "npm run repo:init",
     "repoDoctor": "npm run repo:doctor"
   },
-  "publication": "published-npm-package",
-  "supportedCatalogV2": {
-    "coreConsumption": "independently-attested-qualification-receipt-v2",
-    "documentation": "ai-coding/supported-catalog-v2.md",
-    "entrypoints": ["dist/cli.js"],
-    "organizationAdmission": "not-authoritative",
-    "publicationStatus": "published-npm-package",
-    "qualificationReceipt": "aih-supported-qualification-receipt-v2",
-    "status": "public-v2"
+  "publication": "blocked-during-migration",
+  "transition": {
+    "documentation": "docs/TRANSITION.md",
+    "status": "migration-donors",
+    "publicReaderImplemented": false,
+    "executableRecipesImplemented": false
   }
 }

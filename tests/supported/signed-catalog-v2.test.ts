@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import { createHash, generateKeyPairSync, type KeyObject, sign, verify } from "node:crypto";
 import {
   chmodSync,
+  cpSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
@@ -18,6 +19,31 @@ import { describe, expect, it, vi } from "vitest";
 import { runCatalogV2Cli } from "../../src/supported/signed-catalog-v2.js";
 
 const root = resolve(import.meta.dirname, "..", "..");
+
+function disposableBuildRoot(parent: string): string {
+  const copy = resolve(parent, "repository");
+  mkdirSync(copy);
+  for (const path of [
+    "package.json",
+    "package-lock.json",
+    "tsconfig.build.json",
+    "tsconfig.json",
+    "README.md",
+    "LICENSE",
+    "src",
+    "tools",
+    "defaults",
+  ]) {
+    if (existsSync(resolve(root, path)))
+      cpSync(resolve(root, path), resolve(copy, path), { recursive: true });
+  }
+  symlinkSync(
+    resolve(root, "node_modules"),
+    resolve(copy, "node_modules"),
+    process.platform === "win32" ? "junction" : "dir",
+  );
+  return copy;
+}
 const coreCommit = "c31741602b3dbd5f228dafe00591e5679c782878";
 const corePackageManifestSha256 =
   "8dc114f1564af7330e4376aad716a8622766c28e97c2b3fc74ae87da0a2cc185";
@@ -481,6 +507,20 @@ function npmCli(): string {
   throw new Error("unable to resolve a local npm-cli.js");
 }
 
+function isolatedNpmInstallConfiguration(
+  temp: string,
+  inherited: NodeJS.ProcessEnv = process.env,
+): { userconfig: string; environment: NodeJS.ProcessEnv } {
+  const userconfig = resolve(temp, "empty.npmrc");
+  writeFileSync(userconfig, "");
+  const environment = { ...inherited };
+  for (const key of Object.keys(environment)) {
+    if (/^npm_config_(?:allow[-_]?scripts|userconfig)$/i.test(key)) delete environment[key];
+  }
+  environment.npm_config_userconfig = userconfig;
+  return { userconfig, environment };
+}
+
 function canCreateFileAndDirectorySymlinks(): boolean {
   const probe = mkdtempSync(join(tmpdir(), "aih-supported-symlink-probe-"));
   try {
@@ -503,6 +543,30 @@ function canCreateFileAndDirectorySymlinks(): boolean {
 }
 
 describe("public signed catalog V2 acceptance contract", () => {
+  it("builds in a disposable repository copy without rewriting checkout defaults or source", () => {
+    const status = () =>
+      spawnSync("git", ["status", "--porcelain", "--", "defaults", "src"], {
+        cwd: root,
+        encoding: "utf8",
+      });
+    const before = status();
+    expect(before.status).toBe(0);
+    const temp = mkdtempSync(join(tmpdir(), "aih-supported-isolated-build-"));
+    try {
+      const buildRoot = disposableBuildRoot(temp);
+      const built = spawnSync(process.execPath, [npmCli(), "run", "build"], {
+        cwd: buildRoot,
+        encoding: "utf8",
+      });
+      expect(built.status, built.stderr).toBe(0);
+      expect(existsSync(resolve(buildRoot, "dist/cli.js"))).toBe(true);
+      const after = status();
+      expect(after.status).toBe(0);
+      expect(after.stdout).toBe(before.stdout);
+    } finally {
+      rmSync(temp, { force: true, recursive: true });
+    }
+  }, 60_000);
   it("prints deterministic help without entering a catalog effect path", () => {
     const output = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     const error = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
@@ -666,15 +730,16 @@ describe("public signed catalog V2 acceptance contract", () => {
     () => {
       const temp = mkdtempSync(join(tmpdir(), "aih-supported-symlink-custody-"));
       try {
+        const buildRoot = disposableBuildRoot(temp);
         const built = spawnSync(process.execPath, [npmCli(), "run", "build"], {
-          cwd: root,
+          cwd: buildRoot,
           encoding: "utf8",
         });
         expect(built.status).toBe(0);
         const packed = spawnSync(
           process.execPath,
           [npmCli(), "pack", "--json", "--pack-destination", temp],
-          { cwd: root, encoding: "utf8", maxBuffer: 4 * 1024 * 1024 },
+          { cwd: buildRoot, encoding: "utf8", maxBuffer: 4 * 1024 * 1024 },
         );
         expect(packed.status).toBe(0);
         const packedManifest = (JSON.parse(packed.stdout) as { filename: string }[])[0];
@@ -682,6 +747,7 @@ describe("public signed catalog V2 acceptance contract", () => {
         const consumer = resolve(temp, "consumer");
         mkdirSync(consumer);
         writeFileSync(resolve(consumer, "package.json"), '{"name":"symlink-custody-consumer"}');
+        const npmInstall = isolatedNpmInstallConfiguration(temp);
         const installed = spawnSync(
           process.execPath,
           [
@@ -691,11 +757,13 @@ describe("public signed catalog V2 acceptance contract", () => {
             "--no-audit",
             "--no-fund",
             "--ignore-scripts",
+            "--userconfig",
+            npmInstall.userconfig,
             resolve(temp, packedManifest.filename),
           ],
-          { cwd: consumer, encoding: "utf8" },
+          { cwd: consumer, encoding: "utf8", env: npmInstall.environment },
         );
-        expect(installed.status).toBe(0);
+        expect(installed.status, installed.stderr).toBe(0);
         const installedPackage = resolve(consumer, "node_modules/@aihq/catalog");
         const cliPath = resolve(installedPackage, "dist/cli.js");
         const defaultSeedPath = resolve(installedPackage, "defaults/default-catalog-v2.json");
@@ -939,7 +1007,7 @@ describe("public signed catalog V2 acceptance contract", () => {
         rmSync(temp, { force: true, recursive: true });
       }
     },
-    180_000,
+    600_000,
   );
   it("exposes the public V2 package/CLI and a Core lock only for qualification-basis derivation", async () => {
     const publicApi = await api();
@@ -977,6 +1045,76 @@ describe("public signed catalog V2 acceptance contract", () => {
     ] as const)
       expect(publicApi[operation]).toBeTypeOf("function");
     expect(Object.keys(publicApi).sort()).toEqual([
+      "CATALOG_ASSESSMENT_PROFILE_FORMAT_V1",
+      "CATALOG_ASSESSMENT_PROFILE_VERSION_V1",
+      "CATALOG_AUTHORING_BUNDLE_FORMAT_V1",
+      "CATALOG_AUTHORING_BUNDLE_MAX_BYTES_V1",
+      "CATALOG_AUTHORING_BUNDLE_REFUSALS_V1",
+      "CATALOG_AUTHORING_BUNDLE_SUBPATH_V1",
+      "CATALOG_AUTHORING_BUNDLE_VERSION_V1",
+      "CATALOG_CATEGORIES_FORMAT_V1",
+      "CATALOG_CATEGORIES_MAX_BYTES_V1",
+      "CATALOG_CATEGORIES_MAX_TAXONOMY_V1",
+      "CATALOG_CATEGORIES_REFUSALS_V1",
+      "CATALOG_CATEGORIES_ROOT_URL",
+      "CATALOG_CATEGORIES_SUBPATH_V1",
+      "CATALOG_CATEGORIES_VERSION_V1",
+      "CATALOG_COLLECTIONS_FORMAT_V1",
+      "CATALOG_COLLECTIONS_MAX_BYTES_V1",
+      "CATALOG_COLLECTIONS_REFUSALS_V1",
+      "CATALOG_COLLECTIONS_ROOT_URL",
+      "CATALOG_COLLECTIONS_SUBPATH_V1",
+      "CATALOG_COLLECTIONS_VERSION_V1",
+      "CATALOG_CONTENT_FORMAT_V1",
+      "CATALOG_CONTENT_INDEX_ROOT_URL",
+      "CATALOG_CONTENT_INDEX_SUBPATH_V1",
+      "CATALOG_CONTENT_MAX_BYTES_V1",
+      "CATALOG_CONTENT_REFUSALS_V1",
+      "CATALOG_CONTENT_VERSION_V1",
+      "CATALOG_CORE_MATERIAL_MAX_BYTES_V1",
+      "CATALOG_CORE_QUALIFICATION_SUBPATH_V1",
+      "CATALOG_FRAMEWORK_DESCRIPTOR_FORMAT_V1",
+      "CATALOG_FRAMEWORK_DESCRIPTOR_MAX_BYTES_V1",
+      "CATALOG_FRAMEWORK_DESCRIPTOR_REFUSALS_V1",
+      "CATALOG_FRAMEWORK_DESCRIPTOR_VERSION_V1",
+      "CATALOG_FRAMEWORK_ECC_SUBPATH_V1",
+      "CATALOG_FRAMEWORK_PLUGINS_FORMAT_V1",
+      "CATALOG_FRAMEWORK_PLUGINS_MAX_BYTES_V1",
+      "CATALOG_FRAMEWORK_PLUGINS_SUBPATH_V1",
+      "CATALOG_FRAMEWORK_PLUGINS_VERSION_V1",
+      "CATALOG_FRAMEWORK_SUPERPOWERS_SUBPATH_V1",
+      "CATALOG_PRESENTATION_FORMAT_V1",
+      "CATALOG_PRESENTATION_MAX_BYTES_V1",
+      "CATALOG_PRESENTATION_MAX_TEXT_V1",
+      "CATALOG_PRESENTATION_REFUSALS_V1",
+      "CATALOG_PRESENTATION_ROOT_URL",
+      "CATALOG_PRESENTATION_SUBPATH_V1",
+      "CATALOG_PRESENTATION_VERSION_V1",
+      "CATALOG_PUBLIC_BASELINE_SUBPATH_V1",
+      "CATALOG_QUALIFICATION_FORMAT_V1",
+      "CATALOG_QUALIFICATION_HEAD_MAX_BYTES_V1",
+      "CATALOG_QUALIFICATION_MAX_BYTES_V1",
+      "CATALOG_QUALIFICATION_MAX_ENTRIES_V1",
+      "CATALOG_QUALIFICATION_REFUSALS_V1",
+      "CATALOG_QUALIFICATION_ROOT_URL",
+      "CATALOG_QUALIFICATION_SUBPATH_V1",
+      "CATALOG_QUALIFICATION_VERSION_V1",
+      "CATALOG_REFUSAL_OBSERVED_MAX_CHARS_V1",
+      "CATALOG_RUNTIME_DESCRIPTORS_FORMAT_V1",
+      "CATALOG_RUNTIME_DESCRIPTORS_MAX_BYTES_V1",
+      "CATALOG_RUNTIME_DESCRIPTORS_MAX_ENTRIES_V1",
+      "CATALOG_RUNTIME_DESCRIPTORS_REFUSALS_V1",
+      "CATALOG_RUNTIME_DESCRIPTORS_ROOT_URL",
+      "CATALOG_RUNTIME_DESCRIPTORS_SUBPATH_V1",
+      "CATALOG_RUNTIME_DESCRIPTORS_VERSION_V1",
+      "CATALOG_RUNTIME_DESCRIPTOR_MAX_BYTES_V1",
+      "CATALOG_SCANNER_EVIDENCE_SUBPATH_V1",
+      "CATALOG_SIGNED_CATALOG_ROOT_URL",
+      "CATALOG_SIGNED_CATALOG_SUBPATH_V1",
+      "CATALOG_SOURCE_CLOSURE_FORMAT_V1",
+      "CATALOG_SOURCE_CLOSURE_VERSION_V1",
+      "CATALOG_SOURCE_FILE_MAX_BYTES_V1",
+      "CATALOG_SOURCE_ROOT_URL",
       "QUALIFICATION_RECEIPT_SET_V1_MAX_BYTES",
       "QUALIFICATION_RECEIPT_SET_V1_MAX_ENTRIES",
       "QUALIFICATION_RECEIPT_V2_MAX_BYTES",
@@ -989,10 +1127,36 @@ describe("public signed catalog V2 acceptance contract", () => {
       "emitQualificationReceipt",
       "emitQualificationReceiptSet",
       "inspectSignedCatalogV2",
+      "parseCatalogContentV1Bytes",
       "parseCatalogHeadV2Json",
       "parseQualificationReceiptSetV1Json",
       "parseQualificationReceiptV2Json",
       "planCatalogPromotionV2",
+      "prepareCatalogSourceDataV1",
+      "readCatalogAuthoringBundleV1",
+      "readCatalogAuthoringBundleV1Result",
+      "readCatalogCategoriesV1",
+      "readCatalogCategoriesV1Result",
+      "readCatalogCollectionsV1",
+      "readCatalogCollectionsV1Result",
+      "readCatalogContentV1",
+      "readCatalogContentV1Result",
+      "readCatalogCoreQualificationV1Result",
+      "readCatalogFrameworkDescriptorV1",
+      "readCatalogFrameworkDescriptorV1Result",
+      "readCatalogFrameworkPluginsV1",
+      "readCatalogFrameworkPluginsV1Result",
+      "readCatalogPresentationV1",
+      "readCatalogPresentationV1Result",
+      "readCatalogPublicBaselineV1Result",
+      "readCatalogQualificationV1",
+      "readCatalogQualificationV1Result",
+      "readCatalogRuntimeDescriptorsV1",
+      "readCatalogRuntimeDescriptorsV1Result",
+      "readCatalogScannerEvidenceV1Result",
+      "readCatalogSourceClosureV1",
+      "resolveCatalogContentPathV1",
+      "resolveCatalogQualificationPathV1",
       "signCatalogHeadV2",
       "verifySignedCatalogV2",
     ]);
@@ -3457,7 +3621,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       expect(() => publicApi.inspectSignedCatalogV2(rejected)).toThrow();
   });
 
-  it("derives promotion differences from closed head surfaces and preserves last-good for every material exception", async () => {
+  it("derives promotion differences from closed head surfaces, preserves last-good for every material exception and states findings as information", async () => {
     const publicApi = await api();
     const fixture = signingFixture();
     const lastGood = publicApi.createCatalogHeadV2(headInput(fixture.signer));
@@ -3561,9 +3725,6 @@ describe("public signed catalog V2 acceptance contract", () => {
       ).toThrow();
     for (const surface of [
       "claims",
-      "finding",
-      "gap",
-      "report",
       "right",
       "signer",
       "closure",
@@ -3614,6 +3775,46 @@ describe("public signed catalog V2 acceptance contract", () => {
         },
       ]);
     }
+    // D50: findings, gaps and the report stating them are information about an entry. A change in
+    // them is stated as a fact and never holds the candidate back; with a material change beside
+    // it, the head is kept for that change and the finding fact is still stated.
+    for (const surface of ["finding", "gap", "report"]) {
+      const candidateHead = publicApi.createCatalogHeadV2(changedSurface(lastGood, surface));
+      const result = publicApi.planCatalogPromotionV2({
+        candidateHead,
+        lastGood,
+        now: "2026-08-22T12:00:00Z",
+      }) as Record<string, unknown>;
+      expect(result).toStrictEqual({
+        kind: "promoted",
+        head: candidateHead,
+        facts: [
+          {
+            surface,
+            identity: expect.any(String),
+            lastGoodSurfaceSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+            candidateSurfaceSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+          },
+        ],
+      });
+    }
+    const findingAndClosure = changedSurface(lastGood, "finding");
+    const closureInput = changedSurface(lastGood, "closure");
+    findingAndClosure.entries = (findingAndClosure.entries as Record<string, unknown>[]).map(
+      (candidate, index) => ({
+        ...candidate,
+        closure: (closureInput.entries as Record<string, unknown>[])[index]?.closure,
+      }),
+    );
+    const heldForClosure = publicApi.planCatalogPromotionV2({
+      candidateHead: publicApi.createCatalogHeadV2(findingAndClosure),
+      lastGood,
+      now: "2026-08-22T12:00:00Z",
+    }) as Record<string, unknown>;
+    expect(heldForClosure).toMatchObject({ kind: "last-good", head: lastGood });
+    expect(
+      (heldForClosure.facts as { surface: string }[]).map((fact) => fact.surface).sort(),
+    ).toEqual(["closure", "finding"]);
     expect(() =>
       publicApi.planCatalogPromotionV2({
         candidateHead: { ...cleanSuccessor, catalogHeadSha256: sha("wrong-candidate-head") },
@@ -3818,7 +4019,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     );
     expect(packageJson).toContain('"verify:core-v2-lock"');
     expect(packageScripts.verify).toBe(
-      "npm run typecheck && npm run lint && npm run build && npm test",
+      "npm run typecheck && npm run lint && npm run build:dist && npm run check:catalog-index && npm run build && npm test",
     );
     expect(packageScripts["verify:core-v2-lock"]).toMatch(/^node tools\/verify-core-v2-lock\.mjs$/);
     expect(readFileSync(verifierPath, "utf8")).toContain("aih-governance-decision-source/v2\\0");
@@ -3957,9 +4158,15 @@ describe("public signed catalog V2 acceptance contract", () => {
       verificationMode: "cold-external-admin",
     });
     expect(coldAdminText.trim()).toBe(canonicalJson(coldAdmin as unknown as Json));
-    expect(packageJson.version).toBe("0.2.0");
+    expect(packageJson.version).toBe("0.3.0");
     expect(packageJson.bin).toEqual({ "aih-supported": "dist/cli.js" });
-    expect(packageJson.files).toEqual(["dist", "defaults", "README.md"]);
+    expect(packageJson.files).toEqual([
+      "dist",
+      "!dist/production/**",
+      "dist/production/source-data-v1.*",
+      "defaults",
+      "README.md",
+    ]);
     expect(packageJson.dependencies).toEqual({});
     expect(packageJson).not.toHaveProperty("private");
     expect(packageJson.repository).toEqual({
@@ -3982,7 +4189,7 @@ describe("public signed catalog V2 acceptance contract", () => {
       /^node dist\/cli\.js generate-candidate(?:\s|$)/,
     );
     expect(packageScripts.build).toBe(
-      "node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node tools/ensure-cli-executable.mjs",
+      "node tools/check-not-candidate.mjs && node tools/generate-catalog-index.mjs && node tools/generate-catalog-collections.mjs && node tools/check-not-candidate.mjs && node tools/clean-dist.mjs && tsc -p tsconfig.build.json && node dist/production/catalog-defaults-v1.js && node tools/ensure-cli-executable.mjs",
     );
     expect(packageScripts["sign:candidate"]).toMatch(/^node dist\/cli\.js sign-candidate(?:\s|$)/);
     expect(packageScripts["verify:cold-external-admin"]).toBe(
@@ -4045,6 +4252,22 @@ describe("public signed catalog V2 acceptance contract", () => {
     expect(packageJson.types).toBe("./dist/index.d.ts");
     expect(packageJson.exports).toEqual({
       ".": { import: "./dist/index.js", types: "./dist/index.d.ts" },
+      "./catalog-authoring-bundle.json": "./defaults/catalog-authoring-bundle-v1.json",
+      "./catalog-index.json": "./defaults/catalog-index-v1.json",
+      "./catalog-collections.json": "./defaults/catalog-collections-v1.json",
+      "./catalog-core-qualification.json": "./defaults/catalog-core-qualification-v1.json",
+      "./catalog-framework-ecc.json": "./defaults/catalog-framework-ecc-v1.json",
+      "./catalog-framework-plugins.json": "./defaults/catalog-framework-plugins-v1.json",
+      "./catalog-framework-superpowers.json": "./defaults/catalog-framework-superpowers-v1.json",
+      "./catalog-presentation.json": "./defaults/catalog-presentation-v1.json",
+      "./catalog-public-baseline.json": "./defaults/catalog-public-baseline-v1.json",
+      "./catalog-qualification.json": "./defaults/catalog-qualification-v1.json",
+      "./signed-catalog.json": "./defaults/signed-catalog-v2.json",
+      "./catalog-categories.json": "./defaults/catalog-categories-v1.json",
+      "./catalog-runtime-descriptors.json": "./defaults/catalog-runtime-descriptors-v1.json",
+      "./catalog-scanner-evidence.json": "./defaults/catalog-scanner-evidence-v1.json",
+      "./catalog-scanner-providers.json": "./defaults/catalog-scanner-providers-v1.json",
+      "./package.json": "./package.json",
     });
     expect(coldVerificationSource).toMatch(/import \* as api from '@aihq\/catalog'/);
     expect(packageScripts["verify:default-evidence-chain"]).toBe(
@@ -4065,31 +4288,32 @@ describe("public signed catalog V2 acceptance contract", () => {
     for (const script of Object.values(packageScripts)) expect(script).not.toMatch(/^true(?:\s|$)/);
     const temp = mkdtempSync(join(tmpdir(), "aih-supported-cold-"));
     try {
-      const staleOutput = resolve(root, "dist/stale.js");
-      mkdirSync(resolve(root, "dist"), { recursive: true });
+      const buildRoot = disposableBuildRoot(temp);
+      const staleOutput = resolve(buildRoot, "dist/stale.js");
+      mkdirSync(resolve(buildRoot, "dist"), { recursive: true });
       writeFileSync(staleOutput, "stale");
       expect((packageJson.scripts as Record<string, string>).build).toMatch(
         /(?:node tools\/clean-dist\.mjs|node -e .*dist.*rmSync).*tsc -p tsconfig\.build\.json/,
       );
       const buildStarted = Date.now();
       const build = spawnSync(process.execPath, [npmCli(), "run", "build"], {
-        cwd: root,
+        cwd: buildRoot,
         encoding: "utf8",
       });
       expect(build.status).toBe(0);
       expect(existsSync(staleOutput)).toBe(false);
       for (const output of ["dist/cli.js", "dist/index.js"] as const) {
-        const outputPath = resolve(root, output);
+        const outputPath = resolve(buildRoot, output);
         expect(existsSync(outputPath)).toBe(true);
         expect(statSync(outputPath).mtimeMs).toBeGreaterThanOrEqual(buildStarted - 1_000);
       }
       if (process.platform !== "win32")
-        expect(statSync(resolve(root, "dist/cli.js")).mode & 0o111).not.toBe(0);
+        expect(statSync(resolve(buildRoot, "dist/cli.js")).mode & 0o111).not.toBe(0);
       const packed = spawnSync(
         process.execPath,
         [npmCli(), "pack", "--json", "--pack-destination", temp],
         {
-          cwd: root,
+          cwd: buildRoot,
           encoding: "utf8",
           maxBuffer: 4 * 1024 * 1024,
         },
@@ -4112,8 +4336,32 @@ describe("public signed catalog V2 acceptance contract", () => {
       expect(tarFiles.filter((path) => path.startsWith("dist/")).sort()).toEqual([
         "dist/cli.d.ts",
         "dist/cli.js",
+        "dist/content/catalog-authoring-bundle-v1.d.ts",
+        "dist/content/catalog-authoring-bundle-v1.js",
+        "dist/content/catalog-categories-v1.d.ts",
+        "dist/content/catalog-categories-v1.js",
+        "dist/content/catalog-collections-v1.d.ts",
+        "dist/content/catalog-collections-v1.js",
+        "dist/content/catalog-content-v1.d.ts",
+        "dist/content/catalog-content-v1.js",
+        "dist/content/catalog-core-materials-v1.d.ts",
+        "dist/content/catalog-core-materials-v1.js",
+        "dist/content/catalog-framework-v1.d.ts",
+        "dist/content/catalog-framework-v1.js",
+        "dist/content/catalog-presentation-v1.d.ts",
+        "dist/content/catalog-presentation-v1.js",
+        "dist/content/catalog-qualification-v1.d.ts",
+        "dist/content/catalog-qualification-v1.js",
+        "dist/content/catalog-runtime-descriptors-v1.d.ts",
+        "dist/content/catalog-runtime-descriptors-v1.js",
+        "dist/content/catalog-source-closure-v1.d.ts",
+        "dist/content/catalog-source-closure-v1.js",
+        "dist/content/refusal-v1.d.ts",
+        "dist/content/refusal-v1.js",
         "dist/index.d.ts",
         "dist/index.js",
+        "dist/production/source-data-v1.d.ts",
+        "dist/production/source-data-v1.js",
         "dist/supported/signed-catalog-v2.d.ts",
         "dist/supported/signed-catalog-v2.js",
       ]);
@@ -4124,15 +4372,33 @@ describe("public signed catalog V2 acceptance contract", () => {
       const consumer = resolve(temp, "consumer");
       mkdirSync(consumer);
       writeFileSync(`${consumer}/package.json`, '{"name":"cold-admin-consumer","private":true}');
+      const poisonedUserconfig = resolve(temp, "poisoned.npmrc");
+      writeFileSync(poisonedUserconfig, "allow-scripts=true\n");
+      const npmInstall = isolatedNpmInstallConfiguration(temp, {
+        ...process.env,
+        npm_config_userconfig: poisonedUserconfig,
+        npm_config_allow_scripts: "true",
+      });
       const installed = spawnSync(
         process.execPath,
-        [npmCli(), "install", "--offline", "--no-audit", "--no-fund", "--ignore-scripts", tarball],
+        [
+          npmCli(),
+          "install",
+          "--offline",
+          "--no-audit",
+          "--no-fund",
+          "--ignore-scripts",
+          "--userconfig",
+          npmInstall.userconfig,
+          tarball,
+        ],
         {
           cwd: consumer,
           encoding: "utf8",
+          env: npmInstall.environment,
         },
       );
-      expect(installed.status).toBe(0);
+      expect(installed.status, installed.stderr).toBe(0);
       const installedManifest = JSON.parse(
         readFileSync(resolve(consumer, "node_modules/@aihq/catalog/package.json"), "utf8"),
       ) as Record<string, unknown>;
@@ -5838,7 +6104,7 @@ describe("public signed catalog V2 acceptance contract", () => {
     } finally {
       rmSync(temp, { force: true, recursive: true });
     }
-  }, 180_000);
+  }, 600_000);
 
   it("requires a manual exact-SHA OIDC/keyless workflow split into no-authority candidate, protected signer, and independent verifier jobs", () => {
     const packageJson = readFileSync(resolve(root, "package.json"), "utf8");

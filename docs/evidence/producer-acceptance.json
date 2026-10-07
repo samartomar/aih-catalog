@@ -1,0 +1,1538 @@
+{
+  "schema": "catalog-producer-local-acceptance",
+  "version": 1,
+  "scope": "Controlled local Git fixture using synthetic skill text. This is development evidence, not a real upstream refresh, CI measurement, distributed version or npm release.",
+  "implementationCommit": "6a827f216866f72fe7643058634f09870ffb6c42",
+  "localFixtureCandidateCommit": "c3328674a41da0d2d8f51f04d1f747006150cd04",
+  "fixture": "tests/producer/git-fixture.ts; baseline and declaration shape from tests/producer/delta.test.ts",
+  "sourceCommits": [
+    "9731d71f24e2308bb3ed715bf246a9c9d196ea63",
+    "83a02e44425568a0e66b4270008bfa65e908f068"
+  ],
+  "baselineReleaseSha256": "983f787492a60eafcac272dcda4d4f8ddac33435daf89a1c69c8eb5cfda6636b",
+  "itemSummary": {
+    "added": 1,
+    "changed": 2,
+    "removed": 1,
+    "unchanged": 1,
+    "dependent-confirmed": 1,
+    "provenance-only": 0
+  },
+  "candidateRelease": {
+    "sha256": "71c6e5544edeb6e48f8fa56d9e2f03839abe924c2068c9d43d9f1481cfcc77ca",
+    "byteLength": 6660,
+    "baseSha256": "983f787492a60eafcac272dcda4d4f8ddac33435daf89a1c69c8eb5cfda6636b"
+  },
+  "itemIdentityChecks": [
+    {
+      "id": "fixture.grill-me",
+      "state": "dependent-confirmed",
+      "operational": [],
+      "provenance": [],
+      "dependsOnChanged": [
+        "fixture.grilling"
+      ],
+      "itemSha256Before": "555b09d0e9f44dc924b65f9cab40194f5e37f20623e5fdd140ce2644d1663841",
+      "itemSha256After": "555b09d0e9f44dc924b65f9cab40194f5e37f20623e5fdd140ce2644d1663841"
+    },
+    {
+      "id": "fixture.grilling",
+      "state": "changed",
+      "operational": [
+        "material:skill"
+      ],
+      "provenance": [],
+      "dependsOnChanged": [],
+      "itemSha256Before": "3416995bbed1f544487ca59d4e976b095a2b2b73c2ceefe058c0dc29cf559351",
+      "itemSha256After": "c455b790ec5e7555db35f9523cc533d837512ef82456ee2fe183f5cd9ea2accf"
+    },
+    {
+      "id": "fixture.handoff",
+      "state": "changed",
+      "operational": [
+        "material:skill"
+      ],
+      "provenance": [],
+      "dependsOnChanged": [],
+      "itemSha256Before": "5b7c1dc427b37d62dcad140712b40849b3901042fc79bbf5cd25610aafad6d41",
+      "itemSha256After": "b031f25538b0f9bddbb606893b3ebc5695c778e33c3f00de86bfc9113e0fa4b0"
+    },
+    {
+      "id": "fixture.to-questionnaire",
+      "state": "added",
+      "operational": [
+        "new-item"
+      ],
+      "provenance": [],
+      "dependsOnChanged": [],
+      "itemSha256After": "1346904d52619ba80633e5850c153f404f0dd7ee802cff416427a7b479f74250"
+    },
+    {
+      "id": "fixture.wait-what",
+      "state": "removed",
+      "operational": [],
+      "provenance": [],
+      "dependsOnChanged": [],
+      "itemSha256Before": "67f911248a705c7bf9137f13ec0ab1f2d67c27caf2107206e546317e8e03f9c2"
+    },
+    {
+      "id": "fixture.writing-for-agents",
+      "state": "unchanged",
+      "operational": [],
+      "provenance": [],
+      "dependsOnChanged": [],
+      "itemSha256Before": "2387adc0970db691f15df58d8f4ee06b64ee079d41003d142709c63dc946977c",
+      "itemSha256After": "2387adc0970db691f15df58d8f4ee06b64ee079d41003d142709c63dc946977c"
+    }
+  ],
+  "detection": [
+    {
+      "detectedAt": "2026-10-01T10:14:01.0635945+00:00",
+      "from": "9731d71f24e2308bb3ed715bf246a9c9d196ea63",
+      "to": "83a02e44425568a0e66b4270008bfa65e908f068",
+      "changes": [
+        "M\tskills/productivity/grilling/SKILL.md",
+        "M\tskills/productivity/handoff/SKILL.md",
+        "A\tskills/productivity/to-questionnaire/SKILL.md",
+        "D\tskills/productivity/wait-what/SKILL.md"
+      ],
+      "note": "Detection event for this controlled replay; retained across any harness retry so all intervening elapsed time is counted."
+    },
+    {
+      "detectedAt": "2026-10-01T10:16:56.0284977Z",
+      "from": "9731d71f24e2308bb3ed715bf246a9c9d196ea63",
+      "to": "83a02e44425568a0e66b4270008bfa65e908f068",
+      "changes": [
+        "M\tskills/productivity/grilling/SKILL.md",
+        "M\tskills/productivity/handoff/SKILL.md",
+        "A\tskills/productivity/to-questionnaire/SKILL.md",
+        "D\tskills/productivity/wait-what/SKILL.md"
+      ],
+      "note": "Detection event for this controlled replay; retained across any harness retry so all intervening elapsed time is counted."
+    }
+  ],
+  "harnessAttempts": [
+    {
+      "attempt": 1,
+      "condition": "cold-install",
+      "outcome": "failed before candidate preparation",
+      "detectedAt": "2026-10-01T10:14:01.0635945Z",
+      "endedAt": "2026-10-01T10:14:01.3423322Z",
+      "cause": "The isolated fixture checkout had a built tool but no ajv dependency for its bootstrap imports.",
+      "correction": "Invoke the verified installed measurement runner with the explicit clean fixture source root.",
+      "clockPolicy": "The original detectedAt is reused for the successful retry; the failed start and all intervening elapsed time remain included."
+    },
+    {
+      "attempt": 2,
+      "condition": "cold-install",
+      "outcome": "failed before candidate preparation",
+      "endedAt": "2026-10-01T10:15:42.1113940Z",
+      "cause": "PowerShell converted the saved ISO timestamp to a DateTime and passed a locale-formatted value.",
+      "correction": "Normalize the original timestamp to UTC ISO before passing it to Node.",
+      "clockPolicy": "The initial detection timestamp is preserved."
+    }
+  ],
+  "scan": "Deliberately absent from both isolated workspaces. No Scan result is implied.",
+  "consumer": "An explicit reviewed packed Core artifact completed the generic consumer handoff in both runs.",
+  "disclosure": "Local filesystem arguments, free-text check details and a possible runner name are omitted from these excerpts. Required commit, artifact, workload, runtime, queue, phase, check, retry and ceiling fields are retained.",
+  "runs": [
+    {
+      "schema": "aihq-catalog-candidate-timing",
+      "version": 1,
+      "outcome": "ready",
+      "candidate": {
+        "commit": "c3328674a41da0d2d8f51f04d1f747006150cd04",
+        "dirty": false,
+        "artifactSha256": "e1a18031ecbb4a0b35af4a1b81634bbee5ae625061508db170c1b2fce074817b",
+        "artifactBytes": 41427
+      },
+      "package": {
+        "name": "@aihq/catalog",
+        "version": "0.3.0"
+      },
+      "workload": {
+        "source": "mattpocock/skills",
+        "targetRevision": "83a02e44425568a0e66b4270008bfa65e908f068",
+        "baseRevisions": [
+          "9731d71f24e2308bb3ed715bf246a9c9d196ea63"
+        ],
+        "declaredItems": 6,
+        "releasedItemsBefore": 5,
+        "candidateItems": 5,
+        "candidateFiles": 13,
+        "candidateReleaseBytes": 6660,
+        "upstreamInventoryFiles": 7,
+        "originVerified": false,
+        "delta": {
+          "added": 1,
+          "changed": 2,
+          "removed": 1,
+          "unchanged": 1,
+          "dependent-confirmed": 1,
+          "provenance-only": 0
+        }
+      },
+      "cache": {
+        "condition": "cold-install",
+        "dependencies": "installed fresh in this run (`npm ci --ignore-scripts`); the machine's npm package cache was not cleared",
+        "sourceObjects": "not-used"
+      },
+      "queue": {
+        "detectedAt": "2026-10-01T10:14:01.063Z",
+        "startedAt": "2026-10-01T10:16:30.879Z",
+        "queuedMs": 149816,
+        "note": "queue is detected-at to start of preparation and is counted in elapsed"
+      },
+      "clock": {
+        "startedAt": "2026-10-01T10:14:01.063Z",
+        "endedAt": "2026-10-01T10:16:55.843Z",
+        "elapsedMs": 174778.1863,
+        "elapsedSeconds": 174.778,
+        "ceilingSeconds": 3600,
+        "withinCeiling": true,
+        "humanWait": "excluded; none occurs inside this run"
+      },
+      "phases": [
+        {
+          "name": "checkout",
+          "startedAt": "2026-10-01T10:16:30.880Z",
+          "endedAt": "2026-10-01T10:16:34.253Z",
+          "durationMs": 3371.3559999999998,
+          "status": "passed",
+          "retries": 0
+        },
+        {
+          "name": "install-dependencies",
+          "startedAt": "2026-10-01T10:16:34.253Z",
+          "endedAt": "2026-10-01T10:16:36.100Z",
+          "durationMs": 1846.9363000000003,
+          "status": "passed",
+          "retries": 0
+        },
+        {
+          "name": "build",
+          "startedAt": "2026-10-01T10:16:36.100Z",
+          "endedAt": "2026-10-01T10:16:36.984Z",
+          "durationMs": 884.1019000000006,
+          "status": "passed",
+          "retries": 0
+        },
+        {
+          "name": "load-base",
+          "startedAt": "2026-10-01T10:16:38.818Z",
+          "endedAt": "2026-10-01T10:16:38.828Z",
+          "durationMs": 10.010700000000043,
+          "status": "passed",
+          "retries": 0
+        },
+        {
+          "name": "fetch-inputs",
+          "startedAt": "2026-10-01T10:16:38.828Z",
+          "endedAt": "2026-10-01T10:16:38.935Z",
+          "durationMs": 107.2150999999999,
+          "status": "passed",
+          "retries": 0
+        },
+        {
+          "name": "affected-production",
+          "startedAt": "2026-10-01T10:16:38.935Z",
+          "endedAt": "2026-10-01T10:16:39.293Z",
+          "durationMs": 357.51279999999997,
+          "status": "passed",
+          "retries": 0
+        },
+        {
+          "name": "integrity",
+          "startedAt": "2026-10-01T10:16:39.293Z",
+          "endedAt": "2026-10-01T10:16:39.307Z",
+          "durationMs": 13.953300000000127,
+          "status": "passed",
+          "retries": 0,
+          "checks": [
+            {
+              "name": "release-envelope",
+              "ok": true
+            },
+            {
+              "name": "package-identity",
+              "ok": true
+            },
+            {
+              "name": "format-support",
+              "ok": true
+            },
+            {
+              "name": "member-bytes",
+              "ok": true
+            },
+            {
+              "name": "recipe-configuration-agreement",
+              "ok": true
+            },
+            {
+              "name": "inventory-exact",
+              "ok": true
+            },
+            {
+              "name": "dependency-closure",
+              "ok": true
+            },
+            {
+              "name": "source-references",
+              "ok": true
+            },
+            {
+              "name": "provenance-paths",
+              "ok": true
+            }
+          ]
+        },
+        {
+          "name": "stage-and-pack",
+          "startedAt": "2026-10-01T10:16:39.307Z",
+          "endedAt": "2026-10-01T10:16:39.868Z",
+          "durationMs": 561.2014000000001,
+          "status": "passed",
+          "retries": 0
+        },
+        {
+          "name": "verify-packed",
+          "startedAt": "2026-10-01T10:16:39.868Z",
+          "endedAt": "2026-10-01T10:16:42.186Z",
+          "durationMs": 2318.2143000000005,
+          "status": "passed",
+          "retries": 0,
+          "checks": [
+            {
+              "name": "packed-release-bytes",
+              "ok": true
+            },
+            {
+              "name": "packed-inventory-intended",
+              "ok": true
+            },
+            {
+              "name": "packed-runtime-bytes",
+              "ok": true
+            },
+            {
+              "name": "packed-required-files",
+              "ok": true
+            },
+            {
+              "name": "packed-export-targets",
+              "ok": true
+            },
+            {
+              "name": "packed-listing-agrees",
+              "ok": true
+            },
+            {
+              "name": "packed-release-integrity",
+              "ok": true
+            },
+            {
+              "name": "packed-public-imports",
+              "ok": true
+            },
+            {
+              "name": "reader-selection-smoke",
+              "ok": true,
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "name": "consumer-handoff",
+          "startedAt": "2026-10-01T10:16:42.186Z",
+          "endedAt": "2026-10-01T10:16:55.692Z",
+          "durationMs": 13505.1915,
+          "status": "passed",
+          "retries": 0,
+          "checks": [
+            {
+              "name": "core-consumer-handoff",
+              "ok": true,
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "name": "review-preparation",
+          "startedAt": "2026-10-01T10:16:55.692Z",
+          "endedAt": "2026-10-01T10:16:55.693Z",
+          "durationMs": 1.192800000000716,
+          "status": "passed",
+          "retries": 0
+        },
+        {
+          "name": "install",
+          "startedAt": "2026-10-01T10:16:55.693Z",
+          "endedAt": "2026-10-01T10:16:55.693Z",
+          "durationMs": 0,
+          "status": "skipped",
+          "retries": 0
+        }
+      ],
+      "retries": {
+        "total": 0,
+        "byPhase": {}
+      },
+      "checks": [
+        {
+          "name": "release-envelope",
+          "ok": true
+        },
+        {
+          "name": "package-identity",
+          "ok": true
+        },
+        {
+          "name": "format-support",
+          "ok": true
+        },
+        {
+          "name": "member-bytes",
+          "ok": true
+        },
+        {
+          "name": "recipe-configuration-agreement",
+          "ok": true
+        },
+        {
+          "name": "inventory-exact",
+          "ok": true
+        },
+        {
+          "name": "dependency-closure",
+          "ok": true
+        },
+        {
+          "name": "source-references",
+          "ok": true
+        },
+        {
+          "name": "provenance-paths",
+          "ok": true
+        },
+        {
+          "name": "packed-release-bytes",
+          "ok": true
+        },
+        {
+          "name": "packed-inventory-intended",
+          "ok": true
+        },
+        {
+          "name": "packed-runtime-bytes",
+          "ok": true
+        },
+        {
+          "name": "packed-required-files",
+          "ok": true
+        },
+        {
+          "name": "packed-export-targets",
+          "ok": true
+        },
+        {
+          "name": "packed-listing-agrees",
+          "ok": true
+        },
+        {
+          "name": "packed-release-integrity",
+          "ok": true
+        },
+        {
+          "name": "packed-public-imports",
+          "ok": true
+        },
+        {
+          "name": "reader-selection-smoke",
+          "ok": true,
+          "status": "passed"
+        },
+        {
+          "name": "core-consumer-handoff",
+          "ok": true,
+          "status": "passed"
+        }
+      ],
+      "optionalScan": {
+        "awaited": false,
+        "status": "not-awaited",
+        "note": "Optional Scan evidence is separate: it is neither awaited nor required, and no result is produced or implied here."
+      },
+      "misses": [],
+      "simulated": [],
+      "measurement": {
+        "tool": "tools/measure-candidate.mjs",
+        "condition": "cold-install",
+        "note": "One local execution on this runner; not a benchmark claim.",
+        "snapshot": {
+          "commit": "c3328674a41da0d2d8f51f04d1f747006150cd04",
+          "tree": "52aa13adaea2e74787ca4ae92e2f2d315048d24d",
+          "snapshotSha256": "1fc23bbf155bff1adf189314ec0ef0848c70976e32bff5e2c453267876e1c081",
+          "manifestSha256": "f7b6f5756d3716debb9750e01354df6425b049d9ffbdc228af36306b2d8f68a8",
+          "lockSha256": "8a2d937e0221661a1b2536f9f5a9b1e61daaf083be022805756e667fe775d864",
+          "distSha256": "bc86fa52533e179f42512e5454a2f2199edcaa505cf786fdcf7ac38efc228ce3",
+          "installedDependenciesSha256": "a2f9ba30e9a1fc4536500a8aefa33e07983c1ca73493e490a6d64960b637913a"
+        },
+        "originVerified": false
+      },
+      "runner": {
+        "os": "win32",
+        "osRelease": "10.0.26200",
+        "arch": "x64",
+        "cpus": 24,
+        "node": "v24.19.0",
+        "npm": "11.17.0",
+        "ci": false
+      }
+    },
+    {
+      "schema": "aihq-catalog-candidate-timing",
+      "version": 1,
+      "outcome": "ready",
+      "candidate": {
+        "commit": "c3328674a41da0d2d8f51f04d1f747006150cd04",
+        "dirty": false,
+        "artifactSha256": "e1a18031ecbb4a0b35af4a1b81634bbee5ae625061508db170c1b2fce074817b",
+        "artifactBytes": 41427
+      },
+      "package": {
+        "name": "@aihq/catalog",
+        "version": "0.3.0"
+      },
+      "workload": {
+        "source": "mattpocock/skills",
+        "targetRevision": "83a02e44425568a0e66b4270008bfa65e908f068",
+        "baseRevisions": [
+          "9731d71f24e2308bb3ed715bf246a9c9d196ea63"
+        ],
+        "declaredItems": 6,
+        "releasedItemsBefore": 5,
+        "candidateItems": 5,
+        "candidateFiles": 13,
+        "candidateReleaseBytes": 6660,
+        "upstreamInventoryFiles": 7,
+        "originVerified": false,
+        "delta": {
+          "added": 1,
+          "changed": 2,
+          "removed": 1,
+          "unchanged": 1,
+          "dependent-confirmed": 1,
+          "provenance-only": 0
+        }
+      },
+      "cache": {
+        "condition": "retained-cache",
+        "dependencies": "retained from the cold-install run and re-verified against its snapshot before this run",
+        "sourceObjects": "not-used"
+      },
+      "queue": {
+        "detectedAt": "2026-10-01T10:16:56.028Z",
+        "startedAt": "2026-10-01T10:16:57.036Z",
+        "queuedMs": 1008,
+        "note": "queue is detected-at to start of preparation and is counted in elapsed"
+      },
+      "clock": {
+        "startedAt": "2026-10-01T10:16:56.028Z",
+        "endedAt": "2026-10-01T10:17:14.097Z",
+        "elapsedMs": 18068.8275,
+        "elapsedSeconds": 18.069,
+        "ceilingSeconds": 3600,
+        "withinCeiling": true,
+        "humanWait": "excluded; none occurs inside this run"
+      },
+      "phases": [
+        {
+          "name": "checkout",
+          "startedAt": "2026-10-01T10:16:57.037Z",
+          "endedAt": "2026-10-01T10:16:57.037Z",
+          "durationMs": 0,
+          "status": "skipped",
+          "retries": 0
+        },
+        {
+          "name": "install-dependencies",
+          "startedAt": "2026-10-01T10:16:57.037Z",
+          "endedAt": "2026-10-01T10:16:57.037Z",
+          "durationMs": 0,
+          "status": "skipped",
+          "retries": 0
+        },
+        {
+          "name": "build",
+          "startedAt": "2026-10-01T10:16:57.037Z",
+          "endedAt": "2026-10-01T10:16:57.037Z",
+          "durationMs": 0,
+          "status": "skipped",
+          "retries": 0
+        },
+        {
+          "name": "load-base",
+          "startedAt": "2026-10-01T10:16:57.322Z",
+          "endedAt": "2026-10-01T10:16:57.332Z",
+          "durationMs": 9.478799999999978,
+          "status": "passed",
+          "retries": 0
+        },
+        {
+          "name": "fetch-inputs",
+          "startedAt": "2026-10-01T10:16:57.332Z",
+          "endedAt": "2026-10-01T10:16:57.446Z",
+          "durationMs": 113.42840000000001,
+          "status": "passed",
+          "retries": 0
+        },
+        {
+          "name": "affected-production",
+          "startedAt": "2026-10-01T10:16:57.446Z",
+          "endedAt": "2026-10-01T10:16:57.823Z",
+          "durationMs": 377.6117,
+          "status": "passed",
+          "retries": 0
+        },
+        {
+          "name": "integrity",
+          "startedAt": "2026-10-01T10:16:57.823Z",
+          "endedAt": "2026-10-01T10:16:57.839Z",
+          "durationMs": 15.892600000000016,
+          "status": "passed",
+          "retries": 0,
+          "checks": [
+            {
+              "name": "release-envelope",
+              "ok": true
+            },
+            {
+              "name": "package-identity",
+              "ok": true
+            },
+            {
+              "name": "format-support",
+              "ok": true
+            },
+            {
+              "name": "member-bytes",
+              "ok": true
+            },
+            {
+              "name": "recipe-configuration-agreement",
+              "ok": true
+            },
+            {
+              "name": "inventory-exact",
+              "ok": true
+            },
+            {
+              "name": "dependency-closure",
+              "ok": true
+            },
+            {
+              "name": "source-references",
+              "ok": true
+            },
+            {
+              "name": "provenance-paths",
+              "ok": true
+            }
+          ]
+        },
+        {
+          "name": "stage-and-pack",
+          "startedAt": "2026-10-01T10:16:57.839Z",
+          "endedAt": "2026-10-01T10:16:58.409Z",
+          "durationMs": 569.8548,
+          "status": "passed",
+          "retries": 0
+        },
+        {
+          "name": "verify-packed",
+          "startedAt": "2026-10-01T10:16:58.409Z",
+          "endedAt": "2026-10-01T10:17:00.762Z",
+          "durationMs": 2353.2787,
+          "status": "passed",
+          "retries": 0,
+          "checks": [
+            {
+              "name": "packed-release-bytes",
+              "ok": true
+            },
+            {
+              "name": "packed-inventory-intended",
+              "ok": true
+            },
+            {
+              "name": "packed-runtime-bytes",
+              "ok": true
+            },
+            {
+              "name": "packed-required-files",
+              "ok": true
+            },
+            {
+              "name": "packed-export-targets",
+              "ok": true
+            },
+            {
+              "name": "packed-listing-agrees",
+              "ok": true
+            },
+            {
+              "name": "packed-release-integrity",
+              "ok": true
+            },
+            {
+              "name": "packed-public-imports",
+              "ok": true
+            },
+            {
+              "name": "reader-selection-smoke",
+              "ok": true,
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "name": "consumer-handoff",
+          "startedAt": "2026-10-01T10:17:00.762Z",
+          "endedAt": "2026-10-01T10:17:13.948Z",
+          "durationMs": 13185.0337,
+          "status": "passed",
+          "retries": 0,
+          "checks": [
+            {
+              "name": "core-consumer-handoff",
+              "ok": true,
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "name": "review-preparation",
+          "startedAt": "2026-10-01T10:17:13.948Z",
+          "endedAt": "2026-10-01T10:17:13.949Z",
+          "durationMs": 1.0288999999975204,
+          "status": "passed",
+          "retries": 0
+        },
+        {
+          "name": "install",
+          "startedAt": "2026-10-01T10:17:13.949Z",
+          "endedAt": "2026-10-01T10:17:13.949Z",
+          "durationMs": 0,
+          "status": "skipped",
+          "retries": 0
+        }
+      ],
+      "retries": {
+        "total": 0,
+        "byPhase": {}
+      },
+      "checks": [
+        {
+          "name": "release-envelope",
+          "ok": true
+        },
+        {
+          "name": "package-identity",
+          "ok": true
+        },
+        {
+          "name": "format-support",
+          "ok": true
+        },
+        {
+          "name": "member-bytes",
+          "ok": true
+        },
+        {
+          "name": "recipe-configuration-agreement",
+          "ok": true
+        },
+        {
+          "name": "inventory-exact",
+          "ok": true
+        },
+        {
+          "name": "dependency-closure",
+          "ok": true
+        },
+        {
+          "name": "source-references",
+          "ok": true
+        },
+        {
+          "name": "provenance-paths",
+          "ok": true
+        },
+        {
+          "name": "packed-release-bytes",
+          "ok": true
+        },
+        {
+          "name": "packed-inventory-intended",
+          "ok": true
+        },
+        {
+          "name": "packed-runtime-bytes",
+          "ok": true
+        },
+        {
+          "name": "packed-required-files",
+          "ok": true
+        },
+        {
+          "name": "packed-export-targets",
+          "ok": true
+        },
+        {
+          "name": "packed-listing-agrees",
+          "ok": true
+        },
+        {
+          "name": "packed-release-integrity",
+          "ok": true
+        },
+        {
+          "name": "packed-public-imports",
+          "ok": true
+        },
+        {
+          "name": "reader-selection-smoke",
+          "ok": true,
+          "status": "passed"
+        },
+        {
+          "name": "core-consumer-handoff",
+          "ok": true,
+          "status": "passed"
+        }
+      ],
+      "optionalScan": {
+        "awaited": false,
+        "status": "not-awaited",
+        "note": "Optional Scan evidence is separate: it is neither awaited nor required, and no result is produced or implied here."
+      },
+      "misses": [],
+      "simulated": [],
+      "measurement": {
+        "tool": "tools/measure-candidate.mjs",
+        "condition": "retained-cache",
+        "note": "One local execution on this runner; not a benchmark claim.",
+        "snapshot": {
+          "commit": "c3328674a41da0d2d8f51f04d1f747006150cd04",
+          "tree": "52aa13adaea2e74787ca4ae92e2f2d315048d24d",
+          "snapshotSha256": "1fc23bbf155bff1adf189314ec0ef0848c70976e32bff5e2c453267876e1c081",
+          "manifestSha256": "f7b6f5756d3716debb9750e01354df6425b049d9ffbdc228af36306b2d8f68a8",
+          "lockSha256": "8a2d937e0221661a1b2536f9f5a9b1e61daaf083be022805756e667fe775d864",
+          "distSha256": "bc86fa52533e179f42512e5454a2f2199edcaa505cf786fdcf7ac38efc228ce3",
+          "installedDependenciesSha256": "a2f9ba30e9a1fc4536500a8aefa33e07983c1ca73493e490a6d64960b637913a"
+        },
+        "originVerified": false
+      },
+      "runner": {
+        "os": "win32",
+        "osRelease": "10.0.26200",
+        "arch": "x64",
+        "cpus": 24,
+        "node": "v24.19.0",
+        "npm": "11.17.0",
+        "ci": false
+      }
+    }
+  ],
+  "upstreamCacheSmoke": {
+    "scope": "Real fetch of the existing pinned GitHub source, without a content delta or provider refresh; supplementary to the representative workload.",
+    "releaseSha256": "79f48c14e4fcc5cae3bcfa5a877ede64b0e1a04b11321c5fbdf8a2f82d6f048a",
+    "runs": [
+      {
+        "schema": "aihq-catalog-candidate-timing",
+        "version": 1,
+        "outcome": "ready",
+        "candidate": {
+          "commit": "6a827f216866f72fe7643058634f09870ffb6c42",
+          "dirty": false,
+          "artifactSha256": "3f91e898a209dc00e722e96b28941ed17b1ae81805b6db3d05339e67758b3d00",
+          "artifactBytes": 41546
+        },
+        "package": {
+          "name": "@aihq/catalog",
+          "version": "0.3.0"
+        },
+        "workload": {
+          "source": "mattpocock/skills",
+          "targetRevision": "c55ee46073ed923f86ce59a5eb3b6d895095d1b7",
+          "baseRevisions": [
+            "c55ee46073ed923f86ce59a5eb3b6d895095d1b7"
+          ],
+          "declaredItems": 2,
+          "releasedItemsBefore": 2,
+          "candidateItems": 2,
+          "candidateFiles": 6,
+          "candidateReleaseBytes": 2898,
+          "upstreamInventoryFiles": 168,
+          "originVerified": true,
+          "delta": {
+            "added": 0,
+            "changed": 0,
+            "removed": 0,
+            "unchanged": 2,
+            "dependent-confirmed": 0,
+            "provenance-only": 0
+          }
+        },
+        "cache": {
+          "condition": "cold-install",
+          "dependencies": "installed fresh in this run (`npm ci --ignore-scripts`); the machine's npm package cache was not cleared",
+          "sourceObjects": "miss"
+        },
+        "queue": {
+          "detectedAt": "2026-10-01T10:18:00.299Z",
+          "startedAt": "2026-10-01T10:18:01.303Z",
+          "queuedMs": 1004,
+          "note": "queue is detected-at to start of preparation and is counted in elapsed"
+        },
+        "clock": {
+          "startedAt": "2026-10-01T10:18:00.299Z",
+          "endedAt": "2026-10-01T10:18:13.263Z",
+          "elapsedMs": 12963.2836,
+          "elapsedSeconds": 12.963,
+          "ceilingSeconds": 3600,
+          "withinCeiling": true,
+          "humanWait": "excluded; none occurs inside this run"
+        },
+        "phases": [
+          {
+            "name": "checkout",
+            "startedAt": "2026-10-01T10:18:01.304Z",
+            "endedAt": "2026-10-01T10:18:03.982Z",
+            "durationMs": 2676.4537,
+            "status": "passed",
+            "retries": 0
+          },
+          {
+            "name": "install-dependencies",
+            "startedAt": "2026-10-01T10:18:03.982Z",
+            "endedAt": "2026-10-01T10:18:05.802Z",
+            "durationMs": 1820.0992,
+            "status": "passed",
+            "retries": 0
+          },
+          {
+            "name": "build",
+            "startedAt": "2026-10-01T10:18:05.802Z",
+            "endedAt": "2026-10-01T10:18:06.624Z",
+            "durationMs": 822.1316999999999,
+            "status": "passed",
+            "retries": 0
+          },
+          {
+            "name": "load-base",
+            "startedAt": "2026-10-01T10:18:08.442Z",
+            "endedAt": "2026-10-01T10:18:08.450Z",
+            "durationMs": 7.501299999999901,
+            "status": "passed",
+            "retries": 0
+          },
+          {
+            "name": "fetch-inputs",
+            "startedAt": "2026-10-01T10:18:08.450Z",
+            "endedAt": "2026-10-01T10:18:10.117Z",
+            "durationMs": 1666.3134000000002,
+            "status": "passed",
+            "retries": 0
+          },
+          {
+            "name": "affected-production",
+            "startedAt": "2026-10-01T10:18:10.117Z",
+            "endedAt": "2026-10-01T10:18:10.276Z",
+            "durationMs": 158.97320000000036,
+            "status": "passed",
+            "retries": 0
+          },
+          {
+            "name": "integrity",
+            "startedAt": "2026-10-01T10:18:10.276Z",
+            "endedAt": "2026-10-01T10:18:10.289Z",
+            "durationMs": 13.835700000000088,
+            "status": "passed",
+            "retries": 0,
+            "checks": [
+              {
+                "name": "release-envelope",
+                "ok": true
+              },
+              {
+                "name": "package-identity",
+                "ok": true
+              },
+              {
+                "name": "format-support",
+                "ok": true
+              },
+              {
+                "name": "member-bytes",
+                "ok": true
+              },
+              {
+                "name": "recipe-configuration-agreement",
+                "ok": true
+              },
+              {
+                "name": "inventory-exact",
+                "ok": true
+              },
+              {
+                "name": "dependency-closure",
+                "ok": true
+              },
+              {
+                "name": "source-references",
+                "ok": true
+              },
+              {
+                "name": "provenance-paths",
+                "ok": true
+              }
+            ]
+          },
+          {
+            "name": "stage-and-pack",
+            "startedAt": "2026-10-01T10:18:10.290Z",
+            "endedAt": "2026-10-01T10:18:10.837Z",
+            "durationMs": 547.7123000000001,
+            "status": "passed",
+            "retries": 0
+          },
+          {
+            "name": "verify-packed",
+            "startedAt": "2026-10-01T10:18:10.837Z",
+            "endedAt": "2026-10-01T10:18:13.117Z",
+            "durationMs": 2279.9057000000003,
+            "status": "passed",
+            "retries": 0,
+            "checks": [
+              {
+                "name": "packed-release-bytes",
+                "ok": true
+              },
+              {
+                "name": "packed-inventory-intended",
+                "ok": true
+              },
+              {
+                "name": "packed-runtime-bytes",
+                "ok": true
+              },
+              {
+                "name": "packed-required-files",
+                "ok": true
+              },
+              {
+                "name": "packed-export-targets",
+                "ok": true
+              },
+              {
+                "name": "packed-listing-agrees",
+                "ok": true
+              },
+              {
+                "name": "packed-release-integrity",
+                "ok": true
+              },
+              {
+                "name": "packed-public-imports",
+                "ok": true
+              },
+              {
+                "name": "reader-selection-smoke",
+                "ok": true,
+                "status": "passed"
+              }
+            ]
+          },
+          {
+            "name": "consumer-handoff",
+            "startedAt": "2026-10-01T10:18:13.117Z",
+            "endedAt": "2026-10-01T10:18:13.117Z",
+            "durationMs": 0,
+            "status": "skipped",
+            "retries": 0
+          },
+          {
+            "name": "review-preparation",
+            "startedAt": "2026-10-01T10:18:13.117Z",
+            "endedAt": "2026-10-01T10:18:13.118Z",
+            "durationMs": 1.2917999999999665,
+            "status": "passed",
+            "retries": 0
+          },
+          {
+            "name": "install",
+            "startedAt": "2026-10-01T10:18:13.119Z",
+            "endedAt": "2026-10-01T10:18:13.119Z",
+            "durationMs": 0,
+            "status": "skipped",
+            "retries": 0
+          }
+        ],
+        "retries": {
+          "total": 0,
+          "byPhase": {}
+        },
+        "checks": [
+          {
+            "name": "release-envelope",
+            "ok": true
+          },
+          {
+            "name": "package-identity",
+            "ok": true
+          },
+          {
+            "name": "format-support",
+            "ok": true
+          },
+          {
+            "name": "member-bytes",
+            "ok": true
+          },
+          {
+            "name": "recipe-configuration-agreement",
+            "ok": true
+          },
+          {
+            "name": "inventory-exact",
+            "ok": true
+          },
+          {
+            "name": "dependency-closure",
+            "ok": true
+          },
+          {
+            "name": "source-references",
+            "ok": true
+          },
+          {
+            "name": "provenance-paths",
+            "ok": true
+          },
+          {
+            "name": "packed-release-bytes",
+            "ok": true
+          },
+          {
+            "name": "packed-inventory-intended",
+            "ok": true
+          },
+          {
+            "name": "packed-runtime-bytes",
+            "ok": true
+          },
+          {
+            "name": "packed-required-files",
+            "ok": true
+          },
+          {
+            "name": "packed-export-targets",
+            "ok": true
+          },
+          {
+            "name": "packed-listing-agrees",
+            "ok": true
+          },
+          {
+            "name": "packed-release-integrity",
+            "ok": true
+          },
+          {
+            "name": "packed-public-imports",
+            "ok": true
+          },
+          {
+            "name": "reader-selection-smoke",
+            "ok": true,
+            "status": "passed"
+          }
+        ],
+        "optionalScan": {
+          "awaited": false,
+          "status": "not-awaited",
+          "note": "Optional Scan evidence is separate: it is neither awaited nor required, and no result is produced or implied here."
+        },
+        "misses": [],
+        "simulated": [],
+        "measurement": {
+          "tool": "tools/measure-candidate.mjs",
+          "condition": "cold-install",
+          "note": "One local execution on this runner; not a benchmark claim.",
+          "snapshot": {
+            "commit": "6a827f216866f72fe7643058634f09870ffb6c42",
+            "tree": "c3bbf27f96fbc578e96d766039c23a3ff7ddd555",
+            "snapshotSha256": "b52d59e7cdef4ec7a15f45fb365c46b379e22efa12ccd788926100ff3b9e9125",
+            "manifestSha256": "f7b6f5756d3716debb9750e01354df6425b049d9ffbdc228af36306b2d8f68a8",
+            "lockSha256": "8a2d937e0221661a1b2536f9f5a9b1e61daaf083be022805756e667fe775d864",
+            "distSha256": "bc86fa52533e179f42512e5454a2f2199edcaa505cf786fdcf7ac38efc228ce3",
+            "installedDependenciesSha256": "a2f9ba30e9a1fc4536500a8aefa33e07983c1ca73493e490a6d64960b637913a"
+          },
+          "originVerified": true
+        },
+        "runner": {
+          "os": "win32",
+          "osRelease": "10.0.26200",
+          "arch": "x64",
+          "cpus": 24,
+          "node": "v24.19.0",
+          "npm": "11.17.0",
+          "ci": false
+        }
+      },
+      {
+        "schema": "aihq-catalog-candidate-timing",
+        "version": 1,
+        "outcome": "ready",
+        "candidate": {
+          "commit": "6a827f216866f72fe7643058634f09870ffb6c42",
+          "dirty": false,
+          "artifactSha256": "3f91e898a209dc00e722e96b28941ed17b1ae81805b6db3d05339e67758b3d00",
+          "artifactBytes": 41546
+        },
+        "package": {
+          "name": "@aihq/catalog",
+          "version": "0.3.0"
+        },
+        "workload": {
+          "source": "mattpocock/skills",
+          "targetRevision": "c55ee46073ed923f86ce59a5eb3b6d895095d1b7",
+          "baseRevisions": [
+            "c55ee46073ed923f86ce59a5eb3b6d895095d1b7"
+          ],
+          "declaredItems": 2,
+          "releasedItemsBefore": 2,
+          "candidateItems": 2,
+          "candidateFiles": 6,
+          "candidateReleaseBytes": 2898,
+          "upstreamInventoryFiles": 168,
+          "originVerified": true,
+          "delta": {
+            "added": 0,
+            "changed": 0,
+            "removed": 0,
+            "unchanged": 2,
+            "dependent-confirmed": 0,
+            "provenance-only": 0
+          }
+        },
+        "cache": {
+          "condition": "retained-cache",
+          "dependencies": "retained from the cold-install run and re-verified against its snapshot before this run",
+          "sourceObjects": "hit"
+        },
+        "queue": {
+          "detectedAt": "2026-10-01T10:18:13.453Z",
+          "startedAt": "2026-10-01T10:18:14.323Z",
+          "queuedMs": 870,
+          "note": "queue is detected-at to start of preparation and is counted in elapsed"
+        },
+        "clock": {
+          "startedAt": "2026-10-01T10:18:13.453Z",
+          "endedAt": "2026-10-01T10:18:17.731Z",
+          "elapsedMs": 4277.7045,
+          "elapsedSeconds": 4.278,
+          "ceilingSeconds": 3600,
+          "withinCeiling": true,
+          "humanWait": "excluded; none occurs inside this run"
+        },
+        "phases": [
+          {
+            "name": "checkout",
+            "startedAt": "2026-10-01T10:18:14.323Z",
+            "endedAt": "2026-10-01T10:18:14.323Z",
+            "durationMs": 0,
+            "status": "skipped",
+            "retries": 0
+          },
+          {
+            "name": "install-dependencies",
+            "startedAt": "2026-10-01T10:18:14.324Z",
+            "endedAt": "2026-10-01T10:18:14.324Z",
+            "durationMs": 0,
+            "status": "skipped",
+            "retries": 0
+          },
+          {
+            "name": "build",
+            "startedAt": "2026-10-01T10:18:14.324Z",
+            "endedAt": "2026-10-01T10:18:14.324Z",
+            "durationMs": 0,
+            "status": "skipped",
+            "retries": 0
+          },
+          {
+            "name": "load-base",
+            "startedAt": "2026-10-01T10:18:14.607Z",
+            "endedAt": "2026-10-01T10:18:14.615Z",
+            "durationMs": 7.25120000000004,
+            "status": "passed",
+            "retries": 0
+          },
+          {
+            "name": "fetch-inputs",
+            "startedAt": "2026-10-01T10:18:14.615Z",
+            "endedAt": "2026-10-01T10:18:14.774Z",
+            "durationMs": 159.5435,
+            "status": "passed",
+            "retries": 0
+          },
+          {
+            "name": "affected-production",
+            "startedAt": "2026-10-01T10:18:14.774Z",
+            "endedAt": "2026-10-01T10:18:14.925Z",
+            "durationMs": 150.84750000000003,
+            "status": "passed",
+            "retries": 0
+          },
+          {
+            "name": "integrity",
+            "startedAt": "2026-10-01T10:18:14.925Z",
+            "endedAt": "2026-10-01T10:18:14.935Z",
+            "durationMs": 10.22339999999997,
+            "status": "passed",
+            "retries": 0,
+            "checks": [
+              {
+                "name": "release-envelope",
+                "ok": true
+              },
+              {
+                "name": "package-identity",
+                "ok": true
+              },
+              {
+                "name": "format-support",
+                "ok": true
+              },
+              {
+                "name": "member-bytes",
+                "ok": true
+              },
+              {
+                "name": "recipe-configuration-agreement",
+                "ok": true
+              },
+              {
+                "name": "inventory-exact",
+                "ok": true
+              },
+              {
+                "name": "dependency-closure",
+                "ok": true
+              },
+              {
+                "name": "source-references",
+                "ok": true
+              },
+              {
+                "name": "provenance-paths",
+                "ok": true
+              }
+            ]
+          },
+          {
+            "name": "stage-and-pack",
+            "startedAt": "2026-10-01T10:18:14.935Z",
+            "endedAt": "2026-10-01T10:18:15.466Z",
+            "durationMs": 530.7064999999999,
+            "status": "passed",
+            "retries": 0
+          },
+          {
+            "name": "verify-packed",
+            "startedAt": "2026-10-01T10:18:15.466Z",
+            "endedAt": "2026-10-01T10:18:17.581Z",
+            "durationMs": 2114.652,
+            "status": "passed",
+            "retries": 0,
+            "checks": [
+              {
+                "name": "packed-release-bytes",
+                "ok": true
+              },
+              {
+                "name": "packed-inventory-intended",
+                "ok": true
+              },
+              {
+                "name": "packed-runtime-bytes",
+                "ok": true
+              },
+              {
+                "name": "packed-required-files",
+                "ok": true
+              },
+              {
+                "name": "packed-export-targets",
+                "ok": true
+              },
+              {
+                "name": "packed-listing-agrees",
+                "ok": true
+              },
+              {
+                "name": "packed-release-integrity",
+                "ok": true
+              },
+              {
+                "name": "packed-public-imports",
+                "ok": true
+              },
+              {
+                "name": "reader-selection-smoke",
+                "ok": true,
+                "status": "passed"
+              }
+            ]
+          },
+          {
+            "name": "consumer-handoff",
+            "startedAt": "2026-10-01T10:18:17.581Z",
+            "endedAt": "2026-10-01T10:18:17.581Z",
+            "durationMs": 0,
+            "status": "skipped",
+            "retries": 0
+          },
+          {
+            "name": "review-preparation",
+            "startedAt": "2026-10-01T10:18:17.581Z",
+            "endedAt": "2026-10-01T10:18:17.582Z",
+            "durationMs": 1.259099999999762,
+            "status": "passed",
+            "retries": 0
+          },
+          {
+            "name": "install",
+            "startedAt": "2026-10-01T10:18:17.582Z",
+            "endedAt": "2026-10-01T10:18:17.582Z",
+            "durationMs": 0,
+            "status": "skipped",
+            "retries": 0
+          }
+        ],
+        "retries": {
+          "total": 0,
+          "byPhase": {}
+        },
+        "checks": [
+          {
+            "name": "release-envelope",
+            "ok": true
+          },
+          {
+            "name": "package-identity",
+            "ok": true
+          },
+          {
+            "name": "format-support",
+            "ok": true
+          },
+          {
+            "name": "member-bytes",
+            "ok": true
+          },
+          {
+            "name": "recipe-configuration-agreement",
+            "ok": true
+          },
+          {
+            "name": "inventory-exact",
+            "ok": true
+          },
+          {
+            "name": "dependency-closure",
+            "ok": true
+          },
+          {
+            "name": "source-references",
+            "ok": true
+          },
+          {
+            "name": "provenance-paths",
+            "ok": true
+          },
+          {
+            "name": "packed-release-bytes",
+            "ok": true
+          },
+          {
+            "name": "packed-inventory-intended",
+            "ok": true
+          },
+          {
+            "name": "packed-runtime-bytes",
+            "ok": true
+          },
+          {
+            "name": "packed-required-files",
+            "ok": true
+          },
+          {
+            "name": "packed-export-targets",
+            "ok": true
+          },
+          {
+            "name": "packed-listing-agrees",
+            "ok": true
+          },
+          {
+            "name": "packed-release-integrity",
+            "ok": true
+          },
+          {
+            "name": "packed-public-imports",
+            "ok": true
+          },
+          {
+            "name": "reader-selection-smoke",
+            "ok": true,
+            "status": "passed"
+          }
+        ],
+        "optionalScan": {
+          "awaited": false,
+          "status": "not-awaited",
+          "note": "Optional Scan evidence is separate: it is neither awaited nor required, and no result is produced or implied here."
+        },
+        "misses": [],
+        "simulated": [],
+        "measurement": {
+          "tool": "tools/measure-candidate.mjs",
+          "condition": "retained-cache",
+          "note": "One local execution on this runner; not a benchmark claim.",
+          "snapshot": {
+            "commit": "6a827f216866f72fe7643058634f09870ffb6c42",
+            "tree": "c3bbf27f96fbc578e96d766039c23a3ff7ddd555",
+            "snapshotSha256": "b52d59e7cdef4ec7a15f45fb365c46b379e22efa12ccd788926100ff3b9e9125",
+            "manifestSha256": "f7b6f5756d3716debb9750e01354df6425b049d9ffbdc228af36306b2d8f68a8",
+            "lockSha256": "8a2d937e0221661a1b2536f9f5a9b1e61daaf083be022805756e667fe775d864",
+            "distSha256": "bc86fa52533e179f42512e5454a2f2199edcaa505cf786fdcf7ac38efc228ce3",
+            "installedDependenciesSha256": "a2f9ba30e9a1fc4536500a8aefa33e07983c1ca73493e490a6d64960b637913a"
+          },
+          "originVerified": true
+        },
+        "runner": {
+          "os": "win32",
+          "osRelease": "10.0.26200",
+          "arch": "x64",
+          "cpus": 24,
+          "node": "v24.19.0",
+          "npm": "11.17.0",
+          "ci": false
+        }
+      }
+    ]
+  }
+}

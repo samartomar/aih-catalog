@@ -1,0 +1,82 @@
+[
+  {
+    "path": "catalog/genesis/README.md",
+    "sha256": "1dcc7005f26e590866001e806e2244c5d37aeae31c1c075a8e13a3110a721521"
+  },
+  {
+    "path": "catalog/genesis/catalog-signer-root.json",
+    "sha256": "65082ad43bcfded6eb1975da9ec74de4336a02efba411cf8265bcb43371550f5"
+  },
+  {
+    "path": "catalog/genesis/signed-catalog-v2.json",
+    "sha256": "6a561e5b4e38292578ce73ffba17dd17fec9ee99048205aacddcd75261efa2f2"
+  },
+  {
+    "path": "catalog/weekly-refresh-2026-09-14/previous-head.json",
+    "sha256": "5b815982235e85b857d443ee778fa7e84592fd75985a2a770f4eb4390c9df3aa"
+  },
+  {
+    "path": "catalog/weekly-refresh-2026-09-14/signed-catalog-v2.json",
+    "sha256": "98267100f618c44cf6c4b7688081d62368c0aeaf6caa03b290f4e63981ab45f6"
+  },
+  {
+    "path": "catalog/workbench-2026-09-08/previous-head.json",
+    "sha256": "32cd45660cd693ce8e9aa519584e0834545990b7174d344654cf2ca3e463b1b7"
+  },
+  {
+    "path": "catalog/workbench-2026-09-08/signed-catalog-v2.json",
+    "sha256": "63d51d55beaeec15eeb8b1c54f97e62ca0454db1ce69204855ab033e50bed178"
+  },
+  {
+    "path": "catalog/workbench-aih-2026-09-09/README.md",
+    "sha256": "5d784380577a8ff30aadd35e60b3bcfb9521b6b0972b886914f1776bfa93fa73"
+  },
+  {
+    "path": "catalog/workbench-aih-2026-09-09/previous-head.json",
+    "sha256": "c15a86cefade43668a76f05b9853e1782c97163454ec1eb6ce203b803c3c115c"
+  },
+  {
+    "path": "catalog/workbench-aih-2026-09-09/signed-catalog-v2.json",
+    "sha256": "7f96947aae4a3604c4fb4c36782def8b6d2dd316c432361c0f7ddf1d4f3e312a"
+  },
+  {
+    "path": "catalog/workbench-core061-npm-2026-09-09/previous-head.json",
+    "sha256": "1621c5395764c6ea573a45e17521ba0b4f67f1f80bae94229b7b7c670e483537"
+  },
+  {
+    "path": "catalog/workbench-core061-npm-2026-09-09/signed-catalog-v2.json",
+    "sha256": "c84b1ae5ea910514592d7b5cc5dd6b1d294db1df3d1c70ddac6dba5eb14f6651"
+  },
+  {
+    "path": "catalog/workbench-core061-npm-2026-09-09/unsigned-candidate-seq4.json",
+    "sha256": "6423cf2a8795d5d76ca481bc6718de8425245f99701514a63e7dc415a25184d2"
+  },
+  {
+    "path": "catalog/workbench-core062-2026-09-11/README.md",
+    "sha256": "008846f8a06ef6021f1fde1632849326213ea1210acef27680324cef85c46a44"
+  },
+  {
+    "path": "catalog/workbench-core062-2026-09-11/previous-head.json",
+    "sha256": "6423cf2a8795d5d76ca481bc6718de8425245f99701514a63e7dc415a25184d2"
+  },
+  {
+    "path": "catalog/workbench-core062-2026-09-11/promotion-plan.json",
+    "sha256": "9376909b5e6b924b8f02800b9846e1b83ea4d8ef365db8c9c02acab0951f730d"
+  },
+  {
+    "path": "catalog/workbench-core062-2026-09-11/signed-catalog-v2.json",
+    "sha256": "51f1f0689c57235429f4312b660cbf4d95d75258001c755b7d221bae6729859e"
+  },
+  {
+    "path": "catalog/workbench-core062-2026-09-11/unsigned-candidate-seq5.json",
+    "sha256": "5b815982235e85b857d443ee778fa7e84592fd75985a2a770f4eb4390c9df3aa"
+  },
+  {
+    "path": "catalog/workbench-latest-source-2026-09-09/previous-head.json",
+    "sha256": "1c8c7c20e42c2f0841f3c17358e15a1ca05a982022e46e6cb5ceb0d89303275b"
+  },
+  {
+    "path": "catalog/workbench-latest-source-2026-09-09/signed-catalog-v2.json",
+    "sha256": "5949d4d5b333b8ade30ce47c5525e7ba0bb3f7e68a892d3b554ae6bca65718e9"
+  }
+]

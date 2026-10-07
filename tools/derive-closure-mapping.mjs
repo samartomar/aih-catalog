@@ -1,0 +1,206 @@
+#!/usr/bin/env node
+// Offline `node tools/derive-closure-mapping.mjs --publication <publication.json> --definition
+// <definition.json> --output <new mapping.json>` step. It derives the ScannerConsumerMappingV1 that
+// Scan's tools/emit-consumer-handoff.mjs projects a whole-repository publication with, for the
+// closure-row mode of tools/generate-source-assessment-rows.mjs: every Scanner component that
+// holds a file of a curated Catalog row closure (curatedClosuresV1) is mapped, and every other
+// component is excluded with that reason. It never overwrites: the output must not exist.
+//
+// A publication set (D49: one request set over one source, published as several publications)
+// is named as repeated `--publication <p> --output <mapping>` pairs: the curated closure must
+// lie in the union of the members' requests, and each member gets its own mapping.
+//
+// `--authoring-catalog <compiler input>` names the Catalog's policy authoring catalog at the pin
+// (tools/emit-compiler-input.mjs). A baseline catalog with mcp components needs it: its
+// external-inventory MCP assets are rows too (D61).
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import {
+  assertPublicationSetV1,
+  curatedClosuresV1,
+  publicationNativeFilesV1,
+} from "./generate-source-assessment-rows.mjs";
+
+const fail = (message) => {
+  throw new TypeError(`closure-mapping:${message}`);
+};
+const codeUnitCompare = (left, right) => (left < right ? -1 : left > right ? 1 : 0);
+const holds = (component, path) =>
+  component.paths.some((root) => path === root || path.startsWith(`${root}/`));
+
+const currentEccRowIds = () => {
+  const path = fileURLToPath(new URL("../defaults/catalog-index-v1.json", import.meta.url));
+  const index = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(readFileSync(path)));
+  if (!Array.isArray(index.entries)) fail("ecc-catalog-index");
+  const ids = index.entries.map((entry) => entry.entryId).filter((id) =>
+    typeof id === "string" && /^(agent|skill|mcp)\.ecc\.[a-z0-9][a-z0-9-]*$/u.test(id));
+  if (new Set(ids).size !== ids.length || ids.length === 0) fail("ecc-catalog-index");
+  return new Set(ids);
+};
+
+/** ECC's committed index is generated from the declarable component source and MCP curation. */
+export function selectMappingComponentsV1(sourceId, candidates, closure, eccRowIds = new Set()) {
+  const components = [];
+  const exclusions = [];
+  const assets = new Set();
+  for (const component of candidates) {
+    const separator = component.id.indexOf(":");
+    const kind = component.id.slice(0, separator);
+    const name = component.id.slice(separator + 1);
+    if (["agent", "skill", "mcp"].includes(kind) && component.content !== kind)
+      fail(`component-kind-content-mismatch ${component.id}`);
+    const rowId = `${kind}.ecc.${name}`;
+    if (sourceId === "ecc" && !eccRowIds.has(rowId)) {
+      exclusions.push({
+        reason: "not a committed declarable ECC Catalog row",
+        scannerComponentId: component.id,
+      });
+      continue;
+    }
+    if (!closure.some((path) => holds(component, path))) {
+      exclusions.push({
+        reason: "holds no file of a curated Catalog row closure",
+        scannerComponentId: component.id,
+      });
+      continue;
+    }
+    const catalogAssetId = `${sourceId}/${component.content}:${name}`;
+    if (assets.has(catalogAssetId)) fail(`duplicate-catalog-asset-id ${catalogAssetId}`);
+    assets.add(catalogAssetId);
+    components.push({ catalogAssetId, scannerComponentId: component.id });
+  }
+  return { components, exclusions };
+}
+
+export function deriveClosureMappingV1(publication, definition, authoringCatalog, definitionOverlap = "disjoint") {
+  const { mappings, rows, excluded } = deriveClosureMappingSetV1(
+    [publication],
+    definition,
+    authoringCatalog,
+    definitionOverlap,
+  );
+  return { mapping: mappings[0], rows, excluded };
+}
+
+/**
+ * The mappings of a publication set, one per member in the given order. The set must be one
+ * request set over one source (assertPublicationSetV1); every member's native annex is verified
+ * and the curated closure must lie in the union of the members' requests.
+ */
+export function deriveClosureMappingSetV1(publications, definition, authoringCatalog, definitionOverlap = "disjoint") {
+  if (!Array.isArray(publications) || publications.length === 0) fail("publication-set");
+  if (definitionOverlap !== "disjoint" && definitionOverlap !== "compiler-catalog") fail("definition-overlap");
+  if (publications.length > 1) assertPublicationSetV1(publications, definitionOverlap);
+  const natives = publications.map((publication) => publicationNativeFilesV1(publication));
+  const requests = publications.map((publication) => {
+    const request = publication.request;
+    if (request === null || typeof request !== "object" || !Array.isArray(request.components))
+      fail("publication-request");
+    return request;
+  });
+  const inventory = curatedClosuresV1(
+    definition,
+    requests[0].source,
+    [...natives[0].keys()].sort(codeUnitCompare),
+    authoringCatalog,
+    new Set([...natives[0].keys()].filter((path) =>
+      requests.some((request) => request.components.some((component) => holds(component, path))),
+    )),
+  );
+  const closure = [...new Set(inventory.rows.flatMap((row) => row.files))].sort(codeUnitCompare);
+  for (const path of closure)
+    if (
+      !requests.some((request) => request.components.some((component) => holds(component, path)))
+    )
+      fail(`closure-file-outside-request ${path}`);
+  const eccRows = requests[0].source.id === "ecc" ? currentEccRowIds() : new Set();
+  const mappings = requests.map((request) => {
+    const { components, exclusions } = selectMappingComponentsV1(
+      request.source.id, request.components, closure, eccRows,
+    );
+    return {
+      protocol: "ScannerConsumerMappingV1",
+      requestSha256: request.requestSha256,
+      contentClass: "exact compiler/source-file closure for assessment only",
+      components,
+      exclusions,
+    };
+  });
+  return {
+    mappings,
+    rows: inventory.rows.map((row) => `${row.kind}:${row.name}`),
+    excluded: inventory.excluded,
+  };
+}
+
+function argumentsFrom(argv) {
+  const values = new Map();
+  const pairs = { publication: [], output: [] };
+  for (let index = 0; index < argv.length; index += 2) {
+    const [key, value] = [argv[index], argv[index + 1]];
+    if (!key?.startsWith("--") || value === undefined || value.startsWith("--")) fail("arguments");
+    const name = key.slice(2);
+    if (Object.hasOwn(pairs, name)) {
+      pairs[name].push(resolve(value));
+      values.set(name, value);
+      continue;
+    }
+    if (values.has(name)) fail("duplicate-argument");
+    values.set(name, value);
+  }
+  const expected = ["publication", "definition", "output"];
+  const optional = ["authoring-catalog", "definition-overlap"];
+  if (
+    values.size !== expected.length + optional.filter((name) => values.has(name)).length ||
+    expected.some((name) => !values.has(name)) ||
+    pairs.publication.length !== pairs.output.length ||
+    new Set(pairs.output).size !== pairs.output.length
+  )
+    fail("arguments");
+  return {
+    definition: resolve(values.get("definition")),
+    ...(values.has("authoring-catalog")
+      ? { authoringCatalog: resolve(values.get("authoring-catalog")) }
+      : {}),
+    ...pairs,
+    definitionOverlap: values.get("definition-overlap") ?? "disjoint",
+  };
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url))) {
+  try {
+    const values = argumentsFrom(process.argv.slice(2));
+    const readJson = (path) =>
+      JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(readFileSync(path)));
+    for (const output of values.output) if (existsSync(output)) fail("output-exists");
+    const derived = deriveClosureMappingSetV1(
+      values.publication.map(readJson),
+      readJson(values.definition),
+      values.authoringCatalog === undefined ? undefined : readJson(values.authoringCatalog),
+      values.definitionOverlap,
+    );
+    derived.mappings.forEach((mapping, index) =>
+      writeFileSync(values.output[index], `${JSON.stringify(mapping)}\n`, {
+        encoding: "utf8",
+        flag: "wx",
+      }),
+    );
+    const counts = (mapping) => ({
+      mapped: mapping.components.length,
+      excludedScannerComponents: mapping.exclusions.length,
+    });
+    process.stdout.write(
+      `${JSON.stringify({
+        ...(derived.mappings.length === 1
+          ? counts(derived.mappings[0])
+          : { members: derived.mappings.map(counts) }),
+        rows: derived.rows,
+        excludedCurated: derived.excluded,
+      })}\n`,
+    );
+  } catch (error) {
+    process.stderr.write(`${error instanceof Error ? error.message : "closure-mapping:failed"}\n`);
+    process.exitCode = 1;
+  }
+}

@@ -1,3 +1,3 @@
 # skill.ecc.google-workspace-ops
 
-Exact source-file assessment at affaan-m/ECC@5064474d4d762dc9640234a41617cccb79185cec:skills/google-workspace-ops. Original Scanner findings and dates remain unchanged. This is not a clean-scan declaration, installation approval, or organization admission.
+Exact review-only source-file assessment at affaan-m/ECC@5064474d4d762dc9640234a41617cccb79185cec:skills/google-workspace-ops/SKILL.md. Scanner findings, coverage limits, authority, and dates remain unchanged. This is not a clean-scan declaration, installation approval, runtime authority, or organization admission.

@@ -1,0 +1,134 @@
+{
+  "format": "aih-catalog-upstream-inputs",
+  "version": 1,
+  "files": {
+    "ecc-content-metadata-v1.json": {
+      "repository": "affaan-m/ECC",
+      "commit": "5064474d4d762dc9640234a41617cccb79185cec",
+      "sha256": "8d43f490676d3f5355b93615b53daa175f5f7490d00648c0d8fb8511ec687b67",
+      "sources": {},
+      "runtime": {
+        "node": "26.4.0",
+        "icu": "78.3",
+        "unicode": "17.0",
+        "cldr": "48.0"
+      }
+    },
+    "ecc-hook-sources-v1.json": {
+      "repository": "affaan-m/ECC",
+      "commit": "5064474d4d762dc9640234a41617cccb79185cec",
+      "sha256": "263d384698f4438841b1aede6e50bd1085c13009ac05ed6ecacf840b5ec3cf90",
+      "sources": {},
+      "runtime": {
+        "node": "26.4.0",
+        "icu": "78.3",
+        "unicode": "17.0",
+        "cldr": "48.0"
+      }
+    },
+    "ecc-mcp-inventory-v1.json": {
+      "repository": "affaan-m/ECC",
+      "commit": "5064474d4d762dc9640234a41617cccb79185cec",
+      "sha256": "d93be2b609a60035c7fdfc0b2bbeb228feb0a5f619c9de5ecf6b6d2acca5bd1f",
+      "sources": {
+        "mcp-configs/mcp-servers.json": "d93be2b609a60035c7fdfc0b2bbeb228feb0a5f619c9de5ecf6b6d2acca5bd1f"
+      },
+      "runtime": {
+        "node": "26.4.0",
+        "icu": "78.3",
+        "unicode": "17.0",
+        "cldr": "48.0"
+      }
+    },
+    "ecc-modules-v1.json": {
+      "repository": "affaan-m/ECC",
+      "commit": "5064474d4d762dc9640234a41617cccb79185cec",
+      "sha256": "16e54a0528348833f7da1fec0ebc0fabe422507d49685c4dbe30f483ad0eb80a",
+      "sources": {
+        "manifests/install-modules.json": "a176a22ce40d2bf321afcf9aadfa2052be895f1bc87f0e8ada2fead20790ffbb"
+      },
+      "runtime": {
+        "node": "26.4.0",
+        "icu": "78.3",
+        "unicode": "17.0",
+        "cldr": "48.0"
+      }
+    },
+    "ecc-profile-sources-v1.json": {
+      "repository": "affaan-m/ECC",
+      "commit": "5064474d4d762dc9640234a41617cccb79185cec",
+      "sha256": "6488037161ab57123ff75ee5f2d4a9517691a153f527d320d4d6f84228fc67e7",
+      "sources": {},
+      "runtime": {
+        "node": "26.4.0",
+        "icu": "78.3",
+        "unicode": "17.0",
+        "cldr": "48.0"
+      }
+    },
+    "ecc-profiles-v1.json": {
+      "repository": "affaan-m/ECC",
+      "commit": "5064474d4d762dc9640234a41617cccb79185cec",
+      "sha256": "0f1c20f12ec79a7c124e85951234e2c1a97171e43018c0fa1d695c8663cf6106",
+      "sources": {
+        "manifests/install-profiles.json": "3990be88bd4010eb960ad36dd20681ce045116e8aa05dcb06bd82f64f7c01d78"
+      },
+      "runtime": {
+        "node": "26.4.0",
+        "icu": "78.3",
+        "unicode": "17.0",
+        "cldr": "48.0"
+      }
+    },
+    "ecc-skill-inventory-v1.json": {
+      "repository": "affaan-m/ECC",
+      "commit": "5064474d4d762dc9640234a41617cccb79185cec",
+      "sha256": "3c5353bc2f3016a117f9063e9e3ba195df1d7f169038dc533e9929fff63ca0d7",
+      "sources": {},
+      "runtime": {
+        "node": "26.4.0",
+        "icu": "78.3",
+        "unicode": "17.0",
+        "cldr": "48.0"
+      }
+    },
+    "mattpocock.snapshot.json": {
+      "repository": "mattpocock/skills",
+      "commit": "c55ee46073ed923f86ce59a5eb3b6d895095d1b7",
+      "sha256": "eb8b8f10eced255eb3bc1dcf631dd43faf9b4c81a8e24b0569bc36b091d5a130",
+      "sources": {
+        ".claude-plugin/plugin.json": "e531ddc6560515397ac32d93334fa3eb586b6b6bcc2e472c3646641fd3d2b951"
+      },
+      "runtime": {
+        "node": "26.4.0",
+        "icu": "78.3",
+        "unicode": "17.0",
+        "cldr": "48.0"
+      }
+    },
+    "superpowers-content-metadata-v1.json": {
+      "repository": "obra/Superpowers",
+      "commit": "5bf4e78011075bcfc0dc295f0724994cd123ee71",
+      "sha256": "3476e624fe054a8d7ad8b60e638a885d8bf0f6119ec180730db21ae3c1dd3d61",
+      "sources": {},
+      "runtime": {
+        "node": "26.4.0",
+        "icu": "78.3",
+        "unicode": "17.0",
+        "cldr": "48.0"
+      }
+    },
+    "superpowers-hook-sources-v1.json": {
+      "repository": "obra/Superpowers",
+      "commit": "5bf4e78011075bcfc0dc295f0724994cd123ee71",
+      "sha256": "0dabd5bad9dd00d188d5faba61894be662e0e4a94b439d606b2aaf1630271949",
+      "sources": {},
+      "runtime": {
+        "node": "26.4.0",
+        "icu": "78.3",
+        "unicode": "17.0",
+        "cldr": "48.0"
+      }
+    }
+  }
+}

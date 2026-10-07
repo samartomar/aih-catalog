@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "The exact shape of Core's strict T3 compiler input SourceDataBaselineInputV1Schema, transcribed read-only from ai-harness core-int 96453911: src/baseline-evidence/source-data-baseline-preparation.ts:17-68 (blob 58adc7026a4d2c0b013b8f83823ace352e1206eb) and POLICY_AUTHORING_ASSET_KINDS from src/org-policy/catalog-provider-types.ts:1-11 (blob b03432fd3c936ab0dd4a67f759cfc2b05bf4d1a7). Every object is .strict() in Core, so additionalProperties is false everywhere. The zod `path` refinement (no leading /, no backslash, no colon, no NUL, every segment non-empty and neither . nor ..) is the pattern of #/definitions/path.",
+  "definitions": {
+    "text": { "type": "string", "minLength": 1, "maxLength": 1000 },
+    "id": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "sha": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "repository": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$" },
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000,
+      "pattern": "^(?!/)(?![^]*[\\\\:\\u0000])(?:(?!\\.\\.?(?:/|$))[^/]+)(?:/(?!\\.\\.?(?:/|$))[^/]+)*$"
+    },
+    "ids": { "type": "array", "items": { "$ref": "#/definitions/id" }, "maxItems": 1000 }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "framework"],
+  "properties": {
+    "version": { "const": "pinned-baseline/v1" },
+    "framework": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "repository", "commit", "assets"],
+      "properties": {
+        "id": { "enum": ["ecc", "superpowers"] },
+        "repository": { "$ref": "#/definitions/repository" },
+        "commit": { "$ref": "#/definitions/sha" },
+        "assets": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "kind", "source", "sourcePaths"],
+            "properties": {
+              "id": { "$ref": "#/definitions/id" },
+              "kind": {
+                "enum": [
+                  "agent",
+                  "baseline",
+                  "capability",
+                  "framework",
+                  "lang",
+                  "mcp",
+                  "module",
+                  "runtime",
+                  "skill"
+                ]
+              },
+              "curationKind": { "enum": ["agent", "skill", "command"] },
+              "riders": { "$ref": "#/definitions/ids" },
+              "dependencies": { "$ref": "#/definitions/ids" },
+              "members": { "$ref": "#/definitions/ids" },
+              "source": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["repository", "commit", "path"],
+                "properties": {
+                  "repository": { "$ref": "#/definitions/repository" },
+                  "commit": { "$ref": "#/definitions/sha" },
+                  "path": { "$ref": "#/definitions/path" }
+                }
+              },
+              "sourcePaths": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 10000,
+                "items": { "$ref": "#/definitions/path" }
+              },
+              "metadata": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "title",
+                  "summary",
+                  "usageContext",
+                  "allowedTools",
+                  "sourcePath",
+                  "sourceSha256"
+                ],
+                "properties": {
+                  "title": { "$ref": "#/definitions/text" },
+                  "summary": { "type": "string", "maxLength": 4000 },
+                  "usageContext": { "type": "string", "maxLength": 4000 },
+                  "allowedTools": {
+                    "type": "array",
+                    "maxItems": 128,
+                    "items": { "$ref": "#/definitions/text" }
+                  },
+                  "sourcePath": { "$ref": "#/definitions/path" },
+                  "sourceSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,4 +1,9 @@
-# Supported Catalog V2 contract
+# Historical Catalog V2 donor reference
+
+**Historical implementation only.** [The transition](../docs/TRANSITION.md) owns
+the direction, active checks and publication block. Release/signing instructions
+below describe retired workflows, not current authorization or a compatibility
+requirement.
 
 This document is the operator and maintainer contract for the public Catalog V2
 surface in `@aihq/catalog`; its command remains `aih-supported` and its V2
@@ -69,6 +74,90 @@ Source and subject digests use the exact Core domains:
 For an AIH source, `revision` must equal the SHA-256 of the profile artifact. For
 other source kinds, the producer validates and binds the declaration but does not
 contact the provider or claim the package was installed or executed.
+
+### Source curation
+
+The kinds above say what a subject can be. Each source's hand-authored inclusion
+declaration says which upstream files become subjects. Two sources leave
+upstream `SKILL.md` files out on purpose. Every reason below is an upstream fact
+at the pinned commit. Where no reason is recorded, the table says so.
+
+Matt Pocock (`mattpocock/skills@c55ee46073ed923f86ce59a5eb3b6d895095d1b7`, plugin
+1.2.3): `MATTPOCOCK_CANONICAL_SKILL_PATHS_V1`
+(`src/production/workbench/mattpocock-provider-v1.ts`) is exactly the 25 skills in
+upstream `.claude-plugin/plugin.json` `skills`. The snapshot's
+`inclusion.excludedPrefixes` names seven prefixes. The pinned tree has 13
+`SKILL.md` files under them:
+
+| Prefix | Skills at the pin | Reason |
+| --- | --- | --- |
+| `skills/in-progress/` | 9: `claude-handoff`, `implement-spec`, `loop-me`, `pr`, `retro`, `setup-ts-deep-modules`, `writing-beats`, `writing-fragments`, `writing-shape` | Upstream `CLAUDE.md` calls the bucket "beta: public on purpose, feedback wanted, not shipped in the plugin". `skills/in-progress/README.md` says the skills are excluded from the plugin until they graduate and "can change or disappear without warning". It also marks `retro` "STUB: design notes only, not functional yet". |
+| `skills/misc/` | 4: `git-guardrails-claude-code`, `migrate-to-shoehorn`, `scaffold-exercises`, `setup-pre-commit` | Upstream `CLAUDE.md`: "kept around but rarely used, not promoted". None is in `plugin.json`. |
+| `skills/deprecated/` | none (only `README.md`) | Upstream `CLAUDE.md`: "no longer used". The upstream README says the bucket is currently empty. |
+| `docs/` | none | Holds the human-facing docs pages for promoted skills (upstream `CLAUDE.md`). It has no `SKILL.md`. There is no recorded reason beyond that. |
+| `.agents/` | none | Holds maintainer notes: install block, invocation, writing-docs and ADRs. It has no `SKILL.md`. There is no recorded reason beyond that. |
+| `.changeset/` | none | Holds release changesets. It has no `SKILL.md`. There is no recorded reason beyond that. |
+| `scripts/` | none | Holds the repository scripts `link-skills.sh`, `list-skills.sh` and `sync-plugin-version.mjs`. It has no `SKILL.md`. There is no recorded reason beyond that. |
+
+ECC (`affaan-m/ECC@5064474d4d762dc9640234a41617cccb79185cec`): the rules below
+come from source; the reasons from git history. Upstream has 68 `agents/*.md`
+and 44 agent subjects, and declares 36 MCP servers for 37 MCP subjects. No
+commit in Core or the Catalog names any omission below, so none has a recorded
+reason.
+
+- **Agents.** An agent is a subject only when an `agent:<name>` id appears in the
+  hand-authored curation in `src/production/catalog/ecc-components-v1.ts`:
+  `CORE_ECC_COMPONENTS`, `LANGUAGE_COMPONENTS`, `FRAMEWORK_COMPONENTS` or
+  `ECC_DECLARATION_RIDERS` (collected in `DECLARABLE_COMPONENTS`, and read into
+  the Scanner definition by `eccBaselineCatalogV1`). The lists were ported
+  unchanged in 534b3321 ("feat(production): generate the policy authoring catalog
+  from its inputs") from Core `src/ecc/components.ts`. There they were written in
+  b5bdafbf (2026-07-10, "feat(ecc): register scoped component unions (#411)") and
+  6afbdfa6 (2026-07-31, "fix(trust): calibrate baseline qualification (#550)").
+  `git log -S "agent:<name>"` over Core and the Catalog finds none of the 24
+  below. Their files are still scanned, inside `module:agents-core`, which covers
+  all of `agents/`. They are not subjects.
+
+  | Upstream agent | Added upstream | Reason |
+  | --- | --- | --- |
+  | `chief-of-staff` | 71447f66, 2026-02-27, "feat(agents): add chief-of-staff communication triage agent (#280)" | no recorded reason |
+  | `harness-optimizer`, `loop-operator` | 48b883d7, 2026-03-04, "feat: deliver v1.8.0 harness reliability and parity updates" | no recorded reason |
+  | `flutter-reviewer` | 1975a576, 2026-03-20, "feat(agents): add flutter-reviewer agent and skill (#716)" | no recorded reason |
+  | `healthcare-reviewer` | 63737544, 2026-03-27, "feat: add healthcare domain skills and agent" | no recorded reason |
+  | `gan-evaluator`, `gan-generator`, `gan-planner` | 4cdfe709, 2026-03-31, "feat: add GAN-style generator-evaluator harness (#1029)" | no recorded reason |
+  | `opensource-forker`, `opensource-packager`, `opensource-sanitizer` | 477d23a3, 2026-03-31, "feat(agents,skills): add opensource-pipeline — 3-agent workflow for safe public releases (#1036)" | no recorded reason |
+  | `dart-build-resolver` | badccc3d, 2026-04-02, "feat: add C# and Dart language support" | no recorded reason |
+  | `comment-analyzer` | 8a365158, 2026-04-05, "feat: restore review and planning bundles" | no recorded reason |
+  | `conversation-analyzer` | 56bd57c5, 2026-04-05, "feat: restore hookify command bundle" | no recorded reason |
+  | `seo-specialist` | 31afed5b, 2026-04-05, "feat: add SEO audit support" | no recorded reason |
+  | `network-config-reviewer`, `network-troubleshooter` | 0e12267f, 2026-05-11, "docs: salvage network operations patterns" | no recorded reason |
+  | `homelab-architect`, `network-architect` | e17f2bcb, 2026-05-12, "feat: salvage network architect agents" | no recorded reason |
+  | `marketing-agent` | d29dad16, 2026-05-25, "feat: add marketing campaign agent skill and command (#2031)" | no recorded reason |
+  | `agent-evaluator` | bd459479, 2026-06-10, "feat(skills,agents): add agent-self-evaluation skill and agent-evaluator persona" | no recorded reason |
+  | `vue-reviewer` | 6bde9be3, 2026-06-12, "feat(agents): add vue-reviewer agent for Vue.js code review" | no recorded reason |
+  | `spec-miner` | eb5ad2b0, 2026-06-16, "feat(agents): add spec-miner agent for brownfield spec extraction (#2253)" | no recorded reason |
+  | `rag-pipeline-reviewer` | 0e0df5a6, 2026-08-11, "feat(agents): add rag-pipeline-reviewer agent (#2446)" | no recorded reason |
+
+- **`chrome-devtools`.** An MCP server is a subject in one of two ways:
+  - it is one of the six ids in `EXPLICIT_MCP_COMPONENTS`
+    (`ecc-components-v1.ts`, from Core b5bdafbf);
+  - it is a server of upstream `mcp-configs/mcp-servers.json`, as listed in
+    `ECC_MCP_CATALOG_IDS` (`ecc-mcp-inventory-v1.ts`, ported in 534b3321 from
+    Core `src/org-policy/ecc-mcp-catalog.ts`), minus
+    `AIH_OWNED_ECC_MCP_EXCLUSIONS`.
+
+  Upstream `.mcp.json` is read only as a source path of the curated MCP subjects,
+  never as an inventory. It declares one server, `chrome-devtools`
+  (`npx -y chrome-devtools-mcp@latest`); the string enters `.mcp.json` in
+  ff768db3 (2026-06-09, "feat(mcp): single-connector default set + connector
+  policy (#2219)", which reduced the default set to that one connector).
+  d473cf87 (2026-03-27, "feat(codex): add Codex native plugin manifest and fix
+  Claude plugin.json") is what created the file, with six other servers and no
+  `chrome-devtools`.
+  That server is in neither list, so it is not a subject. Core's Chrome DevTools
+  commits (6938f24e, 4926ed6c, cd1e268c, all 2026-09-24) concern the
+  telemetry opt-out aih checks at install time, not Catalog inclusion. No
+  recorded reason.
 
 ## Evidence
 

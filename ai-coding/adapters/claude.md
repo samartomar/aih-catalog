@@ -1,5 +1,5 @@
 # Claude adapter
 
-Claude reads `CLAUDE.md`, then `ai-coding/RULE_ROUTER.md`. The shared canon is
-manual and mirrors the root bootloaders. Never run an installed aih-supported
-against this checkout.
+Use a Claude Code version with native `AGENTS.md` support and verify it loaded
+this repository's `AGENTS.md`. There is no separate mirrored instruction file.
+Never run an installed aih-supported against this checkout.

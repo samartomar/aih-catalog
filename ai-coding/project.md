@@ -1,30 +1,13 @@
-# aih-supported repository truth
+# Catalog implementation status
 
-This repository provides the public `@aihq/catalog` Catalog V2
-producer and verifier. Its command remains `aih-supported`.
-Its versioned API and CLI create deterministic candidates from exact
-Core-compatible sources and seed-relative evidence, sign canonical heads with an
-administrator Ed25519 key, verify continuity and caller-supplied replay state,
-inspect unknown versions without materializing them, plan promotion exceptions,
-and emit closed Core-owned Strict Qualification Receipt V2 bytes for either one
-fully verified member or every member in a receipt set. Each receipt preserves
-the verified entry, head, predecessor, sequence, replay identity, signer key,
-and validity facts needed by Core's separate durable custody. See
-`ai-coding/supported-catalog-v2.md` before changing that boundary.
+[The transition](../docs/TRANSITION.md) owns the accepted content, material and
+generic recipe direction, donor disposition and completion criteria. The retained
+0.3.0 Catalog V2 producer/verifier and `aih-supported` CLI are migration donors.
+The canonical release manifests, contracts/reader/node entry points, executable
+recipes, shared context and targeted Scan-free producer are implemented. The
+greenfield candidate is being prepared for integration into main; native
+acceptance remains separate. Publication is blocked.
 
-The supported channel is optional and not-authoritative for organization
-admission. Core does not consume Catalog V2 directly; it independently verifies
-the receipt's outer attestation and exact subject/basis fields. Organization-
-qualified subjects remain a separate Core Strict V2 decision path carried by a
-V3 authority receipt, and evidence attestors remain distinct from catalog
-signers.
-
-Candidate generation has no provider network, installation, signing,
-repository-write, or publication authority. Signing executes no candidate code.
-The manual protected workflow can add separate outer GitHub provenance for the
-exact catalog, receipt-set manifest, and per-entry V2 receipts only after their
-hashes and the promotion plan are approved, and publication is separately
-authorized.
-Catalog V1 and Qualification Receipt V1 have been removed. Never run an
-installed aih-supported against this checkout; use packed disposable consumers
-or direct repository checks.
+Use `supported-catalog-v2.md` only to investigate historical behavior.
+Never run an installed aih-supported against this checkout.
+Use packed disposable consumers or direct repository checks.

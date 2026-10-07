@@ -1,326 +1,128 @@
 # @aihq/catalog
 
-[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+Catalog carries canonical content, pinned source material and generic executable
+recipes. Read and select content through portable APIs, acquire explicit package
+material through the Node adapter, then hand the selected recipes to Core.
 
-`@aihq/catalog` is AIH Catalog, the public Catalog V2 producer and verifier for
-AI Development Assurance. It binds exact tool, skill, agent, MCP, package, and profile
-sources to byte-addressed evidence, explicit capabilities, an administrator
-Ed25519 signature, continuity, and bounded validity.
+**Publication remains blocked during migration.** These interfaces and the targeted
+candidate producer are implemented for packed consumer checks; release activation is
+still pending. See [the transition](docs/TRANSITION.md) for status,
+[the greenfield integration scope](docs/GREENFIELD-INTEGRATION.md) for the replacement
+of the old release proposal,
+[the content contract](docs/CATALOG-CONTENT.md) for integrity and execution boundaries,
+[the producer guide](docs/PRODUCER.md) for preparing candidates,
+and [CONTRIBUTING.md](CONTRIBUTING.md) for contributor checks.
 
-**Core governs. Scan produces evidence. Catalog provides AIH qualification. The
-organization provides authority.**
+## Public entries
 
-The package is `@aihq/catalog`; the command remains `aih-supported`. It is
-Apache-2.0 licensed. Package and GitHub Release availability are live state:
-verify the exact version and tag with the commands below rather than inferring a
-registry effect from source text. The release workflow uses the
-protected `npm-publish` environment and the exact Trusted Publisher tuple
-documented in [RELEASING.md](RELEASING.md); it rejects token credentials at the
-final effect boundary. Package publication and the manual catalog/receipt
-outer-attestation workflow are separate effects, and publishing never grants
-catalog-signing or organization authority. Candidate bytes publish first under
-npm `next`; only public installed acceptance and separate authorization can
-promote those same bytes to `latest`.
+| Entry | Purpose | Runtime |
+| --- | --- | --- |
+| `@aihq/catalog/contracts` | Public types, format identity and support declaration | Portable |
+| `@aihq/catalog/reader` | Read, browse, configure and validate explicit selections | Portable |
+| `@aihq/catalog/node` | Read an installed root, resolve an exact archive/registry version, or prepare the project context for a chosen instruction directory | Node 24.15–24.x |
+| `@aihq/catalog/release.json` | Canonical release inventory | Data |
+| `@aihq/catalog/release-1.1.json` | Release of Core recipe 1.1 items (client hook groups); read it explicitly | Data |
+| `@aihq/catalog/schemas/release/1.0.0.json` | Release structural schema | Data |
+| `@aihq/catalog/schemas/release/1.1.0.json` | Release 1.1 structural schema | Data |
+| `@aihq/catalog/package.json` | Installed package identity and location | Data |
 
-Release and contribution policy: [VERSIONING.md](VERSIONING.md) ·
-[RELEASING.md](RELEASING.md) · [CONTRIBUTING.md](CONTRIBUTING.md).
+The portable entries use standard JavaScript and `Uint8Array`; they access neither
+files nor the network. The Node adapter verifies package, recipe and material bytes
+without installing packages, running lifecycle scripts or importing package code.
+Callers hold the expected integrity pin. Reading a document or calculating its hash
+from the same untrusted download alone does not authenticate its publisher.
 
-## Source-assessment release train
+## Read and configure
 
-The 0.2.0 source train adds bounded receipt-set publication for up to 512
-members (256 KiB canonical manifest). Its default candidate contains 428 exact
-members: the existing default and 25 Matt assessments, plus 14 Anthropic,
-7 Ponytail, 14 Superpowers, and 367 ECC source-file assessments. Existing Matt
-member bytes and predecessor history are preserved.
+```js
+import { readRelease, listItems, configureItem } from "@aihq/catalog/reader";
 
-These assessments retain original Scanner findings and timestamps, grant no
-executable capabilities, and do not authorize installation or organization use.
-Anthropic's `docx`, `pdf`, `pptx`, `xlsx`, and `doc-coauthoring` are not included:
-their applicable license grant is restricted or unestablished. Unsupported
-component kinds and derived compositions are not relabeled as qualified members.
-Publication still requires the separate protected workflows described above.
+// bytes and expectedSha256 come from the caller's reviewed acquisition.
+const read = readRelease(bytes, { expectedSha256 });
+if (!read.valid) throw new Error(JSON.stringify(read.diagnostics));
+const items = listItems(read.release);
+const configured = configureItem({
+  release: read.release,
+  itemId: "mattpocock.grill-me",
+  configuration: {},
+  materialSource: { kind: "local", input: "catalog" },
+});
+if (!configured.valid) throw new Error(JSON.stringify(configured.diagnostics));
+```
 
-## Authority boundary
+The Matt Pocock inventory carries all 27 skills in the pinned upstream plugin,
+including 23 referenced support files. [The refresh record](docs/MATTPOCOCK-REFRESH.md)
+records the exact commit, curation and version metadata.
+The carried `mattpocock.grill-me` item requires `mattpocock.grilling`. Both contain
+complete Core `file.write` recipes for their pinned `SKILL.md` and license bytes,
+with hash checks. Their `agentDirectory` input defaults to `.claude`; configure it
+explicitly to select another relative agent directory. Omitted defaults stay omitted
+in authored configuration so Core can report their default origin.
 
-There are two independent governance paths:
+Select required items explicitly, then call `validateSelectionSet` and copy its
+`requiresBySelectionId` into your Core policy. Catalog never installs dependencies
+or silently selects optional suggestions. See [the execution example](docs/CATALOG-CONTENT.md#explicit-dependencies-and-core-handoff).
 
-- `aih-supported` means a catalog signer included the exact subject and evidence
-  in a verified Catalog V2 head.
-- `organization-qualified` means an organization bound its own exact subject to
-  its own evidence and attestor through the Core Strict V2 decision contract and
-  V3 authority receipt.
+The `aihq.project-context` family supplies shared project AI context
+(under `ai-coding/` in the published release), native entry pointers and adapter
+notes for the supported client baseline as ordinary selectable items with the same
+contracts; see [the context content contract](docs/CONTEXT-CONTENT.md). A project
+that wants another instruction directory calls `prepareProjectContext` from
+`@aihq/catalog/node` with that required directory, a caller-owned staging directory
+and the installed release's `materialRoots`. It writes a derived release with its
+own identities to the staging directory and returns the checked release, a local
+material source and its `materialRoots` entry for the ordinary configure, validate
+and Core prepare/apply flow. Output overlapping the installed package is refused, and
+no release is regenerated. Delivering a client entry file does not prove the
+client loads it.
 
-The supported catalog is optional convenience. It is not an admission authority,
-and its CLI reports `organizationAdmission: "not-authoritative"`. Absence from
-this catalog must not block an organization-qualified subject. Evidence attestors
-and catalog signers are also separate identities: catalog signing authenticates
-the catalog; it does not convert an evidence declaration into an organization
-approval.
+Catalog-side preparation for persistent MCP configuration can proceed while native
+acceptance continues separately. [The preparation and acceptance lanes](docs/NATIVE-PREPARATION.md)
+keep the full client roster explicit; this integration admits no native cell.
 
-Core does not consume Catalog V2 directly; it neither imports nor reverifies the
-catalog. This package emits one closed Strict Qualification Receipt V2 after
-full Catalog V2 verification. The receipt carries the exact member basis plus
-the authenticated catalog continuity that Core needs for its own durable
-high-water custody. Core's matching V2 consumer is available through
-`aih policy supported accept` and `aih policy supported inspect`. Acceptance
-separately verifies the receipt's outer GitHub attestation, the current Strict
-V2 organization decision carried by its V3 authority receipt, and the exact
-receipt fields before writing durable signer, replay, head, and head-scoped
-member custody. Inspection is read-only. Neither command turns catalog
-membership into organization admission.
+## Client hook items
 
-## Install and inspect from a clean consumer
+`release-1.1.json` carries opt-in client hook items that add, update and remove only their own group in a shared client settings array through Core's generic `hook.group` operation (Core recipe and execution policy 1.1). The first item, `aihq.hook.claude.protect-env`, blocks Claude Code edits to local `.env` files. Read it with `readInstalledRelease({ root, release: "./release-1.1.json" })`; a reader or Core without 1.1 support refuses it as unsupported rather than installing part of it. See [the content contract](docs/CATALOG-CONTENT.md#client-hook-items-release-11).
 
-Resolve the promoted stable version from live registry observation, approve that
-exact version, and use it consistently:
+## Prepare a content candidate
 
 ```sh
-version="$(npm view @aihq/catalog dist-tags.latest)"
-npm install --save-exact "@aihq/catalog@$version"
-npm audit signatures
-./node_modules/.bin/aih-supported --help
+npm run build:dist
+node tools/prepare-candidate.mjs --commit <full upstream commit>
 ```
 
-npm publication and GitHub Release creation are separate observable effects.
-Verify the Release independently; only after `gh release view` succeeds should
-you download and verify its exact tarball:
+A maintainer pins one upstream commit; the producer fetches it, regenerates only the
+affected items and their real dependents, carries everything else over byte for byte,
+checks and packs the complete result and writes a review page and a timing summary.
+It does not wait for Scan, allocate a version or publish. Without `--apply` it is a
+dry run. See [the producer guide](docs/PRODUCER.md) and
+[its migration evidence](docs/PRODUCER-MIGRATION.md).
+
+## Verify packed consumers
 
 ```sh
-gh release view "v-catalog-$version" --repo samartomar/aih-catalog
-gh release download "v-catalog-$version" --repo samartomar/aih-catalog --pattern "aihq-catalog-$version.tgz"
-gh attestation verify "./aihq-catalog-$version.tgz" --repo samartomar/aih-catalog --signer-workflow samartomar/aih-catalog/.github/workflows/release.yml --source-ref "refs/tags/v-catalog-$version" --deny-self-hosted-runners
+npm ci --ignore-scripts
+npm run verify
+node tools/verify-core-consumer.mjs /absolute/path/to/reviewed-core.tgz
 ```
 
-If the registry does not expose that exact version, build a tarball from an
-exact reviewed checkout and install it only in a disposable consumer:
+The consumer check packs Catalog, installs those exact Catalog and Core artifacts
+with lifecycle scripts disabled, and runs public prepare/apply in disposable roots.
+It checks local/archive identity, explicit dependencies, default origin, applied
+material hashes and refusal after selected material changes. Supply a reviewed Core
+artifact; the check does not choose a moving registry version. Pass a prepared Catalog tarball as a second argument to check that exact
+candidate instead of packing this checkout. Run `node tools/verify-hook-consumer.mjs /absolute/path/to/reviewed-core.tgz` for the same packed-consumer check of the hook group lifecycle; the Core artifact must support recipe and execution-policy 1.1. Add `--instruction-directory <dir>` to
+prepare the project context for that directory through the installed package's
+`prepareProjectContext` and run the context scenario against the derived release.
 
-```sh
-npm ci
-npm run build
-npm pack --pack-destination ../artifacts
-mkdir ../catalog-consumer
-cd ../catalog-consumer
-npm init -y
-npm install --ignore-scripts ../artifacts/aihq-catalog-X.Y.Z.tgz
-```
+For a real browser check, pack Catalog and run
+`node tools/verify-portable-browser.mjs /absolute/path/to/catalog.tgz`.
+Open the reported local URL, inspect the result, then send `quit` to stop the helper.
 
-The package workflow keeps candidate execution in a read-only job. Its protected
-job downloads the packed candidate by immutable artifact ID, revalidates the
-original tarball digest before every effect, re-observes the tag and `main`, and
-runs no candidate package code. It binds npm provenance, a GitHub build
-attestation, a tarball-scoped SPDX SBOM, the checksum, and a keyless cosign
-checksum bundle to the exact tagged source. Do not run this block until the exact
-`npm view "@aihq/catalog@$version"` succeeds. Those package-release records do not
-sign a Catalog V2 head or Qualification Receipt and do not grant organization
-authority.
+The retained V1/V2 source and historical documentation are migration donor material.
+Their root exports, JSON subpaths and `aih-supported` CLI are excluded from the new
+package. Publication, signing and candidate allocation remain separately owned by
+[RELEASING.md](RELEASING.md) and [VERSIONING.md](VERSIONING.md).
 
-Obtain these inputs through administrator-controlled channels:
-
-- the signed catalog JSON;
-- its catalog-signer root JSON, distributed out of band;
-- the exact expected GitHub claims JSON;
-- either the trusted last accepted head or an explicit genesis decision; and
-- optionally, caller-maintained replay state for identities already accepted;
-- the current UTC time supplied by the caller.
-
-Inspect a genesis head and derive one qualification basis:
-
-```sh
-printf '{"acceptedIdentities":[]}' > ./replay-state.json
-./node_modules/.bin/aih-supported inspect --signed-catalog ./signed-catalog.json --catalog-signer-root ./catalog-signer-root.json --expected-claims ./expected-claims.json --replay-state ./replay-state.json --now 2026-08-22T12:00:00Z --continuity genesis --qualification-basis --entry-id recipe.default
-```
-
-For a successor, replace `--continuity genesis` with
-`--last-accepted-head ./last-accepted-head.json`. A successful materializable
-result includes the verified head and, when requested, a basis containing
-`catalogHeadDigest`, `catalogMemberDigest`, the catalog signer identity, and the
-exact subject digest. Unknown schema or effect versions are returned only as an
-authenticated `unsupported-version` record; they are never materialized as V2.
-
-Verification is deliberately caller-timed and fail-closed. Expired heads,
-untrusted or duplicate roots, identities already present in supplied replay
-state, skipped continuity, malformed claims, and ambiguous inputs fail without
-creating an output. The verifier never mutates replay state; after its own
-atomic acceptance, the caller records the returned replay identity. Omitting
-`--replay-state` disables only that caller-owned duplicate-identity check.
-
-## Emit the Core qualification receipt
-
-After the same catalog verification succeeds, emit one receipt for an exact
-entry to a new file:
-
-```sh
-mkdir -p ./.aih
-./node_modules/.bin/aih-supported emit-qualification-receipt --signed-catalog ./signed-catalog.json --catalog-signer-root ./catalog-signer-root.json --expected-claims ./expected-claims.json --replay-state ./replay-state.json --now 2026-08-22T12:00:00Z --continuity genesis --entry-id recipe.default --output ./.aih/aih-supported-qualification-receipt.json
-```
-
-For a successor, use `--last-accepted-head` as for `inspect`. The receipt is
-canonical JSON no larger than 5,970 bytes, the measured maximum legal V2
-encoding. The Supported channel first bounds the subject's complete canonical
-source object to 4,096 bytes; organization-qualified Core remains available for
-exact sources outside that optional-channel limit. The receipt binds the full
-exact subject, entry id, all seven Core
-`aih-supported` basis fields, issuance and catalog-bounded expiry, and
-`organizationAdmission: "not-authoritative"`. Its separate
-`catalogContinuity` block carries the mirrored head digest, predecessor,
-sequence, signed replay identity, Ed25519 signer key id, and exact head-validity
-window. Every field is derived from the already verified signed head and member;
-no caller flag can override it. The file is written with exclusive creation and
-is never printed to stdout. An existing or linked output path fails closed.
-
-The file is not trusted merely because this command created it. For protected
-publication, the official workflow emits a canonical receipt-set manifest plus
-one receipt for every verified catalog member, checks the supplied manifest
-SHA-256 and issuance timestamp, reproduces the bytes at the exact main commit,
-and makes the signed catalog, manifest, and per-entry receipts protected
-attestation subjects. Core verifies that outer attestation against its dedicated
-supported repository/workflow roots before using any receipt as provenance.
-
-Receipt V1 is not a compatibility path: an older Core V1 verifier must reject
-these bytes and may not infer the new continuity fields. Core's matching V2
-consumer owns the out-of-checkout supported repository/workflow roots, live
-clock, outer-attestation verification, administrator signer-key lineage,
-durable replay/head/member custody, and current organization decision. Place the
-receipt at the fixed target path shown above; then use Core's preview-first
-`aih policy supported accept` command with the exact decision reference and
-target. Apply remains unavailable unless the production authority and GitHub
-support attestation both verify.
-`aih policy supported inspect --root <target> --json` reports only current
-scrubbed custody and performs no write.
-
-Repository CI verifies an exact clean Core checkout at
-`c31741602b3dbd5f228dafe00591e5679c782878`, materializes that locked revision
-in a disposable detached clone, and builds and packs both packages
-there. It installs both tarballs into disposable roots and proves that packed
-Core accepts the emitted V2 receipt and the exact 5,970-byte legal ceiling,
-rejects V1 and 5,971 bytes, reaches the production acceptance boundary, and
-exercises read-only inspection. The packed proof intentionally supplies no
-genuine organization authority or public
-receipt attestation, so production acceptance must fail closed with `AIH_TRUST`;
-it does not fabricate a successful custody write. Successful production
-acceptance remains contingent on genuine organization authority and the
-separately authorized GitHub attestation.
-
-## Produce a candidate
-
-Candidate generation is local and data-only. It performs no provider request,
-network fetch, installation, repository write, or automatic qualification. A
-seed names four bounded local artifacts and evidence files relative to the seed.
-It also carries the exact Core-compatible source instead of a mutable package
-label. For example:
-
-```json
-{
-  "artifacts": {
-    "closure": "artifacts/closure.json",
-    "profile": "artifacts/profile.json",
-    "prose": "artifacts/prose.md",
-    "recipe": "artifacts/recipe.json"
-  },
-  "capabilities": {
-    "commands": ["catalog.verify"],
-    "egress": ["https://api.github.com"],
-    "hooks": ["hook.catalog.verify"],
-    "mcpTools": ["github.get_workflow_run"],
-    "permissions": ["contents:read"]
-  },
-  "entryId": "recipe.default",
-  "platforms": [{ "architecture": "amd64", "os": "linux" }],
-  "qualification": {
-    "findings": [],
-    "gaps": [],
-    "report": "evidence/report.json",
-    "rights": ["evidence/right-catalog-read.json"]
-  },
-  "subject": {
-    "id": "default-profile",
-    "kind": "profile",
-    "source": {
-      "release": "1.0.0",
-      "revision": "sha256:1492fa09fc057e2e3659ca5ad3d143ba5a4b529a2b18e027b5e40a75439518c9",
-      "type": "aih"
-    }
-  }
-}
-```
-
-Each evidence path contains an exact JSON envelope with
-`format`, `kind`, `id`, `subjectDigest`, `attestor`, and `summary`. The generator
-reads each bounded regular file once, validates its subject and attribution, and
-hashes those same bytes. It rejects caller-supplied evidence digests. Empty
-findings or gaps mean no declared exceptions in that evidence report; the
-required report prevents that from being confused with no evidence supplied.
-
-Generate and sign using files prepared outside the package:
-
-```sh
-./node_modules/.bin/aih-supported generate-candidate --seed ./seed.json --signer ./catalog-signer.json --claims ./claims.json --valid-from 2026-08-22T00:00:00Z --valid-until 2026-08-23T00:00:00Z --sequence 0 --previous-catalog-head-sha256 0000000000000000000000000000000000000000000000000000000000000000 --output ./candidate.json
-./node_modules/.bin/aih-supported sign-candidate --candidate ./candidate.json --private-key ./catalog-signer-private.pem --output ./signed-catalog.json
-```
-
-On POSIX systems, the private key must not grant group or other access. Output
-creation is exclusive, and linked seed artifacts, evidence, private keys, or
-output paths are rejected. Keep signer roots outside catalog-controlled data.
-
-## Version bumps, removal, and revocation
-
-A successor increments `sequence` and binds the previous
-`catalogHeadSha256`. Changing a source version, evidence, capability, signer,
-platform, recipe, prose, schema, or effect produces deterministic promotion
-facts and preserves the last-good head during automatic evaluation. Removing an
-entry produces an `entry-removed` fact; that is catalog revocation for later
-consumers.
-
-The manual workflow uploads a canonical promotion plan that binds the candidate
-head, last-good head, and every fact. A material change crosses the effect
-boundary only when the caller supplies the exact promotion-plan, signed-catalog,
-and qualification-receipt-set manifest SHA-256 values plus the receipt issuance
-timestamp, and the protected `catalog-signing` environment approves those exact
-bytes. The independent verifier then recomputes continuity, plan bytes, inner
-signature, claims, receipt-set bytes, every per-entry receipt, and the outer
-provenance records.
-
-Removal does not retroactively invalidate a Core decision already issued for a
-pinned member digest. Organizations revoke those decisions through Core's
-separate digest-bound revocation authority. Catalog validity is limited to 90
-days, so consumers must re-observe rather than treating a cached verdict as
-authority.
-
-## Signatures and provenance
-
-The inner administrator Ed25519 DSSE/in-toto signature binds the catalog head.
-Its inner claims are a declaration checked against caller-supplied expected
-repository, workflow, issuer, ref, environment, and repository identities. The
-catalog-signer root remains out of band.
-
-The separately authorized workflow adds independent GitHub OIDC/keyless
-attestations for the exact signed catalog, exact qualification-receipt-set
-manifest, and exact per-entry qualification receipts at the main commit.
-Consumers must perform GitHub attestation verification as a separate layer.
-Outer transparency provenance does not replace the inner signature, approve
-organization use, or publish npm bytes.
-
-Catalog members use domain-separated `aih-supported-catalog-member/v2`, catalog,
-and catalog-head digests. The Core source and subject digest formulas and
-`catalogHeadSha256`/`candidateSha256` bindings are locked to the vendored Core
-schema and compatibility vectors.
-
-## Consume or contribute
-
-Applications may import the bounded API from `@aihq/catalog` to create,
-canonicalize, sign, verify, inspect, compare, and derive qualification bases. The
-package has no runtime dependencies and exports no network/provider controller.
-
-Contributions should add exact source descriptors, seed-relative evidence,
-capability declarations, and negative tests. A contribution is only a candidate;
-review, administrator signing, the exact promotion-plan digest, protected
-approval, CI, and separately authorized publication remain distinct steps.
-
-See [the Catalog V2 contract](https://github.com/samartomar/aih-catalog/blob/main/ai-coding/supported-catalog-v2.md)
-for schemas, limits, trust boundaries, and maintainer verification commands.
-
-## License
-
-[Apache-2.0](LICENSE). Catalog software and qualification data are provided on
-an "AS IS" basis without organization approval, admission, warranty, support,
-or effect authority.
+Catalog is Apache-2.0 licensed. Carried third-party material retains its source
+license and pinned provenance.

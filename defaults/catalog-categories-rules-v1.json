@@ -1,0 +1,175 @@
+{
+  "format": "aih-catalog-categories-rules",
+  "version": 1,
+  "curatedBy": "AIH catalog maintainers",
+  "curatedAt": "2026-09-22T00:00:00Z",
+  "taxonomy": [
+    {
+      "id": "agent-workflow",
+      "label": "Agent workflow",
+      "description": "Planning, orchestrating, looping and managing context for coding agents and their skills."
+    },
+    {
+      "id": "architecture",
+      "label": "Architecture",
+      "description": "Software architecture and design decisions: system structure, APIs, contracts and domain models."
+    },
+    {
+      "id": "build-and-debug",
+      "label": "Build and debug",
+      "description": "Resolving build failures, diagnosing bugs and handling errors."
+    },
+    {
+      "id": "business-and-content",
+      "label": "Business and content",
+      "description": "Marketing, sales, finance, operations of a business domain, and producing written or media content."
+    },
+    {
+      "id": "code-review",
+      "label": "Code review",
+      "description": "Reviewing, simplifying and refactoring code."
+    },
+    {
+      "id": "docs-and-research",
+      "label": "Docs and research",
+      "description": "Writing documentation, looking things up, researching and teaching."
+    },
+    {
+      "id": "frontend-and-design",
+      "label": "Frontend and design",
+      "description": "User interfaces, visual design, motion and accessibility."
+    },
+    {
+      "id": "infrastructure-and-ops",
+      "label": "Infrastructure and ops",
+      "description": "Containers, deployment, networks, version control and terminal operations."
+    },
+    {
+      "id": "language-and-framework",
+      "label": "Language and framework",
+      "description": "Conventions and patterns for one programming language, framework or datastore."
+    },
+    {
+      "id": "security",
+      "label": "Security",
+      "description": "Security review, scanning, safety guards and regulated-data compliance."
+    },
+    {
+      "id": "testing",
+      "label": "Testing",
+      "description": "Test-driven development, test suites, end-to-end testing, evaluation and verification."
+    },
+    {
+      "id": "tool-integration",
+      "label": "Tool integration",
+      "description": "MCP servers that connect an agent to an external tool or service."
+    }
+  ],
+  "rules": [
+    {
+      "id": "mcp-server",
+      "category": "tool-integration",
+      "match": {
+        "kind": "mcp"
+      }
+    },
+    {
+      "id": "upstream-frontend-category",
+      "category": "frontend-and-design",
+      "match": {
+        "upstreamCategory": "frontend"
+      }
+    },
+    {
+      "id": "security-names",
+      "category": "security",
+      "match": {
+        "namePattern": "(?:^|-)(security|safety|hipaa|phi|gateguard)(?:-|$)"
+      }
+    },
+    {
+      "id": "review-names",
+      "category": "code-review",
+      "match": {
+        "namePattern": "(?:^|-)(reviewer|review|simplifier|refactor|cleaner)(?:-|$)"
+      }
+    },
+    {
+      "id": "testing-names",
+      "category": "testing",
+      "match": {
+        "namePattern": "(?:^|-)(tdd|test|testing|e2e|qa|verification|eval|benchmark)(?:-|$)"
+      }
+    },
+    {
+      "id": "orchestration-names",
+      "category": "agent-workflow",
+      "match": {
+        "namePattern": "^(orch)-"
+      }
+    },
+    {
+      "id": "build-and-debug-names",
+      "category": "build-and-debug",
+      "match": {
+        "namePattern": "(?:^|-)(resolver|debugging|diagnosing|error|introspection)(?:-|$)"
+      }
+    },
+    {
+      "id": "frontend-names",
+      "category": "frontend-and-design",
+      "match": {
+        "namePattern": "(?:^|-)(frontend|ui|ux|a11y|accessibility|motion|brand|theme|canvas|art|slides|swiftui|liquid|interfaces|design-system|dashboard|vue|angular|nextjs|nuxt4|react)(?:-|$)"
+      }
+    },
+    {
+      "id": "architecture-names",
+      "category": "architecture",
+      "match": {
+        "namePattern": "(?:^|-)(architect|architecture|design|modeling|blueprint|hexagonal|contract)(?:-|$)"
+      }
+    },
+    {
+      "id": "language-names",
+      "category": "language-and-framework",
+      "match": {
+        "namePattern": "^(golang|kotlin|python|rust|java|swift|perl|cpp|csharp|dotnet|django|laravel|springboot|quarkus|nestjs|fastapi|jpa|prisma|postgres|mysql|redis|clickhouse|bun|vite|dart|flutter|compose|pytorch|tinystruct|fsharp|android)(?:-|$)"
+      }
+    },
+    {
+      "id": "pattern-names",
+      "category": "language-and-framework",
+      "match": {
+        "namePattern": "(?:^|-)(patterns|coding-standards)$"
+      }
+    },
+    {
+      "id": "agent-workflow-names",
+      "category": "agent-workflow",
+      "match": {
+        "namePattern": "(?:^|-)(agent|agents|agentic|plan|plans|planner|planning|loop|loops|harness|council|subagent|parallel|workflow|workflows|brainstorming|handoff|grill|grilling|skill|skills|superpowers|context|token|prompt|memory|compact|learning|devfleet|team)(?:-|$)"
+      }
+    },
+    {
+      "id": "docs-and-research-names",
+      "category": "docs-and-research",
+      "match": {
+        "namePattern": "(?:^|-)(docs|doc|documentation|writing|article|knowledge|research|literature|onboarding|tour|comms|guide|teach|lookup|search)(?:-|$)"
+      }
+    },
+    {
+      "id": "infrastructure-names",
+      "category": "infrastructure-and-ops",
+      "match": {
+        "namePattern": "(?:^|-)(docker|kubernetes|deployment|git|github|terminal|network|homelab|cisco|netmiko|flox|uncloud|canary|worktrees|merge|branch)(?:-|$)"
+      }
+    },
+    {
+      "id": "business-and-content-names",
+      "category": "business-and-content",
+      "match": {
+        "namePattern": "(?:^|-)(marketing|investor|seo|content|social|market|lead|finance|billing|customer|logistics|procurement|inventory|carrier|customs|returns|scheduling|energy|healthcare|video|crosspost|email|publisher)(?:-|$)"
+      }
+    }
+  ]
+}

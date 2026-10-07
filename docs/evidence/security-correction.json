@@ -1,0 +1,106 @@
+{
+  "schema": "aihq-catalog-security-correction-evidence",
+  "version": 1,
+  "date": "2026-10-07",
+  "correctionBase": "47e15990269b9890ea29a936ad350cd38967d12d",
+  "integrationBase": "07cf5daceae07561fe5fb7fae47f4d37fd9441ed",
+  "publication": "disabled",
+  "nativeCellsAdmitted": 0,
+  "artifact": {
+    "name": "@aihq/catalog",
+    "version": "0.1.0",
+    "filename": "aihq-catalog-0.1.0.tgz",
+    "sha256": "278444c8971e511c9f5b50c58caa1acb082e8087abc2ba07ffe03e27aa5250d3",
+    "byteLength": 174327,
+    "lifecycleScripts": "disabled",
+    "source": "verified correction working tree; this evidence file is excluded from the tarball"
+  },
+  "corrections": {
+    "cache": {
+      "windowsCurrentSidOwnerRequired": true,
+      "untrustedWriteGrantsRefused": true,
+      "retainedPermissionsRepaired": false,
+      "inspectionFailure": "refused",
+      "pinnedCommitAndTreesRehashed": true,
+      "returnedBlobsRehashed": true,
+      "realWindowsWritableCacheRegression": "passed",
+      "individualObjectWriteGrantRegression": "passed",
+      "everyBackingObjectEntryInspected": true,
+      "substitutedLooseBlobRegression": "passed",
+      "focusedCacheAndFetchTestsPassed": 16
+    },
+    "hook": {
+      "windowsDefaultDataStreamRegression": "passed",
+      "blockedExitCode": 2,
+      "templatesPreserved": true,
+      "generator": "node tools/generate-release.mjs --hooks-only",
+      "focusedHookTestsPassed": 7
+    }
+  },
+  "preservation": {
+    "status": "passed",
+    "correctionBase": "47e15990269b9890ea29a936ad350cd38967d12d",
+    "release10Sha256": "aabdf1fb75d4798c6da5aeda728c4c9150f37de0e618fb0e8048f7088309a100",
+    "release10Items": 46,
+    "release10Members": 113,
+    "release10BytesUnchanged": true,
+    "hookSelectorsUnchanged": true,
+    "release11Sha256": "cfc610dc039041e2f6c8a578aaa3a7314bb7baa2776dc48be99836a601e0bf97",
+    "hookClosureRegenerated": true,
+    "signedHistoricalJsonUnchanged": true
+  },
+  "verification": {
+    "command": "npm ci --ignore-scripts; npm run verify",
+    "releaseBaseline": "07cf5daceae07561fe5fb7fae47f4d37fd9441ed",
+    "status": "passed",
+    "testFilesPassed": 52,
+    "verifiedSourceHead": "aca9640b735c21450e39c0dfa4506de1e846e5e1",
+    "testsPassed": 643,
+    "testsSkipped": 3,
+    "testsTotal": 646,
+    "skipped": "optional explicitly supplied Core-artifact tests; exact packed consumers ran separately",
+    "platform": "win32",
+    "node": "v24.18.0",
+    "npmAuditVulnerabilities": 0,
+    "registrySignaturesVerified": 75,
+    "attestationsVerified": 34,
+    "publicationLifecycle": "refused with exit 1"
+  },
+  "review": {
+    "sourceHead": "aca9640b735c21450e39c0dfa4506de1e846e5e1",
+    "reviewer": "independent Sol agent",
+    "standards": "passed; zero remaining actionable findings",
+    "spec": "passed; zero remaining actionable findings",
+    "unsafeObjectEntryProbe": "refused before HTTP; safe reuse passed"
+  },
+  "consumers": {
+    "core": {
+      "status": "passed",
+      "catalogSha256": "278444c8971e511c9f5b50c58caa1acb082e8087abc2ba07ffe03e27aa5250d3",
+      "coreSha256": "e0d26cf43add77247ca00177278e978aaf1459af28ea3dc7d9952f1a8a1773fc"
+    },
+    "context": {
+      "status": "passed",
+      "catalogSha256": "278444c8971e511c9f5b50c58caa1acb082e8087abc2ba07ffe03e27aa5250d3",
+      "coreSha256": "e0d26cf43add77247ca00177278e978aaf1459af28ea3dc7d9952f1a8a1773fc"
+    },
+    "hook": {
+      "status": "passed",
+      "catalogSha256": "278444c8971e511c9f5b50c58caa1acb082e8087abc2ba07ffe03e27aa5250d3",
+      "coreSha256": "e0d26cf43add77247ca00177278e978aaf1459af28ea3dc7d9952f1a8a1773fc"
+    }
+  },
+  "portablePreservation": {
+    "status": "unchanged",
+    "portableModules": [
+      "package/dist/release/contracts.js",
+      "package/dist/release/document.js",
+      "package/dist/release/inputs.js",
+      "package/dist/release/json.js",
+      "package/dist/release/reader.js",
+      "package/dist/release/sha256.js"
+    ],
+    "release10BytesUnchanged": true,
+    "browserEvidence": "prior real browser result reused for byte-identical portable closure; no new browser run"
+  }
+}

@@ -1,0 +1,232 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aihq:catalog:release:1.1.0",
+  "title": "Catalog release (admits Core recipe 1.1)",
+  "description": "Structural contract for a Catalog release document. Instances are canonical UTF-8 JSON (sorted keys, no whitespace) followed by exactly one LF, at most 16 MiB including the LF and 32 levels deep. The reader additionally enforces rules JSON Schema cannot express: sorted unique source/item/material IDs, known source IDs, NFC strings, path segments that are not reserved device names and fit Core's member path bytes, consistent bytes for a repeated path, Core InputSpec default/enum/bounds semantics, no self dependency, known same-release dependencies and an acyclic required closure. Recipe contents are Core's urn:aihq:core:recipe:1.0.0 or urn:aihq:core:recipe:1.1.0 (which adds the owned hook.group operation); hosts compare a loaded recipe's inputs, prerequisites, targets and material closure with the item.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "package", "sources", "items"],
+  "properties": {
+    "schema": { "const": "urn:aihq:catalog:release:1.1.0" },
+    "package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "$ref": "#/$defs/packageName" },
+        "version": { "$ref": "#/$defs/version" }
+      }
+    },
+    "sources": { "type": "array", "items": { "$ref": "#/$defs/source" } },
+    "items": { "type": "array", "items": { "$ref": "#/$defs/item" } },
+    "metadata": { "$ref": "#/$defs/metadata" }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$" },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "httpsUrl": { "type": "string", "minLength": 9, "maxLength": 2048, "pattern": "^https://[^\\s/?#@]+(?:[/?][^\\s#]*)?$" },
+    "packageName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 214,
+      "pattern": "^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$"
+    },
+    "version": {
+      "type": "string",
+      "maxLength": 256,
+      "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$"
+    },
+    "path": {
+      "description": "Canonical package-root-relative POSIX member path under Core's material path rules.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "pattern": "^(?!(?:[^/]*/)*\\.{1,2}(?:/|$))(?!(?:[^/]*/)*[^/]*[. ](?:/|$))[^/\\\\:\\p{C}]+(?:/[^/\\\\:\\p{C}]+){0,63}$"
+    },
+    "metadata": { "description": "Descriptive data only. It confers no effect, authority or required evidence.", "type": "object" },
+    "member": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "path", "sha256", "byteLength"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "path": { "$ref": "#/$defs/path" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "byteLength": { "type": "integer", "minimum": 0, "maximum": 16777216 }
+      }
+    },
+    "materialSource": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "url", "sha256", "byteLength"],
+          "properties": {
+            "kind": { "const": "archive" },
+            "url": { "$ref": "#/$defs/httpsUrl" },
+            "sha256": { "$ref": "#/$defs/sha256" },
+            "byteLength": { "type": "integer", "minimum": 1, "maximum": 67108864 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "input"],
+          "properties": { "kind": { "const": "local" }, "input": { "$ref": "#/$defs/id" } }
+        }
+      ]
+    },
+    "origin": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "repository", "revision"],
+          "properties": {
+            "kind": { "const": "git" },
+            "repository": { "$ref": "#/$defs/httpsUrl" },
+            "revision": { "type": "string", "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "registry", "package", "version", "integrity"],
+          "properties": {
+            "kind": { "const": "npm" },
+            "registry": { "$ref": "#/$defs/httpsUrl" },
+            "package": { "$ref": "#/$defs/packageName" },
+            "version": { "$ref": "#/$defs/version" },
+            "integrity": { "type": "string", "maxLength": 512, "pattern": "^sha(?:256|384|512)-[A-Za-z0-9+/]+={0,2}$" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind"],
+          "properties": { "kind": { "const": "authored" } }
+        }
+      ]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "origin"],
+      "properties": { "id": { "$ref": "#/$defs/id" }, "origin": { "$ref": "#/$defs/origin" } }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "required"],
+      "properties": {
+        "type": { "enum": ["string", "boolean", "integer", "number"] },
+        "required": { "type": "boolean" },
+        "default": { "$ref": "#/$defs/scalar" },
+        "enum": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/scalar" } },
+        "description": { "type": "string", "maxLength": 4096 },
+        "sensitive": { "type": "boolean" },
+        "minLength": { "type": "integer", "minimum": 0 },
+        "maxLength": { "type": "integer", "minimum": 0 },
+        "minimum": { "type": "number" },
+        "maximum": { "type": "number" }
+      }
+    },
+    "scalar": { "anyOf": [{ "type": "string" }, { "type": "boolean" }, { "type": "number" }] },
+    "prerequisite": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "os", "architectures"],
+          "properties": {
+            "kind": { "const": "platform" },
+            "os": { "enum": ["win32", "darwin", "linux"] },
+            "architectures": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": ["x64", "arm64"] } }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "name"],
+          "properties": { "kind": { "const": "executable" }, "name": { "type": "string", "minLength": 1, "maxLength": 256 } }
+        }
+      ]
+    },
+    "dependencyRef": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["itemId"],
+          "properties": { "itemId": { "$ref": "#/$defs/id" } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["release", "itemId", "itemSha256"],
+          "properties": {
+            "release": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["source", "manifest"],
+              "properties": {
+                "source": { "$ref": "#/$defs/materialSource" },
+                "manifest": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["path", "sha256", "byteLength"],
+                  "properties": {
+                    "path": { "$ref": "#/$defs/path" },
+                    "sha256": { "$ref": "#/$defs/sha256" },
+                    "byteLength": { "type": "integer", "minimum": 1, "maximum": 16777216 }
+                  }
+                }
+              }
+            },
+            "itemId": { "$ref": "#/$defs/id" },
+            "itemSha256": { "$ref": "#/$defs/sha256" }
+          }
+        }
+      ]
+    },
+    "dependencyList": { "type": "array", "items": { "$ref": "#/$defs/dependencyRef" } },
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "kind", "sourceIds", "targets", "scopes", "inputs", "recipe", "materials", "dependencies"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "description": { "type": "string", "maxLength": 4096 },
+        "kind": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" },
+        "sourceIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/id" } },
+        "targets": { "type": "array", "items": { "$ref": "#/$defs/prerequisite" } },
+        "scopes": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": ["project", "user"] } },
+        "inputs": { "type": "object", "propertyNames": { "$ref": "#/$defs/id" }, "additionalProperties": { "$ref": "#/$defs/input" } },
+        "recipe": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "schema", "path", "sha256", "byteLength"],
+          "properties": {
+            "id": { "$ref": "#/$defs/id" },
+            "schema": { "enum": ["urn:aihq:core:recipe:1.0.0", "urn:aihq:core:recipe:1.1.0"] },
+            "path": { "$ref": "#/$defs/path" },
+            "sha256": { "$ref": "#/$defs/sha256" },
+            "byteLength": { "type": "integer", "minimum": 1, "maximum": 1000000 }
+          }
+        },
+        "materials": { "type": "array", "maxItems": 4096, "items": { "$ref": "#/$defs/member" } },
+        "dependencies": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "requires": { "$ref": "#/$defs/dependencyList" },
+            "optional": { "$ref": "#/$defs/dependencyList" },
+            "conflicts": { "$ref": "#/$defs/dependencyList" }
+          }
+        },
+        "metadata": { "$ref": "#/$defs/metadata" }
+      }
+    }
+  }
+}
