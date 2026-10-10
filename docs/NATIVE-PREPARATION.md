@@ -59,6 +59,54 @@ paths out of bundled material and public records. A supplied bundle's own hashes
 do not establish acquisition trust; the caller independently binds the acquired
 archive and manifest with their digests and lengths.
 
+## Claude: inspected configuration and prepared fixture
+
+The first bounded cell is Claude Code 2.1.285 on Windows x64, stdio transport, no
+sandbox. Its configuration commands were run against empty disposable home and
+project directories with a local stub server. No login, session or verifier call
+was involved. [The sanitized record](evidence/claude-mcp-configuration-inspection.json)
+holds each observation.
+
+| Where the server is defined | Listing in a new empty home |
+| --- | --- |
+| Client default (local scope, stored in the home) | Server is gone |
+| Project `.mcp.json` | Server is still listed, pending approval |
+| Project `.mcp.json`, with a user-level approval setting placed in that home | Listed and connected |
+| Project `.mcp.json` plus the same approval key in project settings | Still pending approval |
+
+A local-scope definition also overrides a project definition of the same name.
+
+The demonstrated requirement is therefore narrow: deliver the selected server
+through project scope. The existing generic `config.entries` operation does that;
+no owned hook group is needed. No approval recipe is emitted. A project setting
+was not shown to approve the server, and a user-level setting disappears with the
+home it lives in. Approval in a fresh home stays an explicit native-acceptance
+gate, and an administrator-managed setting is the administrator's decision.
+
+Catalog now carries a matching fixture for this cell: the
+`aihq.mcp.claude.graph-fixture` item in `release-native-fixture.json` and a
+`test-configuration` `NativeVerificationBundle` declared in
+`release-native-bundles.json`. [The content contract](CATALOG-CONTENT.md) describes
+both. The bundle pins an empty starting tree and the complete expected output
+before any execution. `node tools/verify-native-bundle.mjs <core-tarball>`
+validates it with the portable validators of a supplied Core artifact, proves the
+recipe through Core Prepare, review and Apply in a disposable project and compares
+the complete output to the pinned bytes.
+[The preparation record](evidence/claude-graph-fixture-preparation.json) names the
+exact artifacts and identities. The fixture server is a small authored call graph,
+not a production graph server, so this proves test scope only.
+
+One dependency is known before any native run. The reviewed
+`@aihq/core@1.0.0-dev.33` source stages one fixed permission file for every
+verification, supplied bundles included. That file approves and permits only the
+server and tools of Core's own bundled fixture. This bundle names its own server
+(`aihq-graph-fixture`) and query tool (`aihq_graph_callees`), so that verifier
+would leave the server unapproved and its tools denied. This was read from source,
+not run. Native acceptance of this bundle therefore needs a Core delivery that
+derives approval and tool permission from the supplied bundle; it is not yet
+filed as its own issue. Renaming the fixture to Core's bundled names was not done,
+because it would tie Catalog content to one verifier's internal fixture.
+
 ## Native acceptance continues separately
 
 The native owner needs a digest-qualified verifier artifact, the supported
@@ -84,7 +132,7 @@ smoke; #53 stays open until its full agreed matrix is accounted for.
 
 | Client ID | Catalog preparation | Native acceptance in this integration |
 | --- | --- | --- |
-| `claude` | Existing context; inspect effective MCP configuration first | Unverified |
+| `claude` | Existing context; Windows x64 configuration inspected; project-scope fixture item and test-configuration bundle prepared | Unverified |
 | `codex` | Existing context; inspect effective MCP configuration first | Unverified |
 | `cursor` | Existing context; inspect effective MCP configuration first | Unverified |
 | `gemini` | Existing context; inspect effective MCP configuration first | Unverified |

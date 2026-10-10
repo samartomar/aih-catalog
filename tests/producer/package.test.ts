@@ -35,6 +35,7 @@ import {
   root,
   sha256,
   withHookRelease,
+  withNativeFixtureRelease,
 } from "./helpers.js";
 
 const identity = packageIdentity();
@@ -262,14 +263,18 @@ describe("bounded selection with realistic mixed content", () => {
   }, 240_000);
 
   it("records NOT RUN, truthfully, when nothing is selectable with defaults", async () => {
-    const files = withHookRelease(
-      withAuthoredItems(
-        emptyRelease(identity),
-        HETEROGENEOUS.filter((spec) => spec.id === "ext.server"),
+    const files = withNativeFixtureRelease(
+      withHookRelease(
+        withAuthoredItems(
+          emptyRelease(identity),
+          HETEROGENEOUS.filter((spec) => spec.id === "ext.server"),
+        ),
       ),
     );
     expect(AUTHORED_SOURCE).toBe("local-authored");
-    expect(checkCandidateFiles(files, identity).ok).toBe(true);
+    expect(checkCandidateFiles(files, identity, { authored: declaration().authored }).ok).toBe(
+      true,
+    );
     const { result } = await packAndVerify(files);
     const smoke = check(result, "reader-selection-smoke");
     expect(smoke).toMatchObject({ ok: true, status: "not-run" });

@@ -38,6 +38,17 @@ export const committedRelease = (): Map<string, Buffer> => {
   return files;
 };
 
+/**
+ * The declared allowance for the authored native-fixture source: the pinned Core recorder program
+ * contains the word `undefined`. A fixture declaration that packs the committed native documents
+ * must declare it, as the committed declaration does.
+ */
+export const NATIVE_FIXTURE_ALLOWANCE = {
+  source: "aihq-native-fixtures",
+  externalPaths: [],
+  templatePlaceholders: ["undefined"],
+};
+
 export const REPOSITORY = "mattpocock/skills";
 export const PINNED_REVISION = "d81f3a183412e71a5b1e84ca21bc1a35eea03a60";
 export const SKILL_ME = "skills/productivity/grill-me/SKILL.md";
@@ -106,6 +117,27 @@ export function withHookRelease(files: ReadonlyMap<string, Buffer>): Map<string,
   return next;
 }
 
+/**
+ * Adds the committed native-fixture releases (the graph-fixture item and the bundle that pins it)
+ * with their recipes and members to a candidate that lacks them.
+ */
+export function withNativeFixtureRelease(files: ReadonlyMap<string, Buffer>): Map<string, Buffer> {
+  const next = new Map(files);
+  for (const [path, bytes] of committedRelease()) {
+    if (
+      path === "release/release-native-fixture.json" ||
+      path === "release/release-native-bundles.json" ||
+      path.includes("/native-fixtures/") ||
+      path.includes("/native-bundles/") ||
+      path.includes("aihq.mcp.claude.graph-fixture") ||
+      path.includes("aihq.native-bundle.")
+    ) {
+      next.set(path, bytes);
+    }
+  }
+  return next;
+}
+
 /** A disposable package root: the real manifest and built entries, with `release/` seeded from `release`. */
 export function makePackageRoot(
   dir: string,
@@ -125,9 +157,11 @@ export function makePackageRoot(
     cpSync(join(root, entry), join(dir, entry), { recursive: true });
   }
   // The manifest exports the 1.1 release, so a package root always carries it beside the 1.0 release.
-  const seeded = release.has("release/release-1.1.json")
-    ? release
-    : withHookRelease(release as never);
+  const seeded = withNativeFixtureRelease(
+    release.has("release/release-1.1.json")
+      ? (release as never)
+      : withHookRelease(release as never),
+  );
   for (const [path, bytes] of seeded) {
     mkdirSync(dirname(join(dir, path)), { recursive: true });
     writeFileSync(join(dir, path), bytes);

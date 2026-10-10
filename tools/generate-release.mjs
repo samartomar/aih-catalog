@@ -11,6 +11,14 @@ const hooks = await import(new URL("../dist/release/hook-content.js", import.met
       { cause: error },
     );
   });
+// The Claude graph-fixture preparation content (server item and the bundle that pins it).
+const nativeFixture = await import(new URL("../dist/release/native-fixture-content.js", import.meta.url).href)
+  .catch((error) => {
+    throw new Error(
+      "generate-release: the built release module is missing; run npm run build:dist first",
+      { cause: error },
+    );
+  });
 // The authored project context has one renderer: the built, portable release module
 // that the Node helper prepareProjectContext also uses (npm run build:dist first).
 const renderer = await import(new URL("../dist/release/project-context.js", import.meta.url).href)
@@ -43,10 +51,14 @@ const renderer = await import(new URL("../dist/release/project-context.js", impo
  * tools/check-release.mjs; generation refuses instead of restoring the older snapshot.
  * --hooks-only regenerates just the authored 1.1 hook closure, with selector continuity
  * checked against the committed baseline, and never rewrites the 1.0 release.
+ * --native-only regenerates just the two native-fixture documents (the graph-fixture item and
+ * the bundle that pins it), which depend only on the package identity and the pinned recorder.
  */
 export const OUTPUT_ROOT = "release";
 export const RELEASE_PATH = "release/release.json";
 export const HOOK_RELEASE_PATH = "release/release-1.1.json";
+export const NATIVE_FIXTURE_RELEASE_PATH = "release/release-native-fixture.json";
+export const NATIVE_BUNDLES_RELEASE_PATH = "release/release-native-bundles.json";
 const SNAPSHOT = "src/production/data/mattpocock.snapshot.json";
 const ASSESSMENT = (entry) => `defaults/workbench/mattpocock/skill.mattpocock.${entry}/artifacts`;
 const SOURCE_ID = "mattpocock-skills";
@@ -154,6 +166,34 @@ function hookRelease(pkg, put) {
       items: family.items,
     }),
   );
+}
+
+/** The native-fixture documents and every member they declare, registered through `put`. */
+function nativeRelease(pkg, put) {
+  for (const [path, bytes] of nativeFixture.renderNativeFixture(pkg).files) put(path, Buffer.from(bytes));
+}
+
+/** The native-fixture closure only; preserves every other release document. */
+export function generateNativeRelease(root) {
+  const files = new Map();
+  nativeRelease(readJson(root, "package.json"), (path, bytes) => files.set(path, bytes));
+  return files;
+}
+
+/** The native fixture is authored and independent of the upstream pin; it must match its generator. */
+function checkNativeRelease(root) {
+  const files = new Map();
+  // Its embedded package identity is checked against package.json by npm run check:release.
+  nativeRelease(readJson(root, NATIVE_FIXTURE_RELEASE_PATH).package, (path, bytes) => files.set(path, bytes));
+  for (const [path, bytes] of files) {
+    let existing;
+    try {
+      existing = readFileSync(resolve(root, path));
+    } catch {
+      existing = undefined;
+    }
+    if (existing === undefined || !existing.equals(bytes)) fail(`${path} is stale; run node tools/generate-release.mjs --native-only`);
+  }
 }
 
 /** The authored 1.1 closure only; preserves the targeted upstream/context release. */
@@ -332,6 +372,7 @@ export function generateRelease(root) {
   };
   put(RELEASE_PATH, document(release));
   hookRelease(pkg, put);
+  nativeRelease(pkg, put);
   return files;
 }
 
@@ -358,12 +399,13 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     const args = process.argv.slice(2);
     const check = args[0] === "--check";
     const hooksOnly = args[0] === "--hooks-only";
-    if (check || hooksOnly) args.shift();
+    const nativeOnly = args[0] === "--native-only";
+    if (check || hooksOnly || nativeOnly) args.shift();
     if (args.length > 1 || args[0]?.startsWith("-")) {
-      fail("usage: node tools/generate-release.mjs [--check | --hooks-only] [catalog-root]");
+      fail("usage: node tools/generate-release.mjs [--check | --hooks-only | --native-only] [catalog-root]");
     }
     const root = resolve(args[0] ?? resolve(dirname(fileURLToPath(import.meta.url)), ".."));
-    if (!check && !hooksOnly) assertSeedGenerationAllowed(root);
+    if (!check && !hooksOnly && !nativeOnly) assertSeedGenerationAllowed(root);
     const baseline = process.env.AIHQ_RELEASE_BASELINE ?? "HEAD";
     let gitRoot;
     try {
@@ -372,6 +414,23 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       }).trim());
     } catch {
       gitRoot = undefined;
+    }
+    if (nativeOnly) {
+      // No selector continuity is involved: the fixture items carry no owned client groups.
+      const files = generateNativeRelease(root);
+      for (const [path, bytes] of files) {
+        const output = resolve(root, path);
+        mkdirSync(dirname(output), { recursive: true });
+        const temporary = `${output}.tmp`;
+        writeFileSync(temporary, bytes, { flag: "wx" });
+        try {
+          renameSync(temporary, output);
+        } finally {
+          rmSync(temporary, { force: true });
+        }
+      }
+      console.log(`Generated ${NATIVE_FIXTURE_RELEASE_PATH} and ${NATIVE_BUNDLES_RELEASE_PATH}: ${files.size - 2} recipe/material files; other release documents unchanged`);
+      process.exit(0);
     }
     const sameRoot = gitRoot !== undefined &&
       (process.platform === "win32"
@@ -391,10 +450,11 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     if (check && advancedBeyondSnapshot(root)) {
       checkContextContent(root);
       checkHookRelease(root);
+      checkNativeRelease(root);
       const hookFiles = new Map();
       hookRelease(readJson(root, HOOK_RELEASE_PATH).package, (path, bytes) => hookFiles.set(path, bytes));
       await continuity(hookFiles);
-      console.log("Checked authored context and release/release-1.1.json; upstream release advanced beyond the donor snapshot. Run npm run check:release.");
+      console.log("Checked authored context, release/release-1.1.json, release/release-native-fixture.json and release/release-native-bundles.json; upstream release advanced beyond the donor snapshot. Run npm run check:release.");
       process.exit(0);
     }
     const files = hooksOnly ? generateHookRelease(root) : generateRelease(root);
@@ -431,7 +491,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     }
     console.log(hooksOnly
       ? `Generated ${HOOK_RELEASE_PATH}: ${files.size - 1} hook recipe/material files; ${RELEASE_PATH} unchanged`
-      : `${check ? "Checked" : "Generated"} ${RELEASE_PATH} and ${HOOK_RELEASE_PATH}: ${files.size - 2} recipe/material files`);
+      : `${check ? "Checked" : "Generated"} ${RELEASE_PATH}, ${HOOK_RELEASE_PATH}, ${NATIVE_FIXTURE_RELEASE_PATH} and ${NATIVE_BUNDLES_RELEASE_PATH}: ${files.size - 4} recipe/material files`);
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
     process.exitCode = 1;

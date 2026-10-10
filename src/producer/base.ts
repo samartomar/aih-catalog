@@ -1,7 +1,13 @@
 import type { CatalogRelease, Json } from "../release/contracts.js";
 import { readRelease } from "../release/reader.js";
 import { refuse } from "./errors.js";
-import { HOOK_RELEASE_PATH, RELEASE_PATH, sha256Hex } from "./generate.js";
+import {
+  HOOK_RELEASE_PATH,
+  NATIVE_BUNDLES_RELEASE_PATH,
+  NATIVE_FIXTURE_RELEASE_PATH,
+  RELEASE_PATH,
+  sha256Hex,
+} from "./generate.js";
 
 export type Record_ = { [key: string]: Json };
 
@@ -18,6 +24,11 @@ export interface BaseRelease {
   readonly metadata?: Json;
   /** The previously published 1.1 release document, validated, when the base carries one. */
   readonly hookDocument?: Record_;
+  /**
+   * The native-fixture release documents the base carries, validated, by path. They are pure
+   * functions of the package identity, so a candidate renders them again for its own identity.
+   */
+  readonly nativeDocuments: ReadonlyMap<string, Record_>;
 }
 
 const asRecord = (value: Json | undefined): Record_ => value as Record_;
@@ -93,6 +104,40 @@ export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRe
       }
     }
   }
+  const nativeDocuments = new Map<string, Record_>();
+  for (const path of [NATIVE_FIXTURE_RELEASE_PATH, NATIVE_BUNDLES_RELEASE_PATH]) {
+    const bytes = files.get(path);
+    if (bytes === undefined) continue;
+    const nativeRead = readRelease(bytes, { expectedSha256: sha256Hex(bytes) });
+    if (!nativeRead.valid) {
+      return refuse("base-invalid", `the base ${path} is not a valid release`, {
+        diagnostics: nativeRead.diagnostics.map((d) => d.reason),
+      });
+    }
+    const nativeDocument = JSON.parse(bytes.toString("utf8")) as Record_;
+    nativeDocuments.set(path, nativeDocument);
+    referenced.add(path);
+    for (const item of (nativeDocument.items as Json[]).map(asRecord)) {
+      for (const member of memberList(item)) {
+        const memberPath = member.path as string;
+        const memberBytes = files.get(memberPath);
+        if (memberBytes === undefined) {
+          return refuse("base-member-missing", `${memberPath} is declared but absent`, {
+            itemId: item.id,
+            path: memberPath,
+          });
+        }
+        if (memberBytes.length !== member.byteLength || sha256Hex(memberBytes) !== member.sha256) {
+          return refuse(
+            "base-member-mismatch",
+            `${memberPath} differs from its recorded hash or length`,
+            { itemId: item.id, path: memberPath },
+          );
+        }
+        referenced.add(memberPath);
+      }
+    }
+  }
   const orphans = [...files.keys()].filter((path) => !referenced.has(path)).sort();
   if (orphans.length > 0) {
     return refuse("base-orphan-file", `files not declared by the release: ${orphans.join(", ")}`, {
@@ -106,5 +151,6 @@ export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRe
     items,
     ...(document.metadata === undefined ? {} : { metadata: document.metadata }),
     ...(hookDocument === undefined ? {} : { hookDocument }),
+    nativeDocuments,
   };
 }

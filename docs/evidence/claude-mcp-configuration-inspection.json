@@ -1,0 +1,84 @@
+{
+  "schema": "aihq-catalog-client-configuration-inspection",
+  "version": 1,
+  "date": "2026-10-09",
+  "issue": "https://github.com/samartomar/aih-catalog/issues/53",
+  "cell": {
+    "client": "claude",
+    "clientVersion": "2.1.285",
+    "os": "win32",
+    "architecture": "x64",
+    "execution": "native",
+    "transport": "stdio",
+    "sandbox": "none",
+    "configurationSource": "disposable home and project created for this inspection"
+  },
+  "method": {
+    "commands": [
+      "claude mcp list",
+      "claude mcp get <name>",
+      "claude mcp add [--scope project] <name> -- node <stub>"
+    ],
+    "environment": "home, profile, application-data, temporary and client configuration directories redirected to empty disposable directories; updater, telemetry and non-essential traffic disabled",
+    "server": "a local stub that answers initialize, ping and tools/list only",
+    "login": false,
+    "modelSession": false,
+    "nativeVerifier": false
+  },
+  "observations": [
+    {
+      "id": "local-scope-lives-in-home",
+      "setup": "claude mcp add with the default scope",
+      "observed": "The server is written to the client state file in the home directory, keyed by the project path. A new empty home lists no server for the same project.",
+      "consequence": "Configuration added this way does not survive a session whose home is recreated."
+    },
+    {
+      "id": "project-scope-survives-fresh-home",
+      "setup": "A project .mcp.json, then a second empty home with nothing reapplied",
+      "observed": "The server is listed from project scope in both homes.",
+      "consequence": "Project scope is the persistent location when the project directory survives and the home does not."
+    },
+    {
+      "id": "project-server-approval-lives-in-home",
+      "setup": "Project .mcp.json in an empty home",
+      "observed": "The listing reports the server as pending approval. With enabledMcpjsonServers naming it, or enableAllProjectMcpServers true, in the user-level settings file the listing reports it connected.",
+      "consequence": "Approval of a project server is user-level state and is not carried by the project directory."
+    },
+    {
+      "id": "project-settings-do-not-approve-in-listing",
+      "setup": "enabledMcpjsonServers naming the server in the project's .claude/settings.json, and separately in .claude/settings.local.json, each with an empty home",
+      "observed": "The listing still reports pending approval.",
+      "consequence": "No project-scope setting was shown to carry approval. Whether an interactive or headless session treats these files differently was not observed."
+    },
+    {
+      "id": "local-overrides-project",
+      "setup": "The same server name at local scope and project scope",
+      "observed": "The local-scope definition is the effective one.",
+      "consequence": "A stale local definition can mask a project definition of the same name."
+    },
+    {
+      "id": "managed-configuration-absent",
+      "setup": "Documented machine-wide managed configuration locations",
+      "observed": "Not present on the inspected host.",
+      "consequence": "Managed precedence was not exercised."
+    }
+  ],
+  "demonstratedRequirement": "Deliver the selected server through project scope rather than the client's default local scope.",
+  "remedy": {
+    "recipe": "project-scope .mcp.json entry through the existing generic config.entries operation",
+    "ownedHookGroupRequired": false,
+    "notEmitted": [
+      "A project settings recipe for approval: not shown to take effect.",
+      "A user-level approval recipe: user-level state is lost with the home it lives in, so it does not address the demonstrated loss."
+    ]
+  },
+  "open": [
+    "Approval of the project server in a fresh home remains a native-acceptance gate; an administrator-managed setting is the administrator's decision, not a Catalog recipe.",
+    "No session was started: instruction loading, tool discovery inside a session and the read-only query are unobserved.",
+    "No sandboxed environment was inspected.",
+    "User scope (--scope user) was not inspected.",
+    "Read from source, not run: the reviewed @aihq/core@1.0.0-dev.33 verifier stages a fixed permission file that approves and permits only its own bundled fixture server and tools, so a supplied bundle with other names needs a Core change before native acceptance."
+  ],
+  "nativeExecution": false,
+  "admittedCells": 0
+}

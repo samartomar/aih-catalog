@@ -1,0 +1,13 @@
+{
+  "calls": {
+    "main": [
+      "parseArgs",
+      "loadConfig"
+    ],
+    "loadConfig": [
+      "readFile"
+    ],
+    "parseArgs": [],
+    "readFile": []
+  }
+}

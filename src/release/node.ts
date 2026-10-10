@@ -38,8 +38,17 @@ const MEMBER_MAX_BYTES = 16 * 1024 * 1024;
  * The release documents a package can export. A caller names one explicitly; the
  * default is always the 1.0 release and is never replaced by 1.1.
  */
-export type ReleaseExport = "./release.json" | "./release-1.1.json";
-const RELEASE_EXPORTS: readonly string[] = ["./release.json", "./release-1.1.json"];
+export type ReleaseExport =
+  | "./release.json"
+  | "./release-1.1.json"
+  | "./release-native-fixture.json"
+  | "./release-native-bundles.json";
+const RELEASE_EXPORTS: readonly string[] = [
+  "./release.json",
+  "./release-1.1.json",
+  "./release-native-fixture.json",
+  "./release-native-bundles.json",
+];
 const releaseExport = (value: unknown): ReleaseExport =>
   value === undefined
     ? "./release.json"

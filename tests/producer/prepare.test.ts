@@ -10,7 +10,7 @@ import { type AcquiredTree, prepareCandidate } from "../../src/producer/prepare.
 import type { Clock } from "../../src/producer/timing.js";
 import { withAuthoredItems } from "./authored.js";
 import { FixtureRepository, UPSTREAM_A, UPSTREAM_B_CHANGES } from "./git-fixture.js";
-import { makePackageRoot, REPOSITORY, root, sha256 } from "./helpers.js";
+import { makePackageRoot, NATIVE_FIXTURE_ALLOWANCE, REPOSITORY, root, sha256 } from "./helpers.js";
 
 const skill = (name: string) => `skills/productivity/${name}/SKILL.md`;
 const item = (name: string, requires: string[] = []) => ({
@@ -28,6 +28,7 @@ const declare = (items: ReturnType<typeof item>[]) =>
       { id: "fixture-skills", repository: REPOSITORY, licensePath: "LICENSE", license: "MIT" },
     ],
     items,
+    authored: [NATIVE_FIXTURE_ALLOWANCE],
   });
 const declarationA = declare([
   item("grill-me", ["grilling"]),

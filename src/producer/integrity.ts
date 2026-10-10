@@ -7,7 +7,13 @@ import { type AuthoredAllowance, checkAuthoredContent, describeFinding } from ".
 import type { Record_ } from "./base.js";
 import { assertRequiredClosure } from "./candidate.js";
 import { ProducerRefusal } from "./errors.js";
-import { HOOK_RELEASE_PATH, RELEASE_PATH, sha256Hex } from "./generate.js";
+import {
+  HOOK_RELEASE_PATH,
+  NATIVE_BUNDLES_RELEASE_PATH,
+  NATIVE_FIXTURE_RELEASE_PATH,
+  RELEASE_PATH,
+  sha256Hex,
+} from "./generate.js";
 
 export interface IntegrityCheck {
   readonly name: string;
@@ -73,6 +79,12 @@ export function checkCandidateFiles(
     { path: RELEASE_PATH, export: "./release.json" },
     ...(files.has(HOOK_RELEASE_PATH)
       ? [{ path: HOOK_RELEASE_PATH, export: "./release-1.1.json" as const }]
+      : []),
+    ...(files.has(NATIVE_FIXTURE_RELEASE_PATH)
+      ? [{ path: NATIVE_FIXTURE_RELEASE_PATH, export: "./release-native-fixture.json" as const }]
+      : []),
+    ...(files.has(NATIVE_BUNDLES_RELEASE_PATH)
+      ? [{ path: NATIVE_BUNDLES_RELEASE_PATH, export: "./release-native-bundles.json" as const }]
       : []),
   ];
   /** Per-release outcomes merged under the stable check names; detail names a 1.1 document. */
