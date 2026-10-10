@@ -40,9 +40,9 @@ reports stay in the verified private route; public text contains no private plan
 reproductions or coordination links.
 
 At pickup identify the delivery issue, actual Git root/worktree, scope and output.
-Link the PR and actual release evidence on that issue. Changed content bundled
-in the npm tarball requires a new Catalog package version even when producer
-source is unchanged. Routine successful refreshes use CI/output records;
+Link the PR and actual release evidence on that issue. Changed content in a
+published npm tarball requires a new Catalog package version even when producer
+source is unchanged. Identify unpublished local builds by source and artifact digest. Routine successful refreshes use CI/output records;
 actionable recurring failures reuse the owning issue.
 
 Before closeout verify merged versus available status. When publication is
