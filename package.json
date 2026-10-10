@@ -38,6 +38,8 @@
     },
     "./release.json": "./release/release.json",
     "./release-1.1.json": "./release/release-1.1.json",
+    "./release-native-fixture.json": "./release/release-native-fixture.json",
+    "./release-native-bundles.json": "./release/release-native-bundles.json",
     "./schemas/release/1.0.0.json": "./schemas/release/1.0.0.json",
     "./schemas/release/1.1.0.json": "./schemas/release/1.1.0.json",
     "./package.json": "./package.json"

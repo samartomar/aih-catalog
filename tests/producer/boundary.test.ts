@@ -132,6 +132,8 @@ describe("the published package keeps its intended runtime subset", () => {
       "./node",
       "./release.json",
       "./release-1.1.json",
+      "./release-native-fixture.json",
+      "./release-native-bundles.json",
       "./schemas/release/1.0.0.json",
       "./schemas/release/1.1.0.json",
       "./package.json",

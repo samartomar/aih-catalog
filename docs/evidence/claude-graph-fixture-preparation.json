@@ -1,0 +1,163 @@
+{
+  "schema": "aihq-catalog-native-bundle-preparation",
+  "version": 1,
+  "issue": "https://github.com/samartomar/aih-catalog/issues/53",
+  "scope": "test-configuration",
+  "client": "claude",
+  "environment": {
+    "node": "v26.4.0",
+    "scenarioNode": "v24.19.0",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "coreArtifact": {
+    "name": "@aihq/core",
+    "version": "1.0.0-dev.33",
+    "file": "aihq-core-1.0.0-dev.33.tgz",
+    "sha256": "def0c60d358481c3baba7815f39ad3be3787ae19693babec3fbed5bebe2be859",
+    "byteLength": 6877828
+  },
+  "catalogArtifact": {
+    "name": "@aihq/catalog",
+    "version": "0.1.0",
+    "file": "aihq-catalog-0.1.0.tgz",
+    "sha256": "f135db63a10607779c243f772a87277bc54184c0b0970226cf5b9bcf4ea64bfe",
+    "byteLength": 197107,
+    "archiveEntries": 165
+  },
+  "join": {
+    "bundleId": "aihq.catalog.claude.graph-fixture.v1",
+    "bundleManifestSha256": "a13662f48588eb28c3c253693900aaaab52e1646e1efb7a6587cf3cbac3958e0",
+    "archiveSha256": "f135db63a10607779c243f772a87277bc54184c0b0970226cf5b9bcf4ea64bfe",
+    "itemSha256": "e2f5b3577728ebf894a330748a71882a134f00d4d512b91b17370c8bcf80c1f3",
+    "recipeSha256": "9866c407f4a1dcc4e78442b429aaa602dd33f966a259983dbb5db603a0ad5498",
+    "inputsSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "startingTreeSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "expectedOutputTreeSha256": "0c069ad30618037922217561b4fc725b2cc91665e205b614b606b34be9b20b6b",
+    "actualOutputTreeSha256": "0c069ad30618037922217561b4fc725b2cc91665e205b614b606b34be9b20b6b",
+    "policySha256": "4d88286c77d79113322d8616f0ae2b0c3e16974e781e7b92f8d4320494f89f5f",
+    "reviewSha256": "a6fd1fd2adc20cb09c2f2b244ee673e112464dc36d525c9224295e15a9d73815",
+    "runResultSha256": "6eb1ce5a59e130e0b1f7b6d80fc3f5ce01d0155b035edf92859c93e422e4ffaa",
+    "nativeResultSha256": null
+  },
+  "derivation": {
+    "inputsSha256": "SHA-256 of the canonical JSON of the bundle's selection inputs",
+    "policySha256": "SHA-256 of the canonical JSON of the execution policy passed to Core Prepare",
+    "reviewSha256": "the reviewDigest that Core Prepare returned",
+    "runResultSha256": "SHA-256 of the canonical JSON of the RunResult that Core Apply returned (run-specific)",
+    "actualOutputTreeSha256": "bundle tree digest rule applied to the files Apply left in the disposable project"
+  },
+  "checks": [
+    {
+      "id": "archive-admissible",
+      "ok": true,
+      "detail": "165 entries, every path safe and unique"
+    },
+    {
+      "id": "bundle-material-pinned",
+      "ok": true
+    },
+    {
+      "id": "bundle-valid",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "id": "request-valid",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "id": "bundle-unknown-field-refused",
+      "ok": true
+    },
+    {
+      "id": "bundle-server-unknown-field-refused",
+      "ok": true
+    },
+    {
+      "id": "request-unknown-field-refused",
+      "ok": true
+    },
+    {
+      "id": "recorder-matches-core",
+      "ok": true,
+      "detail": "the packed recorder equals the recorder text and pin of the supplied Core artifact"
+    },
+    {
+      "id": "members-pinned",
+      "ok": true,
+      "detail": "10 members resolved with matching SHA-256 and length"
+    },
+    {
+      "id": "starting-tree-digest",
+      "ok": true
+    },
+    {
+      "id": "output-tree-digest",
+      "ok": true
+    },
+    {
+      "id": "runtime-within-output-tree",
+      "ok": true
+    },
+    {
+      "id": "instruction-pinned",
+      "ok": true
+    },
+    {
+      "id": "release-and-item-pinned",
+      "ok": true
+    },
+    {
+      "id": "reader-identities-match-bundle",
+      "ok": true
+    },
+    {
+      "id": "prepare-writes-nothing",
+      "ok": true
+    },
+    {
+      "id": "apply-checks-passed",
+      "ok": true,
+      "detail": "3 checks"
+    },
+    {
+      "id": "actual-tree-equals-pinned-tree",
+      "ok": true,
+      "detail": "5 files, no extra and none missing"
+    },
+    {
+      "id": "no-empty-directories-left",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "configuration-names-recorder-and-server",
+      "ok": true
+    },
+    {
+      "id": "server-lists-query-tool",
+      "ok": true
+    },
+    {
+      "id": "server-result-matches-pin",
+      "ok": true
+    },
+    {
+      "id": "tool-names-cover-query-and-recorder-attestation",
+      "ok": true
+    },
+    {
+      "id": "bundle-item-recipe-lands-bundle-only",
+      "ok": true
+    }
+  ],
+  "nativeExecution": false,
+  "admittedCells": 0,
+  "notes": [
+    "No AI client was started and verifyNativeClient was not called; this is recipe and bundle preparation only.",
+    "policySha256, reviewSha256 and runResultSha256 describe one disposable run and change with each run; every other digest is fixed by the artifacts.",
+    "A passing recipe proves the pinned output bytes only. It does not show a client loads the configuration, approves the project server or persists it."
+  ]
+}

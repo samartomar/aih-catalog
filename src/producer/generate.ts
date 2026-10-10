@@ -8,6 +8,9 @@ export const OUTPUT_ROOT = "release";
 export const RELEASE_PATH = `${OUTPUT_ROOT}/release.json`;
 /** The optional 1.1 release of Core recipe 1.1 items, published beside the 1.0 release. */
 export const HOOK_RELEASE_PATH = `${OUTPUT_ROOT}/release-1.1.json`;
+/** The optional native-fixture releases: the graph-fixture item and the bundle that pins it. */
+export const NATIVE_FIXTURE_RELEASE_PATH = `${OUTPUT_ROOT}/release-native-fixture.json`;
+export const NATIVE_BUNDLES_RELEASE_PATH = `${OUTPUT_ROOT}/release-native-bundles.json`;
 const RECIPE_SCHEMA = "urn:aihq:core:recipe:1.0.0";
 const utf8 = new TextDecoder("utf-8", { fatal: true });
 

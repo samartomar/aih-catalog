@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "aihq-graph-fixture": {
+      "args": [
+        ".aihq-native/recorder.mjs",
+        "--",
+        "node",
+        ".aihq/graph-fixture/graph-server.mjs"
+      ],
+      "command": "node",
+      "type": "stdio"
+    }
+  }
+}

@@ -80,6 +80,8 @@ Catalog-side preparation for persistent MCP configuration can proceed while nati
 acceptance continues separately. [The preparation and acceptance lanes](docs/NATIVE-PREPARATION.md)
 keep the full client roster explicit; this integration admits no native cell.
 
+`release-native-fixture.json` and `release-native-bundles.json` carry a test-scope Claude project MCP fixture, `aihq.mcp.claude.graph-fixture`, and the `NativeVerificationBundle` that pins it. The fixture server is a small read-only call graph, not a production graph server; the bundle prepares later native verification and proves nothing about a client loading it. See [the content contract](docs/CATALOG-CONTENT.md#native-graph-fixture-test-scope).
+
 ## Client hook items
 
 `release-1.1.json` carries opt-in client hook items that add, update and remove only their own group in a shared client settings array through Core's generic `hook.group` operation (Core recipe and execution policy 1.1). The first item, `aihq.hook.claude.protect-env`, blocks Claude Code edits to local `.env` files. Read it with `readInstalledRelease({ root, release: "./release-1.1.json" })`; a reader or Core without 1.1 support refuses it as unsupported rather than installing part of it. See [the content contract](docs/CATALOG-CONTENT.md#client-hook-items-release-11).

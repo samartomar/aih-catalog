@@ -20,6 +20,8 @@ const identity = packageIdentity();
 
 /** The allowances the committed declaration declares for the committed authored content. */
 const COMMITTED_ALLOWANCES: readonly AuthoredAllowance[] = [
+  // The pinned Core recorder program is carried unmodified and contains the word `undefined`.
+  { source: "aihq-native-fixtures", externalPaths: [], templatePlaceholders: ["undefined"] },
   {
     source: "aihq-project-context",
     externalPaths: ["ai-coding/PROJECT.md"],
@@ -519,6 +521,7 @@ describe("declaration authored allowances", () => {
 
   it("parses the committed authored allowance", () => {
     expect(declaration().authored).toEqual([
+      { source: "aihq-native-fixtures", externalPaths: [], templatePlaceholders: ["undefined"] },
       {
         source: "aihq-project-context",
         externalPaths: ["ai-coding/PROJECT.md"],

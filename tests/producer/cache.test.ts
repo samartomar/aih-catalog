@@ -26,7 +26,13 @@ import { ProducerRefusal } from "../../src/producer/errors.js";
 import { fetchSourceTree } from "../../src/producer/fetch.js";
 import { readCommitTree } from "../../src/producer/git-tree.js";
 import { FixtureRepository, UPSTREAM_A, UPSTREAM_B_CHANGES } from "./git-fixture.js";
-import { declaration, makePackageRoot, REPOSITORY, root } from "./helpers.js";
+import {
+  declaration,
+  makePackageRoot,
+  NATIVE_FIXTURE_ALLOWANCE,
+  REPOSITORY,
+  root,
+} from "./helpers.js";
 
 const scratch = mkdtempSync(join(tmpdir(), "aih-producer-cache-"));
 // Native ACL process checks are bounded individually and need more than Vitest's default.
@@ -125,6 +131,7 @@ describe("immutable cached bytes (planted replacement ref)", () => {
           { id: "fixture-skills", repository: REPOSITORY, licensePath: "LICENSE", license: "MIT" },
         ],
         items,
+        authored: [NATIVE_FIXTURE_ALLOWANCE],
       };
       const file = join(scratch, "tool-declaration.json");
       writeFileSync(file, JSON.stringify(declarationJson));

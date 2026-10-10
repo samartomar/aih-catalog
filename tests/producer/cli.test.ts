@@ -7,7 +7,14 @@ import { buildCandidate } from "../../src/producer/candidate.js";
 import { parseDeclaration } from "../../src/producer/declaration.js";
 import { readCommitTree } from "../../src/producer/git-tree.js";
 import { FixtureRepository, UPSTREAM_A, UPSTREAM_B_CHANGES } from "./git-fixture.js";
-import { committedRelease, makePackageRoot, REPOSITORY, root, sha256 } from "./helpers.js";
+import {
+  committedRelease,
+  makePackageRoot,
+  NATIVE_FIXTURE_ALLOWANCE,
+  REPOSITORY,
+  root,
+  sha256,
+} from "./helpers.js";
 
 const skill = (name: string) => `skills/productivity/${name}/SKILL.md`;
 const item = (name: string, requires: string[] = []) => ({
@@ -24,6 +31,7 @@ const declarationJson = (items: ReturnType<typeof item>[]) => ({
     { id: "fixture-skills", repository: REPOSITORY, licensePath: "LICENSE", license: "MIT" },
   ],
   items,
+  authored: [NATIVE_FIXTURE_ALLOWANCE],
 });
 const ITEMS_A = [
   item("grill-me", ["grilling"]),

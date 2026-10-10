@@ -1,5 +1,6 @@
 import type { Json } from "../release/contracts.js";
 import { canonicalJson } from "../release/json.js";
+import { renderNativeFixture } from "../release/native-fixture-content.js";
 import { listItems, readRelease } from "../release/reader.js";
 import type { BaseRelease, Record_ } from "./base.js";
 import { assertAcyclic, type ProducerDeclaration } from "./declaration.js";
@@ -303,6 +304,12 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
       }
     }
     put(HOOK_RELEASE_PATH, documentBytes(hookDocument));
+  }
+  if (base !== undefined && base.nativeDocuments.size > 0) {
+    // The native-fixture documents pin the package identity inside the bundle, so they are
+    // rendered again for this candidate's identity instead of rewriting the embedded field.
+    for (const [path, bytes] of renderNativeFixture(input.package).files)
+      put(path, Buffer.from(bytes));
   }
 
   const checked = readRelease(releaseBytes, { expectedSha256: sha256Hex(releaseBytes) });

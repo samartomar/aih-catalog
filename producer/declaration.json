@@ -232,6 +232,13 @@
       "templatePlaceholders": [
         "<your-tool>"
       ]
+    },
+    {
+      "source": "aihq-native-fixtures",
+      "externalPaths": [],
+      "templatePlaceholders": [
+        "undefined"
+      ]
     }
   ]
 }

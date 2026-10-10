@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Add the test-scope Claude graph fixture for #53 preparation: release documents
+  `@aihq/catalog/release-native-fixture.json` (item `aihq.mcp.claude.graph-fixture`, a
+  project-scope `.mcp.json` entry for a small read-only call-graph server behind Core's
+  pinned stdio recorder, with one owned `CLAUDE.md` instruction block) and
+  `@aihq/catalog/release-native-bundles.json` (the pinned `NativeVerificationBundle`).
+  The 1.0 and 1.1 releases are unchanged. `tools/verify-native-bundle.mjs` validates the
+  bundle with a supplied Core artifact and proves the recipe in disposable roots; no
+  client is started and no native cell is admitted.
 - Require verified Windows cache ownership and write permissions, and verify
   pinned Git object bytes before serving cached content.
 - Cover Windows data-stream targets in the carried env hook and regenerate its
