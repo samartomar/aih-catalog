@@ -101,7 +101,7 @@ try {
     admittedCells: 0,
     notes: [
       "No AI client was started and verifyNativeClient was not called; this is recipe and bundle preparation only.",
-      "policySha256, reviewSha256 and runResultSha256 describe one disposable run and change with each run; every other digest is fixed by the artifacts.",
+      "reviewSha256 and runResultSha256 describe one disposable run and change with each run; the other digests are fixed by the artifacts and the selection.",
       "A passing recipe proves the pinned output bytes only. It does not show a client loads the configuration, approves the project server or persists it.",
     ],
   };
