@@ -192,7 +192,7 @@ function checkNativeRelease(root) {
     } catch {
       existing = undefined;
     }
-    if (existing === undefined || !existing.equals(bytes)) fail(`${path} is stale; run npm run generate:release`);
+    if (existing === undefined || !existing.equals(bytes)) fail(`${path} is stale; run node tools/generate-release.mjs --native-only`);
   }
 }
 

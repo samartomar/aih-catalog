@@ -67,11 +67,11 @@ project directories with a local stub server. No login, session or verifier call
 was involved. [The sanitized record](evidence/claude-mcp-configuration-inspection.json)
 holds each observation.
 
-| Where the server is defined | New empty home, nothing reapplied |
+| Where the server is defined | Listing in a new empty home |
 | --- | --- |
 | Client default (local scope, stored in the home) | Server is gone |
 | Project `.mcp.json` | Server is still listed, pending approval |
-| Project `.mcp.json` plus user-level approval setting | Listed and connected |
+| Project `.mcp.json`, with a user-level approval setting placed in that home | Listed and connected |
 | Project `.mcp.json` plus the same approval key in project settings | Still pending approval |
 
 A local-scope definition also overrides a project definition of the same name.
@@ -95,6 +95,17 @@ the complete output to the pinned bytes.
 [The preparation record](evidence/claude-graph-fixture-preparation.json) names the
 exact artifacts and identities. The fixture server is a small authored call graph,
 not a production graph server, so this proves test scope only.
+
+One dependency is known before any native run. The reviewed
+`@aihq/core@1.0.0-dev.33` source stages one fixed permission file for every
+verification, supplied bundles included. That file approves and permits only the
+server and tools of Core's own bundled fixture. This bundle names its own server
+(`aihq-graph-fixture`) and query tool (`aihq_graph_callees`), so that verifier
+would leave the server unapproved and its tools denied. This was read from source,
+not run. Native acceptance of this bundle therefore needs a Core delivery that
+derives approval and tool permission from the supplied bundle; it is not yet
+filed as its own issue. Renaming the fixture to Core's bundled names was not done,
+because it would tie Catalog content to one verifier's internal fixture.
 
 ## Native acceptance continues separately
 

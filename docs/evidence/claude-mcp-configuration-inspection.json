@@ -14,7 +14,11 @@
     "configurationSource": "disposable home and project created for this inspection"
   },
   "method": {
-    "commands": ["claude mcp list", "claude mcp get <name>", "claude mcp add [--scope project] <name> -- node <stub>"],
+    "commands": [
+      "claude mcp list",
+      "claude mcp get <name>",
+      "claude mcp add [--scope project] <name> -- node <stub>"
+    ],
     "environment": "home, profile, application-data, temporary and client configuration directories redirected to empty disposable directories; updater, telemetry and non-essential traffic disabled",
     "server": "a local stub that answers initialize, ping and tools/list only",
     "login": false,
@@ -71,7 +75,9 @@
   "open": [
     "Approval of the project server in a fresh home remains a native-acceptance gate; an administrator-managed setting is the administrator's decision, not a Catalog recipe.",
     "No session was started: instruction loading, tool discovery inside a session and the read-only query are unobserved.",
-    "No sandboxed environment was inspected."
+    "No sandboxed environment was inspected.",
+    "User scope (--scope user) was not inspected.",
+    "Read from source, not run: the reviewed @aihq/core@1.0.0-dev.33 verifier stages a fixed permission file that approves and permits only its own bundled fixture server and tools, so a supplied bundle with other names needs a Core change before native acceptance."
   ],
   "nativeExecution": false,
   "admittedCells": 0

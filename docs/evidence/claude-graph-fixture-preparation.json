@@ -21,14 +21,14 @@
     "name": "@aihq/catalog",
     "version": "0.1.0",
     "file": "aihq-catalog-0.1.0.tgz",
-    "sha256": "f135db63a10607779c243f772a87277bc54184c0b0970226cf5b9bcf4ea64bfe",
-    "byteLength": 197107,
+    "sha256": "4a19a9062255e41dca308fd7ce078c00448678c7ab875009ab9df18dca2bf73a",
+    "byteLength": 197120,
     "archiveEntries": 165
   },
   "join": {
     "bundleId": "aihq.catalog.claude.graph-fixture.v1",
     "bundleManifestSha256": "a13662f48588eb28c3c253693900aaaab52e1646e1efb7a6587cf3cbac3958e0",
-    "archiveSha256": "f135db63a10607779c243f772a87277bc54184c0b0970226cf5b9bcf4ea64bfe",
+    "archiveSha256": "4a19a9062255e41dca308fd7ce078c00448678c7ab875009ab9df18dca2bf73a",
     "itemSha256": "e2f5b3577728ebf894a330748a71882a134f00d4d512b91b17370c8bcf80c1f3",
     "recipeSha256": "9866c407f4a1dcc4e78442b429aaa602dd33f966a259983dbb5db603a0ad5498",
     "inputsSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
@@ -36,8 +36,8 @@
     "expectedOutputTreeSha256": "0c069ad30618037922217561b4fc725b2cc91665e205b614b606b34be9b20b6b",
     "actualOutputTreeSha256": "0c069ad30618037922217561b4fc725b2cc91665e205b614b606b34be9b20b6b",
     "policySha256": "4d88286c77d79113322d8616f0ae2b0c3e16974e781e7b92f8d4320494f89f5f",
-    "reviewSha256": "a6fd1fd2adc20cb09c2f2b244ee673e112464dc36d525c9224295e15a9d73815",
-    "runResultSha256": "6eb1ce5a59e130e0b1f7b6d80fc3f5ce01d0155b035edf92859c93e422e4ffaa",
+    "reviewSha256": "2ea88f12b06fa845cfb513f5e5b567232b1e23300b5274679aa0d45d357fb770",
+    "runResultSha256": "0daf305ae58373ccaee23b579442b4f0d507f1cbefec84a91cc33371cba28d6e",
     "nativeResultSha256": null
   },
   "derivation": {

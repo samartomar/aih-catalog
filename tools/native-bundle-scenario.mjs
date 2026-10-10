@@ -46,6 +46,8 @@ const coreRoot = join(dirname(fileURLToPath(import.meta.url)), "node_modules", "
 const coreManifest = JSON.parse(readFileSync(join(coreRoot, "package.json"), "utf8"));
 const catalogManifest = JSON.parse(readFileSync(join(catalogRoot, "package.json"), "utf8"));
 const scratch = mkdtempSync(join(tmpdir(), "aih-native-bundle-scenario-"));
+// Remove the disposable projects on every exit path, including a failed check.
+process.on("exit", () => rmSync(scratch, { recursive: true, force: true }));
 
 // ---- Archive: the packed Catalog tarball, read as Core's supplied-bundle reader reads it ----
 

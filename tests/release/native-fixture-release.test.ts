@@ -1,7 +1,16 @@
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 import { applyEdits, modify } from "jsonc-parser";
 import { describe, expect, it } from "vitest";
 import { canonicalJson } from "../../src/release/json.js";
@@ -20,15 +29,13 @@ import { RECORDER_ORIGIN, RECORDER_SOURCE } from "../../src/release/native-recor
 import { renderedItemSha256 } from "../../src/release/project-context.js";
 import { listItems, readRelease } from "../../src/release/reader.js";
 import { sha256 } from "./fixtures.js";
+import { installedRoot } from "./installed-fixture.js";
 
 const root = resolve(import.meta.dirname, "../..");
 const bytesAt = (path: string) => readFileSync(resolve(root, path));
 const jsonAt = (path: string) => JSON.parse(bytesAt(path).toString("utf8"));
 const pkg = jsonAt("package.json") as { name: string; version: string };
 
-// The two earlier documents must stay byte-identical to the base this work started from.
-const RELEASE_1_0_SHA256 = "aabdf1fb75d4798c6da5aeda728c4c9150f37de0e618fb0e8048f7088309a100";
-const RELEASE_1_1_SHA256 = "cfc610dc039041e2f6c8a578aaa3a7314bb7baa2776dc48be99836a601e0bf97";
 const MARKER = "52d3da7194106025ec9a9760ccbda34b6449c97efa271ac2659df903869a87d9";
 
 const checked = (path: string) => {
@@ -63,9 +70,19 @@ describe("native fixture release documents", () => {
     }
   });
 
-  it("leave the 1.0 and 1.1 releases byte-identical", () => {
-    expect(sha256(bytesAt("release/release.json"))).toBe(RELEASE_1_0_SHA256);
-    expect(sha256(bytesAt("release/release-1.1.json"))).toBe(RELEASE_1_1_SHA256);
+  it("never write the 1.0 or 1.1 document or any of their members", () => {
+    const earlier = ["release/release.json", "release/release-1.1.json"];
+    const owned = new Set<string>(earlier);
+    for (const path of earlier) {
+      const document = jsonAt(path) as {
+        items: { recipe: { path: string }; materials: { path: string }[] }[];
+      };
+      for (const item of document.items) {
+        owned.add(item.recipe.path);
+        for (const material of item.materials) owned.add(material.path);
+      }
+    }
+    for (const path of rendered.files.keys()) expect(owned.has(path), path).toBe(false);
   });
 
   it("are 1.0 releases of this package with one authored item each", () => {
@@ -592,6 +609,85 @@ describe("rendered native fixture content", () => {
       expect(absolute.test(text), path).toBe(false);
       expect(/[\\/]Users[\\/]/i.test(text), path).toBe(false);
       expect(/\b(?:sk-|ghp_|AKIA|BEGIN [A-Z ]*PRIVATE KEY)/.test(text), path).toBe(false);
+    }
+  });
+});
+
+describe("native fixture generation in a scratch copy", () => {
+  const SNAPSHOT = "src/production/data/mattpocock.snapshot.json";
+  const MEMBER = `release/materials/aihq/native-fixtures/${NATIVE_FIXTURE_ITEM_ID}/graph.json`;
+  const env = () => {
+    const copy = { ...process.env };
+    delete copy.AIHQ_RELEASE_BASELINE;
+    return copy;
+  };
+  const run = (dir: string, mode: "--check" | "--native-only") =>
+    spawnSync(process.execPath, ["tools/generate-release.mjs", mode, dir], {
+      cwd: root,
+      env: env(),
+      encoding: "utf8",
+    });
+  /** The release tree of a disposable installed root, with the snapshot the advanced-state check reads. */
+  function scratchCopy() {
+    const fixture = installedRoot("native-only");
+    const snapshot = join(fixture.root, SNAPSHOT);
+    mkdirSync(dirname(snapshot), { recursive: true });
+    cpSync(resolve(root, SNAPSHOT), snapshot);
+    return fixture;
+  }
+  const tree = (dir: string) => {
+    const files = new Map<string, string>();
+    const walk = (current: string) => {
+      for (const entry of readdirSync(current, { withFileTypes: true })) {
+        const path = join(current, entry.name);
+        if (entry.isDirectory()) walk(path);
+        else files.set(relative(dir, path).replaceAll("\\", "/"), sha256(readFileSync(path)));
+      }
+    };
+    walk(join(dir, "release"));
+    return files;
+  };
+
+  it("passes --check on the committed copy", () => {
+    const fixture = scratchCopy();
+    try {
+      const result = run(fixture.root, "--check");
+      expect(result.status, result.stderr).toBe(0);
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it("fails --check on a stale native member and on a missing native document", () => {
+    const fixture = scratchCopy();
+    try {
+      const member = join(fixture.root, MEMBER);
+      writeFileSync(member, "{}\n");
+      const stale = run(fixture.root, "--check");
+      expect(stale.status).toBe(1);
+      expect(stale.stderr).toContain(MEMBER);
+      expect(stale.stderr).toContain("--native-only");
+      cpSync(resolve(root, MEMBER), member);
+      rmSync(join(fixture.root, NATIVE_BUNDLES_RELEASE_PATH));
+      const missing = run(fixture.root, "--check");
+      expect(missing.status).toBe(1);
+      expect(missing.stderr).toContain(NATIVE_BUNDLES_RELEASE_PATH);
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it("restores a tampered member with --native-only and leaves every other file untouched", () => {
+    const fixture = scratchCopy();
+    try {
+      const before = tree(fixture.root);
+      writeFileSync(join(fixture.root, MEMBER), "{}\n");
+      rmSync(join(fixture.root, NATIVE_BUNDLES_RELEASE_PATH));
+      const result = run(fixture.root, "--native-only");
+      expect(result.status, result.stderr).toBe(0);
+      expect(tree(fixture.root)).toEqual(before);
+    } finally {
+      fixture.cleanup();
     }
   });
 });

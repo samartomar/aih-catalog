@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Add the test-scope Claude graph fixture for #53 preparation: release documents
+- Add the test-scope Claude graph fixture for samartomar/aih-catalog#53 preparation: release documents
   `@aihq/catalog/release-native-fixture.json` (item `aihq.mcp.claude.graph-fixture`, a
   project-scope `.mcp.json` entry for a small read-only call-graph server behind Core's
   pinned stdio recorder, with one owned `CLAUDE.md` instruction block) and
