@@ -11,6 +11,7 @@ param(
     [Parameter(Mandatory = $true)][string]$CatalogTarball,
     [Parameter(Mandatory = $true)][ValidatePattern('^[a-f0-9]{64}$')][string]$CatalogSha256,
     [Parameter(Mandatory = $true)][string]$CoreTarball,
+    [Parameter(Mandatory = $true)][ValidatePattern('^[a-f0-9]{64}$')][string]$CoreSha256,
     [Parameter(Mandatory = $true)][string]$DockerCli,
     [Parameter(Mandatory = $true)][string]$NodePath,
     [Parameter(Mandatory = $true)][string]$WorkRoot,
@@ -48,7 +49,6 @@ $NodePath = Resolve-RegularFile $NodePath
 foreach ($exe in @($DockerCli, $NodePath)) {
     if ([IO.Path]::GetExtension($exe) -ine '.exe') { throw 'Use existing native Windows .exe executables.' }
 }
-$CoreSha256 = 'cf4cc41afa46333fcd422b9ffe1a1ef0f25e23cb11acc11a7d1dd9c4a5b60ff0'
 if ((Get-FileHash -LiteralPath $CatalogTarball -Algorithm SHA256).Hash.ToLowerInvariant() -ne $CatalogSha256) { throw 'Catalog tarball hash mismatch.' }
 if ((Get-FileHash -LiteralPath $CoreTarball -Algorithm SHA256).Hash.ToLowerInvariant() -ne $CoreSha256) { throw 'Core 1.0.0-dev.34 tarball hash mismatch.' }
 $WorkRoot = [IO.Path]::GetFullPath($WorkRoot)

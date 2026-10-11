@@ -9,18 +9,25 @@ Code, cancellation fixture and execution inputs require independent review befor
 Windows execution stopped on a bootstrap failure after its original window began
 at 22:02:37.489Z on 2026-10-11 (deadline 22:17:37.489Z). The exact image acquisition
 completed; npm configuration loading failed before installation or assessment.
-Zero assessment starts does not waive the stop/no-retry rule. A further window needs
-explicit owner authorization; [retained failure evidence](evidence/nuclei-windows-bootstrap/README.md)
+Zero assessment starts does not waive the stop/no-retry rule. A separately authorized
+recovery window also stopped before assessment when Core material staging could not
+protect its state root. These failures remain historical; [retained failure evidence](evidence/nuclei-windows-bootstrap/README.md)
 records the completed effect and remaining acceptance.
+
+The owner has now authorized a new Windows window of 15 minutes and at most three
+assessment starts using the corrected Core artifact below. This authorization does
+not reset or relabel the earlier windows. Native Windows success remains unproven;
+review actual artifact bindings and readiness before starting the new window.
 
 ## Artifacts and executors
 
 The corrected committed source, exact unpublished Catalog tarball, both helpers and
 Core tarball are recorded in the delivery issue and retained execution config. The
 [helper manifest](../workflows/nuclei/manifest.json) pins platform bytes. Core is the
-exact `1.0.0-dev.34` artifact, SHA-256
-`cf4cc41afa46333fcd422b9ffe1a1ef0f25e23cb11acc11a7d1dd9c4a5b60ff0`,
-6,875,876 bytes, from source `4327df9687323b913c68e8008f9bd44246664c07`.
+corrected unpublished `1.0.0-dev.34` artifact, SHA-256
+`e39dff6b9b04587ee29ed6e27c8f532bdda3c61d0175cbe54947e99ba1427353`,
+6,879,586 bytes, from source `0a83ea256101b274e6453883bbe8207b77c3d12f`,
+whose tree equals merged Core commit `c68f0ec4`. The Catalog tarball is unchanged.
 An updated helper/package hash after the no-pull correction is covered by authorization.
 
 Linux executor: the delivery host's native Linux x64 session, UID:GID `1000:1000`,
@@ -117,8 +124,10 @@ It checks existing runtime/private interface/free port, pins the image, stages t
 consumer offline, launches the runner once, and retains logs. It installs no runtime,
 changes no security settings and does not delete reports. Missing cached dependencies,
 executor identity or runtime permission stops visibly. The corrected readiness path
-also loads the actual npm CLI with separate empty user/global config files. Windows
-execution stopped at the original bootstrap failure and remains blocked pending a
-reviewed correction, actual-input review and explicit authorization for another window.
+also loads the actual npm CLI with separate empty user/global config files. Both
+`-CatalogSha256` and `-CoreSha256` are required explicit artifact bindings; a mismatched
+tarball stops before a work root or platform window is created. Earlier Windows
+bootstrap and state-protection failures remain retained. The corrected Core and
+newly authorized window still require actual-input review and native execution evidence.
 The completed Linux three-start budget is exhausted.
 Npm publication and other integrations remain outside this plan.
