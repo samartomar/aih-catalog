@@ -13,6 +13,15 @@ of the old release proposal,
 [the producer guide](docs/PRODUCER.md) for preparing candidates,
 and [CONTRIBUTING.md](CONTRIBUTING.md) for contributor checks.
 
+## Optional Nuclei workflow
+
+`@aihq/catalog/workflows/nuclei` supplies local policy authoring; its adjacent manifest pins
+standalone Windows x64 and Linux x64 helpers as ordinary archive data. See
+[the authoring instructions](workflows/nuclei/AUTHORING.md) for separately approved template
+preparation, immutable one-target assessment and explicit reconciliation. No assessment,
+installation or image pull happens on import. The package remains an unpublished candidate;
+platform evidence and real-tool execution limits are recorded in [delivery evidence](docs/NUCLEI-EVIDENCE.md).
+
 ## Public entries
 
 | Entry | Purpose | Runtime |

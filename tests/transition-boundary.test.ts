@@ -1,6 +1,7 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
+  chmodSync,
   copyFileSync,
   existsSync,
   mkdirSync,
@@ -144,6 +145,43 @@ describe("Catalog migration boundary", () => {
         expect(hash(readFileSync(join(installed, path))), `installed byte identity: ${path}`).toBe(
           hash(readFileSync(resolve(root, path))),
         );
+      const workflow = JSON.parse(
+        readFileSync(join(installed, "workflows/nuclei/manifest.json"), "utf8"),
+      );
+      expect(workflow.package).toEqual({ name: "@aihq/catalog", version: manifest().version });
+      expect(workflow.helpers).toHaveLength(2);
+      for (const helper of workflow.helpers) {
+        const bytes = readFileSync(join(installed, helper.path));
+        expect(bytes.length).toBe(helper.byteLength);
+        expect(bytes.length).toBeLessThanOrEqual(16777216);
+        expect(hash(bytes)).toBe(helper.sha256);
+        expect(helper.archiveMode).toBe("0644");
+        expect(bytes.subarray(0, helper.os === "linux" ? 4 : 2).toString("hex")).toBe(
+          helper.os === "linux" ? "7f454c46" : "4d5a",
+        );
+      }
+      const selectedHelper = workflow.helpers.find(
+        (h: { os: string; arch: string }) => h.os === process.platform && h.arch === process.arch,
+      );
+      if (selectedHelper) {
+        // Generated pathname, no package-adjacent assets or Node runtime are supplied.
+        const executable = join(
+          fixture,
+          process.platform === "win32" ? "staged-random.exe" : "staged-random",
+        );
+        copyFileSync(join(installed, selectedHelper.path), executable);
+        chmodSync(executable, 0o700);
+        const executed = spawnSync(executable, [], {
+          cwd: fixture,
+          env: {},
+          windowsHide: true,
+          encoding: "utf8",
+          timeout: 5000,
+        });
+        expect(executed.error).toBeUndefined();
+        expect(executed.status).toBe(10);
+        expect(executed.stdout).toContain("expected prepare");
+      }
       const script = [
         'import { readFileSync } from "node:fs";',
         'import { dirname } from "node:path";',
@@ -151,6 +189,8 @@ describe("Catalog migration boundary", () => {
         'import { createHash } from "node:crypto";',
         'import { readRelease, listItems } from "@aihq/catalog/reader";',
         'import { readInstalledRelease } from "@aihq/catalog/node";',
+        'import { authorAssessmentPolicy } from "@aihq/catalog/workflows/nuclei";',
+        'if (typeof authorAssessmentPolicy !== "function") throw new Error("Nuclei authoring export missing");',
         'const packageRoot = dirname(fileURLToPath(import.meta.resolve("@aihq/catalog/package.json")));',
         'const bytes = readFileSync(fileURLToPath(import.meta.resolve("@aihq/catalog/release.json")));',
         'const expectedSha256 = createHash("sha256").update(bytes).digest("hex");',

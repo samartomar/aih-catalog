@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Add optional Nuclei workflow authoring and bundled standalone Windows x64/Linux x64 helpers.
+  Preparation refreshes/snapshots templates before separate Core assessment review; the helper
+  owns bounded container lifecycle, validated native reports and explicit reconciliation.
+  Reports remain until explicit deletion. No npm publication or real assessment is implied.
+
 - Add the test-scope Claude graph fixture for samartomar/aih-catalog#53 preparation: release documents
   `@aihq/catalog/release-native-fixture.json` (item `aihq.mcp.claude.graph-fixture`, a
   project-scope `.mcp.json` entry for a small read-only call-graph server behind Core's

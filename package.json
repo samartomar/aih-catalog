@@ -42,7 +42,9 @@
     "./release-native-bundles.json": "./release/release-native-bundles.json",
     "./schemas/release/1.0.0.json": "./schemas/release/1.0.0.json",
     "./schemas/release/1.1.0.json": "./schemas/release/1.1.0.json",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./workflows/nuclei": "./workflows/nuclei/author.mjs",
+    "./workflows/nuclei/manifest.json": "./workflows/nuclei/manifest.json"
   },
   "engines": {
     "node": ">=24.15.0 <25"
@@ -78,11 +80,12 @@
     "check:release": "node tools/check-release.mjs",
     "prepare:candidate": "npm run build:dist && node tools/prepare-candidate.mjs",
     "measure:candidate": "node tools/measure-candidate.mjs",
-    "check:materials": "node tools/check-not-candidate.mjs && node tools/generate-release.mjs --check && node tools/check-release.mjs && node tools/generate-catalog-index.mjs --check && node tools/generate-catalog-collections.mjs --check && node tools/generate-catalog-presentation.mjs --check && node tools/generate-catalog-categories.mjs --check && node tools/generate-catalog-runtime-descriptors.mjs --check",
+    "check:materials": "node tools/check-not-candidate.mjs && node tools/generate-release.mjs --check && node tools/check-release.mjs && node tools/generate-catalog-index.mjs --check && node tools/generate-catalog-collections.mjs --check && node tools/generate-catalog-presentation.mjs --check && node tools/generate-catalog-categories.mjs --check && node tools/generate-catalog-runtime-descriptors.mjs --check && node tools/build-nuclei-helper.mjs --check",
     "historical:verify:core-v2-lock": "node tools/verify-core-v2-lock.mjs",
     "historical:verify:cold-external-admin": "node tools/verify-cold-external-admin.mjs",
     "historical:verify:default-evidence-chain": "vitest run tests/supported/default-evidence-chain.test.ts",
-    "historical:check:catalog-index": "node tools/check-not-candidate.mjs && node tools/generate-catalog-index.mjs --check && node tools/generate-catalog-collections.mjs --check && node tools/generate-catalog-qualification.mjs --check && node tools/generate-catalog-presentation.mjs --check && node tools/generate-catalog-categories.mjs --check && node tools/generate-catalog-runtime-descriptors.mjs --check && node dist/production/catalog-defaults-v1.js --check && node tools/check-committed-catalog-defaults.mjs"
+    "historical:check:catalog-index": "node tools/check-not-candidate.mjs && node tools/generate-catalog-index.mjs --check && node tools/generate-catalog-collections.mjs --check && node tools/generate-catalog-qualification.mjs --check && node tools/generate-catalog-presentation.mjs --check && node tools/generate-catalog-categories.mjs --check && node tools/generate-catalog-runtime-descriptors.mjs --check && node dist/production/catalog-defaults-v1.js --check && node tools/check-committed-catalog-defaults.mjs",
+    "build:nuclei": "node tools/build-nuclei-helper.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.1",
@@ -101,7 +104,12 @@
     "schemas/release",
     "schemas/core-recipe",
     "README.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "workflows/nuclei/bin",
+    "workflows/nuclei/author.mjs",
+    "workflows/nuclei/manifest.json",
+    "workflows/nuclei/AUTHORING.md",
+    "workflows/nuclei/THIRD-PARTY-NOTICES.md"
   ],
   "private": true
 }

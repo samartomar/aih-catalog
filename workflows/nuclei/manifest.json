@@ -1,0 +1,28 @@
+{
+  "schema": "urn:aihq:catalog:nuclei-workflow:1.0.0",
+  "package": {
+    "name": "@aihq/catalog",
+    "version": "0.1.0"
+  },
+  "workflow": "nuclei-template-scan",
+  "compiler": "go1.26.9",
+  "sourceSha256": "73b29eaa50d01394034b6ecbfd80c03864dfe93bf82ef8db211a28fd0adb852f",
+  "helpers": [
+    {
+      "os": "linux",
+      "arch": "x64",
+      "path": "workflows/nuclei/bin/linux-x64",
+      "sha256": "bdd09970f6bbdb826235d5e782c4434d9e0d104f04823229f6a0fea5b24a78b7",
+      "byteLength": 7147646,
+      "archiveMode": "0644"
+    },
+    {
+      "os": "win32",
+      "arch": "x64",
+      "path": "workflows/nuclei/bin/win32-x64.exe",
+      "sha256": "1a7681c88cc673ef11491395e2341e4dfd35fd29c2c6c4443976bd4af2bd828f",
+      "byteLength": 7357440,
+      "archiveMode": "0644"
+    }
+  ]
+}

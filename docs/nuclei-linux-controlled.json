@@ -1,0 +1,43 @@
+{
+  "catalog": {
+    "name": "@aihq/catalog",
+    "version": "0.1.0",
+    "sha256": "563139598db05b97ac70ba834ff55e6d1d67c94c73c48145bc93446d137c61ea",
+    "byteLength": 6345421
+  },
+  "core": {
+    "sha256": "cf4cc41afa46333fcd422b9ffe1a1ef0f25e23cb11acc11a7d1dd9c4a5b60ff0",
+    "byteLength": 6875876
+  },
+  "archiveMembers": 171,
+  "archiveDataModeOnly": true,
+  "platform": "linux",
+  "architecture": "x64",
+  "node": "v24.15.0",
+  "helper": {
+    "os": "linux",
+    "arch": "x64",
+    "path": "workflows/nuclei/bin/linux-x64",
+    "sha256": "bdd09970f6bbdb826235d5e782c4434d9e0d104f04823229f6a0fea5b24a78b7",
+    "byteLength": 7147646,
+    "archiveMode": "0644"
+  },
+  "checks": [
+    "no-effects-before-approval",
+    "staged-standalone-preparation",
+    "custom-warning-and-fixed-bundle",
+    "enterprise-exact-admission-with-fresh-prepare-apply-reads:simulated-transport",
+    "enterprise-changed-recipe-refused",
+    "run-path-collision-refused",
+    "empty:core-complete:resources-absent:reports-retained",
+    "empty-native:core-complete:resources-absent:reports-retained",
+    "missing:core-incomplete:resources-absent:reports-retained",
+    "failure:core-incomplete:resources-absent:reports-retained",
+    "cancel:core-cancelled:resources-absent:reports-retained"
+  ],
+  "realTool": false,
+  "realDocker": false,
+  "realTarget": false,
+  "enterprise": "actual-Core-admission-with-simulated-transport",
+  "windows": "pending-native-runtime-evidence"
+}
