@@ -38,8 +38,8 @@ are retained by the finisher. Native report files are copied **without changes**
 with exact byte hashes in that inventory. Treat all report content as untrusted.
 No native report was generated or repaired by the evidence exporter.
 
-Native stderr includes missing fresh-config `.nuclei-ignore` notices and unsigned
-custom-template warnings. They were retained. Both completed assessments exited0,
+Native stderr includes missing fresh-config `.nuclei-ignore` notices. Preparation
+records retain explicit custom-source warnings. Both were retained. Both completed assessments exited0,
 made their exact fixture GET, and passed required native artifact validation.
 Cancellation has no successful trace/SARIF claim; its empty partial trace and
 missing SARIF remain honest incomplete evidence.

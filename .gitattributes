@@ -5,4 +5,4 @@ defaults/sources/** -text
 release/materials/** -text
 
 # Preserve exact native report bytes, including upstream CRLF Markdown.
-docs/evidence/nuclei-linux-native/*/reports/** -text
+docs/evidence/nuclei-linux-native/*/reports/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
