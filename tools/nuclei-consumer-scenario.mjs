@@ -89,7 +89,7 @@ const base = { platform: process.platform, helper, bundle, bundleSha256: snapsho
  daemon: 'unix:///var/run/docker.sock', dockerCli: docker, image, toolTimeoutSeconds: 5,
  cleanupTimeoutSeconds: 3, timeoutMs: 30000 };
 process.env.DOCTOR_TEST_SECRET = 'never-forward'; process.env.DOCKER_HOST = 'tcp://forbidden.invalid:2375';
-for (const scenario of ['empty', 'empty-native', 'missing', 'failure', 'cancel']) {
+for (const scenario of ['empty', 'empty-native', 'missing', 'failure', 'cancel', 'missing-image', 'image-disappeared']) {
  writeFileSync(stateFile, JSON.stringify({ image, scenario }));
  const options = { ...base, runDirectory: join(root, `run-${scenario}`), container: `aih-nuclei-${scenario}`, network: `aih-nuclei-${scenario}-net` };
  const policy = authorAssessmentPolicy(options); p = await ready(policy);
@@ -113,6 +113,15 @@ for (const scenario of ['empty', 'empty-native', 'missing', 'failure', 'cancel']
  const reconciled = await apply(cp.prepared, approve(cp), controls); assert.equal(reconciled.completion, 'complete', JSON.stringify(reconciled));
  const state = JSON.parse(readFileSync(stateFile)); assert(!state.container && !state.network);
  assert(!existsSync(join(options.runDirectory, '.staging')));
+ if (scenario === 'image-disappeared' || scenario === 'missing-image') {
+   assert.equal(state.inspected, true); assert(!state.started);
+   if (scenario === 'image-disappeared') assert.equal(state.createPullNever, true);
+   assert(existsSync(join(options.runDirectory, 'reports')));
+   const failed = JSON.parse(readFileSync(join(options.runDirectory, 'manifest.json')));
+   assert.equal(failed.status, 'incomplete'); assert(failed.reason);
+   checks.push(`${scenario}:no-start:honest-failure:owned-cleanup:evidence-retained`);
+   continue;
+ }
  assert.equal(existsSync(join(options.runDirectory, 'reports', 'results.sarif')), scenario !== 'empty-native');
  if (scenario === 'empty-native') assert.equal(JSON.parse(readFileSync(join(options.runDirectory, 'manifest.json'))).nativeSARIFOmitted, true);
  checks.push(`${scenario}:core-${result.completion}:resources-absent:reports-retained`);
