@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "outcome": "refreshed",
+  "warnings": [
+    "Explicit custom HTTP source; may be unsigned: custom/zero.yaml"
+  ],
+  "files": [
+    {
+      "path": "custom/zero.yaml",
+      "sha256": "af55994fcafd7443c102b347b3b2ee9597568556354bd1b3be9a679849782b7c",
+      "bytes": 249,
+      "template": true,
+      "id": "owned-health-zero"
+    }
+  ],
+  "sha256": "ddf370238b3e5e8e5334af9694674d60256f0538623403c2372cfc4eddb5bb35",
+  "bytes": 479
+}

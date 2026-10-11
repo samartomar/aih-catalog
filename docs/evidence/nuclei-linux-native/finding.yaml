@@ -1,0 +1,12 @@
+id: owned-health-finding
+info:
+  name: Owned synthetic health fixture
+  author: fixture
+  severity: info
+http:
+  - method: GET
+    path:
+      - "{{RootURL}}/health"
+    matchers:
+      - type: word
+        words: ["aih-nuclei-owned-fixture-83"]
