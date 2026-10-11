@@ -41,6 +41,7 @@ function makeToolRepo(dir: string): void {
     "tools",
     "schemas",
     "producer",
+    "workflows/nuclei",
   ]) {
     cpSync(join(root, entry), join(dir, entry), { recursive: true });
   }

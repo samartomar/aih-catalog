@@ -151,6 +151,7 @@ export function makePackageRoot(
     "README.md",
     "CHANGELOG.md",
     "dist/release",
+    "workflows/nuclei",
     "schemas",
     ...extra,
   ]) {

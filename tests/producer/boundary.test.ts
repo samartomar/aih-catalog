@@ -125,6 +125,11 @@ describe("the published package keeps its intended runtime subset", () => {
       "schemas/core-recipe",
       "README.md",
       "CHANGELOG.md",
+      "workflows/nuclei/bin",
+      "workflows/nuclei/author.mjs",
+      "workflows/nuclei/manifest.json",
+      "workflows/nuclei/AUTHORING.md",
+      "workflows/nuclei/THIRD-PARTY-NOTICES.md",
     ]);
     expect(Object.keys(manifest.exports)).toEqual([
       "./contracts",
@@ -137,6 +142,8 @@ describe("the published package keeps its intended runtime subset", () => {
       "./schemas/release/1.0.0.json",
       "./schemas/release/1.1.0.json",
       "./package.json",
+      "./workflows/nuclei",
+      "./workflows/nuclei/manifest.json",
     ]);
     expect(manifest.private).toBe(true);
     expect(manifest.scripts.prepublishOnly).toBe("node tools/refuse-publication.mjs");
