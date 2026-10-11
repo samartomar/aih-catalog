@@ -6,6 +6,13 @@ synthetic listeners, and at most **three assessment starts per platform in one
 15-minute platform window**, including failures and cancellation. No retries or resets.
 Code, cancellation fixture and execution inputs require independent review before execution.
 
+Windows execution stopped on a bootstrap failure after its original window began
+at 22:02:37.489Z on 2026-10-11 (deadline 22:17:37.489Z). The exact image acquisition
+completed; npm configuration loading failed before installation or assessment.
+Zero assessment starts does not waive the stop/no-retry rule. A further window needs
+explicit owner authorization; [retained failure evidence](evidence/nuclei-windows-bootstrap/README.md)
+records the completed effect and remaining acceptance.
+
 ## Artifacts and executors
 
 The corrected committed source, exact unpublished Catalog tarball, both helpers and
@@ -24,9 +31,11 @@ config binds the actual hostname, executable paths and artifact hashes; none are
 
 Windows executor: the owner's existing native Windows x64 workstation with its existing
 Docker Desktop Linux-container runtime, endpoint `npipe:////./pipe/docker_engine`.
-**This delivery host has no authenticated Windows execution route. Its actual computer
-name, private interface and runtime access remain unverified.** Do not represent it as
-ready or substitute WSL, Wine, cross-builds, Windows Server or a new Docker installation.
+Actual native host/runtime readiness was independently reviewed on 2026-10-11:
+Node 24.19.0, Docker CLI/daemon 29.8.0, Docker Desktop 4.92.0 and loopback 127.0.0.1.
+Private records bind the actual computer name and executable paths/hashes.
+This is not completed acceptance; do not substitute WSL execution, Wine, cross-builds,
+Windows Server or a new Docker installation.
 The owner-run wrapper requires the actual computer name, existing native Node24/Docker
 `.exe` paths and a literal existing private IPv4 interface (or loopback), port 30883.
 These exact values must be captured and reviewed before Windows assessment starts;
@@ -107,6 +116,9 @@ transport supplies only pinned Catalog bytes and local organization policy data.
 It checks existing runtime/private interface/free port, pins the image, stages the exact
 consumer offline, launches the runner once, and retains logs. It installs no runtime,
 changes no security settings and does not delete reports. Missing cached dependencies,
-executor identity or runtime permission stops visibly. Windows execution remains blocked
-until its actual inputs are independently reviewed; Linux work proceeds independently.
+executor identity or runtime permission stops visibly. The corrected readiness path
+also loads the actual npm CLI with separate empty user/global config files. Windows
+execution stopped at the original bootstrap failure and remains blocked pending a
+reviewed correction, actual-input review and explicit authorization for another window.
+The completed Linux three-start budget is exhausted.
 Npm publication and other integrations remain outside this plan.

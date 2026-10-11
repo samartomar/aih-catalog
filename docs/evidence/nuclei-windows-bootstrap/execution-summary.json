@@ -1,0 +1,66 @@
+{
+  "kind": "derived-public-summary:not-native-acceptance",
+  "sourceCommit": "3589ef3c3bfa1aacd4a9f5dff40eb6a5f2a7af5e",
+  "status": "failed-stop-no-retry",
+  "windowStarted": "2026-10-11T22:02:37.4893425Z",
+  "windowDeadline": "2026-10-11T22:17:37.4893425Z",
+  "finished": "2026-10-11T22:03:31.621Z",
+  "assessmentStarts": 0,
+  "runnerStarted": false,
+  "packageInstallationStarted": false,
+  "image": {
+    "reference": "projectdiscovery/nuclei@sha256:9fd705284ac4b5f721fa1e23bf366f26e985cd4ec65927fe9a53cb3fcb0417a6",
+    "id": "sha256:9fd705284ac4b5f721fa1e23bf366f26e985cd4ec65927fe9a53cb3fcb0417a6",
+    "acquisitions": 1,
+    "inspection": "linux:amd64:exact-RepoDigest",
+    "retained": true
+  },
+  "failure": {
+    "command": "npm install --ignore-scripts --offline --no-audit --no-fund <exact Core tarball> <exact Catalog tarball>",
+    "stage": "npm configuration loading",
+    "diagnostic": "double-loading the same empty configuration file as global, previously loaded as user",
+    "exitCode": 1
+  },
+  "postFailure": {
+    "captured": "2026-10-11T22:06:47Z",
+    "ownedContainerNamesAbsent": 3,
+    "ownedNetworkNamesAbsent": 3,
+    "listenerAbsent": true,
+    "runnerEvidenceExists": false,
+    "consumerNodeModulesExists": false,
+    "nativeReportsExist": false
+  },
+  "originalPrivateRecords": [
+    {
+      "bytes": 6388,
+      "file": "wrapper-ledger.json",
+      "sha256": "c3433e97b9cbe40cfdbd61dfc76421fdfd4303ab35222dfce9e6f06517135946"
+    },
+    {
+      "bytes": 1401,
+      "file": "execution-config.json",
+      "sha256": "7a92e7c6dd128016309f88ca76e68a4d1ea7865ef185af1689e878f76c2db092"
+    },
+    {
+      "bytes": 139,
+      "file": "04-stderr.log",
+      "sha256": "81b58558c6d44c5c94c473265fcd980efdbbe7c8140a8498197630664bd56a12"
+    },
+    {
+      "bytes": 734,
+      "file": "05-stdout.log",
+      "sha256": "dc74fc9a9510143230ef267079a8485e0da28eade5b1f6529878eae4bfbda19d"
+    },
+    {
+      "bytes": 2692,
+      "file": "06-stdout.log",
+      "sha256": "fc44baff2bc075096dfc7a6752bd7b142bcf86c557eb71dc932727b41903424b"
+    },
+    {
+      "bytes": 177,
+      "file": "07-stderr.log",
+      "sha256": "f12aed4cfa9ecc956b150124a87ff496d66476e14ef12eceeba14e9a45d2a917"
+    }
+  ],
+  "disposition": "stop:no-retry:no-window-reset; retain original packet, logs, seeded consumer and acquired image; new window requires explicit owner authorization"
+}
