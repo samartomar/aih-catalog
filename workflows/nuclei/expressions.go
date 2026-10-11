@@ -28,6 +28,11 @@ func externalCall(text string) error {
 			}
 			continue
 		}
+		// govaluate unescapes identifiers before helper lookup. Refuse that
+		// alternate spelling syntax while leaving quoted string/regex escapes intact.
+		if text[i] == '\\' {
+			return fmt.Errorf("escaped identifiers are unsupported in executable expressions")
+		}
 		if !identifierStart(text[i]) {
 			i++
 			continue

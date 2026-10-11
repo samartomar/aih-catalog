@@ -614,3 +614,22 @@ func TestPreparationRefusesYAMLScalarEncodingOfExpressions(t *testing.T) {
 		})
 	}
 }
+
+func TestPreparationRefusesEscapedFunctionIdentifiers(t *testing.T) {
+	for _, call := range []string{`pub\licip()`, `ja\rm ("outside.invalid:443")`, `re\solve("outside.invalid","a")`} {
+		t.Run(call, func(t *testing.T) {
+			content := strings.Replace(validHTTP, "    matchers:", "    headers:\n      X-Fixture: '{{"+call+"}}'\n    matchers:", 1)
+			d := t.TempDir()
+			p := filepath.Join(d, "http.yaml")
+			os.WriteFile(p, []byte(content), 0600)
+			args := append([]string{"prepare", "--output", filepath.Join(d, "out"), "--custom", p + "=http.yaml", "--max-download-bytes", "65536"}, limits()...)
+			if c, msg := invoke(t, args...); c != 10 {
+				t.Fatalf("escaped function accepted %d %s", c, msg)
+			}
+		})
+	}
+}
+func TestPureDSLQuotedRegexEscapesRemainSupported(t *testing.T) {
+	content := strings.Replace(validHTTP, "    matchers:", "    matchers:\n      - type: dsl\n        dsl:\n          - 'regex(\"fixture\\\\d+\", body)'", 1)
+	snapshot(t, content)
+}
