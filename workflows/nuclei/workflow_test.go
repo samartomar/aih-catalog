@@ -633,3 +633,51 @@ func TestPureDSLQuotedRegexEscapesRemainSupported(t *testing.T) {
 	content := strings.Replace(validHTTP, "    matchers:", "    matchers:\n      - type: dsl\n        dsl:\n          - 'regex(\"fixture\\\\d+\", body)'", 1)
 	snapshot(t, content)
 }
+
+func literalRaw(body string) string {
+	return "id: fixture-http\ninfo: {name: fixture, author: fixture, severity: info}\nhttp:\n  - raw:\n      - |\n        POST /health HTTP/1.1\n        Host: {{Hostname}}\n        Content-Type: text/plain\n\n" + body + "\n"
+}
+func TestRawRequestsRefuseAnnotationsAndComputedContent(t *testing.T) {
+	cases := []string{"        @Host: outside.invalid:443", "        \t@tls-sni: outside.invalid", "        {{base64_decode('QEhvc3Q6IG91dHNpZGUuaW52YWxpZDo0NDM=')}}", "        {{custom_data}}", "        §custom_data§"}
+	for _, body := range cases {
+		t.Run(body, func(t *testing.T) {
+			content := literalRaw(body) + "\nvariables:\n  custom_data: '@Host: outside.invalid:443'\n"
+			d := t.TempDir()
+			p := filepath.Join(d, "http.yaml")
+			os.WriteFile(p, []byte(content), 0600)
+			args := append([]string{"prepare", "--output", filepath.Join(d, "out"), "--custom", p + "=http.yaml", "--max-download-bytes", "65536"}, limits()...)
+			if c, msg := invoke(t, args...); c != 10 {
+				t.Fatalf("computed/annotated raw accepted %d %s", c, msg)
+			}
+		})
+	}
+}
+func TestLiteralRawRequestWithTargetHostRemainsSupported(t *testing.T) {
+	snapshot(t, literalRaw("        literal fixture request body"))
+}
+
+func TestHTTPRefusesFuzzingAndUnsupportedRoutingCapabilities(t *testing.T) {
+	for _, field := range []string{"fuzzing:\n      - part: path\n        type: replace\n        mode: single\n        fuzz: ['https://outside.invalid/']", "analyzer:\n      name: time_delay", "future-target-routing: https://outside.invalid/", "signature: AWS", "race: true", "race_count: 2", "pipeline: true", "pipeline-concurrent-connections: 2", "pipeline-requests-per-connection: 2"} {
+		t.Run(field, func(t *testing.T) {
+			content := strings.Replace(validHTTP, "    matchers:", "    "+field+"\n    matchers:", 1)
+			d := t.TempDir()
+			p := filepath.Join(d, "http.yaml")
+			os.WriteFile(p, []byte(content), 0600)
+			args := append([]string{"prepare", "--output", filepath.Join(d, "out"), "--custom", p + "=http.yaml", "--max-download-bytes", "65536"}, limits()...)
+			if c, msg := invoke(t, args...); c != 10 {
+				t.Fatalf("unsupported HTTP capability accepted %d %s", c, msg)
+			}
+		})
+	}
+}
+
+func TestRawHostHeaderNormalizationMatchesNativeParser(t *testing.T) {
+	content := strings.Replace(literalRaw("        literal body"), "        Content-Type: text/plain", "          Host: outside.invalid\n        Content-Type: text/plain", 1)
+	d := t.TempDir()
+	p := filepath.Join(d, "http.yaml")
+	os.WriteFile(p, []byte(content), 0600)
+	args := append([]string{"prepare", "--output", filepath.Join(d, "out"), "--custom", p + "=http.yaml", "--max-download-bytes", "65536"}, limits()...)
+	if c, msg := invoke(t, args...); c != 10 {
+		t.Fatalf("native duplicate Host accepted %d %s", c, msg)
+	}
+}

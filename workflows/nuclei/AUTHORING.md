@@ -72,8 +72,14 @@ available directly in HTTP fields and matchers. DNS, public-IP lookup, TCP/TLS p
 provider DSL calls are refused, including aliases and expressions in declared payload data.
 Variable/extractor names must be identifiers.
 Encoded/custom YAML tags, merge keys, anchors and aliases are refused.
-Explicit structured or raw Host headers must use exactly `{{Hostname}}`. Selected template IDs
-must be unique, and execution evidence must cover each selected path. Bundle paths must be portable
+Explicit structured or raw Host headers must use exactly `{{Hostname}}`.
+Raw requests otherwise require literal content: annotations, helper expressions, payload or
+response substitutions and other interpolation markers are refused. Use structured HTTP for
+supported pure helpers and payload data.
+HTTP request fields use a finite supported schema. Request signing/credential discovery,
+fuzzing/analyzers, race/pipeline execution and their connection controls are refused; they add
+capabilities or bypass the ordinary request-rate limit. Unknown request fields fail preparation.
+Selected template IDs must be unique, and execution evidence must cover each selected path. Bundle paths must be portable
 ASCII, without case aliases, Windows device names or trailing dots/spaces. Unsupported templates
 fail preparation visibly; do not weaken validation to force an official or custom template through.
 

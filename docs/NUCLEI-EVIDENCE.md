@@ -12,7 +12,7 @@ exact bytes and Go source identity; data-mode archive members do not execute on 
 
 | Evidence | Linux x64 | Windows x64 |
 | --- | --- | --- |
-| Standalone binary format/size/hash | ELF 7,172,222 bytes; pinned manifest | PE 7,379,456 bytes; pinned manifest |
+| Standalone binary format/size/hash | ELF 7,172,222 bytes; pinned manifest | PE 7,383,552 bytes; pinned manifest |
 | Actual Core selected archive member/staging/admission | Passed against exact packed archive, controlled CLI | Pending native Windows run |
 | Path/runtime connectivity with controlled Docker CLI | Passed against exact packed archive, controlled CLI | Pending native Windows run |
 | Cancellation and explicit owned-resource reconciliation | Passed against exact packed archive, controlled CLI | Pending native Windows run |
@@ -52,6 +52,13 @@ The existing `npm run verify` owns package/type/lint/material/active-suite/actio
 Binary source/manifest integrity runs inside its existing material check, and the existing packed
 consumer test verifies data modes, selected standalone execution and installed helper byte pins.
 Independent review found target-variable/Host and side-effectful DSL bypasses, Windows path aliases, Linux mount ownership, deadline reserve defects, duplicate-template execution coverage, malformed SARIF acceptance and an incorrect native trace success sentinel. Regression tests now cover those failures; root variables are literal-only, direct pure helpers remain supported, and native-shaped traces require `error: "none"`. Final binaries are rebuilt from the corrected source.
+
+The pinned-release source audit also constrained raw requests to literal content with the exact
+target Host marker and native header whitespace rules, and constrained HTTP request fields to
+the reviewed subset. Signing/credential discovery and alternate fuzzing/analyzer/race/pipeline
+execution are refused. Those alternate paths do not inherit all normal rate/capability bounds;
+no fuzzing host-reroute claim is made. Structured HTTP, pure helpers, payloads, matchers and
+extractors remain supported.
 
 Initial local full-suite failures were fixture inventory omissions after adding package entries;
 those fixtures now carry the declared workflow content. Test processes disable inherited GPG

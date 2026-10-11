@@ -228,6 +228,43 @@ func validateTemplate(b []byte, files map[string][]byte) (string, error) {
 		}
 		if k == "http" {
 			hasHTTP = v.Kind == yaml.SequenceNode && len(v.Content) > 0
+			// Keep the standard, rate-limited request path finite. New execution or
+			// routing capabilities must be assessed before they enter this subset.
+			fields := map[string]bool{}
+			for _, field := range []string{"id", "name", "path", "raw", "method", "body", "headers", "payloads", "attack", "matchers", "matchers-condition", "extractors", "threads", "max-size", "max-redirects", "cookie-reuse", "disable-cookie", "read-all", "redirects", "host-redirects", "protocol-redirects", "req-condition", "stop-at-first-match", "skip-variables-check", "iterate-all", "disable-path-automerge"} {
+				fields[field] = true
+			}
+			for _, request := range v.Content {
+				if request.Kind != yaml.MappingNode {
+					return "", errors.New("HTTP request must be a mapping")
+				}
+				for j := 0; j < len(request.Content); j += 2 {
+					field, value := request.Content[j].Value, request.Content[j+1]
+					if !fields[field] {
+						return "", fmt.Errorf("unsupported HTTP request capability %q", field)
+					}
+					switch field {
+					case "path", "raw":
+						if value.Kind != yaml.SequenceNode {
+							return "", errors.New("HTTP path/raw must be a sequence")
+						}
+						for _, item := range value.Content {
+							if item.Kind != yaml.ScalarNode || item.Tag != "!!str" {
+								return "", errors.New("HTTP path/raw entries must be literal strings")
+							}
+						}
+					case "matchers", "extractors":
+						if value.Kind != yaml.SequenceNode {
+							return "", errors.New("HTTP operators must be a sequence")
+						}
+						for _, item := range value.Content {
+							if item.Kind != yaml.MappingNode {
+								return "", errors.New("HTTP operator must be a mapping")
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 	if !regexp.MustCompile(`^[A-Za-z0-9_.-]{1,200}$`).MatchString(id) || !hasHTTP {
@@ -417,18 +454,37 @@ func validateTemplate(b []byte, files map[string][]byte) (string, error) {
 			}
 			hostOK := false
 			hostCount := 0
-			for _, line := range lines[1:] {
+			hostLine := -1
+			for i, line := range lines[1:] {
+				line = strings.TrimSpace(line)
 				if line == "" {
 					break
 				}
 				if strings.HasPrefix(strings.ToLower(line), "host:") {
 					hostCount++
+					hostLine = i + 1
 					hostOK = strings.TrimSpace(strings.SplitN(line, ":", 2)[1]) == "{{Hostname}}"
 				}
 			}
 			if !hostOK || hostCount != 1 {
 				return errors.New("raw HTTP requires exact Hostname host")
 			}
+			// Native annotations are parsed after rendering across the entire raw
+			// request, including its body. Only the reserved target Hostname marker
+			// is permitted; every other byte must remain literal after approval.
+			for i, line := range lines {
+				if strings.HasPrefix(strings.TrimSpace(line), "@") {
+					return errors.New("raw HTTP annotations are outside this workflow")
+				}
+				literal := line
+				if i == hostLine {
+					literal = strings.Replace(literal, "{{Hostname}}", "", 1)
+				}
+				if strings.Contains(literal, "{{") || strings.Contains(literal, "}}") || strings.Contains(literal, "§") {
+					return errors.New("raw HTTP must be literal except its exact target Hostname header")
+				}
+			}
+
 		}
 		if key == "payloads" && n.Kind == yaml.ScalarNode {
 			if !safePath(n.Value) {
