@@ -17,10 +17,10 @@ exact bytes and Go source identity; data-mode archive members do not execute on 
 | Path/runtime connectivity | Passed controlled and native Docker/Nuclei | Pending native Windows run |
 | Cancellation and explicit owned-resource reconciliation | Passed controlled and native Docker/Nuclei | Pending native Windows run |
 | Staging cleanup with reports preserved | Passed controlled and native Docker/Nuclei | Pending native Windows run |
-| Real Docker/Nuclei target/Host behavior | Passed owned synthetic HTTP; TLS not exercised | Not run; actual executor/runtime inputs pending |
+| Real Docker/Nuclei target/Host behavior | Passed owned synthetic HTTP; TLS not exercised | Not run; bootstrap stopped before assessment |
 
 No external target, real credential or paid provider was used. The [consolidated smoke plan](NUCLEI-SMOKE-PLAN.md) was independently reviewed and authorized.
-[Native Linux evidence](evidence/nuclei-linux-native/README.md) records three actual starts: finding, zero findings and cancellation/reconciliation. Windows remains blocked on executor readiness and native execution. Cross-build evidence will not be reported as
+[Native Linux evidence](evidence/nuclei-linux-native/README.md) records three actual starts: finding, zero findings and cancellation/reconciliation. [Windows bootstrap evidence](evidence/nuclei-windows-bootstrap/README.md) records reviewed native host/runtime readiness and one exact image acquisition, followed by npm configuration failure before installation or assessment. The original window stopped; another window needs explicit authorization after the correction is reviewed. Cross-build evidence will not be reported as
 Windows execution evidence. No new job, required status check, signing scheme, approval workflow,
 release gate or Core execution contract is added. Publication remains blocked by existing policy.
 

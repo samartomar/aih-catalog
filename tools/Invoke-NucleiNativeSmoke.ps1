@@ -103,13 +103,15 @@ for (const key of ['SystemRoot', 'WINDIR', 'SystemDrive', 'COMSPEC', 'PATHEXT', 
 }
 env.PATH = `${dirname(cfg.node)};${dirname(cfg.dockerCli)};${process.env.SystemRoot}\\System32`;
 env.HOME = privateHome; env.USERPROFILE = privateHome; env.DOCKER_CONFIG = dockerConfig;
-const npmConfig = join(root, 'empty-npmrc'); writeFileSync(npmConfig, '');
-env.npm_config_userconfig = npmConfig; env.npm_config_globalconfig = npmConfig;
+const npmUserConfig = join(root, 'empty-user-npmrc'), npmGlobalConfig = join(root, 'empty-global-npmrc');
+writeFileSync(npmUserConfig, ''); writeFileSync(npmGlobalConfig, '');
+env.npm_config_userconfig = npmUserConfig; env.npm_config_globalconfig = npmGlobalConfig;
 env.APPDATA = join(privateHome, 'AppData', 'Roaming'); env.LOCALAPPDATA = join(privateHome, 'AppData', 'Local');
 env.npm_config_ignore_scripts = 'true'; env.npm_config_audit = 'false'; env.npm_config_fund = 'false';
 // Reuse only cached locked runtime bytes; no registry metadata or credential access.
 const originalCache = process.env.LOCALAPPDATA && join(process.env.LOCALAPPDATA, 'npm-cache');
 if (originalCache) env.npm_config_cache = originalCache;
+const npm = join(dirname(cfg.node), 'node_modules', 'npm', 'bin', 'npm-cli.js');
 let counter = 0;
 function command(exe, args, { timeout = 15000, allowFailure = false, cwd = root } = {}) {
  const remaining = deadline - Date.now(); assert(remaining > 1000, cfg.readinessOnly ? 'Readiness deadline expired; stop' : 'Original 15-minute window expired; stop, no retry');
@@ -130,6 +132,11 @@ try {
  assert.equal(hostname(), cfg.hostname, 'Exact reviewed native hostname required');
  assert(!process.env.WSL_DISTRO_NAME);
  assert.equal(sha(cfg.catalog), cfg.catalogSha256); assert.equal(sha(cfg.core), cfg.coreSha256);
+ // Load the same sanitized npm configuration before readiness can pass or Docker acts.
+ // This reads configuration only: no installation, dependency resolution or acquisition.
+ const npmConfig = command(cfg.node, [npm, 'config', 'get', 'ignore-scripts']);
+ assert.equal(npmConfig.stdout.trim(), 'true', 'Sanitized npm configuration must disable lifecycle scripts');
+ state.npmConfigLoaded = true; save();
  const localAddresses = Object.values(networkInterfaces()).flat().filter(Boolean).map(i => i.address);
  assert(localAddresses.includes(cfg.bindAddress), 'Reviewed bind address must already belong to this host');
  // Probe only the selected local interface/port; close before the runner owns its listener.
@@ -146,6 +153,7 @@ try {
   hostname: hostname(), platform: process.platform, architecture: process.arch,
   bindAddress: cfg.bindAddress, bindAddressPresent: true, port: cfg.port, portAvailable: true, target: cfg.target, daemon: cfg.daemon,
   node: { path: cfg.node, version: process.version, sha256: sha(cfg.node) },
+  npm: { path: npm, sha256: sha(npm), configLoaded: true, ignoreScripts: true },
   docker: { path: cfg.dockerCli, sha256: sha(cfg.dockerCli), version,
    operatingSystem: info.OperatingSystem, kernelVersion: info.KernelVersion, runtimeId: info.ID },
   catalog: { path: cfg.catalog, sha256: sha(cfg.catalog) },
@@ -181,7 +189,6 @@ try {
  const consumer = join(root, 'consumer');
  const { seedConsumerLock } = await import(pathToFileURL(join(cfg.sourceRoot, 'tools', 'seed-consumer-lock.mjs')));
  seedConsumerLock(consumer, cfg.sourceRoot);
- const npm = join(dirname(cfg.node), 'node_modules', 'npm', 'bin', 'npm-cli.js');
  command(cfg.node, [npm, 'install', '--prefix', consumer, '--ignore-scripts', '--offline', '--no-audit', '--no-fund', cfg.core, cfg.catalog], { timeout: 180000, cwd: consumer });
  const corePackage = JSON.parse(readFileSync(join(consumer, 'node_modules', '@aihq', 'core', 'package.json')));
  assert.equal(corePackage.version, '1.0.0-dev.34');

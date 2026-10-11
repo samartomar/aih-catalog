@@ -41,5 +41,5 @@
     "catalogVerify": "55 files / 683 passed / 6 existing skipped",
     "packedConsumer": "passed; controlled substitutes, not native Docker"
   },
-  "nativeWindows": "pending actual executor/runtime readiness and execution"
+  "nativeWindows": "host/runtime readiness verified; bootstrap stopped before installation or assessment; native acceptance pending"
 }
