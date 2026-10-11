@@ -12,6 +12,10 @@ import { prepare, apply } from '@aihq/core';
 import { authorPreparationPolicy, authorAssessmentPolicy, authorReconciliationPolicy } from '@aihq/catalog/workflows/nuclei';
 const [configFile] = process.argv.slice(2); assert(configFile, 'Supply reviewed execution config');
 const cfg = JSON.parse(readFileSync(configFile));
+const started = cfg.windowStarted ? Date.parse(cfg.windowStarted) : Date.now();
+const deadline = cfg.windowDeadline ? Date.parse(cfg.windowDeadline) : started + 15 * 60 * 1000;
+assert(Number.isFinite(started) && deadline - started === 15 * 60 * 1000 && started <= Date.now() && Date.now() < deadline, 'One original 15-minute platform window');
+
 assert(['linux', 'win32'].includes(process.platform) && process.arch === 'x64');
 assert.equal(process.platform, cfg.platform); assert.equal(hostname(), cfg.hostname);
 assert(/^24\./.test(process.versions.node), 'Use existing supported Node24');
@@ -23,7 +27,10 @@ assert.equal(cfg.port, 30883); assert.equal(cfg.target, 'http://host.docker.inte
 const endpoint = process.platform === 'linux' ? 'unix:///var/run/docker.sock' : 'npipe:////./pipe/docker_engine';
 assert.equal(cfg.daemon, endpoint);
 const image = 'projectdiscovery/nuclei@sha256:9fd705284ac4b5f721fa1e23bf366f26e985cd4ec65927fe9a53cb3fcb0417a6';
-const docker = args => execFileSync(cfg.dockerCli, ['--host', endpoint, '--config', cfg.dockerConfig, ...args], { encoding: 'utf8', timeout: 15000, maxBuffer: 1 << 20, windowsHide: true });
+const docker = args => {
+ const remaining = deadline - Date.now(); assert(remaining > 0, 'Original platform deadline expired');
+ return execFileSync(cfg.dockerCli, ['--host', endpoint, '--config', cfg.dockerConfig, ...args], { encoding: 'utf8', timeout: Math.min(15000, remaining), maxBuffer: 1 << 20, windowsHide: true });
+};
 const version = JSON.parse(docker(['version', '--format', '{{json .}}']));
 assert.equal(version.Client.Os, process.platform === 'win32' ? 'windows' : 'linux');
 assert.equal(version.Server.Os, 'linux'); assert.equal(version.Server.Arch, 'amd64');
@@ -37,9 +44,6 @@ assert.equal(inspect.length, 1); assert(inspect[0].RepoDigests.includes(image));
 assert.equal(inspect[0].Architecture, 'amd64'); assert.equal(inspect[0].Os, 'linux');
 const root = resolve(cfg.output); assert(!existsSync(root), 'Never reuse a platform window'); mkdirSync(root, { recursive: false });
 const ledgerFile = join(root, 'ledger.json');
-const started = cfg.windowStarted ? Date.parse(cfg.windowStarted) : Date.now();
-const deadline = cfg.windowDeadline ? Date.parse(cfg.windowDeadline) : started + 15 * 60 * 1000;
-assert(Number.isFinite(started) && deadline - started === 15 * 60 * 1000 && started <= Date.now() && Date.now() < deadline, 'One original 15-minute platform window');
 const ledger = { platform: process.platform, architecture: process.arch, hostname: hostname(), node: process.version,
  catalog: { sha256: cfg.catalogSha256, byteLength: readFileSync(cfg.catalog).length }, core: { sha256: cfg.coreSha256, byteLength: readFileSync(cfg.core).length },
  daemon: endpoint, dockerVersion: version, image, imageId: inspect[0].Id, bindAddress: cfg.bindAddress, port: cfg.port,
@@ -113,24 +117,25 @@ const server = createServer((req, res) => {
  if (current === 'cancel') { cancellationRequest?.(); releaseRequest = () => { if (!res.destroyed) res.end('aih-nuclei-owned-fixture-83'); }; return; }
  res.writeHead(200, { 'content-type': 'text/plain' }); res.end('aih-nuclei-owned-fixture-83');
 });
-let timer; let failure;
+let timer; let failure; let activeController;
 ledger.windowStarted = new Date(started).toISOString(); ledger.windowDeadline = new Date(deadline).toISOString(); save();
 try {
  await new Promise((ok, fail) => { server.once('error', fail); server.listen(cfg.port, cfg.bindAddress, ok); });
- timer = setTimeout(() => { server.closeAllConnections(); server.close(); }, Math.max(1, deadline - Date.now())); timer.unref();
+ timer = setTimeout(() => { activeController?.abort(); server.closeAllConnections(); server.close(); }, Math.max(1, deadline - Date.now() - 150000)); timer.unref();
  for (const snapshot of snapshots) {
-  assert(Date.now() < deadline - 120000, 'Insufficient original platform window; no budget reset'); assert(ledger.starts.length < 3);
+  assert(Date.now() < deadline - 240000, 'Insufficient original platform window; no budget reset'); assert(ledger.starts.length < 3);
   current = snapshot.scenario;
   const options = { ...base, ...snapshot, runDirectory: join(root, `run-${current}`), container: `aih-nuclei-${cfg.runId}-${current}`, network: `aih-nuclei-${cfg.runId}-${current}-net` };
   const policy = enterprise(authorAssessmentPolicy(options)); const p = await ready(policy, `run-${current}`);
   const changed = structuredClone(policy); changed.selections[0].recipe.inline.description += ' changed';
   const denied = await prepare({ useCase: 'policy', policy: changed, target: { project }, organizationSource: orgSource }, controls);
   assert.equal(denied.status, 'blocked'); assert(denied.diagnostics.some(d => d.code === 'AUTHORITY_DENIED'));
+  assert(Date.now() < deadline - 240000, 'Require four-minute assessment/validation/drain/reconciliation/absence reserve immediately before Apply');
   const attempt = { scenario: current, at: new Date().toISOString(), container: options.container, network: options.network, status: 'starting' }; ledger.starts.push(attempt); save();
-  let result; const controller = new AbortController(); let cancelTimer;
+  let result; const controller = new AbortController(); let cancelTimer; let pending; let primaryError; activeController = controller;
   try {
    const arrived = new Promise(ok => { cancellationRequest = ok; });
-   const pending = apply(p.prepared, approve(p), { ...controls, signal: controller.signal });
+   pending = apply(p.prepared, approve(p), { ...controls, signal: controller.signal });
    if (current === 'cancel') {
     cancelTimer = setTimeout(() => controller.abort(), 45000);
     await Promise.race([arrived, pending.then(() => { throw new Error('Cancellation assessment exited before fixture request'); })]);
@@ -141,15 +146,29 @@ try {
    writeFileSync(join(root, `run-${current}-apply.json`), JSON.stringify(result, null, 2));
    attempt.completion = result.completion;
    assert.equal(result.completion, current === 'cancel' ? 'cancelled' : 'complete', JSON.stringify(result));
+  } catch (error) {
+   primaryError = error; attempt.error = String(error.stack ?? error); throw error;
   } finally {
-   clearTimeout(cancelTimer); releaseRequest?.(); releaseRequest = undefined;
-   const reconcile = enterprise(authorReconciliationPolicy(options)); const rp = await ready(reconcile, `reconcile-${current}`);
+   clearTimeout(cancelTimer); controller.abort();
+   // Drain the original Apply before any explicit reconciliation, including inspection failures.
+   if (pending) {
+    try { const drained = await pending; attempt.drainedCompletion = drained.completion; }
+    catch (error) { attempt.drainError = String(error.stack ?? error); }
+   }
+   activeController = undefined; releaseRequest?.(); releaseRequest = undefined;
+   try {
+   assert(deadline - Date.now() > 75000, 'Original deadline cleanup reserve exhausted; retain uncertain cleanup evidence');
+   const reconcile = enterprise(authorReconciliationPolicy({ ...options, timeoutMs: 30000 })); const rp = await ready(reconcile, `reconcile-${current}`);
    const rr = await apply(rp.prepared, approve(rp), controls); writeFileSync(join(root, `reconcile-${current}-apply.json`), JSON.stringify(rr, null, 2));
    assert.equal(rr.completion, 'complete', JSON.stringify(rr));
    assert.equal(docker(['container', 'ls', '-a', '--filter', `name=^/${options.container}$`, '--format', '{{.Names}}']).trim(), '');
    assert.equal(docker(['network', 'ls', '--filter', `name=^${options.network}$`, '--format', '{{.Name}}']).trim(), '');
    assert(!existsSync(join(options.runDirectory, '.staging'))); assert(existsSync(join(options.runDirectory, 'reports')));
    attempt.cleanup = 'owned-resources-absent:reports-retained'; save();
+   } catch (error) {
+    attempt.cleanup = 'unconfirmed'; attempt.cleanupError = String(error.stack ?? error); save();
+    if (!primaryError) throw error;
+   }
   }
   const state = JSON.parse(readFileSync(join(options.runDirectory, 'manifest.json'))); attempt.manifest = state;
   assert(state.containerArgs.includes('--pull=never'));

@@ -1,0 +1,45 @@
+{
+  "correctedSourceCommit": "c08cc79662e0e8cfc8e96e4076999ca25afef730",
+  "catalog": {
+    "name": "@aihq/catalog",
+    "version": "0.1.0",
+    "published": false,
+    "byteLength": 6369030,
+    "sha256": "850304c96bda9dd66573c7e3e28bb45aab6ca195a815407f62c2f6ff3d75f7c3"
+  },
+  "core": {
+    "name": "@aihq/core",
+    "version": "1.0.0-dev.34",
+    "sourceCommit": "4327df9687323b913c68e8008f9bd44246664c07",
+    "byteLength": 6875876,
+    "sha256": "cf4cc41afa46333fcd422b9ffe1a1ef0f25e23cb11acc11a7d1dd9c4a5b60ff0"
+  },
+  "compiler": "go1.26.9",
+  "sourceSha256": "429820f2dd7e09fbf900174d23c430a5d12f11e76138274fdcc10051868bd7d4",
+  "helpers": [
+    {
+      "os": "linux",
+      "arch": "x64",
+      "path": "workflows/nuclei/bin/linux-x64",
+      "sha256": "da1b3c07c17265652ef3dc9a77c7603615a845742a1e0c09450a30cb56dda799",
+      "byteLength": 7172222,
+      "archiveMode": "0644"
+    },
+    {
+      "os": "win32",
+      "arch": "x64",
+      "path": "workflows/nuclei/bin/win32-x64.exe",
+      "sha256": "8d895c4c12765c400ff0d2148c4c11ff0336b3162a56a375d458a82503bf48b7",
+      "byteLength": 7383552,
+      "archiveMode": "0644"
+    }
+  ],
+  "checks": {
+    "goRaceSeconds": 14.911,
+    "goVetLinux": "passed",
+    "goVetWindowsCrossTarget": "passed",
+    "catalogVerify": "55 files / 683 passed / 6 existing skipped",
+    "packedConsumer": "passed; controlled substitutes, not native Docker"
+  },
+  "nativeWindows": "pending actual executor/runtime readiness and execution"
+}

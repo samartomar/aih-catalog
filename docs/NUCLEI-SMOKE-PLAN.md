@@ -66,7 +66,7 @@ admission logic, not a live organization or external administrator claim.
 3. Native cancellation: the fixture receives the same GET but holds its response. Confirm
    the owned native container is running, then abort through Core. Release the held
    response during cleanup; no extra target, template capability or assessment start.
-   A 45-second guard aborts if the expected request does not arrive. Require cancelled
+   Inspection failure also aborts and drains Apply before reconciliation. A 45-second guard aborts if the expected request does not arrive. Require cancelled
    Core status, retained partial evidence, explicit owned reconciliation and absence.
 
 ## Bounds, evidence and cleanup
@@ -79,7 +79,7 @@ Read-only templates/root, dropped capabilities and no-new-privileges stay enforc
 These are execution bounds, not target-only egress isolation.
 
 The runner records each assessment attempt before Apply, never exceeds three, and
-uses one original deadline. Do not start with less than two minutes remaining.
+uses one original deadline. A global abort reserves 150 seconds for drain and cleanup; Docker commands are capped against that same deadline. Do not start with less than four minutes remaining.
 On first unexpected failure stop assessments, reconcile only recorded owned identities,
 retain results and investigate; the unused starts are not automatic retry authority.
 
