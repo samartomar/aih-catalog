@@ -25,8 +25,8 @@ No target-only egress-isolation claim is made.
 
 Prepare/review/approval and applicable Enterprise admission used actual Core
 logic, with only GitHub organization policy transport simulated locally. The
-runner asserted fresh reads (88 total), changed-recipe refusal and no effects
-without approval. This does not claim live organization administration. Custom
+runner recorded 88 organization-policy reads through Core Prepare/Apply and
+asserted changed-recipe refusal and no effects without approval. This does not claim live organization administration. Custom
 preparation warnings and selected immutable template identities are retained.
 
 `ledger.json`, Core Prepare/Apply/approval outputs, templates, preparation metadata
