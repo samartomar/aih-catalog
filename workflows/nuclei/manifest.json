@@ -6,22 +6,22 @@
   },
   "workflow": "nuclei-template-scan",
   "compiler": "go1.26.9",
-  "sourceSha256": "73b29eaa50d01394034b6ecbfd80c03864dfe93bf82ef8db211a28fd0adb852f",
+  "sourceSha256": "b7a77add39027fef71c0ab3fa48409a58a15f4202cf75c249b58df90b7c77f69",
   "helpers": [
     {
       "os": "linux",
       "arch": "x64",
       "path": "workflows/nuclei/bin/linux-x64",
-      "sha256": "bdd09970f6bbdb826235d5e782c4434d9e0d104f04823229f6a0fea5b24a78b7",
-      "byteLength": 7147646,
+      "sha256": "0753756af93b24c060bd4093b05532938bfdacd1664207c6d1e8d715df610062",
+      "byteLength": 7172222,
       "archiveMode": "0644"
     },
     {
       "os": "win32",
       "arch": "x64",
       "path": "workflows/nuclei/bin/win32-x64.exe",
-      "sha256": "1a7681c88cc673ef11491395e2341e4dfd35fd29c2c6c4443976bd4af2bd828f",
-      "byteLength": 7357440,
+      "sha256": "8dda714967e7bbdbe29000e34bfa8e44fcf4ebd152344049d8f633265886e3d0",
+      "byteLength": 7379456,
       "archiveMode": "0644"
     }
   ]

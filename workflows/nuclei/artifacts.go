@@ -21,6 +21,7 @@ type artifact struct {
 	Bytes  int64  `json:"bytes"`
 }
 type runManifest struct {
+	ContainerUser         string     `json:"containerUser"`
 	Version               int        `json:"version"`
 	Status                string     `json:"status"`
 	Reason                string     `json:"reason,omitempty"`
@@ -170,17 +171,42 @@ func reportEvidence(dir string, m runManifest) (int, error) {
 		var sarif struct {
 			Version string `json:"version"`
 			Runs    []struct {
-				Tool    json.RawMessage   `json:"tool"`
-				Results []json.RawMessage `json:"results"`
+				Tool *struct {
+					Driver *struct {
+						Name string `json:"name"`
+					} `json:"driver"`
+				} `json:"tool"`
+				Results json.RawMessage `json:"results"`
 			} `json:"runs"`
 		}
 		if json.Unmarshal(b, &sarif) != nil || sarif.Version != "2.1.0" || len(sarif.Runs) == 0 {
 			return 0, errors.New("invalid SARIF")
 		}
+		sarifCount := 0
 		for _, r := range sarif.Runs {
-			if len(r.Tool) == 0 {
-				return 0, errors.New("SARIF tool missing")
+			if r.Tool == nil || r.Tool.Driver == nil || strings.TrimSpace(r.Tool.Driver.Name) == "" {
+				return 0, errors.New("SARIF tool driver missing")
 			}
+			var results []map[string]json.RawMessage
+			if json.Unmarshal(r.Results, &results) != nil || results == nil {
+				return 0, errors.New("SARIF results must be an array")
+			}
+			for _, result := range results {
+				if result == nil {
+					return 0, errors.New("invalid SARIF result")
+				}
+				var id string
+				var message struct {
+					Text string `json:"text"`
+				}
+				if json.Unmarshal(result["ruleId"], &id) != nil || !contains(m.TemplateIDs, id) || json.Unmarshal(result["message"], &message) != nil || message.Text == "" {
+					return 0, errors.New("invalid SARIF result fields")
+				}
+			}
+			sarifCount += len(results)
+		}
+		if sarifCount != count {
+			return 0, errors.New("SARIF and JSONL finding counts differ")
 		}
 
 	}
@@ -214,18 +240,18 @@ func reportEvidence(dir string, m runManifest) (int, error) {
 		}
 		targetURL, te := url.Parse(m.Target)
 		requestURL, re := url.Parse(row.Input)
-		if row.Type != "http" || te != nil || re != nil || requestURL.User != nil || requestURL.Scheme != targetURL.Scheme || requestURL.Host != targetURL.Host || row.Error != "" {
+		if row.Type != "http" || te != nil || re != nil || requestURL.User != nil || requestURL.Scheme != targetURL.Scheme || requestURL.Host != targetURL.Host || row.Error != "none" {
 			continue
 		}
-		for i, p := range m.TemplatePaths {
+		for _, p := range m.TemplatePaths {
 			if row.Template == "/templates/"+p {
-				executed[m.TemplateIDs[i]] = true
+				executed[p] = true
 			}
 		}
 	}
-	for _, id := range m.TemplateIDs {
-		if !executed[id] {
-			return 0, fmt.Errorf("no successful exact template/target execution evidence for %s", id)
+	for _, p := range m.TemplatePaths {
+		if !executed[p] {
+			return 0, fmt.Errorf("no successful exact template/target execution evidence for %s", p)
 		}
 	}
 	for _, p := range []string{"stdout.log", "stderr.log"} {

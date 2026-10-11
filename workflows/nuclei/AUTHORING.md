@@ -61,8 +61,21 @@ uses `officialData: ['helpers/wordlists/selected.txt']`. Undeclared file referen
 not overwritten. Only the accepted HTTP capability subset is admitted. Code, JavaScript,
 headless/browser, remote file references and external callbacks are refused. Official signatures
 are preserved and Nuclei's protections remain active; unsigned custom HTTP is allowed without
-unconditional `-dut`. Review templates: HTTP methods can change target data and redirects can
-contact additional destinations. Capability validation is not a proof of benign behavior.
+unconditional `-dut`. Review templates: HTTP methods can change target data. Redirect following
+is disabled; capability validation and bridge networking are not a proof of benign behavior or
+destination egress isolation.
+
+Template-owned constants, variables, payloads and named extractors cannot shadow target-derived
+variables. Constants/variables must be scalar; root variables must be literal values without
+interpolation markers because Nuclei can evaluate computed variables twice. Pure helpers remain
+available directly in HTTP fields and matchers. DNS, public-IP lookup, TCP/TLS probing and model
+provider DSL calls are refused, including aliases and expressions in declared payload data.
+Variable/extractor names must be identifiers.
+Encoded/custom YAML tags, merge keys, anchors and aliases are refused.
+Explicit structured or raw Host headers must use exactly `{{Hostname}}`. Selected template IDs
+must be unique, and execution evidence must cover each selected path. Bundle paths must be portable
+ASCII, without case aliases, Windows device names or trailing dots/spaces. Unsupported templates
+fail preparation visibly; do not weaken validation to force an official or custom template through.
 
 A material can instead pin the Catalog HTTPS tarball: replace `source` with
 `{ kind: 'archive', url, sha256, byteLength }` using independently reviewed exact compressed bytes.
@@ -87,6 +100,7 @@ const policy = authorAssessmentPolicy({ platform: process.platform, helper,
   bundleSha256: '<64 lowercase hex characters from preparation>', bundleBytes: 1234,
   target: 'http://host.docker.internal:8080/', allowHosts: ['host.docker.internal'],
   targetMode: 'local-host', hostGateway: process.platform === 'linux',
+  containerUser: process.platform === 'linux' ? `${process.getuid()}:${process.getgid()}` : '0:0',
   daemon: process.platform === 'linux' ? 'unix:///var/run/docker.sock' : 'npipe:////./pipe/docker_engine',
   dockerCli: process.platform === 'linux' ? '/usr/bin/docker' : 'C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe',
   image: 'projectdiscovery/nuclei@sha256:<reviewed image digest>',
@@ -113,6 +127,13 @@ must not trigger probing alternative addresses. No host networking, firewall cha
 verification bypass. Bridge networking is not a target-domain firewall. Daemon/Desktop proxy
 settings can reroute or block requests and are not inspected. Only a fresh Docker client config
 and an allowlisted child environment are controlled.
+
+`containerUser` is a reviewed numeric `UID:GID`, passed to Docker explicitly. On Linux it must
+match the helper's effective host UID/GID so owner-only template and report mounts remain usable
+with all capabilities dropped. Review the generated literal identity before approval. Windows
+uses an explicitly selected Linux-container identity (the example selects `0:0`); Docker Desktop
+mount permissions and runtime behavior still require native Windows evidence. The helper does
+not broaden report permissions to compensate for an incompatible identity.
 
 The review fixes daemon, image and template identities, effective URL/Host/port, mappings,
 read-only template/root mounts, writable report mount, network, resource/time/output bounds and

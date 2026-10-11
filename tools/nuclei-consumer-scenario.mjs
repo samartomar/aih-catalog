@@ -85,6 +85,7 @@ const image = `projectdiscovery/nuclei@sha256:${'1'.repeat(64)}`;
 const stateFile = join(root, 'docker-state.json');
 const base = { platform: process.platform, helper, bundle, bundleSha256: snapshot.sha256, bundleBytes: bytes.length,
  target: 'https://fixture.invalid/', allowHosts: ['fixture.invalid'], targetMode: 'public', hostGateway: false,
+ containerUser: `${process.getuid()}:${process.getgid()}`,
  daemon: 'unix:///var/run/docker.sock', dockerCli: docker, image, toolTimeoutSeconds: 5,
  cleanupTimeoutSeconds: 3, timeoutMs: 30000 };
 process.env.DOCTOR_TEST_SECRET = 'never-forward'; process.env.DOCKER_HOST = 'tcp://forbidden.invalid:2375';

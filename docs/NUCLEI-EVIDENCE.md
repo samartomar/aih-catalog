@@ -12,7 +12,7 @@ exact bytes and Go source identity; data-mode archive members do not execute on 
 
 | Evidence | Linux x64 | Windows x64 |
 | --- | --- | --- |
-| Standalone binary format/size/hash | ELF 7,147,646 bytes; pinned manifest | PE 7,357,440 bytes; pinned manifest |
+| Standalone binary format/size/hash | ELF 7,172,222 bytes; pinned manifest | PE 7,379,456 bytes; pinned manifest |
 | Actual Core selected archive member/staging/admission | Passed against exact packed archive, controlled CLI | Pending native Windows run |
 | Path/runtime connectivity with controlled Docker CLI | Passed against exact packed archive, controlled CLI | Pending native Windows run |
 | Cancellation and explicit owned-resource reconciliation | Passed against exact packed archive, controlled CLI | Pending native Windows run |
@@ -51,6 +51,8 @@ No actual template refresh or external assessment is represented by those tests.
 The existing `npm run verify` owns package/type/lint/material/active-suite/action-pin validation.
 Binary source/manifest integrity runs inside its existing material check, and the existing packed
 consumer test verifies data modes, selected standalone execution and installed helper byte pins.
+Independent review found target-variable/Host and side-effectful DSL bypasses, Windows path aliases, Linux mount ownership, deadline reserve defects, duplicate-template execution coverage, malformed SARIF acceptance and an incorrect native trace success sentinel. Regression tests now cover those failures; root variables are literal-only, direct pure helpers remain supported, and native-shaped traces require `error: "none"`. Final binaries are rebuilt from the corrected source.
+
 Initial local full-suite failures were fixture inventory omissions after adding package entries;
 those fixtures now carry the declared workflow content. Test processes disable inherited GPG
 signing only for disposable fixture commits; shared configuration is untouched. Final check and

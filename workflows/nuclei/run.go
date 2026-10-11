@@ -220,6 +220,10 @@ func (d dockerClient) cleanup(ctx context.Context, m runManifest) error {
 }
 func run(ctx context.Context, o options) (code int, err error) {
 	code = preflight
+	outerDeadline, ok := ctx.Deadline()
+	if !ok {
+		return code, errors.New("bounded invocation context required")
+	}
 	if e := validateTarget(o); e != nil {
 		return code, e
 	}
@@ -232,6 +236,15 @@ func run(ctx context.Context, o options) (code int, err error) {
 	if math.IsNaN(o.cpus) || math.IsInf(o.cpus, 0) || o.cpus <= 0 || o.cpus > 4 || o.memory < 64 || o.memory > 4096 || o.pids < 16 || o.pids > 512 || o.rate < 1 || o.rate > 50 || o.toolTimeout < 1 || o.cleanupTimeout < 2 || o.toolTimeout+o.cleanupTimeout+2 >= o.timeout || o.maxReport < 1024 || o.maxReport > maxExpanded {
 		return code, errors.New("explicit modest resource, report and nested time bounds required")
 	}
+	if e := validateContainerUser(o.containerUser); e != nil {
+		return code, e
+	}
+	workDeadline := outerDeadline.Add(-time.Duration(o.cleanupTimeout+1) * time.Second)
+	if !time.Now().Before(workDeadline) {
+		return code, errors.New("insufficient work budget after cleanup reserve")
+	}
+	ctx, workCancel := context.WithDeadline(ctx, workDeadline)
+	defer workCancel()
 	files, bm, e := loadBundle(o.bundle, o.hash, o.length)
 	if e != nil {
 		return code, e
@@ -253,7 +266,7 @@ func run(ctx context.Context, o options) (code int, err error) {
 	if _, e = rand.Read(token); e != nil {
 		return code, e
 	}
-	m := runManifest{Version: 1, Status: "preflight", Started: time.Now().UTC().Format(time.RFC3339), Target: o.target, Daemon: o.daemon, Image: o.image, Container: o.container, Network: o.network, Owner: hex.EncodeToString(token), DirectoryIdentity: digest([]byte(abs)), BundleSHA256: o.hash, BundleBytes: o.length, MaxReportBytes: o.maxReport, ToolExit: -1, Warnings: bm.Warnings, TargetMode: o.mode, HostGateway: o.gateway, CPUs: o.cpus, MemoryMiB: o.memory, PIDs: o.pids, RateLimit: o.rate, TimeoutSeconds: o.timeout, ToolTimeoutSeconds: o.toolTimeout, CleanupTimeoutSeconds: o.cleanupTimeout, MaxOutputBytes: o.maxOutput, TemplateTag: bm.Tag, TemplateCommit: bm.Commit}
+	m := runManifest{ContainerUser: o.containerUser, Version: 1, Status: "preflight", Started: time.Now().UTC().Format(time.RFC3339), Target: o.target, Daemon: o.daemon, Image: o.image, Container: o.container, Network: o.network, Owner: hex.EncodeToString(token), DirectoryIdentity: digest([]byte(abs)), BundleSHA256: o.hash, BundleBytes: o.length, MaxReportBytes: o.maxReport, ToolExit: -1, Warnings: bm.Warnings, TargetMode: o.mode, HostGateway: o.gateway, CPUs: o.cpus, MemoryMiB: o.memory, PIDs: o.pids, RateLimit: o.rate, TimeoutSeconds: o.timeout, ToolTimeoutSeconds: o.toolTimeout, CleanupTimeoutSeconds: o.cleanupTimeout, MaxOutputBytes: o.maxOutput, TemplateTag: bm.Tag, TemplateCommit: bm.Commit}
 	for _, f := range bm.Files {
 		if f.Template {
 			m.TemplateIDs = append(m.TemplateIDs, f.ID)
@@ -272,7 +285,8 @@ func run(ctx context.Context, o options) (code int, err error) {
 	defer func() {
 		m.Finished = time.Now().UTC().Format(time.RFC3339)
 		if ownedResources {
-			c, cancel := context.WithTimeout(context.Background(), time.Duration(o.cleanupTimeout)*time.Second)
+			cleanupDeadline := minTime(outerDeadline.Add(-time.Second), time.Now().Add(time.Duration(o.cleanupTimeout)*time.Second))
+			c, cancel := context.WithDeadline(context.Background(), cleanupDeadline)
 			ce := d.cleanup(c, m)
 			cancel()
 			if ce != nil {
@@ -320,8 +334,17 @@ func run(ctx context.Context, o options) (code int, err error) {
 		if e = os.MkdirAll(filepath.Dir(dest), 0700); e != nil {
 			return code, e
 		}
-		if e = os.WriteFile(dest, b, 0600); e != nil {
-			return code, e
+		f, ce := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+		if ce != nil {
+			return code, ce
+		}
+		_, ce = f.Write(b)
+		closeErr := f.Close()
+		if ce != nil {
+			return code, ce
+		}
+		if closeErr != nil {
+			return code, closeErr
 		}
 	}
 	// Exact image inspect cannot pull or install anything.
@@ -364,7 +387,7 @@ func run(ctx context.Context, o options) (code int, err error) {
 		flags = append(flags, "-lna")
 	}
 	m.Flags = flags
-	args := []string{"container", "create", "--name", o.container, "--network", o.network, "--label", ownerLabel + "=" + m.Owner, "--label", directoryLabel + "=" + m.DirectoryIdentity, "--read-only", "--workdir", "/templates", "--cap-drop", "ALL", "--security-opt", "no-new-privileges:true", "--cpus", strconv.FormatFloat(o.cpus, 'f', -1, 64), "--memory", strconv.Itoa(o.memory) + "m", "--memory-swap", strconv.Itoa(o.memory) + "m", "--pids-limit", strconv.Itoa(o.pids), "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m", "--env", "NUCLEI_TEMPLATES_DIR=/templates", "--env", "HOME=/tmp", "--env", "XDG_CONFIG_HOME=/tmp/config", "--env", "XDG_CACHE_HOME=/tmp/cache", "--mount", "type=bind,src=" + filepath.Join(stage, "templates") + ",dst=/templates,readonly", "--mount", "type=bind,src=" + reports + ",dst=/reports"}
+	args := []string{"container", "create", "--name", o.container, "--network", o.network, "--label", ownerLabel + "=" + m.Owner, "--label", directoryLabel + "=" + m.DirectoryIdentity, "--user", o.containerUser, "--read-only", "--workdir", "/templates", "--cap-drop", "ALL", "--security-opt", "no-new-privileges:true", "--cpus", strconv.FormatFloat(o.cpus, 'f', -1, 64), "--memory", strconv.Itoa(o.memory) + "m", "--memory-swap", strconv.Itoa(o.memory) + "m", "--pids-limit", strconv.Itoa(o.pids), "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m", "--env", "NUCLEI_TEMPLATES_DIR=/templates", "--env", "HOME=/tmp", "--env", "XDG_CONFIG_HOME=/tmp/config", "--env", "XDG_CACHE_HOME=/tmp/cache", "--mount", "type=bind,src=" + filepath.Join(stage, "templates") + ",dst=/templates,readonly", "--mount", "type=bind,src=" + reports + ",dst=/reports"}
 	if strings.Contains(abs, ",") {
 		return code, errors.New("mount paths containing comma unsupported")
 	}
@@ -384,7 +407,7 @@ func run(ctx context.Context, o options) (code int, err error) {
 	if e = writeState(abs, &m); e != nil {
 		return invalidArtifact, e
 	}
-	runCtx, cancel := context.WithTimeout(ctx, time.Duration(o.timeout-o.cleanupTimeout-1)*time.Second)
+	runCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	cmd := d.command(runCtx, "container", "start", "--attach", o.container)
 	stdout, e := os.OpenFile(filepath.Join(reports, "stdout.log"), os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
@@ -477,7 +500,22 @@ func (w *limitedLog) Write(p []byte) (int, error) {
 	w.limit.remaining -= int64(len(p))
 	return n, e
 }
+func minTime(a, b time.Time) time.Time {
+	if a.Before(b) {
+		return a
+	}
+	return b
+}
 func reconcile(ctx context.Context, o options) error {
+	if o.cleanupTimeout < 1 || o.cleanupTimeout >= o.timeout {
+		return errors.New("explicit cleanup timeout must be smaller than helper timeout")
+	}
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return errors.New("bounded invocation context required")
+	}
+	ctx, cancel := context.WithDeadline(context.WithoutCancel(ctx), minTime(deadline, time.Now().Add(time.Duration(o.cleanupTimeout)*time.Second)))
+	defer cancel()
 	if e := validateDocker(o); e != nil {
 		return e
 	}

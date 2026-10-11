@@ -4,7 +4,9 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -13,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 const validHTTP = "id: fixture-http\ninfo:\n  name: Controlled fixture\n  author: fixture\n  severity: info\nhttp:\n  - method: GET\n    path:\n      - '{{BaseURL}}/health'\n    matchers:\n      - type: status\n        status: [200]\n"
@@ -88,7 +91,7 @@ func fmtInt(n int64) string { return strconv.FormatInt(n, 10) }
 func runArguments(t *testing.T, bundle string, m bundleManifest, mode string) []string {
 	t.Helper()
 	docker := fakeDocker(t, mode)
-	args := []string{"run", "--run-dir", filepath.Join(filepath.Dir(docker), "run"), "--bundle", bundle, "--bundle-sha256", m.SHA256, "--bundle-bytes", fmtInt(m.Bytes), "--target", "https://fixture.invalid/", "--allow-host", "fixture.invalid", "--daemon", "unix:///var/run/docker.sock", "--docker-cli", docker, "--image", "projectdiscovery/nuclei@sha256:" + strings.Repeat("a", 64), "--container", "aih-nuclei-fixture-c", "--network", "aih-nuclei-fixture-n", "--target-mode", "public", "--host-gateway=false", "--cpus", "1", "--memory-mib", "128", "--pids", "32", "--rate-limit", "2", "--tool-timeout-seconds", "10", "--cleanup-timeout-seconds", "3", "--max-report-bytes", "65536"}
+	args := []string{"run", "--run-dir", filepath.Join(filepath.Dir(docker), "run"), "--bundle", bundle, "--bundle-sha256", m.SHA256, "--bundle-bytes", fmtInt(m.Bytes), "--target", "https://fixture.invalid/", "--allow-host", "fixture.invalid", "--daemon", "unix:///var/run/docker.sock", "--docker-cli", docker, "--image", "projectdiscovery/nuclei@sha256:" + strings.Repeat("a", 64), "--container", "aih-nuclei-fixture-c", "--network", "aih-nuclei-fixture-n", "--target-mode", "public", "--container-user", fmt.Sprintf("%d:%d", os.Geteuid(), os.Getegid()), "--host-gateway=false", "--cpus", "1", "--memory-mib", "128", "--pids", "32", "--rate-limit", "2", "--tool-timeout-seconds", "10", "--cleanup-timeout-seconds", "3", "--max-report-bytes", "65536"}
 	return append(args, limits()...)
 }
 func argValue(args []string, k string) string {
@@ -164,7 +167,7 @@ func TestReconcilePreservesReportsAndDoesNotRepair(t *testing.T) {
 		t.Fatal(c)
 	}
 	dir := argValue(args, "--run-dir")
-	r := []string{"reconcile", "--run-dir", dir, "--daemon", argValue(args, "--daemon"), "--docker-cli", argValue(args, "--docker-cli"), "--container", argValue(args, "--container"), "--network", argValue(args, "--network")}
+	r := []string{"reconcile", "--run-dir", dir, "--daemon", argValue(args, "--daemon"), "--docker-cli", argValue(args, "--docker-cli"), "--container", argValue(args, "--container"), "--network", argValue(args, "--network"), "--cleanup-timeout-seconds", "3"}
 	r = append(r, limits()...)
 	if c, msg := invoke(t, r...); c != 0 {
 		t.Fatalf("reconcile %d %s", c, msg)
@@ -196,7 +199,7 @@ func fakeDocker(t *testing.T, mode string) string {
 	dir := t.TempDir()
 	p := filepath.Join(dir, "docker-fixture")
 	script := `#!/usr/bin/python3
-import sys,os,json,pathlib
+import sys,os,json,pathlib,time
 root=pathlib.Path(__file__).parent
 mode=MODE
 assert not any(k in os.environ for k in ['DOCKER_CONTEXT','DOCKER_HOST','DOCKER_CONFIG','HTTPS_PROXY','NUCLEI_SECRET'])
@@ -209,17 +212,22 @@ def load(k):
  return json.loads(p.read_text()) if p.exists() else None
 def save(k,v): (root/k).write_text(json.dumps(v))
 def value(flag): return a[a.index(flag)+1]
-if a[0]=='info': print('linux')
+if a[0]=='info':
+ if mode=='delayed-preflight': time.sleep(10)
+ print('linux')
 elif a[:2]==['image','inspect']: print(json.dumps([{'RepoDigests':[a[2]]}]))
 elif a[1]=='ls':
  k=a[0];v=load(k)
  if v: print(v['name'])
 elif a[:2]==['network','create']:
  labels=dict(a[i+1].split('=',1) for i,v in enumerate(a) if v=='--label')
- save('network',{'name':a[-1],'labels':labels});print('network-id')
+ save('network',{'name':a[-1],'labels':labels})
+ if mode=='delayed-resource': time.sleep(10)
+ print('network-id')
 elif a[:2]==['container','create']:
  labels=dict(a[i+1].split('=',1) for i,v in enumerate(a) if v=='--label')
  assert '--read-only' in a and value('--cap-drop')=='ALL'
+ assert value('--user')==str(os.geteuid())+':'+str(os.getegid())
  assert '-duc' in a and '-ni' in a and '-lna' in a
  mounts=[a[i+1] for i,v in enumerate(a) if v=='--mount']
  report=[x for x in mounts if 'dst=/reports' in x][0].split('src=')[1].split(',')[0]
@@ -230,9 +238,10 @@ elif a[:2]==['container','start']:
  if mode!='missing': (r/'findings.jsonl').write_text('')
  if mode=='nonempty-no-sarif': (r/'findings.jsonl').write_text('{"template-id":"fixture-http"}\n')
  if mode not in ['empty-no-sarif','nonempty-no-sarif']: (r/'results.sarif').write_text(json.dumps({'version':'2.1.0','runs':[{'tool':{'driver':{'name':'nuclei'}},'results':[]}]}))
+ if mode=='null-sarif-tool': (r/'results.sarif').write_text('{"version":"2.1.0","runs":[{"tool":null,"results":[]}]}')
  (r/'markdown').mkdir();(r/'markdown'/'index.md').write_text('| Host | Finding | Severity |\n')
  target=v['target'] if mode!='wrong-evidence' else 'https://outside.invalid/'
- (r/'trace.jsonl').write_text(json.dumps({'template':v['template'],'input':target,'type':'http','error':''}))
+ (r/'trace.jsonl').write_text(json.dumps({'template':v['template'],'input':target,'type':'http','error':('failed connection' if mode=='trace-failure' else ('' if mode=='trace-empty' else 'none'))}))
  (r/'errors.jsonl').write_text('')
 elif a[1]=='inspect':
  v=load(a[0]);labels=v['labels'].copy()
@@ -361,5 +370,247 @@ func TestCustomHTTPRefusesModelProviderMatcher(t *testing.T) {
 	args := append([]string{"prepare", "--output", filepath.Join(d, "snapshot"), "--custom", p + "=llm.yaml", "--max-download-bytes", "65536"}, limits()...)
 	if c, msg := invoke(t, args...); c != 10 {
 		t.Fatalf("model matcher code=%d %s", c, msg)
+	}
+}
+
+func TestPreparationRefusesReservedTargetVariableShadowing(t *testing.T) {
+	for _, name := range []string{"BaseURL", "RootURL", "Hostname", "Host", "Port", "Path", "Query", "File", "Scheme", "Input", "FQDN", "RDN", "DN", "TLD", "SD", "ip"} {
+		for _, surface := range []string{"constants", "variables", "payloads", "extractors"} {
+			t.Run(surface+"/"+name, func(t *testing.T) {
+				content := validHTTP
+				switch surface {
+				case "constants", "variables":
+					content += "\n" + surface + ":\n  " + name + ": https://outside.invalid\n"
+				case "payloads":
+					content = strings.Replace(content, "    matchers:", "    payloads:\n      "+name+": ['https://outside.invalid']\n    matchers:", 1)
+				case "extractors":
+					content = strings.Replace(content, "    matchers:", "    extractors:\n      - type: regex\n        name: "+name+"\n        internal: true\n        regex: ['https://outside.invalid']\n    matchers:", 1)
+				}
+				d := t.TempDir()
+				p := filepath.Join(d, "http.yaml")
+				os.WriteFile(p, []byte(content), 0600)
+				args := append([]string{"prepare", "--output", filepath.Join(d, "out"), "--custom", p + "=http.yaml", "--max-download-bytes", "65536"}, limits()...)
+				if c, msg := invoke(t, args...); c != 10 {
+					t.Fatalf("shadow accepted %d %s", c, msg)
+				}
+			})
+		}
+	}
+}
+
+func TestPreparationRefusesDuplicateTemplateIDs(t *testing.T) {
+	d := t.TempDir()
+	p := filepath.Join(d, "http.yaml")
+	os.WriteFile(p, []byte(validHTTP), 0600)
+	args := append([]string{"prepare", "--output", filepath.Join(d, "out"), "--custom", p + "=one.yaml", "--custom", p + "=two.yaml", "--max-download-bytes", "65536"}, limits()...)
+	if c, msg := invoke(t, args...); c != 10 {
+		t.Fatalf("duplicate IDs accepted %d %s", c, msg)
+	}
+}
+func TestNativeSARIFRefusesNullTool(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("POSIX controlled CLI fixture")
+	}
+	bundle, m := snapshot(t, validHTTP)
+	args := runArguments(t, bundle, m, "null-sarif-tool")
+	if c, msg := invoke(t, args...); c != 12 {
+		t.Fatalf("null SARIF tool accepted %d %s", c, msg)
+	}
+}
+
+func TestPreparationRefusesStructuredForeignHostAndPortablePathAliases(t *testing.T) {
+	for _, tc := range []struct{ name, template, first, second string }{{"foreign Host", strings.Replace(validHTTP, "    matchers:", "    headers:\n      hOsT: outside.invalid\n    matchers:", 1), "http.yaml", ""}, {"case aliases", validHTTP, "Http.yaml", "http.yaml"}, {"trailing dot", validHTTP, "http.yaml.", ""}, {"trailing space", validHTTP, "http.yaml ", ""}, {"DOS device", validHTTP, "NUL.yaml", ""}} {
+		t.Run(tc.name, func(t *testing.T) {
+			d := t.TempDir()
+			p := filepath.Join(d, "source.yaml")
+			os.WriteFile(p, []byte(tc.template), 0600)
+			args := []string{"prepare", "--output", filepath.Join(d, "out"), "--custom", p + "=" + tc.first, "--max-download-bytes", "65536"}
+			if tc.second != "" {
+				other := filepath.Join(d, "other.yaml")
+				os.WriteFile(other, []byte(strings.Replace(validHTTP, "fixture-http", "second-http", 1)), 0600)
+				args = append(args, "--custom", other+"="+tc.second)
+			}
+			args = append(args, limits()...)
+			if c, msg := invoke(t, args...); c != 10 {
+				t.Fatalf("unsafe target/path accepted %d %s", c, msg)
+			}
+		})
+	}
+}
+
+func TestSupportedCustomHTTPVariablesPayloadsExtractorsAndHost(t *testing.T) {
+	content := validHTTP + "\nvariables:\n  custom_token: fixture\nconstants:\n  custom_header: fixture\n"
+	content = strings.Replace(content, "    matchers:", "    headers:\n      Host: '{{Hostname}}'\n      X-Fixture: '{{custom_header}}'\n    payloads:\n      custom_word: ['one', 'two']\n    extractors:\n      - type: regex\n        name: custom_extracted\n        internal: true\n        regex: ['fixture']\n    matchers:", 1)
+	snapshot(t, content)
+}
+func replaceArg(args []string, name, value string) {
+	for i, v := range args {
+		if v == name {
+			args[i+1] = value
+			return
+		}
+	}
+}
+func TestContainerUserMismatchRejectedBeforeResourceCreation(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Unix owner check")
+	}
+	bundle, m := snapshot(t, validHTTP)
+	args := runArguments(t, bundle, m, "success")
+	replaceArg(args, "--container-user", "4294967294:4294967294")
+	if c, msg := invoke(t, args...); c != 10 || !strings.Contains(msg, "UID:GID") {
+		t.Fatalf("mismatch %d %s", c, msg)
+	}
+	if _, e := os.Stat(argValue(args, "--run-dir")); !os.IsNotExist(e) {
+		t.Fatal("mismatched identity reserved output")
+	}
+}
+func TestDelayedPreflightPreservesAbsoluteCleanupReserve(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("POSIX controlled CLI fixture")
+	}
+	for _, mode := range []string{"delayed-preflight", "delayed-resource"} {
+		t.Run(mode, func(t *testing.T) {
+			bundle, m := snapshot(t, validHTTP)
+			args := runArguments(t, bundle, m, mode)
+			replaceArg(args, "--timeout-seconds", "6")
+			replaceArg(args, "--cleanup-timeout-seconds", "2")
+			replaceArg(args, "--tool-timeout-seconds", "1")
+			start := time.Now()
+			c, msg := invoke(t, args...)
+			elapsed := time.Since(start)
+			if c == 0 || elapsed >= 6*time.Second {
+				t.Fatalf("deadline code=%d elapsed=%s %s", c, elapsed, msg)
+			}
+			dir := argValue(args, "--run-dir")
+			var result runManifest
+			b, e := os.ReadFile(filepath.Join(dir, "manifest.json"))
+			if e != nil {
+				t.Fatal(e)
+			}
+			json.Unmarshal(b, &result)
+			if result.Status != "incomplete" {
+				t.Fatal("deadline reported complete")
+			}
+			root := filepath.Dir(argValue(args, "--docker-cli"))
+			if !result.CleanupConfirmed && c != 13 {
+				t.Fatal("cleanup uncertainty not explicit")
+			}
+			if result.CleanupConfirmed {
+				for _, resource := range []string{"container", "network"} {
+					if _, e := os.Stat(filepath.Join(root, resource)); !os.IsNotExist(e) {
+						t.Fatal("resource remains despite confirmed cleanup")
+					}
+				}
+			}
+		})
+	}
+}
+func TestReconcileRequiresExplicitNestedCleanupBudget(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("POSIX controlled CLI fixture")
+	}
+	bundle, m := snapshot(t, validHTTP)
+	args := runArguments(t, bundle, m, "tool-failure")
+	invoke(t, args...)
+	r := append([]string{"reconcile", "--run-dir", argValue(args, "--run-dir"), "--daemon", argValue(args, "--daemon"), "--docker-cli", argValue(args, "--docker-cli"), "--container", argValue(args, "--container"), "--network", argValue(args, "--network")}, limits()...)
+	if c, _ := invoke(t, r...); c != 13 {
+		t.Fatal("missing cleanup budget accepted", c)
+	}
+}
+
+func TestPreparationRefusesExternalDSLCallsAcrossExpressionsAndData(t *testing.T) {
+	calls := []string{" resolve ('outside.invalid','a')", "PUBLIC_IP ()", "jarm\u2003('outside.invalid:443')", "publicip()", "jarm ('outside.invalid:443')", "LLM_PROMPT ('question')", "llmprompt('question')"}
+	for _, call := range calls {
+		for _, surface := range []string{"variable", "matcher", "extractor", "raw", "data", "payload"} {
+			t.Run(surface+"/"+call, func(t *testing.T) {
+				content := validHTTP
+				switch surface {
+				case "variable":
+					content += "\nvariables:\n  custom: \"{{" + call + "}}\"\n"
+				case "matcher":
+					content = strings.Replace(content, "    matchers:", "    matchers:\n      - type: dsl\n        dsl:\n          - \""+call+"\"", 1)
+				case "extractor":
+					content = strings.Replace(content, "    matchers:", "    extractors:\n      - type: dsl\n        dsl:\n          - \""+call+"\"\n    matchers:", 1)
+				case "raw":
+					content = "id: fixture-http\ninfo: {name: fixture, author: fixture, severity: info}\nhttp:\n  - raw:\n      - |\n        POST / HTTP/1.1\n        Host: {{Hostname}}\n\n        {{" + call + "}}\n"
+				case "data", "payload":
+					content = strings.Replace(content, "    matchers:", "    payloads:\n      custom: "+map[bool]string{true: "data.txt", false: "[\"{{" + call + "}}\"]"}[surface == "data"]+"\n    matchers:", 1)
+				}
+				d := t.TempDir()
+				p := filepath.Join(d, "http.yaml")
+				os.WriteFile(p, []byte(content), 0600)
+				args := []string{"prepare", "--output", filepath.Join(d, "out"), "--custom", p + "=http.yaml", "--max-download-bytes", "65536"}
+				if surface == "data" {
+					data := filepath.Join(d, "data.txt")
+					os.WriteFile(data, []byte("prefix '{{"+call+"}}' suffix\n"), 0600)
+					args = append(args, "--custom-data", data+"=data.txt")
+				}
+				args = append(args, limits()...)
+				if c, msg := invoke(t, args...); c != 10 {
+					t.Fatalf("external DSL accepted %d %s", c, msg)
+				}
+			})
+		}
+	}
+}
+func TestNativeSuccessfulTraceUsesNoneSentinel(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("POSIX controlled CLI")
+	}
+	bundle, m := snapshot(t, validHTTP)
+	args := runArguments(t, bundle, m, "native-none")
+	if c, msg := invoke(t, args...); c != 0 {
+		t.Fatalf("native success rejected %d %s", c, msg)
+	}
+}
+
+func TestRootVariablesRefuseEncodedRepeatedEvaluation(t *testing.T) {
+	encoded := base64.StdEncoding.EncodeToString([]byte("{{jarm('outside.invalid:443')}}"))
+	content := validHTTP + "\nvariables:\n  hidden: '{{base64_decode(\"" + encoded + "\")}}'\n"
+	d := t.TempDir()
+	p := filepath.Join(d, "http.yaml")
+	os.WriteFile(p, []byte(content), 0600)
+	args := append([]string{"prepare", "--output", filepath.Join(d, "out"), "--custom", p + "=http.yaml", "--max-download-bytes", "65536"}, limits()...)
+	if c, msg := invoke(t, args...); c != 10 {
+		t.Fatalf("re-evaluated variable accepted %d %s", c, msg)
+	}
+}
+func TestPureDirectHTTPAndMatcherHelpersRemainSupported(t *testing.T) {
+	content := strings.Replace(validHTTP, "    matchers:", "    headers:\n      X-Fixture: '{{base64(\"fixture\")}}'\n      X-Nonce: '{{rand_base(8)}}'\n    matchers:\n      - type: dsl\n        dsl:\n          - \"contains(body, 'publicip()') && len(body) > 0\"", 1)
+	snapshot(t, content)
+}
+func TestTraceRequiresNativeSuccessSentinel(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("POSIX controlled CLI")
+	}
+	for _, mode := range []string{"trace-failure", "trace-empty"} {
+		t.Run(mode, func(t *testing.T) {
+			bundle, m := snapshot(t, validHTTP)
+			if c, msg := invoke(t, runArguments(t, bundle, m, mode)...); c != 12 {
+				t.Fatalf("failed/missing native success accepted %d %s", c, msg)
+			}
+		})
+	}
+}
+
+func TestPreparationRefusesYAMLScalarEncodingOfExpressions(t *testing.T) {
+	encoded := base64.StdEncoding.EncodeToString([]byte("{{publicip()}}"))
+	for _, surface := range []string{"body", "variable"} {
+		t.Run(surface, func(t *testing.T) {
+			content := validHTTP
+			if surface == "body" {
+				content = strings.Replace(content, "    matchers:", "    body: !!binary "+encoded+"\n    matchers:", 1)
+			} else {
+				content += "\nvariables:\n  hidden: !!binary " + encoded + "\n"
+			}
+			d := t.TempDir()
+			p := filepath.Join(d, "http.yaml")
+			os.WriteFile(p, []byte(content), 0600)
+			args := append([]string{"prepare", "--output", filepath.Join(d, "out"), "--custom", p + "=http.yaml", "--max-download-bytes", "65536"}, limits()...)
+			if c, msg := invoke(t, args...); c != 10 {
+				t.Fatalf("encoded YAML scalar accepted %d %s", c, msg)
+			}
+		})
 	}
 }

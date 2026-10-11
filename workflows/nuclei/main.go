@@ -28,12 +28,12 @@ func (s *stringsFlag) String() string     { return fmt.Sprint([]string(*s)) }
 func (s *stringsFlag) Set(v string) error { *s = append(*s, v); return nil }
 
 type options struct {
-	output, runDir, bundle, hash, target, daemon, docker, image, container, network, mode, reuse, reuseHash string
-	official, data, custom, customData, hosts                                                               stringsFlag
-	timeout, toolTimeout, cleanupTimeout, maxOutput, maxDownload, maxReport, memory, pids, rate             int
-	length, reuseLength                                                                                     int64
-	cpus                                                                                                    float64
-	gateway                                                                                                 bool
+	output, runDir, bundle, hash, target, daemon, docker, image, container, network, mode, reuse, reuseHash, containerUser string
+	official, data, custom, customData, hosts                                                                              stringsFlag
+	timeout, toolTimeout, cleanupTimeout, maxOutput, maxDownload, maxReport, memory, pids, rate                            int
+	length, reuseLength                                                                                                    int64
+	cpus                                                                                                                   float64
+	gateway                                                                                                                bool
 }
 
 func main() { os.Exit(cli(os.Args[1:], os.Stdout)) }
@@ -62,6 +62,7 @@ func cli(args []string, out io.Writer) int {
 	fs.StringVar(&o.daemon, "daemon", "", "local Docker endpoint")
 	fs.StringVar(&o.docker, "docker-cli", "", "Docker executable")
 	fs.StringVar(&o.image, "image", "", "preinstalled digest-pinned image")
+	fs.StringVar(&o.containerUser, "container-user", "", "reviewed numeric UID:GID for private bind mounts")
 	fs.StringVar(&o.container, "container", "", "unique container name")
 	fs.StringVar(&o.network, "network", "", "unique bridge name")
 	fs.StringVar(&o.mode, "target-mode", "", "public, private or local-host")

@@ -2,8 +2,8 @@
   "catalog": {
     "name": "@aihq/catalog",
     "version": "0.1.0",
-    "sha256": "563139598db05b97ac70ba834ff55e6d1d67c94c73c48145bc93446d137c61ea",
-    "byteLength": 6345421
+    "sha256": "e86a5a997c07af0e5278602b79812f0c080ecbc196d6667c8acbd11ed4e69515",
+    "byteLength": 6366443
   },
   "core": {
     "sha256": "cf4cc41afa46333fcd422b9ffe1a1ef0f25e23cb11acc11a7d1dd9c4a5b60ff0",
@@ -18,8 +18,8 @@
     "os": "linux",
     "arch": "x64",
     "path": "workflows/nuclei/bin/linux-x64",
-    "sha256": "bdd09970f6bbdb826235d5e782c4434d9e0d104f04823229f6a0fea5b24a78b7",
-    "byteLength": 7147646,
+    "sha256": "0753756af93b24c060bd4093b05532938bfdacd1664207c6d1e8d715df610062",
+    "byteLength": 7172222,
     "archiveMode": "0644"
   },
   "checks": [

@@ -19,20 +19,27 @@ Recheck these exact identities; a changed image needs a revised review. A prereq
 pull, if the image is absent, needs scope in the execution approval; the helper never pulls.
 
 Create one task-owned synthetic HTTP server using Node's built-in HTTP module, serving only fixed
-strings, no filesystem, secrets, cookies, redirects or upstream requests. Bind an operator-reviewed
-Docker-reachable local host address and unused port 30883. The effective container target is
+strings, no filesystem, secrets, cookies, redirects or upstream requests. On this delivery host,
+bind `172.17.0.1:30883` (the existing `docker0` address, confirmed read-only); port 30883 was unused
+at preparation. Recheck both before execution; a changed bind address requires revised review.
+The effective container target is
 `http://host.docker.internal:30883/`, with explicit Linux host-gateway mapping. Record the actual
 bind address; never silently rewrite the URL or change firewalls. Reject any unexpected request
 method/path. Close the server by its recorded PID after execution; do not kill unrelated listeners.
 
-Use two explicitly selected local HTTP templates authored for this synthetic fixture: one GET
-matcher for its fixed known response and one deliberately nonmatching GET matcher. No downloaded
+Serve `aih-nuclei-owned-fixture-83` as plain text only for `GET /health` with exact Host
+`host.docker.internal:30883`; return 404 for every other request. Use two explicitly selected local
+HTTP templates authored for this synthetic fixture. Assessment one selects only a GET `/health`
+word matcher for `aih-nuclei-owned-fixture-83`. Assessment two selects only a GET `/health` word
+matcher for the absent string `aih-nuclei-deliberately-absent-83`. No downloaded
 security templates, credentials, provider, POST/PUT/DELETE, browser, code, callbacks, DNS discovery
 or public/external target. Preparation snapshots each selected custom template with warnings;
 separately Core Prepare/review/approval binds the resulting exact digest and length for each run.
 
 At most two assessments, with distinct absent run directories, unique `aih-nuclei-*` resource
-names and exact pinned image. CPU 1, memory 512 MiB, PIDs 128, rate 2 requests/second, Nuclei
+names and exact pinned image. Fix the container user to the executing host's effective numeric
+UID:GID `1000:1000` (confirmed read-only on this host and recorded in the reviewed recipe), with owner-only bind mount permissions and all container
+capabilities dropped. CPU 1, memory 512 MiB, PIDs 128, rate 2 requests/second, Nuclei
 soft limit 30 seconds, helper cleanup reserve 10 seconds, Core operation 90 seconds plus a
 10-second validation check, 16 MiB total report bound. Outer wall-clock attempt budget: 5 minutes
 from service launch. No retries or replacement runs without reviewing the observed result.
@@ -45,7 +52,7 @@ confirmed while reports persist. Do not treat controlled fixture behavior as nat
 The owner accepted the native zero-finding SARIF omission on 2026-10-11: it is permitted only
 with verified empty JSONL and successful selected-template HTTP request traces. The omission is
 recorded explicitly; other missing/invalid artifacts remain incomplete.
-See [upstream exporter](https://github.com/projectdiscovery/nuclei/blob/a14b3de2a4bf2e2324f65b5ca44164a30af34162/pkg/reporting/exporters/sarif/sarif.go#L180-L188).
+See [v3.11.1 upstream exporter](https://github.com/projectdiscovery/nuclei/blob/a8c88feb4a1c8e961b7902534ce3af97e9d524a4/pkg/reporting/exporters/sarif/sarif.go#L180-L183).
 
 Cancellation is first covered by controlled substitutes. A real cancellation smoke is an additional
 attempt requiring a revised approved budget; it is not silently added to these two assessments.

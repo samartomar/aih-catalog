@@ -19,6 +19,7 @@ const assessment = {
   allowHosts: ["host.docker.internal"],
   targetMode: "local-host",
   hostGateway: true,
+  containerUser: "1000:1000",
   daemon: "unix:///var/run/docker.sock",
   dockerCli: "/usr/bin/docker",
   image: `projectdiscovery/nuclei@sha256:${"c".repeat(64)}`,
@@ -41,6 +42,8 @@ describe("Nuclei local policy authoring", () => {
     expect(args).toContain(assessment.image);
     expect(args).toContain("local-host");
     expect(args).toContain("--host-gateway=true");
+    expect(args).toContain("--container-user");
+    expect(args).toContain("1000:1000");
     expect(recipe.operations[0].executable).toEqual({ material: "nuclei-helper" });
     expect(recipe.operations[0].acceptedExitCodes).toEqual([0]);
     expect(recipe.checks[0].kind).toBe("process.exit");
@@ -94,6 +97,41 @@ describe("Nuclei local policy authoring", () => {
     expect(() => author.authorAssessmentPolicy({ ...assessment, platform: "darwin" })).toThrow();
     expect(() =>
       author.authorAssessmentPolicy({ ...assessment, image: "projectdiscovery/nuclei:latest" }),
+    ).toThrow();
+    expect(() => author.authorAssessmentPolicy({ ...assessment, containerUser: "root" })).toThrow();
+    expect(() =>
+      author.authorAssessmentPolicy({ ...assessment, containerUser: undefined }),
+    ).toThrow();
+    expect(() =>
+      author.authorAssessmentPolicy({ ...assessment, cleanupTimeoutSeconds: 1 }),
+    ).toThrow();
+  });
+  it("normalizes IPv6 host identity consistently with the standalone helper", () => {
+    const policy = author.authorAssessmentPolicy({
+      ...assessment,
+      target: "http://[::1]:8080/",
+      allowHosts: ["::1"],
+      targetMode: "private",
+    });
+    expect(policy.selections[0].recipe.inline.operations[0].args).toContainEqual({
+      literal: "::1",
+    });
+  });
+  it("keeps explicit reconciliation cleanup inside the reviewed Core deadline", () => {
+    const recipe = author.authorReconciliationPolicy({
+      ...assessment,
+      timeoutMs: 10000,
+      cleanupTimeoutSeconds: 2,
+    }).selections[0].recipe.inline;
+    const args = recipe.operations[0].args.map((slot: { literal: string }) => slot.literal);
+    expect(args[args.indexOf("--timeout-seconds") + 1]).toBe("5");
+    expect(args[args.indexOf("--cleanup-timeout-seconds") + 1]).toBe("2");
+    expect(() =>
+      author.authorReconciliationPolicy({
+        ...assessment,
+        timeoutMs: 10000,
+        cleanupTimeoutSeconds: 20,
+      }),
     ).toThrow();
   });
 });

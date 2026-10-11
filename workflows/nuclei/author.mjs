@@ -80,15 +80,18 @@ export function authorAssessmentPolicy(options) {
   const target = text(options.target, "target");
   const url = new URL(target);
   if (!["http:", "https:"].includes(url.protocol) || url.username || url.password || url.hash || target.startsWith("-")) throw new Error("Expected one unauthenticated HTTP(S) target");
-  if (!Array.isArray(options.allowHosts) || !options.allowHosts.includes(url.hostname)) throw new Error("Target outside explicit reviewed host allowlist");
+  const hostname = url.hostname.replace(/^\[|\]$/gu, "");
+  if (!Array.isArray(options.allowHosts) || !options.allowHosts.includes(hostname)) throw new Error("Target outside explicit reviewed host allowlist");
   if (!["public", "private", "local-host"].includes(options.targetMode)) throw new Error("Choose explicit target network mode");
   if (typeof options.hostGateway !== "boolean") throw new Error("Choose explicit host-gateway mapping");
+  const containerUser = text(options.containerUser, "container UID:GID");
+  if (!/^(?:0|[1-9][0-9]{0,9}):(?:0|[1-9][0-9]{0,9})$/u.test(containerUser) || containerUser.split(":").some((v) => Number(v) > 4294967294)) throw new Error("Expected numeric container UID:GID");
   const daemon = text(options.daemon, "daemon");
   if (options.platform === "linux" ? !/^unix:\/\/\/[^\s]+$/u.test(daemon) : daemon !== "npipe:////./pipe/docker_engine") throw new Error("Expected local platform Docker endpoint");
   if (!/^projectdiscovery\/nuclei@sha256:[a-f0-9]{64}$/u.test(options.image)) throw new Error("Expected pinned Nuclei image digest");
   const timeout = options.timeoutMs ?? 300000;
   const runSeconds = Math.floor(timeout / 1000) - 5;
-  const cleanup = integer(options.cleanupTimeoutSeconds ?? 20, 1, 60, "cleanup timeout");
+  const cleanup = integer(options.cleanupTimeoutSeconds ?? 20, 2, 60, "cleanup timeout");
   const toolSeconds = integer(options.toolTimeoutSeconds ?? Math.max(1, runSeconds - cleanup - 30), 1, runSeconds - cleanup - 10, "tool timeout");
   const args = ["--run-dir", absolute(options.runDirectory, "run directory"), "--bundle", absolute(options.bundle, "template bundle"),
     "--bundle-sha256", hash(options.bundleSha256), "--bundle-bytes", integer(options.bundleBytes, 1, 67108864, "bundle length"),
@@ -96,6 +99,7 @@ export function authorAssessmentPolicy(options) {
   for (const host of options.allowHosts) args.push("--allow-host", text(host, "allowed host"));
   args.push("--daemon", daemon, "--docker-cli", absolute(options.dockerCli, "Docker CLI"), "--image", options.image,
     "--container", resource(options.container), "--network", resource(options.network), "--target-mode", options.targetMode,
+    "--container-user", containerUser,
     `--host-gateway=${options.hostGateway}`, "--cpus", integer(options.cpus ?? 1, 1, 4, "CPUs"),
     "--memory-mib", integer(options.memoryMiB ?? 512, 128, 4096, "memory"), "--pids", integer(options.pids ?? 128, 16, 256, "PIDs"),
     "--rate-limit", integer(options.rateLimit ?? 5, 1, 20, "request rate"), "--tool-timeout-seconds", toolSeconds,
@@ -109,8 +113,11 @@ function resource(value) {
   return value;
 }
 export function authorReconciliationPolicy(options) {
+  const timeout = integer(options.timeoutMs ?? 300000, 10000, 890000, "Core reconciliation timeout");
+  const helperSeconds = Math.floor(timeout / 1000) - 5;
+  const cleanup = integer(options.cleanupTimeoutSeconds ?? Math.min(20, helperSeconds - 1), 2, Math.min(60, helperSeconds - 1), "cleanup timeout");
   return base(options, "reconcile", ["--run-dir", absolute(options.runDirectory, "run directory"),
     "--daemon", text(options.daemon, "daemon"), "--docker-cli", absolute(options.dockerCli, "Docker CLI"),
     "--container", resource(options.container), "--network", resource(options.network),
-    "--timeout-seconds", 30, "--cleanup-timeout-seconds", integer(options.cleanupTimeoutSeconds ?? 20, 1, 60, "cleanup timeout"), "--max-output-bytes", 8192]);
+    "--timeout-seconds", helperSeconds, "--cleanup-timeout-seconds", cleanup, "--max-output-bytes", 8192]);
 }

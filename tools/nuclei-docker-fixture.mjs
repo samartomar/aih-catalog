@@ -33,7 +33,7 @@ else if (command === 'create') {
   writeFileSync(join(s.reports, 'markdown', 'index.md'), '# Controlled native Markdown export fixture\n');
   if (s.scenario !== 'missing') writeFileSync(join(s.reports, 'findings.jsonl'), '');
   if (s.scenario !== 'empty-native') writeFileSync(join(s.reports, 'results.sarif'), JSON.stringify({ version: '2.1.0', runs: [{ tool: { driver: { name: 'controlled-substitute' } }, results: [] }] }));
-  writeFileSync(join(s.reports, 'trace.jsonl'), JSON.stringify({ template: s.template, input: s.target, type: 'http', error: '' }));
+  writeFileSync(join(s.reports, 'trace.jsonl'), JSON.stringify({ template: s.template, input: s.target, type: 'http', error: 'none' }));
   writeFileSync(join(s.reports, 'markdown', 'untrusted.md'), '<script>do not execute</script>\n[run](javascript:alert(1))');
   writeFileSync(join(s.reports, 'errors.jsonl'), '');
   if (s.scenario === 'cancel') await new Promise(resolve => setTimeout(resolve, 20000));

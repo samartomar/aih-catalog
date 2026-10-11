@@ -37,8 +37,42 @@ func hasControl(s string) bool {
 	}
 	return false
 }
+func portablePath(p string) bool {
+	for _, part := range strings.Split(p, "/") {
+		if strings.HasSuffix(part, ".") || strings.HasSuffix(part, " ") || strings.ContainsAny(part, `<>"|?*`) {
+			return false
+		}
+		for _, r := range part {
+			if r > 127 {
+				return false
+			}
+		}
+		base := strings.ToUpper(strings.SplitN(part, ".", 2)[0])
+		if base == "CON" || base == "PRN" || base == "AUX" || base == "NUL" || regexp.MustCompile(`^(COM|LPT)[1-9]$`).MatchString(base) {
+			return false
+		}
+	}
+	return true
+}
+func pathCollision(files map[string][]byte, p string) bool {
+	for existing := range files {
+		a, b := strings.Split(existing, "/"), strings.Split(p, "/")
+		for i := 0; i < min(len(a), len(b)); i++ {
+			if !strings.EqualFold(a[i], b[i]) {
+				break
+			}
+			if a[i] != b[i] {
+				return true
+			}
+		}
+		if strings.EqualFold(existing, p) || strings.HasPrefix(strings.ToLower(existing), strings.ToLower(p)+"/") || strings.HasPrefix(strings.ToLower(p), strings.ToLower(existing)+"/") {
+			return true
+		}
+	}
+	return false
+}
 func safePath(p string) bool {
-	return p != "" && p != "bundle-manifest.json" && !hasControl(p) && p == path.Clean(p) && !strings.HasPrefix(p, "/") && !strings.Contains(p, "\\") && !strings.Contains(p, ":") && p != ".." && !strings.HasPrefix(p, "../") && len(strings.Split(p, "/")) <= 16 && !strings.ContainsAny(p, "\x00\r\n\t,")
+	return portablePath(p) && p != "" && !strings.EqualFold(p, "bundle-manifest.json") && !hasControl(p) && p == path.Clean(p) && !strings.HasPrefix(p, "/") && !strings.Contains(p, "\\") && !strings.Contains(p, ":") && p != ".." && !strings.HasPrefix(p, "../") && len(strings.Split(p, "/")) <= 16 && !strings.ContainsAny(p, "\x00\r\n\t,")
 }
 func readRegular(p string, max int64) ([]byte, error) {
 	s, e := os.Lstat(p)
@@ -109,7 +143,7 @@ func loadBundle(p, h string, n int64) (map[string][]byte, bundleManifest, error)
 		if count >= maxEntries || (!safePath(hdr.Name) && hdr.Name != "bundle-manifest.json") || hdr.Typeflag != tar.TypeReg || hdr.Size < 0 || hdr.Size > maxExpanded {
 			return nil, m, errors.New("unsafe archive member")
 		}
-		if _, ok := files[hdr.Name]; ok {
+		if pathCollision(files, hdr.Name) {
 			return nil, m, errors.New("duplicate archive member")
 		}
 		total += hdr.Size
@@ -135,14 +169,24 @@ func loadBundle(p, h string, n int64) (map[string][]byte, bundleManifest, error)
 	}
 	seen := map[string]bool{}
 	templates := 0
+	ids := map[string]bool{}
 	for _, f := range m.Files {
 		b, ok := files[f.Path]
 		if !ok || seen[f.Path] || digest(b) != f.SHA256 || len(b) != f.Bytes {
 			return nil, m, errors.New("bundle manifest identity mismatch")
 		}
 		seen[f.Path] = true
+		if !f.Template {
+			if e := validateExpressions(string(b), false); e != nil {
+				return nil, m, e
+			}
+		}
 		if f.Template {
 			templates++
+			if ids[f.ID] {
+				return nil, m, errors.New("duplicate template id")
+			}
+			ids[f.ID] = true
 			id, e := validateTemplate(b, files)
 			if e != nil || id != f.ID {
 				return nil, m, fmt.Errorf("template %s rejected: %v", f.Path, e)
@@ -189,10 +233,125 @@ func validateTemplate(b []byte, files map[string][]byte) (string, error) {
 	if !regexp.MustCompile(`^[A-Za-z0-9_.-]{1,200}$`).MatchString(id) || !hasHTTP {
 		return "", errors.New("id and nonempty HTTP requests required")
 	}
+	// Nuclei merges template-defined values after target-derived values. Reserve
+	// every upstream KnownVariable plus the HTTP context IP so expressions cannot
+	// replace the approved URL/authority through another definition surface.
+	reserved := map[string]bool{}
+	for _, v := range []string{"baseurl", "rooturl", "hostname", "host", "port", "path", "query", "file", "scheme", "input", "fqdn", "rdn", "dn", "tld", "sd", "ip"} {
+		reserved[v] = true
+	}
+	checkName := func(n *yaml.Node) error {
+		if n.Kind != yaml.ScalarNode || n.Tag != "!!str" || !regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_.-]*$`).MatchString(n.Value) {
+			return errors.New("unsupported variable name")
+		}
+		if reserved[strings.ToLower(n.Value)] {
+			return fmt.Errorf("reserved target variable %q may not be shadowed", n.Value)
+		}
+		return nil
+	}
+	var definitions func(*yaml.Node, string) error
+	definitions = func(n *yaml.Node, key string) error {
+		if key == "constants" || key == "variables" || key == "payloads" {
+			if n.Kind != yaml.MappingNode {
+				return errors.New("variable definitions must be a mapping")
+			}
+			for i := 0; i < len(n.Content); i += 2 {
+				if e := checkName(n.Content[i]); e != nil {
+					return e
+				}
+				v := n.Content[i+1]
+				if key == "variables" && (strings.Contains(v.Value, "{{") || strings.Contains(v.Value, "}}") || strings.Contains(v.Value, "§")) {
+					return errors.New("root variables must be literal scalar data; repeated expression evaluation is unsupported")
+				}
+				if key != "payloads" && v.Kind != yaml.ScalarNode {
+					return errors.New("only scalar template variables/constants supported")
+				}
+			}
+		}
+		if key == "variables" || key == "constants" || key == "payloads" {
+			return nil
+		}
+		if key == "extractors" {
+			if n.Kind != yaml.SequenceNode {
+				return errors.New("extractors must be a sequence")
+			}
+			for _, ex := range n.Content {
+				if ex.Kind != yaml.MappingNode {
+					return errors.New("extractor must be a mapping")
+				}
+				for i := 0; i < len(ex.Content); i += 2 {
+					if ex.Content[i].Value == "name" {
+						if e := checkName(ex.Content[i+1]); e != nil {
+							return e
+						}
+					}
+				}
+			}
+		}
+		if key == "extractors" {
+			return nil
+		}
+		if n.Kind == yaml.MappingNode {
+			for i := 0; i < len(n.Content); i += 2 {
+				if e := definitions(n.Content[i+1], n.Content[i].Value); e != nil {
+					return e
+				}
+			}
+		} else if n.Kind == yaml.SequenceNode {
+			for _, v := range n.Content {
+				if e := definitions(v, ""); e != nil {
+					return e
+				}
+			}
+		}
+		return nil
+	}
+	if e := definitions(r, ""); e != nil {
+		return "", e
+	}
 	var walk func(*yaml.Node, string) error
 	walk = func(n *yaml.Node, key string) error {
 		if n.Kind == yaml.AliasNode || n.Anchor != "" {
 			return errors.New("YAML aliases/anchors unsupported")
+		}
+		switch n.Kind {
+		case yaml.MappingNode:
+			if n.Tag != "!!map" {
+				return errors.New("custom YAML mapping tags unsupported")
+			}
+			for i := 0; i < len(n.Content); i += 2 {
+				if n.Content[i].Kind != yaml.ScalarNode || n.Content[i].Tag != "!!str" {
+					return errors.New("YAML keys must be literal strings; merges unsupported")
+				}
+			}
+		case yaml.SequenceNode:
+			if n.Tag != "!!seq" {
+				return errors.New("custom YAML sequence tags unsupported")
+			}
+		case yaml.ScalarNode:
+			switch n.Tag {
+			case "!!str", "!!bool", "!!int", "!!float", "!!null":
+			default:
+				return errors.New("encoded/custom YAML scalar tags unsupported")
+			}
+		}
+
+		if key == "headers" {
+			if n.Kind != yaml.MappingNode {
+				return errors.New("headers must be a mapping")
+			}
+			hostCount := 0
+			for i := 0; i < len(n.Content); i += 2 {
+				if strings.EqualFold(n.Content[i].Value, "host") {
+					hostCount++
+					if n.Content[i+1].Kind != yaml.ScalarNode || n.Content[i+1].Value != "{{Hostname}}" {
+						return errors.New("structured Host must be exact target Hostname")
+					}
+				}
+			}
+			if hostCount > 1 {
+				return errors.New("duplicate Host header")
+			}
 		}
 		if n.Kind == yaml.MappingNode {
 			seen := map[string]bool{}
@@ -223,8 +382,11 @@ func validateTemplate(b []byte, files map[string][]byte) (string, error) {
 		if key == "type" && strings.EqualFold(n.Value, "llm") {
 			return errors.New("model-provider matcher is outside this workflow")
 		}
+		if e := validateExpressions(n.Value, key == "dsl" || key == "expression"); e != nil {
+			return e
+		}
 		lower := strings.ToLower(n.Value)
-		for _, bad := range []string{"interactsh", "{{file(", "{{read_file(", "{{resolve(", "{{dns("} {
+		for _, bad := range []string{"interactsh"} {
 			if strings.Contains(lower, bad) {
 				return errors.New("restricted external reference")
 			}
@@ -254,15 +416,17 @@ func validateTemplate(b []byte, files map[string][]byte) (string, error) {
 				return errors.New("raw HTTP must use relative request target")
 			}
 			hostOK := false
+			hostCount := 0
 			for _, line := range lines[1:] {
 				if line == "" {
 					break
 				}
 				if strings.HasPrefix(strings.ToLower(line), "host:") {
+					hostCount++
 					hostOK = strings.TrimSpace(strings.SplitN(line, ":", 2)[1]) == "{{Hostname}}"
 				}
 			}
-			if !hostOK {
+			if !hostOK || hostCount != 1 {
 				return errors.New("raw HTTP requires exact Hostname host")
 			}
 		}
@@ -430,7 +594,7 @@ func prepare(ctx context.Context, o options) error {
 		}
 		m.Commit = ref.Object.SHA
 		for _, p := range append(append(stringsFlag{}, o.official...), o.data...) {
-			if _, ok := files[p]; ok {
+			if pathCollision(files, p) {
 				return errors.New("duplicate selected path")
 			}
 			b, e = fetch("https://raw.githubusercontent.com/projectdiscovery/nuclei-templates/" + m.Commit + "/" + p)
@@ -449,7 +613,7 @@ func prepare(ctx context.Context, o options) error {
 		if len(p) != 2 || !safePath(p[1]) {
 			return errors.New("custom must be SOURCE=RELATIVE")
 		}
-		if _, ok := files[p[1]]; ok {
+		if pathCollision(files, p[1]) {
 			return errors.New("duplicate custom path")
 		}
 		b, e := readRegular(p[0], maxExpanded)
@@ -470,14 +634,24 @@ func prepare(ctx context.Context, o options) error {
 	}
 	sort.Strings(keys)
 	count := 0
+	ids := map[string]bool{}
 	for _, p := range keys {
 		f := member{Path: p, SHA256: digest(files[p]), Bytes: len(files[p]), Template: templates[p]}
+		if !f.Template {
+			if e := validateExpressions(string(files[p]), false); e != nil {
+				return e
+			}
+		}
 		if f.Template {
 			count++
 			id, e := validateTemplate(files[p], files)
 			if e != nil {
 				return fmt.Errorf("%s: %w", p, e)
 			}
+			if ids[id] {
+				return errors.New("duplicate template id")
+			}
+			ids[id] = true
 			f.ID = id
 		}
 		m.Files = append(m.Files, f)
