@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "outcome": "refreshed",
+  "warnings": [
+    "Explicit custom HTTP source; may be unsigned: custom/cancel.yaml"
+  ],
+  "files": [
+    {
+      "path": "custom/cancel.yaml",
+      "sha256": "f8f28ebbab139d8220283b545cf7115cbc991fe14b39a3870702bcb2cc83ccde",
+      "bytes": 245,
+      "template": true,
+      "id": "owned-health-cancel"
+    }
+  ],
+  "sha256": "94c6655da4737f4523359d4a38e7ccce3b7c1dab641d0bc4e57930e56aff067e",
+  "bytes": 474
+}

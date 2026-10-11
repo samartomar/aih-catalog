@@ -1,0 +1,1 @@
+{"template":"/templates/custom/zero.yaml","type":"http","input":"http://host.docker.internal:30883/health","address":"host.docker.internal:30883","error":"none"}

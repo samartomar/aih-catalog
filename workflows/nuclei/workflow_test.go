@@ -157,6 +157,88 @@ func TestControlledRunHonestFailures(t *testing.T) {
 		})
 	}
 }
+func TestMissingPinnedImageNeverPullsOrStarts(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("POSIX controlled CLI fixture")
+	}
+	for _, mode := range []string{"image-missing-preflight", "image-vanished-at-create"} {
+		t.Run(mode, func(t *testing.T) {
+			bundle, bm := snapshot(t, validHTTP)
+			args := runArguments(t, bundle, bm, mode)
+			if code, msg := invoke(t, args...); code != 10 {
+				t.Fatalf("missing pinned image run=%d %s", code, msg)
+			}
+			fixtureDir := filepath.Dir(argValue(args, "--docker-cli"))
+			calls, err := os.ReadFile(filepath.Join(fixtureDir, "calls.jsonl"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			created, networkCreated, networkRemoved, imageInspected := false, false, false, false
+			for _, line := range bytes.Split(bytes.TrimSpace(calls), []byte("\n")) {
+				var call []string
+				if err := json.Unmarshal(line, &call); err != nil {
+					t.Fatal(err)
+				}
+				if len(call) < 2 {
+					continue
+				}
+				if call[0] == "image" && call[1] == "inspect" {
+					imageInspected = true
+				}
+				if call[0] == "network" && call[1] == "create" {
+					networkCreated = true
+				}
+				if call[0] == "network" && call[1] == "rm" {
+					networkRemoved = true
+				}
+				if call[0] == "container" && call[1] == "start" {
+					t.Fatal("missing image started assessment")
+				}
+				if call[0] == "container" && call[1] == "create" {
+					created = true
+					if !contains(call, "--pull=never") {
+						t.Fatal("container creation did not forbid pulling")
+					}
+				}
+			}
+			if !imageInspected || networkCreated != created || networkRemoved != created {
+				t.Fatalf("incorrect preflight/cleanup calls: inspect=%v networkCreate=%v networkRemove=%v", imageInspected, networkCreated, networkRemoved)
+			}
+			if created != (mode == "image-vanished-at-create") {
+				t.Fatalf("unexpected create attempt: %v", created)
+			}
+			for _, resource := range []string{"network", "container"} {
+				if _, err := os.Stat(filepath.Join(fixtureDir, resource)); !os.IsNotExist(err) {
+					t.Fatalf("%s remains: %v", resource, err)
+				}
+			}
+			dir := argValue(args, "--run-dir")
+			var m runManifest
+			b, err := os.ReadFile(filepath.Join(dir, "manifest.json"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := json.Unmarshal(b, &m); err != nil {
+				t.Fatal(err)
+			}
+			if m.Status != "incomplete" || !m.CleanupConfirmed || m.ToolExit != -1 || m.Reason == "" {
+				t.Fatalf("dishonest missing-image state: %+v", m)
+			}
+			if created && !contains(m.ContainerArgs, "--pull=never") {
+				t.Fatal("manifest omitted actual no-pull create policy")
+			}
+			for _, file := range []string{"index.md", "progress.json", "reports"} {
+				if _, err := os.Stat(filepath.Join(dir, file)); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if code, _ := invoke(t, append([]string{"validate", "--run-dir", dir}, limits()...)...); code != 12 {
+				t.Fatal("failed run validates")
+			}
+		})
+	}
+}
+
 func TestReconcilePreservesReportsAndDoesNotRepair(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("POSIX controlled CLI fixture")
@@ -207,6 +289,7 @@ a=sys.argv[1:]
 assert a[0]=='--host' and a[1]=='unix:///var/run/docker.sock' and a[2]=='--config'
 assert pathlib.Path(a[3]).is_dir() and not list(pathlib.Path(a[3]).glob('config.json'))
 a=a[4:]
+with (root/'calls.jsonl').open('a') as calls: calls.write(json.dumps(a)+'\n')
 def load(k):
  p=root/k
  return json.loads(p.read_text()) if p.exists() else None
@@ -215,7 +298,9 @@ def value(flag): return a[a.index(flag)+1]
 if a[0]=='info':
  if mode=='delayed-preflight': time.sleep(10)
  print('linux')
-elif a[:2]==['image','inspect']: print(json.dumps([{'RepoDigests':[a[2]]}]))
+elif a[:2]==['image','inspect']:
+ if mode=='image-missing-preflight': sys.exit(1)
+ print(json.dumps([{'RepoDigests':[a[2]]}]))
 elif a[1]=='ls':
  k=a[0];v=load(k)
  if v: print(v['name'])
@@ -225,6 +310,9 @@ elif a[:2]==['network','create']:
  if mode=='delayed-resource': time.sleep(10)
  print('network-id')
 elif a[:2]==['container','create']:
+ assert '--pull=never' in a
+ if mode=='image-vanished-at-create':
+  print('pinned image no longer present',file=sys.stderr);sys.exit(1)
  labels=dict(a[i+1].split('=',1) for i,v in enumerate(a) if v=='--label')
  assert '--read-only' in a and value('--cap-drop')=='ALL'
  assert value('--user')==str(os.geteuid())+':'+str(os.getegid())

@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "outcome": "refreshed",
+  "warnings": [
+    "Explicit custom HTTP source; may be unsigned: custom/finding.yaml"
+  ],
+  "files": [
+    {
+      "path": "custom/finding.yaml",
+      "sha256": "40ddbc8ac7fe8a3a93684c989a2c6d509499f64c60c30638102a0bc78ecfa75c",
+      "bytes": 246,
+      "template": true,
+      "id": "owned-health-finding"
+    }
+  ],
+  "sha256": "22a0dc0f332c554da674157125261c5d26da9917b4fd245e6d7c92ffb9dbcd47",
+  "bytes": 473
+}

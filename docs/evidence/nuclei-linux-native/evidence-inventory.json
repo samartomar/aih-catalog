@@ -1,0 +1,320 @@
+[
+  {
+    "path": "approval-refusal.json",
+    "originalSha256": "e01d2701b981801bc5d78d360216637fb7ea5aa873d87334b0372b5cd671db78",
+    "publicSha256": "e01d2701b981801bc5d78d360216637fb7ea5aa873d87334b0372b5cd671db78",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "ledger.json",
+    "originalSha256": "674e4c80ebfac49354fbd629b2893a43935c5d92de7072a3630ddb0247213949",
+    "publicSha256": "f99ec3af47ddc3462a4755d52f3b37b91c4d1832f01a6272324ce70ae58fc633",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "prep-cancel-approval.json",
+    "originalSha256": "cc3bd80aacc6aaf6ba3d1cef0b06d1b341e319ed3d6379552884e170f8d79797",
+    "publicSha256": "cc3bd80aacc6aaf6ba3d1cef0b06d1b341e319ed3d6379552884e170f8d79797",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "prep-cancel-prepare.json",
+    "originalSha256": "3dc6af9d2372da76fd477ba872e3e1aa8717b444e95af71205f9c0c87c4d9b07",
+    "publicSha256": "de7b9bdf7c1dd61ea7c92663730c06dc19a4c8d60a6e491e0187b4d9abb46d14",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "prep-finding-approval.json",
+    "originalSha256": "e8b3a12db692b87bac425cf1d52f948e58fb142223fcf8fe36cabc1e9d80188f",
+    "publicSha256": "e8b3a12db692b87bac425cf1d52f948e58fb142223fcf8fe36cabc1e9d80188f",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "prep-finding-prepare.json",
+    "originalSha256": "a51942542004e25f5a8126a77f09f7490c3102b310a98a0a906fff098676b471",
+    "publicSha256": "51003c29f41f2e333d2716678f0fc9557dc07dff85ffb54595c4a10bb4e59c9a",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "prep-zero-approval.json",
+    "originalSha256": "246d7c8358025c456625522aae0e6f7e648da9c8ebb45e0052a05cfe9918a78a",
+    "publicSha256": "246d7c8358025c456625522aae0e6f7e648da9c8ebb45e0052a05cfe9918a78a",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "prep-zero-prepare.json",
+    "originalSha256": "9eddba9aad074d5adf8c48ac73c7f867977fd5cb15dab05a04f1b9d6df591332",
+    "publicSha256": "a776fa56baa51615b97dec9a7fe0a54f5b4aa511143e9475da46c347a1ea2a55",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "reconcile-cancel-apply.json",
+    "originalSha256": "b0d72c5b6feca5451f836d78245f71f8675586a5de07c89f1444dc7b12fa9392",
+    "publicSha256": "b0d72c5b6feca5451f836d78245f71f8675586a5de07c89f1444dc7b12fa9392",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "reconcile-cancel-approval.json",
+    "originalSha256": "3277cc430870c37f4d1ed25a9b02b509b756fdc012a4f2a3d04639611203b5a4",
+    "publicSha256": "3277cc430870c37f4d1ed25a9b02b509b756fdc012a4f2a3d04639611203b5a4",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "reconcile-cancel-prepare.json",
+    "originalSha256": "4e6bd9fad530a181ed48c2780f8d6a4efe4e0481d01965188752b8016fa6c80a",
+    "publicSha256": "ebe1409f5e8d7dab5486829024b0fa6c46e5b2de91b713f2a8c72a49e481568f",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "reconcile-finding-apply.json",
+    "originalSha256": "e591dd1a34fbd4b88ca2d11763c838e400754c9da9f510f4ccc1e31723d5d39c",
+    "publicSha256": "e591dd1a34fbd4b88ca2d11763c838e400754c9da9f510f4ccc1e31723d5d39c",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "reconcile-finding-approval.json",
+    "originalSha256": "4c732533a3226e272ba4e3ade48808099de10271f2750420ec4299f517a73e0d",
+    "publicSha256": "4c732533a3226e272ba4e3ade48808099de10271f2750420ec4299f517a73e0d",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "reconcile-finding-prepare.json",
+    "originalSha256": "e8c034294fdc15621962a606163df8ae56a3e73ee97f905131ec6ba9d5a522d8",
+    "publicSha256": "2f79dd95d741c539a7b7b04936d2662740740f875ad05adf21804c183627653f",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "reconcile-zero-apply.json",
+    "originalSha256": "8347bb054eb9a92a2e07053eae3ebb9650988da402a85a78ea5bd1b9ad39f1f8",
+    "publicSha256": "8347bb054eb9a92a2e07053eae3ebb9650988da402a85a78ea5bd1b9ad39f1f8",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "reconcile-zero-approval.json",
+    "originalSha256": "20afde6317a469dafe85ed404901cf3ed54d942494b9c87fa4def61b9cd796ed",
+    "publicSha256": "20afde6317a469dafe85ed404901cf3ed54d942494b9c87fa4def61b9cd796ed",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "reconcile-zero-prepare.json",
+    "originalSha256": "742995bbee8db37f864be12d54ecdf89bf875deed4441ee8ec8aec384a49d419",
+    "publicSha256": "16a627600f531b28cf1de491d8354ac2fbe2d4a6858c8b9eedfc15e496dee120",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "requests.json",
+    "originalSha256": "55646f49281a00f892fd31a92162d6218d48841c50a8963a25bbf44e7afe90b2",
+    "publicSha256": "55646f49281a00f892fd31a92162d6218d48841c50a8963a25bbf44e7afe90b2",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "run-cancel-apply.json",
+    "originalSha256": "d6af5b43324f41384c66bcf02637f94be718a99540196012b5fa3cf80b63abd3",
+    "publicSha256": "d6af5b43324f41384c66bcf02637f94be718a99540196012b5fa3cf80b63abd3",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "run-cancel-approval.json",
+    "originalSha256": "f4fa7b4d3941d10a1971249542937beec89aa12c816d718153695a4649e8136d",
+    "publicSha256": "f4fa7b4d3941d10a1971249542937beec89aa12c816d718153695a4649e8136d",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "run-cancel-prepare.json",
+    "originalSha256": "b17af6818006cf7e57d4276512d5d1a05c4aa4fc3e041c649b8e5825d681580e",
+    "publicSha256": "915258e1a8ec542a00fe1c5684187036f9f712a7ab46e16acd43a0b5b40e18ec",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "run-finding-apply.json",
+    "originalSha256": "6c60f2d47b9a3eb461316ce80050bb4d4ca7f08f869d2cad68f81815dd0d9cf6",
+    "publicSha256": "6c60f2d47b9a3eb461316ce80050bb4d4ca7f08f869d2cad68f81815dd0d9cf6",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "run-finding-approval.json",
+    "originalSha256": "1e0406f10e05fd3cbebada33dc1c3295e5e93d6bb4404f115103246585cbd2ba",
+    "publicSha256": "1e0406f10e05fd3cbebada33dc1c3295e5e93d6bb4404f115103246585cbd2ba",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "run-finding-prepare.json",
+    "originalSha256": "4906c6bd08e2306b912e388163d2f089ce21e2953bbdd59f07f1b2565c906485",
+    "publicSha256": "c43cdba660a1caf2f899738ef897b0880f3f0d1c73ec3ccac8fd57743be5fcc0",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "run-zero-apply.json",
+    "originalSha256": "c2986257620cc8b4af2bfd1dab8fe06f36b03c88e5eef1b863a56d17483a2897",
+    "publicSha256": "c2986257620cc8b4af2bfd1dab8fe06f36b03c88e5eef1b863a56d17483a2897",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "run-zero-approval.json",
+    "originalSha256": "268038ee3798b42fae0c55b9d60e43084b86cdf043cb1eaa9ab704720d15d53c",
+    "publicSha256": "268038ee3798b42fae0c55b9d60e43084b86cdf043cb1eaa9ab704720d15d53c",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "run-zero-prepare.json",
+    "originalSha256": "ab58048bbcf2713ea85cfd79f0fd13591fcf2068f35f33866f9977542ae5ff95",
+    "publicSha256": "abccf841e1158d443fb470bf4df1cae4d24e2cc7df7004fa398362ea1ad003e1",
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "finding/reports/errors.jsonl",
+    "byteLength": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "representation": "unmodified native bytes"
+  },
+  {
+    "path": "finding/reports/findings.jsonl",
+    "byteLength": 1577,
+    "sha256": "970678e6486becc291584fcec6b141517bdcbef0d1520cbf67f73a18b2f6eb09",
+    "representation": "unmodified native bytes"
+  },
+  {
+    "path": "finding/reports/markdown/index.md",
+    "byteLength": 198,
+    "sha256": "8cc72695f6166985e5d73e4fc3f43654d0244b2fca6bde6506b24711e74fa653",
+    "representation": "unmodified native bytes"
+  },
+  {
+    "path": "finding/reports/markdown/owned-health-finding-host.docker.internal-56703f90-3a7a-45b2-9da3-cb93f5e263da.md",
+    "byteLength": 1270,
+    "sha256": "397cf5f1fc7a047b4aeff9ee677e3fa64f2947669ea6e033278cd686b089c853",
+    "representation": "unmodified native bytes"
+  },
+  {
+    "path": "finding/reports/results.sarif",
+    "byteLength": 3129,
+    "sha256": "2074057f9499559ee6a493eed90868df1f9c3d90190efaa91844de0bff0dd72d",
+    "representation": "unmodified native bytes"
+  },
+  {
+    "path": "finding/reports/stderr.log",
+    "byteLength": 827,
+    "sha256": "de5f4a1a322ae6b2b2f7fb1158d9a896ff8864f935c8c984418d473f4a333a0d",
+    "representation": "unmodified native bytes"
+  },
+  {
+    "path": "finding/reports/stdout.log",
+    "byteLength": 1577,
+    "sha256": "970678e6486becc291584fcec6b141517bdcbef0d1520cbf67f73a18b2f6eb09",
+    "representation": "unmodified native bytes"
+  },
+  {
+    "path": "finding/reports/trace.jsonl",
+    "byteLength": 165,
+    "sha256": "135518639bf59eb7a2f1326990151b8f104d80e497a00dc2485a348e71a4e3b1",
+    "representation": "unmodified native bytes"
+  },
+  {
+    "path": "finding.yaml",
+    "originalSha256": "40ddbc8ac7fe8a3a93684c989a2c6d509499f64c60c30638102a0bc78ecfa75c",
+    "publicSha256": "40ddbc8ac7fe8a3a93684c989a2c6d509499f64c60c30638102a0bc78ecfa75c",
+    "representation": "owned host path replaced if present; original bytes retained"
+  },
+  {
+    "path": "preparation-finding/preparation.json",
+    "originalSha256": "b9ac5b98b7571a62438440054e0f362d0132d950f644c574a0188434613e024b",
+    "publicSha256": "b9ac5b98b7571a62438440054e0f362d0132d950f644c574a0188434613e024b",
+    "representation": "owned host path replaced if present; original bytes retained"
+  },
+  {
+    "path": "zero/reports/errors.jsonl",
+    "byteLength": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "representation": "unmodified native bytes"
+  },
+  {
+    "path": "zero/reports/findings.jsonl",
+    "byteLength": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "representation": "unmodified native bytes"
+  },
+  {
+    "path": "zero/reports/markdown/index.md",
+    "byteLength": 57,
+    "sha256": "7e3efbda2074343774f9db658163a42e02a93214b1e2f94b198d25eb222b96c4",
+    "representation": "unmodified native bytes"
+  },
+  {
+    "path": "zero/reports/stderr.log",
+    "byteLength": 827,
+    "sha256": "816ade0cd4bd7d6c15e3ddc012b5bc00a80d45d7c09b7613db320edbd9c48ed7",
+    "representation": "unmodified native bytes"
+  },
+  {
+    "path": "zero/reports/stdout.log",
+    "byteLength": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "representation": "unmodified native bytes"
+  },
+  {
+    "path": "zero/reports/trace.jsonl",
+    "byteLength": 162,
+    "sha256": "c461f49f3bcbca09e0e58bc4a649964ea5ec092a65f3073f7805729f2a1e8473",
+    "representation": "unmodified native bytes"
+  },
+  {
+    "path": "zero.yaml",
+    "originalSha256": "af55994fcafd7443c102b347b3b2ee9597568556354bd1b3be9a679849782b7c",
+    "publicSha256": "af55994fcafd7443c102b347b3b2ee9597568556354bd1b3be9a679849782b7c",
+    "representation": "owned host path replaced if present; original bytes retained"
+  },
+  {
+    "path": "preparation-zero/preparation.json",
+    "originalSha256": "dd9f068405a38b38fd6aafe47ce9cb26a17e894f33e37a77f5649c221cd9172c",
+    "publicSha256": "dd9f068405a38b38fd6aafe47ce9cb26a17e894f33e37a77f5649c221cd9172c",
+    "representation": "owned host path replaced if present; original bytes retained"
+  },
+  {
+    "path": "cancel/reports/errors.jsonl",
+    "byteLength": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "representation": "unmodified native bytes"
+  },
+  {
+    "path": "cancel/reports/findings.jsonl",
+    "byteLength": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "representation": "unmodified native bytes"
+  },
+  {
+    "path": "cancel/reports/markdown/index.md",
+    "byteLength": 57,
+    "sha256": "7e3efbda2074343774f9db658163a42e02a93214b1e2f94b198d25eb222b96c4",
+    "representation": "unmodified native bytes"
+  },
+  {
+    "path": "cancel/reports/stderr.log",
+    "byteLength": 717,
+    "sha256": "2e762594f9275a7562810e41069f13f4d1e8fd9df7547772aef3d50f15de57c1",
+    "representation": "unmodified native bytes"
+  },
+  {
+    "path": "cancel/reports/stdout.log",
+    "byteLength": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "representation": "unmodified native bytes"
+  },
+  {
+    "path": "cancel/reports/trace.jsonl",
+    "byteLength": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "representation": "unmodified native bytes"
+  },
+  {
+    "path": "cancel.yaml",
+    "originalSha256": "f8f28ebbab139d8220283b545cf7115cbc991fe14b39a3870702bcb2cc83ccde",
+    "publicSha256": "f8f28ebbab139d8220283b545cf7115cbc991fe14b39a3870702bcb2cc83ccde",
+    "representation": "owned host path replaced if present; original bytes retained"
+  },
+  {
+    "path": "preparation-cancel/preparation.json",
+    "originalSha256": "47ee4caac9efccaa79969878f6754797f764d3185b5824ec751d74079dedf6d2",
+    "publicSha256": "47ee4caac9efccaa79969878f6754797f764d3185b5824ec751d74079dedf6d2",
+    "representation": "owned host path replaced if present; original bytes retained"
+  }
+]

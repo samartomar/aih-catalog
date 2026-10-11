@@ -2,8 +2,8 @@
   "catalog": {
     "name": "@aihq/catalog",
     "version": "0.1.0",
-    "sha256": "d591d39f0b3a49e6f8ada858c146b98db7c7bd0572b49268b3a5c22610bfbd27",
-    "byteLength": 6368932
+    "sha256": "850304c96bda9dd66573c7e3e28bb45aab6ca195a815407f62c2f6ff3d75f7c3",
+    "byteLength": 6369030
   },
   "core": {
     "sha256": "cf4cc41afa46333fcd422b9ffe1a1ef0f25e23cb11acc11a7d1dd9c4a5b60ff0",
@@ -18,7 +18,7 @@
     "os": "linux",
     "arch": "x64",
     "path": "workflows/nuclei/bin/linux-x64",
-    "sha256": "75cc5cc81212a4e438e73a136411f4c063eacd2f54b6403ef7a30b4d3beb4d15",
+    "sha256": "da1b3c07c17265652ef3dc9a77c7603615a845742a1e0c09450a30cb56dda799",
     "byteLength": 7172222,
     "archiveMode": "0644"
   },
@@ -33,7 +33,9 @@
     "empty-native:core-complete:resources-absent:reports-retained",
     "missing:core-incomplete:resources-absent:reports-retained",
     "failure:core-incomplete:resources-absent:reports-retained",
-    "cancel:core-cancelled:resources-absent:reports-retained"
+    "cancel:core-cancelled:resources-absent:reports-retained",
+    "missing-image:no-start:honest-failure:owned-cleanup:evidence-retained",
+    "image-disappeared:no-start:honest-failure:owned-cleanup:evidence-retained"
   ],
   "realTool": false,
   "realDocker": false,
