@@ -1,0 +1,551 @@
+[
+  {
+    "path": "approval-refusal.json",
+    "originalSha256": "9f53428a4093ab9524e91d442896e7190f17b68caefd98b71f5231995bac0e2a",
+    "publicSha256": "349c1c4871ffb9e27ff363e42af47bd92527aaa97010c08758a7025df7b68bf8",
+    "originalBytes": 1889,
+    "publicBytes": 1890,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "cancel.yaml",
+    "originalSha256": "f8f28ebbab139d8220283b545cf7115cbc991fe14b39a3870702bcb2cc83ccde",
+    "publicSha256": "f8f28ebbab139d8220283b545cf7115cbc991fe14b39a3870702bcb2cc83ccde",
+    "originalBytes": 245,
+    "publicBytes": 245,
+    "representation": "unaltered authored template or workflow index"
+  },
+  {
+    "path": "finding.yaml",
+    "originalSha256": "40ddbc8ac7fe8a3a93684c989a2c6d509499f64c60c30638102a0bc78ecfa75c",
+    "publicSha256": "40ddbc8ac7fe8a3a93684c989a2c6d509499f64c60c30638102a0bc78ecfa75c",
+    "originalBytes": 246,
+    "publicBytes": 246,
+    "representation": "unaltered authored template or workflow index"
+  },
+  {
+    "path": "ledger.json",
+    "originalSha256": "342a4498be4611203d6bb80fe93263f9bbcea1d4142f38967a15dc67026fee82",
+    "publicSha256": "a4226568bcefa11aa4ad6ba1cdc4a5ea34733370b7d632451bac31a1916971d5",
+    "originalBytes": 20523,
+    "publicBytes": 20168,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "postrun-cleanup.json",
+    "originalSha256": "f44a1a97d2792dfd6ec753ce37979b6ba6f20355b65e7c47f300c5df691609c2",
+    "publicSha256": "f44a1a97d2792dfd6ec753ce37979b6ba6f20355b65e7c47f300c5df691609c2",
+    "originalBytes": 1498,
+    "publicBytes": 1498,
+    "representation": "unaltered independent owned-resource and listener readback"
+  },
+  {
+    "path": "prep-cancel-approval.json",
+    "originalSha256": "2725eb40e6f1d22f59ab5404e6bf66fd41bff7e7930548fb2ee8c52916245ec6",
+    "publicSha256": "2396c1f9d8124ef912f7a455508386164ab3628b842370c32575414ec85475f4",
+    "originalBytes": 134,
+    "publicBytes": 135,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "prep-cancel-prepare.json",
+    "originalSha256": "ff61b6b5f517ce74071c9eb0b943de9ca8725aa62cd7e526f985f6bdf2fe585b",
+    "publicSha256": "b15bbd515d6fa1b124ed4175186f7dd9d3c304faa7e2f40f9d92f088cd2937ca",
+    "originalBytes": 4031,
+    "publicBytes": 3760,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "prep-finding-approval.json",
+    "originalSha256": "e7e5a9295d80fd9c59eb72d578111ecfa803c9dc0746989e832e4a4af6881ea6",
+    "publicSha256": "238020e60c8a216a792618b5158581ea828ed86f95822f0c41972d3b517ed8f7",
+    "originalBytes": 134,
+    "publicBytes": 135,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "prep-finding-prepare.json",
+    "originalSha256": "dbca8dd74ab442775ac041b6f521afaec21dc0f895b2e0f3058e8a273374a21d",
+    "publicSha256": "af12d1aa6c311f5c1fbf82326a61b7c5b92ce4fe7f693cd6a105c49d2d0ecb31",
+    "originalBytes": 4034,
+    "publicBytes": 3763,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "prep-zero-approval.json",
+    "originalSha256": "817af860b3001a0b411b3507ac6994d5b190563aa451d3eaa04c52ddce20eafa",
+    "publicSha256": "5c23c5855ecef5559b4107c9d52daa0facca0ccae2d04f4c9e8f027dc8f21e0c",
+    "originalBytes": 134,
+    "publicBytes": 135,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "prep-zero-prepare.json",
+    "originalSha256": "b9df9f6e07de3c0fda0cec2d6980e1ba2134bc7c2812efaecebeb3ee8bda0d4b",
+    "publicSha256": "81e36c4032f9c5037a8afe1c9b6c1373e2252cb1b58d61239ae438c127b441ec",
+    "originalBytes": 4025,
+    "publicBytes": 3754,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "preparation-cancel/preparation.json",
+    "originalSha256": "47ee4caac9efccaa79969878f6754797f764d3185b5824ec751d74079dedf6d2",
+    "publicSha256": "47ee4caac9efccaa79969878f6754797f764d3185b5824ec751d74079dedf6d2",
+    "originalBytes": 461,
+    "publicBytes": 461,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "preparation-cancel/templates.tar.gz",
+    "originalSha256": "94c6655da4737f4523359d4a38e7ccce3b7c1dab641d0bc4e57930e56aff067e",
+    "originalBytes": 474,
+    "publicSha256": null,
+    "representation": "original preparation bundle retained; authored template exported separately"
+  },
+  {
+    "path": "preparation-finding/preparation.json",
+    "originalSha256": "b9ac5b98b7571a62438440054e0f362d0132d950f644c574a0188434613e024b",
+    "publicSha256": "b9ac5b98b7571a62438440054e0f362d0132d950f644c574a0188434613e024b",
+    "originalBytes": 464,
+    "publicBytes": 464,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "preparation-finding/templates.tar.gz",
+    "originalSha256": "22a0dc0f332c554da674157125261c5d26da9917b4fd245e6d7c92ffb9dbcd47",
+    "originalBytes": 473,
+    "publicSha256": null,
+    "representation": "original preparation bundle retained; authored template exported separately"
+  },
+  {
+    "path": "preparation-zero/preparation.json",
+    "originalSha256": "dd9f068405a38b38fd6aafe47ce9cb26a17e894f33e37a77f5649c221cd9172c",
+    "publicSha256": "dd9f068405a38b38fd6aafe47ce9cb26a17e894f33e37a77f5649c221cd9172c",
+    "originalBytes": 455,
+    "publicBytes": 455,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "preparation-zero/templates.tar.gz",
+    "originalSha256": "ddf370238b3e5e8e5334af9694674d60256f0538623403c2372cfc4eddb5bb35",
+    "originalBytes": 479,
+    "publicSha256": null,
+    "representation": "original preparation bundle retained; authored template exported separately"
+  },
+  {
+    "path": "reconcile-cancel-apply.json",
+    "originalSha256": "b3c6ecf99e2978468b0b335f0a9cd8101476cd5e11985a2e994600bf93170dee",
+    "publicSha256": "9180a01b66c49e9e88795d3b75f7edb5797b1c78d64f842af99cfa5057b19651",
+    "originalBytes": 1762,
+    "publicBytes": 1763,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "reconcile-cancel-approval.json",
+    "originalSha256": "cfd30ed1ed937873530d22a3fbe05b1bec3d2c5b458bdfc9c68d5f73a498d5f4",
+    "publicSha256": "53cdd520de6fa89777cc31fc3766881ac684223f188dad9a2eff96fb71e6c0c5",
+    "originalBytes": 134,
+    "publicBytes": 135,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "reconcile-cancel-prepare.json",
+    "originalSha256": "65a202bf2324c89a50c8b9280d1620c041616d1c7217cd34ad61bd58f2f083f4",
+    "publicSha256": "0ef9799ce1f3044f0bd71337b29fa710da3430a781d8fd23390d54e449e4617d",
+    "originalBytes": 4263,
+    "publicBytes": 3987,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "reconcile-finding-apply.json",
+    "originalSha256": "dcadf06d94ada0341e767aecc7ed0d8f1b56080edb006309ce97f58dc374e6a4",
+    "publicSha256": "82424db93714bf66ed910ee60aaa5a4b5fec246d7110e36793efeab8069aca8d",
+    "originalBytes": 1762,
+    "publicBytes": 1763,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "reconcile-finding-approval.json",
+    "originalSha256": "ea161d011e0c89e0579ca8d4725cc84e3fc6ae5a127d6ebfa51724f480608310",
+    "publicSha256": "e00459b8278b96f938a99937d90eb6b5a81c1ca65930965951f6e82fb962e60d",
+    "originalBytes": 134,
+    "publicBytes": 135,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "reconcile-finding-prepare.json",
+    "originalSha256": "d48093001e67980318f784a66d3c82db1a77f3223573220f8c8db8e9a1a4db68",
+    "publicSha256": "08566cf5c4829ec7d70caf39b97f4d652584b569bb36987277fa602ba4248268",
+    "originalBytes": 4266,
+    "publicBytes": 3990,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "reconcile-zero-apply.json",
+    "originalSha256": "e834753b1af84625a15f81f4ad7e31994666aa588cbcca06e3eb0d7c771e51b1",
+    "publicSha256": "ee3581f1d07df8c889ea8a54526b209adfaf03e6ea4a31ab8a898448b3be7024",
+    "originalBytes": 1762,
+    "publicBytes": 1763,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "reconcile-zero-approval.json",
+    "originalSha256": "e27775433fe14ba127d0d7c3f2e14e3072db7484fefcc5727e91ab7760b4bb6b",
+    "publicSha256": "67eaf297101a3e43f2b15914d8e731f062c3e7f76f531e8648f2654e94398bff",
+    "originalBytes": 134,
+    "publicBytes": 135,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "reconcile-zero-prepare.json",
+    "originalSha256": "0436ea603cd58848f1c52368ab99a391125b5636066d58d4d9615e88ab6063d5",
+    "publicSha256": "6746fc830d0a8f2df5d09b47d4c26b563b505659c9ba25cde54ee86f28ea4be0",
+    "originalBytes": 4257,
+    "publicBytes": 3981,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "requests.json",
+    "originalSha256": "639aeef128624e75641c7ef6ea6a8b4cbc005fecccdf57777063275db6108856",
+    "publicSha256": "39aa79f91766254b711136adc3382077bb3a5a110cfb5a9df6ecd90b90a2a33a",
+    "originalBytes": 472,
+    "publicBytes": 473,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "run-cancel-apply.json",
+    "originalSha256": "356023fb5abf1d355cb2a398c83cf371c47d4a566c3421e6d853da349c612224",
+    "publicSha256": "09d5668a74c38d4bee10c68b7f967d1716cb84c6e3162a7576339d7dbf6c99b4",
+    "originalBytes": 2197,
+    "publicBytes": 2198,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "run-cancel-approval.json",
+    "originalSha256": "871c2568e11b1a7733348315c3fb2bcd0e857a9b38c47504d1c78ae1e2a16a8d",
+    "publicSha256": "f62706434d9586541a2f0a43a7a9c243826cf824f2ebeba51b83e924bd75204e",
+    "originalBytes": 134,
+    "publicBytes": 135,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "run-cancel-prepare.json",
+    "originalSha256": "98b994e904fd593e74ec8dbfb66405e7889e2fb22f6d85e5a24c74782af24456",
+    "publicSha256": "b9cfdc6574935bdc2621e7311ee361a4f7c30e5ae6d674835645cca2b84c811e",
+    "originalBytes": 6637,
+    "publicBytes": 6151,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "run-cancel/index.md",
+    "originalSha256": "d9c7748541a4f3e51d0e22beec9126c25848843bfcbd3443ad4a5665a2ae416c",
+    "publicSha256": "d9c7748541a4f3e51d0e22beec9126c25848843bfcbd3443ad4a5665a2ae416c",
+    "originalBytes": 1137,
+    "publicBytes": 1137,
+    "representation": "unaltered authored template or workflow index"
+  },
+  {
+    "path": "run-cancel/manifest.json",
+    "originalSha256": "eaea501759e140d0ba2367ce9f68f4c3ecdf9999e5b3530a0cbf25d9e44cb9f5",
+    "publicSha256": "50d3380425bc717cdddd9b7054ebd73162e60fa15952cd8195099cf06e21dff7",
+    "originalBytes": 3756,
+    "publicBytes": 3632,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "run-cancel/progress.json",
+    "originalSha256": "7740c53905a97523254c00a3002b44d387d4845e8c6f8306a2849e3f6550eef1",
+    "publicSha256": "7740c53905a97523254c00a3002b44d387d4845e8c6f8306a2849e3f6550eef1",
+    "originalBytes": 107,
+    "publicBytes": 107,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "run-cancel/reports/errors.jsonl",
+    "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "publicSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "originalBytes": 0,
+    "publicBytes": 0,
+    "representation": "unaltered native report bytes"
+  },
+  {
+    "path": "run-cancel/reports/findings.jsonl",
+    "originalSha256": "52a9e414755146c879ce137753136bb44b01d4af4aaa04fbfef2729faca6f556",
+    "publicSha256": "52a9e414755146c879ce137753136bb44b01d4af4aaa04fbfef2729faca6f556",
+    "originalBytes": 1514,
+    "publicBytes": 1514,
+    "representation": "unaltered native report bytes"
+  },
+  {
+    "path": "run-cancel/reports/markdown/index.md",
+    "originalSha256": "3a41830c048205e393eea9d13c44d5fb58ef6e0a0d6f8dd448c20adc013bf404",
+    "publicSha256": "3a41830c048205e393eea9d13c44d5fb58ef6e0a0d6f8dd448c20adc013bf404",
+    "originalBytes": 196,
+    "publicBytes": 196,
+    "representation": "unaltered native report bytes"
+  },
+  {
+    "path": "run-cancel/reports/markdown/owned-health-cancel-host.docker.internal-62fcee6f-5799-4c4c-a2be-0467467a3431.md",
+    "originalSha256": "92878d802f059b54e1b6ee11430cae11c97314270ac9967577f594cdec2abfa3",
+    "publicSha256": "92878d802f059b54e1b6ee11430cae11c97314270ac9967577f594cdec2abfa3",
+    "originalBytes": 1206,
+    "publicBytes": 1206,
+    "representation": "unaltered native report bytes"
+  },
+  {
+    "path": "run-cancel/reports/results.sarif",
+    "originalSha256": "26fe000ab9142def1c8e5a5ade10f8ec6ad637a540a9c653bab2059e21427c7e",
+    "publicSha256": "26fe000ab9142def1c8e5a5ade10f8ec6ad637a540a9c653bab2059e21427c7e",
+    "originalBytes": 3125,
+    "publicBytes": 3125,
+    "representation": "unaltered native report bytes"
+  },
+  {
+    "path": "run-cancel/reports/stderr.log",
+    "originalSha256": "2e762594f9275a7562810e41069f13f4d1e8fd9df7547772aef3d50f15de57c1",
+    "publicSha256": "2e762594f9275a7562810e41069f13f4d1e8fd9df7547772aef3d50f15de57c1",
+    "originalBytes": 717,
+    "publicBytes": 717,
+    "representation": "unaltered native report bytes"
+  },
+  {
+    "path": "run-cancel/reports/stdout.log",
+    "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "publicSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "originalBytes": 0,
+    "publicBytes": 0,
+    "representation": "unaltered native report bytes"
+  },
+  {
+    "path": "run-cancel/reports/trace.jsonl",
+    "originalSha256": "23cc89bcbbfebacc939182ebace9d84598b62ded90f293fe71570935e7b25c4c",
+    "publicSha256": "23cc89bcbbfebacc939182ebace9d84598b62ded90f293fe71570935e7b25c4c",
+    "originalBytes": 164,
+    "publicBytes": 164,
+    "representation": "unaltered native report bytes"
+  },
+  {
+    "path": "run-finding-apply.json",
+    "originalSha256": "4b12f01d8c89efdc69dc75f8d5cf587357ab1021130aa905a5afae7ebf3c9d49",
+    "publicSha256": "47a5878f75e16a94d68ed83d97505a1dcfe7960d820692a3add567481d398915",
+    "originalBytes": 1898,
+    "publicBytes": 1899,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "run-finding-approval.json",
+    "originalSha256": "73a3da8fd8add7ccb5352632e34c1e44342d38e69c275b7a905982eec51fa9c3",
+    "publicSha256": "603b9e42023111bec49c340d7340bbed23de92d538e2678fb0f26f1fa8e4f2f8",
+    "originalBytes": 134,
+    "publicBytes": 135,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "run-finding-prepare.json",
+    "originalSha256": "afacf45aa6e580d5dae363f64b7a1c1387d0c95843ddb8f0c6c61bfd52b8103e",
+    "publicSha256": "91a5df5afde7244a71a43e3c81fc45f05c112ee1b960d04f45eb7a404e27ae73",
+    "originalBytes": 6642,
+    "publicBytes": 6156,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "run-finding/index.md",
+    "originalSha256": "fb1aab2a909537d719aea6dd5f169bb5b832fbc619d32c17f7cebc89a68e6e14",
+    "publicSha256": "fb1aab2a909537d719aea6dd5f169bb5b832fbc619d32c17f7cebc89a68e6e14",
+    "originalBytes": 1062,
+    "publicBytes": 1062,
+    "representation": "unaltered authored template or workflow index"
+  },
+  {
+    "path": "run-finding/manifest.json",
+    "originalSha256": "38f5cd1ed7e29b1a7ba6cbca56d254463e83b10ae4a8d6ebafd19df485e1d4f4",
+    "publicSha256": "5044b373157364bcf6c722b4750f38cd9925104a7f5489653ba478b3811aa0e1",
+    "originalBytes": 5027,
+    "publicBytes": 4903,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "run-finding/progress.json",
+    "originalSha256": "a337d05fbeba14bb50d3e6a2ea92ce56cdebce035751db9938bd533e0179f1ad",
+    "publicSha256": "a337d05fbeba14bb50d3e6a2ea92ce56cdebce035751db9938bd533e0179f1ad",
+    "originalBytes": 105,
+    "publicBytes": 105,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "run-finding/reports/errors.jsonl",
+    "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "publicSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "originalBytes": 0,
+    "publicBytes": 0,
+    "representation": "unaltered native report bytes"
+  },
+  {
+    "path": "run-finding/reports/findings.jsonl",
+    "originalSha256": "8f6edc5d6e2373804f77c69a3cc136edf3cee9a114b509d73be4b75f0322c1bc",
+    "publicSha256": "8f6edc5d6e2373804f77c69a3cc136edf3cee9a114b509d73be4b75f0322c1bc",
+    "originalBytes": 1671,
+    "publicBytes": 1671,
+    "representation": "unaltered native report bytes"
+  },
+  {
+    "path": "run-finding/reports/markdown/index.md",
+    "originalSha256": "0dd14c079a2f4e34ce277f09d9e5ecdf34cc214de074a90d4df72593363bee2c",
+    "publicSha256": "0dd14c079a2f4e34ce277f09d9e5ecdf34cc214de074a90d4df72593363bee2c",
+    "originalBytes": 198,
+    "publicBytes": 198,
+    "representation": "unaltered native report bytes"
+  },
+  {
+    "path": "run-finding/reports/markdown/owned-health-finding-host.docker.internal-61271fd0-ca15-4fab-9ca4-8f6d5fac4845.md",
+    "originalSha256": "836252cfd8940ba930e6ef3ed6cb518803c186e43d1e5638ad9904d8581ff6d0",
+    "publicSha256": "836252cfd8940ba930e6ef3ed6cb518803c186e43d1e5638ad9904d8581ff6d0",
+    "originalBytes": 1360,
+    "publicBytes": 1360,
+    "representation": "unaltered native report bytes"
+  },
+  {
+    "path": "run-finding/reports/results.sarif",
+    "originalSha256": "2074057f9499559ee6a493eed90868df1f9c3d90190efaa91844de0bff0dd72d",
+    "publicSha256": "2074057f9499559ee6a493eed90868df1f9c3d90190efaa91844de0bff0dd72d",
+    "originalBytes": 3129,
+    "publicBytes": 3129,
+    "representation": "unaltered native report bytes"
+  },
+  {
+    "path": "run-finding/reports/stderr.log",
+    "originalSha256": "07a941f3e9000aa2d074e3f0defa398f6a2525d53e16276db9d385c9c9ab2e52",
+    "publicSha256": "07a941f3e9000aa2d074e3f0defa398f6a2525d53e16276db9d385c9c9ab2e52",
+    "originalBytes": 828,
+    "publicBytes": 828,
+    "representation": "unaltered native report bytes"
+  },
+  {
+    "path": "run-finding/reports/stdout.log",
+    "originalSha256": "8f6edc5d6e2373804f77c69a3cc136edf3cee9a114b509d73be4b75f0322c1bc",
+    "publicSha256": "8f6edc5d6e2373804f77c69a3cc136edf3cee9a114b509d73be4b75f0322c1bc",
+    "originalBytes": 1671,
+    "publicBytes": 1671,
+    "representation": "unaltered native report bytes"
+  },
+  {
+    "path": "run-finding/reports/trace.jsonl",
+    "originalSha256": "135518639bf59eb7a2f1326990151b8f104d80e497a00dc2485a348e71a4e3b1",
+    "publicSha256": "135518639bf59eb7a2f1326990151b8f104d80e497a00dc2485a348e71a4e3b1",
+    "originalBytes": 165,
+    "publicBytes": 165,
+    "representation": "unaltered native report bytes"
+  },
+  {
+    "path": "run-zero-apply.json",
+    "originalSha256": "61d8dd9df61e780bd50d570597dd014bb3a0b0926d01b1915d3a580a4c5d1c30",
+    "publicSha256": "162b425c26572a9f0621b75d67b2de1c846ce00755b92e5e1964a501fc102ac9",
+    "originalBytes": 1898,
+    "publicBytes": 1899,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "run-zero-approval.json",
+    "originalSha256": "0411d5307465bad58c6ce5c186dfd12a3c455e2f03b9d5c8310519c392e575da",
+    "publicSha256": "b6da6386dbe8c886928190624b06d3bbd555aee9d2472169afb2a68e0b4e7d86",
+    "originalBytes": 134,
+    "publicBytes": 135,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "run-zero-prepare.json",
+    "originalSha256": "c5f0ffcbcb0c42718341dc9fdc9d6a27751e5cdf4ed05835950b23df6860be95",
+    "publicSha256": "f88e8c161d1ace7ad79af2534f7deb75d4286717bdbe45d55d5d4069744c64e7",
+    "originalBytes": 6627,
+    "publicBytes": 6141,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "run-zero/index.md",
+    "originalSha256": "338febd8793c1e024d79d269300016c4e2ffb44727769faecf71844224ff92c9",
+    "publicSha256": "338febd8793c1e024d79d269300016c4e2ffb44727769faecf71844224ff92c9",
+    "originalBytes": 1107,
+    "publicBytes": 1107,
+    "representation": "unaltered authored template or workflow index"
+  },
+  {
+    "path": "run-zero/manifest.json",
+    "originalSha256": "a3b56b641ba3db10afc4c941bd35b3bcf840b450ca3ec578cb1d3775aeca725c",
+    "publicSha256": "82d8cd59c37a96d9e1a9f4164ee1d5f43ba2b66084a6e20742b5afafa70f0c3b",
+    "originalBytes": 4597,
+    "publicBytes": 4473,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "run-zero/progress.json",
+    "originalSha256": "4ec56d24c82fd65070399c8fe0ce586b9e7d9920e1f71add8e6cec30e5222ad7",
+    "publicSha256": "4ec56d24c82fd65070399c8fe0ce586b9e7d9920e1f71add8e6cec30e5222ad7",
+    "originalBytes": 105,
+    "publicBytes": 105,
+    "representation": "owned host paths/name replaced; original bytes retained"
+  },
+  {
+    "path": "run-zero/reports/errors.jsonl",
+    "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "publicSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "originalBytes": 0,
+    "publicBytes": 0,
+    "representation": "unaltered native report bytes"
+  },
+  {
+    "path": "run-zero/reports/findings.jsonl",
+    "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "publicSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "originalBytes": 0,
+    "publicBytes": 0,
+    "representation": "unaltered native report bytes"
+  },
+  {
+    "path": "run-zero/reports/markdown/index.md",
+    "originalSha256": "7e3efbda2074343774f9db658163a42e02a93214b1e2f94b198d25eb222b96c4",
+    "publicSha256": "7e3efbda2074343774f9db658163a42e02a93214b1e2f94b198d25eb222b96c4",
+    "originalBytes": 57,
+    "publicBytes": 57,
+    "representation": "unaltered native report bytes"
+  },
+  {
+    "path": "run-zero/reports/stderr.log",
+    "originalSha256": "147e6885d51a28e983e14687700d5a6482c1e584c28f3ad62892bdc3ab10c1a1",
+    "publicSha256": "147e6885d51a28e983e14687700d5a6482c1e584c28f3ad62892bdc3ab10c1a1",
+    "originalBytes": 829,
+    "publicBytes": 829,
+    "representation": "unaltered native report bytes"
+  },
+  {
+    "path": "run-zero/reports/stdout.log",
+    "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "publicSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "originalBytes": 0,
+    "publicBytes": 0,
+    "representation": "unaltered native report bytes"
+  },
+  {
+    "path": "run-zero/reports/trace.jsonl",
+    "originalSha256": "c461f49f3bcbca09e0e58bc4a649964ea5ec092a65f3073f7805729f2a1e8473",
+    "publicSha256": "c461f49f3bcbca09e0e58bc4a649964ea5ec092a65f3073f7805729f2a1e8473",
+    "originalBytes": 162,
+    "publicBytes": 162,
+    "representation": "unaltered native report bytes"
+  },
+  {
+    "path": "wrapper-summary.json",
+    "originalSha256": "9971eaedfd6d4d112f83b2e9b901188f9c95ce4255cd7dd9c02ec244fdb81de6",
+    "publicSha256": "a44b217c45dfed52c4480acd594eb07bfa49c4e4a3f503a7c457c213a9b7b76d",
+    "originalBytes": 6546,
+    "publicBytes": 722,
+    "representation": "selected wrapper outcomes; full machine config and command logs omitted; original retained"
+  },
+  {
+    "path": "zero.yaml",
+    "originalSha256": "af55994fcafd7443c102b347b3b2ee9597568556354bd1b3be9a679849782b7c",
+    "publicSha256": "af55994fcafd7443c102b347b3b2ee9597568556354bd1b3be9a679849782b7c",
+    "originalBytes": 249,
+    "publicBytes": 249,
+    "representation": "unaltered authored template or workflow index"
+  }
+]

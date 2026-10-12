@@ -1,0 +1,127 @@
+{
+  "status": "ready",
+  "runId": "fa1c3d0b-2b50-4d48-a1f2-95b6953c52e5",
+  "review": {
+    "schema": "urn:aihq:core:prepared-work:1.0.0",
+    "useCase": "policy",
+    "mode": "enterprise",
+    "target": {
+      "scope": "project",
+      "project": "[owned-evidence-root]\\project"
+    },
+    "inputs": {
+      "policySha256": "2f4424ff3cb395bb3db458a23a92eddcf786c1c881a8c62cd6c1ceca05f827cb",
+      "package": {
+        "name": "@aihq/core",
+        "version": "1.0.0-dev.34"
+      },
+      "organization": {
+        "source": {
+          "provider": "github",
+          "repository": {
+            "owner": "fixture-org",
+            "name": "policy"
+          },
+          "path": "policy/org.json",
+          "revision": {
+            "kind": "commit",
+            "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        },
+        "resolvedCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "blobId": "36f8d1364da3fff85a5486a4f39895b249afd779",
+        "contentDigest": "sha256:a1f8bd89e79491c5cbec5090a3f22aab07b1a2cf421f2a41739cc763b3a2e8ac",
+        "policyId": "fixture-org",
+        "helper": {
+          "id": "github-policy-reader",
+          "package": {
+            "name": "@aihq/core",
+            "version": "1.0.0-dev.34"
+          }
+        }
+      }
+    },
+    "operations": [
+      {
+        "id": "nuclei-prepare/prepare",
+        "purpose": "prepare reviewed Nuclei inputs",
+        "kind": "process.run",
+        "scope": "project",
+        "effects": "opaque-process",
+        "ownership": "unowned",
+        "requires": [],
+        "checks": [],
+        "details": {
+          "executable": "material:nuclei-helper",
+          "executableSha256": "8d895c4c12765c400ff0d2148c4c11ff0336b3162a56a375d458a82503bf48b7",
+          "args": [
+            "\"prepare\"",
+            "\"--output\"",
+            "\"[owned-evidence-root]\\\\preparation-zero\"",
+            "\"--timeout-seconds\"",
+            "\"85\"",
+            "\"--max-output-bytes\"",
+            "\"8192\"",
+            "\"--max-download-bytes\"",
+            "\"67108864\"",
+            "\"--custom\"",
+            "\"[owned-evidence-root]\\\\zero.yaml=custom/zero.yaml\""
+          ],
+          "cwd": "[owned-evidence-root]\\project",
+          "env": {},
+          "stdinProtected": false,
+          "timeoutMs": {
+            "value": 90000,
+            "origin": "explicit"
+          },
+          "maxOutputBytes": {
+            "value": 16384,
+            "origin": "explicit"
+          },
+          "acceptedExitCodes": [
+            0
+          ],
+          "declaredEffects": [
+            "Docker daemon power is required. Bridge networking does not enforce target-only egress. Daemon/Desktop proxies may reroute or block traffic. Templates can change target data. Reports are untrusted data; retain until explicit deletion.",
+            "Fetch selected templates via api.github.com and raw.githubusercontent.com; write immutable preparation bundle. No assessment."
+          ]
+        }
+      }
+    ],
+    "observations": [
+      {
+        "id": "nuclei-prepare/prerequisite-0",
+        "reason": "available"
+      }
+    ],
+    "conflicts": [],
+    "omissions": [],
+    "evidence": [
+      {
+        "status": "skipped",
+        "reason": "not-supplied"
+      }
+    ],
+    "effectiveOptions": {
+      "logging": {
+        "value": "off",
+        "origin": "explicit"
+      },
+      "inputs": {}
+    },
+    "reviewDigest": "adee66a6fe1ac6fb684a651259ad1664856fe00dcb4f9e280c6c11ae5643c65a"
+  },
+  "diagnostics": [],
+  "record": {
+    "status": "disabled",
+    "reason": "logging-off"
+  },
+  "evidence": [
+    {
+      "status": "skipped",
+      "reason": "not-supplied"
+    }
+  ],
+  "resolutionInputs": [],
+  "prepared": {}
+}

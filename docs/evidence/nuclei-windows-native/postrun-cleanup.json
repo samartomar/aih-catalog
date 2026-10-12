@@ -1,0 +1,42 @@
+{
+  "at": "2026-10-11T23:56:23.1628289Z",
+  "resources": [
+    {
+      "kind": "container",
+      "name": "aih-nuclei-win-ece7ee5fec19415f-finding",
+      "exit": 1,
+      "output": "[]\r\nError response from daemon: No such container: aih-nuclei-win-ece7ee5fec19415f-finding\r\n"
+    },
+    {
+      "kind": "container",
+      "name": "aih-nuclei-win-ece7ee5fec19415f-zero",
+      "exit": 1,
+      "output": "[]\r\nError response from daemon: No such container: aih-nuclei-win-ece7ee5fec19415f-zero\r\n"
+    },
+    {
+      "kind": "container",
+      "name": "aih-nuclei-win-ece7ee5fec19415f-cancel",
+      "exit": 1,
+      "output": "[]\r\nError response from daemon: No such container: aih-nuclei-win-ece7ee5fec19415f-cancel\r\n"
+    },
+    {
+      "kind": "network",
+      "name": "aih-nuclei-win-ece7ee5fec19415f-finding-net",
+      "exit": 1,
+      "output": "[]\r\nError response from daemon: network aih-nuclei-win-ece7ee5fec19415f-finding-net not found\r\n"
+    },
+    {
+      "kind": "network",
+      "name": "aih-nuclei-win-ece7ee5fec19415f-zero-net",
+      "exit": 1,
+      "output": "[]\r\nError response from daemon: network aih-nuclei-win-ece7ee5fec19415f-zero-net not found\r\n"
+    },
+    {
+      "kind": "network",
+      "name": "aih-nuclei-win-ece7ee5fec19415f-cancel-net",
+      "exit": 1,
+      "output": "[]\r\nError response from daemon: network aih-nuclei-win-ece7ee5fec19415f-cancel-net not found\r\n"
+    }
+  ],
+  "listeners": []
+}

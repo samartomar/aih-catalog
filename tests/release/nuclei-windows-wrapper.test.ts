@@ -2,7 +2,7 @@ import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { hostname, tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { delimiter, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
@@ -17,6 +17,88 @@ const npm = [
   resolve(dirname(process.execPath), "../lib/node_modules/npm/bin/npm-cli.js"),
 ].find(existsSync);
 if (!npm) throw new Error("Existing runtime npm CLI required for configuration regression");
+
+describe.skipIf(process.platform !== "win32")("native Windows wrapper artifact binding", () => {
+  it.each([
+    "matching-first",
+    "matching-second",
+    "mismatch",
+    "malformed",
+    "missing",
+  ])("validates the supplied Core digest before creating a window (%s)", (binding) => {
+    const root = mkdtempSync(join(tmpdir(), "aih-nuclei-core-binding-"));
+    try {
+      const catalog = join(root, "catalog.tgz");
+      const core = join(root, "core.tgz");
+      writeFileSync(catalog, "catalog binding fixture");
+      writeFileSync(core, `Core binding fixture ${binding}`);
+      const digest = (path: string) =>
+        createHash("sha256").update(readFileSync(path)).digest("hex");
+      const script = join(root, "artifact-binding.ps1");
+      // Exercise shipping parameter binding and byte verification, ending before
+      // work-root creation, readiness, runtime commands or any execution window.
+      writeFileSync(script, wrapper.slice(0, wrapper.indexOf("$WorkRoot = [IO.Path]")));
+      const work = join(root, "must-not-exist");
+      const computer = process.env.COMPUTERNAME;
+      if (!computer) throw new Error("Native Windows computer identity required");
+      const args = [
+        "-NoLogo",
+        "-NoProfile",
+        "-NonInteractive",
+        "-File",
+        script,
+        "-ExpectedComputer",
+        computer,
+        "-BindAddress",
+        "127.0.0.1",
+        "-CatalogTarball",
+        catalog,
+        "-CatalogSha256",
+        digest(catalog),
+        "-CoreTarball",
+        core,
+        "-DockerCli",
+        process.execPath,
+        "-NodePath",
+        process.execPath,
+        "-WorkRoot",
+        work,
+        "-ReadinessOnly",
+      ];
+      if (binding !== "missing")
+        args.push(
+          "-CoreSha256",
+          binding === "malformed"
+            ? "invalid"
+            : binding === "mismatch"
+              ? "0".repeat(64)
+              : digest(core),
+        );
+      const powershell = (process.env.PATH ?? "")
+        .split(delimiter)
+        .map((directory) => join(directory, "pwsh.exe"))
+        .find(existsSync);
+      if (!powershell)
+        throw new Error("Existing native PowerShell 7 required for owner wrapper tests");
+      const checked = spawnSync(powershell, args, {
+        encoding: "utf8",
+        windowsHide: true,
+        timeout: 15000,
+      });
+      expect(checked.error).toBeUndefined();
+      expect(existsSync(work)).toBe(false);
+      if (binding.startsWith("matching")) expect(checked.status, checked.stderr).toBe(0);
+      else {
+        expect(checked.status).not.toBe(0);
+        expect(checked.stderr).toContain(
+          binding === "mismatch" ? "tarball hash mismatch" : "CoreSha256",
+        );
+      }
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+});
 
 describe("native Windows wrapper npm environment", () => {
   it("loads real npm configuration with the exact sanitized bootstrap environment", () => {

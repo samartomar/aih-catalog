@@ -1,0 +1,133 @@
+{
+  "status": "ready",
+  "runId": "d14ce1ca-008a-41fa-887e-455b15c80595",
+  "review": {
+    "schema": "urn:aihq:core:prepared-work:1.0.0",
+    "useCase": "policy",
+    "mode": "enterprise",
+    "target": {
+      "scope": "project",
+      "project": "[owned-evidence-root]\\project"
+    },
+    "inputs": {
+      "policySha256": "a1a30f7e16735e12b4dfbd4f1ca194f7be969c64e09ba2312e7922e4f08866ed",
+      "package": {
+        "name": "@aihq/core",
+        "version": "1.0.0-dev.34"
+      },
+      "organization": {
+        "source": {
+          "provider": "github",
+          "repository": {
+            "owner": "fixture-org",
+            "name": "policy"
+          },
+          "path": "policy/org.json",
+          "revision": {
+            "kind": "commit",
+            "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        },
+        "resolvedCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "blobId": "cbf7ce370f35eb87c0de2b681dc4799043143b2c",
+        "contentDigest": "sha256:899b6171c4613c6d6c2262787ac909f0da236fc6ee4754277ca0e48648c0383f",
+        "policyId": "fixture-org",
+        "helper": {
+          "id": "github-policy-reader",
+          "package": {
+            "name": "@aihq/core",
+            "version": "1.0.0-dev.34"
+          }
+        }
+      }
+    },
+    "operations": [
+      {
+        "id": "nuclei-reconcile/reconcile",
+        "purpose": "reconcile reviewed Nuclei inputs",
+        "kind": "process.run",
+        "scope": "project",
+        "effects": "opaque-process",
+        "ownership": "unowned",
+        "requires": [],
+        "checks": [],
+        "details": {
+          "executable": "material:nuclei-helper",
+          "executableSha256": "8d895c4c12765c400ff0d2148c4c11ff0336b3162a56a375d458a82503bf48b7",
+          "args": [
+            "\"reconcile\"",
+            "\"--run-dir\"",
+            "\"[owned-evidence-root]\\\\run-finding\"",
+            "\"--daemon\"",
+            "\"npipe:////./pipe/docker_engine\"",
+            "\"--docker-cli\"",
+            "\"[reviewed-native-docker]\"",
+            "\"--container\"",
+            "\"aih-nuclei-win-ece7ee5fec19415f-finding\"",
+            "\"--network\"",
+            "\"aih-nuclei-win-ece7ee5fec19415f-finding-net\"",
+            "\"--timeout-seconds\"",
+            "\"25\"",
+            "\"--cleanup-timeout-seconds\"",
+            "\"10\"",
+            "\"--max-output-bytes\"",
+            "\"8192\""
+          ],
+          "cwd": "[owned-evidence-root]\\project",
+          "env": {},
+          "stdinProtected": false,
+          "timeoutMs": {
+            "value": 30000,
+            "origin": "explicit"
+          },
+          "maxOutputBytes": {
+            "value": 16384,
+            "origin": "explicit"
+          },
+          "acceptedExitCodes": [
+            0
+          ],
+          "declaredEffects": [
+            "Docker daemon power is required. Bridge networking does not enforce target-only egress. Daemon/Desktop proxies may reroute or block traffic. Templates can change target data. Reports are untrusted data; retain until explicit deletion.",
+            "Use the reviewed local Docker daemon, mounts, network and target. Write retained native reports and disposable staging."
+          ]
+        }
+      }
+    ],
+    "observations": [
+      {
+        "id": "nuclei-reconcile/prerequisite-0",
+        "reason": "available"
+      }
+    ],
+    "conflicts": [],
+    "omissions": [],
+    "evidence": [
+      {
+        "status": "skipped",
+        "reason": "not-supplied"
+      }
+    ],
+    "effectiveOptions": {
+      "logging": {
+        "value": "off",
+        "origin": "explicit"
+      },
+      "inputs": {}
+    },
+    "reviewDigest": "c790d387a3532581d5b862812ebc09aca6c31eac1b0f8f916e837db6eda01e06"
+  },
+  "diagnostics": [],
+  "record": {
+    "status": "disabled",
+    "reason": "logging-off"
+  },
+  "evidence": [
+    {
+      "status": "skipped",
+      "reason": "not-supplied"
+    }
+  ],
+  "resolutionInputs": [],
+  "prepared": {}
+}

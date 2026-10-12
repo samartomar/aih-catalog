@@ -1,0 +1,91 @@
+{
+  "schema": "urn:aihq:core:run-result:1.0.0",
+  "runId": "23791fb8-de42-42f3-b37b-6705c2a4732d",
+  "useCase": "policy",
+  "completion": "cancelled",
+  "effectiveOptions": {
+    "logging": {
+      "value": "off",
+      "origin": "explicit"
+    }
+  },
+  "operations": [
+    {
+      "id": "nuclei-run/run",
+      "application": "failed",
+      "verification": {
+        "status": "unverified",
+        "reason": "no-supplied-check"
+      },
+      "reason": "cancelled",
+      "effectsUncertain": true
+    }
+  ],
+  "checks": [
+    {
+      "id": "nuclei-run/validate",
+      "operationId": "nuclei-run/run",
+      "status": "skipped",
+      "reason": "cancelled"
+    }
+  ],
+  "diagnostics": [
+    {
+      "code": "CANCELLED",
+      "reason": "cancelled",
+      "message": "The run could not complete the requested work."
+    }
+  ],
+  "record": {
+    "status": "disabled",
+    "reason": "logging-off"
+  },
+  "followUp": [
+    "Inspect the reported outcomes, prepare again and approve the new review before further changes."
+  ],
+  "inputs": {
+    "policySha256": "0c6a414da87a94b8545e65af758ec39010052fa8274ba083f096e3a206724c8a",
+    "package": {
+      "name": "@aihq/core",
+      "version": "1.0.0-dev.34"
+    },
+    "organization": {
+      "source": {
+        "provider": "github",
+        "repository": {
+          "owner": "fixture-org",
+          "name": "policy"
+        },
+        "path": "policy/org.json",
+        "revision": {
+          "kind": "commit",
+          "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "resolvedCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "blobId": "792a9dbd893600ee5160d73f8200379777e88583",
+      "contentDigest": "sha256:8d4176ad0e3191a2994225ee740b22d4c1c4d745a358045f8e4ba5beb3ea60f7",
+      "policyId": "fixture-org",
+      "helper": {
+        "id": "github-policy-reader",
+        "package": {
+          "name": "@aihq/core",
+          "version": "1.0.0-dev.34"
+        }
+      }
+    }
+  },
+  "authorization": {
+    "origin": "automation",
+    "allowPartial": {
+      "value": false,
+      "origin": "default"
+    }
+  },
+  "evidence": [
+    {
+      "status": "skipped",
+      "reason": "not-supplied"
+    }
+  ]
+}

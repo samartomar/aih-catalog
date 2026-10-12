@@ -1,13 +1,14 @@
-# Native Windows remaining action
+# Native Windows operator reference
 
-Catalog #65 has complete corrected helper/package checks and native Linux evidence.
-Windows has **zero assessment starts, but its original window started and stopped
-on a bootstrap failure**. The owner invocation on 2026-10-11 acquired the exact
-pinned image, then npm refused a duplicate user/global configuration path before
-package installation. The runner never started. See the [failure record](evidence/nuclei-windows-bootstrap/README.md).
-The original 22:02:37.489Z–22:17:37.489Z window must not be reset or retried.
-Another execution window requires explicit owner authorization after the correction
-and actual inputs are reviewed. Preserve the original packet and failed output root.
+Catalog #65 now has [native Windows acceptance evidence](evidence/nuclei-windows-native/README.md)
+for finding, zero findings and cancellation through Core. The successful window used
+the corrected Core artifact after independent actual-input review. Its three-start
+budget is exhausted; this reference does not authorize further execution.
+
+Earlier windows stopped before assessment at npm bootstrap and Core state protection.
+The original bootstrap acquired the pinned image; see its [failure record](evidence/nuclei-windows-bootstrap/README.md).
+Preserve all earlier packets and output roots. Any future execution window requires
+separate authorization and review of its actual inputs; never reset or retry a stopped window.
 
 Use the existing Windows x64 workstation and Docker Desktop Linux-container runtime.
 Do not install Docker, change firewall/security settings, supply credentials or target
@@ -23,11 +24,12 @@ The single complete owner-run script is
 Its companion [`nuclei-native-smoke.mjs`](../tools/nuclei-native-smoke.mjs),
 `seed-consumer-lock.mjs` and committed `package-lock.json` must remain adjacent in their
 repository layout. The finisher retains a portable transfer packet containing those
-reviewed files and both exact local tarballs. Verify [artifact identities](nuclei-corrected-artifacts.json).
+reviewed files and both exact local tarballs. Verify [Catalog/helper identities](nuclei-corrected-artifacts.json)
+and the [corrected Core identity](evidence/nuclei-windows-native/README.md).
 Use native Node24 with its existing npm and cached locked dependencies. Missing cache
 stops visibly before assessments; it does not authorize an installation or silent retry.
 
-After review of the correction, capture readiness with this same script (replace only existing local paths and
+For a separately authorized future operation, capture readiness with this same script (replace only existing local paths and
 select the actual existing private interface; the parent of the fresh output root must exist):
 
 ```powershell
@@ -37,6 +39,7 @@ $inputs = @{
   CatalogTarball = (Resolve-Path './artifacts/aihq-catalog-0.1.0.tgz').Path
   CatalogSha256 = '850304c96bda9dd66573c7e3e28bb45aab6ca195a815407f62c2f6ff3d75f7c3'
   CoreTarball = (Resolve-Path './artifacts/aihq-core-1.0.0-dev.34.tgz').Path
+  CoreSha256 = 'e39dff6b9b04587ee29ed6e27c8f532bdda3c61d0175cbe54947e99ba1427353'
   DockerCli = (Get-Command docker.exe).Source
   NodePath = (Get-Command node.exe).Source
 }
@@ -68,4 +71,5 @@ On failure preserve the entire output root and stop. Do not rerun with a new roo
 Return the wrapper ledger, runner evidence and reports for review/public-safe retention.
 The helper owns only identity-bound container/network/staging cleanup, while the
 runner owns its listener. Reports are never automatically deleted. Unknown cleanup
-is reported as unknown. #65 closes only after actual native Windows acceptance passes.
+is reported as unknown. The completed acceptance record above preserves the actual
+outcomes, including incomplete cancellation reports; it grants no future run authority.

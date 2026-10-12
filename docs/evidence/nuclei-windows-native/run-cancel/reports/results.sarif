@@ -1,0 +1,138 @@
+{
+	"$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.6.json",
+	"runs": [
+		{
+			"invocations": [
+				{
+					"arguments": [
+						"-u",
+						"http://host.docker.internal:30883/",
+						"-t",
+						"/templates/custom/cancel.yaml",
+						"-duc",
+						"-ni",
+						"-dr",
+						"-rl",
+						"2",
+						"-max-time",
+						"30s",
+						"-no-stdin",
+						"-jsonl",
+						"-o",
+						"/reports/findings.jsonl",
+						"-se",
+						"/reports/results.sarif",
+						"-me",
+						"/reports/markdown",
+						"-tlog",
+						"/reports/trace.jsonl",
+						"-elog",
+						"/reports/errors.jsonl",
+						"-no-color"
+					],
+					"commandLine": "nuclei",
+					"executionSuccessful": false,
+					"responseFiles": [
+						{
+							"description": {
+								"text": "Nuclei Sarif Report"
+							},
+							"uri": "file:////reports/results.sarif"
+						}
+					]
+				}
+			],
+			"results": [
+				{
+					"kind": "open",
+					"level": "none",
+					"locations": [
+						{
+							"message": {
+								"text": "host.docker.internal"
+							},
+							"physicalLocation": {
+								"artifactLocation": {
+									"description": {
+										"text": "host.docker.internal"
+									},
+									"uri": ".",
+									"uriBaseId": "%SRCROOT%"
+								},
+								"contextRegion": {
+									"endLine": 3,
+									"snippet": {
+										"text": "host.docker.internal"
+									},
+									"startLine": 1
+								},
+								"region": {
+									"snippet": {
+										"text": "host.docker.internal"
+									},
+									"startLine": 1
+								}
+							}
+						}
+					],
+					"message": {
+						"text": "Owned synthetic health fixture (owned-health-cancel) found on host.docker.internal"
+					},
+					"partialFingerprints": {
+						"primaryLocationLineHash": "5ffe0a99c870e9c769362c38d6bcff72"
+					},
+					"ruleId": "owned-health-cancel"
+				}
+			],
+			"tool": {
+				"driver": {
+					"downloadUri": "https://github.com/projectdiscovery/nuclei/releases",
+					"fullDescription": {
+						"text": "Fast and customizable vulnerability scanner based on simple YAML based DSL"
+					},
+					"fullName": "Nuclei v3.11.1",
+					"name": "Nuclei",
+					"organization": "ProjectDiscovery",
+					"product": "Nuclei",
+					"rules": [
+						{
+							"fullDescription": {
+								"text": "\nMore details at\n\n"
+							},
+							"help": {
+								"text": "More details at"
+							},
+							"helpUri": "https://github.com/projectdiscovery/sarif",
+							"id": "owned-health-cancel",
+							"name": "Owned synthetic health fixture",
+							"properties": {
+								"security-severity": "1",
+								"tags": [
+									"security"
+								]
+							},
+							"shortDescription": {
+								"text": "Owned synthetic health fixture"
+							}
+						}
+					],
+					"semanticVersion": "v3.11.1",
+					"shortDescription": {
+						"text": "Fast and Customizable Vulnerability Scanner"
+					}
+				}
+			},
+			"versionControlProvenance": [
+				{
+					"mappedTo": {
+						"uri": ".",
+						"uriBaseId": "%SRCROOT%"
+					},
+					"repositoryUri": "https://github.com/projectdiscovery/nuclei/releases",
+					"revisionId": "unknown"
+				}
+			]
+		}
+	],
+	"version": "2.1.0"
+}

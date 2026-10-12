@@ -1,0 +1,23 @@
+[
+  {
+    "scenario": "finding",
+    "method": "GET",
+    "url": "/health",
+    "host": "host.docker.internal:30883",
+    "at": "2026-10-11T23:55:08.178Z"
+  },
+  {
+    "scenario": "zero",
+    "method": "GET",
+    "url": "/health",
+    "host": "host.docker.internal:30883",
+    "at": "2026-10-11T23:55:19.763Z"
+  },
+  {
+    "scenario": "cancel",
+    "method": "GET",
+    "url": "/health",
+    "host": "host.docker.internal:30883",
+    "at": "2026-10-11T23:55:31.448Z"
+  }
+]

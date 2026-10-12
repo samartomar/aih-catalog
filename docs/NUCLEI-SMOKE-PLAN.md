@@ -9,18 +9,27 @@ Code, cancellation fixture and execution inputs require independent review befor
 Windows execution stopped on a bootstrap failure after its original window began
 at 22:02:37.489Z on 2026-10-11 (deadline 22:17:37.489Z). The exact image acquisition
 completed; npm configuration loading failed before installation or assessment.
-Zero assessment starts does not waive the stop/no-retry rule. A further window needs
-explicit owner authorization; [retained failure evidence](evidence/nuclei-windows-bootstrap/README.md)
+Zero assessment starts does not waive the stop/no-retry rule. A separately authorized
+recovery window also stopped before assessment when Core material staging could not
+protect its state root. These failures remain historical; [retained failure evidence](evidence/nuclei-windows-bootstrap/README.md)
 records the completed effect and remaining acceptance.
+
+The separately authorized Windows window using the corrected Core below passed:
+23:54:22.615Z–23:55:35.790Z on 2026-10-11, exactly three assessment starts, known
+finding 1, zero findings 0 and native cancellation. Listener closed and independent
+readback confirmed owned containers/networks absent. [Windows evidence](evidence/nuclei-windows-native/README.md)
+preserves reports, approvals, traces and the partial cancellation caveat. This
+success does not reset or relabel the earlier failed windows.
 
 ## Artifacts and executors
 
 The corrected committed source, exact unpublished Catalog tarball, both helpers and
 Core tarball are recorded in the delivery issue and retained execution config. The
 [helper manifest](../workflows/nuclei/manifest.json) pins platform bytes. Core is the
-exact `1.0.0-dev.34` artifact, SHA-256
-`cf4cc41afa46333fcd422b9ffe1a1ef0f25e23cb11acc11a7d1dd9c4a5b60ff0`,
-6,875,876 bytes, from source `4327df9687323b913c68e8008f9bd44246664c07`.
+corrected unpublished `1.0.0-dev.34` artifact, SHA-256
+`e39dff6b9b04587ee29ed6e27c8f532bdda3c61d0175cbe54947e99ba1427353`,
+6,879,586 bytes, from source `0a83ea256101b274e6453883bbe8207b77c3d12f`,
+whose tree equals merged Core commit `c68f0ec4`. The Catalog tarball is unchanged.
 An updated helper/package hash after the no-pull correction is covered by authorization.
 
 Linux executor: the delivery host's native Linux x64 session, UID:GID `1000:1000`,
@@ -34,7 +43,7 @@ Docker Desktop Linux-container runtime, endpoint `npipe:////./pipe/docker_engine
 Actual native host/runtime readiness was independently reviewed on 2026-10-11:
 Node 24.19.0, Docker CLI/daemon 29.8.0, Docker Desktop 4.92.0 and loopback 127.0.0.1.
 Private records bind the actual computer name and executable paths/hashes.
-This is not completed acceptance; do not substitute WSL execution, Wine, cross-builds,
+The bounded native scenario has now passed; do not substitute WSL execution, Wine, cross-builds,
 Windows Server or a new Docker installation.
 The owner-run wrapper requires the actual computer name, existing native Node24/Docker
 `.exe` paths and a literal existing private IPv4 interface (or loopback), port 30883.
@@ -105,7 +114,7 @@ absence while preserving reports. Listener shutdown is in finally. Any uncertain
 is a blocker, not a cleanup success. Retain artifacts, configs, ledgers, actual Core
 reviews/approvals, requests and report hashes before safe task-only cleanup.
 
-## Running and remaining Windows handoff
+## Running and completed native evidence
 
 The reviewed `tools/nuclei-native-smoke.mjs` runs in a disposable consumer installed
 from the exact local Catalog/Core tarballs with lifecycle scripts disabled. It verifies
@@ -117,8 +126,12 @@ It checks existing runtime/private interface/free port, pins the image, stages t
 consumer offline, launches the runner once, and retains logs. It installs no runtime,
 changes no security settings and does not delete reports. Missing cached dependencies,
 executor identity or runtime permission stops visibly. The corrected readiness path
-also loads the actual npm CLI with separate empty user/global config files. Windows
-execution stopped at the original bootstrap failure and remains blocked pending a
-reviewed correction, actual-input review and explicit authorization for another window.
-The completed Linux three-start budget is exhausted.
+also loads the actual npm CLI with separate empty user/global config files. Both
+`-CatalogSha256` and `-CoreSha256` are required explicit artifact bindings; a mismatched
+tarball stops before a work root or platform window is created. Earlier Windows
+bootstrap and state-protection failures remain retained. The corrected Core's
+separately authorized window passed after actual-input review; see the Windows
+evidence above and [Linux evidence](evidence/nuclei-linux-native/README.md). Both
+completed platform windows used their full three-start budgets; no further starts
+are authorized by this plan.
 Npm publication and other integrations remain outside this plan.
