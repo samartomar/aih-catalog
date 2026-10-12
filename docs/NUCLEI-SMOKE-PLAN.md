@@ -14,10 +14,12 @@ recovery window also stopped before assessment when Core material staging could 
 protect its state root. These failures remain historical; [retained failure evidence](evidence/nuclei-windows-bootstrap/README.md)
 records the completed effect and remaining acceptance.
 
-The owner has now authorized a new Windows window of 15 minutes and at most three
-assessment starts using the corrected Core artifact below. This authorization does
-not reset or relabel the earlier windows. Native Windows success remains unproven;
-review actual artifact bindings and readiness before starting the new window.
+The separately authorized Windows window using the corrected Core below passed:
+23:54:22.615Z–23:55:35.790Z on 2026-10-11, exactly three assessment starts, known
+finding 1, zero findings 0 and native cancellation. Listener closed and independent
+readback confirmed owned containers/networks absent. [Windows evidence](evidence/nuclei-windows-native/README.md)
+preserves reports, approvals, traces and the partial cancellation caveat. This
+success does not reset or relabel the earlier failed windows.
 
 ## Artifacts and executors
 
@@ -41,7 +43,7 @@ Docker Desktop Linux-container runtime, endpoint `npipe:////./pipe/docker_engine
 Actual native host/runtime readiness was independently reviewed on 2026-10-11:
 Node 24.19.0, Docker CLI/daemon 29.8.0, Docker Desktop 4.92.0 and loopback 127.0.0.1.
 Private records bind the actual computer name and executable paths/hashes.
-This is not completed acceptance; do not substitute WSL execution, Wine, cross-builds,
+The bounded native scenario has now passed; do not substitute WSL execution, Wine, cross-builds,
 Windows Server or a new Docker installation.
 The owner-run wrapper requires the actual computer name, existing native Node24/Docker
 `.exe` paths and a literal existing private IPv4 interface (or loopback), port 30883.
@@ -112,7 +114,7 @@ absence while preserving reports. Listener shutdown is in finally. Any uncertain
 is a blocker, not a cleanup success. Retain artifacts, configs, ledgers, actual Core
 reviews/approvals, requests and report hashes before safe task-only cleanup.
 
-## Running and remaining Windows handoff
+## Running and completed native evidence
 
 The reviewed `tools/nuclei-native-smoke.mjs` runs in a disposable consumer installed
 from the exact local Catalog/Core tarballs with lifecycle scripts disabled. It verifies
@@ -127,7 +129,9 @@ executor identity or runtime permission stops visibly. The corrected readiness p
 also loads the actual npm CLI with separate empty user/global config files. Both
 `-CatalogSha256` and `-CoreSha256` are required explicit artifact bindings; a mismatched
 tarball stops before a work root or platform window is created. Earlier Windows
-bootstrap and state-protection failures remain retained. The corrected Core and
-newly authorized window still require actual-input review and native execution evidence.
-The completed Linux three-start budget is exhausted.
+bootstrap and state-protection failures remain retained. The corrected Core's
+separately authorized window passed after actual-input review; see the Windows
+evidence above and [Linux evidence](evidence/nuclei-linux-native/README.md). Both
+completed platform windows used their full three-start budgets; no further starts
+are authorized by this plan.
 Npm publication and other integrations remain outside this plan.

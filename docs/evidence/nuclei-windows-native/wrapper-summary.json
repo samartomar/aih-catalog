@@ -1,0 +1,14 @@
+{
+  "status": "passed",
+  "runnerLaunches": 1,
+  "npmConfigLoaded": true,
+  "cleanup": "runner-confirmed-owned-resources-absent:reports-retained",
+  "windowStarted": "2026-10-11T23:54:22.6150339Z",
+  "windowDeadline": "2026-10-12T00:09:22.6150339Z",
+  "finished": "2026-10-11T23:55:35.831Z",
+  "runnerSha256": "16c1c910fdc41c10dbf3bbfa82a1bb50ac94f80fef2fe552a78a0be9cf357892",
+  "lockSha256": "a225f8f0cde265d4b5357edc8df10ceeff50eec276db13dd14105320b9ff425b",
+  "imageId": "sha256:9fd705284ac4b5f721fa1e23bf366f26e985cd4ec65927fe9a53cb3fcb0417a6",
+  "catalogSha256": "850304c96bda9dd66573c7e3e28bb45aab6ca195a815407f62c2f6ff3d75f7c3",
+  "coreSha256": "e39dff6b9b04587ee29ed6e27c8f532bdda3c61d0175cbe54947e99ba1427353"
+}

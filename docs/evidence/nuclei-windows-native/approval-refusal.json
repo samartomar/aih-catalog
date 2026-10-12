@@ -1,0 +1,75 @@
+{
+  "schema": "urn:aihq:core:run-result:1.0.0",
+  "runId": "6e7385e7-4025-4340-8740-4fb2693c9080",
+  "useCase": "policy",
+  "completion": "rejected",
+  "effectiveOptions": {
+    "logging": {
+      "value": "off",
+      "origin": "explicit"
+    }
+  },
+  "operations": [
+    {
+      "id": "nuclei-prepare/prepare",
+      "application": "not-attempted",
+      "verification": {
+        "status": "unverified",
+        "reason": "no-supplied-check"
+      }
+    }
+  ],
+  "checks": [],
+  "diagnostics": [
+    {
+      "code": "APPROVAL_REQUIRED",
+      "reason": "request-object",
+      "message": "The run could not complete the requested work."
+    }
+  ],
+  "record": {
+    "status": "disabled",
+    "reason": "logging-off"
+  },
+  "followUp": [
+    "Inspect the reported outcomes, prepare again and approve the new review before further changes."
+  ],
+  "inputs": {
+    "policySha256": "063bf975eca24b353acf99c35b822f0ad9d391e0adc86bc665feadaf7804fcdc",
+    "package": {
+      "name": "@aihq/core",
+      "version": "1.0.0-dev.34"
+    },
+    "organization": {
+      "source": {
+        "provider": "github",
+        "repository": {
+          "owner": "fixture-org",
+          "name": "policy"
+        },
+        "path": "policy/org.json",
+        "revision": {
+          "kind": "commit",
+          "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "resolvedCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "blobId": "e92d19551399a77299d75ecd279728fcff6456a8",
+      "contentDigest": "sha256:c9654fd9f8b7e99e129c07da6558bbd1d91df97c81127d858f9444301c2d1455",
+      "policyId": "fixture-org",
+      "helper": {
+        "id": "github-policy-reader",
+        "package": {
+          "name": "@aihq/core",
+          "version": "1.0.0-dev.34"
+        }
+      }
+    }
+  },
+  "evidence": [
+    {
+      "status": "skipped",
+      "reason": "not-supplied"
+    }
+  ]
+}

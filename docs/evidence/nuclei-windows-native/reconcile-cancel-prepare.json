@@ -1,0 +1,133 @@
+{
+  "status": "ready",
+  "runId": "a9a85013-10ce-4e85-acbb-539ed42e4b06",
+  "review": {
+    "schema": "urn:aihq:core:prepared-work:1.0.0",
+    "useCase": "policy",
+    "mode": "enterprise",
+    "target": {
+      "scope": "project",
+      "project": "[owned-evidence-root]\\project"
+    },
+    "inputs": {
+      "policySha256": "06e2a90bd967a0fa9b544d1a375bfaeb36c346b0ed60fb57ffa23fed822c61a7",
+      "package": {
+        "name": "@aihq/core",
+        "version": "1.0.0-dev.34"
+      },
+      "organization": {
+        "source": {
+          "provider": "github",
+          "repository": {
+            "owner": "fixture-org",
+            "name": "policy"
+          },
+          "path": "policy/org.json",
+          "revision": {
+            "kind": "commit",
+            "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        },
+        "resolvedCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "blobId": "a540578290dff31d91aaa0d10022805aa85dc597",
+        "contentDigest": "sha256:98e307662735c9bd873c0b68b9f7638cfc4ddb3c8890bc2c45fc6cd40d5d067e",
+        "policyId": "fixture-org",
+        "helper": {
+          "id": "github-policy-reader",
+          "package": {
+            "name": "@aihq/core",
+            "version": "1.0.0-dev.34"
+          }
+        }
+      }
+    },
+    "operations": [
+      {
+        "id": "nuclei-reconcile/reconcile",
+        "purpose": "reconcile reviewed Nuclei inputs",
+        "kind": "process.run",
+        "scope": "project",
+        "effects": "opaque-process",
+        "ownership": "unowned",
+        "requires": [],
+        "checks": [],
+        "details": {
+          "executable": "material:nuclei-helper",
+          "executableSha256": "8d895c4c12765c400ff0d2148c4c11ff0336b3162a56a375d458a82503bf48b7",
+          "args": [
+            "\"reconcile\"",
+            "\"--run-dir\"",
+            "\"[owned-evidence-root]\\\\run-cancel\"",
+            "\"--daemon\"",
+            "\"npipe:////./pipe/docker_engine\"",
+            "\"--docker-cli\"",
+            "\"[reviewed-native-docker]\"",
+            "\"--container\"",
+            "\"aih-nuclei-win-ece7ee5fec19415f-cancel\"",
+            "\"--network\"",
+            "\"aih-nuclei-win-ece7ee5fec19415f-cancel-net\"",
+            "\"--timeout-seconds\"",
+            "\"25\"",
+            "\"--cleanup-timeout-seconds\"",
+            "\"10\"",
+            "\"--max-output-bytes\"",
+            "\"8192\""
+          ],
+          "cwd": "[owned-evidence-root]\\project",
+          "env": {},
+          "stdinProtected": false,
+          "timeoutMs": {
+            "value": 30000,
+            "origin": "explicit"
+          },
+          "maxOutputBytes": {
+            "value": 16384,
+            "origin": "explicit"
+          },
+          "acceptedExitCodes": [
+            0
+          ],
+          "declaredEffects": [
+            "Docker daemon power is required. Bridge networking does not enforce target-only egress. Daemon/Desktop proxies may reroute or block traffic. Templates can change target data. Reports are untrusted data; retain until explicit deletion.",
+            "Use the reviewed local Docker daemon, mounts, network and target. Write retained native reports and disposable staging."
+          ]
+        }
+      }
+    ],
+    "observations": [
+      {
+        "id": "nuclei-reconcile/prerequisite-0",
+        "reason": "available"
+      }
+    ],
+    "conflicts": [],
+    "omissions": [],
+    "evidence": [
+      {
+        "status": "skipped",
+        "reason": "not-supplied"
+      }
+    ],
+    "effectiveOptions": {
+      "logging": {
+        "value": "off",
+        "origin": "explicit"
+      },
+      "inputs": {}
+    },
+    "reviewDigest": "b0b8e6b6a0eede2456b127b0124dca9b9e2c45ad54139b66da587fdf69f663b0"
+  },
+  "diagnostics": [],
+  "record": {
+    "status": "disabled",
+    "reason": "logging-off"
+  },
+  "evidence": [
+    {
+      "status": "skipped",
+      "reason": "not-supplied"
+    }
+  ],
+  "resolutionInputs": [],
+  "prepared": {}
+}

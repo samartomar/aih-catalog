@@ -1,0 +1,74 @@
+{
+  "schema": "urn:aihq:core:run-result:1.0.0",
+  "runId": "70eff100-5289-4997-94f8-fb70feac8a67",
+  "useCase": "policy",
+  "completion": "complete",
+  "effectiveOptions": {
+    "logging": {
+      "value": "off",
+      "origin": "explicit"
+    }
+  },
+  "operations": [
+    {
+      "id": "nuclei-reconcile/reconcile",
+      "application": "applied",
+      "verification": {
+        "status": "unverified",
+        "reason": "no-supplied-check"
+      }
+    }
+  ],
+  "checks": [],
+  "diagnostics": [],
+  "record": {
+    "status": "disabled",
+    "reason": "logging-off"
+  },
+  "followUp": [],
+  "inputs": {
+    "policySha256": "a1a30f7e16735e12b4dfbd4f1ca194f7be969c64e09ba2312e7922e4f08866ed",
+    "package": {
+      "name": "@aihq/core",
+      "version": "1.0.0-dev.34"
+    },
+    "organization": {
+      "source": {
+        "provider": "github",
+        "repository": {
+          "owner": "fixture-org",
+          "name": "policy"
+        },
+        "path": "policy/org.json",
+        "revision": {
+          "kind": "commit",
+          "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "resolvedCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "blobId": "cbf7ce370f35eb87c0de2b681dc4799043143b2c",
+      "contentDigest": "sha256:899b6171c4613c6d6c2262787ac909f0da236fc6ee4754277ca0e48648c0383f",
+      "policyId": "fixture-org",
+      "helper": {
+        "id": "github-policy-reader",
+        "package": {
+          "name": "@aihq/core",
+          "version": "1.0.0-dev.34"
+        }
+      }
+    }
+  },
+  "authorization": {
+    "origin": "automation",
+    "allowPartial": {
+      "value": false,
+      "origin": "default"
+    }
+  },
+  "evidence": [
+    {
+      "status": "skipped",
+      "reason": "not-supplied"
+    }
+  ]
+}

@@ -44,7 +44,10 @@ made their exact fixture GET, and passed required native artifact validation.
 Cancellation has no successful trace/SARIF claim; its empty partial trace and
 missing SARIF remain honest incomplete evidence.
 
-Windows has zero assessment starts. Its later reviewed host/runtime readiness and
-stopped bootstrap attempt are recorded [separately](../nuclei-windows-bootstrap/README.md).
-Native Windows admission/mount/runtime/cancellation and cleanup remain unverified;
-cross-built PE identities are not native Windows evidence. Catalog #65 stays open.
+Windows subsequently passed its separately authorized native three-start window
+using corrected Core bytes; [Windows evidence](../nuclei-windows-native/README.md)
+records actual PE staging, Docker Desktop mounts/routing, cancellation and cleanup.
+The earlier [bootstrap failure](../nuclei-windows-bootstrap/README.md) and subsequent
+state-protection stop remain historical. These Linux evidence bytes and their
+original artifact identities are unchanged. Neither platform record claims npm
+publication, CI completion, merge or issue closure.

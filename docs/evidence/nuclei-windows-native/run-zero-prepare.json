@@ -1,0 +1,195 @@
+{
+  "status": "ready",
+  "runId": "8ba993ab-4759-4dfd-a47b-2b10d7258af1",
+  "review": {
+    "schema": "urn:aihq:core:prepared-work:1.0.0",
+    "useCase": "policy",
+    "mode": "enterprise",
+    "target": {
+      "scope": "project",
+      "project": "[owned-evidence-root]\\project"
+    },
+    "inputs": {
+      "policySha256": "13f3c3e1941a1df7f6c44820fb5e071a5d0db225de29f10bd9a0e0589521c6df",
+      "package": {
+        "name": "@aihq/core",
+        "version": "1.0.0-dev.34"
+      },
+      "organization": {
+        "source": {
+          "provider": "github",
+          "repository": {
+            "owner": "fixture-org",
+            "name": "policy"
+          },
+          "path": "policy/org.json",
+          "revision": {
+            "kind": "commit",
+            "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        },
+        "resolvedCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "blobId": "b49421b96a21583d78fa119cf2dfbbe5988a0838",
+        "contentDigest": "sha256:f588ef97883ed6525dc2a58e74a1dbe72b9d475e0c540fc4a75da0a320e7c526",
+        "policyId": "fixture-org",
+        "helper": {
+          "id": "github-policy-reader",
+          "package": {
+            "name": "@aihq/core",
+            "version": "1.0.0-dev.34"
+          }
+        }
+      }
+    },
+    "operations": [
+      {
+        "id": "nuclei-run/run",
+        "purpose": "run reviewed Nuclei inputs",
+        "kind": "process.run",
+        "scope": "project",
+        "effects": "opaque-process",
+        "ownership": "unowned",
+        "requires": [],
+        "checks": [
+          {
+            "id": "nuclei-run/validate",
+            "purpose": "Independently require complete artifacts and cleanup",
+            "kind": "process.exit",
+            "details": {
+              "executable": "material:nuclei-helper",
+              "executableSha256": "8d895c4c12765c400ff0d2148c4c11ff0336b3162a56a375d458a82503bf48b7",
+              "args": [
+                "\"validate\"",
+                "\"--run-dir\"",
+                "\"[owned-evidence-root]\\\\run-zero\"",
+                "\"--timeout-seconds\"",
+                "\"5\"",
+                "\"--max-output-bytes\"",
+                "\"8192\""
+              ],
+              "cwd": "[owned-evidence-root]\\project",
+              "env": {},
+              "stdinProtected": false,
+              "timeoutMs": {
+                "value": 10000,
+                "origin": "explicit"
+              },
+              "maxOutputBytes": {
+                "value": 16384,
+                "origin": "explicit"
+              },
+              "acceptedExitCodes": [
+                0
+              ]
+            }
+          }
+        ],
+        "details": {
+          "executable": "material:nuclei-helper",
+          "executableSha256": "8d895c4c12765c400ff0d2148c4c11ff0336b3162a56a375d458a82503bf48b7",
+          "args": [
+            "\"run\"",
+            "\"--run-dir\"",
+            "\"[owned-evidence-root]\\\\run-zero\"",
+            "\"--bundle\"",
+            "\"[owned-evidence-root]\\\\preparation-zero\\\\templates.tar.gz\"",
+            "\"--bundle-sha256\"",
+            "\"ddf370238b3e5e8e5334af9694674d60256f0538623403c2372cfc4eddb5bb35\"",
+            "\"--bundle-bytes\"",
+            "\"479\"",
+            "\"--target\"",
+            "\"http://host.docker.internal:30883/\"",
+            "\"--allow-host\"",
+            "\"host.docker.internal\"",
+            "\"--daemon\"",
+            "\"npipe:////./pipe/docker_engine\"",
+            "\"--docker-cli\"",
+            "\"[reviewed-native-docker]\"",
+            "\"--image\"",
+            "\"projectdiscovery/nuclei@sha256:9fd705284ac4b5f721fa1e23bf366f26e985cd4ec65927fe9a53cb3fcb0417a6\"",
+            "\"--container\"",
+            "\"aih-nuclei-win-ece7ee5fec19415f-zero\"",
+            "\"--network\"",
+            "\"aih-nuclei-win-ece7ee5fec19415f-zero-net\"",
+            "\"--target-mode\"",
+            "\"local-host\"",
+            "\"--container-user\"",
+            "\"1000:1000\"",
+            "\"--host-gateway=false\"",
+            "\"--cpus\"",
+            "\"1\"",
+            "\"--memory-mib\"",
+            "\"512\"",
+            "\"--pids\"",
+            "\"128\"",
+            "\"--rate-limit\"",
+            "\"2\"",
+            "\"--tool-timeout-seconds\"",
+            "\"30\"",
+            "\"--timeout-seconds\"",
+            "\"85\"",
+            "\"--cleanup-timeout-seconds\"",
+            "\"10\"",
+            "\"--max-report-bytes\"",
+            "\"16777216\"",
+            "\"--max-output-bytes\"",
+            "\"8192\""
+          ],
+          "cwd": "[owned-evidence-root]\\project",
+          "env": {},
+          "stdinProtected": false,
+          "timeoutMs": {
+            "value": 90000,
+            "origin": "explicit"
+          },
+          "maxOutputBytes": {
+            "value": 16384,
+            "origin": "explicit"
+          },
+          "acceptedExitCodes": [
+            0
+          ],
+          "declaredEffects": [
+            "Docker daemon power is required. Bridge networking does not enforce target-only egress. Daemon/Desktop proxies may reroute or block traffic. Templates can change target data. Reports are untrusted data; retain until explicit deletion.",
+            "Use the reviewed local Docker daemon, mounts, network and target. Write retained native reports and disposable staging."
+          ]
+        }
+      }
+    ],
+    "observations": [
+      {
+        "id": "nuclei-run/prerequisite-0",
+        "reason": "available"
+      }
+    ],
+    "conflicts": [],
+    "omissions": [],
+    "evidence": [
+      {
+        "status": "skipped",
+        "reason": "not-supplied"
+      }
+    ],
+    "effectiveOptions": {
+      "logging": {
+        "value": "off",
+        "origin": "explicit"
+      },
+      "inputs": {}
+    },
+    "reviewDigest": "b036323effeca892bccb57d3219936e1faa6896536f0bc45bb0de9cf5243a141"
+  },
+  "diagnostics": [],
+  "record": {
+    "status": "disabled",
+    "reason": "logging-off"
+  },
+  "evidence": [
+    {
+      "status": "skipped",
+      "reason": "not-supplied"
+    }
+  ],
+  "resolutionInputs": [],
+  "prepared": {}
+}
