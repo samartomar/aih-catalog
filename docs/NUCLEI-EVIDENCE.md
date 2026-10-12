@@ -13,20 +13,19 @@ exact bytes and Go source identity; data-mode archive members do not execute on 
 | Evidence | Linux x64 | Windows x64 |
 | --- | --- | --- |
 | Standalone binary format/size/hash | ELF 7,172,222 bytes; pinned manifest | PE 7,383,552 bytes; pinned manifest |
-| Actual Core selected archive member/staging/admission | Passed controlled and native Docker/Nuclei | Pending native Windows run |
-| Path/runtime connectivity | Passed controlled and native Docker/Nuclei | Pending native Windows run |
-| Cancellation and explicit owned-resource reconciliation | Passed controlled and native Docker/Nuclei | Pending native Windows run |
-| Staging cleanup with reports preserved | Passed controlled and native Docker/Nuclei | Pending native Windows run |
-| Real Docker/Nuclei target/Host behavior | Passed owned synthetic HTTP; TLS not exercised | Not run; bootstrap stopped before assessment |
+| Actual Core selected archive member/staging/admission | Passed controlled and native Docker/Nuclei | Passed native Docker/Nuclei with corrected Core |
+| Path/runtime connectivity | Passed controlled and native Docker/Nuclei | Passed native PE helper and Docker Desktop mounts |
+| Cancellation and explicit owned-resource reconciliation | Passed controlled and native Docker/Nuclei | Passed native Core cancellation and reconciliation |
+| Staging cleanup with reports preserved | Passed controlled and native Docker/Nuclei | Passed; independent resource/listener absence verified |
+| Real Docker/Nuclei target/Host behavior | Passed owned synthetic HTTP; TLS not exercised | Passed owned synthetic HTTP; TLS not exercised |
 
 No external target, real credential or paid provider was used. The [consolidated smoke plan](NUCLEI-SMOKE-PLAN.md) was independently reviewed and authorized.
-[Native Linux evidence](evidence/nuclei-linux-native/README.md) records three actual starts: finding, zero findings and cancellation/reconciliation. [Windows bootstrap evidence](evidence/nuclei-windows-bootstrap/README.md) records reviewed native host/runtime readiness and one exact image acquisition, followed by npm configuration failure before installation or assessment. The original window stopped; another window needs explicit authorization after the correction is reviewed. Cross-build evidence will not be reported as
-Windows execution evidence. No new job, required status check, signing scheme, approval workflow,
+[Native Linux evidence](evidence/nuclei-linux-native/README.md) and [native Windows evidence](evidence/nuclei-windows-native/README.md) each record three actual starts: finding, zero findings and cancellation/reconciliation. Windows passed in a separately authorized window using the corrected Core artifact; earlier bootstrap and state-protection failures remain historical. The Windows cancellation retained partial findings with incomplete status, not a completed assessment. No new job, required status check, signing scheme, approval workflow,
 release gate or Core execution contract is added. Publication remains blocked by existing policy.
 
 A source-verified upstream conflict is explicit: Nuclei omits SARIF on zero findings. The owner accepted its absence only when empty JSONL and successful selected-template HTTP
 request traces prove execution, recorded explicitly without fabricating a report. Controlled
-substitutes cover both provided and omitted empty SARIF; native Linux zero-finding omission was verified against the owned synthetic target; Windows remains unverified. Other missing/invalid artifacts stay incomplete. The helper never fabricates
+substitutes cover both provided and omitted empty SARIF; native Linux and Windows zero-finding omission was verified against the owned synthetic target. Other missing/invalid artifacts stay incomplete. The helper never fabricates
 native artifacts to make a run look successful.
 
 ## Executed controlled checks
@@ -66,4 +65,4 @@ independent review outcomes are recorded on the delivery PR.
 
 Package publication and release activation remain outside this ticket. The release maintainer
 owns eventual version allocation/publication through the existing release process; no registry
-availability is claimed. Native Linux smoke passed within the original three-start window. Native Windows runtime evidence remains a genuine acceptance gate, so #65 stays open until that evidence is complete. Corrected artifacts are recorded in [nuclei-corrected-artifacts.json](nuclei-corrected-artifacts.json).
+availability is claimed. Native Linux and Windows acceptance both passed their approved three-start windows. Corrected Catalog/helper artifacts are recorded in [nuclei-corrected-artifacts.json](nuclei-corrected-artifacts.json); the later corrected Core artifact is identified in the [Windows record](evidence/nuclei-windows-native/README.md). Integration and check outcomes are recorded on the delivery issue and PR.
