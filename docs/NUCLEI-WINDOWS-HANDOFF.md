@@ -24,7 +24,8 @@ The single complete owner-run script is
 Its companion [`nuclei-native-smoke.mjs`](../tools/nuclei-native-smoke.mjs),
 `seed-consumer-lock.mjs` and committed `package-lock.json` must remain adjacent in their
 repository layout. The finisher retains a portable transfer packet containing those
-reviewed files and both exact local tarballs. Verify [artifact identities](nuclei-corrected-artifacts.json).
+reviewed files and both exact local tarballs. Verify [Catalog/helper identities](nuclei-corrected-artifacts.json)
+and the [corrected Core identity](evidence/nuclei-windows-native/README.md).
 Use native Node24 with its existing npm and cached locked dependencies. Missing cache
 stops visibly before assessments; it does not authorize an installation or silent retry.
 
