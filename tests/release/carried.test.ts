@@ -100,10 +100,11 @@ describe("carried release", () => {
     const hookBytes = bytesAt("release/release-1.1.json");
     const hookRead = readRelease(hookBytes, { expectedSha256: sha256(hookBytes) });
     if (!hookRead.valid) throw new Error(JSON.stringify(hookRead.diagnostics));
-    // The native-fixture documents are checked in native-fixture-release.test.ts and share the directory.
-    const nativeDocuments = [
+    // Adjacent native-fixture and Guide releases share the directory and declare their own closure.
+    const adjacentDocuments = [
       "release/release-native-fixture.json",
       "release/release-native-bundles.json",
+      "release/release-guide.json",
     ].map((path) => {
       const bytes = bytesAt(path);
       const read = readRelease(bytes, { expectedSha256: sha256(bytes) });
@@ -115,11 +116,12 @@ describe("carried release", () => {
       "release/release-1.1.json",
       "release/release-native-fixture.json",
       "release/release-native-bundles.json",
+      "release/release-guide.json",
     ]);
     for (const item of [
       ...listItems(carried()),
       ...listItems(hookRead.release),
-      ...nativeDocuments.flatMap((release) => listItems(release)),
+      ...adjacentDocuments.flatMap((release) => listItems(release)),
     ]) {
       for (const member of [item.recipe, ...item.materials]) {
         const bytes = bytesAt(member.path);

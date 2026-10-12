@@ -212,3 +212,5 @@ export function generateItem(args: {
   };
   return { record, recipePath, recipeBytes, members };
 }
+
+export const GUIDE_RELEASE_PATH = `${OUTPUT_ROOT}/release-guide.json`;

@@ -1,0 +1,6 @@
+{
+  "id": "aih-guide",
+  "name": "Ask AIH Guide",
+  "description": "Guidance for AI CLI setup recovery and reviewed Nuclei workflows.",
+  "icon": "compass.svg"
+}

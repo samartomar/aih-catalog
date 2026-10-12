@@ -144,6 +144,7 @@ describe("the published package keeps its intended runtime subset", () => {
       "./package.json",
       "./workflows/nuclei",
       "./workflows/nuclei/manifest.json",
+      "./release-guide.json",
     ]);
     expect(manifest.private).toBe(true);
     expect(manifest.scripts.prepublishOnly).toBe("node tools/refuse-publication.mjs");

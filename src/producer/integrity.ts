@@ -8,6 +8,7 @@ import type { Record_ } from "./base.js";
 import { assertRequiredClosure } from "./candidate.js";
 import { ProducerRefusal } from "./errors.js";
 import {
+  GUIDE_RELEASE_PATH,
   HOOK_RELEASE_PATH,
   NATIVE_BUNDLES_RELEASE_PATH,
   NATIVE_FIXTURE_RELEASE_PATH,
@@ -85,6 +86,9 @@ export function checkCandidateFiles(
       : []),
     ...(files.has(NATIVE_BUNDLES_RELEASE_PATH)
       ? [{ path: NATIVE_BUNDLES_RELEASE_PATH, export: "./release-native-bundles.json" as const }]
+      : []),
+    ...(files.has(GUIDE_RELEASE_PATH)
+      ? [{ path: GUIDE_RELEASE_PATH, export: "./release-guide.json" as const }]
       : []),
   ];
   /** Per-release outcomes merged under the stable check names; detail names a 1.1 document. */
