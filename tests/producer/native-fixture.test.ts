@@ -105,6 +105,18 @@ describe("a candidate for a different package version", () => {
     expect(bundle.release.sha256).not.toBe(committedBundle.release.sha256);
   });
 
+  it("preserves the pinned Guide recipe and material when refreshing another source", () => {
+    const path = "release/release-guide.json";
+    const before = JSON.parse((committedRelease().get(path) as Buffer).toString("utf8"));
+    const after = JSON.parse(bytes(path).toString("utf8"));
+    expect(after.package).toEqual({ name: identity.name, version });
+    expect(after.items).toEqual(before.items);
+    expect(after.sources).toEqual(before.sources);
+    for (const member of [before.items[0].recipe, ...before.items[0].materials]) {
+      expect(bytes(member.path)).toEqual(committedRelease().get(member.path));
+    }
+  });
+
   it("passes every whole-package check", () => {
     const failed = checkCandidateFiles(
       result.files,

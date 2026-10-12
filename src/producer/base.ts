@@ -2,6 +2,7 @@ import type { CatalogRelease, Json } from "../release/contracts.js";
 import { readRelease } from "../release/reader.js";
 import { refuse } from "./errors.js";
 import {
+  GUIDE_RELEASE_PATH,
   HOOK_RELEASE_PATH,
   NATIVE_BUNDLES_RELEASE_PATH,
   NATIVE_FIXTURE_RELEASE_PATH,
@@ -28,6 +29,8 @@ export interface BaseRelease {
    * The native-fixture release documents the base carries, validated, by path. They are pure
    * functions of the package identity, so a candidate renders them again for its own identity.
    */
+  /** Pinned Guide content carried unchanged by targeted upstream refreshes. */
+  readonly guideDocument?: Record_;
   readonly nativeDocuments: ReadonlyMap<string, Record_>;
 }
 
@@ -105,7 +108,12 @@ export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRe
     }
   }
   const nativeDocuments = new Map<string, Record_>();
-  for (const path of [NATIVE_FIXTURE_RELEASE_PATH, NATIVE_BUNDLES_RELEASE_PATH]) {
+  let guideDocument: Record_ | undefined;
+  for (const path of [
+    NATIVE_FIXTURE_RELEASE_PATH,
+    NATIVE_BUNDLES_RELEASE_PATH,
+    GUIDE_RELEASE_PATH,
+  ]) {
     const bytes = files.get(path);
     if (bytes === undefined) continue;
     const nativeRead = readRelease(bytes, { expectedSha256: sha256Hex(bytes) });
@@ -115,7 +123,8 @@ export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRe
       });
     }
     const nativeDocument = JSON.parse(bytes.toString("utf8")) as Record_;
-    nativeDocuments.set(path, nativeDocument);
+    if (path === GUIDE_RELEASE_PATH) guideDocument = nativeDocument;
+    else nativeDocuments.set(path, nativeDocument);
     referenced.add(path);
     for (const item of (nativeDocument.items as Json[]).map(asRecord)) {
       for (const member of memberList(item)) {
@@ -152,5 +161,6 @@ export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRe
     ...(document.metadata === undefined ? {} : { metadata: document.metadata }),
     ...(hookDocument === undefined ? {} : { hookDocument }),
     nativeDocuments,
+    ...(guideDocument === undefined ? {} : { guideDocument }),
   };
 }

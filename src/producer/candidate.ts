@@ -9,6 +9,7 @@ import { refuse } from "./errors.js";
 import {
   documentBytes,
   type GeneratedItem,
+  GUIDE_RELEASE_PATH,
   generateItem,
   HOOK_RELEASE_PATH,
   RELEASE_PATH,
@@ -304,6 +305,18 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
       }
     }
     put(HOOK_RELEASE_PATH, documentBytes(hookDocument));
+  }
+  if (base?.guideDocument !== undefined) {
+    const guideDocument: Record_ = {
+      ...base.guideDocument,
+      package: { name: input.package.name, version: input.package.version },
+    };
+    for (const item of (guideDocument.items as Json[]).map(asRecord)) {
+      for (const member of [asRecord(item.recipe), ...(item.materials as Json[]).map(asRecord)]) {
+        put(member.path as string, files.get(member.path as string) as Buffer);
+      }
+    }
+    put(GUIDE_RELEASE_PATH, documentBytes(guideDocument));
   }
   if (base !== undefined && base.nativeDocuments.size > 0) {
     // The native-fixture documents pin the package identity inside the bundle, so they are

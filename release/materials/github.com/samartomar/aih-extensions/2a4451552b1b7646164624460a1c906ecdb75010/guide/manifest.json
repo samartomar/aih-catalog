@@ -1,0 +1,27 @@
+{
+  "id": "aih-guide",
+  "name": "Ask AIH Guide",
+  "description": "Guidance for AI CLI setup recovery and reviewed Nuclei workflows.",
+  "icon": "compass.svg",
+  "version": "0.6.0",
+  "source": {
+    "repository": "https://github.com/samartomar/aih-extensions",
+    "commit": "b966056ff4cb59a87507260c522a38bb9d8902ec",
+    "dirty": false,
+    "sha256": "5491ec6b76173fb0d453013a3e8f88a6c0e11c5b6001f6dafeacd8cbb90bbe87"
+  },
+  "inputs": {
+    "guide/source.md": "416aceb6c7a2f38d7c282e92de11031fd91519f6f35ceb4ad1b8df72992fd3bb",
+    "guide/metadata.json": "f0bad472d3f8f3e1d671e78f430ac5e8c480628df9a214bb1c7835d48a172441",
+    "guide/compass.svg": "4701304fcce233002fdf732b8811f0022299222c8ca85fd0e9d9945102f46147",
+    "scripts/guide.mjs": "706b15f4e12997685151f9187cf3a007176c62cb1b7325642dc79a01fcc164ce",
+    "package.json": "919e2708aeb24ee8be3ed222e2daf404af97a35d88d4b3ebc260cdf67ceb0ea7"
+  },
+  "files": {
+    "guide/MANUAL.md": "77b5c9d21968cf194ca2a86cb4cd2b94cf421081780c59d7fa5289de6a364462",
+    "guide/generated/claude/aih-guide.md": "e83244a1841d9c2f1b15471de294a14477ea08baeed79051f66ae8a39f0355cb",
+    "guide/generated/kimi/aih-guide.md": "06c72ead940c670ce0a1140ff4ac5fe421225e03d6cc232bacfc362040531038",
+    "guide/generated/opencode/aih-guide.md": "b214964575abaa7820859437b9ba00549a0e268dc5f26852dd8618a624d3eaa2",
+    "guide/compass.svg": "4701304fcce233002fdf732b8811f0022299222c8ca85fd0e9d9945102f46147"
+  }
+}

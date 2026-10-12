@@ -120,6 +120,32 @@ describe("exact packed consumer", () => {
     expect(packedPaths.some((path) => path.startsWith("tests/"))).toBe(false);
   });
 
+  it("selects the optional Guide with exact offline manual bytes through packed exports", () => {
+    const script = `
+      import assert from "node:assert/strict";
+      import { readFileSync } from "node:fs";
+      import { dirname, join } from "node:path";
+      import { fileURLToPath } from "node:url";
+      import { readInstalledRelease } from "@aihq/catalog/node";
+      import { configureItem, listItems } from "@aihq/catalog/reader";
+      const root = dirname(fileURLToPath(import.meta.resolve("@aihq/catalog/package.json")));
+      const read = await readInstalledRelease({ root, release: "./release-guide.json" });
+      assert.equal(read.valid, true, JSON.stringify(read.diagnostics));
+      assert.deepEqual(listItems(read.release).map(i => i.id), ["aihq.guide"]);
+      const configured = configureItem({ release: read.release, itemId: "aihq.guide",
+        configuration: {}, materialSource: read.source });
+      assert.equal(configured.valid, true, JSON.stringify(configured.diagnostics));
+      const manual = read.release.items[0].materials.find(m => m.id === "manual");
+      assert.equal(manual.sha256, "77b5c9d21968cf194ca2a86cb4cd2b94cf421081780c59d7fa5289de6a364462");
+      assert(readFileSync(join(root, manual.path), "utf8").includes("Ask AIH Guide"));
+    `;
+    writeFileSync(join(consumer, "guide.mjs"), script);
+    execFileSync(process.execPath, [join(consumer, "guide.mjs")], {
+      cwd: consumer,
+      timeout: 60_000,
+    });
+  });
+
   it("keeps the portable entries free of Node, filesystem and network imports", () => {
     const seen = new Set<string>();
     const visit = (file: string) => {

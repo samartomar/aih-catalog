@@ -1,6 +1,7 @@
+import { generateGuideRelease } from "./generate-guide-release.mjs";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { mkdirSync, readdirSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { committedHookBaseline } from "./hook-git-baseline.mjs";
@@ -373,6 +374,7 @@ export function generateRelease(root) {
   put(RELEASE_PATH, document(release));
   hookRelease(pkg, put);
   nativeRelease(pkg, put);
+  for (const [path, bytes] of generateGuideRelease(root)) put(path, bytes);
   return files;
 }
 
@@ -451,6 +453,14 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       checkContextContent(root);
       checkHookRelease(root);
       checkNativeRelease(root);
+      if (existsSync(resolve(root, "release/release-guide.json"))) {
+        for (const [path, bytes] of generateGuideRelease(
+          resolve(dirname(fileURLToPath(import.meta.url)), ".."),
+          readJson(root, "release/release-guide.json").package,
+        )) {
+          if (!readFileSync(resolve(root, path)).equals(bytes)) fail(`${path} is stale; run node tools/generate-guide-release.mjs`);
+        }
+      }
       const hookFiles = new Map();
       hookRelease(readJson(root, HOOK_RELEASE_PATH).package, (path, bytes) => hookFiles.set(path, bytes));
       await continuity(hookFiles);

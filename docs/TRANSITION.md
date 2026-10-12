@@ -88,6 +88,12 @@ examples; retiring that contract does not establish new API correctness.
 Historical source-line inventories, V2 authority assertions and workflow snapshots
 likewise do not define the new contract.
 
+The separate optional `@aihq/catalog/release-guide.json` release carries the
+canonical Extensions Ask AIH Guide manual and reference profiles through generic
+Core file ownership. [Guide content](GUIDE-CONTENT.md) records the source pin,
+offline saving, evidence limits and unpublished availability. It registers no
+native conversation entry.
+
 ## Active verification
 
 Run `npm ci --ignore-scripts`, then `npm run verify`. Verification typechecks and

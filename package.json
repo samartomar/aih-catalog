@@ -44,7 +44,8 @@
     "./schemas/release/1.1.0.json": "./schemas/release/1.1.0.json",
     "./package.json": "./package.json",
     "./workflows/nuclei": "./workflows/nuclei/author.mjs",
-    "./workflows/nuclei/manifest.json": "./workflows/nuclei/manifest.json"
+    "./workflows/nuclei/manifest.json": "./workflows/nuclei/manifest.json",
+    "./release-guide.json": "./release/release-guide.json"
   },
   "engines": {
     "node": ">=24.15.0 <25"

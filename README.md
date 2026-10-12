@@ -13,6 +13,15 @@ of the old release proposal,
 [the producer guide](docs/PRODUCER.md) for preparing candidates,
 and [CONTRIBUTING.md](CONTRIBUTING.md) for contributor checks.
 
+## Optional Ask AIH Guide
+
+The optional `aihq.guide` item in `@aihq/catalog/release-guide.json` packages the
+canonical Extensions offline manual and reference agent profiles. Save the manual
+as ordinary Markdown or select the generic Core recipe for reviewed installation,
+owned updates and removal. No native conversational entry is registered; installing
+an agent profile does not prove direct conversation. See [Guide content](docs/GUIDE-CONTENT.md)
+for provenance, offline saving, evidence limits and current unpublished availability.
+
 ## Optional Nuclei workflow
 
 `@aihq/catalog/workflows/nuclei` supplies local policy authoring; its adjacent manifest pins
@@ -30,6 +39,7 @@ platform evidence and real-tool execution limits are recorded in [delivery evide
 | `@aihq/catalog/reader` | Read, browse, configure and validate explicit selections | Portable |
 | `@aihq/catalog/node` | Read an installed root, resolve an exact archive/registry version, or prepare the project context for a chosen instruction directory | Node 24.15–24.x |
 | `@aihq/catalog/release.json` | Canonical release inventory | Data |
+| `@aihq/catalog/release-guide.json` | Optional Ask AIH Guide manual and reference profiles; read it explicitly | Data |
 | `@aihq/catalog/release-1.1.json` | Release of Core recipe 1.1 items (client hook groups); read it explicitly | Data |
 | `@aihq/catalog/schemas/release/1.0.0.json` | Release structural schema | Data |
 | `@aihq/catalog/schemas/release/1.1.0.json` | Release 1.1 structural schema | Data |
