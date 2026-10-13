@@ -1,0 +1,47 @@
+{
+  "schema": "urn:aihq:core:recipe:1.0.0",
+  "id": "example.framework",
+  "description": "Install the example framework guide and license.",
+  "inputs": {},
+  "materials": [],
+  "targets": ["user"],
+  "prerequisites": [],
+  "operations": [
+    {
+      "id": "write-guide",
+      "purpose": "Install the guide",
+      "kind": "file.write",
+      "scope": "user",
+      "target": { "root": "userHome", "segments": [{ "literal": ".example" }, { "literal": "guide.md" }] },
+      "material": "guide",
+      "requires": [],
+      "checks": ["guide-bytes"]
+    },
+    {
+      "id": "write-license",
+      "purpose": "Keep the license beside the guide",
+      "kind": "file.write",
+      "scope": "user",
+      "target": { "root": "userHome", "segments": [{ "literal": ".example" }, { "literal": "LICENSE" }] },
+      "material": "license",
+      "requires": [],
+      "checks": ["license-bytes"]
+    }
+  ],
+  "checks": [
+    {
+      "id": "guide-bytes",
+      "purpose": "Verify the installed guide",
+      "kind": "file.sha256",
+      "target": { "root": "userHome", "segments": [{ "literal": ".example" }, { "literal": "guide.md" }] },
+      "sha256": { "materialSha256": "guide" }
+    },
+    {
+      "id": "license-bytes",
+      "purpose": "Verify the installed license",
+      "kind": "file.sha256",
+      "target": { "root": "userHome", "segments": [{ "literal": ".example" }, { "literal": "LICENSE" }] },
+      "sha256": { "materialSha256": "license" }
+    }
+  ]
+}

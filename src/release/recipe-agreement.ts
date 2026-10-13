@@ -13,6 +13,7 @@ import {
   type CatalogItem,
   CORE_RECIPE_SCHEMA_ID,
   CORE_RECIPE_SCHEMA_ID_1_1,
+  CORE_RECIPE_SCHEMA_ID_1_3,
 } from "./contracts.js";
 import { isRecord } from "./document.js";
 import { assertStrictValues, canonicalJson, textDepth } from "./json.js";
@@ -30,6 +31,7 @@ const compileRecipe = (version: string) =>
 const validators = {
   [CORE_RECIPE_SCHEMA_ID]: compileRecipe("1.0.0"),
   [CORE_RECIPE_SCHEMA_ID_1_1]: compileRecipe("1.1.0"),
+  [CORE_RECIPE_SCHEMA_ID_1_3]: compileRecipe("1.3.0"),
 };
 
 /** Compare decimal values independently of spelling, as in Core's strict JSON profile. */

@@ -1,0 +1,21 @@
+{
+  "format": "aihq-catalog-producer-declaration",
+  "version": 2,
+  "sources": [
+    { "id": "example", "repository": "example/framework", "licensePath": "LICENSE", "license": "Apache-2.0" }
+  ],
+  "items": [
+    {
+      "id": "example.framework",
+      "source": "example",
+      "label": "Example framework",
+      "kind": "framework",
+      "recipePath": "recipe.json",
+      "materials": [
+        { "id": "guide", "path": "guide.md" },
+        { "id": "license", "path": "LICENSE" }
+      ],
+      "requires": []
+    }
+  ]
+}

@@ -6,6 +6,7 @@ import { readRelease } from "../release/reader.js";
 import { type AuthoredAllowance, checkAuthoredContent, describeFinding } from "./authored.js";
 import type { Record_ } from "./base.js";
 import { assertRequiredClosure } from "./candidate.js";
+import { derivedAllowances } from "./derived.js";
 import { ProducerRefusal } from "./errors.js";
 import {
   GUIDE_RELEASE_PATH,
@@ -245,7 +246,11 @@ export function checkCandidateFiles(
       misplaced.length ? `outside their pinned revision: ${misplaced.join(", ")}` : undefined,
     );
 
-    const authored = checkAuthoredContent(release, files, options.authored ?? []);
+    const authored = checkAuthoredContent(
+      release,
+      files,
+      derivedAllowances(release, options.authored ?? []),
+    );
     note(
       path,
       "authored-references",

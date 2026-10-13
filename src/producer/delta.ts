@@ -1,11 +1,19 @@
 import type { Json } from "../release/contracts.js";
 import { isRecord, safeMemberPath } from "../release/document.js";
-import { JsonAdmissionError } from "../release/json.js";
+import { canonicalJson, JsonAdmissionError } from "../release/json.js";
 import type { BaseRelease, Record_ } from "./base.js";
-import type { DeclaredItem, DeclaredSource, ProducerDeclaration } from "./declaration.js";
+import {
+  type DeclaredItem,
+  type DeclaredSkillItem,
+  type DeclaredSource,
+  isTemplateItem,
+  type ProducerDeclaration,
+} from "./declaration.js";
+import { derivedSourceId, type PreparedSourceTree } from "./derived.js";
 import { refuse } from "./errors.js";
-import { sha256Hex, supportMaterialId } from "./generate.js";
+import { type GeneratedItem, sha256Hex, supportMaterialId } from "./generate.js";
 import { readUpstreamObject } from "./json.js";
+import { generateTemplateItem, templateBehavior } from "./template.js";
 import { pathStatus, readPresent, type SourceTree } from "./tree.js";
 
 /**
@@ -39,6 +47,7 @@ export interface ItemDelta {
   readonly skill?: Buffer;
   readonly license?: Buffer;
   readonly supportFiles?: readonly { readonly path: string; readonly bytes: Buffer }[];
+  readonly template?: GeneratedItem;
 }
 
 export interface DeltaPlan {
@@ -61,7 +70,24 @@ export function ownedBaseItems(base: BaseRelease, repository: string): Record_[]
       })
       .map((source) => source.id as string),
   );
-  return base.items.filter((item) => (item.sourceIds as string[]).some((id) => owned.has(id)));
+  const authored = new Set(
+    base.sources
+      .filter((source) => asRecord(source.origin).kind === "authored")
+      .map((source) => source.id as string),
+  );
+  return base.items.filter((item) => {
+    if ((item.sourceIds as string[]).some((id) => owned.has(id))) return true;
+    if (!isRecord(item.metadata) || !isRecord(item.metadata.upstream)) return false;
+    const upstream = item.metadata.upstream;
+    if (
+      upstream.repository !== repositoryUrl(repository) ||
+      typeof upstream.source !== "string" ||
+      !isRecord(upstream.derivation)
+    )
+      return false;
+    const id = derivedSourceId(upstream.source, upstream.derivation as Record_);
+    return authored.has(id) && (item.sourceIds as string[]).includes(id);
+  });
 }
 
 function baseMember(item: Record_, id: string): Record_ | undefined {
@@ -110,7 +136,11 @@ function pluginSkillPaths(
     }
     paths.add(skillPath);
   }
-  const declaredPaths = new Set(declared.map((item) => item.skillPath));
+  const declaredPaths = new Set(
+    declared
+      .filter((item): item is DeclaredSkillItem => !isTemplateItem(item))
+      .map((item) => item.skillPath),
+  );
   const undeclared = [...paths].filter((path) => !declaredPaths.has(path)).sort();
   if (undeclared.length > 0) {
     return refuse(
@@ -130,7 +160,7 @@ function baseRequires(item: Record_): string[] | undefined {
 
 export function classifyDelta(input: {
   declaration: ProducerDeclaration;
-  tree: SourceTree;
+  tree: PreparedSourceTree;
   base?: BaseRelease;
 }): DeltaPlan {
   const { declaration, tree, base } = input;
@@ -175,6 +205,44 @@ export function classifyDelta(input: {
         `${declared.id} is already released by another source; a declaration cannot take it over`,
         { itemId: declared.id },
       );
+    }
+    if (isTemplateItem(declared)) {
+      const status = pathStatus(tree, declared.recipePath);
+      const common = { id: declared.id, declared, ...(prior ? { base: prior } : {}) };
+      if (status === "unknown")
+        return { ...common, state: "unknown", operational: [], provenance: [] };
+      if (status === "absent") {
+        if (prior === undefined)
+          return refuse(
+            "declared-item-not-found",
+            `${declared.id}: ${declared.recipePath} is absent`,
+          );
+        return { ...common, state: "removed", operational: [], provenance: [] };
+      }
+      const template = generateTemplateItem({ item: declared, source, sourceId: source.id, tree });
+      if (prior === undefined)
+        return { ...common, template, state: "added", operational: ["new-item"], provenance: [] };
+      const oldRecipe = base?.files.get(asRecord(prior.recipe).path as string) as Buffer;
+      const changed =
+        templateBehavior(prior, oldRecipe) !==
+        templateBehavior(template.record, template.recipeBytes);
+      const oldUpstream = asRecord(asRecord(prior.metadata).upstream);
+      const newUpstream = asRecord(asRecord(template.record.metadata).upstream);
+      const locations = ({
+        source: _source,
+        repository: _repository,
+        revision: _revision,
+        derivation: _derivation,
+        ...rest
+      }: Record_) => rest;
+      const moved = canonicalJson(locations(oldUpstream)) !== canonicalJson(locations(newUpstream));
+      return {
+        ...common,
+        template,
+        state: changed ? "changed" : moved ? "provenance-only" : "unchanged",
+        operational: changed ? ["recipe-or-materials"] : [],
+        provenance: moved ? ["upstream-paths"] : [],
+      };
     }
     const listedByPlugin = pluginPaths === undefined || pluginPaths.has(declared.skillPath);
     const skillStatus = listedByPlugin

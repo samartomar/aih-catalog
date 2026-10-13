@@ -150,6 +150,8 @@ export function makePackageRoot(
     "LICENSE",
     "README.md",
     "CHANGELOG.md",
+    "docs/FRAMEWORK-TEMPLATES.md",
+    "producer/templates/framework",
     "dist/release",
     "workflows/nuclei",
     "schemas",

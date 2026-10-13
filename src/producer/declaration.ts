@@ -1,6 +1,7 @@
 import { ID, isRecord, safeMemberPath } from "../release/document.js";
 import type { AuthoredAllowance } from "./authored.js";
 import { refuse } from "./errors.js";
+import { readUpstreamObject } from "./json.js";
 import { REPOSITORY } from "./tree.js";
 
 /**
@@ -19,7 +20,7 @@ export interface DeclaredSource {
   readonly pluginManifestPath?: string;
 }
 
-export interface DeclaredItem {
+export interface DeclaredSkillItem {
   readonly id: string;
   readonly source: string;
   /** Directory that receives the skill: the name of the directory holding SKILL.md. */
@@ -33,6 +34,22 @@ export interface DeclaredItem {
   /** Same-release required item ids. */
   readonly requires: readonly string[];
 }
+
+/** A supplied Core recipe and its explicit source-file closure. */
+export interface DeclaredTemplateItem {
+  readonly id: string;
+  readonly source: string;
+  readonly label: string;
+  readonly kind: string;
+  readonly recipePath: string;
+  readonly materials: readonly { readonly id: string; readonly path: string }[];
+  readonly requires: readonly string[];
+}
+
+export type DeclaredItem = DeclaredSkillItem | DeclaredTemplateItem;
+
+export const isTemplateItem = (item: DeclaredItem): item is DeclaredTemplateItem =>
+  "recipePath" in item;
 
 export interface ProducerDeclaration {
   readonly sources: readonly DeclaredSource[];
@@ -77,14 +94,19 @@ function path(value: unknown, at: string): string {
 }
 
 /** The optional authored-content allowances, validated and ordered by source id. */
-function parseAuthored(value: unknown): readonly AuthoredAllowance[] {
+function parseAuthored(value: unknown, version: 1 | 2): readonly AuthoredAllowance[] {
   if (value === undefined) return [];
   if (!Array.isArray(value)) {
     return refuse("declaration-invalid", "declaration/authored must be an array");
   }
   const entries = value.map((raw, index): AuthoredAllowance => {
     const at = `authored/${index}`;
-    const entry = keys(raw, ["source", "externalPaths", "templatePlaceholders"], at);
+    const entry = keys(
+      raw,
+      ["source", "externalPaths", "templatePlaceholders"],
+      at,
+      version === 2 ? ["literalExamples"] : [],
+    );
     const source = text(entry.source, ID, `${at}/source`);
     if (!Array.isArray(entry.externalPaths)) {
       refuse("declaration-invalid", `${at}/externalPaths must be an array`);
@@ -112,7 +134,60 @@ function parseAuthored(value: unknown): readonly AuthoredAllowance[] {
     if (new Set(templatePlaceholders).size !== templatePlaceholders.length) {
       refuse("declaration-invalid", `${at}/templatePlaceholders has duplicates`);
     }
-    return { source, externalPaths, templatePlaceholders };
+    let literalExamples: AuthoredAllowance["literalExamples"];
+    if (entry.literalExamples !== undefined) {
+      if (!Array.isArray(entry.literalExamples) || entry.literalExamples.length > 4096) {
+        return refuse(
+          "declaration-invalid",
+          `${at}/literalExamples must be an array of at most 4096 entries`,
+        );
+      }
+      literalExamples = entry.literalExamples.map((rawExample, position) => {
+        const where = `${at}/literalExamples/${position}`;
+        const example = keys(rawExample, ["path", "sha256", "tokens"], where);
+        if (
+          !Array.isArray(example.tokens) ||
+          example.tokens.length === 0 ||
+          example.tokens.length > 256
+        ) {
+          return refuse("declaration-invalid", `${where}/tokens must contain 1–256 exact strings`);
+        }
+        const tokens = example.tokens.map((token, index) => {
+          if (
+            typeof token !== "string" ||
+            token.length === 0 ||
+            token.length > 512 ||
+            /[\p{C}]/u.test(token) ||
+            token.trim().length === 0
+          ) {
+            return refuse("declaration-invalid", `${where}/tokens/${index} is malformed`);
+          }
+          return token;
+        });
+        if (new Set(tokens).size !== tokens.length)
+          return refuse("declaration-invalid", `${where}/tokens has duplicates`);
+        return {
+          path: path(example.path, `${where}/path`),
+          sha256: text(example.sha256, /^[0-9a-f]{64}$/, `${where}/sha256`),
+          tokens,
+        };
+      });
+      if (
+        new Set(literalExamples.map((example) => example.path.toLowerCase())).size !==
+        literalExamples.length
+      ) {
+        return refuse(
+          "declaration-invalid",
+          `${at}/literalExamples has duplicate or case-alias paths`,
+        );
+      }
+    }
+    return {
+      source,
+      externalPaths,
+      templatePlaceholders,
+      ...(literalExamples === undefined ? {} : { literalExamples }),
+    };
   });
   if (new Set(entries.map((entry) => entry.source)).size !== entries.length) {
     refuse("declaration-invalid", "authored sources must be unique");
@@ -125,13 +200,13 @@ export function parseDeclaration(input: Uint8Array | unknown): ProducerDeclarati
   let value: unknown = input;
   if (input instanceof Uint8Array) {
     try {
-      value = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(input));
+      value = readUpstreamObject(input);
     } catch {
       return refuse("declaration-invalid", "the declaration is not UTF-8 JSON");
     }
   }
   const top = keys(value, ["format", "version", "sources", "items"], "declaration", ["authored"]);
-  if (top.format !== DECLARATION_FORMAT || top.version !== 1) {
+  if (top.format !== DECLARATION_FORMAT || (top.version !== 1 && top.version !== 2)) {
     return refuse("declaration-invalid", "unsupported declaration format or version");
   }
   if (!Array.isArray(top.sources) || !Array.isArray(top.items)) {
@@ -160,6 +235,46 @@ export function parseDeclaration(input: Uint8Array | unknown): ProducerDeclarati
   }
   const items = top.items.map((raw, index): DeclaredItem => {
     const at = `items/${index}`;
+    if (top.version === 2 && isRecord(raw) && "recipePath" in raw) {
+      const item = keys(
+        raw,
+        ["id", "source", "label", "kind", "recipePath", "materials", "requires"],
+        at,
+      );
+      if (typeof item.label !== "string" || item.label.length === 0 || item.label.length > 200) {
+        refuse("declaration-invalid", `${at}/label`);
+      }
+      if (!Array.isArray(item.materials) || !Array.isArray(item.requires)) {
+        return refuse("declaration-invalid", `${at}/materials and requires must be arrays`);
+      }
+      const materials = item.materials.map((rawMaterial, position) => {
+        const member = keys(rawMaterial, ["id", "path"], `${at}/materials/${position}`);
+        return {
+          id: text(member.id, ID, `${at}/materials/${position}/id`),
+          path: path(member.path, `${at}/materials/${position}/path`),
+        };
+      });
+      if (
+        new Set(materials.map((member) => member.id)).size !== materials.length ||
+        new Set(materials.map((member) => member.path.toLowerCase())).size !== materials.length
+      ) {
+        refuse("declaration-invalid", `${at}/materials has duplicate ids or case-alias paths`);
+      }
+      const requires = item.requires.map((id, position) =>
+        text(id, ID, `${at}/requires/${position}`),
+      );
+      if (new Set(requires).size !== requires.length)
+        refuse("declaration-invalid", `${at}/requires has duplicates`);
+      return {
+        id: text(item.id, ID, `${at}/id`),
+        source: text(item.source, ID, `${at}/source`),
+        label: item.label as string,
+        kind: text(item.kind, ID, `${at}/kind`),
+        recipePath: path(item.recipePath, `${at}/recipePath`),
+        materials: materials.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)),
+        requires: requires.sort(),
+      };
+    }
     const item = keys(raw, ["id", "source", "label", "skillPath", "requires"], at, [
       "supportPaths",
     ]);
@@ -220,7 +335,9 @@ export function parseDeclaration(input: Uint8Array | unknown): ProducerDeclarati
       }
     }
   }
-  const entries = items.map((item) => `${item.source}/${item.entry}`);
+  const entries = items
+    .filter((item): item is DeclaredSkillItem => !isTemplateItem(item))
+    .map((item) => `${item.source}/${item.entry}`);
   if (new Set(entries).size !== entries.length) {
     refuse("declaration-invalid", "two items would write the same skill directory");
   }
@@ -228,7 +345,7 @@ export function parseDeclaration(input: Uint8Array | unknown): ProducerDeclarati
   return {
     sources,
     items: [...items].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)),
-    authored: parseAuthored(top.authored),
+    authored: parseAuthored(top.authored, top.version),
   };
 }
 
