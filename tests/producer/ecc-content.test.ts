@@ -126,6 +126,7 @@ it("offers EvalView deterministic checks without requiring its optional model AP
   if (compiled.status !== "ok") return;
   const item = compiled.value.release.items.find((item) => item.id === "ecc.claude.mcp.evalview");
   if (!item) throw new Error("EvalView declaration missing");
+  expect(JSON.stringify(item.metadata)).not.toContain("must provide OPENAI_API_KEY");
   const recipeFile = compiled.value.materials.find((file) => file.path === item.recipe.path);
   if (!recipeFile) throw new Error("EvalView recipe missing");
   const recipe = JSON.parse(new TextDecoder().decode(recipeFile.bytes));
@@ -135,7 +136,7 @@ it("offers EvalView deterministic checks without requiring its optional model AP
   expect(server).toEqual({
     command: "python3",
     args: ["-m", "evalview", "mcp", "serve"],
-    env: { OPENAI_API_KEY: "${OPENAI_API_KEY:-}" },
+    env: { OPENAI_API_KEY: `\${OPENAI_API_KEY:-}` },
   });
   const inventory = JSON.parse(readFileSync("producer/ecc/inventory.json", "utf8"));
   expect(inventory.itemFacts["ecc.claude.mcp.evalview"].requiredHostEnvironment).toEqual([]);

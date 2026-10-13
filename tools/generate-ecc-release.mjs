@@ -90,6 +90,8 @@ export function generateEccRelease(identity = JSON.parse(readFileSync(resolve(ro
     const fact = inventory.itemFacts[item.id];
     assert(fact, `Missing MCP facts ${item.id}`);
     assert.deepEqual(fact.rawServer, rawServers[fact.sourceKey], `Raw MCP facts differ ${item.id}`);
+    assert.equal(item.clientCapabilities.find(capability => capability.capability === "native-execution")?.reason, fact.runtimePrerequisites, `MCP execution facts differ ${item.id}`);
+    assert.equal(item.activation[0]?.instructions, fact.runtimePrerequisites, `MCP activation facts differ ${item.id}`);
     const recipe = JSON.parse(snapshot.recipes.ecc[item.recipePath]);
     const offered = recipe.operations.find(operation => operation.kind === "config.entries")?.entries[0];
     assert.deepEqual(offered?.path, ["mcpServers", fact.sourceKey]);
