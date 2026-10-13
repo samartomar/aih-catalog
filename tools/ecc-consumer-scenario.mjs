@@ -36,7 +36,7 @@ for (const item of installed.release.items) {
   assert.equal(configured.valid, true, `${item.id}: ${JSON.stringify(configured.diagnostics)}`);
 }
 const releases = { [installed.release.sha256]: installed.release, [extension.release.sha256]: extension.release };
-const roots = ["ecc.template.api-review", "ecc.claude.mcp.memory", "ecc.copilot.skill.api-design", "ecc.kiro.skill.api-design"].map(itemId => ({ releaseSha256: installed.release.sha256, itemId, scope: "project", configuration: {} }));
+const roots = ["ecc.template.api-review", "ecc.claude.mcp.memory", "ecc.claude.mcp.evalview", "ecc.copilot.skill.api-design", "ecc.kiro.skill.api-design"].map(itemId => ({ releaseSha256: installed.release.sha256, itemId, scope: "project", configuration: {} }));
 const skipped = { releaseSha256: installed.release.sha256, itemId: "ecc.agent.code-reviewer", scope: "project" };
 const resolved = resolveSelections({ releases, roots, skips: [skipped] });
 assert.equal(resolved.status, "ok", JSON.stringify(resolved.diagnostics));
@@ -104,6 +104,7 @@ if (process.argv[3] === "core") {
   assert.deepEqual(settings.mcpServers.neighbor, neighbor);
   assert.equal(settings.unrelated, true);
   assert.deepEqual(settings.mcpServers.memory, { command: "npx", args: ["-y", "@modelcontextprotocol/server-memory"] });
+  assert.deepEqual(settings.mcpServers.evalview, { command: "python3", args: ["-m", "evalview", "mcp", "serve"], env: { OPENAI_API_KEY: "${OPENAI_API_KEY:-}" } });
   for (const path of [".claude/skills/api-design/SKILL.md", ".github/skills/api-design/SKILL.md", ".kiro/skills/api-design/SKILL.md"]) assert(readFileSync(join(project, path)).length > 100);
   for (const operation of prepared.review.operations) if (operation.kind === "file.write" && operation.details.materialSha256) assert.equal(sha(readFileSync(operation.details.target)), operation.details.materialSha256);
   core = { status: "complete", prepared: prepared.status, applied: applied.completion, operations: prepared.review.operations.length, nativeExecution: "not-run" };

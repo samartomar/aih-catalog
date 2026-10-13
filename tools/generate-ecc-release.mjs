@@ -85,6 +85,22 @@ export function generateEccRelease(identity = JSON.parse(readFileSync(resolve(ro
     assert(declaration.items.some(item => item.recipePath === path), `Orphan recipe ${path}`);
     files[path] = new TextEncoder().encode(text);
   }
+  const rawServers = JSON.parse(Buffer.from(files["mcp-configs/mcp-servers.json"]).toString("utf8")).mcpServers;
+  for (const item of declaration.items.filter(item => item.kind === "mcp")) {
+    const fact = inventory.itemFacts[item.id];
+    assert(fact, `Missing MCP facts ${item.id}`);
+    assert.deepEqual(fact.rawServer, rawServers[fact.sourceKey], `Raw MCP facts differ ${item.id}`);
+    const recipe = JSON.parse(snapshot.recipes.ecc[item.recipePath]);
+    const offered = recipe.operations.find(operation => operation.kind === "config.entries")?.entries[0];
+    assert.deepEqual(offered?.path, ["mcpServers", fact.sourceKey]);
+    assert.deepEqual(offered?.value.literal, fact.offeredServer, `Offered MCP facts differ ${item.id}`);
+    assert.deepEqual(recipe.prerequisites, fact.offeredServer.command ? [{ kind: "executable", name: fact.offeredServer.command }] : []);
+    const variables = [...JSON.stringify(fact.offeredServer).matchAll(/\$\{([A-Z_][A-Z0-9_]*)(:-[^}]*)?\}/g)];
+    const required = [...new Set(variables.filter(match => !match[2]).map(match => match[1]))].sort();
+    const optional = [...new Set(variables.filter(match => match[2]).map(match => match[1]))].sort();
+    assert.deepEqual([...fact.requiredHostEnvironment].sort(), required, `Required host inputs differ ${item.id}`);
+    assert.deepEqual([...(fact.optionalHostEnvironment ?? [])].sort(), optional, `Optional host inputs differ ${item.id}`);
+  }
   declaration.package = { name: identity.name, version: identity.version };
   const compiled = compileProducerDeclaration({ declaration, sourceFiles: [{ source: "ecc", revision: source.revision, files }] });
   assert.equal(compiled.status, "ok", JSON.stringify(compiled.diagnostics));
@@ -106,5 +122,5 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     if (check) assert(readFileSync(destination).equals(bytes), `${path} is stale`);
     else { mkdirSync(dirname(destination), { recursive: true }); writeFileSync(destination, bytes); }
   }
-  console.log(`${check ? "Checked" : "Generated"} release/release-ecc.json (${output.size - 1} material/recipe members)`);
+  console.log(`${check ? "Checked" : "Generated"} release/release-ecc.json (${output.size - 2} material/recipe members)`);
 }

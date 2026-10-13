@@ -91,3 +91,55 @@ it("compiles pinned ECC content with notices and configures an exact memory MCP 
     value: { literal: { command: "npx", args: ["-y", "@modelcontextprotocol/server-memory"] } },
   });
 }, 90_000);
+
+it("offers EvalView deterministic checks without requiring its optional model API key", () => {
+  const declaration = JSON.parse(readFileSync("producer/ecc/declaration.json", "utf8"));
+  const snapshot = JSON.parse(readFileSync("producer/ecc/snapshot.json", "utf8"));
+  declaration.items = declaration.items.filter((item: { id: string }) =>
+    ["ecc.claude.mcp.evalview", "ecc.notices"].includes(item.id),
+  );
+  const source = snapshot.sources[0];
+  const compiled = compileProducerDeclaration({
+    declaration,
+    sourceFiles: [
+      {
+        source: source.id,
+        revision: source.revision,
+        files: {
+          ...Object.fromEntries(
+            source.files.map((file: { path: string; base64: string }) => [
+              file.path,
+              new Uint8Array(Buffer.from(file.base64, "base64")),
+            ]),
+          ),
+          ...Object.fromEntries(
+            Object.entries(snapshot.recipes.ecc).map(([path, text]) => [
+              path,
+              new TextEncoder().encode(text as string),
+            ]),
+          ),
+        },
+      },
+    ],
+  });
+  expect(compiled.status, JSON.stringify(compiled.diagnostics)).toBe("ok");
+  if (compiled.status !== "ok") return;
+  const item = compiled.value.release.items.find((item) => item.id === "ecc.claude.mcp.evalview");
+  if (!item) throw new Error("EvalView declaration missing");
+  const recipeFile = compiled.value.materials.find((file) => file.path === item.recipe.path);
+  if (!recipeFile) throw new Error("EvalView recipe missing");
+  const recipe = JSON.parse(new TextDecoder().decode(recipeFile.bytes));
+  const server = recipe.operations.find(
+    (operation: { kind: string }) => operation.kind === "config.entries",
+  ).entries[0].value.literal;
+  expect(server).toEqual({
+    command: "python3",
+    args: ["-m", "evalview", "mcp", "serve"],
+    env: { OPENAI_API_KEY: "${OPENAI_API_KEY:-}" },
+  });
+  const inventory = JSON.parse(readFileSync("producer/ecc/inventory.json", "utf8"));
+  expect(inventory.itemFacts["ecc.claude.mcp.evalview"].requiredHostEnvironment).toEqual([]);
+  expect(inventory.itemFacts["ecc.claude.mcp.evalview"].optionalHostEnvironment).toEqual([
+    "OPENAI_API_KEY",
+  ]);
+});

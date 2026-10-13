@@ -42441,7 +42441,7 @@
       "id": "ecc.claude.mcp.evalview",
       "source": "ecc",
       "label": "ecc.claude.mcp.evalview",
-      "description": "Pinned ECC mcp source delivery. Exact upstream command/transport preserved. Host process environment must provide OPENAI_API_KEY. Runtime executable python3 and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. AI agent regression testing — snapshot behavior, detect regressions in tool calls and output quality. 8 tools: create_test, run_snapshot, run_check, list_tests, validate_skill, generate_skill_tests, run_skill_test, generate_visual_report. API key optional — deterministic checks (tool diff, output hash) work without it. Install: pip install \"evalview>=0.5,<1\" Native MCP execution is separate.",
+      "description": "Pinned ECC mcp source delivery. Exact upstream command/transport preserved. Optional host environment OPENAI_API_KEY enables model-assisted paths; empty/absent key permits the source-authored deterministic tool-diff and output-hash checks. Runtime executable python3 and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. AI agent regression testing — snapshot behavior, detect regressions in tool calls and output quality. 8 tools: create_test, run_snapshot, run_check, list_tests, validate_skill, generate_skill_tests, run_skill_test, generate_visual_report. API key optional — deterministic checks (tool diff, output hash) work without it. Install: pip install \"evalview>=0.5,<1\" Native MCP execution is separate.",
       "kind": "mcp",
       "recipePath": "catalog-recipes/ecc.claude.mcp.evalview.json",
       "materials": [
@@ -42495,7 +42495,7 @@
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Host process environment must provide OPENAI_API_KEY. Runtime executable python3 and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. AI agent regression testing — snapshot behavior, detect regressions in tool calls and output quality. 8 tools: create_test, run_snapshot, run_check, list_tests, validate_skill, generate_skill_tests, run_skill_test, generate_visual_report. API key optional — deterministic checks (tool diff, output hash) work without it. Install: pip install \"evalview>=0.5,<1\" Native MCP execution is separate."
+          "instructions": "Exact upstream command/transport preserved. Optional host environment OPENAI_API_KEY enables model-assisted paths; empty/absent key permits the source-authored deterministic tool-diff and output-hash checks. Runtime executable python3 and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. AI agent regression testing — snapshot behavior, detect regressions in tool calls and output quality. 8 tools: create_test, run_snapshot, run_check, list_tests, validate_skill, generate_skill_tests, run_skill_test, generate_visual_report. API key optional — deterministic checks (tool diff, output hash) work without it. Install: pip install \"evalview>=0.5,<1\" Native MCP execution is separate."
         }
       ],
       "configuration": {}

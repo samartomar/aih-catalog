@@ -72,6 +72,8 @@ Examples: `GITHUB_PERSONAL_ACCESS_TOKEN`, Jira URL/email/token,
 `SUPABASE_PROJECT_REF`, `ECC_FILESYSTEM_ROOT` (authorized server filesystem root),
 and `ITO_MCP_ENTRYPOINT` (the separately built, unpublished Itô Node entry point).
 The configured Itô path must name that real build; this package does not supply it.
+EvalView's `OPENAI_API_KEY` is optional: the offered `${OPENAI_API_KEY:-}`
+reference preserves its source-authored deterministic checks without a key.
 Credential values stay in the host environment and never enter the policy,
 Catalog material or project file. Runtime packages using `@latest` or unversioned
 names remain upstream mutable requests, not integrity-pinned server artifacts.
