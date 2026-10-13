@@ -67,6 +67,22 @@ const selections = optedIn.value.selections.map(selection => {
   assert.equal(configured.valid, true);
   return {...configured.selection, id: selection.id, managementId: selection.id, scope: "project", requires: validated.requiresBySelectionId[selection.id]};
 });
+// The installed public release must include each maintained unconditional Finish step.
+const workflowClosures = [];
+for (const prefix of ["superpowers.skill", "superpowers.kiro.skill", "superpowers.copilot.skill"]) {
+  for (const workflow of ["executing-plans", "subagent-driven-development"]) {
+    const root = {releaseSha256: installed.release.sha256, itemId: `${prefix}.${workflow}`, scope: "project", configuration: {}};
+    const finishing = {releaseSha256: installed.release.sha256, itemId: `${prefix}.finishing-a-development-branch`, scope: "project"};
+    const closure = resolveSelections({releases, roots: [root], skips: []});
+    assert.equal(closure.status, "ok", JSON.stringify(closure.diagnostics));
+    const ids = closure.value.selections.map(selection => selection.item.itemId);
+    assert(ids.includes(finishing.itemId));
+    const skipped = resolveSelections({releases, roots: [root], skips: [finishing]});
+    assert.equal(skipped.status, "refused");
+    assert(skipped.diagnostics.some(diagnostic => diagnostic.code === "REQUIRED_ITEM_SKIPPED"));
+    workflowClosures.push({root: root.itemId, requiredFinishing: finishing.itemId, selections: ids});
+  }
+}
 const archiveBytes = readFileSync(process.argv[2]);
 const archive = {url: "https://example.invalid/catalog-superpowers.tgz", sha256: sha(archiveBytes), byteLength: archiveBytes.length};
 const acquired = await resolveRelease({archive, release: "./release-superpowers.json"}, {fetch: async url => { assert.equal(String(url), archive.url); return new Response(archiveBytes); }});
@@ -113,5 +129,5 @@ const member = installed.release.items.find(item => item.id === original.id).mat
 const originalBytes = readFileSync(join(root, member.path));
 try {writeFileSync(join(root, member.path), "changed selected material"); assert.equal((await readInstalledRelease({root, release: "./release-superpowers.json"})).valid, false);}
 finally {writeFileSync(join(root, member.path), originalBytes);}
-const receipt = {package: installed.release.package, releaseSha256: installed.release.sha256, extensionsReleaseSha256: extensions.release.sha256, declarationSha256: sha(readFileSync(join(root, "producer/superpowers/declaration.json"))), snapshotSha256: sha(readFileSync(join(root, "producer/superpowers/snapshot.json"))), inventorySha256: sha(readFileSync(join(root, "producer/superpowers/inventory.json"))), source: {repository: inventory.repository, revision: inventory.revision, gitTree: inventory.gitTree}, inventory: {files: inventory.entries.length, donorAssets: inventory.donor.assets.length}, items: installed.release.items.length, mixedSelections, expansion: {itemId: extra.id, releaseSha256: expansion.value.releaseSha256}, core, consumerSha256: sha(readFileSync(fileURLToPath(import.meta.url)))};
+const receipt = {package: installed.release.package, releaseSha256: installed.release.sha256, extensionsReleaseSha256: extensions.release.sha256, declarationSha256: sha(readFileSync(join(root, "producer/superpowers/declaration.json"))), snapshotSha256: sha(readFileSync(join(root, "producer/superpowers/snapshot.json"))), inventorySha256: sha(readFileSync(join(root, "producer/superpowers/inventory.json"))), source: {repository: inventory.repository, revision: inventory.revision, gitTree: inventory.gitTree}, inventory: {files: inventory.entries.length, donorAssets: inventory.donor.assets.length}, items: installed.release.items.length, mixedSelections, workflowClosures, expansion: {itemId: extra.id, releaseSha256: expansion.value.releaseSha256}, core, consumerSha256: sha(readFileSync(fileURLToPath(import.meta.url)))};
 writeFileSync("receipt.json", JSON.stringify(receipt, null, 2)+"\n");

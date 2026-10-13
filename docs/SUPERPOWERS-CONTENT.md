@@ -42,6 +42,8 @@ References marked explicitly required by maintained upstream facts, and direct
 sibling script/prompt closures, are represented as dependencies. For example,
 writing-skills requires TDD background; executing-plans requires TDD, completion
 verification, the subagent-development helper scripts and the review prompt.
+Both execution workflows also require finishing-a-development-branch through their
+unconditional upstream Finish instructions, within the same client projection.
 Other prose mentions do not automatically create mandatory edges. The exact bases
 are recorded in `inventory.itemFacts`. Empty conflicts mean no authored conflict
 edge, not a promise of compatibility.

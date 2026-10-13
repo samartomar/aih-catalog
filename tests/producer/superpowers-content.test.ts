@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { expect, it } from "vitest";
 import { compileProducerDeclaration } from "../../src/release/producer.js";
@@ -103,3 +104,42 @@ it("carries the optional Superpowers release and every retained release member t
     retained.get("release/release-superpowers.json"),
   );
 }, 90_000);
+
+it.each([
+  ["superpowers.skill", "executing-plans"],
+  ["superpowers.skill", "subagent-driven-development"],
+  ["superpowers.kiro.skill", "executing-plans"],
+  ["superpowers.kiro.skill", "subagent-driven-development"],
+  ["superpowers.copilot.skill", "executing-plans"],
+  ["superpowers.copilot.skill", "subagent-driven-development"],
+])("includes the required finishing skill and refuses its skip for %s.%s", (prefix, workflow) => {
+  const bytes = readFileSync("release/release-superpowers.json");
+  const checked = readRelease(bytes, {
+    expectedSha256: createHash("sha256").update(bytes).digest("hex"),
+  });
+  expect(checked.valid).toBe(true);
+  if (!checked.valid) return;
+  const releases = { [checked.release.sha256]: checked.release };
+  const root = {
+    releaseSha256: checked.release.sha256,
+    itemId: `${prefix}.${workflow}`,
+    scope: "project" as const,
+    configuration: {},
+  };
+  const finishing = {
+    releaseSha256: checked.release.sha256,
+    itemId: `${prefix}.finishing-a-development-branch`,
+    scope: "project" as const,
+  };
+  const resolved = resolveSelections({ releases, roots: [root], skips: [] });
+  expect(resolved.status, JSON.stringify(resolved.diagnostics)).toBe("ok");
+  if (resolved.status !== "ok") return;
+  expect(resolved.value.selections.map((selection) => selection.item.itemId)).toContain(
+    finishing.itemId,
+  );
+  const skipped = resolveSelections({ releases, roots: [root], skips: [finishing] });
+  expect(skipped.status).toBe("refused");
+  expect(
+    skipped.diagnostics.some((diagnostic) => diagnostic.code === "REQUIRED_ITEM_SKIPPED"),
+  ).toBe(true);
+});

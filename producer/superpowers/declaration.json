@@ -337,6 +337,9 @@
         },
         {
           "itemId": "superpowers.skill.using-superpowers"
+        },
+        {
+          "itemId": "superpowers.skill.finishing-a-development-branch"
         }
       ],
       "optional": [],
@@ -567,6 +570,9 @@
         },
         {
           "itemId": "superpowers.skill.requesting-code-review"
+        },
+        {
+          "itemId": "superpowers.skill.finishing-a-development-branch"
         }
       ],
       "optional": [],
@@ -1357,6 +1363,9 @@
         },
         {
           "itemId": "superpowers.kiro.skill.using-superpowers"
+        },
+        {
+          "itemId": "superpowers.kiro.skill.finishing-a-development-branch"
         }
       ],
       "optional": [],
@@ -1615,6 +1624,9 @@
         },
         {
           "itemId": "superpowers.kiro.skill.requesting-code-review"
+        },
+        {
+          "itemId": "superpowers.kiro.skill.finishing-a-development-branch"
         }
       ],
       "optional": [],
@@ -2461,6 +2473,9 @@
         },
         {
           "itemId": "superpowers.copilot.skill.using-superpowers"
+        },
+        {
+          "itemId": "superpowers.copilot.skill.finishing-a-development-branch"
         }
       ],
       "optional": [],
@@ -2719,6 +2734,9 @@
         },
         {
           "itemId": "superpowers.copilot.skill.requesting-code-review"
+        },
+        {
+          "itemId": "superpowers.copilot.skill.finishing-a-development-branch"
         }
       ],
       "optional": [],

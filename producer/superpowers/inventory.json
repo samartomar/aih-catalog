@@ -3094,9 +3094,10 @@
           "verification-before-completion",
           "subagent-driven-development",
           "requesting-code-review",
-          "using-superpowers"
+          "using-superpowers",
+          "finishing-a-development-branch"
         ],
-        "basis": "skills/executing-plans/SKILL.md REQUIRED SUB-SKILL plus direct ../ script/prompt references"
+        "basis": "skills/executing-plans/SKILL.md REQUIRED SUB-SKILL plus direct ../ script/prompt references; skills/executing-plans/SKILL.md:304 unconditional Finish instruction: Use superpowers:finishing-a-development-branch"
       }
     },
     "finishing-a-development-branch": {
@@ -3129,9 +3130,10 @@
       "requiredRelationships": {
         "skills": [
           "using-git-worktrees",
-          "requesting-code-review"
+          "requesting-code-review",
+          "finishing-a-development-branch"
         ],
-        "basis": "skills/subagent-driven-development/SKILL.md prerequisite isolation and direct ../requesting-code-review/code-reviewer.md reference"
+        "basis": "skills/subagent-driven-development/SKILL.md prerequisite isolation and direct ../requesting-code-review/code-reviewer.md reference; skills/subagent-driven-development/SKILL.md:487 unconditional Finish instruction: Use superpowers:finishing-a-development-branch"
       }
     },
     "systematic-debugging": {
