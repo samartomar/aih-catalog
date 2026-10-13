@@ -99,6 +99,9 @@ export function checkCandidateFiles(
           },
         ]
       : []),
+    ...(files.has("release/release-anthropic.json")
+      ? [{ path: "release/release-anthropic.json", export: "./release-anthropic.json" as const }]
+      : []),
     ...(files.has("release/release-ecc.json")
       ? [{ path: "release/release-ecc.json", export: "./release-ecc.json" as const }]
       : []),

@@ -47,6 +47,13 @@ runtime source references and an opt-in caller-configured Claude SessionStart gr
 [Content guidance](docs/SUPERPOWERS-CONTENT.md) and [inventory](docs/SUPERPOWERS-INVENTORY.md)
 record exact source identities, support closures, notices and native execution limits.
 
+## Optional Anthropic skills
+
+`@aihq/catalog/release-anthropic.json` offers complete permitted pinned skill
+material and script/support closures. [Content guidance](docs/ANTHROPIC-CONTENT.md)
+and [inventory](docs/ANTHROPIC-INVENTORY.md) distinguish per-item rights, restricted
+document skills, actual tool prerequisites and unobserved native use.
+
 ## Optional Nuclei workflow
 
 `@aihq/catalog/workflows/nuclei` supplies local policy authoring; its adjacent manifest pins
@@ -72,6 +79,7 @@ platform evidence and real-tool execution limits are recorded in [delivery evide
 | `@aihq/catalog/schemas/release/1.1.0.json` | Release 1.1 structural schema | Data |
 | `@aihq/catalog/release-ecc.json` | Optional pinned ECC declarations and exact MCP configurations | Data |
 | `@aihq/catalog/release-superpowers.json` | Optional pinned Superpowers skills and caller-configured Claude hook | Data |
+| `@aihq/catalog/release-anthropic.json` | Optional permitted Anthropic skill closures and notices | Data |
 | `@aihq/catalog/package.json` | Installed package identity and location | Data |
 
 The portable entries use standard JavaScript and `Uint8Array`; they access neither

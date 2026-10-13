@@ -47,7 +47,8 @@ export type ReleaseExport =
   | "./release-guide.json"
   | "./release-extensions.json"
   | "./release-ecc.json"
-  | "./release-superpowers.json";
+  | "./release-superpowers.json"
+  | "./release-anthropic.json";
 const RELEASE_EXPORTS: readonly string[] = [
   "./release.json",
   "./release-1.1.json",
@@ -57,6 +58,7 @@ const RELEASE_EXPORTS: readonly string[] = [
   "./release-extensions.json",
   "./release-ecc.json",
   "./release-superpowers.json",
+  "./release-anthropic.json",
 ];
 const releaseExport = (value: unknown): ReleaseExport =>
   value === undefined
