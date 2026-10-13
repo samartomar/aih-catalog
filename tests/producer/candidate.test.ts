@@ -4,7 +4,7 @@ import { buildCandidate } from "../../src/producer/candidate.js";
 import { parseDeclaration } from "../../src/producer/declaration.js";
 import { ProducerRefusal } from "../../src/producer/errors.js";
 import { MIT } from "./git-fixture.js";
-import { memoryTree, REPOSITORY, sha256 } from "./helpers.js";
+import { committedRelease, memoryTree, REPOSITORY, sha256 } from "./helpers.js";
 
 const PACKAGE = { name: "@aihq/catalog", version: "0.3.0" };
 const A = "a".repeat(40);
@@ -293,4 +293,42 @@ describe("declaration", () => {
       bad((v) => ({ ...v, items: [{ ...v.items[0], skillPath: "skills/x/README.md" }] })),
     ).toBe("declaration-invalid");
   });
+});
+
+it("preserves independent Guide and Extensions bytes when refreshing another source", () => {
+  const files = baseFiles();
+  const maintained = committedRelease();
+  const paths = new Set<string>();
+  for (const path of ["release/release-guide.json", "release/release-extensions.json"]) {
+    const bytes = maintained.get(path);
+    if (!bytes) throw new Error(`${path} is required`);
+    const document = JSON.parse(bytes.toString("utf8"));
+    document.package = PACKAGE;
+    files.set(path, Buffer.from(`${JSON.stringify(document)}\n`));
+    paths.add(path);
+    for (const item of document.items) {
+      for (const member of [item.recipe, ...item.materials]) {
+        const material = maintained.get(member.path);
+        if (!material) throw new Error(`${member.path} is required`);
+        files.set(member.path, material);
+        paths.add(member.path);
+      }
+    }
+  }
+  const result = buildCandidate({
+    declaration,
+    tree: memoryTree(
+      B,
+      upstream(["one", "two", "three"], { [path("three")]: skill("three", "Changed.") }),
+    ),
+    base: parseBaseRelease(files),
+    package: PACKAGE,
+  });
+  for (const path of paths) {
+    if (path.endsWith("release-guide.json") || path.endsWith("release-extensions.json")) {
+      expect(JSON.parse(result.files.get(path)?.toString("utf8") ?? "null")).toEqual(
+        JSON.parse(files.get(path)?.toString("utf8") ?? "null"),
+      );
+    } else expect(result.files.get(path)).toEqual(files.get(path));
+  }
 });

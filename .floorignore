@@ -1,0 +1,3 @@
+# Exact pinned upstream material: DEBUG literals are documented gate syntax and self-test data.
+# Preserve these source bytes; this exemption covers no authored code or other revision.
+release/materials/github.com/samartomar/aih-extensions/79f016c25c454937d67dcf49c3cf3070e0339832/skills/install-commit-gate/commit-gate.mjs
