@@ -87,6 +87,7 @@ export function candidateManifestBytes(
     "release-extensions.json",
     "release-ecc.json",
     "release-superpowers.json",
+    "release-anthropic.json",
   ]) {
     const path = `release/${name}`;
     if (!files.has(path) && manifest.exports[`./${name}`] === `./${path}`) {

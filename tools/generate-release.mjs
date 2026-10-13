@@ -1,3 +1,4 @@
+import { generateAnthropicRelease } from "./generate-anthropic-release.mjs";
 import { generateSuperpowersRelease } from "./generate-superpowers-release.mjs";
 import { generateGuideRelease } from "./generate-guide-release.mjs";
 import { createHash } from "node:crypto";
@@ -378,6 +379,11 @@ export function generateRelease(root) {
   for (const [path, bytes] of generateGuideRelease(root)) put(path, bytes);
   if (existsSync(resolve(root, "producer/superpowers/declaration.json"))) {
     for (const [path, bytes] of generateSuperpowersRelease(pkg)) {
+      if (path.startsWith("release/")) put(path, bytes);
+    }
+  }
+  if (existsSync(resolve(root, "producer/anthropic/declaration.json"))) {
+    for (const [path, bytes] of generateAnthropicRelease(pkg)) {
       if (path.startsWith("release/")) put(path, bytes);
     }
   }

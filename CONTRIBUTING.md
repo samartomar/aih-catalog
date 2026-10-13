@@ -34,6 +34,13 @@ with `node tools/generate-superpowers-release.mjs --check`; regenerate through t
 script. `node tools/verify-superpowers-consumer.mjs <core.tgz>` adds the exact reviewed
 Core packed proof. See [Superpowers content](docs/SUPERPOWERS-CONTENT.md).
 
+Anthropic checks compile ordinary v3 declarations and verify the complete pinned
+tree, individual notices and donor closures through
+`node tools/generate-anthropic-release.mjs --check`. Regenerate using that script.
+`node tools/verify-anthropic-consumer.mjs <core.tgz>` adds exact reviewed Core
+material proof and one harmless script/interpreter check; native use remains separate.
+See [Anthropic content](docs/ANTHROPIC-CONTENT.md) for rights and prerequisites.
+
 Release generation renders the authored project context through the built release
 module, so run `npm run build:dist` before `npm test` or `npm run check:materials` on
 their own; `npm run verify` and `npm run generate:release` build first.

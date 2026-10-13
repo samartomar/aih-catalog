@@ -1,0 +1,4731 @@
+{
+  "schema": "urn:aihq:catalog:producer-declaration:3.0.0",
+  "format": "aihq-catalog-producer-declaration",
+  "version": 3,
+  "package": {
+    "name": "@aihq/catalog",
+    "version": "0.1.0"
+  },
+  "sources": [
+    {
+      "id": "anthropic",
+      "repository": "anthropics/skills",
+      "licensePath": "skills/academy-guide/LICENSE.txt",
+      "license": "Apache-2.0"
+    }
+  ],
+  "items": [
+    {
+      "id": "anthropic.skill.academy-guide",
+      "source": "anthropic",
+      "label": "academy-guide",
+      "description": "Instruction/reference material; network access to academy.claude.com when following links; no bundled executable.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.skill.academy-guide.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/academy-guide/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/academy-guide/SKILL.md"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Instruction/reference material; network access to academy.claude.com when following links; no bundled executable."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open project and select/read academy-guide; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction/reference material; network access to academy.claude.com when following links; no bundled executable."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.kiro.skill.academy-guide",
+      "source": "anthropic",
+      "label": "academy-guide",
+      "description": "Instruction/reference material; network access to academy.claude.com when following links; no bundled executable.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.kiro.skill.academy-guide.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/academy-guide/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/academy-guide/SKILL.md"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Instruction/reference material; network access to academy.claude.com when following links; no bundled executable."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open project and select/read academy-guide; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction/reference material; network access to academy.claude.com when following links; no bundled executable."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.copilot.skill.academy-guide",
+      "source": "anthropic",
+      "label": "academy-guide",
+      "description": "Instruction/reference material; network access to academy.claude.com when following links; no bundled executable.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.copilot.skill.academy-guide.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/academy-guide/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/academy-guide/SKILL.md"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Instruction/reference material; network access to academy.claude.com when following links; no bundled executable."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open project and select/read academy-guide; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction/reference material; network access to academy.claude.com when following links; no bundled executable."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.skill.algorithmic-art",
+      "source": "anthropic",
+      "label": "algorithmic-art",
+      "description": "p5.js browser runtime and caller-owned browser/CDN access for templates; no browser launched by Apply.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.skill.algorithmic-art.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/algorithmic-art/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/algorithmic-art/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/algorithmic-art/templates/generator_template.js"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/algorithmic-art/templates/viewer.html"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "p5.js browser runtime and caller-owned browser/CDN access for templates; no browser launched by Apply."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open project and select/read algorithmic-art; invoke scripts through declared interpreters after separately acquiring prerequisites. p5.js browser runtime and caller-owned browser/CDN access for templates; no browser launched by Apply."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.kiro.skill.algorithmic-art",
+      "source": "anthropic",
+      "label": "algorithmic-art",
+      "description": "p5.js browser runtime and caller-owned browser/CDN access for templates; no browser launched by Apply.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.kiro.skill.algorithmic-art.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/algorithmic-art/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/algorithmic-art/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/algorithmic-art/templates/generator_template.js"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/algorithmic-art/templates/viewer.html"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "p5.js browser runtime and caller-owned browser/CDN access for templates; no browser launched by Apply."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open project and select/read algorithmic-art; invoke scripts through declared interpreters after separately acquiring prerequisites. p5.js browser runtime and caller-owned browser/CDN access for templates; no browser launched by Apply."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.copilot.skill.algorithmic-art",
+      "source": "anthropic",
+      "label": "algorithmic-art",
+      "description": "p5.js browser runtime and caller-owned browser/CDN access for templates; no browser launched by Apply.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.copilot.skill.algorithmic-art.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/algorithmic-art/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/algorithmic-art/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/algorithmic-art/templates/generator_template.js"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/algorithmic-art/templates/viewer.html"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "p5.js browser runtime and caller-owned browser/CDN access for templates; no browser launched by Apply."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open project and select/read algorithmic-art; invoke scripts through declared interpreters after separately acquiring prerequisites. p5.js browser runtime and caller-owned browser/CDN access for templates; no browser launched by Apply."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.skill.brand-guidelines",
+      "source": "anthropic",
+      "label": "brand-guidelines",
+      "description": "Instruction material; caller supplies the actual design/document tools and fonts.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.skill.brand-guidelines.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/brand-guidelines/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/brand-guidelines/SKILL.md"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Instruction material; caller supplies the actual design/document tools and fonts."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open project and select/read brand-guidelines; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction material; caller supplies the actual design/document tools and fonts."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.kiro.skill.brand-guidelines",
+      "source": "anthropic",
+      "label": "brand-guidelines",
+      "description": "Instruction material; caller supplies the actual design/document tools and fonts.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.kiro.skill.brand-guidelines.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/brand-guidelines/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/brand-guidelines/SKILL.md"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Instruction material; caller supplies the actual design/document tools and fonts."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open project and select/read brand-guidelines; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction material; caller supplies the actual design/document tools and fonts."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.copilot.skill.brand-guidelines",
+      "source": "anthropic",
+      "label": "brand-guidelines",
+      "description": "Instruction material; caller supplies the actual design/document tools and fonts.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.copilot.skill.brand-guidelines.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/brand-guidelines/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/brand-guidelines/SKILL.md"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Instruction material; caller supplies the actual design/document tools and fonts."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open project and select/read brand-guidelines; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction material; caller supplies the actual design/document tools and fonts."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.skill.canvas-design",
+      "source": "anthropic",
+      "label": "canvas-design",
+      "description": "Python 3 with Pillow/reportlab for rendering; supplied fonts remain under their adjacent OFL notices and root third-party notices. No rendering in material Apply.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.skill.canvas-design.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/canvas-design/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/canvas-design/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/canvas-design/canvas-fonts/ArsenalSC-OFL.txt"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/canvas-design/canvas-fonts/ArsenalSC-Regular.ttf"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/canvas-design/canvas-fonts/BigShoulders-Bold.ttf"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/canvas-design/canvas-fonts/BigShoulders-OFL.txt"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/canvas-design/canvas-fonts/BigShoulders-Regular.ttf"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/canvas-design/canvas-fonts/Boldonse-OFL.txt"
+        },
+        {
+          "id": "asset-9",
+          "path": "skills/canvas-design/canvas-fonts/Boldonse-Regular.ttf"
+        },
+        {
+          "id": "asset-10",
+          "path": "skills/canvas-design/canvas-fonts/BricolageGrotesque-Bold.ttf"
+        },
+        {
+          "id": "asset-11",
+          "path": "skills/canvas-design/canvas-fonts/BricolageGrotesque-OFL.txt"
+        },
+        {
+          "id": "asset-12",
+          "path": "skills/canvas-design/canvas-fonts/BricolageGrotesque-Regular.ttf"
+        },
+        {
+          "id": "asset-13",
+          "path": "skills/canvas-design/canvas-fonts/CrimsonPro-Bold.ttf"
+        },
+        {
+          "id": "asset-14",
+          "path": "skills/canvas-design/canvas-fonts/CrimsonPro-Italic.ttf"
+        },
+        {
+          "id": "asset-15",
+          "path": "skills/canvas-design/canvas-fonts/CrimsonPro-OFL.txt"
+        },
+        {
+          "id": "asset-16",
+          "path": "skills/canvas-design/canvas-fonts/CrimsonPro-Regular.ttf"
+        },
+        {
+          "id": "asset-17",
+          "path": "skills/canvas-design/canvas-fonts/DMMono-OFL.txt"
+        },
+        {
+          "id": "asset-18",
+          "path": "skills/canvas-design/canvas-fonts/DMMono-Regular.ttf"
+        },
+        {
+          "id": "asset-19",
+          "path": "skills/canvas-design/canvas-fonts/EricaOne-OFL.txt"
+        },
+        {
+          "id": "asset-20",
+          "path": "skills/canvas-design/canvas-fonts/EricaOne-Regular.ttf"
+        },
+        {
+          "id": "asset-21",
+          "path": "skills/canvas-design/canvas-fonts/GeistMono-Bold.ttf"
+        },
+        {
+          "id": "asset-22",
+          "path": "skills/canvas-design/canvas-fonts/GeistMono-OFL.txt"
+        },
+        {
+          "id": "asset-23",
+          "path": "skills/canvas-design/canvas-fonts/GeistMono-Regular.ttf"
+        },
+        {
+          "id": "asset-24",
+          "path": "skills/canvas-design/canvas-fonts/Gloock-OFL.txt"
+        },
+        {
+          "id": "asset-25",
+          "path": "skills/canvas-design/canvas-fonts/Gloock-Regular.ttf"
+        },
+        {
+          "id": "asset-26",
+          "path": "skills/canvas-design/canvas-fonts/IBMPlexMono-Bold.ttf"
+        },
+        {
+          "id": "asset-27",
+          "path": "skills/canvas-design/canvas-fonts/IBMPlexMono-OFL.txt"
+        },
+        {
+          "id": "asset-28",
+          "path": "skills/canvas-design/canvas-fonts/IBMPlexMono-Regular.ttf"
+        },
+        {
+          "id": "asset-29",
+          "path": "skills/canvas-design/canvas-fonts/IBMPlexSerif-Bold.ttf"
+        },
+        {
+          "id": "asset-30",
+          "path": "skills/canvas-design/canvas-fonts/IBMPlexSerif-BoldItalic.ttf"
+        },
+        {
+          "id": "asset-31",
+          "path": "skills/canvas-design/canvas-fonts/IBMPlexSerif-Italic.ttf"
+        },
+        {
+          "id": "asset-32",
+          "path": "skills/canvas-design/canvas-fonts/IBMPlexSerif-Regular.ttf"
+        },
+        {
+          "id": "asset-33",
+          "path": "skills/canvas-design/canvas-fonts/InstrumentSans-Bold.ttf"
+        },
+        {
+          "id": "asset-34",
+          "path": "skills/canvas-design/canvas-fonts/InstrumentSans-BoldItalic.ttf"
+        },
+        {
+          "id": "asset-35",
+          "path": "skills/canvas-design/canvas-fonts/InstrumentSans-Italic.ttf"
+        },
+        {
+          "id": "asset-36",
+          "path": "skills/canvas-design/canvas-fonts/InstrumentSans-OFL.txt"
+        },
+        {
+          "id": "asset-37",
+          "path": "skills/canvas-design/canvas-fonts/InstrumentSans-Regular.ttf"
+        },
+        {
+          "id": "asset-38",
+          "path": "skills/canvas-design/canvas-fonts/InstrumentSerif-Italic.ttf"
+        },
+        {
+          "id": "asset-39",
+          "path": "skills/canvas-design/canvas-fonts/InstrumentSerif-Regular.ttf"
+        },
+        {
+          "id": "asset-40",
+          "path": "skills/canvas-design/canvas-fonts/Italiana-OFL.txt"
+        },
+        {
+          "id": "asset-41",
+          "path": "skills/canvas-design/canvas-fonts/Italiana-Regular.ttf"
+        },
+        {
+          "id": "asset-42",
+          "path": "skills/canvas-design/canvas-fonts/JetBrainsMono-Bold.ttf"
+        },
+        {
+          "id": "asset-43",
+          "path": "skills/canvas-design/canvas-fonts/JetBrainsMono-OFL.txt"
+        },
+        {
+          "id": "asset-44",
+          "path": "skills/canvas-design/canvas-fonts/JetBrainsMono-Regular.ttf"
+        },
+        {
+          "id": "asset-45",
+          "path": "skills/canvas-design/canvas-fonts/Jura-Light.ttf"
+        },
+        {
+          "id": "asset-46",
+          "path": "skills/canvas-design/canvas-fonts/Jura-Medium.ttf"
+        },
+        {
+          "id": "asset-47",
+          "path": "skills/canvas-design/canvas-fonts/Jura-OFL.txt"
+        },
+        {
+          "id": "asset-48",
+          "path": "skills/canvas-design/canvas-fonts/LibreBaskerville-OFL.txt"
+        },
+        {
+          "id": "asset-49",
+          "path": "skills/canvas-design/canvas-fonts/LibreBaskerville-Regular.ttf"
+        },
+        {
+          "id": "asset-50",
+          "path": "skills/canvas-design/canvas-fonts/Lora-Bold.ttf"
+        },
+        {
+          "id": "asset-51",
+          "path": "skills/canvas-design/canvas-fonts/Lora-BoldItalic.ttf"
+        },
+        {
+          "id": "asset-52",
+          "path": "skills/canvas-design/canvas-fonts/Lora-Italic.ttf"
+        },
+        {
+          "id": "asset-53",
+          "path": "skills/canvas-design/canvas-fonts/Lora-OFL.txt"
+        },
+        {
+          "id": "asset-54",
+          "path": "skills/canvas-design/canvas-fonts/Lora-Regular.ttf"
+        },
+        {
+          "id": "asset-55",
+          "path": "skills/canvas-design/canvas-fonts/NationalPark-Bold.ttf"
+        },
+        {
+          "id": "asset-56",
+          "path": "skills/canvas-design/canvas-fonts/NationalPark-OFL.txt"
+        },
+        {
+          "id": "asset-57",
+          "path": "skills/canvas-design/canvas-fonts/NationalPark-Regular.ttf"
+        },
+        {
+          "id": "asset-58",
+          "path": "skills/canvas-design/canvas-fonts/NothingYouCouldDo-OFL.txt"
+        },
+        {
+          "id": "asset-59",
+          "path": "skills/canvas-design/canvas-fonts/NothingYouCouldDo-Regular.ttf"
+        },
+        {
+          "id": "asset-60",
+          "path": "skills/canvas-design/canvas-fonts/Outfit-Bold.ttf"
+        },
+        {
+          "id": "asset-61",
+          "path": "skills/canvas-design/canvas-fonts/Outfit-OFL.txt"
+        },
+        {
+          "id": "asset-62",
+          "path": "skills/canvas-design/canvas-fonts/Outfit-Regular.ttf"
+        },
+        {
+          "id": "asset-63",
+          "path": "skills/canvas-design/canvas-fonts/PixelifySans-Medium.ttf"
+        },
+        {
+          "id": "asset-64",
+          "path": "skills/canvas-design/canvas-fonts/PixelifySans-OFL.txt"
+        },
+        {
+          "id": "asset-65",
+          "path": "skills/canvas-design/canvas-fonts/PoiretOne-OFL.txt"
+        },
+        {
+          "id": "asset-66",
+          "path": "skills/canvas-design/canvas-fonts/PoiretOne-Regular.ttf"
+        },
+        {
+          "id": "asset-67",
+          "path": "skills/canvas-design/canvas-fonts/RedHatMono-Bold.ttf"
+        },
+        {
+          "id": "asset-68",
+          "path": "skills/canvas-design/canvas-fonts/RedHatMono-OFL.txt"
+        },
+        {
+          "id": "asset-69",
+          "path": "skills/canvas-design/canvas-fonts/RedHatMono-Regular.ttf"
+        },
+        {
+          "id": "asset-70",
+          "path": "skills/canvas-design/canvas-fonts/Silkscreen-OFL.txt"
+        },
+        {
+          "id": "asset-71",
+          "path": "skills/canvas-design/canvas-fonts/Silkscreen-Regular.ttf"
+        },
+        {
+          "id": "asset-72",
+          "path": "skills/canvas-design/canvas-fonts/SmoochSans-Medium.ttf"
+        },
+        {
+          "id": "asset-73",
+          "path": "skills/canvas-design/canvas-fonts/SmoochSans-OFL.txt"
+        },
+        {
+          "id": "asset-74",
+          "path": "skills/canvas-design/canvas-fonts/Tektur-Medium.ttf"
+        },
+        {
+          "id": "asset-75",
+          "path": "skills/canvas-design/canvas-fonts/Tektur-OFL.txt"
+        },
+        {
+          "id": "asset-76",
+          "path": "skills/canvas-design/canvas-fonts/Tektur-Regular.ttf"
+        },
+        {
+          "id": "asset-77",
+          "path": "skills/canvas-design/canvas-fonts/WorkSans-Bold.ttf"
+        },
+        {
+          "id": "asset-78",
+          "path": "skills/canvas-design/canvas-fonts/WorkSans-BoldItalic.ttf"
+        },
+        {
+          "id": "asset-79",
+          "path": "skills/canvas-design/canvas-fonts/WorkSans-Italic.ttf"
+        },
+        {
+          "id": "asset-80",
+          "path": "skills/canvas-design/canvas-fonts/WorkSans-OFL.txt"
+        },
+        {
+          "id": "asset-81",
+          "path": "skills/canvas-design/canvas-fonts/WorkSans-Regular.ttf"
+        },
+        {
+          "id": "asset-82",
+          "path": "skills/canvas-design/canvas-fonts/YoungSerif-OFL.txt"
+        },
+        {
+          "id": "asset-83",
+          "path": "skills/canvas-design/canvas-fonts/YoungSerif-Regular.ttf"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Python 3 with Pillow/reportlab for rendering; supplied fonts remain under their adjacent OFL notices and root third-party notices. No rendering in material Apply."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open project and select/read canvas-design; invoke scripts through declared interpreters after separately acquiring prerequisites. Python 3 with Pillow/reportlab for rendering; supplied fonts remain under their adjacent OFL notices and root third-party notices. No rendering in material Apply."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.kiro.skill.canvas-design",
+      "source": "anthropic",
+      "label": "canvas-design",
+      "description": "Python 3 with Pillow/reportlab for rendering; supplied fonts remain under their adjacent OFL notices and root third-party notices. No rendering in material Apply.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.kiro.skill.canvas-design.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/canvas-design/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/canvas-design/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/canvas-design/canvas-fonts/ArsenalSC-OFL.txt"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/canvas-design/canvas-fonts/ArsenalSC-Regular.ttf"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/canvas-design/canvas-fonts/BigShoulders-Bold.ttf"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/canvas-design/canvas-fonts/BigShoulders-OFL.txt"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/canvas-design/canvas-fonts/BigShoulders-Regular.ttf"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/canvas-design/canvas-fonts/Boldonse-OFL.txt"
+        },
+        {
+          "id": "asset-9",
+          "path": "skills/canvas-design/canvas-fonts/Boldonse-Regular.ttf"
+        },
+        {
+          "id": "asset-10",
+          "path": "skills/canvas-design/canvas-fonts/BricolageGrotesque-Bold.ttf"
+        },
+        {
+          "id": "asset-11",
+          "path": "skills/canvas-design/canvas-fonts/BricolageGrotesque-OFL.txt"
+        },
+        {
+          "id": "asset-12",
+          "path": "skills/canvas-design/canvas-fonts/BricolageGrotesque-Regular.ttf"
+        },
+        {
+          "id": "asset-13",
+          "path": "skills/canvas-design/canvas-fonts/CrimsonPro-Bold.ttf"
+        },
+        {
+          "id": "asset-14",
+          "path": "skills/canvas-design/canvas-fonts/CrimsonPro-Italic.ttf"
+        },
+        {
+          "id": "asset-15",
+          "path": "skills/canvas-design/canvas-fonts/CrimsonPro-OFL.txt"
+        },
+        {
+          "id": "asset-16",
+          "path": "skills/canvas-design/canvas-fonts/CrimsonPro-Regular.ttf"
+        },
+        {
+          "id": "asset-17",
+          "path": "skills/canvas-design/canvas-fonts/DMMono-OFL.txt"
+        },
+        {
+          "id": "asset-18",
+          "path": "skills/canvas-design/canvas-fonts/DMMono-Regular.ttf"
+        },
+        {
+          "id": "asset-19",
+          "path": "skills/canvas-design/canvas-fonts/EricaOne-OFL.txt"
+        },
+        {
+          "id": "asset-20",
+          "path": "skills/canvas-design/canvas-fonts/EricaOne-Regular.ttf"
+        },
+        {
+          "id": "asset-21",
+          "path": "skills/canvas-design/canvas-fonts/GeistMono-Bold.ttf"
+        },
+        {
+          "id": "asset-22",
+          "path": "skills/canvas-design/canvas-fonts/GeistMono-OFL.txt"
+        },
+        {
+          "id": "asset-23",
+          "path": "skills/canvas-design/canvas-fonts/GeistMono-Regular.ttf"
+        },
+        {
+          "id": "asset-24",
+          "path": "skills/canvas-design/canvas-fonts/Gloock-OFL.txt"
+        },
+        {
+          "id": "asset-25",
+          "path": "skills/canvas-design/canvas-fonts/Gloock-Regular.ttf"
+        },
+        {
+          "id": "asset-26",
+          "path": "skills/canvas-design/canvas-fonts/IBMPlexMono-Bold.ttf"
+        },
+        {
+          "id": "asset-27",
+          "path": "skills/canvas-design/canvas-fonts/IBMPlexMono-OFL.txt"
+        },
+        {
+          "id": "asset-28",
+          "path": "skills/canvas-design/canvas-fonts/IBMPlexMono-Regular.ttf"
+        },
+        {
+          "id": "asset-29",
+          "path": "skills/canvas-design/canvas-fonts/IBMPlexSerif-Bold.ttf"
+        },
+        {
+          "id": "asset-30",
+          "path": "skills/canvas-design/canvas-fonts/IBMPlexSerif-BoldItalic.ttf"
+        },
+        {
+          "id": "asset-31",
+          "path": "skills/canvas-design/canvas-fonts/IBMPlexSerif-Italic.ttf"
+        },
+        {
+          "id": "asset-32",
+          "path": "skills/canvas-design/canvas-fonts/IBMPlexSerif-Regular.ttf"
+        },
+        {
+          "id": "asset-33",
+          "path": "skills/canvas-design/canvas-fonts/InstrumentSans-Bold.ttf"
+        },
+        {
+          "id": "asset-34",
+          "path": "skills/canvas-design/canvas-fonts/InstrumentSans-BoldItalic.ttf"
+        },
+        {
+          "id": "asset-35",
+          "path": "skills/canvas-design/canvas-fonts/InstrumentSans-Italic.ttf"
+        },
+        {
+          "id": "asset-36",
+          "path": "skills/canvas-design/canvas-fonts/InstrumentSans-OFL.txt"
+        },
+        {
+          "id": "asset-37",
+          "path": "skills/canvas-design/canvas-fonts/InstrumentSans-Regular.ttf"
+        },
+        {
+          "id": "asset-38",
+          "path": "skills/canvas-design/canvas-fonts/InstrumentSerif-Italic.ttf"
+        },
+        {
+          "id": "asset-39",
+          "path": "skills/canvas-design/canvas-fonts/InstrumentSerif-Regular.ttf"
+        },
+        {
+          "id": "asset-40",
+          "path": "skills/canvas-design/canvas-fonts/Italiana-OFL.txt"
+        },
+        {
+          "id": "asset-41",
+          "path": "skills/canvas-design/canvas-fonts/Italiana-Regular.ttf"
+        },
+        {
+          "id": "asset-42",
+          "path": "skills/canvas-design/canvas-fonts/JetBrainsMono-Bold.ttf"
+        },
+        {
+          "id": "asset-43",
+          "path": "skills/canvas-design/canvas-fonts/JetBrainsMono-OFL.txt"
+        },
+        {
+          "id": "asset-44",
+          "path": "skills/canvas-design/canvas-fonts/JetBrainsMono-Regular.ttf"
+        },
+        {
+          "id": "asset-45",
+          "path": "skills/canvas-design/canvas-fonts/Jura-Light.ttf"
+        },
+        {
+          "id": "asset-46",
+          "path": "skills/canvas-design/canvas-fonts/Jura-Medium.ttf"
+        },
+        {
+          "id": "asset-47",
+          "path": "skills/canvas-design/canvas-fonts/Jura-OFL.txt"
+        },
+        {
+          "id": "asset-48",
+          "path": "skills/canvas-design/canvas-fonts/LibreBaskerville-OFL.txt"
+        },
+        {
+          "id": "asset-49",
+          "path": "skills/canvas-design/canvas-fonts/LibreBaskerville-Regular.ttf"
+        },
+        {
+          "id": "asset-50",
+          "path": "skills/canvas-design/canvas-fonts/Lora-Bold.ttf"
+        },
+        {
+          "id": "asset-51",
+          "path": "skills/canvas-design/canvas-fonts/Lora-BoldItalic.ttf"
+        },
+        {
+          "id": "asset-52",
+          "path": "skills/canvas-design/canvas-fonts/Lora-Italic.ttf"
+        },
+        {
+          "id": "asset-53",
+          "path": "skills/canvas-design/canvas-fonts/Lora-OFL.txt"
+        },
+        {
+          "id": "asset-54",
+          "path": "skills/canvas-design/canvas-fonts/Lora-Regular.ttf"
+        },
+        {
+          "id": "asset-55",
+          "path": "skills/canvas-design/canvas-fonts/NationalPark-Bold.ttf"
+        },
+        {
+          "id": "asset-56",
+          "path": "skills/canvas-design/canvas-fonts/NationalPark-OFL.txt"
+        },
+        {
+          "id": "asset-57",
+          "path": "skills/canvas-design/canvas-fonts/NationalPark-Regular.ttf"
+        },
+        {
+          "id": "asset-58",
+          "path": "skills/canvas-design/canvas-fonts/NothingYouCouldDo-OFL.txt"
+        },
+        {
+          "id": "asset-59",
+          "path": "skills/canvas-design/canvas-fonts/NothingYouCouldDo-Regular.ttf"
+        },
+        {
+          "id": "asset-60",
+          "path": "skills/canvas-design/canvas-fonts/Outfit-Bold.ttf"
+        },
+        {
+          "id": "asset-61",
+          "path": "skills/canvas-design/canvas-fonts/Outfit-OFL.txt"
+        },
+        {
+          "id": "asset-62",
+          "path": "skills/canvas-design/canvas-fonts/Outfit-Regular.ttf"
+        },
+        {
+          "id": "asset-63",
+          "path": "skills/canvas-design/canvas-fonts/PixelifySans-Medium.ttf"
+        },
+        {
+          "id": "asset-64",
+          "path": "skills/canvas-design/canvas-fonts/PixelifySans-OFL.txt"
+        },
+        {
+          "id": "asset-65",
+          "path": "skills/canvas-design/canvas-fonts/PoiretOne-OFL.txt"
+        },
+        {
+          "id": "asset-66",
+          "path": "skills/canvas-design/canvas-fonts/PoiretOne-Regular.ttf"
+        },
+        {
+          "id": "asset-67",
+          "path": "skills/canvas-design/canvas-fonts/RedHatMono-Bold.ttf"
+        },
+        {
+          "id": "asset-68",
+          "path": "skills/canvas-design/canvas-fonts/RedHatMono-OFL.txt"
+        },
+        {
+          "id": "asset-69",
+          "path": "skills/canvas-design/canvas-fonts/RedHatMono-Regular.ttf"
+        },
+        {
+          "id": "asset-70",
+          "path": "skills/canvas-design/canvas-fonts/Silkscreen-OFL.txt"
+        },
+        {
+          "id": "asset-71",
+          "path": "skills/canvas-design/canvas-fonts/Silkscreen-Regular.ttf"
+        },
+        {
+          "id": "asset-72",
+          "path": "skills/canvas-design/canvas-fonts/SmoochSans-Medium.ttf"
+        },
+        {
+          "id": "asset-73",
+          "path": "skills/canvas-design/canvas-fonts/SmoochSans-OFL.txt"
+        },
+        {
+          "id": "asset-74",
+          "path": "skills/canvas-design/canvas-fonts/Tektur-Medium.ttf"
+        },
+        {
+          "id": "asset-75",
+          "path": "skills/canvas-design/canvas-fonts/Tektur-OFL.txt"
+        },
+        {
+          "id": "asset-76",
+          "path": "skills/canvas-design/canvas-fonts/Tektur-Regular.ttf"
+        },
+        {
+          "id": "asset-77",
+          "path": "skills/canvas-design/canvas-fonts/WorkSans-Bold.ttf"
+        },
+        {
+          "id": "asset-78",
+          "path": "skills/canvas-design/canvas-fonts/WorkSans-BoldItalic.ttf"
+        },
+        {
+          "id": "asset-79",
+          "path": "skills/canvas-design/canvas-fonts/WorkSans-Italic.ttf"
+        },
+        {
+          "id": "asset-80",
+          "path": "skills/canvas-design/canvas-fonts/WorkSans-OFL.txt"
+        },
+        {
+          "id": "asset-81",
+          "path": "skills/canvas-design/canvas-fonts/WorkSans-Regular.ttf"
+        },
+        {
+          "id": "asset-82",
+          "path": "skills/canvas-design/canvas-fonts/YoungSerif-OFL.txt"
+        },
+        {
+          "id": "asset-83",
+          "path": "skills/canvas-design/canvas-fonts/YoungSerif-Regular.ttf"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Python 3 with Pillow/reportlab for rendering; supplied fonts remain under their adjacent OFL notices and root third-party notices. No rendering in material Apply."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open project and select/read canvas-design; invoke scripts through declared interpreters after separately acquiring prerequisites. Python 3 with Pillow/reportlab for rendering; supplied fonts remain under their adjacent OFL notices and root third-party notices. No rendering in material Apply."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.copilot.skill.canvas-design",
+      "source": "anthropic",
+      "label": "canvas-design",
+      "description": "Python 3 with Pillow/reportlab for rendering; supplied fonts remain under their adjacent OFL notices and root third-party notices. No rendering in material Apply.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.copilot.skill.canvas-design.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/canvas-design/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/canvas-design/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/canvas-design/canvas-fonts/ArsenalSC-OFL.txt"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/canvas-design/canvas-fonts/ArsenalSC-Regular.ttf"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/canvas-design/canvas-fonts/BigShoulders-Bold.ttf"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/canvas-design/canvas-fonts/BigShoulders-OFL.txt"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/canvas-design/canvas-fonts/BigShoulders-Regular.ttf"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/canvas-design/canvas-fonts/Boldonse-OFL.txt"
+        },
+        {
+          "id": "asset-9",
+          "path": "skills/canvas-design/canvas-fonts/Boldonse-Regular.ttf"
+        },
+        {
+          "id": "asset-10",
+          "path": "skills/canvas-design/canvas-fonts/BricolageGrotesque-Bold.ttf"
+        },
+        {
+          "id": "asset-11",
+          "path": "skills/canvas-design/canvas-fonts/BricolageGrotesque-OFL.txt"
+        },
+        {
+          "id": "asset-12",
+          "path": "skills/canvas-design/canvas-fonts/BricolageGrotesque-Regular.ttf"
+        },
+        {
+          "id": "asset-13",
+          "path": "skills/canvas-design/canvas-fonts/CrimsonPro-Bold.ttf"
+        },
+        {
+          "id": "asset-14",
+          "path": "skills/canvas-design/canvas-fonts/CrimsonPro-Italic.ttf"
+        },
+        {
+          "id": "asset-15",
+          "path": "skills/canvas-design/canvas-fonts/CrimsonPro-OFL.txt"
+        },
+        {
+          "id": "asset-16",
+          "path": "skills/canvas-design/canvas-fonts/CrimsonPro-Regular.ttf"
+        },
+        {
+          "id": "asset-17",
+          "path": "skills/canvas-design/canvas-fonts/DMMono-OFL.txt"
+        },
+        {
+          "id": "asset-18",
+          "path": "skills/canvas-design/canvas-fonts/DMMono-Regular.ttf"
+        },
+        {
+          "id": "asset-19",
+          "path": "skills/canvas-design/canvas-fonts/EricaOne-OFL.txt"
+        },
+        {
+          "id": "asset-20",
+          "path": "skills/canvas-design/canvas-fonts/EricaOne-Regular.ttf"
+        },
+        {
+          "id": "asset-21",
+          "path": "skills/canvas-design/canvas-fonts/GeistMono-Bold.ttf"
+        },
+        {
+          "id": "asset-22",
+          "path": "skills/canvas-design/canvas-fonts/GeistMono-OFL.txt"
+        },
+        {
+          "id": "asset-23",
+          "path": "skills/canvas-design/canvas-fonts/GeistMono-Regular.ttf"
+        },
+        {
+          "id": "asset-24",
+          "path": "skills/canvas-design/canvas-fonts/Gloock-OFL.txt"
+        },
+        {
+          "id": "asset-25",
+          "path": "skills/canvas-design/canvas-fonts/Gloock-Regular.ttf"
+        },
+        {
+          "id": "asset-26",
+          "path": "skills/canvas-design/canvas-fonts/IBMPlexMono-Bold.ttf"
+        },
+        {
+          "id": "asset-27",
+          "path": "skills/canvas-design/canvas-fonts/IBMPlexMono-OFL.txt"
+        },
+        {
+          "id": "asset-28",
+          "path": "skills/canvas-design/canvas-fonts/IBMPlexMono-Regular.ttf"
+        },
+        {
+          "id": "asset-29",
+          "path": "skills/canvas-design/canvas-fonts/IBMPlexSerif-Bold.ttf"
+        },
+        {
+          "id": "asset-30",
+          "path": "skills/canvas-design/canvas-fonts/IBMPlexSerif-BoldItalic.ttf"
+        },
+        {
+          "id": "asset-31",
+          "path": "skills/canvas-design/canvas-fonts/IBMPlexSerif-Italic.ttf"
+        },
+        {
+          "id": "asset-32",
+          "path": "skills/canvas-design/canvas-fonts/IBMPlexSerif-Regular.ttf"
+        },
+        {
+          "id": "asset-33",
+          "path": "skills/canvas-design/canvas-fonts/InstrumentSans-Bold.ttf"
+        },
+        {
+          "id": "asset-34",
+          "path": "skills/canvas-design/canvas-fonts/InstrumentSans-BoldItalic.ttf"
+        },
+        {
+          "id": "asset-35",
+          "path": "skills/canvas-design/canvas-fonts/InstrumentSans-Italic.ttf"
+        },
+        {
+          "id": "asset-36",
+          "path": "skills/canvas-design/canvas-fonts/InstrumentSans-OFL.txt"
+        },
+        {
+          "id": "asset-37",
+          "path": "skills/canvas-design/canvas-fonts/InstrumentSans-Regular.ttf"
+        },
+        {
+          "id": "asset-38",
+          "path": "skills/canvas-design/canvas-fonts/InstrumentSerif-Italic.ttf"
+        },
+        {
+          "id": "asset-39",
+          "path": "skills/canvas-design/canvas-fonts/InstrumentSerif-Regular.ttf"
+        },
+        {
+          "id": "asset-40",
+          "path": "skills/canvas-design/canvas-fonts/Italiana-OFL.txt"
+        },
+        {
+          "id": "asset-41",
+          "path": "skills/canvas-design/canvas-fonts/Italiana-Regular.ttf"
+        },
+        {
+          "id": "asset-42",
+          "path": "skills/canvas-design/canvas-fonts/JetBrainsMono-Bold.ttf"
+        },
+        {
+          "id": "asset-43",
+          "path": "skills/canvas-design/canvas-fonts/JetBrainsMono-OFL.txt"
+        },
+        {
+          "id": "asset-44",
+          "path": "skills/canvas-design/canvas-fonts/JetBrainsMono-Regular.ttf"
+        },
+        {
+          "id": "asset-45",
+          "path": "skills/canvas-design/canvas-fonts/Jura-Light.ttf"
+        },
+        {
+          "id": "asset-46",
+          "path": "skills/canvas-design/canvas-fonts/Jura-Medium.ttf"
+        },
+        {
+          "id": "asset-47",
+          "path": "skills/canvas-design/canvas-fonts/Jura-OFL.txt"
+        },
+        {
+          "id": "asset-48",
+          "path": "skills/canvas-design/canvas-fonts/LibreBaskerville-OFL.txt"
+        },
+        {
+          "id": "asset-49",
+          "path": "skills/canvas-design/canvas-fonts/LibreBaskerville-Regular.ttf"
+        },
+        {
+          "id": "asset-50",
+          "path": "skills/canvas-design/canvas-fonts/Lora-Bold.ttf"
+        },
+        {
+          "id": "asset-51",
+          "path": "skills/canvas-design/canvas-fonts/Lora-BoldItalic.ttf"
+        },
+        {
+          "id": "asset-52",
+          "path": "skills/canvas-design/canvas-fonts/Lora-Italic.ttf"
+        },
+        {
+          "id": "asset-53",
+          "path": "skills/canvas-design/canvas-fonts/Lora-OFL.txt"
+        },
+        {
+          "id": "asset-54",
+          "path": "skills/canvas-design/canvas-fonts/Lora-Regular.ttf"
+        },
+        {
+          "id": "asset-55",
+          "path": "skills/canvas-design/canvas-fonts/NationalPark-Bold.ttf"
+        },
+        {
+          "id": "asset-56",
+          "path": "skills/canvas-design/canvas-fonts/NationalPark-OFL.txt"
+        },
+        {
+          "id": "asset-57",
+          "path": "skills/canvas-design/canvas-fonts/NationalPark-Regular.ttf"
+        },
+        {
+          "id": "asset-58",
+          "path": "skills/canvas-design/canvas-fonts/NothingYouCouldDo-OFL.txt"
+        },
+        {
+          "id": "asset-59",
+          "path": "skills/canvas-design/canvas-fonts/NothingYouCouldDo-Regular.ttf"
+        },
+        {
+          "id": "asset-60",
+          "path": "skills/canvas-design/canvas-fonts/Outfit-Bold.ttf"
+        },
+        {
+          "id": "asset-61",
+          "path": "skills/canvas-design/canvas-fonts/Outfit-OFL.txt"
+        },
+        {
+          "id": "asset-62",
+          "path": "skills/canvas-design/canvas-fonts/Outfit-Regular.ttf"
+        },
+        {
+          "id": "asset-63",
+          "path": "skills/canvas-design/canvas-fonts/PixelifySans-Medium.ttf"
+        },
+        {
+          "id": "asset-64",
+          "path": "skills/canvas-design/canvas-fonts/PixelifySans-OFL.txt"
+        },
+        {
+          "id": "asset-65",
+          "path": "skills/canvas-design/canvas-fonts/PoiretOne-OFL.txt"
+        },
+        {
+          "id": "asset-66",
+          "path": "skills/canvas-design/canvas-fonts/PoiretOne-Regular.ttf"
+        },
+        {
+          "id": "asset-67",
+          "path": "skills/canvas-design/canvas-fonts/RedHatMono-Bold.ttf"
+        },
+        {
+          "id": "asset-68",
+          "path": "skills/canvas-design/canvas-fonts/RedHatMono-OFL.txt"
+        },
+        {
+          "id": "asset-69",
+          "path": "skills/canvas-design/canvas-fonts/RedHatMono-Regular.ttf"
+        },
+        {
+          "id": "asset-70",
+          "path": "skills/canvas-design/canvas-fonts/Silkscreen-OFL.txt"
+        },
+        {
+          "id": "asset-71",
+          "path": "skills/canvas-design/canvas-fonts/Silkscreen-Regular.ttf"
+        },
+        {
+          "id": "asset-72",
+          "path": "skills/canvas-design/canvas-fonts/SmoochSans-Medium.ttf"
+        },
+        {
+          "id": "asset-73",
+          "path": "skills/canvas-design/canvas-fonts/SmoochSans-OFL.txt"
+        },
+        {
+          "id": "asset-74",
+          "path": "skills/canvas-design/canvas-fonts/Tektur-Medium.ttf"
+        },
+        {
+          "id": "asset-75",
+          "path": "skills/canvas-design/canvas-fonts/Tektur-OFL.txt"
+        },
+        {
+          "id": "asset-76",
+          "path": "skills/canvas-design/canvas-fonts/Tektur-Regular.ttf"
+        },
+        {
+          "id": "asset-77",
+          "path": "skills/canvas-design/canvas-fonts/WorkSans-Bold.ttf"
+        },
+        {
+          "id": "asset-78",
+          "path": "skills/canvas-design/canvas-fonts/WorkSans-BoldItalic.ttf"
+        },
+        {
+          "id": "asset-79",
+          "path": "skills/canvas-design/canvas-fonts/WorkSans-Italic.ttf"
+        },
+        {
+          "id": "asset-80",
+          "path": "skills/canvas-design/canvas-fonts/WorkSans-OFL.txt"
+        },
+        {
+          "id": "asset-81",
+          "path": "skills/canvas-design/canvas-fonts/WorkSans-Regular.ttf"
+        },
+        {
+          "id": "asset-82",
+          "path": "skills/canvas-design/canvas-fonts/YoungSerif-OFL.txt"
+        },
+        {
+          "id": "asset-83",
+          "path": "skills/canvas-design/canvas-fonts/YoungSerif-Regular.ttf"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Python 3 with Pillow/reportlab for rendering; supplied fonts remain under their adjacent OFL notices and root third-party notices. No rendering in material Apply."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open project and select/read canvas-design; invoke scripts through declared interpreters after separately acquiring prerequisites. Python 3 with Pillow/reportlab for rendering; supplied fonts remain under their adjacent OFL notices and root third-party notices. No rendering in material Apply."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.skill.claude-api",
+      "source": "anthropic",
+      "label": "claude-api",
+      "description": "Caller chooses Python anthropic SDK, TypeScript @anthropic-ai/sdk or another documented language SDK; current compatible SDK, network and host-owned ANTHROPIC_API_KEY/account required. No SDK/account acquisition or model call.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.skill.claude-api.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/claude-api/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/claude-api/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/claude-api/csharp/claude-api/README.md"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/claude-api/csharp/claude-api/batches.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/claude-api/csharp/claude-api/files-api.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/claude-api/csharp/claude-api/streaming.md"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/claude-api/csharp/claude-api/tool-use.md"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/claude-api/curl/examples.md"
+        },
+        {
+          "id": "asset-9",
+          "path": "skills/claude-api/curl/managed-agents.md"
+        },
+        {
+          "id": "asset-10",
+          "path": "skills/claude-api/go/claude-api/README.md"
+        },
+        {
+          "id": "asset-11",
+          "path": "skills/claude-api/go/claude-api/files-api.md"
+        },
+        {
+          "id": "asset-12",
+          "path": "skills/claude-api/go/claude-api/streaming.md"
+        },
+        {
+          "id": "asset-13",
+          "path": "skills/claude-api/go/claude-api/tool-use.md"
+        },
+        {
+          "id": "asset-14",
+          "path": "skills/claude-api/go/managed-agents/README.md"
+        },
+        {
+          "id": "asset-15",
+          "path": "skills/claude-api/java/claude-api/README.md"
+        },
+        {
+          "id": "asset-16",
+          "path": "skills/claude-api/java/claude-api/files-api.md"
+        },
+        {
+          "id": "asset-17",
+          "path": "skills/claude-api/java/claude-api/streaming.md"
+        },
+        {
+          "id": "asset-18",
+          "path": "skills/claude-api/java/claude-api/tool-use.md"
+        },
+        {
+          "id": "asset-19",
+          "path": "skills/claude-api/java/managed-agents/README.md"
+        },
+        {
+          "id": "asset-20",
+          "path": "skills/claude-api/php/claude-api/README.md"
+        },
+        {
+          "id": "asset-21",
+          "path": "skills/claude-api/php/claude-api/batches.md"
+        },
+        {
+          "id": "asset-22",
+          "path": "skills/claude-api/php/claude-api/files-api.md"
+        },
+        {
+          "id": "asset-23",
+          "path": "skills/claude-api/php/claude-api/streaming.md"
+        },
+        {
+          "id": "asset-24",
+          "path": "skills/claude-api/php/claude-api/tool-use.md"
+        },
+        {
+          "id": "asset-25",
+          "path": "skills/claude-api/php/managed-agents/README.md"
+        },
+        {
+          "id": "asset-26",
+          "path": "skills/claude-api/python/claude-api/README.md"
+        },
+        {
+          "id": "asset-27",
+          "path": "skills/claude-api/python/claude-api/batches.md"
+        },
+        {
+          "id": "asset-28",
+          "path": "skills/claude-api/python/claude-api/files-api.md"
+        },
+        {
+          "id": "asset-29",
+          "path": "skills/claude-api/python/claude-api/sdk-upgrade.md"
+        },
+        {
+          "id": "asset-30",
+          "path": "skills/claude-api/python/claude-api/streaming.md"
+        },
+        {
+          "id": "asset-31",
+          "path": "skills/claude-api/python/claude-api/tool-use.md"
+        },
+        {
+          "id": "asset-32",
+          "path": "skills/claude-api/python/managed-agents/README.md"
+        },
+        {
+          "id": "asset-33",
+          "path": "skills/claude-api/ruby/claude-api/README.md"
+        },
+        {
+          "id": "asset-34",
+          "path": "skills/claude-api/ruby/claude-api/streaming.md"
+        },
+        {
+          "id": "asset-35",
+          "path": "skills/claude-api/ruby/claude-api/tool-use.md"
+        },
+        {
+          "id": "asset-36",
+          "path": "skills/claude-api/ruby/managed-agents/README.md"
+        },
+        {
+          "id": "asset-37",
+          "path": "skills/claude-api/shared/admin-api.md"
+        },
+        {
+          "id": "asset-38",
+          "path": "skills/claude-api/shared/agent-design.md"
+        },
+        {
+          "id": "asset-39",
+          "path": "skills/claude-api/shared/anthropic-cli.md"
+        },
+        {
+          "id": "asset-40",
+          "path": "skills/claude-api/shared/claude-platform-on-aws.md"
+        },
+        {
+          "id": "asset-41",
+          "path": "skills/claude-api/shared/cost-optimization.md"
+        },
+        {
+          "id": "asset-42",
+          "path": "skills/claude-api/shared/error-codes.md"
+        },
+        {
+          "id": "asset-43",
+          "path": "skills/claude-api/shared/live-sources.md"
+        },
+        {
+          "id": "asset-44",
+          "path": "skills/claude-api/shared/managed-agents-api-reference.md"
+        },
+        {
+          "id": "asset-45",
+          "path": "skills/claude-api/shared/managed-agents-client-patterns.md"
+        },
+        {
+          "id": "asset-46",
+          "path": "skills/claude-api/shared/managed-agents-core.md"
+        },
+        {
+          "id": "asset-47",
+          "path": "skills/claude-api/shared/managed-agents-environments.md"
+        },
+        {
+          "id": "asset-48",
+          "path": "skills/claude-api/shared/managed-agents-events.md"
+        },
+        {
+          "id": "asset-49",
+          "path": "skills/claude-api/shared/managed-agents-memory.md"
+        },
+        {
+          "id": "asset-50",
+          "path": "skills/claude-api/shared/managed-agents-multiagent.md"
+        },
+        {
+          "id": "asset-51",
+          "path": "skills/claude-api/shared/managed-agents-onboarding.md"
+        },
+        {
+          "id": "asset-52",
+          "path": "skills/claude-api/shared/managed-agents-outcomes.md"
+        },
+        {
+          "id": "asset-53",
+          "path": "skills/claude-api/shared/managed-agents-overview.md"
+        },
+        {
+          "id": "asset-54",
+          "path": "skills/claude-api/shared/managed-agents-scheduled-deployments.md"
+        },
+        {
+          "id": "asset-55",
+          "path": "skills/claude-api/shared/managed-agents-self-hosted-sandboxes.md"
+        },
+        {
+          "id": "asset-56",
+          "path": "skills/claude-api/shared/managed-agents-tools.md"
+        },
+        {
+          "id": "asset-57",
+          "path": "skills/claude-api/shared/managed-agents-webhooks.md"
+        },
+        {
+          "id": "asset-58",
+          "path": "skills/claude-api/shared/model-migration.md"
+        },
+        {
+          "id": "asset-59",
+          "path": "skills/claude-api/shared/models.md"
+        },
+        {
+          "id": "asset-60",
+          "path": "skills/claude-api/shared/platform-availability.md"
+        },
+        {
+          "id": "asset-61",
+          "path": "skills/claude-api/shared/prompt-audit.md"
+        },
+        {
+          "id": "asset-62",
+          "path": "skills/claude-api/shared/prompt-caching.md"
+        },
+        {
+          "id": "asset-63",
+          "path": "skills/claude-api/shared/token-counting.md"
+        },
+        {
+          "id": "asset-64",
+          "path": "skills/claude-api/shared/tool-use-concepts.md"
+        },
+        {
+          "id": "asset-65",
+          "path": "skills/claude-api/typescript/claude-api/README.md"
+        },
+        {
+          "id": "asset-66",
+          "path": "skills/claude-api/typescript/claude-api/batches.md"
+        },
+        {
+          "id": "asset-67",
+          "path": "skills/claude-api/typescript/claude-api/files-api.md"
+        },
+        {
+          "id": "asset-68",
+          "path": "skills/claude-api/typescript/claude-api/streaming.md"
+        },
+        {
+          "id": "asset-69",
+          "path": "skills/claude-api/typescript/claude-api/tool-use.md"
+        },
+        {
+          "id": "asset-70",
+          "path": "skills/claude-api/typescript/managed-agents/README.md"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Caller chooses Python anthropic SDK, TypeScript @anthropic-ai/sdk or another documented language SDK; current compatible SDK, network and host-owned ANTHROPIC_API_KEY/account required. No SDK/account acquisition or model call."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open project and select/read claude-api; invoke scripts through declared interpreters after separately acquiring prerequisites. Caller chooses Python anthropic SDK, TypeScript @anthropic-ai/sdk or another documented language SDK; current compatible SDK, network and host-owned ANTHROPIC_API_KEY/account required. No SDK/account acquisition or model call."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.kiro.skill.claude-api",
+      "source": "anthropic",
+      "label": "claude-api",
+      "description": "Caller chooses Python anthropic SDK, TypeScript @anthropic-ai/sdk or another documented language SDK; current compatible SDK, network and host-owned ANTHROPIC_API_KEY/account required. No SDK/account acquisition or model call.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.kiro.skill.claude-api.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/claude-api/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/claude-api/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/claude-api/csharp/claude-api/README.md"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/claude-api/csharp/claude-api/batches.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/claude-api/csharp/claude-api/files-api.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/claude-api/csharp/claude-api/streaming.md"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/claude-api/csharp/claude-api/tool-use.md"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/claude-api/curl/examples.md"
+        },
+        {
+          "id": "asset-9",
+          "path": "skills/claude-api/curl/managed-agents.md"
+        },
+        {
+          "id": "asset-10",
+          "path": "skills/claude-api/go/claude-api/README.md"
+        },
+        {
+          "id": "asset-11",
+          "path": "skills/claude-api/go/claude-api/files-api.md"
+        },
+        {
+          "id": "asset-12",
+          "path": "skills/claude-api/go/claude-api/streaming.md"
+        },
+        {
+          "id": "asset-13",
+          "path": "skills/claude-api/go/claude-api/tool-use.md"
+        },
+        {
+          "id": "asset-14",
+          "path": "skills/claude-api/go/managed-agents/README.md"
+        },
+        {
+          "id": "asset-15",
+          "path": "skills/claude-api/java/claude-api/README.md"
+        },
+        {
+          "id": "asset-16",
+          "path": "skills/claude-api/java/claude-api/files-api.md"
+        },
+        {
+          "id": "asset-17",
+          "path": "skills/claude-api/java/claude-api/streaming.md"
+        },
+        {
+          "id": "asset-18",
+          "path": "skills/claude-api/java/claude-api/tool-use.md"
+        },
+        {
+          "id": "asset-19",
+          "path": "skills/claude-api/java/managed-agents/README.md"
+        },
+        {
+          "id": "asset-20",
+          "path": "skills/claude-api/php/claude-api/README.md"
+        },
+        {
+          "id": "asset-21",
+          "path": "skills/claude-api/php/claude-api/batches.md"
+        },
+        {
+          "id": "asset-22",
+          "path": "skills/claude-api/php/claude-api/files-api.md"
+        },
+        {
+          "id": "asset-23",
+          "path": "skills/claude-api/php/claude-api/streaming.md"
+        },
+        {
+          "id": "asset-24",
+          "path": "skills/claude-api/php/claude-api/tool-use.md"
+        },
+        {
+          "id": "asset-25",
+          "path": "skills/claude-api/php/managed-agents/README.md"
+        },
+        {
+          "id": "asset-26",
+          "path": "skills/claude-api/python/claude-api/README.md"
+        },
+        {
+          "id": "asset-27",
+          "path": "skills/claude-api/python/claude-api/batches.md"
+        },
+        {
+          "id": "asset-28",
+          "path": "skills/claude-api/python/claude-api/files-api.md"
+        },
+        {
+          "id": "asset-29",
+          "path": "skills/claude-api/python/claude-api/sdk-upgrade.md"
+        },
+        {
+          "id": "asset-30",
+          "path": "skills/claude-api/python/claude-api/streaming.md"
+        },
+        {
+          "id": "asset-31",
+          "path": "skills/claude-api/python/claude-api/tool-use.md"
+        },
+        {
+          "id": "asset-32",
+          "path": "skills/claude-api/python/managed-agents/README.md"
+        },
+        {
+          "id": "asset-33",
+          "path": "skills/claude-api/ruby/claude-api/README.md"
+        },
+        {
+          "id": "asset-34",
+          "path": "skills/claude-api/ruby/claude-api/streaming.md"
+        },
+        {
+          "id": "asset-35",
+          "path": "skills/claude-api/ruby/claude-api/tool-use.md"
+        },
+        {
+          "id": "asset-36",
+          "path": "skills/claude-api/ruby/managed-agents/README.md"
+        },
+        {
+          "id": "asset-37",
+          "path": "skills/claude-api/shared/admin-api.md"
+        },
+        {
+          "id": "asset-38",
+          "path": "skills/claude-api/shared/agent-design.md"
+        },
+        {
+          "id": "asset-39",
+          "path": "skills/claude-api/shared/anthropic-cli.md"
+        },
+        {
+          "id": "asset-40",
+          "path": "skills/claude-api/shared/claude-platform-on-aws.md"
+        },
+        {
+          "id": "asset-41",
+          "path": "skills/claude-api/shared/cost-optimization.md"
+        },
+        {
+          "id": "asset-42",
+          "path": "skills/claude-api/shared/error-codes.md"
+        },
+        {
+          "id": "asset-43",
+          "path": "skills/claude-api/shared/live-sources.md"
+        },
+        {
+          "id": "asset-44",
+          "path": "skills/claude-api/shared/managed-agents-api-reference.md"
+        },
+        {
+          "id": "asset-45",
+          "path": "skills/claude-api/shared/managed-agents-client-patterns.md"
+        },
+        {
+          "id": "asset-46",
+          "path": "skills/claude-api/shared/managed-agents-core.md"
+        },
+        {
+          "id": "asset-47",
+          "path": "skills/claude-api/shared/managed-agents-environments.md"
+        },
+        {
+          "id": "asset-48",
+          "path": "skills/claude-api/shared/managed-agents-events.md"
+        },
+        {
+          "id": "asset-49",
+          "path": "skills/claude-api/shared/managed-agents-memory.md"
+        },
+        {
+          "id": "asset-50",
+          "path": "skills/claude-api/shared/managed-agents-multiagent.md"
+        },
+        {
+          "id": "asset-51",
+          "path": "skills/claude-api/shared/managed-agents-onboarding.md"
+        },
+        {
+          "id": "asset-52",
+          "path": "skills/claude-api/shared/managed-agents-outcomes.md"
+        },
+        {
+          "id": "asset-53",
+          "path": "skills/claude-api/shared/managed-agents-overview.md"
+        },
+        {
+          "id": "asset-54",
+          "path": "skills/claude-api/shared/managed-agents-scheduled-deployments.md"
+        },
+        {
+          "id": "asset-55",
+          "path": "skills/claude-api/shared/managed-agents-self-hosted-sandboxes.md"
+        },
+        {
+          "id": "asset-56",
+          "path": "skills/claude-api/shared/managed-agents-tools.md"
+        },
+        {
+          "id": "asset-57",
+          "path": "skills/claude-api/shared/managed-agents-webhooks.md"
+        },
+        {
+          "id": "asset-58",
+          "path": "skills/claude-api/shared/model-migration.md"
+        },
+        {
+          "id": "asset-59",
+          "path": "skills/claude-api/shared/models.md"
+        },
+        {
+          "id": "asset-60",
+          "path": "skills/claude-api/shared/platform-availability.md"
+        },
+        {
+          "id": "asset-61",
+          "path": "skills/claude-api/shared/prompt-audit.md"
+        },
+        {
+          "id": "asset-62",
+          "path": "skills/claude-api/shared/prompt-caching.md"
+        },
+        {
+          "id": "asset-63",
+          "path": "skills/claude-api/shared/token-counting.md"
+        },
+        {
+          "id": "asset-64",
+          "path": "skills/claude-api/shared/tool-use-concepts.md"
+        },
+        {
+          "id": "asset-65",
+          "path": "skills/claude-api/typescript/claude-api/README.md"
+        },
+        {
+          "id": "asset-66",
+          "path": "skills/claude-api/typescript/claude-api/batches.md"
+        },
+        {
+          "id": "asset-67",
+          "path": "skills/claude-api/typescript/claude-api/files-api.md"
+        },
+        {
+          "id": "asset-68",
+          "path": "skills/claude-api/typescript/claude-api/streaming.md"
+        },
+        {
+          "id": "asset-69",
+          "path": "skills/claude-api/typescript/claude-api/tool-use.md"
+        },
+        {
+          "id": "asset-70",
+          "path": "skills/claude-api/typescript/managed-agents/README.md"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Caller chooses Python anthropic SDK, TypeScript @anthropic-ai/sdk or another documented language SDK; current compatible SDK, network and host-owned ANTHROPIC_API_KEY/account required. No SDK/account acquisition or model call."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open project and select/read claude-api; invoke scripts through declared interpreters after separately acquiring prerequisites. Caller chooses Python anthropic SDK, TypeScript @anthropic-ai/sdk or another documented language SDK; current compatible SDK, network and host-owned ANTHROPIC_API_KEY/account required. No SDK/account acquisition or model call."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.copilot.skill.claude-api",
+      "source": "anthropic",
+      "label": "claude-api",
+      "description": "Caller chooses Python anthropic SDK, TypeScript @anthropic-ai/sdk or another documented language SDK; current compatible SDK, network and host-owned ANTHROPIC_API_KEY/account required. No SDK/account acquisition or model call.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.copilot.skill.claude-api.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/claude-api/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/claude-api/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/claude-api/csharp/claude-api/README.md"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/claude-api/csharp/claude-api/batches.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/claude-api/csharp/claude-api/files-api.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/claude-api/csharp/claude-api/streaming.md"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/claude-api/csharp/claude-api/tool-use.md"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/claude-api/curl/examples.md"
+        },
+        {
+          "id": "asset-9",
+          "path": "skills/claude-api/curl/managed-agents.md"
+        },
+        {
+          "id": "asset-10",
+          "path": "skills/claude-api/go/claude-api/README.md"
+        },
+        {
+          "id": "asset-11",
+          "path": "skills/claude-api/go/claude-api/files-api.md"
+        },
+        {
+          "id": "asset-12",
+          "path": "skills/claude-api/go/claude-api/streaming.md"
+        },
+        {
+          "id": "asset-13",
+          "path": "skills/claude-api/go/claude-api/tool-use.md"
+        },
+        {
+          "id": "asset-14",
+          "path": "skills/claude-api/go/managed-agents/README.md"
+        },
+        {
+          "id": "asset-15",
+          "path": "skills/claude-api/java/claude-api/README.md"
+        },
+        {
+          "id": "asset-16",
+          "path": "skills/claude-api/java/claude-api/files-api.md"
+        },
+        {
+          "id": "asset-17",
+          "path": "skills/claude-api/java/claude-api/streaming.md"
+        },
+        {
+          "id": "asset-18",
+          "path": "skills/claude-api/java/claude-api/tool-use.md"
+        },
+        {
+          "id": "asset-19",
+          "path": "skills/claude-api/java/managed-agents/README.md"
+        },
+        {
+          "id": "asset-20",
+          "path": "skills/claude-api/php/claude-api/README.md"
+        },
+        {
+          "id": "asset-21",
+          "path": "skills/claude-api/php/claude-api/batches.md"
+        },
+        {
+          "id": "asset-22",
+          "path": "skills/claude-api/php/claude-api/files-api.md"
+        },
+        {
+          "id": "asset-23",
+          "path": "skills/claude-api/php/claude-api/streaming.md"
+        },
+        {
+          "id": "asset-24",
+          "path": "skills/claude-api/php/claude-api/tool-use.md"
+        },
+        {
+          "id": "asset-25",
+          "path": "skills/claude-api/php/managed-agents/README.md"
+        },
+        {
+          "id": "asset-26",
+          "path": "skills/claude-api/python/claude-api/README.md"
+        },
+        {
+          "id": "asset-27",
+          "path": "skills/claude-api/python/claude-api/batches.md"
+        },
+        {
+          "id": "asset-28",
+          "path": "skills/claude-api/python/claude-api/files-api.md"
+        },
+        {
+          "id": "asset-29",
+          "path": "skills/claude-api/python/claude-api/sdk-upgrade.md"
+        },
+        {
+          "id": "asset-30",
+          "path": "skills/claude-api/python/claude-api/streaming.md"
+        },
+        {
+          "id": "asset-31",
+          "path": "skills/claude-api/python/claude-api/tool-use.md"
+        },
+        {
+          "id": "asset-32",
+          "path": "skills/claude-api/python/managed-agents/README.md"
+        },
+        {
+          "id": "asset-33",
+          "path": "skills/claude-api/ruby/claude-api/README.md"
+        },
+        {
+          "id": "asset-34",
+          "path": "skills/claude-api/ruby/claude-api/streaming.md"
+        },
+        {
+          "id": "asset-35",
+          "path": "skills/claude-api/ruby/claude-api/tool-use.md"
+        },
+        {
+          "id": "asset-36",
+          "path": "skills/claude-api/ruby/managed-agents/README.md"
+        },
+        {
+          "id": "asset-37",
+          "path": "skills/claude-api/shared/admin-api.md"
+        },
+        {
+          "id": "asset-38",
+          "path": "skills/claude-api/shared/agent-design.md"
+        },
+        {
+          "id": "asset-39",
+          "path": "skills/claude-api/shared/anthropic-cli.md"
+        },
+        {
+          "id": "asset-40",
+          "path": "skills/claude-api/shared/claude-platform-on-aws.md"
+        },
+        {
+          "id": "asset-41",
+          "path": "skills/claude-api/shared/cost-optimization.md"
+        },
+        {
+          "id": "asset-42",
+          "path": "skills/claude-api/shared/error-codes.md"
+        },
+        {
+          "id": "asset-43",
+          "path": "skills/claude-api/shared/live-sources.md"
+        },
+        {
+          "id": "asset-44",
+          "path": "skills/claude-api/shared/managed-agents-api-reference.md"
+        },
+        {
+          "id": "asset-45",
+          "path": "skills/claude-api/shared/managed-agents-client-patterns.md"
+        },
+        {
+          "id": "asset-46",
+          "path": "skills/claude-api/shared/managed-agents-core.md"
+        },
+        {
+          "id": "asset-47",
+          "path": "skills/claude-api/shared/managed-agents-environments.md"
+        },
+        {
+          "id": "asset-48",
+          "path": "skills/claude-api/shared/managed-agents-events.md"
+        },
+        {
+          "id": "asset-49",
+          "path": "skills/claude-api/shared/managed-agents-memory.md"
+        },
+        {
+          "id": "asset-50",
+          "path": "skills/claude-api/shared/managed-agents-multiagent.md"
+        },
+        {
+          "id": "asset-51",
+          "path": "skills/claude-api/shared/managed-agents-onboarding.md"
+        },
+        {
+          "id": "asset-52",
+          "path": "skills/claude-api/shared/managed-agents-outcomes.md"
+        },
+        {
+          "id": "asset-53",
+          "path": "skills/claude-api/shared/managed-agents-overview.md"
+        },
+        {
+          "id": "asset-54",
+          "path": "skills/claude-api/shared/managed-agents-scheduled-deployments.md"
+        },
+        {
+          "id": "asset-55",
+          "path": "skills/claude-api/shared/managed-agents-self-hosted-sandboxes.md"
+        },
+        {
+          "id": "asset-56",
+          "path": "skills/claude-api/shared/managed-agents-tools.md"
+        },
+        {
+          "id": "asset-57",
+          "path": "skills/claude-api/shared/managed-agents-webhooks.md"
+        },
+        {
+          "id": "asset-58",
+          "path": "skills/claude-api/shared/model-migration.md"
+        },
+        {
+          "id": "asset-59",
+          "path": "skills/claude-api/shared/models.md"
+        },
+        {
+          "id": "asset-60",
+          "path": "skills/claude-api/shared/platform-availability.md"
+        },
+        {
+          "id": "asset-61",
+          "path": "skills/claude-api/shared/prompt-audit.md"
+        },
+        {
+          "id": "asset-62",
+          "path": "skills/claude-api/shared/prompt-caching.md"
+        },
+        {
+          "id": "asset-63",
+          "path": "skills/claude-api/shared/token-counting.md"
+        },
+        {
+          "id": "asset-64",
+          "path": "skills/claude-api/shared/tool-use-concepts.md"
+        },
+        {
+          "id": "asset-65",
+          "path": "skills/claude-api/typescript/claude-api/README.md"
+        },
+        {
+          "id": "asset-66",
+          "path": "skills/claude-api/typescript/claude-api/batches.md"
+        },
+        {
+          "id": "asset-67",
+          "path": "skills/claude-api/typescript/claude-api/files-api.md"
+        },
+        {
+          "id": "asset-68",
+          "path": "skills/claude-api/typescript/claude-api/streaming.md"
+        },
+        {
+          "id": "asset-69",
+          "path": "skills/claude-api/typescript/claude-api/tool-use.md"
+        },
+        {
+          "id": "asset-70",
+          "path": "skills/claude-api/typescript/managed-agents/README.md"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Caller chooses Python anthropic SDK, TypeScript @anthropic-ai/sdk or another documented language SDK; current compatible SDK, network and host-owned ANTHROPIC_API_KEY/account required. No SDK/account acquisition or model call."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open project and select/read claude-api; invoke scripts through declared interpreters after separately acquiring prerequisites. Caller chooses Python anthropic SDK, TypeScript @anthropic-ai/sdk or another documented language SDK; current compatible SDK, network and host-owned ANTHROPIC_API_KEY/account required. No SDK/account acquisition or model call."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.skill.discernment-nudge",
+      "source": "anthropic",
+      "label": "discernment-nudge",
+      "description": "Instruction material; harness reasoning/response behavior is client-owned and unobserved.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.skill.discernment-nudge.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/discernment-nudge/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/discernment-nudge/SKILL.md"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Instruction material; harness reasoning/response behavior is client-owned and unobserved."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open project and select/read discernment-nudge; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction material; harness reasoning/response behavior is client-owned and unobserved."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.kiro.skill.discernment-nudge",
+      "source": "anthropic",
+      "label": "discernment-nudge",
+      "description": "Instruction material; harness reasoning/response behavior is client-owned and unobserved.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.kiro.skill.discernment-nudge.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/discernment-nudge/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/discernment-nudge/SKILL.md"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Instruction material; harness reasoning/response behavior is client-owned and unobserved."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open project and select/read discernment-nudge; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction material; harness reasoning/response behavior is client-owned and unobserved."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.copilot.skill.discernment-nudge",
+      "source": "anthropic",
+      "label": "discernment-nudge",
+      "description": "Instruction material; harness reasoning/response behavior is client-owned and unobserved.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.copilot.skill.discernment-nudge.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/discernment-nudge/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/discernment-nudge/SKILL.md"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Instruction material; harness reasoning/response behavior is client-owned and unobserved."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open project and select/read discernment-nudge; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction material; harness reasoning/response behavior is client-owned and unobserved."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.skill.frontend-design",
+      "source": "anthropic",
+      "label": "frontend-design",
+      "description": "Instruction material; project-selected frontend runtime/build/browser tools remain caller-owned.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.skill.frontend-design.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/frontend-design/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/frontend-design/SKILL.md"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Instruction material; project-selected frontend runtime/build/browser tools remain caller-owned."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open project and select/read frontend-design; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction material; project-selected frontend runtime/build/browser tools remain caller-owned."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.kiro.skill.frontend-design",
+      "source": "anthropic",
+      "label": "frontend-design",
+      "description": "Instruction material; project-selected frontend runtime/build/browser tools remain caller-owned.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.kiro.skill.frontend-design.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/frontend-design/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/frontend-design/SKILL.md"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Instruction material; project-selected frontend runtime/build/browser tools remain caller-owned."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open project and select/read frontend-design; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction material; project-selected frontend runtime/build/browser tools remain caller-owned."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.copilot.skill.frontend-design",
+      "source": "anthropic",
+      "label": "frontend-design",
+      "description": "Instruction material; project-selected frontend runtime/build/browser tools remain caller-owned.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.copilot.skill.frontend-design.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/frontend-design/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/frontend-design/SKILL.md"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Instruction material; project-selected frontend runtime/build/browser tools remain caller-owned."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open project and select/read frontend-design; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction material; project-selected frontend runtime/build/browser tools remain caller-owned."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.skill.internal-comms",
+      "source": "anthropic",
+      "label": "internal-comms",
+      "description": "Instruction/examples; caller-owned communication context, no message transport or send operation.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.skill.internal-comms.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/internal-comms/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/internal-comms/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/internal-comms/examples/3p-updates.md"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/internal-comms/examples/company-newsletter.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/internal-comms/examples/faq-answers.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/internal-comms/examples/general-comms.md"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Instruction/examples; caller-owned communication context, no message transport or send operation."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open project and select/read internal-comms; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction/examples; caller-owned communication context, no message transport or send operation."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.kiro.skill.internal-comms",
+      "source": "anthropic",
+      "label": "internal-comms",
+      "description": "Instruction/examples; caller-owned communication context, no message transport or send operation.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.kiro.skill.internal-comms.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/internal-comms/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/internal-comms/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/internal-comms/examples/3p-updates.md"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/internal-comms/examples/company-newsletter.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/internal-comms/examples/faq-answers.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/internal-comms/examples/general-comms.md"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Instruction/examples; caller-owned communication context, no message transport or send operation."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open project and select/read internal-comms; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction/examples; caller-owned communication context, no message transport or send operation."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.copilot.skill.internal-comms",
+      "source": "anthropic",
+      "label": "internal-comms",
+      "description": "Instruction/examples; caller-owned communication context, no message transport or send operation.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.copilot.skill.internal-comms.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/internal-comms/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/internal-comms/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/internal-comms/examples/3p-updates.md"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/internal-comms/examples/company-newsletter.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/internal-comms/examples/faq-answers.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/internal-comms/examples/general-comms.md"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Instruction/examples; caller-owned communication context, no message transport or send operation."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open project and select/read internal-comms; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction/examples; caller-owned communication context, no message transport or send operation."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.skill.mcp-builder",
+      "source": "anthropic",
+      "label": "mcp-builder",
+      "description": "Skill/reference material, not an MCP server or registration. Python 3 with mcp>=1.1.0, anthropic>=0.39.0 in scripts/requirements.txt for evaluation.py/mcp_client.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.skill.mcp-builder.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/mcp-builder/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/mcp-builder/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/mcp-builder/reference/evaluation.md"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/mcp-builder/reference/mcp_best_practices.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/mcp-builder/reference/node_mcp_server.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/mcp-builder/reference/python_mcp_server.md"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/mcp-builder/scripts/connections.py"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/mcp-builder/scripts/evaluation.py"
+        },
+        {
+          "id": "asset-9",
+          "path": "skills/mcp-builder/scripts/example_evaluation.xml"
+        },
+        {
+          "id": "asset-10",
+          "path": "skills/mcp-builder/scripts/requirements.txt"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Skill/reference material, not an MCP server or registration. Python 3 with mcp>=1.1.0, anthropic>=0.39.0 in scripts/requirements.txt for evaluation.py/mcp_client.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call."
+        },
+        {
+          "client": "claude-code",
+          "surface": "mcp",
+          "capability": "mcp-registration",
+          "support": "unsupported",
+          "reason": "mcp-builder authors servers; this skill does not register a real upstream service."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open project and select/read mcp-builder; invoke scripts through declared interpreters after separately acquiring prerequisites. Skill/reference material, not an MCP server or registration. Python 3 with mcp>=1.1.0, anthropic>=0.39.0 in scripts/requirements.txt for evaluation.py/mcp_client.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.kiro.skill.mcp-builder",
+      "source": "anthropic",
+      "label": "mcp-builder",
+      "description": "Skill/reference material, not an MCP server or registration. Python 3 with mcp>=1.1.0, anthropic>=0.39.0 in scripts/requirements.txt for evaluation.py/mcp_client.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.kiro.skill.mcp-builder.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/mcp-builder/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/mcp-builder/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/mcp-builder/reference/evaluation.md"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/mcp-builder/reference/mcp_best_practices.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/mcp-builder/reference/node_mcp_server.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/mcp-builder/reference/python_mcp_server.md"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/mcp-builder/scripts/connections.py"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/mcp-builder/scripts/evaluation.py"
+        },
+        {
+          "id": "asset-9",
+          "path": "skills/mcp-builder/scripts/example_evaluation.xml"
+        },
+        {
+          "id": "asset-10",
+          "path": "skills/mcp-builder/scripts/requirements.txt"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Skill/reference material, not an MCP server or registration. Python 3 with mcp>=1.1.0, anthropic>=0.39.0 in scripts/requirements.txt for evaluation.py/mcp_client.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "mcp",
+          "capability": "mcp-registration",
+          "support": "unsupported",
+          "reason": "mcp-builder authors servers; this skill does not register a real upstream service."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open project and select/read mcp-builder; invoke scripts through declared interpreters after separately acquiring prerequisites. Skill/reference material, not an MCP server or registration. Python 3 with mcp>=1.1.0, anthropic>=0.39.0 in scripts/requirements.txt for evaluation.py/mcp_client.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.copilot.skill.mcp-builder",
+      "source": "anthropic",
+      "label": "mcp-builder",
+      "description": "Skill/reference material, not an MCP server or registration. Python 3 with mcp>=1.1.0, anthropic>=0.39.0 in scripts/requirements.txt for evaluation.py/mcp_client.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.copilot.skill.mcp-builder.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/mcp-builder/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/mcp-builder/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/mcp-builder/reference/evaluation.md"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/mcp-builder/reference/mcp_best_practices.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/mcp-builder/reference/node_mcp_server.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/mcp-builder/reference/python_mcp_server.md"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/mcp-builder/scripts/connections.py"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/mcp-builder/scripts/evaluation.py"
+        },
+        {
+          "id": "asset-9",
+          "path": "skills/mcp-builder/scripts/example_evaluation.xml"
+        },
+        {
+          "id": "asset-10",
+          "path": "skills/mcp-builder/scripts/requirements.txt"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Skill/reference material, not an MCP server or registration. Python 3 with mcp>=1.1.0, anthropic>=0.39.0 in scripts/requirements.txt for evaluation.py/mcp_client.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "mcp",
+          "capability": "mcp-registration",
+          "support": "unsupported",
+          "reason": "mcp-builder authors servers; this skill does not register a real upstream service."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open project and select/read mcp-builder; invoke scripts through declared interpreters after separately acquiring prerequisites. Skill/reference material, not an MCP server or registration. Python 3 with mcp>=1.1.0, anthropic>=0.39.0 in scripts/requirements.txt for evaluation.py/mcp_client.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.skill.skill-creator",
+      "source": "anthropic",
+      "label": "skill-creator",
+      "description": "Python 3, PyYAML for validation/packaging; eval/improvement scripts additionally require available Claude CLI, caller-approved account/model calls and caller-owned eval fixtures. render_review.py needs browser for viewing only; no eval/model execution.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.skill.skill-creator.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/skill-creator/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/skill-creator/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/skill-creator/agents/analyzer.md"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/skill-creator/agents/comparator.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/skill-creator/agents/grader.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/skill-creator/assets/eval_review.html"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/skill-creator/eval-viewer/generate_review.py"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/skill-creator/eval-viewer/viewer.html"
+        },
+        {
+          "id": "asset-9",
+          "path": "skills/skill-creator/references/schemas.md"
+        },
+        {
+          "id": "asset-10",
+          "path": "skills/skill-creator/scripts/__init__.py"
+        },
+        {
+          "id": "asset-11",
+          "path": "skills/skill-creator/scripts/aggregate_benchmark.py"
+        },
+        {
+          "id": "asset-12",
+          "path": "skills/skill-creator/scripts/generate_report.py"
+        },
+        {
+          "id": "asset-13",
+          "path": "skills/skill-creator/scripts/improve_description.py"
+        },
+        {
+          "id": "asset-14",
+          "path": "skills/skill-creator/scripts/package_skill.py"
+        },
+        {
+          "id": "asset-15",
+          "path": "skills/skill-creator/scripts/quick_validate.py"
+        },
+        {
+          "id": "asset-16",
+          "path": "skills/skill-creator/scripts/run_eval.py"
+        },
+        {
+          "id": "asset-17",
+          "path": "skills/skill-creator/scripts/run_loop.py"
+        },
+        {
+          "id": "asset-18",
+          "path": "skills/skill-creator/scripts/utils.py"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Python 3, PyYAML for validation/packaging; eval/improvement scripts additionally require available Claude CLI, caller-approved account/model calls and caller-owned eval fixtures. render_review.py needs browser for viewing only; no eval/model execution."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open project and select/read skill-creator; invoke scripts through declared interpreters after separately acquiring prerequisites. Python 3, PyYAML for validation/packaging; eval/improvement scripts additionally require available Claude CLI, caller-approved account/model calls and caller-owned eval fixtures. render_review.py needs browser for viewing only; no eval/model execution."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.kiro.skill.skill-creator",
+      "source": "anthropic",
+      "label": "skill-creator",
+      "description": "Python 3, PyYAML for validation/packaging; eval/improvement scripts additionally require available Claude CLI, caller-approved account/model calls and caller-owned eval fixtures. render_review.py needs browser for viewing only; no eval/model execution.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.kiro.skill.skill-creator.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/skill-creator/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/skill-creator/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/skill-creator/agents/analyzer.md"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/skill-creator/agents/comparator.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/skill-creator/agents/grader.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/skill-creator/assets/eval_review.html"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/skill-creator/eval-viewer/generate_review.py"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/skill-creator/eval-viewer/viewer.html"
+        },
+        {
+          "id": "asset-9",
+          "path": "skills/skill-creator/references/schemas.md"
+        },
+        {
+          "id": "asset-10",
+          "path": "skills/skill-creator/scripts/__init__.py"
+        },
+        {
+          "id": "asset-11",
+          "path": "skills/skill-creator/scripts/aggregate_benchmark.py"
+        },
+        {
+          "id": "asset-12",
+          "path": "skills/skill-creator/scripts/generate_report.py"
+        },
+        {
+          "id": "asset-13",
+          "path": "skills/skill-creator/scripts/improve_description.py"
+        },
+        {
+          "id": "asset-14",
+          "path": "skills/skill-creator/scripts/package_skill.py"
+        },
+        {
+          "id": "asset-15",
+          "path": "skills/skill-creator/scripts/quick_validate.py"
+        },
+        {
+          "id": "asset-16",
+          "path": "skills/skill-creator/scripts/run_eval.py"
+        },
+        {
+          "id": "asset-17",
+          "path": "skills/skill-creator/scripts/run_loop.py"
+        },
+        {
+          "id": "asset-18",
+          "path": "skills/skill-creator/scripts/utils.py"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Python 3, PyYAML for validation/packaging; eval/improvement scripts additionally require available Claude CLI, caller-approved account/model calls and caller-owned eval fixtures. render_review.py needs browser for viewing only; no eval/model execution."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open project and select/read skill-creator; invoke scripts through declared interpreters after separately acquiring prerequisites. Python 3, PyYAML for validation/packaging; eval/improvement scripts additionally require available Claude CLI, caller-approved account/model calls and caller-owned eval fixtures. render_review.py needs browser for viewing only; no eval/model execution."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.copilot.skill.skill-creator",
+      "source": "anthropic",
+      "label": "skill-creator",
+      "description": "Python 3, PyYAML for validation/packaging; eval/improvement scripts additionally require available Claude CLI, caller-approved account/model calls and caller-owned eval fixtures. render_review.py needs browser for viewing only; no eval/model execution.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.copilot.skill.skill-creator.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/skill-creator/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/skill-creator/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/skill-creator/agents/analyzer.md"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/skill-creator/agents/comparator.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/skill-creator/agents/grader.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/skill-creator/assets/eval_review.html"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/skill-creator/eval-viewer/generate_review.py"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/skill-creator/eval-viewer/viewer.html"
+        },
+        {
+          "id": "asset-9",
+          "path": "skills/skill-creator/references/schemas.md"
+        },
+        {
+          "id": "asset-10",
+          "path": "skills/skill-creator/scripts/__init__.py"
+        },
+        {
+          "id": "asset-11",
+          "path": "skills/skill-creator/scripts/aggregate_benchmark.py"
+        },
+        {
+          "id": "asset-12",
+          "path": "skills/skill-creator/scripts/generate_report.py"
+        },
+        {
+          "id": "asset-13",
+          "path": "skills/skill-creator/scripts/improve_description.py"
+        },
+        {
+          "id": "asset-14",
+          "path": "skills/skill-creator/scripts/package_skill.py"
+        },
+        {
+          "id": "asset-15",
+          "path": "skills/skill-creator/scripts/quick_validate.py"
+        },
+        {
+          "id": "asset-16",
+          "path": "skills/skill-creator/scripts/run_eval.py"
+        },
+        {
+          "id": "asset-17",
+          "path": "skills/skill-creator/scripts/run_loop.py"
+        },
+        {
+          "id": "asset-18",
+          "path": "skills/skill-creator/scripts/utils.py"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Python 3, PyYAML for validation/packaging; eval/improvement scripts additionally require available Claude CLI, caller-approved account/model calls and caller-owned eval fixtures. render_review.py needs browser for viewing only; no eval/model execution."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open project and select/read skill-creator; invoke scripts through declared interpreters after separately acquiring prerequisites. Python 3, PyYAML for validation/packaging; eval/improvement scripts additionally require available Claude CLI, caller-approved account/model calls and caller-owned eval fixtures. render_review.py needs browser for viewing only; no eval/model execution."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.skill.slack-gif-creator",
+      "source": "anthropic",
+      "label": "slack-gif-creator",
+      "description": "Python 3 with Pillow, imageio and numpy, plus compatible imageio-ffmpeg/FFmpeg when chosen; caller acquires packages/tools under their own licenses. Complete scripts and requirements retained.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.skill.slack-gif-creator.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/slack-gif-creator/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/slack-gif-creator/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/slack-gif-creator/core/easing.py"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/slack-gif-creator/core/frame_composer.py"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/slack-gif-creator/core/gif_builder.py"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/slack-gif-creator/core/validators.py"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/slack-gif-creator/requirements.txt"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Python 3 with Pillow, imageio and numpy, plus compatible imageio-ffmpeg/FFmpeg when chosen; caller acquires packages/tools under their own licenses. Complete scripts and requirements retained."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open project and select/read slack-gif-creator; invoke scripts through declared interpreters after separately acquiring prerequisites. Python 3 with Pillow, imageio and numpy, plus compatible imageio-ffmpeg/FFmpeg when chosen; caller acquires packages/tools under their own licenses. Complete scripts and requirements retained."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.kiro.skill.slack-gif-creator",
+      "source": "anthropic",
+      "label": "slack-gif-creator",
+      "description": "Python 3 with Pillow, imageio and numpy, plus compatible imageio-ffmpeg/FFmpeg when chosen; caller acquires packages/tools under their own licenses. Complete scripts and requirements retained.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.kiro.skill.slack-gif-creator.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/slack-gif-creator/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/slack-gif-creator/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/slack-gif-creator/core/easing.py"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/slack-gif-creator/core/frame_composer.py"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/slack-gif-creator/core/gif_builder.py"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/slack-gif-creator/core/validators.py"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/slack-gif-creator/requirements.txt"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Python 3 with Pillow, imageio and numpy, plus compatible imageio-ffmpeg/FFmpeg when chosen; caller acquires packages/tools under their own licenses. Complete scripts and requirements retained."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open project and select/read slack-gif-creator; invoke scripts through declared interpreters after separately acquiring prerequisites. Python 3 with Pillow, imageio and numpy, plus compatible imageio-ffmpeg/FFmpeg when chosen; caller acquires packages/tools under their own licenses. Complete scripts and requirements retained."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.copilot.skill.slack-gif-creator",
+      "source": "anthropic",
+      "label": "slack-gif-creator",
+      "description": "Python 3 with Pillow, imageio and numpy, plus compatible imageio-ffmpeg/FFmpeg when chosen; caller acquires packages/tools under their own licenses. Complete scripts and requirements retained.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.copilot.skill.slack-gif-creator.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/slack-gif-creator/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/slack-gif-creator/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/slack-gif-creator/core/easing.py"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/slack-gif-creator/core/frame_composer.py"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/slack-gif-creator/core/gif_builder.py"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/slack-gif-creator/core/validators.py"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/slack-gif-creator/requirements.txt"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Python 3 with Pillow, imageio and numpy, plus compatible imageio-ffmpeg/FFmpeg when chosen; caller acquires packages/tools under their own licenses. Complete scripts and requirements retained."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open project and select/read slack-gif-creator; invoke scripts through declared interpreters after separately acquiring prerequisites. Python 3 with Pillow, imageio and numpy, plus compatible imageio-ffmpeg/FFmpeg when chosen; caller acquires packages/tools under their own licenses. Complete scripts and requirements retained."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.skill.theme-factory",
+      "source": "anthropic",
+      "label": "theme-factory",
+      "description": "Instruction/themes and theme-showcase PDF delivered; caller supplies document/design renderer.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.skill.theme-factory.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/theme-factory/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/theme-factory/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/theme-factory/theme-showcase.pdf"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/theme-factory/themes/arctic-frost.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/theme-factory/themes/botanical-garden.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/theme-factory/themes/desert-rose.md"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/theme-factory/themes/forest-canopy.md"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/theme-factory/themes/golden-hour.md"
+        },
+        {
+          "id": "asset-9",
+          "path": "skills/theme-factory/themes/midnight-galaxy.md"
+        },
+        {
+          "id": "asset-10",
+          "path": "skills/theme-factory/themes/modern-minimalist.md"
+        },
+        {
+          "id": "asset-11",
+          "path": "skills/theme-factory/themes/ocean-depths.md"
+        },
+        {
+          "id": "asset-12",
+          "path": "skills/theme-factory/themes/sunset-boulevard.md"
+        },
+        {
+          "id": "asset-13",
+          "path": "skills/theme-factory/themes/tech-innovation.md"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Instruction/themes and theme-showcase PDF delivered; caller supplies document/design renderer."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open project and select/read theme-factory; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction/themes and theme-showcase PDF delivered; caller supplies document/design renderer."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.kiro.skill.theme-factory",
+      "source": "anthropic",
+      "label": "theme-factory",
+      "description": "Instruction/themes and theme-showcase PDF delivered; caller supplies document/design renderer.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.kiro.skill.theme-factory.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/theme-factory/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/theme-factory/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/theme-factory/theme-showcase.pdf"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/theme-factory/themes/arctic-frost.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/theme-factory/themes/botanical-garden.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/theme-factory/themes/desert-rose.md"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/theme-factory/themes/forest-canopy.md"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/theme-factory/themes/golden-hour.md"
+        },
+        {
+          "id": "asset-9",
+          "path": "skills/theme-factory/themes/midnight-galaxy.md"
+        },
+        {
+          "id": "asset-10",
+          "path": "skills/theme-factory/themes/modern-minimalist.md"
+        },
+        {
+          "id": "asset-11",
+          "path": "skills/theme-factory/themes/ocean-depths.md"
+        },
+        {
+          "id": "asset-12",
+          "path": "skills/theme-factory/themes/sunset-boulevard.md"
+        },
+        {
+          "id": "asset-13",
+          "path": "skills/theme-factory/themes/tech-innovation.md"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Instruction/themes and theme-showcase PDF delivered; caller supplies document/design renderer."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open project and select/read theme-factory; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction/themes and theme-showcase PDF delivered; caller supplies document/design renderer."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.copilot.skill.theme-factory",
+      "source": "anthropic",
+      "label": "theme-factory",
+      "description": "Instruction/themes and theme-showcase PDF delivered; caller supplies document/design renderer.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.copilot.skill.theme-factory.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/theme-factory/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/theme-factory/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/theme-factory/theme-showcase.pdf"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/theme-factory/themes/arctic-frost.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/theme-factory/themes/botanical-garden.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/theme-factory/themes/desert-rose.md"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/theme-factory/themes/forest-canopy.md"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/theme-factory/themes/golden-hour.md"
+        },
+        {
+          "id": "asset-9",
+          "path": "skills/theme-factory/themes/midnight-galaxy.md"
+        },
+        {
+          "id": "asset-10",
+          "path": "skills/theme-factory/themes/modern-minimalist.md"
+        },
+        {
+          "id": "asset-11",
+          "path": "skills/theme-factory/themes/ocean-depths.md"
+        },
+        {
+          "id": "asset-12",
+          "path": "skills/theme-factory/themes/sunset-boulevard.md"
+        },
+        {
+          "id": "asset-13",
+          "path": "skills/theme-factory/themes/tech-innovation.md"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Instruction/themes and theme-showcase PDF delivered; caller supplies document/design renderer."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open project and select/read theme-factory; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction/themes and theme-showcase PDF delivered; caller supplies document/design renderer."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.skill.web-artifacts-builder",
+      "source": "anthropic",
+      "label": "web-artifacts-builder",
+      "description": "Bash, Node/npm and pnpm for scripts/init-artifact.sh and bundle-artifact.sh; frontend packages and network acquisition remain caller-owned. No install/build/browser launched.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.skill.web-artifacts-builder.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/web-artifacts-builder/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/web-artifacts-builder/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/web-artifacts-builder/scripts/bundle-artifact.sh"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/web-artifacts-builder/scripts/init-artifact.sh"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/web-artifacts-builder/scripts/shadcn-components.tar.gz"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Bash, Node/npm and pnpm for scripts/init-artifact.sh and bundle-artifact.sh; frontend packages and network acquisition remain caller-owned. No install/build/browser launched."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open project and select/read web-artifacts-builder; invoke scripts through declared interpreters after separately acquiring prerequisites. Bash, Node/npm and pnpm for scripts/init-artifact.sh and bundle-artifact.sh; frontend packages and network acquisition remain caller-owned. No install/build/browser launched."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.kiro.skill.web-artifacts-builder",
+      "source": "anthropic",
+      "label": "web-artifacts-builder",
+      "description": "Bash, Node/npm and pnpm for scripts/init-artifact.sh and bundle-artifact.sh; frontend packages and network acquisition remain caller-owned. No install/build/browser launched.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.kiro.skill.web-artifacts-builder.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/web-artifacts-builder/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/web-artifacts-builder/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/web-artifacts-builder/scripts/bundle-artifact.sh"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/web-artifacts-builder/scripts/init-artifact.sh"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/web-artifacts-builder/scripts/shadcn-components.tar.gz"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Bash, Node/npm and pnpm for scripts/init-artifact.sh and bundle-artifact.sh; frontend packages and network acquisition remain caller-owned. No install/build/browser launched."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open project and select/read web-artifacts-builder; invoke scripts through declared interpreters after separately acquiring prerequisites. Bash, Node/npm and pnpm for scripts/init-artifact.sh and bundle-artifact.sh; frontend packages and network acquisition remain caller-owned. No install/build/browser launched."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.copilot.skill.web-artifacts-builder",
+      "source": "anthropic",
+      "label": "web-artifacts-builder",
+      "description": "Bash, Node/npm and pnpm for scripts/init-artifact.sh and bundle-artifact.sh; frontend packages and network acquisition remain caller-owned. No install/build/browser launched.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.copilot.skill.web-artifacts-builder.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/web-artifacts-builder/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/web-artifacts-builder/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/web-artifacts-builder/scripts/bundle-artifact.sh"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/web-artifacts-builder/scripts/init-artifact.sh"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/web-artifacts-builder/scripts/shadcn-components.tar.gz"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Bash, Node/npm and pnpm for scripts/init-artifact.sh and bundle-artifact.sh; frontend packages and network acquisition remain caller-owned. No install/build/browser launched."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open project and select/read web-artifacts-builder; invoke scripts through declared interpreters after separately acquiring prerequisites. Bash, Node/npm and pnpm for scripts/init-artifact.sh and bundle-artifact.sh; frontend packages and network acquisition remain caller-owned. No install/build/browser launched."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.skill.webapp-testing",
+      "source": "anthropic",
+      "label": "webapp-testing",
+      "description": "Python >=3.9 as Catalog compatible prerequisite; scripts/with_server.py uses only stdlib. Actual browser automation additionally needs compatible playwright Python package and separately acquired browser binaries, a caller-owned local application and approved command. No server or browser started by material Apply.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.skill.webapp-testing.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/webapp-testing/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/webapp-testing/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/webapp-testing/examples/console_logging.py"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/webapp-testing/examples/element_discovery.py"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/webapp-testing/examples/static_html_automation.py"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/webapp-testing/scripts/with_server.py"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Python >=3.9 as Catalog compatible prerequisite; scripts/with_server.py uses only stdlib. Actual browser automation additionally needs compatible playwright Python package and separately acquired browser binaries, a caller-owned local application and approved command. No server or browser started by material Apply."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open project and select/read webapp-testing; invoke scripts through declared interpreters after separately acquiring prerequisites. Python >=3.9 as Catalog compatible prerequisite; scripts/with_server.py uses only stdlib. Actual browser automation additionally needs compatible playwright Python package and separately acquired browser binaries, a caller-owned local application and approved command. No server or browser started by material Apply."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.kiro.skill.webapp-testing",
+      "source": "anthropic",
+      "label": "webapp-testing",
+      "description": "Python >=3.9 as Catalog compatible prerequisite; scripts/with_server.py uses only stdlib. Actual browser automation additionally needs compatible playwright Python package and separately acquired browser binaries, a caller-owned local application and approved command. No server or browser started by material Apply.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.kiro.skill.webapp-testing.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/webapp-testing/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/webapp-testing/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/webapp-testing/examples/console_logging.py"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/webapp-testing/examples/element_discovery.py"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/webapp-testing/examples/static_html_automation.py"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/webapp-testing/scripts/with_server.py"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Python >=3.9 as Catalog compatible prerequisite; scripts/with_server.py uses only stdlib. Actual browser automation additionally needs compatible playwright Python package and separately acquired browser binaries, a caller-owned local application and approved command. No server or browser started by material Apply."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open project and select/read webapp-testing; invoke scripts through declared interpreters after separately acquiring prerequisites. Python >=3.9 as Catalog compatible prerequisite; scripts/with_server.py uses only stdlib. Actual browser automation additionally needs compatible playwright Python package and separately acquired browser binaries, a caller-owned local application and approved command. No server or browser started by material Apply."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.copilot.skill.webapp-testing",
+      "source": "anthropic",
+      "label": "webapp-testing",
+      "description": "Python >=3.9 as Catalog compatible prerequisite; scripts/with_server.py uses only stdlib. Actual browser automation additionally needs compatible playwright Python package and separately acquired browser binaries, a caller-owned local application and approved command. No server or browser started by material Apply.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/anthropic.copilot.skill.webapp-testing.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "THIRD_PARTY_NOTICES.md"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/webapp-testing/LICENSE.txt"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/webapp-testing/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/webapp-testing/examples/console_logging.py"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/webapp-testing/examples/element_discovery.py"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/webapp-testing/examples/static_html_automation.py"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/webapp-testing/scripts/with_server.py"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Python >=3.9 as Catalog compatible prerequisite; scripts/with_server.py uses only stdlib. Actual browser automation additionally needs compatible playwright Python package and separately acquired browser binaries, a caller-owned local application and approved command. No server or browser started by material Apply."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open project and select/read webapp-testing; invoke scripts through declared interpreters after separately acquiring prerequisites. Python >=3.9 as Catalog compatible prerequisite; scripts/with_server.py uses only stdlib. Actual browser automation additionally needs compatible playwright Python package and separately acquired browser binaries, a caller-owned local application and approved command. No server or browser started by material Apply."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.template.local-web-testing",
+      "source": "anthropic",
+      "label": "Local web testing starting choice",
+      "description": "Catalog-authored optional starting choice; requires webapp material, suggests MCP authoring only.",
+      "kind": "template",
+      "recipePath": "catalog-recipes/anthropic.template.local-web-testing.json",
+      "materials": [
+        {
+          "id": "asset-1",
+          "path": "skills/webapp-testing/LICENSE.txt"
+        },
+        {
+          "id": "source-license",
+          "path": "skills/academy-guide/LICENSE.txt"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "anthropic.skill.webapp-testing"
+        }
+      ],
+      "optional": [
+        {
+          "itemId": "anthropic.skill.mcp-builder"
+        }
+      ],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog project Agent Skills projection; native loading/use unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Python >=3.9 as Catalog compatible prerequisite; scripts/with_server.py uses only stdlib. Actual browser automation additionally needs compatible playwright Python package and separately acquired browser binaries, a caller-owned local application and approved command. No server or browser started by material Apply."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open project and select/read webapp-testing; invoke scripts through declared interpreters after separately acquiring prerequisites. Python >=3.9 as Catalog compatible prerequisite; scripts/with_server.py uses only stdlib. Actual browser automation additionally needs compatible playwright Python package and separately acquired browser binaries, a caller-owned local application and approved command. No server or browser started by material Apply."
+        }
+      ],
+      "configuration": {}
+    }
+  ]
+}

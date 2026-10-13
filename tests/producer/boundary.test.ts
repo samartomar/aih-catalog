@@ -153,6 +153,9 @@ describe("the published package keeps its intended runtime subset", () => {
       "producer/superpowers",
       "docs/SUPERPOWERS-CONTENT.md",
       "docs/SUPERPOWERS-INVENTORY.md",
+      "producer/anthropic",
+      "docs/ANTHROPIC-CONTENT.md",
+      "docs/ANTHROPIC-INVENTORY.md",
     ]);
     expect(Object.keys(manifest.exports)).toEqual([
       "./contracts",
@@ -174,6 +177,7 @@ describe("the published package keeps its intended runtime subset", () => {
       "./release-extensions.json",
       "./release-ecc.json",
       "./release-superpowers.json",
+      "./release-anthropic.json",
     ]);
     expect(manifest.private).toBe(true);
     expect(manifest.scripts.prepublishOnly).toBe("node tools/refuse-publication.mjs");

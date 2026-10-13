@@ -119,6 +119,9 @@ describe("packed candidate", () => {
           !path.startsWith("producer/extensions/") &&
           !path.startsWith("producer/ecc/") &&
           !path.startsWith("producer/superpowers/") &&
+          !path.startsWith("producer/anthropic/") &&
+          path !== "docs/ANTHROPIC-CONTENT.md" &&
+          path !== "docs/ANTHROPIC-INVENTORY.md" &&
           path !== "docs/SUPERPOWERS-CONTENT.md" &&
           path !== "docs/SUPERPOWERS-INVENTORY.md" &&
           path !== "docs/ECC-CONTENT.md" &&
