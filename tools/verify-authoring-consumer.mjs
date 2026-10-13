@@ -78,6 +78,10 @@ const bytes = readFileSync(fileURLToPath(import.meta.resolve("@aihq/catalog/rele
 const maintained = readRelease(bytes, { expectedSha256: sha(bytes) });
 assert.equal(maintained.valid, true);
 const cases = JSON.parse(readFileSync("inputs/cases.json", "utf8"));
+let iteratorCalls = 0;
+class NonPlainRoots extends Array { [Symbol.iterator]() { iteratorCalls++; return super[Symbol.iterator](); } }
+assert.equal(resolveSelections({ releases: {}, roots: new NonPlainRoots(), skips: [] }).status, "refused");
+assert.equal(iteratorCalls, 0);
 const receipt = { package: JSON.parse(readFileSync(join(root, "package.json"), "utf8")).version, installedReleaseSha256: maintained.release.sha256, cases: [], refusals: [] };
 for (const scenario of cases) {
   const releases = { [maintained.release.sha256]: maintained.release };
@@ -99,6 +103,12 @@ for (const scenario of cases) {
     assert.equal(compileProducerDeclaration({ declaration, sourceFiles: [] }).status, "refused");
     assert.equal(checkProducerDeclaration({ ...declaration, schema: "unsupported" }).status, "refused");
     assert.equal(checkProducerDeclaration({ ...declaration, items: [{ ...declaration.items[0], requires: ["guessed-prose"] }] }).status, "refused");
+    const badRecipe = JSON.parse(new TextDecoder().decode(files[declaration.items[0].recipePath]));
+    badRecipe.schema = "urn:aihq:core:recipe:99.0.0";
+    const invalidRecipe = compileProducerDeclaration({ declaration, sourceFiles: sourceFiles.map(snapshot => ({ ...snapshot, files: { ...snapshot.files, [declaration.items[0].recipePath]: new TextEncoder().encode(JSON.stringify(badRecipe)) } })) });
+    assert.equal(invalidRecipe.status, "refused");
+    assert.equal(invalidRecipe.diagnostics[0].details.owner, "catalog");
+    assert(invalidRecipe.diagnostics[0].details.diagnostics.some(d => d.reason === "recipe-schema-mismatch" && d.blocking === true));
   }
   const resolved = resolveSelections({ releases, roots, skips: [] });
   assert.equal(resolved.status, "ok", JSON.stringify(resolved.diagnostics));
@@ -120,7 +130,7 @@ for (const scenario of cases) {
   assert.equal(resolveSelections({ releases: forged, roots, skips: [] }).status, "refused");
   receipt.cases.push({ inventories, selectionCount: resolved.value.selections.length, inclusionCount: resolved.value.inclusions.length, removalImpact: impact.value.removalImpact });
 }
-receipt.refusals = ["unsupported-version", "missing-source-bytes", "prose-relationship", "required-skip", "forged-reader-handle"];
+receipt.refusals = ["unsupported-version", "missing-source-bytes", "prose-relationship", "required-skip", "forged-reader-handle", "non-plain-array", "recipe-diagnostic-details"];
 receipt.consumerSha256 = sha(readFileSync(fileURLToPath(import.meta.url)));
 writeFileSync("receipt.json", JSON.stringify(receipt, null, 2) + "\n");
 `;

@@ -20,6 +20,7 @@ import { COMMIT, readPresent, type SourceTree } from "../producer/tree.js";
 import { copyJson, dataArray, dataRecord, exactFields, pointer } from "./boundary.js";
 import type {
   AuthoringResult,
+  CatalogDiagnostic,
   CatalogItem,
   CatalogRelease,
   DependencyRef,
@@ -311,6 +312,7 @@ export function compileProducerDeclaration(request: {
       return failure("/sourceFiles", `Missing source snapshot ${source.id}.`);
   const donor = parseDeclaration(donorProjection(declaration));
   const generated: GeneratedItem[] = [];
+  let generationPath = "/sourceFiles";
   try {
     for (const source of declaration.sources) {
       const tree = trees.get(source.id) as SourceTree;
@@ -323,6 +325,7 @@ export function compileProducerDeclaration(request: {
         );
     }
     for (const [index, item] of declaration.items.entries()) {
+      generationPath = `/declaration/items/${index}/${"recipePath" in item ? "recipePath" : "skillPath"}`;
       const source = declaration.sources.find(
         (source) => source.id === item.source,
       ) as DeclaredSource;
@@ -403,8 +406,24 @@ export function compileProducerDeclaration(request: {
       generated.push(output);
     }
   } catch (error) {
+    if (error instanceof ProducerRefusal && Array.isArray(error.details.diagnostics)) {
+      return deepFreeze({
+        status: "refused",
+        diagnostics: [
+          {
+            code: "INPUT_INVALID",
+            path: generationPath,
+            message: "Supplied recipe was refused by its owning agreement check.",
+            details: {
+              owner: "catalog",
+              diagnostics: error.details.diagnostics as CatalogDiagnostic[],
+            },
+          },
+        ],
+      });
+    }
     return failure(
-      "/sourceFiles",
+      generationPath,
       error instanceof ProducerRefusal
         ? error.message
         : "Required supplied source bytes are missing or invalid.",

@@ -349,3 +349,48 @@ it("migrates V2 shorthand explicitly and preserves all three declared relationsh
     });
   expect(JSON.stringify(legacy)).toBe(before);
 });
+
+it("preserves owning recipe diagnostics in tagged details when generation refuses", () => {
+  const sources = sourceFiles();
+  const recipe = JSON.parse(new TextDecoder().decode(at(sources, 0).files["recipe.json"]));
+  recipe.schema = "urn:aihq:core:recipe:99.0.0";
+  at(sources, 0).files["recipe.json"] = new TextEncoder().encode(JSON.stringify(recipe));
+  const result = compileProducerDeclaration({
+    declaration: publicDeclaration(),
+    sourceFiles: sources,
+  });
+  expect(result.status).toBe("refused");
+  expect(result.diagnostics[0]).toMatchObject({
+    code: "INPUT_INVALID",
+    path: "/declaration/items/0/recipePath",
+    details: {
+      owner: "catalog",
+      diagnostics: [
+        {
+          code: "INPUT_INVALID",
+          reason: "recipe-schema-mismatch",
+          blocking: true,
+          path: "release/recipes/consumer-proof.review-note.json",
+          itemId: "consumer-proof.review-note",
+        },
+      ],
+    },
+  });
+  expect(result.diagnostics[0]).not.toHaveProperty("reason");
+});
+
+it("refuses inherited array behavior in declaration items without invoking it", () => {
+  const declaration = publicDeclaration();
+  let calls = 0;
+  class NonPlainItems extends Array<(typeof declaration.items)[number]> {
+    [Symbol.iterator]() {
+      calls += 1;
+      return super[Symbol.iterator]();
+    }
+  }
+  expect(
+    checkProducerDeclaration({ ...declaration, items: new NonPlainItems(at(declaration.items, 0)) })
+      .status,
+  ).toBe("refused");
+  expect(calls).toBe(0);
+});

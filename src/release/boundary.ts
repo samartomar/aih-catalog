@@ -13,8 +13,11 @@ export function copyJson(value: unknown): unknown {
     seen.add(entry);
     const array = Array.isArray(entry);
     const proto = Object.getPrototypeOf(entry);
-    if (!array && proto !== Object.prototype && proto !== null)
-      throw new TypeError("Expected plain object");
+    if (
+      (array && proto !== Array.prototype) ||
+      (!array && proto !== Object.prototype && proto !== null)
+    )
+      throw new TypeError("Expected plain JSON container");
     const keys = Reflect.ownKeys(entry);
     if (array && keys.length !== entry.length + 1) throw new TypeError("Expected dense JSON array");
     for (const key of keys) {

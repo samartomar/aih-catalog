@@ -1,5 +1,10 @@
 import { expect, it } from "vitest";
-import type { DependencyRef, InputSpec, RecipeDescriptor } from "../../src/release/contracts.js";
+import type {
+  DependencyRef,
+  InputSpec,
+  RecipeDescriptor,
+  SelectionRoot,
+} from "../../src/release/contracts.js";
 import { readRelease, resolveSelections, validateSelectionSet } from "../../src/release/reader.js";
 import { fixtureRelease, releaseBytes, sha256 } from "./fixtures.js";
 
@@ -349,4 +354,17 @@ it("refuses accessors without invoking them and rejects non-JSON configuration",
       skips: [],
     }).status,
   ).toBe("refused");
+});
+
+it("refuses inherited array behavior before walking plain JSON roots", () => {
+  let calls = 0;
+  class NonPlainRoots extends Array<SelectionRoot> {
+    [Symbol.iterator]() {
+      calls += 1;
+      return super[Symbol.iterator]();
+    }
+  }
+  const result = resolveSelections({ releases: {}, roots: new NonPlainRoots(), skips: [] });
+  expect(result.status).toBe("refused");
+  expect(calls).toBe(0);
 });
