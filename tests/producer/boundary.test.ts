@@ -150,6 +150,9 @@ describe("the published package keeps its intended runtime subset", () => {
       "producer/ecc",
       "docs/ECC-CONTENT.md",
       "docs/ECC-INVENTORY.md",
+      "producer/superpowers",
+      "docs/SUPERPOWERS-CONTENT.md",
+      "docs/SUPERPOWERS-INVENTORY.md",
     ]);
     expect(Object.keys(manifest.exports)).toEqual([
       "./contracts",
@@ -170,6 +173,7 @@ describe("the published package keeps its intended runtime subset", () => {
       "./schemas/producer-declaration/3.0.0.json",
       "./release-extensions.json",
       "./release-ecc.json",
+      "./release-superpowers.json",
     ]);
     expect(manifest.private).toBe(true);
     expect(manifest.scripts.prepublishOnly).toBe("node tools/refuse-publication.mjs");

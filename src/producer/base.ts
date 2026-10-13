@@ -118,6 +118,7 @@ export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRe
     GUIDE_RELEASE_PATH,
     "release/release-extensions.json",
     "release/release-ecc.json",
+    "release/release-superpowers.json",
   ]) {
     const bytes = files.get(path);
     if (bytes === undefined) continue;
@@ -129,7 +130,11 @@ export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRe
     }
     const nativeDocument = JSON.parse(bytes.toString("utf8")) as Record_;
     if (path === GUIDE_RELEASE_PATH) guideDocument = nativeDocument;
-    else if (path === "release/release-extensions.json" || path === "release/release-ecc.json")
+    else if (
+      path === "release/release-extensions.json" ||
+      path === "release/release-ecc.json" ||
+      path === "release/release-superpowers.json"
+    )
       contentDocuments.set(path, nativeDocument);
     else nativeDocuments.set(path, nativeDocument);
     referenced.add(path);

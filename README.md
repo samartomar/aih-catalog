@@ -39,6 +39,14 @@ and individually selected Claude MCP configurations alongside other releases.
 runtime/credential prerequisites and native execution limits; [the inventory](docs/ECC-INVENTORY.md)
 accounts for every selected source file and historical donor asset.
 
+## Optional Superpowers content
+
+`@aihq/catalog/release-superpowers.json` offers all 15 pinned Superpowers skills
+as project material choices for Claude Code, Kiro IDE and Copilot VS Code, plus
+runtime source references and an opt-in caller-configured Claude SessionStart group.
+[Content guidance](docs/SUPERPOWERS-CONTENT.md) and [inventory](docs/SUPERPOWERS-INVENTORY.md)
+record exact source identities, support closures, notices and native execution limits.
+
 ## Optional Nuclei workflow
 
 `@aihq/catalog/workflows/nuclei` supplies local policy authoring; its adjacent manifest pins
@@ -63,6 +71,7 @@ platform evidence and real-tool execution limits are recorded in [delivery evide
 | `@aihq/catalog/schemas/release/1.0.0.json` | Release structural schema | Data |
 | `@aihq/catalog/schemas/release/1.1.0.json` | Release 1.1 structural schema | Data |
 | `@aihq/catalog/release-ecc.json` | Optional pinned ECC declarations and exact MCP configurations | Data |
+| `@aihq/catalog/release-superpowers.json` | Optional pinned Superpowers skills and caller-configured Claude hook | Data |
 | `@aihq/catalog/package.json` | Installed package identity and location | Data |
 
 The portable entries use standard JavaScript and `Uint8Array`; they access neither

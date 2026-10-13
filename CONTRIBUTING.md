@@ -29,6 +29,11 @@ consumer tests all item configuration and one mixed-source resolution.
 `node tools/verify-ecc-consumer.mjs <core.tgz>` adds the reviewed generic Core
 Prepare/Apply proof. See [ECC content](docs/ECC-CONTENT.md) for prerequisites and limits.
 
+Superpowers checks compile its ordinary v3 declarations and complete pinned tree
+with `node tools/generate-superpowers-release.mjs --check`; regenerate through that
+script. `node tools/verify-superpowers-consumer.mjs <core.tgz>` adds the exact reviewed
+Core packed proof. See [Superpowers content](docs/SUPERPOWERS-CONTENT.md).
+
 Release generation renders the authored project context through the built release
 module, so run `npm run build:dist` before `npm test` or `npm run check:materials` on
 their own; `npm run verify` and `npm run generate:release` build first.

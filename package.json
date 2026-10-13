@@ -53,7 +53,8 @@
     },
     "./schemas/producer-declaration/3.0.0.json": "./schemas/producer-declaration/3.0.0.json",
     "./release-extensions.json": "./release/release-extensions.json",
-    "./release-ecc.json": "./release/release-ecc.json"
+    "./release-ecc.json": "./release/release-ecc.json",
+    "./release-superpowers.json": "./release/release-superpowers.json"
   },
   "engines": {
     "node": ">=24.15.0 <25"
@@ -89,7 +90,7 @@
     "check:release": "node tools/check-release.mjs",
     "prepare:candidate": "npm run build:dist && node tools/prepare-candidate.mjs",
     "measure:candidate": "node tools/measure-candidate.mjs",
-    "check:materials": "node tools/check-not-candidate.mjs && node tools/generate-release.mjs --check && node tools/generate-extensions-release.mjs --check && node tools/generate-ecc-release.mjs --check && node tools/check-release.mjs && node tools/generate-catalog-index.mjs --check && node tools/generate-catalog-collections.mjs --check && node tools/generate-catalog-presentation.mjs --check && node tools/generate-catalog-categories.mjs --check && node tools/generate-catalog-runtime-descriptors.mjs --check && node tools/build-nuclei-helper.mjs --check",
+    "check:materials": "node tools/check-not-candidate.mjs && node tools/generate-release.mjs --check && node tools/generate-extensions-release.mjs --check && node tools/generate-ecc-release.mjs --check && node tools/generate-superpowers-release.mjs --check && node tools/check-release.mjs && node tools/generate-catalog-index.mjs --check && node tools/generate-catalog-collections.mjs --check && node tools/generate-catalog-presentation.mjs --check && node tools/generate-catalog-categories.mjs --check && node tools/generate-catalog-runtime-descriptors.mjs --check && node tools/build-nuclei-helper.mjs --check",
     "historical:verify:core-v2-lock": "node tools/verify-core-v2-lock.mjs",
     "historical:verify:cold-external-admin": "node tools/verify-cold-external-admin.mjs",
     "historical:verify:default-evidence-chain": "vitest run tests/supported/default-evidence-chain.test.ts",
@@ -138,7 +139,10 @@
     "docs/EXTENSIONS-INVENTORY.md",
     "producer/ecc",
     "docs/ECC-CONTENT.md",
-    "docs/ECC-INVENTORY.md"
+    "docs/ECC-INVENTORY.md",
+    "producer/superpowers",
+    "docs/SUPERPOWERS-CONTENT.md",
+    "docs/SUPERPOWERS-INVENTORY.md"
   ],
   "private": true
 }
