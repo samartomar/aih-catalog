@@ -164,8 +164,8 @@ back:
   package, byte for byte, with nothing else.
 - `packed-required-files` and `packed-export-targets`: the license and manifest are
   present and every declared export target is in the tarball.
-  Staging validates the complete release inventory, then omits the three known
-  optional release-document exports only when their canonical target documents are
+  Staging validates the complete release inventory, then omits known optional
+  release-document exports (hooks, native fixture, native bundles and Guide) only when their canonical target documents are
   absent. The primary release remains required. Unknown or malformed exports are
   retained for this check to reject. Verification derives the same expected
   manifest, and the repository manifest is never rewritten.
