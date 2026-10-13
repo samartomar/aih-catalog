@@ -77,10 +77,20 @@ export const contractSupport = Object.freeze({
       role: "produces",
       schemaExport: "@aihq/core/schemas/recipe/1.3.0.json",
     }),
+    Object.freeze({
+      id: "urn:aihq:catalog:producer-declaration:3.0.0",
+      role: "consumes",
+      schemaExport: "@aihq/catalog/schemas/producer-declaration/3.0.0.json",
+    }),
   ]),
   entries: Object.freeze([
     Object.freeze({ export: "@aihq/catalog/contracts", runtime: "portable" }),
     Object.freeze({ export: "@aihq/catalog/reader", runtime: "portable" }),
+    Object.freeze({
+      export: "@aihq/catalog/producer",
+      runtime: "node",
+      nodeRange: ">=24.15.0 <25",
+    }),
     Object.freeze({ export: "@aihq/catalog/node", runtime: "node", nodeRange: ">=24.15.0 <25" }),
   ]),
 } as const);
@@ -266,6 +276,8 @@ export interface ConfigureItemResult {
 }
 
 export interface SelectionRequest {
+  /** Optional for historical callers; scoped resolution matches dependencies within this scope. */
+  readonly scope?: "project" | "user";
   /** The caller's unique intended policy selection ID. */
   readonly id: string;
   readonly item: {
@@ -288,3 +300,64 @@ export interface SelectionSetResult {
   readonly requiresBySelectionId?: Readonly<Record<string, readonly string[]>>;
   readonly diagnostics: readonly CatalogDiagnostic[];
 }
+
+/** Diagnostics for effect-free authoring operations; owning reader diagnostics stay intact. */
+export interface Diagnostic {
+  readonly code: string;
+  readonly path: string;
+  readonly message: string;
+  readonly related?: readonly string[];
+  readonly reason?: string;
+  readonly details?: {
+    readonly owner: "catalog";
+    readonly diagnostics: readonly CatalogDiagnostic[];
+  };
+}
+export type AuthoringResult<T> =
+  | { readonly status: "ok"; readonly value: T; readonly diagnostics: readonly [] }
+  | { readonly status: "refused"; readonly diagnostics: readonly Diagnostic[] };
+
+export interface SelectionRef {
+  readonly releaseSha256: string;
+  readonly itemId: string;
+  readonly scope: "project" | "user";
+}
+export interface SelectionRoot extends SelectionRef {
+  readonly configuration: Readonly<Record<string, Json>>;
+}
+export interface ResolveSelectionsRequest {
+  /** Exact digest keys and actual readRelease handles, never serialized clones. */
+  readonly releases: Readonly<Record<string, CatalogRelease>>;
+  readonly roots: readonly SelectionRoot[];
+  readonly skips: readonly SelectionRef[];
+  readonly remove?: readonly SelectionRef[];
+}
+export interface Inclusion {
+  readonly item: SelectionRef;
+  readonly root: SelectionRef;
+  /** Includes the root and included item, in required-edge order. */
+  readonly path: readonly SelectionRef[];
+}
+export interface RemovalImpact {
+  readonly item: SelectionRef;
+  readonly affectedRoots: readonly SelectionRef[];
+  /** Other selections no longer required after all affected roots are removed. */
+  readonly orphaned: readonly SelectionRef[];
+}
+export interface ResolvedSelections {
+  readonly selections: readonly (SelectionRequest & { readonly scope: "project" | "user" })[];
+  readonly inclusions: readonly Inclusion[];
+  readonly optional: readonly {
+    readonly from: SelectionRef;
+    readonly to: SelectionRef;
+    readonly skipped: boolean;
+  }[];
+  readonly removalImpact: readonly RemovalImpact[];
+}
+export type ResolveSelectionsResult =
+  | { readonly status: "ok"; readonly value: ResolvedSelections; readonly diagnostics: readonly [] }
+  | {
+      readonly status: "refused";
+      readonly diagnostics: readonly Diagnostic[];
+      readonly removalImpact: readonly RemovalImpact[];
+    };

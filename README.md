@@ -36,7 +36,9 @@ platform evidence and real-tool execution limits are recorded in [delivery evide
 | Entry | Purpose | Runtime |
 | --- | --- | --- |
 | `@aihq/catalog/contracts` | Public types, format identity and support declaration | Portable |
-| `@aihq/catalog/reader` | Read, browse, configure and validate explicit selections | Portable |
+| `@aihq/catalog/reader` | Read, browse, configure, resolve relationships and validate selections | Portable |
+| `@aihq/catalog/producer` | Check v3 declarations and compile explicitly supplied source bytes | Node 24.15–24.x |
+| `@aihq/catalog/schemas/producer-declaration/3.0.0.json` | Public producer declaration schema | Data |
 | `@aihq/catalog/node` | Read an installed root, resolve an exact archive/registry version, or prepare the project context for a chosen instruction directory | Node 24.15–24.x |
 | `@aihq/catalog/release.json` | Canonical release inventory | Data |
 | `@aihq/catalog/release-guide.json` | Optional Ask AIH Guide manual and reference profiles; read it explicitly | Data |
@@ -78,7 +80,11 @@ with hash checks. Their `agentDirectory` input defaults to `.claude`; configure 
 explicitly to select another relative agent directory. Omitted defaults stay omitted
 in authored configuration so Core can report their default origin.
 
-Select required items explicitly, then call `validateSelectionSet` and copy its
+Select required items explicitly, or use `resolveSelections` over checked releases
+to calculate required closure with inclusion paths, optional suggestions and removal
+impact. See [public authoring and resolution](docs/PUBLIC-AUTHORING.md) for the v3
+producer schema, explicit V2 migration, independent input examples and failure behavior.
+Then call `validateSelectionSet` and copy its
 `requiresBySelectionId` into your Core policy. Catalog never installs dependencies
 or silently selects optional suggestions. See [the execution example](docs/CATALOG-CONTENT.md#explicit-dependencies-and-core-handoff).
 

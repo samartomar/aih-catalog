@@ -1,0 +1,85 @@
+{
+  "schema": "urn:aihq:core:recipe:1.0.0",
+  "id": "consumer-proof.review-note",
+  "description": "Deliver an independent note and its license.",
+  "inputs": {},
+  "materials": [],
+  "targets": [
+    "project"
+  ],
+  "prerequisites": [],
+  "operations": [
+    {
+      "id": "write-license",
+      "purpose": "Write license",
+      "kind": "file.write",
+      "scope": "project",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": "license.md"
+          }
+        ]
+      },
+      "material": "license",
+      "requires": [],
+      "checks": [
+        "check-license"
+      ]
+    },
+    {
+      "id": "write-note",
+      "purpose": "Write note",
+      "kind": "file.write",
+      "scope": "project",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": "note.md"
+          }
+        ]
+      },
+      "material": "note",
+      "requires": [],
+      "checks": [
+        "check-note"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "id": "check-license",
+      "purpose": "Verify license",
+      "kind": "file.sha256",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": "license.md"
+          }
+        ]
+      },
+      "sha256": {
+        "materialSha256": "license"
+      }
+    },
+    {
+      "id": "check-note",
+      "purpose": "Verify note",
+      "kind": "file.sha256",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": "note.md"
+          }
+        ]
+      },
+      "sha256": {
+        "materialSha256": "note"
+      }
+    }
+  ]
+}

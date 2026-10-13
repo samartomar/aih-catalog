@@ -139,6 +139,7 @@ export function generateTemplateItem(args: {
     return refuse(
       "template-recipe-invalid",
       `${item.id}: ${diagnostics.map((entry) => `${entry.reason} ${entry.path ?? ""}`).join(", ")}`,
+      { diagnostics },
     );
   }
   return { record, recipePath, recipeBytes, members };

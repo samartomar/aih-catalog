@@ -291,6 +291,12 @@ export function validateSelectionSet(request: ValidateSelectionSetRequest): Sele
       );
       return;
     }
+    if (selection.scope !== undefined && !item.scopes.includes(selection.scope)) {
+      report("selection-scope-invalid", "The item does not admit the selected scope.", {
+        path: `${path}/scope`,
+        selectionId,
+      });
+    }
     checkConfiguration(item, selection.configuration, diagnostics, {
       path: `${path}/configuration`,
       selectionId,
@@ -343,7 +349,12 @@ export function validateSelectionSet(request: ValidateSelectionSetRequest): Sele
     entry.item.dependencies.requires.forEach((ref, index) => {
       const key = target(entry, ref, `${base}/requires/${index}`);
       if (key === undefined) return;
-      const matches = byIdentity.get(key) ?? [];
+      const matches = (byIdentity.get(key) ?? []).filter((id) => {
+        const candidate = resolved.find((entry) => entry.request.id === id);
+        return (
+          entry.request.scope === undefined || candidate?.request.scope === entry.request.scope
+        );
+      });
       if (matches.length === 0) {
         report("dependency-missing", "A required item is not selected.", {
           path: base,
@@ -360,7 +371,15 @@ export function validateSelectionSet(request: ValidateSelectionSetRequest): Sele
     });
     entry.item.dependencies.conflicts.forEach((ref, index) => {
       const key = target(entry, ref, `${base}/conflicts/${index}`, false);
-      if (key !== undefined && (byIdentity.get(key) ?? []).length > 0) {
+      if (
+        key !== undefined &&
+        (byIdentity.get(key) ?? []).some(
+          (id) =>
+            entry.request.scope === undefined ||
+            resolved.find((candidate) => candidate.request.id === id)?.request.scope ===
+              entry.request.scope,
+        )
+      ) {
         report("conflict-selected", "A conflicting item is also selected.", {
           path: base,
           selectionId,
@@ -501,3 +520,5 @@ export function configureItem(request: ConfigureItemRequest): ConfigureItemResul
     diagnostics: [],
   });
 }
+
+export { resolveSelections } from "./resolve.js";

@@ -1,0 +1,51 @@
+{
+  "schema": "urn:aihq:catalog:producer-declaration:3.0.0",
+  "format": "aihq-catalog-producer-declaration",
+  "version": 3,
+  "package": {
+    "name": "review-notes-catalog",
+    "version": "1.0.0"
+  },
+  "sources": [
+    {
+      "id": "notes",
+      "repository": "example/review-notes",
+      "licensePath": "LICENSE",
+      "license": "Apache-2.0"
+    }
+  ],
+  "items": [
+    {
+      "id": "consumer-proof.review-note",
+      "source": "notes",
+      "label": "Review note",
+      "description": "An independently authored review note; no AIHQ curation or admission is implied.",
+      "kind": "instruction",
+      "recipePath": "recipe.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "note",
+          "path": "note.md"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "generic",
+          "surface": "markdown",
+          "capability": "native-loading",
+          "support": "unknown",
+          "reason": "This example declares file delivery only; native loading has not been observed."
+        }
+      ],
+      "activation": [],
+      "configuration": {}
+    }
+  ]
+}
