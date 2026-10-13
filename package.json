@@ -46,7 +46,12 @@
     "./package.json": "./package.json",
     "./workflows/nuclei": "./workflows/nuclei/author.mjs",
     "./workflows/nuclei/manifest.json": "./workflows/nuclei/manifest.json",
-    "./release-guide.json": "./release/release-guide.json"
+    "./release-guide.json": "./release/release-guide.json",
+    "./producer": {
+      "types": "./dist/release/producer.d.ts",
+      "import": "./dist/release/producer.js"
+    },
+    "./schemas/producer-declaration/3.0.0.json": "./schemas/producer-declaration/3.0.0.json"
   },
   "engines": {
     "node": ">=24.15.0 <25"
@@ -113,7 +118,19 @@
     "workflows/nuclei/author.mjs",
     "workflows/nuclei/manifest.json",
     "workflows/nuclei/AUTHORING.md",
-    "workflows/nuclei/THIRD-PARTY-NOTICES.md"
+    "workflows/nuclei/THIRD-PARTY-NOTICES.md",
+    "schemas/producer-declaration",
+    "docs/PUBLIC-AUTHORING.md",
+    "producer/templates/public",
+    "dist/producer/declaration.js",
+    "dist/producer/declaration.d.ts",
+    "dist/producer/authored.d.ts",
+    "dist/producer/errors.js",
+    "dist/producer/generate.js",
+    "dist/producer/json.js",
+    "dist/producer/template.js",
+    "dist/producer/tree.js",
+    "dist/producer/plugin.js"
   ],
   "private": true
 }

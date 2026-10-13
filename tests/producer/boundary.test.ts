@@ -117,7 +117,7 @@ describe("the published package keeps its intended runtime subset", () => {
     version: string;
   };
 
-  it("ships no producer code and keeps the publication guards and entries", () => {
+  it("ships only supplied-byte producer helpers and keeps publication guards and entries", () => {
     expect(manifest.files).toEqual([
       "dist/release",
       "release",
@@ -132,6 +132,18 @@ describe("the published package keeps its intended runtime subset", () => {
       "workflows/nuclei/manifest.json",
       "workflows/nuclei/AUTHORING.md",
       "workflows/nuclei/THIRD-PARTY-NOTICES.md",
+      "schemas/producer-declaration",
+      "docs/PUBLIC-AUTHORING.md",
+      "producer/templates/public",
+      "dist/producer/declaration.js",
+      "dist/producer/declaration.d.ts",
+      "dist/producer/authored.d.ts",
+      "dist/producer/errors.js",
+      "dist/producer/generate.js",
+      "dist/producer/json.js",
+      "dist/producer/template.js",
+      "dist/producer/tree.js",
+      "dist/producer/plugin.js",
     ]);
     expect(Object.keys(manifest.exports)).toEqual([
       "./contracts",
@@ -148,6 +160,8 @@ describe("the published package keeps its intended runtime subset", () => {
       "./workflows/nuclei",
       "./workflows/nuclei/manifest.json",
       "./release-guide.json",
+      "./producer",
+      "./schemas/producer-declaration/3.0.0.json",
     ]);
     expect(manifest.private).toBe(true);
     expect(manifest.scripts.prepublishOnly).toBe("node tools/refuse-publication.mjs");

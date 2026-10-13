@@ -117,7 +117,7 @@ describe("release 1.1 documents", () => {
     expect(set.valid).toBe(true);
   });
 
-  it("declares only the release and recipe formats Catalog actually produces", () => {
+  it("declares the release/recipe formats it produces and the public declaration it consumes", () => {
     const ids = contractSupport.contracts.map((contract) => contract.id);
     expect(ids).toEqual([
       "urn:aihq:catalog:release:1.0.0",
@@ -126,6 +126,7 @@ describe("release 1.1 documents", () => {
       RECIPE_11,
       "urn:aihq:catalog:release:1.2.0",
       "urn:aihq:core:recipe:1.3.0",
+      "urn:aihq:catalog:producer-declaration:3.0.0",
     ]);
     expect(contractSupport.contracts.find((c) => c.id === RELEASE_11)).toMatchObject({
       role: "produces",

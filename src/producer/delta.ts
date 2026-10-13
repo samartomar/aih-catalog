@@ -1,10 +1,9 @@
 import type { Json } from "../release/contracts.js";
-import { isRecord, safeMemberPath } from "../release/document.js";
-import { canonicalJson, JsonAdmissionError } from "../release/json.js";
+import { isRecord } from "../release/document.js";
+import { canonicalJson } from "../release/json.js";
 import type { BaseRelease, Record_ } from "./base.js";
 import {
   type DeclaredItem,
-  type DeclaredSkillItem,
   type DeclaredSource,
   isTemplateItem,
   type ProducerDeclaration,
@@ -12,9 +11,9 @@ import {
 import { derivedSourceId, type PreparedSourceTree } from "./derived.js";
 import { refuse } from "./errors.js";
 import { type GeneratedItem, sha256Hex, supportMaterialId } from "./generate.js";
-import { readUpstreamObject } from "./json.js";
+import { pluginSkillPaths } from "./plugin.js";
 import { generateTemplateItem, templateBehavior } from "./template.js";
-import { pathStatus, readPresent, type SourceTree } from "./tree.js";
+import { pathStatus, readPresent } from "./tree.js";
 
 /**
  * Cheap change detection for one pinned upstream commit. Only the declared
@@ -96,61 +95,6 @@ function baseMember(item: Record_, id: string): Record_ | undefined {
 
 const sameList = (left: readonly string[], right: readonly string[]) =>
   left.length === right.length && left.every((value, index) => value === right[index]);
-
-/** Reads the upstream plugin's explicit inclusion list, when this source declares one. */
-function pluginSkillPaths(
-  tree: SourceTree,
-  source: DeclaredSource,
-  declared: readonly DeclaredItem[],
-): ReadonlySet<string> | undefined {
-  const manifestPath = source.pluginManifestPath;
-  if (manifestPath === undefined) return undefined;
-  let manifest: unknown;
-  try {
-    manifest = readUpstreamObject(readPresent(tree, manifestPath));
-  } catch (error) {
-    if (error instanceof TypeError || error instanceof JsonAdmissionError) {
-      return refuse("plugin-manifest-invalid", `${manifestPath} is not valid UTF-8 JSON`);
-    }
-    throw error;
-  }
-  if (!isRecord(manifest) || !Array.isArray(manifest.skills)) {
-    return refuse("plugin-manifest-invalid", `${manifestPath} has no skills array`);
-  }
-  const paths = new Set<string>();
-  for (const [index, value] of manifest.skills.entries()) {
-    if (typeof value !== "string") {
-      return refuse("plugin-manifest-invalid", `${manifestPath} skills/${index} is not a path`);
-    }
-    const directory = value.startsWith("./") ? value.slice(2) : value;
-    if (
-      !safeMemberPath(directory) ||
-      !directory.startsWith("skills/") ||
-      directory.endsWith("/SKILL.md")
-    ) {
-      return refuse("plugin-manifest-invalid", `${manifestPath} skills/${index} is unsafe`);
-    }
-    const skillPath = `${directory}/SKILL.md`;
-    if (paths.has(skillPath)) {
-      return refuse("plugin-manifest-invalid", `${manifestPath} lists ${directory} more than once`);
-    }
-    paths.add(skillPath);
-  }
-  const declaredPaths = new Set(
-    declared
-      .filter((item): item is DeclaredSkillItem => !isTemplateItem(item))
-      .map((item) => item.skillPath),
-  );
-  const undeclared = [...paths].filter((path) => !declaredPaths.has(path)).sort();
-  if (undeclared.length > 0) {
-    return refuse(
-      "plugin-skill-undeclared",
-      `${manifestPath} lists undeclared skill(s): ${undeclared.join(", ")}`,
-      { paths: undeclared },
-    );
-  }
-  return paths;
-}
 
 function baseRequires(item: Record_): string[] | undefined {
   const requires = (asRecord(item.dependencies).requires as Json[]).map(asRecord);

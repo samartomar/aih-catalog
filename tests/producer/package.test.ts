@@ -113,10 +113,22 @@ describe("packed candidate", () => {
         (path) =>
           /^(?:src|tests|tools|producer|docs)\//.test(path) &&
           path !== "docs/FRAMEWORK-TEMPLATES.md" &&
-          !path.startsWith("producer/templates/framework/"),
+          path !== "docs/PUBLIC-AUTHORING.md" &&
+          !path.startsWith("producer/templates/framework/") &&
+          !path.startsWith("producer/templates/public/"),
       ),
     ).toBe(false);
-    expect(artifact.packedPaths.some((path) => path.startsWith("dist/producer"))).toBe(false);
+    expect(artifact.packedPaths.filter((path) => path.startsWith("dist/producer/"))).toEqual([
+      "dist/producer/authored.d.ts",
+      "dist/producer/declaration.d.ts",
+      "dist/producer/declaration.js",
+      "dist/producer/errors.js",
+      "dist/producer/generate.js",
+      "dist/producer/json.js",
+      "dist/producer/plugin.js",
+      "dist/producer/template.js",
+      "dist/producer/tree.js",
+    ]);
     expect(artifact.packedPaths).toContain("LICENSE");
     expect(artifact.packedPaths).toContain("release/release.json");
     expect(artifact.packedPaths).toContain("docs/FRAMEWORK-TEMPLATES.md");

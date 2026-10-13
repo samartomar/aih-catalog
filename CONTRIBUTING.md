@@ -10,7 +10,11 @@ configuration, selection and packed material, the targeted candidate producer
 ([docs/PRODUCER.md](docs/PRODUCER.md)) and its whole-package check
 (`npm run check:release`), alongside retained donor producer checks. Read
 [the transition](docs/TRANSITION.md) when changing these checks. Keep changes scoped
-and add focused tests for changed behavior. Publication is blocked during migration.
+and add focused tests for changed behavior. Public authoring checks exercise the
+declaration/compiler and checked-release resolver seams;
+`node tools/verify-authoring-consumer.mjs` runs one packed outside headless
+consumer with digest-qualified independent and maintained inventories plus
+data-only expansion. See [the public guide](docs/PUBLIC-AUTHORING.md). Publication is blocked during migration.
 Release generation renders the authored project context through the built release
 module, so run `npm run build:dist` before `npm test` or `npm run check:materials` on
 their own; `npm run verify` and `npm run generate:release` build first.

@@ -253,7 +253,7 @@ const INPUT_FIELDS = [
   "maximum",
 ] as const;
 
-function checkInputs(d: Diagnostics, value: unknown, path: string): void {
+export function checkInputs(d: Diagnostics, value: unknown, path: string): void {
   if (!isRecord(value))
     return void d.add("invalid-input", path, "Expected named input definitions.");
   for (const [name, spec] of Object.entries(value)) {
@@ -290,7 +290,7 @@ function checkInputs(d: Diagnostics, value: unknown, path: string): void {
   }
 }
 
-function checkDependencies(d: Diagnostics, value: unknown, path: string): void {
+export function checkDependencies(d: Diagnostics, value: unknown, path: string): void {
   if (!fields(d, value, path, [], ["requires", "optional", "conflicts"])) return;
   for (const list of ["requires", "optional", "conflicts"] as const) {
     const refs = value[list];
