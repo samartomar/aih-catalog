@@ -1,3 +1,4 @@
+import { generateSuperpowersRelease } from "./generate-superpowers-release.mjs";
 import { generateGuideRelease } from "./generate-guide-release.mjs";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
@@ -375,6 +376,11 @@ export function generateRelease(root) {
   hookRelease(pkg, put);
   nativeRelease(pkg, put);
   for (const [path, bytes] of generateGuideRelease(root)) put(path, bytes);
+  if (existsSync(resolve(root, "producer/superpowers/declaration.json"))) {
+    for (const [path, bytes] of generateSuperpowersRelease(pkg)) {
+      if (path.startsWith("release/")) put(path, bytes);
+    }
+  }
   return files;
 }
 

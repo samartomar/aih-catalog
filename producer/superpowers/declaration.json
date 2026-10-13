@@ -1,0 +1,4433 @@
+{
+  "schema": "urn:aihq:catalog:producer-declaration:3.0.0",
+  "format": "aihq-catalog-producer-declaration",
+  "version": 3,
+  "package": {
+    "name": "@aihq/catalog",
+    "version": "0.1.0"
+  },
+  "sources": [
+    {
+      "id": "superpowers",
+      "repository": "obra/superpowers",
+      "licensePath": "LICENSE",
+      "license": "MIT"
+    }
+  ],
+  "items": [
+    {
+      "id": "superpowers.notices",
+      "source": "superpowers",
+      "label": "superpowers.notices",
+      "description": "MIT license, original README distribution/telemetry notice and release notes. This is exact source reference material, not plugin installation.",
+      "kind": "instruction",
+      "recipePath": "catalog-recipes/superpowers.notices.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "README.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "RELEASE-NOTES.md"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [],
+      "activation": [],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.skill.brainstorming",
+      "source": "superpowers",
+      "label": "superpowers.skill.brainstorming",
+      "description": "Optional visual companion requires explicit user approval, Bash, Node.js and a reachable browser; bundled server is zero-dependency, defaults to loopback/session authentication. Logo request sends the Superpowers version; SUPERPOWERS_DISABLE_TELEMETRY, DISABLE_TELEMETRY or CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC disables it. No server or browser is started by material Apply.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.skill.brainstorming.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/brainstorming/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/brainstorming/scripts/frame-template.html"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/brainstorming/scripts/helper.js"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/brainstorming/scripts/server.cjs"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/brainstorming/scripts/start-server.sh"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/brainstorming/scripts/stop-server.sh"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/brainstorming/spec-document-reviewer-prompt.md"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/brainstorming/visual-companion.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Optional visual companion requires explicit user approval, Bash, Node.js and a reachable browser; bundled server is zero-dependency, defaults to loopback/session authentication. Logo request sends the Superpowers version; SUPERPOWERS_DISABLE_TELEMETRY, DISABLE_TELEMETRY or CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC disables it. No server or browser is started by material Apply."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open the project and explicitly select/read brainstorming. Optional visual companion requires explicit user approval, Bash, Node.js and a reachable browser; bundled server is zero-dependency, defaults to loopback/session authentication. Logo request sends the Superpowers version; SUPERPOWERS_DISABLE_TELEMETRY, DISABLE_TELEMETRY or CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC disables it. No server or browser is started by material Apply."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.skill.diagnosing-superpowers",
+      "source": "superpowers",
+      "label": "superpowers.skill.diagnosing-superpowers",
+      "description": "Requires caller-authorized session history with verified session identity, record/usage semantics and bounded reads; unavailable/ambiguous transcripts remain unavailable. Scrub/audit and separate user consent precede any issue submission. Catalog reads no transcripts and uploads nothing.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.skill.diagnosing-superpowers.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/diagnosing-superpowers/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/diagnosing-superpowers/prompts/analyst-common.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/diagnosing-superpowers/prompts/cost-and-time.md"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/diagnosing-superpowers/prompts/plan-adherence.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/diagnosing-superpowers/prompts/quality-evidence.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/diagnosing-superpowers/prompts/repeated-work.md"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/diagnosing-superpowers/prompts/request-conflicts.md"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/diagnosing-superpowers/prompts/scrub-audit.md"
+        },
+        {
+          "id": "asset-9",
+          "path": "skills/diagnosing-superpowers/prompts/scrub.md"
+        },
+        {
+          "id": "asset-10",
+          "path": "skills/diagnosing-superpowers/prompts/similar-session.md"
+        },
+        {
+          "id": "asset-11",
+          "path": "skills/diagnosing-superpowers/prompts/skill-timeline.md"
+        },
+        {
+          "id": "asset-12",
+          "path": "skills/diagnosing-superpowers/prompts/stumbles.md"
+        },
+        {
+          "id": "asset-13",
+          "path": "skills/diagnosing-superpowers/references/context-safety.md"
+        },
+        {
+          "id": "asset-14",
+          "path": "skills/diagnosing-superpowers/references/github-issues.md"
+        },
+        {
+          "id": "asset-15",
+          "path": "skills/diagnosing-superpowers/references/redaction-policy.md"
+        },
+        {
+          "id": "asset-16",
+          "path": "skills/diagnosing-superpowers/references/session-discovery.md"
+        },
+        {
+          "id": "asset-17",
+          "path": "skills/diagnosing-superpowers/templates/bundle-README.md"
+        },
+        {
+          "id": "asset-18",
+          "path": "skills/diagnosing-superpowers/templates/case.md"
+        },
+        {
+          "id": "asset-19",
+          "path": "skills/diagnosing-superpowers/templates/issue.md"
+        },
+        {
+          "id": "asset-20",
+          "path": "skills/diagnosing-superpowers/templates/report.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires caller-authorized session history with verified session identity, record/usage semantics and bounded reads; unavailable/ambiguous transcripts remain unavailable. Scrub/audit and separate user consent precede any issue submission. Catalog reads no transcripts and uploads nothing."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open the project and explicitly select/read diagnosing-superpowers. Requires caller-authorized session history with verified session identity, record/usage semantics and bounded reads; unavailable/ambiguous transcripts remain unavailable. Scrub/audit and separate user consent precede any issue submission. Catalog reads no transcripts and uploads nothing."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.skill.dispatching-parallel-agents",
+      "source": "superpowers",
+      "label": "superpowers.skill.dispatching-parallel-agents",
+      "description": "Requires independent tasks and actual harness subagent tools; model dispatch in Kiro IDE/Copilot VSCode is unknown. Instructions alone do not supply subagents.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.skill.dispatching-parallel-agents.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/dispatching-parallel-agents/SKILL.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires independent tasks and actual harness subagent tools; model dispatch in Kiro IDE/Copilot VSCode is unknown. Instructions alone do not supply subagents."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open the project and explicitly select/read dispatching-parallel-agents. Requires independent tasks and actual harness subagent tools; model dispatch in Kiro IDE/Copilot VSCode is unknown. Instructions alone do not supply subagents."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.skill.executing-plans",
+      "source": "superpowers",
+      "label": "superpowers.skill.executing-plans",
+      "description": "Requires an approved reachable plan/spec and isolated Git workspace, Bash and Git for task/ledger scripts; script sibling closure is required. Native subagent capability is harness-dependent; unavailable routes follow upstream inline fallback. No workflow or Git command is run by material Apply.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.skill.executing-plans.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/executing-plans/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/executing-plans/scripts/task-done"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/executing-plans/scripts/task-start"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        },
+        {
+          "itemId": "superpowers.skill.test-driven-development"
+        },
+        {
+          "itemId": "superpowers.skill.verification-before-completion"
+        },
+        {
+          "itemId": "superpowers.skill.subagent-driven-development"
+        },
+        {
+          "itemId": "superpowers.skill.requesting-code-review"
+        },
+        {
+          "itemId": "superpowers.skill.using-superpowers"
+        },
+        {
+          "itemId": "superpowers.skill.finishing-a-development-branch"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires an approved reachable plan/spec and isolated Git workspace, Bash and Git for task/ledger scripts; script sibling closure is required. Native subagent capability is harness-dependent; unavailable routes follow upstream inline fallback. No workflow or Git command is run by material Apply."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open the project and explicitly select/read executing-plans. Requires an approved reachable plan/spec and isolated Git workspace, Bash and Git for task/ledger scripts; script sibling closure is required. Native subagent capability is harness-dependent; unavailable routes follow upstream inline fallback. No workflow or Git command is run by material Apply."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.skill.finishing-a-development-branch",
+      "source": "superpowers",
+      "label": "superpowers.skill.finishing-a-development-branch",
+      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.skill.finishing-a-development-branch.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/finishing-a-development-branch/SKILL.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open the project and explicitly select/read finishing-a-development-branch. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.skill.receiving-code-review",
+      "source": "superpowers",
+      "label": "superpowers.skill.receiving-code-review",
+      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.skill.receiving-code-review.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/receiving-code-review/SKILL.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open the project and explicitly select/read receiving-code-review. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.skill.requesting-code-review",
+      "source": "superpowers",
+      "label": "superpowers.skill.requesting-code-review",
+      "description": "Requires reviewed Git range and harness reviewer tools; the bundled code-reviewer.md is a dispatch prompt, not an automatically registered agent.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.skill.requesting-code-review.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/requesting-code-review/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/requesting-code-review/code-reviewer.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires reviewed Git range and harness reviewer tools; the bundled code-reviewer.md is a dispatch prompt, not an automatically registered agent."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open the project and explicitly select/read requesting-code-review. Requires reviewed Git range and harness reviewer tools; the bundled code-reviewer.md is a dispatch prompt, not an automatically registered agent."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.skill.subagent-driven-development",
+      "source": "superpowers",
+      "label": "superpowers.skill.subagent-driven-development",
+      "description": "Requires approved plan/spec, isolated Git workspace, Bash and Git for helper scripts and real harness subagent/reviewer tools. Tool availability/model routing is unknown for Kiro IDE and Copilot VSCode; no native equivalents are invented.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.skill.subagent-driven-development.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/subagent-driven-development/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/subagent-driven-development/implementer-prompt.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/subagent-driven-development/re-review-prompt.md"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/subagent-driven-development/scripts/review-package"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/subagent-driven-development/scripts/sdd-workspace"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/subagent-driven-development/scripts/task-brief"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/subagent-driven-development/task-reviewer-prompt.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        },
+        {
+          "itemId": "superpowers.skill.using-git-worktrees"
+        },
+        {
+          "itemId": "superpowers.skill.requesting-code-review"
+        },
+        {
+          "itemId": "superpowers.skill.finishing-a-development-branch"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires approved plan/spec, isolated Git workspace, Bash and Git for helper scripts and real harness subagent/reviewer tools. Tool availability/model routing is unknown for Kiro IDE and Copilot VSCode; no native equivalents are invented."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open the project and explicitly select/read subagent-driven-development. Requires approved plan/spec, isolated Git workspace, Bash and Git for helper scripts and real harness subagent/reviewer tools. Tool availability/model routing is unknown for Kiro IDE and Copilot VSCode; no native equivalents are invented."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.skill.systematic-debugging",
+      "source": "superpowers",
+      "label": "superpowers.skill.systematic-debugging",
+      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.skill.systematic-debugging.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/systematic-debugging/CREATION-LOG.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/systematic-debugging/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/systematic-debugging/condition-based-waiting-example.ts"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/systematic-debugging/condition-based-waiting.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/systematic-debugging/defense-in-depth.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/systematic-debugging/find-polluter.sh"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/systematic-debugging/root-cause-tracing.md"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/systematic-debugging/test-academic.md"
+        },
+        {
+          "id": "asset-9",
+          "path": "skills/systematic-debugging/test-pressure-1.md"
+        },
+        {
+          "id": "asset-10",
+          "path": "skills/systematic-debugging/test-pressure-2.md"
+        },
+        {
+          "id": "asset-11",
+          "path": "skills/systematic-debugging/test-pressure-3.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open the project and explicitly select/read systematic-debugging. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.skill.test-driven-development",
+      "source": "superpowers",
+      "label": "superpowers.skill.test-driven-development",
+      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.skill.test-driven-development.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/test-driven-development/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/test-driven-development/writing-good-tests.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open the project and explicitly select/read test-driven-development. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.skill.using-git-worktrees",
+      "source": "superpowers",
+      "label": "superpowers.skill.using-git-worktrees",
+      "description": "Requires Git and a repository; detects existing isolation first, prefers native worktree tools when present and uses manual Git fallback. Project build/test runtimes and native tool availability remain caller-owned.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.skill.using-git-worktrees.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/using-git-worktrees/SKILL.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires Git and a repository; detects existing isolation first, prefers native worktree tools when present and uses manual Git fallback. Project build/test runtimes and native tool availability remain caller-owned."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open the project and explicitly select/read using-git-worktrees. Requires Git and a repository; detects existing isolation first, prefers native worktree tools when present and uses manual Git fallback. Project build/test runtimes and native tool availability remain caller-owned."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.skill.using-superpowers",
+      "source": "superpowers",
+      "label": "superpowers.skill.using-superpowers",
+      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.skill.using-superpowers.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/using-superpowers/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/using-superpowers/references/antigravity-tools.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/using-superpowers/references/claude-code-tools.md"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/using-superpowers/references/codex-tools.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/using-superpowers/references/gemini-tools.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/using-superpowers/references/hermes-tools.md"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/using-superpowers/references/muse-tools.md"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/using-superpowers/references/pi-tools.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open the project and explicitly select/read using-superpowers. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.skill.verification-before-completion",
+      "source": "superpowers",
+      "label": "superpowers.skill.verification-before-completion",
+      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.skill.verification-before-completion.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/verification-before-completion/SKILL.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open the project and explicitly select/read verification-before-completion. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.skill.writing-plans",
+      "source": "superpowers",
+      "label": "superpowers.skill.writing-plans",
+      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.skill.writing-plans.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/writing-plans/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/writing-plans/plan-document-reviewer-prompt.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open the project and explicitly select/read writing-plans. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.skill.writing-skills",
+      "source": "superpowers",
+      "label": "superpowers.skill.writing-skills",
+      "description": "Requires test-driven-development background, real testing/subagent tools; optional graph rendering needs Node.js and Graphviz dot. No renderer or model call runs during material Apply.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.skill.writing-skills.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/writing-skills/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/writing-skills/anthropic-best-practices.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/writing-skills/examples/CLAUDE_MD_TESTING.md"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/writing-skills/graphviz-conventions.dot"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/writing-skills/persuasion-principles.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/writing-skills/render-graphs.js"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/writing-skills/testing-skills-with-subagents.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        },
+        {
+          "itemId": "superpowers.skill.test-driven-development"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires test-driven-development background, real testing/subagent tools; optional graph rendering needs Node.js and Graphviz dot. No renderer or model call runs during material Apply."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open the project and explicitly select/read writing-skills. Requires test-driven-development background, real testing/subagent tools; optional graph rendering needs Node.js and Graphviz dot. No renderer or model call runs during material Apply."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.kiro.skill.brainstorming",
+      "source": "superpowers",
+      "label": "superpowers.kiro.skill.brainstorming",
+      "description": "Optional visual companion requires explicit user approval, Bash, Node.js and a reachable browser; bundled server is zero-dependency, defaults to loopback/session authentication. Logo request sends the Superpowers version; SUPERPOWERS_DISABLE_TELEMETRY, DISABLE_TELEMETRY or CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC disables it. No server or browser is started by material Apply.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.kiro.skill.brainstorming.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/brainstorming/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/brainstorming/scripts/frame-template.html"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/brainstorming/scripts/helper.js"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/brainstorming/scripts/server.cjs"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/brainstorming/scripts/start-server.sh"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/brainstorming/scripts/stop-server.sh"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/brainstorming/spec-document-reviewer-prompt.md"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/brainstorming/visual-companion.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Optional visual companion requires explicit user approval, Bash, Node.js and a reachable browser; bundled server is zero-dependency, defaults to loopback/session authentication. Logo request sends the Superpowers version; SUPERPOWERS_DISABLE_TELEMETRY, DISABLE_TELEMETRY or CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC disables it. No server or browser is started by material Apply."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open the project and explicitly select/read brainstorming. Optional visual companion requires explicit user approval, Bash, Node.js and a reachable browser; bundled server is zero-dependency, defaults to loopback/session authentication. Logo request sends the Superpowers version; SUPERPOWERS_DISABLE_TELEMETRY, DISABLE_TELEMETRY or CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC disables it. No server or browser is started by material Apply."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.kiro.skill.diagnosing-superpowers",
+      "source": "superpowers",
+      "label": "superpowers.kiro.skill.diagnosing-superpowers",
+      "description": "Requires caller-authorized session history with verified session identity, record/usage semantics and bounded reads; unavailable/ambiguous transcripts remain unavailable. Scrub/audit and separate user consent precede any issue submission. Catalog reads no transcripts and uploads nothing.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.kiro.skill.diagnosing-superpowers.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/diagnosing-superpowers/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/diagnosing-superpowers/prompts/analyst-common.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/diagnosing-superpowers/prompts/cost-and-time.md"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/diagnosing-superpowers/prompts/plan-adherence.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/diagnosing-superpowers/prompts/quality-evidence.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/diagnosing-superpowers/prompts/repeated-work.md"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/diagnosing-superpowers/prompts/request-conflicts.md"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/diagnosing-superpowers/prompts/scrub-audit.md"
+        },
+        {
+          "id": "asset-9",
+          "path": "skills/diagnosing-superpowers/prompts/scrub.md"
+        },
+        {
+          "id": "asset-10",
+          "path": "skills/diagnosing-superpowers/prompts/similar-session.md"
+        },
+        {
+          "id": "asset-11",
+          "path": "skills/diagnosing-superpowers/prompts/skill-timeline.md"
+        },
+        {
+          "id": "asset-12",
+          "path": "skills/diagnosing-superpowers/prompts/stumbles.md"
+        },
+        {
+          "id": "asset-13",
+          "path": "skills/diagnosing-superpowers/references/context-safety.md"
+        },
+        {
+          "id": "asset-14",
+          "path": "skills/diagnosing-superpowers/references/github-issues.md"
+        },
+        {
+          "id": "asset-15",
+          "path": "skills/diagnosing-superpowers/references/redaction-policy.md"
+        },
+        {
+          "id": "asset-16",
+          "path": "skills/diagnosing-superpowers/references/session-discovery.md"
+        },
+        {
+          "id": "asset-17",
+          "path": "skills/diagnosing-superpowers/templates/bundle-README.md"
+        },
+        {
+          "id": "asset-18",
+          "path": "skills/diagnosing-superpowers/templates/case.md"
+        },
+        {
+          "id": "asset-19",
+          "path": "skills/diagnosing-superpowers/templates/issue.md"
+        },
+        {
+          "id": "asset-20",
+          "path": "skills/diagnosing-superpowers/templates/report.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires caller-authorized session history with verified session identity, record/usage semantics and bounded reads; unavailable/ambiguous transcripts remain unavailable. Scrub/audit and separate user consent precede any issue submission. Catalog reads no transcripts and uploads nothing."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open the project and explicitly select/read diagnosing-superpowers. Requires caller-authorized session history with verified session identity, record/usage semantics and bounded reads; unavailable/ambiguous transcripts remain unavailable. Scrub/audit and separate user consent precede any issue submission. Catalog reads no transcripts and uploads nothing."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.kiro.skill.dispatching-parallel-agents",
+      "source": "superpowers",
+      "label": "superpowers.kiro.skill.dispatching-parallel-agents",
+      "description": "Requires independent tasks and actual harness subagent tools; model dispatch in Kiro IDE/Copilot VSCode is unknown. Instructions alone do not supply subagents.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.kiro.skill.dispatching-parallel-agents.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/dispatching-parallel-agents/SKILL.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires independent tasks and actual harness subagent tools; model dispatch in Kiro IDE/Copilot VSCode is unknown. Instructions alone do not supply subagents."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open the project and explicitly select/read dispatching-parallel-agents. Requires independent tasks and actual harness subagent tools; model dispatch in Kiro IDE/Copilot VSCode is unknown. Instructions alone do not supply subagents."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.kiro.skill.executing-plans",
+      "source": "superpowers",
+      "label": "superpowers.kiro.skill.executing-plans",
+      "description": "Requires an approved reachable plan/spec and isolated Git workspace, Bash and Git for task/ledger scripts; script sibling closure is required. Native subagent capability is harness-dependent; unavailable routes follow upstream inline fallback. No workflow or Git command is run by material Apply.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.kiro.skill.executing-plans.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/executing-plans/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/executing-plans/scripts/task-done"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/executing-plans/scripts/task-start"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        },
+        {
+          "itemId": "superpowers.kiro.skill.test-driven-development"
+        },
+        {
+          "itemId": "superpowers.kiro.skill.verification-before-completion"
+        },
+        {
+          "itemId": "superpowers.kiro.skill.subagent-driven-development"
+        },
+        {
+          "itemId": "superpowers.kiro.skill.requesting-code-review"
+        },
+        {
+          "itemId": "superpowers.kiro.skill.using-superpowers"
+        },
+        {
+          "itemId": "superpowers.kiro.skill.finishing-a-development-branch"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires an approved reachable plan/spec and isolated Git workspace, Bash and Git for task/ledger scripts; script sibling closure is required. Native subagent capability is harness-dependent; unavailable routes follow upstream inline fallback. No workflow or Git command is run by material Apply."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open the project and explicitly select/read executing-plans. Requires an approved reachable plan/spec and isolated Git workspace, Bash and Git for task/ledger scripts; script sibling closure is required. Native subagent capability is harness-dependent; unavailable routes follow upstream inline fallback. No workflow or Git command is run by material Apply."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.kiro.skill.finishing-a-development-branch",
+      "source": "superpowers",
+      "label": "superpowers.kiro.skill.finishing-a-development-branch",
+      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.kiro.skill.finishing-a-development-branch.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/finishing-a-development-branch/SKILL.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open the project and explicitly select/read finishing-a-development-branch. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.kiro.skill.receiving-code-review",
+      "source": "superpowers",
+      "label": "superpowers.kiro.skill.receiving-code-review",
+      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.kiro.skill.receiving-code-review.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/receiving-code-review/SKILL.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open the project and explicitly select/read receiving-code-review. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.kiro.skill.requesting-code-review",
+      "source": "superpowers",
+      "label": "superpowers.kiro.skill.requesting-code-review",
+      "description": "Requires reviewed Git range and harness reviewer tools; the bundled code-reviewer.md is a dispatch prompt, not an automatically registered agent.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.kiro.skill.requesting-code-review.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/requesting-code-review/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/requesting-code-review/code-reviewer.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires reviewed Git range and harness reviewer tools; the bundled code-reviewer.md is a dispatch prompt, not an automatically registered agent."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open the project and explicitly select/read requesting-code-review. Requires reviewed Git range and harness reviewer tools; the bundled code-reviewer.md is a dispatch prompt, not an automatically registered agent."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.kiro.skill.subagent-driven-development",
+      "source": "superpowers",
+      "label": "superpowers.kiro.skill.subagent-driven-development",
+      "description": "Requires approved plan/spec, isolated Git workspace, Bash and Git for helper scripts and real harness subagent/reviewer tools. Tool availability/model routing is unknown for Kiro IDE and Copilot VSCode; no native equivalents are invented.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.kiro.skill.subagent-driven-development.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/subagent-driven-development/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/subagent-driven-development/implementer-prompt.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/subagent-driven-development/re-review-prompt.md"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/subagent-driven-development/scripts/review-package"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/subagent-driven-development/scripts/sdd-workspace"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/subagent-driven-development/scripts/task-brief"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/subagent-driven-development/task-reviewer-prompt.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        },
+        {
+          "itemId": "superpowers.kiro.skill.using-git-worktrees"
+        },
+        {
+          "itemId": "superpowers.kiro.skill.requesting-code-review"
+        },
+        {
+          "itemId": "superpowers.kiro.skill.finishing-a-development-branch"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires approved plan/spec, isolated Git workspace, Bash and Git for helper scripts and real harness subagent/reviewer tools. Tool availability/model routing is unknown for Kiro IDE and Copilot VSCode; no native equivalents are invented."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open the project and explicitly select/read subagent-driven-development. Requires approved plan/spec, isolated Git workspace, Bash and Git for helper scripts and real harness subagent/reviewer tools. Tool availability/model routing is unknown for Kiro IDE and Copilot VSCode; no native equivalents are invented."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.kiro.skill.systematic-debugging",
+      "source": "superpowers",
+      "label": "superpowers.kiro.skill.systematic-debugging",
+      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.kiro.skill.systematic-debugging.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/systematic-debugging/CREATION-LOG.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/systematic-debugging/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/systematic-debugging/condition-based-waiting-example.ts"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/systematic-debugging/condition-based-waiting.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/systematic-debugging/defense-in-depth.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/systematic-debugging/find-polluter.sh"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/systematic-debugging/root-cause-tracing.md"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/systematic-debugging/test-academic.md"
+        },
+        {
+          "id": "asset-9",
+          "path": "skills/systematic-debugging/test-pressure-1.md"
+        },
+        {
+          "id": "asset-10",
+          "path": "skills/systematic-debugging/test-pressure-2.md"
+        },
+        {
+          "id": "asset-11",
+          "path": "skills/systematic-debugging/test-pressure-3.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open the project and explicitly select/read systematic-debugging. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.kiro.skill.test-driven-development",
+      "source": "superpowers",
+      "label": "superpowers.kiro.skill.test-driven-development",
+      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.kiro.skill.test-driven-development.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/test-driven-development/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/test-driven-development/writing-good-tests.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open the project and explicitly select/read test-driven-development. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.kiro.skill.using-git-worktrees",
+      "source": "superpowers",
+      "label": "superpowers.kiro.skill.using-git-worktrees",
+      "description": "Requires Git and a repository; detects existing isolation first, prefers native worktree tools when present and uses manual Git fallback. Project build/test runtimes and native tool availability remain caller-owned.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.kiro.skill.using-git-worktrees.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/using-git-worktrees/SKILL.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires Git and a repository; detects existing isolation first, prefers native worktree tools when present and uses manual Git fallback. Project build/test runtimes and native tool availability remain caller-owned."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open the project and explicitly select/read using-git-worktrees. Requires Git and a repository; detects existing isolation first, prefers native worktree tools when present and uses manual Git fallback. Project build/test runtimes and native tool availability remain caller-owned."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.kiro.skill.using-superpowers",
+      "source": "superpowers",
+      "label": "superpowers.kiro.skill.using-superpowers",
+      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.kiro.skill.using-superpowers.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/using-superpowers/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/using-superpowers/references/antigravity-tools.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/using-superpowers/references/claude-code-tools.md"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/using-superpowers/references/codex-tools.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/using-superpowers/references/gemini-tools.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/using-superpowers/references/hermes-tools.md"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/using-superpowers/references/muse-tools.md"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/using-superpowers/references/pi-tools.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open the project and explicitly select/read using-superpowers. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.kiro.skill.verification-before-completion",
+      "source": "superpowers",
+      "label": "superpowers.kiro.skill.verification-before-completion",
+      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.kiro.skill.verification-before-completion.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/verification-before-completion/SKILL.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open the project and explicitly select/read verification-before-completion. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.kiro.skill.writing-plans",
+      "source": "superpowers",
+      "label": "superpowers.kiro.skill.writing-plans",
+      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.kiro.skill.writing-plans.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/writing-plans/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/writing-plans/plan-document-reviewer-prompt.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open the project and explicitly select/read writing-plans. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.kiro.skill.writing-skills",
+      "source": "superpowers",
+      "label": "superpowers.kiro.skill.writing-skills",
+      "description": "Requires test-driven-development background, real testing/subagent tools; optional graph rendering needs Node.js and Graphviz dot. No renderer or model call runs during material Apply.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.kiro.skill.writing-skills.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/writing-skills/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/writing-skills/anthropic-best-practices.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/writing-skills/examples/CLAUDE_MD_TESTING.md"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/writing-skills/graphviz-conventions.dot"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/writing-skills/persuasion-principles.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/writing-skills/render-graphs.js"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/writing-skills/testing-skills-with-subagents.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        },
+        {
+          "itemId": "superpowers.kiro.skill.test-driven-development"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires test-driven-development background, real testing/subagent tools; optional graph rendering needs Node.js and Graphviz dot. No renderer or model call runs during material Apply."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open the project and explicitly select/read writing-skills. Requires test-driven-development background, real testing/subagent tools; optional graph rendering needs Node.js and Graphviz dot. No renderer or model call runs during material Apply."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.copilot.skill.brainstorming",
+      "source": "superpowers",
+      "label": "superpowers.copilot.skill.brainstorming",
+      "description": "Optional visual companion requires explicit user approval, Bash, Node.js and a reachable browser; bundled server is zero-dependency, defaults to loopback/session authentication. Logo request sends the Superpowers version; SUPERPOWERS_DISABLE_TELEMETRY, DISABLE_TELEMETRY or CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC disables it. No server or browser is started by material Apply.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.copilot.skill.brainstorming.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/brainstorming/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/brainstorming/scripts/frame-template.html"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/brainstorming/scripts/helper.js"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/brainstorming/scripts/server.cjs"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/brainstorming/scripts/start-server.sh"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/brainstorming/scripts/stop-server.sh"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/brainstorming/spec-document-reviewer-prompt.md"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/brainstorming/visual-companion.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Optional visual companion requires explicit user approval, Bash, Node.js and a reachable browser; bundled server is zero-dependency, defaults to loopback/session authentication. Logo request sends the Superpowers version; SUPERPOWERS_DISABLE_TELEMETRY, DISABLE_TELEMETRY or CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC disables it. No server or browser is started by material Apply."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open the project and explicitly select/read brainstorming. Optional visual companion requires explicit user approval, Bash, Node.js and a reachable browser; bundled server is zero-dependency, defaults to loopback/session authentication. Logo request sends the Superpowers version; SUPERPOWERS_DISABLE_TELEMETRY, DISABLE_TELEMETRY or CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC disables it. No server or browser is started by material Apply."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.copilot.skill.diagnosing-superpowers",
+      "source": "superpowers",
+      "label": "superpowers.copilot.skill.diagnosing-superpowers",
+      "description": "Requires caller-authorized session history with verified session identity, record/usage semantics and bounded reads; unavailable/ambiguous transcripts remain unavailable. Scrub/audit and separate user consent precede any issue submission. Catalog reads no transcripts and uploads nothing.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.copilot.skill.diagnosing-superpowers.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/diagnosing-superpowers/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/diagnosing-superpowers/prompts/analyst-common.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/diagnosing-superpowers/prompts/cost-and-time.md"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/diagnosing-superpowers/prompts/plan-adherence.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/diagnosing-superpowers/prompts/quality-evidence.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/diagnosing-superpowers/prompts/repeated-work.md"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/diagnosing-superpowers/prompts/request-conflicts.md"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/diagnosing-superpowers/prompts/scrub-audit.md"
+        },
+        {
+          "id": "asset-9",
+          "path": "skills/diagnosing-superpowers/prompts/scrub.md"
+        },
+        {
+          "id": "asset-10",
+          "path": "skills/diagnosing-superpowers/prompts/similar-session.md"
+        },
+        {
+          "id": "asset-11",
+          "path": "skills/diagnosing-superpowers/prompts/skill-timeline.md"
+        },
+        {
+          "id": "asset-12",
+          "path": "skills/diagnosing-superpowers/prompts/stumbles.md"
+        },
+        {
+          "id": "asset-13",
+          "path": "skills/diagnosing-superpowers/references/context-safety.md"
+        },
+        {
+          "id": "asset-14",
+          "path": "skills/diagnosing-superpowers/references/github-issues.md"
+        },
+        {
+          "id": "asset-15",
+          "path": "skills/diagnosing-superpowers/references/redaction-policy.md"
+        },
+        {
+          "id": "asset-16",
+          "path": "skills/diagnosing-superpowers/references/session-discovery.md"
+        },
+        {
+          "id": "asset-17",
+          "path": "skills/diagnosing-superpowers/templates/bundle-README.md"
+        },
+        {
+          "id": "asset-18",
+          "path": "skills/diagnosing-superpowers/templates/case.md"
+        },
+        {
+          "id": "asset-19",
+          "path": "skills/diagnosing-superpowers/templates/issue.md"
+        },
+        {
+          "id": "asset-20",
+          "path": "skills/diagnosing-superpowers/templates/report.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires caller-authorized session history with verified session identity, record/usage semantics and bounded reads; unavailable/ambiguous transcripts remain unavailable. Scrub/audit and separate user consent precede any issue submission. Catalog reads no transcripts and uploads nothing."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open the project and explicitly select/read diagnosing-superpowers. Requires caller-authorized session history with verified session identity, record/usage semantics and bounded reads; unavailable/ambiguous transcripts remain unavailable. Scrub/audit and separate user consent precede any issue submission. Catalog reads no transcripts and uploads nothing."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.copilot.skill.dispatching-parallel-agents",
+      "source": "superpowers",
+      "label": "superpowers.copilot.skill.dispatching-parallel-agents",
+      "description": "Requires independent tasks and actual harness subagent tools; model dispatch in Kiro IDE/Copilot VSCode is unknown. Instructions alone do not supply subagents.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.copilot.skill.dispatching-parallel-agents.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/dispatching-parallel-agents/SKILL.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires independent tasks and actual harness subagent tools; model dispatch in Kiro IDE/Copilot VSCode is unknown. Instructions alone do not supply subagents."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open the project and explicitly select/read dispatching-parallel-agents. Requires independent tasks and actual harness subagent tools; model dispatch in Kiro IDE/Copilot VSCode is unknown. Instructions alone do not supply subagents."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.copilot.skill.executing-plans",
+      "source": "superpowers",
+      "label": "superpowers.copilot.skill.executing-plans",
+      "description": "Requires an approved reachable plan/spec and isolated Git workspace, Bash and Git for task/ledger scripts; script sibling closure is required. Native subagent capability is harness-dependent; unavailable routes follow upstream inline fallback. No workflow or Git command is run by material Apply.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.copilot.skill.executing-plans.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/executing-plans/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/executing-plans/scripts/task-done"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/executing-plans/scripts/task-start"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        },
+        {
+          "itemId": "superpowers.copilot.skill.test-driven-development"
+        },
+        {
+          "itemId": "superpowers.copilot.skill.verification-before-completion"
+        },
+        {
+          "itemId": "superpowers.copilot.skill.subagent-driven-development"
+        },
+        {
+          "itemId": "superpowers.copilot.skill.requesting-code-review"
+        },
+        {
+          "itemId": "superpowers.copilot.skill.using-superpowers"
+        },
+        {
+          "itemId": "superpowers.copilot.skill.finishing-a-development-branch"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires an approved reachable plan/spec and isolated Git workspace, Bash and Git for task/ledger scripts; script sibling closure is required. Native subagent capability is harness-dependent; unavailable routes follow upstream inline fallback. No workflow or Git command is run by material Apply."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open the project and explicitly select/read executing-plans. Requires an approved reachable plan/spec and isolated Git workspace, Bash and Git for task/ledger scripts; script sibling closure is required. Native subagent capability is harness-dependent; unavailable routes follow upstream inline fallback. No workflow or Git command is run by material Apply."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.copilot.skill.finishing-a-development-branch",
+      "source": "superpowers",
+      "label": "superpowers.copilot.skill.finishing-a-development-branch",
+      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.copilot.skill.finishing-a-development-branch.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/finishing-a-development-branch/SKILL.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open the project and explicitly select/read finishing-a-development-branch. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.copilot.skill.receiving-code-review",
+      "source": "superpowers",
+      "label": "superpowers.copilot.skill.receiving-code-review",
+      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.copilot.skill.receiving-code-review.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/receiving-code-review/SKILL.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open the project and explicitly select/read receiving-code-review. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.copilot.skill.requesting-code-review",
+      "source": "superpowers",
+      "label": "superpowers.copilot.skill.requesting-code-review",
+      "description": "Requires reviewed Git range and harness reviewer tools; the bundled code-reviewer.md is a dispatch prompt, not an automatically registered agent.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.copilot.skill.requesting-code-review.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/requesting-code-review/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/requesting-code-review/code-reviewer.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires reviewed Git range and harness reviewer tools; the bundled code-reviewer.md is a dispatch prompt, not an automatically registered agent."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open the project and explicitly select/read requesting-code-review. Requires reviewed Git range and harness reviewer tools; the bundled code-reviewer.md is a dispatch prompt, not an automatically registered agent."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.copilot.skill.subagent-driven-development",
+      "source": "superpowers",
+      "label": "superpowers.copilot.skill.subagent-driven-development",
+      "description": "Requires approved plan/spec, isolated Git workspace, Bash and Git for helper scripts and real harness subagent/reviewer tools. Tool availability/model routing is unknown for Kiro IDE and Copilot VSCode; no native equivalents are invented.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.copilot.skill.subagent-driven-development.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/subagent-driven-development/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/subagent-driven-development/implementer-prompt.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/subagent-driven-development/re-review-prompt.md"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/subagent-driven-development/scripts/review-package"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/subagent-driven-development/scripts/sdd-workspace"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/subagent-driven-development/scripts/task-brief"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/subagent-driven-development/task-reviewer-prompt.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        },
+        {
+          "itemId": "superpowers.copilot.skill.using-git-worktrees"
+        },
+        {
+          "itemId": "superpowers.copilot.skill.requesting-code-review"
+        },
+        {
+          "itemId": "superpowers.copilot.skill.finishing-a-development-branch"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires approved plan/spec, isolated Git workspace, Bash and Git for helper scripts and real harness subagent/reviewer tools. Tool availability/model routing is unknown for Kiro IDE and Copilot VSCode; no native equivalents are invented."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open the project and explicitly select/read subagent-driven-development. Requires approved plan/spec, isolated Git workspace, Bash and Git for helper scripts and real harness subagent/reviewer tools. Tool availability/model routing is unknown for Kiro IDE and Copilot VSCode; no native equivalents are invented."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.copilot.skill.systematic-debugging",
+      "source": "superpowers",
+      "label": "superpowers.copilot.skill.systematic-debugging",
+      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.copilot.skill.systematic-debugging.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/systematic-debugging/CREATION-LOG.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/systematic-debugging/SKILL.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/systematic-debugging/condition-based-waiting-example.ts"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/systematic-debugging/condition-based-waiting.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/systematic-debugging/defense-in-depth.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/systematic-debugging/find-polluter.sh"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/systematic-debugging/root-cause-tracing.md"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/systematic-debugging/test-academic.md"
+        },
+        {
+          "id": "asset-9",
+          "path": "skills/systematic-debugging/test-pressure-1.md"
+        },
+        {
+          "id": "asset-10",
+          "path": "skills/systematic-debugging/test-pressure-2.md"
+        },
+        {
+          "id": "asset-11",
+          "path": "skills/systematic-debugging/test-pressure-3.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open the project and explicitly select/read systematic-debugging. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.copilot.skill.test-driven-development",
+      "source": "superpowers",
+      "label": "superpowers.copilot.skill.test-driven-development",
+      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.copilot.skill.test-driven-development.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/test-driven-development/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/test-driven-development/writing-good-tests.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open the project and explicitly select/read test-driven-development. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.copilot.skill.using-git-worktrees",
+      "source": "superpowers",
+      "label": "superpowers.copilot.skill.using-git-worktrees",
+      "description": "Requires Git and a repository; detects existing isolation first, prefers native worktree tools when present and uses manual Git fallback. Project build/test runtimes and native tool availability remain caller-owned.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.copilot.skill.using-git-worktrees.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/using-git-worktrees/SKILL.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires Git and a repository; detects existing isolation first, prefers native worktree tools when present and uses manual Git fallback. Project build/test runtimes and native tool availability remain caller-owned."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open the project and explicitly select/read using-git-worktrees. Requires Git and a repository; detects existing isolation first, prefers native worktree tools when present and uses manual Git fallback. Project build/test runtimes and native tool availability remain caller-owned."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.copilot.skill.using-superpowers",
+      "source": "superpowers",
+      "label": "superpowers.copilot.skill.using-superpowers",
+      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.copilot.skill.using-superpowers.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/using-superpowers/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/using-superpowers/references/antigravity-tools.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/using-superpowers/references/claude-code-tools.md"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/using-superpowers/references/codex-tools.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/using-superpowers/references/gemini-tools.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/using-superpowers/references/hermes-tools.md"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/using-superpowers/references/muse-tools.md"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/using-superpowers/references/pi-tools.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open the project and explicitly select/read using-superpowers. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.copilot.skill.verification-before-completion",
+      "source": "superpowers",
+      "label": "superpowers.copilot.skill.verification-before-completion",
+      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.copilot.skill.verification-before-completion.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/verification-before-completion/SKILL.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open the project and explicitly select/read verification-before-completion. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.copilot.skill.writing-plans",
+      "source": "superpowers",
+      "label": "superpowers.copilot.skill.writing-plans",
+      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.copilot.skill.writing-plans.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/writing-plans/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/writing-plans/plan-document-reviewer-prompt.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open the project and explicitly select/read writing-plans. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.copilot.skill.writing-skills",
+      "source": "superpowers",
+      "label": "superpowers.copilot.skill.writing-skills",
+      "description": "Requires test-driven-development background, real testing/subagent tools; optional graph rendering needs Node.js and Graphviz dot. No renderer or model call runs during material Apply.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/superpowers.copilot.skill.writing-skills.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/writing-skills/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/writing-skills/anthropic-best-practices.md"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/writing-skills/examples/CLAUDE_MD_TESTING.md"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/writing-skills/graphviz-conventions.dot"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/writing-skills/persuasion-principles.md"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/writing-skills/render-graphs.js"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/writing-skills/testing-skills-with-subagents.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        },
+        {
+          "itemId": "superpowers.copilot.skill.test-driven-development"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Catalog-authored projection into documented project Agent Skills layout. Native execution remains unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires test-driven-development background, real testing/subagent tools; optional graph rendering needs Node.js and Graphviz dot. No renderer or model call runs during material Apply."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "plugins/hooks",
+          "capability": "claude-plugin-bootstrap",
+          "support": "unsupported",
+          "reason": "Claude plugin SessionStart protocol and CLAUDE_PLUGIN_ROOT are not this client mechanism; no translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open the project and explicitly select/read writing-skills. Requires test-driven-development background, real testing/subagent tools; optional graph rendering needs Node.js and Graphviz dot. No renderer or model call runs during material Apply."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.runtime-source.claude-bootstrap",
+      "source": "superpowers",
+      "label": "superpowers.runtime-source.claude-bootstrap",
+      "description": "Exact pinned source material delivery; Catalog projection only, native execution unknown.",
+      "kind": "instruction",
+      "recipePath": "catalog-recipes/superpowers.runtime-source.claude-bootstrap.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": ".claude-plugin/plugin.json"
+        },
+        {
+          "id": "asset-2",
+          "path": ".claude-plugin/marketplace.json"
+        },
+        {
+          "id": "asset-3",
+          "path": "hooks/hooks.json"
+        },
+        {
+          "id": "asset-4",
+          "path": "hooks/run-hook.cmd"
+        },
+        {
+          "id": "asset-5",
+          "path": "hooks/session-start"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/using-superpowers/SKILL.md"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/using-superpowers/references/antigravity-tools.md"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/using-superpowers/references/claude-code-tools.md"
+        },
+        {
+          "id": "asset-9",
+          "path": "skills/using-superpowers/references/codex-tools.md"
+        },
+        {
+          "id": "asset-10",
+          "path": "skills/using-superpowers/references/gemini-tools.md"
+        },
+        {
+          "id": "asset-11",
+          "path": "skills/using-superpowers/references/hermes-tools.md"
+        },
+        {
+          "id": "asset-12",
+          "path": "skills/using-superpowers/references/muse-tools.md"
+        },
+        {
+          "id": "asset-13",
+          "path": "skills/using-superpowers/references/pi-tools.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "Reference source only. Claude SessionStart requires Bash (Git for Windows Bash or PATH), caller-reviewed command and CLAUDE_PLUGIN_ROOT; optional registration is a separate item."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "Reference source only. Claude SessionStart requires Bash (Git for Windows Bash or PATH), caller-reviewed command and CLAUDE_PLUGIN_ROOT; optional registration is a separate item."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "Reference source only. Claude SessionStart requires Bash (Git for Windows Bash or PATH), caller-reviewed command and CLAUDE_PLUGIN_ROOT; optional registration is a separate item."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": "runtime",
+          "instructions": "SessionStart reads ../skills/using-superpowers/SKILL.md, emits hookSpecificOutput.additionalContext only when CLAUDE_PLUGIN_ROOT is set; missing Windows Bash silently skips injection."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.runtime-source.cursor",
+      "source": "superpowers",
+      "label": "superpowers.runtime-source.cursor",
+      "description": "Exact pinned source material delivery; Catalog projection only, native execution unknown.",
+      "kind": "instruction",
+      "recipePath": "catalog-recipes/superpowers.runtime-source.cursor.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": ".cursor-plugin/plugin.json"
+        },
+        {
+          "id": "asset-2",
+          "path": "hooks/hooks-cursor.json"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        },
+        {
+          "itemId": "superpowers.runtime-source.skill-library"
+        },
+        {
+          "itemId": "superpowers.runtime-source.claude-bootstrap"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets cursor plugin/bootstrap APIs, not a generic installation recipe for claude-code. Source delivery does not activate it."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets cursor plugin/bootstrap APIs, not a generic installation recipe for kiro-ide. Source delivery does not activate it."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets cursor plugin/bootstrap APIs, not a generic installation recipe for copilot-vscode. Source delivery does not activate it."
+        }
+      ],
+      "activation": [
+        {
+          "client": "cursor",
+          "surface": "runtime",
+          "instructions": "Cursor manifest registers ./skills and hooks/hooks-cursor.json. SessionStart script requires Bash and Cursor additional_context protocol; no Cursor installation or selected-client equivalent is declared."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.runtime-source.codex",
+      "source": "superpowers",
+      "label": "superpowers.runtime-source.codex",
+      "description": "Exact pinned source material delivery; Catalog projection only, native execution unknown.",
+      "kind": "instruction",
+      "recipePath": "catalog-recipes/superpowers.runtime-source.codex.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": ".codex-plugin/plugin.json"
+        },
+        {
+          "id": "asset-2",
+          "path": ".agents/plugins/marketplace.json"
+        },
+        {
+          "id": "asset-3",
+          "path": "scripts/package-codex-plugin.sh"
+        },
+        {
+          "id": "asset-4",
+          "path": "scripts/sync-to-codex-plugin.sh"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        },
+        {
+          "itemId": "superpowers.runtime-source.skill-library"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets codex plugin/bootstrap APIs, not a generic installation recipe for claude-code. Source delivery does not activate it."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets codex plugin/bootstrap APIs, not a generic installation recipe for kiro-ide. Source delivery does not activate it."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets codex plugin/bootstrap APIs, not a generic installation recipe for copilot-vscode. Source delivery does not activate it."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "runtime",
+          "instructions": "Codex manifest registers ./skills and assets. Portal packaging requires a real source Git checkout, Bash, archive tools and prior official package agents/openai.yaml metadata; sync additionally requires rsync, authenticated gh, Python3 and explicit external write authority. No prior official metadata is fabricated or sync executed."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.runtime-source.devin",
+      "source": "superpowers",
+      "label": "superpowers.runtime-source.devin",
+      "description": "Exact pinned source material delivery; Catalog projection only, native execution unknown.",
+      "kind": "instruction",
+      "recipePath": "catalog-recipes/superpowers.runtime-source.devin.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": ".devin-plugin/plugin.json"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        },
+        {
+          "itemId": "superpowers.runtime-source.skill-library"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets devin plugin/bootstrap APIs, not a generic installation recipe for claude-code. Source delivery does not activate it."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets devin plugin/bootstrap APIs, not a generic installation recipe for kiro-ide. Source delivery does not activate it."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets devin plugin/bootstrap APIs, not a generic installation recipe for copilot-vscode. Source delivery does not activate it."
+        }
+      ],
+      "activation": [
+        {
+          "client": "devin",
+          "surface": "runtime",
+          "instructions": "Devin plugin metadata does not declare a tools or hook API. Upstream README requires Devin plugin install/update commands; source material alone does not establish skill activation. Execution facts beyond that remain unknown."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.runtime-source.gemini",
+      "source": "superpowers",
+      "label": "superpowers.runtime-source.gemini",
+      "description": "Exact pinned source material delivery; Catalog projection only, native execution unknown.",
+      "kind": "instruction",
+      "recipePath": "catalog-recipes/superpowers.runtime-source.gemini.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "gemini-extension.json"
+        },
+        {
+          "id": "asset-2",
+          "path": "GEMINI.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        },
+        {
+          "itemId": "superpowers.runtime-source.skill-library"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets gemini plugin/bootstrap APIs, not a generic installation recipe for claude-code. Source delivery does not activate it."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets gemini plugin/bootstrap APIs, not a generic installation recipe for kiro-ide. Source delivery does not activate it."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets gemini plugin/bootstrap APIs, not a generic installation recipe for copilot-vscode. Source delivery does not activate it."
+        }
+      ],
+      "activation": [
+        {
+          "client": "gemini",
+          "surface": "runtime",
+          "instructions": "Gemini extension imports GEMINI.md, which imports original using-superpowers skill and references/gemini-tools.md. Requires compatible Gemini extension/context loading; no translation to selected client mechanisms."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.runtime-source.hermes",
+      "source": "superpowers",
+      "label": "superpowers.runtime-source.hermes",
+      "description": "Exact pinned source material delivery; Catalog projection only, native execution unknown.",
+      "kind": "instruction",
+      "recipePath": "catalog-recipes/superpowers.runtime-source.hermes.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": ".hermes-plugin/__init__.py"
+        },
+        {
+          "id": "asset-2",
+          "path": ".hermes-plugin/plugin.yaml"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        },
+        {
+          "itemId": "superpowers.runtime-source.skill-library"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets hermes plugin/bootstrap APIs, not a generic installation recipe for claude-code. Source delivery does not activate it."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets hermes plugin/bootstrap APIs, not a generic installation recipe for kiro-ide. Source delivery does not activate it."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets hermes plugin/bootstrap APIs, not a generic installation recipe for copilot-vscode. Source delivery does not activate it."
+        }
+      ],
+      "activation": [
+        {
+          "client": "hermes",
+          "surface": "runtime",
+          "instructions": "Python stdlib adapter requires Hermes register_skill(Path) and pre_llm_call context-hook APIs plus original skills/using-superpowers/SKILL.md and references/hermes-tools.md. It injects first-turn context only; no post-compaction hook is available in the source."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.runtime-source.kimi",
+      "source": "superpowers",
+      "label": "superpowers.runtime-source.kimi",
+      "description": "Exact pinned source material delivery; Catalog projection only, native execution unknown.",
+      "kind": "instruction",
+      "recipePath": "catalog-recipes/superpowers.runtime-source.kimi.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": ".kimi-plugin/plugin.json"
+        },
+        {
+          "id": "asset-2",
+          "path": "docs/README.kimi.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        },
+        {
+          "itemId": "superpowers.runtime-source.skill-library"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets kimi plugin/bootstrap APIs, not a generic installation recipe for claude-code. Source delivery does not activate it."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets kimi plugin/bootstrap APIs, not a generic installation recipe for kiro-ide. Source delivery does not activate it."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets kimi plugin/bootstrap APIs, not a generic installation recipe for copilot-vscode. Source delivery does not activate it."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kimi",
+          "surface": "runtime",
+          "instructions": "Kimi manifest declares skills directory, sessionStart skill using-superpowers and native Skill/AskUserQuestion/TodoList/Agent tool mappings. Those are Kimi APIs, not demonstrated Kiro IDE/Copilot equivalents."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.runtime-source.muse",
+      "source": "superpowers",
+      "label": "superpowers.runtime-source.muse",
+      "description": "Exact pinned source material delivery; Catalog projection only, native execution unknown.",
+      "kind": "instruction",
+      "recipePath": "catalog-recipes/superpowers.runtime-source.muse.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": ".muse-plugin/plugin.json"
+        },
+        {
+          "id": "asset-2",
+          "path": ".muse-plugin/marketplace.json"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        },
+        {
+          "itemId": "superpowers.runtime-source.skill-library"
+        },
+        {
+          "itemId": "superpowers.runtime-source.claude-bootstrap"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets muse plugin/bootstrap APIs, not a generic installation recipe for claude-code. Source delivery does not activate it."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets muse plugin/bootstrap APIs, not a generic installation recipe for kiro-ide. Source delivery does not activate it."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets muse plugin/bootstrap APIs, not a generic installation recipe for copilot-vscode. Source delivery does not activate it."
+        }
+      ],
+      "activation": [
+        {
+          "client": "muse",
+          "surface": "runtime",
+          "instructions": "Muse native manifest declares all skill paths and SessionStart sh hooks/session-start; original script is Bash-dependent and branches on MUSE_PLUGIN_ROOT. Native plugin install/approval and compatible shell are prerequisites; no invocation observed."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.runtime-source.opencode",
+      "source": "superpowers",
+      "label": "superpowers.runtime-source.opencode",
+      "description": "Exact pinned source material delivery; Catalog projection only, native execution unknown.",
+      "kind": "instruction",
+      "recipePath": "catalog-recipes/superpowers.runtime-source.opencode.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "index.js"
+        },
+        {
+          "id": "asset-2",
+          "path": "package.json"
+        },
+        {
+          "id": "asset-3",
+          "path": ".opencode/plugins/superpowers.js"
+        },
+        {
+          "id": "asset-4",
+          "path": ".opencode/INSTALL.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "docs/README.opencode.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        },
+        {
+          "itemId": "superpowers.runtime-source.skill-library"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets opencode plugin/bootstrap APIs, not a generic installation recipe for claude-code. Source delivery does not activate it."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets opencode plugin/bootstrap APIs, not a generic installation recipe for kiro-ide. Source delivery does not activate it."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets opencode plugin/bootstrap APIs, not a generic installation recipe for copilot-vscode. Source delivery does not activate it."
+        }
+      ],
+      "activation": [
+        {
+          "client": "opencode",
+          "surface": "runtime",
+          "instructions": "Node ESM adapter reads original skills; V1 uses config skills.paths and experimental.chat.messages.transform; V2 uses ctx.skill.transform and ctx.session.hook(context), skipping controller bootstrap for child sessions. Directory index form needs OpenCode 2.0.4+ per source; live compatibility unobserved."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.runtime-source.pi",
+      "source": "superpowers",
+      "label": "superpowers.runtime-source.pi",
+      "description": "Exact pinned source material delivery; Catalog projection only, native execution unknown.",
+      "kind": "instruction",
+      "recipePath": "catalog-recipes/superpowers.runtime-source.pi.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": ".pi/extensions/superpowers.ts"
+        },
+        {
+          "id": "asset-2",
+          "path": "package.json"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        },
+        {
+          "itemId": "superpowers.runtime-source.skill-library"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets pi plugin/bootstrap APIs, not a generic installation recipe for claude-code. Source delivery does not activate it."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets pi plugin/bootstrap APIs, not a generic installation recipe for kiro-ide. Source delivery does not activate it."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "plugins/hooks",
+          "capability": "native-adapter-installation",
+          "support": "unsupported",
+          "reason": "This upstream adapter targets pi plugin/bootstrap APIs, not a generic installation recipe for copilot-vscode. Source delivery does not activate it."
+        }
+      ],
+      "activation": [
+        {
+          "client": "pi",
+          "surface": "runtime",
+          "instructions": "TypeScript extension requires Pi ExtensionAPI from @earendil-works/pi-coding-agent and Node fs/path. It registers resources_discover and injects bootstrap on context after session_start/session_compact. Subagent/task-list tools are optional companion packages, not supplied by Pi or this release."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.claude.hook.session-start",
+      "source": "superpowers",
+      "label": "superpowers.claude.hook.session-start",
+      "description": "Opt-in independently owned Claude project SessionStart group with caller-supplied command; material/configuration only, no bootstrap execution claim.",
+      "kind": "hook",
+      "recipePath": "catalog-recipes/superpowers.claude.hook.session-start.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.runtime-source.claude-bootstrap"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "capability": "hook-registration",
+          "support": "supported",
+          "reason": "Generic Core owned Claude group with required reviewed command; execution unknown."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "hooks",
+          "capability": "hook-registration",
+          "support": "unsupported",
+          "reason": "Claude SessionStart shell/JSON protocol is not this client hook API; no equivalent declared."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "hooks",
+          "capability": "hook-registration",
+          "support": "unsupported",
+          "reason": "Claude SessionStart shell/JSON protocol is not this client hook API; no equivalent declared."
+        },
+        {
+          "client": "claude-code",
+          "surface": "SessionStart",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Requires Bash, caller-provided command/environment, compatible Claude hooks and reload/approval. No invocation observed."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "instructions": "Caller-reviewed Bash command invoking installed .superpowers-source/hooks/run-hook.cmd session-start with CLAUDE_PLUGIN_ROOT explicitly pointing to the installed .superpowers-source root. Quote paths for the selected Windows/shell environment; no default. After separately approved Apply review/reload hooks in Claude Code; registration never executes the hook in Catalog."
+        }
+      ],
+      "configuration": {
+        "hookCommand": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "maxLength": 4096,
+          "description": "Caller-reviewed Bash command invoking installed .superpowers-source/hooks/run-hook.cmd session-start with CLAUDE_PLUGIN_ROOT explicitly pointing to the installed .superpowers-source root. Quote paths for the selected Windows/shell environment; no default."
+        }
+      }
+    },
+    {
+      "id": "superpowers.template.reviewed-tdd",
+      "source": "superpowers",
+      "label": "superpowers.template.reviewed-tdd",
+      "description": "Catalog-authored starting choice: Superpowers TDD and pinned Extensions security-and-hardening. These curated requirements are not upstream-authored dependency claims.",
+      "kind": "template",
+      "recipePath": "catalog-recipes/superpowers.template.reviewed-tdd.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.skill.test-driven-development"
+        },
+        {
+          "itemId": "extensions.skill.security-and-hardening",
+          "itemSha256": "7d7ebe3300d2e895bb87b410f158e878954756f9ff4e5547cec861e782a3a7a0",
+          "release": {
+            "source": {
+              "kind": "local",
+              "input": "catalog"
+            },
+            "manifest": {
+              "path": "release/release-extensions.json",
+              "sha256": "579fc213c279d7df6f68b2d6da1e95d6c2df109954b1744ac36661baaf0fa912",
+              "byteLength": 5472277
+            }
+          }
+        }
+      ],
+      "optional": [
+        {
+          "itemId": "superpowers.claude.hook.session-start"
+        }
+      ],
+      "conflicts": [],
+      "clientCapabilities": [],
+      "activation": [],
+      "configuration": {}
+    },
+    {
+      "id": "superpowers.runtime-source.skill-library",
+      "source": "superpowers",
+      "label": "Original runtime skill-library closure",
+      "description": "Exact source library and manifest/branding closure for inspecting native adapters; no skill discovery or plugin installation is declared.",
+      "kind": "instruction",
+      "recipePath": "catalog-recipes/superpowers.runtime-source.skill-library.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "package.json"
+        },
+        {
+          "id": "asset-2",
+          "path": "assets/app-icon.png"
+        },
+        {
+          "id": "asset-3",
+          "path": "assets/superpowers-small.svg"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/brainstorming/SKILL.md"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/brainstorming/scripts/frame-template.html"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/brainstorming/scripts/helper.js"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/brainstorming/scripts/server.cjs"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/brainstorming/scripts/start-server.sh"
+        },
+        {
+          "id": "asset-9",
+          "path": "skills/brainstorming/scripts/stop-server.sh"
+        },
+        {
+          "id": "asset-10",
+          "path": "skills/brainstorming/spec-document-reviewer-prompt.md"
+        },
+        {
+          "id": "asset-11",
+          "path": "skills/brainstorming/visual-companion.md"
+        },
+        {
+          "id": "asset-12",
+          "path": "skills/diagnosing-superpowers/SKILL.md"
+        },
+        {
+          "id": "asset-13",
+          "path": "skills/diagnosing-superpowers/prompts/analyst-common.md"
+        },
+        {
+          "id": "asset-14",
+          "path": "skills/diagnosing-superpowers/prompts/cost-and-time.md"
+        },
+        {
+          "id": "asset-15",
+          "path": "skills/diagnosing-superpowers/prompts/plan-adherence.md"
+        },
+        {
+          "id": "asset-16",
+          "path": "skills/diagnosing-superpowers/prompts/quality-evidence.md"
+        },
+        {
+          "id": "asset-17",
+          "path": "skills/diagnosing-superpowers/prompts/repeated-work.md"
+        },
+        {
+          "id": "asset-18",
+          "path": "skills/diagnosing-superpowers/prompts/request-conflicts.md"
+        },
+        {
+          "id": "asset-19",
+          "path": "skills/diagnosing-superpowers/prompts/scrub-audit.md"
+        },
+        {
+          "id": "asset-20",
+          "path": "skills/diagnosing-superpowers/prompts/scrub.md"
+        },
+        {
+          "id": "asset-21",
+          "path": "skills/diagnosing-superpowers/prompts/similar-session.md"
+        },
+        {
+          "id": "asset-22",
+          "path": "skills/diagnosing-superpowers/prompts/skill-timeline.md"
+        },
+        {
+          "id": "asset-23",
+          "path": "skills/diagnosing-superpowers/prompts/stumbles.md"
+        },
+        {
+          "id": "asset-24",
+          "path": "skills/diagnosing-superpowers/references/context-safety.md"
+        },
+        {
+          "id": "asset-25",
+          "path": "skills/diagnosing-superpowers/references/github-issues.md"
+        },
+        {
+          "id": "asset-26",
+          "path": "skills/diagnosing-superpowers/references/redaction-policy.md"
+        },
+        {
+          "id": "asset-27",
+          "path": "skills/diagnosing-superpowers/references/session-discovery.md"
+        },
+        {
+          "id": "asset-28",
+          "path": "skills/diagnosing-superpowers/templates/bundle-README.md"
+        },
+        {
+          "id": "asset-29",
+          "path": "skills/diagnosing-superpowers/templates/case.md"
+        },
+        {
+          "id": "asset-30",
+          "path": "skills/diagnosing-superpowers/templates/issue.md"
+        },
+        {
+          "id": "asset-31",
+          "path": "skills/diagnosing-superpowers/templates/report.md"
+        },
+        {
+          "id": "asset-32",
+          "path": "skills/dispatching-parallel-agents/SKILL.md"
+        },
+        {
+          "id": "asset-33",
+          "path": "skills/executing-plans/SKILL.md"
+        },
+        {
+          "id": "asset-34",
+          "path": "skills/executing-plans/scripts/task-done"
+        },
+        {
+          "id": "asset-35",
+          "path": "skills/executing-plans/scripts/task-start"
+        },
+        {
+          "id": "asset-36",
+          "path": "skills/finishing-a-development-branch/SKILL.md"
+        },
+        {
+          "id": "asset-37",
+          "path": "skills/receiving-code-review/SKILL.md"
+        },
+        {
+          "id": "asset-38",
+          "path": "skills/requesting-code-review/SKILL.md"
+        },
+        {
+          "id": "asset-39",
+          "path": "skills/requesting-code-review/code-reviewer.md"
+        },
+        {
+          "id": "asset-40",
+          "path": "skills/subagent-driven-development/SKILL.md"
+        },
+        {
+          "id": "asset-41",
+          "path": "skills/subagent-driven-development/implementer-prompt.md"
+        },
+        {
+          "id": "asset-42",
+          "path": "skills/subagent-driven-development/re-review-prompt.md"
+        },
+        {
+          "id": "asset-43",
+          "path": "skills/subagent-driven-development/scripts/review-package"
+        },
+        {
+          "id": "asset-44",
+          "path": "skills/subagent-driven-development/scripts/sdd-workspace"
+        },
+        {
+          "id": "asset-45",
+          "path": "skills/subagent-driven-development/scripts/task-brief"
+        },
+        {
+          "id": "asset-46",
+          "path": "skills/subagent-driven-development/task-reviewer-prompt.md"
+        },
+        {
+          "id": "asset-47",
+          "path": "skills/systematic-debugging/CREATION-LOG.md"
+        },
+        {
+          "id": "asset-48",
+          "path": "skills/systematic-debugging/SKILL.md"
+        },
+        {
+          "id": "asset-49",
+          "path": "skills/systematic-debugging/condition-based-waiting-example.ts"
+        },
+        {
+          "id": "asset-50",
+          "path": "skills/systematic-debugging/condition-based-waiting.md"
+        },
+        {
+          "id": "asset-51",
+          "path": "skills/systematic-debugging/defense-in-depth.md"
+        },
+        {
+          "id": "asset-52",
+          "path": "skills/systematic-debugging/find-polluter.sh"
+        },
+        {
+          "id": "asset-53",
+          "path": "skills/systematic-debugging/root-cause-tracing.md"
+        },
+        {
+          "id": "asset-54",
+          "path": "skills/systematic-debugging/test-academic.md"
+        },
+        {
+          "id": "asset-55",
+          "path": "skills/systematic-debugging/test-pressure-1.md"
+        },
+        {
+          "id": "asset-56",
+          "path": "skills/systematic-debugging/test-pressure-2.md"
+        },
+        {
+          "id": "asset-57",
+          "path": "skills/systematic-debugging/test-pressure-3.md"
+        },
+        {
+          "id": "asset-58",
+          "path": "skills/test-driven-development/SKILL.md"
+        },
+        {
+          "id": "asset-59",
+          "path": "skills/test-driven-development/writing-good-tests.md"
+        },
+        {
+          "id": "asset-60",
+          "path": "skills/using-git-worktrees/SKILL.md"
+        },
+        {
+          "id": "asset-61",
+          "path": "skills/using-superpowers/SKILL.md"
+        },
+        {
+          "id": "asset-62",
+          "path": "skills/using-superpowers/references/antigravity-tools.md"
+        },
+        {
+          "id": "asset-63",
+          "path": "skills/using-superpowers/references/claude-code-tools.md"
+        },
+        {
+          "id": "asset-64",
+          "path": "skills/using-superpowers/references/codex-tools.md"
+        },
+        {
+          "id": "asset-65",
+          "path": "skills/using-superpowers/references/gemini-tools.md"
+        },
+        {
+          "id": "asset-66",
+          "path": "skills/using-superpowers/references/hermes-tools.md"
+        },
+        {
+          "id": "asset-67",
+          "path": "skills/using-superpowers/references/muse-tools.md"
+        },
+        {
+          "id": "asset-68",
+          "path": "skills/using-superpowers/references/pi-tools.md"
+        },
+        {
+          "id": "asset-69",
+          "path": "skills/verification-before-completion/SKILL.md"
+        },
+        {
+          "id": "asset-70",
+          "path": "skills/writing-plans/SKILL.md"
+        },
+        {
+          "id": "asset-71",
+          "path": "skills/writing-plans/plan-document-reviewer-prompt.md"
+        },
+        {
+          "id": "asset-72",
+          "path": "skills/writing-skills/SKILL.md"
+        },
+        {
+          "id": "asset-73",
+          "path": "skills/writing-skills/anthropic-best-practices.md"
+        },
+        {
+          "id": "asset-74",
+          "path": "skills/writing-skills/examples/CLAUDE_MD_TESTING.md"
+        },
+        {
+          "id": "asset-75",
+          "path": "skills/writing-skills/graphviz-conventions.dot"
+        },
+        {
+          "id": "asset-76",
+          "path": "skills/writing-skills/persuasion-principles.md"
+        },
+        {
+          "id": "asset-77",
+          "path": "skills/writing-skills/render-graphs.js"
+        },
+        {
+          "id": "asset-78",
+          "path": "skills/writing-skills/testing-skills-with-subagents.md"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "superpowers.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".superpowers-source",
+          "capability": "source-reference-material",
+          "support": "supported",
+          "reason": "Exact MIT source closure only; no native installation."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": ".superpowers-source",
+          "capability": "source-reference-material",
+          "support": "supported",
+          "reason": "Exact MIT source closure only; no native installation."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": ".superpowers-source",
+          "capability": "source-reference-material",
+          "support": "supported",
+          "reason": "Exact MIT source closure only; no native installation."
+        }
+      ],
+      "activation": [],
+      "configuration": {}
+    }
+  ]
+}
