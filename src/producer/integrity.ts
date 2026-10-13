@@ -91,6 +91,9 @@ export function checkCandidateFiles(
     ...(files.has(GUIDE_RELEASE_PATH)
       ? [{ path: GUIDE_RELEASE_PATH, export: "./release-guide.json" as const }]
       : []),
+    ...(files.has("release/release-extensions.json")
+      ? [{ path: "release/release-extensions.json", export: "./release-extensions.json" as const }]
+      : []),
   ];
   /** Per-release outcomes merged under the stable check names; detail names a 1.1 document. */
   const merged = new Map<string, { ok: boolean; details: string[] }>();

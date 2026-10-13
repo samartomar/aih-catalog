@@ -1,0 +1,2765 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": ".claude-plugin/marketplace.json",
+      "sha256": "8dd83ea61caa9bafea3cf30a5ba1ba28b0fa0a178205e0d7c93ecb8a2cc40563",
+      "byteLength": 694,
+      "disposition": "unsupported-installation",
+      "reason": "Claude marketplace/plugin discovery metadata: retained as provenance. Catalog installs granular project content and owned hook groups; it does not register this upstream plugin or execute marketplace installation.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": ".claude-plugin/plugin.json",
+      "sha256": "0a4896f9c3ea8ef4a5e2cbd9f564537c0bf39dfb8b883b571177ce44bc53408b",
+      "byteLength": 634,
+      "disposition": "unsupported-installation",
+      "reason": "Claude marketplace/plugin discovery metadata: retained as provenance. Catalog installs granular project content and owned hook groups; it does not register this upstream plugin or execute marketplace installation.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": ".floorignore",
+      "sha256": "abe388e4ae51bade146673089a813118a1247f35108e2f17b94a7cc6d0edcb9b",
+      "byteLength": 173,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream constraint checker ignore configuration: repository-specific quality-floor policy, not installed into consumer repositories.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": ".gitattributes",
+      "sha256": "23302dd90b8bb74b44d365fafef8df20f809b61cb347023951ecf60a88a29651",
+      "byteLength": 32,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream Git normalization settings: source repository policy only; Catalog does not override consumer Git attributes.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": ".github/workflows/tests.yml",
+      "sha256": "b10efaf94714b54edf4b9ccc2077d8025361d87409d6fa9ecdb35c860573aacf",
+      "byteLength": 862,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream GitHub Actions workflow: validates or refreshes the upstream repository, not user client content. Catalog does not install CI or grant repository automation permissions.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": ".github/workflows/upstream.yml",
+      "sha256": "0058ec177d096373293354a4ac0f949b19b8dbb54aae9ef65a5b2b8644eab3cd",
+      "byteLength": 3650,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream GitHub Actions workflow: validates or refreshes the upstream repository, not user client content. Catalog does not install CI or grant repository automation permissions.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": ".gitignore",
+      "sha256": "3bb0399a0f83ac372dc2871b6d63738819aef8082a21a448a37479b2125e239d",
+      "byteLength": 42,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream repository ignore rules: source repository policy only; Catalog does not modify consumer ignore state.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "AGENTS.md",
+      "sha256": "6028d9ae821407c7febd2b6548ae1fab28e536aa2eb9e81aa2534766bf83fc1c",
+      "byteLength": 4993,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream repository maintainer instructions: do not govern consumer projects or this Catalog repository. Retained as source audit only; never replaces project instructions.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "LICENSE",
+      "sha256": "1d2d5be1cce51a92aead6ac9018d25480097edd5470dc06701154493f084527d",
+      "byteLength": 1078,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.notices",
+        "extensions.references",
+        "extensions.skill.api-and-interface-design",
+        "extensions.skill.ask-sam",
+        "extensions.skill.browser-testing-with-devtools",
+        "extensions.skill.ci-cd-and-automation",
+        "extensions.skill.code-simplification",
+        "extensions.skill.constraint-driven-development",
+        "extensions.skill.deprecation-and-migration",
+        "extensions.skill.documentation-and-adrs",
+        "extensions.skill.doubt-driven-development",
+        "extensions.skill.frontend-ui-engineering",
+        "extensions.skill.git-workflow-and-versioning",
+        "extensions.skill.idea-refine",
+        "extensions.skill.install-commit-gate",
+        "extensions.skill.observability-and-instrumentation",
+        "extensions.skill.performance-optimization",
+        "extensions.skill.security-and-hardening",
+        "extensions.skill.setup-pre-commit",
+        "extensions.skill.shipping-and-launch",
+        "extensions.skill.source-driven-development",
+        "extensions.agent.code-reviewer",
+        "extensions.agent.security-auditor",
+        "extensions.agent.test-engineer",
+        "extensions.agent.web-performance-auditor",
+        "extensions.command.ship",
+        "extensions.command.webperf",
+        "extensions.kiro.references",
+        "extensions.kiro.skill.api-and-interface-design",
+        "extensions.kiro.skill.ask-sam",
+        "extensions.kiro.skill.browser-testing-with-devtools",
+        "extensions.kiro.skill.ci-cd-and-automation",
+        "extensions.kiro.skill.code-simplification",
+        "extensions.kiro.skill.constraint-driven-development",
+        "extensions.kiro.skill.deprecation-and-migration",
+        "extensions.kiro.skill.documentation-and-adrs",
+        "extensions.kiro.skill.doubt-driven-development",
+        "extensions.kiro.skill.frontend-ui-engineering",
+        "extensions.kiro.skill.git-workflow-and-versioning",
+        "extensions.kiro.skill.idea-refine",
+        "extensions.kiro.skill.install-commit-gate",
+        "extensions.kiro.skill.observability-and-instrumentation",
+        "extensions.kiro.skill.performance-optimization",
+        "extensions.kiro.skill.security-and-hardening",
+        "extensions.kiro.skill.setup-pre-commit",
+        "extensions.kiro.skill.shipping-and-launch",
+        "extensions.kiro.skill.source-driven-development",
+        "extensions.kiro.agent.code-reviewer",
+        "extensions.kiro.agent.security-auditor",
+        "extensions.kiro.agent.test-engineer",
+        "extensions.kiro.agent.web-performance-auditor",
+        "extensions.kiro.command.ship",
+        "extensions.kiro.command.webperf",
+        "extensions.copilot.references",
+        "extensions.copilot.skill.api-and-interface-design",
+        "extensions.copilot.skill.ask-sam",
+        "extensions.copilot.skill.browser-testing-with-devtools",
+        "extensions.copilot.skill.ci-cd-and-automation",
+        "extensions.copilot.skill.code-simplification",
+        "extensions.copilot.skill.constraint-driven-development",
+        "extensions.copilot.skill.deprecation-and-migration",
+        "extensions.copilot.skill.documentation-and-adrs",
+        "extensions.copilot.skill.doubt-driven-development",
+        "extensions.copilot.skill.frontend-ui-engineering",
+        "extensions.copilot.skill.git-workflow-and-versioning",
+        "extensions.copilot.skill.idea-refine",
+        "extensions.copilot.skill.install-commit-gate",
+        "extensions.copilot.skill.observability-and-instrumentation",
+        "extensions.copilot.skill.performance-optimization",
+        "extensions.copilot.skill.security-and-hardening",
+        "extensions.copilot.skill.setup-pre-commit",
+        "extensions.copilot.skill.shipping-and-launch",
+        "extensions.copilot.skill.source-driven-development",
+        "extensions.copilot.agent.code-reviewer",
+        "extensions.copilot.agent.security-auditor",
+        "extensions.copilot.agent.test-engineer",
+        "extensions.copilot.agent.web-performance-auditor",
+        "extensions.copilot.command.ship",
+        "extensions.copilot.command.webperf",
+        "extensions.hook-source.git-guard",
+        "extensions.hook-source.skill-guard",
+        "extensions.hook-source.lanes-card",
+        "extensions.template.specialists",
+        "extensions.template.complete",
+        "extensions.kiro.template.specialists",
+        "extensions.kiro.template.complete",
+        "extensions.copilot.template.specialists",
+        "extensions.copilot.template.complete",
+        "extensions.claude.hook.git-guard",
+        "extensions.claude.hook.skill-guard",
+        "extensions.claude.hook.lanes-card"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "NOTICE.md",
+      "sha256": "d046a3277f42184c14842cc6e132a68fcf9cfc3312f2b0a164335038246da22d",
+      "byteLength": 888,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.notices"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "README.md",
+      "sha256": "68cacbf9190e04f9c89fa6875f41ff5cb5f7082719d3fdf3bffe349c46370acf",
+      "byteLength": 12528,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream installation/maintenance documentation: preserved in the full snapshot for inspection. Its home installer/plugin commands are not performed by granular Catalog recipes; use the Catalog-specific guide for these projections.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "agents/code-reviewer.md",
+      "sha256": "7b344c09382812ab5bed1d38fc073e0841a6cb5ce426a9c6c460852d962097c2",
+      "byteLength": 3957,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.agent.code-reviewer",
+        "extensions.kiro.agent.code-reviewer",
+        "extensions.copilot.agent.code-reviewer"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "agents/security-auditor.md",
+      "sha256": "66a3f68f1c691b600ddb44e88afb138e239d0572df37be84e1f9a427c887dd0a",
+      "byteLength": 4992,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.agent.security-auditor",
+        "extensions.kiro.agent.security-auditor",
+        "extensions.copilot.agent.security-auditor"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "agents/test-engineer.md",
+      "sha256": "a90a8cf1ae2fdcfe0d165c238e80bcf7a078f6c072af3459c46ee45a78c92649",
+      "byteLength": 3276,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.agent.test-engineer",
+        "extensions.kiro.agent.test-engineer",
+        "extensions.copilot.agent.test-engineer"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "agents/web-performance-auditor.md",
+      "sha256": "0928b1cf8103262a364bce0c1fc689a918852e2275441f1b2e687adfa1e607e9",
+      "byteLength": 12278,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.agent.web-performance-auditor",
+        "extensions.kiro.agent.web-performance-auditor",
+        "extensions.copilot.agent.web-performance-auditor"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "commands/ship.md",
+      "sha256": "9852c356fee1e5a9a910e481bff3b2feccdb3db84f57f4530c7d5da21a0a3e49",
+      "byteLength": 4588,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.command.ship",
+        "extensions.kiro.command.ship",
+        "extensions.copilot.command.ship"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "commands/webperf.md",
+      "sha256": "74c0c1335f1397a5138a78eda4275e4e5deba16c4537f3a4b4971c3280d0ba27",
+      "byteLength": 1974,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.command.webperf",
+        "extensions.kiro.command.webperf",
+        "extensions.copilot.command.webperf"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "docs/maintaining.md",
+      "sha256": "23972b4f7408ec1e664bf685b188a7cdec7b04aedd735b41fe22bc5d9f9626ae",
+      "byteLength": 5640,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream installation/maintenance documentation: preserved in the full snapshot for inspection. Its home installer/plugin commands are not performed by granular Catalog recipes; use the Catalog-specific guide for these projections.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "docs/tools.md",
+      "sha256": "f390154944304fb1734b4652c2946f162c91e71aa196cabcd9a8f2b99fba4ede",
+      "byteLength": 6150,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream installation/maintenance documentation: preserved in the full snapshot for inspection. Its home installer/plugin commands are not performed by granular Catalog recipes; use the Catalog-specific guide for these projections.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/README.md",
+      "sha256": "fdaca7d601590760813f21333c95bb43ecdbd60d0cfb3b90bdbd593566795a01",
+      "byteLength": 2772,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation guide: describes model-call evaluation harness; not a client instruction or runtime registration.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/api-orders-contract/graders/contract.md",
+      "sha256": "1b873dc7669693df2770bf8f7f23645da24a8e66da120d48bed6d7f8b8bd8e69",
+      "byteLength": 446,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/api-orders-contract/graders/skill-fired.md",
+      "sha256": "c548de7226bb21c5d197c864ff7f155423bd6d4bce848c6c22f9179cba11b333",
+      "byteLength": 111,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/api-orders-contract/prompt.md",
+      "sha256": "4be1b38edf0cfa76886fae0ac0781e9530b2e865fa0b208b1b9ddd3090e03732",
+      "byteLength": 467,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation prompt fixture: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/docs-readme/graders/readme.md",
+      "sha256": "e68946fc30bd4dde3f81dad3e3b7468f040a1229ac1a04e9e10c048d9c38ec69",
+      "byteLength": 388,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/docs-readme/graders/skill-fired.md",
+      "sha256": "73635e09dedfb2d730e2d77e80d5d16e66e1390f6c13a63b52750cc388dd55ef",
+      "byteLength": 109,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/docs-readme/prompt.md",
+      "sha256": "7d288241433ec67ce63d30d850003acf410f573839ea704ff2f637e07b8a77d8",
+      "byteLength": 856,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation prompt fixture: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/observability-worker/graders/coverage.md",
+      "sha256": "5f75a51df20de52a7e9bec8015b5b6a668a2eee96aec4da1d1caeaf7faab2dcc",
+      "byteLength": 451,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/observability-worker/graders/skill-fired.md",
+      "sha256": "36c30d262543863871bc96d23802b8c32fd3bd85e4a657034ef4ea52135c6c7a",
+      "byteLength": 120,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/observability-worker/prompt.md",
+      "sha256": "387da8792d74b7d414436cc5b46b58c59ce91a1a0d53cbeb9ee96476e82bdd32",
+      "byteLength": 538,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation prompt fixture: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/perf-n-plus-one/graders/approach.md",
+      "sha256": "455116261fe3aea9d21bea5d8ca2a5ef4b7b008bcfca037ee957c461ce66797b",
+      "byteLength": 429,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/perf-n-plus-one/graders/skill-fired.md",
+      "sha256": "5c4a8537f5b607e716b6c1afa6f392b223b6df024f1ac93a08e7f4cb3fd9407d",
+      "byteLength": 111,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/perf-n-plus-one/prompt.md",
+      "sha256": "0dc499fba5eaa908a9fc3d1c559b40afe62489d43288c1010ec45a320f73343b",
+      "byteLength": 776,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation prompt fixture: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/quiet-on-module-design/graders/answer.md",
+      "sha256": "2ad7204425185ffe5798bc4437266963e321857f0d66edb472f98e90b75b25a4",
+      "byteLength": 225,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/quiet-on-module-design/graders/api-quiet.md",
+      "sha256": "93ba233db03efa8942aa3e81076054fe8a7e03e6d0472e7271abf028cb3fffa4",
+      "byteLength": 118,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/quiet-on-module-design/prompt.md",
+      "sha256": "86a4acf113c2bf31d1dd229c1a31a2c1066672aac5a9ab97b43fd206b3818b7e",
+      "byteLength": 417,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation prompt fixture: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/quiet-on-rename/graders/rename-done.md",
+      "sha256": "62a2c7f1921682223005d84dc9fd68d5c17ce85249e8a7489e6c37225b171256",
+      "byteLength": 143,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/quiet-on-rename/graders/security-quiet.md",
+      "sha256": "61a559d92386fcaa0b54f807e27d37c8ef5492ca1ee54563e3ac8d202e26cbae",
+      "byteLength": 116,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/quiet-on-rename/graders/simplification-quiet.md",
+      "sha256": "398c6e1cc9df0953613792bc823cb496bdaa749d9d1fbc74154041c6eafda3d3",
+      "byteLength": 113,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/quiet-on-rename/prompt.md",
+      "sha256": "832b2766a505bb89d309fd884ec3bfc22b9fad61b4b2fa9a7e216947a4b762af",
+      "byteLength": 415,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation prompt fixture: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/security-login-review/graders/findings.md",
+      "sha256": "a0ce5ec20d718664d48e8c1312bd36b6967d4c4e80979a5b2184757ab2c396a4",
+      "byteLength": 470,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/security-login-review/graders/skill-fired.md",
+      "sha256": "fdba9316e1e5538fc300c76fcba7ab07f034a8f8122d2af2153bfc4fa88ed1e9",
+      "byteLength": 109,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/security-login-review/prompt.md",
+      "sha256": "d9e62de2e5ede8678c6377b1cefaa24e16a01792135c9f6a0237fc633bbcf521",
+      "byteLength": 843,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation prompt fixture: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/simplify-parser/graders/behaviour.md",
+      "sha256": "8e1c35cba839539ba6f7a230c30dfab686ff17ba2399e6d25a1d58ce76386f6a",
+      "byteLength": 506,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/simplify-parser/graders/skill-fired.md",
+      "sha256": "e89f1fe7e24c4769a5246d38b390a503e93214928b50e2303cfc7fe6ec506304",
+      "byteLength": 106,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "evals/simplify-parser/prompt.md",
+      "sha256": "0d96446399700d3232a9c1dd9dd1280096324d1ad39d84a0cf31976f791c5a36",
+      "byteLength": 993,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream evaluation prompt fixture: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "hooks/git-guard.mjs",
+      "sha256": "45221ff594aa1126e8920118245dbfa8434505781bff2b51f32bc74c194edd87",
+      "byteLength": 1802,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.hook-source.git-guard"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "hooks/hooks.json",
+      "sha256": "f07e1a6d333d2cfadb5025cb79c81df2d9de38bb58534dd1b15b398ac5a647cd",
+      "byteLength": 743,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.hook-source.git-guard",
+        "extensions.hook-source.skill-guard",
+        "extensions.hook-source.lanes-card"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "hooks/lanes-card.mjs",
+      "sha256": "c0380c27c0c613f788ba74fe13eb0bbc604942fce6e4d406c7a783bffbddd209",
+      "byteLength": 427,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.hook-source.lanes-card"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "hooks/lanes.md",
+      "sha256": "e8f625b942abe8fe7b883bf1000650b8b056b76c458ea1bb793e2af602a5f875",
+      "byteLength": 477,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.hook-source.lanes-card"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "hooks/lib/git-context.mjs",
+      "sha256": "84685636feeb256c730bec291232cd43a29151f218f85e46e8ce6a9108ad3a81",
+      "byteLength": 3242,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.hook-source.git-guard"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "hooks/lib/git-policy.mjs",
+      "sha256": "3fd71cf280325a043a49286c19690abd5654e3aedea4dbd7a4844e126845e1fd",
+      "byteLength": 8361,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.hook-source.git-guard"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "hooks/lib/shell.mjs",
+      "sha256": "f1c55be104f5ca34fc06106562e7af7749097bf9272ab78a65a822ca54e57b21",
+      "byteLength": 9743,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.hook-source.git-guard"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "hooks/opencode-plugin.mjs",
+      "sha256": "382481edb977237bad83a8fa5bd91ef2b41797cad5a81a85accf2151109cae43",
+      "byteLength": 1591,
+      "disposition": "unsupported-installation",
+      "reason": "OpenCode plugin adapter: selected clients are Claude Code, Kiro IDE and Copilot VSCode. Its OpenCode tool payload/interception mechanism has no declared mapping for those clients; no plugin loader registration.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "hooks/skill-guard.mjs",
+      "sha256": "8e23104bfdf811244ed3a613a7267fd80ab82ddffcd400ce712737644c3016f6",
+      "byteLength": 984,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.hook-source.skill-guard"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "licenses/addyosmani-agent-skills.LICENSE",
+      "sha256": "6f202f8bd568cd730dbb2b0d1f8e243bc74c2fa1f64dbce9b2c7ea08bd5c9fd7",
+      "byteLength": 1068,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.notices"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "licenses/mattpocock-skills.LICENSE",
+      "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
+      "byteLength": 1068,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.notices"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "package.json",
+      "sha256": "e6755571edf7eb8424a04c96caf478bf298d8761f4405f3ba9fe9077cdf8604e",
+      "byteLength": 874,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream npm/maintainer package metadata and script entrypoints: not executed, imported, or installed as an Extensions runtime dependency.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "references/accessibility-checklist.md",
+      "sha256": "61c759d94d52296231f5f310b92b401f56c44e4430dc3cc95ebac5d7b1d5ffac",
+      "byteLength": 5206,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.references",
+        "extensions.kiro.references",
+        "extensions.copilot.references"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "references/definition-of-done.md",
+      "sha256": "7897f5f84d92fce13c36ed6c08eb7ae3f0da6a0d01fe0cef461e2575024047f2",
+      "byteLength": 3766,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.references",
+        "extensions.kiro.references",
+        "extensions.copilot.references"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "references/observability-checklist.md",
+      "sha256": "25fcd0e854596a5ab6f11b002050d245bf78f5ae0fcbd1df699b89451ae0e1e8",
+      "byteLength": 5129,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.references",
+        "extensions.kiro.references",
+        "extensions.copilot.references"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "references/orchestration-patterns.md",
+      "sha256": "91067ff0407563f37e68455e9666337d5a1afeb15f4e5c42e53996dedbe07f90",
+      "byteLength": 18171,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.references",
+        "extensions.kiro.references",
+        "extensions.copilot.references"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "references/performance-checklist.md",
+      "sha256": "40f564d1e62341e277c01ba42c42d95264b9ef3b8e5a23249dc6e121a7e70067",
+      "byteLength": 13139,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.references",
+        "extensions.kiro.references",
+        "extensions.copilot.references"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "references/security-checklist.md",
+      "sha256": "37774056502fe8970dcd2fd27dca5fa31f2a55232649fc3056c89c3af7d62755",
+      "byteLength": 14360,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.references",
+        "extensions.kiro.references",
+        "extensions.copilot.references"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "references/testing-patterns.md",
+      "sha256": "53e183fcf7b09d99a39c10a713adfa6561322850144b6836f2c6e58b28abc973",
+      "byteLength": 7440,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.references",
+        "extensions.kiro.references",
+        "extensions.copilot.references"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "scripts/check-upstream.mjs",
+      "sha256": "aab556497494ada619c87299bbd029c04e352c20f4b661ad6fc335484611e829",
+      "byteLength": 8886,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream upstream revision checker: retained for exact source audit; not executed or installed as a privileged Catalog runtime. Catalog uses ordinary declarations and supplied bytes.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "scripts/git-cache.mjs",
+      "sha256": "bc8dc902ef9b5e182132fdccb51c3e582f044dae489dbdcc3c120f46b41d60da",
+      "byteLength": 1552,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream upstream Git cache helper: retained for exact source audit; not executed or installed as a privileged Catalog runtime. Catalog uses ordinary declarations and supplied bytes.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "scripts/measure-context.mjs",
+      "sha256": "3f6ed0b1d974b71a0cd858f01908810266c1e3f475af74bef4188fc2fe30c12a",
+      "byteLength": 3238,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream maintainer context-size measurement: retained for exact source audit; not executed or installed as a privileged Catalog runtime. Catalog uses ordinary declarations and supplied bytes.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "scripts/paths.mjs",
+      "sha256": "7dd8b2a7f048c85150fda111679577208e48e8aad0708ea8601f71464d2eefc1",
+      "byteLength": 396,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream maintainer path utilities: retained for exact source audit; not executed or installed as a privileged Catalog runtime. Catalog uses ordinary declarations and supplied bytes.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "scripts/setup.mjs",
+      "sha256": "114aff4d25742c2aab7982886af1f6fb54cbfd8450f570830a26094a88ab4321",
+      "byteLength": 26217,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream upstream client/home installer and remover: retained for exact source audit; not executed or installed as a privileged Catalog runtime. Catalog uses ordinary declarations and supplied bytes.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "scripts/tools.mjs",
+      "sha256": "1316f8698877018ae5ed256da7ab92c52c6d2bdcd9b796b7c43030a68bdf7644",
+      "byteLength": 10841,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream optional maintainer tools setup: retained for exact source audit; not executed or installed as a privileged Catalog runtime. Catalog uses ordinary declarations and supplied bytes.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "scripts/upstream.config.mjs",
+      "sha256": "cba581b75fcfd416c8231e902f97f17dd68131210ebdd7144d358419fffa626f",
+      "byteLength": 18080,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream vendor source and patch configuration: retained for exact source audit; not executed or installed as a privileged Catalog runtime. Catalog uses ordinary declarations and supplied bytes.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "scripts/vendor.mjs",
+      "sha256": "44573c742ecdcfd28c19607daf8b8eb5435ff3b66ab5ff9947202f32ffd95529",
+      "byteLength": 5597,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream upstream vendor refresh renderer: retained for exact source audit; not executed or installed as a privileged Catalog runtime. Catalog uses ordinary declarations and supplied bytes.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/api-and-interface-design/SKILL.md",
+      "sha256": "f19368b9bd6a05d2873eb12c905a20f6a303d7f7ffc6de1caac5a508bdf1cdb9",
+      "byteLength": 14796,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.api-and-interface-design",
+        "extensions.kiro.skill.api-and-interface-design",
+        "extensions.copilot.skill.api-and-interface-design"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/api-and-interface-design/agents/openai.yaml",
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+      "byteLength": 43,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.api-and-interface-design",
+        "extensions.kiro.skill.api-and-interface-design",
+        "extensions.copilot.skill.api-and-interface-design"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/ask-sam/SKILL.md",
+      "sha256": "7b82e14268ba2faf8441b908feb72cbf62bcf7fa0559e43a3b05edb6c0aebe40",
+      "byteLength": 3359,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.ask-sam",
+        "extensions.kiro.skill.ask-sam",
+        "extensions.copilot.skill.ask-sam"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/ask-sam/agents/openai.yaml",
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+      "byteLength": 43,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.ask-sam",
+        "extensions.kiro.skill.ask-sam",
+        "extensions.copilot.skill.ask-sam"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/browser-testing-with-devtools/SKILL.md",
+      "sha256": "33010943fda9036ce0dd63ddfaef3ac3d80f4424fddd40a14ecae250d53efc82",
+      "byteLength": 14570,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.browser-testing-with-devtools",
+        "extensions.kiro.skill.browser-testing-with-devtools",
+        "extensions.copilot.skill.browser-testing-with-devtools"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/browser-testing-with-devtools/agents/openai.yaml",
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+      "byteLength": 43,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.browser-testing-with-devtools",
+        "extensions.kiro.skill.browser-testing-with-devtools",
+        "extensions.copilot.skill.browser-testing-with-devtools"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/ci-cd-and-automation/SKILL.md",
+      "sha256": "fae166dafb93888fd2f0a5cac28564e6a8983bd52321d41e89e0d1b82c858350",
+      "byteLength": 11350,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.ci-cd-and-automation",
+        "extensions.kiro.skill.ci-cd-and-automation",
+        "extensions.copilot.skill.ci-cd-and-automation"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/ci-cd-and-automation/agents/openai.yaml",
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+      "byteLength": 43,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.ci-cd-and-automation",
+        "extensions.kiro.skill.ci-cd-and-automation",
+        "extensions.copilot.skill.ci-cd-and-automation"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/code-simplification/SKILL.md",
+      "sha256": "ca9ccf9cbb17ddf99f4b6d008734ec8e35bb86f859a91253b5c390dc43b0393e",
+      "byteLength": 13683,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.code-simplification",
+        "extensions.kiro.skill.code-simplification",
+        "extensions.copilot.skill.code-simplification"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/code-simplification/agents/openai.yaml",
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+      "byteLength": 43,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.code-simplification",
+        "extensions.kiro.skill.code-simplification",
+        "extensions.copilot.skill.code-simplification"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/constraint-driven-development/SKILL.md",
+      "sha256": "7f2e0f4f59747ab524f2c9fb2c86d471e4076059d535cfaac13e0043a24c821c",
+      "byteLength": 21123,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.constraint-driven-development",
+        "extensions.kiro.skill.constraint-driven-development",
+        "extensions.copilot.skill.constraint-driven-development"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/constraint-driven-development/agents/openai.yaml",
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+      "byteLength": 43,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.constraint-driven-development",
+        "extensions.kiro.skill.constraint-driven-development",
+        "extensions.copilot.skill.constraint-driven-development"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/constraint-driven-development/references/floor-guard.md",
+      "sha256": "a512e64ecdfa0e367b2996051a043887f2aed4389a9c803a71480eb7d30b3926",
+      "byteLength": 9951,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.constraint-driven-development",
+        "extensions.kiro.skill.constraint-driven-development",
+        "extensions.copilot.skill.constraint-driven-development"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/deprecation-and-migration/SKILL.md",
+      "sha256": "d32dd301a1d9127063da2bb9f7eb418ad8afd6bdcbf302feb88be5d68859082e",
+      "byteLength": 12687,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.deprecation-and-migration",
+        "extensions.kiro.skill.deprecation-and-migration",
+        "extensions.copilot.skill.deprecation-and-migration"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/deprecation-and-migration/agents/openai.yaml",
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+      "byteLength": 43,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.deprecation-and-migration",
+        "extensions.kiro.skill.deprecation-and-migration",
+        "extensions.copilot.skill.deprecation-and-migration"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/documentation-and-adrs/SKILL.md",
+      "sha256": "fd7f3474026bd83d56214ec3f3802132a5dde9e01e837b17fb39e7daec82ec68",
+      "byteLength": 6341,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.documentation-and-adrs",
+        "extensions.kiro.skill.documentation-and-adrs",
+        "extensions.copilot.skill.documentation-and-adrs"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/documentation-and-adrs/agents/openai.yaml",
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+      "byteLength": 43,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.documentation-and-adrs",
+        "extensions.kiro.skill.documentation-and-adrs",
+        "extensions.copilot.skill.documentation-and-adrs"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/doubt-driven-development/SKILL.md",
+      "sha256": "b693bde58194b2b0ec1b16a987c757777899fd491964ff994f379f1ac78443fe",
+      "byteLength": 16654,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.doubt-driven-development",
+        "extensions.kiro.skill.doubt-driven-development",
+        "extensions.copilot.skill.doubt-driven-development"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/doubt-driven-development/agents/openai.yaml",
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+      "byteLength": 43,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.doubt-driven-development",
+        "extensions.kiro.skill.doubt-driven-development",
+        "extensions.copilot.skill.doubt-driven-development"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/frontend-ui-engineering/SKILL.md",
+      "sha256": "b68ac4d7a207f86dd23dfe7ed4f8208db16ccafc846f11832e6d4d2d2084b849",
+      "byteLength": 11743,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.frontend-ui-engineering",
+        "extensions.kiro.skill.frontend-ui-engineering",
+        "extensions.copilot.skill.frontend-ui-engineering"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/frontend-ui-engineering/agents/openai.yaml",
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+      "byteLength": 43,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.frontend-ui-engineering",
+        "extensions.kiro.skill.frontend-ui-engineering",
+        "extensions.copilot.skill.frontend-ui-engineering"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/git-workflow-and-versioning/SKILL.md",
+      "sha256": "31e602aab1180c9e699d27bb0892da786f7310ab1a135a03e6d2862ffd13b378",
+      "byteLength": 14275,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.git-workflow-and-versioning",
+        "extensions.kiro.skill.git-workflow-and-versioning",
+        "extensions.copilot.skill.git-workflow-and-versioning"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/git-workflow-and-versioning/agents/openai.yaml",
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+      "byteLength": 43,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.git-workflow-and-versioning",
+        "extensions.kiro.skill.git-workflow-and-versioning",
+        "extensions.copilot.skill.git-workflow-and-versioning"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/idea-refine/SKILL.md",
+      "sha256": "addadd479af9ee9f903e02d8f43952d95769547453668dc31bfcfda1d0c7e366",
+      "byteLength": 8142,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.idea-refine",
+        "extensions.kiro.skill.idea-refine",
+        "extensions.copilot.skill.idea-refine"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/idea-refine/agents/openai.yaml",
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+      "byteLength": 43,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.idea-refine",
+        "extensions.kiro.skill.idea-refine",
+        "extensions.copilot.skill.idea-refine"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/idea-refine/examples.md",
+      "sha256": "563204bfbf2f80a444151695205af4cb759e722b3d1e5460e08f278a69c89ba1",
+      "byteLength": 20284,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.idea-refine",
+        "extensions.kiro.skill.idea-refine",
+        "extensions.copilot.skill.idea-refine"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/idea-refine/frameworks.md",
+      "sha256": "161ebc18fdf2d996bc62a87a2d747cf1bf53548354f8925de25c732c27f00309",
+      "byteLength": 5404,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.idea-refine",
+        "extensions.kiro.skill.idea-refine",
+        "extensions.copilot.skill.idea-refine"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/idea-refine/refinement-criteria.md",
+      "sha256": "1ca2973a4d01b5cb37ab7ddb2eff77fa4e792634a33d0ce44961c068fc88d51a",
+      "byteLength": 5738,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.idea-refine",
+        "extensions.kiro.skill.idea-refine",
+        "extensions.copilot.skill.idea-refine"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/idea-refine/scripts/idea-refine.sh",
+      "sha256": "f02a52408a4218047c032d221483abfbb48d11f090bb4915965c7419bf2e0e47",
+      "byteLength": 342,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.idea-refine",
+        "extensions.kiro.skill.idea-refine",
+        "extensions.copilot.skill.idea-refine"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/install-commit-gate/SKILL.md",
+      "sha256": "2aac53f405e2c8a6c8e83c5d173acad13c7aeaf1541c70cb03b4f4e062e07bb6",
+      "byteLength": 2034,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.install-commit-gate",
+        "extensions.kiro.skill.install-commit-gate",
+        "extensions.copilot.skill.install-commit-gate"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/install-commit-gate/agents/openai.yaml",
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+      "byteLength": 43,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.install-commit-gate",
+        "extensions.kiro.skill.install-commit-gate",
+        "extensions.copilot.skill.install-commit-gate"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/install-commit-gate/commit-gate.mjs",
+      "sha256": "ed3ad3dec86f1b75a925c51a4154b4036d77440da3d28958a336073910251a36",
+      "byteLength": 9185,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.install-commit-gate",
+        "extensions.kiro.skill.install-commit-gate",
+        "extensions.copilot.skill.install-commit-gate"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/observability-and-instrumentation/SKILL.md",
+      "sha256": "e602bfc10427d22af2006fb57adfd283a34231bfa55f383e46e4f6dd0afb0f4e",
+      "byteLength": 13935,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.observability-and-instrumentation",
+        "extensions.kiro.skill.observability-and-instrumentation",
+        "extensions.copilot.skill.observability-and-instrumentation"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/performance-optimization/SKILL.md",
+      "sha256": "d29537aafb8077334f3b35a66a379e5ed03f2dabb7ab6f3da319f502135f313c",
+      "byteLength": 21748,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.performance-optimization",
+        "extensions.kiro.skill.performance-optimization",
+        "extensions.copilot.skill.performance-optimization"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/performance-optimization/agents/openai.yaml",
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+      "byteLength": 43,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.performance-optimization",
+        "extensions.kiro.skill.performance-optimization",
+        "extensions.copilot.skill.performance-optimization"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/security-and-hardening/SKILL.md",
+      "sha256": "1ff7718b5230b5d0de30e724f897904f324239184b2cc9f323794a537f6985d4",
+      "byteLength": 17614,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.security-and-hardening",
+        "extensions.kiro.skill.security-and-hardening",
+        "extensions.copilot.skill.security-and-hardening"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/security-and-hardening/agents/openai.yaml",
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+      "byteLength": 43,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.security-and-hardening",
+        "extensions.kiro.skill.security-and-hardening",
+        "extensions.copilot.skill.security-and-hardening"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/security-and-hardening/references/hardening-patterns.md",
+      "sha256": "d8ba58cad151aeca4804e48fc768240af0dd6b0ecddd07fbf24a1562140ba97a",
+      "byteLength": 13036,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.security-and-hardening",
+        "extensions.kiro.skill.security-and-hardening",
+        "extensions.copilot.skill.security-and-hardening"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/setup-pre-commit/SKILL.md",
+      "sha256": "c51651bf0382267d5ff9a0095045907f16c309d0f0a2338e6e99f12ed0538a26",
+      "byteLength": 2289,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.setup-pre-commit",
+        "extensions.kiro.skill.setup-pre-commit",
+        "extensions.copilot.skill.setup-pre-commit"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/setup-pre-commit/agents/openai.yaml",
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+      "byteLength": 43,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.setup-pre-commit",
+        "extensions.kiro.skill.setup-pre-commit",
+        "extensions.copilot.skill.setup-pre-commit"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/shipping-and-launch/SKILL.md",
+      "sha256": "af610cf4892db7eab2e91c899e33feba90e1000bac4528b2f8dde930816ac125",
+      "byteLength": 11404,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.shipping-and-launch",
+        "extensions.kiro.skill.shipping-and-launch",
+        "extensions.copilot.skill.shipping-and-launch"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/source-driven-development/SKILL.md",
+      "sha256": "13798586f4a8de56d920d1f27334f64430c8cf0713a134819a41f9486b4df7c9",
+      "byteLength": 10069,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.source-driven-development",
+        "extensions.kiro.skill.source-driven-development",
+        "extensions.copilot.skill.source-driven-development"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "skills/source-driven-development/agents/openai.yaml",
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+      "byteLength": 43,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.skill.source-driven-development",
+        "extensions.kiro.skill.source-driven-development",
+        "extensions.copilot.skill.source-driven-development"
+      ]
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "tests/commit-gate.test.mjs",
+      "sha256": "db715a5499d2dca99d0e4290334071b2e35b98e0dbb4186e8a19d14b09f727d2",
+      "byteLength": 7149,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream maintainer regression test: validates installer/guard/tool behavior in its source harness. Preserved for audit; not installed into consumer projects and not run by Catalog.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "tests/git-guard.test.mjs",
+      "sha256": "0c3cf9fe3aa5ded07f64d7d05e5c11cd762cb709a2bde843f2fb3c8f9dfee028",
+      "byteLength": 21296,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream maintainer regression test: validates installer/guard/tool behavior in its source harness. Preserved for audit; not installed into consumer projects and not run by Catalog.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "tests/hooks-misc.test.mjs",
+      "sha256": "c2e6816223f913be45d9cfd508d0e981f6b9fde85c8a10d4e0d820a8c7197c59",
+      "byteLength": 2713,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream maintainer regression test: validates installer/guard/tool behavior in its source harness. Preserved for audit; not installed into consumer projects and not run by Catalog.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "tests/measure-context.test.mjs",
+      "sha256": "afca7e06227885c2d76df03de23a3287f257c3d2bee39bcb01c81a84861fa486",
+      "byteLength": 2935,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream maintainer regression test: validates installer/guard/tool behavior in its source harness. Preserved for audit; not installed into consumer projects and not run by Catalog.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "tests/setup.test.mjs",
+      "sha256": "340ed9408951a2fb1604d1b1c9046110e3d26b678204b9f5beb74e636c0ed9c9",
+      "byteLength": 9759,
+      "disposition": "unsupported-installation",
+      "reason": "Upstream maintainer regression test: validates installer/guard/tool behavior in its source harness. Preserved for audit; not installed into consumer projects and not run by Catalog.",
+      "items": []
+    },
+    {
+      "source": "extensions",
+      "revision": "79f016c25c454937d67dcf49c3cf3070e0339832",
+      "path": "vendor.lock.json",
+      "sha256": "3587fcbdb0b30dde19917a331e4d7e969b1374fe074fe3b8061aad18e95b29de",
+      "byteLength": 2860,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.notices"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "LICENSE",
+      "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
+      "byteLength": 1068,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.ask-matt",
+        "extensions.matt.code-review",
+        "extensions.matt.codebase-design",
+        "extensions.matt.diagnosing-bugs",
+        "extensions.matt.domain-modeling",
+        "extensions.matt.grill-with-docs",
+        "extensions.matt.implement-spec",
+        "extensions.matt.implement",
+        "extensions.matt.improve-codebase-architecture",
+        "extensions.matt.pr",
+        "extensions.matt.prototype",
+        "extensions.matt.research",
+        "extensions.matt.retro",
+        "extensions.matt.setup-matt-pocock-skills",
+        "extensions.matt.tdd",
+        "extensions.matt.to-spec",
+        "extensions.matt.to-tickets",
+        "extensions.matt.triage",
+        "extensions.matt.wayfinder",
+        "extensions.matt.wizard",
+        "extensions.matt.grill-me",
+        "extensions.matt.grilling",
+        "extensions.matt.handoff",
+        "extensions.matt.teach",
+        "extensions.matt.to-questionnaire",
+        "extensions.matt.wait-what",
+        "extensions.matt.writing-for-agents",
+        "extensions.kiro.matt.ask-matt",
+        "extensions.kiro.matt.code-review",
+        "extensions.kiro.matt.codebase-design",
+        "extensions.kiro.matt.diagnosing-bugs",
+        "extensions.kiro.matt.domain-modeling",
+        "extensions.kiro.matt.grill-with-docs",
+        "extensions.kiro.matt.implement-spec",
+        "extensions.kiro.matt.implement",
+        "extensions.kiro.matt.improve-codebase-architecture",
+        "extensions.kiro.matt.pr",
+        "extensions.kiro.matt.prototype",
+        "extensions.kiro.matt.research",
+        "extensions.kiro.matt.retro",
+        "extensions.kiro.matt.setup-matt-pocock-skills",
+        "extensions.kiro.matt.tdd",
+        "extensions.kiro.matt.to-spec",
+        "extensions.kiro.matt.to-tickets",
+        "extensions.kiro.matt.triage",
+        "extensions.kiro.matt.wayfinder",
+        "extensions.kiro.matt.wizard",
+        "extensions.kiro.matt.grill-me",
+        "extensions.kiro.matt.grilling",
+        "extensions.kiro.matt.handoff",
+        "extensions.kiro.matt.teach",
+        "extensions.kiro.matt.to-questionnaire",
+        "extensions.kiro.matt.wait-what",
+        "extensions.kiro.matt.writing-for-agents",
+        "extensions.copilot.matt.ask-matt",
+        "extensions.copilot.matt.code-review",
+        "extensions.copilot.matt.codebase-design",
+        "extensions.copilot.matt.diagnosing-bugs",
+        "extensions.copilot.matt.domain-modeling",
+        "extensions.copilot.matt.grill-with-docs",
+        "extensions.copilot.matt.implement-spec",
+        "extensions.copilot.matt.implement",
+        "extensions.copilot.matt.improve-codebase-architecture",
+        "extensions.copilot.matt.pr",
+        "extensions.copilot.matt.prototype",
+        "extensions.copilot.matt.research",
+        "extensions.copilot.matt.retro",
+        "extensions.copilot.matt.setup-matt-pocock-skills",
+        "extensions.copilot.matt.tdd",
+        "extensions.copilot.matt.to-spec",
+        "extensions.copilot.matt.to-tickets",
+        "extensions.copilot.matt.triage",
+        "extensions.copilot.matt.wayfinder",
+        "extensions.copilot.matt.wizard",
+        "extensions.copilot.matt.grill-me",
+        "extensions.copilot.matt.grilling",
+        "extensions.copilot.matt.handoff",
+        "extensions.copilot.matt.teach",
+        "extensions.copilot.matt.to-questionnaire",
+        "extensions.copilot.matt.wait-what",
+        "extensions.copilot.matt.writing-for-agents"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/ask-matt/PHASE-BOUNDARIES.md",
+      "sha256": "a8aa20158609ef39e2b308b6ba0660c91066838d07a867202e63a7744a88a3ed",
+      "byteLength": 4249,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.ask-matt",
+        "extensions.kiro.matt.ask-matt",
+        "extensions.copilot.matt.ask-matt"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/ask-matt/SKILL.md",
+      "sha256": "3f0f34614070aba3d9a7e2bd210718d78b9b942dd0f9af0c5869234fe34e16af",
+      "byteLength": 12368,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.ask-matt",
+        "extensions.kiro.matt.ask-matt",
+        "extensions.copilot.matt.ask-matt"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/ask-matt/agents/openai.yaml",
+      "sha256": "bdffbc5a0a99ed1b6ef3253d251d755fd18162b9845972e380007f844b09b05c",
+      "byteLength": 137,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.ask-matt",
+        "extensions.kiro.matt.ask-matt",
+        "extensions.copilot.matt.ask-matt"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/code-review/SKILL.md",
+      "sha256": "47f4e52c21694def9c7c11cbfbf891ca35eac7a93e395797515be3c8a409ae50",
+      "byteLength": 6589,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.code-review",
+        "extensions.kiro.matt.code-review",
+        "extensions.copilot.matt.code-review"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/code-review/agents/openai.yaml",
+      "sha256": "8229ca854e11dc8e6aef2131ee03f31fb1561cf905fab9ccc325180cf3331352",
+      "byteLength": 100,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.code-review",
+        "extensions.kiro.matt.code-review",
+        "extensions.copilot.matt.code-review"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/codebase-design/DEEPENING.md",
+      "sha256": "f3dd099ce99289bd213914d8ee3e2429b78309c3957ca4583f7659551b1d53c1",
+      "byteLength": 2553,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.codebase-design",
+        "extensions.kiro.matt.codebase-design",
+        "extensions.copilot.matt.codebase-design"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/codebase-design/DESIGN-IT-TWICE.md",
+      "sha256": "52b52e75655a27aea59c6966b410bac82448968ad46ef1ebb9f07c274e3ae010",
+      "byteLength": 2665,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.codebase-design",
+        "extensions.kiro.matt.codebase-design",
+        "extensions.copilot.matt.codebase-design"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/codebase-design/SKILL.md",
+      "sha256": "2c20617f87ec8af6a434859f381b2f061a69b530444e74eb39e78bb016a6d1e2",
+      "byteLength": 6446,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.codebase-design",
+        "extensions.kiro.matt.codebase-design",
+        "extensions.copilot.matt.codebase-design"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/codebase-design/agents/openai.yaml",
+      "sha256": "edebc9e4fcfe102114012575eaa9600b9b5fd08c311664f389c36e7bc717740f",
+      "byteLength": 102,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.codebase-design",
+        "extensions.kiro.matt.codebase-design",
+        "extensions.copilot.matt.codebase-design"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/diagnosing-bugs/SKILL.md",
+      "sha256": "9168404abda0967a5d32977e3498cd95fda6807018852f3de736a78357c82b40",
+      "byteLength": 8530,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.diagnosing-bugs",
+        "extensions.kiro.matt.diagnosing-bugs",
+        "extensions.copilot.matt.diagnosing-bugs"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/diagnosing-bugs/agents/openai.yaml",
+      "sha256": "3e430dbe4334a87597488c060cb3dc3786bb00c9182877d6f5ec41f62490e90b",
+      "byteLength": 103,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.diagnosing-bugs",
+        "extensions.kiro.matt.diagnosing-bugs",
+        "extensions.copilot.matt.diagnosing-bugs"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/diagnosing-bugs/scripts/hitl-loop.template.sh",
+      "sha256": "35103539fc36873eea36074769ad454f9379d6fc8b2dc0e26ce987fd3bfe5503",
+      "byteLength": 1316,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.diagnosing-bugs",
+        "extensions.kiro.matt.diagnosing-bugs",
+        "extensions.copilot.matt.diagnosing-bugs"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/domain-modeling/ADR-FORMAT.md",
+      "sha256": "944c92aa790e8fbdc9199640b170979abb8a34ba8d0fe18c2a01a63bce140ca0",
+      "byteLength": 2733,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.domain-modeling",
+        "extensions.kiro.matt.domain-modeling",
+        "extensions.copilot.matt.domain-modeling"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/domain-modeling/GLOSSARY-FORMAT.md",
+      "sha256": "21dcc40cdec8e151a829b98ab1517c1867bc444e3665134a98c6983411996801",
+      "byteLength": 2300,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.domain-modeling",
+        "extensions.kiro.matt.domain-modeling",
+        "extensions.copilot.matt.domain-modeling"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/domain-modeling/SKILL.md",
+      "sha256": "7b925d7b1e341a2eeae33ad68a8a8c0ab889a38ddd22a7598e4c240e5a7556a3",
+      "byteLength": 3346,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.domain-modeling",
+        "extensions.kiro.matt.domain-modeling",
+        "extensions.copilot.matt.domain-modeling"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/domain-modeling/agents/openai.yaml",
+      "sha256": "f6bf2aa996c6e6f53fdd0708e18a0d16a56aed8322cca59fedbe3c0d2c75f06b",
+      "byteLength": 101,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.domain-modeling",
+        "extensions.kiro.matt.domain-modeling",
+        "extensions.copilot.matt.domain-modeling"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/grill-with-docs/SKILL.md",
+      "sha256": "7de372c13488f1ee96cc11cd8907b56b6809cc93eef776eeddd37de6b6cbe3fe",
+      "byteLength": 247,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.grill-with-docs",
+        "extensions.kiro.matt.grill-with-docs",
+        "extensions.copilot.matt.grill-with-docs"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/grill-with-docs/agents/openai.yaml",
+      "sha256": "94cd0ab161fb468a836349f5ed482ba58ce8e709a05c57ce533d739dbd35cca9",
+      "byteLength": 145,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.grill-with-docs",
+        "extensions.kiro.matt.grill-with-docs",
+        "extensions.copilot.matt.grill-with-docs"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/implement-spec/SKILL.md",
+      "sha256": "7a22dd2e60b8fcece478ced9d2533582adf3520d695acd3ab715341535c9e56d",
+      "byteLength": 2780,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.implement-spec",
+        "extensions.kiro.matt.implement-spec",
+        "extensions.copilot.matt.implement-spec"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/implement-spec/agents/openai.yaml",
+      "sha256": "fd41efb42c60c96320d6531be7e4bf15cbf5518cd652d57dff27ccffa46988e9",
+      "byteLength": 168,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.implement-spec",
+        "extensions.kiro.matt.implement-spec",
+        "extensions.copilot.matt.implement-spec"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/implement/SKILL.md",
+      "sha256": "6d3fd9e83b8f36e5213854779db49b256a457a7ebb4a503e53fa7dcff696adc3",
+      "byteLength": 433,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.implement",
+        "extensions.kiro.matt.implement",
+        "extensions.copilot.matt.implement"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/implement/agents/openai.yaml",
+      "sha256": "8970a8596ade0c28ab427f41a4ea242d6bdf6186c59ebf55e1238dbecaab79dc",
+      "byteLength": 139,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.implement",
+        "extensions.kiro.matt.implement",
+        "extensions.copilot.matt.implement"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/improve-codebase-architecture/HTML-REPORT.md",
+      "sha256": "581e8bb5a521e46bbda8ca7e19b15948bed882187108092ebb90c62513b77528",
+      "byteLength": 6641,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.improve-codebase-architecture",
+        "extensions.kiro.matt.improve-codebase-architecture",
+        "extensions.copilot.matt.improve-codebase-architecture"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/improve-codebase-architecture/SKILL.md",
+      "sha256": "552240a5ab5cec6b67c15dd1ad6e9f6962b1bca6ce870059a8c2713760c20392",
+      "byteLength": 6000,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.improve-codebase-architecture",
+        "extensions.kiro.matt.improve-codebase-architecture",
+        "extensions.copilot.matt.improve-codebase-architecture"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/improve-codebase-architecture/agents/openai.yaml",
+      "sha256": "c8cb20f68ebf0edb4e497bc11ae5fcaa196004e661cd189015b04f4109ced7f1",
+      "byteLength": 166,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.improve-codebase-architecture",
+        "extensions.kiro.matt.improve-codebase-architecture",
+        "extensions.copilot.matt.improve-codebase-architecture"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/pr/CREDITS.md",
+      "sha256": "a7a087127665d7298a72280ef6e19c41ad8404523712a788c8dc3ab414bc2497",
+      "byteLength": 604,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.pr",
+        "extensions.kiro.matt.pr",
+        "extensions.copilot.matt.pr"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/pr/SKILL.md",
+      "sha256": "ab63f1cf78647389edcd386c9427c5dfca27ed2836930c24773ffee834c19bcd",
+      "byteLength": 4169,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.pr",
+        "extensions.kiro.matt.pr",
+        "extensions.copilot.matt.pr"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/pr/agents/openai.yaml",
+      "sha256": "2295b586624db4ef546f3fd4695492f039d941a46d8a1593a702ce3ca511b8ad",
+      "byteLength": 93,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.pr",
+        "extensions.kiro.matt.pr",
+        "extensions.copilot.matt.pr"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/prototype/LOGIC.md",
+      "sha256": "f61c7d249e786a79ef289018901c348271e1798dd0b0bc5607b5c6f4d4a01ab9",
+      "byteLength": 6036,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.prototype",
+        "extensions.kiro.matt.prototype",
+        "extensions.copilot.matt.prototype"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/prototype/SKILL.md",
+      "sha256": "714de632d116bb73f65cdb5a882db15b9369a6713b9a47c0fad827848f0bfbe3",
+      "byteLength": 2931,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.prototype",
+        "extensions.kiro.matt.prototype",
+        "extensions.copilot.matt.prototype"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/prototype/UI.md",
+      "sha256": "723211e878acbc7b6ff09755263f3295cde724ba902ff0064da41eed51d45ad3",
+      "byteLength": 6913,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.prototype",
+        "extensions.kiro.matt.prototype",
+        "extensions.copilot.matt.prototype"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/prototype/agents/openai.yaml",
+      "sha256": "5af65e43ab41a350436697b81e27b7f848d36782043b73c322bb2c9fa9cc55dc",
+      "byteLength": 100,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.prototype",
+        "extensions.kiro.matt.prototype",
+        "extensions.copilot.matt.prototype"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/research/SKILL.md",
+      "sha256": "985569f15739c713d6784887c3d186d4ef9ac85bec5ad9c068d25bf0739928e4",
+      "byteLength": 794,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.research",
+        "extensions.kiro.matt.research",
+        "extensions.copilot.matt.research"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/research/agents/openai.yaml",
+      "sha256": "9b4c470d63221c1f68f22df70b83e2f12401b317babe0d1b7b5f24a974474d0d",
+      "byteLength": 94,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.research",
+        "extensions.kiro.matt.research",
+        "extensions.copilot.matt.research"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/retro/SKILL.md",
+      "sha256": "33fbc28568e3146f20fd908b12998bc0ab30aa4f4c87288199a40793efa94696",
+      "byteLength": 4369,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.retro",
+        "extensions.kiro.matt.retro",
+        "extensions.copilot.matt.retro"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/retro/agents/openai.yaml",
+      "sha256": "cb6fb9d7e6b4be5975f41f6def1dd00a1255bad5d9b02696b124c924a8b8745c",
+      "byteLength": 146,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.retro",
+        "extensions.kiro.matt.retro",
+        "extensions.copilot.matt.retro"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/setup-matt-pocock-skills/SKILL.md",
+      "sha256": "9a0c21694be19fa3eefc39343355d3af7414716ba364882c7432c2f821eac3e9",
+      "byteLength": 6847,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.setup-matt-pocock-skills",
+        "extensions.kiro.matt.setup-matt-pocock-skills",
+        "extensions.copilot.matt.setup-matt-pocock-skills"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/setup-matt-pocock-skills/agents/openai.yaml",
+      "sha256": "9527de0110541c45712319025155aeab8dc7d77c6ed6e5e83271bab1851ab939",
+      "byteLength": 152,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.setup-matt-pocock-skills",
+        "extensions.kiro.matt.setup-matt-pocock-skills",
+        "extensions.copilot.matt.setup-matt-pocock-skills"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/setup-matt-pocock-skills/domain.md",
+      "sha256": "593a7042218689f1d24df89df14eaf0a20e19e0d0a7d479a01947ac78f0784b9",
+      "byteLength": 2042,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.setup-matt-pocock-skills",
+        "extensions.kiro.matt.setup-matt-pocock-skills",
+        "extensions.copilot.matt.setup-matt-pocock-skills"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/setup-matt-pocock-skills/issue-tracker-github.md",
+      "sha256": "afd6852a80185217bd28aa5cbe456bef1e85be25be7bd1fba382d5b8ee428325",
+      "byteLength": 3731,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.setup-matt-pocock-skills",
+        "extensions.kiro.matt.setup-matt-pocock-skills",
+        "extensions.copilot.matt.setup-matt-pocock-skills"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/setup-matt-pocock-skills/issue-tracker-gitlab.md",
+      "sha256": "ea175f73d193b3f55819c0ed9bbccf6ee0e70ad8f928e3d7607596c53380acd6",
+      "byteLength": 3809,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.setup-matt-pocock-skills",
+        "extensions.kiro.matt.setup-matt-pocock-skills",
+        "extensions.copilot.matt.setup-matt-pocock-skills"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/setup-matt-pocock-skills/issue-tracker-local.md",
+      "sha256": "7dcda20a2eb4bdc89b95d1143423c0691309921cadae3132e6424f371030506e",
+      "byteLength": 1810,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.setup-matt-pocock-skills",
+        "extensions.kiro.matt.setup-matt-pocock-skills",
+        "extensions.copilot.matt.setup-matt-pocock-skills"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/setup-matt-pocock-skills/triage-labels.md",
+      "sha256": "4f53c9b40ce2651e3611aa090eaedbd6dbc9b71ef8c5f7e65eac0d8263190d0d",
+      "byteLength": 1045,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.setup-matt-pocock-skills",
+        "extensions.kiro.matt.setup-matt-pocock-skills",
+        "extensions.copilot.matt.setup-matt-pocock-skills"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/tdd/SKILL.md",
+      "sha256": "93ea419b76e9caaf26153b828e984f7c3fb136f4caa67b14af95f32ea965a1cc",
+      "byteLength": 3550,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.tdd",
+        "extensions.kiro.matt.tdd",
+        "extensions.copilot.matt.tdd"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/tdd/agents/openai.yaml",
+      "sha256": "ea6f01cf1b8c06a4b0f5b649d74b1b8ce8685e72af1b38d70d877693e092af0b",
+      "byteLength": 87,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.tdd",
+        "extensions.kiro.matt.tdd",
+        "extensions.copilot.matt.tdd"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/tdd/mocking.md",
+      "sha256": "3ceb807fdf4a47d6a93d4d9a891e5ba6d362a6247bd08adc451feebfc17361ef",
+      "byteLength": 1481,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.tdd",
+        "extensions.kiro.matt.tdd",
+        "extensions.copilot.matt.tdd"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/tdd/tests.md",
+      "sha256": "859f9e592c188fda4fc7277dd180e4ce9c7a2e13f6efe1f6f29eccc9d28c106a",
+      "byteLength": 2214,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.tdd",
+        "extensions.kiro.matt.tdd",
+        "extensions.copilot.matt.tdd"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/to-spec/SKILL.md",
+      "sha256": "43ad9cf318e5e7d3d1fa360253a37021796dc87a0c2e595ad262661a10f85088",
+      "byteLength": 3043,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.to-spec",
+        "extensions.kiro.matt.to-spec",
+        "extensions.copilot.matt.to-spec"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/to-spec/agents/openai.yaml",
+      "sha256": "1c5b4d1e3d8e52287ef19cc2742fdbbfae1914ac75d33af3e4c8174f08cc55bb",
+      "byteLength": 135,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.to-spec",
+        "extensions.kiro.matt.to-spec",
+        "extensions.copilot.matt.to-spec"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/to-tickets/SKILL.md",
+      "sha256": "5c9fba69845c2519b9b35b9af42ae5142c21f8ca15ac2123dc2722002c8058ae",
+      "byteLength": 5671,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.to-tickets",
+        "extensions.kiro.matt.to-tickets",
+        "extensions.copilot.matt.to-tickets"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/to-tickets/agents/openai.yaml",
+      "sha256": "21bc6215fffcd7614e9f772bb1760e87cc5fc7dcc707e7d282bc9414267a6090",
+      "byteLength": 146,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.to-tickets",
+        "extensions.kiro.matt.to-tickets",
+        "extensions.copilot.matt.to-tickets"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/triage/AGENT-BRIEF.md",
+      "sha256": "7f5f87fed3033df1b06e083c480f3e847b1fbb0647746b8a4c6a50f9f26ef44f",
+      "byteLength": 7942,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.triage",
+        "extensions.kiro.matt.triage",
+        "extensions.copilot.matt.triage"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/triage/OUT-OF-SCOPE.md",
+      "sha256": "1fbf9b432130c6380aa65813b55553cfda150309b27c595e183f8e335b8a190d",
+      "byteLength": 4667,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.triage",
+        "extensions.kiro.matt.triage",
+        "extensions.copilot.matt.triage"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/triage/SKILL.md",
+      "sha256": "917b0baf74be583e74f110857ed45df2766617f75c00baf61fd136d7af515edf",
+      "byteLength": 6558,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.triage",
+        "extensions.kiro.matt.triage",
+        "extensions.copilot.matt.triage"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/triage/agents/openai.yaml",
+      "sha256": "2e683717720cf456d165d0bb1a68bb600d0b6a8ccb61841c172e50d26f95351c",
+      "byteLength": 135,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.triage",
+        "extensions.kiro.matt.triage",
+        "extensions.copilot.matt.triage"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/wayfinder/SKILL.md",
+      "sha256": "fee6e1d0c50f0e736b4ef8a599060c959afae904c9a97d82c97f049fcc3aa0f1",
+      "byteLength": 11908,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.wayfinder",
+        "extensions.kiro.matt.wayfinder",
+        "extensions.copilot.matt.wayfinder"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/wayfinder/agents/openai.yaml",
+      "sha256": "88bc81a11a6d52ac67aeaa76b8b619e387020d47c5133a4dd4927fd15c4ad073",
+      "byteLength": 144,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.wayfinder",
+        "extensions.kiro.matt.wayfinder",
+        "extensions.copilot.matt.wayfinder"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/wizard/SKILL.md",
+      "sha256": "bdf31d48211ea559878f95a4f344aeabf8d85897488ba564382bab0b000daac1",
+      "byteLength": 4123,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.wizard",
+        "extensions.kiro.matt.wizard",
+        "extensions.copilot.matt.wizard"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/wizard/agents/openai.yaml",
+      "sha256": "98f44d682d58e262f160dc59a8befc365e0aa65820dd0261864af26aa8e59d83",
+      "byteLength": 96,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.wizard",
+        "extensions.kiro.matt.wizard",
+        "extensions.copilot.matt.wizard"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/engineering/wizard/template.sh",
+      "sha256": "33cbe9dfb1d0e9185b60248a52aabed14bc64785a00cac695e302e739dd6c153",
+      "byteLength": 8567,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.wizard",
+        "extensions.kiro.matt.wizard",
+        "extensions.copilot.matt.wizard"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/productivity/grill-me/SKILL.md",
+      "sha256": "caaf8b8de1684f96e26b28f3c29189db5c89cce4b73e1c93d86164f66ef88637",
+      "byteLength": 157,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.grill-me",
+        "extensions.kiro.matt.grill-me",
+        "extensions.copilot.matt.grill-me"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/productivity/grill-me/agents/openai.yaml",
+      "sha256": "c061e39c3e0f9d865fb1b97556d485704af2a8a58f4b8221a8917a5c2074a32b",
+      "byteLength": 137,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.grill-me",
+        "extensions.kiro.matt.grill-me",
+        "extensions.copilot.matt.grill-me"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/productivity/grilling/SKILL.md",
+      "sha256": "10ff989e7498b23b5acb49d5048f11dcd906757d2f79c5cdf8a00001381296f2",
+      "byteLength": 1987,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.grilling",
+        "extensions.kiro.matt.grilling",
+        "extensions.copilot.matt.grilling"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/productivity/grilling/agents/openai.yaml",
+      "sha256": "1411d7df7d99b7e621a1ff8283c8133cc2464be63d064e52d8ce169c6800ee9b",
+      "byteLength": 113,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.grilling",
+        "extensions.kiro.matt.grilling",
+        "extensions.copilot.matt.grilling"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/productivity/handoff/SKILL.md",
+      "sha256": "7c62de979fdc7ac32fb5ddb2146156c917f80ee070d30fadc9d40343c4b6ed25",
+      "byteLength": 894,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.handoff",
+        "extensions.kiro.matt.handoff",
+        "extensions.copilot.matt.handoff"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/productivity/handoff/agents/openai.yaml",
+      "sha256": "5c479fd562c691851690e8b18c8501045bef0943c10743d636b2fae26add1d28",
+      "byteLength": 141,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.handoff",
+        "extensions.kiro.matt.handoff",
+        "extensions.copilot.matt.handoff"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/productivity/teach/GLOSSARY-FORMAT.md",
+      "sha256": "9b99859ec28437668130d8f2ce5a342938970f8a1ed4fd38c3eab4f4b5fff210",
+      "byteLength": 2122,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.teach",
+        "extensions.kiro.matt.teach",
+        "extensions.copilot.matt.teach"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/productivity/teach/LEARNING-RECORD-FORMAT.md",
+      "sha256": "701fa34b6748aa89e6c960ffb815257f481a7d77fb2900f9028f7edf3fdd6052",
+      "byteLength": 2747,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.teach",
+        "extensions.kiro.matt.teach",
+        "extensions.copilot.matt.teach"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/productivity/teach/MISSION-FORMAT.md",
+      "sha256": "8cacbb3c0644d3ae0ea4965564797099401a6930a23f7cf462918576587f2418",
+      "byteLength": 1540,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.teach",
+        "extensions.kiro.matt.teach",
+        "extensions.copilot.matt.teach"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/productivity/teach/RESOURCES-FORMAT.md",
+      "sha256": "e9cacf34026e11a8d1c8f9de88abe5bcbf654f4ebdb25cae8c0de0d5f48f44ec",
+      "byteLength": 1924,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.teach",
+        "extensions.kiro.matt.teach",
+        "extensions.copilot.matt.teach"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/productivity/teach/SKILL.md",
+      "sha256": "a32df9dcdfc0c4fdc1c98e1ed3940c5f56b84c1aa90ff60346f32b8b53915b43",
+      "byteLength": 9506,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.teach",
+        "extensions.kiro.matt.teach",
+        "extensions.copilot.matt.teach"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/productivity/teach/agents/openai.yaml",
+      "sha256": "5856f3ae8aec742f1499c640aecdd5f1d6af5fa210a7c6ec794de8263a6f733f",
+      "byteLength": 139,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.teach",
+        "extensions.kiro.matt.teach",
+        "extensions.copilot.matt.teach"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/productivity/to-questionnaire/SKILL.md",
+      "sha256": "b5eb929842ee0e93d867c5e906d183d350f2f2d149eaeaa86967d94d8eda1d3b",
+      "byteLength": 2904,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.to-questionnaire",
+        "extensions.kiro.matt.to-questionnaire",
+        "extensions.copilot.matt.to-questionnaire"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/productivity/to-questionnaire/agents/openai.yaml",
+      "sha256": "9e8a06c38c8842eea8d4922cb9d1ead8e3ace647bab259b943c994a1b4742bc2",
+      "byteLength": 166,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.to-questionnaire",
+        "extensions.kiro.matt.to-questionnaire",
+        "extensions.copilot.matt.to-questionnaire"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/productivity/wait-what/SKILL.md",
+      "sha256": "d961bb37defd975c539427edb8f450cdbccdcdd552e213c1ece46676a7970905",
+      "byteLength": 396,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.wait-what",
+        "extensions.kiro.matt.wait-what",
+        "extensions.copilot.matt.wait-what"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/productivity/wait-what/agents/openai.yaml",
+      "sha256": "b41faadf741d51e4ea184148b2d1854d93f947aaf754c7844f70a00f04194999",
+      "byteLength": 158,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.wait-what",
+        "extensions.kiro.matt.wait-what",
+        "extensions.copilot.matt.wait-what"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/productivity/writing-for-agents/SKILL-MECHANICS.md",
+      "sha256": "c768e6307c7c10728c401c213f2c4ba71c542127eeb7ad2956aabd15a0fa0059",
+      "byteLength": 2629,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.writing-for-agents",
+        "extensions.kiro.matt.writing-for-agents",
+        "extensions.copilot.matt.writing-for-agents"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/productivity/writing-for-agents/SKILL.md",
+      "sha256": "551adca942227b44192edba88acd4e8db911f0121ce58ad16944ccf6a896a74a",
+      "byteLength": 10886,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.writing-for-agents",
+        "extensions.kiro.matt.writing-for-agents",
+        "extensions.copilot.matt.writing-for-agents"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": "skills/productivity/writing-for-agents/agents/openai.yaml",
+      "sha256": "eacb24b2a618cfb81dacb0416f4fdd75ddf3a8060f8ddb99aae1b1e301907e4b",
+      "byteLength": 102,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.writing-for-agents",
+        "extensions.kiro.matt.writing-for-agents",
+        "extensions.copilot.matt.writing-for-agents"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "d81f3a183412e71a5b1e84ca21bc1a35eea03a60",
+      "path": ".claude-plugin/plugin.json",
+      "sha256": "78fefd6e7346602d7c2df05e1bf63358b814633c1206ba53677a72201fadd4e9",
+      "byteLength": 1690,
+      "disposition": "unsupported-installation",
+      "reason": "Claude marketplace/plugin discovery metadata: retained as provenance. Catalog installs granular project content and owned hook groups; it does not register this upstream plugin or execute marketplace installation.",
+      "items": []
+    }
+  ]
+}

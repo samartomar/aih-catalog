@@ -22,6 +22,15 @@ owned updates and removal. No native conversational entry is registered; install
 an agent profile does not prove direct conversation. See [Guide content](docs/GUIDE-CONTENT.md)
 for provenance, offline saving, evidence limits and current unpublished availability.
 
+## Optional Extensions workflow
+
+`@aihq/catalog/release-extensions.json` offers granular pinned Extensions and Matt
+companion skills, profiles, commands, optional templates and independently owned
+Claude hook groups. Choose the Claude, Kiro or Copilot material projection through
+the ordinary reader/resolver. [Extensions content](docs/EXTENSIONS-CONTENT.md)
+records the full upstream inventory, required command configuration, source-overlay
+attribution and precise native/removal evidence limits.
+
 ## Optional Nuclei workflow
 
 `@aihq/catalog/workflows/nuclei` supplies local policy authoring; its adjacent manifest pins

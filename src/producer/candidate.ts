@@ -348,6 +348,18 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
     }
     put(GUIDE_RELEASE_PATH, documentBytes(guideDocument));
   }
+  for (const [path, document] of base?.contentDocuments ?? []) {
+    const carriedDocument: Record_ = {
+      ...document,
+      package: { name: input.package.name, version: input.package.version },
+    };
+    for (const item of (carriedDocument.items as Json[]).map(asRecord)) {
+      for (const member of [asRecord(item.recipe), ...(item.materials as Json[]).map(asRecord)]) {
+        put(member.path as string, files.get(member.path as string) as Buffer);
+      }
+    }
+    put(path, documentBytes(carriedDocument));
+  }
   if (base !== undefined && base.nativeDocuments.size > 0) {
     // The native-fixture documents pin the package identity inside the bundle, so they are
     // rendered again for this candidate's identity instead of rewriting the embedded field.

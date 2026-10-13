@@ -15,6 +15,13 @@ declaration/compiler and checked-release resolver seams;
 `node tools/verify-authoring-consumer.mjs` runs one packed outside headless
 consumer with digest-qualified independent and maintained inventories plus
 data-only expansion. See [the public guide](docs/PUBLIC-AUTHORING.md). Publication is blocked during migration.
+Extensions checks compile its separate v3 declarations and exact source inventory
+with `node tools/generate-extensions-release.mjs --check`; regenerate through that
+owning script after reviewed data edits. Its packed public-only consumer is active
+in the focused test inventory; `node tools/verify-extensions-consumer.mjs <core.tgz>`
+adds the explicit reviewed generic Core artifact proof. See
+[Extensions content](docs/EXTENSIONS-CONTENT.md) for source and execution limits.
+
 Release generation renders the authored project context through the built release
 module, so run `npm run build:dist` before `npm test` or `npm run check:materials` on
 their own; `npm run verify` and `npm run generate:release` build first.

@@ -144,6 +144,9 @@ describe("the published package keeps its intended runtime subset", () => {
       "dist/producer/template.js",
       "dist/producer/tree.js",
       "dist/producer/plugin.js",
+      "producer/extensions",
+      "docs/EXTENSIONS-CONTENT.md",
+      "docs/EXTENSIONS-INVENTORY.md",
     ]);
     expect(Object.keys(manifest.exports)).toEqual([
       "./contracts",
@@ -162,6 +165,7 @@ describe("the published package keeps its intended runtime subset", () => {
       "./release-guide.json",
       "./producer",
       "./schemas/producer-declaration/3.0.0.json",
+      "./release-extensions.json",
     ]);
     expect(manifest.private).toBe(true);
     expect(manifest.scripts.prepublishOnly).toBe("node tools/refuse-publication.mjs");

@@ -31,6 +31,8 @@ export interface BaseRelease {
    */
   /** Pinned Guide content carried unchanged by targeted upstream refreshes. */
   readonly guideDocument?: Record_;
+  /** Additional ordinary content manifests preserved by targeted refreshes. */
+  readonly contentDocuments?: ReadonlyMap<string, Record_>;
   readonly nativeDocuments: ReadonlyMap<string, Record_>;
 }
 
@@ -109,10 +111,12 @@ export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRe
   }
   const nativeDocuments = new Map<string, Record_>();
   let guideDocument: Record_ | undefined;
+  const contentDocuments = new Map<string, Record_>();
   for (const path of [
     NATIVE_FIXTURE_RELEASE_PATH,
     NATIVE_BUNDLES_RELEASE_PATH,
     GUIDE_RELEASE_PATH,
+    "release/release-extensions.json",
   ]) {
     const bytes = files.get(path);
     if (bytes === undefined) continue;
@@ -124,6 +128,7 @@ export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRe
     }
     const nativeDocument = JSON.parse(bytes.toString("utf8")) as Record_;
     if (path === GUIDE_RELEASE_PATH) guideDocument = nativeDocument;
+    else if (path === "release/release-extensions.json") contentDocuments.set(path, nativeDocument);
     else nativeDocuments.set(path, nativeDocument);
     referenced.add(path);
     for (const item of (nativeDocument.items as Json[]).map(asRecord)) {
@@ -162,5 +167,6 @@ export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRe
     ...(hookDocument === undefined ? {} : { hookDocument }),
     nativeDocuments,
     ...(guideDocument === undefined ? {} : { guideDocument }),
+    contentDocuments,
   };
 }

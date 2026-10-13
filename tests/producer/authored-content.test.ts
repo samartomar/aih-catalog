@@ -448,8 +448,19 @@ describe("authored content checks", () => {
   });
 
   it("does not examine upstream git-sourced skill items", () => {
+    // This seam checks the primary release's re-hashed upstream item. Other
+    // independently pinned releases retain their own claims on shared bytes.
+    const committed = committedRelease();
+    const primaryPaths = new Set([
+      "release/release.json",
+      ...releaseOf(committed).items.flatMap((item) => [
+        item.recipe.path,
+        ...item.materials.map((member) => member.path),
+      ]),
+    ]);
+    const primary = new Map([...committed].filter(([path]) => primaryPaths.has(path)));
     const files = withMaterialText(
-      committedRelease(),
+      primary,
       "mattpocock.grilling",
       "skill",
       // biome-ignore lint/suspicious/noTemplateCurlyInString: the fixture must carry literal residue.
@@ -462,6 +473,26 @@ describe("authored content checks", () => {
     const integrity = checkCandidateFiles(files, identity, { authored: COMMITTED_ALLOWANCES });
     expect(integrity.checks.filter((c) => !c.ok)).toEqual([]);
     expect(integrity.ok).toBe(true);
+  });
+
+  it("refuses changed shared upstream material when another release retains its exact pin", () => {
+    const files = withMaterialText(
+      committedRelease(),
+      "mattpocock.grilling",
+      "skill",
+      "Changed material re-hashed for the primary release only.\n",
+    );
+    const result = checkCandidateFiles(files, identity, { authored: COMMITTED_ALLOWANCES });
+    expect(result.ok).toBe(false);
+    expect(result.checks.filter((check) => !check.ok)).toEqual([
+      {
+        name: "member-bytes",
+        ok: false,
+        detail: expect.stringContaining(
+          "release/release-extensions.json: member-length-mismatch extensions.copilot.matt.grilling",
+        ),
+      },
+    ]);
   });
 
   it("does not mutate the files map or the committed bytes", () => {
