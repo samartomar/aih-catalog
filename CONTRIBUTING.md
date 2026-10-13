@@ -22,6 +22,13 @@ in the focused test inventory; `node tools/verify-extensions-consumer.mjs <core.
 adds the explicit reviewed generic Core artifact proof. See
 [Extensions content](docs/EXTENSIONS-CONTENT.md) for source and execution limits.
 
+ECC checks compile its separate v3 declarations, complete pinned-tree disposition
+and donor ledger with `node tools/generate-ecc-release.mjs --check`; regenerate
+through that owning script after reviewed data edits. The active packed public
+consumer tests all item configuration and one mixed-source resolution.
+`node tools/verify-ecc-consumer.mjs <core.tgz>` adds the reviewed generic Core
+Prepare/Apply proof. See [ECC content](docs/ECC-CONTENT.md) for prerequisites and limits.
+
 Release generation renders the authored project context through the built release
 module, so run `npm run build:dist` before `npm test` or `npm run check:materials` on
 their own; `npm run verify` and `npm run generate:release` build first.

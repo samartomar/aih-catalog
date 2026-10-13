@@ -42,6 +42,8 @@ function makeToolRepo(dir: string): void {
     "docs/PUBLIC-AUTHORING.md",
     "docs/EXTENSIONS-CONTENT.md",
     "docs/EXTENSIONS-INVENTORY.md",
+    "docs/ECC-CONTENT.md",
+    "docs/ECC-INVENTORY.md",
     "tools",
     "schemas",
     "producer",

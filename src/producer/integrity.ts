@@ -91,6 +91,9 @@ export function checkCandidateFiles(
     ...(files.has(GUIDE_RELEASE_PATH)
       ? [{ path: GUIDE_RELEASE_PATH, export: "./release-guide.json" as const }]
       : []),
+    ...(files.has("release/release-ecc.json")
+      ? [{ path: "release/release-ecc.json", export: "./release-ecc.json" as const }]
+      : []),
     ...(files.has("release/release-extensions.json")
       ? [{ path: "release/release-extensions.json", export: "./release-extensions.json" as const }]
       : []),

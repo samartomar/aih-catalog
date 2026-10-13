@@ -216,3 +216,11 @@ exports, tests refusal boundaries and removal impact, and adds a second compatib
 inventory through data while retaining identical generic consumer source. It
 preserves the maintained default and Guide releases and makes no Core Apply,
 native-loading, Scan, organization-admission or registry-availability claim.
+
+Large supplied-source provenance is stored once in optional descriptive release
+`metadata.suppliedSources`. Per-item `metadata.suppliedSource.inventorySha256`
+binds the canonical inventory document bytes (including the final newline); the
+source ID and revision identify its matching entry. Small declarations retain
+inline `metadata.suppliedSource.files` and their original compiled bytes. This
+reduces repeated display data without changing schema, recipe/material closure,
+relationships, reader limits or execution semantics. See [ECC content](ECC-CONTENT.md).

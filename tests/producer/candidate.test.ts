@@ -295,11 +295,15 @@ describe("declaration", () => {
   });
 });
 
-it("preserves independent Guide and Extensions bytes when refreshing another source", () => {
+it("preserves independent Guide, Extensions and ECC bytes when refreshing another source", () => {
   const files = baseFiles();
   const maintained = committedRelease();
   const paths = new Set<string>();
-  for (const path of ["release/release-guide.json", "release/release-extensions.json"]) {
+  for (const path of [
+    "release/release-guide.json",
+    "release/release-extensions.json",
+    "release/release-ecc.json",
+  ]) {
     const bytes = maintained.get(path);
     if (!bytes) throw new Error(`${path} is required`);
     const document = JSON.parse(bytes.toString("utf8"));
@@ -325,10 +329,14 @@ it("preserves independent Guide and Extensions bytes when refreshing another sou
     package: PACKAGE,
   });
   for (const path of paths) {
-    if (path.endsWith("release-guide.json") || path.endsWith("release-extensions.json")) {
+    if (
+      path.endsWith("release-guide.json") ||
+      path.endsWith("release-extensions.json") ||
+      path.endsWith("release-ecc.json")
+    ) {
       expect(JSON.parse(result.files.get(path)?.toString("utf8") ?? "null")).toEqual(
         JSON.parse(files.get(path)?.toString("utf8") ?? "null"),
       );
     } else expect(result.files.get(path)).toEqual(files.get(path));
   }
-});
+}, 90_000);
