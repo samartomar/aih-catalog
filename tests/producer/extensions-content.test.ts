@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { expect, it } from "vitest";
@@ -89,4 +90,101 @@ it("offers individually configured Claude hook groups without claiming Kiro or C
     selector: { path: ["hooks", 0, "command"], input: "hookCommand" },
     groupBindings: [{ path: ["hooks", 0, "command"], value: { input: "hookCommand" } }],
   });
+});
+
+it.each([
+  "extensions",
+  "extensions.kiro",
+  "extensions.copilot",
+])("%s grill-with-docs resolves its required workflow and reports required skip/removal impact", (namespace) => {
+  const bytes = readFileSync(resolve(root, "release/release-extensions.json"));
+  const read = readRelease(bytes, {
+    expectedSha256: createHash("sha256").update(bytes).digest("hex"),
+  });
+  if (!read.valid) throw new Error(JSON.stringify(read.diagnostics));
+  const release = read.release;
+  const roots = [
+    {
+      releaseSha256: release.sha256,
+      itemId: `${namespace}.matt.grill-with-docs`,
+      scope: "project" as const,
+      configuration: {},
+    },
+  ];
+  const releases = { [release.sha256]: release };
+  const resolved = resolveSelections({ releases, roots, skips: [] });
+  expect(resolved.status).toBe("ok");
+  if (resolved.status !== "ok") return;
+  expect(resolved.value.selections.map((selection) => selection.item.itemId).sort()).toEqual(
+    [
+      "extensions.notices",
+      `${namespace}.matt.domain-modeling`,
+      `${namespace}.matt.grill-with-docs`,
+      `${namespace}.matt.grilling`,
+    ].sort(),
+  );
+  for (const name of ["domain-modeling", "grilling"]) {
+    const target = {
+      releaseSha256: release.sha256,
+      itemId: `${namespace}.matt.${name}`,
+      scope: "project" as const,
+    };
+    const skipped = resolveSelections({ releases, roots, skips: [target], remove: [target] });
+    expect(skipped.status).toBe("refused");
+    expect(skipped).not.toHaveProperty("value");
+    expect(skipped.diagnostics).toContainEqual(
+      expect.objectContaining({ code: "REQUIRED_ITEM_SKIPPED" }),
+    );
+    const removal = resolveSelections({ releases, roots, skips: [], remove: [target] });
+    expect(removal.status).toBe("ok");
+    if (removal.status === "ok")
+      expect(removal.value.removalImpact[0]?.affectedRoots.map((item) => item.itemId)).toEqual([
+        `${namespace}.matt.grill-with-docs`,
+      ]);
+  }
+});
+
+it.each([
+  "extensions",
+  "extensions.kiro",
+  "extensions.copilot",
+])("%s retains the required closure of every maintained same-pin Matt skill", (namespace) => {
+  const checked = (path: string) => {
+    const bytes = readFileSync(resolve(root, path));
+    const read = readRelease(bytes, {
+      expectedSha256: createHash("sha256").update(bytes).digest("hex"),
+    });
+    if (!read.valid) throw new Error(JSON.stringify(read.diagnostics));
+    return read.release;
+  };
+  const maintained = checked("release/release.json");
+  const extensions = checked("release/release-extensions.json");
+  const skills = maintained.items.filter((item) => item.id.startsWith("mattpocock."));
+  expect(skills).toHaveLength(27);
+  const sourcePin = (release: typeof maintained, item: (typeof skills)[number]) =>
+    release.sources.find((source) => source.id === item.sourceIds[0])?.origin;
+  for (const skill of skills) {
+    const itemId = `${namespace}.matt.${skill.id.slice("mattpocock.".length)}`;
+    const projected = extensions.items.find((item) => item.id === itemId);
+    if (!projected) throw new Error(`Missing companion ${itemId}`);
+    expect(sourcePin(extensions, projected)).toEqual(sourcePin(maintained, skill));
+    const resolveRoot = (release: typeof maintained, id: string) =>
+      resolveSelections({
+        releases: { [release.sha256]: release },
+        roots: [{ releaseSha256: release.sha256, itemId: id, scope: "project", configuration: {} }],
+        skips: [],
+      });
+    const baseline = resolveRoot(maintained, skill.id);
+    const result = resolveRoot(extensions, itemId);
+    expect(baseline.status).toBe("ok");
+    expect(result.status).toBe("ok");
+    if (baseline.status !== "ok" || result.status !== "ok") return;
+    const expected = baseline.value.selections.map(
+      (selection) => `${namespace}.matt.${selection.item.itemId.slice("mattpocock.".length)}`,
+    );
+    expect(
+      result.value.selections.map((selection) => selection.item.itemId).sort(),
+      itemId,
+    ).toEqual(["extensions.notices", ...expected].sort());
+  }
 });

@@ -65,10 +65,12 @@ const neighbor = { matcher: "Bash", hooks: [{ type: "command", command: "echo un
 mkdirSync(join(project, ".claude"));
 writeFileSync(join(project, ".claude/settings.json"), JSON.stringify({ hooks: { PreToolUse: [neighbor] }, permissions: { allow: ["Bash(ls)"] } }));
 const command = name => 'node "' + join(project, ".aih-extensions/source/hooks/" + name + ".mjs") + '"';
-const roots = ["extensions.command.webperf", "extensions.skill.idea-refine", "extensions.kiro.skill.security-and-hardening", "extensions.copilot.skill.security-and-hardening", ...["git-guard", "skill-guard", "lanes-card"].map(name => "extensions.claude.hook." + name)].map(itemId => ({ releaseSha256: installed.release.sha256, itemId, scope: "project", configuration: itemId.startsWith("extensions.claude.hook.") ? { hookCommand: command(itemId.split(".").at(-1)) } : {} }));
+const roots = ["extensions.command.webperf", "extensions.skill.idea-refine", "extensions.kiro.skill.security-and-hardening", "extensions.copilot.skill.security-and-hardening", "extensions.kiro.matt.grill-with-docs", ...["git-guard", "skill-guard", "lanes-card"].map(name => "extensions.claude.hook." + name)].map(itemId => ({ releaseSha256: installed.release.sha256, itemId, scope: "project", configuration: itemId.startsWith("extensions.claude.hook.") ? { hookCommand: command(itemId.split(".").at(-1)) } : {} }));
 const releases = { [installed.release.sha256]: installed.release };
 const resolved = resolveSelections({ releases, roots, skips: [] });
 assert.equal(resolved.status, "ok", JSON.stringify(resolved.diagnostics));
+assert(resolved.value.selections.some(selection => selection.item.itemId === "extensions.kiro.matt.domain-modeling"));
+assert(resolved.value.selections.some(selection => selection.item.itemId === "extensions.kiro.matt.grilling"));
 const validated = validateSelectionSet({ releases, selections: resolved.value.selections });
 assert.equal(validated.valid, true, JSON.stringify(validated.diagnostics));
 for (const name of ["git-guard", "skill-guard", "lanes-card"]) {

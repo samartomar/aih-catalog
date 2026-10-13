@@ -1588,6 +1588,12 @@
       "requires": [
         {
           "itemId": "extensions.notices"
+        },
+        {
+          "itemId": "extensions.matt.domain-modeling"
+        },
+        {
+          "itemId": "extensions.matt.grilling"
         }
       ],
       "optional": [],
@@ -1641,6 +1647,12 @@
       "requires": [
         {
           "itemId": "extensions.notices"
+        },
+        {
+          "itemId": "extensions.matt.code-review"
+        },
+        {
+          "itemId": "extensions.matt.tdd"
         }
       ],
       "optional": [],
@@ -1694,6 +1706,9 @@
       "requires": [
         {
           "itemId": "extensions.notices"
+        },
+        {
+          "itemId": "extensions.matt.code-review"
         }
       ],
       "optional": [],
@@ -1751,6 +1766,15 @@
       "requires": [
         {
           "itemId": "extensions.notices"
+        },
+        {
+          "itemId": "extensions.matt.codebase-design"
+        },
+        {
+          "itemId": "extensions.matt.domain-modeling"
+        },
+        {
+          "itemId": "extensions.matt.grilling"
         }
       ],
       "optional": [],
@@ -1975,6 +1999,9 @@
       "requires": [
         {
           "itemId": "extensions.notices"
+        },
+        {
+          "itemId": "extensions.matt.writing-for-agents"
         }
       ],
       "optional": [],
@@ -2329,6 +2356,12 @@
       "requires": [
         {
           "itemId": "extensions.notices"
+        },
+        {
+          "itemId": "extensions.matt.domain-modeling"
+        },
+        {
+          "itemId": "extensions.matt.grilling"
         }
       ],
       "optional": [],
@@ -2439,6 +2472,9 @@
       "requires": [
         {
           "itemId": "extensions.notices"
+        },
+        {
+          "itemId": "extensions.matt.grilling"
         }
       ],
       "optional": [],
@@ -4590,6 +4626,12 @@
       "requires": [
         {
           "itemId": "extensions.notices"
+        },
+        {
+          "itemId": "extensions.kiro.matt.domain-modeling"
+        },
+        {
+          "itemId": "extensions.kiro.matt.grilling"
         }
       ],
       "optional": [],
@@ -4643,6 +4685,12 @@
       "requires": [
         {
           "itemId": "extensions.notices"
+        },
+        {
+          "itemId": "extensions.kiro.matt.code-review"
+        },
+        {
+          "itemId": "extensions.kiro.matt.tdd"
         }
       ],
       "optional": [],
@@ -4696,6 +4744,9 @@
       "requires": [
         {
           "itemId": "extensions.notices"
+        },
+        {
+          "itemId": "extensions.kiro.matt.code-review"
         }
       ],
       "optional": [],
@@ -4753,6 +4804,15 @@
       "requires": [
         {
           "itemId": "extensions.notices"
+        },
+        {
+          "itemId": "extensions.kiro.matt.codebase-design"
+        },
+        {
+          "itemId": "extensions.kiro.matt.domain-modeling"
+        },
+        {
+          "itemId": "extensions.kiro.matt.grilling"
         }
       ],
       "optional": [],
@@ -4977,6 +5037,9 @@
       "requires": [
         {
           "itemId": "extensions.notices"
+        },
+        {
+          "itemId": "extensions.kiro.matt.writing-for-agents"
         }
       ],
       "optional": [],
@@ -5331,6 +5394,12 @@
       "requires": [
         {
           "itemId": "extensions.notices"
+        },
+        {
+          "itemId": "extensions.kiro.matt.domain-modeling"
+        },
+        {
+          "itemId": "extensions.kiro.matt.grilling"
         }
       ],
       "optional": [],
@@ -5441,6 +5510,9 @@
       "requires": [
         {
           "itemId": "extensions.notices"
+        },
+        {
+          "itemId": "extensions.kiro.matt.grilling"
         }
       ],
       "optional": [],
@@ -7592,6 +7664,12 @@
       "requires": [
         {
           "itemId": "extensions.notices"
+        },
+        {
+          "itemId": "extensions.copilot.matt.domain-modeling"
+        },
+        {
+          "itemId": "extensions.copilot.matt.grilling"
         }
       ],
       "optional": [],
@@ -7645,6 +7723,12 @@
       "requires": [
         {
           "itemId": "extensions.notices"
+        },
+        {
+          "itemId": "extensions.copilot.matt.code-review"
+        },
+        {
+          "itemId": "extensions.copilot.matt.tdd"
         }
       ],
       "optional": [],
@@ -7698,6 +7782,9 @@
       "requires": [
         {
           "itemId": "extensions.notices"
+        },
+        {
+          "itemId": "extensions.copilot.matt.code-review"
         }
       ],
       "optional": [],
@@ -7755,6 +7842,15 @@
       "requires": [
         {
           "itemId": "extensions.notices"
+        },
+        {
+          "itemId": "extensions.copilot.matt.codebase-design"
+        },
+        {
+          "itemId": "extensions.copilot.matt.domain-modeling"
+        },
+        {
+          "itemId": "extensions.copilot.matt.grilling"
         }
       ],
       "optional": [],
@@ -7979,6 +8075,9 @@
       "requires": [
         {
           "itemId": "extensions.notices"
+        },
+        {
+          "itemId": "extensions.copilot.matt.writing-for-agents"
         }
       ],
       "optional": [],
@@ -8333,6 +8432,12 @@
       "requires": [
         {
           "itemId": "extensions.notices"
+        },
+        {
+          "itemId": "extensions.copilot.matt.domain-modeling"
+        },
+        {
+          "itemId": "extensions.copilot.matt.grilling"
         }
       ],
       "optional": [],
@@ -8443,6 +8548,9 @@
       "requires": [
         {
           "itemId": "extensions.notices"
+        },
+        {
+          "itemId": "extensions.copilot.matt.grilling"
         }
       ],
       "optional": [],

@@ -57,7 +57,22 @@ template while skipping one of its required items intentionally refuses.
 are optional suggestions. Shared notices are required; shared reference files
 are installed alongside the same client's skills so `../../references/` links
 remain valid. `ship` explicitly requires shipping guidance and its three reviewer
-profiles; `webperf` requires its performance auditor. These are curated declared
+profiles; `webperf` requires its performance auditor. Each client namespace also
+preserves the maintained Matt required relationships at the same source pin:
+
+| Matt root | Required Matt companions |
+| --- | --- |
+| `grill-me` | `grilling` |
+| `grill-with-docs` | `domain-modeling`, `grilling` |
+| `implement` | `code-review` |
+| `implement-spec` | `code-review`, `tdd` |
+| `improve-codebase-architecture` | `codebase-design`, `domain-modeling`, `grilling` |
+| `retro` | `writing-for-agents` |
+| `wayfinder` | `domain-modeling`, `grilling` |
+
+These required companions follow the selected client namespace, in addition to
+shared notices. The public resolver refuses a deliberate skip of a required
+companion and reports which root is affected when its removal is proposed. These are curated declared
 relationships, never dependencies guessed by the reader from prose.
 
 `extensions.notices` carries the exact Extensions MIT license, both third-party
@@ -168,7 +183,7 @@ model execution occurs. `--without-core` clearly records Core as not run.
 
 The reviewed Core `1.0.0-dev.37` artifact
 `e0463da0c62a093205811d6e79027b929840671df4993f41faeae7c74c6a5750`
-applied the representative 15-selection fixture with 64 passing checks and
+applied the representative real-content fixture with passing material checks and
 preserved neighboring settings. Its subsequent clean multi-hook removal preparation
 refused `managed-content-changed`; no removal Apply occurred and custody was
 preserved. Removal is recorded as a limitation, not a successful lifecycle or

@@ -322,33 +322,10 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
   }
   const releaseBytes = documentBytes(document);
   put(RELEASE_PATH, releaseBytes);
-  if (base?.hookDocument !== undefined) {
-    // The 1.1 release is carried as published: its items and members are untouched and only
-    // the package identity it embeds follows this candidate's package.
-    const hookDocument: Record_ = {
-      ...base.hookDocument,
-      package: { name: input.package.name, version: input.package.version },
-    };
-    for (const item of (hookDocument.items as Json[]).map(asRecord)) {
-      for (const member of [asRecord(item.recipe), ...(item.materials as Json[]).map(asRecord)]) {
-        put(member.path as string, files.get(member.path as string) as Buffer);
-      }
-    }
-    put(HOOK_RELEASE_PATH, documentBytes(hookDocument));
-  }
-  if (base?.guideDocument !== undefined) {
-    const guideDocument: Record_ = {
-      ...base.guideDocument,
-      package: { name: input.package.name, version: input.package.version },
-    };
-    for (const item of (guideDocument.items as Json[]).map(asRecord)) {
-      for (const member of [asRecord(item.recipe), ...(item.materials as Json[]).map(asRecord)]) {
-        put(member.path as string, files.get(member.path as string) as Buffer);
-      }
-    }
-    put(GUIDE_RELEASE_PATH, documentBytes(guideDocument));
-  }
-  for (const [path, document] of base?.contentDocuments ?? []) {
+  // Ordinary adjacent releases keep every item/member unchanged; only their
+  // containing package identity follows the candidate. Native fixtures below
+  // retain their dedicated package-bound regeneration.
+  const carryContentDocument = (path: string, document: Record_): void => {
     const carriedDocument: Record_ = {
       ...document,
       package: { name: input.package.name, version: input.package.version },
@@ -359,7 +336,11 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
       }
     }
     put(path, documentBytes(carriedDocument));
-  }
+  };
+  if (base?.hookDocument !== undefined) carryContentDocument(HOOK_RELEASE_PATH, base.hookDocument);
+  if (base?.guideDocument !== undefined)
+    carryContentDocument(GUIDE_RELEASE_PATH, base.guideDocument);
+  for (const [path, document] of base?.contentDocuments ?? []) carryContentDocument(path, document);
   if (base !== undefined && base.nativeDocuments.size > 0) {
     // The native-fixture documents pin the package identity inside the bundle, so they are
     // rendered again for this candidate's identity instead of rewriting the embedded field.
