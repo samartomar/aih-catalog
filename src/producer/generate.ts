@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import type { Json } from "../release/contracts.js";
 import { canonicalJson } from "../release/json.js";
-import type { DeclaredItem, DeclaredSource } from "./declaration.js";
+import type { DeclaredSkillItem, DeclaredSource } from "./declaration.js";
 import { refuse } from "./errors.js";
 
 export const OUTPUT_ROOT = "release";
@@ -96,7 +96,7 @@ const target = (name: string, file: string): Json => ({
  * exact upstream bytes at one revision. Pure: no clock, network or filesystem.
  */
 export function generateItem(args: {
-  item: DeclaredItem;
+  item: DeclaredSkillItem;
   source: DeclaredSource;
   sourceId: string;
   revision: string;

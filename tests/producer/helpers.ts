@@ -150,20 +150,14 @@ export function makePackageRoot(
     "LICENSE",
     "README.md",
     "CHANGELOG.md",
+    "docs/FRAMEWORK-TEMPLATES.md",
+    "producer/templates/framework",
     "dist/release",
     "workflows/nuclei",
     "schemas",
     ...extra,
   ]) {
     cpSync(join(root, entry), join(dir, entry), { recursive: true });
-  }
-  // Synthetic producer fixtures may intentionally omit the optional Guide release.
-  // Their manifest must describe those bytes rather than promise a missing export.
-  if (!release.has("release/release-guide.json")) {
-    const path = join(dir, "package.json");
-    const manifest = JSON.parse(readFileSync(path, "utf8"));
-    delete manifest.exports["./release-guide.json"];
-    writeFileSync(path, JSON.stringify(manifest));
   }
   // The manifest exports the 1.1 release, so a package root always carries it beside the 1.0 release.
   const seeded = withNativeFixtureRelease(

@@ -38,8 +38,10 @@ try {
   const read = reader.readRelease(bytes, { expectedSha256: sha });
   if (!read.valid) throw new Error(read.diagnostics.map((d) => d.reason).join(","));
   out.release = true;
-  const schema = JSON.parse(readFileSync(fileURLToPath(import.meta.resolve("@aihq/catalog/schemas/release/1.0.0.json")), "utf8"));
-  out.schema = support.contracts.some((contract) => contract.id === schema.$id);
+  const releaseContract = support.contracts.find((contract) => contract.id === read.release.schema);
+  if (!releaseContract) throw new Error("packed release format has no declared schema export");
+  const schema = JSON.parse(readFileSync(fileURLToPath(import.meta.resolve(releaseContract.schemaExport)), "utf8"));
+  out.schema = schema.$id === read.release.schema;
   const root = dirname(fileURLToPath(import.meta.resolve("@aihq/catalog/package.json")));
   const installed = await node.readInstalledRelease({ root });
   if (!installed.valid) throw new Error(installed.diagnostics.map((d) => d.reason).join(","));

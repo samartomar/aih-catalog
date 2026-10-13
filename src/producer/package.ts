@@ -14,6 +14,7 @@ import { tmpdir } from "node:os";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { readPackageArchive } from "../release/archive.js";
 import type { AuthoredAllowance } from "./authored.js";
+import { parseBaseRelease } from "./base.js";
 import { refuse } from "./errors.js";
 import { checkCandidateFiles, type IntegrityCheck } from "./integrity.js";
 import { assertDisjoint, assertFreshDirectory } from "./paths.js";
@@ -41,7 +42,10 @@ export function npmCliPath(): string {
 
 /** npm's own version, for the timing summary. */
 export function npmVersion(): string {
-  return execFileSync(process.execPath, [npmCliPath(), "--version"], { encoding: "utf8" }).trim();
+  return execFileSync(process.execPath, [npmCliPath(), "--version"], {
+    encoding: "utf8",
+    windowsHide: true,
+  }).trim();
 }
 
 const ALWAYS_PACKED = ["package.json", "LICENSE", "README.md", "CHANGELOG.md"];
@@ -57,6 +61,38 @@ const withinIntent = (path: string, prefixes: readonly string[]) =>
   prefixes.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
 
 const WALK_LIMIT = { files: 2048, bytes: 128 * 1024 * 1024 };
+
+/** Derive optional document exports from validated inventory without changing the source manifest. */
+export function candidateManifestBytes(
+  bytes: Uint8Array,
+  files: ReadonlyMap<string, Uint8Array>,
+): Buffer {
+  parseBaseRelease(files); // Primary release and every declared member remain mandatory.
+  const manifest = JSON.parse(Buffer.from(bytes).toString("utf8")) as {
+    exports?: Record<string, unknown>;
+  };
+  if (
+    manifest.exports === undefined ||
+    typeof manifest.exports !== "object" ||
+    manifest.exports === null ||
+    Array.isArray(manifest.exports)
+  )
+    return Buffer.from(bytes);
+  let changed = false;
+  for (const name of [
+    "release-1.1.json",
+    "release-native-fixture.json",
+    "release-native-bundles.json",
+    "release-guide.json",
+  ]) {
+    const path = `release/${name}`;
+    if (!files.has(path) && manifest.exports[`./${name}`] === `./${path}`) {
+      delete manifest.exports[`./${name}`];
+      changed = true;
+    }
+  }
+  return changed ? Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`) : Buffer.from(bytes);
+}
 
 /**
  * Every non-release file the package is intended to carry, read from the source root:
@@ -120,6 +156,10 @@ export function stagePackage(input: {
   );
   assertFreshDirectory(stageDir, "stage-collision", "the stage directory");
   const intended = collectIntended(sourceRoot, manifest);
+  intended.set(
+    "package.json",
+    candidateManifestBytes(intended.get("package.json") as Buffer, files),
+  );
   mkdirSync(stageDir, { recursive: true });
   for (const [path, bytes] of [...intended, ...files]) {
     const to = join(stageDir, ...path.split("/"));
@@ -153,7 +193,14 @@ export function packStaged(stageDir: string, outDir: string): PackedArtifact {
         "--pack-destination",
         outDir,
       ],
-      { cwd: stageDir, env, encoding: "utf8", maxBuffer: 64 * 1024 * 1024, timeout: 180_000 },
+      {
+        cwd: stageDir,
+        env,
+        encoding: "utf8",
+        maxBuffer: 64 * 1024 * 1024,
+        timeout: 180_000,
+        windowsHide: true,
+      },
     ),
   ) as { filename: string; files: { path: string }[] }[];
   if (!packed) return refuse("pack-failed", "npm pack produced no artifact");
@@ -267,6 +314,7 @@ function runPackedProbe(input: {
         maxBuffer: 16 * 1024 * 1024,
         timeout: 180_000,
         stdio: "pipe",
+        windowsHide: true,
       },
     );
     writeFileSync(join(consumer, "probe.mjs"), PROBE_SOURCE);
@@ -279,7 +327,14 @@ function runPackedProbe(input: {
         input.identity.version,
         ...(input.expectedHookSha256 === undefined ? [] : [input.expectedHookSha256]),
       ],
-      { cwd: consumer, env, encoding: "utf8", timeout: 120_000, maxBuffer: 8 * 1024 * 1024 },
+      {
+        cwd: consumer,
+        env,
+        encoding: "utf8",
+        timeout: 120_000,
+        maxBuffer: 8 * 1024 * 1024,
+        windowsHide: true,
+      },
     );
     return { output: JSON.parse(stdout) as ProbeOutput };
   } catch (error) {
@@ -351,6 +406,10 @@ export async function verifyPacked(input: {
   let expected: Map<string, Buffer> | undefined;
   try {
     expected = collectIntended(sourceRoot, manifest);
+    expected.set(
+      "package.json",
+      candidateManifestBytes(expected.get("package.json") as Buffer, files),
+    );
   } catch (error) {
     record("packed-runtime-bytes", false, error instanceof Error ? error.message : String(error));
   }

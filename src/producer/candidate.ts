@@ -3,8 +3,9 @@ import { canonicalJson } from "../release/json.js";
 import { renderNativeFixture } from "../release/native-fixture-content.js";
 import { listItems, readRelease } from "../release/reader.js";
 import type { BaseRelease, Record_ } from "./base.js";
-import { assertAcyclic, type ProducerDeclaration } from "./declaration.js";
+import { assertAcyclic, isTemplateItem, type ProducerDeclaration } from "./declaration.js";
 import { classifyDelta, type ItemDelta, repositoryUrl } from "./delta.js";
+import { derivedSourceId, prepareSourceTree } from "./derived.js";
 import { refuse } from "./errors.js";
 import {
   documentBytes,
@@ -143,7 +144,8 @@ function targetSourceId(
  * removed one) refuses instead of guessing, and the base is never modified.
  */
 export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult {
-  const { declaration, tree, base } = input;
+  const { declaration, base } = input;
+  const tree = prepareSourceTree(input.tree);
   const plan = classifyDelta({ declaration, tree, ...(base ? { base } : {}) });
   const unknown = plan.items.filter((item) => item.state === "unknown").map((item) => item.id);
   if (unknown.length > 0) {
@@ -196,16 +198,36 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
   const baseItemSha = new Map(base ? listItems(base.checked).map((i) => [i.id, i.itemSha256]) : []);
 
   const produce = (delta: ItemDelta): GeneratedItem => {
-    const sourceId = targetSourceId(sources, plan.source.repository, plan.source.id, tree.commit);
-    const item = generateItem({
-      item: delta.declared,
-      source: plan.source,
-      sourceId,
-      revision: tree.commit,
-      skill: delta.skill as Buffer,
-      license: delta.license as Buffer,
-      supportFiles: delta.supportFiles ?? [],
-    });
+    const sourceId =
+      tree.derivedMetadata === undefined
+        ? targetSourceId(sources, plan.source.repository, plan.source.id, tree.commit)
+        : derivedSourceId(plan.source.id, tree.derivedMetadata);
+    if (tree.derivedMetadata !== undefined) {
+      if (!isTemplateItem(delta.declared))
+        return refuse(
+          "derived-source-invalid",
+          "derived sources require explicit recipe templates",
+        );
+      const priorSource = sources.get(sourceId);
+      if (priorSource !== undefined && asRecord(priorSource.origin).kind !== "authored") {
+        return refuse("source-id-collision", `${sourceId} is already used by another origin`);
+      }
+      sources.set(sourceId, { id: sourceId, origin: { kind: "authored" } });
+    }
+    const item = isTemplateItem(delta.declared)
+      ? {
+          ...(delta.template as GeneratedItem),
+          record: { ...(delta.template as GeneratedItem).record, sourceIds: [sourceId] },
+        }
+      : generateItem({
+          item: delta.declared,
+          source: plan.source,
+          sourceId,
+          revision: tree.commit,
+          skill: delta.skill as Buffer,
+          license: delta.license as Buffer,
+          supportFiles: delta.supportFiles ?? [],
+        });
     generated.set(delta.id, item);
     return item;
   };
@@ -265,7 +287,15 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
   assertRequiredClosure(finalItems);
 
   const document: Record_ = {
-    schema: "urn:aihq:catalog:release:1.0.0",
+    schema:
+      finalItems.some((item) => asRecord(item.recipe).schema === "urn:aihq:core:recipe:1.3.0") ||
+      base?.checked.schema === "urn:aihq:catalog:release:1.2.0"
+        ? "urn:aihq:catalog:release:1.2.0"
+        : finalItems.some(
+              (item) => asRecord(item.recipe).schema === "urn:aihq:core:recipe:1.1.0",
+            ) || base?.checked.schema === "urn:aihq:catalog:release:1.1.0"
+          ? "urn:aihq:catalog:release:1.1.0"
+          : "urn:aihq:catalog:release:1.0.0",
     package: { name: input.package.name, version: input.package.version },
     sources: finalSources,
     items: finalItems,

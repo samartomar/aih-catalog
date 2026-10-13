@@ -14,13 +14,28 @@ export const RELEASE_SCHEMA_ID_1_1 = "urn:aihq:catalog:release:1.1.0" as const;
 export const RELEASE_SCHEMA_EXPORT_1_1 = "@aihq/catalog/schemas/release/1.1.0.json" as const;
 /** Core's recipe format that adds the owned `hook.group` operation. */
 export const CORE_RECIPE_SCHEMA_ID_1_1 = "urn:aihq:core:recipe:1.1.0" as const;
-export type ReleaseSchemaId = typeof RELEASE_SCHEMA_ID | typeof RELEASE_SCHEMA_ID_1_1;
-export type RecipeSchemaId = typeof CORE_RECIPE_SCHEMA_ID | typeof CORE_RECIPE_SCHEMA_ID_1_1;
+/** Release 1.2 adds the input-bound hook groups of Core recipe 1.3. */
+export const RELEASE_SCHEMA_ID_1_2 = "urn:aihq:catalog:release:1.2.0" as const;
+export const RELEASE_SCHEMA_EXPORT_1_2 = "@aihq/catalog/schemas/release/1.2.0.json" as const;
+export const CORE_RECIPE_SCHEMA_ID_1_3 = "urn:aihq:core:recipe:1.3.0" as const;
+export type ReleaseSchemaId =
+  | typeof RELEASE_SCHEMA_ID
+  | typeof RELEASE_SCHEMA_ID_1_1
+  | typeof RELEASE_SCHEMA_ID_1_2;
+export type RecipeSchemaId =
+  | typeof CORE_RECIPE_SCHEMA_ID
+  | typeof CORE_RECIPE_SCHEMA_ID_1_1
+  | typeof CORE_RECIPE_SCHEMA_ID_1_3;
 /** The recipe formats each release format admits. */
 export const RELEASE_RECIPE_SCHEMAS: Readonly<Record<ReleaseSchemaId, readonly RecipeSchemaId[]>> =
   Object.freeze({
     [RELEASE_SCHEMA_ID]: Object.freeze([CORE_RECIPE_SCHEMA_ID]),
     [RELEASE_SCHEMA_ID_1_1]: Object.freeze([CORE_RECIPE_SCHEMA_ID, CORE_RECIPE_SCHEMA_ID_1_1]),
+    [RELEASE_SCHEMA_ID_1_2]: Object.freeze([
+      CORE_RECIPE_SCHEMA_ID,
+      CORE_RECIPE_SCHEMA_ID_1_1,
+      CORE_RECIPE_SCHEMA_ID_1_3,
+    ]),
   });
 /** Release documents: UTF-8 bytes including the single trailing LF. */
 export const RELEASE_MAX_BYTES = 16 * 1024 * 1024;
@@ -51,6 +66,16 @@ export const contractSupport = Object.freeze({
       id: CORE_RECIPE_SCHEMA_ID_1_1,
       role: "produces",
       schemaExport: "@aihq/core/schemas/recipe/1.1.0.json",
+    }),
+    Object.freeze({
+      id: RELEASE_SCHEMA_ID_1_2,
+      role: "produces",
+      schemaExport: RELEASE_SCHEMA_EXPORT_1_2,
+    }),
+    Object.freeze({
+      id: CORE_RECIPE_SCHEMA_ID_1_3,
+      role: "produces",
+      schemaExport: "@aihq/core/schemas/recipe/1.3.0.json",
     }),
   ]),
   entries: Object.freeze([

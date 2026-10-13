@@ -38,6 +38,7 @@ function makeToolRepo(dir: string): void {
     "LICENSE",
     "README.md",
     "CHANGELOG.md",
+    "docs/FRAMEWORK-TEMPLATES.md",
     "tools",
     "schemas",
     "producer",

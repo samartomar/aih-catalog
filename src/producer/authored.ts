@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type { CatalogItem, CatalogRelease, Json } from "../release/contracts.js";
 import type { Record_ } from "./base.js";
 
@@ -11,6 +12,12 @@ export interface AuthoredAllowance {
   readonly source: string;
   readonly externalPaths: readonly string[];
   readonly templatePlaceholders: readonly string[];
+  /** Source-relative before binding; exact emitted material path in the checker. */
+  readonly literalExamples?: readonly {
+    readonly path: string;
+    readonly sha256: string;
+    readonly tokens: readonly string[];
+  }[];
 }
 
 /** One unresolved reference or placeholder residue, located in one checked text. */
@@ -576,7 +583,25 @@ export function checkAuthoredContent(
           ...referenceFindings(item.id, member, target, text, targets, externals, tokens),
         );
       }
-      placeholders.push(...placeholderFindings(item.id, member, target, text, allowed));
+      const material = item.materials.find((candidate) => candidate.id === member);
+      const bytes = material === undefined ? undefined : files.get(material.path);
+      const actualSha256 =
+        bytes === undefined ? undefined : createHash("sha256").update(bytes).digest("hex");
+      const examples =
+        material === undefined || bytes === undefined
+          ? []
+          : itemAllowances.flatMap((entry) =>
+              (entry.literalExamples ?? [])
+                .filter(
+                  (example) =>
+                    example.path === material.path &&
+                    example.sha256 === material.sha256 &&
+                    actualSha256 === example.sha256,
+                )
+                .flatMap((example) => example.tokens),
+            );
+      const materialAllowed = examples.length === 0 ? allowed : new Set([...allowed, ...examples]);
+      placeholders.push(...placeholderFindings(item.id, member, target, text, materialAllowed));
     }
   }
   return { references: sortFindings(references), placeholders: sortFindings(placeholders) };

@@ -62,6 +62,11 @@ The native-fixture documents `release/release-native-fixture.json` and `release/
 
 ## The declaration
 
+Version 2 also accepts generic framework items with an explicit recipe path and
+material list. See [the readable framework template](FRAMEWORK-TEMPLATES.md) for
+the authoring contract, derived-source provenance and update behavior. Version 1
+skill declarations remain supported.
+
 `producer/declaration.json` is the maintainer-authored list of what the producer may
 carry. It names each upstream repository (with its license file) and each item built
 from it: identifier, label, the `<dir>/SKILL.md` it comes from and the same-release
@@ -83,13 +88,23 @@ are operational changes. The declaration is the reviewed support closure, not a
 Markdown crawler. See [the pinned Matt Pocock refresh](MATTPOCOCK-REFRESH.md).
 
 The optional `authored` key lists allowances for content Catalog itself authors (a
-release source whose origin is `authored`). Each entry has exactly three keys:
+release source whose origin is `authored`). Each entry requires three keys:
 
 - `source`: the release source identifier; unique across entries.
 - `externalPaths`: author-owned project paths that content may reference but Catalog
   never delivers. Each is a safe relative path; no duplicates.
 - `templatePlaceholders`: exact tokens the author is expected to fill in, for example
   `<your-tool>`. Each is 1–64 characters with no whitespace; no duplicates.
+
+Version 2 additionally accepts optional `literalExamples`: a reviewed list of
+`{path, sha256, tokens}` for exact source-relative material files. Paths are unique
+and safe; SHA-256 values are lowercase 64-hex strings. Each entry contains 1–256
+unique exact tokens of at most 512 characters, allowing spaces but no control
+characters or whitespace-only values. The producer binds each entry to its exact
+emitted material path. The placeholder checker verifies that file's actual bytes
+against the declared hash before allowing those tokens. Other files, operation
+literals, a changed byte, or a new token receive no allowance. See
+[framework templates](FRAMEWORK-TEMPLATES.md) for the derived-source mapping.
 
 Parsing is strict like the rest of the declaration: unknown or missing keys, a
 non-array value and duplicates are refused as `declaration-invalid`. When the key is
@@ -149,6 +164,12 @@ back:
   package, byte for byte, with nothing else.
 - `packed-required-files` and `packed-export-targets`: the license and manifest are
   present and every declared export target is in the tarball.
+  Staging validates the complete release inventory, then omits known optional
+  release-document exports (hooks, native fixture, native bundles and Guide) only
+  when their canonical target documents are absent. The primary release remains
+  required. Unknown or malformed exports are
+  retained for this check to reject. Verification derives the same expected
+  manifest, and the repository manifest is never rewritten.
 - `packed-release-integrity`: the packed release passes the same whole-package checks.
 - `packed-public-imports`: the exact tarball is installed into a disposable consumer
   (lifecycle scripts off, offline, locked runtime dependencies only) and its public
@@ -289,8 +310,9 @@ labeled `originVerified: false` in its summary.
 
 ## Limits
 
-- One declared skill shape: a `SKILL.md`, its license and declared support files,
-  written by a Core `file.write` recipe. Other item kinds need new producer transforms.
+- Version 1 declares skills; version 2 also binds supplied Core recipe templates
+  and explicit material files. Framework-specific transformations are author-owned
+  rendered source content, never special cases in the producer.
 - The producer carries only declared repositories and is not an arbitrary-author gate.
 - Upstream skill text is not examined for references or placeholders; only
   Catalog-authored content is. Reference checking is local resolution of the forms

@@ -1,3 +1,4 @@
+import type { Json } from "../release/contracts.js";
 import { safeMemberPath } from "../release/document.js";
 import { refuse } from "./errors.js";
 
@@ -25,6 +26,18 @@ export interface SourceTree {
   readonly inventory: SourceInventory;
   /** Bytes of a regular file in the inventory; throws for anything else. */
   read(path: string): Uint8Array;
+  /** Optional verified regular-file mode, included in derived input provenance. */
+  mode?(path: string): number | undefined;
+  /** Explicitly rendered content, never represented as raw Git blobs. */
+  readonly derivation?: {
+    readonly renderer: {
+      readonly name: string;
+      readonly version: string;
+      readonly bytes: Uint8Array;
+    };
+    readonly inputs: readonly SourceTree[];
+    readonly configuration: Json;
+  };
 }
 
 export type PathStatus = "present" | "absent" | "unknown" | "irregular";

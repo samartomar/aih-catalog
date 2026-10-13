@@ -36,7 +36,8 @@ const MEMBER_MAX_BYTES = 16 * 1024 * 1024;
 
 /**
  * The release documents a package can export. A caller names one explicitly; the
- * default is always the 1.0 release and is never replaced by 1.1.
+ * default names the primary release.json; its document declares the supported
+ * release format. Optional authored documents remain explicitly selected.
  */
 export type ReleaseExport =
   | "./release.json"

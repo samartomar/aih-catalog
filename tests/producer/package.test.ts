@@ -109,11 +109,18 @@ describe("packed candidate", () => {
     ]);
     expect(artifact.sha256).toBe(sha256(readFileSync(artifact.tarball)));
     expect(
-      artifact.packedPaths.some((path) => /^(?:src|tests|tools|producer|docs)\//.test(path)),
+      artifact.packedPaths.some(
+        (path) =>
+          /^(?:src|tests|tools|producer|docs)\//.test(path) &&
+          path !== "docs/FRAMEWORK-TEMPLATES.md" &&
+          !path.startsWith("producer/templates/framework/"),
+      ),
     ).toBe(false);
     expect(artifact.packedPaths.some((path) => path.startsWith("dist/producer"))).toBe(false);
     expect(artifact.packedPaths).toContain("LICENSE");
     expect(artifact.packedPaths).toContain("release/release.json");
+    expect(artifact.packedPaths).toContain("docs/FRAMEWORK-TEMPLATES.md");
+    expect(artifact.packedPaths).toContain("producer/templates/framework/declaration.json");
     expect(check(outcome.result, "reader-selection-smoke")).toMatchObject({
       ok: true,
       status: "passed",

@@ -55,7 +55,7 @@ describe("release 1.1 documents", () => {
     expect(result.diagnostics.map((d) => d.reason)).toEqual(["unsupported-recipe-schema"]);
   });
 
-  it("names both supported release formats for an unknown one", () => {
+  it("names supported release formats for an unknown one", () => {
     const document = fixtureRelease();
     document.schema = "urn:aihq:catalog:release:9.0.0";
     const result = read(document);
@@ -63,6 +63,7 @@ describe("release 1.1 documents", () => {
     expect(result.diagnostics[0]?.supported).toEqual([
       "urn:aihq:catalog:release:1.0.0",
       RELEASE_11,
+      "urn:aihq:catalog:release:1.2.0",
     ]);
   });
 
@@ -123,6 +124,8 @@ describe("release 1.1 documents", () => {
       "urn:aihq:core:recipe:1.0.0",
       RELEASE_11,
       RECIPE_11,
+      "urn:aihq:catalog:release:1.2.0",
+      "urn:aihq:core:recipe:1.3.0",
     ]);
     expect(contractSupport.contracts.find((c) => c.id === RELEASE_11)).toMatchObject({
       role: "produces",
