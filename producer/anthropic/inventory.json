@@ -6031,8 +6031,14 @@
       ],
       "disposition": "supported-material",
       "owner": "Anthropic (rights/runtime); Catalog (declaration)",
-      "reason": "Complete unchanged skill/support/notice closure, interpreted scripts only; no native use claim.",
-      "licensePath": "skills/web-artifacts-builder/LICENSE.txt"
+      "reason": "Original shadcn component tarball preserved; required per-client supplemental MIT notice supplies missing third-party copyright/permission terms.",
+      "licensePath": "skills/web-artifacts-builder/LICENSE.txt",
+      "license": "MIT (shadcn components); enclosing skill Apache-2.0",
+      "supplementalNoticeItems": [
+        "anthropic.notice.shadcn",
+        "anthropic.kiro.notice.shadcn",
+        "anthropic.copilot.notice.shadcn"
+      ]
     },
     {
       "path": "skills/webapp-testing/LICENSE.txt",
@@ -8800,8 +8806,8 @@
     "discernment-nudge": "Instruction material; harness reasoning/response behavior is client-owned and unobserved.",
     "frontend-design": "Instruction material; project-selected frontend runtime/build/browser tools remain caller-owned.",
     "internal-comms": "Instruction/examples; caller-owned communication context, no message transport or send operation.",
-    "mcp-builder": "Skill/reference material, not an MCP server or registration. Python 3 with mcp>=1.1.0, anthropic>=0.39.0 in scripts/requirements.txt for evaluation.py/mcp_client.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call.",
-    "skill-creator": "Python 3, PyYAML for validation/packaging; eval/improvement scripts additionally require available Claude CLI, caller-approved account/model calls and caller-owned eval fixtures. render_review.py needs browser for viewing only; no eval/model execution.",
+    "mcp-builder": "Skill/reference material, not an MCP server or registration. Python >=3.10 with mcp>=1.1.0 and anthropic>=0.39.0 in scripts/requirements.txt for scripts/evaluation.py and scripts/connections.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call.",
+    "skill-creator": "Python >=3.10; PyYAML for scripts/quick_validate.py and packaging. scripts/run_eval.py, run_loop.py and improve_description.py require available Claude CLI, caller-approved account/model calls and eval fixtures. run_eval.py uses select.select on subprocess pipes, requiring a POSIX-compatible execution environment; native Windows evaluation is unsupported without an environment/port that supplies those semantics. eval-viewer/generate_review.py starts a stdlib localhost server and opens a browser by default; --static writes HTML without a server. Caller owns writable temporary paths/browser opener; no eval/model/viewer execution in material Apply.",
     "slack-gif-creator": "Python 3 with Pillow, imageio and numpy, plus compatible imageio-ffmpeg/FFmpeg when chosen; caller acquires packages/tools under their own licenses. Complete scripts and requirements retained.",
     "theme-factory": "Instruction/themes and theme-showcase PDF delivered; caller supplies document/design renderer.",
     "web-artifacts-builder": "Bash, Node/npm and pnpm for scripts/init-artifact.sh and bundle-artifact.sh; frontend packages and network acquisition remain caller-owned. No install/build/browser launched.",
@@ -8829,5 +8835,29 @@
     "pdf",
     "pptx",
     "xlsx"
+  ],
+  "supplementalNotices": [
+    {
+      "source": "shadcn-notice",
+      "repository": "shadcn-ui/ui",
+      "revision": "f3d14c48cbad1b6a3b3c9c81db9f198a4188f712",
+      "path": "LICENSE.md",
+      "gitBlob": "fad4d887a681dd49233e5ed01ee2c7a1513089a0",
+      "sha256": "1564074e13439397221ffd522e2e504d56561994a23d371aa5e3ad43e4f5423f",
+      "byteLength": 1063,
+      "items": [
+        "anthropic.notice.shadcn",
+        "anthropic.kiro.notice.shadcn",
+        "anthropic.copilot.notice.shadcn"
+      ],
+      "reason": "Bundled shadcn-components.tar.gz omits MIT notice; preserve original archive and supply exact upstream notice through ordinary required material.",
+      "owner": "Catalog (notice delivery); shadcn (copyright)",
+      "association": {
+        "anthropicPath": "skills/web-artifacts-builder/scripts/shadcn-components.tar.gz",
+        "archiveMember": "components/ui/button.tsx",
+        "upstreamPath": "apps/www/registry/new-york/ui/button.tsx",
+        "sha256": "c2b999a96781e6c932632bd089095368e973bf5602e1b1a62156b7d2b43f1e84"
+      }
+    }
   ]
 }

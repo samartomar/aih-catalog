@@ -12,6 +12,12 @@
       "repository": "anthropics/skills",
       "licensePath": "skills/academy-guide/LICENSE.txt",
       "license": "Apache-2.0"
+    },
+    {
+      "id": "shadcn-notice",
+      "repository": "shadcn-ui/ui",
+      "licensePath": "LICENSE.md",
+      "license": "MIT"
     }
   ],
   "items": [
@@ -3139,7 +3145,7 @@
       "id": "anthropic.skill.mcp-builder",
       "source": "anthropic",
       "label": "mcp-builder",
-      "description": "Skill/reference material, not an MCP server or registration. Python 3 with mcp>=1.1.0, anthropic>=0.39.0 in scripts/requirements.txt for evaluation.py/mcp_client.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call.",
+      "description": "Skill/reference material, not an MCP server or registration. Python >=3.10 with mcp>=1.1.0 and anthropic>=0.39.0 in scripts/requirements.txt for scripts/evaluation.py and scripts/connections.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call.",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.skill.mcp-builder.json",
       "materials": [
@@ -3208,7 +3214,7 @@
           "surface": "agent-tools",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Skill/reference material, not an MCP server or registration. Python 3 with mcp>=1.1.0, anthropic>=0.39.0 in scripts/requirements.txt for evaluation.py/mcp_client.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call."
+          "reason": "Skill/reference material, not an MCP server or registration. Python >=3.10 with mcp>=1.1.0 and anthropic>=0.39.0 in scripts/requirements.txt for scripts/evaluation.py and scripts/connections.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call."
         },
         {
           "client": "claude-code",
@@ -3222,7 +3228,7 @@
         {
           "client": "claude-code",
           "surface": ".claude/skills",
-          "instructions": "Open project and select/read mcp-builder; invoke scripts through declared interpreters after separately acquiring prerequisites. Skill/reference material, not an MCP server or registration. Python 3 with mcp>=1.1.0, anthropic>=0.39.0 in scripts/requirements.txt for evaluation.py/mcp_client.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call."
+          "instructions": "Open project and select/read mcp-builder; invoke scripts through declared interpreters after separately acquiring prerequisites. Skill/reference material, not an MCP server or registration. Python >=3.10 with mcp>=1.1.0 and anthropic>=0.39.0 in scripts/requirements.txt for scripts/evaluation.py and scripts/connections.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call."
         }
       ],
       "configuration": {}
@@ -3231,7 +3237,7 @@
       "id": "anthropic.kiro.skill.mcp-builder",
       "source": "anthropic",
       "label": "mcp-builder",
-      "description": "Skill/reference material, not an MCP server or registration. Python 3 with mcp>=1.1.0, anthropic>=0.39.0 in scripts/requirements.txt for evaluation.py/mcp_client.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call.",
+      "description": "Skill/reference material, not an MCP server or registration. Python >=3.10 with mcp>=1.1.0 and anthropic>=0.39.0 in scripts/requirements.txt for scripts/evaluation.py and scripts/connections.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call.",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.kiro.skill.mcp-builder.json",
       "materials": [
@@ -3300,7 +3306,7 @@
           "surface": "agent-tools",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Skill/reference material, not an MCP server or registration. Python 3 with mcp>=1.1.0, anthropic>=0.39.0 in scripts/requirements.txt for evaluation.py/mcp_client.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call."
+          "reason": "Skill/reference material, not an MCP server or registration. Python >=3.10 with mcp>=1.1.0 and anthropic>=0.39.0 in scripts/requirements.txt for scripts/evaluation.py and scripts/connections.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call."
         },
         {
           "client": "kiro-ide",
@@ -3314,7 +3320,7 @@
         {
           "client": "kiro-ide",
           "surface": ".kiro/skills",
-          "instructions": "Open project and select/read mcp-builder; invoke scripts through declared interpreters after separately acquiring prerequisites. Skill/reference material, not an MCP server or registration. Python 3 with mcp>=1.1.0, anthropic>=0.39.0 in scripts/requirements.txt for evaluation.py/mcp_client.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call."
+          "instructions": "Open project and select/read mcp-builder; invoke scripts through declared interpreters after separately acquiring prerequisites. Skill/reference material, not an MCP server or registration. Python >=3.10 with mcp>=1.1.0 and anthropic>=0.39.0 in scripts/requirements.txt for scripts/evaluation.py and scripts/connections.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call."
         }
       ],
       "configuration": {}
@@ -3323,7 +3329,7 @@
       "id": "anthropic.copilot.skill.mcp-builder",
       "source": "anthropic",
       "label": "mcp-builder",
-      "description": "Skill/reference material, not an MCP server or registration. Python 3 with mcp>=1.1.0, anthropic>=0.39.0 in scripts/requirements.txt for evaluation.py/mcp_client.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call.",
+      "description": "Skill/reference material, not an MCP server or registration. Python >=3.10 with mcp>=1.1.0 and anthropic>=0.39.0 in scripts/requirements.txt for scripts/evaluation.py and scripts/connections.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call.",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.copilot.skill.mcp-builder.json",
       "materials": [
@@ -3392,7 +3398,7 @@
           "surface": "agent-tools",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Skill/reference material, not an MCP server or registration. Python 3 with mcp>=1.1.0, anthropic>=0.39.0 in scripts/requirements.txt for evaluation.py/mcp_client.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call."
+          "reason": "Skill/reference material, not an MCP server or registration. Python >=3.10 with mcp>=1.1.0 and anthropic>=0.39.0 in scripts/requirements.txt for scripts/evaluation.py and scripts/connections.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call."
         },
         {
           "client": "copilot-vscode",
@@ -3406,7 +3412,7 @@
         {
           "client": "copilot-vscode",
           "surface": ".github/skills",
-          "instructions": "Open project and select/read mcp-builder; invoke scripts through declared interpreters after separately acquiring prerequisites. Skill/reference material, not an MCP server or registration. Python 3 with mcp>=1.1.0, anthropic>=0.39.0 in scripts/requirements.txt for evaluation.py/mcp_client.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call."
+          "instructions": "Open project and select/read mcp-builder; invoke scripts through declared interpreters after separately acquiring prerequisites. Skill/reference material, not an MCP server or registration. Python >=3.10 with mcp>=1.1.0 and anthropic>=0.39.0 in scripts/requirements.txt for scripts/evaluation.py and scripts/connections.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call."
         }
       ],
       "configuration": {}
@@ -3415,7 +3421,7 @@
       "id": "anthropic.skill.skill-creator",
       "source": "anthropic",
       "label": "skill-creator",
-      "description": "Python 3, PyYAML for validation/packaging; eval/improvement scripts additionally require available Claude CLI, caller-approved account/model calls and caller-owned eval fixtures. render_review.py needs browser for viewing only; no eval/model execution.",
+      "description": "Python >=3.10; PyYAML for scripts/quick_validate.py and packaging. scripts/run_eval.py, run_loop.py and improve_description.py require available Claude CLI, caller-approved account/model calls and eval fixtures. run_eval.py uses select.select on subprocess pipes, requiring a POSIX-compatible execution environment; native Windows evaluation is unsupported without an environment/port that supplies those semantics. eval-viewer/generate_review.py starts a stdlib localhost server and opens a browser by default; --static writes HTML without a server. Caller owns writable temporary paths/browser opener; no eval/model/viewer execution in material Apply.",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.skill.skill-creator.json",
       "materials": [
@@ -3516,14 +3522,14 @@
           "surface": "agent-tools",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Python 3, PyYAML for validation/packaging; eval/improvement scripts additionally require available Claude CLI, caller-approved account/model calls and caller-owned eval fixtures. render_review.py needs browser for viewing only; no eval/model execution."
+          "reason": "Python >=3.10; PyYAML for scripts/quick_validate.py and packaging. scripts/run_eval.py, run_loop.py and improve_description.py require available Claude CLI, caller-approved account/model calls and eval fixtures. run_eval.py uses select.select on subprocess pipes, requiring a POSIX-compatible execution environment; native Windows evaluation is unsupported without an environment/port that supplies those semantics. eval-viewer/generate_review.py starts a stdlib localhost server and opens a browser by default; --static writes HTML without a server. Caller owns writable temporary paths/browser opener; no eval/model/viewer execution in material Apply."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": ".claude/skills",
-          "instructions": "Open project and select/read skill-creator; invoke scripts through declared interpreters after separately acquiring prerequisites. Python 3, PyYAML for validation/packaging; eval/improvement scripts additionally require available Claude CLI, caller-approved account/model calls and caller-owned eval fixtures. render_review.py needs browser for viewing only; no eval/model execution."
+          "instructions": "Open project and select/read skill-creator; invoke scripts through declared interpreters after separately acquiring prerequisites. Python >=3.10; PyYAML for scripts/quick_validate.py and packaging. scripts/run_eval.py, run_loop.py and improve_description.py require available Claude CLI, caller-approved account/model calls and eval fixtures. run_eval.py uses select.select on subprocess pipes, requiring a POSIX-compatible execution environment; native Windows evaluation is unsupported without an environment/port that supplies those semantics. eval-viewer/generate_review.py starts a stdlib localhost server and opens a browser by default; --static writes HTML without a server. Caller owns writable temporary paths/browser opener; no eval/model/viewer execution in material Apply."
         }
       ],
       "configuration": {}
@@ -3532,7 +3538,7 @@
       "id": "anthropic.kiro.skill.skill-creator",
       "source": "anthropic",
       "label": "skill-creator",
-      "description": "Python 3, PyYAML for validation/packaging; eval/improvement scripts additionally require available Claude CLI, caller-approved account/model calls and caller-owned eval fixtures. render_review.py needs browser for viewing only; no eval/model execution.",
+      "description": "Python >=3.10; PyYAML for scripts/quick_validate.py and packaging. scripts/run_eval.py, run_loop.py and improve_description.py require available Claude CLI, caller-approved account/model calls and eval fixtures. run_eval.py uses select.select on subprocess pipes, requiring a POSIX-compatible execution environment; native Windows evaluation is unsupported without an environment/port that supplies those semantics. eval-viewer/generate_review.py starts a stdlib localhost server and opens a browser by default; --static writes HTML without a server. Caller owns writable temporary paths/browser opener; no eval/model/viewer execution in material Apply.",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.kiro.skill.skill-creator.json",
       "materials": [
@@ -3633,14 +3639,14 @@
           "surface": "agent-tools",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Python 3, PyYAML for validation/packaging; eval/improvement scripts additionally require available Claude CLI, caller-approved account/model calls and caller-owned eval fixtures. render_review.py needs browser for viewing only; no eval/model execution."
+          "reason": "Python >=3.10; PyYAML for scripts/quick_validate.py and packaging. scripts/run_eval.py, run_loop.py and improve_description.py require available Claude CLI, caller-approved account/model calls and eval fixtures. run_eval.py uses select.select on subprocess pipes, requiring a POSIX-compatible execution environment; native Windows evaluation is unsupported without an environment/port that supplies those semantics. eval-viewer/generate_review.py starts a stdlib localhost server and opens a browser by default; --static writes HTML without a server. Caller owns writable temporary paths/browser opener; no eval/model/viewer execution in material Apply."
         }
       ],
       "activation": [
         {
           "client": "kiro-ide",
           "surface": ".kiro/skills",
-          "instructions": "Open project and select/read skill-creator; invoke scripts through declared interpreters after separately acquiring prerequisites. Python 3, PyYAML for validation/packaging; eval/improvement scripts additionally require available Claude CLI, caller-approved account/model calls and caller-owned eval fixtures. render_review.py needs browser for viewing only; no eval/model execution."
+          "instructions": "Open project and select/read skill-creator; invoke scripts through declared interpreters after separately acquiring prerequisites. Python >=3.10; PyYAML for scripts/quick_validate.py and packaging. scripts/run_eval.py, run_loop.py and improve_description.py require available Claude CLI, caller-approved account/model calls and eval fixtures. run_eval.py uses select.select on subprocess pipes, requiring a POSIX-compatible execution environment; native Windows evaluation is unsupported without an environment/port that supplies those semantics. eval-viewer/generate_review.py starts a stdlib localhost server and opens a browser by default; --static writes HTML without a server. Caller owns writable temporary paths/browser opener; no eval/model/viewer execution in material Apply."
         }
       ],
       "configuration": {}
@@ -3649,7 +3655,7 @@
       "id": "anthropic.copilot.skill.skill-creator",
       "source": "anthropic",
       "label": "skill-creator",
-      "description": "Python 3, PyYAML for validation/packaging; eval/improvement scripts additionally require available Claude CLI, caller-approved account/model calls and caller-owned eval fixtures. render_review.py needs browser for viewing only; no eval/model execution.",
+      "description": "Python >=3.10; PyYAML for scripts/quick_validate.py and packaging. scripts/run_eval.py, run_loop.py and improve_description.py require available Claude CLI, caller-approved account/model calls and eval fixtures. run_eval.py uses select.select on subprocess pipes, requiring a POSIX-compatible execution environment; native Windows evaluation is unsupported without an environment/port that supplies those semantics. eval-viewer/generate_review.py starts a stdlib localhost server and opens a browser by default; --static writes HTML without a server. Caller owns writable temporary paths/browser opener; no eval/model/viewer execution in material Apply.",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.copilot.skill.skill-creator.json",
       "materials": [
@@ -3750,14 +3756,14 @@
           "surface": "agent-tools",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Python 3, PyYAML for validation/packaging; eval/improvement scripts additionally require available Claude CLI, caller-approved account/model calls and caller-owned eval fixtures. render_review.py needs browser for viewing only; no eval/model execution."
+          "reason": "Python >=3.10; PyYAML for scripts/quick_validate.py and packaging. scripts/run_eval.py, run_loop.py and improve_description.py require available Claude CLI, caller-approved account/model calls and eval fixtures. run_eval.py uses select.select on subprocess pipes, requiring a POSIX-compatible execution environment; native Windows evaluation is unsupported without an environment/port that supplies those semantics. eval-viewer/generate_review.py starts a stdlib localhost server and opens a browser by default; --static writes HTML without a server. Caller owns writable temporary paths/browser opener; no eval/model/viewer execution in material Apply."
         }
       ],
       "activation": [
         {
           "client": "copilot-vscode",
           "surface": ".github/skills",
-          "instructions": "Open project and select/read skill-creator; invoke scripts through declared interpreters after separately acquiring prerequisites. Python 3, PyYAML for validation/packaging; eval/improvement scripts additionally require available Claude CLI, caller-approved account/model calls and caller-owned eval fixtures. render_review.py needs browser for viewing only; no eval/model execution."
+          "instructions": "Open project and select/read skill-creator; invoke scripts through declared interpreters after separately acquiring prerequisites. Python >=3.10; PyYAML for scripts/quick_validate.py and packaging. scripts/run_eval.py, run_loop.py and improve_description.py require available Claude CLI, caller-approved account/model calls and eval fixtures. run_eval.py uses select.select on subprocess pipes, requiring a POSIX-compatible execution environment; native Windows evaluation is unsupported without an environment/port that supplies those semantics. eval-viewer/generate_review.py starts a stdlib localhost server and opens a browser by default; --static writes HTML without a server. Caller owns writable temporary paths/browser opener; no eval/model/viewer execution in material Apply."
         }
       ],
       "configuration": {}
@@ -4309,7 +4315,11 @@
           "path": "skills/academy-guide/LICENSE.txt"
         }
       ],
-      "requires": [],
+      "requires": [
+        {
+          "itemId": "anthropic.notice.shadcn"
+        }
+      ],
       "optional": [],
       "conflicts": [],
       "clientCapabilities": [
@@ -4374,7 +4384,11 @@
           "path": "skills/academy-guide/LICENSE.txt"
         }
       ],
-      "requires": [],
+      "requires": [
+        {
+          "itemId": "anthropic.kiro.notice.shadcn"
+        }
+      ],
       "optional": [],
       "conflicts": [],
       "clientCapabilities": [
@@ -4439,7 +4453,11 @@
           "path": "skills/academy-guide/LICENSE.txt"
         }
       ],
-      "requires": [],
+      "requires": [
+        {
+          "itemId": "anthropic.copilot.notice.shadcn"
+        }
+      ],
       "optional": [],
       "conflicts": [],
       "clientCapabilities": [
@@ -4725,6 +4743,66 @@
           "instructions": "Open project and select/read webapp-testing; invoke scripts through declared interpreters after separately acquiring prerequisites. Python >=3.9 as Catalog compatible prerequisite; scripts/with_server.py uses only stdlib. Actual browser automation additionally needs compatible playwright Python package and separately acquired browser binaries, a caller-owned local application and approved command. No server or browser started by material Apply."
         }
       ],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.notice.shadcn",
+      "source": "shadcn-notice",
+      "label": "shadcn component notice",
+      "description": "Supplemental exact MIT copyright/permission notice for bundled shadcn component archive; raw Anthropic archive remains unchanged.",
+      "kind": "notice",
+      "recipePath": "catalog-recipes/anthropic.notice.shadcn.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE.md"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [],
+      "activation": [],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.kiro.notice.shadcn",
+      "source": "shadcn-notice",
+      "label": "shadcn component notice",
+      "description": "Supplemental exact MIT copyright/permission notice for bundled shadcn component archive; raw Anthropic archive remains unchanged.",
+      "kind": "notice",
+      "recipePath": "catalog-recipes/anthropic.kiro.notice.shadcn.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE.md"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [],
+      "activation": [],
+      "configuration": {}
+    },
+    {
+      "id": "anthropic.copilot.notice.shadcn",
+      "source": "shadcn-notice",
+      "label": "shadcn component notice",
+      "description": "Supplemental exact MIT copyright/permission notice for bundled shadcn component archive; raw Anthropic archive remains unchanged.",
+      "kind": "notice",
+      "recipePath": "catalog-recipes/anthropic.copilot.notice.shadcn.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE.md"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [],
+      "activation": [],
       "configuration": {}
     }
   ]

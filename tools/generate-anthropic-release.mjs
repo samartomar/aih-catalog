@@ -51,12 +51,13 @@ export function generateAnthropicRelease(identity = JSON.parse(readFileSync(reso
   }
   const files = {}, supplied = [];
   for (const source of snapshot.sources) {
-    assert.equal(source.repository, inventory.repository);
-    assert.equal(source.revision, inventory.revision);
+    const supplement = inventory.supplementalNotices?.find(row => row.source === source.id);
+    assert.equal(source.repository, supplement?.repository ?? inventory.repository);
+    assert.equal(source.revision, supplement?.revision ?? inventory.revision);
     const ownFiles = {};
     for (const file of source.files) {
-      const bytes = Buffer.from(file.base64, "base64"), row = rows.get(file.path);
-      assert(row && row.disposition === "supported-material");
+      const bytes = Buffer.from(file.base64, "base64"), row = supplement ?? rows.get(file.path);
+      assert(row && (supplement || row.disposition === "supported-material"));
       assert.equal(bytes.length, file.byteLength); assert.equal(file.byteLength, row.byteLength);
       assert.equal(sha(bytes), file.sha256); assert.equal(file.sha256, row.sha256);
       assert.equal(objectId("blob", bytes), row.gitBlob);
@@ -64,13 +65,13 @@ export function generateAnthropicRelease(identity = JSON.parse(readFileSync(reso
       files[file.path] = new Uint8Array(bytes); ownFiles[file.path] = new Uint8Array(bytes);
     }
     const declared = declaration.sources.find(row => row.id === source.id);
-    assert(declared && declared.repository === inventory.repository);
-    assert(Buffer.from(ownFiles[declared.licensePath]).includes(Buffer.from("Apache License")));
+    assert(declared && declared.repository === source.repository);
+    assert(Buffer.from(ownFiles[declared.licensePath]).includes(Buffer.from(supplement ? "MIT License" : "Apache License")));
     for (const item of declaration.items.filter(item => item.source === source.id)) {
       const text = snapshot.recipes[item.recipePath];
       assert(typeof text === "string" && !rows.has(item.recipePath));
       ownFiles[item.recipePath] = new TextEncoder().encode(text);
-      for (const member of item.materials) assert(rows.get(member.path)?.items.includes(item.id));
+      for (const member of item.materials) assert((supplement ?? rows.get(member.path))?.items.includes(item.id));
     }
     supplied.push({source: source.id, revision: source.revision, files: ownFiles});
   }
@@ -99,6 +100,16 @@ export function generateAnthropicRelease(identity = JSON.parse(readFileSync(reso
     assert.deepEqual(records, row.embeddedFontNotices);
     assert(records[13].some(text => text.includes("Open Font License")));
     assert(files[row.licensePath], `Missing accompanying font license ${row.path}`);
+  }
+  for (const supplement of inventory.supplementalNotices ?? []) {
+    assert(supplement.reason && supplement.owner);
+    const raw = rows.get(supplement.association.anthropicPath);
+    assert(raw && raw.supplementalNoticeItems.join() === supplement.items.join());
+    for (const id of supplement.items) {
+      const notice = declaration.items.find(item => item.id === id);
+      assert(notice && notice.source === supplement.source);
+      assert(declaration.items.some(item => raw.items.includes(item.id) && item.requires.some(ref => ref.itemId === id)));
+    }
   }
   assert.equal(snapshot.sources.length, declaration.sources.length);
   assert.equal(Object.keys(snapshot.recipes).length, declaration.items.length);
@@ -136,7 +147,7 @@ Complete Git tree: ${inventory.gitTree}. Original commit/tree objects bind all $
 
 All 19 retained donor closures are checked by exact digest against this full tree; their shared README brings the retained union to 414 source files and is historical reference only. They are review-only donors, not automatically executable declarations. The inventory records each donor file and its disposition. All prior release bytes are retained.
 
-14 skills have complete ordinary material closures in three client projections. doc-coauthoring has no item license and is unsupported pending Anthropic rights clarification. docx, pdf, pptx and xlsx prohibit local copying outside Services and redistribution under their own notices; neither bundled bytes nor BYO local copies are supported. Only paths/hashes/lengths and tool facts are shipped for these restricted files. No document script execution is claimed. Root plugin/spec/template files have precise unsupported installation dispositions. The third-party notice document is preserved in each permitted closure; fonts retain adjacent OFL notices.
+14 skills have complete ordinary material closures in three client projections. doc-coauthoring has no item license and is unsupported pending Anthropic rights clarification. docx, pdf, pptx and xlsx prohibit local copying outside Services and redistribution under their own notices; neither bundled bytes nor BYO local copies are supported. Only paths/hashes/lengths and tool facts are shipped for these restricted files. No document script execution is claimed. Root plugin/spec/template files have precise unsupported installation dispositions. The third-party notice document is preserved in each permitted closure; fonts retain adjacent and embedded OFL notices. A separate exact shadcn MIT notice source supplies required per-client notice items for the unchanged bundled component archive; supplementalNotices records its pin, blob/hash/length and byte-matched association.
 
 [Snapshot](../producer/anthropic/snapshot.json) separates permitted exact raw bytes from Catalog recipe overlays. [Declaration](../producer/anthropic/declaration.json) uses the public v3 contract. [Content guidance](ANTHROPIC-CONTENT.md) describes runtime tools and refusal boundaries. Material Apply is distinct from interpreter checks, native client loading and model/tool execution.
 

@@ -6,7 +6,7 @@ Complete Git tree: 60cb5b056141a1b24cfa2e1b1c2540bfb162850a. Original commit/tre
 
 All 19 retained donor closures are checked by exact digest against this full tree; their shared README brings the retained union to 414 source files and is historical reference only. They are review-only donors, not automatically executable declarations. The inventory records each donor file and its disposition. All prior release bytes are retained.
 
-14 skills have complete ordinary material closures in three client projections. doc-coauthoring has no item license and is unsupported pending Anthropic rights clarification. docx, pdf, pptx and xlsx prohibit local copying outside Services and redistribution under their own notices; neither bundled bytes nor BYO local copies are supported. Only paths/hashes/lengths and tool facts are shipped for these restricted files. No document script execution is claimed. Root plugin/spec/template files have precise unsupported installation dispositions. The third-party notice document is preserved in each permitted closure; fonts retain adjacent OFL notices.
+14 skills have complete ordinary material closures in three client projections. doc-coauthoring has no item license and is unsupported pending Anthropic rights clarification. docx, pdf, pptx and xlsx prohibit local copying outside Services and redistribution under their own notices; neither bundled bytes nor BYO local copies are supported. Only paths/hashes/lengths and tool facts are shipped for these restricted files. No document script execution is claimed. Root plugin/spec/template files have precise unsupported installation dispositions. The third-party notice document is preserved in each permitted closure; fonts retain adjacent and embedded OFL notices. A separate exact shadcn MIT notice source supplies required per-client notice items for the unchanged bundled component archive; supplementalNotices records its pin, blob/hash/length and byte-matched association.
 
 [Snapshot](../producer/anthropic/snapshot.json) separates permitted exact raw bytes from Catalog recipe overlays. [Declaration](../producer/anthropic/declaration.json) uses the public v3 contract. [Content guidance](ANTHROPIC-CONTENT.md) describes runtime tools and refusal boundaries. Material Apply is distinct from interpreter checks, native client loading and model/tool execution.
 
@@ -77,3 +77,6 @@ All 19 retained donor closures are checked by exact digest against this full tre
 | anthropic.kiro.skill.webapp-testing | skill | 8 |
 | anthropic.copilot.skill.webapp-testing | skill | 8 |
 | anthropic.template.local-web-testing | template | 2 |
+| anthropic.notice.shadcn | notice | 1 |
+| anthropic.kiro.notice.shadcn | notice | 1 |
+| anthropic.copilot.notice.shadcn | notice | 1 |

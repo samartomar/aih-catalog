@@ -108,6 +108,7 @@ describe("carried release", () => {
       "release/release-extensions.json",
       "release/release-ecc.json",
       "release/release-superpowers.json",
+      "release/release-anthropic.json",
     ].map((path) => {
       const bytes = bytesAt(path);
       const read = readRelease(bytes, { expectedSha256: sha256(bytes) });
@@ -123,6 +124,7 @@ describe("carried release", () => {
       "release/release-extensions.json",
       "release/release-ecc.json",
       "release/release-superpowers.json",
+      "release/release-anthropic.json",
     ]);
     for (const item of [
       ...listItems(carried()),

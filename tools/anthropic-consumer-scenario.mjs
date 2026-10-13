@@ -20,7 +20,7 @@ assert.equal(inventory.donor.skills.length,19);
 assert.equal(checkProducerDeclaration(declaration).status,"ok");
 const sourceFiles=snapshot.sources.map(source=>({source:source.id,revision:source.revision,files:{
  ...Object.fromEntries(source.files.map(file=>[file.path,new Uint8Array(Buffer.from(file.base64,"base64"))])),
- ...Object.fromEntries(Object.entries(snapshot.recipes).map(([path,text])=>[path,new TextEncoder().encode(text)])),
+ ...Object.fromEntries(Object.entries(snapshot.recipes).filter(([path])=>declaration.items.some(item=>item.source===source.id && item.recipePath===path)).map(([path,text])=>[path,new TextEncoder().encode(text)])),
 }}));
 const compiled=compileProducerDeclaration({declaration,sourceFiles});
 assert.equal(compiled.status,"ok",JSON.stringify(compiled.diagnostics));
@@ -34,7 +34,7 @@ for(const name of ["doc-coauthoring","docx","pdf","pptx","xlsx"]){
 for(const item of installed.release.items) assert.equal(configureItem({release:installed.release,itemId:item.id,configuration:{},materialSource:installed.source}).valid,true,item.id);
 const releases={[installed.release.sha256]:installed.release};
 const ref=itemId=>({releaseSha256:installed.release.sha256,itemId,scope:"project"});
-const roots=["anthropic.template.local-web-testing","anthropic.kiro.skill.webapp-testing","anthropic.copilot.skill.webapp-testing","anthropic.skill.mcp-builder"].map(itemId=>({...ref(itemId),configuration:{}}));
+const roots=["anthropic.template.local-web-testing","anthropic.kiro.skill.webapp-testing","anthropic.copilot.skill.webapp-testing","anthropic.skill.mcp-builder","anthropic.skill.web-artifacts-builder","anthropic.kiro.skill.web-artifacts-builder","anthropic.copilot.skill.web-artifacts-builder"].map(itemId=>({...ref(itemId),configuration:{}}));
 // Optional skip tested without an explicit MCP root (explicit roots remain explicit).
 const optional=resolveSelections({releases,roots:roots.slice(0,3),skips:[ref("anthropic.skill.mcp-builder")]});
 assert.equal(optional.status,"ok",JSON.stringify(optional.diagnostics));
@@ -50,6 +50,19 @@ const selections=resolved.value.selections.map(row=>{
  const configured=configureItem({release:installed.release,itemId:row.item.itemId,configuration:row.configuration,materialSource:installed.source});
  assert.equal(configured.valid,true);return {...configured.selection,id:row.id,managementId:row.id,scope:"project",requires:validated.requiresBySelectionId[row.id]};
 });
+// Runtime claims must name actual delivered support files, not guessed helpers.
+const mcp=declaration.items.find(item=>item.id==="anthropic.skill.mcp-builder");
+assert(mcp.materials.some(member=>member.path==="skills/mcp-builder/scripts/connections.py"));
+assert(mcp.description.includes("Python >=3.10") && mcp.description.includes("scripts/connections.py"));
+const creator=declaration.items.find(item=>item.id==="anthropic.skill.skill-creator");
+assert(creator.materials.some(member=>member.path==="skills/skill-creator/eval-viewer/generate_review.py"));
+assert(creator.description.includes("POSIX-compatible") && creator.description.includes("--static"));
+for(const prefix of ["", "kiro.", "copilot."]) {
+ const web=resolveSelections({releases,roots:[{...ref(`anthropic.${prefix}skill.web-artifacts-builder`),configuration:{}}],skips:[]});
+ assert.equal(web.status,"ok");assert(web.value.selections.some(row=>row.item.itemId===`anthropic.${prefix}notice.shadcn`));
+ const missingNotice=resolveSelections({releases,roots:[{...ref(`anthropic.${prefix}skill.web-artifacts-builder`),configuration:{}}],skips:[ref(`anthropic.${prefix}notice.shadcn`)]});
+ assert.equal(missingNotice.status,"refused");assert(missingNotice.diagnostics.some(row=>row.code==="REQUIRED_ITEM_SKIPPED"));
+}
 const original=declaration.items.find(item=>item.id==="anthropic.skill.webapp-testing");
 assert(original.materials.some(row=>row.path==="skills/webapp-testing/scripts/with_server.py"));
 assert(original.materials.some(row=>row.path==="skills/webapp-testing/LICENSE.txt"));
@@ -58,7 +71,7 @@ const expanded=structuredClone(declaration),extra=structuredClone(original);
 extra.id="anthropic.extra.webapp-reference";extra.recipePath="catalog-recipes/extra-webapp-reference.json";expanded.items.push(extra);
 const recipe=JSON.parse(snapshot.recipes[original.recipePath]);recipe.id=extra.id;
 for(const step of [...recipe.operations,...recipe.checks])step.target.segments.unshift({literal:"additional-reference"});
-const expansion=compileProducerDeclaration({declaration:expanded,sourceFiles:sourceFiles.map(source=>({...source,files:{...source.files,[extra.recipePath]:new TextEncoder().encode(JSON.stringify(recipe))}}))});
+const expansion=compileProducerDeclaration({declaration:expanded,sourceFiles:sourceFiles.map(source=>({...source,files:{...source.files,...(source.source===original.source?{[extra.recipePath]:new TextEncoder().encode(JSON.stringify(recipe))}:{})}}))});
 assert.equal(expansion.status,"ok",JSON.stringify(expansion.diagnostics));
 const checked=readRelease(expansion.value.releaseBytes,{expectedSha256:expansion.value.releaseSha256});assert.equal(checked.valid,true);
 assert.equal(resolveSelections({releases:{[checked.release.sha256]:checked.release},roots:[{releaseSha256:checked.release.sha256,itemId:extra.id,scope:"project",configuration:{}}],skips:[]}).status,"ok");
@@ -77,6 +90,10 @@ if(process.argv[3]==="core"){
  for(const directory of [".claude",".kiro",".github"]){
   const script=join(project,directory,"skills/webapp-testing/scripts/with_server.py");
   const src=sourceFiles[0].files["skills/webapp-testing/scripts/with_server.py"];assert.equal(sha(readFileSync(script)),sha(src));
+ }
+ for(const directory of [".claude",".kiro",".github"]) {
+  const notice=join(project,directory,"skills/web-artifacts-builder/SHADCN-LICENSE.md");
+  assert.equal(sha(readFileSync(notice)),inventory.supplementalNotices[0].sha256);
  }
  assert.equal(readFileSync(join(project,"unrelated.txt"),"utf8"),"keep neighbor\n");
  // Explicit harmless tool/script smoke after Apply, not part of skill invocation.

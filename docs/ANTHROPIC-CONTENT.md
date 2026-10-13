@@ -18,9 +18,14 @@ full OFL text is included in THIRD_PARTY_NOTICES.md. The inventory records those
 embedded notices and license paths per font. No font is renamed or sold separately.
 Source metadata identifies the permitted skill source as Apache-2.0; it does not
 relicense third-party fonts or external packages. The source license comes from
-academy-guide/LICENSE.txt, whose exact Apache bytes match the other permitted
-skill licenses, and is additionally delivered as SOURCE-LICENSE.txt where needed.
+academy-guide/LICENSE.txt, which supplies a shared Apache notice without replacing any item-specific
+license bytes, and is additionally delivered as SOURCE-LICENSE.txt where needed.
 Root notices list external packages too; a notice is not a bundled executable.
+The bundled shadcn-components.tar.gz lacks its MIT notice. Required per-client
+`anthropic[.kiro|.copilot].notice.shadcn` items deliver the exact supplemental
+shadcn-ui/ui LICENSE.md alongside web-artifacts-builder as SHADCN-LICENSE.md.
+The distinct source pin and byte-matched component association are recorded in
+inventory.supplementalNotices; the raw Anthropic archive remains unchanged.
 
 The four document skills docx, pdf, pptx and xlsx have restrictive item notices:
 [exact notice](https://github.com/anthropics/skills/blob/34040c9c568585f6929bedeaad110ad08f079624/skills/docx/LICENSE.txt).
@@ -68,6 +73,13 @@ skills' runtime, acquisition and host-owned environment prerequisites. The
 representative bounded smoke runs `scripts/with_server.py --help` from the complete
 installed webapp-testing closure using Python >=3.9, with no server or browser.
 This checks a real script/interpreter path; it does not prove browser automation.
+MCP evaluation uses scripts/evaluation.py and scripts/connections.py with
+Python >=3.10, mcp>=1.1.0 and anthropic>=0.39.0. Skill-creator evaluation needs
+Python >=3.10, Claude CLI and POSIX-compatible subprocess-pipe select semantics;
+native Windows evaluation is unsupported without a suitable environment/port.
+Its eval-viewer/generate_review.py starts a local server and opens a browser by
+default; --static writes HTML without serving it. These tools remain unexecuted.
+
 Actual web testing needs a compatible Python Playwright package, separately
 acquired browser binaries and an approved local application/command. Python's
 executable location is host-owned; Windows may use `py -3` or an identified Python
