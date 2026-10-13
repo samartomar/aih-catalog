@@ -311,6 +311,31 @@ export function compileProducerDeclaration(request: {
     if (!trees.has(source.id))
       return failure("/sourceFiles", `Missing source snapshot ${source.id}.`);
   const donor = parseDeclaration(donorProjection(declaration));
+  // Large inventories retain full descriptive byte provenance once, rather than
+  // multiplying it by every item. Small declarations keep their existing bytes.
+  const sourceInventories = new Map(
+    declaration.sources.map((source) => {
+      const tree = trees.get(source.id) as SourceTree;
+      const inventory = {
+        source: source.id,
+        revision: tree.commit,
+        files: [...tree.inventory.paths].sort().map((path) => ({
+          path,
+          sha256: sha256Hex(tree.read(path)),
+          byteLength: tree.read(path).byteLength,
+        })),
+      };
+      return [source.id, inventory] as const;
+    }),
+  );
+  const sharedInventories = new Map(
+    [...sourceInventories].filter(
+      ([id, inventory]) =>
+        documentBytes(inventory).byteLength *
+          declaration.items.filter((item) => item.source === id).length >
+        8 * 1024 * 1024,
+    ),
+  );
   const generated: GeneratedItem[] = [];
   let generationPath = "/sourceFiles";
   try {
@@ -377,15 +402,13 @@ export function compileProducerDeclaration(request: {
           activation: item.activation as unknown as Json,
           configuration: item.configuration as unknown as Json,
         },
-        suppliedSource: {
-          source: source.id,
-          revision: tree.commit,
-          files: [...tree.inventory.paths].sort().map((path) => ({
-            path,
-            sha256: sha256Hex(tree.read(path)),
-            byteLength: tree.read(path).byteLength,
-          })),
-        },
+        suppliedSource: sharedInventories.has(source.id)
+          ? {
+              source: source.id,
+              revision: tree.commit,
+              inventorySha256: sha256Hex(documentBytes(sourceInventories.get(source.id))),
+            }
+          : (sourceInventories.get(source.id) as unknown as Json),
       };
       const agreement = checkRecipeAgreement(
         output.record as unknown as CatalogItem,
@@ -454,6 +477,15 @@ export function compileProducerDeclaration(request: {
         },
       }))
       .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)),
+    ...(sharedInventories.size === 0
+      ? {}
+      : {
+          metadata: {
+            suppliedSources: [...sharedInventories.values()].sort((a, b) =>
+              a.source < b.source ? -1 : a.source > b.source ? 1 : 0,
+            ),
+          },
+        }),
     items: generated
       .map((item) => item.record)
       .sort((a, b) => (String(a.id) < String(b.id) ? -1 : String(a.id) > String(b.id) ? 1 : 0)),

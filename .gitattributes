@@ -8,3 +8,7 @@ release/materials/** -text
 docs/evidence/nuclei-linux-native/*/reports/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 docs/evidence/nuclei-windows-native/*/reports/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 docs/evidence/nuclei-windows-native/postrun-cleanup.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
+# Exact pinned ECC source contains upstream blank-line spaces; preserve its hash.
+# Only blank-at-eol is relaxed for this file, not authored code or other revisions.
+release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/videodb/scripts/ws_listener.py whitespace=-blank-at-eol

@@ -85,6 +85,7 @@ export function candidateManifestBytes(
     "release-native-bundles.json",
     "release-guide.json",
     "release-extensions.json",
+    "release-ecc.json",
   ]) {
     const path = `release/${name}`;
     if (!files.has(path) && manifest.exports[`./${name}`] === `./${path}`) {

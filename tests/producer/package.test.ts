@@ -117,6 +117,9 @@ describe("packed candidate", () => {
           path !== "docs/EXTENSIONS-CONTENT.md" &&
           path !== "docs/EXTENSIONS-INVENTORY.md" &&
           !path.startsWith("producer/extensions/") &&
+          !path.startsWith("producer/ecc/") &&
+          path !== "docs/ECC-CONTENT.md" &&
+          path !== "docs/ECC-INVENTORY.md" &&
           !path.startsWith("producer/templates/framework/") &&
           !path.startsWith("producer/templates/public/"),
       ),

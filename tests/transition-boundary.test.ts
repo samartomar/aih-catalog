@@ -103,6 +103,8 @@ describe("Catalog migration boundary", () => {
       expect(paths).toContain("release/release.json");
       expect(paths).toContain("schemas/release/1.0.0.json");
       expect(paths.filter((path) => path.startsWith("docs/"))).toEqual([
+        "docs/ECC-CONTENT.md",
+        "docs/ECC-INVENTORY.md",
         "docs/EXTENSIONS-CONTENT.md",
         "docs/EXTENSIONS-INVENTORY.md",
         "docs/FRAMEWORK-TEMPLATES.md",
@@ -115,7 +117,7 @@ describe("Catalog migration boundary", () => {
       for (const file of packed.files) expect(file.mode & 0o111, file.path).toBe(0);
       for (const path of paths) {
         expect(path, path).not.toMatch(
-          /^(?:(?:ai-coding|tools|tests|\.git|\.codex|\.serena|\.code-review-graph|\.codebase-memory|catalog)\/|docs\/(?!(?:EXTENSIONS-CONTENT|EXTENSIONS-INVENTORY|FRAMEWORK-TEMPLATES|PUBLIC-AUTHORING)\.md$))/u,
+          /^(?:(?:ai-coding|tools|tests|\.git|\.codex|\.serena|\.code-review-graph|\.codebase-memory|catalog)\/|docs\/(?!(?:ECC-CONTENT|ECC-INVENTORY|EXTENSIONS-CONTENT|EXTENSIONS-INVENTORY|FRAMEWORK-TEMPLATES|PUBLIC-AUTHORING)\.md$))/u,
         );
         expect(path, path).not.toMatch(/(?:private-key|\.pem$|\.env(?:\.|$))/u);
         expect(path, path).not.toContain("..");

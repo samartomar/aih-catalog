@@ -31,6 +31,14 @@ the ordinary reader/resolver. [Extensions content](docs/EXTENSIONS-CONTENT.md)
 records the full upstream inventory, required command configuration, source-overlay
 attribution and precise native/removal evidence limits.
 
+## Optional ECC content
+
+`@aihq/catalog/release-ecc.json` offers granular pinned ECC instruction material
+and individually selected Claude MCP configurations alongside other releases.
+[Content guidance](docs/ECC-CONTENT.md) describes client-specific facts, real
+runtime/credential prerequisites and native execution limits; [the inventory](docs/ECC-INVENTORY.md)
+accounts for every selected source file and historical donor asset.
+
 ## Optional Nuclei workflow
 
 `@aihq/catalog/workflows/nuclei` supplies local policy authoring; its adjacent manifest pins
@@ -54,6 +62,7 @@ platform evidence and real-tool execution limits are recorded in [delivery evide
 | `@aihq/catalog/release-1.1.json` | Release of Core recipe 1.1 items (client hook groups); read it explicitly | Data |
 | `@aihq/catalog/schemas/release/1.0.0.json` | Release structural schema | Data |
 | `@aihq/catalog/schemas/release/1.1.0.json` | Release 1.1 structural schema | Data |
+| `@aihq/catalog/release-ecc.json` | Optional pinned ECC declarations and exact MCP configurations | Data |
 | `@aihq/catalog/package.json` | Installed package identity and location | Data |
 
 The portable entries use standard JavaScript and `Uint8Array`; they access neither
