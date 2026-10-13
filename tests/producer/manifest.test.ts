@@ -26,6 +26,7 @@ describe("candidate manifest derives optional release exports", () => {
     expect(next.exports["./release-1.1.json"]).toBeUndefined();
     expect(next.exports["./release-native-fixture.json"]).toBeUndefined();
     expect(next.exports["./release-native-bundles.json"]).toBeUndefined();
+    expect(next.exports["./release-guide.json"]).toBeUndefined();
     expect(JSON.parse(manifest.toString()).exports["./release-1.1.json"]).toBeDefined();
     const missing = new Map(primary);
     missing.delete("release/release.json");
@@ -35,11 +36,13 @@ describe("candidate manifest derives optional release exports", () => {
     const source = JSON.parse(manifest.toString());
     source.exports["./release-1.1.json"] = "./broken.json";
     source.exports["./custom.json"] = "./release/custom.json";
+    source.exports["./release-guide.json"] = "./broken-guide.json";
     const next = JSON.parse(
       candidateManifestBytes(Buffer.from(JSON.stringify(source)), primary).toString(),
     );
     expect(next.exports["./release-1.1.json"]).toBe("./broken.json");
     expect(next.exports["./custom.json"]).toBe("./release/custom.json");
+    expect(next.exports["./release-guide.json"]).toBe("./broken-guide.json");
     const damaged = new Map(primary);
     damaged.set(document.items[0].recipe.path, Buffer.from("changed"));
     expect(() => candidateManifestBytes(manifest, damaged)).toThrow(/base-member-mismatch/);
