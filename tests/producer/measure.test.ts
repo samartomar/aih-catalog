@@ -16,6 +16,7 @@ import { dirname, join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { npmCliPath } from "../../src/producer/package.js";
 import { SNAPSHOT_FILE } from "../../src/producer/snapshot.js";
+import { fixtureGitEnvironment } from "./git-environment.js";
 import { FixtureRepository } from "./git-fixture.js";
 import { committedRelease, pinnedUpstreamFiles, root } from "./helpers.js";
 
@@ -84,7 +85,7 @@ function makeToolRepo(dir: string): void {
         ...args,
       ],
       {
-        env: { ...process.env, GIT_CONFIG_GLOBAL: config, GIT_CONFIG_NOSYSTEM: "1" },
+        env: fixtureGitEnvironment({ GIT_CONFIG_GLOBAL: config, GIT_CONFIG_NOSYSTEM: "1" }),
         encoding: "utf8",
       },
     );
@@ -108,7 +109,7 @@ beforeAll(() => {
 }, 60_000);
 
 const env = () => {
-  const { npm_execpath: _drop, ...rest } = process.env;
+  const { npm_execpath: _drop, ...rest } = fixtureGitEnvironment();
   return { ...rest, AIH_TEST_DIST: join(root, "dist") };
 };
 const measure = (...args: string[]) =>
@@ -142,7 +143,10 @@ describe("a cold measurement records the committed code it ran", () => {
   let head = "";
 
   it("copies exactly the committed bytes, installs, builds and prepares", () => {
-    head = execFileSync("git", ["-C", toolRepo, "rev-parse", "HEAD"], { encoding: "utf8" }).trim();
+    head = execFileSync("git", ["-C", toolRepo, "rev-parse", "HEAD"], {
+      encoding: "utf8",
+      env: fixtureGitEnvironment(),
+    }).trim();
     writeFileSync(join(toolRepo, "untracked-live.txt"), "never part of the commit");
     const out = join(scratch, "cold-out");
     const result = measure(
@@ -184,7 +188,9 @@ describe("a cold measurement records the committed code it ran", () => {
       expect(result.stderr).toMatch(/tracked files differ from HEAD/);
       expect(existsSync(fresh)).toBe(false);
     } finally {
-      execFileSync("git", ["-C", toolRepo, "checkout", "--", "tools/check-release.mjs"]);
+      execFileSync("git", ["-C", toolRepo, "checkout", "--", "tools/check-release.mjs"], {
+        env: fixtureGitEnvironment(),
+      });
     }
   });
 

@@ -12,6 +12,7 @@ import {
   type RetryPolicy,
 } from "../../src/producer/fetch.js";
 import type { GitRunner } from "../../src/producer/git-tree.js";
+import { fixtureGitEnvironment } from "./git-environment.js";
 import { FixtureRepository } from "./git-fixture.js";
 import { declaration, REPOSITORY } from "./helpers.js";
 
@@ -56,7 +57,9 @@ function fakeGit(options: { fetchHead?: string; failFetch?: () => string | undef
     const command = args.slice(2 + GIT_CONFIG.length);
     switch (command[0]) {
       case "init":
-        execFileSync("git", ["-C", String(args[1]), "init", "--bare", "-q"]);
+        execFileSync("git", ["-C", String(args[1]), "init", "--bare", "-q"], {
+          env: fixtureGitEnvironment(),
+        });
         return out("");
       case "fetch": {
         const failure = options.failFetch?.();
