@@ -16,6 +16,7 @@ export function generateTemplateItem(args: {
   source: DeclaredSource;
   sourceId: string;
   tree: PreparedSourceTree;
+  memberPath?: (path: string) => string;
 }): GeneratedItem {
   const { item, source, sourceId, tree } = args;
   const templateBytes = readPresent(tree, item.recipePath);
@@ -41,7 +42,7 @@ export function generateTemplateItem(args: {
     const bytes = readPresent(tree, path);
     const memberPath =
       tree.derivedMetadata === undefined
-        ? materialPath(source.repository, tree.commit, path)
+        ? (args.memberPath?.(path) ?? materialPath(source.repository, tree.commit, path))
         : `release/materials/authored/${source.repository}/${tree.derivedMetadata.outputSha256}/${path}`;
     return { id, path: memberPath, sha256: sha256Hex(bytes), byteLength: bytes.length, bytes };
   });

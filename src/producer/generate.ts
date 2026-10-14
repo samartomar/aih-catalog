@@ -103,19 +103,23 @@ export function generateItem(args: {
   skill: Buffer;
   license: Buffer;
   supportFiles: readonly GeneratedSupportFile[];
+  memberPath?: (path: string) => string;
+  sourceLabel?: string;
 }): GeneratedItem {
   const { item, source, sourceId, revision, skill, license, supportFiles } = args;
+  const memberPath =
+    args.memberPath ?? ((path: string) => materialPath(source.repository, revision, path));
   const members: GeneratedMember[] = [
     {
       id: "license",
-      path: materialPath(source.repository, revision, source.licensePath),
+      path: memberPath(source.licensePath),
       sha256: sha256Hex(license),
       byteLength: license.length,
       bytes: license,
     },
     {
       id: "skill",
-      path: materialPath(source.repository, revision, item.skillPath),
+      path: memberPath(item.skillPath),
       sha256: sha256Hex(skill),
       byteLength: skill.length,
       bytes: skill,
@@ -123,7 +127,7 @@ export function generateItem(args: {
     ...supportFiles.map(
       ({ path, bytes }): GeneratedMember => ({
         id: supportMaterialId(path),
-        path: materialPath(source.repository, revision, `${item.directory}/${path}`),
+        path: memberPath(`${item.directory}/${path}`),
         sha256: sha256Hex(bytes),
         byteLength: bytes.length,
         bytes,
@@ -148,7 +152,7 @@ export function generateItem(args: {
   const recipe = {
     schema: RECIPE_SCHEMA,
     id: item.id,
-    description: `Install the ${item.entry} skill from ${source.repository} at ${revision} with its ${source.license} license notice.`,
+    description: `Install the ${item.entry} skill from ${args.sourceLabel ?? source.repository} at ${revision} with its ${source.license} license notice.`,
     inputs: { agentDirectory: AGENT_DIRECTORY_INPUT },
     materials: members
       .map(({ id, sha256, byteLength }) => ({ id, sha256, byteLength }))

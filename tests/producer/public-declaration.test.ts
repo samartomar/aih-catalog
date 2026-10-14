@@ -394,3 +394,59 @@ it("refuses inherited array behavior in declaration items without invoking it", 
   ).toBe("refused");
   expect(calls).toBe(0);
 });
+
+it("accepts only explicit local sources in 3.1 and reports invalid source and revision paths", () => {
+  const declaration = {
+    ...publicDeclaration(),
+    schema: "urn:aihq:catalog:producer-declaration:3.1.0",
+    sources: [{ id: "notes", origin: { kind: "local" }, licensePath: "LICENSE", license: "MIT" }],
+  };
+  const result = compileProducerDeclaration({ declaration, sourceFiles: sourceFiles() });
+  expect(result.status, JSON.stringify(result.diagnostics)).toBe("ok");
+  if (result.status === "ok") {
+    expect(result.value.release.sources).toEqual([
+      { id: "notes", origin: { kind: "local", revision: "a".repeat(40) } },
+    ]);
+    expect(new TextDecoder().decode(result.value.releaseBytes)).not.toContain("github.com");
+  }
+  expect(
+    checkProducerDeclaration({ ...declaration, schema: publicDeclaration().schema }).status,
+  ).toBe("refused");
+  for (const source of [
+    { ...declaration.sources[0], repository: "example/fabricated" },
+    { ...declaration.sources[0], origin: { kind: "local", path: "/private/tree" } },
+  ]) {
+    const invalid = checkProducerDeclaration({ ...declaration, sources: [source] });
+    expect(invalid.status).toBe("refused");
+    expect(invalid.diagnostics.some((d) => d.path.startsWith("/sources"))).toBe(true);
+  }
+  const files = sourceFiles();
+  at(files, 0).revision = "main";
+  const invalid = compileProducerDeclaration({ declaration, sourceFiles: files });
+  expect(invalid.status).toBe("refused");
+  expect(invalid.diagnostics[0]?.path).toBe("/sourceFiles/0");
+});
+
+it("keeps real Git repositories distinct from local adapter identities", () => {
+  const declaration = {
+    ...publicDeclaration(),
+    schema: "urn:aihq:catalog:producer-declaration:3.1.0",
+    sources: [
+      { id: "notes", origin: { kind: "local" }, licensePath: "LICENSE", license: "MIT" },
+      { id: "git", repository: "local/notes", licensePath: "LICENSE", license: "MIT" },
+    ],
+  };
+  const snapshots = sourceFiles();
+  snapshots.push({ ...at(snapshots, 0), source: "git" });
+  const result = compileProducerDeclaration({ declaration, sourceFiles: snapshots });
+  expect(result.status, JSON.stringify(result.diagnostics)).toBe("ok");
+  if (result.status === "ok")
+    expect(result.value.release.sources).toContainEqual({
+      id: "git",
+      origin: {
+        kind: "git",
+        repository: "https://github.com/local/notes",
+        revision: "a".repeat(40),
+      },
+    });
+});

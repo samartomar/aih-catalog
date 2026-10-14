@@ -40,6 +40,18 @@ import { checkRecipeAgreement } from "./recipe-agreement.js";
 
 export const PRODUCER_DECLARATION_SCHEMA_ID =
   "urn:aihq:catalog:producer-declaration:3.0.0" as const;
+export const PRODUCER_DECLARATION_SCHEMA_ID_3_1 =
+  "urn:aihq:catalog:producer-declaration:3.1.0" as const;
+/** Local identity is a source ID, never a host path or a fabricated repository. */
+export type ProducerSource =
+  | DeclaredSource
+  | {
+      readonly id: string;
+      readonly origin: { readonly kind: "local" };
+      readonly licensePath: string;
+      readonly license: string;
+      readonly pluginManifestPath?: string;
+    };
 export interface Discovery {
   readonly label: string;
   readonly description: string;
@@ -74,10 +86,12 @@ export type ProducerItem = Discovery & {
     | { readonly skillPath: string; readonly supportPaths?: readonly string[] }
   );
 export interface ProducerDeclaration {
-  readonly schema: typeof PRODUCER_DECLARATION_SCHEMA_ID;
+  readonly schema:
+    | typeof PRODUCER_DECLARATION_SCHEMA_ID
+    | typeof PRODUCER_DECLARATION_SCHEMA_ID_3_1;
   readonly format: "aihq-catalog-producer-declaration";
   readonly version: 3;
-  readonly sources: readonly DeclaredSource[];
+  readonly sources: readonly ProducerSource[];
   readonly items: readonly ProducerItem[];
   readonly authored?: readonly AuthoredAllowance[];
   /** Independent producer identity; defaults to supplied-catalog@0.0.0, never AIHQ curation. */
@@ -85,7 +99,7 @@ export interface ProducerDeclaration {
 }
 export interface SuppliedSourceFiles {
   readonly source: string;
-  /** Caller-declared immutable Git source pin; byte provenance is independently computed. */
+  /** Caller-declared immutable revision (40-character Git pin or 64-character local snapshot hash). */
   readonly revision: string;
   readonly files: Readonly<Record<string, Uint8Array>>;
 }
@@ -107,16 +121,46 @@ ajv.addSchema(JSON.parse(readFileSync(new URL("release/1.2.0.json", schemaRoot),
 const validate = ajv.compile(
   JSON.parse(readFileSync(new URL("producer-declaration/3.0.0.json", schemaRoot), "utf8")),
 );
+const validateLocal = ajv.compile(
+  JSON.parse(readFileSync(new URL("producer-declaration/3.1.0.json", schemaRoot), "utf8")),
+);
 const failure = (path: string, message: string): AuthoringResult<never> => ({
   status: "refused",
   diagnostics: [{ code: "INPUT_INVALID", path, message }],
 });
 
 function donorProjection(declaration: ProducerDeclaration) {
+  // Donor repository keys only validate item/license semantics. Reserve a
+  // disjoint adapter namespace so a real Git owner named local cannot collide.
+  const repositories = new Set(
+    declaration.sources.flatMap((source) =>
+      "repository" in source ? [source.repository.toLowerCase()] : [],
+    ),
+  );
+  let namespace = "local";
+  let collision = 0;
+  while (
+    declaration.sources.some(
+      (source) => "origin" in source && repositories.has(`${namespace}/${source.id}`.toLowerCase()),
+    )
+  ) {
+    namespace = `local-${++collision}`;
+  }
   return {
     format: declaration.format,
     version: 2,
-    sources: declaration.sources,
+    // Adapter keys never become output provenance or local material addresses.
+    sources: declaration.sources.map((source) =>
+      "repository" in source
+        ? source
+        : {
+            id: source.id,
+            repository: `${namespace}/${source.id}`,
+            licensePath: source.licensePath,
+            license: source.license,
+            ...(source.pluginManifestPath ? { pluginManifestPath: source.pluginManifestPath } : {}),
+          },
+    ),
     ...(declaration.authored ? { authored: declaration.authored } : {}),
     items: declaration.items.map((item) => ({
       id: item.id,
@@ -141,7 +185,11 @@ export function checkProducerDeclaration(value: unknown): AuthoringResult<Produc
   } catch {
     return failure("", "Declaration must be bounded plain JSON data.");
   }
-  if (isRecord(copy) && copy.schema !== PRODUCER_DECLARATION_SCHEMA_ID)
+  if (
+    isRecord(copy) &&
+    copy.schema !== PRODUCER_DECLARATION_SCHEMA_ID &&
+    copy.schema !== PRODUCER_DECLARATION_SCHEMA_ID_3_1
+  )
     return deepFreeze({
       status: "refused",
       diagnostics: [
@@ -149,14 +197,16 @@ export function checkProducerDeclaration(value: unknown): AuthoringResult<Produc
           code: "SCHEMA_UNSUPPORTED",
           path: "/schema",
           message:
-            "Only producer-declaration:3.0.0 is supported; preserve the original and explicitly migrate older declarations.",
+            "Only producer-declaration:3.0.0 and 3.1.0 are supported; preserve the original and explicitly migrate older declarations.",
         },
       ],
     });
-  if (!validate(copy))
+  const validator =
+    isRecord(copy) && copy.schema === PRODUCER_DECLARATION_SCHEMA_ID_3_1 ? validateLocal : validate;
+  if (!validator(copy))
     return deepFreeze({
       status: "refused",
-      diagnostics: (validate.errors ?? []).slice(0, 256).map((error) => ({
+      diagnostics: (validator.errors ?? []).slice(0, 256).map((error) => ({
         code: "INPUT_INVALID",
         path: `${error.instancePath}${error.keyword === "required" ? `/${pointer(String(error.params.missingProperty))}` : error.keyword === "additionalProperties" ? `/${pointer(String(error.params.additionalProperty))}` : ""}`,
         message: `Declaration ${error.message ?? "is invalid"}.`,
@@ -261,13 +311,21 @@ export function compileProducerDeclaration(request: {
       Object.values(Object.getOwnPropertyDescriptors(input)).some((d) => !("value" in d)) ||
       typeof input.source !== "string" ||
       typeof input.revision !== "string" ||
-      !COMMIT.test(input.revision) ||
+      !/^(?:[0-9a-f]{40}|[0-9a-f]{64})$/.test(input.revision) ||
       !isRecord(input.files)
     )
-      return failure(at, "Expected source ID, full revision and regular-file byte map.");
+      return failure(
+        at,
+        "Expected source ID, lowercase 40-character Git pin or 64-character snapshot hash, and regular-file byte map.",
+      );
     const source = declaration.sources.find((source) => source.id === input.source);
     if (!source || trees.has(input.source))
       return failure(`${at}/source`, "Supplied source must be declared exactly once.");
+    if ("repository" in source && !COMMIT.test(input.revision))
+      return failure(
+        `${at}/revision`,
+        "Git sources require a full lowercase 40-character Git pin.",
+      );
     const files = new Map<string, Uint8Array>();
     const folded = new Set<string>();
     for (const name of Reflect.ownKeys(input.files)) {
@@ -292,7 +350,7 @@ export function compileProducerDeclaration(request: {
       files.set(name, new Uint8Array(descriptor.value));
     }
     trees.set(input.source, {
-      repository: source.repository,
+      repository: "repository" in source ? source.repository : source.id,
       commit: input.revision,
       inventory: {
         complete: true,
@@ -342,7 +400,11 @@ export function compileProducerDeclaration(request: {
     for (const source of declaration.sources) {
       const tree = trees.get(source.id) as SourceTree;
       const mine = donor.items.filter((item) => item.source === source.id);
-      const listed = pluginSkillPaths(tree, source, mine);
+      const listed = pluginSkillPaths(
+        tree,
+        donor.sources.find((entry) => entry.id === source.id) as DeclaredSource,
+        mine,
+      );
       if (listed && mine.some((item) => "skillPath" in item && !listed.has(item.skillPath)))
         return failure(
           "/declaration/items",
@@ -353,15 +415,31 @@ export function compileProducerDeclaration(request: {
       generationPath = `/declaration/items/${index}/${"recipePath" in item ? "recipePath" : "skillPath"}`;
       const source = declaration.sources.find(
         (source) => source.id === item.source,
-      ) as DeclaredSource;
+      ) as ProducerSource;
       const tree = trees.get(item.source) as SourceTree;
       const donorItem = donor.items.find((candidate) => candidate.id === item.id) as DeclaredItem;
+      const donorSource = donor.sources.find((entry) => entry.id === source.id) as DeclaredSource;
+      const localAddress =
+        "origin" in source
+          ? {
+              memberPath: (path: string) =>
+                `release/materials/local/${source.id}/${tree.commit}/${path}`,
+              sourceLabel: `local source ${source.id}`,
+            }
+          : {};
       const output =
         "recipePath" in donorItem
-          ? generateTemplateItem({ item: donorItem, source, sourceId: source.id, tree })
+          ? generateTemplateItem({
+              item: donorItem,
+              source: donorSource,
+              sourceId: source.id,
+              tree,
+              ...localAddress,
+            })
           : generateItem({
               item: donorItem,
-              source,
+              source: donorSource,
+              ...localAddress,
               sourceId: source.id,
               revision: tree.commit,
               skill: Buffer.from(readPresent(tree, donorItem.skillPath)),
@@ -452,29 +530,35 @@ export function compileProducerDeclaration(request: {
         : "Required supplied source bytes are missing or invalid.",
     );
   }
-  const schema = generated.some(
-    (item) =>
-      isRecord(item.record.recipe) && item.record.recipe.schema === "urn:aihq:core:recipe:1.3.0",
-  )
-    ? "urn:aihq:catalog:release:1.2.0"
+  const schema = declaration.sources.some((source) => "origin" in source)
+    ? "urn:aihq:catalog:release:1.3.0"
     : generated.some(
           (item) =>
             isRecord(item.record.recipe) &&
-            item.record.recipe.schema === "urn:aihq:core:recipe:1.1.0",
+            item.record.recipe.schema === "urn:aihq:core:recipe:1.3.0",
         )
-      ? "urn:aihq:catalog:release:1.1.0"
-      : "urn:aihq:catalog:release:1.0.0";
+      ? "urn:aihq:catalog:release:1.2.0"
+      : generated.some(
+            (item) =>
+              isRecord(item.record.recipe) &&
+              item.record.recipe.schema === "urn:aihq:core:recipe:1.1.0",
+          )
+        ? "urn:aihq:catalog:release:1.1.0"
+        : "urn:aihq:catalog:release:1.0.0";
   const bytes = documentBytes({
     schema,
     package: declaration.package ?? { name: "supplied-catalog", version: "0.0.0" },
     sources: declaration.sources
       .map((source) => ({
         id: source.id,
-        origin: {
-          kind: "git",
-          repository: `https://github.com/${source.repository}`,
-          revision: trees.get(source.id)?.commit,
-        },
+        origin:
+          "repository" in source
+            ? {
+                kind: "git",
+                repository: `https://github.com/${source.repository}`,
+                revision: trees.get(source.id)?.commit,
+              }
+            : { kind: "local", revision: trees.get(source.id)?.commit },
       }))
       .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)),
     ...(sharedInventories.size === 0
