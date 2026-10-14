@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { cpSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { parseDeclaration } from "../../src/producer/declaration.js";
+import { collectIntended } from "../../src/producer/package.js";
 import type { SourceTree } from "../../src/producer/tree.js";
 
 export const root = resolve(import.meta.dirname, "../..");
@@ -144,44 +145,17 @@ export function makePackageRoot(
   release: ReadonlyMap<string, Uint8Array>,
   extra: string[] = [],
 ): string {
-  for (const entry of [
-    "package.json",
-    "package-lock.json",
-    "LICENSE",
-    "README.md",
-    "CHANGELOG.md",
-    "docs/FRAMEWORK-TEMPLATES.md",
-    "docs/PUBLIC-AUTHORING.md",
-    "docs/EXTENSIONS-CONTENT.md",
-    "docs/EXTENSIONS-INVENTORY.md",
-    "producer/extensions",
-    "producer/ecc",
-    "producer/superpowers",
-    "producer/anthropic",
-    "docs/ANTHROPIC-CONTENT.md",
-    "docs/ANTHROPIC-INVENTORY.md",
-    "docs/SUPERPOWERS-CONTENT.md",
-    "docs/SUPERPOWERS-INVENTORY.md",
-    "docs/ECC-CONTENT.md",
-    "docs/ECC-INVENTORY.md",
-    "producer/templates/framework",
-    "producer/templates/public",
-    "dist/release",
-    "dist/producer/declaration.js",
-    "dist/producer/declaration.d.ts",
-    "dist/producer/authored.d.ts",
-    "dist/producer/errors.js",
-    "dist/producer/generate.js",
-    "dist/producer/json.js",
-    "dist/producer/template.js",
-    "dist/producer/tree.js",
-    "dist/producer/plugin.js",
-    "workflows/nuclei",
-    "schemas",
-    ...extra,
-  ]) {
-    cpSync(join(root, entry), join(dir, entry), { recursive: true });
+  const manifest = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as {
+    files: string[];
+  };
+  // Share the producer's manifest-driven runtime assembly; only the release is substituted.
+  const intended = collectIntended(root, { files: [...manifest.files, ...extra] });
+  for (const [path, bytes] of intended) {
+    mkdirSync(dirname(join(dir, path)), { recursive: true });
+    writeFileSync(join(dir, path), bytes);
   }
+  // The offline packed probe needs this source input, although npm never ships it.
+  cpSync(join(root, "package-lock.json"), join(dir, "package-lock.json"));
   // The manifest exports the 1.1 release, so a package root always carries it beside the 1.0 release.
   const seeded = withNativeFixtureRelease(
     release.has("release/release-1.1.json")

@@ -3,8 +3,10 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "no
 import { tmpdir } from "node:os";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { exportTargets } from "../../src/producer/package.js";
 import { contractSupport } from "../../src/release/contracts.js";
 import { seedConsumerLock } from "../../tools/seed-consumer-lock.mjs";
+import { committedRelease, makePackageRoot, readTree } from "../producer/helpers.js";
 import { MATT_ITEM_IDS, MATT_REQUIRED, sha256 } from "./fixtures.js";
 
 const root = resolve(import.meta.dirname, "../..");
@@ -101,10 +103,8 @@ describe("exact packed consumer", () => {
 
   it("ships the release, schema and entry modules byte-identically, and no test fixtures", () => {
     for (const path of [
-      "release/release.json",
-      "schemas/release/1.0.0.json",
-      "dist/release/reader.js",
-      "dist/release/node.js",
+      ...exportTargets(pkg.exports).map((target) => target.slice(2)),
+      ...pkg.files.filter((path: string) => path.startsWith("docs/")),
     ]) {
       expect(packedPaths).toContain(path);
     }
@@ -118,6 +118,17 @@ describe("exact packed consumer", () => {
         ),
     ).toBe(true);
     expect(packedPaths.some((path) => path.startsWith("tests/"))).toBe(false);
+  });
+
+  it("assembles producer fixtures from the complete packed surface", () => {
+    const assembled = makePackageRoot(join(fixture, "producer-source"), committedRelease());
+    const files = readTree(assembled);
+    // The lock is a producer input for offline installation, never a packed asset.
+    files.delete("package-lock.json");
+    expect([...files.keys()].sort()).toEqual([...packedPaths].sort());
+    for (const [path, bytes] of files) {
+      expect(bytes.equals(readFileSync(join(installed, path))), path).toBe(true);
+    }
   });
 
   it("selects the optional Guide with exact offline manual bytes through packed exports", () => {
