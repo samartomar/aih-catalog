@@ -1,6 +1,7 @@
 import { chmodSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, expect, it, vi } from "vitest";
+import { fixtureGitEnvironment } from "./git-environment.js";
 import { FixtureRepository } from "./git-fixture.js";
 
 const repositories: FixtureRepository[] = [];
@@ -72,4 +73,23 @@ it("preserves hooks explicitly installed inside the fixture", () => {
   chmodSync(hook, 0o755);
   fixture.commit({ "fixture.txt": "fixture\n" }, "hooked fixture");
   expect(readFileSync(join(fixture.dir, "hook-ran.txt"), "utf8")).toBe("ran");
+});
+
+it("removes mixed-case hook environment carriers", () => {
+  const keys = [
+    "git_dir",
+    "Git_Work_Tree",
+    "git_common_dir",
+    "Git_Index_File",
+    "git_object_directory",
+    "Git_Alternate_Object_Directories",
+    "git_config",
+    "Git_Config_Parameters",
+    "Git_Config_Count",
+    "Git_Config_Key_0",
+    "Git_Config_Value_0",
+  ];
+  for (const key of keys) vi.stubEnv(key, "parent-state");
+  const remaining = Object.keys(fixtureGitEnvironment()).map((key) => key.toLowerCase());
+  for (const key of keys) expect(remaining).not.toContain(key.toLowerCase());
 });

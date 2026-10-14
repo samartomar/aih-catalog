@@ -1,12 +1,14 @@
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { Ajv2020 } from "ajv/dist/2020.js";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { listItems, readRelease } from "../../src/release/reader.js";
+import { fixtureGitEnvironment } from "../producer/git-environment.js";
+import { FixtureRepository } from "../producer/git-fixture.js";
 import { sha256 } from "./fixtures.js";
-import { installedRoot } from "./installed-fixture.js";
+import { installedRoot, rewriteRecipe } from "./installed-fixture.js";
 
 const root = resolve(import.meta.dirname, "../..");
 const bytesAt = (path: string) => readFileSync(resolve(root, path));
@@ -160,7 +162,22 @@ describe("carried hook release 1.1", () => {
     },
   );
 
-  it("regenerates only hook content after the upstream release has advanced", () => {
+  it.each([
+    false,
+    true,
+  ])("isolates hooks-only regeneration under inherited hook state (failure=%s)", (fail) => {
+    const parent = new FixtureRepository();
+    parent.commit({ "parent.txt": "parent\n", "release/release-1.1.json": "{}\n" }, "parent");
+    parent.git("config", "core.autocrlf", "true");
+    const gitDir = join(parent.dir, ".git");
+    const snapshot = () => ({
+      head: readFileSync(join(gitDir, "HEAD")),
+      ref: readFileSync(join(gitDir, "refs/heads/main")),
+      index: readFileSync(join(gitDir, "index")),
+      config: readFileSync(join(gitDir, "config")),
+      objects: readdirSync(join(gitDir, "objects"), { recursive: true }).sort(),
+    });
+    const before = snapshot();
     const fixture = installedRoot("hooks-only");
     try {
       const upstream = readFileSync(join(fixture.root, "release/release.json"));
@@ -171,12 +188,41 @@ describe("carried hook release 1.1", () => {
           untouched.set(member.path, readFileSync(join(fixture.root, member.path)));
         }
       }
-      execFileSync("git", ["init", "-q", fixture.root]);
-      execFileSync("git", ["-C", fixture.root, "config", "core.autocrlf", "false"]);
-      execFileSync("git", ["-C", fixture.root, "add", "release"]);
-      execFileSync("git", [
-        "-C",
-        fixture.root,
+      if (fail)
+        rewriteRecipe(
+          fixture.root,
+          ITEM_ID,
+          (recipe) => {
+            const operations = recipe.operations as { kind: string; selector: { value: string } }[];
+            const operation = operations.find((entry) => entry.kind === "hook.group");
+            if (!operation) throw new Error("hook operation missing");
+            operation.selector.value = "different-command";
+          },
+          "release-1.1.json",
+        );
+      for (const [key, value] of Object.entries({
+        GIT_DIR: gitDir,
+        GIT_WORK_TREE: parent.dir,
+        GIT_COMMON_DIR: gitDir,
+        GIT_INDEX_FILE: join(gitDir, "index"),
+        GIT_OBJECT_DIRECTORY: join(gitDir, "objects"),
+        GIT_ALTERNATE_OBJECT_DIRECTORIES: join(gitDir, "objects"),
+        GIT_CONFIG: join(gitDir, "config"),
+        GIT_CONFIG_PARAMETERS: "'fixture.injected=parent'",
+        GIT_CONFIG_COUNT: "1",
+        GIT_CONFIG_KEY_0: "fixture.counted",
+        GIT_CONFIG_VALUE_0: "parent",
+      }))
+        vi.stubEnv(key, value);
+      const git = (...args: string[]) =>
+        execFileSync("git", ["-C", fixture.root, "-c", "commit.gpgsign=false", ...args], {
+          env: fixtureGitEnvironment(),
+          encoding: "utf8",
+        });
+      git("init", "-q");
+      git("config", "core.autocrlf", "false");
+      git("add", "release");
+      git(
         "-c",
         "user.name=Catalog fixture",
         "-c",
@@ -184,8 +230,9 @@ describe("carried hook release 1.1", () => {
         "commit",
         "-qm",
         "fixture",
-      ]);
-      const env = { ...process.env };
+      );
+      expect(git("rev-parse", "--show-toplevel").trim()).toBe(fixture.root);
+      const env = fixtureGitEnvironment();
       delete env.AIHQ_RELEASE_BASELINE;
       const generated = spawnSync(
         process.execPath,
@@ -196,7 +243,10 @@ describe("carried hook release 1.1", () => {
           encoding: "utf8",
         },
       );
-      expect(generated.status, generated.stderr).toBe(0);
+      if (fail) {
+        expect(generated.status).not.toBe(0);
+        expect(generated.stderr).toContain("hook-selector-changed");
+      } else expect(generated.status, generated.stderr).toBe(0);
       expect(readFileSync(join(fixture.root, "release/release.json"))).toEqual(upstream);
       for (const [path, bytes] of untouched) {
         expect(readFileSync(join(fixture.root, path)), path).toEqual(bytes);
@@ -210,7 +260,15 @@ describe("carried hook release 1.1", () => {
         }
       }
     } finally {
-      fixture.cleanup();
+      vi.unstubAllEnvs();
+      try {
+        expect(snapshot()).toEqual(before);
+        expect(parent.git("status", "--porcelain")).toBe("");
+        expect(parent.git("show", "HEAD:parent.txt")).toBe("parent");
+      } finally {
+        parent.dispose();
+        fixture.cleanup();
+      }
     }
   });
 });
