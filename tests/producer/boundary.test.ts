@@ -178,6 +178,8 @@ describe("the published package keeps its intended runtime subset", () => {
       "./release-ecc.json",
       "./release-superpowers.json",
       "./release-anthropic.json",
+      "./schemas/release/1.3.0.json",
+      "./schemas/producer-declaration/3.1.0.json",
     ]);
     expect(manifest.private).toBe(true);
     expect(manifest.scripts.prepublishOnly).toBe("node tools/refuse-publication.mjs");

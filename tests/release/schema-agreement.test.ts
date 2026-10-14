@@ -304,6 +304,7 @@ describe("release schema and reader agree", () => {
         "urn:aihq:catalog:release:1.0.0",
         "urn:aihq:catalog:release:1.1.0",
         "urn:aihq:catalog:release:1.2.0",
+        "urn:aihq:catalog:release:1.3.0",
       ],
     });
   });
