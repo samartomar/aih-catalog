@@ -91,8 +91,9 @@ bounds, material/recipe closure and identities, relationship structure and local
 closure, recipe/configuration agreement, and the final release through its reader.
 It records source pins plus sorted path/hash/length provenance for supplied bytes.
 Cross-release references remain exact pins and are checked against supplied handles
-when resolving. Output selects the existing release format required by its recipes;
-no release representation change or runtime Core dependency is introduced.
+when resolving. Repository-source output selects the existing release format required by its recipes.
+Local origins use release 1.3 as described below; neither route adds a runtime Core
+dependency.
 
 ## Explicit V2 migration
 
@@ -224,3 +225,36 @@ source ID and revision identify its matching entry. Small declarations retain
 inline `metadata.suppliedSource.files` and their original compiled bytes. This
 reduces repeated display data without changing schema, recipe/material closure,
 relationships, reader limits or execution semantics. See [ECC content](ECC-CONTENT.md).
+
+## Local trees without a remote
+
+Producer declaration `urn:aihq:catalog:producer-declaration:3.1.0` (still
+`version:3`) adds a local source form. The exported schema is
+`@aihq/catalog/schemas/producer-declaration/3.1.0.json`; 3.0.0 remains supported
+with its unchanged Git source form. For a local source, omit `repository`:
+
+```js
+sources: [{ id: "personal", origin: { kind: "local" },
+  licensePath: "LICENSE", license: "MIT" }]
+```
+
+The host explicitly acquires a chosen tree's regular-file bytes and supplies
+`{source:"personal",revision,files}` to the same compiler. No Git remote,
+repository initialization, publication or supplied code execution is required.
+`revision` is a full lowercase 40-character Git commit pin when one exists, or a
+64-character immutable snapshot hash assigned by the host using its documented
+snapshot algorithm. It is caller-declared provenance, not authentication: the
+compiler independently computes every supplied file's hash and length. Changed
+snapshots must receive a changed revision. Existing Git declarations still require
+40-character Git pins; exact npm release origins keep their existing reader rules.
+
+Local output uses `urn:aihq:catalog:release:1.3.0`, exported at
+`@aihq/catalog/schemas/release/1.3.0.json`. Its source is
+`{id:"personal",origin:{kind:"local",revision}}`. Material addresses are
+`release/materials/local/<source-id>/<revision>/<source-relative-path>`.
+The ordinary checked reader, resolver and configuration operations retain this
+origin, item identity and material bindings. Local origins are rejected under
+older release schemas. The source ID is a portable identity; it conveys no path,
+filesystem permission or acquisition command. Consumers explicitly bind their
+own local material root through the existing `MaterialSource` input. Do not put
+absolute machine paths or an invented hosted repository in declarations.

@@ -18,10 +18,14 @@ export const CORE_RECIPE_SCHEMA_ID_1_1 = "urn:aihq:core:recipe:1.1.0" as const;
 export const RELEASE_SCHEMA_ID_1_2 = "urn:aihq:catalog:release:1.2.0" as const;
 export const RELEASE_SCHEMA_EXPORT_1_2 = "@aihq/catalog/schemas/release/1.2.0.json" as const;
 export const CORE_RECIPE_SCHEMA_ID_1_3 = "urn:aihq:core:recipe:1.3.0" as const;
+/** Release 1.3 adds truthful local snapshot origins without filesystem authority. */
+export const RELEASE_SCHEMA_ID_1_3 = "urn:aihq:catalog:release:1.3.0" as const;
+export const RELEASE_SCHEMA_EXPORT_1_3 = "@aihq/catalog/schemas/release/1.3.0.json" as const;
 export type ReleaseSchemaId =
   | typeof RELEASE_SCHEMA_ID
   | typeof RELEASE_SCHEMA_ID_1_1
-  | typeof RELEASE_SCHEMA_ID_1_2;
+  | typeof RELEASE_SCHEMA_ID_1_2
+  | typeof RELEASE_SCHEMA_ID_1_3;
 export type RecipeSchemaId =
   | typeof CORE_RECIPE_SCHEMA_ID
   | typeof CORE_RECIPE_SCHEMA_ID_1_1
@@ -32,6 +36,11 @@ export const RELEASE_RECIPE_SCHEMAS: Readonly<Record<ReleaseSchemaId, readonly R
     [RELEASE_SCHEMA_ID]: Object.freeze([CORE_RECIPE_SCHEMA_ID]),
     [RELEASE_SCHEMA_ID_1_1]: Object.freeze([CORE_RECIPE_SCHEMA_ID, CORE_RECIPE_SCHEMA_ID_1_1]),
     [RELEASE_SCHEMA_ID_1_2]: Object.freeze([
+      CORE_RECIPE_SCHEMA_ID,
+      CORE_RECIPE_SCHEMA_ID_1_1,
+      CORE_RECIPE_SCHEMA_ID_1_3,
+    ]),
+    [RELEASE_SCHEMA_ID_1_3]: Object.freeze([
       CORE_RECIPE_SCHEMA_ID,
       CORE_RECIPE_SCHEMA_ID_1_1,
       CORE_RECIPE_SCHEMA_ID_1_3,
@@ -73,6 +82,11 @@ export const contractSupport = Object.freeze({
       schemaExport: RELEASE_SCHEMA_EXPORT_1_2,
     }),
     Object.freeze({
+      id: RELEASE_SCHEMA_ID_1_3,
+      role: "produces",
+      schemaExport: RELEASE_SCHEMA_EXPORT_1_3,
+    }),
+    Object.freeze({
       id: CORE_RECIPE_SCHEMA_ID_1_3,
       role: "produces",
       schemaExport: "@aihq/core/schemas/recipe/1.3.0.json",
@@ -81,6 +95,11 @@ export const contractSupport = Object.freeze({
       id: "urn:aihq:catalog:producer-declaration:3.0.0",
       role: "consumes",
       schemaExport: "@aihq/catalog/schemas/producer-declaration/3.0.0.json",
+    }),
+    Object.freeze({
+      id: "urn:aihq:catalog:producer-declaration:3.1.0",
+      role: "consumes",
+      schemaExport: "@aihq/catalog/schemas/producer-declaration/3.1.0.json",
     }),
   ]),
   entries: Object.freeze([
@@ -137,6 +156,7 @@ export type SourceOrigin =
       readonly version: string;
       readonly integrity: string;
     }
+  | { readonly kind: "local"; readonly revision: string }
   | { readonly kind: "authored" };
 
 export interface ReleaseSource {

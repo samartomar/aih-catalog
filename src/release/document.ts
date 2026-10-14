@@ -183,9 +183,13 @@ export function checkMaterialSource(d: Diagnostics, value: unknown, path: string
   return d.add("invalid-source", path, "Expected a local or archive material source.");
 }
 
-function checkOrigin(d: Diagnostics, value: unknown, path: string): void {
+function checkOrigin(d: Diagnostics, value: unknown, path: string, schema: ReleaseSchemaId): void {
   const bad = () =>
-    d.add("invalid-origin", path, "Expected a pinned git, exact npm or authored origin.");
+    d.add(
+      "invalid-origin",
+      path,
+      "Expected a pinned git, exact npm, authored or version-supported local origin.",
+    );
   if (!isRecord(value)) return void bad();
   if (value.kind === "git") {
     if (
@@ -209,6 +213,13 @@ function checkOrigin(d: Diagnostics, value: unknown, path: string): void {
     ) {
       bad();
     }
+  } else if (value.kind === "local" && schema === "urn:aihq:catalog:release:1.3.0") {
+    if (
+      !fields(d, value, path, ["kind", "revision"]) ||
+      typeof value.revision !== "string" ||
+      !GIT_REVISION.test(value.revision)
+    )
+      bad();
   } else if (value.kind === "authored") {
     fields(d, value, path, ["kind"]);
   } else bad();
@@ -571,7 +582,7 @@ export function checkReleaseDocument(value: unknown): {
         ids.push(source.id);
         sourceIds.add(source.id);
       }
-      checkOrigin(d, source.origin, `${at}/origin`);
+      checkOrigin(d, source.origin, `${at}/origin`, value.schema as ReleaseSchemaId);
     });
     ascending(d, ids, "/sources");
   }

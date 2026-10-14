@@ -64,6 +64,7 @@ describe("release 1.1 documents", () => {
       "urn:aihq:catalog:release:1.0.0",
       RELEASE_11,
       "urn:aihq:catalog:release:1.2.0",
+      "urn:aihq:catalog:release:1.3.0",
     ]);
   });
 
@@ -125,8 +126,10 @@ describe("release 1.1 documents", () => {
       RELEASE_11,
       RECIPE_11,
       "urn:aihq:catalog:release:1.2.0",
+      "urn:aihq:catalog:release:1.3.0",
       "urn:aihq:core:recipe:1.3.0",
       "urn:aihq:catalog:producer-declaration:3.0.0",
+      "urn:aihq:catalog:producer-declaration:3.1.0",
     ]);
     expect(contractSupport.contracts.find((c) => c.id === RELEASE_11)).toMatchObject({
       role: "produces",

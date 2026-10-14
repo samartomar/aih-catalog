@@ -13,6 +13,13 @@ it("uses installed public exports for multi-release composition and compatible d
   expect(receipt.cases.map((entry: { selectionCount: number }) => entry.selectionCount)).toEqual([
     4, 5,
   ]);
+  expect(receipt.local.sources).toEqual([
+    { id: "personal", origin: { kind: "local", revision: receipt.local.revision } },
+  ]);
+  expect(receipt.local.items.map((item: { id: string }) => item.id)).toEqual([
+    "personal.first",
+    "personal.second",
+  ]);
   expect(receipt.sourceReleaseSha256).toBe(receipt.installedReleaseSha256);
   expect(receipt.archiveSha256).toMatch(/^[0-9a-f]{64}$/);
   expect(receipt.refusals).toContain("forged-reader-handle");

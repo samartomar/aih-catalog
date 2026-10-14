@@ -60,10 +60,19 @@ try {
     { directories: ["notes"], expected: ["consumer-proof.review-note", "mattpocock.domain-modeling", "mattpocock.grill-with-docs", "mattpocock.grilling"] },
     { directories: ["notes", "expansion"], expected: ["consumer-proof.review-note", "consumer-proof.second-note", "mattpocock.domain-modeling", "mattpocock.grill-with-docs", "mattpocock.grilling"] },
   ]));
+  // A real local tree, deliberately without Git metadata or any remote.
+  const localTree = join(inputs, "local-tree");
+  mkdirSync(localTree);
+  writeFileSync(join(localTree, "LICENSE"), "MIT local fixture\n");
+  writeFileSync(join(localTree, "never-run.mjs"), "throw new Error('supplied code executed');\n");
+  for (const name of ["first", "second"]) {
+    mkdirSync(join(localTree, name));
+    writeFileSync(join(localTree, name, "SKILL.md"), `---\ndescription: Local ${name} skill\n---\nReview local content.\n`);
+  }
   const script = String.raw`
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { checkProducerDeclaration, compileProducerDeclaration, PRODUCER_DECLARATION_SCHEMA_ID } from "@aihq/catalog/producer";
@@ -130,6 +139,53 @@ for (const scenario of cases) {
   assert.equal(resolveSelections({ releases: forged, roots, skips: [] }).status, "refused");
   receipt.cases.push({ inventories, selectionCount: resolved.value.selections.length, inclusionCount: resolved.value.inclusions.length, removalImpact: impact.value.removalImpact });
 }
+// Acquire only known regular-file bytes from the explicit local root.
+assert.equal(existsSync("inputs/local-tree/.git"), false);
+const localFiles = Object.fromEntries(["LICENSE", "never-run.mjs", "first/SKILL.md", "second/SKILL.md"]
+  .map(path => [path, new Uint8Array(readFileSync(join("inputs/local-tree", path)))]));
+const revision = sha(JSON.stringify(Object.keys(localFiles).sort().map(path => ({ path, sha256: sha(localFiles[path]), byteLength: localFiles[path].length }))));
+const localDeclaration = {
+  schema: "urn:aihq:catalog:producer-declaration:3.1.0", format: "aihq-catalog-producer-declaration", version: 3,
+  sources: [{ id: "personal", origin: { kind: "local" }, licensePath: "LICENSE", license: "MIT" }],
+  items: ["first", "second"].map(name => ({
+    id: "personal." + name, source: "personal", label: name, description: "Local " + name + " skill", kind: "skill",
+    skillPath: name + "/SKILL.md", requires: [], optional: [], conflicts: [], clientCapabilities: [], activation: [],
+    configuration: { agentDirectory: { type: "string", required: true, default: ".claude", minLength: 1, maxLength: 64,
+      description: "Project directory that receives skills/<name>/ (Claude Code reads .claude)." } },
+  })),
+};
+const localCompiled = compileProducerDeclaration({ declaration: localDeclaration, sourceFiles: [{ source: "personal", revision, files: localFiles }] });
+assert.equal(localCompiled.status, "ok", JSON.stringify(localCompiled.diagnostics));
+const localRead = readRelease(localCompiled.value.releaseBytes, { expectedSha256: localCompiled.value.releaseSha256 });
+assert.equal(localRead.valid, true);
+assert.equal(localRead.release.schema, "urn:aihq:catalog:release:1.3.0");
+assert.deepEqual(localRead.release.sources, [{ id: "personal", origin: { kind: "local", revision } }]);
+assert.equal(new TextDecoder().decode(localCompiled.value.releaseBytes).includes("github.com"), false);
+const localReleases = { [localRead.release.sha256]: localRead.release };
+const localResolved = resolveSelections({ releases: localReleases, roots: localDeclaration.items.map(item => ({
+  releaseSha256: localRead.release.sha256, itemId: item.id, scope: "project", configuration: { agentDirectory: ".claude" },
+})), skips: [] });
+assert.equal(localResolved.status, "ok", JSON.stringify(localResolved.diagnostics));
+assert.equal(localResolved.value.selections.length, 2);
+for (const selection of localResolved.value.selections) {
+  const item = localRead.release.items.find(item => item.id === selection.item.itemId);
+  assert.equal(selection.item.itemSha256, item.itemSha256);
+  const configured = configureItem({ release: localRead.release, itemId: item.id, configuration: selection.configuration,
+    materialSource: { kind: "local", input: "rebound-personal-materials" } });
+  assert.equal(configured.valid, true);
+  for (const member of item.materials) {
+    assert(member.path.startsWith("release/materials/local/personal/" + revision + "/"));
+    const output = localCompiled.value.materials.find(output => output.path === member.path);
+    assert.equal(sha(output.bytes), member.sha256);
+    assert.equal(output.bytes.length, member.byteLength);
+  }
+}
+const localSchema = JSON.parse(readFileSync(fileURLToPath(import.meta.resolve("@aihq/catalog/schemas/release/1.3.0.json")), "utf8"));
+assert.equal(localSchema.$id, localRead.release.schema);
+const localProducerSchema = JSON.parse(readFileSync(fileURLToPath(import.meta.resolve("@aihq/catalog/schemas/producer-declaration/3.1.0.json")), "utf8"));
+assert.equal(localProducerSchema.$id, localDeclaration.schema);
+receipt.local = { revision, releaseSha256: localRead.release.sha256, sources: localRead.release.sources,
+  items: localRead.release.items.map(item => ({ id: item.id, itemSha256: item.itemSha256, materials: item.materials })) };
 receipt.refusals = ["unsupported-version", "missing-source-bytes", "prose-relationship", "required-skip", "forged-reader-handle", "non-plain-array", "recipe-diagnostic-details"];
 receipt.consumerSha256 = sha(readFileSync(fileURLToPath(import.meta.url)));
 writeFileSync("receipt.json", JSON.stringify(receipt, null, 2) + "\n");
