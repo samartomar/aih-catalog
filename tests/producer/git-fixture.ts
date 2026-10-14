@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+import { fixtureGitEnvironment } from "./git-environment.js";
 
 /**
  * A disposable local git repository with fixed author, committer and dates, so
@@ -32,7 +33,7 @@ export class FixtureRepository {
   git(...args: string[]): string {
     return execFileSync("git", ["-C", this.dir, ...args], {
       encoding: "utf8",
-      env: { ...process.env, ...this.environment },
+      env: fixtureGitEnvironment(this.environment),
     }).trim();
   }
 
@@ -71,12 +72,11 @@ export class FixtureRepository {
       ],
       {
         encoding: "utf8",
-        env: {
-          ...process.env,
+        env: fixtureGitEnvironment({
           ...this.environment,
           GIT_AUTHOR_DATE: date,
           GIT_COMMITTER_DATE: date,
-        },
+        }),
       },
     );
     return this.git("rev-parse", "HEAD");
@@ -86,7 +86,7 @@ export class FixtureRepository {
   run = (...args: string[]): Uint8Array =>
     execFileSync("git", ["-C", this.dir, ...args], {
       maxBuffer: 64 * 1024 * 1024,
-      env: { ...process.env, ...this.environment },
+      env: fixtureGitEnvironment(this.environment),
     });
 
   dispose(): void {

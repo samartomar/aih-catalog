@@ -6,6 +6,7 @@ import { afterEach, expect, it } from "vitest";
 import { documentBytes } from "../../src/producer/generate.js";
 import { assertHookSelectorContinuity } from "../../src/producer/hook-release.js";
 import { committedHookBaseline } from "../../tools/hook-git-baseline.mjs";
+import { fixtureGitEnvironment } from "./git-environment.js";
 import { committedRelease, sha256 } from "./helpers.js";
 
 const roots: string[] = [];
@@ -17,7 +18,10 @@ it("compares with a committed hook release after working-tree deletion and repin
   const root = mkdtempSync(join(tmpdir(), "aih-hook-git-"));
   roots.push(root);
   const run = (...args: string[]) =>
-    execFileSync("git", ["-C", root, ...args], { encoding: "utf8" }).trim();
+    execFileSync("git", ["-C", root, "-c", "commit.gpgsign=false", ...args], {
+      encoding: "utf8",
+      env: fixtureGitEnvironment(),
+    }).trim();
   run("init", "-q");
   const files = committedRelease();
   const path = "release/release-1.1.json";

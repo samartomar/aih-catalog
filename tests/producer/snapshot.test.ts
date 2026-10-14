@@ -23,6 +23,7 @@ import {
   writeCommittedFiles,
   writeSnapshot,
 } from "../../src/producer/snapshot.js";
+import { fixtureGitEnvironment } from "./git-environment.js";
 
 const scratch = mkdtempSync(join(tmpdir(), "aih-producer-snapshot-"));
 afterAll(() => rmSync(scratch, { recursive: true, force: true }));
@@ -58,7 +59,7 @@ function repo(name: string): string {
         ...args,
       ],
       {
-        env: { ...process.env, GIT_CONFIG_GLOBAL: config, GIT_CONFIG_NOSYSTEM: "1" },
+        env: fixtureGitEnvironment({ GIT_CONFIG_GLOBAL: config, GIT_CONFIG_NOSYSTEM: "1" }),
         encoding: "utf8",
       },
     ).trim();
@@ -72,7 +73,10 @@ function repo(name: string): string {
   return dir;
 }
 const git = (dir: string, ...args: string[]) =>
-  execFileSync("git", ["-C", dir, ...args], { encoding: "utf8" }).trim();
+  execFileSync("git", ["-C", dir, "-c", "commit.gpgsign=false", ...args], {
+    encoding: "utf8",
+    env: fixtureGitEnvironment(),
+  }).trim();
 
 describe("a cold measurement records a commit, not a working tree", () => {
   it("refuses a dirty tracked file but ignores untracked files", () => {
