@@ -25,6 +25,7 @@ import { parseDeclaration as fixtureDeclaration } from "../../src/producer/decla
 import { ProducerRefusal } from "../../src/producer/errors.js";
 import { fetchSourceTree } from "../../src/producer/fetch.js";
 import { readCommitTree } from "../../src/producer/git-tree.js";
+import { fixtureGitEnvironment } from "./git-environment.js";
 import { FixtureRepository, UPSTREAM_A, UPSTREAM_B_CHANGES } from "./git-fixture.js";
 import {
   declaration,
@@ -61,7 +62,7 @@ const reason = (run: () => unknown): string => {
 const realGit = (args: readonly string[]) =>
   execFileSync("git", [...args], {
     maxBuffer: 64 * 1024 * 1024,
-    env: { ...process.env, GIT_TERMINAL_PROMPT: "0" },
+    env: fixtureGitEnvironment({ GIT_TERMINAL_PROMPT: "0" }),
   });
 
 // These fixtures create a verified cache themselves instead of performing a fetch.
@@ -87,8 +88,10 @@ describe("immutable cached bytes (planted replacement ref)", () => {
       const cache = join(scratch, "replace-cache");
       ensureOwnedCacheDir(cache);
       const gitDir = join(cache, "mattpocock__skills.git");
-      execFileSync("git", ["clone", "-q", "--bare", upstream.dir, gitDir]);
-      execFileSync("git", ["-C", gitDir, "replace", a, b]);
+      execFileSync("git", ["clone", "-q", "--bare", upstream.dir, gitDir], {
+        env: fixtureGitEnvironment(),
+      });
+      execFileSync("git", ["-C", gitDir, "replace", a, b], { env: fixtureGitEnvironment() });
       writeFileSync(join(cache, "mattpocock__skills.verified"), `${a}\n`);
       prepareFixtureEvidence(cache);
       const tree = await fetchSourceTree({
@@ -184,7 +187,9 @@ describe("cached source object integrity", () => {
         const cache = join(scratch, "object-permissions-cache");
         ensureOwnedCacheDir(cache);
         const gitDir = join(cache, "mattpocock__skills.git");
-        execFileSync("git", ["clone", "-q", "--bare", "--no-hardlinks", upstream.dir, gitDir]);
+        execFileSync("git", ["clone", "-q", "--bare", "--no-hardlinks", upstream.dir, gitDir], {
+          env: fixtureGitEnvironment(),
+        });
         writeFileSync(join(cache, "mattpocock__skills.verified"), `${commit}\n`);
         prepareFixtureEvidence(cache);
         execFileSync(
@@ -222,7 +227,9 @@ describe("cached source object integrity", () => {
       const cache = join(scratch, "substituted-blob-cache");
       ensureOwnedCacheDir(cache);
       const gitDir = join(cache, "mattpocock__skills.git");
-      execFileSync("git", ["clone", "-q", "--bare", "--no-hardlinks", upstream.dir, gitDir]);
+      execFileSync("git", ["clone", "-q", "--bare", "--no-hardlinks", upstream.dir, gitDir], {
+        env: fixtureGitEnvironment(),
+      });
       writeFileSync(join(cache, "mattpocock__skills.verified"), commit + "\n");
       prepareFixtureEvidence(cache);
 
