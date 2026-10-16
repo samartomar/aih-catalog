@@ -35,6 +35,13 @@ const environment = Object.fromEntries(
   Object.entries(process.env).filter(([key]) => key.toLowerCase() !== "npm_config_allow_scripts"),
 );
 try {
+  // Keep the caller's npm cache: the offline install needs Core's dependencies from it, and
+  // npm would otherwise derive an empty cache from the fixture home.
+  environment.npm_config_cache ??= execFileSync(
+    process.execPath,
+    [npm, "config", "get", "cache"],
+    { env: environment, encoding: "utf8", timeout: 60_000 },
+  ).trim();
   const home = join(fixture, "home");
   mkdirSync(home);
   environment.HOME = home;
