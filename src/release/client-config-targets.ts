@@ -25,36 +25,39 @@ const isObject = (value: unknown): value is Record<string, unknown> =>
 /**
  * Whether a path segment can be `name` (lower case): a literal only as itself, an input slot
  * only as one of its declared `enum` values, and an unconstrained slot or anything else always.
- * The second result says whether the segment is a literal.
+ * `literal` says whether the segment is a literal.
  */
 const segmentCanBe = (
   segment: unknown,
   inputs: Record<string, unknown>,
   name: string,
-): readonly [boolean, boolean] => {
+): { readonly possible: boolean; readonly literal: boolean } => {
   if (isObject(segment) && typeof segment.literal === "string") {
-    return [segment.literal.toLowerCase() === name, true];
+    return { possible: segment.literal.toLowerCase() === name, literal: true };
   }
   const input =
     isObject(segment) && typeof segment.input === "string" ? inputs[segment.input] : undefined;
   if (isObject(input) && Array.isArray(input.enum)) {
-    return [
-      input.enum.some((value) => typeof value === "string" && value.toLowerCase() === name),
-      false,
-    ];
+    return {
+      possible: input.enum.some(
+        (value) => typeof value === "string" && value.toLowerCase() === name,
+      ),
+      literal: false,
+    };
   }
-  return [true, false];
+  return { possible: true, literal: false };
 };
 
 /**
  * Stable problems for every `text.block` operation, in recipe and operation order, whose
  * target could be a Codex `config.toml` under any root: its last two segments can be
- * `.codex` and `config.toml`. Both literal is `codex-config-target`; an input slot that its
- * declared `enum` does not rule out is `codex-config-target-unresolved`. Names compare
+ * `.codex` and `config.toml`. The reason is `codex-config-target` when both segments are
+ * literal, and `codex-config-target-unresolved` when either is an input slot whose declared
+ * `enum` does not rule the name out. Names compare
  * case-insensitively. A Codex home outside a `.codex` directory is not recognised. Other
  * operation kinds and other paths are ignored; a recipe that is not an operation list is
  * ignored here because recipe agreement already refuses it. An operation without an id is
- * named by its position, `#<index>`.
+ * named by its zero-based position, `#<index>`.
  */
 export function codexConfigBlockProblems(
   recipes: readonly { readonly itemId: string; readonly recipe: unknown }[],
@@ -68,20 +71,14 @@ export function codexConfigBlockProblems(
       if (!isObject(operation.target) || !Array.isArray(operation.target.segments)) return;
       const segments = operation.target.segments as unknown[];
       if (segments.length < 2) return;
-      const [file, fileLiteral] = segmentCanBe(
-        segments[segments.length - 1],
-        inputs,
-        "config.toml",
-      );
-      const [directory, directoryLiteral] = segmentCanBe(
-        segments[segments.length - 2],
-        inputs,
-        ".codex",
-      );
-      if (!file || !directory) return;
+      const file = segmentCanBe(segments[segments.length - 1], inputs, "config.toml");
+      const directory = segmentCanBe(segments[segments.length - 2], inputs, ".codex");
+      if (!file.possible || !directory.possible) return;
       const operationId = typeof operation.id === "string" ? operation.id : `#${index}`;
       const reason =
-        fileLiteral && directoryLiteral ? "codex-config-target" : "codex-config-target-unresolved";
+        file.literal && directory.literal
+          ? "codex-config-target"
+          : "codex-config-target-unresolved";
       problems.push({ reason, itemId, operationId });
     });
   }
