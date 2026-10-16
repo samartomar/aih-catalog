@@ -64,6 +64,43 @@ describe("codexConfigBlockProblems", () => {
     ).toEqual([]);
   });
 
+  it("does not fail closed on an input leaf outside a possible .codex directory", () => {
+    expect(
+      codexConfigBlockProblems([recipeOf(block("op", [literal("docs"), { input: "file" }]))]),
+    ).toEqual([]);
+  });
+
+  it.each([
+    [[literal(".codex"), { input: "file" }], { file: ["AGENTS.md"] }, 0],
+    [[literal(".codex"), { input: "file" }], { file: ["notes.md", "Config.toml"] }, 1],
+    [[{ input: "dir" }, literal("config.toml")], { dir: ["app"] }, 0],
+    [[{ input: "dir" }, literal("config.toml")], { dir: [".codex"] }, 1],
+    [[{ input: "dir" }, { input: "file" }], { dir: ["docs"] }, 0],
+  ])("narrows an input slot to its enum (%j, %j)", (segments, enums, count) => {
+    const inputs = Object.fromEntries(
+      Object.entries(enums).map(([name, values]) => [
+        name,
+        { type: "string", required: true, enum: values },
+      ]),
+    );
+    expect(
+      codexConfigBlockProblems([
+        { itemId: "item.a", recipe: { inputs, operations: [block("op", segments)] } },
+      ]),
+    ).toHaveLength(count);
+  });
+
+  it("names an operation without an id by its position", () => {
+    expect(
+      codexConfigBlockProblems([
+        recipeOf(block("a", [literal("AGENTS.md")]), {
+          kind: "text.block",
+          target: { root: "project", segments: [literal(".codex"), literal("config.toml")] },
+        }),
+      ]),
+    ).toEqual([{ reason: "codex-config-target", itemId: "item.a", operationId: "#1" }]);
+  });
+
   it("ignores unrelated text.block targets and other .codex files", () => {
     expect(
       codexConfigBlockProblems([
@@ -104,7 +141,7 @@ describe("codexConfigBlockProblems", () => {
       codexConfigBlockProblems([
         { itemId: "a", recipe: undefined },
         { itemId: "b", recipe: { operations: "no" } },
-        { itemId: "c", recipe: { operations: [null, 7, { kind: "text.block" }] } },
+        { itemId: "c", recipe: { operations: [null, 7, { id: "t", kind: "text.block" }] } },
       ]),
     ).toEqual([]);
   });

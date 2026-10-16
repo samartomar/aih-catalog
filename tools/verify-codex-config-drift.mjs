@@ -15,8 +15,8 @@ assert.equal(
 );
 const coreTarball = resolve(process.argv[2]);
 assert(existsSync(coreTarball), "The supplied Core artifact must exist.");
-const hash = () => createHash("sha256").update(readFileSync(coreTarball)).digest("hex");
-const coreSha256 = hash();
+const hash = (path) => createHash("sha256").update(readFileSync(path)).digest("hex");
+const coreSha256 = hash(coreTarball);
 const npm = [
   process.env.npm_execpath,
   resolve(process.execPath, "..", "node_modules/npm/bin/npm-cli.js"),
@@ -52,7 +52,7 @@ try {
       maxBuffer: 8 * 1024 * 1024,
     },
   );
-  assert.equal(hash(), coreSha256, "The installed artifact must retain its digest.");
+  assert.equal(hash(coreTarball), coreSha256, "The installed artifact must retain its digest.");
   writeFileSync(
     join(consumer, "consume.mjs"),
     String.raw`
@@ -110,8 +110,10 @@ const block = startMarker + "\n" + content + endMarker;
 assert(original.includes(block), "Core must install the exact block content.");
 await check("setup", "match", "content-match");
 // JSON string quoting is valid TOML basic-string quoting for this fixture path.
+const mode = process.argv[3];
+assert(mode === "drift" || mode === "control", "Unknown scenario: " + mode);
 const table = "[projects." + JSON.stringify(project) + "]\ntrust_level = \"trusted\"\n";
-if (process.argv[3] === "control") {
+if (mode === "control") {
   writeFileSync(target, original + "\n" + table);
   assert(read().includes(block));
   assert(read().includes(table));
@@ -161,6 +163,7 @@ console.log(JSON.stringify({ steps }));
   console.error(error.stderr?.toString() || error.message);
   process.exitCode = 1;
 } finally {
+  // mkdtemp supplies this exact task-owned root; no caller path is removed.
   assert(fixture.startsWith(prefix));
   rmSync(fixture, { recursive: true, force: true });
 }

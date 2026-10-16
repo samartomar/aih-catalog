@@ -22,19 +22,39 @@ export interface CodexConfigBlockProblem {
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
-/** The lower-cased text of a literal path segment, `undefined` for an input slot or anything else. */
-const literalOf = (segment: unknown): string | undefined =>
-  isObject(segment) && typeof segment.literal === "string"
-    ? segment.literal.toLowerCase()
-    : undefined;
+/**
+ * Whether a path segment can be `name` (lower case): a literal only as itself, an input slot
+ * only as one of its declared `enum` values, and an unconstrained slot or anything else always.
+ * The second result says whether the segment is a literal.
+ */
+const segmentCanBe = (
+  segment: unknown,
+  inputs: Record<string, unknown>,
+  name: string,
+): readonly [boolean, boolean] => {
+  if (isObject(segment) && typeof segment.literal === "string") {
+    return [segment.literal.toLowerCase() === name, true];
+  }
+  const input =
+    isObject(segment) && typeof segment.input === "string" ? inputs[segment.input] : undefined;
+  if (isObject(input) && Array.isArray(input.enum)) {
+    return [
+      input.enum.some((value) => typeof value === "string" && value.toLowerCase() === name),
+      false,
+    ];
+  }
+  return [true, false];
+};
 
 /**
  * Stable problems for every `text.block` operation, in recipe and operation order, whose
- * target could be a Codex `config.toml` under any root: a literal `.codex/config.toml`
- * ending, or a target whose last segment, or the segment before a literal `config.toml`, is
- * an input slot that could resolve there. Names compare case-insensitively. Other operation
- * kinds and other paths are ignored; a recipe that is not an operation list is ignored here
- * because recipe agreement already refuses it.
+ * target could be a Codex `config.toml` under any root: its last two segments can be
+ * `.codex` and `config.toml`. Both literal is `codex-config-target`; an input slot that its
+ * declared `enum` does not rule out is `codex-config-target-unresolved`. Names compare
+ * case-insensitively. A Codex home outside a `.codex` directory is not recognised. Other
+ * operation kinds and other paths are ignored; a recipe that is not an operation list is
+ * ignored here because recipe agreement already refuses it. An operation without an id is
+ * named by its position, `#<index>`.
  */
 export function codexConfigBlockProblems(
   recipes: readonly { readonly itemId: string; readonly recipe: unknown }[],
@@ -42,23 +62,28 @@ export function codexConfigBlockProblems(
   const problems: CodexConfigBlockProblem[] = [];
   for (const { itemId, recipe } of recipes) {
     if (!isObject(recipe) || !Array.isArray(recipe.operations)) continue;
-    for (const operation of recipe.operations as unknown[]) {
-      if (!isObject(operation) || operation.kind !== "text.block") continue;
-      if (!isObject(operation.target) || !Array.isArray(operation.target.segments)) continue;
+    const inputs = isObject(recipe.inputs) ? recipe.inputs : {};
+    (recipe.operations as unknown[]).forEach((operation, index) => {
+      if (!isObject(operation) || operation.kind !== "text.block") return;
+      if (!isObject(operation.target) || !Array.isArray(operation.target.segments)) return;
       const segments = operation.target.segments as unknown[];
-      const last = literalOf(segments[segments.length - 1]);
-      const directory = literalOf(segments[segments.length - 2]);
-      const operationId = typeof operation.id === "string" ? operation.id : "";
-      if (last === undefined) {
-        problems.push({ reason: "codex-config-target-unresolved", itemId, operationId });
-      } else if (last === "config.toml") {
-        if (directory === ".codex") {
-          problems.push({ reason: "codex-config-target", itemId, operationId });
-        } else if (directory === undefined && segments.length >= 2) {
-          problems.push({ reason: "codex-config-target-unresolved", itemId, operationId });
-        }
-      }
-    }
+      if (segments.length < 2) return;
+      const [file, fileLiteral] = segmentCanBe(
+        segments[segments.length - 1],
+        inputs,
+        "config.toml",
+      );
+      const [directory, directoryLiteral] = segmentCanBe(
+        segments[segments.length - 2],
+        inputs,
+        ".codex",
+      );
+      if (!file || !directory) return;
+      const operationId = typeof operation.id === "string" ? operation.id : `#${index}`;
+      const reason =
+        fileLiteral && directoryLiteral ? "codex-config-target" : "codex-config-target-unresolved";
+      problems.push({ reason, itemId, operationId });
+    });
   }
   return Object.freeze(problems);
 }

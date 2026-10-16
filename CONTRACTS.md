@@ -29,25 +29,29 @@ authority.
 ## Current contract: no `text.block` in a Codex `config.toml`
 
 Catalog content does not manage a Codex `config.toml` with a recipe `text.block`. Core
-places a new block at the end of its target file. Codex rewrites `config.toml` when it
-records a trusted project and inserts the new `[projects."<path>"]` table before the
-file's trailing comment lines, so when a managed block's `END` marker is the last line the
-client's table lands inside the block. Core then reports the block changed although the
-person changed nothing, and applying the block again replaces its content and drops the
-client's setting.
+places a new block at the end of its target file. Codex CLI 0.162.1 was observed
+rewriting the user `config.toml` when it recorded a trusted project, inserting the new
+`[projects."<path>"]` table before the file's trailing comment lines. When a managed
+block's `END` marker is the last line, the client's table therefore lands inside the block.
+Core then reports the block changed although the person changed nothing, and applying the
+block again replaces its content and drops the client's setting.
 
 The whole-package integrity check `codex-config-blocks` (run by `npm run check:release`
-for every release format) refuses a recipe `text.block` whose target ends in a literal
-`.codex/config.toml` (compared case-insensitively, under any root). It also refuses a
-target whose last segment, or the segment before a literal `config.toml`, is an input
-slot, because the input could resolve there (`src/release/client-config-targets.ts`).
-Structural Codex configuration waits for Core TOML support.
+for every release format) refuses a recipe `text.block` whose last two target segments can
+be `.codex` and `config.toml`, compared case-insensitively under any root. This covers the
+default user location and a project's `.codex/config.toml`. A literal segment can only be
+itself; an input slot is refused unless its declared `enum` rules the name out
+(`src/release/client-config-targets.ts`). A Codex home outside a `.codex` directory (a
+custom `CODEX_HOME`) is not recognised. Structural Codex configuration waits for Core's
+TOML `config.entries` to accept array values and quoted table names such as
+`[projects."<path>"]`; scalar keys under bare table names are supported today.
 
 To recover a file whose marked block captured a client-written table, move the table (or
 tables) from inside the block to below its `END` marker, keeping them, then check the file
-state again. Do not apply the block over a captured table. `node
-tools/verify-codex-config-drift.mjs <core.tgz>` proves the drift and this recovery against a
-Core artifact.
+state again. Do not apply the block over a captured table.
+`node tools/verify-codex-config-drift.mjs <core.tgz>` checks this against a Core artifact: it
+applies a block, simulates the client's insertion inside it, and checks file state after
+the drift and after the recovery.
 
 ## Content published to consumers
 
