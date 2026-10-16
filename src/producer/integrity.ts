@@ -1,3 +1,4 @@
+import { codexConfigBlockProblems } from "../release/client-config-targets.js";
 import { clientAdapterProblems } from "../release/client-ids.js";
 import type { CatalogRelease, Json } from "../release/contracts.js";
 import { contractSupport, RELEASE_SCHEMA_ID_1_4 } from "../release/contracts.js";
@@ -48,6 +49,7 @@ export const INTEGRITY_CHECKS = [
   "authored-references",
   "authored-placeholders",
   "client-adapter-ids",
+  "codex-config-blocks",
 ] as const;
 
 /** The declared allowances the authored-content checks run with; absent means none. */
@@ -60,7 +62,8 @@ export interface IntegrityOptions {
  * recipe/configuration agreement, member paths/lengths/hashes, the exact member
  * inventory, required-dependency closure, source provenance and the internal
  * references and generation placeholders of Catalog-authored content, and that
- * every client-adapter item of a 1.4 release targets a client in Core's native set. Every
+ * every client-adapter item of a 1.4 release targets a client in Core's native set, and
+ * that no recipe adds a `text.block` to a Codex `config.toml`. Every
  * check is evaluated so one report names everything that is wrong. It uses the
  * public release reader and the Node package verifier, not a second validator.
  * When the candidate carries the optional 1.1 release, every per-release check
@@ -283,6 +286,31 @@ export function checkCandidateFiles(
         : undefined,
     );
 
+    // A recipe member that cannot be read is refused by member-bytes and recipe agreement.
+    const configProblems = codexConfigBlockProblems(
+      release.items.map((item) => {
+        const bytes = files.get(item.recipe.path);
+        let recipe: unknown;
+        try {
+          recipe =
+            bytes === undefined ? undefined : JSON.parse(Buffer.from(bytes).toString("utf8"));
+        } catch {
+          recipe = undefined;
+        }
+        return { itemId: item.id, recipe };
+      }),
+    );
+    note(
+      path,
+      "codex-config-blocks",
+      configProblems.length === 0,
+      configProblems.length
+        ? configProblems
+            .map((problem) => `${problem.reason} ${problem.itemId}/${problem.operationId}`)
+            .join("; ")
+        : undefined,
+    );
+
     const authored = checkAuthoredContent(
       release,
       files,
@@ -314,6 +342,7 @@ export function checkCandidateFiles(
     "authored-references",
     "authored-placeholders",
     "client-adapter-ids",
+    "codex-config-blocks",
   ]) {
     emit(name);
   }

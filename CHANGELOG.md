@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Add the whole-package integrity check `codex-config-blocks` for samartomar/aih-catalog#91: no
+  recipe may add a `text.block` to a Codex `config.toml` (a target ending in `.codex/config.toml`,
+  or one an input slot its `enum` does not rule out could resolve to). Codex CLI 0.162.1 inserts
+  a trusted-project table before the file's trailing comment lines, which puts it inside a
+  trailing managed block, and Core then reports the block changed. No committed content changes
+  and no release format changes. `CONTRACTS.md` records the rule, its limits and the recovery
+  for a block that captured a client table;
+  `node tools/verify-codex-config-drift.mjs <core.tgz>` checks a simulated insertion and that
+  recovery against a Core artifact. Structural Codex configuration waits for Core's TOML
+  `config.entries` to accept array values and quoted table names.
+
 - Add release format `urn:aihq:catalog:release:1.4.0`, with schema
   `@aihq/catalog/schemas/release/1.4.0.json`, and the item field `clientId`: the client a
   `client-adapter` item targets, in Core's client-id form (`^[a-z][a-z0-9-]{0,63}$`). The field

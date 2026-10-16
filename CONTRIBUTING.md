@@ -41,6 +41,11 @@ tree, individual notices and donor closures through
 material proof and one harmless script/interpreter check; native use remains separate.
 See [Anthropic content](docs/ANTHROPIC-CONTENT.md) for rights and prerequisites.
 
+`node tools/verify-codex-config-drift.mjs <core.tgz>` uses the reviewed Core artifact
+in disposable offline fixtures to prove simulated Codex config table drift inside a
+managed block, recovery by moving the table below its END marker, and the matching
+control with the table below the block from the start. It runs no native client.
+
 Release generation renders the authored project context through the built release
 module, so run `npm run build:dist` before `npm test` or `npm run check:materials` on
 their own; `npm run verify` and `npm run generate:release` build first.

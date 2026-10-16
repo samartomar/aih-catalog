@@ -153,11 +153,13 @@ Before anything can be installed the whole candidate must pass, in order:
 `release-envelope`, `package-identity`, `format-support`, `member-bytes`,
 `recipe-configuration-agreement`, `inventory-exact`, `dependency-closure`,
 `source-references`, `provenance-paths`, `authored-references`,
-`authored-placeholders` and `client-adapter-ids`. The first nine reuse the public release
-reader and the Node package verifier; `client-adapter-ids` requires every `client-adapter`
-item of a 1.4 release to declare a `clientId` that is one of Core's native client ids
-(see [the contract](../CONTRACTS.md#current-contract-release-item-clientid)); the authored-content
-checks are described below. The candidate is then staged as a
+`authored-placeholders`, `client-adapter-ids` and `codex-config-blocks`. The first nine reuse
+the public release reader and the Node package verifier; `client-adapter-ids` requires every
+`client-adapter` item of a 1.4 release to declare a `clientId` that is one of Core's native
+client ids (see [the contract](../CONTRACTS.md#current-contract-release-item-clientid));
+`codex-config-blocks` refuses a recipe `text.block` that targets a Codex `config.toml` (see
+[the contract](../CONTRACTS.md#current-contract-no-textblock-in-a-codex-configtoml)); the
+authored-content checks are described below. The candidate is then staged as a
 real package, packed with `npm pack --ignore-scripts`, and the actual tarball is read
 back:
 
