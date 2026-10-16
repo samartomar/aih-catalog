@@ -288,14 +288,18 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
 
   const document: Record_ = {
     schema:
-      finalItems.some((item) => asRecord(item.recipe).schema === "urn:aihq:core:recipe:1.3.0") ||
-      base?.checked.schema === "urn:aihq:catalog:release:1.2.0"
-        ? "urn:aihq:catalog:release:1.2.0"
+      finalItems.some((item) => item.clientId !== undefined) ||
+      base?.checked.schema === "urn:aihq:catalog:release:1.4.0"
+        ? "urn:aihq:catalog:release:1.4.0"
         : finalItems.some(
-              (item) => asRecord(item.recipe).schema === "urn:aihq:core:recipe:1.1.0",
-            ) || base?.checked.schema === "urn:aihq:catalog:release:1.1.0"
-          ? "urn:aihq:catalog:release:1.1.0"
-          : "urn:aihq:catalog:release:1.0.0",
+              (item) => asRecord(item.recipe).schema === "urn:aihq:core:recipe:1.3.0",
+            ) || base?.checked.schema === "urn:aihq:catalog:release:1.2.0"
+          ? "urn:aihq:catalog:release:1.2.0"
+          : finalItems.some(
+                (item) => asRecord(item.recipe).schema === "urn:aihq:core:recipe:1.1.0",
+              ) || base?.checked.schema === "urn:aihq:catalog:release:1.1.0"
+            ? "urn:aihq:catalog:release:1.1.0"
+            : "urn:aihq:catalog:release:1.0.0",
     package: { name: input.package.name, version: input.package.version },
     sources: finalSources,
     items: finalItems,

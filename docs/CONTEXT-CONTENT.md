@@ -44,7 +44,10 @@ Three layers, linked by explicit same-release `requires` dependencies:
    Cursor, Antigravity, Gemini CLI, GitHub Copilot, Windsurf, OpenCode, Zed,
    Kimi Code, Kiro). Each delivers its `<dir>/adapters/<cli>.md` note and
    requires its pointer item(s); Antigravity requires both the `AGENTS.md` and
-   `GEMINI.md` pointers, Kiro only its steering file.
+   `GEMINI.md` pointers, Kiro only its steering file. Each `aihq.client.<cli>` item
+   declares its target client in the release item field `clientId` (`<cli>`, in
+   release format 1.4). The field names the target only; it does not mean the client is
+   installed, connected or admitted. See [the contract](../CONTRACTS.md#current-contract-release-item-clientid).
 
 Pointer blocks embed the shared essentials inline (preamble plus the shared
 canonical block body). In the bounded Codex probe below, the entry bytes were
@@ -54,6 +57,13 @@ composed while the referenced router was not imported. The block body,
 `src/release/context-content.ts`, drift-guarded by focused tests. The same internal
 renderer (`src/release/project-context.ts`) builds the published release and every
 project-side preparation below.
+
+After changing the renderer, build it with `npm run build:dist`, then run
+`node tools/generate-release.mjs --context-only`. This rewrites only the authored
+context items, their recipes and materials, and the 1.4 release format they need in
+`release/release.json`; every other item and source stays byte-identical. Run
+`npm run verify` afterward. The full donor seed generation still refuses to replace an
+advanced upstream release.
 
 The shipped guidance uses next-new-session update timing; explicit native reload
 is optional where supported. It asks the agent to warn and continue with the
@@ -179,7 +189,7 @@ claim. Its `metadata.derived` records the derivation:
 { "derived": { "kind": "project-context",
   "from": { "package": { "name": "@aihq/catalog", "version": "<version>" },
     "manifestSha256": "<source release SHA-256>" },
-  "renderer": "aihq-project-context-renderer@2", "instructionDirectory": ".ai/context" } }
+  "renderer": "aihq-project-context-renderer@3", "instructionDirectory": ".ai/context" } }
 ```
 
 The derived manifest SHA-256 therefore always differs from the source release's,

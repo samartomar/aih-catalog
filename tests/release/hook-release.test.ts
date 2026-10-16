@@ -35,14 +35,14 @@ describe("carried hook release 1.1", () => {
     expect(output).toContain("release/release-1.1.json");
   });
 
-  it("is a 1.1 release of this package that leaves the 1.0 release untouched", () => {
+  it("is a 1.1 release of this package that leaves the default release untouched", () => {
     const release = hookRelease();
     expect(release.schema).toBe("urn:aihq:catalog:release:1.1.0");
     expect(release.package).toEqual({ name: pkg.name, version: pkg.version });
     expect(release.sources).toEqual([{ id: "aihq-client-hooks", origin: { kind: "authored" } }]);
     expect(listItems(release).map((item) => item.id)).toEqual([ITEM_ID]);
     const one = JSON.parse(bytesAt("release/release.json").toString("utf8"));
-    expect(one.schema).toBe("urn:aihq:catalog:release:1.0.0");
+    expect(one.schema).toBe("urn:aihq:catalog:release:1.4.0");
     expect(
       one.items.every((item: { recipe: { schema: string } }) =>
         item.recipe.schema.endsWith("1.0.0"),

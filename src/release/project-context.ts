@@ -6,6 +6,8 @@
  * `prepareProjectContext` derives a project's chosen directory through it, so one
  * implementation produces both. No Node built-ins or filesystem; not a package export.
  */
+
+import { CORE_NATIVE_CLIENT_IDS } from "./client-ids.js";
 import {
   adapterNote,
   BLOCK_ID,
@@ -29,7 +31,7 @@ import { sha256Hex } from "./sha256.js";
  * Names the rendering this module performs. Derived releases record it; change it
  * whenever the rendered bytes for any directory change.
  */
-export const PROJECT_CONTEXT_RENDERER = "aihq-project-context-renderer@2";
+export const PROJECT_CONTEXT_RENDERER = "aihq-project-context-renderer@3";
 export { DEFAULT_INSTRUCTION_DIRECTORY };
 export const CONTEXT_SOURCE_ID = "aihq-project-context";
 export const CONTEXT_SOURCE = Object.freeze({
@@ -230,6 +232,8 @@ const itemRecord = (fields: {
   label: string;
   description: string;
   kind: string;
+  /** Release 1.4: the target client of a client-adapter item. */
+  clientId?: string;
   recipe: ReturnType<typeof registerRecipe>;
   materials: readonly Member[];
   requires: readonly string[];
@@ -238,6 +242,7 @@ const itemRecord = (fields: {
   label: fields.label,
   description: fields.description,
   kind: fields.kind,
+  ...(fields.clientId === undefined ? {} : { clientId: fields.clientId }),
   sourceIds: [CONTEXT_SOURCE_ID],
   targets: [],
   scopes: ["project"],
@@ -388,6 +393,12 @@ function pointerItems(put: Put, dir: string) {
 
 /** The per-client selection surface: the adapter note plus explicit pointer dependencies. */
 function clientItems(put: Put, dir: string) {
+  const unknown = CLIENTS.filter((client) => !CORE_NATIVE_CLIENT_IDS.includes(client.id));
+  if (unknown.length > 0) {
+    throw new TypeError(
+      `Client(s) outside Core's native client set: ${unknown.map((client) => client.id).join(", ")}`,
+    );
+  }
   return CLIENTS.map((client) => {
     const itemId = clientItemId(client.id);
     const target = underDir(dir, "adapters", `${client.id}.md`);
@@ -432,6 +443,7 @@ function clientItems(put: Put, dir: string) {
       label: `${client.label} context wiring`,
       description: `${client.label} adapter note and its native entry pointer(s): ${client.pointers.join(", ")}.`,
       kind: "client-adapter",
+      clientId: client.id,
       recipe,
       materials: [member],
       requires: client.pointers.map(pointerItemId),

@@ -65,6 +65,7 @@ describe("release 1.1 documents", () => {
       RELEASE_11,
       "urn:aihq:catalog:release:1.2.0",
       "urn:aihq:catalog:release:1.3.0",
+      "urn:aihq:catalog:release:1.4.0",
     ]);
   });
 
@@ -127,6 +128,7 @@ describe("release 1.1 documents", () => {
       RECIPE_11,
       "urn:aihq:catalog:release:1.2.0",
       "urn:aihq:catalog:release:1.3.0",
+      "urn:aihq:catalog:release:1.4.0",
       "urn:aihq:core:recipe:1.3.0",
       "urn:aihq:catalog:producer-declaration:3.0.0",
       "urn:aihq:catalog:producer-declaration:3.1.0",

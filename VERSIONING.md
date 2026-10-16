@@ -12,6 +12,13 @@ Related changes accumulate in a coherent train; `semver:none` cannot start or bu
 a package cut. Bundled content changes require a new Catalog package version.
 An immediate hotfix is reserved for installed-user harm needing prompt correction.
 
+## Release formats
+
+Each release format version is fixed once shipped. An additive item field arrives as
+a new minor format with its own schema export; earlier formats, schema exports and
+documents keep their meaning. A reader refuses a format it does not support as a
+whole rather than ignoring fields it does not know.
+
 The checkout is a migration workspace, not a publishable greenfield package.
 This setup does not reserve a future version or add compatibility commitments for
 retired V2 interfaces. Publication is blocked until

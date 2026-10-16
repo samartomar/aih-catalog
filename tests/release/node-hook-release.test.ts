@@ -39,9 +39,9 @@ describe("explicit release export", () => {
     expect(configured.selection?.recipe.reference.materials.map((m) => m.id)).toEqual(["script"]);
   });
 
-  it("never substitutes 1.1 for the default 1.0 release", async () => {
+  it("never substitutes 1.1 for the default release", async () => {
     const result = await readInstalledRelease({ root: root() });
-    expect(result.release?.schema).toBe("urn:aihq:catalog:release:1.0.0");
+    expect(result.release?.schema).toBe("urn:aihq:catalog:release:1.4.0");
     expect(result.release?.items.some((item) => item.id === ITEM_ID)).toBe(false);
   });
 

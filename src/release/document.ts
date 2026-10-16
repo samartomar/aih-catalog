@@ -9,6 +9,8 @@ import {
   type InputSpec,
   type Json,
   RELEASE_RECIPE_SCHEMAS,
+  RELEASE_SCHEMA_ID_1_3,
+  RELEASE_SCHEMA_ID_1_4,
   type RecipeSchemaId,
   type ReleaseSchemaId,
 } from "./contracts.js";
@@ -25,6 +27,11 @@ const HTTPS_URL = /^https:\/\/[^\s/?#@]+(?:[/?][^\s#]*)?$/;
 const GIT_REVISION = /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/;
 const SRI = /^sha(?:256|384|512)-[A-Za-z0-9+/]+={0,2}$/;
 const KIND = /^[a-z][a-z0-9-]{0,63}$/;
+/** Core's client-id form; the reader checks form only, never membership. */
+export const CLIENT_ID = /^[a-z][a-z0-9-]{0,63}$/;
+const CLIENT_ADAPTER = "client-adapter";
+/** Release formats whose local source origin is a pinned snapshot revision. */
+const LOCAL_ORIGIN_SCHEMAS: readonly string[] = [RELEASE_SCHEMA_ID_1_3, RELEASE_SCHEMA_ID_1_4];
 const RESERVED = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\..*)?$/i;
 const MEMBER_MAX = 16 * 1024 * 1024;
 const RECIPE_MAX = 1_000_000;
@@ -213,7 +220,7 @@ function checkOrigin(d: Diagnostics, value: unknown, path: string, schema: Relea
     ) {
       bad();
     }
-  } else if (value.kind === "local" && schema === "urn:aihq:catalog:release:1.3.0") {
+  } else if (value.kind === "local" && LOCAL_ORIGIN_SCHEMAS.includes(schema)) {
     if (
       !fields(d, value, path, ["kind", "revision"]) ||
       typeof value.revision !== "string" ||
@@ -336,13 +343,33 @@ const normalizeDependencies = (value: Record<string, unknown>) =>
     conflicts: (value.conflicts as Json[] | undefined) ?? [],
   }) as unknown as CatalogItem["dependencies"];
 
+/** Release 1.4: `clientId` is required on client-adapter items and refused on every other kind. */
+function checkClientId(d: Diagnostics, item: Record<string, unknown>, path: string): void {
+  const present = Object.hasOwn(item, "clientId");
+  if (item.kind !== CLIENT_ADAPTER) {
+    if (present) {
+      d.add(
+        "unexpected-client-id",
+        `${path}/clientId`,
+        "Only client-adapter items declare a target client.",
+      );
+    }
+  } else if (!present) {
+    d.add("missing-field", `${path}/clientId`, "Required field.");
+  } else if (typeof item.clientId !== "string" || !CLIENT_ID.test(item.clientId)) {
+    d.add("invalid-client-id", `${path}/clientId`, "Expected a lowercase client identifier.");
+  }
+}
+
 function checkItem(
   d: Diagnostics,
   value: unknown,
   path: string,
   sources: ReadonlySet<string>,
   recipeSchemas: readonly RecipeSchemaId[],
+  schema: ReleaseSchemaId,
 ): void {
+  const clientIds = schema === RELEASE_SCHEMA_ID_1_4;
   if (
     !fields(
       d,
@@ -360,11 +387,12 @@ function checkItem(
         "materials",
         "dependencies",
       ],
-      ["description", "metadata"],
+      clientIds ? ["description", "metadata", "clientId"] : ["description", "metadata"],
     )
   ) {
     return;
   }
+  if (clientIds) checkClientId(d, value, path);
   id(d, value.id, `${path}/id`);
   if (typeof value.label !== "string" || value.label.length === 0 || value.label.length > 256) {
     d.add("invalid-text", `${path}/label`, "Expected a label of 1 to 256 characters.");
@@ -595,6 +623,7 @@ export function checkReleaseDocument(value: unknown): {
         `/items/${index}`,
         sourceIds,
         RELEASE_RECIPE_SCHEMAS[value.schema as ReleaseSchemaId] ?? [],
+        value.schema as ReleaseSchemaId,
       );
     }
     ascending(

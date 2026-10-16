@@ -63,6 +63,38 @@ describe("whole-candidate integrity", () => {
     }
   });
 
+  it("fails a client-adapter item whose clientId Core does not know, and names the item and the id", () => {
+    const committed = committedRelease();
+    const adapters = (files: Map<string, Buffer>) =>
+      (
+        JSON.parse((files.get("release/release.json") as Buffer).toString("utf8")) as {
+          items: { kind: string; clientId?: string }[];
+        }
+      ).items.filter((item) => item.kind === "client-adapter");
+    expect(adapters(committed)).toHaveLength(11);
+    // The first test already passes every check, this one included, for the committed release.
+    const tampered = rewrite(committed, (document) => {
+      (itemOf(document, "aihq.client.codex") as unknown as { clientId: string }).clientId =
+        "not-a-core-client";
+    });
+    const result = checkCandidateFiles(tampered, identity, { authored: declaration().authored });
+    expect(result.checks.filter((check) => !check.ok).map((check) => check.name)).toEqual([
+      "client-adapter-ids",
+    ]);
+    const detail = result.checks.find((check) => check.name === "client-adapter-ids")?.detail;
+    expect(detail).toContain("aihq.client.codex");
+    expect(detail).toContain("not-a-core-client");
+  });
+
+  it("does not require clientId of an earlier release format, which does not define it", () => {
+    const earlier = rewrite(committedRelease(), (document) => {
+      (document as unknown as { schema: string }).schema = "urn:aihq:catalog:release:1.3.0";
+      for (const item of document.items) delete (item as unknown as { clientId?: string }).clientId;
+    });
+    const result = checkCandidateFiles(earlier, identity, { authored: declaration().authored });
+    expect(result.checks.filter((check) => !check.ok).map((check) => check.name)).toEqual([]);
+  });
+
   it("fails altered, truncated, missing and undeclared members", () => {
     const base = genesis();
     const skill = member(base, "/grilling/SKILL.md");
