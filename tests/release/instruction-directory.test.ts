@@ -280,7 +280,7 @@ describe("the internal context renderer", () => {
   });
 
   it("is deterministic and names its renderer version", () => {
-    expect(PROJECT_CONTEXT_RENDERER).toBe("aihq-project-context-renderer@2");
+    expect(PROJECT_CONTEXT_RENDERER).toBe("aihq-project-context-renderer@3");
     const first = renderContextFamily(".ai/context");
     const second = renderContextFamily(".ai/context");
     expect(second.items).toEqual(first.items);

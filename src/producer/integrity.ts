@@ -1,3 +1,4 @@
+import { clientAdapterProblems } from "../release/client-ids.js";
 import type { CatalogRelease, Json } from "../release/contracts.js";
 import { contractSupport } from "../release/contracts.js";
 import { type ReleaseExport, verifyPackageRelease } from "../release/node.js";
@@ -46,6 +47,7 @@ export const INTEGRITY_CHECKS = [
   "provenance-paths",
   "authored-references",
   "authored-placeholders",
+  "client-adapter-ids",
 ] as const;
 
 /** The declared allowances the authored-content checks run with; absent means none. */
@@ -57,7 +59,8 @@ export interface IntegrityOptions {
  * Checks a complete candidate as it would be packed: envelope, identifiers,
  * recipe/configuration agreement, member paths/lengths/hashes, the exact member
  * inventory, required-dependency closure, source provenance and the internal
- * references and generation placeholders of Catalog-authored content. Every
+ * references and generation placeholders of Catalog-authored content, and that
+ * every client-adapter item targets a client in Core's native set. Every
  * check is evaluated so one report names everything that is wrong. It uses the
  * public release reader and the Node package verifier, not a second validator.
  * When the candidate carries the optional 1.1 release, every per-release check
@@ -263,6 +266,21 @@ export function checkCandidateFiles(
       misplaced.length ? `outside their pinned revision: ${misplaced.join(", ")}` : undefined,
     );
 
+    const clientProblems = clientAdapterProblems(release.items);
+    note(
+      path,
+      "client-adapter-ids",
+      clientProblems.length === 0,
+      clientProblems.length
+        ? clientProblems
+            .map(
+              (problem) =>
+                `${problem.reason} ${problem.itemId}${problem.clientId === undefined ? "" : ` ${problem.clientId}`}`,
+            )
+            .join("; ")
+        : undefined,
+    );
+
     const authored = checkAuthoredContent(
       release,
       files,
@@ -293,6 +311,7 @@ export function checkCandidateFiles(
     "provenance-paths",
     "authored-references",
     "authored-placeholders",
+    "client-adapter-ids",
   ]) {
     emit(name);
   }

@@ -3,6 +3,8 @@ import { parseBaseRelease } from "../../src/producer/base.js";
 import { buildCandidate } from "../../src/producer/candidate.js";
 import { parseDeclaration } from "../../src/producer/declaration.js";
 import { ProducerRefusal } from "../../src/producer/errors.js";
+import { documentBytes } from "../../src/producer/generate.js";
+import { checkCandidateFiles } from "../../src/producer/integrity.js";
 import { MIT } from "./git-fixture.js";
 import { committedRelease, memoryTree, REPOSITORY, sha256 } from "./helpers.js";
 
@@ -63,6 +65,43 @@ describe("shared material", () => {
       ["fx.three", "changed", ["material:license"]],
       ["fx.two", "changed", ["material:license"]],
     ]);
+  });
+});
+
+describe("release format", () => {
+  const at14 = () => {
+    const files = baseFiles();
+    const document = JSON.parse((files.get("release/release.json") as Buffer).toString("utf8"));
+    document.schema = "urn:aihq:catalog:release:1.4.0";
+    files.set("release/release.json", documentBytes(document));
+    return files;
+  };
+  const schemaOf = (files: ReadonlyMap<string, Buffer>) =>
+    JSON.parse((files.get("release/release.json") as Buffer).toString("utf8")).schema;
+
+  it("keeps release 1.4 when the base is 1.4 instead of downgrading it", () => {
+    const base = parseBaseRelease(at14());
+    expect(base.checked.schema).toBe("urn:aihq:catalog:release:1.4.0");
+    const result = buildCandidate({
+      declaration,
+      tree: memoryTree(B, {
+        ...upstream(["one", "two", "three"]),
+        LICENSE: `${MIT}Amended.
+`,
+      }),
+      base,
+      package: PACKAGE,
+    });
+    expect(schemaOf(result.files)).toBe("urn:aihq:catalog:release:1.4.0");
+    expect(checkCandidateFiles(result.files, PACKAGE).ok).toBe(true);
+  });
+
+  it("keeps a client-adapter item's clientId when building on the committed release", () => {
+    const base = parseBaseRelease(committedRelease());
+    expect(base.checked.schema).toBe("urn:aihq:catalog:release:1.4.0");
+    expect(
+      base.checked.items.filter((item) => item.kind === "client-adapter").map((i) => i.clientId),
+    ).toHaveLength(11);
   });
 });
 

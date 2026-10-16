@@ -33,7 +33,7 @@ const renderer = await import(new URL("../dist/release/project-context.js", impo
   });
 
 /**
- * Generates the carried Catalog release (`urn:aihq:catalog:release:1.0.0`): the
+ * Generates the carried Catalog release (`urn:aihq:catalog:release:1.4.0`): the
  * release document, Core recipes (`urn:aihq:core:recipe:1.0.0`) and the exact
  * upstream material bytes they deliver.
  *
@@ -54,6 +54,8 @@ const renderer = await import(new URL("../dist/release/project-context.js", impo
  * tools/check-release.mjs; generation refuses instead of restoring the older snapshot.
  * --hooks-only regenerates just the authored 1.1 hook closure, with selector continuity
  * checked against the committed baseline, and never rewrites the 1.0 release.
+ * --context-only regenerates just the authored project-context items (and the release format
+ * they need) inside an advanced release.json, preserving its upstream items and sources.
  * --native-only regenerates just the two native-fixture documents (the graph-fixture item and
  * the bundle that pins it), which depend only on the package identity and the pinned recorder.
  */
@@ -222,6 +224,30 @@ function checkHookRelease(root) {
   }
 }
 
+const CONTEXT_RELEASE_SCHEMA = "urn:aihq:catalog:release:1.4.0";
+
+/**
+ * The authored context family only: re-renders its item records (and the release format
+ * they need) into the committed release document, preserving every other item and source
+ * of a release that has advanced beyond the donor snapshot. Its recipes and materials are
+ * rewritten from the same renderer, so unchanged bytes stay byte-identical.
+ */
+export function generateContextRelease(root) {
+  const files = new Map();
+  const items = contextFamily((path, bytes) => files.set(path, bytes));
+  const release = readJson(root, RELEASE_PATH);
+  if (!(release.sources ?? []).some((source) => source.id === CONTEXT_SOURCE.id)) {
+    fail(`${RELEASE_PATH} has no ${CONTEXT_SOURCE.id} source to regenerate`);
+  }
+  const others = (release.items ?? []).filter((item) => !item.sourceIds.includes(CONTEXT_SOURCE.id));
+  files.set(RELEASE_PATH, document({
+    ...release,
+    schema: CONTEXT_RELEASE_SCHEMA,
+    items: [...others, ...items].sort((a, b) => compare(a.id, b.id)),
+  }));
+  return files;
+}
+
 /** Authored content remains reproducible independently of the upstream pin. */
 function checkContextContent(root) {
   const files = new Map();
@@ -362,7 +388,7 @@ export function generateRelease(root) {
     ...contextFamily(put),
   ].sort((a, b) => compare(a.id, b.id));
   const release = {
-    schema: "urn:aihq:catalog:release:1.0.0",
+    schema: "urn:aihq:catalog:release:1.4.0",
     package: { name: pkg.name, version: pkg.version },
     sources: [
       { id: CONTEXT_SOURCE.id, origin: { kind: CONTEXT_SOURCE.origin.kind } },
@@ -414,12 +440,13 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     const check = args[0] === "--check";
     const hooksOnly = args[0] === "--hooks-only";
     const nativeOnly = args[0] === "--native-only";
-    if (check || hooksOnly || nativeOnly) args.shift();
+    const contextOnly = args[0] === "--context-only";
+    if (check || hooksOnly || nativeOnly || contextOnly) args.shift();
     if (args.length > 1 || args[0]?.startsWith("-")) {
-      fail("usage: node tools/generate-release.mjs [--check | --hooks-only | --native-only] [catalog-root]");
+      fail("usage: node tools/generate-release.mjs [--check | --hooks-only | --native-only | --context-only] [catalog-root]");
     }
     const root = resolve(args[0] ?? resolve(dirname(fileURLToPath(import.meta.url)), ".."));
-    if (!check && !hooksOnly && !nativeOnly) assertSeedGenerationAllowed(root);
+    if (!check && !hooksOnly && !nativeOnly && !contextOnly) assertSeedGenerationAllowed(root);
     const baseline = process.env.AIHQ_RELEASE_BASELINE ?? "HEAD";
     let gitRoot;
     try {
@@ -444,6 +471,23 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
         }
       }
       console.log(`Generated ${NATIVE_FIXTURE_RELEASE_PATH} and ${NATIVE_BUNDLES_RELEASE_PATH}: ${files.size - 2} recipe/material files; other release documents unchanged`);
+      process.exit(0);
+    }
+    if (contextOnly) {
+      // The authored context carries no hook selectors, so no continuity baseline is involved.
+      const files = generateContextRelease(root);
+      for (const [path, bytes] of files) {
+        const output = resolve(root, path);
+        mkdirSync(dirname(output), { recursive: true });
+        const temporary = `${output}.tmp`;
+        writeFileSync(temporary, bytes, { flag: "wx" });
+        try {
+          renameSync(temporary, output);
+        } finally {
+          rmSync(temporary, { force: true });
+        }
+      }
+      console.log(`Generated the authored context in ${RELEASE_PATH}: ${files.size - 1} recipe/material files; upstream items and other release documents unchanged`);
       process.exit(0);
     }
     const sameRoot = gitRoot !== undefined &&

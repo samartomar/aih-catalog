@@ -82,11 +82,12 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { readRelease, listItems, getItem, configureItem, validateSelectionSet } from "@aihq/catalog/reader";
 import { contractSupport } from "@aihq/catalog/contracts";
 import { readInstalledRelease, resolveRelease } from "@aihq/catalog/node";
 import { prepare, apply } from "@aihq/core";
+import { nativeClientIds } from "@aihq/core/harness";
 const DEFAULT_DIR = "ai-coding";
 const CONTEXT_SOURCE_ID = "aihq-project-context";
 const bytes = readFileSync(fileURLToPath(import.meta.resolve("@aihq/catalog/release.json")));
@@ -96,6 +97,15 @@ assert.equal(checked.valid, true, JSON.stringify(checked.diagnostics));
 assert(checked.release);
 assert(contractSupport);
 const root = dirname(fileURLToPath(import.meta.resolve("@aihq/catalog/package.json")));
+const clientIdsModule = join(root, "dist/release/client-ids.js");
+assert(existsSync(clientIdsModule), "Core client-id alignment requires Catalog dist/release/client-ids.js.");
+const { CORE_NATIVE_CLIENT_IDS } = await import(pathToFileURL(clientIdsModule).href);
+const catalogClientIds = [...CORE_NATIVE_CLIENT_IDS].sort();
+const coreClientIds = [...nativeClientIds].sort();
+assert.deepEqual(catalogClientIds, coreClientIds,
+  "Core client-id alignment mismatch: only Catalog has " +
+  JSON.stringify(catalogClientIds.filter(id => !coreClientIds.includes(id))) +
+  "; only Core has " + JSON.stringify(coreClientIds.filter(id => !catalogClientIds.includes(id))));
 const installed = await readInstalledRelease({ root });
 assert.equal(installed.valid, true, JSON.stringify(installed.diagnostics));
 // One bounded scenario derived from the release itself: the first item (preferring one with
@@ -104,6 +114,13 @@ assert.equal(installed.valid, true, JSON.stringify(installed.diagnostics));
 // readiness; when nothing is selectable the check says so instead of claiming a pass.
 const allItems = listItems(checked.release);
 assert(allItems.length > 0, "The release must carry an item to select.");
+const adapterClientIds = new Set();
+for (const item of allItems.filter(item => item.kind === "client-adapter")) {
+  assert(coreClientIds.includes(item.clientId),
+    "Client-adapter " + item.id + " must declare a Core native clientId: " + JSON.stringify(item.clientId));
+  assert(!adapterClientIds.has(item.clientId), "Duplicate client-adapter clientId: " + item.clientId);
+  adapterClientIds.add(item.clientId);
+}
 const closureOf = id => {
   const order = [id];
   for (let index = 0; index < order.length; index += 1) {
@@ -675,6 +692,7 @@ contextLifecycle = { status: "passed", instructionDirectory: DIR, familyFilesDel
     authorGuidancePreserved: true };
 }
 console.log(JSON.stringify({ status: "passed", selected: carriedIds, skipped, releaseSha256: expectedSha256, publicImports: true,
+  clientIdAlignment: true, clientAdaptersChecked: adapterClientIds.size,
   dependencyMapping: true, defaultOrigin: defaultInputsChecked > 0 ? "default" : "not-applicable",
   defaultInputsChecked, sameClosure: true, staleMaterialRejected: true, contextLifecycle, results }));
 `);

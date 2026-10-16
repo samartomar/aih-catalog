@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- Add release format `urn:aihq:catalog:release:1.4.0`, with schema
+  `@aihq/catalog/schemas/release/1.4.0.json`, and the item field `clientId`: the client a
+  `client-adapter` item targets, in Core's client-id form (`^[a-z][a-z0-9-]{0,63}$`). The field
+  is required on `client-adapter` items and refused on every other kind. The reader checks
+  its form only; Catalog's renderer and whole-package integrity check (`npm run
+  check:release`) additionally require it to be one of Core's native client ids.
+  `@aihq/catalog/release.json` moves to 1.4.0 with every item ID unchanged; the eleven
+  `aihq.client.<id>` items carry their client and the project-context renderer is
+  `aihq-project-context-renderer@3`. Earlier release formats, schema exports and documents
+  are unchanged, and `clientId` stays an unknown field in them. A reader that supports only
+  1.0 to 1.3 refuses a 1.4 document as a whole. A `clientId` names the target client only;
+  it does not mean the client is installed, connected or admitted. `tools/generate-release.mjs
+  --context-only` regenerates the authored context inside an advanced release.
+
 - Add optional Nuclei workflow authoring and bundled standalone Windows x64/Linux x64 helpers.
   Preparation refreshes/snapshots templates before separate Core assessment review; the helper
   owns bounded container lifecycle, validated native reports and explicit reconciliation.

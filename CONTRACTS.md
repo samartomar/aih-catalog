@@ -8,6 +8,23 @@ public reader contract are not implemented.
 Line references are into this repository at the commit that carries this file.
 Refusal names are the exact strings a reader returns or throws.
 
+## Current contract: release item `clientId`
+
+Unlike the historical inventory below, this section is current.
+
+| Aspect | Contract |
+| --- | --- |
+| Format | the item field `clientId`, a string matching `^[a-z][a-z0-9-]{0,63}$` (Core's client-id form) |
+| Defined at | release format `urn:aihq:catalog:release:1.4.0`, `schemas/release/1.4.0.json` (`@aihq/catalog/schemas/release/1.4.0.json`) |
+| Required / refused | required on items of kind `client-adapter`; refused on every other kind. Earlier formats (1.0 to 1.3) do not define it, so it is an unknown field there |
+| Reader | `readRelease` checks form only (`missing-field`, `invalid-client-id`, `unexpected-client-id`); it never checks membership, so it keeps reading a release that names a client Core adds later |
+| Known set | Catalog's renderer and the whole-package integrity check (`client-adapter-ids`, run by `npm run check:release`) require the value to be one of Core's native client ids (`CORE_NATIVE_CLIENT_IDS` in `src/release/client-ids.ts`) |
+| Identity | item IDs are unchanged (`aihq.client.<id>`); the field is part of the item record and therefore of `itemSha256` |
+
+`clientId` names the client an adapter item targets. It does not imply the client is
+installed, connected or admitted, and it grants no installation, execution or effect
+authority.
+
 ## Content published to consumers
 
 | Contract | Defined at | Format | Version | Byte cap | Unknown format / version | Other refusals | Reached as |
@@ -34,6 +51,7 @@ Every `…Result` reader returns `{ state: "read", … }` or
 
 | Contract | Catalog's mirror | Core's definition | Lock |
 | --- | --- | --- | --- |
+| Native client ids (`nativeClientIds`, the `clientId` set of release format 1.4) | `src/release/client-ids.ts` (`CORE_NATIVE_CLIENT_IDS`) | `nativeClientIds` in `@aihq/core/harness` | `tools/verify-core-consumer.mjs <core.tgz>` compares the mirror with the real Core package and fails on any difference |
 | Assessment profile v1 (`aih-first-party-qualification-profile`, `version: 1`) | `src/content/catalog-source-closure-v1.ts:52`, `src/content/catalog-source-closure-v1.ts:53` | `ASSESSMENT_MATERIAL_FORMAT_V1` and the profile schema's `version: z.literal(1)` in `src/org-policy/assessment-material-binding-v1.ts` of `samartomar/ai-harness` at `2b3212f22e9f7006455b75f29377be3add58fac7` | `tools/verify-core-v2-lock.mjs:29`: every mode fails `profile-mirror-drift` when the mirror differs; `--profile-core-root <Core checkout at that commit>` fails `core-profile-drift` when Core declares otherwise |
 | ECC runtime descriptor v1 (`version: "ecc-runtime-descriptor/v1"`) | the one supported format, `src/content/catalog-runtime-descriptors-v1.ts:55` | `EccRuntimeDescriptorV1Schema`'s `version` literal in `src/ecc/runtime-descriptor.ts` of `samartomar/ai-harness` at `8a111b8458d301b7db0197cd420d6b7556b74b17` | none: Catalog relays Core's sealed bytes unchanged and checks only this literal and the source revision; Core validates the schema, seal, custody and expiry. A new Core descriptor version is `unsupported-descriptor` here until Catalog adds it |
 | Governance decision schema v2 | vendored `tests/contracts/core/aih-governance-decision-v2.schema.json` | `schemas/aih-governance-decision-v2.schema.json` at `c31741602b3dbd5f228dafe00591e5679c782878`, sha256 `7fdf101568cd7caa28516d0be37704c0dfd51198bc54d41d65829abbe77547cc` | `tools/verify-core-v2-lock.mjs:18`; drift fails `vendored-lock-drift` or `core-schema-digest` |

@@ -192,6 +192,7 @@ describe("exact packed consumer", () => {
       import { readInstalledRelease } from "@aihq/catalog/node";
       const bytes = readFileSync(fileURLToPath(import.meta.resolve("@aihq/catalog/release.json")));
       const schema = JSON.parse(readFileSync(fileURLToPath(import.meta.resolve("@aihq/catalog/schemas/release/1.0.0.json")), "utf8"));
+      const clientSchema = JSON.parse(readFileSync(fileURLToPath(import.meta.resolve("@aihq/catalog/schemas/release/1.4.0.json")), "utf8"));
       const expectedSha256 = createHash("sha256").update(bytes).digest("hex");
       const read = readRelease(bytes, { expectedSha256 });
       if (!read.valid) throw new Error(JSON.stringify(read.diagnostics));
@@ -206,6 +207,9 @@ describe("exact packed consumer", () => {
       const installed = await readInstalledRelease({ root, sourceInput: "catalog" });
       process.stdout.write(JSON.stringify({
         support: contractSupport.package, schemaId: schema.$id, sha256: release.sha256,
+        releaseSchema: release.schema, clientSchemaId: clientSchema.$id,
+        clientIds: Object.fromEntries(listItems(release).filter((item) => item.kind === "client-adapter").map((item) => [item.id, item.clientId])),
+        otherClientIds: listItems(release).filter((item) => item.kind !== "client-adapter" && item.clientId !== undefined).length,
         items: listItems(release).map((item) => item.id),
         configured: Object.fromEntries(Object.entries(configured).map(([id, r]) => [id, r.valid])),
         requires: set.requiresBySelectionId, installed: installed.valid, installedSha256: installed.release?.sha256,
@@ -276,6 +280,14 @@ describe("exact packed consumer", () => {
     expect(result).toEqual({
       support: { name: pkg.name, version: pkg.version },
       schemaId: "urn:aihq:catalog:release:1.0.0",
+      releaseSchema: "urn:aihq:catalog:release:1.4.0",
+      clientSchemaId: "urn:aihq:catalog:release:1.4.0",
+      clientIds: Object.fromEntries(
+        expectedItems
+          .filter((id) => id.startsWith("aihq.client."))
+          .map((id) => [id, id.slice("aihq.client.".length)]),
+      ),
+      otherClientIds: 0,
       sha256: releaseSha256,
       items: expectedItems,
       configured: Object.fromEntries(expectedItems.map((id) => [id, true])),

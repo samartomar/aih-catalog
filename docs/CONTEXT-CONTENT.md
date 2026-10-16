@@ -44,7 +44,10 @@ Three layers, linked by explicit same-release `requires` dependencies:
    Cursor, Antigravity, Gemini CLI, GitHub Copilot, Windsurf, OpenCode, Zed,
    Kimi Code, Kiro). Each delivers its `<dir>/adapters/<cli>.md` note and
    requires its pointer item(s); Antigravity requires both the `AGENTS.md` and
-   `GEMINI.md` pointers, Kiro only its steering file.
+   `GEMINI.md` pointers, Kiro only its steering file. Each `aihq.client.<cli>` item
+   declares its target client in the release item field `clientId` (`<cli>`, in
+   release format 1.4). The field names the target only; it does not mean the client is
+   installed, connected or admitted. See [the contract](../CONTRACTS.md#current-contract-release-item-clientid).
 
 Pointer blocks embed the shared essentials inline (preamble plus the shared
 canonical block body). In the bounded Codex probe below, the entry bytes were
@@ -179,7 +182,7 @@ claim. Its `metadata.derived` records the derivation:
 { "derived": { "kind": "project-context",
   "from": { "package": { "name": "@aihq/catalog", "version": "<version>" },
     "manifestSha256": "<source release SHA-256>" },
-  "renderer": "aihq-project-context-renderer@2", "instructionDirectory": ".ai/context" } }
+  "renderer": "aihq-project-context-renderer@3", "instructionDirectory": ".ai/context" } }
 ```
 
 The derived manifest SHA-256 therefore always differs from the source release's,

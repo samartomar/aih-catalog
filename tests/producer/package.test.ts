@@ -241,10 +241,10 @@ describe("a packed package that is broken anywhere is not ready", () => {
 
   it("fails when a declared export target is not packed (the schema export)", async () => {
     const { result } = await packAndVerify(files, {
-      source: (source) => rmSync(join(source, "schemas/release/1.0.0.json")),
+      source: (source) => rmSync(join(source, "schemas/release/1.4.0.json")),
     });
     expect(failed(result)).toContain("packed-export-targets");
-    expect(check(result, "packed-export-targets")?.detail).toContain("schemas/release/1.0.0.json");
+    expect(check(result, "packed-export-targets")?.detail).toContain("schemas/release/1.4.0.json");
     expect(failed(result)).toContain("packed-public-imports");
   }, 240_000);
 

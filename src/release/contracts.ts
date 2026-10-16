@@ -21,11 +21,15 @@ export const CORE_RECIPE_SCHEMA_ID_1_3 = "urn:aihq:core:recipe:1.3.0" as const;
 /** Release 1.3 adds truthful local snapshot origins without filesystem authority. */
 export const RELEASE_SCHEMA_ID_1_3 = "urn:aihq:catalog:release:1.3.0" as const;
 export const RELEASE_SCHEMA_EXPORT_1_3 = "@aihq/catalog/schemas/release/1.3.0.json" as const;
+/** Release 1.4 adds `clientId`, the target client of every `client-adapter` item. */
+export const RELEASE_SCHEMA_ID_1_4 = "urn:aihq:catalog:release:1.4.0" as const;
+export const RELEASE_SCHEMA_EXPORT_1_4 = "@aihq/catalog/schemas/release/1.4.0.json" as const;
 export type ReleaseSchemaId =
   | typeof RELEASE_SCHEMA_ID
   | typeof RELEASE_SCHEMA_ID_1_1
   | typeof RELEASE_SCHEMA_ID_1_2
-  | typeof RELEASE_SCHEMA_ID_1_3;
+  | typeof RELEASE_SCHEMA_ID_1_3
+  | typeof RELEASE_SCHEMA_ID_1_4;
 export type RecipeSchemaId =
   | typeof CORE_RECIPE_SCHEMA_ID
   | typeof CORE_RECIPE_SCHEMA_ID_1_1
@@ -41,6 +45,11 @@ export const RELEASE_RECIPE_SCHEMAS: Readonly<Record<ReleaseSchemaId, readonly R
       CORE_RECIPE_SCHEMA_ID_1_3,
     ]),
     [RELEASE_SCHEMA_ID_1_3]: Object.freeze([
+      CORE_RECIPE_SCHEMA_ID,
+      CORE_RECIPE_SCHEMA_ID_1_1,
+      CORE_RECIPE_SCHEMA_ID_1_3,
+    ]),
+    [RELEASE_SCHEMA_ID_1_4]: Object.freeze([
       CORE_RECIPE_SCHEMA_ID,
       CORE_RECIPE_SCHEMA_ID_1_1,
       CORE_RECIPE_SCHEMA_ID_1_3,
@@ -85,6 +94,11 @@ export const contractSupport = Object.freeze({
       id: RELEASE_SCHEMA_ID_1_3,
       role: "produces",
       schemaExport: RELEASE_SCHEMA_EXPORT_1_3,
+    }),
+    Object.freeze({
+      id: RELEASE_SCHEMA_ID_1_4,
+      role: "produces",
+      schemaExport: RELEASE_SCHEMA_EXPORT_1_4,
     }),
     Object.freeze({
       id: CORE_RECIPE_SCHEMA_ID_1_3,
@@ -208,6 +222,11 @@ export interface CatalogItem {
   readonly label: string;
   readonly description?: string;
   readonly kind: string;
+  /**
+   * Release 1.4: the client a `client-adapter` item targets, in Core's client-id form.
+   * It names the target only; it does not mean the client is installed, connected or admitted.
+   */
+  readonly clientId?: string;
   readonly sourceIds: readonly string[];
   readonly targets: readonly Prerequisite[];
   readonly scopes: readonly ("project" | "user")[];
