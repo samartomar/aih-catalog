@@ -86,6 +86,31 @@ describe("whole-candidate integrity", () => {
     expect(detail).toContain("not-a-core-client");
   });
 
+  it("fails a recipe whose text.block targets a Codex config.toml, and names the item and operation", () => {
+    const committed = committedRelease();
+    const recipePath = "release/recipes/aihq.project-context-pointer.agents-md.json";
+    const recipe = JSON.parse((committed.get(recipePath) as Buffer).toString("utf8")) as {
+      operations: { id: string; target: { segments: { literal: string }[] } }[];
+    };
+    (recipe.operations[0] as (typeof recipe.operations)[0]).target.segments = [
+      { literal: ".codex" },
+      { literal: "config.toml" },
+    ];
+    const bytes = documentBytes(recipe);
+    const tampered = rewrite(new Map(committed).set(recipePath, bytes), (document) => {
+      const item = itemOf(document, "aihq.project-context-pointer.agents-md");
+      item.recipe.sha256 = sha256(bytes);
+      item.recipe.byteLength = bytes.length;
+    });
+    const result = checkCandidateFiles(tampered, identity, { authored: declaration().authored });
+    expect(result.checks.filter((check) => !check.ok).map((check) => check.name)).toEqual([
+      "codex-config-blocks",
+    ]);
+    expect(result.checks.find((check) => check.name === "codex-config-blocks")?.detail).toBe(
+      "codex-config-target aihq.project-context-pointer.agents-md/merge-context-block",
+    );
+  });
+
   it("does not require clientId of an earlier release format, which does not define it", () => {
     const earlier = rewrite(committedRelease(), (document) => {
       (document as unknown as { schema: string }).schema = "urn:aihq:catalog:release:1.3.0";

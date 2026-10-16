@@ -26,6 +26,29 @@ Unlike the historical inventory below, this section is current.
 installed, connected or admitted, and it grants no installation, execution or effect
 authority.
 
+## Current contract: no `text.block` in a Codex `config.toml`
+
+Catalog content does not manage a Codex `config.toml` with a recipe `text.block`. Core
+places a new block at the end of its target file. Codex rewrites `config.toml` when it
+records a trusted project and inserts the new `[projects."<path>"]` table before the
+file's trailing comment lines, so when a managed block's `END` marker is the last line the
+client's table lands inside the block. Core then reports the block changed although the
+person changed nothing, and applying the block again replaces its content and drops the
+client's setting.
+
+The whole-package integrity check `codex-config-blocks` (run by `npm run check:release`
+for every release format) refuses a recipe `text.block` whose target ends in a literal
+`.codex/config.toml` (compared case-insensitively, under any root). It also refuses a
+target whose last segment, or the segment before a literal `config.toml`, is an input
+slot, because the input could resolve there (`src/release/client-config-targets.ts`).
+Structural Codex configuration waits for Core TOML support.
+
+To recover a file whose marked block captured a client-written table, move the table (or
+tables) from inside the block to below its `END` marker, keeping them, then check the file
+state again. Do not apply the block over a captured table. `node
+tools/verify-codex-config-drift.mjs <core.tgz>` proves the drift and this recovery against a
+Core artifact.
+
 ## Content published to consumers
 
 | Contract | Defined at | Format | Version | Byte cap | Unknown format / version | Other refusals | Reached as |
