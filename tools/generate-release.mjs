@@ -248,6 +248,21 @@ export function generateContextRelease(root) {
   return files;
 }
 
+/** Writes each generated file under `root` through a same-directory temporary and rename. */
+function writeFiles(root, files) {
+  for (const [path, bytes] of files) {
+    const output = resolve(root, path);
+    mkdirSync(dirname(output), { recursive: true });
+    const temporary = `${output}.tmp`;
+    writeFileSync(temporary, bytes, { flag: "wx" });
+    try {
+      renameSync(temporary, output);
+    } finally {
+      rmSync(temporary, { force: true });
+    }
+  }
+}
+
 /** Authored content remains reproducible independently of the upstream pin. */
 function checkContextContent(root) {
   const files = new Map();
@@ -459,34 +474,14 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     if (nativeOnly) {
       // No selector continuity is involved: the fixture items carry no owned client groups.
       const files = generateNativeRelease(root);
-      for (const [path, bytes] of files) {
-        const output = resolve(root, path);
-        mkdirSync(dirname(output), { recursive: true });
-        const temporary = `${output}.tmp`;
-        writeFileSync(temporary, bytes, { flag: "wx" });
-        try {
-          renameSync(temporary, output);
-        } finally {
-          rmSync(temporary, { force: true });
-        }
-      }
+      writeFiles(root, files);
       console.log(`Generated ${NATIVE_FIXTURE_RELEASE_PATH} and ${NATIVE_BUNDLES_RELEASE_PATH}: ${files.size - 2} recipe/material files; other release documents unchanged`);
       process.exit(0);
     }
     if (contextOnly) {
       // The authored context carries no hook selectors, so no continuity baseline is involved.
       const files = generateContextRelease(root);
-      for (const [path, bytes] of files) {
-        const output = resolve(root, path);
-        mkdirSync(dirname(output), { recursive: true });
-        const temporary = `${output}.tmp`;
-        writeFileSync(temporary, bytes, { flag: "wx" });
-        try {
-          renameSync(temporary, output);
-        } finally {
-          rmSync(temporary, { force: true });
-        }
-      }
+      writeFiles(root, files);
       console.log(`Generated the authored context in ${RELEASE_PATH}: ${files.size - 1} recipe/material files; upstream items and other release documents unchanged`);
       process.exit(0);
     }
@@ -543,17 +538,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       if (stale.length > 0) fail(`unexpected release files: ${stale.join(", ")}`);
     } else {
       for (const path of stale) rmSync(resolve(root, path));
-      for (const [path, bytes] of files) {
-        const output = resolve(root, path);
-        mkdirSync(dirname(output), { recursive: true });
-        const temporary = `${output}.tmp`;
-        writeFileSync(temporary, bytes, { flag: "wx" });
-        try {
-          renameSync(temporary, output);
-        } finally {
-          rmSync(temporary, { force: true });
-        }
-      }
+      writeFiles(root, files);
     }
     console.log(hooksOnly
       ? `Generated ${HOOK_RELEASE_PATH}: ${files.size - 1} hook recipe/material files; ${RELEASE_PATH} unchanged`

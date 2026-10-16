@@ -86,6 +86,15 @@ describe("whole-candidate integrity", () => {
     expect(detail).toContain("not-a-core-client");
   });
 
+  it("does not require clientId of an earlier release format, which does not define it", () => {
+    const earlier = rewrite(committedRelease(), (document) => {
+      (document as unknown as { schema: string }).schema = "urn:aihq:catalog:release:1.3.0";
+      for (const item of document.items) delete (item as unknown as { clientId?: string }).clientId;
+    });
+    const result = checkCandidateFiles(earlier, identity, { authored: declaration().authored });
+    expect(result.checks.filter((check) => !check.ok).map((check) => check.name)).toEqual([]);
+  });
+
   it("fails altered, truncated, missing and undeclared members", () => {
     const base = genesis();
     const skill = member(base, "/grilling/SKILL.md");

@@ -18,8 +18,9 @@ Unlike the historical inventory below, this section is current.
 | Defined at | release format `urn:aihq:catalog:release:1.4.0`, `schemas/release/1.4.0.json` (`@aihq/catalog/schemas/release/1.4.0.json`) |
 | Required / refused | required on items of kind `client-adapter`; refused on every other kind. Earlier formats (1.0 to 1.3) do not define it, so it is an unknown field there |
 | Reader | `readRelease` checks form only (`missing-field`, `invalid-client-id`, `unexpected-client-id`); it never checks membership, so it keeps reading a release that names a client Core adds later |
-| Known set | Catalog's renderer and the whole-package integrity check (`client-adapter-ids`, run by `npm run check:release`) require the value to be one of Core's native client ids (`CORE_NATIVE_CLIENT_IDS` in `src/release/client-ids.ts`) |
+| Known set | Catalog's renderer and, for 1.4 releases, the whole-package integrity check (`client-adapter-ids`, run by `npm run check:release`) require the value to be one of Core's native client ids (`CORE_NATIVE_CLIENT_IDS` in `src/release/client-ids.ts`) |
 | Identity | item IDs are unchanged (`aihq.client.<id>`); the field is part of the item record and therefore of `itemSha256` |
+| Compatibility | `@aihq/catalog/release.json` is a 1.4 document. A reader that supports only 1.0 to 1.3 refuses it as a whole (`SCHEMA_UNSUPPORTED`) and never reads a subset of its items; this package's reader reads 1.0 to 1.4. Documents and schema exports in earlier formats are unchanged |
 
 `clientId` names the client an adapter item targets. It does not imply the client is
 installed, connected or admitted, and it grants no installation, execution or effect

@@ -9,6 +9,7 @@ import {
   type InputSpec,
   type Json,
   RELEASE_RECIPE_SCHEMAS,
+  RELEASE_SCHEMA_ID_1_3,
   RELEASE_SCHEMA_ID_1_4,
   type RecipeSchemaId,
   type ReleaseSchemaId,
@@ -30,10 +31,7 @@ const KIND = /^[a-z][a-z0-9-]{0,63}$/;
 export const CLIENT_ID = /^[a-z][a-z0-9-]{0,63}$/;
 const CLIENT_ADAPTER = "client-adapter";
 /** Release formats whose local source origin is a pinned snapshot revision. */
-const LOCAL_ORIGIN_SCHEMAS: readonly string[] = [
-  "urn:aihq:catalog:release:1.3.0",
-  RELEASE_SCHEMA_ID_1_4,
-];
+const LOCAL_ORIGIN_SCHEMAS: readonly string[] = [RELEASE_SCHEMA_ID_1_3, RELEASE_SCHEMA_ID_1_4];
 const RESERVED = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\..*)?$/i;
 const MEMBER_MAX = 16 * 1024 * 1024;
 const RECIPE_MAX = 1_000_000;

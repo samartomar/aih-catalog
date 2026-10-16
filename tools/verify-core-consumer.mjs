@@ -5,6 +5,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from "node:os";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { CORE_NATIVE_CLIENT_IDS } from "../dist/release/client-ids.js";
 import { seedConsumerLock } from "./seed-consumer-lock.mjs";
 
 // The caller supplies a reviewed Core artifact. This check never chooses a
@@ -82,7 +83,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 import { readRelease, listItems, getItem, configureItem, validateSelectionSet } from "@aihq/catalog/reader";
 import { contractSupport } from "@aihq/catalog/contracts";
 import { readInstalledRelease, resolveRelease } from "@aihq/catalog/node";
@@ -97,15 +98,7 @@ assert.equal(checked.valid, true, JSON.stringify(checked.diagnostics));
 assert(checked.release);
 assert(contractSupport);
 const root = dirname(fileURLToPath(import.meta.resolve("@aihq/catalog/package.json")));
-const clientIdsModule = join(root, "dist/release/client-ids.js");
-assert(existsSync(clientIdsModule), "Core client-id alignment requires Catalog dist/release/client-ids.js.");
-const { CORE_NATIVE_CLIENT_IDS } = await import(pathToFileURL(clientIdsModule).href);
-const catalogClientIds = [...CORE_NATIVE_CLIENT_IDS].sort();
 const coreClientIds = [...nativeClientIds].sort();
-assert.deepEqual(catalogClientIds, coreClientIds,
-  "Core client-id alignment mismatch: only Catalog has " +
-  JSON.stringify(catalogClientIds.filter(id => !coreClientIds.includes(id))) +
-  "; only Core has " + JSON.stringify(coreClientIds.filter(id => !catalogClientIds.includes(id))));
 const installed = await readInstalledRelease({ root });
 assert.equal(installed.valid, true, JSON.stringify(installed.diagnostics));
 // One bounded scenario derived from the release itself: the first item (preferring one with
@@ -692,7 +685,7 @@ contextLifecycle = { status: "passed", instructionDirectory: DIR, familyFilesDel
     authorGuidancePreserved: true };
 }
 console.log(JSON.stringify({ status: "passed", selected: carriedIds, skipped, releaseSha256: expectedSha256, publicImports: true,
-  clientIdAlignment: true, clientAdaptersChecked: adapterClientIds.size,
+  coreNativeClientIds: coreClientIds, clientAdaptersChecked: adapterClientIds.size,
   dependencyMapping: true, defaultOrigin: defaultInputsChecked > 0 ? "default" : "not-applicable",
   defaultInputsChecked, sameClosure: true, staleMaterialRejected: true, contextLifecycle, results }));
 `);
@@ -705,6 +698,13 @@ console.log(JSON.stringify({ status: "passed", selected: carriedIds, skipped, re
     maxBuffer: 8 * 1024 * 1024,
   }));
   console.log(JSON.stringify({ ...result, coreSha256, catalogSha256 }, null, 2));
+  // The consumer reports Core's public nativeClientIds; this checkout's mirror must equal them.
+  const catalogClientIds = [...CORE_NATIVE_CLIENT_IDS].sort();
+  const coreClientIds = result.coreNativeClientIds;
+  assert.deepEqual(catalogClientIds, coreClientIds,
+    "Core client-id alignment mismatch: only Catalog has " +
+    JSON.stringify(catalogClientIds.filter((id) => !coreClientIds.includes(id))) +
+    "; only Core has " + JSON.stringify(coreClientIds.filter((id) => !catalogClientIds.includes(id))));
   if (instructionDirectory !== undefined) {
     assert.equal(result.contextLifecycle?.status, "passed",
       "The instruction directory needs the context scenario to run.");

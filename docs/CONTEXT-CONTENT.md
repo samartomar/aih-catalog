@@ -58,6 +58,13 @@ composed while the referenced router was not imported. The block body,
 renderer (`src/release/project-context.ts`) builds the published release and every
 project-side preparation below.
 
+After changing the renderer, build it with `npm run build:dist`, then run
+`node tools/generate-release.mjs --context-only`. This rewrites only the authored
+context items, their recipes and materials, and the 1.4 release format they need in
+`release/release.json`; every other item and source stays byte-identical. Run
+`npm run verify` afterward. The full donor seed generation still refuses to replace an
+advanced upstream release.
+
 The shipped guidance uses next-new-session update timing; explicit native reload
 is optional where supported. It asks the agent to warn and continue with the
 context that loaded when required shared guidance is missing or exceeds loading

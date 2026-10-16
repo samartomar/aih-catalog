@@ -155,7 +155,7 @@ Before anything can be installed the whole candidate must pass, in order:
 `source-references`, `provenance-paths`, `authored-references`,
 `authored-placeholders` and `client-adapter-ids`. The first nine reuse the public release
 reader and the Node package verifier; `client-adapter-ids` requires every `client-adapter`
-item to declare a `clientId` that is one of Core's native client ids (release format 1.4;
+item of a 1.4 release to declare a `clientId` that is one of Core's native client ids (release format 1.4;
 see [the contract](../CONTRACTS.md#current-contract-release-item-clientid)); the authored-content
 checks are described below. The candidate is then staged as a
 real package, packed with `npm pack --ignore-scripts`, and the actual tarball is read
