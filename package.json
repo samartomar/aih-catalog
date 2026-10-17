@@ -91,6 +91,7 @@
     "generate:catalog-presentation": "node tools/generate-catalog-presentation.mjs",
     "generate:catalog-categories": "node tools/generate-catalog-categories.mjs",
     "generate:catalog-runtime-descriptors": "node tools/generate-catalog-runtime-descriptors.mjs",
+    "prepack": "npm run build:dist",
     "prepublishOnly": "node tools/refuse-publication.mjs",
     "test:historical": "vitest run --config vitest.config.ts",
     "generate:release": "npm run build:dist && node tools/generate-release.mjs",

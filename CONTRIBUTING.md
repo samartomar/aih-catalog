@@ -55,7 +55,8 @@ runs no native client.
 
 Release generation renders the authored project context through the built release
 module, so run `npm run build:dist` before `npm test` or `npm run check:materials` on
-their own; `npm run verify` and `npm run generate:release` build first.
+their own; `npm run verify` and `npm run generate:release` build first. `npm pack`
+builds through `prepack`; packing with `--ignore-scripts` skips it, so build first.
 
 Every PR needs exactly one `semver:none|patch|minor|major` label before merge. Labels are
 maintainer-owned; external contributors need not apply them. Use `semver:none` only when
