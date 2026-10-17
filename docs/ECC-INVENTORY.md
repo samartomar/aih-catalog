@@ -12,7 +12,7 @@ All 3538 regular source files have one disposition: 810 supported material files
 
 The independent historical donor has 442 assets: 356 mapped to declarations and 86 explicitly unsupported aggregate/runtime assets. It is not the current delivered-item count.
 
-The 665 declarations comprise 145 instruction, 322 skill, 68 agent, 94 command, 35 mcp, 1 template. Raw original bytes and Catalog recipes remain separate.
+The 697 declarations comprise 145 instruction, 322 skill, 68 agent, 94 command, 67 mcp, 1 template. Raw original bytes and Catalog recipes remain separate.
 
 Full file paths, Git blob identities, modes, SHA-256 digests, lengths, notices, per-file owners/reasons, donor mappings and item facts are in [inventory.json](../producer/ecc/inventory.json). The supported original bytes are in [snapshot.json](../producer/ecc/snapshot.json); all selectable contracts are in [declaration.json](../producer/ecc/declaration.json). [Content guidance](ECC-CONTENT.md) explains client/prerequisite and distribution limits.
 
@@ -684,4 +684,36 @@ Full file paths, Git blob identities, modes, SHA-256 digests, lengths, notices, 
 | ecc.claude.mcp.confluence | mcp | 2 |
 | ecc.claude.mcp.evalview | mcp | 2 |
 | ecc.claude.mcp.squish | mcp | 2 |
+| ecc.codex.mcp.nexus | mcp | 2 |
+| ecc.codex.mcp.jira | mcp | 2 |
+| ecc.codex.mcp.github | mcp | 2 |
+| ecc.codex.mcp.firecrawl | mcp | 2 |
+| ecc.codex.mcp.ecc-memory-vault | mcp | 2 |
+| ecc.codex.mcp.memory | mcp | 2 |
+| ecc.codex.mcp.omega-memory | mcp | 2 |
+| ecc.codex.mcp.longhand | mcp | 2 |
+| ecc.codex.mcp.sequential-thinking | mcp | 2 |
+| ecc.codex.mcp.vercel | mcp | 2 |
+| ecc.codex.mcp.railway | mcp | 2 |
+| ecc.codex.mcp.cloudflare-docs | mcp | 2 |
+| ecc.codex.mcp.cloudflare-workers-builds | mcp | 2 |
+| ecc.codex.mcp.cloudflare-workers-bindings | mcp | 2 |
+| ecc.codex.mcp.cloudflare-observability | mcp | 2 |
+| ecc.codex.mcp.clickhouse | mcp | 2 |
+| ecc.codex.mcp.exa-web-search | mcp | 2 |
+| ecc.codex.mcp.parallel-search | mcp | 2 |
+| ecc.codex.mcp.context7 | mcp | 2 |
+| ecc.codex.mcp.codescene | mcp | 2 |
+| ecc.codex.mcp.magic | mcp | 2 |
+| ecc.codex.mcp.memxus | mcp | 2 |
+| ecc.codex.mcp.playwright | mcp | 2 |
+| ecc.codex.mcp.fal-ai | mcp | 2 |
+| ecc.codex.mcp.browserbase | mcp | 2 |
+| ecc.codex.mcp.browser-use | mcp | 2 |
+| ecc.codex.mcp.devfleet | mcp | 2 |
+| ecc.codex.mcp.token-optimizer | mcp | 2 |
+| ecc.codex.mcp.laraplugins | mcp | 2 |
+| ecc.codex.mcp.confluence | mcp | 2 |
+| ecc.codex.mcp.evalview | mcp | 2 |
+| ecc.codex.mcp.squish | mcp | 2 |
 | ecc.template.api-review | template | 1 |

@@ -42,9 +42,8 @@ be `.codex` and `config.toml`, compared case-insensitively under any root. This 
 default user location and a project's `.codex/config.toml`. A literal segment can only be
 itself; an input slot is refused unless its declared `enum` rules the name out
 (`src/release/client-config-targets.ts`). A Codex home outside a `.codex` directory (a
-custom `CODEX_HOME`) is not recognised. Structural Codex configuration waits for Core's
-TOML `config.entries` to accept array values and quoted table names such as
-`[projects."<path>"]`; scalar keys under bare table names are supported today.
+custom `CODEX_HOME`) is not recognised. Codex configuration uses structured TOML
+`config.entries` instead; see the next section.
 
 To recover a file whose marked block captured a client-written table, move the table (or
 tables) from inside the block to below its `END` marker, keeping them, then check the file
@@ -52,6 +51,43 @@ state again. Do not apply the block over a captured table.
 `node tools/verify-codex-config-drift.mjs <core.tgz>` checks this against a Core artifact: it
 applies a block, simulates the client's insertion inside it, and checks file state after
 the drift and after the recovery.
+
+## Current contract: Codex MCP servers through structured TOML entries
+
+| Aspect | Contract |
+| --- | --- |
+| Items | `ecc.codex.mcp.<key>` in `@aihq/catalog/release-ecc.json` (release format 1.0.0, recipe schema `urn:aihq:core:recipe:1.0.0`): 32 of the 35 offered servers that `ecc.claude.mcp.<key>` registers in a project `.mcp.json` |
+| Effects | user scope only. One `config.entries` operation, `format: "toml"`, on `userHome` `.codex/config.toml` sets one key per entry under `[mcp_servers.<key>]`; the pinned `mcp-configs/mcp-servers.json` and LICENSE are written under `userHome` `.aihq/ecc/source/<item>/` with SHA-256 checks. No `text.block`, so `codex-config-blocks` still refuses any block there |
+| Keys | only documented Codex keys: `command`, `args`, `env_vars`, `env.<NAME>`, `url`, `bearer_token_env_var`, `http_headers.<header>`, `env_http_headers.<header>`. An exact `${NAME}` (or `${NAME:-}`) environment value becomes an `env_vars` name; `Authorization: Bearer ${NAME}` becomes `bearer_token_env_var`; another exact header reference becomes `env_http_headers`. Credential values stay in the host environment |
+| Untranslated | `ito-compute`, `supabase` and `filesystem` put a `${...}` reference in an argument, where Codex documents no expansion; they stay Claude-only and `inventory.codexMcpExclusions` in `producer/ecc` records each reason. Any other shape the translation does not cover is refused rather than approximated (`src/release/codex-mcp-entries.ts`) |
+| Generation | `tools/author-ecc-codex-mcp.mjs` writes the declarations, recipes and facts from the Claude items' offered servers; `tools/generate-ecc-release.mjs` checks every Codex recipe against the translation and its Claude sibling, and that each offered server has exactly one of a Codex item or an exclusion |
+| Dependencies | none. A dependency resolves in its dependent's scope and `ecc.notices` is project scope, so each Codex item delivers LICENSE itself |
+| Identity | existing item IDs are unchanged. The new recipes are part of the shared ECC source inventory, so every ECC item's `itemSha256` changes |
+
+**Core requirement.** The recipes need a Core whose TOML `config.entries` accept array values and
+quoted table names; Codex writes `[projects."<path>"]` when it records a trusted project. An earlier
+Core fails closed instead of misreading the file: an owned array is `unsupported-toml-value` and a
+file with a quoted table header is `unsupported-toml-table`. The managed table and key names are
+bare, so these entries do not move Core's ownership root to 1.3.0.
+
+**Limits.** Each managed value is owned exactly. Unrelated tables, keys and comments are only read,
+so a client edit elsewhere in the file leaves the entries at `match`. Core still refuses a file it
+cannot scan: a multi-line inline table or one with a trailing comma (TOML 1.1), array tables
+(`[[x]]`), dotted keys, duplicate tables or keys, and an existing managed value that is an inline
+table. `checkFileState` reports drift for the whole `config.toml` target with the operations that
+manage it, not for the individual key. Removal deletes each managed statement but keeps the
+emptied `[mcp_servers.<key>]` headers, including a nested one such as
+`[mcp_servers.<key>.env_http_headers]`, at their position; delete those headers by hand, since a
+server table with neither `command` nor `url` is not a usable Codex server. Only the default user
+location `~/.codex/config.toml` is targeted, not a custom `CODEX_HOME`. Native Codex execution of
+these entries has not been observed.
+
+`node tools/verify-codex-mcp-config.mjs <core.tgz> [catalog.tgz]` checks this against a Core
+artifact with the packed Catalog in a fixture home. It uses a realistic `config.toml` with comments,
+top-level keys, quoted project tables, a user-owned `[mcp_servers.other]` and a profile. It checks
+that setup keeps every original byte, that a simulated client table and an unrelated key edit leave
+the managed entries at `match`, that repeat setup changes no bytes, that a managed edit is drift
+and is restored, and the exact bytes removal leaves.
 
 ## Content published to consumers
 

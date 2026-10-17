@@ -111,6 +111,35 @@ describe("whole-candidate integrity", () => {
     );
   });
 
+  it("passes committed structured TOML entries on a Codex config.toml under codex-config-blocks", () => {
+    // The first test runs every check over the committed files; this pins that they include the
+    // structured Codex path, so codex-config-blocks is shown to admit it rather than never seeing it.
+    const committed = committedRelease();
+    const codexTargets = [...committed]
+      .filter(([path]) => /^release\/recipes\/ecc\.codex\.mcp\.[a-z0-9-]+\.json$/.test(path))
+      .flatMap(
+        ([, bytes]) =>
+          (
+            JSON.parse(bytes.toString("utf8")) as {
+              operations: {
+                kind: string;
+                format?: string;
+                target: { segments: { literal: string }[] };
+              }[];
+            }
+          ).operations,
+      )
+      .filter((operation) => operation.kind === "config.entries")
+      .map((operation) => [
+        operation.format,
+        operation.target.segments.map((segment) => segment.literal).join("/"),
+      ]);
+    expect(codexTargets).toHaveLength(32);
+    expect(new Set(codexTargets.map((target) => target.join(" ")))).toEqual(
+      new Set(["toml .codex/config.toml"]),
+    );
+  });
+
   it("does not require clientId of an earlier release format, which does not define it", () => {
     const earlier = rewrite(committedRelease(), (document) => {
       (document as unknown as { schema: string }).schema = "urn:aihq:catalog:release:1.3.0";

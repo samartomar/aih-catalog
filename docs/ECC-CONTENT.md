@@ -40,8 +40,13 @@ raw/offered MCP configuration. No dependency edge is inferred from prose.
   `mcp-configs/mcp-servers.json`, offered independently in project `.mcp.json`.
   The raw `.mcp.json` chrome-devtools entry and Kiro MCP example are independently
   dispositioned as source configuration without an installation recipe.
+- `ecc.codex.mcp.*`: the Codex counterpart of 32 of those 35 servers, registered in the
+  Codex user configuration (`~/.codex/config.toml`) through structured TOML `config.entries`;
+  see [Codex MCP registration](#codex-mcp-registration).
 
-Each item retains LICENSE material and an explicit notice dependency. Native
+Each item retains LICENSE material; each project-scope item also has an explicit notice
+dependency (the user-scope Codex MCP items deliver LICENSE themselves, because a dependency
+resolves in its dependent's scope and `ecc.notices` is project scope). Native
 execution is unknown until separately tested. File recipes write only their
 listed paths; Core owns collision, unowned-file and changed-state refusals.
 Unsupported client facts require reasons. A supported material capability never
@@ -89,11 +94,32 @@ Those paths/syntax differ; this release offers no blanket MCP projection across
 all three clients. Current provider documentation establishes configuration
 syntax, not observed native execution of this pinned content.
 
+## Codex MCP registration
+
+Each `ecc.codex.mcp.<key>` item translates the same offered server as its
+`ecc.claude.mcp.<key>` sibling into documented Codex keys: `command`, `args`, `env`,
+`env_vars`, `url`, `bearer_token_env_var`, `http_headers` and `env_http_headers`. Codex documents
+no `${VAR}` expansion in these values, so a reference is translated only when it names a variable
+Codex can forward: an exact `${NAME}` or `${NAME:-}` environment value becomes an
+`env_vars` entry, `Authorization: Bearer ${NAME}` becomes `bearer_token_env_var`, and another
+exact header reference becomes `env_http_headers`. Credential values still stay in the host
+environment. The translation is `src/release/codex-mcp-entries.ts`; `tools/author-ecc-codex-mcp.mjs`
+writes the declarations, recipes and facts, and the generator checks every recipe against it.
+
+The items are user scope: the pinned `mcp-configs/mcp-servers.json` and LICENSE are delivered
+under the user home at `.aihq/ecc/source/<item>/`, and the server is registered in
+`~/.codex/config.toml`. They never write a project file or a managed text block.
+`ito-compute`, `supabase` and `filesystem` have no Codex item because a `${...}` reference sits
+in an argument, where Codex documents no expansion; `inventory.codexMcpExclusions` records each with its
+reason. Native Codex execution of these entries is unobserved.
+
 ## Reproduce and extend
 
 Build first, then run `node tools/generate-ecc-release.mjs --check` for declaration,
 raw snapshot, inventory, donor and output consistency. Regenerate with the same
-script after reviewed ordinary data changes. It neither fetches nor executes ECC.
+script after reviewed ordinary data changes; after a change to the Claude MCP items or
+facts, run `node tools/author-ecc-codex-mcp.mjs` before it so the Codex items follow. It
+neither fetches nor executes ECC.
 `check:release` verifies full recipe/material closure. Existing releases are carried
 byte for byte through the ordinary candidate producer.
 
