@@ -223,7 +223,7 @@ it and `reference` the selected item it names; two items declaring each other ar
 two diagnostics. Each walked required path is reported, so a declaration reached on
 several paths (for example from two roots) repeats an identical diagnostic;
 deduplicate by `code`, `path`, `reference` and `declaredBy` when presenting them.
-Order is deterministic and independent of root and release order.
+Order of declaration diagnostics is deterministic and independent of root and release order; request-entry diagnostics follow request order.
 Suggestions are returned in `optional`, never converted into chosen selections.
 
 Run `npm run build:dist`, then
