@@ -197,7 +197,7 @@ retain their skips; Catalog owns none of these choices.
 Success is `{status:"ok",value,diagnostics:[]}`. Refusal is
 `{status:"refused",diagnostics}`; resolver refusal additionally reports
 `removalImpact`, never selections or a partial value. Diagnostic fields are
-`{code,path,message,related?,reason?,details?}`. Paths are JSON pointers.
+`{code,path,message,related?,reason?,details?,reference?,declaredBy?}`. Paths are JSON pointers.
 Reason is absent for these new helpers; messages explain but are not machine
 interfaces. Existing Catalog reader/validator diagnostics retain their original
 shape in `details:{owner:"catalog",diagnostics:[...]}`.
@@ -207,6 +207,23 @@ Resolver codes are `INPUT_INVALID`, `RELEASE_UNAVAILABLE`, `ITEM_UNAVAILABLE`,
 and `CONFIGURATION_CONFLICT`. Required cycles are refused by the reader for local
 closure and by resolution for composed closure. Missing or identity-inconsistent
 references, conflicts and invalid final configuration refuse the entire composition.
+
+Resolver diagnostics name the references involved, so a consumer never re-walks
+dependency declarations. `RELEASE_UNAVAILABLE` and `ITEM_UNAVAILABLE` carry
+`reference:{releaseSha256,itemId,scope}`, the exact unresolved reference (a
+dependency resolves in its dependent's scope). When a dependency declaration names
+it, `path` points at that declaration
+(`/releases/<digest>/items/<index>/dependencies/requires/<n>`, or `optional` /
+`conflicts`) and `declaredBy` is the declaring item: the root for a direct
+dependency, the dependent item for a transitive one. A request entry that is itself
+unavailable is reported at `/roots/<n>`, `/skips/<n>` or `/remove/<n>` without
+`declaredBy`. `ITEM_CONFLICT` points at the conflict declaration
+(`.../dependencies/conflicts/<n>`), with `declaredBy` the selected item declaring
+it and `reference` the selected item it names; two items declaring each other are
+two diagnostics. Each walked required path is reported, so a declaration reached on
+several paths (for example from two roots) repeats an identical diagnostic;
+deduplicate by `code`, `path`, `reference` and `declaredBy` when presenting them.
+Order of declaration diagnostics is deterministic and independent of root and release order; request-entry diagnostics follow request order.
 Suggestions are returned in `optional`, never converted into chosen selections.
 
 Run `npm run build:dist`, then

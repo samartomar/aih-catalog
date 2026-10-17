@@ -15,7 +15,14 @@ import { exportTargets } from "../../src/producer/package.js";
 import { contractSupport } from "../../src/release/contracts.js";
 import { seedConsumerLock } from "../../tools/seed-consumer-lock.mjs";
 import { committedRelease, makePackageRoot, readTree } from "../producer/helpers.js";
-import { MATT_ITEM_IDS, MATT_REQUIRED, sha256 } from "./fixtures.js";
+import {
+  fixtureRelease,
+  type Json,
+  MATT_ITEM_IDS,
+  MATT_REQUIRED,
+  releaseBytes,
+  sha256,
+} from "./fixtures.js";
 
 const root = resolve(import.meta.dirname, "../..");
 const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
@@ -322,6 +329,118 @@ describe("exact packed consumer", () => {
       renameSync(hidden, declarations);
     }
   }, 180_000);
+  it("names the unavailable reference and the conflicting pair through the public reader", () => {
+    type Item = { [key: string]: Json } & { dependencies: { [key: string]: Json[] } };
+    const document = (name: string, items: Item[]) => {
+      const base = fixtureRelease();
+      base.package = { name, version: "1.0.0" };
+      base.items = items;
+      return base;
+    };
+    const item = (id: string, dependencies: Partial<Record<string, Json[]>> = {}): Item => {
+      const alpha = structuredClone((fixtureRelease().items as Item[])[0] as Item);
+      const recipe = alpha.recipe as { [key: string]: Json };
+      return {
+        ...alpha,
+        id,
+        label: id,
+        inputs: {},
+        recipe: { ...recipe, id, path: `release/recipes/${id}.json` },
+        dependencies: { requires: [], optional: [], conflicts: [], ...dependencies },
+      };
+    };
+    const primaryBytes = releaseBytes(
+      document("conflict-catalog", [item("b", { conflicts: [{ itemId: "c" }] }), item("c")]),
+    );
+    const primary = sha256(primaryBytes);
+    const secondaryBytes = releaseBytes(
+      document("other-catalog", [
+        item("a", {
+          requires: [
+            {
+              itemId: "zz",
+              itemSha256: "f".repeat(64),
+              release: {
+                source: { kind: "local", input: "maintained" },
+                manifest: {
+                  path: "release/release.json",
+                  sha256: primary,
+                  byteLength: primaryBytes.byteLength,
+                },
+              },
+            },
+          ],
+        }),
+      ]),
+    );
+    const secondary = sha256(secondaryBytes);
+    writeFileSync(join(consumer, "primary.json"), primaryBytes);
+    writeFileSync(join(consumer, "secondary.json"), secondaryBytes);
+    const script = `
+      import { readFileSync } from "node:fs";
+      import { createHash } from "node:crypto";
+      import { readRelease, resolveSelections } from "@aihq/catalog/reader";
+      const load = (file) => {
+        const bytes = readFileSync(file);
+        const read = readRelease(bytes, { expectedSha256: createHash("sha256").update(bytes).digest("hex") });
+        if (!read.valid) throw new Error(JSON.stringify(read.diagnostics));
+        return read.release;
+      };
+      const primary = load("primary.json");
+      const secondary = load("secondary.json");
+      const root = (release, itemId) => ({ releaseSha256: release.sha256, itemId, scope: "project", configuration: {} });
+      const own = (releases, roots) => resolveSelections({ releases, roots, skips: [] }).diagnostics
+        .filter((d) => d.code !== "INPUT_INVALID");
+      process.stdout.write(JSON.stringify({
+        conflict: own({ [primary.sha256]: primary }, [root(primary, "c"), root(primary, "b")]),
+        item: own({ [primary.sha256]: primary, [secondary.sha256]: secondary }, [root(secondary, "a")]),
+        release: own({ [secondary.sha256]: secondary }, [root(secondary, "a")]),
+      }));
+    `;
+    writeFileSync(join(consumer, "resolve-detail.mjs"), script);
+    const result = JSON.parse(
+      execFileSync(process.execPath, [join(consumer, "resolve-detail.mjs")], {
+        cwd: consumer,
+        encoding: "utf8",
+        timeout: 60_000,
+      }),
+    );
+    const ref = (releaseSha256: string, itemId: string) => ({
+      releaseSha256,
+      itemId,
+      scope: "project",
+    });
+    const requires = `/releases/${secondary}/items/0/dependencies/requires/0`;
+    expect(result).toEqual({
+      conflict: [
+        {
+          code: "ITEM_CONFLICT",
+          path: `/releases/${primary}/items/0/dependencies/conflicts/0`,
+          message: "Conflicting items are selected together.",
+          reference: ref(primary, "c"),
+          declaredBy: ref(primary, "b"),
+        },
+      ],
+      item: [
+        {
+          code: "ITEM_UNAVAILABLE",
+          path: requires,
+          message: "Referenced item is absent from the supplied release.",
+          reference: ref(primary, "zz"),
+          declaredBy: ref(secondary, "a"),
+        },
+      ],
+      release: [
+        {
+          code: "RELEASE_UNAVAILABLE",
+          path: requires,
+          message: "Referenced release was not supplied.",
+          reference: ref(primary, "zz"),
+          declaredBy: ref(secondary, "a"),
+        },
+      ],
+    });
+  });
 
   it("keeps the portable entries free of Node, filesystem and network imports", () => {
     const seen = new Set<string>();

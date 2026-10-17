@@ -351,6 +351,19 @@ export interface Diagnostic {
     readonly owner: "catalog";
     readonly diagnostics: readonly CatalogDiagnostic[];
   };
+  /**
+   * Resolver only. `RELEASE_UNAVAILABLE`/`ITEM_UNAVAILABLE`: the exact unresolved
+   * release/item/scope. `ITEM_CONFLICT`: the selected item named by the conflict
+   * declaration at `path`.
+   */
+  readonly reference?: SelectionRef;
+  /**
+   * Resolver only. The item whose dependency declaration at `path` names
+   * `reference`: the requiring root or dependent item, or for `ITEM_CONFLICT` the
+   * selected item declaring the conflict. Absent when `reference` is itself a
+   * request entry (`/roots/i`, `/skips/i`, `/remove/i`).
+   */
+  readonly declaredBy?: SelectionRef;
 }
 export type AuthoringResult<T> =
   | { readonly status: "ok"; readonly value: T; readonly diagnostics: readonly [] }

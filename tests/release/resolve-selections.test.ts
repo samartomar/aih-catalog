@@ -368,3 +368,161 @@ it("refuses inherited array behavior before walking plain JSON roots", () => {
   expect(result.status).toBe("refused");
   expect(calls).toBe(0);
 });
+
+function crossRelease(
+  primary: ReturnType<typeof checked>,
+  missingItemId: string,
+  options: { transitive?: boolean; scopes?: ("project" | "user")[] } = {},
+) {
+  const document = graph();
+  document.package = { name: "other-catalog", version: "1.0.0" };
+  const cross: DependencyRef = {
+    itemId: missingItemId,
+    itemSha256: "f".repeat(64),
+    release: {
+      source: { kind: "local", input: "maintained" },
+      manifest: {
+        path: "release/release.json",
+        sha256: primary.sha256,
+        byteLength: primary.byteLength,
+      },
+    },
+  };
+  // a -> cross (direct), or a -> b -> cross (transitive).
+  document.items = options.transitive
+    ? [at(document.items, 0), at(document.items, 1)]
+    : [at(document.items, 0)];
+  for (const item of document.items) {
+    item.dependencies.requires = [];
+    if (options.scopes) item.scopes = options.scopes;
+  }
+  if (options.transitive) at(document.items, 0).dependencies.requires = [{ itemId: "b" }];
+  at(document.items, options.transitive ? 1 : 0).dependencies.requires = [cross];
+  return checked(document);
+}
+const declaration = (
+  release: ReturnType<typeof checked>,
+  itemId: string,
+  kind: "requires" | "conflicts",
+  index = 0,
+) =>
+  `/releases/${release.sha256}/items/${release.items.findIndex((i) => i.id === itemId)}/dependencies/${kind}/${index}`;
+// The final selection validator's wrapped diagnostic still follows the resolver's own.
+const own = (result: ReturnType<typeof resolveSelections>) =>
+  result.diagnostics.filter((d) => !(d.code === "INPUT_INVALID" && d.path === "/roots"));
+
+it("names the exact unavailable item and the root that directly requires it", () => {
+  const primary = checked(graph());
+  const secondary = crossRelease(primary, "zz");
+  const result = resolveSelections({
+    releases: { [secondary.sha256]: secondary, [primary.sha256]: primary },
+    roots: [root(secondary, "a")],
+    skips: [],
+  });
+  expect(result.status).toBe("refused");
+  expect(own(result)).toEqual([
+    {
+      code: "ITEM_UNAVAILABLE",
+      path: declaration(secondary, "a", "requires"),
+      message: "Referenced item is absent from the supplied release.",
+      reference: ref(primary, "zz"),
+      declaredBy: ref(secondary, "a"),
+    },
+  ]);
+  expect(result.diagnostics.at(-1)).toMatchObject({ code: "INPUT_INVALID", path: "/roots" });
+  expect(result.diagnostics.at(-1)).not.toHaveProperty("reference");
+});
+
+it("names the dependent item for a transitive unavailable item, once per walked path", () => {
+  const primary = checked(graph());
+  const secondary = crossRelease(primary, "zz", { transitive: true });
+  const releases = { [secondary.sha256]: secondary, [primary.sha256]: primary };
+  const expected = {
+    code: "ITEM_UNAVAILABLE",
+    path: declaration(secondary, "b", "requires"),
+    message: "Referenced item is absent from the supplied release.",
+    reference: ref(primary, "zz"),
+    declaredBy: ref(secondary, "b"),
+  };
+  const single = resolveSelections({ releases, roots: [root(secondary, "a")], skips: [] });
+  expect(own(single)).toEqual([expected]);
+  // Two roots reach b on two required paths: the declaration is reported for each path,
+  // with identical detail, as the walk always has.
+  const shared = resolveSelections({
+    releases,
+    roots: [root(secondary, "b"), root(secondary, "a")],
+    skips: [],
+  });
+  expect(own(shared)).toEqual([expected, expected]);
+  expect(
+    resolveSelections({ releases, roots: [root(secondary, "a"), root(secondary, "b")], skips: [] }),
+  ).toEqual(shared);
+});
+
+it("names the exact reference, in the dependent's scope, when its release is not supplied", () => {
+  const primary = checked(graph());
+  const secondary = crossRelease(primary, "d", { scopes: ["project", "user"] });
+  const result = resolveSelections({
+    releases: { [secondary.sha256]: secondary },
+    roots: [{ ...root(secondary, "a"), scope: "user" }],
+    skips: [],
+  });
+  expect(result.status).toBe("refused");
+  expect(own(result)).toEqual([
+    {
+      code: "RELEASE_UNAVAILABLE",
+      path: declaration(secondary, "a", "requires"),
+      message: "Referenced release was not supplied.",
+      reference: ref(primary, "d", "user"),
+      declaredBy: ref(secondary, "a", "user"),
+    },
+  ]);
+});
+
+it("names an unavailable request entry without a declaring item", () => {
+  const release = checked(graph());
+  const missingRelease = { ...ref(release, "a"), releaseSha256: "e".repeat(64) };
+  const result = resolveSelections({
+    releases: { [release.sha256]: release },
+    roots: [root(release, "d"), root(release, "missing")],
+    skips: [],
+    remove: [missingRelease],
+  });
+  expect(result.diagnostics).toEqual([
+    expect.objectContaining({
+      code: "ITEM_UNAVAILABLE",
+      path: "/roots/1",
+      reference: ref(release, "missing"),
+    }),
+    expect.objectContaining({
+      code: "RELEASE_UNAVAILABLE",
+      path: "/remove/0",
+      reference: missingRelease,
+    }),
+  ]);
+  expect(result.diagnostics.some((d) => "declaredBy" in d)).toBe(false);
+});
+
+it("names both selected items of a conflict at the conflict declaration", () => {
+  const document = graph();
+  at(document.items, 1).dependencies.conflicts = [{ itemId: "c" }];
+  const release = checked(document);
+  for (const roots of [
+    [root(release, "b"), root(release, "c")],
+    [root(release, "c"), root(release, "b")],
+    [root(release, "d")],
+  ]) {
+    const result = resolveSelections({ releases: { [release.sha256]: release }, roots, skips: [] });
+    expect(result.status).toBe("refused");
+    expect(own(result)).toEqual([
+      {
+        code: "ITEM_CONFLICT",
+        path: declaration(release, "b", "conflicts"),
+        message: "Conflicting items are selected together.",
+        reference: ref(release, "c"),
+        declaredBy: ref(release, "b"),
+      },
+    ]);
+    expect(Object.isFrozen(result.diagnostics[0]?.reference)).toBe(true);
+  }
+});
