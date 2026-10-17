@@ -5,7 +5,6 @@
  * built-ins, filesystem, network, package installation or code execution.
  */
 import {
-  ARCHIVE_PACKAGE_PREFIX,
   type CatalogDiagnostic,
   type CatalogItem,
   type CatalogRelease,
@@ -26,6 +25,7 @@ import {
   type ValidateSelectionSetRequest,
 } from "./contracts.js";
 import {
+  ARCHIVE_PACKAGE_PREFIX,
   checkMaterialSource,
   checkReleaseDocument,
   Diagnostics,

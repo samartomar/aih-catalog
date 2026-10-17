@@ -5,8 +5,7 @@
  * disk and no member is executed.
  */
 import { createGunzip } from "node:zlib";
-import { ARCHIVE_PACKAGE_PREFIX } from "./contracts.js";
-import { safeMemberPath } from "./document.js";
+import { ARCHIVE_PACKAGE_PREFIX, safeMemberPath } from "./document.js";
 import { AcquisitionFailure } from "./node-errors.js";
 
 export const ARCHIVE_LIMITS = Object.freeze({

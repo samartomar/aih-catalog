@@ -67,13 +67,13 @@ platform evidence and real-tool execution limits are recorded in [delivery evide
 
 | Entry | Purpose | Runtime |
 | --- | --- | --- |
-| `@aihq/catalog/contracts` | Public types, format identity and support declaration | Portable |
+| `@aihq/catalog/contracts` | Public types, format identity, support declaration and the `releaseInventory` of every exported release | Portable |
 | `@aihq/catalog/reader` | Read, browse, configure, resolve relationships and validate selections | Portable |
 | `@aihq/catalog/producer` | Check v3 declarations and compile explicitly supplied source bytes | Node 24.15–24.x |
 | `@aihq/catalog/schemas/producer-declaration/3.0.0.json` | Public producer declaration schema | Data |
 | `@aihq/catalog/node` | Read an installed root, resolve an exact archive/registry version, or prepare the project context for a chosen instruction directory | Node 24.15–24.x |
 | `@aihq/catalog/workflows/nuclei` | Author Nuclei preparation, assessment and reconciliation Core policies, with TypeScript declarations | Node 24.15–24.x |
-| `@aihq/catalog/release.json` | Canonical release inventory | Data |
+| `@aihq/catalog/release.json` | Default release (format 1.4.0) | Data |
 | `@aihq/catalog/release-guide.json` | Optional Ask AIH Guide manual and reference profiles; read it explicitly | Data |
 | `@aihq/catalog/release-1.1.json` | Release of Core recipe 1.1 items (client hook groups); read it explicitly | Data |
 | `@aihq/catalog/schemas/release/1.0.0.json` | Release structural schema | Data |
@@ -82,6 +82,8 @@ platform evidence and real-tool execution limits are recorded in [delivery evide
 | `@aihq/catalog/release-superpowers.json` | Optional pinned Superpowers skills and caller-configured Claude hook | Data |
 | `@aihq/catalog/release-anthropic.json` | Optional permitted Anthropic skill closures and notices | Data |
 | `@aihq/catalog/package.json` | Installed package identity and location | Data |
+
+`releaseInventory` gives each exported release document's format, purpose (ordinary content, client hooks or a native acceptance fixture) and support tier, plus the package identity; selection still names one release explicitly. The [content contract](docs/CATALOG-CONTENT.md#release-inventory-and-format-compatibility) has the inventory, the current authoring target and the format compatibility table.
 
 The portable entries use standard JavaScript and `Uint8Array`; they access neither
 files nor the network. The Node adapter verifies package, recipe and material bytes
@@ -141,7 +143,7 @@ Catalog-side preparation for persistent MCP configuration can proceed while nati
 acceptance continues separately. [The preparation and acceptance lanes](docs/NATIVE-PREPARATION.md)
 keep the full client roster explicit; this integration admits no native cell.
 
-`release-native-fixture.json` and `release-native-bundles.json` carry a test-scope Claude project MCP fixture, `aihq.mcp.claude.graph-fixture`, and the `NativeVerificationBundle` that pins it. The fixture server is a small read-only call graph, not a production graph server; the bundle prepares later native verification and proves nothing about a client loading it. See [the content contract](docs/CATALOG-CONTENT.md#native-graph-fixture-test-scope).
+`release-native-fixture.json` and `release-native-bundles.json` (support tier `test-scope` in `releaseInventory`) carry a test-scope Claude project MCP fixture, `aihq.mcp.claude.graph-fixture`, and the `NativeVerificationBundle` that pins it. The fixture server is a small read-only call graph, not a production graph server; the bundle prepares later native verification and proves nothing about a client loading it. See [the content contract](docs/CATALOG-CONTENT.md#native-graph-fixture-test-scope).
 
 ## Client hook items
 

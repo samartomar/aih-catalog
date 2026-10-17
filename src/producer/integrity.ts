@@ -1,9 +1,9 @@
 import { codexConfigBlockProblems } from "../release/client-config-targets.js";
 import { clientAdapterProblems } from "../release/client-ids.js";
-import type { CatalogRelease, Json } from "../release/contracts.js";
+import type { CatalogRelease, Json, ReleaseExport } from "../release/contracts.js";
 import { contractSupport, RELEASE_SCHEMA_ID_1_4 } from "../release/contracts.js";
-import { type ReleaseExport, verifyPackageRelease } from "../release/node.js";
 import { AcquisitionFailure } from "../release/node-errors.js";
+import { verifyPackageRelease } from "../release/package-release.js";
 import { readRelease } from "../release/reader.js";
 import { type AuthoredAllowance, checkAuthoredContent, describeFinding } from "./authored.js";
 import type { Record_ } from "./base.js";

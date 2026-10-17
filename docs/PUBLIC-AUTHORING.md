@@ -21,6 +21,11 @@ need not be curated, admitted or published by AIHQ.
 - Public TypeScript declarations accompany each entry. Producer declaration types
   are exported by the producer entry; resolver types are exported by contracts.
 
+Producer declaration 3.1.0 is the current authoring target; 3.0.0 remains supported
+unchanged. The compiler writes the lowest release format that expresses its output.
+See [format compatibility](CATALOG-CONTENT.md#format-compatibility) for every
+release and producer format this package reads.
+
 Package and document versions are separate. These are unpublished local 0.1.0
 builds; identify a build by its source commit and archive digest. A published
 package's bytes require a new package version when changed. Unknown declaration
