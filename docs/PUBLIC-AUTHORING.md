@@ -15,6 +15,8 @@ need not be curated, admitted or published by AIHQ.
   calls operate on supplied data and bytes without host acquisition or writes.
 - `@aihq/catalog/reader` exposes portable `resolveSelections` beside the existing
   reader, configuration and final selection validator.
+  It also exposes portable `compareReleases` for content update facts between two
+  checked releases; see [compare two checked releases](#compare-two-checked-releases).
 - `@aihq/catalog/schemas/producer-declaration/3.0.0.json` declares exact schema
   `urn:aihq:catalog:producer-declaration:3.0.0`. Its release-contract references
   resolve against `@aihq/catalog/schemas/release/1.2.0.json`.
@@ -196,6 +198,70 @@ would be removed. Shared requirements of retained roots stay out of this list.
 The proposed item itself is excluded from orphaned. Roots are never mutated.
 Consumers decide whether to trim roots, keep an orphan as a new direct root, or
 retain their skips; Catalog owns none of these choices.
+
+## Compare two checked releases
+
+`compareReleases({first,second})` reports the facts a consumer needs to judge a
+content update between two actual `readRelease` handles. It performs no
+acquisition or host access and recommends nothing; the caller decides what an
+update means for its own selections.
+
+```js
+import { compareReleases } from "@aihq/catalog/reader";
+
+const result = compareReleases({ first: installed, second: candidate });
+if (result.status === "refused") throw new Error(JSON.stringify(result.diagnostics));
+const { package: relation, version, items } = result.value;
+// relation: "same-package" | "different-package"
+// version.secondIs: "older" | "newer" | "equal" | "unknown" (second relative to first)
+for (const item of items) {
+  if (item.presence === "in-both" && item.content === "changed") {
+    // item.first / item.second carry itemSha256, recipeSha256 and materialSha256.
+  }
+}
+```
+
+An example value for a candidate that changes one recipe and drops one item:
+
+```json
+{
+  "first": { "sha256": "<64 hex>", "package": { "name": "@example/catalog", "version": "1.2.0" } },
+  "second": { "sha256": "<64 hex>", "package": { "name": "@example/catalog", "version": "1.3.0-rc.1" } },
+  "sameRelease": false,
+  "package": "same-package",
+  "version": { "first": "1.2.0", "second": "1.3.0-rc.1", "secondIs": "newer" },
+  "items": [
+    { "itemId": "alpha", "presence": "only-in-first", "first": { "itemSha256": "…", "recipeSha256": "…", "materialSha256": ["…"] } },
+    { "itemId": "beta", "presence": "in-both", "content": "changed", "recipe": "changed",
+      "materials": "unchanged", "record": "changed", "first": { "…": "…" }, "second": { "…": "…" } }
+  ]
+}
+```
+
+- **Package relation.** Releases with the same `package.name` are `same-package`.
+  Within one package an item ID names the same content slot. Releases of different
+  packages are `different-package`: `items` is empty and the version order is
+  `unknown` with reason `different-package`, never an item-by-item guess.
+- **Version order.** `version.secondIs` orders `second` against `first` by Semantic
+  Versioning 2.0.0 precedence, including pre-release identifiers
+  (`1.0.0-alpha` < `1.0.0-alpha.1` < `1.0.0-beta.11` < `1.0.0-rc.1` < `1.0.0`).
+  `equal` means the exact same version string. The order is `unknown` with reason
+  `version-not-semver` when either version is outside strict Semantic Versioning (the
+  reader admits some exact versions it rejects, such as a leading-zero pre-release
+  `1.0.0-01`), and with reason `build-metadata-only` when the versions differ only in
+  build metadata, which has no precedence. Equal versions can still carry changed
+  content; the item facts report it.
+- **Item facts.** Items are sorted by ID in UTF-16 code-unit order with `presence`
+  `in-both`, `only-in-first` or `only-in-second`. Each side's identity is
+  `{itemSha256,recipeSha256,materialSha256}`, where `materialSha256` is the sorted
+  set of material digests. For an item in both, `recipe` and `materials` compare
+  those digests and `content` is `changed` when either does; material IDs, paths and
+  order do not count. `record` compares `itemSha256`, so labels, descriptions or
+  metadata alone change the record but not the content. Required items' changes are
+  reported on their own entries, not folded into their dependents.
+- **Refusal.** Anything other than exactly `{first,second}` refuses at path `""`;
+  a serialized, cloned or forged release refuses at `/first` or `/second` with
+  `INPUT_INVALID`. There is no partial value.
 
 ## Refusal and diagnostic contract
 
