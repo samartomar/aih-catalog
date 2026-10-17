@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- `npm pack` now builds first for samartomar/aih-catalog#104: a `prepack` lifecycle runs
+  `npm run build:dist`, so an archive packed from a clean checkout contains `dist/` and
+  every built entry its exports name instead of failing at the first import. Packing with
+  `--ignore-scripts` skips the build, so run `npm run build:dist` (or `npm run verify`)
+  first; the packed tests refuse a missing `dist/`. A focused test packs a checkout
+  without `dist/` and checks every built export target is in the archive. No entry,
+  release or material changes.
+
 - Add portable `compareReleases({first,second})` to `@aihq/catalog/reader` for
   samartomar/aih-catalog#100: content update facts between two checked releases. It reports
   the package relation (`same-package` or `different-package`), the order of `second`'s
