@@ -202,5 +202,5 @@ They declare each function's options (`NucleiPreparationOptions`, `NucleiAssessm
 `urn:aihq:core:execution-policy:1.0.0` policy with one inline recipe. Invalid options are refused
 by a thrown `Error`; no partial policy or diagnostic result is returned. Types reject what they can
 express, such as an unselected platform, a tagged image, an unprefixed resource name or reuse
-combined with template selections; numeric bounds and path, digest and target forms are checked at
+combined with template selections (which the runtime also refuses); numeric bounds and path, digest and target forms are checked at
 runtime. `platform` is `'linux' | 'win32'`, so narrow `process.platform` before passing it.

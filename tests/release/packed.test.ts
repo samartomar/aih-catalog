@@ -227,11 +227,9 @@ describe("exact packed consumer", () => {
         return authorAssessmentPolicy(withoutUser);
       });
       refuse("target-scheme", () => authorAssessmentPolicy({ ...assessment, target: "file:///tmp/a" }));
-      const typeOnly = (): void => {
+      refuse("reuse-with-selections", () =>
         // @ts-expect-error reusing a bundle excludes fresh template selections
-        authorPreparationPolicy({ platform: "linux", helper, output: "/tmp/x", reuse: { path: "/tmp/b", sha256: "b".repeat(64), byteLength: 1 }, official: [] });
-      };
-      void typeOnly;
+        authorPreparationPolicy({ platform: "linux", helper, output: "/tmp/x", reuse: { path: "/tmp/b", sha256: "b".repeat(64), byteLength: 1 }, official: [] }));
       const declared = { authorPreparationPolicy: true, authorAssessmentPolicy: true,
         authorReconciliationPolicy: true } as const satisfies Record<keyof typeof nuclei, true>;
       const runtimeNames = Object.keys(nuclei).sort();
@@ -305,6 +303,7 @@ describe("exact packed consumer", () => {
         "resource-name",
         "missing-container-user",
         "target-scheme",
+        "reuse-with-selections",
       ],
       runtimeNames: [
         "authorAssessmentPolicy",
