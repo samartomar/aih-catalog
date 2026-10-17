@@ -18,6 +18,8 @@ import { checkInputSpec } from "./inputs.js";
 import { assertStrictValues, canonicalJson } from "./json.js";
 import { sha256Hex } from "./sha256.js";
 
+/** The fixed member prefix of a Catalog package archive. */
+export const ARCHIVE_PACKAGE_PREFIX = "package/" as const;
 export const ID = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 export const SHA256 = /^[0-9a-f]{64}$/;
 const PACKAGE_NAME = /^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/;

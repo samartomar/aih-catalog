@@ -4,11 +4,69 @@ Catalog content describes selectable work. Consumers deliberately select an exac
 
 ## Public entries
 
-`@aihq/catalog/contracts` declares support and public data types. `@aihq/catalog/reader` reads supplied bytes and validates choices without filesystem or network access. `@aihq/catalog/node` reads explicit installed roots and resolves reviewed archives or exact registry versions without installing packages, executing lifecycle scripts or importing package code. Its `prepareProjectContext` writes the shared project context for a chosen instruction directory as a derived release in caller-owned staging output ([context content](CONTEXT-CONTENT.md#instruction-directory)). `@aihq/catalog/release.json` is the release inventory; its structural schema is `@aihq/catalog/schemas/release/1.0.0.json`. `@aihq/catalog/release-1.1.json` is the separate release of Core recipe 1.1 items ([client hook items](#client-hook-items-release-11)).
+`@aihq/catalog/contracts` declares support and public data types. `@aihq/catalog/reader` reads supplied bytes and validates choices without filesystem or network access. `@aihq/catalog/node` reads explicit installed roots and resolves reviewed archives or exact registry versions without installing packages, executing lifecycle scripts or importing package code. Its `prepareProjectContext` writes the shared project context for a chosen instruction directory as a derived release in caller-owned staging output ([context content](CONTEXT-CONTENT.md#instruction-directory)). `@aihq/catalog/release.json` is the default release; it uses release format 1.4.0 (`@aihq/catalog/schemas/release/1.4.0.json`). `@aihq/catalog/release-1.1.json` is the separate release of Core recipe 1.1 items ([client hook items](#client-hook-items-release-11)). `releaseInventory` lists every release document the package exports ([release inventory](#release-inventory-and-format-compatibility)).
 
-The canonical release document uses format `urn:aihq:catalog:release:1.0.0`, strict UTF-8 JSON, one LF terminator, a 16 MiB ceiling including that terminator, and a 32-level depth ceiling. It contains exact package identity, pinned upstream source provenance and sorted unique item records. Its own identity is the SHA-256 of its exact bytes. An item identity hashes its canonical record without the LF. A recipe identity binds exact recipe bytes and named material identities; moving the acquisition locator or changing unrelated items does not change those bytes.
+Every release document uses a format `urn:aihq:catalog:release:1.<minor>.0` (see the [compatibility table](#format-compatibility)), strict UTF-8 JSON, one LF terminator, a 16 MiB ceiling including that terminator, and a 32-level depth ceiling. It contains exact package identity, pinned upstream source provenance and sorted unique item records. Its own identity is the SHA-256 of its exact bytes. An item identity hashes its canonical record without the LF. A recipe identity binds exact recipe bytes and named material identities; moving the acquisition locator or changing unrelated items does not change those bytes.
 
 Descriptors use lowercase bare SHA-256 and safe byte lengths. Material paths are canonical package-relative POSIX paths. Archive references use the fixed `package/` prefix; local roots remain package-relative. Symlinks, traversal, duplicate/ambiguous members, hash/length mismatch and unsupported formats are refused.
+
+## Release inventory and format compatibility
+
+`releaseInventory` from `@aihq/catalog/contracts` is portable data listing every release document this package exports, so a consumer can discover them without keeping its own list:
+
+```js
+import { releaseInventory } from "@aihq/catalog/contracts";
+import { readInstalledRelease } from "@aihq/catalog/node";
+
+const ordinary = releaseInventory.releases.filter((entry) => entry.support === "supported");
+for (const entry of ordinary) {
+  const read = await readInstalledRelease({ root, release: entry.release });
+  // read.release.schema === entry.schema for this package's documents
+}
+```
+
+`releaseInventory.package` is the package `{name,version}`, the same object as `contractSupport.package`. `defaultRelease` is `./release.json`. Each entry has:
+
+| Field | Meaning |
+| --- | --- |
+| `release` | The name to pass as `release` to `readInstalledRelease` or `resolveRelease` |
+| `export` | The package export specifier of the document |
+| `schema` | The release format the shipped document uses; the document's own `schema` stays authoritative |
+| `purpose` | `content` (ordinary selectable content), `hook` (client hook groups needing Core recipe 1.1) or `native-fixture` (material for native acceptance tests) |
+| `support` | `supported` for ordinary use, or `test-scope` for fixtures that prove nothing about production use |
+
+The inventory is discovery data, not a selection. Acquisition still names one release explicitly; the Node adapter accepts exactly the inventory names and refuses any other with `invalid-request`. New content in an existing release needs no consumer change. A new release document appears as a new inventory entry in a new package version; consumers that iterate the inventory pick it up, while a consumer that selects fixed names keeps working unchanged.
+
+| Release | Purpose | Support | Format |
+| --- | --- | --- | --- |
+| `./release.json` (default) | content | supported | 1.4.0 |
+| `./release-1.1.json` | hook | supported | 1.1.0 |
+| `./release-guide.json` | content | supported | 1.0.0 |
+| `./release-extensions.json` | content | supported | 1.2.0 |
+| `./release-ecc.json` | content | supported | 1.0.0 |
+| `./release-superpowers.json` | content | supported | 1.2.0 |
+| `./release-anthropic.json` | content | supported | 1.0.0 |
+| `./release-native-fixture.json` | native-fixture | test-scope | 1.0.0 |
+| `./release-native-bundles.json` | native-fixture | test-scope | 1.0.0 |
+
+### Format compatibility
+
+Format versions are independent of the package version. This package reads every format below; `contractSupport.contracts` lists each with its schema export. A reader that lacks a document's format refuses the whole document (`SCHEMA_UNSUPPORTED`) and never reads part of it.
+
+| Release format | Status | Adds | Admitted Core recipes | Written by |
+| --- | --- | --- | --- | --- |
+| `urn:aihq:catalog:release:1.0.0` | Supported | Base format | 1.0 | The producer when content needs nothing newer |
+| `urn:aihq:catalog:release:1.1.0` | Supported | Core recipe 1.1 items (`hook.group`) | 1.0, 1.1 | The producer when an item uses recipe 1.1 |
+| `urn:aihq:catalog:release:1.2.0` | Supported | Core recipe 1.3 input-bound hook groups | 1.0, 1.1, 1.3 | The producer when an item uses recipe 1.3 |
+| `urn:aihq:catalog:release:1.3.0` | Supported; no shipped document | Local snapshot source origins | 1.0, 1.1, 1.3 | The producer when a declaration has a local source |
+| `urn:aihq:catalog:release:1.4.0` | Current | `clientId` on `client-adapter` items | 1.0, 1.1, 1.3 | The maintained candidate for `release.json` |
+
+| Producer declaration | Status | Adds |
+| --- | --- | --- |
+| `urn:aihq:catalog:producer-declaration:3.0.0` | Supported, unchanged | Git source pins |
+| `urn:aihq:catalog:producer-declaration:3.1.0` | Current authoring target | Local source origins, alongside the 3.0 Git form |
+
+Author new declarations against producer declaration 3.1.0. The compiler chooses the release format: the lowest one that expresses the compiled content, so supplied output stays readable by older readers. Persisted documents in earlier formats remain readable; there is no need to rewrite them. Hook release 1.1 remains a distinct supported release rather than an older copy of the default release.
 
 ## Selection and configuration
 
@@ -59,7 +117,7 @@ After changing the hook renderer, build it with `npm run build:dist`, then run `
 
 ## Native graph fixture (test scope)
 
-Two further 1.0 release documents, `@aihq/catalog/release-native-fixture.json` and `@aihq/catalog/release-native-bundles.json`, prepare one persistent Claude MCP configuration for later native verification. They use release format `urn:aihq:catalog:release:1.0.0` and Core recipe 1.0 with the existing `file.write`, `config.entries` and `text.block` operations. Read either explicitly, for example `readInstalledRelease({ root, release: "./release-native-fixture.json" })`; the default stays `./release.json`. The bundle cannot live in the document it pins, because it records the SHA-256 of that release and item, so it has its own document.
+Two further 1.0 release documents, `@aihq/catalog/release-native-fixture.json` and `@aihq/catalog/release-native-bundles.json`, prepare one persistent Claude MCP configuration for later native verification. They use release format `urn:aihq:catalog:release:1.0.0` and Core recipe 1.0 with the existing `file.write`, `config.entries` and `text.block` operations. They are test scope: `releaseInventory` lists both with purpose `native-fixture` and support `test-scope`, so discovery can leave them out of ordinary content. Read either explicitly, for example `readInstalledRelease({ root, release: "./release-native-fixture.json" })`; the default stays `./release.json`. The bundle cannot live in the document it pins, because it records the SHA-256 of that release and item, so it has its own document.
 
 - `aihq.mcp.claude.graph-fixture` (kind `mcp-server`, project scope, prerequisite executable `node`) writes `.aihq/graph-fixture/graph-server.mjs`, its fixed `graph.json` and Core's stdio recorder program at `.aihq-native/recorder.mjs`, checks each file's hash, sets `mcpServers.aihq-graph-fixture` in the project `.mcp.json` to the `node` command that runs the server behind the recorder, and adds one owned `CLAUDE.md` block (`aihq-graph-fixture`, its own markers) that does not touch the shared context block.
 - `aihq.native-bundle.claude.graph-fixture` (kind `native-verification-bundle`) ships the Core-owned `urn:aihq:core:native-verification-bundle:1.0.0` bundle `aihq.catalog.claude.graph-fixture.v1` (scope `test-configuration`, adapter `claude-stream-json.v1`) as ordinary declared material, with the two expected-output files that are derived rather than copied (`CLAUDE.md` and `.mcp.json`). Its recipe only places the bundle file under `.aihq-native/verification/`; the bundle selects nothing by itself. The recipe declares the two expected-output files as materials without writing them, because the bundle must find every pinned file in the package archive.

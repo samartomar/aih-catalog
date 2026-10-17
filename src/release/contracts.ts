@@ -58,16 +58,13 @@ export const RELEASE_RECIPE_SCHEMAS: Readonly<Record<ReleaseSchemaId, readonly R
 /** Release documents: UTF-8 bytes including the single trailing LF. */
 export const RELEASE_MAX_BYTES = 16 * 1024 * 1024;
 export const RELEASE_MAX_DEPTH = 32;
-/** The fixed member prefix of a Catalog package archive. */
-export const ARCHIVE_PACKAGE_PREFIX = "package/" as const;
 
-export const CATALOG_PACKAGE_NAME = "@aihq/catalog" as const;
-/** Kept equal to package.json `version` by the release tests. */
-export const CATALOG_PACKAGE_VERSION = "0.1.0" as const;
+/** Kept equal to package.json `name` and `version` by the release tests. */
+const PACKAGE_IDENTITY = Object.freeze({ name: "@aihq/catalog", version: "0.1.0" } as const);
 
 export const contractSupport = Object.freeze({
   schema: "urn:aihq:package-support:1.0.0",
-  package: Object.freeze({ name: CATALOG_PACKAGE_NAME, version: CATALOG_PACKAGE_VERSION }),
+  package: PACKAGE_IDENTITY,
   contracts: Object.freeze([
     Object.freeze({ id: RELEASE_SCHEMA_ID, role: "produces", schemaExport: RELEASE_SCHEMA_EXPORT }),
     Object.freeze({
@@ -127,6 +124,96 @@ export const contractSupport = Object.freeze({
     Object.freeze({ export: "@aihq/catalog/node", runtime: "node", nodeRange: ">=24.15.0 <25" }),
   ]),
 } as const);
+
+/**
+ * What a release document is for. `content` is ordinary selectable content; `hook`
+ * is content that needs Core recipe 1.1 hook groups; `native-fixture` is test-scope
+ * material for native acceptance, not production content.
+ */
+export type ReleasePurpose = "content" | "hook" | "native-fixture";
+/** `supported` content is maintained for ordinary use; `test-scope` content proves nothing about production use. */
+export type ReleaseSupport = "supported" | "test-scope";
+
+/**
+ * Every release document this package exports, with its format, purpose and
+ * support tier. It is discovery data only: a reader still selects one release
+ * explicitly by its `release` name (the default is `defaultRelease`), and the
+ * Node adapter accepts no other name. Each document's own `schema` field stays
+ * authoritative; this list states what the package ships.
+ */
+export const releaseInventory = Object.freeze({
+  package: PACKAGE_IDENTITY,
+  defaultRelease: "./release.json",
+  releases: Object.freeze([
+    Object.freeze({
+      release: "./release.json",
+      export: "@aihq/catalog/release.json",
+      schema: RELEASE_SCHEMA_ID_1_4,
+      purpose: "content",
+      support: "supported",
+    }),
+    Object.freeze({
+      release: "./release-1.1.json",
+      export: "@aihq/catalog/release-1.1.json",
+      schema: RELEASE_SCHEMA_ID_1_1,
+      purpose: "hook",
+      support: "supported",
+    }),
+    Object.freeze({
+      release: "./release-native-fixture.json",
+      export: "@aihq/catalog/release-native-fixture.json",
+      schema: RELEASE_SCHEMA_ID,
+      purpose: "native-fixture",
+      support: "test-scope",
+    }),
+    Object.freeze({
+      release: "./release-native-bundles.json",
+      export: "@aihq/catalog/release-native-bundles.json",
+      schema: RELEASE_SCHEMA_ID,
+      purpose: "native-fixture",
+      support: "test-scope",
+    }),
+    Object.freeze({
+      release: "./release-guide.json",
+      export: "@aihq/catalog/release-guide.json",
+      schema: RELEASE_SCHEMA_ID,
+      purpose: "content",
+      support: "supported",
+    }),
+    Object.freeze({
+      release: "./release-extensions.json",
+      export: "@aihq/catalog/release-extensions.json",
+      schema: RELEASE_SCHEMA_ID_1_2,
+      purpose: "content",
+      support: "supported",
+    }),
+    Object.freeze({
+      release: "./release-ecc.json",
+      export: "@aihq/catalog/release-ecc.json",
+      schema: RELEASE_SCHEMA_ID,
+      purpose: "content",
+      support: "supported",
+    }),
+    Object.freeze({
+      release: "./release-superpowers.json",
+      export: "@aihq/catalog/release-superpowers.json",
+      schema: RELEASE_SCHEMA_ID_1_2,
+      purpose: "content",
+      support: "supported",
+    }),
+    Object.freeze({
+      release: "./release-anthropic.json",
+      export: "@aihq/catalog/release-anthropic.json",
+      schema: RELEASE_SCHEMA_ID,
+      purpose: "content",
+      support: "supported",
+    }),
+  ]),
+} as const);
+
+export type ReleaseInventoryEntry = (typeof releaseInventory.releases)[number];
+/** The release names a reader can select; the Node adapter accepts exactly these. */
+export type ReleaseExport = ReleaseInventoryEntry["release"];
 
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 

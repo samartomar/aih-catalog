@@ -442,6 +442,130 @@ describe("exact packed consumer", () => {
     });
   });
 
+  it("exposes only the retained names and discovers every release through releaseInventory", () => {
+    const script = `
+      import assert from "node:assert/strict";
+      import { readFileSync } from "node:fs";
+      import { dirname } from "node:path";
+      import { fileURLToPath } from "node:url";
+      import * as contracts from "@aihq/catalog/contracts";
+      import * as node from "@aihq/catalog/node";
+      const internal = ["diagnostic", "failureResult", "packageIdentity", "verifyPackageRelease",
+        "sha256", "ARCHIVE_PACKAGE_PREFIX", "CATALOG_PACKAGE_NAME", "CATALOG_PACKAGE_VERSION"];
+      for (const name of internal) {
+        assert.equal(name in node, false, "node exports " + name);
+        assert.equal(name in contracts, false, "contracts exports " + name);
+      }
+      const unreachable = [];
+      for (const specifier of ["@aihq/catalog/dist/release/package-release.js",
+        "@aihq/catalog/dist/release/node.js", "@aihq/catalog/dist/release/document.js"]) {
+        try { await import(specifier); } catch (error) {
+          if (error.code === "ERR_PACKAGE_PATH_NOT_EXPORTED") { unreachable.push(specifier); continue; }
+          throw error;
+        }
+      }
+      const root = dirname(fileURLToPath(import.meta.resolve("@aihq/catalog/package.json")));
+      const manifest = JSON.parse(readFileSync(fileURLToPath(import.meta.resolve("@aihq/catalog/package.json")), "utf8"));
+      const { releaseInventory, contractSupport } = contracts;
+      assert.deepEqual(releaseInventory.package, { name: manifest.name, version: manifest.version });
+      assert.deepEqual(contractSupport.package, releaseInventory.package);
+      const releases = [];
+      for (const entry of releaseInventory.releases) {
+        const read = await node.readInstalledRelease({ root, release: entry.release });
+        assert.equal(read.valid, true, entry.release + JSON.stringify(read.diagnostics));
+        const declared = contractSupport.contracts.find((c) => c.id === entry.schema);
+        const schema = JSON.parse(readFileSync(fileURLToPath(import.meta.resolve(declared.schemaExport)), "utf8"));
+        assert.equal(read.provenance.manifestPath, manifest.exports[entry.release].slice(2));
+        assert.equal(fileURLToPath(import.meta.resolve(entry.export)),
+          fileURLToPath(new URL(manifest.exports[entry.release], import.meta.resolve("@aihq/catalog/package.json"))));
+        releases.push([entry.release, entry.purpose, entry.support, read.release.schema === entry.schema && schema.$id === entry.schema]);
+      }
+      const defaulted = await node.readInstalledRelease({ root });
+      process.stdout.write(JSON.stringify({
+        node: Object.keys(node).sort(),
+        contracts: Object.keys(contracts).filter((name) => !/^(?:RELEASE|CORE)_/.test(name)).sort(),
+        unreachable, releases,
+        defaultRelease: releaseInventory.defaultRelease,
+        defaulted: defaulted.provenance?.manifestPath,
+      }));
+    `;
+    writeFileSync(join(consumer, "inventory.mjs"), script);
+    const result = JSON.parse(
+      execFileSync(process.execPath, [join(consumer, "inventory.mjs")], {
+        cwd: consumer,
+        encoding: "utf8",
+        timeout: 120_000,
+      }),
+    );
+    expect(result).toEqual({
+      node: ["prepareProjectContext", "readInstalledRelease", "resolveRelease"],
+      contracts: ["contractSupport", "releaseInventory"],
+      unreachable: [
+        "@aihq/catalog/dist/release/package-release.js",
+        "@aihq/catalog/dist/release/node.js",
+        "@aihq/catalog/dist/release/document.js",
+      ],
+      releases: [
+        ["./release.json", "content", "supported", true],
+        ["./release-1.1.json", "hook", "supported", true],
+        ["./release-native-fixture.json", "native-fixture", "test-scope", true],
+        ["./release-native-bundles.json", "native-fixture", "test-scope", true],
+        ["./release-guide.json", "content", "supported", true],
+        ["./release-extensions.json", "content", "supported", true],
+        ["./release-ecc.json", "content", "supported", true],
+        ["./release-superpowers.json", "content", "supported", true],
+        ["./release-anthropic.json", "content", "supported", true],
+      ],
+      defaultRelease: "./release.json",
+      defaulted: "release/release.json",
+    });
+
+    // Declarations agree: the internal names are absent and selection stays a closed union.
+    const program = `
+      import { releaseInventory, type ReleaseInventoryEntry } from "@aihq/catalog/contracts";
+      import { readInstalledRelease, type ReleaseExport } from "@aihq/catalog/node";
+      // @ts-expect-error acquisition helpers are internal
+      import { verifyPackageRelease, packageIdentity, sha256, diagnostic, failureResult } from "@aihq/catalog/node";
+      // @ts-expect-error package identity lives in support metadata
+      import { CATALOG_PACKAGE_NAME, CATALOG_PACKAGE_VERSION, ARCHIVE_PACKAGE_PREFIX } from "@aihq/catalog/contracts";
+      void [verifyPackageRelease, packageIdentity, sha256, diagnostic, failureResult,
+        CATALOG_PACKAGE_NAME, CATALOG_PACKAGE_VERSION, ARCHIVE_PACKAGE_PREFIX];
+      const fixtures: ReleaseExport[] = releaseInventory.releases
+        .filter((entry: ReleaseInventoryEntry) => entry.support === "test-scope")
+        .map((entry) => entry.release);
+      // @ts-expect-error a release outside the inventory is not selectable
+      const unknown: ReleaseExport = "./release-unknown.json";
+      const name: "@aihq/catalog" = releaseInventory.package.name;
+      void [fixtures, unknown, name, readInstalledRelease];
+    `;
+    const project = join(consumer, "inventory-types");
+    mkdirSync(project);
+    writeFileSync(join(project, "consume.mts"), program);
+    writeFileSync(
+      join(project, "tsconfig.json"),
+      JSON.stringify({
+        compilerOptions: {
+          strict: true,
+          noEmit: true,
+          skipLibCheck: false,
+          module: "nodenext",
+          moduleResolution: "nodenext",
+          target: "es2022",
+          // The Node entry's declarations name AbortSignal and fetch, which a Node host's types supply.
+          lib: ["es2023", "dom"],
+          types: [],
+        },
+        files: ["consume.mts"],
+      }),
+    );
+    const compiled = spawnSync(
+      process.execPath,
+      [resolve(root, "node_modules/typescript/bin/tsc"), "-p", "tsconfig.json"],
+      { cwd: project, encoding: "utf8", timeout: 120_000, windowsHide: true },
+    );
+    expect(compiled.status, `${compiled.stdout}${compiled.stderr}`).toBe(0);
+  }, 180_000);
+
   it("keeps the portable entries free of Node, filesystem and network imports", () => {
     const seen = new Set<string>();
     const visit = (file: string) => {

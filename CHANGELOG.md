@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+- Narrow the code entries and publish release discovery metadata for samartomar/aih-catalog#99.
+  **Breaking for direct importers:** `@aihq/catalog/node` no longer exports `diagnostic`,
+  `failureResult`, `packageIdentity`, `verifyPackageRelease` or `sha256`, and
+  `@aihq/catalog/contracts` no longer exports `ARCHIVE_PACKAGE_PREFIX`,
+  `CATALOG_PACKAGE_NAME` or `CATALOG_PACKAGE_VERSION`. The helpers stay as internal
+  implementation of `readInstalledRelease`, `resolveRelease` and `prepareProjectContext`,
+  whose behavior and diagnostics are unchanged; `verifyPackageRelease` threw an internal
+  error type a caller could neither construct nor convert, so it had no usable adapter
+  contract. Read package identity from `contractSupport.package`. New portable
+  `releaseInventory` (with types `ReleaseInventoryEntry`, `ReleasePurpose`, `ReleaseSupport`
+  and `ReleaseExport`, which `@aihq/catalog/node` still re-exports) lists every exported
+  release document with its selection name, export, format, purpose (`content`, `hook`,
+  `native-fixture`) and support tier (`supported`, `test-scope`), plus the package identity.
+  The Node adapter derives its accepted release names from it and still requires an explicit
+  release name; any other name is refused with `invalid-request`. `release-native-fixture.json`
+  and `release-native-bundles.json` are marked `test-scope`; `release-1.1.json` remains a
+  distinct supported hook release. `docs/CATALOG-CONTENT.md` adds the inventory, the current
+  authoring target (producer declaration 3.1.0) and a format compatibility table for release
+  1.0 to 1.4 and producer 3.0/3.1, and corrects the default release's format to 1.4.0. No
+  release document, item or material changes. A packed consumer checks the retained names,
+  the inventory against every installed release, and that the removed names and internal
+  modules are unreachable at runtime and in the declarations.
+
 - Add TypeScript declarations for `@aihq/catalog/workflows/nuclei` for samartomar/aih-catalog#96,
   exposed through a `types` export condition (`workflows/nuclei/author.d.mts`, now packed). They
   declare the options of `authorPreparationPolicy`, `authorAssessmentPolicy` and
