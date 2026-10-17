@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { translateCodexMcpServer } from "../dist/release/codex-mcp-entries.js";
 import { compileProducerDeclaration } from "../dist/release/producer.js";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const sha = bytes => createHash("sha256").update(bytes).digest("hex");
@@ -86,7 +87,7 @@ export function generateEccRelease(identity = JSON.parse(readFileSync(resolve(ro
     files[path] = new TextEncoder().encode(text);
   }
   const rawServers = JSON.parse(Buffer.from(files["mcp-configs/mcp-servers.json"]).toString("utf8")).mcpServers;
-  for (const item of declaration.items.filter(item => item.kind === "mcp")) {
+  for (const item of declaration.items.filter(item => item.id.startsWith("ecc.claude.mcp."))) {
     const fact = inventory.itemFacts[item.id];
     assert(fact, `Missing MCP facts ${item.id}`);
     assert.deepEqual(fact.rawServer, rawServers[fact.sourceKey], `Raw MCP facts differ ${item.id}`);
@@ -102,6 +103,62 @@ export function generateEccRelease(identity = JSON.parse(readFileSync(resolve(ro
     const optional = [...new Set(variables.filter(match => match[2]).map(match => match[1]))].sort();
     assert.deepEqual([...fact.requiredHostEnvironment].sort(), required, `Required host inputs differ ${item.id}`);
     assert.deepEqual([...(fact.optionalHostEnvironment ?? [])].sort(), optional, `Optional host inputs differ ${item.id}`);
+  }
+  // Codex counterparts: each offered Claude server has exactly one of a Codex item or a recorded exclusion.
+  const claudeItems = declaration.items.filter(item => item.id.startsWith("ecc.claude.mcp."));
+  const claudeKeys = claudeItems.map(item => inventory.itemFacts[item.id].sourceKey);
+  const excluded = new Map();
+  for (const { sourceKey, reason } of inventory.codexMcpExclusions ?? []) {
+    assert(reason, `Missing Codex MCP exclusion reason ${sourceKey}`);
+    assert(!excluded.has(sourceKey), `Duplicate Codex MCP exclusion ${sourceKey}`);
+    excluded.set(sourceKey, reason);
+  }
+  const translated = new Set();
+  for (const item of declaration.items.filter(item => item.id.startsWith("ecc.codex.mcp."))) {
+    const fact = inventory.itemFacts[item.id];
+    assert(fact, `Missing Codex MCP facts ${item.id}`);
+    assert.equal(item.id, `ecc.codex.mcp.${fact.sourceKey}`);
+    assert.equal(item.kind, "mcp");
+    assert(!translated.has(fact.sourceKey), `Duplicate Codex MCP item ${item.id}`);
+    translated.add(fact.sourceKey);
+    assert.deepEqual(fact.rawServer, rawServers[fact.sourceKey], `Raw MCP facts differ ${item.id}`);
+    const sibling = inventory.itemFacts[`ecc.claude.mcp.${fact.sourceKey}`];
+    const siblingItem = claudeItems.find(claude => claude.id === `ecc.claude.mcp.${fact.sourceKey}`);
+    assert(sibling && siblingItem, `Codex MCP item without a Claude counterpart ${item.id}`);
+    assert.deepEqual(fact.offeredServer, sibling.offeredServer, `Codex MCP translation input differs ${item.id}`);
+    for (const name of ["requiredHostEnvironment", "optionalHostEnvironment", "runtimePrerequisites"]) assert.deepEqual(fact[name], sibling[name], `Codex MCP ${name} differ ${item.id}`);
+    assert.deepEqual(item.materials, siblingItem.materials, `Codex MCP materials differ from the Claude counterpart ${item.id}`);
+    assert.equal(item.clientCapabilities.find(capability => capability.client === "codex" && capability.capability === "native-execution")?.reason, fact.runtimePrerequisites, `MCP execution facts differ ${item.id}`);
+    assert.equal(item.activation[0]?.instructions, fact.runtimePrerequisites, `MCP activation facts differ ${item.id}`);
+    const translation = translateCodexMcpServer(fact.sourceKey, fact.offeredServer);
+    assert(translation.supported, `Codex MCP item for an untranslatable server ${item.id}: ${translation.reason}`);
+    const recipe = JSON.parse(snapshot.recipes.ecc[item.recipePath]);
+    const claudeRecipe = JSON.parse(snapshot.recipes.ecc[siblingItem.recipePath]);
+    const home = (target) => ({ root: "userHome", segments: target.segments.map(segment => segment.literal === siblingItem.id ? { literal: item.id } : segment) });
+    const delivered = claudeRecipe.operations.filter(operation => operation.kind === "file.write").map(operation => ({ ...operation, scope: "user", target: home(operation.target) }));
+    assert.deepEqual(recipe.operations.slice(0, -1), delivered, `Codex MCP material delivery differs from the Claude counterpart ${item.id}`);
+    assert.deepEqual(recipe.checks, claudeRecipe.checks.map(check => ({ ...check, target: home(check.target) })), `Codex MCP material checks differ ${item.id}`);
+    assert.deepEqual(recipe.operations.at(-1), {
+      id: "register-server",
+      purpose: `Register exact offered ECC ${fact.sourceKey} server for Codex`,
+      kind: "config.entries",
+      scope: "user",
+      target: { root: "userHome", segments: [{ literal: ".codex" }, { literal: "config.toml" }] },
+      format: "toml",
+      entries: translation.entries,
+      requires: [],
+      checks: [],
+    }, `Codex MCP operation differs from the translation ${item.id}`);
+    assert.deepEqual(recipe.prerequisites, translation.prerequisites, `Codex MCP prerequisites differ ${item.id}`);
+    assert.deepEqual(recipe.targets, ["user"]);
+    assert.deepEqual(recipe.materials, []);
+    assert(recipe.operations.every(operation => operation.scope === "user"), `Codex MCP operation outside user scope ${item.id}`);
+  }
+  for (const key of claudeKeys) assert.notEqual(translated.has(key), excluded.has(key), `Claude MCP server ${key} needs exactly one of a Codex item or a recorded exclusion`);
+  for (const key of excluded.keys()) {
+    assert(claudeKeys.includes(key), `Codex MCP exclusion for an unknown server ${key}`);
+    const { supported } = translateCodexMcpServer(key, inventory.itemFacts[`ecc.claude.mcp.${key}`].offeredServer);
+    assert.equal(supported, false, `Excluded Codex MCP server ${key} is translatable`);
   }
   declaration.package = { name: identity.name, version: identity.version };
   const compiled = compileProducerDeclaration({ declaration, sourceFiles: [{ source: "ecc", revision: source.revision, files }] });

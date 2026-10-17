@@ -144,3 +144,103 @@ it("offers EvalView deterministic checks without requiring its optional model AP
     "OPENAI_API_KEY",
   ]);
 });
+
+it("offers Codex user-scope MCP registration for every translatable server and records the rest", () => {
+  const declaration = JSON.parse(readFileSync("producer/ecc/declaration.json", "utf8"));
+  const snapshot = JSON.parse(readFileSync("producer/ecc/snapshot.json", "utf8"));
+  const inventory = JSON.parse(readFileSync("producer/ecc/inventory.json", "utf8"));
+  const claudeKeys = declaration.items
+    .filter((item: { id: string }) => item.id.startsWith("ecc.claude.mcp."))
+    .map((item: { id: string }) => item.id.slice("ecc.claude.mcp.".length));
+  const codexKeys = declaration.items
+    .filter((item: { id: string }) => item.id.startsWith("ecc.codex.mcp."))
+    .map((item: { id: string }) => item.id.slice("ecc.codex.mcp.".length));
+  const excluded = inventory.codexMcpExclusions.map((row: { sourceKey: string }) => row.sourceKey);
+  expect(claudeKeys).toHaveLength(35);
+  expect(codexKeys).toHaveLength(32);
+  expect([...codexKeys, ...excluded].sort()).toEqual([...claudeKeys].sort());
+  expect(excluded.sort()).toEqual(["filesystem", "ito-compute", "supabase"]);
+  for (const row of inventory.codexMcpExclusions) expect(row.reason).toContain("args-placeholder");
+
+  declaration.items = declaration.items.filter((item: { id: string }) =>
+    ["ecc.codex.mcp.github", "ecc.codex.mcp.memxus", "ecc.notices"].includes(item.id),
+  );
+  const source = snapshot.sources[0];
+  const compiled = compileProducerDeclaration({
+    declaration,
+    sourceFiles: [
+      {
+        source: source.id,
+        revision: source.revision,
+        files: {
+          ...Object.fromEntries(
+            source.files.map((file: { path: string; base64: string }) => [
+              file.path,
+              new Uint8Array(Buffer.from(file.base64, "base64")),
+            ]),
+          ),
+          ...Object.fromEntries(
+            Object.entries(snapshot.recipes.ecc).map(([path, text]) => [
+              path,
+              new TextEncoder().encode(text as string),
+            ]),
+          ),
+        },
+      },
+    ],
+  });
+  expect(compiled.status, JSON.stringify(compiled.diagnostics)).toBe("ok");
+  if (compiled.status !== "ok") return;
+  const item = compiled.value.release.items.find((item) => item.id === "ecc.codex.mcp.github");
+  expect(item?.scopes).toEqual(["user"]);
+  const recipeFile = compiled.value.materials.find((file) => file.path === item?.recipe.path);
+  if (!recipeFile) throw new Error("Codex recipe missing");
+  const recipe = JSON.parse(new TextDecoder().decode(recipeFile.bytes));
+  expect(recipe.targets).toEqual(["user"]);
+  expect(recipe.operations.map((operation: { scope: string }) => operation.scope)).toEqual([
+    "user",
+    "user",
+    "user",
+  ]);
+  expect(recipe.operations.at(-1).entries).toEqual([
+    { action: "set", path: ["mcp_servers", "github", "command"], value: { literal: "npx" } },
+    {
+      action: "set",
+      path: ["mcp_servers", "github", "args"],
+      value: { literal: ["-y", "@modelcontextprotocol/server-github"] },
+    },
+    {
+      action: "set",
+      path: ["mcp_servers", "github", "env_vars"],
+      value: { literal: ["GITHUB_PERSONAL_ACCESS_TOKEN"] },
+    },
+  ]);
+  const checked = readRelease(compiled.value.releaseBytes, {
+    expectedSha256: compiled.value.releaseSha256,
+  });
+  expect(checked.valid).toBe(true);
+  if (!checked.valid) return;
+  // Dependencies resolve in the dependent's scope, and ecc.notices is project-only.
+  const resolved = resolveSelections({
+    releases: { [checked.release.sha256]: checked.release },
+    roots: [
+      {
+        releaseSha256: checked.release.sha256,
+        itemId: "ecc.codex.mcp.github",
+        scope: "user",
+        configuration: {},
+      },
+    ],
+    skips: [],
+  });
+  expect(resolved.status, JSON.stringify(resolved.diagnostics)).toBe("ok");
+  if (resolved.status !== "ok") return;
+  expect(resolved.value.selections.map((s) => s.item.itemId)).toEqual(["ecc.codex.mcp.github"]);
+  const configured = configureItem({
+    release: checked.release,
+    itemId: "ecc.codex.mcp.memxus",
+    configuration: {},
+    materialSource: { kind: "local", input: "catalog" },
+  });
+  expect(configured.valid).toBe(true);
+});

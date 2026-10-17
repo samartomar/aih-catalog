@@ -1,3 +1,4 @@
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { codexConfigBlockProblems } from "../../src/release/client-config-targets.js";
 
@@ -144,5 +145,41 @@ describe("codexConfigBlockProblems", () => {
         { itemId: "c", recipe: { operations: [null, 7, { id: "t", kind: "text.block" }] } },
       ]),
     ).toEqual([]);
+  });
+});
+
+describe("Catalog Codex MCP recipes", () => {
+  const recipes = readdirSync("release/recipes")
+    .filter((name) => name.startsWith("ecc.codex.mcp."))
+    .map((name) => ({
+      itemId: name.replace(/.json$/, ""),
+      recipe: JSON.parse(readFileSync(`release/recipes/${name}`, "utf8")) as {
+        operations: { id: string; kind: string; format?: string; target: unknown }[];
+      },
+    }));
+
+  it("register servers through TOML config.entries on the Codex user configuration without a refusal", () => {
+    expect(recipes).toHaveLength(32);
+    for (const { recipe } of recipes) {
+      const register = recipe.operations.find((operation) => operation.id === "register-server");
+      expect(register).toMatchObject({
+        kind: "config.entries",
+        format: "toml",
+        target: { root: "userHome", segments: [literal(".codex"), literal("config.toml")] },
+      });
+    }
+    expect(codexConfigBlockProblems(recipes)).toEqual([]);
+  });
+
+  it("would refuse the same target as a text.block", () => {
+    const swapped = recipes.map(({ itemId, recipe }) => ({
+      itemId,
+      recipe: {
+        operations: recipe.operations.map((operation) =>
+          operation.id === "register-server" ? { ...operation, kind: "text.block" } : operation,
+        ),
+      },
+    }));
+    expect(codexConfigBlockProblems(swapped)).toHaveLength(32);
   });
 });

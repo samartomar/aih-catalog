@@ -6104,6 +6104,38 @@
         "ecc.claude.mcp.confluence",
         "ecc.claude.mcp.evalview",
         "ecc.claude.mcp.squish",
+        "ecc.codex.mcp.nexus",
+        "ecc.codex.mcp.jira",
+        "ecc.codex.mcp.github",
+        "ecc.codex.mcp.firecrawl",
+        "ecc.codex.mcp.ecc-memory-vault",
+        "ecc.codex.mcp.memory",
+        "ecc.codex.mcp.omega-memory",
+        "ecc.codex.mcp.longhand",
+        "ecc.codex.mcp.sequential-thinking",
+        "ecc.codex.mcp.vercel",
+        "ecc.codex.mcp.railway",
+        "ecc.codex.mcp.cloudflare-docs",
+        "ecc.codex.mcp.cloudflare-workers-builds",
+        "ecc.codex.mcp.cloudflare-workers-bindings",
+        "ecc.codex.mcp.cloudflare-observability",
+        "ecc.codex.mcp.clickhouse",
+        "ecc.codex.mcp.exa-web-search",
+        "ecc.codex.mcp.parallel-search",
+        "ecc.codex.mcp.context7",
+        "ecc.codex.mcp.codescene",
+        "ecc.codex.mcp.magic",
+        "ecc.codex.mcp.memxus",
+        "ecc.codex.mcp.playwright",
+        "ecc.codex.mcp.fal-ai",
+        "ecc.codex.mcp.browserbase",
+        "ecc.codex.mcp.browser-use",
+        "ecc.codex.mcp.devfleet",
+        "ecc.codex.mcp.token-optimizer",
+        "ecc.codex.mcp.laraplugins",
+        "ecc.codex.mcp.confluence",
+        "ecc.codex.mcp.evalview",
+        "ecc.codex.mcp.squish",
         "ecc.template.api-review"
       ]
     },
@@ -26948,7 +26980,39 @@
         "ecc.claude.mcp.laraplugins",
         "ecc.claude.mcp.confluence",
         "ecc.claude.mcp.evalview",
-        "ecc.claude.mcp.squish"
+        "ecc.claude.mcp.squish",
+        "ecc.codex.mcp.nexus",
+        "ecc.codex.mcp.jira",
+        "ecc.codex.mcp.github",
+        "ecc.codex.mcp.firecrawl",
+        "ecc.codex.mcp.ecc-memory-vault",
+        "ecc.codex.mcp.memory",
+        "ecc.codex.mcp.omega-memory",
+        "ecc.codex.mcp.longhand",
+        "ecc.codex.mcp.sequential-thinking",
+        "ecc.codex.mcp.vercel",
+        "ecc.codex.mcp.railway",
+        "ecc.codex.mcp.cloudflare-docs",
+        "ecc.codex.mcp.cloudflare-workers-builds",
+        "ecc.codex.mcp.cloudflare-workers-bindings",
+        "ecc.codex.mcp.cloudflare-observability",
+        "ecc.codex.mcp.clickhouse",
+        "ecc.codex.mcp.exa-web-search",
+        "ecc.codex.mcp.parallel-search",
+        "ecc.codex.mcp.context7",
+        "ecc.codex.mcp.codescene",
+        "ecc.codex.mcp.magic",
+        "ecc.codex.mcp.memxus",
+        "ecc.codex.mcp.playwright",
+        "ecc.codex.mcp.fal-ai",
+        "ecc.codex.mcp.browserbase",
+        "ecc.codex.mcp.browser-use",
+        "ecc.codex.mcp.devfleet",
+        "ecc.codex.mcp.token-optimizer",
+        "ecc.codex.mcp.laraplugins",
+        "ecc.codex.mcp.confluence",
+        "ecc.codex.mcp.evalview",
+        "ecc.codex.mcp.squish"
       ]
     },
     {
@@ -52190,7 +52254,859 @@
         "Do not select this server unless needed; never install all servers by default."
       ],
       "overlay": "Project scope, omit display description, substitute documented host environment references; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.nexus": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "nexus",
+      "rawServer": {
+        "command": "nexus",
+        "args": [
+          "mcp"
+        ],
+        "description": "Local cost/privacy proxy - query your own usage & savings, route to the cheapest capable model, and mask secrets/PII before egress (nexus_stats, nexus_savings, nexus_recent, nexus_providers, nexus_cost_breakdown)"
+      },
+      "offeredServer": {
+        "command": "nexus",
+        "args": [
+          "mcp"
+        ]
+      },
+      "requiredHostEnvironment": [],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable nexus and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Local cost/privacy proxy - query your own usage & savings, route to the cheapest capable model, and mask secrets/PII before egress (nexus_stats, nexus_savings, nexus_recent, nexus_providers, nexus_cost_breakdown) Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.jira": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "jira",
+      "rawServer": {
+        "command": "uvx",
+        "args": [
+          "mcp-atlassian==0.21.0"
+        ],
+        "env": {
+          "JIRA_URL": "YOUR_JIRA_URL_HERE",
+          "JIRA_EMAIL": "YOUR_JIRA_EMAIL_HERE",
+          "JIRA_API_TOKEN": "YOUR_JIRA_API_TOKEN_HERE"
+        },
+        "description": "Jira issue tracking — search, create, update, comment, transition issues"
+      },
+      "offeredServer": {
+        "command": "uvx",
+        "args": [
+          "mcp-atlassian==0.21.0"
+        ],
+        "env": {
+          "JIRA_URL": "${JIRA_URL}",
+          "JIRA_EMAIL": "${JIRA_EMAIL}",
+          "JIRA_API_TOKEN": "${JIRA_API_TOKEN}"
+        }
+      },
+      "requiredHostEnvironment": [
+        "JIRA_URL",
+        "JIRA_EMAIL",
+        "JIRA_API_TOKEN"
+      ],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide JIRA_URL, JIRA_EMAIL, JIRA_API_TOKEN. Runtime executable uvx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Jira issue tracking — search, create, update, comment, transition issues Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.github": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "github",
+      "rawServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-github"
+        ],
+        "env": {
+          "GITHUB_PERSONAL_ACCESS_TOKEN": "YOUR_GITHUB_PAT_HERE"
+        },
+        "description": "GitHub operations - PRs, issues, repos"
+      },
+      "offeredServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-github"
+        ],
+        "env": {
+          "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+        }
+      },
+      "requiredHostEnvironment": [
+        "GITHUB_PERSONAL_ACCESS_TOKEN"
+      ],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide GITHUB_PERSONAL_ACCESS_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. GitHub operations - PRs, issues, repos Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.firecrawl": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "firecrawl",
+      "rawServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "firecrawl-mcp"
+        ],
+        "env": {
+          "FIRECRAWL_API_KEY": "YOUR_FIRECRAWL_KEY_HERE"
+        },
+        "description": "Web scraping and crawling"
+      },
+      "offeredServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "firecrawl-mcp"
+        ],
+        "env": {
+          "FIRECRAWL_API_KEY": "${FIRECRAWL_API_KEY}"
+        }
+      },
+      "requiredHostEnvironment": [
+        "FIRECRAWL_API_KEY"
+      ],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide FIRECRAWL_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Web scraping and crawling Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.ecc-memory-vault": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "ecc-memory-vault",
+      "rawServer": {
+        "command": "ecc-memory-mcp",
+        "env": {
+          "ECC_MEMORY_HARNESS": "YOUR_LOWERCASE_HARNESS_SLUG_HERE"
+        },
+        "description": "Opt-in local ECC Memory Vault shared by Claude, Codex, Hermes, Cursor, OpenCode, and other MCP clients. Replace ECC_MEMORY_HARNESS with this server's lowercase identity; callers cannot override it. Normal search recall is active project+team memory. To permit explicitly requested user scope, the operator may also set ECC_MEMORY_ALLOW_USER_SCOPE=1. Writes are create-only and always unreviewed. Install ECC globally or make its bin available on PATH. Not enabled by default."
+      },
+      "offeredServer": {
+        "command": "ecc-memory-mcp",
+        "env": {
+          "ECC_MEMORY_HARNESS": "${ECC_MEMORY_HARNESS}"
+        }
+      },
+      "requiredHostEnvironment": [
+        "ECC_MEMORY_HARNESS"
+      ],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide ECC_MEMORY_HARNESS. Runtime executable ecc-memory-mcp and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Opt-in local ECC Memory Vault shared by Claude, Codex, Hermes, Cursor, OpenCode, and other MCP clients. Replace ECC_MEMORY_HARNESS with this server's lowercase identity; callers cannot override it. Normal search recall is active project+team memory. To permit explicitly requested user scope, the operator may also set ECC_MEMORY_ALLOW_USER_SCOPE=1. Writes are create-only and always unreviewed. Install ECC globally or make its bin available on PATH. Not enabled by default. Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.memory": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "memory",
+      "rawServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-memory"
+        ],
+        "description": "Persistent memory across sessions"
+      },
+      "offeredServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-memory"
+        ]
+      },
+      "requiredHostEnvironment": [],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Persistent memory across sessions Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.omega-memory": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "omega-memory",
+      "rawServer": {
+        "command": "uvx",
+        "args": [
+          "omega-memory",
+          "serve"
+        ],
+        "description": "Persistent agent memory with semantic search, multi-agent coordination, and knowledge graphs — run via uvx (richer than the basic memory store)"
+      },
+      "offeredServer": {
+        "command": "uvx",
+        "args": [
+          "omega-memory",
+          "serve"
+        ]
+      },
+      "requiredHostEnvironment": [],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable uvx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Persistent agent memory with semantic search, multi-agent coordination, and knowledge graphs — run via uvx (richer than the basic memory store) Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.longhand": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "longhand",
+      "rawServer": {
+        "command": "longhand",
+        "args": [
+          "mcp-server"
+        ],
+        "description": "Lossless Claude Code session history — indexes raw tool calls, file edits, and thinking blocks from ~/.claude/projects/*.jsonl into local SQLite + ChromaDB before Claude Code rotates them. Complements memory/omega-memory (synthesized) with verbatim recall. Install: pip install longhand && longhand setup"
+      },
+      "offeredServer": {
+        "command": "longhand",
+        "args": [
+          "mcp-server"
+        ]
+      },
+      "requiredHostEnvironment": [],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable longhand and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Lossless Claude Code session history — indexes raw tool calls, file edits, and thinking blocks from ~/.claude/projects/*.jsonl into local SQLite + ChromaDB before Claude Code rotates them. Complements memory/omega-memory (synthesized) with verbatim recall. Install: pip install longhand && longhand setup Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.sequential-thinking": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "sequential-thinking",
+      "rawServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-sequential-thinking"
+        ],
+        "description": "Chain-of-thought reasoning"
+      },
+      "offeredServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-sequential-thinking"
+        ]
+      },
+      "requiredHostEnvironment": [],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Chain-of-thought reasoning Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.vercel": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "vercel",
+      "rawServer": {
+        "type": "http",
+        "url": "https://mcp.vercel.com",
+        "description": "Vercel deployments and projects"
+      },
+      "offeredServer": {
+        "type": "http",
+        "url": "https://mcp.vercel.com"
+      },
+      "requiredHostEnvironment": [],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Vercel deployments and projects Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.railway": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "railway",
+      "rawServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@railway/mcp-server"
+        ],
+        "description": "Railway deployments"
+      },
+      "offeredServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@railway/mcp-server"
+        ]
+      },
+      "requiredHostEnvironment": [],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Railway deployments Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.cloudflare-docs": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "cloudflare-docs",
+      "rawServer": {
+        "type": "http",
+        "url": "https://docs.mcp.cloudflare.com/mcp",
+        "description": "Cloudflare documentation search"
+      },
+      "offeredServer": {
+        "type": "http",
+        "url": "https://docs.mcp.cloudflare.com/mcp"
+      },
+      "requiredHostEnvironment": [],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Cloudflare documentation search Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.cloudflare-workers-builds": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "cloudflare-workers-builds",
+      "rawServer": {
+        "type": "http",
+        "url": "https://builds.mcp.cloudflare.com/mcp",
+        "description": "Cloudflare Workers builds"
+      },
+      "offeredServer": {
+        "type": "http",
+        "url": "https://builds.mcp.cloudflare.com/mcp"
+      },
+      "requiredHostEnvironment": [],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Cloudflare Workers builds Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.cloudflare-workers-bindings": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "cloudflare-workers-bindings",
+      "rawServer": {
+        "type": "http",
+        "url": "https://bindings.mcp.cloudflare.com/mcp",
+        "description": "Cloudflare Workers bindings"
+      },
+      "offeredServer": {
+        "type": "http",
+        "url": "https://bindings.mcp.cloudflare.com/mcp"
+      },
+      "requiredHostEnvironment": [],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Cloudflare Workers bindings Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.cloudflare-observability": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "cloudflare-observability",
+      "rawServer": {
+        "type": "http",
+        "url": "https://observability.mcp.cloudflare.com/mcp",
+        "description": "Cloudflare observability/logs"
+      },
+      "offeredServer": {
+        "type": "http",
+        "url": "https://observability.mcp.cloudflare.com/mcp"
+      },
+      "requiredHostEnvironment": [],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Cloudflare observability/logs Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.clickhouse": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "clickhouse",
+      "rawServer": {
+        "type": "http",
+        "url": "https://mcp.clickhouse.cloud/mcp",
+        "description": "ClickHouse analytics queries"
+      },
+      "offeredServer": {
+        "type": "http",
+        "url": "https://mcp.clickhouse.cloud/mcp"
+      },
+      "requiredHostEnvironment": [],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. ClickHouse analytics queries Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.exa-web-search": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "exa-web-search",
+      "rawServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "exa-mcp-server"
+        ],
+        "env": {
+          "EXA_API_KEY": "YOUR_EXA_API_KEY_HERE"
+        },
+        "description": "Web search, research, and data ingestion via Exa API — prefer task-scoped use for broader research after GitHub search and primary docs"
+      },
+      "offeredServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "exa-mcp-server"
+        ],
+        "env": {
+          "EXA_API_KEY": "${EXA_API_KEY}"
+        }
+      },
+      "requiredHostEnvironment": [
+        "EXA_API_KEY"
+      ],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide EXA_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Web search, research, and data ingestion via Exa API — prefer task-scoped use for broader research after GitHub search and primary docs Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.parallel-search": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "parallel-search",
+      "rawServer": {
+        "type": "http",
+        "url": "https://search.parallel.ai/mcp",
+        "description": "Parallel Web Search — LLM-optimized web_search and web_fetch tools that take an objective + queries and return citation-backed excerpts in a single call (replaces multiple keyword searches). Works key-free for anonymous use. For higher rate limits, add a headers block: { \"Authorization\": \"Bearer YOUR_PARALLEL_API_KEY_HERE\" } using a key from platform.parallel.ai."
+      },
+      "offeredServer": {
+        "type": "http",
+        "url": "https://search.parallel.ai/mcp"
+      },
+      "requiredHostEnvironment": [],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Parallel Web Search — LLM-optimized web_search and web_fetch tools that take an objective + queries and return citation-backed excerpts in a single call (replaces multiple keyword searches). Works key-free for anonymous use. For higher rate limits, add a headers block: { \"Authorization\": \"Bearer YOUR_PARALLEL_API_KEY_HERE\" } using a key from platform.parallel.ai. Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.context7": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "context7",
+      "rawServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@upstash/context7-mcp@latest"
+        ],
+        "description": "Live documentation lookup — use with /docs command and documentation-lookup skill (resolve-library-id, query-docs)."
+      },
+      "offeredServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@upstash/context7-mcp@latest"
+        ]
+      },
+      "requiredHostEnvironment": [],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Live documentation lookup — use with /docs command and documentation-lookup skill (resolve-library-id, query-docs). Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.codescene": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "codescene",
+      "rawServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@codescene/codehealth-mcp"
+        ],
+        "env": {
+          "CS_ACCESS_TOKEN": "YOUR_CS_ACCESS_TOKEN_HERE"
+        },
+        "description": "Optional. CodeScene Code Health MCP (community skill: codehealth-mcp). Not enabled by default — copy only if you opt in. Requires your own CS_ACCESS_TOKEN (no bundled credentials). See skills/codehealth-mcp/SKILL.md for data boundaries and failure behavior."
+      },
+      "offeredServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@codescene/codehealth-mcp"
+        ],
+        "env": {
+          "CS_ACCESS_TOKEN": "${CS_ACCESS_TOKEN}"
+        }
+      },
+      "requiredHostEnvironment": [
+        "CS_ACCESS_TOKEN"
+      ],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide CS_ACCESS_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Optional. CodeScene Code Health MCP (community skill: codehealth-mcp). Not enabled by default — copy only if you opt in. Requires your own CS_ACCESS_TOKEN (no bundled credentials). See skills/codehealth-mcp/SKILL.md for data boundaries and failure behavior. Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.magic": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "magic",
+      "rawServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@magicuidesign/mcp@latest"
+        ],
+        "description": "Magic UI components"
+      },
+      "offeredServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@magicuidesign/mcp@latest"
+        ]
+      },
+      "requiredHostEnvironment": [],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Magic UI components Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.memxus": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "memxus",
+      "rawServer": {
+        "type": "http",
+        "url": "https://mcp.memxus.com/mcp",
+        "headers": {
+          "Authorization": "Bearer YOUR_MEMXUS_API_KEY_HERE"
+        },
+        "description": "Universal persistent memory across Claude Code, Cursor, Gemini CLI and any AI tool — save context once, auto-recalled in every session. Note: review stored memories before use in production agents to avoid prompt-injection via memory-poisoning. Free at memxus.com"
+      },
+      "offeredServer": {
+        "type": "http",
+        "url": "https://mcp.memxus.com/mcp",
+        "headers": {
+          "Authorization": "Bearer ${MEMXUS_API_KEY}"
+        }
+      },
+      "requiredHostEnvironment": [
+        "MEMXUS_API_KEY"
+      ],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide MEMXUS_API_KEY. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Universal persistent memory across Claude Code, Cursor, Gemini CLI and any AI tool — save context once, auto-recalled in every session. Note: review stored memories before use in production agents to avoid prompt-injection via memory-poisoning. Free at memxus.com Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.playwright": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "playwright",
+      "rawServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@playwright/mcp",
+          "--browser",
+          "chrome"
+        ],
+        "description": "Browser automation and testing via Playwright"
+      },
+      "offeredServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@playwright/mcp",
+          "--browser",
+          "chrome"
+        ]
+      },
+      "requiredHostEnvironment": [],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Browser automation and testing via Playwright Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.fal-ai": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "fal-ai",
+      "rawServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "fal-ai-mcp-server"
+        ],
+        "env": {
+          "FAL_KEY": "YOUR_FAL_KEY_HERE"
+        },
+        "description": "AI image/video/audio generation via fal.ai models"
+      },
+      "offeredServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "fal-ai-mcp-server"
+        ],
+        "env": {
+          "FAL_KEY": "${FAL_KEY}"
+        }
+      },
+      "requiredHostEnvironment": [
+        "FAL_KEY"
+      ],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide FAL_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. AI image/video/audio generation via fal.ai models Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.browserbase": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "browserbase",
+      "rawServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@browserbasehq/mcp-server-browserbase"
+        ],
+        "env": {
+          "BROWSERBASE_API_KEY": "YOUR_BROWSERBASE_KEY_HERE"
+        },
+        "description": "Cloud browser sessions via Browserbase"
+      },
+      "offeredServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@browserbasehq/mcp-server-browserbase"
+        ],
+        "env": {
+          "BROWSERBASE_API_KEY": "${BROWSERBASE_API_KEY}"
+        }
+      },
+      "requiredHostEnvironment": [
+        "BROWSERBASE_API_KEY"
+      ],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide BROWSERBASE_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Cloud browser sessions via Browserbase Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.browser-use": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "browser-use",
+      "rawServer": {
+        "type": "http",
+        "url": "https://api.browser-use.com/mcp",
+        "headers": {
+          "x-browser-use-api-key": "YOUR_BROWSER_USE_KEY_HERE"
+        },
+        "description": "AI browser agent for web tasks"
+      },
+      "offeredServer": {
+        "type": "http",
+        "url": "https://api.browser-use.com/mcp",
+        "headers": {
+          "x-browser-use-api-key": "${BROWSER_USE_KEY}"
+        }
+      },
+      "requiredHostEnvironment": [
+        "BROWSER_USE_KEY"
+      ],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide BROWSER_USE_KEY. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. AI browser agent for web tasks Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.devfleet": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "devfleet",
+      "rawServer": {
+        "type": "http",
+        "url": "http://localhost:18801/mcp",
+        "description": "Multi-agent orchestration — dispatch parallel Claude Code agents in isolated worktrees. Plan projects, auto-chain missions, read structured reports. Repo: https://github.com/LEC-AI/claude-devfleet"
+      },
+      "offeredServer": {
+        "type": "http",
+        "url": "http://localhost:18801/mcp"
+      },
+      "requiredHostEnvironment": [],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Multi-agent orchestration — dispatch parallel Claude Code agents in isolated worktrees. Plan projects, auto-chain missions, read structured reports. Repo: https://github.com/LEC-AI/claude-devfleet Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.token-optimizer": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "token-optimizer",
+      "rawServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "token-optimizer-mcp"
+        ],
+        "description": "Token optimization for 95%+ context reduction via content deduplication and compression"
+      },
+      "offeredServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "token-optimizer-mcp"
+        ]
+      },
+      "requiredHostEnvironment": [],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Token optimization for 95%+ context reduction via content deduplication and compression Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.laraplugins": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "laraplugins",
+      "rawServer": {
+        "type": "http",
+        "url": "https://laraplugins.io/mcp/plugins",
+        "description": "Laravel plugin discovery — search packages by keyword, health score, Laravel/PHP version compatibility. Use with laravel-plugin-discovery skill."
+      },
+      "offeredServer": {
+        "type": "http",
+        "url": "https://laraplugins.io/mcp/plugins"
+      },
+      "requiredHostEnvironment": [],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Laravel plugin discovery — search packages by keyword, health score, Laravel/PHP version compatibility. Use with laravel-plugin-discovery skill. Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.confluence": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "confluence",
+      "rawServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "confluence-mcp-server"
+        ],
+        "env": {
+          "CONFLUENCE_BASE_URL": "YOUR_CONFLUENCE_URL_HERE",
+          "CONFLUENCE_EMAIL": "YOUR_EMAIL_HERE",
+          "CONFLUENCE_API_TOKEN": "YOUR_CONFLUENCE_TOKEN_HERE"
+        },
+        "description": "Confluence Cloud integration — search pages, retrieve content, explore spaces"
+      },
+      "offeredServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "confluence-mcp-server"
+        ],
+        "env": {
+          "CONFLUENCE_BASE_URL": "${CONFLUENCE_BASE_URL}",
+          "CONFLUENCE_EMAIL": "${CONFLUENCE_EMAIL}",
+          "CONFLUENCE_API_TOKEN": "${CONFLUENCE_API_TOKEN}"
+        }
+      },
+      "requiredHostEnvironment": [
+        "CONFLUENCE_BASE_URL",
+        "CONFLUENCE_EMAIL",
+        "CONFLUENCE_API_TOKEN"
+      ],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide CONFLUENCE_BASE_URL, CONFLUENCE_EMAIL, CONFLUENCE_API_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Confluence Cloud integration — search pages, retrieve content, explore spaces Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+    },
+    "ecc.codex.mcp.evalview": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "evalview",
+      "rawServer": {
+        "command": "python3",
+        "args": [
+          "-m",
+          "evalview",
+          "mcp",
+          "serve"
+        ],
+        "env": {
+          "OPENAI_API_KEY": "YOUR_OPENAI_API_KEY_HERE"
+        },
+        "description": "AI agent regression testing — snapshot behavior, detect regressions in tool calls and output quality. 8 tools: create_test, run_snapshot, run_check, list_tests, validate_skill, generate_skill_tests, run_skill_test, generate_visual_report. API key optional — deterministic checks (tool diff, output hash) work without it. Install: pip install \"evalview>=0.5,<1\""
+      },
+      "offeredServer": {
+        "command": "python3",
+        "args": [
+          "-m",
+          "evalview",
+          "mcp",
+          "serve"
+        ],
+        "env": {
+          "OPENAI_API_KEY": "${OPENAI_API_KEY:-}"
+        }
+      },
+      "requiredHostEnvironment": [],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Optional host environment OPENAI_API_KEY enables model-assisted paths; empty/absent key permits the source-authored deterministic tool-diff and output-hash checks. Runtime executable python3 and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. AI agent regression testing — snapshot behavior, detect regressions in tool calls and output quality. 8 tools: create_test, run_snapshot, run_check, list_tests, validate_skill, generate_skill_tests, run_skill_test, generate_visual_report. API key optional — deterministic checks (tool diff, output hash) work without it. Install: pip install \"evalview>=0.5,<1\" Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default.",
+        "OPENAI_API_KEY is optional: deterministic tool-diff and output-hash checks work without it. Provide the host environment variable only for model-assisted paths."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored.",
+      "optionalHostEnvironment": [
+        "OPENAI_API_KEY"
+      ]
+    },
+    "ecc.codex.mcp.squish": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "squish",
+      "rawServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "squish-memory"
+        ],
+        "description": "Local-first persistent memory runtime for AI agents — MCP server for Claude Code, Cursor, OpenCode, Codex, Cline. Auto-captures context across sessions. 1-20ms recall, 283KB, no second LLM needed. Runs locally with SQLite. Supports cloud sync via Stripe checkout ($9-$99/mo). GitHub: https://github.com/michielhdoteth/squish | Docs: https://squishplugin.dev | (also available via local `squish run mcp`)"
+      },
+      "offeredServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "squish-memory"
+        ]
+      },
+      "requiredHostEnvironment": [],
+      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Local-first persistent memory runtime for AI agents — MCP server for Claude Code, Cursor, OpenCode, Codex, Cline. Auto-captures context across sessions. 1-20ms recall, 283KB, no second LLM needed. Runs locally with SQLite. Supports cloud sync via Stripe checkout ($9-$99/mo). GitHub: https://github.com/michielhdoteth/squish | Docs: https://squishplugin.dev | (also available via local `squish run mcp`) Native MCP execution is separate.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
     }
   },
+  "codexMcpExclusions": [
+    {
+      "sourceKey": "ito-compute",
+      "reason": "args-placeholder: Codex documents no ${...} expansion in args"
+    },
+    {
+      "sourceKey": "supabase",
+      "reason": "args-placeholder: Codex documents no ${...} expansion in args"
+    },
+    {
+      "sourceKey": "filesystem",
+      "reason": "args-placeholder: Codex documents no ${...} expansion in args"
+    }
+  ],
   "relationshipBasis": "Only explicit Catalog starting-template and notice obligations. No prose-derived upstream dependency edges. Empty conflicts mean no declared conflict, not every combination is compatible."
 }

@@ -42564,6 +42564,2118 @@
       "configuration": {}
     },
     {
+      "id": "ecc.codex.mcp.nexus",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.nexus",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Runtime executable nexus and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Local cost/privacy proxy - query your own usage & savings, route to the cheapest capable model, and mask secrets/PII before egress (nexus_stats, nexus_savings, nexus_recent, nexus_providers, nexus_cost_breakdown) Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.nexus.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Runtime executable nexus and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Local cost/privacy proxy - query your own usage & savings, route to the cheapest capable model, and mask secrets/PII before egress (nexus_stats, nexus_savings, nexus_recent, nexus_providers, nexus_cost_breakdown) Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Runtime executable nexus and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Local cost/privacy proxy - query your own usage & savings, route to the cheapest capable model, and mask secrets/PII before egress (nexus_stats, nexus_savings, nexus_recent, nexus_providers, nexus_cost_breakdown) Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.jira",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.jira",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Host process environment must provide JIRA_URL, JIRA_EMAIL, JIRA_API_TOKEN. Runtime executable uvx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Jira issue tracking — search, create, update, comment, transition issues Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.jira.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Host process environment must provide JIRA_URL, JIRA_EMAIL, JIRA_API_TOKEN. Runtime executable uvx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Jira issue tracking — search, create, update, comment, transition issues Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Host process environment must provide JIRA_URL, JIRA_EMAIL, JIRA_API_TOKEN. Runtime executable uvx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Jira issue tracking — search, create, update, comment, transition issues Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.github",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.github",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Host process environment must provide GITHUB_PERSONAL_ACCESS_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. GitHub operations - PRs, issues, repos Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.github.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Host process environment must provide GITHUB_PERSONAL_ACCESS_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. GitHub operations - PRs, issues, repos Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Host process environment must provide GITHUB_PERSONAL_ACCESS_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. GitHub operations - PRs, issues, repos Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.firecrawl",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.firecrawl",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Host process environment must provide FIRECRAWL_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Web scraping and crawling Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.firecrawl.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Host process environment must provide FIRECRAWL_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Web scraping and crawling Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Host process environment must provide FIRECRAWL_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Web scraping and crawling Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.ecc-memory-vault",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.ecc-memory-vault",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Host process environment must provide ECC_MEMORY_HARNESS. Runtime executable ecc-memory-mcp and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Opt-in local ECC Memory Vault shared by Claude, Codex, Hermes, Cursor, OpenCode, and other MCP clients. Replace ECC_MEMORY_HARNESS with this server's lowercase identity; callers cannot override it. Normal search recall is active project+team memory. To permit explicitly requested user scope, the operator may also set ECC_MEMORY_ALLOW_USER_SCOPE=1. Writes are create-only and always unreviewed. Install ECC globally or make its bin available on PATH. Not enabled by default. Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.ecc-memory-vault.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Host process environment must provide ECC_MEMORY_HARNESS. Runtime executable ecc-memory-mcp and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Opt-in local ECC Memory Vault shared by Claude, Codex, Hermes, Cursor, OpenCode, and other MCP clients. Replace ECC_MEMORY_HARNESS with this server's lowercase identity; callers cannot override it. Normal search recall is active project+team memory. To permit explicitly requested user scope, the operator may also set ECC_MEMORY_ALLOW_USER_SCOPE=1. Writes are create-only and always unreviewed. Install ECC globally or make its bin available on PATH. Not enabled by default. Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Host process environment must provide ECC_MEMORY_HARNESS. Runtime executable ecc-memory-mcp and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Opt-in local ECC Memory Vault shared by Claude, Codex, Hermes, Cursor, OpenCode, and other MCP clients. Replace ECC_MEMORY_HARNESS with this server's lowercase identity; callers cannot override it. Normal search recall is active project+team memory. To permit explicitly requested user scope, the operator may also set ECC_MEMORY_ALLOW_USER_SCOPE=1. Writes are create-only and always unreviewed. Install ECC globally or make its bin available on PATH. Not enabled by default. Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.memory",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.memory",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Persistent memory across sessions Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.memory.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Persistent memory across sessions Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Persistent memory across sessions Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.omega-memory",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.omega-memory",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Runtime executable uvx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Persistent agent memory with semantic search, multi-agent coordination, and knowledge graphs — run via uvx (richer than the basic memory store) Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.omega-memory.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Runtime executable uvx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Persistent agent memory with semantic search, multi-agent coordination, and knowledge graphs — run via uvx (richer than the basic memory store) Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Runtime executable uvx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Persistent agent memory with semantic search, multi-agent coordination, and knowledge graphs — run via uvx (richer than the basic memory store) Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.longhand",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.longhand",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Runtime executable longhand and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Lossless Claude Code session history — indexes raw tool calls, file edits, and thinking blocks from ~/.claude/projects/*.jsonl into local SQLite + ChromaDB before Claude Code rotates them. Complements memory/omega-memory (synthesized) with verbatim recall. Install: pip install longhand && longhand setup Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.longhand.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Runtime executable longhand and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Lossless Claude Code session history — indexes raw tool calls, file edits, and thinking blocks from ~/.claude/projects/*.jsonl into local SQLite + ChromaDB before Claude Code rotates them. Complements memory/omega-memory (synthesized) with verbatim recall. Install: pip install longhand && longhand setup Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Runtime executable longhand and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Lossless Claude Code session history — indexes raw tool calls, file edits, and thinking blocks from ~/.claude/projects/*.jsonl into local SQLite + ChromaDB before Claude Code rotates them. Complements memory/omega-memory (synthesized) with verbatim recall. Install: pip install longhand && longhand setup Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.sequential-thinking",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.sequential-thinking",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Chain-of-thought reasoning Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.sequential-thinking.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Chain-of-thought reasoning Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Chain-of-thought reasoning Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.vercel",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.vercel",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Vercel deployments and projects Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.vercel.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Vercel deployments and projects Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Vercel deployments and projects Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.railway",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.railway",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Railway deployments Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.railway.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Railway deployments Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Railway deployments Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.cloudflare-docs",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.cloudflare-docs",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Cloudflare documentation search Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.cloudflare-docs.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Cloudflare documentation search Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Cloudflare documentation search Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.cloudflare-workers-builds",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.cloudflare-workers-builds",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Cloudflare Workers builds Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.cloudflare-workers-builds.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Cloudflare Workers builds Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Cloudflare Workers builds Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.cloudflare-workers-bindings",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.cloudflare-workers-bindings",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Cloudflare Workers bindings Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.cloudflare-workers-bindings.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Cloudflare Workers bindings Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Cloudflare Workers bindings Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.cloudflare-observability",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.cloudflare-observability",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Cloudflare observability/logs Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.cloudflare-observability.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Cloudflare observability/logs Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Cloudflare observability/logs Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.clickhouse",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.clickhouse",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. ClickHouse analytics queries Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.clickhouse.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. ClickHouse analytics queries Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. ClickHouse analytics queries Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.exa-web-search",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.exa-web-search",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Host process environment must provide EXA_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Web search, research, and data ingestion via Exa API — prefer task-scoped use for broader research after GitHub search and primary docs Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.exa-web-search.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Host process environment must provide EXA_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Web search, research, and data ingestion via Exa API — prefer task-scoped use for broader research after GitHub search and primary docs Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Host process environment must provide EXA_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Web search, research, and data ingestion via Exa API — prefer task-scoped use for broader research after GitHub search and primary docs Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.parallel-search",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.parallel-search",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Parallel Web Search — LLM-optimized web_search and web_fetch tools that take an objective + queries and return citation-backed excerpts in a single call (replaces multiple keyword searches). Works key-free for anonymous use. For higher rate limits, add a headers block: { \"Authorization\": \"Bearer YOUR_PARALLEL_API_KEY_HERE\" } using a key from platform.parallel.ai. Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.parallel-search.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Parallel Web Search — LLM-optimized web_search and web_fetch tools that take an objective + queries and return citation-backed excerpts in a single call (replaces multiple keyword searches). Works key-free for anonymous use. For higher rate limits, add a headers block: { \"Authorization\": \"Bearer YOUR_PARALLEL_API_KEY_HERE\" } using a key from platform.parallel.ai. Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Parallel Web Search — LLM-optimized web_search and web_fetch tools that take an objective + queries and return citation-backed excerpts in a single call (replaces multiple keyword searches). Works key-free for anonymous use. For higher rate limits, add a headers block: { \"Authorization\": \"Bearer YOUR_PARALLEL_API_KEY_HERE\" } using a key from platform.parallel.ai. Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.context7",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.context7",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Live documentation lookup — use with /docs command and documentation-lookup skill (resolve-library-id, query-docs). Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.context7.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Live documentation lookup — use with /docs command and documentation-lookup skill (resolve-library-id, query-docs). Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Live documentation lookup — use with /docs command and documentation-lookup skill (resolve-library-id, query-docs). Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.codescene",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.codescene",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Host process environment must provide CS_ACCESS_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Optional. CodeScene Code Health MCP (community skill: codehealth-mcp). Not enabled by default — copy only if you opt in. Requires your own CS_ACCESS_TOKEN (no bundled credentials). See skills/codehealth-mcp/SKILL.md for data boundaries and failure behavior. Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.codescene.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Host process environment must provide CS_ACCESS_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Optional. CodeScene Code Health MCP (community skill: codehealth-mcp). Not enabled by default — copy only if you opt in. Requires your own CS_ACCESS_TOKEN (no bundled credentials). See skills/codehealth-mcp/SKILL.md for data boundaries and failure behavior. Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Host process environment must provide CS_ACCESS_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Optional. CodeScene Code Health MCP (community skill: codehealth-mcp). Not enabled by default — copy only if you opt in. Requires your own CS_ACCESS_TOKEN (no bundled credentials). See skills/codehealth-mcp/SKILL.md for data boundaries and failure behavior. Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.magic",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.magic",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Magic UI components Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.magic.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Magic UI components Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Magic UI components Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.memxus",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.memxus",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Host process environment must provide MEMXUS_API_KEY. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Universal persistent memory across Claude Code, Cursor, Gemini CLI and any AI tool — save context once, auto-recalled in every session. Note: review stored memories before use in production agents to avoid prompt-injection via memory-poisoning. Free at memxus.com Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.memxus.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Host process environment must provide MEMXUS_API_KEY. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Universal persistent memory across Claude Code, Cursor, Gemini CLI and any AI tool — save context once, auto-recalled in every session. Note: review stored memories before use in production agents to avoid prompt-injection via memory-poisoning. Free at memxus.com Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Host process environment must provide MEMXUS_API_KEY. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Universal persistent memory across Claude Code, Cursor, Gemini CLI and any AI tool — save context once, auto-recalled in every session. Note: review stored memories before use in production agents to avoid prompt-injection via memory-poisoning. Free at memxus.com Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.playwright",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.playwright",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Browser automation and testing via Playwright Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.playwright.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Browser automation and testing via Playwright Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Browser automation and testing via Playwright Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.fal-ai",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.fal-ai",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Host process environment must provide FAL_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. AI image/video/audio generation via fal.ai models Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.fal-ai.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Host process environment must provide FAL_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. AI image/video/audio generation via fal.ai models Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Host process environment must provide FAL_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. AI image/video/audio generation via fal.ai models Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.browserbase",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.browserbase",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Host process environment must provide BROWSERBASE_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Cloud browser sessions via Browserbase Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.browserbase.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Host process environment must provide BROWSERBASE_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Cloud browser sessions via Browserbase Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Host process environment must provide BROWSERBASE_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Cloud browser sessions via Browserbase Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.browser-use",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.browser-use",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Host process environment must provide BROWSER_USE_KEY. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. AI browser agent for web tasks Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.browser-use.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Host process environment must provide BROWSER_USE_KEY. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. AI browser agent for web tasks Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Host process environment must provide BROWSER_USE_KEY. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. AI browser agent for web tasks Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.devfleet",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.devfleet",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Multi-agent orchestration — dispatch parallel Claude Code agents in isolated worktrees. Plan projects, auto-chain missions, read structured reports. Repo: https://github.com/LEC-AI/claude-devfleet Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.devfleet.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Multi-agent orchestration — dispatch parallel Claude Code agents in isolated worktrees. Plan projects, auto-chain missions, read structured reports. Repo: https://github.com/LEC-AI/claude-devfleet Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Multi-agent orchestration — dispatch parallel Claude Code agents in isolated worktrees. Plan projects, auto-chain missions, read structured reports. Repo: https://github.com/LEC-AI/claude-devfleet Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.token-optimizer",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.token-optimizer",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Token optimization for 95%+ context reduction via content deduplication and compression Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.token-optimizer.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Token optimization for 95%+ context reduction via content deduplication and compression Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Token optimization for 95%+ context reduction via content deduplication and compression Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.laraplugins",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.laraplugins",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Laravel plugin discovery — search packages by keyword, health score, Laravel/PHP version compatibility. Use with laravel-plugin-discovery skill. Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.laraplugins.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Laravel plugin discovery — search packages by keyword, health score, Laravel/PHP version compatibility. Use with laravel-plugin-discovery skill. Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Laravel plugin discovery — search packages by keyword, health score, Laravel/PHP version compatibility. Use with laravel-plugin-discovery skill. Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.confluence",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.confluence",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Host process environment must provide CONFLUENCE_BASE_URL, CONFLUENCE_EMAIL, CONFLUENCE_API_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Confluence Cloud integration — search pages, retrieve content, explore spaces Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.confluence.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Host process environment must provide CONFLUENCE_BASE_URL, CONFLUENCE_EMAIL, CONFLUENCE_API_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Confluence Cloud integration — search pages, retrieve content, explore spaces Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Host process environment must provide CONFLUENCE_BASE_URL, CONFLUENCE_EMAIL, CONFLUENCE_API_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Confluence Cloud integration — search pages, retrieve content, explore spaces Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.evalview",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.evalview",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Optional host environment OPENAI_API_KEY enables model-assisted paths; empty/absent key permits the source-authored deterministic tool-diff and output-hash checks. Runtime executable python3 and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. AI agent regression testing — snapshot behavior, detect regressions in tool calls and output quality. 8 tools: create_test, run_snapshot, run_check, list_tests, validate_skill, generate_skill_tests, run_skill_test, generate_visual_report. API key optional — deterministic checks (tool diff, output hash) work without it. Install: pip install \"evalview>=0.5,<1\" Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.evalview.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Optional host environment OPENAI_API_KEY enables model-assisted paths; empty/absent key permits the source-authored deterministic tool-diff and output-hash checks. Runtime executable python3 and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. AI agent regression testing — snapshot behavior, detect regressions in tool calls and output quality. 8 tools: create_test, run_snapshot, run_check, list_tests, validate_skill, generate_skill_tests, run_skill_test, generate_visual_report. API key optional — deterministic checks (tool diff, output hash) work without it. Install: pip install \"evalview>=0.5,<1\" Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Optional host environment OPENAI_API_KEY enables model-assisted paths; empty/absent key permits the source-authored deterministic tool-diff and output-hash checks. Runtime executable python3 and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. AI agent regression testing — snapshot behavior, detect regressions in tool calls and output quality. 8 tools: create_test, run_snapshot, run_check, list_tests, validate_skill, generate_skill_tests, run_skill_test, generate_visual_report. API key optional — deterministic checks (tool diff, output hash) work without it. Install: pip install \"evalview>=0.5,<1\" Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.codex.mcp.squish",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.squish",
+      "description": "Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Local-first persistent memory runtime for AI agents — MCP server for Claude Code, Cursor, OpenCode, Codex, Cline. Auto-captures context across sessions. 1-20ms recall, 283KB, no second LLM needed. Runs locally with SQLite. Supports cloud sync via Stripe checkout ($9-$99/mo). GitHub: https://github.com/michielhdoteth/squish | Docs: https://squishplugin.dev | (also available via local `squish run mcp`) Native MCP execution is separate.",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.squish.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Local-first persistent memory runtime for AI agents — MCP server for Claude Code, Cursor, OpenCode, Codex, Cline. Auto-captures context across sessions. 1-20ms recall, 283KB, no second LLM needed. Runs locally with SQLite. Supports cloud sync via Stripe checkout ($9-$99/mo). GitHub: https://github.com/michielhdoteth/squish | Docs: https://squishplugin.dev | (also available via local `squish run mcp`) Native MCP execution is separate."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Local-first persistent memory runtime for AI agents — MCP server for Claude Code, Cursor, OpenCode, Codex, Cline. Auto-captures context across sessions. 1-20ms recall, 283KB, no second LLM needed. Runs locally with SQLite. Supports cloud sync via Stripe checkout ($9-$99/mo). GitHub: https://github.com/michielhdoteth/squish | Docs: https://squishplugin.dev | (also available via local `squish run mcp`) Native MCP execution is separate."
+        }
+      ],
+      "configuration": {}
+    },
+    {
       "id": "ecc.template.api-review",
       "source": "ecc",
       "label": "ecc.template.api-review",
