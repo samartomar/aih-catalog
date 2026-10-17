@@ -522,3 +522,19 @@ export function configureItem(request: ConfigureItemRequest): ConfigureItemResul
 }
 
 export { resolveSelections } from "./resolve.js";
+export type {
+  Change,
+  ComparedRelease,
+  CompareReleasesRequest,
+  CompareReleasesResult,
+  ItemComparison,
+  ItemIdentity,
+  ItemInBoth,
+  ItemOnlyInFirst,
+  ItemOnlyInSecond,
+  ReleaseComparison,
+  VersionComparison,
+  VersionOrder,
+  VersionOrderUnknownReason,
+} from "./update-facts.js";
+export { compareReleases } from "./update-facts.js";

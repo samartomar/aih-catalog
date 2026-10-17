@@ -41,6 +41,7 @@ import {
 } from "./package-release.js";
 import { DERIVED_MANIFEST_PATH, deriveProjectContextRelease } from "./project-context.js";
 import { isCheckedRelease } from "./reader.js";
+import { EXACT_VERSION } from "./version.js";
 
 export type { ReleaseExport } from "./contracts.js";
 
@@ -155,8 +156,6 @@ function readMember(root: string, path: string, limit: number, expected?: number
 }
 
 const PACKAGE_NAME = /^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/;
-const EXACT_VERSION =
-  /^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
 const SRI = /^sha(?:256|384|512)-[A-Za-z0-9+/]+={0,2}$/;
 const SHA256_HEX = /^[0-9a-f]{64}$/;
 const METADATA_MAX_BYTES = 8 * 1024 * 1024;

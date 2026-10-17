@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Add portable `compareReleases({first,second})` to `@aihq/catalog/reader` for
+  samartomar/aih-catalog#100: content update facts between two checked releases. It reports
+  the package relation (`same-package` or `different-package`), the order of `second`'s
+  version against `first`'s by Semantic Versioning 2.0.0 precedence (`older`, `newer`,
+  `equal` or `unknown`, with a reason when unknown; invalid or build-metadata-only versions
+  are never guessed), and per item whether it is in both releases with changed or unchanged
+  recipe/material content and item record, or only in one. Different packages get no item
+  comparison. It accepts only `readRelease` handles, performs no acquisition or host access
+  and recommends nothing. Types are exported from the reader entry; no existing behavior or
+  release content changes. See `docs/PUBLIC-AUTHORING.md`.
+
 - `contractSupport` declares producer declarations 3.0.0 and 3.1.0 with role `accepts`, as Core's package-support 1.0.0 schema requires; the previous `consumes` value is not a valid role.
 - Narrow the code entries and publish release discovery metadata for samartomar/aih-catalog#99.
   **Breaking for direct importers:** `@aihq/catalog/node` no longer exports `diagnostic`,
