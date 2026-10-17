@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- Add `ecc.codex.mcp.<key>` items for samartomar/aih-catalog#93: the Codex counterpart of 32 of the
+  35 offered ECC MCP servers. Each is user scope: it sets the server's documented Codex keys
+  (`command`, `args`, `env_vars`, `url`, `bearer_token_env_var`, `env_http_headers`) as
+  structured TOML `config.entries` under `[mcp_servers.<key>]` in `~/.codex/config.toml`, and
+  writes its pinned `mcp-servers.json` and LICENSE under `~/.aihq/ecc/source/<item>/`. The
+  `codex-config-blocks` refusal is unchanged. `ito-compute`, `supabase` and `filesystem` stay
+  Claude-only because an argument carries a `${...}` reference that Codex documents no expansion
+  for. The recipes need a Core whose TOML `config.entries` accept arrays and quoted table names;
+  an earlier Core refuses them. Removal leaves the emptied `[mcp_servers.<key>]` headers, and
+  file-state drift is reported per file, not per key. Release format 1.0.0 and every existing
+  item ID are unchanged; the new overlay recipes change the shared ECC source inventory, so every
+  ECC item's `itemSha256` changes. `CONTRACTS.md` records the contract and limits, and
+  `node tools/verify-codex-mcp-config.mjs <core.tgz> [catalog.tgz]` checks setup, a simulated
+  client edit, repeat setup, managed drift and removal against a Core artifact.
+
 - Add the whole-package integrity check `codex-config-blocks` for samartomar/aih-catalog#91: no
   recipe may add a `text.block` to a Codex `config.toml` (a target ending in `.codex/config.toml`,
   or one an input slot its `enum` does not rule out could resolve to). Codex CLI 0.162.1 inserts
@@ -10,8 +25,8 @@
   and no release format changes. `CONTRACTS.md` records the rule, its limits and the recovery
   for a block that captured a client table;
   `node tools/verify-codex-config-drift.mjs <core.tgz>` checks a simulated insertion and that
-  recovery against a Core artifact. Structural Codex configuration waits for Core's TOML
-  `config.entries` to accept array values and quoted table names.
+  recovery against a Core artifact. Codex configuration uses structured TOML `config.entries`
+  instead (entry above).
 
 - Add release format `urn:aihq:catalog:release:1.4.0`, with schema
   `@aihq/catalog/schemas/release/1.4.0.json`, and the item field `clientId`: the client a
