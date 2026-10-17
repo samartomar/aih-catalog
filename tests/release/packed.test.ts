@@ -1,5 +1,13 @@
-import { execFileSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { execFileSync, spawnSync } from "node:child_process";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -156,6 +164,164 @@ describe("exact packed consumer", () => {
       timeout: 60_000,
     });
   });
+
+  it("type-checks and runs a strict TypeScript Nuclei authoring consumer without allowJs", () => {
+    const declarations = join(installed, "workflows/nuclei/author.d.mts");
+    expect(pkg.exports["./workflows/nuclei"]).toEqual({
+      types: "./workflows/nuclei/author.d.mts",
+      import: "./workflows/nuclei/author.mjs",
+    });
+    expect(packedPaths).toContain("workflows/nuclei/author.d.mts");
+    const program = `
+      import * as nuclei from "@aihq/catalog/workflows/nuclei";
+      import {
+        authorAssessmentPolicy,
+        authorPreparationPolicy,
+        authorReconciliationPolicy,
+        type NucleiAssessmentOptions,
+        type NucleiExecutionPolicy,
+        type NucleiHelperMaterial,
+      } from "@aihq/catalog/workflows/nuclei";
+      declare const console: { log(message: string): void };
+      const helper: NucleiHelperMaterial = { id: "nuclei-helper",
+        source: { kind: "local", input: "catalog" }, path: "workflows/nuclei/bin/linux-x64",
+        sha256: "a".repeat(64), byteLength: 8000000 };
+      const assessment: NucleiAssessmentOptions = { platform: "linux", helper,
+        runDirectory: "/tmp/assessment-one", bundle: "/tmp/templates.tgz",
+        bundleSha256: "b".repeat(64), bundleBytes: 1024, target: "http://host.docker.internal:8080/",
+        allowHosts: ["host.docker.internal"], targetMode: "local-host", hostGateway: true,
+        containerUser: "1000:1000", daemon: "unix:///var/run/docker.sock", dockerCli: "/usr/bin/docker",
+        image: \`projectdiscovery/nuclei@sha256:\${"c".repeat(64)}\`,
+        container: "aih-nuclei-test-one", network: "aih-nuclei-net-one" };
+      const prepared: NucleiExecutionPolicy<"prepare"> = authorPreparationPolicy({ platform: "linux",
+        helper, output: "/tmp/prepared-one", official: ["http/technologies/tech-detect.yaml"],
+        customData: [{ source: "/tmp/words.txt", path: "words.txt" }] });
+      const reused = authorPreparationPolicy({ platform: "linux", helper, output: "/tmp/prepared-two",
+        reuse: { path: "/tmp/templates.tgz", sha256: "b".repeat(64), byteLength: 1024 } });
+      const assessed: NucleiExecutionPolicy<"run"> = authorAssessmentPolicy(assessment);
+      const reconciled: NucleiExecutionPolicy<"reconcile"> = authorReconciliationPolicy({
+        platform: "linux", helper, runDirectory: assessment.runDirectory, daemon: assessment.daemon,
+        dockerCli: assessment.dockerCli, container: assessment.container, network: assessment.network });
+      const validation: "process.exit" = assessed.selections[0].recipe.inline.checks[0].kind;
+      const noPreparationChecks: [] = prepared.selections[0].recipe.inline.checks;
+      const refusals: string[] = [];
+      const refuse = (name: string, author: () => unknown): void => {
+        try { author(); } catch (error) { if (error instanceof Error) { refusals.push(name); return; } }
+        throw new Error("accepted invalid " + name);
+      };
+      refuse("image-tag", () => authorAssessmentPolicy({ ...assessment,
+        // @ts-expect-error a tag is not a pinned image digest
+        image: "projectdiscovery/nuclei:latest" }));
+      refuse("platform", () => authorAssessmentPolicy({ ...assessment,
+        // @ts-expect-error macOS is not a selected helper platform
+        platform: "darwin" }));
+      refuse("target-mode", () => authorAssessmentPolicy({ ...assessment,
+        // @ts-expect-error host networking is not a target mode
+        targetMode: "host" }));
+      refuse("resource-name", () => authorReconciliationPolicy({ ...assessment,
+        // @ts-expect-error owned resources use the aih-nuclei- prefix
+        container: "other-container" }));
+      refuse("missing-container-user", () => {
+        const { containerUser: _omitted, ...withoutUser } = assessment;
+        // @ts-expect-error containerUser is required
+        return authorAssessmentPolicy(withoutUser);
+      });
+      refuse("target-scheme", () => authorAssessmentPolicy({ ...assessment, target: "file:///tmp/a" }));
+      refuse("reuse-with-selections", () =>
+        // @ts-expect-error reusing a bundle excludes fresh template selections
+        authorPreparationPolicy({ platform: "linux", helper, output: "/tmp/x", reuse: { path: "/tmp/b", sha256: "b".repeat(64), byteLength: 1 }, official: [] }));
+      const declared = { authorPreparationPolicy: true, authorAssessmentPolicy: true,
+        authorReconciliationPolicy: true } as const satisfies Record<keyof typeof nuclei, true>;
+      const runtimeNames = Object.keys(nuclei).sort();
+      const declaredNames = Object.keys(declared).sort();
+      if (JSON.stringify(runtimeNames) !== JSON.stringify(declaredNames))
+        throw new Error("runtime exports differ from declarations: " + JSON.stringify(runtimeNames));
+      for (const name of runtimeNames)
+        if (typeof (nuclei as Record<string, unknown>)[name] !== "function") throw new Error(name);
+      const policies = [prepared, reused, assessed, reconciled];
+      console.log(JSON.stringify({
+        schemas: policies.map((policy) => policy.schema),
+        modes: policies.map((policy) => policy.mode),
+        recipes: policies.map((policy) => policy.selections[0].recipe.inline.id),
+        reused: reused.selections[0].recipe.inline.operations[0].args.some((slot) => slot.literal === "--reuse-bundle"),
+        validation, preparationChecks: noPreparationChecks.length, refusals, runtimeNames,
+      }));
+    `;
+    const project = join(consumer, "nuclei-types");
+    mkdirSync(project);
+    writeFileSync(join(project, "consume.mts"), program);
+    writeFileSync(
+      join(project, "tsconfig.json"),
+      JSON.stringify({
+        compilerOptions: {
+          strict: true,
+          exactOptionalPropertyTypes: true,
+          noUncheckedIndexedAccess: true,
+          allowJs: false,
+          skipLibCheck: false,
+          module: "nodenext",
+          moduleResolution: "nodenext",
+          target: "es2022",
+          lib: ["es2023"],
+          types: [],
+          noEmitOnError: true,
+          rootDir: ".",
+          outDir: "out",
+        },
+        files: ["consume.mts"],
+      }),
+    );
+    const tsc = (args: string[]) =>
+      spawnSync(process.execPath, [resolve(root, "node_modules/typescript/bin/tsc"), ...args], {
+        cwd: project,
+        encoding: "utf8",
+        timeout: 120_000,
+        windowsHide: true,
+      });
+    const compiled = tsc(["-p", "tsconfig.json", "--listFiles"]);
+    expect(compiled.status, `${compiled.stdout}${compiled.stderr}`).toBe(0);
+    const listed = compiled.stdout.split(/\r?\n/u).map((line) => resolve(line.trim()));
+    expect(listed).toContain(resolve(declarations));
+    const ran = spawnSync(process.execPath, [join(project, "out", "consume.mjs")], {
+      cwd: project,
+      encoding: "utf8",
+      timeout: 60_000,
+      windowsHide: true,
+    });
+    expect(ran.status, ran.stderr).toBe(0);
+    expect(JSON.parse(ran.stdout)).toEqual({
+      schemas: Array(4).fill("urn:aihq:core:execution-policy:1.0.0"),
+      modes: Array(4).fill("vibe"),
+      recipes: ["nuclei-prepare", "nuclei-prepare", "nuclei-run", "nuclei-reconcile"],
+      reused: true,
+      validation: "process.exit",
+      preparationChecks: 0,
+      refusals: [
+        "image-tag",
+        "platform",
+        "target-mode",
+        "resource-name",
+        "missing-container-user",
+        "target-scheme",
+        "reuse-with-selections",
+      ],
+      runtimeNames: [
+        "authorAssessmentPolicy",
+        "authorPreparationPolicy",
+        "authorReconciliationPolicy",
+      ],
+    });
+    // Without the shipped declarations the same strict program has no typed contract.
+    const hidden = `${declarations}.hidden`;
+    renameSync(declarations, hidden);
+    try {
+      const untyped = tsc(["-p", "tsconfig.json", "--noEmit"]);
+      expect(untyped.status).not.toBe(0);
+      expect(untyped.stdout).toContain("TS7016");
+    } finally {
+      renameSync(hidden, declarations);
+    }
+  }, 180_000);
 
   it("keeps the portable entries free of Node, filesystem and network imports", () => {
     const seen = new Set<string>();

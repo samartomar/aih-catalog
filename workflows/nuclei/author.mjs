@@ -56,6 +56,7 @@ export function authorPreparationPolicy(options) {
   const args = ["--output", absolute(options.output, "preparation directory"), "--timeout-seconds", Math.floor(timeout / 1000) - 5,
     "--max-output-bytes", 8192, "--max-download-bytes", integer(options.maxDownloadBytes ?? 67108864, 1, 67108864, "download limit")];
   if (options.reuse) {
+    if (Object.hasOwn(options, "official") || Object.hasOwn(options, "custom")) throw new Error("A reused bundle excludes template selections");
     args.push("--reuse-bundle", absolute(options.reuse.path, "prior bundle"), "--reuse-sha256", hash(options.reuse.sha256),
       "--reuse-bytes", integer(options.reuse.byteLength, 1, 67108864, "prior bundle length"));
   } else {
