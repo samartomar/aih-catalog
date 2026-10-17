@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- `contractSupport` declares producer declarations 3.0.0 and 3.1.0 with role `accepts`, as Core's package-support 1.0.0 schema requires; the previous `consumes` value is not a valid role.
 - Narrow the code entries and publish release discovery metadata for samartomar/aih-catalog#99.
   **Breaking for direct importers:** `@aihq/catalog/node` no longer exports `diagnostic`,
   `failureResult`, `packageIdentity`, `verifyPackageRelease` or `sha256`, and

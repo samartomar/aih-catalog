@@ -104,12 +104,12 @@ export const contractSupport = Object.freeze({
     }),
     Object.freeze({
       id: "urn:aihq:catalog:producer-declaration:3.0.0",
-      role: "consumes",
+      role: "accepts",
       schemaExport: "@aihq/catalog/schemas/producer-declaration/3.0.0.json",
     }),
     Object.freeze({
       id: "urn:aihq:catalog:producer-declaration:3.1.0",
-      role: "consumes",
+      role: "accepts",
       schemaExport: "@aihq/catalog/schemas/producer-declaration/3.1.0.json",
     }),
   ]),
@@ -211,7 +211,11 @@ export const releaseInventory = Object.freeze({
   ]),
 } as const);
 
-export type ReleaseInventoryEntry = (typeof releaseInventory.releases)[number];
+// Fails to compile if an entry's purpose or support tier is outside the declared unions.
+type CheckedInventory<
+  T extends readonly { readonly purpose: ReleasePurpose; readonly support: ReleaseSupport }[],
+> = T;
+export type ReleaseInventoryEntry = CheckedInventory<typeof releaseInventory.releases>[number];
 /** The release names a reader can select; the Node adapter accepts exactly these. */
 export type ReleaseExport = ReleaseInventoryEntry["release"];
 

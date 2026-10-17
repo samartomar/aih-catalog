@@ -120,6 +120,9 @@ describe("release 1.1 documents", () => {
   });
 
   it("declares the release/recipe formats it produces and the public declaration it consumes", () => {
+    // Roles follow Core's package-support 1.0.0 schema.
+    for (const contract of contractSupport.contracts)
+      expect(["accepts", "produces", "both"]).toContain(contract.role);
     const ids = contractSupport.contracts.map((contract) => contract.id);
     expect(ids).toEqual([
       "urn:aihq:catalog:release:1.0.0",
