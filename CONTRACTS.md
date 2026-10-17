@@ -89,6 +89,17 @@ that setup keeps every original byte, that a simulated client table and an unrel
 the managed entries at `match`, that repeat setup changes no bytes, that a managed edit is drift
 and is restored, and the exact bytes removal leaves.
 
+## Current contract: resolver diagnostic references
+
+| Aspect | Contract |
+| --- | --- |
+| Entry | `resolveSelections` in `@aihq/catalog/reader`; fields typed on `Diagnostic` in `@aihq/catalog/contracts` (`src/release/contracts.ts`) |
+| `RELEASE_UNAVAILABLE`, `ITEM_UNAVAILABLE` | `reference`: the exact unresolved `{releaseSha256,itemId,scope}`. `declaredBy`: the root or dependent item whose declaration at `path` names it; absent for an unavailable request entry (`/roots/<n>`, `/skips/<n>`, `/remove/<n>`) |
+| `ITEM_CONFLICT` | `path` is the conflict declaration (`/releases/<digest>/items/<index>/dependencies/conflicts/<n>`), previously `/roots`. `declaredBy` is the selected item declaring the conflict and `reference` the selected item it names |
+| Counts and order | unchanged: one diagnostic per walked required path, so identical diagnostics can repeat; order is deterministic. Codes, refusal, `removalImpact` and the final validator's wrapped `INPUT_INVALID` at `/roots` are unchanged |
+
+`src/release/resolve.ts` owns the behaviour; `docs/PUBLIC-AUTHORING.md` documents it for consumers.
+
 ## Content published to consumers
 
 | Contract | Defined at | Format | Version | Byte cap | Unknown format / version | Other refusals | Reached as |

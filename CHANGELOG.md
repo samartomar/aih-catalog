@@ -11,6 +11,15 @@
   the other code entries; a packed strict TypeScript consumer without
   `allowJs` checks all three calls, rejected options and runtime/declaration export parity.
 
+- Name the references in `resolveSelections` refusals for samartomar/aih-catalog#98.
+  `RELEASE_UNAVAILABLE` and `ITEM_UNAVAILABLE` carry `reference`, the exact unresolved
+  release digest, item ID and scope, and `declaredBy`, the root or dependent item whose
+  declaration requires it (absent when the unavailable reference is a request entry).
+  `ITEM_CONFLICT` carries both selected items (`declaredBy` and `reference`) and its `path`
+  now points at the conflict declaration instead of `/roots`. The fields are optional and
+  typed on `Diagnostic` in the public declarations. Codes, ordering, counts (one per walked
+  required path), refusal and `removalImpact` are unchanged.
+
 - Add `ecc.codex.mcp.<key>` items for samartomar/aih-catalog#93: the Codex counterpart of 32 of the
   35 offered ECC MCP servers. Each is user scope: it sets the server's documented Codex keys
   (`command`, `args`, `env_vars`, `url`, `bearer_token_env_var`, `env_http_headers`) as

@@ -42,12 +42,16 @@ export function resolveSelections(request: ResolveSelectionsRequest): ResolveSel
     path: string,
     message: string,
     details?: readonly CatalogDiagnostic[],
+    subject?: { reference: SelectionRef; declaredBy?: SelectionRef },
   ) => {
     diagnostics.push({
       code,
       path,
       message,
       ...(details ? { details: { owner: "catalog" as const, diagnostics: details } } : {}),
+      // Copies, so a frozen result never aliases walk state or request data.
+      ...(subject ? { reference: reference(subject.reference) } : {}),
+      ...(subject?.declaredBy ? { declaredBy: reference(subject.declaredBy) } : {}),
     });
   };
   const refuse = (): ResolveSelectionsResult =>
@@ -84,15 +88,32 @@ export function resolveSelections(request: ResolveSelectionsRequest): ResolveSel
       );
     } else releases.set(digest, release);
   }
-  const itemAt = (ref: SelectionRef, at: string): CatalogItem | undefined => {
+  const itemAt = (
+    ref: SelectionRef,
+    at: string,
+    declaredBy?: SelectionRef,
+  ): CatalogItem | undefined => {
+    const unresolved = { reference: ref, ...(declaredBy ? { declaredBy } : {}) };
     const release = releases.get(ref.releaseSha256);
     if (!release) {
-      report("RELEASE_UNAVAILABLE", at, "Referenced release was not supplied.");
+      report(
+        "RELEASE_UNAVAILABLE",
+        at,
+        "Referenced release was not supplied.",
+        undefined,
+        unresolved,
+      );
       return;
     }
     const item = release.items.find((item) => item.id === ref.itemId);
     if (!item) {
-      report("ITEM_UNAVAILABLE", at, "Referenced item is absent from the supplied release.");
+      report(
+        "ITEM_UNAVAILABLE",
+        at,
+        "Referenced item is absent from the supplied release.",
+        undefined,
+        unresolved,
+      );
       return;
     }
     if (!item.scopes.includes(ref.scope)) {
@@ -153,7 +174,7 @@ export function resolveSelections(request: ResolveSelectionsRequest): ResolveSel
     const digest =
       "release" in dependency ? dependency.release.manifest.sha256 : from.releaseSha256;
     const target = { releaseSha256: digest, itemId: dependency.itemId, scope: from.scope };
-    const item = itemAt(target, at);
+    const item = itemAt(target, at, from);
     if (!item) return;
     if (
       "release" in dependency &&
@@ -210,13 +231,13 @@ export function resolveSelections(request: ResolveSelectionsRequest): ResolveSel
   for (const current of [...selected.values()].sort(order)) {
     const item = itemAt(current, "/roots");
     item?.dependencies.conflicts.forEach((ref, index) => {
-      const target = resolveRef(
-        current,
-        ref,
-        `/releases/${current.releaseSha256}/items/${releases.get(current.releaseSha256)?.items.indexOf(item)}/dependencies/conflicts/${index}`,
-      );
+      const at = `/releases/${current.releaseSha256}/items/${releases.get(current.releaseSha256)?.items.indexOf(item)}/dependencies/conflicts/${index}`;
+      const target = resolveRef(current, ref, at);
       if (target && selected.has(key(target)))
-        report("ITEM_CONFLICT", "/roots", "Conflicting items are selected together.");
+        report("ITEM_CONFLICT", at, "Conflicting items are selected together.", undefined, {
+          reference: target,
+          declaredBy: current,
+        });
     });
   }
   for (const proposed of uniqueRefs(remove)) {
