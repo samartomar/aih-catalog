@@ -117,7 +117,9 @@ reason. Native Codex execution of these entries is unobserved.
 
 Build first, then run `node tools/generate-ecc-release.mjs --check` for declaration,
 raw snapshot, inventory, donor and output consistency. Regenerate with the same
-script after reviewed ordinary data changes. It neither fetches nor executes ECC.
+script after reviewed ordinary data changes; after a change to the Claude MCP items or
+facts, run `node tools/author-ecc-codex-mcp.mjs` before it so the Codex items follow. It
+neither fetches nor executes ECC.
 `check:release` verifies full recipe/material closure. Existing releases are carried
 byte for byte through the ordinary candidate producer.
 

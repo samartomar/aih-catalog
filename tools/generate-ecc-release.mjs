@@ -157,8 +157,9 @@ export function generateEccRelease(identity = JSON.parse(readFileSync(resolve(ro
   for (const key of claudeKeys) assert.notEqual(translated.has(key), excluded.has(key), `Claude MCP server ${key} needs exactly one of a Codex item or a recorded exclusion`);
   for (const key of excluded.keys()) {
     assert(claudeKeys.includes(key), `Codex MCP exclusion for an unknown server ${key}`);
-    const { supported } = translateCodexMcpServer(key, inventory.itemFacts[`ecc.claude.mcp.${key}`].offeredServer);
-    assert.equal(supported, false, `Excluded Codex MCP server ${key} is translatable`);
+    const translation = translateCodexMcpServer(key, inventory.itemFacts[`ecc.claude.mcp.${key}`].offeredServer);
+    assert.equal(translation.supported, false, `Excluded Codex MCP server ${key} is translatable`);
+    assert.equal(excluded.get(key), translation.reason, `Codex MCP exclusion reason differs ${key}`);
   }
   declaration.package = { name: identity.name, version: identity.version };
   const compiled = compileProducerDeclaration({ declaration, sourceFiles: [{ source: "ecc", revision: source.revision, files }] });

@@ -152,7 +152,7 @@ describe("Catalog Codex MCP recipes", () => {
   const recipes = readdirSync("release/recipes")
     .filter((name) => name.startsWith("ecc.codex.mcp."))
     .map((name) => ({
-      itemId: name.replace(/.json$/, ""),
+      itemId: name.replace(/\.json$/, ""),
       recipe: JSON.parse(readFileSync(`release/recipes/${name}`, "utf8")) as {
         operations: { id: string; kind: string; format?: string; target: unknown }[];
       },
