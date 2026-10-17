@@ -162,6 +162,59 @@ describe("item facts", () => {
     );
   });
 
+  it("counts identical material bytes once in the digest set", () => {
+    const first = checked(document());
+    const duplicated = checked(
+      document((doc) => {
+        const alpha = doc.items[0] as { materials: { [key: string]: Json }[] };
+        alpha.materials.push({
+          id: "skill-copy",
+          path: "release/materials/alpha/copy.md",
+          sha256: sha256("alpha"),
+          byteLength: 157,
+        });
+      }),
+    );
+    expect(duplicated.items[0]?.materials).toHaveLength(3);
+    const fact = item(value(first, duplicated).items, "alpha");
+    expect(fact).toMatchObject({ content: "unchanged", materials: "unchanged", record: "changed" });
+    expect(fact?.presence === "in-both" && fact.second.materialSha256).toEqual(
+      [sha256("alpha"), sha256("license")].sort(),
+    );
+  });
+
+  it("reports input, dependency, target, scope and kind changes as record-only", () => {
+    const first = checked(document());
+    const changes: ((doc: Document) => void)[] = [
+      (doc) => {
+        (doc.items[0] as { inputs: { [key: string]: Json } }).inputs.extra = {
+          type: "boolean",
+          required: false,
+        };
+      },
+      (doc) => {
+        (doc.items[1] as { dependencies: { requires: Json[] } }).dependencies.requires = [];
+      },
+      (doc) => {
+        (doc.items[0] as { targets: Json[] }).targets = [{ kind: "executable", name: "git" }];
+      },
+      (doc) => {
+        (doc.items[0] as { scopes: Json[] }).scopes = ["project", "user"];
+      },
+      (doc) => {
+        (doc.items[0] as { kind: string }).kind = "rule";
+      },
+    ];
+    for (const change of changes) {
+      const result = value(first, checked(document(change)));
+      const changed = result.items.filter(
+        (entry) => entry.presence === "in-both" && entry.record === "changed",
+      );
+      expect(changed).toHaveLength(1);
+      expect(changed[0]).toMatchObject({ content: "unchanged", recipe: "unchanged" });
+    }
+  });
+
   it("reports partially overlapping releases item by item", () => {
     const first = checked(document());
     const second = checked(

@@ -17,14 +17,13 @@ import {
 import { checkInputSpec } from "./inputs.js";
 import { assertStrictValues, canonicalJson } from "./json.js";
 import { sha256Hex } from "./sha256.js";
+import { EXACT_VERSION } from "./version.js";
 
 /** The fixed member prefix of a Catalog package archive. */
 export const ARCHIVE_PACKAGE_PREFIX = "package/" as const;
 export const ID = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 export const SHA256 = /^[0-9a-f]{64}$/;
 const PACKAGE_NAME = /^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/;
-const VERSION =
-  /^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
 const HTTPS_URL = /^https:\/\/[^\s/?#@]+(?:[/?][^\s#]*)?$/;
 const GIT_REVISION = /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/;
 const SRI = /^sha(?:256|384|512)-[A-Za-z0-9+/]+={0,2}$/;
@@ -216,7 +215,7 @@ function checkOrigin(d: Diagnostics, value: unknown, path: string, schema: Relea
       typeof value.package !== "string" ||
       !PACKAGE_NAME.test(value.package) ||
       typeof value.version !== "string" ||
-      !VERSION.test(value.version) ||
+      !EXACT_VERSION.test(value.version) ||
       typeof value.integrity !== "string" ||
       !SRI.test(value.integrity)
     ) {
@@ -593,7 +592,11 @@ export function checkReleaseDocument(value: unknown): {
     if (typeof pkg.name !== "string" || pkg.name.length > 214 || !PACKAGE_NAME.test(pkg.name)) {
       d.add("invalid-package", "/package/name", "Expected an npm package name.");
     }
-    if (typeof pkg.version !== "string" || pkg.version.length > 256 || !VERSION.test(pkg.version)) {
+    if (
+      typeof pkg.version !== "string" ||
+      pkg.version.length > 256 ||
+      !EXACT_VERSION.test(pkg.version)
+    ) {
       d.add(
         "invalid-version",
         "/package/version",

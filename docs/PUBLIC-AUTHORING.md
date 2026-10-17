@@ -254,11 +254,15 @@ An example value for a candidate that changes one recipe and drops one item:
 - **Item facts.** Items are sorted by ID in UTF-16 code-unit order with `presence`
   `in-both`, `only-in-first` or `only-in-second`. Each side's identity is
   `{itemSha256,recipeSha256,materialSha256}`, where `materialSha256` is the sorted
-  set of material digests. For an item in both, `recipe` and `materials` compare
-  those digests and `content` is `changed` when either does; material IDs, paths and
-  order do not count. `record` compares `itemSha256`, so labels, descriptions or
-  metadata alone change the record but not the content. Required items' changes are
-  reported on their own entries, not folded into their dependents.
+  set of distinct material digests: two materials with identical bytes count once.
+  For an item in both, `recipe` and `materials` compare those digests and `content`
+  is `changed` when either does; material IDs, paths and order do not count.
+  `record` compares `itemSha256`, the whole item record. A change to an item's
+  inputs, dependencies, targets, scopes, kind or `clientId`, or to its label,
+  description or metadata, is record-only: `content` stays `unchanged` while
+  `record` is `changed`. Consumers that care about those fields must check `record`.
+  Required items' changes are reported on their own entries, not folded into their
+  dependents.
 - **Refusal.** Anything other than exactly `{first,second}` refuses at path `""`;
   a serialized, cloned or forged release refuses at `/first` or `/second` with
   `INPUT_INVALID`. There is no partial value.

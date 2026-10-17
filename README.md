@@ -130,7 +130,9 @@ To check a candidate release for content updates, call `compareReleases` from
 `@aihq/catalog/reader` with two checked releases. It reports whether they share a
 package, how their versions order (`unknown` when Semantic Versioning cannot order
 them) and, per item, whether it is in both with changed or unchanged recipe/material
-content, or in only one. It recommends nothing. See
+content, or in only one. Changes to an item's inputs, dependencies, targets, scopes,
+kind or `clientId` are record-only (`content` unchanged, `record` changed), so check
+`record` for those. It recommends nothing. See
 [compare two checked releases](docs/PUBLIC-AUTHORING.md#compare-two-checked-releases).
 
 The `aihq.project-context` family supplies shared project AI context

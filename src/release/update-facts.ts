@@ -8,6 +8,7 @@ import { dataRecord, exactFields } from "./boundary.js";
 import type { AuthoringResult, CatalogItem, CatalogRelease, Diagnostic } from "./contracts.js";
 import { deepFreeze } from "./json.js";
 import { isCheckedRelease } from "./reader.js";
+import { semverPrecedence } from "./version.js";
 
 /** Two actual `readRelease` handles; `second` is described relative to `first`. */
 export interface CompareReleasesRequest {
@@ -100,46 +101,8 @@ export type CompareReleasesResult = AuthoringResult<ReleaseComparison>;
 
 const compare = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
-// Semantic Versioning 2.0.0 grammar: no leading zeros in numeric identifiers.
-const NUMBER = "0|[1-9][0-9]*";
-const PRERELEASE_PART = `(?:${NUMBER}|[0-9]*[A-Za-z-][0-9A-Za-z-]*)`;
-const SEMVER = new RegExp(
-  `^(${NUMBER})\\.(${NUMBER})\\.(${NUMBER})` +
-    `(?:-(${PRERELEASE_PART}(?:\\.${PRERELEASE_PART})*))?` +
-    "(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$",
-);
-const NUMERIC = /^[0-9]+$/;
-
-/** Orders canonical decimal strings of any length without precision loss. */
-const numeric = (a: string, b: string) =>
-  a.length === b.length ? compare(a, b) : a.length - b.length;
-
-/** Negative when `a` has lower precedence, zero for equal precedence, undefined if invalid. */
-function precedence(a: string, b: string): number | undefined {
-  const [x, y] = [SEMVER.exec(a), SEMVER.exec(b)];
-  if (x === null || y === null) return undefined;
-  for (const index of [1, 2, 3]) {
-    const order = numeric(x[index] as string, y[index] as string);
-    if (order !== 0) return order;
-  }
-  const [p, q] = [x[4], y[4]];
-  // A version without pre-release identifiers has higher precedence.
-  if (p === undefined || q === undefined)
-    return (p === undefined ? 1 : 0) - (q === undefined ? 1 : 0);
-  const [left, right] = [p.split("."), q.split(".")];
-  for (let index = 0; index < Math.min(left.length, right.length); index++) {
-    const [l, r] = [left[index] as string, right[index] as string];
-    if (l === r) continue;
-    const [ln, rn] = [NUMERIC.test(l), NUMERIC.test(r)];
-    if (ln && rn) return numeric(l, r);
-    if (ln !== rn) return ln ? -1 : 1;
-    return compare(l, r);
-  }
-  return left.length - right.length;
-}
-
 function versionOrder(first: string, second: string): VersionComparison {
-  const order = precedence(second, first);
+  const order = semverPrecedence(second, first);
   if (order === undefined)
     return { first, second, secondIs: "unknown", reason: "version-not-semver" };
   if (order > 0) return { first, second, secondIs: "newer" };

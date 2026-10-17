@@ -131,6 +131,9 @@ it("type-checks and compares two checked releases through the packed reader only
     const forged = compareReleases({ first, second: JSON.parse(JSON.stringify(second)) });
     console.log(JSON.stringify({
       package: update.package, order, reverse: reverse.version.secondIs,
+      added: reverse.items.filter((entry) => entry.presence === "only-in-second").map((entry) => entry.itemId),
+      reverseChanged: reverse.items.filter((entry) => describe(entry) === "changed").map((entry) => entry.itemId),
+      reverseRemoved: reverse.items.filter((entry) => entry.presence === "only-in-first").length,
       versions: [update.version.first, update.version.second],
       changed: update.items.filter((entry) => describe(entry) === "changed").map((entry) => entry.itemId),
       removed: update.items.filter((entry) => entry.presence === "only-in-first").map((entry) => entry.itemId),
@@ -184,6 +187,9 @@ it("type-checks and compares two checked releases through the packed reader only
     package: "same-package",
     order: "newer",
     reverse: "older",
+    added: ["aihq.client.zed"],
+    reverseChanged: ["mattpocock.tdd"],
+    reverseRemoved: 0,
     versions: [shipped.package.version, "0.2.0-rc.1"],
     changed: ["mattpocock.tdd"],
     removed: ["aihq.client.zed"],
