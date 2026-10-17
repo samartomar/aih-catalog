@@ -194,3 +194,13 @@ Guidance integrations consume `@aihq/catalog/workflows/nuclei`, exported
 show review-critical values, invoke existing Core only after approval, and explain the known
 run directory/status. They must not download, execute, own containers or duplicate the helper.
 This contract permits a separate guidance delivery without modifying Extensions here.
+
+The entry ships TypeScript declarations through its `types` export condition
+(`workflows/nuclei/author.d.mts`); a strict consumer needs neither source access nor `allowJs`.
+They declare each function's options (`NucleiPreparationOptions`, `NucleiAssessmentOptions`,
+`NucleiReconciliationOptions`) and the returned `NucleiExecutionPolicy`: a Core
+`urn:aihq:core:execution-policy:1.0.0` policy with one inline recipe. Invalid options are refused
+by a thrown `Error`; no partial policy or diagnostic result is returned. Types reject what they can
+express, such as an unselected platform, a tagged image, an unprefixed resource name or reuse
+combined with template selections; numeric bounds and path, digest and target forms are checked at
+runtime. `platform` is `'linux' | 'win32'`, so narrow `process.platform` before passing it.

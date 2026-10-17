@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Add TypeScript declarations for `@aihq/catalog/workflows/nuclei` for samartomar/aih-catalog#96,
+  exposed through a `types` export condition (`workflows/nuclei/author.d.mts`, now packed). They
+  declare the options of `authorPreparationPolicy`, `authorAssessmentPolicy` and
+  `authorReconciliationPolicy` and the Core execution policy each returns. Runtime behavior,
+  validation and the helper bytes are unchanged; a packed strict TypeScript consumer without
+  `allowJs` checks all three calls, rejected options and runtime/declaration export parity.
+
 - Add `ecc.codex.mcp.<key>` items for samartomar/aih-catalog#93: the Codex counterpart of 32 of the
   35 offered ECC MCP servers. Each is user scope: it sets the server's documented Codex keys
   (`command`, `args`, `env_vars`, `url`, `bearer_token_env_var`, `env_http_headers`) as

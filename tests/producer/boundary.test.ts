@@ -129,6 +129,7 @@ describe("the published package keeps its intended runtime subset", () => {
       "producer/templates/framework",
       "workflows/nuclei/bin",
       "workflows/nuclei/author.mjs",
+      "workflows/nuclei/author.d.mts",
       "workflows/nuclei/manifest.json",
       "workflows/nuclei/AUTHORING.md",
       "workflows/nuclei/THIRD-PARTY-NOTICES.md",

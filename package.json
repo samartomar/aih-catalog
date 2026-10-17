@@ -44,7 +44,10 @@
     "./schemas/release/1.1.0.json": "./schemas/release/1.1.0.json",
     "./schemas/release/1.2.0.json": "./schemas/release/1.2.0.json",
     "./package.json": "./package.json",
-    "./workflows/nuclei": "./workflows/nuclei/author.mjs",
+    "./workflows/nuclei": {
+      "types": "./workflows/nuclei/author.d.mts",
+      "import": "./workflows/nuclei/author.mjs"
+    },
     "./workflows/nuclei/manifest.json": "./workflows/nuclei/manifest.json",
     "./release-guide.json": "./release/release-guide.json",
     "./producer": {
@@ -123,6 +126,7 @@
     "producer/templates/framework",
     "workflows/nuclei/bin",
     "workflows/nuclei/author.mjs",
+    "workflows/nuclei/author.d.mts",
     "workflows/nuclei/manifest.json",
     "workflows/nuclei/AUTHORING.md",
     "workflows/nuclei/THIRD-PARTY-NOTICES.md",
