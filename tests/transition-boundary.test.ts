@@ -111,6 +111,7 @@ describe("Catalog migration boundary", () => {
         "docs/EXTENSIONS-INVENTORY.md",
         "docs/FRAMEWORK-TEMPLATES.md",
         "docs/PUBLIC-AUTHORING.md",
+        "docs/SCAN-BASELINE.md",
         "docs/SUPERPOWERS-CONTENT.md",
         "docs/SUPERPOWERS-INVENTORY.md",
       ]);
@@ -121,7 +122,7 @@ describe("Catalog migration boundary", () => {
       for (const file of packed.files) expect(file.mode & 0o111, file.path).toBe(0);
       for (const path of paths) {
         expect(path, path).not.toMatch(
-          /^(?:(?:ai-coding|tools|tests|\.git|\.codex|\.serena|\.code-review-graph|\.codebase-memory|catalog)\/|docs\/(?!(?:ANTHROPIC-CONTENT|ANTHROPIC-INVENTORY|ECC-CONTENT|ECC-INVENTORY|EXTENSIONS-CONTENT|EXTENSIONS-INVENTORY|SUPERPOWERS-CONTENT|SUPERPOWERS-INVENTORY|FRAMEWORK-TEMPLATES|PUBLIC-AUTHORING)\.md$))/u,
+          /^(?:(?:ai-coding|tools|tests|\.git|\.codex|\.serena|\.code-review-graph|\.codebase-memory|catalog)\/|docs\/(?!(?:ANTHROPIC-CONTENT|ANTHROPIC-INVENTORY|ECC-CONTENT|ECC-INVENTORY|EXTENSIONS-CONTENT|EXTENSIONS-INVENTORY|SUPERPOWERS-CONTENT|SUPERPOWERS-INVENTORY|FRAMEWORK-TEMPLATES|PUBLIC-AUTHORING|SCAN-BASELINE)\.md$))/u,
         );
         expect(path, path).not.toMatch(/(?:private-key|\.pem$|\.env(?:\.|$))/u);
         expect(path, path).not.toContain("..");

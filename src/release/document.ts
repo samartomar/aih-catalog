@@ -3,6 +3,10 @@
  * schemas/release/1.0.0.json plus the reader-only rules that schema documents.
  * Portable: no Node built-ins.
  */
+
+import type { ScanBaseline } from "./baseline-contracts.js";
+import { SCAN_BASELINE_SCHEMA_ID } from "./baseline-contracts.js";
+import { baselineMatchesContent, validBaseline } from "./baseline-wire.js";
 import {
   type CatalogDiagnostic,
   type CatalogItem,
@@ -11,6 +15,7 @@ import {
   RELEASE_RECIPE_SCHEMAS,
   RELEASE_SCHEMA_ID_1_3,
   RELEASE_SCHEMA_ID_1_4,
+  RELEASE_SCHEMA_ID_1_5,
   type RecipeSchemaId,
   type ReleaseSchemaId,
 } from "./contracts.js";
@@ -32,7 +37,11 @@ const KIND = /^[a-z][a-z0-9-]{0,63}$/;
 export const CLIENT_ID = /^[a-z][a-z0-9-]{0,63}$/;
 const CLIENT_ADAPTER = "client-adapter";
 /** Release formats whose local source origin is a pinned snapshot revision. */
-const LOCAL_ORIGIN_SCHEMAS: readonly string[] = [RELEASE_SCHEMA_ID_1_3, RELEASE_SCHEMA_ID_1_4];
+const LOCAL_ORIGIN_SCHEMAS: readonly string[] = [
+  RELEASE_SCHEMA_ID_1_3,
+  RELEASE_SCHEMA_ID_1_4,
+  RELEASE_SCHEMA_ID_1_5,
+];
 const RESERVED = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\..*)?$/i;
 const MEMBER_MAX = 16 * 1024 * 1024;
 const RECIPE_MAX = 1_000_000;
@@ -370,7 +379,7 @@ function checkItem(
   recipeSchemas: readonly RecipeSchemaId[],
   schema: ReleaseSchemaId,
 ): void {
-  const clientIds = schema === RELEASE_SCHEMA_ID_1_4;
+  const clientIds = schema === RELEASE_SCHEMA_ID_1_4 || schema === RELEASE_SCHEMA_ID_1_5;
   if (
     !fields(
       d,
@@ -556,10 +565,14 @@ export interface CheckedDocument {
   readonly sources: readonly Json[];
   readonly items: readonly CatalogItem[];
   readonly metadata?: Json;
+  readonly baseline?: ScanBaseline;
 }
 
 /** Checks a canonical release value; returns the normalized items or diagnostics. */
-export function checkReleaseDocument(value: unknown): {
+export function checkReleaseDocument(
+  value: unknown,
+  options: { readonly contentOnly?: boolean } = {},
+): {
   readonly diagnostics: readonly CatalogDiagnostic[];
   readonly document?: CheckedDocument;
 } {
@@ -584,7 +597,16 @@ export function checkReleaseDocument(value: unknown): {
     );
     return { diagnostics: d.list };
   }
-  if (!fields(d, value, "", ["schema", "package", "sources", "items"], ["metadata"])) {
+  const baselineFormat = isRecord(value) && value.schema === RELEASE_SCHEMA_ID_1_5;
+  if (
+    !fields(
+      d,
+      value,
+      "",
+      ["schema", "package", "sources", "items"],
+      baselineFormat ? ["metadata", "baseline"] : ["metadata"],
+    )
+  ) {
     return { diagnostics: d.list };
   }
   const pkg = value.package;
@@ -641,6 +663,52 @@ export function checkReleaseDocument(value: unknown): {
     d.add("invalid-metadata", "/metadata", "Metadata is a descriptive object.");
   }
   if (d.list.length > 0) return { diagnostics: d.list };
+  if (baselineFormat && !options.contentOnly) {
+    if (isRecord(value.baseline) && value.baseline.schema !== SCAN_BASELINE_SCHEMA_ID) {
+      d.list.push({
+        code: "SCHEMA_UNSUPPORTED",
+        reason: "unsupported-baseline",
+        message: "The baseline contract is unsupported.",
+        blocking: true,
+        path: "/baseline/schema",
+      });
+      return { diagnostics: d.list };
+    }
+    if (!validBaseline(value.baseline))
+      d.add(
+        "baseline-invalid",
+        "/baseline",
+        "Release 1.5 requires a supported, bounded baseline binding.",
+      );
+    else if (!baselineMatchesContent(value, value.baseline))
+      d.add(
+        "baseline-content-mismatch",
+        "/baseline/inventory",
+        "The baseline inventory differs from the complete release content projection.",
+      );
+    else {
+      const reserved = [
+        value.baseline.inventory.path,
+        ...(value.baseline.artifact.location.kind === "package"
+          ? [value.baseline.artifact.location.path]
+          : []),
+      ];
+      for (const item of value.items as Record<string, unknown>[]) {
+        for (const member of [item.recipe, ...(item.materials as unknown[])]) {
+          if (
+            isRecord(member) &&
+            reserved.some((path) => path.toLowerCase() === String(member.path).toLowerCase())
+          )
+            d.add(
+              "baseline-path-collision",
+              "/baseline",
+              "Inventory and evidence paths cannot overwrite declared content.",
+            );
+        }
+      }
+    }
+  }
+  if (d.list.length > 0) return { diagnostics: d.list };
   const items = value.items as Record<string, unknown>[];
   checkPathIdentities(d, items);
   checkRequiredClosure(d, items);
@@ -662,6 +730,9 @@ export function checkReleaseDocument(value: unknown): {
       sources: value.sources as Json[],
       items: checked,
       ...(value.metadata === undefined ? {} : { metadata: value.metadata as Json }),
+      ...(baselineFormat && !options.contentOnly
+        ? { baseline: value.baseline as ScanBaseline }
+        : {}),
     },
   };
 }

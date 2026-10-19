@@ -41,6 +41,7 @@ function makeToolRepo(dir: string): void {
     "CHANGELOG.md",
     "docs/FRAMEWORK-TEMPLATES.md",
     "docs/PUBLIC-AUTHORING.md",
+    "docs/SCAN-BASELINE.md",
     "docs/EXTENSIONS-CONTENT.md",
     "docs/EXTENSIONS-INVENTORY.md",
     "docs/ECC-CONTENT.md",

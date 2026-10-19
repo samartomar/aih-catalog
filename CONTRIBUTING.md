@@ -4,6 +4,12 @@ Start with [AGENTS.md](AGENTS.md) for issue ownership and repository boundaries.
 Accepted bugs/enhancements use the owning Catalog issue; link the PR and verified
 release outcome there. Keep private planning and reproductions out of public text.
 
+[Baseline contract checks](docs/SCAN-BASELINE.md) cover complete content projection
+and versioned release admission. `npm run check:baseline-schemas` checks generated
+schemas; regenerate through `node tools/generate-baseline-schemas.mjs`. The bounded
+`tools/verify-baseline-consumer.mjs` proof additionally takes exact public Scan/Core
+tarballs and an isolated locked runtime. It uses fixture signatures and no scanners.
+
 Install dependencies with `npm ci --ignore-scripts` and run `npm run verify` before
 requesting review. The active checks cover the release reader, acquisition,
 configuration, selection and packed material, the targeted candidate producer

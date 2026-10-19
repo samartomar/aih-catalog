@@ -61,7 +61,10 @@
     "./release-anthropic.json": "./release/release-anthropic.json",
     "./schemas/release/1.3.0.json": "./schemas/release/1.3.0.json",
     "./schemas/release/1.4.0.json": "./schemas/release/1.4.0.json",
-    "./schemas/producer-declaration/3.1.0.json": "./schemas/producer-declaration/3.1.0.json"
+    "./schemas/producer-declaration/3.1.0.json": "./schemas/producer-declaration/3.1.0.json",
+    "./schemas/release/1.5.0.json": "./schemas/release/1.5.0.json",
+    "./schemas/content-inventory/1.0.0.json": "./schemas/content-inventory/1.0.0.json",
+    "./schemas/scan-baseline/1.0.0.json": "./schemas/scan-baseline/1.0.0.json"
   },
   "engines": {
     "node": ">=24.15.0 <25"
@@ -82,7 +85,7 @@
     "produce:ecc": "npm run build:dist && node tools/produce-upstream-inputs.mjs ecc",
     "produce:superpowers": "npm run build:dist && node tools/produce-upstream-inputs.mjs superpowers",
     "produce:mattpocock": "npm run build:dist && node tools/produce-upstream-inputs.mjs mattpocock",
-    "verify": "npm run typecheck && npm run lint && npm run build:dist && npm run check:materials && npm test && npm run verify:workflow-action-pins",
+    "verify": "npm run typecheck && npm run lint && npm run build:dist && npm run check:materials && npm test && npm run verify:workflow-action-pins && npm run check:baseline-schemas",
     "generate:catalog-index": "node tools/generate-catalog-index.mjs",
     "generate:catalog-collections": "node tools/generate-catalog-collections.mjs",
     "generate:catalog-qualification": "node tools/generate-catalog-qualification.mjs",
@@ -103,7 +106,9 @@
     "historical:verify:cold-external-admin": "node tools/verify-cold-external-admin.mjs",
     "historical:verify:default-evidence-chain": "vitest run tests/supported/default-evidence-chain.test.ts",
     "historical:check:catalog-index": "node tools/check-not-candidate.mjs && node tools/generate-catalog-index.mjs --check && node tools/generate-catalog-collections.mjs --check && node tools/generate-catalog-qualification.mjs --check && node tools/generate-catalog-presentation.mjs --check && node tools/generate-catalog-categories.mjs --check && node tools/generate-catalog-runtime-descriptors.mjs --check && node dist/production/catalog-defaults-v1.js --check && node tools/check-committed-catalog-defaults.mjs",
-    "build:nuclei": "node tools/build-nuclei-helper.mjs"
+    "build:nuclei": "node tools/build-nuclei-helper.mjs",
+    "check:baseline-schemas": "node tools/generate-baseline-schemas.mjs --check",
+    "prepare:release": "npm run build:dist && node tools/prepare-release.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.1",
@@ -154,7 +159,10 @@
     "docs/SUPERPOWERS-INVENTORY.md",
     "producer/anthropic",
     "docs/ANTHROPIC-CONTENT.md",
-    "docs/ANTHROPIC-INVENTORY.md"
+    "docs/ANTHROPIC-INVENTORY.md",
+    "schemas/content-inventory",
+    "schemas/scan-baseline",
+    "docs/SCAN-BASELINE.md"
   ],
   "private": true
 }

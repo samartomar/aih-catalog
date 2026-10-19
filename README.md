@@ -74,6 +74,9 @@ platform evidence and real-tool execution limits are recorded in [delivery evide
 | `@aihq/catalog/node` | Read an installed root, resolve an exact archive/registry version, or prepare the project context for a chosen instruction directory | Node 24.15–24.x |
 | `@aihq/catalog/workflows/nuclei` | Author Nuclei preparation, assessment and reconciliation Core policies, with TypeScript declarations | Node 24.15–24.x |
 | `@aihq/catalog/release.json` | Default release (format 1.4.0) | Data |
+| `@aihq/catalog/schemas/release/1.5.0.json` | New release format with a pinned content baseline | Data |
+| `@aihq/catalog/schemas/content-inventory/1.0.0.json` | Complete content projection before evidence | Data |
+| `@aihq/catalog/schemas/scan-baseline/1.0.0.json` | Exact evidence binding and requested scope | Data |
 | `@aihq/catalog/release-guide.json` | Optional Ask AIH Guide manual and reference profiles; read it explicitly | Data |
 | `@aihq/catalog/release-1.1.json` | Release of Core recipe 1.1 items (client hook groups); read it explicitly | Data |
 | `@aihq/catalog/schemas/release/1.0.0.json` | Release structural schema | Data |

@@ -3,7 +3,10 @@
 Catalog is moving to an independent package of canonical content, source materials
 and generic executable recipes. Ordinary reading and selection must not require
 Workbench enrollment, a Core lock, qualification receipts, assessment profiles or
-Scan. Scan can contribute optional evidence; it cannot admit a content release.
+Scan. New release preparation requires a pinned authentic/readable baseline under
+the [versioned baseline contract](SCAN-BASELINE.md); failed providers and incomplete
+coverage may qualify. Evidence remains optional for policy/runtime use and does
+not establish safety or execution authority. Old release reading fabricates no baseline.
 
 [The greenfield integration](GREENFIELD-INTEGRATION.md) uses `q1/rel-license` as
 the candidate for `main` and supersedes the old 0.3.0 release proposal. This changes
@@ -123,7 +126,7 @@ Feature work must implement and demonstrate all of:
 - Selection/configuration and dependencies using the actual recipe inputs,
   including host-only sensitive values; no separate binding framework.
 - Targeted producer refresh preserving unaffected items and provenance, without
-  requiring Scan to release content. **Implemented** ([docs/PRODUCER.md](PRODUCER.md));
+  requiring Scan to prepare content. **Implemented** ([docs/PRODUCER.md](PRODUCER.md));
   elapsed-time measurements are recorded per candidate against the 3,600-second ceiling.
 - A focused public consumer handoff using exact packed bytes and declared runtime:
   one bounded scenario for a changed contract, not a family-wide matrix.

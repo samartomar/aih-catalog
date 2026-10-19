@@ -5,8 +5,10 @@
  * convert every failure here into boundary diagnostics.
  */
 import { createHash } from "node:crypto";
+import { baselineMembers } from "./baseline-members.js";
 import type { CatalogDiagnostic, CatalogRelease, ReleaseExport } from "./contracts.js";
 import { isRecord, safeMemberPath } from "./document.js";
+import { readContentInventory } from "./inventory.js";
 import { AcquisitionFailure } from "./node-errors.js";
 import { readRelease } from "./reader.js";
 import { checkRecipeAgreement } from "./recipe-agreement.js";
@@ -151,6 +153,24 @@ export function verifyPackageRelease(
     failWith("package-mismatch", identity.releasePath);
   }
   const diagnostics: CatalogDiagnostic[] = [];
+  if (release.baseline) {
+    const { inventory } = release.baseline;
+    for (const descriptor of baselineMembers(release)) {
+      try {
+        const bytes = read(descriptor.path, descriptor.byteLength, descriptor.byteLength);
+        if (bytes.length !== descriptor.byteLength || sha256(bytes) !== descriptor.sha256)
+          failWith("baseline-member-mismatch", descriptor.path);
+        if (
+          descriptor === inventory &&
+          !readContentInventory(bytes, { expectedSha256: inventory.sha256 }).valid
+        )
+          failWith("baseline-inventory-invalid", descriptor.path);
+      } catch (error) {
+        if (!(error instanceof AcquisitionFailure)) throw error;
+        diagnostics.push(diagnostic(error.reason, error.path));
+      }
+    }
+  }
   const verified = new Map<string, string>();
   for (const item of release.items) {
     for (const member of [item.recipe, ...item.materials]) {

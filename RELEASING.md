@@ -12,6 +12,17 @@ explicit upstream pin and measures the elapsed time; it allocates no version and
 publishes nothing. Packing alone does not satisfy
 the transition completion criteria or authorize publication.
 
+New release candidacy additionally requires `tools/prepare-release.mjs prepare`
+([baseline contract](docs/SCAN-BASELINE.md)). It explicitly acquires exact bounded
+Scan evidence, checks readability, inventory and requested scope, and authenticates
+the configured producer through Core before emitting release 1.5. There is no skip
+flag. `prepare-candidate` remains content preparation and `check:release` remains
+offline integrity; neither alone establishes release candidacy. Partial or
+all-provider-failed evidence may qualify with explicit gaps. This is evidence,
+not a safety or policy execution gate. Old releases remain readable without a
+fabricated baseline. Publication still refuses unconditionally; fixtures do not
+replace an independently authorized production baseline and release path.
+
 When a reviewed implementation satisfies the transition completion criteria,
 establish independent Catalog release checks and an explicitly authorized path.
 Preserve immutable versions, exact packed artifact identity and license/material

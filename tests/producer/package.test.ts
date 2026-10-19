@@ -114,6 +114,7 @@ describe("packed candidate", () => {
           /^(?:src|tests|tools|producer|docs)\//.test(path) &&
           path !== "docs/FRAMEWORK-TEMPLATES.md" &&
           path !== "docs/PUBLIC-AUTHORING.md" &&
+          path !== "docs/SCAN-BASELINE.md" &&
           path !== "docs/EXTENSIONS-CONTENT.md" &&
           path !== "docs/EXTENSIONS-INVENTORY.md" &&
           !path.startsWith("producer/extensions/") &&

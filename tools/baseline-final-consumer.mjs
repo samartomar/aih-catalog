@@ -1,0 +1,22 @@
+// Reads T after packing R. All imports are from the final installed package.
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { dirname, join } from "node:path";
+import { createContentInventory, readContentInventory } from "@aihq/catalog/reader";
+import { readInstalledRelease, acquireBaselineArtifact } from "@aihq/catalog/node";
+const expected = JSON.parse(readFileSync(process.argv[2]));
+const root = dirname(createRequire(import.meta.url).resolve("@aihq/catalog/package.json"));
+const read = await readInstalledRelease({ root }); assert(read.valid, JSON.stringify(read));
+const baseline = read.release.baseline;
+assert.equal(baseline.scanId, expected.scanId); assert.equal(baseline.scope.namespace, "package-relative");
+const bytes = readFileSync(join(root, baseline.inventory.path));
+const inventory = readContentInventory(bytes, { expectedSha256: baseline.inventory.sha256 }); assert(inventory.valid);
+const releaseBytes = readFileSync(join(root, "release/release.json"));
+const projected = createContentInventory(releaseBytes, { expectedSha256: expected.releaseSha256 }); assert(projected.valid);
+assert.deepEqual(Buffer.from(projected.bytes), bytes);
+assert.equal(inventory.inventory.release.items.length, 2);
+const artifact = await acquireBaselineArtifact(baseline.artifact, { packageRoot: root });
+assert.equal(createHash("sha256").update(artifact).digest("hex"), baseline.artifact.sha256);
+console.log(JSON.stringify({ publicBindingRead: true, inventoryExact: true, artifactExact: true, scanId: baseline.scanId }));

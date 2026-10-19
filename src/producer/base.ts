@@ -1,3 +1,4 @@
+import { baselineMembers } from "../release/baseline-members.js";
 import type { CatalogRelease, Json } from "../release/contracts.js";
 import { readRelease } from "../release/reader.js";
 import { refuse } from "./errors.js";
@@ -53,6 +54,7 @@ export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRe
     });
   }
   const document = JSON.parse(releaseBytes.toString("utf8")) as Record_;
+  const checkedDocuments = [read.release];
   const items = (document.items as Json[]).map(asRecord);
   const referenced = new Set<string>([RELEASE_PATH]);
   for (const item of items) {
@@ -84,6 +86,7 @@ export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRe
       });
     }
     hookDocument = JSON.parse(hookBytes.toString("utf8")) as Record_;
+    checkedDocuments.push(hookRead.release);
     referenced.add(HOOK_RELEASE_PATH);
     for (const item of (hookDocument.items as Json[]).map(asRecord)) {
       for (const member of memberList(item)) {
@@ -130,6 +133,7 @@ export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRe
       });
     }
     const nativeDocument = JSON.parse(bytes.toString("utf8")) as Record_;
+    checkedDocuments.push(nativeRead.release);
     if (path === GUIDE_RELEASE_PATH) guideDocument = nativeDocument;
     else if (
       path === "release/release-extensions.json" ||
@@ -159,6 +163,16 @@ export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRe
         }
         referenced.add(memberPath);
       }
+    }
+  }
+  for (const checked of checkedDocuments) {
+    for (const member of baselineMembers(checked)) {
+      const bytes = files.get(member.path);
+      if (!bytes || bytes.length !== member.byteLength || sha256Hex(bytes) !== member.sha256)
+        return refuse("base-member-mismatch", "The base baseline member is absent or changed.", {
+          path: member.path,
+        });
+      referenced.add(member.path);
     }
   }
   const orphans = [...files.keys()].filter((path) => !referenced.has(path)).sort();

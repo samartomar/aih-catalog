@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Add release 1.5, content-inventory 1.0 and Scan-baseline 1.0 contracts for
+  samartomar/aih-catalog#109. Public readers bind every semantic content field
+  independently of the baseline. New release preparation requires exact readable
+  authenticated evidence, allowing provider failures and explicit coverage gaps.
+  Old releases remain readable and policy evidence stays optional. Public packed
+  fixtures prove non-circular construction, reuse, refusal and data-only expansion;
+  production signing and publication remain separate and blocked.
+
 - Add `compareVersions` and `compareReleaseIdentity` to the portable reader for
   samartomar/aih-catalog#105. Version comparisons reuse strict `compareReleases`
   semantics; recorded identity comparison requires a checked release and compares
