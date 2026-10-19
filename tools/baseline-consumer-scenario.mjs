@@ -122,20 +122,19 @@ wrongCapture.source.capture.entries = wrongCapture.source.capture.entries.map(en
 wrongCapture.source.capture.captureSha256 = hash(scanBytes({ domain: "aih.scan.capture.v1", profile: "aih-source-capture-1", entries: wrongCapture.source.capture.entries }));
 const mismatch = await signArtifact({ report: wrongCapture, annexes: [], signer: { privateKey, keyId } });
 await refused("inventory-capture", { ...request, baseline: binding(mismatch) }, { acquireArtifact: async () => mismatch.bytes });
-// A later independently supplied assessment never rewrites the baseline or saved pins.
-const saved = releaseBytes({ policy: { scanId: s1.scanId }, review: { scanId: s1.scanId }, prepared: { scanId: s1.scanId } });
+// Reading later independently supplied evidence leaves R's pinned baseline unchanged.
+// Actual saved policy/review/prepared-action preservation needs downstream consumer proof.
 const s2 = await signArtifact({ report: report(false, "2026-10-20T00:00:02.000Z"), annexes: [], signer: { privateKey, keyId } });
 const later = await readArtifact(s2.bytes);
 assert.equal((await readContentCoverage({ read: later, descriptors: [descriptor] })).status, "matched");
 assert.equal((await authenticateEvidence({ bytes: s2.bytes, expectedScanId: s2.scanId, trust })).status, "authenticated");
 assert.notEqual(s2.scanId, s1.scanId);
-assert.deepEqual(saved, releaseBytes({ policy: { scanId: s1.scanId }, review: { scanId: s1.scanId }, prepared: { scanId: s1.scanId } }));
 assert.equal(readRelease(result.releaseBytes, { expectedSha256: hash(result.releaseBytes) }).release.baseline.scanId, s1.scanId);
 // Old ordinary content still reads/configures without any evidence.
 assert(readRelease(contentBytes, { expectedSha256: hash(contentBytes) }).valid);
 const retained = { schema: "catalog-baseline-fixture-proof-v1", contentSha256: descriptor.sha256, inventoryPath: descriptor.path,
   releaseSha256: hash(result.releaseBytes), scanId: s1.scanId, laterScanId: s2.scanId, failures, itemCoverage: result.itemCoverage,
-  partialAccepted: true, allFailedAccepted: true, reuseAccepted: true, secondItemConfigured: true, savedPinsUnchanged: true };
+  partialAccepted: true, allFailedAccepted: true, reuseAccepted: true, secondItemConfigured: true, baselinePinUnchanged: true };
 writeFileSync(join(out, "scenario-result.json"), JSON.stringify(retained, null, 2));
 writeFileSync(join(out, "fixture-trust.json"), releaseBytes(trust));
 writeFileSync(join(out, "later-s2.json"), s2.bytes);

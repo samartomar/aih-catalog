@@ -7,7 +7,12 @@ import {
 } from "./baseline-contracts.js";
 import { contentInventoryBytes } from "./baseline-wire.js";
 import { exactFields } from "./boundary.js";
-import { RELEASE_MAX_BYTES, RELEASE_MAX_DEPTH, RELEASE_SCHEMA_ID_1_5 } from "./contracts.js";
+import {
+  RELEASE_MAX_BYTES,
+  RELEASE_MAX_DEPTH,
+  RELEASE_RECIPE_SCHEMAS,
+  RELEASE_SCHEMA_ID_1_5,
+} from "./contracts.js";
 import { checkReleaseDocument, isRecord, SHA256 } from "./document.js";
 import { deepFreeze, JsonAdmissionError, readCanonicalBytes } from "./json.js";
 import { sha256Hex } from "./sha256.js";
@@ -73,12 +78,14 @@ export function readContentInventory(
       value.projection !== CONTENT_PROJECTION_ID
     )
       return refuse("unsupported-inventory", true);
+    if (!exactFields(value, ["schema", "projection", "release"]) || !isRecord(value.release))
+      return refuse("inventory-invalid");
     if (
-      !exactFields(value, ["schema", "projection", "release"]) ||
-      !isRecord(value.release) ||
-      value.release.schema !== RELEASE_SCHEMA_ID_1_5 ||
-      Object.hasOwn(value.release, "baseline")
+      typeof value.release.schema === "string" &&
+      !Object.hasOwn(RELEASE_RECIPE_SCHEMAS, value.release.schema)
     )
+      return refuse("unsupported-release", true);
+    if (value.release.schema !== RELEASE_SCHEMA_ID_1_5 || Object.hasOwn(value.release, "baseline"))
       return refuse("inventory-invalid");
     const checked = checkReleaseDocument(value.release, { contentOnly: true });
     if (!checked.document) return { valid: false, diagnostics: checked.diagnostics };

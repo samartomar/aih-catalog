@@ -161,6 +161,8 @@ and one recipe in a synthetic report, signs with an ephemeral fixture key, calls
 actual Scan/Core public APIs, writes R, packs T, and reads T in a second consumer.
 It retains C/S1/R, public fixture trust, later S2, rejection outcomes and artifact
 digests. It exercises partial/all-failed acceptance, unchanged reuse, C2 refusal,
-read/trust/acquisition/identity/scope refusals, explicit member gaps and unchanged
-saved identities. It runs no scanner, native client, paid service or publication.
+read/trust/acquisition/identity/scope refusals, explicit member gaps and R's
+unchanged S1 baseline after reading S2. Saved policy, review, prepared-action and
+browser preservation require downstream consumer journey proof; this fixture does
+not establish them. It runs no scanner, native client, paid service or publication.
 The output is a test fixture, not production content or real provider execution.

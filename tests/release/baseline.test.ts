@@ -100,6 +100,22 @@ it("refuses unsupported inventory and new releases missing their binding", () =>
   expect(read(content).valid).toBe(false);
 });
 
+it("distinguishes an unknown nested release contract from an incompatible known projection", () => {
+  const { baseline: _baseline, ...release } = boundRelease();
+  for (const [schema, code] of [
+    ["urn:aihq:catalog:release:9.0.0", "SCHEMA_UNSUPPORTED"],
+    ["urn:aihq:catalog:release:1.4.0", "INPUT_INVALID"],
+  ]) {
+    const bytes = releaseBytes({
+      schema: "urn:aihq:catalog:content-inventory:1.0.0",
+      projection: "urn:aihq:catalog:release-content:1.0.0",
+      release: { ...release, schema },
+    });
+    const result = readContentInventory(bytes, { expectedSha256: sha256(bytes) });
+    expect(result.valid ? [] : result.diagnostics.map((d) => d.code)).toContain(code);
+  }
+});
+
 it("publishes schemas that admit the same new release and inventory examples", () => {
   const ajv = new Ajv2020({ strict: true });
   const schema = JSON.parse(
