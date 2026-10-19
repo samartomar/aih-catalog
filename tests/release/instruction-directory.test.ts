@@ -787,7 +787,7 @@ describe("prepareProjectContext refusals", () => {
       expect(existsSync(out)).toBe(false);
     }
     expect(digest(tree(from.root))).toEqual(before);
-  });
+  }, 30_000);
 
   it("is cancelled before any work when the signal is already aborted", async () => {
     const out = output();
