@@ -68,26 +68,39 @@ the drift and after the recovery.
 quoted table names; Codex writes `[projects."<path>"]` when it records a trusted project. An earlier
 Core fails closed instead of misreading the file: an owned array is `unsupported-toml-value` and a
 file with a quoted table header is `unsupported-toml-table`. The managed table and key names are
-bare, so these entries do not move Core's ownership root to 1.3.0.
+bare, so they do not require quoted-entry ownership root 1.3.0. Builds containing Core #69 use
+ownership root 1.4.0 while created-table custody is needed; an earlier Core refuses that root.
 
 **Limits.** Each managed value is owned exactly. Unrelated tables, keys and comments are only read,
 so a client edit elsewhere in the file leaves the entries at `match`. Core still refuses a file it
 cannot scan: a multi-line inline table or one with a trailing comma (TOML 1.1), array tables
 (`[[x]]`), dotted keys, duplicate tables or keys, and an existing managed value that is an inline
 table. `checkFileState` reports drift for the whole `config.toml` target with the operations that
-manage it, not for the individual key. Removal deletes each managed statement but keeps the
-emptied `[mcp_servers.<key>]` headers, including a nested one such as
-`[mcp_servers.<key>.env_http_headers]`, at their position; delete those headers by hand, since a
-server table with neither `command` nor `url` is not a usable Codex server. Only the default user
-location `~/.codex/config.toml` is targeted, not a custom `CODEX_HOME`. Native Codex execution of
+manage it, not for the individual key.
+
+**Removal build boundary.** Core builds before [samartomar/aih-core#69](https://github.com/samartomar/aih-core/issues/69)
+delete managed statements but retain emptied `[mcp_servers.<key>]` headers, including nested
+`[mcp_servers.<key>.env_http_headers]` headers. Builds containing its implementation
+([Core PR #70](https://github.com/samartomar/aih-core/pull/70), merge commit
+`faa19b50b9f6c528053c2cdab71b92c99beb01f4`) record tables they create during setup and remove
+their headers when the last managed key is removed and no keys or comments remain. Tables that
+predate setup, tables with person/client-added content, and tables created by older builds without
+that custody record keep their headers. This is a source-build boundary, not a published package
+semver guarantee; identify local artifacts by source commit and SHA-256. Older empty server
+headers may need manual cleanup: a server table with neither `command` nor `url` is not usable.
+Only the default user location `~/.codex/config.toml` is targeted, not a custom `CODEX_HOME`.
+Native Codex execution of
 these entries has not been observed.
 
-`node tools/verify-codex-mcp-config.mjs <core.tgz> [catalog.tgz]` checks this against a Core
+`node tools/verify-codex-mcp-config.mjs --expect-removal=clean <core.tgz> [catalog.tgz]` checks this against a Core
 artifact with the packed Catalog in a fixture home. It uses a realistic `config.toml` with comments,
 top-level keys, quoted project tables, a user-owned `[mcp_servers.other]` and a profile. It checks
 that setup keeps every original byte, that a simulated client table and an unrelated key edit leave
 the managed entries at `match`, that repeat setup changes no bytes, that a managed edit is drift
-and is restored, and the exact bytes removal leaves.
+and is restored, and removal restores the exact original bytes plus the simulated client edits.
+Use `--expect-removal=empty-managed-table-headers-remain` for a build before Core #69 that supports
+these recipes. The expectation is required and a different outcome fails the proof; both modes
+compare all caller-owned bytes. This fresh fixture does not test custody inherited from older builds.
 
 ## Current contract: resolver diagnostic references
 

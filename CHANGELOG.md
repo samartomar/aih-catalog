@@ -81,12 +81,19 @@
   `codex-config-blocks` refusal is unchanged. `ito-compute`, `supabase` and `filesystem` stay
   Claude-only because an argument carries a `${...}` reference that Codex documents no expansion
   for. The recipes need a Core whose TOML `config.entries` accept arrays and quoted table names;
-  an earlier Core refuses them. Removal leaves the emptied `[mcp_servers.<key>]` headers, and
+  an earlier Core refuses them. Builds before samartomar/aih-core#69 leave emptied
+  `[mcp_servers.<key>]` headers on removal. Builds containing its implementation (Core PR #70,
+  merge `faa19b50b9f6c528053c2cdab71b92c99beb01f4`) remove headers for tables they created and
+  recorded during setup once no keys or comments remain. Existing tables and tables created by
+  older builds without that custody record retain their headers. This is a source-build boundary,
+  not a published package semver guarantee, and
   file-state drift is reported per file, not per key. Release format 1.0.0 and every existing
   item ID are unchanged; the new overlay recipes change the shared ECC source inventory, so every
   ECC item's `itemSha256` changes. `CONTRACTS.md` records the contract and limits, and
-  `node tools/verify-codex-mcp-config.mjs <core.tgz> [catalog.tgz]` checks setup, a simulated
-  client edit, repeat setup, managed drift and removal against a Core artifact.
+  `node tools/verify-codex-mcp-config.mjs --expect-removal=clean <core.tgz> [catalog.tgz]` checks setup,
+  a simulated client edit, repeat setup, managed drift and removal against a Core artifact. Use
+  `--expect-removal=empty-managed-table-headers-remain` for an older compatible build; a missing
+  expectation or a different removal outcome fails the proof (samartomar/aih-catalog#95).
 
 - Add the whole-package integrity check `codex-config-blocks` for samartomar/aih-catalog#91: no
   recipe may add a `text.block` to a Codex `config.toml` (a target ending in `.codex/config.toml`,
