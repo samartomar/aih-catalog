@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Add `compareVersions` and `compareReleaseIdentity` to the portable reader for
+  samartomar/aih-catalog#105. Version comparisons reuse strict `compareReleases`
+  semantics; recorded identity comparison requires a checked release and compares
+  package name and release digest without authenticating the record. Unavailable
+  resolver diagnostics now preserve declared `reference.itemSha256`. Completed
+  unavailable-reference walks retain available required paths under explicitly
+  partial informational data; refusal still returns no executable selections.
+  Public types, guide and strict packed-consumer coverage accompany these additions.
+
+
 - `npm pack` now builds first for samartomar/aih-catalog#104: a `prepack` lifecycle runs
   `npm run build:dist`, so an archive packed from a clean checkout contains `dist/` and
   every built entry its exports name instead of failing at the first import. Packing with

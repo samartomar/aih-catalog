@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { CatalogRelease } from "../../src/release/contracts.js";
 import type { ItemComparison } from "../../src/release/reader.js";
-import { compareReleases, readRelease } from "../../src/release/reader.js";
+import {
+  compareReleaseIdentity,
+  compareReleases,
+  compareVersions,
+  readRelease,
+} from "../../src/release/reader.js";
 import { fixtureRelease, type Json, releaseBytes, sha256 } from "./fixtures.js";
 
 type Document = ReturnType<typeof fixtureRelease> & {
@@ -305,4 +310,78 @@ describe("boundaries", () => {
       expect(result.diagnostics[0]?.path).toBe("");
     }
   });
+});
+
+it("compares stored versions with the same strict meaning as checked releases", () => {
+  for (const [first, second] of [
+    ["1.2.0", "1.10.0"],
+    ["2.0.0", "1.0.0"],
+    ["1.0.0", "1.0.0"],
+    ["1.0.0-alpha.2", "1.0.0-alpha.11"],
+    ["1.0.0+one", "1.0.0+two"],
+    ["1.0.0-01", "2.0.0"],
+    ["9007199254740993.0.0", "9007199254740992.0.0"],
+  ] as const) {
+    expect(compareVersions({ first, second })).toEqual({
+      status: "ok",
+      value: order(first, second),
+      diagnostics: [],
+    });
+  }
+  expect(compareVersions({ first: "latest", second: "1.0.0" })).toMatchObject({
+    status: "ok",
+    value: { secondIs: "unknown", reason: "version-not-semver" },
+  });
+  expect(compareVersions({ first: 1, second: "1.0.0" } as never).status).toBe("refused");
+});
+
+it("compares one checked release to recorded package and digest without trusting the record", () => {
+  const release = checked(document());
+  const recorded = { package: { name: release.package.name }, sha256: release.sha256 };
+  const result = compareReleaseIdentity({ release, recorded });
+  expect(result).toMatchObject({
+    status: "ok",
+    value: { package: "same-package", sameRelease: true, recorded },
+  });
+  expect(Object.isFrozen(result)).toBe(true);
+  expect(Object.isFrozen(recorded)).toBe(false);
+  expect(
+    compareReleaseIdentity({ release, recorded: { ...recorded, sha256: "f".repeat(64) } }),
+  ).toMatchObject({ status: "ok", value: { package: "same-package", sameRelease: false } });
+  expect(
+    compareReleaseIdentity({ release, recorded: { ...recorded, package: { name: "other" } } }),
+  ).toMatchObject({ status: "ok", value: { package: "different-package", sameRelease: false } });
+  expect(compareReleaseIdentity({ release: structuredClone(release), recorded }).status).toBe(
+    "refused",
+  );
+  expect(compareReleaseIdentity({ release, recorded: { ...recorded, sha256: "bad" } }).status).toBe(
+    "refused",
+  );
+});
+
+it("refuses comparison accessors without invoking them", () => {
+  let calls = 0;
+  const release = checked(document());
+  expect(
+    compareVersions({
+      get first() {
+        calls++;
+        return "1.0.0";
+      },
+      second: "2.0.0",
+    }).status,
+  ).toBe("refused");
+  expect(
+    compareReleaseIdentity({
+      release,
+      recorded: {
+        get package() {
+          calls++;
+          return { name: "catalog" };
+        },
+        sha256: release.sha256,
+      },
+    }).status,
+  ).toBe("refused");
+  expect(calls).toBe(0);
 });

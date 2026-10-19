@@ -6,6 +6,7 @@
 
 import { dataRecord, exactFields } from "./boundary.js";
 import type { AuthoringResult, CatalogItem, CatalogRelease, Diagnostic } from "./contracts.js";
+import { PACKAGE_NAME, SHA256 } from "./document.js";
 import { deepFreeze } from "./json.js";
 import { isCheckedRelease } from "./reader.js";
 import { semverPrecedence } from "./version.js";
@@ -205,4 +206,105 @@ export function compareReleases(request: CompareReleasesRequest): CompareRelease
     },
     diagnostics: [],
   });
+}
+
+export interface CompareVersionsRequest {
+  readonly first: string;
+  readonly second: string;
+}
+export type CompareVersionsResult = AuthoringResult<VersionComparison>;
+
+/** Strict version order for stored strings, second relative to first, without package inference. */
+export function compareVersions(request: CompareVersionsRequest): CompareVersionsResult {
+  try {
+    const top = dataRecord(request);
+    if (
+      !exactFields(top, ["first", "second"]) ||
+      typeof top.first !== "string" ||
+      typeof top.second !== "string" ||
+      top.first.length > 256 ||
+      top.second.length > 256
+    )
+      throw new TypeError("Version fields");
+    return deepFreeze({
+      status: "ok",
+      value: versionOrder(top.first, top.second),
+      diagnostics: [],
+    });
+  } catch {
+    return deepFreeze({
+      status: "refused",
+      diagnostics: [
+        {
+          code: "INPUT_INVALID",
+          path: "",
+          message: "Expected exactly { first, second } strings of at most 256 characters.",
+        },
+      ],
+    });
+  }
+}
+
+/** Caller-recorded provenance, not an authenticated or checked release. */
+export interface RecordedReleaseIdentity {
+  readonly package: { readonly name: string };
+  readonly sha256: string;
+}
+export interface CompareReleaseIdentityRequest {
+  readonly release: CatalogRelease;
+  readonly recorded: RecordedReleaseIdentity;
+}
+export interface ReleaseIdentityComparison {
+  readonly release: ComparedRelease;
+  readonly recorded: RecordedReleaseIdentity;
+  readonly package: "same-package" | "different-package";
+  /** Both recorded fields match the checked release; does not authenticate the record. */
+  readonly sameRelease: boolean;
+}
+export type CompareReleaseIdentityResult = AuthoringResult<ReleaseIdentityComparison>;
+
+/** Compare a checked release to a recorded name/digest without acquiring the recorded bytes. */
+export function compareReleaseIdentity(
+  request: CompareReleaseIdentityRequest,
+): CompareReleaseIdentityResult {
+  try {
+    const top = dataRecord(request);
+    if (!exactFields(top, ["release", "recorded"]) || !isCheckedRelease(top.release))
+      throw new TypeError("Checked release required");
+    const recorded = dataRecord(top.recorded);
+    const pkg = dataRecord(recorded.package);
+    if (
+      !exactFields(recorded, ["package", "sha256"]) ||
+      !exactFields(pkg, ["name"]) ||
+      typeof pkg.name !== "string" ||
+      pkg.name.length > 214 ||
+      !PACKAGE_NAME.test(pkg.name) ||
+      typeof recorded.sha256 !== "string" ||
+      !SHA256.test(recorded.sha256)
+    )
+      throw new TypeError("Recorded identity fields");
+    const samePackage = top.release.package.name === pkg.name;
+    return deepFreeze({
+      status: "ok",
+      value: {
+        release: side(top.release),
+        recorded: { package: { name: pkg.name }, sha256: recorded.sha256 },
+        package: samePackage ? "same-package" : "different-package",
+        sameRelease: samePackage && top.release.sha256 === recorded.sha256,
+      },
+      diagnostics: [],
+    });
+  } catch {
+    return deepFreeze({
+      status: "refused",
+      diagnostics: [
+        {
+          code: "INPUT_INVALID",
+          path: "",
+          message:
+            "Expected exactly { release, recorded: { package: { name }, sha256 } } with a checked release, npm name and SHA-256.",
+        },
+      ],
+    });
+  }
 }

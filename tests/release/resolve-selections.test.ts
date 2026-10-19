@@ -425,7 +425,7 @@ it("names the exact unavailable item and the root that directly requires it", ()
       code: "ITEM_UNAVAILABLE",
       path: declaration(secondary, "a", "requires"),
       message: "Referenced item is absent from the supplied release.",
-      reference: ref(primary, "zz"),
+      reference: { ...ref(primary, "zz"), itemSha256: "f".repeat(64) },
       declaredBy: ref(secondary, "a"),
     },
   ]);
@@ -441,7 +441,7 @@ it("names the dependent item for a transitive unavailable item, once per walked 
     code: "ITEM_UNAVAILABLE",
     path: declaration(secondary, "b", "requires"),
     message: "Referenced item is absent from the supplied release.",
-    reference: ref(primary, "zz"),
+    reference: { ...ref(primary, "zz"), itemSha256: "f".repeat(64) },
     declaredBy: ref(secondary, "b"),
   };
   const single = resolveSelections({ releases, roots: [root(secondary, "a")], skips: [] });
@@ -473,7 +473,7 @@ it("names the exact reference, in the dependent's scope, when its release is not
       code: "RELEASE_UNAVAILABLE",
       path: declaration(secondary, "a", "requires"),
       message: "Referenced release was not supplied.",
-      reference: ref(primary, "d", "user"),
+      reference: { ...ref(primary, "d", "user"), itemSha256: "f".repeat(64) },
       declaredBy: ref(secondary, "a", "user"),
     },
   ]);
@@ -525,4 +525,32 @@ it("names both selected items of a conflict at the conflict declaration", () => 
     ]);
     expect(Object.isFrozen(result.diagnostics[0]?.reference)).toBe(true);
   }
+});
+
+it("retains sorted available required paths as partial on unavailable-reference refusal", () => {
+  const primary = checked(graph());
+  const secondary = crossRelease(primary, "missing", { transitive: true });
+  const roots = [root(secondary, "a"), root(secondary, "missing")];
+  const request = { releases: { [secondary.sha256]: secondary }, roots, skips: [] };
+  const result = resolveSelections(request);
+  expect(result.status).toBe("refused");
+  if (result.status !== "refused") return;
+  expect(result.partial).toEqual({
+    status: "partial",
+    inclusions: [
+      { item: ref(secondary, "a"), root: ref(secondary, "a"), path: [ref(secondary, "a")] },
+      {
+        item: ref(secondary, "b"),
+        root: ref(secondary, "a"),
+        path: [ref(secondary, "a"), ref(secondary, "b")],
+      },
+    ],
+  });
+  expect(result).not.toHaveProperty("value");
+  expect(result.partial).not.toHaveProperty("selections");
+  expect(Object.isFrozen(result.partial?.inclusions[0]?.path)).toBe(true);
+  expect(resolveSelections({ ...request, roots: [...roots].reverse() }).status).toBe("refused");
+  expect(resolveSelections({ ...request, roots: [...roots].reverse() })).toMatchObject({
+    partial: result.partial,
+  });
 });

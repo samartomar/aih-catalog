@@ -267,11 +267,53 @@ An example value for a candidate that changes one recipe and drops one item:
   a serialized, cloned or forged release refuses at `/first` or `/second` with
   `INPUT_INVALID`. There is no partial value.
 
+## Compare stored versions and release identities
+
+```js
+import { compareVersions, compareReleaseIdentity } from "@aihq/catalog/reader";
+
+const version = compareVersions({ first: savedVersion, second: candidate.package.version });
+const identity = compareReleaseIdentity({
+  release: candidate, // an actual readRelease handle
+  recorded: { package: { name: savedPackageName }, sha256: savedReleaseSha256 },
+});
+```
+
+`compareVersions` returns the same `VersionComparison` as `compareReleases`:
+`second` is relative to `first`; exact strict-semver strings are `equal`, build-only
+differences are `unknown` (`build-metadata-only`), and non-semver strings are
+`unknown` (`version-not-semver`). Numeric identifiers retain arbitrary precision.
+It infers no package relation; check that separately. The exact `{first,second}`
+request requires primitive strings of at most 256 characters; malformed requests
+refuse with `INPUT_INVALID` at `""`. A bounded non-semver string is an unknown
+comparison, not malformed request data.
+
+`compareReleaseIdentity` accepts exactly `{release,recorded:{package:{name},sha256}}`.
+The record requires an npm package name (at most 214 characters) and lowercase
+64-hex release digest. It returns
+`{release:{sha256,package:{name,version}},recorded,package,sameRelease}` inside an
+ordinary authoring result. `package` is `same-package` or `different-package`;
+`sameRelease` requires both recorded fields to match. A changed digest can still
+belong to the same package. The caller-supplied record is not authenticated by
+this comparison, even when it matches. No item or version facts can be inferred
+from its digest. Malformed input or a cloned/forged release refuses with
+`INPUT_INVALID` at `""`. Both helpers copy and freeze their results, leave caller
+data untouched, and perform no acquisition or host access. Their request/result
+and value types are exported from `@aihq/catalog/reader`.
+
 ## Refusal and diagnostic contract
 
 Success is `{status:"ok",value,diagnostics:[]}`. Refusal is
 `{status:"refused",diagnostics}`; resolver refusal additionally reports
-`removalImpact`, never selections or a partial value. Diagnostic fields are
+`removalImpact`, never executable selections or `value`. An unavailable-reference
+refusal after a completed bounded walk also carries
+`partial:{status:"partial",inclusions}`. These sorted, deduplicated required paths
+include available roots and reachable requirements, including branches away from
+a missing dependency; unavailable roots are omitted. They are informational only:
+items on those paths can themselves have missing requirements, conflicts or invalid
+configuration. Never pass partial closure to execution as successful resolution.
+Malformed requests, unchecked handles and path-bound overflow return no partial.
+Retry with the missing exact releases/items to obtain a validated composition. Diagnostic fields are
 `{code,path,message,related?,reason?,details?,reference?,declaredBy?}`. Paths are JSON pointers.
 Reason is absent for these new helpers; messages explain but are not machine
 interfaces. Existing Catalog reader/validator diagnostics retain their original
@@ -285,9 +327,11 @@ references, conflicts and invalid final configuration refuse the entire composit
 
 Resolver diagnostics name the references involved, so a consumer never re-walks
 dependency declarations. `RELEASE_UNAVAILABLE` and `ITEM_UNAVAILABLE` carry
-`reference:{releaseSha256,itemId,scope}`, the exact unresolved reference (a
+`reference:{releaseSha256,itemId,scope,itemSha256?}`, the exact unresolved reference (a
 dependency resolves in its dependent's scope). When a dependency declaration names
-it, `path` points at that declaration
+it, `reference.itemSha256` preserves its declared digest when present, never an
+inferred digest. Request entries and declarations without a digest omit that field.
+`path` points at that declaration
 (`/releases/<digest>/items/<index>/dependencies/requires/<n>`, or `optional` /
 `conflicts`) and `declaredBy` is the declaring item: the root for a direct
 dependency, the dependent item for a transitive one. A request entry that is itself

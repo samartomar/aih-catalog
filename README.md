@@ -132,7 +132,13 @@ package, how their versions order (`unknown` when Semantic Versioning cannot ord
 them) and, per item, whether it is in both with changed or unchanged recipe/material
 content, or in only one. Changes to an item's inputs, dependencies, targets, scopes,
 kind or `clientId` are record-only (`content` unchanged, `record` changed), so check
-`record` for those. It recommends nothing. See
+`record` for those. It recommends nothing. With a stored version, use
+`compareVersions({first,second})` for the same strict ordering. With only recorded
+provenance, `compareReleaseIdentity({release,recorded:{package:{name},sha256}})`
+reports package and release equality without acquiring the recorded release.
+Unavailable resolver references carry their declared `itemSha256` when present;
+refusals may carry `partial:{status:"partial",inclusions}` for informational
+required paths, with no runnable selections. See
 [compare two checked releases](docs/PUBLIC-AUTHORING.md#compare-two-checked-releases).
 
 The `aihq.project-context` family supplies shared project AI context

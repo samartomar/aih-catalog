@@ -525,16 +525,22 @@ export { resolveSelections } from "./resolve.js";
 export type {
   Change,
   ComparedRelease,
+  CompareReleaseIdentityRequest,
+  CompareReleaseIdentityResult,
   CompareReleasesRequest,
   CompareReleasesResult,
+  CompareVersionsRequest,
+  CompareVersionsResult,
   ItemComparison,
   ItemIdentity,
   ItemInBoth,
   ItemOnlyInFirst,
   ItemOnlyInSecond,
+  RecordedReleaseIdentity,
   ReleaseComparison,
+  ReleaseIdentityComparison,
   VersionComparison,
   VersionOrder,
   VersionOrderUnknownReason,
 } from "./update-facts.js";
-export { compareReleases } from "./update-facts.js";
+export { compareReleaseIdentity, compareReleases, compareVersions } from "./update-facts.js";
