@@ -18,13 +18,19 @@ import { seedConsumerLock } from "./seed-consumer-lock.mjs";
 // Drive Core's public API against the real packed Catalog recipes in a fixture home; never
 // start a native client or choose a registry version.
 assert(
-  process.argv.length === 3 || process.argv.length === 4,
-  "Usage: node tools/verify-codex-mcp-config.mjs <core-tarball> [catalog-tarball]",
+  process.argv.length === 4 || process.argv.length === 5,
+  "Usage: node tools/verify-codex-mcp-config.mjs --expect-removal=<clean|empty-managed-table-headers-remain> <core-tarball> [catalog-tarball]",
+);
+const expectedRemoval = process.argv[2].replace(/^--expect-removal=/, "");
+assert(
+  process.argv[2] === "--expect-removal=" + expectedRemoval &&
+    ["clean", "empty-managed-table-headers-remain"].includes(expectedRemoval),
+  "Explicitly require --expect-removal=clean or --expect-removal=empty-managed-table-headers-remain for the supplied Core build.",
 );
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const coreTarball = resolve(process.argv[2]);
+const coreTarball = resolve(process.argv[3]);
 assert(existsSync(coreTarball), "The supplied Core artifact must exist.");
-const suppliedCatalog = process.argv[3] && resolve(process.argv[3]);
+const suppliedCatalog = process.argv[4] && resolve(process.argv[4]);
 assert(!suppliedCatalog || existsSync(suppliedCatalog), "The supplied Catalog artifact must exist.");
 const hash = (path) => createHash("sha256").update(readFileSync(path)).digest("hex");
 const coreSha256 = hash(coreTarball);
@@ -100,6 +106,7 @@ import { apply, checkFileState, listManagedSelections, prepare } from "@aihq/cor
 
 const sha = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const fixture = process.argv[2];
+const expectedRemoval = process.argv[3];
 const home = process.env.HOME;
 const project = join(fixture, "project");
 mkdirSync(project);
@@ -346,19 +353,24 @@ steps.clientChange = { fileState: await stateOf("client change", "match") };
 {
   const run = await setup("removal", removalPolicy);
   const after = read();
-  // Core removes each managed statement but keeps the table headers that held them, at the
-  // end of the file. Name those exact bytes so a change is noticed either way.
+  // Builds before Core #69 retain these headers. Builds containing it record newly created
+  // tables and remove their headers when their last managed key is removed. Require the
+  // caller's declared outcome, always comparing every byte of the person's/client's content.
   const emptyHeaders = "[mcp_servers.browser-use]\n[mcp_servers.browser-use.env_http_headers]\n[mcp_servers.github]\n";
   const outcome = after === originalWithClient ? "clean"
     : after === originalWithClient + emptyHeaders ? "empty-managed-table-headers-remain" : "unexpected";
   steps.removal = {
     ...run,
+    expectedOutcome: expectedRemoval,
     outcome,
     ...(outcome === "empty-managed-table-headers-remain"
       ? { finding: "Core leaves empty managed table headers after removal", leftover: emptyHeaders }
       : {}),
   };
-  assert.notEqual(outcome, "unexpected", "Removal left unexpected bytes: " + dump({ observed: after, expected: originalWithClient }));
+  assert.equal(outcome, expectedRemoval, "Removal did not match the required outcome: " + dump({
+    outcome, expectedRemoval, observed: after,
+    expected: originalWithClient + (expectedRemoval === "clean" ? "" : emptyHeaders),
+  }));
   for (const { path } of materialPaths) assert(!existsSync(path), "Delivered material must be removed: " + path);
   steps.removal.materialRemoved = true;
 }
@@ -377,7 +389,7 @@ console.log(JSON.stringify({ steps }));
 `,
   );
   const result = JSON.parse(
-    execFileSync(process.execPath, [join(consumer, "consume.mjs"), fixture], {
+    execFileSync(process.execPath, [join(consumer, "consume.mjs"), fixture, expectedRemoval], {
       cwd: consumer,
       env: { ...environment, [pathKey]: consumerPath },
       encoding: "utf8",

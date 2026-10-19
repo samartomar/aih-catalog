@@ -46,12 +46,15 @@ in disposable offline fixtures to prove simulated Codex config table drift insid
 managed block, recovery by moving the table below its END marker, and the matching
 control with the table below the block from the start. It runs no native client.
 
-`node tools/verify-codex-mcp-config.mjs <core.tgz> [catalog.tgz]` installs the packed
+`node tools/verify-codex-mcp-config.mjs --expect-removal=clean <core.tgz> [catalog.tgz]` installs the packed
 Catalog (packed from this checkout unless supplied) and the Core artifact offline into
 a disposable consumer and fixture home. It applies the real `ecc.codex.mcp.github` and
 `ecc.codex.mcp.browser-use` recipes to a realistic Codex `config.toml`, then checks
 byte preservation, simulated client edits, repeat setup, managed drift and removal. It
-runs no native client.
+runs no native client. Require `clean` for a Core build containing samartomar/aih-core#69, or
+`--expect-removal=empty-managed-table-headers-remain` for an older compatible build; an unexpected
+outcome fails. [CONTRACTS.md](CONTRACTS.md#current-contract-codex-mcp-servers-through-structured-toml-entries)
+records the source-build boundary and custody limits. Identify the Core artifact by commit and SHA-256.
 
 Release generation renders the authored project context through the built release
 module, so run `npm run build:dist` before `npm test` or `npm run check:materials` on
