@@ -89,8 +89,7 @@ that custody record keep their headers. This is a source-build boundary, not a p
 semver guarantee; identify local artifacts by source commit and SHA-256. Older empty server
 headers may need manual cleanup: a server table with neither `command` nor `url` is not usable.
 Only the default user location `~/.codex/config.toml` is targeted, not a custom `CODEX_HOME`.
-Native Codex execution of
-these entries has not been observed.
+This fixture proof does not execute a native Codex client.
 
 `node tools/verify-codex-mcp-config.mjs --expect-removal=clean <core.tgz> [catalog.tgz]` checks this against a Core
 artifact with the packed Catalog in a fixture home. It uses a realistic `config.toml` with comments,
