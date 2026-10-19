@@ -72,10 +72,16 @@ afterAll(() => {
 it("type-checks and compares two checked releases through the packed reader only", () => {
   const program = `
     import { readFileSync } from "node:fs";
+    import assert from "node:assert/strict";
     import { createHash } from "node:crypto";
     import { fileURLToPath } from "node:url";
     import {
       compareReleases,
+      compareVersions,
+      compareReleaseIdentity,
+      resolveSelections,
+      type CompareVersionsResult,
+      type CompareReleaseIdentityResult,
       readRelease,
       type CompareReleasesResult,
       type ItemComparison,
@@ -129,7 +135,61 @@ it("type-checks and compares two checked releases through the packed reader only
     const invalid = ok(compareReleases({ first, second: unversioned }));
     const unrelated = ok(compareReleases({ first, second: other }));
     const forged = compareReleases({ first, second: JSON.parse(JSON.stringify(second)) });
+    const storedVersion: CompareVersionsResult = compareVersions({ first: "1.2.0", second: "1.10.0" });
+    assert.deepEqual(storedVersion, { status: "ok", value: { first: "1.2.0", second: "1.10.0", secondIs: "newer" }, diagnostics: [] });
+    for (const [a, b, direction] of [
+      ["1.0.0-alpha.2", "1.0.0-alpha.11", "newer"], ["1.0.0", "1.0.0-rc.1", "older"],
+      ["1.0.0", "1.0.0", "equal"], ["9007199254740993.0.0", "9007199254740992.0.0", "older"],
+    ]) {
+      const result = compareVersions({ first: a!, second: b! });
+      assert.equal(result.status === "ok" && result.value.secondIs, direction);
+    }
+    for (const [a, b, reason] of [["latest", "1.0.0", "version-not-semver"],
+      ["1.0.0-01", "1.0.0", "version-not-semver"], ["1.0.0+a", "1.0.0+b", "build-metadata-only"]]) {
+      const result = compareVersions({ first: a!, second: b! });
+      assert.deepEqual(result.status === "ok" && result.value, { first: a, second: b, secondIs: "unknown", reason });
+    }
+    assert.equal(compareVersions({ first: 1, second: "1.0.0" } as never).status, "refused");
+    const recorded = { package: { name: first.package.name }, sha256: first.sha256 };
+    const recordedMatch: CompareReleaseIdentityResult = compareReleaseIdentity({ release: first, recorded });
+    assert.equal(recordedMatch.status === "ok" && recordedMatch.value.sameRelease, true);
+    const changedIdentity = compareReleaseIdentity({ release: second, recorded });
+    assert.equal(changedIdentity.status === "ok" && changedIdentity.value.package, "same-package");
+    assert.equal(changedIdentity.status === "ok" && changedIdentity.value.sameRelease, false);
+    const differentIdentity = compareReleaseIdentity({ release: other, recorded });
+    assert.equal(differentIdentity.status === "ok" && differentIdentity.value.package, "different-package");
+    assert.equal(differentIdentity.status === "ok" && differentIdentity.value.sameRelease, false);
+    assert.equal(compareReleaseIdentity({ release: structuredClone(first), recorded }).status, "refused");
+    assert.equal(compareReleaseIdentity({ release: first, recorded: { ...recorded, sha256: "bad" } }).status, "refused");
+
+    const graphDoc = JSON.parse(new TextDecoder().decode(shipped));
+    const template = graphDoc.items[0];
+    graphDoc.items = ["available", "root", "stable"].map((id) => ({ ...structuredClone(template), id,
+      inputs: {}, scopes: ["project"], recipe: { ...template.recipe, id, path: "release/recipes/" + id + ".json" },
+      dependencies: { requires: [], optional: [], conflicts: [] },
+    }));
+    const missing = { itemId: "missing", itemSha256: "f".repeat(64), release: {
+      source: { kind: "local", input: "other" }, manifest: { path: "release/release.json", sha256: other.sha256, byteLength: other.byteLength },
+    } };
+    graphDoc.items[1].dependencies.requires = [{ itemId: "available" }, missing];
+    const graph = checked(new TextEncoder().encode(canonical(graphDoc) + "\\n"));
+    const ref = (itemId: string) => ({ releaseSha256: graph.sha256, itemId, scope: "project" as const });
+    for (const supplyOther of [false, true]) {
+      const result = resolveSelections({ releases: { [graph.sha256]: graph, ...(supplyOther ? { [other.sha256]: other } : {}) },
+        roots: [{ ...ref("root"), configuration: {} }, { ...ref("stable"), configuration: {} }], skips: [] });
+      assert.equal(result.status, "refused");
+      if (result.status !== "refused") throw new Error("partial closure accepted");
+      const missingDiagnostic = result.diagnostics.find((d) => d.code === (supplyOther ? "ITEM_UNAVAILABLE" : "RELEASE_UNAVAILABLE"));
+      assert.deepEqual(missingDiagnostic?.reference, { releaseSha256: other.sha256, itemId: "missing", scope: "project", itemSha256: "f".repeat(64) });
+      assert.deepEqual(missingDiagnostic?.declaredBy, ref("root"));
+      assert.equal(result.partial?.status, "partial");
+      assert.deepEqual(result.partial?.inclusions.map((entry) => entry.path.map((ref) => ref.itemId)), [["root", "available"], ["root"], ["stable"]]);
+      assert.equal("value" in result, false);
+      assert.equal("selections" in result.partial!, false);
+      assert.equal(Object.isFrozen(result.partial?.inclusions[0]?.path), true);
+    }
     console.log(JSON.stringify({
+      consumerGaps: true,
       package: update.package, order, reverse: reverse.version.secondIs,
       added: reverse.items.filter((entry) => entry.presence === "only-in-second").map((entry) => entry.itemId),
       reverseChanged: reverse.items.filter((entry) => describe(entry) === "changed").map((entry) => entry.itemId),
@@ -184,6 +244,7 @@ it("type-checks and compares two checked releases through the packed reader only
   const shipped = JSON.parse(readFileSync(resolve(root, "release/release.json"), "utf8"));
   const total = shipped.items.length as number;
   expect(result).toMatchObject({
+    consumerGaps: true,
     package: "same-package",
     order: "newer",
     reverse: "older",

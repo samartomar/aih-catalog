@@ -447,7 +447,10 @@ export interface Diagnostic {
    * release/item/scope. `ITEM_CONFLICT`: the selected item named by the conflict
    * declaration at `path`.
    */
-  readonly reference?: SelectionRef;
+  readonly reference?: SelectionRef & {
+    /** Exact digest from the dependency declaration, when declared; never inferred. */
+    readonly itemSha256?: string;
+  };
   /**
    * Resolver only. The item whose dependency declaration at `path` names
    * `reference`: the requiring root or dependent item, or for `ITEM_CONFLICT` the
@@ -503,4 +506,9 @@ export type ResolveSelectionsResult =
       readonly status: "refused";
       readonly diagnostics: readonly Diagnostic[];
       readonly removalImpact: readonly RemovalImpact[];
+      /** Available required paths on unavailable-reference refusal. Informational only. */
+      readonly partial?: {
+        readonly status: "partial";
+        readonly inclusions: readonly Inclusion[];
+      };
     };

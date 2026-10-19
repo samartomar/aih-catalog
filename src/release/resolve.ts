@@ -32,6 +32,19 @@ const uniqueRefs = (refs: readonly SelectionRef[]) =>
   [...new Map(refs.map((ref) => [key(ref), reference(ref)])).values()].sort(order);
 const pathKey = (path: readonly SelectionRef[]) => path.map(key).join("\u0001");
 
+const stableInclusions = (inclusions: readonly Inclusion[]): Inclusion[] =>
+  [
+    ...new Map(
+      inclusions.map((inclusion) => [
+        `${key(inclusion.item)}\u0001${key(inclusion.root)}\u0001${pathKey(inclusion.path)}`,
+        inclusion,
+      ]),
+    ).values(),
+  ].sort(
+    (a, b) =>
+      order(a.item, b.item) || order(a.root, b.root) || compare(pathKey(a.path), pathKey(b.path)),
+  );
+
 export function resolveSelections(request: ResolveSelectionsRequest): ResolveSelectionsResult {
   const diagnostics: Diagnostic[] = [];
   const inclusions: Inclusion[] = [];
@@ -42,7 +55,7 @@ export function resolveSelections(request: ResolveSelectionsRequest): ResolveSel
     path: string,
     message: string,
     details?: readonly CatalogDiagnostic[],
-    subject?: { reference: SelectionRef; declaredBy?: SelectionRef },
+    subject?: { reference: SelectionRef & { itemSha256?: string }; declaredBy?: SelectionRef },
   ) => {
     diagnostics.push({
       code,
@@ -50,12 +63,28 @@ export function resolveSelections(request: ResolveSelectionsRequest): ResolveSel
       message,
       ...(details ? { details: { owner: "catalog" as const, diagnostics: details } } : {}),
       // Copies, so a frozen result never aliases walk state or request data.
-      ...(subject ? { reference: reference(subject.reference) } : {}),
+      ...(subject
+        ? {
+            reference: {
+              ...reference(subject.reference),
+              ...(subject.reference.itemSha256 ? { itemSha256: subject.reference.itemSha256 } : {}),
+            },
+          }
+        : {}),
       ...(subject?.declaredBy ? { declaredBy: reference(subject.declaredBy) } : {}),
     });
   };
-  const refuse = (): ResolveSelectionsResult =>
-    deepFreeze({ status: "refused", diagnostics, removalImpact: impact });
+  const unavailable = (diagnostic: Diagnostic) =>
+    diagnostic.code === "RELEASE_UNAVAILABLE" || diagnostic.code === "ITEM_UNAVAILABLE";
+  const refuse = (walkComplete = false): ResolveSelectionsResult =>
+    deepFreeze({
+      status: "refused",
+      diagnostics,
+      removalImpact: impact,
+      ...(walkComplete && diagnostics.some(unavailable)
+        ? { partial: { status: "partial" as const, inclusions: stableInclusions(inclusions) } }
+        : {}),
+    });
   let supplied: Record<string, unknown>;
   let roots: SelectionRoot[];
   let skips: SelectionRef[];
@@ -92,8 +121,12 @@ export function resolveSelections(request: ResolveSelectionsRequest): ResolveSel
     ref: SelectionRef,
     at: string,
     declaredBy?: SelectionRef,
+    itemSha256?: string,
   ): CatalogItem | undefined => {
-    const unresolved = { reference: ref, ...(declaredBy ? { declaredBy } : {}) };
+    const unresolved = {
+      reference: { ...reference(ref), ...(itemSha256 ? { itemSha256 } : {}) },
+      ...(declaredBy ? { declaredBy } : {}),
+    };
     const release = releases.get(ref.releaseSha256);
     if (!release) {
       report(
@@ -151,7 +184,7 @@ export function resolveSelections(request: ResolveSelectionsRequest): ResolveSel
   checkRefs(roots, "roots", true);
   checkRefs(skips, "skips", false);
   checkRefs(remove, "remove", false);
-  if (diagnostics.length) return refuse();
+  if (diagnostics.some((diagnostic) => !unavailable(diagnostic))) return refuse();
 
   const configurations = new Map<string, SelectionRoot["configuration"]>();
   roots.forEach((root, index) => {
@@ -174,7 +207,12 @@ export function resolveSelections(request: ResolveSelectionsRequest): ResolveSel
     const digest =
       "release" in dependency ? dependency.release.manifest.sha256 : from.releaseSha256;
     const target = { releaseSha256: digest, itemId: dependency.itemId, scope: from.scope };
-    const item = itemAt(target, at, from);
+    const item = itemAt(
+      target,
+      at,
+      from,
+      "itemSha256" in dependency ? dependency.itemSha256 : undefined,
+    );
     if (!item) return;
     if (
       "release" in dependency &&
@@ -190,7 +228,9 @@ export function resolveSelections(request: ResolveSelectionsRequest): ResolveSel
     }
     return target;
   };
-  const sortedRoots = uniqueRefs(roots);
+  const sortedRoots = uniqueRefs(roots).filter((ref) =>
+    releases.get(ref.releaseSha256)?.items.some((item) => item.id === ref.itemId),
+  );
   // Each path is walked independently: shared dependencies retain all explanations.
   for (const root of sortedRoots) {
     const pending: SelectionRef[][] = [[root]];
@@ -285,18 +325,7 @@ export function resolveSelections(request: ResolveSelectionsRequest): ResolveSel
       "The resolved composition is refused by the final selection validator.",
       validated.diagnostics,
     );
-  if (diagnostics.length) return refuse();
-  const stableInclusions = [
-    ...new Map(
-      inclusions.map((inclusion) => [
-        `${key(inclusion.item)}\u0001${key(inclusion.root)}\u0001${pathKey(inclusion.path)}`,
-        inclusion,
-      ]),
-    ).values(),
-  ].sort(
-    (a, b) =>
-      order(a.item, b.item) || order(a.root, b.root) || compare(pathKey(a.path), pathKey(b.path)),
-  );
+  if (diagnostics.length) return refuse(true);
   const stableOptional = [
     ...new Map(
       optional.map((entry) => [`${key(entry.from)}\u0001${key(entry.to)}`, entry]),
@@ -306,7 +335,7 @@ export function resolveSelections(request: ResolveSelectionsRequest): ResolveSel
     status: "ok",
     value: {
       selections,
-      inclusions: stableInclusions,
+      inclusions: stableInclusions(inclusions),
       optional: stableOptional,
       removalImpact: impact,
     },

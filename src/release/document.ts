@@ -23,7 +23,7 @@ import { EXACT_VERSION } from "./version.js";
 export const ARCHIVE_PACKAGE_PREFIX = "package/" as const;
 export const ID = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 export const SHA256 = /^[0-9a-f]{64}$/;
-const PACKAGE_NAME = /^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/;
+export const PACKAGE_NAME = /^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/;
 const HTTPS_URL = /^https:\/\/[^\s/?#@]+(?:[/?][^\s#]*)?$/;
 const GIT_REVISION = /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/;
 const SRI = /^sha(?:256|384|512)-[A-Za-z0-9+/]+={0,2}$/;

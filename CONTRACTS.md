@@ -94,9 +94,11 @@ and is restored, and the exact bytes removal leaves.
 | Aspect | Contract |
 | --- | --- |
 | Entry | `resolveSelections` in `@aihq/catalog/reader`; fields typed on `Diagnostic` in `@aihq/catalog/contracts` (`src/release/contracts.ts`) |
-| `RELEASE_UNAVAILABLE`, `ITEM_UNAVAILABLE` | `reference`: the exact unresolved `{releaseSha256,itemId,scope}`. `declaredBy`: the root or dependent item whose declaration at `path` names it; absent for an unavailable request entry (`/roots/<n>`, `/skips/<n>`, `/remove/<n>`) |
+| `RELEASE_UNAVAILABLE`, `ITEM_UNAVAILABLE` | `reference`: the exact unresolved `{releaseSha256,itemId,scope,itemSha256?}`. `itemSha256` is copied from the dependency declaration when declared, never inferred; request entries and declarations without a digest omit it. `declaredBy`: the root or dependent item whose declaration at `path` names it; absent for an unavailable request entry (`/roots/<n>`, `/skips/<n>`, `/remove/<n>`) |
 | `ITEM_CONFLICT` | `path` is the conflict declaration (`/releases/<digest>/items/<index>/dependencies/conflicts/<n>`), previously `/roots`. `declaredBy` is the selected item declaring the conflict and `reference` the selected item it names |
-| Counts and order | unchanged: one diagnostic per walked required path, so identical diagnostics can repeat; order is deterministic. Codes, refusal, `removalImpact` and the final validator's wrapped `INPUT_INVALID` at `/roots` are unchanged |
+| Counts and order | One diagnostic per walked required path, so identical diagnostics can repeat; order is deterministic. Unavailable request entries are reported before walking the available roots. Codes and the final validator's wrapped `INPUT_INVALID` at `/roots` retain their meaning |
+| Partial required paths | An unavailable-reference refusal after a completed bounded walk also returns `partial:{status:"partial",inclusions}`: sorted, deduplicated paths through available roots and reachable required items, including branches away from missing references. Unavailable roots are omitted. Malformed requests, unchecked handles and path-bound overflow return no partial data |
+| Refusal and execution | Status remains `refused`, with diagnostics and `removalImpact`, never executable selections or `value`. Partial paths are informational; included items may still have missing requirements, conflicts or invalid configuration. Only successful resolution provides a validated composition |
 
 `src/release/resolve.ts` owns the behaviour; `docs/PUBLIC-AUTHORING.md` documents it for consumers.
 
