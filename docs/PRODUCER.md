@@ -1,5 +1,9 @@
 # Preparing Catalog content candidates
 
+This is content preparation. New release candidacy separately requires the
+mandatory [baseline preparation](SCAN-BASELINE.md) step. Offline integrity and
+content packing alone do not establish that step; publication remains blocked.
+
 A maintainer pins one upstream commit, and the producer turns that change into a
 checked, packable content candidate without waiting for Scan or any other release
 chain. Only the items the change affects are produced again; every other record,

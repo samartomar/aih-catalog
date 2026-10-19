@@ -37,6 +37,8 @@ import { inputAccepts } from "./inputs.js";
 import { deepFreeze, JsonAdmissionError, readCanonicalBytes } from "./json.js";
 import { sha256Hex } from "./sha256.js";
 
+export { createContentInventory, readContentInventory } from "./inventory.js";
+
 /** Views this reader produced. Other operations accept nothing else. */
 const checkedReleases = new WeakSet<object>();
 

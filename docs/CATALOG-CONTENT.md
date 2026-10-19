@@ -60,6 +60,7 @@ Format versions are independent of the package version. This package reads every
 | `urn:aihq:catalog:release:1.2.0` | Supported | Core recipe 1.3 input-bound hook groups | 1.0, 1.1, 1.3 | The producer when an item uses recipe 1.3 |
 | `urn:aihq:catalog:release:1.3.0` | Supported; no shipped document | Local snapshot source origins | 1.0, 1.1, 1.3 | The producer when a declaration has a local source |
 | `urn:aihq:catalog:release:1.4.0` | Current | `clientId` on `client-adapter` items | 1.0, 1.1, 1.3 | The maintained candidate for `release.json` |
+| `urn:aihq:catalog:release:1.5.0` | Supported; fixture candidate only | Required versioned content inventory and baseline binding | 1.0, 1.1, 1.3 | [Release preparation](SCAN-BASELINE.md) after evidence verification |
 
 | Producer declaration | Status | Adds |
 | --- | --- | --- |

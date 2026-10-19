@@ -1,7 +1,12 @@
+import { baselineMembers } from "../release/baseline-members.js";
 import { codexConfigBlockProblems } from "../release/client-config-targets.js";
 import { clientAdapterProblems } from "../release/client-ids.js";
 import type { CatalogRelease, Json, ReleaseExport } from "../release/contracts.js";
-import { contractSupport, RELEASE_SCHEMA_ID_1_4 } from "../release/contracts.js";
+import {
+  contractSupport,
+  RELEASE_SCHEMA_ID_1_4,
+  RELEASE_SCHEMA_ID_1_5,
+} from "../release/contracts.js";
 import { AcquisitionFailure } from "../release/node-errors.js";
 import { verifyPackageRelease } from "../release/package-release.js";
 import { readRelease } from "../release/reader.js";
@@ -212,7 +217,8 @@ export function checkCandidateFiles(
   }
 
   const declared = new Set<string>(documents.map((d) => d.path));
-  for (const { items } of releases) {
+  for (const { items, release } of releases) {
+    for (const member of baselineMembers(release)) declared.add(member.path);
     for (const item of items) {
       for (const member of [asRecord(item.recipe), ...(item.materials as Json[]).map(asRecord)]) {
         declared.add(member.path as string);
@@ -269,9 +275,11 @@ export function checkCandidateFiles(
       misplaced.length ? `outside their pinned revision: ${misplaced.join(", ")}` : undefined,
     );
 
-    // Only release 1.4 defines clientId; earlier formats keep their adapters without it.
+    // Release 1.4 and later define clientId; earlier formats keep their adapters without it.
     const clientProblems =
-      release.schema === RELEASE_SCHEMA_ID_1_4 ? clientAdapterProblems(release.items) : [];
+      release.schema === RELEASE_SCHEMA_ID_1_4 || release.schema === RELEASE_SCHEMA_ID_1_5
+        ? clientAdapterProblems(release.items)
+        : [];
     note(
       path,
       "client-adapter-ids",

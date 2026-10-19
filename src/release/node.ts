@@ -43,7 +43,17 @@ import { DERIVED_MANIFEST_PATH, deriveProjectContextRelease } from "./project-co
 import { isCheckedRelease } from "./reader.js";
 import { EXACT_VERSION } from "./version.js";
 
+export { acquireBaselineArtifact } from "./baseline-acquire.js";
 export type { ReleaseExport } from "./contracts.js";
+export type {
+  BaselineArtifactRead,
+  BaselineAuthentication,
+  BaselineCoverage,
+  BaselineServices,
+  ItemBaselineCoverage,
+  PrepareBaselineResult,
+} from "./prepare-baseline.js";
+export { prepareReleaseBaseline } from "./prepare-baseline.js";
 
 /**
  * The release documents this package exports, from `releaseInventory`. A caller

@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aihq:catalog:scan-baseline:1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "inventory",
+    "scanId",
+    "artifact",
+    "scope"
+  ],
+  "properties": {
+    "schema": {
+      "const": "urn:aihq:catalog:scan-baseline:1.0.0"
+    },
+    "inventory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256",
+        "byteLength"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096,
+          "description": "Canonical safe package-relative member path; reader enforces the portable path profile."
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "byteLength": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16777216
+        }
+      }
+    },
+    "scanId": {
+      "type": "string",
+      "pattern": "^scan:sha256:[0-9a-f]{64}$"
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sha256",
+        "byteLength",
+        "location"
+      ],
+      "properties": {
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "byteLength": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 67108864
+        },
+        "location": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "path"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "package"
+                },
+                "path": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4096,
+                  "description": "Canonical safe package-relative member path; reader enforces the portable path profile."
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "url"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "https"
+                },
+                "url": {
+                  "type": "string",
+                  "maxLength": 2048,
+                  "pattern": "^https://",
+                  "description": "No credentials, fragment or non-443 port; reader enforces URL profile."
+                }
+              }
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "location": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "const": "package"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "byteLength": {
+                "type": "integer",
+                "maximum": 16777216
+              }
+            }
+          }
+        }
+      ]
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "namespace",
+        "paths",
+        "excludedPaths"
+      ],
+      "properties": {
+        "namespace": {
+          "const": "package-relative"
+        },
+        "paths": {
+          "type": "array",
+          "maxItems": 10000,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Canonical safe package-relative member path; reader enforces the portable path profile."
+          },
+          "description": "Sorted by code unit; requested scope, not achieved coverage."
+        },
+        "excludedPaths": {
+          "type": "array",
+          "maxItems": 10000,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "Canonical safe package-relative member path; reader enforces the portable path profile."
+          },
+          "description": "Sorted by code unit; requested scope, not achieved coverage."
+        }
+      }
+    }
+  }
+}

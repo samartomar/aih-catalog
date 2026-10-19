@@ -24,12 +24,17 @@ export const RELEASE_SCHEMA_EXPORT_1_3 = "@aihq/catalog/schemas/release/1.3.0.js
 /** Release 1.4 adds `clientId`, the target client of every `client-adapter` item. */
 export const RELEASE_SCHEMA_ID_1_4 = "urn:aihq:catalog:release:1.4.0" as const;
 export const RELEASE_SCHEMA_EXPORT_1_4 = "@aihq/catalog/schemas/release/1.4.0.json" as const;
+/** Release 1.5 binds the versioned content inventory to one baseline assessment. */
+export const RELEASE_SCHEMA_ID_1_5 = "urn:aihq:catalog:release:1.5.0" as const;
+export const RELEASE_SCHEMA_EXPORT_1_5 = "@aihq/catalog/schemas/release/1.5.0.json" as const;
+export * from "./baseline-contracts.js";
 export type ReleaseSchemaId =
   | typeof RELEASE_SCHEMA_ID
   | typeof RELEASE_SCHEMA_ID_1_1
   | typeof RELEASE_SCHEMA_ID_1_2
   | typeof RELEASE_SCHEMA_ID_1_3
-  | typeof RELEASE_SCHEMA_ID_1_4;
+  | typeof RELEASE_SCHEMA_ID_1_4
+  | typeof RELEASE_SCHEMA_ID_1_5;
 export type RecipeSchemaId =
   | typeof CORE_RECIPE_SCHEMA_ID
   | typeof CORE_RECIPE_SCHEMA_ID_1_1
@@ -50,6 +55,11 @@ export const RELEASE_RECIPE_SCHEMAS: Readonly<Record<ReleaseSchemaId, readonly R
       CORE_RECIPE_SCHEMA_ID_1_3,
     ]),
     [RELEASE_SCHEMA_ID_1_4]: Object.freeze([
+      CORE_RECIPE_SCHEMA_ID,
+      CORE_RECIPE_SCHEMA_ID_1_1,
+      CORE_RECIPE_SCHEMA_ID_1_3,
+    ]),
+    [RELEASE_SCHEMA_ID_1_5]: Object.freeze([
       CORE_RECIPE_SCHEMA_ID,
       CORE_RECIPE_SCHEMA_ID_1_1,
       CORE_RECIPE_SCHEMA_ID_1_3,
@@ -111,6 +121,21 @@ export const contractSupport = Object.freeze({
       id: "urn:aihq:catalog:producer-declaration:3.1.0",
       role: "accepts",
       schemaExport: "@aihq/catalog/schemas/producer-declaration/3.1.0.json",
+    }),
+    Object.freeze({
+      id: RELEASE_SCHEMA_ID_1_5,
+      role: "produces",
+      schemaExport: RELEASE_SCHEMA_EXPORT_1_5,
+    }),
+    Object.freeze({
+      id: "urn:aihq:catalog:content-inventory:1.0.0",
+      role: "produces",
+      schemaExport: "@aihq/catalog/schemas/content-inventory/1.0.0.json",
+    }),
+    Object.freeze({
+      id: "urn:aihq:catalog:scan-baseline:1.0.0",
+      role: "produces",
+      schemaExport: "@aihq/catalog/schemas/scan-baseline/1.0.0.json",
     }),
   ]),
   entries: Object.freeze([
@@ -339,6 +364,8 @@ export interface CatalogRelease {
   readonly sources: readonly ReleaseSource[];
   readonly items: readonly CatalogItem[];
   readonly metadata?: Json;
+  /** Absent on historical releases; describes evidence, never a safety approval. */
+  readonly baseline?: import("./baseline-contracts.js").ScanBaseline;
 }
 
 /**

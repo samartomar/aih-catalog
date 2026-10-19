@@ -289,7 +289,8 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
   const document: Record_ = {
     schema:
       finalItems.some((item) => item.clientId !== undefined) ||
-      base?.checked.schema === "urn:aihq:catalog:release:1.4.0"
+      base?.checked.schema === "urn:aihq:catalog:release:1.4.0" ||
+      base?.checked.schema === "urn:aihq:catalog:release:1.5.0"
         ? "urn:aihq:catalog:release:1.4.0"
         : finalItems.some(
               (item) => asRecord(item.recipe).schema === "urn:aihq:core:recipe:1.3.0",
@@ -334,6 +335,12 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
       ...document,
       package: { name: input.package.name, version: input.package.version },
     };
+    // Content preparation never silently extends a release baseline to changed content.
+    // Re-freeze and verify evidence in the separate mandatory release-preparation step.
+    if (carriedDocument.schema === "urn:aihq:catalog:release:1.5.0") {
+      carriedDocument.schema = "urn:aihq:catalog:release:1.4.0";
+      delete carriedDocument.baseline;
+    }
     for (const item of (carriedDocument.items as Json[]).map(asRecord)) {
       for (const member of [asRecord(item.recipe), ...(item.materials as Json[]).map(asRecord)]) {
         put(member.path as string, files.get(member.path as string) as Buffer);

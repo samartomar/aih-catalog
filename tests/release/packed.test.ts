@@ -498,8 +498,21 @@ describe("exact packed consumer", () => {
       }),
     );
     expect(result).toEqual({
-      node: ["prepareProjectContext", "readInstalledRelease", "resolveRelease"],
-      contracts: ["contractSupport", "releaseInventory"],
+      node: [
+        "acquireBaselineArtifact",
+        "prepareProjectContext",
+        "prepareReleaseBaseline",
+        "readInstalledRelease",
+        "resolveRelease",
+      ],
+      contracts: [
+        "BASELINE_ARTIFACT_MAX_BYTES",
+        "CONTENT_INVENTORY_SCHEMA_ID",
+        "CONTENT_PROJECTION_ID",
+        "SCAN_BASELINE_SCHEMA_ID",
+        "contractSupport",
+        "releaseInventory",
+      ],
       unreachable: [
         "@aihq/catalog/dist/release/package-release.js",
         "@aihq/catalog/dist/release/node.js",
