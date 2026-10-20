@@ -2,11 +2,18 @@ import { RELEASE_MAX_BYTES, RELEASE_MAX_DEPTH } from "./contracts.js";
 import { assertStrictValues, canonicalJson } from "./json.js";
 
 /** Admit bounded plain JSON data without invoking accessors or accepting class instances. */
-export function copyJson(value: unknown): unknown {
+export function copyJson(
+  value: unknown,
+  limits: {
+    readonly maxBytes: number;
+    readonly maxDepth: number;
+    readonly allowReservedKeys?: boolean;
+  } = { maxBytes: RELEASE_MAX_BYTES, maxDepth: RELEASE_MAX_DEPTH },
+): unknown {
   const seen = new Set<object>();
   let nodes = 0;
   const visit = (entry: unknown, depth: number): void => {
-    if (++nodes > RELEASE_MAX_BYTES || depth > RELEASE_MAX_DEPTH) throw new TypeError("JSON bound");
+    if (++nodes > limits.maxBytes || depth > limits.maxDepth) throw new TypeError("JSON bound");
     if (entry === null || ["string", "number", "boolean"].includes(typeof entry)) return;
     if (typeof entry !== "object") throw new TypeError("Expected JSON data");
     if (seen.has(entry)) throw new TypeError("Repeated/cyclic object");
@@ -30,7 +37,8 @@ export function copyJson(value: unknown): unknown {
         !descriptor.enumerable
       )
         throw new TypeError("Expected own JSON data property");
-      if (key === "__proto__") throw new TypeError("Reserved JSON key");
+      if (key === "__proto__" && !limits.allowReservedKeys)
+        throw new TypeError("Reserved JSON key");
       visit(descriptor.value, depth + 1);
     }
     seen.delete(entry);
@@ -38,7 +46,7 @@ export function copyJson(value: unknown): unknown {
   visit(value, 0);
   assertStrictValues(value);
   const text = canonicalJson(value);
-  if (new TextEncoder().encode(text).length > RELEASE_MAX_BYTES)
+  if (new TextEncoder().encode(text).length > limits.maxBytes)
     throw new TypeError("JSON byte bound");
   return JSON.parse(text);
 }

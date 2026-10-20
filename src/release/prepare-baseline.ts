@@ -139,7 +139,16 @@ export async function prepareReleaseBaseline<Read extends BaselineArtifactRead, 
     return refuse("baseline-unavailable");
   }
   try {
-    const assessment = await services.readArtifact(artifactBytes.slice());
+    // Own an immutable read snapshot for this qualification's coverage lookups.
+    // Scan admits 512-level reports and own __proto__ data keys. Include the read
+    // wrapper without applying Catalog content's smaller JSON limits to it.
+    const assessment = deepFreeze(
+      copyJson(await services.readArtifact(artifactBytes.slice()), {
+        maxBytes: 64 * 1024 * 1024,
+        maxDepth: 514,
+        allowReservedKeys: true,
+      }),
+    ) as Read;
     if (assessment.status !== "read") return refuse("baseline-unreadable");
     if (assessment.scanId !== baseline.scanId) return refuse("baseline-scan-id-mismatch");
     if (
@@ -167,6 +176,7 @@ export async function prepareReleaseBaseline<Read extends BaselineArtifactRead, 
     )
       return refuse("baseline-unauthenticated");
     const itemCoverage: ItemBaselineCoverage[] = [];
+    const memberCoverage = new Map<string, BaselineCoverage>();
     for (const item of read.release.items) {
       const members: ItemBaselineCoverage["members"][number][] = [];
       for (const member of [item.recipe, ...item.materials]) {
@@ -175,10 +185,30 @@ export async function prepareReleaseBaseline<Read extends BaselineArtifactRead, 
           sha256: member.sha256,
           byteLength: member.byteLength,
         };
-        const coverage = await services.readContentCoverage({
-          read: assessment,
-          descriptors: [descriptor],
-        });
+        const key = canonicalJson(descriptor);
+        let coverage = memberCoverage.get(key);
+        if (coverage === undefined) {
+          const checked = await services.readContentCoverage({
+            read: assessment,
+            descriptors: [{ ...descriptor }],
+          });
+          if (checked.status !== "matched" && checked.status !== "mismatched")
+            return refuse("baseline-coverage-unreadable");
+          coverage = deepFreeze(
+            copyJson(
+              checked.status === "matched"
+                ? {
+                    status: checked.status,
+                    observations: checked.observations.map(({ observationId }) => ({
+                      observationId,
+                    })),
+                    detectorsWithoutCoverage: [...checked.detectorsWithoutCoverage],
+                  }
+                : { status: checked.status },
+            ),
+          ) as BaselineCoverage;
+          memberCoverage.set(key, coverage);
+        }
         if (coverage.status !== "matched" && coverage.status !== "mismatched")
           return refuse("baseline-coverage-unreadable");
         members.push({
