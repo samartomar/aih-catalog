@@ -101,8 +101,13 @@ if (!verifyOnly) {
   mkdirSync(packageRoot);
   for (const [path, value] of files) { const target = join(packageRoot, path); mkdirSync(dirname(target), { recursive: true }); writeFileSync(target, value.bytes, { flag: "wx", mode: value.mode }); }
 } else {
-  const present = [];
-  const walk = (directory, prefix = "") => { for (const entry of readdirSync(directory, { withFileTypes: true })) { const path = prefix ? `${prefix}/${entry.name}` : entry.name, target = join(directory, entry.name); assert(!lstatSync(target).isSymbolicLink()); if (entry.isDirectory()) walk(target, path); else { const bytes = regular(target, 32 * 1024 * 1024); present.push({ path, sha256: sha(bytes), byteLength: bytes.length }); } } };
+  const present = [], expected = new Map(expectedFiles.map(file => [file.path, file])), directories = new Set();
+  for (const file of expectedFiles) { const parts = file.path.split("/"); for (let i = 1; i < parts.length; i++) directories.add(parts.slice(0, i).join("/")); }
+  const walk = (directory, prefix = "") => { for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const path = prefix ? `${prefix}/${entry.name}` : entry.name, target = join(directory, entry.name), stat = lstatSync(target); assert(!stat.isSymbolicLink());
+    if (entry.isDirectory()) { assert(directories.has(path), "Unexpected package directory"); walk(target, path); }
+    else { const descriptor = expected.get(path); assert(descriptor && present.length < expectedFiles.length, "Unexpected package member"); assert.equal(stat.size, descriptor.byteLength, "Package member size changed"); const bytes = regular(target, descriptor.byteLength); present.push({ path, sha256: sha(bytes), byteLength: bytes.length }); }
+  } };
   walk(packageRoot); same(present.sort((a, b) => a.path < b.path ? -1 : 1), expectedFiles);
 }
 for (const [exported] of releaseExports) { const checked = await readInstalledRelease({ root: packageRoot, release: exported }); assert(checked.valid, `${exported}: ${JSON.stringify(checked)}`); }

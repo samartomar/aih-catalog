@@ -3,8 +3,9 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 const [runtimeArg, outArg] = process.argv.slice(2);
 assert(runtimeArg && outArg, "Usage: verify-package-consumer.mjs exact-installed-runtime new-output");
 const runtime = resolve(runtimeArg), out = resolve(outArg), root = resolve(import.meta.dirname, ".."), started = performance.now();
@@ -42,6 +43,33 @@ const packageJson = join(candidate, "package/package.json"), saved = readFileSyn
 writeFileSync(packageJson, Buffer.concat([saved, Buffer.from("\n")]));
 try { assert.throws(() => run([...args(), "--resume", "true"])); refusals.push("resume-tree-change"); }
 finally { writeFileSync(packageJson, saved); }
+const unexpectedMember = join(candidate, "package/unexpected-package-member.txt"); writeFileSync(unexpectedMember, "EXTRA");
+try { assert.throws(() => run([...args(), "--resume", "true"])); const progress = JSON.parse(readFileSync(join(candidate, "progress.json"))); assert.equal(progress.phase, "qualification-failed"); assert(readFileSync(join(candidate, `qualification-${progress.timings.length - 1}.log`), "utf8").includes("Unexpected package member")); refusals.push("unexpected-package-member"); }
+finally { unlinkSync(unexpectedMember); }
+const sourceRefusal = join(out, "runtime-source-refusal");
+assert.throws(() => run([tool, "--runtime", root, "--plan", planPath, "--out", sourceRefusal]), /Selected runtime must be outside/);
+assert.equal(existsSync(sourceRefusal), false); refusals.push("runtime-inside-source");
+// Change actual executable inputs, then restore their original bytes even on
+// failure. Lock/version declarations deliberately stay unchanged.
+for (const [name, path] of [["seed-tooling", join(root, "tools/seed-consumer-lock.mjs")], ["installed-runtime", join(runtime, "node_modules/@aihq/core/package.json")]]) {
+  const original = readFileSync(path);
+  try { writeFileSync(path, Buffer.concat([original, Buffer.from("\n")])); assert.throws(() => run([...args(), "--resume", "true"]), /Resume inputs or tooling changed/); refusals.push(`${name}-change`); }
+  finally { writeFileSync(path, original); }
+}
+// Simulate only the stat of a multiply-linked destination: this remains portable
+// on Windows hosts that cannot create file links. Child commands and all writes
+// are real. A normal writer would replace the existing sentinel contents.
+const preload = join(out, "linked-output-preload.mjs");
+writeFileSync(preload, `import fs from "node:fs"; import {syncBuiltinESMExports} from "node:module"; import {resolve} from "node:path";
+const original = fs.lstatSync; fs.lstatSync = function(path, ...args) { const stat = original.call(this, path, ...args); if (resolve(String(path)) === resolve(process.env.CATALOG_TEST_LINK)) Object.defineProperty(stat, "nlink", {value: 2}); return stat; }; syncBuiltinESMExports();`);
+for (const name of ["log", "receipt"]) {
+  const progress = JSON.parse(readFileSync(join(candidate, "progress.json")));
+  const path = name === "receipt" ? join(candidate, "receipt.json") : join(candidate, `qualification-${progress.timings.length}.log`);
+  const existed = existsSync(path), original = existed ? readFileSync(path) : Buffer.from("LINKED OUTPUT SENTINEL");
+  if (!existed) writeFileSync(path, original);
+  try { assert.throws(() => execFileSync(process.execPath, ["--import", pathToFileURL(preload).href, ...args(), "--resume", "true"], { cwd: root, env: { ...process.env, CATALOG_TEST_LINK: path }, encoding: "utf8", windowsHide: true, timeout: 300000, maxBuffer: 64 * 1024 * 1024 }), /Unsafe linked control output/); assert.deepEqual(readFileSync(path), original); refusals.push(`simulated-linked-${name}`); }
+  finally { if (!existed) unlinkSync(path); }
+}
 const hash = bytes => createHash("sha256").update(bytes).digest("hex");
 const proof = { fixtureOnly: true, realDetectorExecution: false, productionSigning: false, publicPackageInstalled: true,
   qualifiedViews: 5, totalReleaseExports: 9, preservedHistoricalExports: receipt.unchangedExports, allFailedOutcomesPreserved: true,

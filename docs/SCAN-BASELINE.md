@@ -243,13 +243,14 @@ mean safety or successful detectors. The receipt's `durationMs` measures the las
 invocation; `totalRecordedPhaseMs` sums retained phase measurements across resumes.
 
 An exclusive output lock prevents concurrent preparation. Resume pins the plan,
-tooling and runtime lock, reconstructs and reauthenticates the expected candidate,
+tooling, installed runtime bytes, Node/npm implementation and runtime lock, reconstructs and reauthenticates the expected candidate,
 and refuses altered package/tarball bytes. Completed packing and installation are
 reused. An owned partial installation can resume after its cache prerequisite is
-fixed; linked/unowned partial trees refuse. Unverified partial assembly is retained
+fixed; installation disables bin links, and linked/unowned partial trees refuse. Unverified partial assembly is retained
 for inspection rather than automatically removed or promoted. Changed inputs or
 tooling need a fresh output. Keep the original run records; never hand-edit a
-checkpoint to make it appear verified. Output and runtime must be independent
+checkpoint to make it appear verified. Control outputs reject links and use atomic
+replacement, so resuming cannot write through an existing linked receipt or log. Output and runtime must be independent
 directories outside the source workspace.
 
 ```sh
@@ -259,5 +260,6 @@ node tools/verify-package-consumer.mjs /absolute/exact-installed-runtime /absolu
 This maintained outside-source proof uses the complete installed content and five
 disposable fixture-signed, all-provider-failed reports. It verifies nine exports,
 four unchanged documents, explicit missing item coverage, installed-reader agreement,
-unchanged reuse and artifact/inventory/checkpoint substitution refusals. It runs no
+unchanged reuse, artifact/inventory/checkpoint substitution refusals, changed
+executable-input refusals and simulated multiply-linked output protection. It runs no
 detector or production signer and cannot replace authentic assessment acceptance.
