@@ -39,6 +39,10 @@ assert(!previous || (previousLedger.repository===source.repository &&
   (!Object.hasOwn(previousLedger,"source") || previousLedger.source===source.id)),
 "Previous staged inventory belongs to another source; start a fresh source refresh instead.");
 const snapshot = read(join(options["--configuration"] ? config : previous ?? config, "snapshot.json"));
+const comparisonSnapshot = previous ? read(join(previous,"snapshot.json")) : snapshot;
+const comparisonSource = comparisonSnapshot.sources.find(record=>record.id===source.id);
+assert(comparisonSource, "The comparison snapshot must contain the selected source.");
+const comparisonFiles = Object.fromEntries(comparisonSource.files.map(file=>[file.path,new Uint8Array(Buffer.from(file.base64,"base64"))]));
 const recipes = (id, declared=declaration, supplied=snapshot) => Object.fromEntries(declared.items.filter(item=>item.source===id && item.recipePath).map(item=> {
   const text=supplied.recipes[id]?.[item.recipePath]??supplied.recipes[item.recipePath];
   assert.equal(typeof text,"string",`Missing declared recipe overlay ${item.recipePath}`);
@@ -87,7 +91,7 @@ for (const path of [...new Set([source.licensePath,...declaration.items.filter(i
 }
 // A changed registration/hook config requires reviewed delivery adaptation. Never
 // label fresh source bytes as the input to a stale supplied config operation.
-const deliveryChanges = declaration.items.filter(item=>item.source===source.id && ["claude-mcp-registration","claude-hooks"].includes(item.sourceDiscovery?.profile) && files[item.sourceDiscovery.path] && sha(files[item.sourceDiscovery.path])!==sha(old.files[item.sourceDiscovery.path]));
+const deliveryChanges = declaration.items.filter(item=>item.source===source.id && ["claude-mcp-registration","claude-hooks"].includes(item.sourceDiscovery?.profile) && files[item.sourceDiscovery.path] && (!comparisonFiles[item.sourceDiscovery.path] || sha(files[item.sourceDiscovery.path])!==sha(comparisonFiles[item.sourceDiscovery.path])));
 const previousInventory = previousLedger.paths ?? previousLedger.entries.filter(row=>!row.source||row.source===source.id).map(row=>row.path);
 const oldPaths=new Set(previousInventory), paths=[...acquired.inventory.paths].sort();
 // Freeze descriptors for the complete tree without admitting or distributing
@@ -96,7 +100,7 @@ const entries=paths.map(path=> {
   const bytes=files[path]??acquired.read(path);
   total+=files[path]?0:bytes.byteLength;
   assert(bytes.byteLength<=16*1024*1024 && total<=256*1024*1024,"Source inventory byte bound exceeded.");
-  return {path,sha256:sha(bytes),byteLength:bytes.byteLength,admitted:Object.hasOwn(files,path),changed:!!old.files[path]&&sha(bytes)!==sha(old.files[path])};
+  return {path,sha256:sha(bytes),byteLength:bytes.byteLength,admitted:Object.hasOwn(files,path),changed:!!comparisonFiles[path]&&sha(bytes)!==sha(comparisonFiles[path])};
 });
 mkdirSync(out,{recursive:true});
 writeFileSync(join(out,"inventory.json"),JSON.stringify({source:source.id,repository:source.repository,revision:acquired.commit,complete:true,paths,entries,added:paths.filter(path=>!oldPaths.has(path)),removed:[...oldPaths].filter(path=>!acquired.inventory.paths.has(path)),unadmitted:paths.filter(path=>!Object.hasOwn(files,path)),deliveryReviewRequired:deliveryChanges.map(item=>item.id)},null,2)+"\n");

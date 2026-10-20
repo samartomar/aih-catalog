@@ -197,11 +197,19 @@ mkdirSync(repo,{recursive:true});
 const git=(args,options={})=>execFileSync("git",["-C",repo,...args],{encoding:"utf8",windowsHide:true,...options}).trim();
 git(["init"]);
 for (const file of cliSource.files) {const path=join(repo,file.path);mkdirSync(dirname(path),{recursive:true});writeFileSync(path,Buffer.from(file.base64,"base64"));}
+// A reviewed current snapshot may differ from the package's older configuration.
+for(const path of ["skills/api-and-interface-design/SKILL.md","hooks/hooks.json"])writeFileSync(join(repo,path),Buffer.concat([readFileSync(join(repo,path)),Buffer.from("\\n")]));
 writeFileSync(join(repo,"unreviewed.md"),"New discovery stays unadmitted.\\n");
 git(["add","."]);
 const commit=git(["-c","user.name=Catalog Fixture","-c","user.email=fixture@example.invalid","commit-tree",git(["write-tree"]),"-m","Synthetic staging regression"]);
+const reviewedConfig=join(edge,"reviewed-config");mkdirSync(reviewedConfig);
+const reviewedSnapshot=structuredClone(cliSnapshot),reviewedSource=reviewedSnapshot.sources.find(source=>source.id==="extensions");
+reviewedSource.revision=commit;
+for(const file of reviewedSource.files){const bytes=readFileSync(join(repo,file.path));file.base64=bytes.toString("base64");file.sha256=(await import("node:crypto")).createHash("sha256").update(bytes).digest("hex");file.byteLength=bytes.length;}
+writeFileSync(join(reviewedConfig,"snapshot.json"),JSON.stringify(reviewedSnapshot));
+for(const name of ["declaration.json","inventory.json"])writeFileSync(join(reviewedConfig,name),readFileSync(join(root,"producer/extensions",name)));
 const runStage=(out,extra=[])=>execFileSync(process.execPath,[join(root,"tools/refresh-source.mjs"),"--family","extensions","--source","extensions","--commit",commit,"--out",out,"--cache-dir",join(edge,"unused-cache"),"--source-git-dir",repo,"--allow-unverified-origin","true",...extra],{encoding:"utf8",windowsHide:true,timeout:120_000});
-const stage=join(edge,"first");runStage(stage);
+const stage=join(edge,"first");runStage(stage,["--configuration",reviewedConfig]);
 const ledger=JSON.parse(readFileSync(join(stage,"inventory.json")));
 assert(ledger.unadmitted.includes("unreviewed.md"));
 assert(ledger.entries.every(entry=>/^[a-f0-9]{64}$/.test(entry.sha256)&&Number.isInteger(entry.byteLength)));
@@ -213,7 +221,10 @@ assert.throws(()=>runStage(join(edge,"wrong-source"),["--previous",stage]),/Prev
 // Keep source-less #111 stages readable when their repository matches.
 const legacyLedger={...ledger};delete legacyLedger.source;
 writeFileSync(join(stage,"inventory.json"),JSON.stringify(legacyLedger));
-const nextStage=join(edge,"second");runStage(nextStage,["--previous",stage]);
+const nextStage=join(edge,"second");runStage(nextStage,["--previous",stage,"--configuration",join(root,"producer/extensions")]);
+const nextLedger=JSON.parse(readFileSync(join(nextStage,"inventory.json")));
+assert.equal(nextLedger.entries.filter(entry=>entry.changed).length,0);
+assert.deepEqual(nextLedger.deliveryReviewRequired,[]);
 const firstReceipt=JSON.parse(readFileSync(join(stage,"receipt.json"))),nextReceipt=JSON.parse(readFileSync(join(nextStage,"receipt.json")));
 assert.equal(firstReceipt.originVerified,false);assert.equal(firstReceipt.qualifiedReleaseCandidate,false);
 assert.equal(nextReceipt.releaseSha256,firstReceipt.releaseSha256);
