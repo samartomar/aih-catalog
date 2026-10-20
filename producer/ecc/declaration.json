@@ -47545,7 +47545,7 @@
         },
         {
           "itemId": "extensions.skill.security-and-hardening",
-          "itemSha256": "7d7ebe3300d2e895bb87b410f158e878954756f9ff4e5547cec861e782a3a7a0",
+          "itemSha256": "c90ea77e6531c4f7c40c3a4260fc8e0b1097cb8cbfa05d68d986bff5a6f8c240",
           "release": {
             "source": {
               "kind": "local",
@@ -47553,8 +47553,8 @@
             },
             "manifest": {
               "path": "release/release-extensions.json",
-              "sha256": "579fc213c279d7df6f68b2d6da1e95d6c2df109954b1744ac36661baaf0fa912",
-              "byteLength": 5472277
+              "sha256": "f44f8e0edbec523c9313b1658cc68675189b9ed5bdafce8cbe3f67ea2ad44ef1",
+              "byteLength": 5656654
             }
           }
         }

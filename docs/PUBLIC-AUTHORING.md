@@ -461,6 +461,23 @@ node node_modules/@aihq/catalog/tools/refresh-source.mjs \
   --family ecc --commit <full-40-hex> --out <new-output-dir> --cache-dir <owned-cache>
 ```
 
+The same route supports `extensions`, `superpowers` and `anthropic`. `--source
+<declared-source-id>` explicitly selects a supplemental repository when needed;
+otherwise it selects the family source. Other supplied sources and saved item
+pins retain their independently reviewed revisions. An upstream vendor lock does
+not silently update a separately declared companion source.
+
+`--configuration <reviewed-directory>` takes explicit `declaration.json`,
+`snapshot.json` and `inventory.json` authoring inputs for reviewed membership or
+delivery adaptation. This is useful when a selected revision removes a support
+file or introduces a newly required sibling. Review those exact declaration and
+recipe changes before staging; discovery alone never admits a file. Raw snapshot
+bytes retain their recorded revisions. Without `--previous`, the baseline is the
+package's checked maintained declaration and snapshot; with it, the baseline is
+the prior staged release/material closure. New source bytes still come from the
+explicit acquisition. The override does not edit the package or saved selections.
+Recipes may use either the existing per-source or flat snapshot layout.
+
 It uses the existing verified GitHub fetch/object-validation route and reviewed family
 membership. New upstream files are reported as unadmitted; missing source/support/license
 files and dependency changes receive the existing safeguards. Nothing auto-installs or
