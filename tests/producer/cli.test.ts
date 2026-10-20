@@ -201,14 +201,23 @@ describe("tools/prepare-candidate.mjs", () => {
 });
 
 describe("tools/check-release.mjs and the donor generator guard", () => {
-  it("passes the committed release and fails a damaged package", () => {
+  let damagedRoot: string;
+  beforeAll(() => {
+    // Full-package fixture I/O belongs to setup, outside either CLI assertion's
+    // unit-test budget. Read the inventory once, including all current families.
+    const release = committedRelease();
+    damagedRoot = makePackageRoot(join(scratch, "damaged-release"), release);
+    const [path] = [...release.keys()].filter((key) => key.endsWith("/grilling/SKILL.md"));
+    expect(path).toBeTypeOf("string");
+    writeFileSync(join(damagedRoot, path as string), "tampered");
+  }, 60_000);
+
+  it("passes the committed release", () => {
     expect(node(["tools/check-release.mjs"]).status).toBe(0);
-    const dir = makePackageRoot(join(scratch, "damaged-release"), committedRelease());
-    const [path] = [...committedRelease().keys()].filter((key) =>
-      key.endsWith("/grilling/SKILL.md"),
-    );
-    writeFileSync(join(dir, path as string), "tampered");
-    const result = node(["tools/check-release.mjs", dir]);
+  });
+
+  it("fails a damaged package with the member-bytes reason", () => {
+    const result = node(["tools/check-release.mjs", damagedRoot]);
     expect(result.status).toBe(1);
     expect(result.stdout).toContain("FAIL member-bytes");
   });
