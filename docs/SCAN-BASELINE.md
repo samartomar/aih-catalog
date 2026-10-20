@@ -136,6 +136,15 @@ node tools/prepare-release.mjs prepare --content content.json --content-sha256 <
   --package-root <staged-package> --out <new-final-release.json>
 ```
 
+Add `--receipt <new-qualification.json>` to retain the exact input/output
+descriptors, complete baseline binding, selected trust-file digest, authentication
+result, item coverage and measured qualification duration. Release and receipt
+outputs must be distinct new files. A failed write can leave the other output;
+preserve and inspect it rather than overwriting. This local receipt is custody,
+not a signature or an additional release-admission contract. It does not contain
+private trust configuration. Keep the original assessment bytes and their
+independent producer trust alongside the receipt.
+
 Control JSON is canonical UTF-8 with one LF. Existing outputs are never overwritten.
 The runtime root explicitly contains the selected installed public Catalog, Scan
 and Core packages. A bounded Node child resolves their ordinary ESM public entries
