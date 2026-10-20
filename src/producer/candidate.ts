@@ -16,6 +16,7 @@ import {
   RELEASE_PATH,
   sha256Hex,
 } from "./generate.js";
+import { operationalMetadata } from "./template.js";
 import type { SourceTree } from "./tree.js";
 
 export type ReportedState =
@@ -97,25 +98,13 @@ function operationalView(
   recipeBytes: Uint8Array,
 ): { item: string; recipe: string } {
   const { sourceIds: _sourceIds, metadata, recipe, materials, ...rest } = record;
-  const { upstream: _upstream, ...otherMetadata } = asRecord(metadata);
-  // Supplied compiler identities locate source bytes; merely acquiring a later
-  // revision is not an operational change to an otherwise identical dependent.
-  if (otherMetadata.suppliedDeclaration !== undefined) {
-    delete otherMetadata.suppliedDeclaration;
-    delete otherMetadata.suppliedSource;
-    if (otherMetadata.sourceFacts !== undefined) {
-      const facts = asRecord(otherMetadata.sourceFacts);
-      const { revision: _revision, ...provenance } = asRecord(facts.provenance);
-      otherMetadata.sourceFacts = { ...facts, provenance };
-    }
-  }
   const descriptor = asRecord(recipe);
   const parsed = JSON.parse(Buffer.from(recipeBytes).toString("utf8")) as Record_;
   const { description: _description, ...operations } = parsed;
   return {
     item: canonicalJson({
       ...rest,
-      metadata: otherMetadata,
+      metadata: operationalMetadata(metadata),
       recipe: { id: descriptor.id, schema: descriptor.schema },
       materials: (materials as Json[]).map((member) => {
         const { path: _path, ...kept } = asRecord(member);
