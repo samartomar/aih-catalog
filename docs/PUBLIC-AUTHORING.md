@@ -409,7 +409,17 @@ requiredness for unavailable fields, exact source path, SHA-256 and revision. Op
 absence does not use the body as invented purpose. `native` retains frontmatter extensions
 or operational facts; original complete bytes remain source material. MCP registrations
 are separate from running-server identity and tool metadata; environment/header names are
-shown without their values. Hook facts retain events, matchers and actual handlers.
+shown without their values. Hook facts retain events, matchers and handler configuration.
+The general `native` view withholds environment/header values, named credential fields
+and explicitly sensitive configuration values, including nested agent/skill hooks. HTTP
+URL userinfo, query values and fragments are withheld; unparsed/non-HTTP URLs are withheld
+entirely. `sourceFacts.redactions` identifies projected paths and reasons, and withheld
+values display as `[withheld]`. A transformed URL is a safe projection, not exact authored
+text. Original source material, its hash and field provenance remain unchanged and are
+accessed separately under the consumer's normal source-material access rules. Consumers
+should show the withheld state; it is neither missing required metadata nor absent source
+configuration. This projection does not claim to detect secrets in arbitrary commands,
+arguments, prompts, names or prose.
 Supported handler validation is bounded to command, HTTP, prompt, agent and MCP-tool fields;
 metadata retention is not a claim of native execution or permission enforcement.
 

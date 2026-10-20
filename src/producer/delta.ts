@@ -174,8 +174,8 @@ export function classifyDelta(input: {
         return { ...common, template, state: "added", operational: ["new-item"], provenance: [] };
       const oldRecipe = base?.files.get(asRecord(prior.recipe).path as string) as Buffer;
       const changed =
-        templateBehavior(prior, oldRecipe) !==
-        templateBehavior(template.record, template.recipeBytes);
+        templateBehavior(prior, oldRecipe, !isTemplateItem(declared)) !==
+        templateBehavior(template.record, template.recipeBytes, !isTemplateItem(declared));
       const oldUpstream = asRecord(asRecord(prior.metadata).upstream);
       const newUpstream = asRecord(asRecord(template.record.metadata).upstream);
       const locations = ({

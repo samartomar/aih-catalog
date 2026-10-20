@@ -83,3 +83,47 @@ it("identifies static MCP registration without connecting or exposing environmen
     facts("claude-mcp-registration", '{"mcpServers":{},"mcpServers":{}}', "memory").status,
   ).toBe("malformed");
 });
+
+it("withholds credential-bearing hook, nested frontmatter and URL configuration from general discovery", () => {
+  const hooks = {
+    hooks: {
+      PreToolUse: [
+        {
+          hooks: [
+            {
+              type: "http",
+              url: "https://user-secret:pass-secret@example.com/check?token=query-secret#fragment-secret",
+              headers: { Authorization: "Bearer header-secret", "X-Api-Key": "api-secret" },
+            },
+          ],
+        },
+      ],
+    },
+  };
+  const parsed = facts("claude-hooks", JSON.stringify(hooks));
+  expect(parsed.status).toBe("valid");
+  const view = JSON.stringify(parsed);
+  for (const secret of [
+    "user-secret",
+    "pass-secret",
+    "query-secret",
+    "fragment-secret",
+    "header-secret",
+    "api-secret",
+  ])
+    expect(view).not.toContain(secret);
+  expect(parsed.redactions?.length).toBeGreaterThan(0);
+  const nested = facts(
+    "claude-agent",
+    `---\nname: example\ndescription: An agent.\nhooks: ${JSON.stringify(hooks.hooks)}\nsettings:\n  sensitive: true\n  default: explicit-secret\n---\nOriginal instructions.\n`,
+  );
+  expect(JSON.stringify(nested)).not.toContain("header-secret");
+  expect(JSON.stringify(nested)).not.toContain("explicit-secret");
+  const mcp = facts(
+    "claude-mcp-registration",
+    '{"mcpServers":{"memory":{"url":"https://user-secret:pass-secret@example.com/mcp?key=query-secret"}}}',
+    "memory",
+  );
+  expect(JSON.stringify(mcp)).not.toContain("query-secret");
+  expect(JSON.stringify(mcp)).not.toContain("pass-secret");
+});

@@ -71,6 +71,14 @@ assert.equal(prepareSourceRefresh({declaration,source:"ecc",inventoryComplete:fa
 const tiny=JSON.parse(readFileSync(join(root,"producer/templates/public/declaration.json")));
 const tinyFiles=Object.fromEntries(["LICENSE","recipe.json","note.md"].map(path=>[path,new Uint8Array(readFileSync(join(root,"producer/templates/public",path)))]));
 tiny.items[0].sourceDiscovery={profile:"claude-command",path:"note.md"};
+const privateBytes=new TextEncoder().encode('---\\nhooks: {PreToolUse: [{hooks: [{type: http, url: "https://private-user:private-pass@example.com/check?token=private-query", headers: {Authorization: "Bearer private-header"}}]}]}\\n---\\nSource instructions.');
+const safe=compileProducerDeclaration({declaration:tiny,sourceFiles:[{source:"notes",revision:"a".repeat(40),files:{...tinyFiles,"note.md":privateBytes}}]});
+assert.equal(safe.status,"ok",JSON.stringify(safe.diagnostics));
+for(const secret of ["private-user","private-pass","private-query","private-header"])assert(!JSON.stringify(safe.value.release).includes(secret));
+const sourceMember=safe.value.release.items[0].materials.find(material=>material.id==="note");
+assert(Buffer.from(safe.value.materials.find(material=>material.path===sourceMember.path).bytes).equals(Buffer.from(privateBytes)));
+assert.equal(safe.value.release.items[0].metadata.sourceFacts.provenance.sha256,sourceMember.sha256);
+assert(safe.value.release.items[0].metadata.sourceFacts.redactions.length>0);
 const mismatched=structuredClone(tiny);
 mismatched.items[0].materials.find(m=>m.id==="note").path="sub/note.md";
 assert.equal(compileProducerDeclaration({declaration:mismatched,sourceFiles:[{source:"notes",revision:"a".repeat(40),files:{...tinyFiles,"sub/note.md":tinyFiles["note.md"]}}]}).status,"refused");
@@ -83,6 +91,11 @@ item.configuration={agentDirectory:{type:"string",required:true,default:".claude
 const skillFiles={LICENSE:tinyFiles.LICENSE,[item.skillPath]:new TextEncoder().encode("---\\nname: example\\ndescription: Initial purpose.\\n---\\n")};
 const small=compileProducerDeclaration({declaration:skillDeclaration,sourceFiles:[{source:"notes",revision:"a".repeat(40),files:skillFiles}]});
 assert.equal(small.status,"ok",JSON.stringify(small.diagnostics));
+const sameSkill=prepareSourceRefresh({declaration:skillDeclaration,source:"notes",inventoryComplete:true,previous:small.value,sourceFiles:[{source:"notes",revision:"b".repeat(40),files:skillFiles}]});
+assert.equal(sameSkill.status,"ok",JSON.stringify(sameSkill.diagnostics));
+assert.deepEqual(sameSkill.value.release.items,small.value.release.items);
+assert.equal(sameSkill.value.report.summary.unchanged,1);
+assert.deepEqual(sameSkill.value.release.sources,small.value.release.sources);
 const smallRefresh=prepareSourceRefresh({declaration:skillDeclaration,source:"notes",inventoryComplete:true,previous:small.value,sourceFiles:[{source:"notes",revision:"b".repeat(40),files:{...skillFiles,[item.skillPath]:new TextEncoder().encode("---\\nname: example\\ndescription: Updated purpose.\\n---\\n")}}]});
 assert.equal(smallRefresh.status,"ok",JSON.stringify(smallRefresh.diagnostics));
 assert.equal(smallRefresh.value.release.items[0].label,"example");

@@ -37,6 +37,8 @@ export interface SourceFacts {
   readonly description: SourceField;
   /** Original source material retains the entire body and extensions; this view retains parsed facts. */
   readonly native: Json;
+  /** Known credential-bearing configuration was withheld from the general view. */
+  readonly redactions?: readonly { readonly path: string; readonly reason: string }[];
   readonly diagnostics: readonly { readonly field: string; readonly message: string }[];
 }
 
@@ -49,6 +51,85 @@ const profiles = new Set<string>([
   "claude-hooks",
   "claude-mcp-registration",
 ]);
+
+/** A safe general view, not a sanitizer for arbitrary source commands or prose. */
+function projectNative(value: Json): {
+  native: Json;
+  redactions: { path: string; reason: string }[];
+} {
+  const redactions: { path: string; reason: string }[] = [];
+  const withheld = (path: string, reason: string): Json => {
+    redactions.push({ path, reason });
+    return "[withheld]";
+  };
+  const visit = (entry: Json, path: string): Json => {
+    if (Array.isArray(entry)) return entry.map((child, index) => visit(child, `${path}/${index}`));
+    if (!isRecord(entry)) return entry;
+    const sensitive = entry.sensitive === true;
+    return Object.fromEntries(
+      Object.entries(entry).map(([key, child]) => {
+        const at = `${path}/${key.replace(/~/g, "~0").replace(/\//g, "~1")}`;
+        const field = key.toLowerCase().replace(/[-_]/g, "");
+        if (["env", "headers", "httpheaders"].includes(field) && isRecord(child))
+          return [
+            key,
+            Object.fromEntries(
+              Object.keys(child).map((name) => [
+                name,
+                withheld(
+                  `${at}/${name.replace(/~/g, "~0").replace(/\//g, "~1")}`,
+                  "credential-bearing-map",
+                ),
+              ]),
+            ),
+          ];
+        if (
+          [
+            "authorization",
+            "proxyauthorization",
+            "password",
+            "token",
+            "accesstoken",
+            "refreshtoken",
+            "secret",
+            "clientsecret",
+            "apikey",
+            "bearertoken",
+          ].includes(field) ||
+          (sensitive && ["default", "value", "values", "example", "examples"].includes(field))
+        )
+          return [key, withheld(at, "sensitive-configuration")];
+        if (field === "url" && typeof child === "string") {
+          try {
+            const url = new URL(child);
+            if (!["https:", "http:"].includes(url.protocol))
+              return [key, withheld(at, "unsupported-url-scheme")];
+            if (url.username || url.password) {
+              url.username = "";
+              url.password = "";
+              redactions.push({ path: at, reason: "url-userinfo" });
+            }
+            if (url.search) {
+              const names = [...url.searchParams.keys()];
+              url.search = "";
+              for (const name of names) url.searchParams.append(name, "[withheld]");
+              redactions.push({ path: at, reason: "url-query-values" });
+            }
+            if (url.hash) {
+              url.hash = "";
+              redactions.push({ path: at, reason: "url-fragment" });
+            }
+            return [key, url.href];
+          } catch {
+            return [key, withheld(at, "unparsed-url")];
+          }
+        }
+        return [key, visit(child as Json, at)];
+      }),
+    );
+  };
+  return { native: visit(value, "/native"), redactions };
+}
 
 /** Shared by Catalog compilation and personal intake; supplied bytes and provenance only. */
 export function extractSourceFacts(input: {
@@ -244,6 +325,7 @@ export function extractSourceFacts(input: {
       });
   }
   if (status === "valid" && diagnostics.length) status = "profile-error";
+  const projected = projectNative(native);
   return deepFreeze({
     profile: input.profile,
     status,
@@ -251,7 +333,8 @@ export function extractSourceFacts(input: {
     provenance: { path: input.path, revision: input.revision, sha256: sha256Hex(input.bytes) },
     name,
     description,
-    native,
+    native: projected.native,
+    ...(projected.redactions.length ? { redactions: projected.redactions } : {}),
     diagnostics,
   });
 }
