@@ -1,5 +1,14 @@
 # Pinned ECC content
 
+The new default `ecc.template.api-review` intentionally pins the current bundled
+Extensions release and `security-and-hardening` item after its source-facts
+refresh. This is an explicit Catalog-owned template dependency update; retained
+release bytes and saved selection pins remain unchanged. When preparing baseline
+qualified releases, qualify Extensions first, then explicitly rebind new ECC and
+Superpowers templates to that exact release before freezing, assessing and
+qualifying their downstream inventories. A new upstream release digest does not
+silently rewrite an existing template or saved selection.
+
 `@aihq/catalog/release-ecc.json` is a separately selected, unpublished local
 Catalog release. It preserves `affaan-m/ECC` at
 `5064474d4d762dc9640234a41617cccb79185cec` (ECC 2.2.1, MIT), including the

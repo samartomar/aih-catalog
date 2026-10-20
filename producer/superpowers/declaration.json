@@ -47,7 +47,7 @@
       "id": "superpowers.skill.brainstorming",
       "source": "superpowers",
       "label": "superpowers.skill.brainstorming",
-      "description": "Optional visual companion requires explicit user approval, Bash, Node.js and a reachable browser; bundled server is zero-dependency, defaults to loopback/session authentication. Logo request sends the Superpowers version; SUPERPOWERS_DISABLE_TELEMETRY, DISABLE_TELEMETRY or CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC disables it. No server or browser is started by material Apply.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.skill.brainstorming.json",
       "materials": [
@@ -118,13 +118,17 @@
           "instructions": "Open the project and explicitly select/read brainstorming. Optional visual companion requires explicit user approval, Bash, Node.js and a reachable browser; bundled server is zero-dependency, defaults to loopback/session authentication. Logo request sends the Superpowers version; SUPERPOWERS_DISABLE_TELEMETRY, DISABLE_TELEMETRY or CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC disables it. No server or browser is started by material Apply."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/brainstorming/SKILL.md"
+      }
     },
     {
       "id": "superpowers.skill.diagnosing-superpowers",
       "source": "superpowers",
       "label": "superpowers.skill.diagnosing-superpowers",
-      "description": "Requires caller-authorized session history with verified session identity, record/usage semantics and bounded reads; unavailable/ambiguous transcripts remain unavailable. Scrub/audit and separate user consent precede any issue submission. Catalog reads no transcripts and uploads nothing.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.skill.diagnosing-superpowers.json",
       "materials": [
@@ -243,13 +247,17 @@
           "instructions": "Open the project and explicitly select/read diagnosing-superpowers. Requires caller-authorized session history with verified session identity, record/usage semantics and bounded reads; unavailable/ambiguous transcripts remain unavailable. Scrub/audit and separate user consent precede any issue submission. Catalog reads no transcripts and uploads nothing."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/diagnosing-superpowers/SKILL.md"
+      }
     },
     {
       "id": "superpowers.skill.dispatching-parallel-agents",
       "source": "superpowers",
       "label": "superpowers.skill.dispatching-parallel-agents",
-      "description": "Requires independent tasks and actual harness subagent tools; model dispatch in Kiro IDE/Copilot VSCode is unknown. Instructions alone do not supply subagents.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.skill.dispatching-parallel-agents.json",
       "materials": [
@@ -292,13 +300,17 @@
           "instructions": "Open the project and explicitly select/read dispatching-parallel-agents. Requires independent tasks and actual harness subagent tools; model dispatch in Kiro IDE/Copilot VSCode is unknown. Instructions alone do not supply subagents."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/dispatching-parallel-agents/SKILL.md"
+      }
     },
     {
       "id": "superpowers.skill.executing-plans",
       "source": "superpowers",
       "label": "superpowers.skill.executing-plans",
-      "description": "Requires an approved reachable plan/spec and isolated Git workspace, Bash and Git for task/ledger scripts; script sibling closure is required. Native subagent capability is harness-dependent; unavailable routes follow upstream inline fallback. No workflow or Git command is run by material Apply.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.skill.executing-plans.json",
       "materials": [
@@ -367,13 +379,17 @@
           "instructions": "Open the project and explicitly select/read executing-plans. Requires an approved reachable plan/spec and isolated Git workspace, Bash and Git for task/ledger scripts; script sibling closure is required. Native subagent capability is harness-dependent; unavailable routes follow upstream inline fallback. No workflow or Git command is run by material Apply."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/executing-plans/SKILL.md"
+      }
     },
     {
       "id": "superpowers.skill.finishing-a-development-branch",
       "source": "superpowers",
       "label": "superpowers.skill.finishing-a-development-branch",
-      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.skill.finishing-a-development-branch.json",
       "materials": [
@@ -416,13 +432,17 @@
           "instructions": "Open the project and explicitly select/read finishing-a-development-branch. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/finishing-a-development-branch/SKILL.md"
+      }
     },
     {
       "id": "superpowers.skill.receiving-code-review",
       "source": "superpowers",
       "label": "superpowers.skill.receiving-code-review",
-      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.skill.receiving-code-review.json",
       "materials": [
@@ -465,13 +485,17 @@
           "instructions": "Open the project and explicitly select/read receiving-code-review. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/receiving-code-review/SKILL.md"
+      }
     },
     {
       "id": "superpowers.skill.requesting-code-review",
       "source": "superpowers",
       "label": "superpowers.skill.requesting-code-review",
-      "description": "Requires reviewed Git range and harness reviewer tools; the bundled code-reviewer.md is a dispatch prompt, not an automatically registered agent.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.skill.requesting-code-review.json",
       "materials": [
@@ -518,13 +542,17 @@
           "instructions": "Open the project and explicitly select/read requesting-code-review. Requires reviewed Git range and harness reviewer tools; the bundled code-reviewer.md is a dispatch prompt, not an automatically registered agent."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/requesting-code-review/SKILL.md"
+      }
     },
     {
       "id": "superpowers.skill.subagent-driven-development",
       "source": "superpowers",
       "label": "superpowers.skill.subagent-driven-development",
-      "description": "Requires approved plan/spec, isolated Git workspace, Bash and Git for helper scripts and real harness subagent/reviewer tools. Tool availability/model routing is unknown for Kiro IDE and Copilot VSCode; no native equivalents are invented.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.skill.subagent-driven-development.json",
       "materials": [
@@ -600,13 +628,17 @@
           "instructions": "Open the project and explicitly select/read subagent-driven-development. Requires approved plan/spec, isolated Git workspace, Bash and Git for helper scripts and real harness subagent/reviewer tools. Tool availability/model routing is unknown for Kiro IDE and Copilot VSCode; no native equivalents are invented."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/subagent-driven-development/SKILL.md"
+      }
     },
     {
       "id": "superpowers.skill.systematic-debugging",
       "source": "superpowers",
       "label": "superpowers.skill.systematic-debugging",
-      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.skill.systematic-debugging.json",
       "materials": [
@@ -689,13 +721,17 @@
           "instructions": "Open the project and explicitly select/read systematic-debugging. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/systematic-debugging/SKILL.md"
+      }
     },
     {
       "id": "superpowers.skill.test-driven-development",
       "source": "superpowers",
       "label": "superpowers.skill.test-driven-development",
-      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.skill.test-driven-development.json",
       "materials": [
@@ -742,13 +778,17 @@
           "instructions": "Open the project and explicitly select/read test-driven-development. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/test-driven-development/SKILL.md"
+      }
     },
     {
       "id": "superpowers.skill.using-git-worktrees",
       "source": "superpowers",
       "label": "superpowers.skill.using-git-worktrees",
-      "description": "Requires Git and a repository; detects existing isolation first, prefers native worktree tools when present and uses manual Git fallback. Project build/test runtimes and native tool availability remain caller-owned.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.skill.using-git-worktrees.json",
       "materials": [
@@ -791,13 +831,17 @@
           "instructions": "Open the project and explicitly select/read using-git-worktrees. Requires Git and a repository; detects existing isolation first, prefers native worktree tools when present and uses manual Git fallback. Project build/test runtimes and native tool availability remain caller-owned."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/using-git-worktrees/SKILL.md"
+      }
     },
     {
       "id": "superpowers.skill.using-superpowers",
       "source": "superpowers",
       "label": "superpowers.skill.using-superpowers",
-      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.skill.using-superpowers.json",
       "materials": [
@@ -868,13 +912,17 @@
           "instructions": "Open the project and explicitly select/read using-superpowers. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/using-superpowers/SKILL.md"
+      }
     },
     {
       "id": "superpowers.skill.verification-before-completion",
       "source": "superpowers",
       "label": "superpowers.skill.verification-before-completion",
-      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.skill.verification-before-completion.json",
       "materials": [
@@ -917,13 +965,17 @@
           "instructions": "Open the project and explicitly select/read verification-before-completion. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/verification-before-completion/SKILL.md"
+      }
     },
     {
       "id": "superpowers.skill.writing-plans",
       "source": "superpowers",
       "label": "superpowers.skill.writing-plans",
-      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.skill.writing-plans.json",
       "materials": [
@@ -970,13 +1022,17 @@
           "instructions": "Open the project and explicitly select/read writing-plans. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/writing-plans/SKILL.md"
+      }
     },
     {
       "id": "superpowers.skill.writing-skills",
       "source": "superpowers",
       "label": "superpowers.skill.writing-skills",
-      "description": "Requires test-driven-development background, real testing/subagent tools; optional graph rendering needs Node.js and Graphviz dot. No renderer or model call runs during material Apply.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.skill.writing-skills.json",
       "materials": [
@@ -1046,13 +1102,17 @@
           "instructions": "Open the project and explicitly select/read writing-skills. Requires test-driven-development background, real testing/subagent tools; optional graph rendering needs Node.js and Graphviz dot. No renderer or model call runs during material Apply."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/writing-skills/SKILL.md"
+      }
     },
     {
       "id": "superpowers.kiro.skill.brainstorming",
       "source": "superpowers",
       "label": "superpowers.kiro.skill.brainstorming",
-      "description": "Optional visual companion requires explicit user approval, Bash, Node.js and a reachable browser; bundled server is zero-dependency, defaults to loopback/session authentication. Logo request sends the Superpowers version; SUPERPOWERS_DISABLE_TELEMETRY, DISABLE_TELEMETRY or CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC disables it. No server or browser is started by material Apply.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.kiro.skill.brainstorming.json",
       "materials": [
@@ -1130,13 +1190,17 @@
           "instructions": "Open the project and explicitly select/read brainstorming. Optional visual companion requires explicit user approval, Bash, Node.js and a reachable browser; bundled server is zero-dependency, defaults to loopback/session authentication. Logo request sends the Superpowers version; SUPERPOWERS_DISABLE_TELEMETRY, DISABLE_TELEMETRY or CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC disables it. No server or browser is started by material Apply."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/brainstorming/SKILL.md"
+      }
     },
     {
       "id": "superpowers.kiro.skill.diagnosing-superpowers",
       "source": "superpowers",
       "label": "superpowers.kiro.skill.diagnosing-superpowers",
-      "description": "Requires caller-authorized session history with verified session identity, record/usage semantics and bounded reads; unavailable/ambiguous transcripts remain unavailable. Scrub/audit and separate user consent precede any issue submission. Catalog reads no transcripts and uploads nothing.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.kiro.skill.diagnosing-superpowers.json",
       "materials": [
@@ -1262,13 +1326,17 @@
           "instructions": "Open the project and explicitly select/read diagnosing-superpowers. Requires caller-authorized session history with verified session identity, record/usage semantics and bounded reads; unavailable/ambiguous transcripts remain unavailable. Scrub/audit and separate user consent precede any issue submission. Catalog reads no transcripts and uploads nothing."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/diagnosing-superpowers/SKILL.md"
+      }
     },
     {
       "id": "superpowers.kiro.skill.dispatching-parallel-agents",
       "source": "superpowers",
       "label": "superpowers.kiro.skill.dispatching-parallel-agents",
-      "description": "Requires independent tasks and actual harness subagent tools; model dispatch in Kiro IDE/Copilot VSCode is unknown. Instructions alone do not supply subagents.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.kiro.skill.dispatching-parallel-agents.json",
       "materials": [
@@ -1318,13 +1386,17 @@
           "instructions": "Open the project and explicitly select/read dispatching-parallel-agents. Requires independent tasks and actual harness subagent tools; model dispatch in Kiro IDE/Copilot VSCode is unknown. Instructions alone do not supply subagents."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/dispatching-parallel-agents/SKILL.md"
+      }
     },
     {
       "id": "superpowers.kiro.skill.executing-plans",
       "source": "superpowers",
       "label": "superpowers.kiro.skill.executing-plans",
-      "description": "Requires an approved reachable plan/spec and isolated Git workspace, Bash and Git for task/ledger scripts; script sibling closure is required. Native subagent capability is harness-dependent; unavailable routes follow upstream inline fallback. No workflow or Git command is run by material Apply.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.kiro.skill.executing-plans.json",
       "materials": [
@@ -1400,13 +1472,17 @@
           "instructions": "Open the project and explicitly select/read executing-plans. Requires an approved reachable plan/spec and isolated Git workspace, Bash and Git for task/ledger scripts; script sibling closure is required. Native subagent capability is harness-dependent; unavailable routes follow upstream inline fallback. No workflow or Git command is run by material Apply."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/executing-plans/SKILL.md"
+      }
     },
     {
       "id": "superpowers.kiro.skill.finishing-a-development-branch",
       "source": "superpowers",
       "label": "superpowers.kiro.skill.finishing-a-development-branch",
-      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.kiro.skill.finishing-a-development-branch.json",
       "materials": [
@@ -1456,13 +1532,17 @@
           "instructions": "Open the project and explicitly select/read finishing-a-development-branch. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/finishing-a-development-branch/SKILL.md"
+      }
     },
     {
       "id": "superpowers.kiro.skill.receiving-code-review",
       "source": "superpowers",
       "label": "superpowers.kiro.skill.receiving-code-review",
-      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.kiro.skill.receiving-code-review.json",
       "materials": [
@@ -1512,13 +1592,17 @@
           "instructions": "Open the project and explicitly select/read receiving-code-review. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/receiving-code-review/SKILL.md"
+      }
     },
     {
       "id": "superpowers.kiro.skill.requesting-code-review",
       "source": "superpowers",
       "label": "superpowers.kiro.skill.requesting-code-review",
-      "description": "Requires reviewed Git range and harness reviewer tools; the bundled code-reviewer.md is a dispatch prompt, not an automatically registered agent.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.kiro.skill.requesting-code-review.json",
       "materials": [
@@ -1572,13 +1656,17 @@
           "instructions": "Open the project and explicitly select/read requesting-code-review. Requires reviewed Git range and harness reviewer tools; the bundled code-reviewer.md is a dispatch prompt, not an automatically registered agent."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/requesting-code-review/SKILL.md"
+      }
     },
     {
       "id": "superpowers.kiro.skill.subagent-driven-development",
       "source": "superpowers",
       "label": "superpowers.kiro.skill.subagent-driven-development",
-      "description": "Requires approved plan/spec, isolated Git workspace, Bash and Git for helper scripts and real harness subagent/reviewer tools. Tool availability/model routing is unknown for Kiro IDE and Copilot VSCode; no native equivalents are invented.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.kiro.skill.subagent-driven-development.json",
       "materials": [
@@ -1661,13 +1749,17 @@
           "instructions": "Open the project and explicitly select/read subagent-driven-development. Requires approved plan/spec, isolated Git workspace, Bash and Git for helper scripts and real harness subagent/reviewer tools. Tool availability/model routing is unknown for Kiro IDE and Copilot VSCode; no native equivalents are invented."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/subagent-driven-development/SKILL.md"
+      }
     },
     {
       "id": "superpowers.kiro.skill.systematic-debugging",
       "source": "superpowers",
       "label": "superpowers.kiro.skill.systematic-debugging",
-      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.kiro.skill.systematic-debugging.json",
       "materials": [
@@ -1757,13 +1849,17 @@
           "instructions": "Open the project and explicitly select/read systematic-debugging. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/systematic-debugging/SKILL.md"
+      }
     },
     {
       "id": "superpowers.kiro.skill.test-driven-development",
       "source": "superpowers",
       "label": "superpowers.kiro.skill.test-driven-development",
-      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.kiro.skill.test-driven-development.json",
       "materials": [
@@ -1817,13 +1913,17 @@
           "instructions": "Open the project and explicitly select/read test-driven-development. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/test-driven-development/SKILL.md"
+      }
     },
     {
       "id": "superpowers.kiro.skill.using-git-worktrees",
       "source": "superpowers",
       "label": "superpowers.kiro.skill.using-git-worktrees",
-      "description": "Requires Git and a repository; detects existing isolation first, prefers native worktree tools when present and uses manual Git fallback. Project build/test runtimes and native tool availability remain caller-owned.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.kiro.skill.using-git-worktrees.json",
       "materials": [
@@ -1873,13 +1973,17 @@
           "instructions": "Open the project and explicitly select/read using-git-worktrees. Requires Git and a repository; detects existing isolation first, prefers native worktree tools when present and uses manual Git fallback. Project build/test runtimes and native tool availability remain caller-owned."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/using-git-worktrees/SKILL.md"
+      }
     },
     {
       "id": "superpowers.kiro.skill.using-superpowers",
       "source": "superpowers",
       "label": "superpowers.kiro.skill.using-superpowers",
-      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.kiro.skill.using-superpowers.json",
       "materials": [
@@ -1957,13 +2061,17 @@
           "instructions": "Open the project and explicitly select/read using-superpowers. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/using-superpowers/SKILL.md"
+      }
     },
     {
       "id": "superpowers.kiro.skill.verification-before-completion",
       "source": "superpowers",
       "label": "superpowers.kiro.skill.verification-before-completion",
-      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.kiro.skill.verification-before-completion.json",
       "materials": [
@@ -2013,13 +2121,17 @@
           "instructions": "Open the project and explicitly select/read verification-before-completion. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/verification-before-completion/SKILL.md"
+      }
     },
     {
       "id": "superpowers.kiro.skill.writing-plans",
       "source": "superpowers",
       "label": "superpowers.kiro.skill.writing-plans",
-      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.kiro.skill.writing-plans.json",
       "materials": [
@@ -2073,13 +2185,17 @@
           "instructions": "Open the project and explicitly select/read writing-plans. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/writing-plans/SKILL.md"
+      }
     },
     {
       "id": "superpowers.kiro.skill.writing-skills",
       "source": "superpowers",
       "label": "superpowers.kiro.skill.writing-skills",
-      "description": "Requires test-driven-development background, real testing/subagent tools; optional graph rendering needs Node.js and Graphviz dot. No renderer or model call runs during material Apply.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.kiro.skill.writing-skills.json",
       "materials": [
@@ -2156,13 +2272,17 @@
           "instructions": "Open the project and explicitly select/read writing-skills. Requires test-driven-development background, real testing/subagent tools; optional graph rendering needs Node.js and Graphviz dot. No renderer or model call runs during material Apply."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/writing-skills/SKILL.md"
+      }
     },
     {
       "id": "superpowers.copilot.skill.brainstorming",
       "source": "superpowers",
       "label": "superpowers.copilot.skill.brainstorming",
-      "description": "Optional visual companion requires explicit user approval, Bash, Node.js and a reachable browser; bundled server is zero-dependency, defaults to loopback/session authentication. Logo request sends the Superpowers version; SUPERPOWERS_DISABLE_TELEMETRY, DISABLE_TELEMETRY or CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC disables it. No server or browser is started by material Apply.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.copilot.skill.brainstorming.json",
       "materials": [
@@ -2240,13 +2360,17 @@
           "instructions": "Open the project and explicitly select/read brainstorming. Optional visual companion requires explicit user approval, Bash, Node.js and a reachable browser; bundled server is zero-dependency, defaults to loopback/session authentication. Logo request sends the Superpowers version; SUPERPOWERS_DISABLE_TELEMETRY, DISABLE_TELEMETRY or CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC disables it. No server or browser is started by material Apply."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/brainstorming/SKILL.md"
+      }
     },
     {
       "id": "superpowers.copilot.skill.diagnosing-superpowers",
       "source": "superpowers",
       "label": "superpowers.copilot.skill.diagnosing-superpowers",
-      "description": "Requires caller-authorized session history with verified session identity, record/usage semantics and bounded reads; unavailable/ambiguous transcripts remain unavailable. Scrub/audit and separate user consent precede any issue submission. Catalog reads no transcripts and uploads nothing.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.copilot.skill.diagnosing-superpowers.json",
       "materials": [
@@ -2372,13 +2496,17 @@
           "instructions": "Open the project and explicitly select/read diagnosing-superpowers. Requires caller-authorized session history with verified session identity, record/usage semantics and bounded reads; unavailable/ambiguous transcripts remain unavailable. Scrub/audit and separate user consent precede any issue submission. Catalog reads no transcripts and uploads nothing."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/diagnosing-superpowers/SKILL.md"
+      }
     },
     {
       "id": "superpowers.copilot.skill.dispatching-parallel-agents",
       "source": "superpowers",
       "label": "superpowers.copilot.skill.dispatching-parallel-agents",
-      "description": "Requires independent tasks and actual harness subagent tools; model dispatch in Kiro IDE/Copilot VSCode is unknown. Instructions alone do not supply subagents.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.copilot.skill.dispatching-parallel-agents.json",
       "materials": [
@@ -2428,13 +2556,17 @@
           "instructions": "Open the project and explicitly select/read dispatching-parallel-agents. Requires independent tasks and actual harness subagent tools; model dispatch in Kiro IDE/Copilot VSCode is unknown. Instructions alone do not supply subagents."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/dispatching-parallel-agents/SKILL.md"
+      }
     },
     {
       "id": "superpowers.copilot.skill.executing-plans",
       "source": "superpowers",
       "label": "superpowers.copilot.skill.executing-plans",
-      "description": "Requires an approved reachable plan/spec and isolated Git workspace, Bash and Git for task/ledger scripts; script sibling closure is required. Native subagent capability is harness-dependent; unavailable routes follow upstream inline fallback. No workflow or Git command is run by material Apply.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.copilot.skill.executing-plans.json",
       "materials": [
@@ -2510,13 +2642,17 @@
           "instructions": "Open the project and explicitly select/read executing-plans. Requires an approved reachable plan/spec and isolated Git workspace, Bash and Git for task/ledger scripts; script sibling closure is required. Native subagent capability is harness-dependent; unavailable routes follow upstream inline fallback. No workflow or Git command is run by material Apply."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/executing-plans/SKILL.md"
+      }
     },
     {
       "id": "superpowers.copilot.skill.finishing-a-development-branch",
       "source": "superpowers",
       "label": "superpowers.copilot.skill.finishing-a-development-branch",
-      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.copilot.skill.finishing-a-development-branch.json",
       "materials": [
@@ -2566,13 +2702,17 @@
           "instructions": "Open the project and explicitly select/read finishing-a-development-branch. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/finishing-a-development-branch/SKILL.md"
+      }
     },
     {
       "id": "superpowers.copilot.skill.receiving-code-review",
       "source": "superpowers",
       "label": "superpowers.copilot.skill.receiving-code-review",
-      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.copilot.skill.receiving-code-review.json",
       "materials": [
@@ -2622,13 +2762,17 @@
           "instructions": "Open the project and explicitly select/read receiving-code-review. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/receiving-code-review/SKILL.md"
+      }
     },
     {
       "id": "superpowers.copilot.skill.requesting-code-review",
       "source": "superpowers",
       "label": "superpowers.copilot.skill.requesting-code-review",
-      "description": "Requires reviewed Git range and harness reviewer tools; the bundled code-reviewer.md is a dispatch prompt, not an automatically registered agent.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.copilot.skill.requesting-code-review.json",
       "materials": [
@@ -2682,13 +2826,17 @@
           "instructions": "Open the project and explicitly select/read requesting-code-review. Requires reviewed Git range and harness reviewer tools; the bundled code-reviewer.md is a dispatch prompt, not an automatically registered agent."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/requesting-code-review/SKILL.md"
+      }
     },
     {
       "id": "superpowers.copilot.skill.subagent-driven-development",
       "source": "superpowers",
       "label": "superpowers.copilot.skill.subagent-driven-development",
-      "description": "Requires approved plan/spec, isolated Git workspace, Bash and Git for helper scripts and real harness subagent/reviewer tools. Tool availability/model routing is unknown for Kiro IDE and Copilot VSCode; no native equivalents are invented.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.copilot.skill.subagent-driven-development.json",
       "materials": [
@@ -2771,13 +2919,17 @@
           "instructions": "Open the project and explicitly select/read subagent-driven-development. Requires approved plan/spec, isolated Git workspace, Bash and Git for helper scripts and real harness subagent/reviewer tools. Tool availability/model routing is unknown for Kiro IDE and Copilot VSCode; no native equivalents are invented."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/subagent-driven-development/SKILL.md"
+      }
     },
     {
       "id": "superpowers.copilot.skill.systematic-debugging",
       "source": "superpowers",
       "label": "superpowers.copilot.skill.systematic-debugging",
-      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.copilot.skill.systematic-debugging.json",
       "materials": [
@@ -2867,13 +3019,17 @@
           "instructions": "Open the project and explicitly select/read systematic-debugging. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/systematic-debugging/SKILL.md"
+      }
     },
     {
       "id": "superpowers.copilot.skill.test-driven-development",
       "source": "superpowers",
       "label": "superpowers.copilot.skill.test-driven-development",
-      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.copilot.skill.test-driven-development.json",
       "materials": [
@@ -2927,13 +3083,17 @@
           "instructions": "Open the project and explicitly select/read test-driven-development. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/test-driven-development/SKILL.md"
+      }
     },
     {
       "id": "superpowers.copilot.skill.using-git-worktrees",
       "source": "superpowers",
       "label": "superpowers.copilot.skill.using-git-worktrees",
-      "description": "Requires Git and a repository; detects existing isolation first, prefers native worktree tools when present and uses manual Git fallback. Project build/test runtimes and native tool availability remain caller-owned.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.copilot.skill.using-git-worktrees.json",
       "materials": [
@@ -2983,13 +3143,17 @@
           "instructions": "Open the project and explicitly select/read using-git-worktrees. Requires Git and a repository; detects existing isolation first, prefers native worktree tools when present and uses manual Git fallback. Project build/test runtimes and native tool availability remain caller-owned."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/using-git-worktrees/SKILL.md"
+      }
     },
     {
       "id": "superpowers.copilot.skill.using-superpowers",
       "source": "superpowers",
       "label": "superpowers.copilot.skill.using-superpowers",
-      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.copilot.skill.using-superpowers.json",
       "materials": [
@@ -3067,13 +3231,17 @@
           "instructions": "Open the project and explicitly select/read using-superpowers. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/using-superpowers/SKILL.md"
+      }
     },
     {
       "id": "superpowers.copilot.skill.verification-before-completion",
       "source": "superpowers",
       "label": "superpowers.copilot.skill.verification-before-completion",
-      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.copilot.skill.verification-before-completion.json",
       "materials": [
@@ -3123,13 +3291,17 @@
           "instructions": "Open the project and explicitly select/read verification-before-completion. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/verification-before-completion/SKILL.md"
+      }
     },
     {
       "id": "superpowers.copilot.skill.writing-plans",
       "source": "superpowers",
       "label": "superpowers.copilot.skill.writing-plans",
-      "description": "Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.copilot.skill.writing-plans.json",
       "materials": [
@@ -3183,13 +3355,17 @@
           "instructions": "Open the project and explicitly select/read writing-plans. Requires a compatible agent able to read these instructions and the task/project-specific tools and permissions described in the source. Native execution has not been observed."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/writing-plans/SKILL.md"
+      }
     },
     {
       "id": "superpowers.copilot.skill.writing-skills",
       "source": "superpowers",
       "label": "superpowers.copilot.skill.writing-skills",
-      "description": "Requires test-driven-development background, real testing/subagent tools; optional graph rendering needs Node.js and Graphviz dot. No renderer or model call runs during material Apply.",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/superpowers.copilot.skill.writing-skills.json",
       "materials": [
@@ -3266,13 +3442,17 @@
           "instructions": "Open the project and explicitly select/read writing-skills. Requires test-driven-development background, real testing/subagent tools; optional graph rendering needs Node.js and Graphviz dot. No renderer or model call runs during material Apply."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/writing-skills/SKILL.md"
+      }
     },
     {
       "id": "superpowers.runtime-source.claude-bootstrap",
       "source": "superpowers",
       "label": "superpowers.runtime-source.claude-bootstrap",
-      "description": "Exact pinned source material delivery; Catalog projection only, native execution unknown.",
+      "description": "",
       "kind": "instruction",
       "recipePath": "catalog-recipes/superpowers.runtime-source.claude-bootstrap.json",
       "materials": [
@@ -3370,7 +3550,11 @@
           "instructions": "SessionStart reads ../skills/using-superpowers/SKILL.md, emits hookSpecificOutput.additionalContext only when CLAUDE_PLUGIN_ROOT is set; missing Windows Bash silently skips injection."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "claude-hooks",
+        "path": "hooks/hooks.json"
+      }
     },
     {
       "id": "superpowers.runtime-source.cursor",
@@ -4047,7 +4231,6 @@
         },
         {
           "itemId": "extensions.skill.security-and-hardening",
-          "itemSha256": "7d7ebe3300d2e895bb87b410f158e878954756f9ff4e5547cec861e782a3a7a0",
           "release": {
             "source": {
               "kind": "local",
@@ -4055,10 +4238,11 @@
             },
             "manifest": {
               "path": "release/release-extensions.json",
-              "sha256": "579fc213c279d7df6f68b2d6da1e95d6c2df109954b1744ac36661baaf0fa912",
-              "byteLength": 5472277
+              "sha256": "f44f8e0edbec523c9313b1658cc68675189b9ed5bdafce8cbe3f67ea2ad44ef1",
+              "byteLength": 5656654
             }
-          }
+          },
+          "itemSha256": "c90ea77e6531c4f7c40c3a4260fc8e0b1097cb8cbfa05d68d986bff5a6f8c240"
         }
       ],
       "optional": [

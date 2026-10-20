@@ -24,11 +24,12 @@ seedConsumerLock(consumer, root);
 runNpm(["install", "--prefix", consumer, "--offline", "--ignore-scripts", "--no-audit", "--no-fund", archive]);
 writeFileSync(join(consumer, "proof.mjs"), `
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { compileProducerDeclaration, prepareSourceRefresh } from "@aihq/catalog/producer";
-import { readRelease } from "@aihq/catalog/reader";
+import { readRelease, resolveSelections } from "@aihq/catalog/reader";
 import { extractSourceFacts } from "@aihq/catalog/source";
 const root = dirname(fileURLToPath(import.meta.resolve("@aihq/catalog/package.json")));
 const declaration = JSON.parse(readFileSync(join(root,"producer/ecc/declaration.json")));
@@ -110,6 +111,126 @@ assert.equal(absent.value.release.items[0].metadata.sourceFacts.description.stat
 assert.equal(absent.value.release.items[0].description,"");
 const empty=extractSourceFacts({profile:"claude-command",path:"empty.md",revision:"a".repeat(40),bytes:new TextEncoder().encode("---\\n---\\nInstructions")});
 assert.equal(empty.status,"valid");
+const supportDeclaration=structuredClone(skillDeclaration);
+supportDeclaration.items[0].id="consumer-proof.example-skill";
+supportDeclaration.items[0].supportPaths=["support.md"];
+const supportFiles={...skillFiles,"skills/example/support.md":new TextEncoder().encode("Reviewed support material.")};
+const supportBase=compileProducerDeclaration({declaration:supportDeclaration,sourceFiles:[{source:"notes",revision:"a".repeat(40),files:supportFiles}]});
+assert.equal(supportBase.status,"ok",JSON.stringify(supportBase.diagnostics));
+const supportChanged=prepareSourceRefresh({declaration:supportDeclaration,source:"notes",inventoryComplete:true,previous:supportBase.value,sourceFiles:[{source:"notes",revision:"b".repeat(40),files:{...supportFiles,"skills/example/support.md":new TextEncoder().encode("Updated support material.")}}]});
+assert.equal(supportChanged.status,"ok",JSON.stringify(supportChanged.diagnostics));assert.equal(supportChanged.value.report.summary.changed,1);
+const missingSupport={...supportFiles};delete missingSupport["skills/example/support.md"];
+assert.equal(prepareSourceRefresh({declaration:supportDeclaration,source:"notes",inventoryComplete:true,previous:supportBase.value,sourceFiles:[{source:"notes",revision:"b".repeat(40),files:missingSupport}]}).status,"refused");
+const missingLicense={...supportFiles};delete missingLicense.LICENSE;
+assert.equal(prepareSourceRefresh({declaration:supportDeclaration,source:"notes",inventoryComplete:true,previous:supportBase.value,sourceFiles:[{source:"notes",revision:"b".repeat(40),files:missingLicense}]}).status,"refused");
+const licenseChanged=prepareSourceRefresh({declaration:supportDeclaration,source:"notes",inventoryComplete:true,previous:supportBase.value,sourceFiles:[{source:"notes",revision:"b".repeat(40),files:{...supportFiles,LICENSE:new TextEncoder().encode(new TextDecoder().decode(supportFiles.LICENSE)+"\\nAdditional notice.\\n")}}]});
+assert.equal(licenseChanged.status,"ok",JSON.stringify(licenseChanged.diagnostics));assert.equal(licenseChanged.value.report.summary.changed,1);
+const removalDeclaration={...structuredClone(tiny),items:[{...structuredClone(tiny.items[0]),requires:[{itemId:"consumer-proof.example-skill"}]},supportDeclaration.items[0]]};
+const removalFiles={...tinyFiles,...supportFiles};
+const removalBase=compileProducerDeclaration({declaration:removalDeclaration,sourceFiles:[{source:"notes",revision:"a".repeat(40),files:removalFiles}]});
+assert.equal(removalBase.status,"ok",JSON.stringify(removalBase.diagnostics));
+const removedFiles={...removalFiles};delete removedFiles["skills/example/SKILL.md"];
+const blockedRemoval=prepareSourceRefresh({declaration:removalDeclaration,source:"notes",inventoryComplete:true,previous:removalBase.value,sourceFiles:[{source:"notes",revision:"b".repeat(40),files:removedFiles}]});
+assert.equal(blockedRemoval.status,"refused");assert(JSON.stringify(blockedRemoval.diagnostics).includes("/items/0/requires/0"),JSON.stringify(blockedRemoval.diagnostics));
+const reviewedRemoval=structuredClone(removalDeclaration);reviewedRemoval.items[0].requires=[];
+const removed=prepareSourceRefresh({declaration:reviewedRemoval,source:"notes",inventoryComplete:true,previous:removalBase.value,sourceFiles:[{source:"notes",revision:"b".repeat(40),files:removedFiles}]});
+assert.equal(removed.status,"ok",JSON.stringify(removed.diagnostics));assert.equal(removed.value.report.summary.removed,1);
+// Each maintained family uses the same public compiler and source interpretation.
+for (const family of ["extensions", "superpowers", "anthropic"]) {
+  const declared = JSON.parse(readFileSync(join(root,"producer",family,"declaration.json")));
+  const supplied = JSON.parse(readFileSync(join(root,"producer",family,"snapshot.json")));
+  const records = supplied.sources.map(source => ({source:source.id,revision:source.revision,files:{
+    ...Object.fromEntries(source.files.map(file=>[file.path,new Uint8Array(Buffer.from(file.base64,"base64"))])),
+    ...Object.fromEntries(declared.items.filter(item=>item.source===source.id).map(item=>[item.recipePath,new TextEncoder().encode(supplied.recipes[source.id]?.[item.recipePath]??supplied.recipes[item.recipePath])])),
+  }}));
+  const result = compileProducerDeclaration({declaration:declared,sourceFiles:records});
+  assert.equal(result.status,"ok",JSON.stringify(result.diagnostics));
+  const read = readRelease(result.value.releaseBytes,{expectedSha256:result.value.releaseSha256});
+  assert(read.valid);
+  const skills = declared.items.filter(item=>item.kind==="skill");
+  assert(skills.length>0);
+  for (const skill of skills) {
+    const item = read.release.items.find(item=>item.id===skill.id);
+    assert(item.metadata.sourceFacts,skill.id+" must derive source facts");
+    if (skill.id.startsWith("anthropic.") && skill.id.endsWith("skill.claude-api")) {
+      assert.equal(item.metadata.sourceFacts.description.state,"invalid",skill.id);
+      assert.equal(item.metadata.sourceFacts.status,"profile-error");
+      assert.equal(item.description,"");
+    } else {
+      assert.equal(item.metadata.sourceFacts.description.state,"authored",skill.id);
+      assert.equal(item.description,item.metadata.sourceFacts.description.value);
+    }
+    assert.equal(skill.description,"",skill.id+" must not maintain a second purpose");
+    const source = records.find(source=>source.source===skill.source);
+    const facts = extractSourceFacts({...skill.sourceDiscovery,revision:source.revision,bytes:source.files[skill.sourceDiscovery.path]});
+    assert.deepEqual(item.metadata.sourceFacts,facts);
+  }
+  const selected = skills[0], selectedSource = records.find(source=>source.source===selected.source);
+  const nextFiles = {...selectedSource.files,[selected.sourceDiscovery.path]:new TextEncoder().encode("---\\nname: "+selected.sourceDiscovery.path.split("/").at(-2)+"\\ndescription: Refreshed shared source purpose.\\n---\\nSource remains data.")};
+  const refreshed = prepareSourceRefresh({declaration:declared,source:selected.source,inventoryComplete:true,previous:result.value,sourceFiles:records.map(source=>source===selectedSource?{...source,revision:"c".repeat(40),files:nextFiles}:source)});
+  assert.equal(refreshed.status,"ok",JSON.stringify(refreshed.diagnostics));
+  assert.equal(refreshed.value.release.items.find(item=>item.id===selected.id).description,"Refreshed shared source purpose.");
+  const untouched = read.release.items.find(item=>item.id!==selected.id&&!item.materials.some(material=>material.sourcePath===selected.sourceDiscovery.path)&&item.kind!=="template"&&item.kind!=="framework");
+  assert(untouched);
+  assert.deepEqual(refreshed.value.release.items.find(item=>item.id===untouched.id),untouched);
+}
+const installedReleases = {};
+for (const family of ["extensions","superpowers","ecc"]) {
+  const bytes=readFileSync(join(root,"release/release-"+family+".json"));
+  const read=readRelease(bytes,{expectedSha256:(await import("node:crypto")).createHash("sha256").update(bytes).digest("hex")});
+  assert(read.valid);installedReleases[family]=read.release;
+}
+const combined=resolveSelections({releases:Object.fromEntries(Object.values(installedReleases).map(release=>[release.sha256,release])),roots:[{releaseSha256:installedReleases.superpowers.sha256,itemId:"superpowers.template.reviewed-tdd",scope:"project",configuration:{}}],skips:[]});
+assert.equal(combined.status,"ok",JSON.stringify(combined));
+const eccCombined=resolveSelections({releases:Object.fromEntries(Object.values(installedReleases).map(release=>[release.sha256,release])),roots:[{releaseSha256:installedReleases.ecc.sha256,itemId:"ecc.template.api-review",scope:"project",configuration:{}}],skips:[]});
+assert.equal(eccCombined.status,"ok",JSON.stringify(eccCombined));
+assert(eccCombined.value.selections.some(selection=>selection.item.itemId==="extensions.skill.security-and-hardening"));
+const removalImpact=resolveSelections({releases:Object.fromEntries(Object.values(installedReleases).map(release=>[release.sha256,release])),roots:[{releaseSha256:installedReleases.superpowers.sha256,itemId:"superpowers.template.reviewed-tdd",scope:"project",configuration:{}}],skips:[],remove:[{releaseSha256:installedReleases.superpowers.sha256,itemId:"superpowers.skill.test-driven-development",scope:"project"}]});
+assert.equal(removalImpact.status,"ok",JSON.stringify(removalImpact));
+assert(removalImpact.value.removalImpact.some(impact=>impact.affectedRoots.some(root=>root.itemId==="superpowers.template.reviewed-tdd")));
+// Real source snapshots above are distinct from this explicit synthetic Git edge.
+// Exercise the packaged acquisition/staging entry point, not an in-repository import.
+const cliSnapshot=JSON.parse(readFileSync(join(root,"producer/extensions/snapshot.json")));
+const cliSource=cliSnapshot.sources.find(source=>source.id==="extensions");
+const edge=join(process.cwd(),"synthetic-cli"), repo=join(edge,"git");
+mkdirSync(repo,{recursive:true});
+const git=(args,options={})=>execFileSync("git",["-C",repo,...args],{encoding:"utf8",windowsHide:true,...options}).trim();
+git(["init"]);
+for (const file of cliSource.files) {const path=join(repo,file.path);mkdirSync(dirname(path),{recursive:true});writeFileSync(path,Buffer.from(file.base64,"base64"));}
+// A reviewed current snapshot may differ from the package's older configuration.
+for(const path of ["skills/api-and-interface-design/SKILL.md","hooks/hooks.json"])writeFileSync(join(repo,path),Buffer.concat([readFileSync(join(repo,path)),Buffer.from("\\n")]));
+writeFileSync(join(repo,"unreviewed.md"),"New discovery stays unadmitted.\\n");
+git(["add","."]);
+const commit=git(["-c","user.name=Catalog Fixture","-c","user.email=fixture@example.invalid","commit-tree",git(["write-tree"]),"-m","Synthetic staging regression"]);
+const reviewedConfig=join(edge,"reviewed-config");mkdirSync(reviewedConfig);
+const reviewedSnapshot=structuredClone(cliSnapshot),reviewedSource=reviewedSnapshot.sources.find(source=>source.id==="extensions");
+reviewedSource.revision=commit;
+for(const file of reviewedSource.files){const bytes=readFileSync(join(repo,file.path));file.base64=bytes.toString("base64");file.sha256=(await import("node:crypto")).createHash("sha256").update(bytes).digest("hex");file.byteLength=bytes.length;}
+writeFileSync(join(reviewedConfig,"snapshot.json"),JSON.stringify(reviewedSnapshot));
+for(const name of ["declaration.json","inventory.json"])writeFileSync(join(reviewedConfig,name),readFileSync(join(root,"producer/extensions",name)));
+const runStage=(out,extra=[])=>execFileSync(process.execPath,[join(root,"tools/refresh-source.mjs"),"--family","extensions","--source","extensions","--commit",commit,"--out",out,"--cache-dir",join(edge,"unused-cache"),"--source-git-dir",repo,"--allow-unverified-origin","true",...extra],{encoding:"utf8",windowsHide:true,timeout:120_000});
+const stage=join(edge,"first");runStage(stage,["--configuration",reviewedConfig]);
+const ledger=JSON.parse(readFileSync(join(stage,"inventory.json")));
+assert(ledger.unadmitted.includes("unreviewed.md"));
+assert(ledger.entries.every(entry=>/^[a-f0-9]{64}$/.test(entry.sha256)&&Number.isInteger(entry.byteLength)));
+assert.equal(ledger.source,"extensions");
+// Reject a different source before even reading its intentionally absent Git input.
+assert.throws(()=>execFileSync(process.execPath,[join(root,"tools/refresh-source.mjs"),"--family","extensions","--source","matt","--commit",commit,"--out",join(edge,"wrong-repository"),"--cache-dir",join(edge,"unused-cache"),"--source-git-dir",join(edge,"must-not-be-read"),"--allow-unverified-origin","true","--previous",stage],{encoding:"utf8",windowsHide:true}),/Previous staged inventory belongs to another source/);
+writeFileSync(join(stage,"inventory.json"),JSON.stringify({...ledger,source:"matt"}));
+assert.throws(()=>runStage(join(edge,"wrong-source"),["--previous",stage]),/Previous staged inventory belongs to another source/);
+// Keep source-less #111 stages readable when their repository matches.
+const legacyLedger={...ledger};delete legacyLedger.source;
+writeFileSync(join(stage,"inventory.json"),JSON.stringify(legacyLedger));
+const nextStage=join(edge,"second");runStage(nextStage,["--previous",stage,"--configuration",join(root,"producer/extensions")]);
+const nextLedger=JSON.parse(readFileSync(join(nextStage,"inventory.json")));
+assert.equal(nextLedger.entries.filter(entry=>entry.changed).length,0);
+assert.deepEqual(nextLedger.deliveryReviewRequired,[]);
+const firstReceipt=JSON.parse(readFileSync(join(stage,"receipt.json"))),nextReceipt=JSON.parse(readFileSync(join(nextStage,"receipt.json")));
+assert.equal(firstReceipt.originVerified,false);assert.equal(firstReceipt.qualifiedReleaseCandidate,false);
+assert.equal(nextReceipt.releaseSha256,firstReceipt.releaseSha256);
+const cliRead=readRelease(readFileSync(join(nextStage,"release.json")),{expectedSha256:nextReceipt.releaseSha256});assert(cliRead.valid);
+const matt=cliRead.release.items.find(item=>item.id==="extensions.matt.skill.ask-matt" || item.metadata?.sourceFacts?.provenance.path==="skills/engineering/ask-matt/SKILL.md");
+assert(matt);assert.equal(matt.metadata.sourceFacts.provenance.revision,cliSnapshot.sources.find(source=>source.id==="matt").revision);
 console.log("Source discovery packed consumer passed");
 `);
 console.log(execFileSync(process.execPath, [join(consumer, "proof.mjs")], { cwd: consumer, windowsHide: true, encoding: "utf8", timeout: 90_000 }));

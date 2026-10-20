@@ -461,13 +461,33 @@ node node_modules/@aihq/catalog/tools/refresh-source.mjs \
   --family ecc --commit <full-40-hex> --out <new-output-dir> --cache-dir <owned-cache>
 ```
 
+The same route supports `extensions`, `superpowers` and `anthropic`. `--source
+<declared-source-id>` explicitly selects a supplemental repository when needed;
+otherwise it selects the family source. Other supplied sources and saved item
+pins retain their independently reviewed revisions. An upstream vendor lock does
+not silently update a separately declared companion source.
+
+`--configuration <reviewed-directory>` takes explicit `declaration.json`,
+`snapshot.json` and `inventory.json` authoring inputs for reviewed membership or
+delivery adaptation. This is useful when a selected revision removes a support
+file or introduces a newly required sibling. Review those exact declaration and
+recipe changes before staging; discovery alone never admits a file. Raw snapshot
+bytes retain their recorded revisions. Without `--previous`, the baseline is the
+package's checked maintained declaration and snapshot; with it, the baseline is
+the prior staged release/material closure. New source bytes still come from the
+explicit acquisition. The override does not edit the package or saved selections.
+Recipes may use either the existing per-source or flat snapshot layout.
+
 It uses the existing verified GitHub fetch/object-validation route and reviewed family
 membership. New upstream files are reported as unadmitted; missing source/support/license
 files and dependency changes receive the existing safeguards. Nothing auto-installs or
 changes unrelated releases. Outputs include `release.json`, complete `stage/` material,
 `materials.json`, `snapshot.json`, `declaration.json`, `inventory.json`,
 `candidate-report.json` and `receipt.json`. Use `--previous <staged-dir>` for another
-explicit refresh from those retained bytes. Config/hook byte changes stop for delivery
+explicit refresh of that same source from those retained bytes. A stage for a different
+source or repository is refused before acquisition; start a fresh source refresh instead.
+Legacy source-less stages remain readable when their repository matches.
+Config/hook byte changes stop for delivery
 review and retain the inventory report; they never silently install stale mappings.
 
 The existing local-Git acquisition alternative takes `--source-git-dir <dir>

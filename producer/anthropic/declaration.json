@@ -24,8 +24,8 @@
     {
       "id": "anthropic.skill.academy-guide",
       "source": "anthropic",
-      "label": "academy-guide",
-      "description": "Instruction/reference material; network access to academy.claude.com when following links; no bundled executable.",
+      "label": "anthropic.skill.academy-guide",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.skill.academy-guide.json",
       "materials": [
@@ -68,13 +68,17 @@
           "instructions": "Open project and select/read academy-guide; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction/reference material; network access to academy.claude.com when following links; no bundled executable."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/academy-guide/SKILL.md"
+      }
     },
     {
       "id": "anthropic.kiro.skill.academy-guide",
       "source": "anthropic",
-      "label": "academy-guide",
-      "description": "Instruction/reference material; network access to academy.claude.com when following links; no bundled executable.",
+      "label": "anthropic.kiro.skill.academy-guide",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.kiro.skill.academy-guide.json",
       "materials": [
@@ -117,13 +121,17 @@
           "instructions": "Open project and select/read academy-guide; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction/reference material; network access to academy.claude.com when following links; no bundled executable."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/academy-guide/SKILL.md"
+      }
     },
     {
       "id": "anthropic.copilot.skill.academy-guide",
       "source": "anthropic",
-      "label": "academy-guide",
-      "description": "Instruction/reference material; network access to academy.claude.com when following links; no bundled executable.",
+      "label": "anthropic.copilot.skill.academy-guide",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.copilot.skill.academy-guide.json",
       "materials": [
@@ -166,13 +174,17 @@
           "instructions": "Open project and select/read academy-guide; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction/reference material; network access to academy.claude.com when following links; no bundled executable."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/academy-guide/SKILL.md"
+      }
     },
     {
       "id": "anthropic.skill.algorithmic-art",
       "source": "anthropic",
-      "label": "algorithmic-art",
-      "description": "p5.js browser runtime and caller-owned browser/CDN access for templates; no browser launched by Apply.",
+      "label": "anthropic.skill.algorithmic-art",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.skill.algorithmic-art.json",
       "materials": [
@@ -227,13 +239,17 @@
           "instructions": "Open project and select/read algorithmic-art; invoke scripts through declared interpreters after separately acquiring prerequisites. p5.js browser runtime and caller-owned browser/CDN access for templates; no browser launched by Apply."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/algorithmic-art/SKILL.md"
+      }
     },
     {
       "id": "anthropic.kiro.skill.algorithmic-art",
       "source": "anthropic",
-      "label": "algorithmic-art",
-      "description": "p5.js browser runtime and caller-owned browser/CDN access for templates; no browser launched by Apply.",
+      "label": "anthropic.kiro.skill.algorithmic-art",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.kiro.skill.algorithmic-art.json",
       "materials": [
@@ -288,13 +304,17 @@
           "instructions": "Open project and select/read algorithmic-art; invoke scripts through declared interpreters after separately acquiring prerequisites. p5.js browser runtime and caller-owned browser/CDN access for templates; no browser launched by Apply."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/algorithmic-art/SKILL.md"
+      }
     },
     {
       "id": "anthropic.copilot.skill.algorithmic-art",
       "source": "anthropic",
-      "label": "algorithmic-art",
-      "description": "p5.js browser runtime and caller-owned browser/CDN access for templates; no browser launched by Apply.",
+      "label": "anthropic.copilot.skill.algorithmic-art",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.copilot.skill.algorithmic-art.json",
       "materials": [
@@ -349,13 +369,17 @@
           "instructions": "Open project and select/read algorithmic-art; invoke scripts through declared interpreters after separately acquiring prerequisites. p5.js browser runtime and caller-owned browser/CDN access for templates; no browser launched by Apply."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/algorithmic-art/SKILL.md"
+      }
     },
     {
       "id": "anthropic.skill.brand-guidelines",
       "source": "anthropic",
-      "label": "brand-guidelines",
-      "description": "Instruction material; caller supplies the actual design/document tools and fonts.",
+      "label": "anthropic.skill.brand-guidelines",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.skill.brand-guidelines.json",
       "materials": [
@@ -402,13 +426,17 @@
           "instructions": "Open project and select/read brand-guidelines; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction material; caller supplies the actual design/document tools and fonts."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/brand-guidelines/SKILL.md"
+      }
     },
     {
       "id": "anthropic.kiro.skill.brand-guidelines",
       "source": "anthropic",
-      "label": "brand-guidelines",
-      "description": "Instruction material; caller supplies the actual design/document tools and fonts.",
+      "label": "anthropic.kiro.skill.brand-guidelines",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.kiro.skill.brand-guidelines.json",
       "materials": [
@@ -455,13 +483,17 @@
           "instructions": "Open project and select/read brand-guidelines; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction material; caller supplies the actual design/document tools and fonts."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/brand-guidelines/SKILL.md"
+      }
     },
     {
       "id": "anthropic.copilot.skill.brand-guidelines",
       "source": "anthropic",
-      "label": "brand-guidelines",
-      "description": "Instruction material; caller supplies the actual design/document tools and fonts.",
+      "label": "anthropic.copilot.skill.brand-guidelines",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.copilot.skill.brand-guidelines.json",
       "materials": [
@@ -508,13 +540,17 @@
           "instructions": "Open project and select/read brand-guidelines; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction material; caller supplies the actual design/document tools and fonts."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/brand-guidelines/SKILL.md"
+      }
     },
     {
       "id": "anthropic.skill.canvas-design",
       "source": "anthropic",
-      "label": "canvas-design",
-      "description": "Python 3 with Pillow/reportlab for rendering; supplied fonts remain under their adjacent OFL notices and root third-party notices. No rendering in material Apply.",
+      "label": "anthropic.skill.canvas-design",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.skill.canvas-design.json",
       "materials": [
@@ -885,13 +921,17 @@
           "instructions": "Open project and select/read canvas-design; invoke scripts through declared interpreters after separately acquiring prerequisites. Python 3 with Pillow/reportlab for rendering; supplied fonts remain under their adjacent OFL notices and root third-party notices. No rendering in material Apply."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/canvas-design/SKILL.md"
+      }
     },
     {
       "id": "anthropic.kiro.skill.canvas-design",
       "source": "anthropic",
-      "label": "canvas-design",
-      "description": "Python 3 with Pillow/reportlab for rendering; supplied fonts remain under their adjacent OFL notices and root third-party notices. No rendering in material Apply.",
+      "label": "anthropic.kiro.skill.canvas-design",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.kiro.skill.canvas-design.json",
       "materials": [
@@ -1262,13 +1302,17 @@
           "instructions": "Open project and select/read canvas-design; invoke scripts through declared interpreters after separately acquiring prerequisites. Python 3 with Pillow/reportlab for rendering; supplied fonts remain under their adjacent OFL notices and root third-party notices. No rendering in material Apply."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/canvas-design/SKILL.md"
+      }
     },
     {
       "id": "anthropic.copilot.skill.canvas-design",
       "source": "anthropic",
-      "label": "canvas-design",
-      "description": "Python 3 with Pillow/reportlab for rendering; supplied fonts remain under their adjacent OFL notices and root third-party notices. No rendering in material Apply.",
+      "label": "anthropic.copilot.skill.canvas-design",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.copilot.skill.canvas-design.json",
       "materials": [
@@ -1639,13 +1683,17 @@
           "instructions": "Open project and select/read canvas-design; invoke scripts through declared interpreters after separately acquiring prerequisites. Python 3 with Pillow/reportlab for rendering; supplied fonts remain under their adjacent OFL notices and root third-party notices. No rendering in material Apply."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/canvas-design/SKILL.md"
+      }
     },
     {
       "id": "anthropic.skill.claude-api",
       "source": "anthropic",
-      "label": "claude-api",
-      "description": "Caller chooses Python anthropic SDK, TypeScript @anthropic-ai/sdk or another documented language SDK; current compatible SDK, network and host-owned ANTHROPIC_API_KEY/account required. No SDK/account acquisition or model call.",
+      "label": "anthropic.skill.claude-api",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.skill.claude-api.json",
       "materials": [
@@ -1964,13 +2012,17 @@
           "instructions": "Open project and select/read claude-api; invoke scripts through declared interpreters after separately acquiring prerequisites. Caller chooses Python anthropic SDK, TypeScript @anthropic-ai/sdk or another documented language SDK; current compatible SDK, network and host-owned ANTHROPIC_API_KEY/account required. No SDK/account acquisition or model call."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/claude-api/SKILL.md"
+      }
     },
     {
       "id": "anthropic.kiro.skill.claude-api",
       "source": "anthropic",
-      "label": "claude-api",
-      "description": "Caller chooses Python anthropic SDK, TypeScript @anthropic-ai/sdk or another documented language SDK; current compatible SDK, network and host-owned ANTHROPIC_API_KEY/account required. No SDK/account acquisition or model call.",
+      "label": "anthropic.kiro.skill.claude-api",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.kiro.skill.claude-api.json",
       "materials": [
@@ -2289,13 +2341,17 @@
           "instructions": "Open project and select/read claude-api; invoke scripts through declared interpreters after separately acquiring prerequisites. Caller chooses Python anthropic SDK, TypeScript @anthropic-ai/sdk or another documented language SDK; current compatible SDK, network and host-owned ANTHROPIC_API_KEY/account required. No SDK/account acquisition or model call."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/claude-api/SKILL.md"
+      }
     },
     {
       "id": "anthropic.copilot.skill.claude-api",
       "source": "anthropic",
-      "label": "claude-api",
-      "description": "Caller chooses Python anthropic SDK, TypeScript @anthropic-ai/sdk or another documented language SDK; current compatible SDK, network and host-owned ANTHROPIC_API_KEY/account required. No SDK/account acquisition or model call.",
+      "label": "anthropic.copilot.skill.claude-api",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.copilot.skill.claude-api.json",
       "materials": [
@@ -2614,13 +2670,17 @@
           "instructions": "Open project and select/read claude-api; invoke scripts through declared interpreters after separately acquiring prerequisites. Caller chooses Python anthropic SDK, TypeScript @anthropic-ai/sdk or another documented language SDK; current compatible SDK, network and host-owned ANTHROPIC_API_KEY/account required. No SDK/account acquisition or model call."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/claude-api/SKILL.md"
+      }
     },
     {
       "id": "anthropic.skill.discernment-nudge",
       "source": "anthropic",
-      "label": "discernment-nudge",
-      "description": "Instruction material; harness reasoning/response behavior is client-owned and unobserved.",
+      "label": "anthropic.skill.discernment-nudge",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.skill.discernment-nudge.json",
       "materials": [
@@ -2667,13 +2727,17 @@
           "instructions": "Open project and select/read discernment-nudge; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction material; harness reasoning/response behavior is client-owned and unobserved."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/discernment-nudge/SKILL.md"
+      }
     },
     {
       "id": "anthropic.kiro.skill.discernment-nudge",
       "source": "anthropic",
-      "label": "discernment-nudge",
-      "description": "Instruction material; harness reasoning/response behavior is client-owned and unobserved.",
+      "label": "anthropic.kiro.skill.discernment-nudge",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.kiro.skill.discernment-nudge.json",
       "materials": [
@@ -2720,13 +2784,17 @@
           "instructions": "Open project and select/read discernment-nudge; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction material; harness reasoning/response behavior is client-owned and unobserved."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/discernment-nudge/SKILL.md"
+      }
     },
     {
       "id": "anthropic.copilot.skill.discernment-nudge",
       "source": "anthropic",
-      "label": "discernment-nudge",
-      "description": "Instruction material; harness reasoning/response behavior is client-owned and unobserved.",
+      "label": "anthropic.copilot.skill.discernment-nudge",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.copilot.skill.discernment-nudge.json",
       "materials": [
@@ -2773,13 +2841,17 @@
           "instructions": "Open project and select/read discernment-nudge; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction material; harness reasoning/response behavior is client-owned and unobserved."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/discernment-nudge/SKILL.md"
+      }
     },
     {
       "id": "anthropic.skill.frontend-design",
       "source": "anthropic",
-      "label": "frontend-design",
-      "description": "Instruction material; project-selected frontend runtime/build/browser tools remain caller-owned.",
+      "label": "anthropic.skill.frontend-design",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.skill.frontend-design.json",
       "materials": [
@@ -2826,13 +2898,17 @@
           "instructions": "Open project and select/read frontend-design; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction material; project-selected frontend runtime/build/browser tools remain caller-owned."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/frontend-design/SKILL.md"
+      }
     },
     {
       "id": "anthropic.kiro.skill.frontend-design",
       "source": "anthropic",
-      "label": "frontend-design",
-      "description": "Instruction material; project-selected frontend runtime/build/browser tools remain caller-owned.",
+      "label": "anthropic.kiro.skill.frontend-design",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.kiro.skill.frontend-design.json",
       "materials": [
@@ -2879,13 +2955,17 @@
           "instructions": "Open project and select/read frontend-design; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction material; project-selected frontend runtime/build/browser tools remain caller-owned."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/frontend-design/SKILL.md"
+      }
     },
     {
       "id": "anthropic.copilot.skill.frontend-design",
       "source": "anthropic",
-      "label": "frontend-design",
-      "description": "Instruction material; project-selected frontend runtime/build/browser tools remain caller-owned.",
+      "label": "anthropic.copilot.skill.frontend-design",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.copilot.skill.frontend-design.json",
       "materials": [
@@ -2932,13 +3012,17 @@
           "instructions": "Open project and select/read frontend-design; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction material; project-selected frontend runtime/build/browser tools remain caller-owned."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/frontend-design/SKILL.md"
+      }
     },
     {
       "id": "anthropic.skill.internal-comms",
       "source": "anthropic",
-      "label": "internal-comms",
-      "description": "Instruction/examples; caller-owned communication context, no message transport or send operation.",
+      "label": "anthropic.skill.internal-comms",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.skill.internal-comms.json",
       "materials": [
@@ -3001,13 +3085,17 @@
           "instructions": "Open project and select/read internal-comms; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction/examples; caller-owned communication context, no message transport or send operation."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/internal-comms/SKILL.md"
+      }
     },
     {
       "id": "anthropic.kiro.skill.internal-comms",
       "source": "anthropic",
-      "label": "internal-comms",
-      "description": "Instruction/examples; caller-owned communication context, no message transport or send operation.",
+      "label": "anthropic.kiro.skill.internal-comms",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.kiro.skill.internal-comms.json",
       "materials": [
@@ -3070,13 +3158,17 @@
           "instructions": "Open project and select/read internal-comms; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction/examples; caller-owned communication context, no message transport or send operation."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/internal-comms/SKILL.md"
+      }
     },
     {
       "id": "anthropic.copilot.skill.internal-comms",
       "source": "anthropic",
-      "label": "internal-comms",
-      "description": "Instruction/examples; caller-owned communication context, no message transport or send operation.",
+      "label": "anthropic.copilot.skill.internal-comms",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.copilot.skill.internal-comms.json",
       "materials": [
@@ -3139,13 +3231,17 @@
           "instructions": "Open project and select/read internal-comms; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction/examples; caller-owned communication context, no message transport or send operation."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/internal-comms/SKILL.md"
+      }
     },
     {
       "id": "anthropic.skill.mcp-builder",
       "source": "anthropic",
-      "label": "mcp-builder",
-      "description": "Skill/reference material, not an MCP server or registration. Python >=3.10 with mcp>=1.1.0 and anthropic>=0.39.0 in scripts/requirements.txt for scripts/evaluation.py and scripts/connections.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call.",
+      "label": "anthropic.skill.mcp-builder",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.skill.mcp-builder.json",
       "materials": [
@@ -3231,13 +3327,17 @@
           "instructions": "Open project and select/read mcp-builder; invoke scripts through declared interpreters after separately acquiring prerequisites. Skill/reference material, not an MCP server or registration. Python >=3.10 with mcp>=1.1.0 and anthropic>=0.39.0 in scripts/requirements.txt for scripts/evaluation.py and scripts/connections.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/mcp-builder/SKILL.md"
+      }
     },
     {
       "id": "anthropic.kiro.skill.mcp-builder",
       "source": "anthropic",
-      "label": "mcp-builder",
-      "description": "Skill/reference material, not an MCP server or registration. Python >=3.10 with mcp>=1.1.0 and anthropic>=0.39.0 in scripts/requirements.txt for scripts/evaluation.py and scripts/connections.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call.",
+      "label": "anthropic.kiro.skill.mcp-builder",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.kiro.skill.mcp-builder.json",
       "materials": [
@@ -3323,13 +3423,17 @@
           "instructions": "Open project and select/read mcp-builder; invoke scripts through declared interpreters after separately acquiring prerequisites. Skill/reference material, not an MCP server or registration. Python >=3.10 with mcp>=1.1.0 and anthropic>=0.39.0 in scripts/requirements.txt for scripts/evaluation.py and scripts/connections.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/mcp-builder/SKILL.md"
+      }
     },
     {
       "id": "anthropic.copilot.skill.mcp-builder",
       "source": "anthropic",
-      "label": "mcp-builder",
-      "description": "Skill/reference material, not an MCP server or registration. Python >=3.10 with mcp>=1.1.0 and anthropic>=0.39.0 in scripts/requirements.txt for scripts/evaluation.py and scripts/connections.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call.",
+      "label": "anthropic.copilot.skill.mcp-builder",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.copilot.skill.mcp-builder.json",
       "materials": [
@@ -3415,13 +3519,17 @@
           "instructions": "Open project and select/read mcp-builder; invoke scripts through declared interpreters after separately acquiring prerequisites. Skill/reference material, not an MCP server or registration. Python >=3.10 with mcp>=1.1.0 and anthropic>=0.39.0 in scripts/requirements.txt for scripts/evaluation.py and scripts/connections.py. Caller owns endpoint, transport, credentials and model/account consent; no server or model call."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/mcp-builder/SKILL.md"
+      }
     },
     {
       "id": "anthropic.skill.skill-creator",
       "source": "anthropic",
-      "label": "skill-creator",
-      "description": "Python >=3.10; PyYAML for scripts/quick_validate.py and packaging. scripts/run_eval.py, run_loop.py and improve_description.py require available Claude CLI, caller-approved account/model calls and eval fixtures. run_eval.py uses select.select on subprocess pipes, requiring a POSIX-compatible execution environment; native Windows evaluation is unsupported without an environment/port that supplies those semantics. eval-viewer/generate_review.py starts a stdlib localhost server and opens a browser by default; --static writes HTML without a server. Caller owns writable temporary paths/browser opener; no eval/model/viewer execution in material Apply.",
+      "label": "anthropic.skill.skill-creator",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.skill.skill-creator.json",
       "materials": [
@@ -3532,13 +3640,17 @@
           "instructions": "Open project and select/read skill-creator; invoke scripts through declared interpreters after separately acquiring prerequisites. Python >=3.10; PyYAML for scripts/quick_validate.py and packaging. scripts/run_eval.py, run_loop.py and improve_description.py require available Claude CLI, caller-approved account/model calls and eval fixtures. run_eval.py uses select.select on subprocess pipes, requiring a POSIX-compatible execution environment; native Windows evaluation is unsupported without an environment/port that supplies those semantics. eval-viewer/generate_review.py starts a stdlib localhost server and opens a browser by default; --static writes HTML without a server. Caller owns writable temporary paths/browser opener; no eval/model/viewer execution in material Apply."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/skill-creator/SKILL.md"
+      }
     },
     {
       "id": "anthropic.kiro.skill.skill-creator",
       "source": "anthropic",
-      "label": "skill-creator",
-      "description": "Python >=3.10; PyYAML for scripts/quick_validate.py and packaging. scripts/run_eval.py, run_loop.py and improve_description.py require available Claude CLI, caller-approved account/model calls and eval fixtures. run_eval.py uses select.select on subprocess pipes, requiring a POSIX-compatible execution environment; native Windows evaluation is unsupported without an environment/port that supplies those semantics. eval-viewer/generate_review.py starts a stdlib localhost server and opens a browser by default; --static writes HTML without a server. Caller owns writable temporary paths/browser opener; no eval/model/viewer execution in material Apply.",
+      "label": "anthropic.kiro.skill.skill-creator",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.kiro.skill.skill-creator.json",
       "materials": [
@@ -3649,13 +3761,17 @@
           "instructions": "Open project and select/read skill-creator; invoke scripts through declared interpreters after separately acquiring prerequisites. Python >=3.10; PyYAML for scripts/quick_validate.py and packaging. scripts/run_eval.py, run_loop.py and improve_description.py require available Claude CLI, caller-approved account/model calls and eval fixtures. run_eval.py uses select.select on subprocess pipes, requiring a POSIX-compatible execution environment; native Windows evaluation is unsupported without an environment/port that supplies those semantics. eval-viewer/generate_review.py starts a stdlib localhost server and opens a browser by default; --static writes HTML without a server. Caller owns writable temporary paths/browser opener; no eval/model/viewer execution in material Apply."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/skill-creator/SKILL.md"
+      }
     },
     {
       "id": "anthropic.copilot.skill.skill-creator",
       "source": "anthropic",
-      "label": "skill-creator",
-      "description": "Python >=3.10; PyYAML for scripts/quick_validate.py and packaging. scripts/run_eval.py, run_loop.py and improve_description.py require available Claude CLI, caller-approved account/model calls and eval fixtures. run_eval.py uses select.select on subprocess pipes, requiring a POSIX-compatible execution environment; native Windows evaluation is unsupported without an environment/port that supplies those semantics. eval-viewer/generate_review.py starts a stdlib localhost server and opens a browser by default; --static writes HTML without a server. Caller owns writable temporary paths/browser opener; no eval/model/viewer execution in material Apply.",
+      "label": "anthropic.copilot.skill.skill-creator",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.copilot.skill.skill-creator.json",
       "materials": [
@@ -3766,13 +3882,17 @@
           "instructions": "Open project and select/read skill-creator; invoke scripts through declared interpreters after separately acquiring prerequisites. Python >=3.10; PyYAML for scripts/quick_validate.py and packaging. scripts/run_eval.py, run_loop.py and improve_description.py require available Claude CLI, caller-approved account/model calls and eval fixtures. run_eval.py uses select.select on subprocess pipes, requiring a POSIX-compatible execution environment; native Windows evaluation is unsupported without an environment/port that supplies those semantics. eval-viewer/generate_review.py starts a stdlib localhost server and opens a browser by default; --static writes HTML without a server. Caller owns writable temporary paths/browser opener; no eval/model/viewer execution in material Apply."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/skill-creator/SKILL.md"
+      }
     },
     {
       "id": "anthropic.skill.slack-gif-creator",
       "source": "anthropic",
-      "label": "slack-gif-creator",
-      "description": "Python 3 with Pillow, imageio and numpy, plus compatible imageio-ffmpeg/FFmpeg when chosen; caller acquires packages/tools under their own licenses. Complete scripts and requirements retained.",
+      "label": "anthropic.skill.slack-gif-creator",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.skill.slack-gif-creator.json",
       "materials": [
@@ -3839,13 +3959,17 @@
           "instructions": "Open project and select/read slack-gif-creator; invoke scripts through declared interpreters after separately acquiring prerequisites. Python 3 with Pillow, imageio and numpy, plus compatible imageio-ffmpeg/FFmpeg when chosen; caller acquires packages/tools under their own licenses. Complete scripts and requirements retained."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/slack-gif-creator/SKILL.md"
+      }
     },
     {
       "id": "anthropic.kiro.skill.slack-gif-creator",
       "source": "anthropic",
-      "label": "slack-gif-creator",
-      "description": "Python 3 with Pillow, imageio and numpy, plus compatible imageio-ffmpeg/FFmpeg when chosen; caller acquires packages/tools under their own licenses. Complete scripts and requirements retained.",
+      "label": "anthropic.kiro.skill.slack-gif-creator",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.kiro.skill.slack-gif-creator.json",
       "materials": [
@@ -3912,13 +4036,17 @@
           "instructions": "Open project and select/read slack-gif-creator; invoke scripts through declared interpreters after separately acquiring prerequisites. Python 3 with Pillow, imageio and numpy, plus compatible imageio-ffmpeg/FFmpeg when chosen; caller acquires packages/tools under their own licenses. Complete scripts and requirements retained."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/slack-gif-creator/SKILL.md"
+      }
     },
     {
       "id": "anthropic.copilot.skill.slack-gif-creator",
       "source": "anthropic",
-      "label": "slack-gif-creator",
-      "description": "Python 3 with Pillow, imageio and numpy, plus compatible imageio-ffmpeg/FFmpeg when chosen; caller acquires packages/tools under their own licenses. Complete scripts and requirements retained.",
+      "label": "anthropic.copilot.skill.slack-gif-creator",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.copilot.skill.slack-gif-creator.json",
       "materials": [
@@ -3985,13 +4113,17 @@
           "instructions": "Open project and select/read slack-gif-creator; invoke scripts through declared interpreters after separately acquiring prerequisites. Python 3 with Pillow, imageio and numpy, plus compatible imageio-ffmpeg/FFmpeg when chosen; caller acquires packages/tools under their own licenses. Complete scripts and requirements retained."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/slack-gif-creator/SKILL.md"
+      }
     },
     {
       "id": "anthropic.skill.theme-factory",
       "source": "anthropic",
-      "label": "theme-factory",
-      "description": "Instruction/themes and theme-showcase PDF delivered; caller supplies document/design renderer.",
+      "label": "anthropic.skill.theme-factory",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.skill.theme-factory.json",
       "materials": [
@@ -4082,13 +4214,17 @@
           "instructions": "Open project and select/read theme-factory; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction/themes and theme-showcase PDF delivered; caller supplies document/design renderer."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/theme-factory/SKILL.md"
+      }
     },
     {
       "id": "anthropic.kiro.skill.theme-factory",
       "source": "anthropic",
-      "label": "theme-factory",
-      "description": "Instruction/themes and theme-showcase PDF delivered; caller supplies document/design renderer.",
+      "label": "anthropic.kiro.skill.theme-factory",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.kiro.skill.theme-factory.json",
       "materials": [
@@ -4179,13 +4315,17 @@
           "instructions": "Open project and select/read theme-factory; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction/themes and theme-showcase PDF delivered; caller supplies document/design renderer."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/theme-factory/SKILL.md"
+      }
     },
     {
       "id": "anthropic.copilot.skill.theme-factory",
       "source": "anthropic",
-      "label": "theme-factory",
-      "description": "Instruction/themes and theme-showcase PDF delivered; caller supplies document/design renderer.",
+      "label": "anthropic.copilot.skill.theme-factory",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.copilot.skill.theme-factory.json",
       "materials": [
@@ -4276,13 +4416,17 @@
           "instructions": "Open project and select/read theme-factory; invoke scripts through declared interpreters after separately acquiring prerequisites. Instruction/themes and theme-showcase PDF delivered; caller supplies document/design renderer."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/theme-factory/SKILL.md"
+      }
     },
     {
       "id": "anthropic.skill.web-artifacts-builder",
       "source": "anthropic",
-      "label": "web-artifacts-builder",
-      "description": "Bash, Node/npm and pnpm for scripts/init-artifact.sh and bundle-artifact.sh; frontend packages and network acquisition remain caller-owned. No install/build/browser launched.",
+      "label": "anthropic.skill.web-artifacts-builder",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.skill.web-artifacts-builder.json",
       "materials": [
@@ -4345,13 +4489,17 @@
           "instructions": "Open project and select/read web-artifacts-builder; invoke scripts through declared interpreters after separately acquiring prerequisites. Bash, Node/npm and pnpm for scripts/init-artifact.sh and bundle-artifact.sh; frontend packages and network acquisition remain caller-owned. No install/build/browser launched."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/web-artifacts-builder/SKILL.md"
+      }
     },
     {
       "id": "anthropic.kiro.skill.web-artifacts-builder",
       "source": "anthropic",
-      "label": "web-artifacts-builder",
-      "description": "Bash, Node/npm and pnpm for scripts/init-artifact.sh and bundle-artifact.sh; frontend packages and network acquisition remain caller-owned. No install/build/browser launched.",
+      "label": "anthropic.kiro.skill.web-artifacts-builder",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.kiro.skill.web-artifacts-builder.json",
       "materials": [
@@ -4414,13 +4562,17 @@
           "instructions": "Open project and select/read web-artifacts-builder; invoke scripts through declared interpreters after separately acquiring prerequisites. Bash, Node/npm and pnpm for scripts/init-artifact.sh and bundle-artifact.sh; frontend packages and network acquisition remain caller-owned. No install/build/browser launched."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/web-artifacts-builder/SKILL.md"
+      }
     },
     {
       "id": "anthropic.copilot.skill.web-artifacts-builder",
       "source": "anthropic",
-      "label": "web-artifacts-builder",
-      "description": "Bash, Node/npm and pnpm for scripts/init-artifact.sh and bundle-artifact.sh; frontend packages and network acquisition remain caller-owned. No install/build/browser launched.",
+      "label": "anthropic.copilot.skill.web-artifacts-builder",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.copilot.skill.web-artifacts-builder.json",
       "materials": [
@@ -4483,13 +4635,17 @@
           "instructions": "Open project and select/read web-artifacts-builder; invoke scripts through declared interpreters after separately acquiring prerequisites. Bash, Node/npm and pnpm for scripts/init-artifact.sh and bundle-artifact.sh; frontend packages and network acquisition remain caller-owned. No install/build/browser launched."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/web-artifacts-builder/SKILL.md"
+      }
     },
     {
       "id": "anthropic.skill.webapp-testing",
       "source": "anthropic",
-      "label": "webapp-testing",
-      "description": "Python >=3.9 as Catalog compatible prerequisite; scripts/with_server.py uses only stdlib. Actual browser automation additionally needs compatible playwright Python package and separately acquired browser binaries, a caller-owned local application and approved command. No server or browser started by material Apply.",
+      "label": "anthropic.skill.webapp-testing",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.skill.webapp-testing.json",
       "materials": [
@@ -4552,13 +4708,17 @@
           "instructions": "Open project and select/read webapp-testing; invoke scripts through declared interpreters after separately acquiring prerequisites. Python >=3.9 as Catalog compatible prerequisite; scripts/with_server.py uses only stdlib. Actual browser automation additionally needs compatible playwright Python package and separately acquired browser binaries, a caller-owned local application and approved command. No server or browser started by material Apply."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/webapp-testing/SKILL.md"
+      }
     },
     {
       "id": "anthropic.kiro.skill.webapp-testing",
       "source": "anthropic",
-      "label": "webapp-testing",
-      "description": "Python >=3.9 as Catalog compatible prerequisite; scripts/with_server.py uses only stdlib. Actual browser automation additionally needs compatible playwright Python package and separately acquired browser binaries, a caller-owned local application and approved command. No server or browser started by material Apply.",
+      "label": "anthropic.kiro.skill.webapp-testing",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.kiro.skill.webapp-testing.json",
       "materials": [
@@ -4621,13 +4781,17 @@
           "instructions": "Open project and select/read webapp-testing; invoke scripts through declared interpreters after separately acquiring prerequisites. Python >=3.9 as Catalog compatible prerequisite; scripts/with_server.py uses only stdlib. Actual browser automation additionally needs compatible playwright Python package and separately acquired browser binaries, a caller-owned local application and approved command. No server or browser started by material Apply."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/webapp-testing/SKILL.md"
+      }
     },
     {
       "id": "anthropic.copilot.skill.webapp-testing",
       "source": "anthropic",
-      "label": "webapp-testing",
-      "description": "Python >=3.9 as Catalog compatible prerequisite; scripts/with_server.py uses only stdlib. Actual browser automation additionally needs compatible playwright Python package and separately acquired browser binaries, a caller-owned local application and approved command. No server or browser started by material Apply.",
+      "label": "anthropic.copilot.skill.webapp-testing",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/anthropic.copilot.skill.webapp-testing.json",
       "materials": [
@@ -4690,7 +4854,11 @@
           "instructions": "Open project and select/read webapp-testing; invoke scripts through declared interpreters after separately acquiring prerequisites. Python >=3.9 as Catalog compatible prerequisite; scripts/with_server.py uses only stdlib. Actual browser automation additionally needs compatible playwright Python package and separately acquired browser binaries, a caller-owned local application and approved command. No server or browser started by material Apply."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/webapp-testing/SKILL.md"
+      }
     },
     {
       "id": "anthropic.template.local-web-testing",

@@ -53,10 +53,18 @@ const selections=resolved.value.selections.map(row=>{
 // Runtime claims must name actual delivered support files, not guessed helpers.
 const mcp=declaration.items.find(item=>item.id==="anthropic.skill.mcp-builder");
 assert(mcp.materials.some(member=>member.path==="skills/mcp-builder/scripts/connections.py"));
-assert(mcp.description.includes("Python >=3.10") && mcp.description.includes("scripts/connections.py"));
+const mcpItem=installed.release.items.find(item=>item.id===mcp.id);
+const mcpSetup=mcpItem.metadata.discovery.activation.map(fact=>fact.instructions).join("\n");
+assert(mcpSetup.includes("Python >=3.10") && mcpSetup.includes("scripts/connections.py"));
+assert.equal(mcpItem.metadata.sourceFacts.description.state,"authored");
+assert.equal(mcpItem.description,mcpItem.metadata.sourceFacts.description.value);
 const creator=declaration.items.find(item=>item.id==="anthropic.skill.skill-creator");
 assert(creator.materials.some(member=>member.path==="skills/skill-creator/eval-viewer/generate_review.py"));
-assert(creator.description.includes("POSIX-compatible") && creator.description.includes("--static"));
+const creatorItem=installed.release.items.find(item=>item.id===creator.id);
+const creatorSetup=creatorItem.metadata.discovery.activation.map(fact=>fact.instructions).join("\n");
+assert(creatorSetup.includes("POSIX-compatible") && creatorSetup.includes("--static"));
+assert.equal(creatorItem.metadata.sourceFacts.description.state,"authored");
+assert.equal(creatorItem.description,creatorItem.metadata.sourceFacts.description.value);
 for(const prefix of ["", "kiro.", "copilot."]) {
  const web=resolveSelections({releases,roots:[{...ref(`anthropic.${prefix}skill.web-artifacts-builder`),configuration:{}}],skips:[]});
  assert.equal(web.status,"ok");assert(web.value.selections.some(row=>row.item.itemId===`anthropic.${prefix}notice.shadcn`));
