@@ -205,6 +205,14 @@ const stage=join(edge,"first");runStage(stage);
 const ledger=JSON.parse(readFileSync(join(stage,"inventory.json")));
 assert(ledger.unadmitted.includes("unreviewed.md"));
 assert(ledger.entries.every(entry=>/^[a-f0-9]{64}$/.test(entry.sha256)&&Number.isInteger(entry.byteLength)));
+assert.equal(ledger.source,"extensions");
+// Reject a different source before even reading its intentionally absent Git input.
+assert.throws(()=>execFileSync(process.execPath,[join(root,"tools/refresh-source.mjs"),"--family","extensions","--source","matt","--commit",commit,"--out",join(edge,"wrong-repository"),"--cache-dir",join(edge,"unused-cache"),"--source-git-dir",join(edge,"must-not-be-read"),"--allow-unverified-origin","true","--previous",stage],{encoding:"utf8",windowsHide:true}),/Previous staged inventory belongs to another source/);
+writeFileSync(join(stage,"inventory.json"),JSON.stringify({...ledger,source:"matt"}));
+assert.throws(()=>runStage(join(edge,"wrong-source"),["--previous",stage]),/Previous staged inventory belongs to another source/);
+// Keep source-less #111 stages readable when their repository matches.
+const legacyLedger={...ledger};delete legacyLedger.source;
+writeFileSync(join(stage,"inventory.json"),JSON.stringify(legacyLedger));
 const nextStage=join(edge,"second");runStage(nextStage,["--previous",stage]);
 const firstReceipt=JSON.parse(readFileSync(join(stage,"receipt.json"))),nextReceipt=JSON.parse(readFileSync(join(nextStage,"receipt.json")));
 assert.equal(firstReceipt.originVerified,false);assert.equal(firstReceipt.qualifiedReleaseCandidate,false);

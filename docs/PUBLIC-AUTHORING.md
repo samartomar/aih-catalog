@@ -484,7 +484,10 @@ files and dependency changes receive the existing safeguards. Nothing auto-insta
 changes unrelated releases. Outputs include `release.json`, complete `stage/` material,
 `materials.json`, `snapshot.json`, `declaration.json`, `inventory.json`,
 `candidate-report.json` and `receipt.json`. Use `--previous <staged-dir>` for another
-explicit refresh from those retained bytes. Config/hook byte changes stop for delivery
+explicit refresh of that same source from those retained bytes. A stage for a different
+source or repository is refused before acquisition; start a fresh source refresh instead.
+Legacy source-less stages remain readable when their repository matches.
+Config/hook byte changes stop for delivery
 review and retain the inventory report; they never silently install stale mappings.
 
 The existing local-Git acquisition alternative takes `--source-git-dir <dir>

@@ -32,6 +32,12 @@ const declaration = read(join(options["--configuration"] ? config : previous ?? 
 assert.equal(checkProducerDeclaration(declaration).status, "ok");
 const source = declaration.sources.find(source=>source.id===(options["--source"]??options["--family"]));
 assert(source?.repository, "Choose one explicitly declared repository source; supplemental sources retain their exact pins.");
+const previousLedger = read(join(previous??config,"inventory.json"));
+// Older single-source stages name the repository but omit the source id.
+// Never reinterpret another source's complete paths as this source's removals.
+assert(!previous || (previousLedger.repository===source.repository &&
+  (!Object.hasOwn(previousLedger,"source") || previousLedger.source===source.id)),
+"Previous staged inventory belongs to another source; start a fresh source refresh instead.");
 const snapshot = read(join(options["--configuration"] ? config : previous ?? config, "snapshot.json"));
 const recipes = (id, declared=declaration, supplied=snapshot) => Object.fromEntries(declared.items.filter(item=>item.source===id && item.recipePath).map(item=> {
   const text=supplied.recipes[id]?.[item.recipePath]??supplied.recipes[item.recipePath];
@@ -82,7 +88,6 @@ for (const path of [...new Set([source.licensePath,...declaration.items.filter(i
 // A changed registration/hook config requires reviewed delivery adaptation. Never
 // label fresh source bytes as the input to a stale supplied config operation.
 const deliveryChanges = declaration.items.filter(item=>item.source===source.id && ["claude-mcp-registration","claude-hooks"].includes(item.sourceDiscovery?.profile) && files[item.sourceDiscovery.path] && sha(files[item.sourceDiscovery.path])!==sha(old.files[item.sourceDiscovery.path]));
-const previousLedger = read(join(previous??config,"inventory.json"));
 const previousInventory = previousLedger.paths ?? previousLedger.entries.filter(row=>!row.source||row.source===source.id).map(row=>row.path);
 const oldPaths=new Set(previousInventory), paths=[...acquired.inventory.paths].sort();
 // Freeze descriptors for the complete tree without admitting or distributing
