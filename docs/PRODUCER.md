@@ -9,9 +9,10 @@ checked, packable content candidate without waiting for Scan or any other releas
 chain. Only the items the change affects are produced again; every other record,
 member byte and provenance entry is carried over untouched.
 
-This is maintainer tooling. It is not part of the published package: `dist/producer`
-is excluded from `files`, and the public entries stay `@aihq/catalog/contracts`,
-`/reader`, `/node`, `/release.json` and the release schema. Publication, candidate
+The legacy candidate CLI remains maintainer tooling. The public producer and
+packaged source refresh reuse its compiler/delta support in `dist/producer`; see
+[public source refresh](PUBLIC-AUTHORING.md#source-owned-discovery-and-explicit-family-refresh).
+Publication, candidate
 version allocation and release activation remain separate release work
 ([RELEASING.md](../RELEASING.md)); `private: true` and the `prepublishOnly` refusal
 are unchanged.

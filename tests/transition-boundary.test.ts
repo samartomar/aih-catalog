@@ -121,6 +121,7 @@ describe("Catalog migration boundary", () => {
       expect(paths).not.toContain("defaults/catalog-index-v1.json");
       for (const file of packed.files) expect(file.mode & 0o111, file.path).toBe(0);
       for (const path of paths) {
+        if (path === "tools/refresh-source.mjs") continue;
         expect(path, path).not.toMatch(
           /^(?:(?:ai-coding|tools|tests|\.git|\.codex|\.serena|\.code-review-graph|\.codebase-memory|catalog)\/|docs\/(?!(?:ANTHROPIC-CONTENT|ANTHROPIC-INVENTORY|ECC-CONTENT|ECC-INVENTORY|EXTENSIONS-CONTENT|EXTENSIONS-INVENTORY|SUPERPOWERS-CONTENT|SUPERPOWERS-INVENTORY|FRAMEWORK-TEMPLATES|PUBLIC-AUTHORING|SCAN-BASELINE)\.md$))/u,
         );

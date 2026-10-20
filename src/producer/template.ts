@@ -146,16 +146,42 @@ export function generateTemplateItem(args: {
   return { record, recipePath, recipeBytes, members };
 }
 
+/** Discovery meaning matters; acquisition-only identities do not change behavior. */
+export function operationalMetadata(metadata: Json | undefined): Record_ {
+  const { upstream: _upstream, ...other } = isRecord(metadata) ? metadata : {};
+  if (other.suppliedDeclaration !== undefined) {
+    delete other.suppliedDeclaration;
+    delete other.suppliedSource;
+    if (isRecord(other.sourceFacts)) {
+      const facts = other.sourceFacts;
+      const { revision: _revision, ...provenance } = isRecord(facts.provenance)
+        ? facts.provenance
+        : {};
+      other.sourceFacts = { ...facts, provenance };
+    }
+  }
+  return other as Record_;
+}
+
 /** Compare behavior without pin-addressed locations; source moves are provenance only. */
-export function templateBehavior(record: Record_, recipeBytes: Uint8Array): string {
-  const { sourceIds: _sourceIds, metadata: _metadata, materials, recipe, ...rest } = record;
+export function templateBehavior(
+  record: Record_,
+  recipeBytes: Uint8Array,
+  generatedSkill = false,
+): string {
+  const { sourceIds: _sourceIds, metadata, materials, recipe, ...rest } = record;
   const descriptor = recipe as Record_;
+  const body = JSON.parse(Buffer.from(recipeBytes).toString("utf8")) as Record_;
+  // The generic skill renderer describes its source revision in recipe prose;
+  // that provenance is not a change to its installation behavior.
+  const { description: _description, ...skillBody } = body;
   return canonicalJson({
     ...rest,
+    metadata: operationalMetadata(metadata),
     recipe: {
       id: descriptor.id,
       schema: descriptor.schema,
-      body: JSON.parse(Buffer.from(recipeBytes).toString("utf8")) as Json,
+      body: generatedSkill ? skillBody : body,
     },
     materials: (materials as Record_[]).map(({ path: _path, ...member }) => member),
   });

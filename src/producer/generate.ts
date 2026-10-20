@@ -105,6 +105,8 @@ export function generateItem(args: {
   supportFiles: readonly GeneratedSupportFile[];
   memberPath?: (path: string) => string;
   sourceLabel?: string;
+  /** Public profile interpretation may explicitly report absent optional purpose. */
+  description?: string;
 }): GeneratedItem {
   const { item, source, sourceId, revision, skill, license, supportFiles } = args;
   const memberPath =
@@ -182,7 +184,7 @@ export function generateItem(args: {
   const record: { [key: string]: Json } = {
     id: item.id,
     label: item.label,
-    description: describe(skill, item.skillPath),
+    description: args.description ?? describe(skill, item.skillPath),
     kind: "skill",
     sourceIds: [sourceId],
     targets: [],
