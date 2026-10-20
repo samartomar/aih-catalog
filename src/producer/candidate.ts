@@ -233,13 +233,14 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
       }
       sources.set(sourceId, { id: sourceId, origin: { kind: "authored" } });
     }
-    const item = isTemplateItem(delta.declared)
+    const compiled = input.templates?.get(delta.id) ?? delta.template;
+    const item = compiled
       ? {
-          ...(delta.template as GeneratedItem),
-          record: { ...(delta.template as GeneratedItem).record, sourceIds: [sourceId] },
+          ...compiled,
+          record: { ...compiled.record, sourceIds: [sourceId] },
         }
       : generateItem({
-          item: delta.declared,
+          item: delta.declared as import("./declaration.js").DeclaredSkillItem,
           source: plan.source,
           sourceId,
           revision: tree.commit,

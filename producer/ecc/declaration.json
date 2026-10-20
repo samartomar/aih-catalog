@@ -19487,7 +19487,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/agentic-engineering/SKILL.md"
       }
     },
@@ -19554,7 +19554,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/api-design/SKILL.md"
       }
     },
@@ -19621,7 +19621,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/autonomous-loops/SKILL.md"
       }
     },
@@ -19688,7 +19688,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/backend-patterns/SKILL.md"
       }
     },
@@ -19755,7 +19755,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/coding-standards/SKILL.md"
       }
     },
@@ -19822,7 +19822,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/content-hash-cache-pattern/SKILL.md"
       }
     },
@@ -19889,7 +19889,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/cpp-coding-standards/SKILL.md"
       }
     },
@@ -19956,7 +19956,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/cpp-testing/SKILL.md"
       }
     },
@@ -20023,7 +20023,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/database-migrations/SKILL.md"
       }
     },
@@ -20090,7 +20090,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/deep-research/SKILL.md"
       }
     },
@@ -20157,7 +20157,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/deployment-patterns/SKILL.md"
       }
     },
@@ -20224,7 +20224,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/django-patterns/SKILL.md"
       }
     },
@@ -20291,7 +20291,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/django-security/SKILL.md"
       }
     },
@@ -20358,7 +20358,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/docker-patterns/SKILL.md"
       }
     },
@@ -20425,7 +20425,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/e2e-testing/SKILL.md"
       }
     },
@@ -20492,7 +20492,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/fastapi-patterns/SKILL.md"
       }
     },
@@ -20559,7 +20559,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/frontend-patterns/SKILL.md"
       }
     },
@@ -20626,7 +20626,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/golang-patterns/SKILL.md"
       }
     },
@@ -20693,7 +20693,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/golang-testing/SKILL.md"
       }
     },
@@ -20760,7 +20760,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/java-coding-standards/SKILL.md"
       }
     },
@@ -20827,7 +20827,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/jpa-patterns/SKILL.md"
       }
     },
@@ -20894,7 +20894,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/kotlin-patterns/SKILL.md"
       }
     },
@@ -20961,7 +20961,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/kotlin-testing/SKILL.md"
       }
     },
@@ -21028,7 +21028,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/mle-workflow/SKILL.md"
       }
     },
@@ -21095,7 +21095,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/nestjs-patterns/SKILL.md"
       }
     },
@@ -21162,7 +21162,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/nextjs-turbopack/SKILL.md"
       }
     },
@@ -21229,7 +21229,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/postgres-patterns/SKILL.md"
       }
     },
@@ -21296,7 +21296,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/python-patterns/SKILL.md"
       }
     },
@@ -21363,7 +21363,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/python-testing/SKILL.md"
       }
     },
@@ -21430,7 +21430,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/pytorch-patterns/SKILL.md"
       }
     },
@@ -21497,7 +21497,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/react-patterns/SKILL.md"
       }
     },
@@ -21564,7 +21564,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/react-testing/SKILL.md"
       }
     },
@@ -21631,7 +21631,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/rust-patterns/SKILL.md"
       }
     },
@@ -21698,7 +21698,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/rust-testing/SKILL.md"
       }
     },
@@ -21765,7 +21765,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/search-first/SKILL.md"
       }
     },
@@ -21832,7 +21832,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/security-review/SKILL.md"
       }
     },
@@ -21899,7 +21899,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/springboot-patterns/SKILL.md"
       }
     },
@@ -21966,7 +21966,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/springboot-security/SKILL.md"
       }
     },
@@ -22033,7 +22033,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/strategic-compact/SKILL.md"
       }
     },
@@ -22100,7 +22100,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/swift-actor-persistence/SKILL.md"
       }
     },
@@ -22167,7 +22167,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/swift-protocol-di-testing/SKILL.md"
       }
     },
@@ -22234,7 +22234,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/tdd-workflow/SKILL.md"
       }
     },
@@ -22301,7 +22301,7 @@
       ],
       "configuration": {},
       "sourceDiscovery": {
-        "profile": "claude-skill",
+        "profile": "agent-skills",
         "path": ".kiro/skills/verification-loop/SKILL.md"
       }
     },

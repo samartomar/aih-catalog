@@ -431,6 +431,26 @@ export function compileProducerDeclaration(request: {
               sourceLabel: `local source ${source.id}`,
             }
           : {};
+      const sourcePaths =
+        "recipePath" in donorItem
+          ? donorItem.materials.map((material) => material.path)
+          : [
+              donorItem.skillPath,
+              source.licensePath,
+              ...donorItem.supportPaths.map((path) => `${donorItem.directory}/${path}`),
+            ];
+      if (item.sourceDiscovery && !sourcePaths.includes(item.sourceDiscovery.path))
+        return failure(
+          `/items/${index}/sourceDiscovery`,
+          "Source discovery must refer to the exact delivered source-relative material path.",
+        );
+      const sourceFacts = item.sourceDiscovery
+        ? extractSourceFacts({
+            ...item.sourceDiscovery,
+            bytes: readPresent(tree, item.sourceDiscovery.path),
+            revision: tree.commit,
+          })
+        : undefined;
       const output =
         "recipePath" in donorItem
           ? generateTemplateItem({
@@ -446,6 +466,14 @@ export function compileProducerDeclaration(request: {
               ...localAddress,
               sourceId: source.id,
               revision: tree.commit,
+              ...(sourceFacts
+                ? {
+                    description:
+                      sourceFacts.description.state === "authored"
+                        ? sourceFacts.description.value
+                        : "",
+                  }
+                : {}),
               skill: Buffer.from(readPresent(tree, donorItem.skillPath)),
               license: Buffer.from(readPresent(tree, source.licensePath)),
               supportFiles: donorItem.supportPaths.map((path) => ({
@@ -462,21 +490,6 @@ export function compileProducerDeclaration(request: {
         return failure(
           `/items/${index}/configuration`,
           "Declared configuration must mirror the recipe's existing input specs; labels/help are display-only.",
-        );
-      const sourceFacts = item.sourceDiscovery
-        ? extractSourceFacts({
-            ...item.sourceDiscovery,
-            bytes: readPresent(tree, item.sourceDiscovery.path),
-            revision: tree.commit,
-          })
-        : undefined;
-      if (
-        item.sourceDiscovery &&
-        !output.members.some((member) => member.path.endsWith(`/${item.sourceDiscovery?.path}`))
-      )
-        return failure(
-          `/items/${index}/sourceDiscovery`,
-          "Source discovery must refer to delivered source material.",
         );
       output.record.label = sourceFacts
         ? sourceFacts.name.state === "authored"

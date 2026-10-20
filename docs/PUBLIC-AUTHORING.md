@@ -424,8 +424,11 @@ An item without this optional field retains its existing authored overlay behavi
 
 Agent Skills conformance requires name/description and the standard's field rules;
 Claude's native skill/command profile permits absent prose. These are distinct claims.
-The ECC declarations use Claude native skills, agents and commands, ordinary Markdown
-and static MCP registration profiles. ECC currently admits **no hook configuration item**;
+The ECC declarations use Claude native skills, agents and commands, ordinary Markdown,
+static MCP registration and Agent Skills for Kiro's separately authored skill mirror.
+[Kiro's documented format](https://kiro.dev/docs/skills/) requires Agent Skills fields;
+four original Kiro files currently expose non-string metadata diagnostics without source
+rewriting or an invented family freeze. ECC currently admits **no hook configuration item**;
 its hook-related instruction files remain Markdown. Focused hook fixtures exercise the
 shared interpreter without admitting new ECC installation mechanisms.
 

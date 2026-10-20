@@ -151,22 +151,25 @@ export function classifyDelta(input: {
         { itemId: declared.id },
       );
     }
-    if (isTemplateItem(declared)) {
-      const status = pathStatus(tree, declared.recipePath);
+    if (isTemplateItem(declared) || input.templates?.has(declared.id)) {
+      const primaryPath = isTemplateItem(declared) ? declared.recipePath : declared.skillPath;
+      const status = pathStatus(tree, primaryPath);
       const common = { id: declared.id, declared, ...(prior ? { base: prior } : {}) };
       if (status === "unknown")
         return { ...common, state: "unknown", operational: [], provenance: [] };
       if (status === "absent") {
         if (prior === undefined)
-          return refuse(
-            "declared-item-not-found",
-            `${declared.id}: ${declared.recipePath} is absent`,
-          );
+          return refuse("declared-item-not-found", `${declared.id}: ${primaryPath} is absent`);
         return { ...common, state: "removed", operational: [], provenance: [] };
       }
       const template =
         input.templates?.get(declared.id) ??
-        generateTemplateItem({ item: declared, source, sourceId: source.id, tree });
+        generateTemplateItem({
+          item: declared as import("./declaration.js").DeclaredTemplateItem,
+          source,
+          sourceId: source.id,
+          tree,
+        });
       if (prior === undefined)
         return { ...common, template, state: "added", operational: ["new-item"], provenance: [] };
       const oldRecipe = base?.files.get(asRecord(prior.recipe).path as string) as Buffer;

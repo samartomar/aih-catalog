@@ -172,7 +172,7 @@ export function extractSourceFacts(input: {
         }
       } else {
         if (text.startsWith("---\n")) {
-          const end = text.indexOf("\n---", 4);
+          const end = text.indexOf("\n---", 3);
           if (end < 0 || !/^\n---(?:\n|$)/.test(text.slice(end)))
             throw new TypeError("Unterminated frontmatter.");
           const document = parseDocument(text.slice(4, end), { schema: "core", uniqueKeys: true });
