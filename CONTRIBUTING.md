@@ -9,6 +9,12 @@ and versioned release admission. `npm run check:baseline-schemas` checks generat
 schemas; regenerate through `node tools/generate-baseline-schemas.mjs`. The bounded
 `tools/verify-baseline-consumer.mjs` proof additionally takes exact public Scan/Core
 tarballs and an isolated locked runtime. It uses fixture signatures and no scanners.
+`node tools/verify-package-consumer.mjs <exact-installed-runtime> <new-output>`
+additionally exercises complete nine-export qualification, packing, installed
+readback, reuse and substitution refusals with fixture evidence. The runtime must
+already contain the selected exact public Catalog/Scan/Core packages and v3 npm
+lock. [Full package preparation](docs/SCAN-BASELINE.md#assemble-the-complete-local-package)
+is maintainer tooling, not production execution or publication authority.
 
 Install dependencies with `npm ci --ignore-scripts` and run `npm run verify` before
 requesting review. The active checks cover the release reader, acquisition,

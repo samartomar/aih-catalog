@@ -175,3 +175,89 @@ unchanged S1 baseline after reading S2. Saved policy, review, prepared-action an
 browser preservation require downstream consumer journey proof; this fixture does
 not establish them. It runs no scanner, native client, paid service or publication.
 The output is a test fixture, not production content or real provider execution.
+
+## Assemble the complete local package
+
+`tools/assemble-release-package.mjs` qualifies the five ordinary release views,
+combines their exact material closure with the four unchanged exported documents,
+checks the whole package, packs without lifecycle scripts, installs the exact
+tarball offline and reads all nine exports using the final installed public reader.
+It uses an explicitly selected, locked npm runtime containing public Catalog, Scan
+and Core packages. It performs no detector execution, signing, publication, trust
+change or native-client installation.
+
+```sh
+node tools/assemble-release-package.mjs --runtime /absolute/installed-runtime \
+  --plan /absolute/package-plan.json --out /absolute/new-output
+node tools/assemble-release-package.mjs --runtime /absolute/installed-runtime \
+  --plan /absolute/package-plan.json --out /absolute/same-output --resume true
+```
+
+Use absolute input paths in the version-1 maintainer plan. Supply exactly one row
+for each `default`, `extensions`, `ecc`, `superpowers` and `anthropic` view:
+
+```json
+{
+  "version": 1,
+  "trust": {"path": "/accepted/trust.json", "sha256": "<exact digest>"},
+  "views": [{
+    "id": "extensions",
+    "content": {"path": "/staged/release.json", "sha256": "<content digest>"},
+    "materialRoot": "/staged/package-members",
+    "inventory": {"path": "/frozen/inventory.json", "sha256": "<inventory digest>"},
+    "artifact": {"path": "/original/authenticated.json", "sha256": "<artifact digest>", "byteLength": 1234},
+    "scanId": "<independently selected Scan ID>",
+    "scope": {"namespace": "package-relative", "paths": ["<exact requested path>"], "excludedPaths": []},
+    "expectedReleaseSha256": "<optional already-qualified release digest>"
+  }]
+}
+```
+
+The abbreviated example needs the other four rows before it is executable. The
+tool rejects unknown fields, duplicate/missing views, altered inputs, unreadable or
+mismatched assessments and failed authentication. It derives each baseline from
+the checked original bytes and supplied exact scope. `expectedReleaseSha256`
+checks reproducible reuse of an already-qualified view, such as a dependency whose
+final identity was needed before preparing downstream content. Qualify that
+dependency first through the existing per-view baseline gate; assembly does not
+infer or replace a dependency pin.
+
+Each inventory is stored at
+`release/baselines/<view>/content-inventory.json` and each original artifact at
+`release/baselines/<view>/artifact.json`. Select those package-relative inventory
+paths before assessment. The inventory's original bytes remain unchanged; the
+report must capture the selected path. A report covering a different storage path
+cannot be relabeled. Artifacts respect the existing 16-MiB package-member bound.
+All material members are checked against the release descriptors, conflicting or
+case-aliased shared paths refuse, and obsolete unreferenced members are excluded
+from the assembled release tree. The four other exports and their required
+members retain their exact bytes. No package version is allocated.
+
+The output contains `package/`, `qualification.json`, the exact tarball, a
+disposable installed `consumer/`, full child-output logs, `progress.json` and final
+`receipt.json`. Receipts retain content/release/inventory/artifact and selected
+trust identities, original assessment outcomes and timestamps, actual item
+coverage, declared sources, locked runtime versions/digest, package-tree/tarball
+identity and per-phase duration/status. Authentication or qualification does not
+mean safety or successful detectors. The receipt's `durationMs` measures the last
+invocation; `totalRecordedPhaseMs` sums retained phase measurements across resumes.
+
+An exclusive output lock prevents concurrent preparation. Resume pins the plan,
+tooling and runtime lock, reconstructs and reauthenticates the expected candidate,
+and refuses altered package/tarball bytes. Completed packing and installation are
+reused. An owned partial installation can resume after its cache prerequisite is
+fixed; linked/unowned partial trees refuse. Unverified partial assembly is retained
+for inspection rather than automatically removed or promoted. Changed inputs or
+tooling need a fresh output. Keep the original run records; never hand-edit a
+checkpoint to make it appear verified. Output and runtime must be independent
+directories outside the source workspace.
+
+```sh
+node tools/verify-package-consumer.mjs /absolute/exact-installed-runtime /absolute/new-proof
+```
+
+This maintained outside-source proof uses the complete installed content and five
+disposable fixture-signed, all-provider-failed reports. It verifies nine exports,
+four unchanged documents, explicit missing item coverage, installed-reader agreement,
+unchanged reuse and artifact/inventory/checkpoint substitution refusals. It runs no
+detector or production signer and cannot replace authentic assessment acceptance.
