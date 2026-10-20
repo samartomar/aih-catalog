@@ -136,3 +136,17 @@ Prepare/Apply in a disposable project. One additional real pinned skill projecti
 compiles and resolves with unchanged generic contracts. Native MCP/client use,
 formal admission and publication remain separate. No native server execution,
 client installation, model call or every-item runtime test is part of this proof.
+
+## Source-derived discovery
+
+The maintained declaration now selects shared source profiles rather than copying
+purpose text into Catalog descriptions. See [source-owned discovery](PUBLIC-AUTHORING.md#source-owned-discovery-and-explicit-family-refresh)
+for field states, provenance, shared personal-intake interpretation and the explicit
+packaged refresh command. Source facts remain separate from target recipes and delivery
+limitations. Claude/Copilot counterparts using the same original file receive identical
+source facts; Kiro's separately authored mirror retains its own path and bytes.
+
+The existing complete inventory, notices, support materials, donor dispositions and
+reviewed inclusion rules remain authoritative. Discovery of another upstream file is
+not admission. No hook configuration is currently an admitted ECC item; hook-related
+rules and skills are delivered instructions, not active hook registration.

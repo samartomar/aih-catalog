@@ -394,3 +394,79 @@ older release schemas. The source ID is a portable identity; it conveys no path,
 filesystem permission or acquisition command. Consumers explicitly bind their
 own local material root through the existing `MaterialSource` input. Do not put
 absolute machine paths or an invented hosted repository in declarations.
+
+## Source-owned discovery and explicit family refresh
+
+`@aihq/catalog/source` exports portable `extractSourceFacts({profile,path,revision,bytes,key?})`.
+The same data-only interpreter serves maintained content and personal intake. Supported
+profiles are `agent-skills`, `claude-skill`, `claude-agent`, `claude-command`, `markdown`,
+`claude-hooks` and `claude-mcp-registration`. A profile names a source format, not a
+repository or target variant. Reading metadata never runs instructions, hooks or servers.
+
+The result distinguishes `valid`, `profile-error`, `malformed` and `unsupported`.
+Name and description have `authored`, `absent` or `invalid` states, with field locators,
+requiredness for unavailable fields, exact source path, SHA-256 and revision. Optional
+absence does not use the body as invented purpose. `native` retains frontmatter extensions
+or operational facts; original complete bytes remain source material. MCP registrations
+are separate from running-server identity and tool metadata; environment/header names are
+shown without their values. Hook facts retain events, matchers and actual handlers.
+Supported handler validation is bounded to command, HTTP, prompt, agent and MCP-tool fields;
+metadata retention is not a claim of native execution or permission enforcement.
+
+A V3 item may declare `sourceDiscovery:{profile,path,key?}`. The path must be one of its
+delivered source materials. When present, compilation derives `label`, `description`,
+`metadata.discovery` and `metadata.sourceFacts` from those exact supplied bytes. The
+required legacy declaration `label` remains stable fallback data and `description` can
+be empty; neither overrides derived purpose. Missing name uses the source identifier;
+missing description remains empty with an explicit field state. Profile errors remain
+visible on the affected item and do not claim conformance or freeze the entire family.
+An item without this optional field retains its existing authored overlay behavior.
+
+Agent Skills conformance requires name/description and the standard's field rules;
+Claude's native skill/command profile permits absent prose. These are distinct claims.
+The ECC declarations use Claude native skills, agents and commands, ordinary Markdown
+and static MCP registration profiles. ECC currently admits **no hook configuration item**;
+its hook-related instruction files remain Markdown. Focused hook fixtures exercise the
+shared interpreter without admitting new ECC installation mechanisms.
+
+`@aihq/catalog/producer` additionally exports
+`prepareSourceRefresh({declaration,source,inventoryComplete,sourceFiles,previous})`, where
+`previous` contains exact `releaseBytes` and `{path,bytes}` materials. Supply a complete
+explicitly acquired selected-source snapshot, including declared recipe templates.
+`inventoryComplete:true` is required; incomplete input never authorizes removal.
+The operation reuses the existing candidate delta, closure and dependency checks. It
+retains unchanged records, materials and source pins, revalidates dependents, and returns
+checked release bytes/materials plus the ordinary candidate report. The call performs no
+acquisition, writes or installation. Acquisition verification remains caller-owned.
+Changed registration/configuration bytes need delivery-recipe review; derived metadata
+alone cannot establish that an authored recipe still implements the new configuration.
+
+The packaged `tools/refresh-source.mjs` is the explicit host route:
+
+```sh
+node node_modules/@aihq/catalog/tools/refresh-source.mjs \
+  --family ecc --commit <full-40-hex> --out <new-output-dir> --cache-dir <owned-cache>
+```
+
+It uses the existing verified GitHub fetch/object-validation route and reviewed family
+membership. New upstream files are reported as unadmitted; missing source/support/license
+files and dependency changes receive the existing safeguards. Nothing auto-installs or
+changes unrelated releases. Outputs include `release.json`, complete `stage/` material,
+`materials.json`, `snapshot.json`, `declaration.json`, `inventory.json`,
+`candidate-report.json` and `receipt.json`. Use `--previous <staged-dir>` for another
+explicit refresh from those retained bytes. Config/hook byte changes stop for delivery
+review and retain the inventory report; they never silently install stale mappings.
+
+The existing local-Git acquisition alternative takes `--source-git-dir <dir>
+--allow-unverified-origin true`. It verifies Git objects and exact commit bytes, records
+`originVerified:false`, and only stages test content. It does not repair an unsafe cache
+or establish repository-origin authentication. Output is **staged content for public-API
+tests**, not a qualified release candidate. Baseline qualification and final full candidate
+packing remain mandatory separate steps; no signing, activation or publication occurs.
+
+Build first, then `node tools/verify-source-discovery-consumer.mjs` exercises exact packed
+software outside source workspaces. Its synthetic metadata mutation is a regression only.
+To additionally acquire a real selected local Git revision through the installed package,
+pass `--evidence <dir> --source-git-dir <bare-repo> --commit <full-40-hex>`; the retained
+software tarball, its digest, staged receipts and installed public readback identify the
+proof and its unverified-origin limitation explicitly.

@@ -77,6 +77,9 @@ export interface BuildCandidateInput {
    * it makes are reported as `provenance-only`.
    */
   readonly advanceProvenance?: boolean;
+  /** Public compiler output at the existing supplied-template/delta seam. */
+  readonly templates?: ReadonlyMap<string, GeneratedItem>;
+  readonly metadata?: Json;
 }
 
 export interface BuildCandidateResult {
@@ -95,6 +98,17 @@ function operationalView(
 ): { item: string; recipe: string } {
   const { sourceIds: _sourceIds, metadata, recipe, materials, ...rest } = record;
   const { upstream: _upstream, ...otherMetadata } = asRecord(metadata);
+  // Supplied compiler identities locate source bytes; merely acquiring a later
+  // revision is not an operational change to an otherwise identical dependent.
+  if (otherMetadata.suppliedDeclaration !== undefined) {
+    delete otherMetadata.suppliedDeclaration;
+    delete otherMetadata.suppliedSource;
+    if (otherMetadata.sourceFacts !== undefined) {
+      const facts = asRecord(otherMetadata.sourceFacts);
+      const { revision: _revision, ...provenance } = asRecord(facts.provenance);
+      otherMetadata.sourceFacts = { ...facts, provenance };
+    }
+  }
   const descriptor = asRecord(recipe);
   const parsed = JSON.parse(Buffer.from(recipeBytes).toString("utf8")) as Record_;
   const { description: _description, ...operations } = parsed;
@@ -146,7 +160,12 @@ function targetSourceId(
 export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult {
   const { declaration, base } = input;
   const tree = prepareSourceTree(input.tree);
-  const plan = classifyDelta({ declaration, tree, ...(base ? { base } : {}) });
+  const plan = classifyDelta({
+    declaration,
+    tree,
+    ...(base ? { base } : {}),
+    ...(input.templates ? { templates: input.templates } : {}),
+  });
   const unknown = plan.items.filter((item) => item.state === "unknown").map((item) => item.id);
   if (unknown.length > 0) {
     return refuse(
@@ -304,7 +323,9 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
     package: { name: input.package.name, version: input.package.version },
     sources: finalSources,
     items: finalItems,
-    ...(base?.metadata === undefined ? {} : { metadata: base.metadata }),
+    ...(input.metadata === undefined && base?.metadata === undefined
+      ? {}
+      : { metadata: input.metadata ?? base?.metadata }),
   };
   const out = new Map<string, Buffer>();
   const put = (path: string, bytes: Buffer) => {

@@ -2,6 +2,8 @@
 import { readFileSync } from "node:fs";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import type { AuthoredAllowance } from "../producer/authored.js";
+import { parseBaseRelease } from "../producer/base.js";
+import { buildCandidate, type CandidateReport } from "../producer/candidate.js";
 import {
   type DeclaredItem,
   type DeclaredSource,
@@ -37,6 +39,7 @@ import {
 import { canonicalJson, deepFreeze } from "./json.js";
 import { readRelease } from "./reader.js";
 import { checkRecipeAgreement } from "./recipe-agreement.js";
+import { extractSourceFacts, type SourceDiscovery } from "./source-facts.js";
 
 export const PRODUCER_DECLARATION_SCHEMA_ID =
   "urn:aihq:catalog:producer-declaration:3.0.0" as const;
@@ -55,6 +58,7 @@ export type ProducerSource =
 export interface Discovery {
   readonly label: string;
   readonly description: string;
+  readonly sourceDiscovery?: SourceDiscovery;
   readonly kind: string;
   readonly clientCapabilities: readonly {
     readonly client: string;
@@ -459,7 +463,33 @@ export function compileProducerDeclaration(request: {
           `/items/${index}/configuration`,
           "Declared configuration must mirror the recipe's existing input specs; labels/help are display-only.",
         );
-      output.record.description = item.description;
+      const sourceFacts = item.sourceDiscovery
+        ? extractSourceFacts({
+            ...item.sourceDiscovery,
+            bytes: readPresent(tree, item.sourceDiscovery.path),
+            revision: tree.commit,
+          })
+        : undefined;
+      if (
+        item.sourceDiscovery &&
+        !output.members.some((member) => member.path.endsWith(`/${item.sourceDiscovery?.path}`))
+      )
+        return failure(
+          `/items/${index}/sourceDiscovery`,
+          "Source discovery must refer to delivered source material.",
+        );
+      output.record.label = sourceFacts
+        ? sourceFacts.name.state === "authored"
+          ? sourceFacts.name.value
+          : sourceFacts.identifier.length <= 256
+            ? sourceFacts.identifier
+            : item.id
+        : item.label;
+      output.record.description = sourceFacts
+        ? sourceFacts.description.state === "authored"
+          ? sourceFacts.description.value
+          : ""
+        : item.description;
       output.record.kind = item.kind;
       output.record.dependencies = {
         requires: item.requires as unknown as Json,
@@ -472,9 +502,10 @@ export function compileProducerDeclaration(request: {
           sha256: sha256Hex(documentBytes(declaration)),
         },
         ...(output.record.metadata as Record<string, Json>),
+        ...(sourceFacts ? { sourceFacts: sourceFacts as unknown as Json } : {}),
         discovery: {
-          label: item.label,
-          description: item.description,
+          label: output.record.label,
+          description: output.record.description,
           kind: item.kind,
           clientCapabilities: item.clientCapabilities as unknown as Json,
           activation: item.activation as unknown as Json,
@@ -615,4 +646,179 @@ export function compileProducerDeclaration(request: {
         })),
     },
   };
+}
+
+/**
+ * Refresh one explicitly acquired source through the existing delta builder.
+ * The previous checked closure is retained for unchanged items; no installation,
+ * acquisition, baseline qualification or release activation occurs here.
+ */
+export function prepareSourceRefresh(request: {
+  readonly declaration: unknown;
+  readonly source: string;
+  readonly sourceFiles: readonly SuppliedSourceFiles[];
+  /** Acquisition must explicitly attest complete enumeration; incomplete is never removal. */
+  readonly inventoryComplete: boolean;
+  readonly previous: {
+    readonly releaseBytes: Uint8Array;
+    readonly materials: readonly { readonly path: string; readonly bytes: Uint8Array }[];
+  };
+}): AuthoringResult<CompiledProducerDeclaration & { readonly report: CandidateReport }> {
+  try {
+    const top = dataRecord(request);
+    const sourceFiles = dataArray(top.sourceFiles).map((value) => {
+      const snapshot = dataRecord(value);
+      return { ...snapshot, files: dataRecord(snapshot.files) };
+    });
+    return prepareSourceRefreshData({ ...top, sourceFiles } as unknown as Parameters<
+      typeof prepareSourceRefreshData
+    >[0]);
+  } catch {
+    return failure(
+      "/refresh",
+      "Expected bounded plain refresh data and a verified previous material closure.",
+    );
+  }
+}
+
+function prepareSourceRefreshData(request: {
+  readonly declaration: unknown;
+  readonly source: string;
+  readonly inventoryComplete: boolean;
+  readonly sourceFiles: readonly SuppliedSourceFiles[];
+  readonly previous: {
+    readonly releaseBytes: Uint8Array;
+    readonly materials: readonly { readonly path: string; readonly bytes: Uint8Array }[];
+  };
+}): AuthoringResult<CompiledProducerDeclaration & { readonly report: CandidateReport }> {
+  if (request.inventoryComplete !== true)
+    return failure(
+      "/inventoryComplete",
+      "A complete acquired source inventory is required; incomplete is never removal.",
+    );
+  const checked = checkProducerDeclaration(request.declaration);
+  if (checked.status !== "ok") return checked;
+  const declaration = checked.value;
+  const source = declaration.sources.find((source) => source.id === request.source);
+  const snapshot = request.sourceFiles.find((files) => files.source === request.source);
+  if (!source || !("repository" in source) || !snapshot)
+    return failure(
+      "/source",
+      "Refresh requires one declared repository source and its acquired snapshot.",
+    );
+  // Only an explicitly declared primary source file absent from the complete
+  // acquired snapshot is removal. Missing support/license bytes remain errors.
+  const removed = new Set(
+    declaration.items
+      .filter(
+        (item) =>
+          item.source === source.id &&
+          item.sourceDiscovery &&
+          !Object.hasOwn(snapshot.files, item.sourceDiscovery.path),
+      )
+      .map((item) => item.id),
+  );
+  const retained = {
+    ...declaration,
+    items: declaration.items.filter((item) => !removed.has(item.id)),
+  };
+  const compiled = compileProducerDeclaration({
+    declaration: retained,
+    sourceFiles: request.sourceFiles,
+  });
+  if (compiled.status !== "ok") return compiled;
+  try {
+    const files = new Map(request.previous.materials.map((file) => [file.path, file.bytes]));
+    files.set("release/release.json", request.previous.releaseBytes);
+    const base = parseBaseRelease(files);
+    const outputs = new Map(compiled.value.materials.map((file) => [file.path, file]));
+    const templates = new Map<string, GeneratedItem>();
+    for (const item of compiled.value.release.items) {
+      const recipe = outputs.get(item.recipe.path);
+      if (!recipe) throw new TypeError("Compiled recipe missing.");
+      const { itemSha256: _itemSha256, ...record } = item;
+      templates.set(item.id, {
+        record: record as unknown as { [key: string]: Json },
+        recipePath: item.recipe.path,
+        recipeBytes: Buffer.from(recipe.bytes),
+        members: item.materials.map((member) => ({
+          ...member,
+          bytes: Buffer.from(outputs.get(member.path)?.bytes ?? []),
+        })),
+      });
+    }
+    const paths = new Set(Object.keys(snapshot.files));
+    for (const item of declaration.items)
+      if (removed.has(item.id) && "recipePath" in item) paths.delete(item.recipePath);
+    const previousMetadata =
+      base.metadata && typeof base.metadata === "object" && !Array.isArray(base.metadata)
+        ? base.metadata
+        : {};
+    const nextMetadata = isRecord(compiled.value.release.metadata)
+      ? compiled.value.release.metadata
+      : {};
+    const inventories = [
+      ...(Array.isArray(previousMetadata.suppliedSources) ? previousMetadata.suppliedSources : []),
+      ...(Array.isArray(nextMetadata.suppliedSources) ? nextMetadata.suppliedSources : []),
+    ];
+    const metadata = {
+      ...previousMetadata,
+      ...nextMetadata,
+      ...(inventories.length
+        ? {
+            suppliedSources: [
+              ...new Map(inventories.map((value) => [canonicalJson(value), value])).values(),
+            ],
+          }
+        : {}),
+    };
+    const built = buildCandidate({
+      declaration: parseDeclaration(donorProjection(declaration)),
+      tree: {
+        repository: source.repository,
+        commit: snapshot.revision,
+        inventory: { complete: true, paths, irregular: new Set(), opaquePrefixes: [] },
+        read: (path) => {
+          const bytes = snapshot.files[path];
+          if (!bytes) throw new TypeError("Missing acquired source bytes.");
+          return bytes;
+        },
+      },
+      base,
+      package: declaration.package ?? base.checked.package,
+      templates,
+      metadata,
+    });
+    const releaseBytes = built.files.get("release/release.json") as Buffer;
+    const releaseSha256 = sha256Hex(releaseBytes);
+    const read = readRelease(releaseBytes, { expectedSha256: releaseSha256 });
+    if (!read.valid) return failure("/previous", "Refreshed release failed its public reader.");
+    return {
+      status: "ok",
+      diagnostics: [],
+      value: {
+        release: read.release,
+        releaseBytes: new Uint8Array(releaseBytes),
+        releaseSha256,
+        report: built.report,
+        materials: [...built.files]
+          .filter(([path]) => path !== "release/release.json")
+          .map(([path, bytes]) => ({
+            path,
+            bytes: new Uint8Array(bytes),
+            sha256: sha256Hex(bytes),
+            byteLength: bytes.byteLength,
+          })),
+      },
+    };
+  } catch (error) {
+    return failure(
+      "/refresh",
+      error instanceof ProducerRefusal
+        ? `${error.message}: ${JSON.stringify(error.details)}`
+        : error instanceof Error
+          ? error.message
+          : "Source refresh failed.",
+    );
+  }
 }

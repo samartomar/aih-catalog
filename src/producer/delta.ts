@@ -106,6 +106,7 @@ export function classifyDelta(input: {
   declaration: ProducerDeclaration;
   tree: PreparedSourceTree;
   base?: BaseRelease;
+  templates?: ReadonlyMap<string, GeneratedItem>;
 }): DeltaPlan {
   const { declaration, tree, base } = input;
   const source = declaration.sources.find(
@@ -163,7 +164,9 @@ export function classifyDelta(input: {
           );
         return { ...common, state: "removed", operational: [], provenance: [] };
       }
-      const template = generateTemplateItem({ item: declared, source, sourceId: source.id, tree });
+      const template =
+        input.templates?.get(declared.id) ??
+        generateTemplateItem({ item: declared, source, sourceId: source.id, tree });
       if (prior === undefined)
         return { ...common, template, state: "added", operational: ["new-item"], provenance: [] };
       const oldRecipe = base?.files.get(asRecord(prior.recipe).path as string) as Buffer;
