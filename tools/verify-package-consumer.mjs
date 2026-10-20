@@ -46,6 +46,14 @@ finally { writeFileSync(packageJson, saved); }
 const unexpectedMember = join(candidate, "package/unexpected-package-member.txt"); writeFileSync(unexpectedMember, "EXTRA");
 try { assert.throws(() => run([...args(), "--resume", "true"])); const progress = JSON.parse(readFileSync(join(candidate, "progress.json"))); assert.equal(progress.phase, "qualification-failed"); assert(readFileSync(join(candidate, `qualification-${progress.timings.length - 1}.log`), "utf8").includes("Unexpected package member")); refusals.push("unexpected-package-member"); }
 finally { unlinkSync(unexpectedMember); }
+const progressPath = join(candidate, "progress.json"), originalProgress = readFileSync(progressPath);
+const escapedLog = join(out, "sentinel.log"); writeFileSync(escapedLog, "UNCHANGED CHECKPOINT SENTINEL");
+try {
+  const malicious = JSON.parse(originalProgress); malicious.timings = { length: "../../../sentinel" };
+  writeFileSync(progressPath, JSON.stringify(malicious));
+  assert.throws(() => run([...args(), "--resume", "true"]), /Checkpoint timings must be an array/);
+  assert.equal(readFileSync(escapedLog, "utf8"), "UNCHANGED CHECKPOINT SENTINEL"); refusals.push("checkpoint-log-path-escape");
+} finally { writeFileSync(progressPath, originalProgress); }
 const sourceRefusal = join(out, "runtime-source-refusal");
 assert.throws(() => run([tool, "--runtime", root, "--plan", planPath, "--out", sourceRefusal]), /Selected runtime must be outside/);
 assert.equal(existsSync(sourceRefusal), false); refusals.push("runtime-inside-source");

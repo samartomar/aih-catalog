@@ -60,9 +60,11 @@ const statePath = join(out, "progress.json"), resume = options["--resume"] === "
 let state;
 if (resume) { assert(lstatSync(out).isDirectory() && !lstatSync(out).isSymbolicLink(), "Linked checkpoint refused"); state = JSON.parse(boundedFile(statePath, 2 * 1024 * 1024)); assert.deepEqual(state.identity, identity, "Resume inputs or tooling changed"); }
 else { assert(!existsSync(out), "Output already exists; use an explicitly verified --resume true checkpoint"); mkdirSync(out); state = { identity, timings: [], phase: "qualification" }; }
+assert(Array.isArray(state.timings), "Checkpoint timings must be an array");
 const lockPath = join(out, ".preparation.lock"), lock = openSync(lockPath, "wx");
 try {
 const safeWrite = (path, bytes) => {
+  assert.equal(dirname(resolve(path)), out, "Control output must remain directly inside its owned output");
   // Replacement never opens the existing inode. Refuse linked control outputs,
   // including dangling symlinks that existsSync would otherwise hide.
   try { const stat = lstatSync(path); assert(stat.isFile() && !stat.isSymbolicLink() && stat.nlink === 1, "Unsafe linked control output"); }
