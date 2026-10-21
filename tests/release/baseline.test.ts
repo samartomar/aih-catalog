@@ -316,3 +316,201 @@ it("owns an admitted read snapshot without narrowing Scan's JSON depth", async (
   expect(result.valid).toBe(true);
   expect(hostRead.report.selection.paths).toEqual(["release", "later-host-change"]);
 });
+
+it("uses one authenticated batch in member order and owns the projected result", async () => {
+  const contentBytes = releaseBytes(fixtureRelease());
+  const artifact = new TextEncoder().encode("batch fixture assessment");
+  const baseline = {
+    ...boundRelease().baseline,
+    artifact: {
+      sha256: sha256(artifact),
+      byteLength: artifact.length,
+      location: { kind: "package", path: "release/baseline.json" },
+    },
+  };
+  const calls: string[] = [];
+  const observations = [{ observationId: "first" }, { observationId: "second" }];
+  const gaps = ["semgrep"];
+  const result = await prepareReleaseBaseline(
+    { contentBytes, expectedSha256: sha256(contentBytes), baseline, trust: {} },
+    {
+      acquireArtifact: async () => artifact,
+      readArtifact: async () => ({
+        status: "read" as const,
+        scanId: baseline.scanId,
+        report: { selection: { paths: ["release"], excludedPaths: [] } },
+      }),
+      readContentCoverage: async ({ descriptors }) => {
+        expect(descriptors).toEqual([baseline.inventory]);
+        calls.push("inventory");
+        return { status: "matched" as const, observations: [], detectorsWithoutCoverage: [] };
+      },
+      authenticateEvidence: async () => {
+        calls.push("authenticate");
+        return {
+          status: "authenticated" as const,
+          scanId: baseline.scanId,
+          producerIdentity: "fixture",
+        };
+      },
+      readContentCoverageBatch: async ({ queries }) => {
+        calls.push("batch");
+        const fixture = readRelease(contentBytes, { expectedSha256: sha256(contentBytes) });
+        if (!fixture.valid) throw new Error("Invalid fixture");
+        const expected = fixture.release.items.flatMap((item) => [item.recipe, ...item.materials]);
+        expect(queries.map((query) => query.descriptors)).toEqual(
+          expected.map((member) => [
+            {
+              path: member.path,
+              sha256: member.sha256,
+              byteLength: member.byteLength,
+            },
+          ]),
+        );
+        const first = queries[0]?.descriptors[0];
+        if (!first) throw new Error("Missing first query");
+        Object.assign(first, { path: "host-change" });
+        return {
+          status: "complete" as const,
+          observations,
+          results: queries.map((_, index) =>
+            index === 1
+              ? { status: "mismatched" as const }
+              : {
+                  status: "matched" as const,
+                  observationIndexes: [1, 0, 1],
+                  detectorsWithoutCoverage: gaps,
+                },
+          ),
+        };
+      },
+    },
+  );
+  expect(calls).toEqual(["inventory", "authenticate", "batch"]);
+  expect(result.valid).toBe(true);
+  if (!result.valid) return;
+  Object.assign(observations[0] ?? {}, { observationId: "later-host-change" });
+  gaps.push("later-host-change");
+  const members = result.itemCoverage.flatMap((item) => item.members);
+  expect(members[0]?.descriptor.path).not.toBe("host-change");
+  expect(members[0]?.observationIds).toEqual(["second", "first", "second"]);
+  expect(members[0]?.detectorsWithoutCoverage).toEqual(["semgrep"]);
+  expect(members[1]).toMatchObject({
+    capture: "mismatched",
+    observationIds: [],
+    detectorsWithoutCoverage: [],
+  });
+  expect(Object.isFrozen(members[0]?.observationIds)).toBe(true);
+});
+
+it.each([
+  "global-invalid",
+  "missing-row",
+  "extra-row",
+  "invalid-row",
+  "unavailable-row",
+  "negative-index",
+  "fraction-index",
+  "outside-index",
+  "invalid-observation",
+  "invalid-gap",
+])("refuses a malformed or unreadable batch without singleton fallback: %s", async (kind) => {
+  const contentBytes = releaseBytes(fixtureRelease());
+  const artifact = new TextEncoder().encode("batch fixture assessment");
+  const baseline = {
+    ...boundRelease().baseline,
+    artifact: {
+      sha256: sha256(artifact),
+      byteLength: artifact.length,
+      location: { kind: "package", path: "release/baseline.json" },
+    },
+  };
+  let singletonCalls = 0;
+  const result = await prepareReleaseBaseline(
+    { contentBytes, expectedSha256: sha256(contentBytes), baseline, trust: {} },
+    {
+      acquireArtifact: async () => artifact,
+      readArtifact: async () => ({
+        status: "read" as const,
+        scanId: baseline.scanId,
+        report: { selection: { paths: ["release"], excludedPaths: [] } },
+      }),
+      readContentCoverage: async () => {
+        singletonCalls++;
+        return { status: "matched" as const, observations: [], detectorsWithoutCoverage: [] };
+      },
+      authenticateEvidence: async () => ({
+        status: "authenticated" as const,
+        scanId: baseline.scanId,
+        producerIdentity: "fixture",
+      }),
+      readContentCoverageBatch: async ({ queries }) => {
+        if (kind === "global-invalid") return { status: "invalid" as const };
+        const row = {
+          status: "matched" as const,
+          observationIndexes: [0],
+          detectorsWithoutCoverage: [] as string[],
+        };
+        const results: unknown[] = queries.map(() => ({ ...row }));
+        if (kind === "missing-row") results.pop();
+        if (kind === "extra-row") results.push(row);
+        if (kind === "invalid-row") results[0] = { status: "invalid" };
+        if (kind === "unavailable-row") results[0] = { status: "unavailable" };
+        if (kind.endsWith("-index"))
+          results[0] = {
+            ...row,
+            observationIndexes: [
+              kind === "negative-index" ? -1 : kind === "fraction-index" ? 0.5 : 1,
+            ],
+          };
+        if (kind === "invalid-gap") results[0] = { ...row, detectorsWithoutCoverage: [42] };
+        return {
+          status: "complete",
+          observations: [{ observationId: kind === "invalid-observation" ? 42 : "fixture" }],
+          results,
+        } as never;
+      },
+    },
+  );
+  expect(result.valid).toBe(false);
+  expect(singletonCalls).toBe(1);
+});
+
+it("does not classify members before successful authentication", async () => {
+  const contentBytes = releaseBytes(fixtureRelease());
+  const artifact = new TextEncoder().encode("batch fixture assessment");
+  const baseline = {
+    ...boundRelease().baseline,
+    artifact: {
+      sha256: sha256(artifact),
+      byteLength: artifact.length,
+      location: { kind: "package", path: "release/baseline.json" },
+    },
+  };
+  let batches = 0;
+  const result = await prepareReleaseBaseline(
+    { contentBytes, expectedSha256: sha256(contentBytes), baseline, trust: {} },
+    {
+      acquireArtifact: async () => artifact,
+      readArtifact: async () => ({
+        status: "read" as const,
+        scanId: baseline.scanId,
+        report: { selection: { paths: ["release"], excludedPaths: [] } },
+      }),
+      readContentCoverage: async () => ({
+        status: "matched" as const,
+        observations: [],
+        detectorsWithoutCoverage: [],
+      }),
+      authenticateEvidence: async () => ({ status: "unverifiable" as const }),
+      readContentCoverageBatch: async () => {
+        batches++;
+        return { status: "invalid" as const };
+      },
+    },
+  );
+  expect(result.valid ? [] : result.diagnostics.map((d) => d.reason)).toEqual([
+    "baseline-unauthenticated",
+  ]);
+  expect(batches).toBe(0);
+});

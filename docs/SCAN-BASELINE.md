@@ -263,3 +263,13 @@ four unchanged documents, explicit missing item coverage, installed-reader agree
 unchanged reuse, artifact/inventory/checkpoint substitution refusals, changed
 executable-input refusals and simulated multiply-linked output protection. It runs no
 detector or production signer and cannot replace authentic assessment acceptance.
+
+
+Hosts may also supply the public Scan `readContentCoverageBatch` operation as an
+optional service. Preparation still checks inventory capture and authenticates
+the evidence first. It then submits one ordered query per recipe or material
+occurrence, preserving each item's observation order and coverage gaps. Batch
+refusals, missing rows and invalid observation indexes fail preparation. Existing
+hosts supplying only `readContentCoverage` remain supported. The maintained
+preparation and full-package tools explicitly require the batch export from their
+selected installed Scan runtime.

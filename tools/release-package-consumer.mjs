@@ -6,7 +6,7 @@ import { dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createContentInventory, readRelease } from "@aihq/catalog/reader";
 import { prepareReleaseBaseline, readInstalledRelease } from "@aihq/catalog/node";
-import { readArtifact, readContentCoverage } from "@aihq/scan/read";
+import { readArtifact, readContentCoverage, readContentCoverageBatch } from "@aihq/scan/read";
 import { authenticateEvidence } from "@aihq/core";
 
 let input = ""; for await (const chunk of process.stdin) input += chunk;
@@ -85,7 +85,7 @@ for (const view of plan.views) {
   const baseline = { schema: "urn:aihq:catalog:scan-baseline:1.0.0", inventory: { path: `release/baselines/${view.id}/content-inventory.json`, sha256: inventory.sha256, byteLength: inventory.byteLength },
     scanId: view.scanId, artifact: { sha256: sha(artifactBytes), byteLength: artifactBytes.length, location: { kind: "package", path: `release/baselines/${view.id}/artifact.json` } }, scope: view.scope };
   const qualified = await prepareReleaseBaseline({ contentBytes, expectedSha256: view.content.sha256, baseline, trust },
-    { readArtifact, readContentCoverage, authenticateEvidence, acquireArtifact: async () => artifactBytes });
+    { readArtifact, readContentCoverage, readContentCoverageBatch, authenticateEvidence, acquireArtifact: async () => artifactBytes });
   assert(qualified.valid, JSON.stringify(qualified));
   if (view.expectedReleaseSha256 !== undefined) assert.equal(qualified.release.sha256, view.expectedReleaseSha256, "Qualified reuse changed release identity");
   for (const item of qualified.release.items) for (const descriptor of [item.recipe, ...item.materials].filter(Boolean)) member(view.materialRoot, descriptor);

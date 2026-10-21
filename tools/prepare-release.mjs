@@ -46,12 +46,12 @@ if (mode === "freeze") {
   // runtime. No require-condition fallback or package-private target discovery.
   const runtimeSource = `
     import { prepareReleaseBaseline, acquireBaselineArtifact } from '@aihq/catalog/node';
-    import { readArtifact, readContentCoverage } from '@aihq/scan/read';
+    import { readArtifact, readContentCoverage, readContentCoverageBatch } from '@aihq/scan/read';
     import { authenticateEvidence } from '@aihq/core';
     let json = ''; for await (const chunk of process.stdin) json += chunk;
     const input = JSON.parse(json);
     const result = await prepareReleaseBaseline({ ...input, contentBytes: Buffer.from(input.contentBase64, 'base64') }, {
-      readArtifact, readContentCoverage, authenticateEvidence,
+      readArtifact, readContentCoverage, readContentCoverageBatch, authenticateEvidence,
       acquireArtifact: artifact => acquireBaselineArtifact(artifact, { packageRoot: input.packageRoot }),
     });
     process.stdout.write(JSON.stringify(result.valid ? { valid: true,
