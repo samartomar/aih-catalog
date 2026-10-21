@@ -1,5 +1,18 @@
 # Pinned Anthropic skills
 
+Permitted skill projections derive authored source facts through the shared
+`agent-skills` profile; declarations contain no copied replacement purpose.
+Profile diagnostics remain visible: the pinned `claude-api` description exceeds
+the standard's 1,024-character bound, so its description is invalid and the
+compact purpose stays empty. Its original source bytes remain available through
+the normal material route. This does not rewrite source to claim conformance.
+Runtime requirements stay in capabilities, activation and recipes. Supplemental
+notices and the local testing template are explicit Catalog-owned delivery
+overlays. The [public refresh route](PUBLIC-AUTHORING.md) preserves supplemental
+notice pins and admission/rights limits; discovering restricted source never
+admits its bytes. Reviewed newly required sibling support needs explicit closure
+and recipe changes before staging.
+
 `@aihq/catalog/release-anthropic.json` is an optional, unpublished local 0.1.0
 release over `anthropics/skills@34040c9c568585f6929bedeaad110ad08f079624`.
 Identify local builds by source commit and archive SHA-256, never version alone.

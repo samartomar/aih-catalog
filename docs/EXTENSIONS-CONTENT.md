@@ -1,5 +1,15 @@
 # Extensions content
 
+Skills (including the independently pinned Matt companion) derive authored facts
+with the shared `agent-skills` profile; native agents, commands and hook source
+use `claude-agent`, `claude-command` and `claude-hooks`. Target projections share
+the source facts. Declarations keep stable Catalog IDs and empty copied purpose;
+delivery constraints remain in capabilities, activation, dependencies and recipes.
+Notices, reference aggregates, templates and caller-configured hook registration
+are explicit Catalog-owned delivery overlays. They do not substitute source purpose.
+Use the [public refresh route](PUBLIC-AUTHORING.md) for explicit revision staging;
+unadmitted discoveries and independently pinned companion revisions stay explicit.
+
 Read the optional `@aihq/catalog/release-extensions.json` release explicitly. Its
 172 choices use the ordinary public v3 declaration/compiler, checked reader,
 relationship resolver, installed/archive adapter and generic Core file/hook

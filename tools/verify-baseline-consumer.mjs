@@ -48,8 +48,20 @@ writeFileSync(join(contentStage, "release/release.json"), content);
 run([join(root, "tools/prepare-release.mjs"), "prepare", "--content", join(out, "content.json"),
   "--content-sha256", createHash("sha256").update(content).digest("hex"), "--out", join(out, "cli-release.json"),
   "--baseline", join(out, "binding.json"), "--trust", join(out, "fixture-trust.json"),
-  "--runtime", runtime, "--package-root", contentStage], root);
+  "--runtime", runtime, "--package-root", contentStage, "--receipt", join(out, "qualification.json")], root);
 assert.deepEqual(readFileSync(join(out, "cli-release.json")), readFileSync(join(out, "candidate/release/release.json")));
+const qualification = JSON.parse(readFileSync(join(out, "qualification.json")));
+assert.equal(qualification.schema, "urn:aihq:catalog:qualification-receipt:1.0.0");
+assert.equal(qualification.authentication.producerIdentity, "catalog-baseline-fixture");
+assert.equal(qualification.baseline.scanId, JSON.parse(readFileSync(join(out, "binding.json"))).scanId);
+assert.equal(qualification.release.sha256, createHash("sha256").update(readFileSync(join(out, "cli-release.json"))).digest("hex"));
+assert.deepEqual(qualification.itemCoverage, JSON.parse(output).itemCoverage);
+assert.throws(() => run([join(root, "tools/prepare-release.mjs"), "prepare", "--content", join(out, "content.json"),
+  "--content-sha256", createHash("sha256").update(content).digest("hex"), "--out", join(out, "refused-release.json"),
+  "--baseline", join(out, "binding.json"), "--trust", join(out, "fixture-trust.json"),
+  "--runtime", runtime, "--package-root", contentStage, "--receipt", join(out, "qualification.json")], root),
+  /Release and receipt outputs must be distinct new files/);
+assert.equal(existsSync(join(out, "refused-release.json")), false);
 run([join(root, "tools/check-release.mjs"), join(out, "candidate")], root);
 const fixtureTarball = pack(join(out, "candidate"), join(out, "final"));
 const finalConsumer = join(out, "final-consumer");

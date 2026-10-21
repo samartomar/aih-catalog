@@ -1,5 +1,14 @@
 # Pinned ECC content
 
+The new default `ecc.template.api-review` intentionally pins the current bundled
+Extensions release and `security-and-hardening` item after its source-facts
+refresh. This is an explicit Catalog-owned template dependency update; retained
+release bytes and saved selection pins remain unchanged. When preparing baseline
+qualified releases, qualify Extensions first, then explicitly rebind new ECC and
+Superpowers templates to that exact release before freezing, assessing and
+qualifying their downstream inventories. A new upstream release digest does not
+silently rewrite an existing template or saved selection.
+
 `@aihq/catalog/release-ecc.json` is a separately selected, unpublished local
 Catalog release. It preserves `affaan-m/ECC` at
 `5064474d4d762dc9640234a41617cccb79185cec` (ECC 2.2.1, MIT), including the
@@ -136,3 +145,17 @@ Prepare/Apply in a disposable project. One additional real pinned skill projecti
 compiles and resolves with unchanged generic contracts. Native MCP/client use,
 formal admission and publication remain separate. No native server execution,
 client installation, model call or every-item runtime test is part of this proof.
+
+## Source-derived discovery
+
+The maintained declaration now selects shared source profiles rather than copying
+purpose text into Catalog descriptions. See [source-owned discovery](PUBLIC-AUTHORING.md#source-owned-discovery-and-explicit-family-refresh)
+for field states, provenance, shared personal-intake interpretation and the explicit
+packaged refresh command. Source facts remain separate from target recipes and delivery
+limitations. Claude/Copilot counterparts using the same original file receive identical
+source facts; Kiro's separately authored mirror retains its own path and bytes.
+
+The existing complete inventory, notices, support materials, donor dispositions and
+reviewed inclusion rules remain authoritative. Discovery of another upstream file is
+not admission. No hook configuration is currently an admitted ECC item; hook-related
+rules and skills are delivered instructions, not active hook registration.

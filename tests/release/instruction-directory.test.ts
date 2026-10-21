@@ -101,8 +101,13 @@ vi.mock("node:fs", async (importOriginal) => {
 const repository = resolve(import.meta.dirname, "../..");
 const scratch = mkdtempSync(join(tmpdir(), "aih-instruction-directory-"));
 const cleanups: (() => void)[] = [];
-afterAll(() => {
+// Each installed root is owned by one test. Do not accumulate full Catalog trees
+// until suite teardown; clear armed faults before disposing test-owned fixtures.
+afterEach(() => {
+  fsFaults.entries.length = 0;
   for (const cleanup of cleanups.splice(0)) cleanup();
+});
+afterAll(() => {
   expect(scratch.startsWith(join(tmpdir(), "aih-instruction-directory-"))).toBe(true);
   rmSync(scratch, { recursive: true, force: true });
 });
@@ -799,10 +804,6 @@ describe("prepareProjectContext refusals", () => {
 describe("prepareProjectContext write and cleanup failures", () => {
   const arm = (operation: "realpath" | "mkdir" | "write" | "rm", match: string, code: string) =>
     fsFaults.entries.push({ operation, match, code });
-  afterEach(() => {
-    fsFaults.entries.length = 0;
-  });
-
   /** A refused preparation: frozen diagnostics are returned, never an exception. */
   const refused = async (outputDirectory: string, sourceMaterialRoots?: Record<string, string>) => {
     const from = await source();

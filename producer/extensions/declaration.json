@@ -112,8 +112,8 @@
     {
       "id": "extensions.skill.api-and-interface-design",
       "source": "extensions",
-      "label": "claude-code: api-and-interface-design",
-      "description": "claude-code: api-and-interface-design; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.skill.api-and-interface-design",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.skill.api-and-interface-design.json",
       "materials": [
@@ -163,13 +163,17 @@
           "instructions": "Open the project in the selected client and discover/invoke api-and-interface-design. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/api-and-interface-design/SKILL.md"
+      }
     },
     {
       "id": "extensions.skill.ask-sam",
       "source": "extensions",
-      "label": "claude-code: ask-sam",
-      "description": "claude-code: ask-sam; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.skill.ask-sam",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.skill.ask-sam.json",
       "materials": [
@@ -222,13 +226,17 @@
           "instructions": "Open the project in the selected client and discover/invoke ask-sam. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/ask-sam/SKILL.md"
+      }
     },
     {
       "id": "extensions.skill.browser-testing-with-devtools",
       "source": "extensions",
-      "label": "claude-code: browser-testing-with-devtools",
-      "description": "claude-code: browser-testing-with-devtools; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.skill.browser-testing-with-devtools",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.skill.browser-testing-with-devtools.json",
       "materials": [
@@ -278,13 +286,17 @@
           "instructions": "Open the project in the selected client and discover/invoke browser-testing-with-devtools. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/browser-testing-with-devtools/SKILL.md"
+      }
     },
     {
       "id": "extensions.skill.ci-cd-and-automation",
       "source": "extensions",
-      "label": "claude-code: ci-cd-and-automation",
-      "description": "claude-code: ci-cd-and-automation; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.skill.ci-cd-and-automation",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.skill.ci-cd-and-automation.json",
       "materials": [
@@ -334,13 +346,17 @@
           "instructions": "Open the project in the selected client and discover/invoke ci-cd-and-automation. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/ci-cd-and-automation/SKILL.md"
+      }
     },
     {
       "id": "extensions.skill.code-simplification",
       "source": "extensions",
-      "label": "claude-code: code-simplification",
-      "description": "claude-code: code-simplification; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.skill.code-simplification",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.skill.code-simplification.json",
       "materials": [
@@ -390,13 +406,17 @@
           "instructions": "Open the project in the selected client and discover/invoke code-simplification. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/code-simplification/SKILL.md"
+      }
     },
     {
       "id": "extensions.skill.constraint-driven-development",
       "source": "extensions",
-      "label": "claude-code: constraint-driven-development",
-      "description": "claude-code: constraint-driven-development; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.skill.constraint-driven-development",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.skill.constraint-driven-development.json",
       "materials": [
@@ -450,13 +470,17 @@
           "instructions": "Open the project in the selected client and discover/invoke constraint-driven-development. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/constraint-driven-development/SKILL.md"
+      }
     },
     {
       "id": "extensions.skill.deprecation-and-migration",
       "source": "extensions",
-      "label": "claude-code: deprecation-and-migration",
-      "description": "claude-code: deprecation-and-migration; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.skill.deprecation-and-migration",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.skill.deprecation-and-migration.json",
       "materials": [
@@ -506,13 +530,17 @@
           "instructions": "Open the project in the selected client and discover/invoke deprecation-and-migration. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/deprecation-and-migration/SKILL.md"
+      }
     },
     {
       "id": "extensions.skill.documentation-and-adrs",
       "source": "extensions",
-      "label": "claude-code: documentation-and-adrs",
-      "description": "claude-code: documentation-and-adrs; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.skill.documentation-and-adrs",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.skill.documentation-and-adrs.json",
       "materials": [
@@ -562,13 +590,17 @@
           "instructions": "Open the project in the selected client and discover/invoke documentation-and-adrs. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/documentation-and-adrs/SKILL.md"
+      }
     },
     {
       "id": "extensions.skill.doubt-driven-development",
       "source": "extensions",
-      "label": "claude-code: doubt-driven-development",
-      "description": "claude-code: doubt-driven-development; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.skill.doubt-driven-development",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.skill.doubt-driven-development.json",
       "materials": [
@@ -618,13 +650,17 @@
           "instructions": "Open the project in the selected client and discover/invoke doubt-driven-development. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/doubt-driven-development/SKILL.md"
+      }
     },
     {
       "id": "extensions.skill.frontend-ui-engineering",
       "source": "extensions",
-      "label": "claude-code: frontend-ui-engineering",
-      "description": "claude-code: frontend-ui-engineering; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.skill.frontend-ui-engineering",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.skill.frontend-ui-engineering.json",
       "materials": [
@@ -674,13 +710,17 @@
           "instructions": "Open the project in the selected client and discover/invoke frontend-ui-engineering. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/frontend-ui-engineering/SKILL.md"
+      }
     },
     {
       "id": "extensions.skill.git-workflow-and-versioning",
       "source": "extensions",
-      "label": "claude-code: git-workflow-and-versioning",
-      "description": "claude-code: git-workflow-and-versioning; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.skill.git-workflow-and-versioning",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.skill.git-workflow-and-versioning.json",
       "materials": [
@@ -730,13 +770,17 @@
           "instructions": "Open the project in the selected client and discover/invoke git-workflow-and-versioning. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/git-workflow-and-versioning/SKILL.md"
+      }
     },
     {
       "id": "extensions.skill.idea-refine",
       "source": "extensions",
-      "label": "claude-code: idea-refine",
-      "description": "claude-code: idea-refine; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.skill.idea-refine",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.skill.idea-refine.json",
       "materials": [
@@ -802,13 +846,17 @@
           "instructions": "Open the project in the selected client and discover/invoke idea-refine. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/idea-refine/SKILL.md"
+      }
     },
     {
       "id": "extensions.skill.install-commit-gate",
       "source": "extensions",
-      "label": "claude-code: install-commit-gate",
-      "description": "claude-code: install-commit-gate; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.skill.install-commit-gate",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.skill.install-commit-gate.json",
       "materials": [
@@ -862,13 +910,17 @@
           "instructions": "Open the project in the selected client and discover/invoke install-commit-gate. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/install-commit-gate/SKILL.md"
+      }
     },
     {
       "id": "extensions.skill.observability-and-instrumentation",
       "source": "extensions",
-      "label": "claude-code: observability-and-instrumentation",
-      "description": "claude-code: observability-and-instrumentation; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.skill.observability-and-instrumentation",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.skill.observability-and-instrumentation.json",
       "materials": [
@@ -914,13 +966,17 @@
           "instructions": "Open the project in the selected client and discover/invoke observability-and-instrumentation. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/observability-and-instrumentation/SKILL.md"
+      }
     },
     {
       "id": "extensions.skill.performance-optimization",
       "source": "extensions",
-      "label": "claude-code: performance-optimization",
-      "description": "claude-code: performance-optimization; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.skill.performance-optimization",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.skill.performance-optimization.json",
       "materials": [
@@ -970,13 +1026,17 @@
           "instructions": "Open the project in the selected client and discover/invoke performance-optimization. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/performance-optimization/SKILL.md"
+      }
     },
     {
       "id": "extensions.skill.security-and-hardening",
       "source": "extensions",
-      "label": "claude-code: security-and-hardening",
-      "description": "claude-code: security-and-hardening; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.skill.security-and-hardening",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.skill.security-and-hardening.json",
       "materials": [
@@ -1030,13 +1090,17 @@
           "instructions": "Open the project in the selected client and discover/invoke security-and-hardening. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/security-and-hardening/SKILL.md"
+      }
     },
     {
       "id": "extensions.skill.setup-pre-commit",
       "source": "extensions",
-      "label": "claude-code: setup-pre-commit",
-      "description": "claude-code: setup-pre-commit; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.skill.setup-pre-commit",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.skill.setup-pre-commit.json",
       "materials": [
@@ -1086,13 +1150,17 @@
           "instructions": "Open the project in the selected client and discover/invoke setup-pre-commit. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/setup-pre-commit/SKILL.md"
+      }
     },
     {
       "id": "extensions.skill.shipping-and-launch",
       "source": "extensions",
-      "label": "claude-code: shipping-and-launch",
-      "description": "claude-code: shipping-and-launch; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.skill.shipping-and-launch",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.skill.shipping-and-launch.json",
       "materials": [
@@ -1138,13 +1206,17 @@
           "instructions": "Open the project in the selected client and discover/invoke shipping-and-launch. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/shipping-and-launch/SKILL.md"
+      }
     },
     {
       "id": "extensions.skill.source-driven-development",
       "source": "extensions",
-      "label": "claude-code: source-driven-development",
-      "description": "claude-code: source-driven-development; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.skill.source-driven-development",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.skill.source-driven-development.json",
       "materials": [
@@ -1194,13 +1266,17 @@
           "instructions": "Open the project in the selected client and discover/invoke source-driven-development. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/source-driven-development/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.ask-matt",
       "source": "matt",
-      "label": "claude-code: ask-matt",
-      "description": "claude-code: ask-matt; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.ask-matt",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.ask-matt.json",
       "materials": [
@@ -1330,13 +1406,17 @@
           "instructions": "Open the project in the selected client and discover/invoke ask-matt. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/ask-matt/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.code-review",
       "source": "matt",
-      "label": "claude-code: code-review",
-      "description": "claude-code: code-review; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.code-review",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.code-review.json",
       "materials": [
@@ -1383,13 +1463,17 @@
           "instructions": "Open the project in the selected client and discover/invoke code-review. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/code-review/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.codebase-design",
       "source": "matt",
-      "label": "claude-code: codebase-design",
-      "description": "claude-code: codebase-design; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.codebase-design",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.codebase-design.json",
       "materials": [
@@ -1444,13 +1528,17 @@
           "instructions": "Open the project in the selected client and discover/invoke codebase-design. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/codebase-design/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.diagnosing-bugs",
       "source": "matt",
-      "label": "claude-code: diagnosing-bugs",
-      "description": "claude-code: diagnosing-bugs; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.diagnosing-bugs",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.diagnosing-bugs.json",
       "materials": [
@@ -1501,13 +1589,17 @@
           "instructions": "Open the project in the selected client and discover/invoke diagnosing-bugs. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/diagnosing-bugs/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.domain-modeling",
       "source": "matt",
-      "label": "claude-code: domain-modeling",
-      "description": "claude-code: domain-modeling; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.domain-modeling",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.domain-modeling.json",
       "materials": [
@@ -1562,13 +1654,17 @@
           "instructions": "Open the project in the selected client and discover/invoke domain-modeling. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/domain-modeling/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.grill-with-docs",
       "source": "matt",
-      "label": "claude-code: grill-with-docs",
-      "description": "claude-code: grill-with-docs; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.grill-with-docs",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.grill-with-docs.json",
       "materials": [
@@ -1621,13 +1717,17 @@
           "instructions": "Open the project in the selected client and discover/invoke grill-with-docs. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/grill-with-docs/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.implement-spec",
       "source": "matt",
-      "label": "claude-code: implement-spec",
-      "description": "claude-code: implement-spec; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.implement-spec",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.implement-spec.json",
       "materials": [
@@ -1680,13 +1780,17 @@
           "instructions": "Open the project in the selected client and discover/invoke implement-spec. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/implement-spec/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.implement",
       "source": "matt",
-      "label": "claude-code: implement",
-      "description": "claude-code: implement; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.implement",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.implement.json",
       "materials": [
@@ -1736,13 +1840,17 @@
           "instructions": "Open the project in the selected client and discover/invoke implement. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/implement/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.improve-codebase-architecture",
       "source": "matt",
-      "label": "claude-code: improve-codebase-architecture",
-      "description": "claude-code: improve-codebase-architecture; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.improve-codebase-architecture",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.improve-codebase-architecture.json",
       "materials": [
@@ -1802,13 +1910,17 @@
           "instructions": "Open the project in the selected client and discover/invoke improve-codebase-architecture. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/improve-codebase-architecture/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.pr",
       "source": "matt",
-      "label": "claude-code: pr",
-      "description": "claude-code: pr; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.pr",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.pr.json",
       "materials": [
@@ -1859,13 +1971,17 @@
           "instructions": "Open the project in the selected client and discover/invoke pr. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/pr/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.prototype",
       "source": "matt",
-      "label": "claude-code: prototype",
-      "description": "claude-code: prototype; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.prototype",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.prototype.json",
       "materials": [
@@ -1920,13 +2036,17 @@
           "instructions": "Open the project in the selected client and discover/invoke prototype. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/prototype/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.research",
       "source": "matt",
-      "label": "claude-code: research",
-      "description": "claude-code: research; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.research",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.research.json",
       "materials": [
@@ -1973,13 +2093,17 @@
           "instructions": "Open the project in the selected client and discover/invoke research. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/research/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.retro",
       "source": "matt",
-      "label": "claude-code: retro",
-      "description": "claude-code: retro; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.retro",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.retro.json",
       "materials": [
@@ -2029,13 +2153,17 @@
           "instructions": "Open the project in the selected client and discover/invoke retro. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/retro/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.setup-matt-pocock-skills",
       "source": "matt",
-      "label": "claude-code: setup-matt-pocock-skills",
-      "description": "claude-code: setup-matt-pocock-skills; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.setup-matt-pocock-skills",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.setup-matt-pocock-skills.json",
       "materials": [
@@ -2102,13 +2230,17 @@
           "instructions": "Open the project in the selected client and discover/invoke setup-matt-pocock-skills. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/setup-matt-pocock-skills/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.tdd",
       "source": "matt",
-      "label": "claude-code: tdd",
-      "description": "claude-code: tdd; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.tdd",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.tdd.json",
       "materials": [
@@ -2163,13 +2295,17 @@
           "instructions": "Open the project in the selected client and discover/invoke tdd. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/tdd/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.to-spec",
       "source": "matt",
-      "label": "claude-code: to-spec",
-      "description": "claude-code: to-spec; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.to-spec",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.to-spec.json",
       "materials": [
@@ -2216,13 +2352,17 @@
           "instructions": "Open the project in the selected client and discover/invoke to-spec. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/to-spec/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.to-tickets",
       "source": "matt",
-      "label": "claude-code: to-tickets",
-      "description": "claude-code: to-tickets; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.to-tickets",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.to-tickets.json",
       "materials": [
@@ -2269,13 +2409,17 @@
           "instructions": "Open the project in the selected client and discover/invoke to-tickets. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/to-tickets/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.triage",
       "source": "matt",
-      "label": "claude-code: triage",
-      "description": "claude-code: triage; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.triage",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.triage.json",
       "materials": [
@@ -2330,13 +2474,17 @@
           "instructions": "Open the project in the selected client and discover/invoke triage. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/triage/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.wayfinder",
       "source": "matt",
-      "label": "claude-code: wayfinder",
-      "description": "claude-code: wayfinder; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.wayfinder",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.wayfinder.json",
       "materials": [
@@ -2389,13 +2537,17 @@
           "instructions": "Open the project in the selected client and discover/invoke wayfinder. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/wayfinder/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.wizard",
       "source": "matt",
-      "label": "claude-code: wizard",
-      "description": "claude-code: wizard; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.wizard",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.wizard.json",
       "materials": [
@@ -2446,13 +2598,17 @@
           "instructions": "Open the project in the selected client and discover/invoke wizard. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/wizard/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.grill-me",
       "source": "matt",
-      "label": "claude-code: grill-me",
-      "description": "claude-code: grill-me; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.grill-me",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.grill-me.json",
       "materials": [
@@ -2502,13 +2658,17 @@
           "instructions": "Open the project in the selected client and discover/invoke grill-me. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/productivity/grill-me/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.grilling",
       "source": "matt",
-      "label": "claude-code: grilling",
-      "description": "claude-code: grilling; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.grilling",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.grilling.json",
       "materials": [
@@ -2555,13 +2715,17 @@
           "instructions": "Open the project in the selected client and discover/invoke grilling. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/productivity/grilling/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.handoff",
       "source": "matt",
-      "label": "claude-code: handoff",
-      "description": "claude-code: handoff; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.handoff",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.handoff.json",
       "materials": [
@@ -2608,13 +2772,17 @@
           "instructions": "Open the project in the selected client and discover/invoke handoff. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/productivity/handoff/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.teach",
       "source": "matt",
-      "label": "claude-code: teach",
-      "description": "claude-code: teach; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.teach",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.teach.json",
       "materials": [
@@ -2677,13 +2845,17 @@
           "instructions": "Open the project in the selected client and discover/invoke teach. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/productivity/teach/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.to-questionnaire",
       "source": "matt",
-      "label": "claude-code: to-questionnaire",
-      "description": "claude-code: to-questionnaire; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.to-questionnaire",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.to-questionnaire.json",
       "materials": [
@@ -2730,13 +2902,17 @@
           "instructions": "Open the project in the selected client and discover/invoke to-questionnaire. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/productivity/to-questionnaire/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.wait-what",
       "source": "matt",
-      "label": "claude-code: wait-what",
-      "description": "claude-code: wait-what; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.wait-what",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.wait-what.json",
       "materials": [
@@ -2783,13 +2959,17 @@
           "instructions": "Open the project in the selected client and discover/invoke wait-what. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/productivity/wait-what/SKILL.md"
+      }
     },
     {
       "id": "extensions.matt.writing-for-agents",
       "source": "matt",
-      "label": "claude-code: writing-for-agents",
-      "description": "claude-code: writing-for-agents; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.matt.writing-for-agents",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.matt.writing-for-agents.json",
       "materials": [
@@ -2840,13 +3020,17 @@
           "instructions": "Open the project in the selected client and discover/invoke writing-for-agents. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/productivity/writing-for-agents/SKILL.md"
+      }
     },
     {
       "id": "extensions.agent.code-reviewer",
       "source": "extensions",
-      "label": "claude-code: code-reviewer agent",
-      "description": "claude-code: code-reviewer agent; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.agent.code-reviewer",
+      "description": "",
       "kind": "agent",
       "recipePath": "catalog-recipes/extensions.agent.code-reviewer.json",
       "materials": [
@@ -2883,13 +3067,17 @@
         }
       ],
       "activation": [],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "claude-agent",
+        "path": "agents/code-reviewer.md"
+      }
     },
     {
       "id": "extensions.agent.security-auditor",
       "source": "extensions",
-      "label": "claude-code: security-auditor agent",
-      "description": "claude-code: security-auditor agent; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.agent.security-auditor",
+      "description": "",
       "kind": "agent",
       "recipePath": "catalog-recipes/extensions.agent.security-auditor.json",
       "materials": [
@@ -2922,13 +3110,17 @@
         }
       ],
       "activation": [],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "claude-agent",
+        "path": "agents/security-auditor.md"
+      }
     },
     {
       "id": "extensions.agent.test-engineer",
       "source": "extensions",
-      "label": "claude-code: test-engineer agent",
-      "description": "claude-code: test-engineer agent; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.agent.test-engineer",
+      "description": "",
       "kind": "agent",
       "recipePath": "catalog-recipes/extensions.agent.test-engineer.json",
       "materials": [
@@ -2961,13 +3153,17 @@
         }
       ],
       "activation": [],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "claude-agent",
+        "path": "agents/test-engineer.md"
+      }
     },
     {
       "id": "extensions.agent.web-performance-auditor",
       "source": "extensions",
-      "label": "claude-code: web-performance-auditor agent",
-      "description": "claude-code: web-performance-auditor agent; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.agent.web-performance-auditor",
+      "description": "",
       "kind": "agent",
       "recipePath": "catalog-recipes/extensions.agent.web-performance-auditor.json",
       "materials": [
@@ -3000,13 +3196,17 @@
         }
       ],
       "activation": [],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "claude-agent",
+        "path": "agents/web-performance-auditor.md"
+      }
     },
     {
       "id": "extensions.command.ship",
       "source": "extensions",
-      "label": "claude-code: ship command",
-      "description": "claude-code: ship command; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.command.ship",
+      "description": "",
       "kind": "command",
       "recipePath": "catalog-recipes/extensions.command.ship.json",
       "materials": [
@@ -3051,13 +3251,17 @@
         }
       ],
       "activation": [],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "claude-command",
+        "path": "commands/ship.md"
+      }
     },
     {
       "id": "extensions.command.webperf",
       "source": "extensions",
-      "label": "claude-code: webperf command",
-      "description": "claude-code: webperf command; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.command.webperf",
+      "description": "",
       "kind": "command",
       "recipePath": "catalog-recipes/extensions.command.webperf.json",
       "materials": [
@@ -3093,7 +3297,11 @@
         }
       ],
       "activation": [],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "claude-command",
+        "path": "commands/webperf.md"
+      }
     },
     {
       "id": "extensions.kiro.references",
@@ -3150,8 +3358,8 @@
     {
       "id": "extensions.kiro.skill.api-and-interface-design",
       "source": "extensions",
-      "label": "kiro-ide: api-and-interface-design",
-      "description": "kiro-ide: api-and-interface-design; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.skill.api-and-interface-design",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.skill.api-and-interface-design.json",
       "materials": [
@@ -3201,13 +3409,17 @@
           "instructions": "Open the project in the selected client and discover/invoke api-and-interface-design. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/api-and-interface-design/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.skill.ask-sam",
       "source": "extensions",
-      "label": "kiro-ide: ask-sam",
-      "description": "kiro-ide: ask-sam; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.skill.ask-sam",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.skill.ask-sam.json",
       "materials": [
@@ -3260,13 +3472,17 @@
           "instructions": "Open the project in the selected client and discover/invoke ask-sam. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/ask-sam/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.skill.browser-testing-with-devtools",
       "source": "extensions",
-      "label": "kiro-ide: browser-testing-with-devtools",
-      "description": "kiro-ide: browser-testing-with-devtools; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.skill.browser-testing-with-devtools",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.skill.browser-testing-with-devtools.json",
       "materials": [
@@ -3316,13 +3532,17 @@
           "instructions": "Open the project in the selected client and discover/invoke browser-testing-with-devtools. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/browser-testing-with-devtools/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.skill.ci-cd-and-automation",
       "source": "extensions",
-      "label": "kiro-ide: ci-cd-and-automation",
-      "description": "kiro-ide: ci-cd-and-automation; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.skill.ci-cd-and-automation",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.skill.ci-cd-and-automation.json",
       "materials": [
@@ -3372,13 +3592,17 @@
           "instructions": "Open the project in the selected client and discover/invoke ci-cd-and-automation. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/ci-cd-and-automation/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.skill.code-simplification",
       "source": "extensions",
-      "label": "kiro-ide: code-simplification",
-      "description": "kiro-ide: code-simplification; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.skill.code-simplification",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.skill.code-simplification.json",
       "materials": [
@@ -3428,13 +3652,17 @@
           "instructions": "Open the project in the selected client and discover/invoke code-simplification. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/code-simplification/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.skill.constraint-driven-development",
       "source": "extensions",
-      "label": "kiro-ide: constraint-driven-development",
-      "description": "kiro-ide: constraint-driven-development; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.skill.constraint-driven-development",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.skill.constraint-driven-development.json",
       "materials": [
@@ -3488,13 +3716,17 @@
           "instructions": "Open the project in the selected client and discover/invoke constraint-driven-development. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/constraint-driven-development/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.skill.deprecation-and-migration",
       "source": "extensions",
-      "label": "kiro-ide: deprecation-and-migration",
-      "description": "kiro-ide: deprecation-and-migration; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.skill.deprecation-and-migration",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.skill.deprecation-and-migration.json",
       "materials": [
@@ -3544,13 +3776,17 @@
           "instructions": "Open the project in the selected client and discover/invoke deprecation-and-migration. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/deprecation-and-migration/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.skill.documentation-and-adrs",
       "source": "extensions",
-      "label": "kiro-ide: documentation-and-adrs",
-      "description": "kiro-ide: documentation-and-adrs; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.skill.documentation-and-adrs",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.skill.documentation-and-adrs.json",
       "materials": [
@@ -3600,13 +3836,17 @@
           "instructions": "Open the project in the selected client and discover/invoke documentation-and-adrs. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/documentation-and-adrs/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.skill.doubt-driven-development",
       "source": "extensions",
-      "label": "kiro-ide: doubt-driven-development",
-      "description": "kiro-ide: doubt-driven-development; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.skill.doubt-driven-development",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.skill.doubt-driven-development.json",
       "materials": [
@@ -3656,13 +3896,17 @@
           "instructions": "Open the project in the selected client and discover/invoke doubt-driven-development. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/doubt-driven-development/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.skill.frontend-ui-engineering",
       "source": "extensions",
-      "label": "kiro-ide: frontend-ui-engineering",
-      "description": "kiro-ide: frontend-ui-engineering; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.skill.frontend-ui-engineering",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.skill.frontend-ui-engineering.json",
       "materials": [
@@ -3712,13 +3956,17 @@
           "instructions": "Open the project in the selected client and discover/invoke frontend-ui-engineering. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/frontend-ui-engineering/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.skill.git-workflow-and-versioning",
       "source": "extensions",
-      "label": "kiro-ide: git-workflow-and-versioning",
-      "description": "kiro-ide: git-workflow-and-versioning; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.skill.git-workflow-and-versioning",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.skill.git-workflow-and-versioning.json",
       "materials": [
@@ -3768,13 +4016,17 @@
           "instructions": "Open the project in the selected client and discover/invoke git-workflow-and-versioning. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/git-workflow-and-versioning/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.skill.idea-refine",
       "source": "extensions",
-      "label": "kiro-ide: idea-refine",
-      "description": "kiro-ide: idea-refine; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.skill.idea-refine",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.skill.idea-refine.json",
       "materials": [
@@ -3840,13 +4092,17 @@
           "instructions": "Open the project in the selected client and discover/invoke idea-refine. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/idea-refine/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.skill.install-commit-gate",
       "source": "extensions",
-      "label": "kiro-ide: install-commit-gate",
-      "description": "kiro-ide: install-commit-gate; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.skill.install-commit-gate",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.skill.install-commit-gate.json",
       "materials": [
@@ -3900,13 +4156,17 @@
           "instructions": "Open the project in the selected client and discover/invoke install-commit-gate. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/install-commit-gate/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.skill.observability-and-instrumentation",
       "source": "extensions",
-      "label": "kiro-ide: observability-and-instrumentation",
-      "description": "kiro-ide: observability-and-instrumentation; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.skill.observability-and-instrumentation",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.skill.observability-and-instrumentation.json",
       "materials": [
@@ -3952,13 +4212,17 @@
           "instructions": "Open the project in the selected client and discover/invoke observability-and-instrumentation. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/observability-and-instrumentation/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.skill.performance-optimization",
       "source": "extensions",
-      "label": "kiro-ide: performance-optimization",
-      "description": "kiro-ide: performance-optimization; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.skill.performance-optimization",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.skill.performance-optimization.json",
       "materials": [
@@ -4008,13 +4272,17 @@
           "instructions": "Open the project in the selected client and discover/invoke performance-optimization. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/performance-optimization/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.skill.security-and-hardening",
       "source": "extensions",
-      "label": "kiro-ide: security-and-hardening",
-      "description": "kiro-ide: security-and-hardening; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.skill.security-and-hardening",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.skill.security-and-hardening.json",
       "materials": [
@@ -4068,13 +4336,17 @@
           "instructions": "Open the project in the selected client and discover/invoke security-and-hardening. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/security-and-hardening/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.skill.setup-pre-commit",
       "source": "extensions",
-      "label": "kiro-ide: setup-pre-commit",
-      "description": "kiro-ide: setup-pre-commit; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.skill.setup-pre-commit",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.skill.setup-pre-commit.json",
       "materials": [
@@ -4124,13 +4396,17 @@
           "instructions": "Open the project in the selected client and discover/invoke setup-pre-commit. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/setup-pre-commit/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.skill.shipping-and-launch",
       "source": "extensions",
-      "label": "kiro-ide: shipping-and-launch",
-      "description": "kiro-ide: shipping-and-launch; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.skill.shipping-and-launch",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.skill.shipping-and-launch.json",
       "materials": [
@@ -4176,13 +4452,17 @@
           "instructions": "Open the project in the selected client and discover/invoke shipping-and-launch. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/shipping-and-launch/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.skill.source-driven-development",
       "source": "extensions",
-      "label": "kiro-ide: source-driven-development",
-      "description": "kiro-ide: source-driven-development; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.skill.source-driven-development",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.skill.source-driven-development.json",
       "materials": [
@@ -4232,13 +4512,17 @@
           "instructions": "Open the project in the selected client and discover/invoke source-driven-development. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/source-driven-development/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.ask-matt",
       "source": "matt",
-      "label": "kiro-ide: ask-matt",
-      "description": "kiro-ide: ask-matt; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.ask-matt",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.ask-matt.json",
       "materials": [
@@ -4368,13 +4652,17 @@
           "instructions": "Open the project in the selected client and discover/invoke ask-matt. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/ask-matt/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.code-review",
       "source": "matt",
-      "label": "kiro-ide: code-review",
-      "description": "kiro-ide: code-review; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.code-review",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.code-review.json",
       "materials": [
@@ -4421,13 +4709,17 @@
           "instructions": "Open the project in the selected client and discover/invoke code-review. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/code-review/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.codebase-design",
       "source": "matt",
-      "label": "kiro-ide: codebase-design",
-      "description": "kiro-ide: codebase-design; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.codebase-design",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.codebase-design.json",
       "materials": [
@@ -4482,13 +4774,17 @@
           "instructions": "Open the project in the selected client and discover/invoke codebase-design. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/codebase-design/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.diagnosing-bugs",
       "source": "matt",
-      "label": "kiro-ide: diagnosing-bugs",
-      "description": "kiro-ide: diagnosing-bugs; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.diagnosing-bugs",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.diagnosing-bugs.json",
       "materials": [
@@ -4539,13 +4835,17 @@
           "instructions": "Open the project in the selected client and discover/invoke diagnosing-bugs. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/diagnosing-bugs/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.domain-modeling",
       "source": "matt",
-      "label": "kiro-ide: domain-modeling",
-      "description": "kiro-ide: domain-modeling; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.domain-modeling",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.domain-modeling.json",
       "materials": [
@@ -4600,13 +4900,17 @@
           "instructions": "Open the project in the selected client and discover/invoke domain-modeling. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/domain-modeling/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.grill-with-docs",
       "source": "matt",
-      "label": "kiro-ide: grill-with-docs",
-      "description": "kiro-ide: grill-with-docs; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.grill-with-docs",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.grill-with-docs.json",
       "materials": [
@@ -4659,13 +4963,17 @@
           "instructions": "Open the project in the selected client and discover/invoke grill-with-docs. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/grill-with-docs/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.implement-spec",
       "source": "matt",
-      "label": "kiro-ide: implement-spec",
-      "description": "kiro-ide: implement-spec; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.implement-spec",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.implement-spec.json",
       "materials": [
@@ -4718,13 +5026,17 @@
           "instructions": "Open the project in the selected client and discover/invoke implement-spec. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/implement-spec/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.implement",
       "source": "matt",
-      "label": "kiro-ide: implement",
-      "description": "kiro-ide: implement; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.implement",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.implement.json",
       "materials": [
@@ -4774,13 +5086,17 @@
           "instructions": "Open the project in the selected client and discover/invoke implement. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/implement/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.improve-codebase-architecture",
       "source": "matt",
-      "label": "kiro-ide: improve-codebase-architecture",
-      "description": "kiro-ide: improve-codebase-architecture; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.improve-codebase-architecture",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.improve-codebase-architecture.json",
       "materials": [
@@ -4840,13 +5156,17 @@
           "instructions": "Open the project in the selected client and discover/invoke improve-codebase-architecture. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/improve-codebase-architecture/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.pr",
       "source": "matt",
-      "label": "kiro-ide: pr",
-      "description": "kiro-ide: pr; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.pr",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.pr.json",
       "materials": [
@@ -4897,13 +5217,17 @@
           "instructions": "Open the project in the selected client and discover/invoke pr. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/pr/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.prototype",
       "source": "matt",
-      "label": "kiro-ide: prototype",
-      "description": "kiro-ide: prototype; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.prototype",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.prototype.json",
       "materials": [
@@ -4958,13 +5282,17 @@
           "instructions": "Open the project in the selected client and discover/invoke prototype. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/prototype/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.research",
       "source": "matt",
-      "label": "kiro-ide: research",
-      "description": "kiro-ide: research; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.research",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.research.json",
       "materials": [
@@ -5011,13 +5339,17 @@
           "instructions": "Open the project in the selected client and discover/invoke research. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/research/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.retro",
       "source": "matt",
-      "label": "kiro-ide: retro",
-      "description": "kiro-ide: retro; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.retro",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.retro.json",
       "materials": [
@@ -5067,13 +5399,17 @@
           "instructions": "Open the project in the selected client and discover/invoke retro. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/retro/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.setup-matt-pocock-skills",
       "source": "matt",
-      "label": "kiro-ide: setup-matt-pocock-skills",
-      "description": "kiro-ide: setup-matt-pocock-skills; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.setup-matt-pocock-skills",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.setup-matt-pocock-skills.json",
       "materials": [
@@ -5140,13 +5476,17 @@
           "instructions": "Open the project in the selected client and discover/invoke setup-matt-pocock-skills. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/setup-matt-pocock-skills/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.tdd",
       "source": "matt",
-      "label": "kiro-ide: tdd",
-      "description": "kiro-ide: tdd; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.tdd",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.tdd.json",
       "materials": [
@@ -5201,13 +5541,17 @@
           "instructions": "Open the project in the selected client and discover/invoke tdd. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/tdd/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.to-spec",
       "source": "matt",
-      "label": "kiro-ide: to-spec",
-      "description": "kiro-ide: to-spec; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.to-spec",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.to-spec.json",
       "materials": [
@@ -5254,13 +5598,17 @@
           "instructions": "Open the project in the selected client and discover/invoke to-spec. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/to-spec/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.to-tickets",
       "source": "matt",
-      "label": "kiro-ide: to-tickets",
-      "description": "kiro-ide: to-tickets; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.to-tickets",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.to-tickets.json",
       "materials": [
@@ -5307,13 +5655,17 @@
           "instructions": "Open the project in the selected client and discover/invoke to-tickets. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/to-tickets/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.triage",
       "source": "matt",
-      "label": "kiro-ide: triage",
-      "description": "kiro-ide: triage; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.triage",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.triage.json",
       "materials": [
@@ -5368,13 +5720,17 @@
           "instructions": "Open the project in the selected client and discover/invoke triage. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/triage/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.wayfinder",
       "source": "matt",
-      "label": "kiro-ide: wayfinder",
-      "description": "kiro-ide: wayfinder; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.wayfinder",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.wayfinder.json",
       "materials": [
@@ -5427,13 +5783,17 @@
           "instructions": "Open the project in the selected client and discover/invoke wayfinder. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/wayfinder/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.wizard",
       "source": "matt",
-      "label": "kiro-ide: wizard",
-      "description": "kiro-ide: wizard; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.wizard",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.wizard.json",
       "materials": [
@@ -5484,13 +5844,17 @@
           "instructions": "Open the project in the selected client and discover/invoke wizard. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/wizard/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.grill-me",
       "source": "matt",
-      "label": "kiro-ide: grill-me",
-      "description": "kiro-ide: grill-me; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.grill-me",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.grill-me.json",
       "materials": [
@@ -5540,13 +5904,17 @@
           "instructions": "Open the project in the selected client and discover/invoke grill-me. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/productivity/grill-me/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.grilling",
       "source": "matt",
-      "label": "kiro-ide: grilling",
-      "description": "kiro-ide: grilling; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.grilling",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.grilling.json",
       "materials": [
@@ -5593,13 +5961,17 @@
           "instructions": "Open the project in the selected client and discover/invoke grilling. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/productivity/grilling/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.handoff",
       "source": "matt",
-      "label": "kiro-ide: handoff",
-      "description": "kiro-ide: handoff; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.handoff",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.handoff.json",
       "materials": [
@@ -5646,13 +6018,17 @@
           "instructions": "Open the project in the selected client and discover/invoke handoff. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/productivity/handoff/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.teach",
       "source": "matt",
-      "label": "kiro-ide: teach",
-      "description": "kiro-ide: teach; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.teach",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.teach.json",
       "materials": [
@@ -5715,13 +6091,17 @@
           "instructions": "Open the project in the selected client and discover/invoke teach. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/productivity/teach/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.to-questionnaire",
       "source": "matt",
-      "label": "kiro-ide: to-questionnaire",
-      "description": "kiro-ide: to-questionnaire; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.to-questionnaire",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.to-questionnaire.json",
       "materials": [
@@ -5768,13 +6148,17 @@
           "instructions": "Open the project in the selected client and discover/invoke to-questionnaire. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/productivity/to-questionnaire/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.wait-what",
       "source": "matt",
-      "label": "kiro-ide: wait-what",
-      "description": "kiro-ide: wait-what; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.wait-what",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.wait-what.json",
       "materials": [
@@ -5821,13 +6205,17 @@
           "instructions": "Open the project in the selected client and discover/invoke wait-what. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/productivity/wait-what/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.matt.writing-for-agents",
       "source": "matt",
-      "label": "kiro-ide: writing-for-agents",
-      "description": "kiro-ide: writing-for-agents; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.matt.writing-for-agents",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.kiro.matt.writing-for-agents.json",
       "materials": [
@@ -5878,13 +6266,17 @@
           "instructions": "Open the project in the selected client and discover/invoke writing-for-agents. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/productivity/writing-for-agents/SKILL.md"
+      }
     },
     {
       "id": "extensions.kiro.agent.code-reviewer",
       "source": "extensions",
-      "label": "kiro-ide: code-reviewer agent",
-      "description": "kiro-ide: code-reviewer agent; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.agent.code-reviewer",
+      "description": "",
       "kind": "agent",
       "recipePath": "catalog-recipes/extensions.kiro.agent.code-reviewer.json",
       "materials": [
@@ -5921,13 +6313,17 @@
         }
       ],
       "activation": [],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "claude-agent",
+        "path": "agents/code-reviewer.md"
+      }
     },
     {
       "id": "extensions.kiro.agent.security-auditor",
       "source": "extensions",
-      "label": "kiro-ide: security-auditor agent",
-      "description": "kiro-ide: security-auditor agent; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.agent.security-auditor",
+      "description": "",
       "kind": "agent",
       "recipePath": "catalog-recipes/extensions.kiro.agent.security-auditor.json",
       "materials": [
@@ -5960,13 +6356,17 @@
         }
       ],
       "activation": [],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "claude-agent",
+        "path": "agents/security-auditor.md"
+      }
     },
     {
       "id": "extensions.kiro.agent.test-engineer",
       "source": "extensions",
-      "label": "kiro-ide: test-engineer agent",
-      "description": "kiro-ide: test-engineer agent; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.agent.test-engineer",
+      "description": "",
       "kind": "agent",
       "recipePath": "catalog-recipes/extensions.kiro.agent.test-engineer.json",
       "materials": [
@@ -5999,13 +6399,17 @@
         }
       ],
       "activation": [],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "claude-agent",
+        "path": "agents/test-engineer.md"
+      }
     },
     {
       "id": "extensions.kiro.agent.web-performance-auditor",
       "source": "extensions",
-      "label": "kiro-ide: web-performance-auditor agent",
-      "description": "kiro-ide: web-performance-auditor agent; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.agent.web-performance-auditor",
+      "description": "",
       "kind": "agent",
       "recipePath": "catalog-recipes/extensions.kiro.agent.web-performance-auditor.json",
       "materials": [
@@ -6038,13 +6442,17 @@
         }
       ],
       "activation": [],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "claude-agent",
+        "path": "agents/web-performance-auditor.md"
+      }
     },
     {
       "id": "extensions.kiro.command.ship",
       "source": "extensions",
-      "label": "kiro-ide: ship command",
-      "description": "kiro-ide: ship command; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.command.ship",
+      "description": "",
       "kind": "command",
       "recipePath": "catalog-recipes/extensions.kiro.command.ship.json",
       "materials": [
@@ -6089,13 +6497,17 @@
         }
       ],
       "activation": [],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "claude-command",
+        "path": "commands/ship.md"
+      }
     },
     {
       "id": "extensions.kiro.command.webperf",
       "source": "extensions",
-      "label": "kiro-ide: webperf command",
-      "description": "kiro-ide: webperf command; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.kiro.command.webperf",
+      "description": "",
       "kind": "command",
       "recipePath": "catalog-recipes/extensions.kiro.command.webperf.json",
       "materials": [
@@ -6131,7 +6543,11 @@
         }
       ],
       "activation": [],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "claude-command",
+        "path": "commands/webperf.md"
+      }
     },
     {
       "id": "extensions.copilot.references",
@@ -6188,8 +6604,8 @@
     {
       "id": "extensions.copilot.skill.api-and-interface-design",
       "source": "extensions",
-      "label": "copilot-vscode: api-and-interface-design",
-      "description": "copilot-vscode: api-and-interface-design; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.skill.api-and-interface-design",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.skill.api-and-interface-design.json",
       "materials": [
@@ -6239,13 +6655,17 @@
           "instructions": "Open the project in the selected client and discover/invoke api-and-interface-design. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/api-and-interface-design/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.skill.ask-sam",
       "source": "extensions",
-      "label": "copilot-vscode: ask-sam",
-      "description": "copilot-vscode: ask-sam; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.skill.ask-sam",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.skill.ask-sam.json",
       "materials": [
@@ -6298,13 +6718,17 @@
           "instructions": "Open the project in the selected client and discover/invoke ask-sam. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/ask-sam/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.skill.browser-testing-with-devtools",
       "source": "extensions",
-      "label": "copilot-vscode: browser-testing-with-devtools",
-      "description": "copilot-vscode: browser-testing-with-devtools; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.skill.browser-testing-with-devtools",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.skill.browser-testing-with-devtools.json",
       "materials": [
@@ -6354,13 +6778,17 @@
           "instructions": "Open the project in the selected client and discover/invoke browser-testing-with-devtools. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/browser-testing-with-devtools/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.skill.ci-cd-and-automation",
       "source": "extensions",
-      "label": "copilot-vscode: ci-cd-and-automation",
-      "description": "copilot-vscode: ci-cd-and-automation; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.skill.ci-cd-and-automation",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.skill.ci-cd-and-automation.json",
       "materials": [
@@ -6410,13 +6838,17 @@
           "instructions": "Open the project in the selected client and discover/invoke ci-cd-and-automation. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/ci-cd-and-automation/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.skill.code-simplification",
       "source": "extensions",
-      "label": "copilot-vscode: code-simplification",
-      "description": "copilot-vscode: code-simplification; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.skill.code-simplification",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.skill.code-simplification.json",
       "materials": [
@@ -6466,13 +6898,17 @@
           "instructions": "Open the project in the selected client and discover/invoke code-simplification. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/code-simplification/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.skill.constraint-driven-development",
       "source": "extensions",
-      "label": "copilot-vscode: constraint-driven-development",
-      "description": "copilot-vscode: constraint-driven-development; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.skill.constraint-driven-development",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.skill.constraint-driven-development.json",
       "materials": [
@@ -6526,13 +6962,17 @@
           "instructions": "Open the project in the selected client and discover/invoke constraint-driven-development. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/constraint-driven-development/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.skill.deprecation-and-migration",
       "source": "extensions",
-      "label": "copilot-vscode: deprecation-and-migration",
-      "description": "copilot-vscode: deprecation-and-migration; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.skill.deprecation-and-migration",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.skill.deprecation-and-migration.json",
       "materials": [
@@ -6582,13 +7022,17 @@
           "instructions": "Open the project in the selected client and discover/invoke deprecation-and-migration. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/deprecation-and-migration/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.skill.documentation-and-adrs",
       "source": "extensions",
-      "label": "copilot-vscode: documentation-and-adrs",
-      "description": "copilot-vscode: documentation-and-adrs; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.skill.documentation-and-adrs",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.skill.documentation-and-adrs.json",
       "materials": [
@@ -6638,13 +7082,17 @@
           "instructions": "Open the project in the selected client and discover/invoke documentation-and-adrs. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/documentation-and-adrs/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.skill.doubt-driven-development",
       "source": "extensions",
-      "label": "copilot-vscode: doubt-driven-development",
-      "description": "copilot-vscode: doubt-driven-development; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.skill.doubt-driven-development",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.skill.doubt-driven-development.json",
       "materials": [
@@ -6694,13 +7142,17 @@
           "instructions": "Open the project in the selected client and discover/invoke doubt-driven-development. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/doubt-driven-development/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.skill.frontend-ui-engineering",
       "source": "extensions",
-      "label": "copilot-vscode: frontend-ui-engineering",
-      "description": "copilot-vscode: frontend-ui-engineering; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.skill.frontend-ui-engineering",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.skill.frontend-ui-engineering.json",
       "materials": [
@@ -6750,13 +7202,17 @@
           "instructions": "Open the project in the selected client and discover/invoke frontend-ui-engineering. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/frontend-ui-engineering/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.skill.git-workflow-and-versioning",
       "source": "extensions",
-      "label": "copilot-vscode: git-workflow-and-versioning",
-      "description": "copilot-vscode: git-workflow-and-versioning; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.skill.git-workflow-and-versioning",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.skill.git-workflow-and-versioning.json",
       "materials": [
@@ -6806,13 +7262,17 @@
           "instructions": "Open the project in the selected client and discover/invoke git-workflow-and-versioning. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/git-workflow-and-versioning/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.skill.idea-refine",
       "source": "extensions",
-      "label": "copilot-vscode: idea-refine",
-      "description": "copilot-vscode: idea-refine; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.skill.idea-refine",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.skill.idea-refine.json",
       "materials": [
@@ -6878,13 +7338,17 @@
           "instructions": "Open the project in the selected client and discover/invoke idea-refine. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/idea-refine/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.skill.install-commit-gate",
       "source": "extensions",
-      "label": "copilot-vscode: install-commit-gate",
-      "description": "copilot-vscode: install-commit-gate; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.skill.install-commit-gate",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.skill.install-commit-gate.json",
       "materials": [
@@ -6938,13 +7402,17 @@
           "instructions": "Open the project in the selected client and discover/invoke install-commit-gate. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/install-commit-gate/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.skill.observability-and-instrumentation",
       "source": "extensions",
-      "label": "copilot-vscode: observability-and-instrumentation",
-      "description": "copilot-vscode: observability-and-instrumentation; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.skill.observability-and-instrumentation",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.skill.observability-and-instrumentation.json",
       "materials": [
@@ -6990,13 +7458,17 @@
           "instructions": "Open the project in the selected client and discover/invoke observability-and-instrumentation. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/observability-and-instrumentation/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.skill.performance-optimization",
       "source": "extensions",
-      "label": "copilot-vscode: performance-optimization",
-      "description": "copilot-vscode: performance-optimization; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.skill.performance-optimization",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.skill.performance-optimization.json",
       "materials": [
@@ -7046,13 +7518,17 @@
           "instructions": "Open the project in the selected client and discover/invoke performance-optimization. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/performance-optimization/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.skill.security-and-hardening",
       "source": "extensions",
-      "label": "copilot-vscode: security-and-hardening",
-      "description": "copilot-vscode: security-and-hardening; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.skill.security-and-hardening",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.skill.security-and-hardening.json",
       "materials": [
@@ -7106,13 +7582,17 @@
           "instructions": "Open the project in the selected client and discover/invoke security-and-hardening. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/security-and-hardening/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.skill.setup-pre-commit",
       "source": "extensions",
-      "label": "copilot-vscode: setup-pre-commit",
-      "description": "copilot-vscode: setup-pre-commit; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.skill.setup-pre-commit",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.skill.setup-pre-commit.json",
       "materials": [
@@ -7162,13 +7642,17 @@
           "instructions": "Open the project in the selected client and discover/invoke setup-pre-commit. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/setup-pre-commit/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.skill.shipping-and-launch",
       "source": "extensions",
-      "label": "copilot-vscode: shipping-and-launch",
-      "description": "copilot-vscode: shipping-and-launch; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.skill.shipping-and-launch",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.skill.shipping-and-launch.json",
       "materials": [
@@ -7214,13 +7698,17 @@
           "instructions": "Open the project in the selected client and discover/invoke shipping-and-launch. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/shipping-and-launch/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.skill.source-driven-development",
       "source": "extensions",
-      "label": "copilot-vscode: source-driven-development",
-      "description": "copilot-vscode: source-driven-development; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.skill.source-driven-development",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.skill.source-driven-development.json",
       "materials": [
@@ -7270,13 +7758,17 @@
           "instructions": "Open the project in the selected client and discover/invoke source-driven-development. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/source-driven-development/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.ask-matt",
       "source": "matt",
-      "label": "copilot-vscode: ask-matt",
-      "description": "copilot-vscode: ask-matt; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.ask-matt",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.ask-matt.json",
       "materials": [
@@ -7406,13 +7898,17 @@
           "instructions": "Open the project in the selected client and discover/invoke ask-matt. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/ask-matt/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.code-review",
       "source": "matt",
-      "label": "copilot-vscode: code-review",
-      "description": "copilot-vscode: code-review; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.code-review",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.code-review.json",
       "materials": [
@@ -7459,13 +7955,17 @@
           "instructions": "Open the project in the selected client and discover/invoke code-review. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/code-review/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.codebase-design",
       "source": "matt",
-      "label": "copilot-vscode: codebase-design",
-      "description": "copilot-vscode: codebase-design; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.codebase-design",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.codebase-design.json",
       "materials": [
@@ -7520,13 +8020,17 @@
           "instructions": "Open the project in the selected client and discover/invoke codebase-design. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/codebase-design/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.diagnosing-bugs",
       "source": "matt",
-      "label": "copilot-vscode: diagnosing-bugs",
-      "description": "copilot-vscode: diagnosing-bugs; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.diagnosing-bugs",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.diagnosing-bugs.json",
       "materials": [
@@ -7577,13 +8081,17 @@
           "instructions": "Open the project in the selected client and discover/invoke diagnosing-bugs. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/diagnosing-bugs/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.domain-modeling",
       "source": "matt",
-      "label": "copilot-vscode: domain-modeling",
-      "description": "copilot-vscode: domain-modeling; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.domain-modeling",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.domain-modeling.json",
       "materials": [
@@ -7638,13 +8146,17 @@
           "instructions": "Open the project in the selected client and discover/invoke domain-modeling. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/domain-modeling/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.grill-with-docs",
       "source": "matt",
-      "label": "copilot-vscode: grill-with-docs",
-      "description": "copilot-vscode: grill-with-docs; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.grill-with-docs",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.grill-with-docs.json",
       "materials": [
@@ -7697,13 +8209,17 @@
           "instructions": "Open the project in the selected client and discover/invoke grill-with-docs. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/grill-with-docs/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.implement-spec",
       "source": "matt",
-      "label": "copilot-vscode: implement-spec",
-      "description": "copilot-vscode: implement-spec; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.implement-spec",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.implement-spec.json",
       "materials": [
@@ -7756,13 +8272,17 @@
           "instructions": "Open the project in the selected client and discover/invoke implement-spec. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/implement-spec/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.implement",
       "source": "matt",
-      "label": "copilot-vscode: implement",
-      "description": "copilot-vscode: implement; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.implement",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.implement.json",
       "materials": [
@@ -7812,13 +8332,17 @@
           "instructions": "Open the project in the selected client and discover/invoke implement. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/implement/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.improve-codebase-architecture",
       "source": "matt",
-      "label": "copilot-vscode: improve-codebase-architecture",
-      "description": "copilot-vscode: improve-codebase-architecture; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.improve-codebase-architecture",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.improve-codebase-architecture.json",
       "materials": [
@@ -7878,13 +8402,17 @@
           "instructions": "Open the project in the selected client and discover/invoke improve-codebase-architecture. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/improve-codebase-architecture/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.pr",
       "source": "matt",
-      "label": "copilot-vscode: pr",
-      "description": "copilot-vscode: pr; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.pr",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.pr.json",
       "materials": [
@@ -7935,13 +8463,17 @@
           "instructions": "Open the project in the selected client and discover/invoke pr. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/pr/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.prototype",
       "source": "matt",
-      "label": "copilot-vscode: prototype",
-      "description": "copilot-vscode: prototype; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.prototype",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.prototype.json",
       "materials": [
@@ -7996,13 +8528,17 @@
           "instructions": "Open the project in the selected client and discover/invoke prototype. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/prototype/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.research",
       "source": "matt",
-      "label": "copilot-vscode: research",
-      "description": "copilot-vscode: research; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.research",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.research.json",
       "materials": [
@@ -8049,13 +8585,17 @@
           "instructions": "Open the project in the selected client and discover/invoke research. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/research/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.retro",
       "source": "matt",
-      "label": "copilot-vscode: retro",
-      "description": "copilot-vscode: retro; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.retro",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.retro.json",
       "materials": [
@@ -8105,13 +8645,17 @@
           "instructions": "Open the project in the selected client and discover/invoke retro. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/retro/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.setup-matt-pocock-skills",
       "source": "matt",
-      "label": "copilot-vscode: setup-matt-pocock-skills",
-      "description": "copilot-vscode: setup-matt-pocock-skills; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.setup-matt-pocock-skills",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.setup-matt-pocock-skills.json",
       "materials": [
@@ -8178,13 +8722,17 @@
           "instructions": "Open the project in the selected client and discover/invoke setup-matt-pocock-skills. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/setup-matt-pocock-skills/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.tdd",
       "source": "matt",
-      "label": "copilot-vscode: tdd",
-      "description": "copilot-vscode: tdd; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.tdd",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.tdd.json",
       "materials": [
@@ -8239,13 +8787,17 @@
           "instructions": "Open the project in the selected client and discover/invoke tdd. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/tdd/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.to-spec",
       "source": "matt",
-      "label": "copilot-vscode: to-spec",
-      "description": "copilot-vscode: to-spec; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.to-spec",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.to-spec.json",
       "materials": [
@@ -8292,13 +8844,17 @@
           "instructions": "Open the project in the selected client and discover/invoke to-spec. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/to-spec/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.to-tickets",
       "source": "matt",
-      "label": "copilot-vscode: to-tickets",
-      "description": "copilot-vscode: to-tickets; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.to-tickets",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.to-tickets.json",
       "materials": [
@@ -8345,13 +8901,17 @@
           "instructions": "Open the project in the selected client and discover/invoke to-tickets. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/to-tickets/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.triage",
       "source": "matt",
-      "label": "copilot-vscode: triage",
-      "description": "copilot-vscode: triage; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.triage",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.triage.json",
       "materials": [
@@ -8406,13 +8966,17 @@
           "instructions": "Open the project in the selected client and discover/invoke triage. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/triage/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.wayfinder",
       "source": "matt",
-      "label": "copilot-vscode: wayfinder",
-      "description": "copilot-vscode: wayfinder; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.wayfinder",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.wayfinder.json",
       "materials": [
@@ -8465,13 +9029,17 @@
           "instructions": "Open the project in the selected client and discover/invoke wayfinder. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/wayfinder/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.wizard",
       "source": "matt",
-      "label": "copilot-vscode: wizard",
-      "description": "copilot-vscode: wizard; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.wizard",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.wizard.json",
       "materials": [
@@ -8522,13 +9090,17 @@
           "instructions": "Open the project in the selected client and discover/invoke wizard. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/engineering/wizard/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.grill-me",
       "source": "matt",
-      "label": "copilot-vscode: grill-me",
-      "description": "copilot-vscode: grill-me; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.grill-me",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.grill-me.json",
       "materials": [
@@ -8578,13 +9150,17 @@
           "instructions": "Open the project in the selected client and discover/invoke grill-me. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/productivity/grill-me/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.grilling",
       "source": "matt",
-      "label": "copilot-vscode: grilling",
-      "description": "copilot-vscode: grilling; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.grilling",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.grilling.json",
       "materials": [
@@ -8631,13 +9207,17 @@
           "instructions": "Open the project in the selected client and discover/invoke grilling. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/productivity/grilling/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.handoff",
       "source": "matt",
-      "label": "copilot-vscode: handoff",
-      "description": "copilot-vscode: handoff; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.handoff",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.handoff.json",
       "materials": [
@@ -8684,13 +9264,17 @@
           "instructions": "Open the project in the selected client and discover/invoke handoff. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/productivity/handoff/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.teach",
       "source": "matt",
-      "label": "copilot-vscode: teach",
-      "description": "copilot-vscode: teach; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.teach",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.teach.json",
       "materials": [
@@ -8753,13 +9337,17 @@
           "instructions": "Open the project in the selected client and discover/invoke teach. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/productivity/teach/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.to-questionnaire",
       "source": "matt",
-      "label": "copilot-vscode: to-questionnaire",
-      "description": "copilot-vscode: to-questionnaire; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.to-questionnaire",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.to-questionnaire.json",
       "materials": [
@@ -8806,13 +9394,17 @@
           "instructions": "Open the project in the selected client and discover/invoke to-questionnaire. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/productivity/to-questionnaire/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.wait-what",
       "source": "matt",
-      "label": "copilot-vscode: wait-what",
-      "description": "copilot-vscode: wait-what; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.wait-what",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.wait-what.json",
       "materials": [
@@ -8859,13 +9451,17 @@
           "instructions": "Open the project in the selected client and discover/invoke wait-what. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/productivity/wait-what/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.matt.writing-for-agents",
       "source": "matt",
-      "label": "copilot-vscode: writing-for-agents",
-      "description": "copilot-vscode: writing-for-agents; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.matt.writing-for-agents",
+      "description": "",
       "kind": "skill",
       "recipePath": "catalog-recipes/extensions.copilot.matt.writing-for-agents.json",
       "materials": [
@@ -8916,13 +9512,17 @@
           "instructions": "Open the project in the selected client and discover/invoke writing-for-agents. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
         }
       ],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/productivity/writing-for-agents/SKILL.md"
+      }
     },
     {
       "id": "extensions.copilot.agent.code-reviewer",
       "source": "extensions",
-      "label": "copilot-vscode: code-reviewer agent",
-      "description": "copilot-vscode: code-reviewer agent; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.agent.code-reviewer",
+      "description": "",
       "kind": "agent",
       "recipePath": "catalog-recipes/extensions.copilot.agent.code-reviewer.json",
       "materials": [
@@ -8959,13 +9559,17 @@
         }
       ],
       "activation": [],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "claude-agent",
+        "path": "agents/code-reviewer.md"
+      }
     },
     {
       "id": "extensions.copilot.agent.security-auditor",
       "source": "extensions",
-      "label": "copilot-vscode: security-auditor agent",
-      "description": "copilot-vscode: security-auditor agent; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.agent.security-auditor",
+      "description": "",
       "kind": "agent",
       "recipePath": "catalog-recipes/extensions.copilot.agent.security-auditor.json",
       "materials": [
@@ -8998,13 +9602,17 @@
         }
       ],
       "activation": [],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "claude-agent",
+        "path": "agents/security-auditor.md"
+      }
     },
     {
       "id": "extensions.copilot.agent.test-engineer",
       "source": "extensions",
-      "label": "copilot-vscode: test-engineer agent",
-      "description": "copilot-vscode: test-engineer agent; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.agent.test-engineer",
+      "description": "",
       "kind": "agent",
       "recipePath": "catalog-recipes/extensions.copilot.agent.test-engineer.json",
       "materials": [
@@ -9037,13 +9645,17 @@
         }
       ],
       "activation": [],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "claude-agent",
+        "path": "agents/test-engineer.md"
+      }
     },
     {
       "id": "extensions.copilot.agent.web-performance-auditor",
       "source": "extensions",
-      "label": "copilot-vscode: web-performance-auditor agent",
-      "description": "copilot-vscode: web-performance-auditor agent; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.agent.web-performance-auditor",
+      "description": "",
       "kind": "agent",
       "recipePath": "catalog-recipes/extensions.copilot.agent.web-performance-auditor.json",
       "materials": [
@@ -9076,13 +9688,17 @@
         }
       ],
       "activation": [],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "claude-agent",
+        "path": "agents/web-performance-auditor.md"
+      }
     },
     {
       "id": "extensions.copilot.command.ship",
       "source": "extensions",
-      "label": "copilot-vscode: ship command",
-      "description": "copilot-vscode: ship command; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.command.ship",
+      "description": "",
       "kind": "command",
       "recipePath": "catalog-recipes/extensions.copilot.command.ship.json",
       "materials": [
@@ -9127,13 +9743,17 @@
         }
       ],
       "activation": [],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "claude-command",
+        "path": "commands/ship.md"
+      }
     },
     {
       "id": "extensions.copilot.command.webperf",
       "source": "extensions",
-      "label": "copilot-vscode: webperf command",
-      "description": "copilot-vscode: webperf command; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.copilot.command.webperf",
+      "description": "",
       "kind": "command",
       "recipePath": "catalog-recipes/extensions.copilot.command.webperf.json",
       "materials": [
@@ -9169,13 +9789,17 @@
         }
       ],
       "activation": [],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "claude-command",
+        "path": "commands/webperf.md"
+      }
     },
     {
       "id": "extensions.hook-source.git-guard",
       "source": "extensions",
-      "label": "git-guard source and registration reference",
-      "description": "git-guard source and registration reference; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.hook-source.git-guard",
+      "description": "",
       "kind": "hook",
       "recipePath": "catalog-recipes/extensions.hook-source.git-guard.json",
       "materials": [
@@ -9235,13 +9859,17 @@
         }
       ],
       "activation": [],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "claude-hooks",
+        "path": "hooks/hooks.json"
+      }
     },
     {
       "id": "extensions.hook-source.skill-guard",
       "source": "extensions",
-      "label": "skill-guard source and registration reference",
-      "description": "skill-guard source and registration reference; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.hook-source.skill-guard",
+      "description": "",
       "kind": "hook",
       "recipePath": "catalog-recipes/extensions.hook-source.skill-guard.json",
       "materials": [
@@ -9289,13 +9917,17 @@
         }
       ],
       "activation": [],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "claude-hooks",
+        "path": "hooks/hooks.json"
+      }
     },
     {
       "id": "extensions.hook-source.lanes-card",
       "source": "extensions",
-      "label": "lanes-card source and registration reference",
-      "description": "lanes-card source and registration reference; exact pinned material delivery, native invocation remains unobserved.",
+      "label": "extensions.hook-source.lanes-card",
+      "description": "",
       "kind": "hook",
       "recipePath": "catalog-recipes/extensions.hook-source.lanes-card.json",
       "materials": [
@@ -9347,7 +9979,11 @@
         }
       ],
       "activation": [],
-      "configuration": {}
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "claude-hooks",
+        "path": "hooks/hooks.json"
+      }
     },
     {
       "id": "extensions.template.specialists",

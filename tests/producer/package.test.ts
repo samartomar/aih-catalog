@@ -112,6 +112,7 @@ describe("packed candidate", () => {
       artifact.packedPaths.some(
         (path) =>
           /^(?:src|tests|tools|producer|docs)\//.test(path) &&
+          path !== "tools/refresh-source.mjs" &&
           path !== "docs/FRAMEWORK-TEMPLATES.md" &&
           path !== "docs/PUBLIC-AUTHORING.md" &&
           path !== "docs/SCAN-BASELINE.md" &&
@@ -133,14 +134,27 @@ describe("packed candidate", () => {
     ).toBe(false);
     expect(artifact.packedPaths.filter((path) => path.startsWith("dist/producer/"))).toEqual([
       "dist/producer/authored.d.ts",
+      "dist/producer/base.d.ts",
+      "dist/producer/base.js",
+      "dist/producer/cache.js",
+      "dist/producer/candidate.d.ts",
+      "dist/producer/candidate.js",
       "dist/producer/declaration.d.ts",
       "dist/producer/declaration.js",
+      "dist/producer/delta.js",
+      "dist/producer/derived.js",
       "dist/producer/errors.js",
+      "dist/producer/fetch.js",
+      "dist/producer/generate.d.ts",
       "dist/producer/generate.js",
+      "dist/producer/git-tree.js",
       "dist/producer/json.js",
+      "dist/producer/paths.js",
       "dist/producer/plugin.js",
       "dist/producer/template.js",
+      "dist/producer/tree.d.ts",
       "dist/producer/tree.js",
+      "dist/producer/windows-acl.js",
     ]);
     expect(artifact.packedPaths).toContain("LICENSE");
     expect(artifact.packedPaths).toContain("release/release.json");

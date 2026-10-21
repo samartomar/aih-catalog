@@ -64,7 +64,11 @@
     "./schemas/producer-declaration/3.1.0.json": "./schemas/producer-declaration/3.1.0.json",
     "./schemas/release/1.5.0.json": "./schemas/release/1.5.0.json",
     "./schemas/content-inventory/1.0.0.json": "./schemas/content-inventory/1.0.0.json",
-    "./schemas/scan-baseline/1.0.0.json": "./schemas/scan-baseline/1.0.0.json"
+    "./schemas/scan-baseline/1.0.0.json": "./schemas/scan-baseline/1.0.0.json",
+    "./source": {
+      "types": "./dist/release/source-facts.d.ts",
+      "import": "./dist/release/source-facts.js"
+    }
   },
   "engines": {
     "node": ">=24.15.0 <25"
@@ -119,7 +123,8 @@
   },
   "dependencies": {
     "ajv": "8.20.0",
-    "jsonc-parser": "3.3.1"
+    "jsonc-parser": "3.3.1",
+    "yaml": "^2.8.3"
   },
   "files": [
     "dist/release",
@@ -139,15 +144,6 @@
     "schemas/producer-declaration",
     "docs/PUBLIC-AUTHORING.md",
     "producer/templates/public",
-    "dist/producer/declaration.js",
-    "dist/producer/declaration.d.ts",
-    "dist/producer/authored.d.ts",
-    "dist/producer/errors.js",
-    "dist/producer/generate.js",
-    "dist/producer/json.js",
-    "dist/producer/template.js",
-    "dist/producer/tree.js",
-    "dist/producer/plugin.js",
     "producer/extensions",
     "docs/EXTENSIONS-CONTENT.md",
     "docs/EXTENSIONS-INVENTORY.md",
@@ -162,7 +158,30 @@
     "docs/ANTHROPIC-INVENTORY.md",
     "schemas/content-inventory",
     "schemas/scan-baseline",
-    "docs/SCAN-BASELINE.md"
+    "docs/SCAN-BASELINE.md",
+    "tools/refresh-source.mjs",
+    "dist/producer/base.js",
+    "dist/producer/cache.js",
+    "dist/producer/candidate.js",
+    "dist/producer/declaration.js",
+    "dist/producer/delta.js",
+    "dist/producer/derived.js",
+    "dist/producer/errors.js",
+    "dist/producer/fetch.js",
+    "dist/producer/generate.js",
+    "dist/producer/git-tree.js",
+    "dist/producer/json.js",
+    "dist/producer/paths.js",
+    "dist/producer/plugin.js",
+    "dist/producer/template.js",
+    "dist/producer/tree.js",
+    "dist/producer/windows-acl.js",
+    "dist/producer/authored.d.ts",
+    "dist/producer/base.d.ts",
+    "dist/producer/candidate.d.ts",
+    "dist/producer/declaration.d.ts",
+    "dist/producer/generate.d.ts",
+    "dist/producer/tree.d.ts"
   ],
   "private": true
 }

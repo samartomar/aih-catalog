@@ -16,6 +16,7 @@ import {
   RELEASE_PATH,
   sha256Hex,
 } from "./generate.js";
+import { operationalMetadata } from "./template.js";
 import type { SourceTree } from "./tree.js";
 
 export type ReportedState =
@@ -77,6 +78,9 @@ export interface BuildCandidateInput {
    * it makes are reported as `provenance-only`.
    */
   readonly advanceProvenance?: boolean;
+  /** Public compiler output at the existing supplied-template/delta seam. */
+  readonly templates?: ReadonlyMap<string, GeneratedItem>;
+  readonly metadata?: Json;
 }
 
 export interface BuildCandidateResult {
@@ -94,14 +98,13 @@ function operationalView(
   recipeBytes: Uint8Array,
 ): { item: string; recipe: string } {
   const { sourceIds: _sourceIds, metadata, recipe, materials, ...rest } = record;
-  const { upstream: _upstream, ...otherMetadata } = asRecord(metadata);
   const descriptor = asRecord(recipe);
   const parsed = JSON.parse(Buffer.from(recipeBytes).toString("utf8")) as Record_;
   const { description: _description, ...operations } = parsed;
   return {
     item: canonicalJson({
       ...rest,
-      metadata: otherMetadata,
+      metadata: operationalMetadata(metadata),
       recipe: { id: descriptor.id, schema: descriptor.schema },
       materials: (materials as Json[]).map((member) => {
         const { path: _path, ...kept } = asRecord(member);
@@ -146,7 +149,12 @@ function targetSourceId(
 export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult {
   const { declaration, base } = input;
   const tree = prepareSourceTree(input.tree);
-  const plan = classifyDelta({ declaration, tree, ...(base ? { base } : {}) });
+  const plan = classifyDelta({
+    declaration,
+    tree,
+    ...(base ? { base } : {}),
+    ...(input.templates ? { templates: input.templates } : {}),
+  });
   const unknown = plan.items.filter((item) => item.state === "unknown").map((item) => item.id);
   if (unknown.length > 0) {
     return refuse(
@@ -214,13 +222,14 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
       }
       sources.set(sourceId, { id: sourceId, origin: { kind: "authored" } });
     }
-    const item = isTemplateItem(delta.declared)
+    const compiled = input.templates?.get(delta.id) ?? delta.template;
+    const item = compiled
       ? {
-          ...(delta.template as GeneratedItem),
-          record: { ...(delta.template as GeneratedItem).record, sourceIds: [sourceId] },
+          ...compiled,
+          record: { ...compiled.record, sourceIds: [sourceId] },
         }
       : generateItem({
-          item: delta.declared,
+          item: delta.declared as import("./declaration.js").DeclaredSkillItem,
           source: plan.source,
           sourceId,
           revision: tree.commit,
@@ -304,7 +313,9 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
     package: { name: input.package.name, version: input.package.version },
     sources: finalSources,
     items: finalItems,
-    ...(base?.metadata === undefined ? {} : { metadata: base.metadata }),
+    ...(input.metadata === undefined && base?.metadata === undefined
+      ? {}
+      : { metadata: input.metadata ?? base?.metadata }),
   };
   const out = new Map<string, Buffer>();
   const put = (path: string, bytes: Buffer) => {

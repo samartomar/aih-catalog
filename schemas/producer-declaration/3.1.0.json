@@ -344,6 +344,35 @@
                     }
                   }
                 }
+              },
+              "sourceDiscovery": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "profile",
+                  "path"
+                ],
+                "properties": {
+                  "profile": {
+                    "enum": [
+                      "agent-skills",
+                      "claude-skill",
+                      "claude-agent",
+                      "claude-command",
+                      "markdown",
+                      "claude-hooks",
+                      "claude-mcp-registration"
+                    ]
+                  },
+                  "path": {
+                    "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/path"
+                  },
+                  "key": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  }
+                }
               }
             }
           },
@@ -576,6 +605,35 @@
                 "maxItems": 4096,
                 "items": {
                   "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/path"
+                }
+              },
+              "sourceDiscovery": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "profile",
+                  "path"
+                ],
+                "properties": {
+                  "profile": {
+                    "enum": [
+                      "agent-skills",
+                      "claude-skill",
+                      "claude-agent",
+                      "claude-command",
+                      "markdown",
+                      "claude-hooks",
+                      "claude-mcp-registration"
+                    ]
+                  },
+                  "path": {
+                    "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/path"
+                  },
+                  "key": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  }
                 }
               }
             }

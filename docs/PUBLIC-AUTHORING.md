@@ -394,3 +394,112 @@ older release schemas. The source ID is a portable identity; it conveys no path,
 filesystem permission or acquisition command. Consumers explicitly bind their
 own local material root through the existing `MaterialSource` input. Do not put
 absolute machine paths or an invented hosted repository in declarations.
+
+## Source-owned discovery and explicit family refresh
+
+`@aihq/catalog/source` exports portable `extractSourceFacts({profile,path,revision,bytes,key?})`.
+The same data-only interpreter serves maintained content and personal intake. Supported
+profiles are `agent-skills`, `claude-skill`, `claude-agent`, `claude-command`, `markdown`,
+`claude-hooks` and `claude-mcp-registration`. A profile names a source format, not a
+repository or target variant. Reading metadata never runs instructions, hooks or servers.
+
+The result distinguishes `valid`, `profile-error`, `malformed` and `unsupported`.
+Name and description have `authored`, `absent` or `invalid` states, with field locators,
+requiredness for unavailable fields, exact source path, SHA-256 and revision. Optional
+absence does not use the body as invented purpose. `native` retains frontmatter extensions
+or operational facts; original complete bytes remain source material. MCP registrations
+are separate from running-server identity and tool metadata; environment/header names are
+shown without their values. Hook facts retain events, matchers and handler configuration.
+The general `native` view withholds environment/header values, named credential fields
+and explicitly sensitive configuration values, including nested agent/skill hooks. HTTP
+URL userinfo, query values and fragments are withheld; unparsed/non-HTTP URLs are withheld
+entirely. `sourceFacts.redactions` identifies projected paths and reasons, and withheld
+values display as `[withheld]`. A transformed URL is a safe projection, not exact authored
+text. Original source material, its hash and field provenance remain unchanged and are
+accessed separately under the consumer's normal source-material access rules. Consumers
+should show the withheld state; it is neither missing required metadata nor absent source
+configuration. This projection does not claim to detect secrets in arbitrary commands,
+arguments, prompts, names or prose.
+Supported handler validation is bounded to command, HTTP, prompt, agent and MCP-tool fields;
+metadata retention is not a claim of native execution or permission enforcement.
+
+A V3 item may declare `sourceDiscovery:{profile,path,key?}`. The path must be one of its
+delivered source materials. When present, compilation derives `label`, `description`,
+`metadata.discovery` and `metadata.sourceFacts` from those exact supplied bytes. The
+required legacy declaration `label` remains stable fallback data and `description` can
+be empty; neither overrides derived purpose. Missing name uses the source identifier;
+missing description remains empty with an explicit field state. Profile errors remain
+visible on the affected item and do not claim conformance or freeze the entire family.
+An item without this optional field retains its existing authored overlay behavior.
+
+Agent Skills conformance requires name/description and the standard's field rules;
+Claude's native skill/command profile permits absent prose. These are distinct claims.
+The ECC declarations use Claude native skills, agents and commands, ordinary Markdown,
+static MCP registration and Agent Skills for Kiro's separately authored skill mirror.
+[Kiro's documented format](https://kiro.dev/docs/skills/) requires Agent Skills fields;
+four original Kiro files currently expose non-string metadata diagnostics without source
+rewriting or an invented family freeze. ECC currently admits **no hook configuration item**;
+its hook-related instruction files remain Markdown. Focused hook fixtures exercise the
+shared interpreter without admitting new ECC installation mechanisms.
+
+`@aihq/catalog/producer` additionally exports
+`prepareSourceRefresh({declaration,source,inventoryComplete,sourceFiles,previous})`, where
+`previous` contains exact `releaseBytes` and `{path,bytes}` materials. Supply a complete
+explicitly acquired selected-source snapshot, including declared recipe templates.
+`inventoryComplete:true` is required; incomplete input never authorizes removal.
+The operation reuses the existing candidate delta, closure and dependency checks. It
+retains unchanged records, materials and source pins, revalidates dependents, and returns
+checked release bytes/materials plus the ordinary candidate report. The call performs no
+acquisition, writes or installation. Acquisition verification remains caller-owned.
+Changed registration/configuration bytes need delivery-recipe review; derived metadata
+alone cannot establish that an authored recipe still implements the new configuration.
+
+The packaged `tools/refresh-source.mjs` is the explicit host route:
+
+```sh
+node node_modules/@aihq/catalog/tools/refresh-source.mjs \
+  --family ecc --commit <full-40-hex> --out <new-output-dir> --cache-dir <owned-cache>
+```
+
+The same route supports `extensions`, `superpowers` and `anthropic`. `--source
+<declared-source-id>` explicitly selects a supplemental repository when needed;
+otherwise it selects the family source. Other supplied sources and saved item
+pins retain their independently reviewed revisions. An upstream vendor lock does
+not silently update a separately declared companion source.
+
+`--configuration <reviewed-directory>` takes explicit `declaration.json`,
+`snapshot.json` and `inventory.json` authoring inputs for reviewed membership or
+delivery adaptation. This is useful when a selected revision removes a support
+file or introduces a newly required sibling. Review those exact declaration and
+recipe changes before staging; discovery alone never admits a file. Raw snapshot
+bytes retain their recorded revisions. Without `--previous`, the baseline is the
+package's checked maintained declaration and snapshot; with it, the baseline is
+the prior staged release/material closure. New source bytes still come from the
+explicit acquisition. The override does not edit the package or saved selections.
+Recipes may use either the existing per-source or flat snapshot layout.
+
+It uses the existing verified GitHub fetch/object-validation route and reviewed family
+membership. New upstream files are reported as unadmitted; missing source/support/license
+files and dependency changes receive the existing safeguards. Nothing auto-installs or
+changes unrelated releases. Outputs include `release.json`, complete `stage/` material,
+`materials.json`, `snapshot.json`, `declaration.json`, `inventory.json`,
+`candidate-report.json` and `receipt.json`. Use `--previous <staged-dir>` for another
+explicit refresh of that same source from those retained bytes. A stage for a different
+source or repository is refused before acquisition; start a fresh source refresh instead.
+Legacy source-less stages remain readable when their repository matches.
+Config/hook byte changes stop for delivery
+review and retain the inventory report; they never silently install stale mappings.
+
+The existing local-Git acquisition alternative takes `--source-git-dir <dir>
+--allow-unverified-origin true`. It verifies Git objects and exact commit bytes, records
+`originVerified:false`, and only stages test content. It does not repair an unsafe cache
+or establish repository-origin authentication. Output is **staged content for public-API
+tests**, not a qualified release candidate. Baseline qualification and final full candidate
+packing remain mandatory separate steps; no signing, activation or publication occurs.
+
+Build first, then `node tools/verify-source-discovery-consumer.mjs` exercises exact packed
+software outside source workspaces. Its synthetic metadata mutation is a regression only.
+To additionally acquire a real selected local Git revision through the installed package,
+pass `--evidence <dir> --source-git-dir <bare-repo> --commit <full-40-hex>`; the retained
+software tarball, its digest, staged receipts and installed public readback identify the
+proof and its unverified-origin limitation explicitly.

@@ -141,6 +141,7 @@ export const contractSupport = Object.freeze({
   entries: Object.freeze([
     Object.freeze({ export: "@aihq/catalog/contracts", runtime: "portable" }),
     Object.freeze({ export: "@aihq/catalog/reader", runtime: "portable" }),
+    Object.freeze({ export: "@aihq/catalog/source", runtime: "portable" }),
     Object.freeze({
       export: "@aihq/catalog/producer",
       runtime: "node",

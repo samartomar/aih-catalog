@@ -1,5 +1,16 @@
 # Pinned Superpowers content
 
+The shared `agent-skills` profile derives source facts for all skill projections;
+`claude-hooks` derives the delivered Claude hook configuration's event/handler
+facts. Missing optional hook prose stays absent. Declarations no longer maintain
+a second skill purpose. Runtime prerequisites and native delivery limits remain
+in capabilities, activation and recipes. Runtime aggregates, notices, the opt-in
+registration and the reviewed TDD template are Catalog-owned delivery overlays.
+That template explicitly pins its Extensions dependency; changing a new template's
+pin does not rewrite saved selections. The [public refresh route](PUBLIC-AUTHORING.md)
+reports complete inventory descriptors and refuses missing support/license closure
+until the declaration and recipe adaptation receives review.
+
 `@aihq/catalog/release-superpowers.json` is a separately selected, unpublished local
 release over `obra/superpowers@5bf4e78011075bcfc0dc295f0724994cd123ee71`
 (upstream v6.4.1, MIT). GitHub resolves the requested `obra/Superpowers` spelling to

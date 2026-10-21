@@ -117,7 +117,7 @@ describe("the published package keeps its intended runtime subset", () => {
     version: string;
   };
 
-  it("ships only supplied-byte producer helpers and keeps publication guards and entries", () => {
+  it("ships the explicit producer and source-refresh helpers and keeps publication guards and entries", () => {
     expect(manifest.files).toEqual([
       "dist/release",
       "release",
@@ -136,15 +136,6 @@ describe("the published package keeps its intended runtime subset", () => {
       "schemas/producer-declaration",
       "docs/PUBLIC-AUTHORING.md",
       "producer/templates/public",
-      "dist/producer/declaration.js",
-      "dist/producer/declaration.d.ts",
-      "dist/producer/authored.d.ts",
-      "dist/producer/errors.js",
-      "dist/producer/generate.js",
-      "dist/producer/json.js",
-      "dist/producer/template.js",
-      "dist/producer/tree.js",
-      "dist/producer/plugin.js",
       "producer/extensions",
       "docs/EXTENSIONS-CONTENT.md",
       "docs/EXTENSIONS-INVENTORY.md",
@@ -160,6 +151,29 @@ describe("the published package keeps its intended runtime subset", () => {
       "schemas/content-inventory",
       "schemas/scan-baseline",
       "docs/SCAN-BASELINE.md",
+      "tools/refresh-source.mjs",
+      "dist/producer/base.js",
+      "dist/producer/cache.js",
+      "dist/producer/candidate.js",
+      "dist/producer/declaration.js",
+      "dist/producer/delta.js",
+      "dist/producer/derived.js",
+      "dist/producer/errors.js",
+      "dist/producer/fetch.js",
+      "dist/producer/generate.js",
+      "dist/producer/git-tree.js",
+      "dist/producer/json.js",
+      "dist/producer/paths.js",
+      "dist/producer/plugin.js",
+      "dist/producer/template.js",
+      "dist/producer/tree.js",
+      "dist/producer/windows-acl.js",
+      "dist/producer/authored.d.ts",
+      "dist/producer/base.d.ts",
+      "dist/producer/candidate.d.ts",
+      "dist/producer/declaration.d.ts",
+      "dist/producer/generate.d.ts",
+      "dist/producer/tree.d.ts",
     ]);
     expect(Object.keys(manifest.exports)).toEqual([
       "./contracts",
@@ -188,6 +202,7 @@ describe("the published package keeps its intended runtime subset", () => {
       "./schemas/release/1.5.0.json",
       "./schemas/content-inventory/1.0.0.json",
       "./schemas/scan-baseline/1.0.0.json",
+      "./source",
     ]);
     expect(manifest.private).toBe(true);
     expect(manifest.scripts.prepublishOnly).toBe("node tools/refuse-publication.mjs");
