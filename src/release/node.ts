@@ -49,6 +49,7 @@ export type {
   BaselineArtifactRead,
   BaselineAuthentication,
   BaselineCoverage,
+  BaselineCoverageBatch,
   BaselineServices,
   ItemBaselineCoverage,
   PrepareBaselineResult,
