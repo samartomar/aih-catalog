@@ -1,0 +1,92 @@
+// Copy to an outside consumer containing the exact packed package before running.
+// Imports use public exports only; material reads follow the public Node contract.
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { Ajv2020 } from "ajv/dist/2020.js";
+import { contractSupport } from "@aihq/catalog/contracts";
+import { readRelease, readContentInventory } from "@aihq/catalog/reader";
+import { checkProducerDeclaration } from "@aihq/catalog/producer";
+import { readInstalledRelease } from "@aihq/catalog/node";
+import manifest from "@aihq/catalog/fixtures/manifest.json" with { type: "json" };
+
+const data = specifier => readFileSync(fileURLToPath(import.meta.resolve(specifier)));
+const json = specifier => JSON.parse(data(specifier));
+const canonical = value => value === null || typeof value !== "object" ? JSON.stringify(value)
+  : Array.isArray(value) ? `[${value.map(canonical).join(",")}]`
+  : `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${canonical(value[key])}`).join(",")}}`;
+const encode = value => Buffer.from(`${canonical(value)}\n`);
+const sha = bytes => createHash("sha256").update(bytes).digest("hex");
+const ajv = new Ajv2020({ strict: true });
+const validateSupport = ajv.compile(json("@aihq/catalog/schemas/package-support/1.0.0.json"));
+assert(validateSupport(contractSupport), JSON.stringify(validateSupport.errors));
+assert.deepEqual(json("@aihq/catalog/package-support.json"), contractSupport);
+assert.deepEqual(manifest.package, contractSupport.package);
+const declarations = new Map(contractSupport.contracts.map(c => [c.id, c]));
+assert.equal(declarations.size, contractSupport.contracts.length, "Duplicate support entry");
+const validators = new Map(contractSupport.contracts.map(c => {
+  const schema = json(c.schemaExport);
+  assert.equal(schema.$id, c.id);
+  return [c.id, ajv.compile(schema)];
+}));
+for (const c of contractSupport.contracts) {
+  assert(manifest.fixtures.some(f => f.contract === c.id && f.expected.status === "accept"), `No valid fixture: ${c.id}`);
+  assert(manifest.fixtures.some(f => f.contract === c.id && f.expected.status === "refuse"), `No invalid fixture: ${c.id}`);
+}
+const seen = new Set();
+const results = [];
+for (const fixture of manifest.fixtures) {
+  assert(!seen.has(fixture.export), `Repeated fixture: ${fixture.export}`); seen.add(fixture.export);
+  assert.equal(fixture.version, fixture.contract.split(":").at(-1));
+  assert.equal(fixture.schemaExport, declarations.get(fixture.contract)?.schemaExport);
+  const bytes = data(fixture.export), document = JSON.parse(bytes);
+  const valid = fixture.expected.status === "accept";
+  const validate = validators.get(fixture.contract);
+  assert.equal(validate(document), valid, `${fixture.name}: ${JSON.stringify(validate.errors)}`);
+  let result;
+  switch (fixture.reader) {
+    case "release": result = readRelease(bytes, { expectedSha256: sha(bytes) }); break;
+    case "inventory": result = readContentInventory(bytes, { expectedSha256: sha(bytes) }); break;
+    case "projection": {
+      const inventory = encode({ schema: "urn:aihq:catalog:content-inventory:1.0.0", projection: fixture.contract, release: document });
+      result = readContentInventory(inventory, { expectedSha256: sha(inventory) }); break;
+    }
+    case "producer": result = checkProducerDeclaration(document); break;
+    case "baseline": {
+      const release = encode({ ...json(fixture.context), baseline: document });
+      result = readRelease(release, { expectedSha256: sha(release) }); break;
+    }
+    case "recipe": {
+      // The Node reader admits recipes with their advertised item and real material
+      // closure. Update the descriptor hash so an invalid recipe reaches schema
+      // admission instead of failing an earlier byte-integrity check.
+      const release = json(fixture.context);
+      const item = release.items.find(item => item.recipe.id === document.id);
+      assert(item, `No context for ${fixture.name}`);
+      item.recipe.sha256 = sha(bytes); item.recipe.byteLength = bytes.length;
+      const installed = dirname(fileURLToPath(import.meta.resolve("@aihq/catalog/package.json")));
+      const root = mkdtempSync(join(tmpdir(), "catalog-recipe-fixture-"));
+      const put = (path, bytes) => { mkdirSync(dirname(join(root, path)), { recursive: true }); writeFileSync(join(root, path), bytes); };
+      try {
+        put("package.json", encode({ ...release.package, exports: { "./release.json": "./fixture-release.json" } }));
+        put("fixture-release.json", encode(release));
+        for (const candidate of release.items) for (const member of [candidate.recipe, ...candidate.materials]) {
+          mkdirSync(dirname(join(root, member.path)), { recursive: true });
+          copyFileSync(join(installed, member.path), join(root, member.path));
+        }
+        put(item.recipe.path, bytes);
+        result = await readInstalledRelease({ root });
+      } finally { rmSync(root, { recursive: true, force: true }); }
+      break;
+    }
+    default: throw new Error(`Unknown public reader ${fixture.reader}`);
+  }
+  const accepted = result.valid === true || result.status === "ok";
+  assert.equal(accepted, valid, `${fixture.name}: ${JSON.stringify(result.diagnostics)}`);
+  if (!valid) assert(result.diagnostics.some(d => d.code === fixture.expected.code), `${fixture.name}: wrong refusal ${JSON.stringify(result)}`);
+  results.push({ export: fixture.export, contract: fixture.contract, version: fixture.version, ...fixture.expected });
+}
+process.stdout.write(JSON.stringify({ checked: results.length, results }));

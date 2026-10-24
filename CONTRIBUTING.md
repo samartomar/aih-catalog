@@ -4,6 +4,13 @@ Start with [AGENTS.md](AGENTS.md) for issue ownership and repository boundaries.
 Accepted bugs/enhancements use the owning Catalog issue; link the PR and verified
 release outcome there. Keep private planning and reproductions out of public text.
 
+[Contract fixtures](docs/CONTRACT-FIXTURES.md) are exported data, tested by the
+active packed outside consumer. Run `npm run check:contract-fixtures` after a
+build to check deterministic regeneration. CI additionally runs
+`npm run check:scan-fixtures` against the exact registry version in
+`tools/scan-fixture-pin.json`; before publication, registry 404 is recorded as
+unavailable. Network errors and a published incompatible package fail.
+
 [Baseline contract checks](docs/SCAN-BASELINE.md) cover complete content projection
 and versioned release admission. `npm run check:baseline-schemas` checks generated
 schemas; regenerate through `node tools/generate-baseline-schemas.mjs`. The bounded

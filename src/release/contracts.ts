@@ -76,41 +76,41 @@ export const contractSupport = Object.freeze({
   schema: "urn:aihq:package-support:1.0.0",
   package: PACKAGE_IDENTITY,
   contracts: Object.freeze([
-    Object.freeze({ id: RELEASE_SCHEMA_ID, role: "produces", schemaExport: RELEASE_SCHEMA_EXPORT }),
+    Object.freeze({ id: RELEASE_SCHEMA_ID, role: "both", schemaExport: RELEASE_SCHEMA_EXPORT }),
     Object.freeze({
       id: CORE_RECIPE_SCHEMA_ID,
-      role: "produces",
-      schemaExport: "@aihq/core/schemas/recipe/1.0.0.json",
+      role: "both",
+      schemaExport: "@aihq/catalog/schemas/core-recipe/1.0.0.json",
     }),
     Object.freeze({
       id: RELEASE_SCHEMA_ID_1_1,
-      role: "produces",
+      role: "both",
       schemaExport: RELEASE_SCHEMA_EXPORT_1_1,
     }),
     Object.freeze({
       id: CORE_RECIPE_SCHEMA_ID_1_1,
-      role: "produces",
-      schemaExport: "@aihq/core/schemas/recipe/1.1.0.json",
+      role: "both",
+      schemaExport: "@aihq/catalog/schemas/core-recipe/1.1.0.json",
     }),
     Object.freeze({
       id: RELEASE_SCHEMA_ID_1_2,
-      role: "produces",
+      role: "both",
       schemaExport: RELEASE_SCHEMA_EXPORT_1_2,
     }),
     Object.freeze({
       id: RELEASE_SCHEMA_ID_1_3,
-      role: "produces",
+      role: "both",
       schemaExport: RELEASE_SCHEMA_EXPORT_1_3,
     }),
     Object.freeze({
       id: RELEASE_SCHEMA_ID_1_4,
-      role: "produces",
+      role: "both",
       schemaExport: RELEASE_SCHEMA_EXPORT_1_4,
     }),
     Object.freeze({
       id: CORE_RECIPE_SCHEMA_ID_1_3,
-      role: "produces",
-      schemaExport: "@aihq/core/schemas/recipe/1.3.0.json",
+      role: "both",
+      schemaExport: "@aihq/catalog/schemas/core-recipe/1.3.0.json",
     }),
     Object.freeze({
       id: "urn:aihq:catalog:producer-declaration:3.0.0",
@@ -124,18 +124,23 @@ export const contractSupport = Object.freeze({
     }),
     Object.freeze({
       id: RELEASE_SCHEMA_ID_1_5,
-      role: "produces",
+      role: "both",
       schemaExport: RELEASE_SCHEMA_EXPORT_1_5,
     }),
     Object.freeze({
       id: "urn:aihq:catalog:content-inventory:1.0.0",
-      role: "produces",
+      role: "both",
       schemaExport: "@aihq/catalog/schemas/content-inventory/1.0.0.json",
     }),
     Object.freeze({
       id: "urn:aihq:catalog:scan-baseline:1.0.0",
-      role: "produces",
+      role: "both",
       schemaExport: "@aihq/catalog/schemas/scan-baseline/1.0.0.json",
+    }),
+    Object.freeze({
+      id: "urn:aihq:catalog:release-content:1.0.0",
+      role: "both",
+      schemaExport: "@aihq/catalog/schemas/release-content/1.0.0.json",
     }),
   ]),
   entries: Object.freeze([

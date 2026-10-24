@@ -105,6 +105,7 @@ describe("Catalog migration boundary", () => {
       expect(paths.filter((path) => path.startsWith("docs/"))).toEqual([
         "docs/ANTHROPIC-CONTENT.md",
         "docs/ANTHROPIC-INVENTORY.md",
+        "docs/CONTRACT-FIXTURES.md",
         "docs/ECC-CONTENT.md",
         "docs/ECC-INVENTORY.md",
         "docs/EXTENSIONS-CONTENT.md",
@@ -123,7 +124,7 @@ describe("Catalog migration boundary", () => {
       for (const path of paths) {
         if (path === "tools/refresh-source.mjs") continue;
         expect(path, path).not.toMatch(
-          /^(?:(?:ai-coding|tools|tests|\.git|\.codex|\.serena|\.code-review-graph|\.codebase-memory|catalog)\/|docs\/(?!(?:ANTHROPIC-CONTENT|ANTHROPIC-INVENTORY|ECC-CONTENT|ECC-INVENTORY|EXTENSIONS-CONTENT|EXTENSIONS-INVENTORY|SUPERPOWERS-CONTENT|SUPERPOWERS-INVENTORY|FRAMEWORK-TEMPLATES|PUBLIC-AUTHORING|SCAN-BASELINE)\.md$))/u,
+          /^(?:(?:ai-coding|tools|tests|\.git|\.codex|\.serena|\.code-review-graph|\.codebase-memory|catalog)\/|docs\/(?!(?:ANTHROPIC-CONTENT|ANTHROPIC-INVENTORY|CONTRACT-FIXTURES|ECC-CONTENT|ECC-INVENTORY|EXTENSIONS-CONTENT|EXTENSIONS-INVENTORY|SUPERPOWERS-CONTENT|SUPERPOWERS-INVENTORY|FRAMEWORK-TEMPLATES|PUBLIC-AUTHORING|SCAN-BASELINE)\.md$))/u,
         );
         expect(path, path).not.toMatch(/(?:private-key|\.pem$|\.env(?:\.|$))/u);
         expect(path, path).not.toContain("..");

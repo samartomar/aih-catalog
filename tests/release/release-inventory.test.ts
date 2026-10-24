@@ -28,7 +28,7 @@ describe("release inventory", () => {
       const document = JSON.parse(readFileSync(resolve(root, pkg.exports[entry.release]), "utf8"));
       expect(document.schema, entry.release).toBe(entry.schema);
       expect(
-        contractSupport.contracts.some((c) => c.id === entry.schema && c.role === "produces"),
+        contractSupport.contracts.some((c) => c.id === entry.schema && c.role === "both"),
       ).toBe(true);
     }
   });

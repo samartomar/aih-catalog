@@ -139,14 +139,15 @@ describe("release 1.1 documents", () => {
       "urn:aihq:catalog:release:1.5.0",
       "urn:aihq:catalog:content-inventory:1.0.0",
       "urn:aihq:catalog:scan-baseline:1.0.0",
+      "urn:aihq:catalog:release-content:1.0.0",
     ]);
     expect(contractSupport.contracts.find((c) => c.id === RELEASE_11)).toMatchObject({
-      role: "produces",
+      role: "both",
       schemaExport: "@aihq/catalog/schemas/release/1.1.0.json",
     });
     expect(contractSupport.contracts.find((c) => c.id === RECIPE_11)).toMatchObject({
-      role: "produces",
-      schemaExport: "@aihq/core/schemas/recipe/1.1.0.json",
+      role: "both",
+      schemaExport: "@aihq/catalog/schemas/core-recipe/1.1.0.json",
     });
   });
 });

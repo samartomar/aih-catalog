@@ -116,6 +116,17 @@ describe("exact packed consumer", () => {
     if (fixture) rmSync(fixture, { recursive: true, force: true });
   });
 
+  it("checks exported contract fixtures through the installed public readers", () => {
+    const script = join(consumer, "contract-fixtures.mjs");
+    writeFileSync(script, readFileSync(join(root, "tools/check-contract-fixtures.mjs")));
+    const output = execFileSync(process.execPath, [script], {
+      cwd: consumer,
+      encoding: "utf8",
+      timeout: 120_000,
+    });
+    expect(JSON.parse(output).checked).toBeGreaterThanOrEqual(28);
+  });
+
   it("ships the release, schema and entry modules byte-identically, and no test fixtures", () => {
     for (const path of [
       ...exportTargets(pkg.exports).map((target) => target.slice(2)),
