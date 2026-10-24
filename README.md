@@ -3,6 +3,8 @@
 Consumers can inspect [package support and golden fixtures](docs/CONTRACT-FIXTURES.md)
 through `@aihq/catalog/package-support.json` and
 `@aihq/catalog/fixtures/manifest.json` before reading content.
+Fixture-aware consumers can use `contractSupport11` from `@aihq/catalog/contracts`
+or `@aihq/catalog/package-support-1.1.json`; the 1.0 declaration remains available.
 
 Catalog carries canonical content, pinned source material and generic executable
 recipes. Read and select content through portable APIs, acquire explicit package

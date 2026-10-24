@@ -124,7 +124,12 @@ describe("exact packed consumer", () => {
       encoding: "utf8",
       timeout: 120_000,
     });
-    expect(JSON.parse(output).checked).toBeGreaterThanOrEqual(28);
+    const result = JSON.parse(output);
+    expect(result.declarations).toEqual([
+      "urn:aihq:package-support:1.0.0",
+      "urn:aihq:package-support:1.1.0",
+    ]);
+    expect(result.checked).toBeGreaterThanOrEqual(28);
   });
 
   it("ships the release, schema and entry modules byte-identically, and no test fixtures", () => {
@@ -522,6 +527,7 @@ describe("exact packed consumer", () => {
         "CONTENT_PROJECTION_ID",
         "SCAN_BASELINE_SCHEMA_ID",
         "contractSupport",
+        "contractSupport11",
         "releaseInventory",
       ],
       unreachable: [

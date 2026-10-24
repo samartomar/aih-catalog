@@ -156,6 +156,33 @@ export const contractSupport = Object.freeze({
   ]),
 } as const);
 
+/** Additive fixture-aware declaration; the 1.0 declaration above remains unchanged. */
+export const contractSupport11 = Object.freeze({
+  schema: "urn:aihq:package-support:1.1.0",
+  package: contractSupport.package,
+  contracts: Object.freeze(
+    contractSupport.contracts.map((contract) => {
+      const version = contract.id.slice(contract.id.lastIndexOf(":") + 1);
+      const fixture = contract.schemaExport
+        .replace("/schemas/", "/fixtures/")
+        .replace(/\/([^/]+)\.json$/, "-$1");
+      return Object.freeze({
+        ...contract,
+        versions: Object.freeze([version]),
+        fixtures: Object.freeze([
+          Object.freeze({ export: `${fixture}-valid.json`, expect: "accept" as const }),
+          Object.freeze({
+            export: `${fixture}-invalid.json`,
+            expect: "refuse" as const,
+            code: "INPUT_INVALID",
+          }),
+        ]),
+      });
+    }),
+  ),
+  entries: contractSupport.entries,
+} as const);
+
 /**
  * What a release document is for. `content` is ordinary selectable content; `hook`
  * is content that needs Core recipe 1.1 hook groups; `native-fixture` is test-scope

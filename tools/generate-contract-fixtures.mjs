@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { contractSupport } from "../dist/release/contracts.js";
+import { contractSupport, contractSupport11 } from "../dist/release/contracts.js";
 import { createContentInventory } from "../dist/release/reader.js";
 
 const root = resolve(import.meta.dirname, "..");
@@ -96,3 +96,4 @@ for (const [version, id, context] of [
 }
 write("fixtures/manifest.json", { schema: "urn:aihq:catalog:fixture-manifest:1.0.0", package: contractSupport.package, fixtures });
 write("package-support.json", contractSupport);
+write("package-support-1.1.json", contractSupport11);

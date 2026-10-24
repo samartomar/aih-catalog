@@ -5,6 +5,18 @@ without importing code at `@aihq/catalog/package-support.json`. It validates
 against the immutable `urn:aihq:package-support:1.0.0` schema, exported at
 `@aihq/catalog/schemas/package-support/1.0.0.json`.
 
+The same module additionally exports `contractSupport11`, with its data-only JSON
+at `@aihq/catalog/package-support-1.1.json`. This validates against the separately
+exported `@aihq/catalog/schemas/package-support/1.1.0.json`. Every existing
+contract retains its complete versioned URN, role and schema export, and gains
+`versions[]` plus `fixtures[] { export, expect, code? }`. Each version list names
+the exact supported version; fixture references point directly to the valid and
+invalid public JSON exports below. Refusals declare `INPUT_INVALID`.
+
+Consumers of Core's fixture-aware `checkContracts` can pass `contractSupport11`
+directly. Existing consumers continue using the unchanged `contractSupport` and
+`package-support.json` 1.0 declaration; the closed 1.0 schema is unchanged.
+
 Support 1.0 identifies each version by its complete contract URN. Its closed
 schema permits only `id`, `role` and `schemaExport` in each contract entry;
 it does **not** permit a `versions` array or fixture references. Each supported
@@ -44,6 +56,8 @@ with `npm run generate:contract-fixtures`; `tools/generate-baseline-schemas.mjs`
 owns the standalone projection schema. The support 1.0 schema is copied from
 Core's public
 [`src/harness/schemas/package-support/1.0.0.json`](https://github.com/samartomar/aih-core/blob/47b75d0889f00f6f158e91f2860ca5e32d354ec7/src/harness/schemas/package-support/1.0.0.json).
+The 1.1 schema is copied from Core's
+[exact fixture-aware schema](https://github.com/samartomar/aih-core/blob/e67f0916aaf8a0fce5861562a729dc804cc080fc/src/harness/schemas/package-support/1.1.0.json).
 
 Public CI separately checks the exact Scan `0.1.0` package pinned in
 `tools/scan-fixture-pin.json`, installed outside the workspace with lifecycle

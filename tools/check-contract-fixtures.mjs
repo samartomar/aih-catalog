@@ -7,7 +7,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Ajv2020 } from "ajv/dist/2020.js";
-import { contractSupport } from "@aihq/catalog/contracts";
+import { contractSupport, contractSupport11 } from "@aihq/catalog/contracts";
 import { readRelease, readContentInventory } from "@aihq/catalog/reader";
 import { checkProducerDeclaration } from "@aihq/catalog/producer";
 import { readInstalledRelease } from "@aihq/catalog/node";
@@ -24,6 +24,21 @@ const ajv = new Ajv2020({ strict: true });
 const validateSupport = ajv.compile(json("@aihq/catalog/schemas/package-support/1.0.0.json"));
 assert(validateSupport(contractSupport), JSON.stringify(validateSupport.errors));
 assert.deepEqual(json("@aihq/catalog/package-support.json"), contractSupport);
+const validateSupport11 = ajv.compile(json("@aihq/catalog/schemas/package-support/1.1.0.json"));
+assert(validateSupport11(contractSupport11), JSON.stringify(validateSupport11.errors));
+assert.deepEqual(json("@aihq/catalog/package-support-1.1.json"), contractSupport11);
+assert.equal(validateSupport(contractSupport11), false, "1.0 must remain closed");
+assert.equal(validateSupport11(contractSupport), false, "1.1 requires version and fixture declarations");
+assert.deepEqual(contractSupport11.package, contractSupport.package);
+assert.deepEqual(contractSupport11.entries, contractSupport.entries);
+assert.deepEqual(contractSupport11.contracts.map(({ versions, fixtures, ...contract }) => contract), contractSupport.contracts);
+for (const contract of contractSupport11.contracts) {
+  assert.deepEqual(contract.versions, [contract.id.split(":").at(-1)]);
+  assert.deepEqual(contract.fixtures, manifest.fixtures.filter(f => f.contract === contract.id).map(f => ({
+    export: f.export, expect: f.expected.status, ...(f.expected.code ? { code: f.expected.code } : {}),
+  })));
+  for (const fixture of contract.fixtures) data(fixture.export);
+}
 assert.deepEqual(manifest.package, contractSupport.package);
 const declarations = new Map(contractSupport.contracts.map(c => [c.id, c]));
 assert.equal(declarations.size, contractSupport.contracts.length, "Duplicate support entry");
@@ -89,4 +104,4 @@ for (const fixture of manifest.fixtures) {
   if (!valid) assert(result.diagnostics.some(d => d.code === fixture.expected.code), `${fixture.name}: wrong refusal ${JSON.stringify(result)}`);
   results.push({ export: fixture.export, contract: fixture.contract, version: fixture.version, ...fixture.expected });
 }
-process.stdout.write(JSON.stringify({ checked: results.length, results }));
+process.stdout.write(JSON.stringify({ declarations: [contractSupport.schema, contractSupport11.schema], checked: results.length, results }));
