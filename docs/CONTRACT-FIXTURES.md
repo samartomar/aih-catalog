@@ -49,9 +49,22 @@ Public CI separately checks the exact Scan `0.1.0` package pinned in
 `tools/scan-fixture-pin.json`, installed outside the workspace with lifecycle
 scripts disabled and its archive integrity checked against registry metadata.
 Only a registry 404 reports it unavailable before first publication. An available
-package must expose its fixture manifest and pass schema and artifact-reader
-checks; this route must be checked against the first Scan fixture candidate
-before publication. It makes no compatibility claim while Scan is unavailable.
+package must expose schema-adjacent `schemas/<contract>/<version>.fixtures.json`
+wrappers, discovered from its public `contractSupport` schema exports. The check
+validates each case and reads report/artifact cases through Scan's public readers.
+An invalid case marked `validation: "reader"` must pass its schema and be refused
+by the reader with its expected code; the digest-corruption case exercises this.
+
+Before registry publication, check an exact reviewed Scan candidate with:
+
+```sh
+npm run check:scan-fixtures -- --archive /absolute/scan.tgz --sha256 <sha256>
+```
+
+The archive digest is checked before installation; this path does not claim the
+pinned registry version is available. To run the candidate regression, supply
+`AIHQ_SCAN_FIXTURE_ARCHIVE` and `AIHQ_SCAN_FIXTURE_SHA256` to
+`npm test -- tests/release/scan-fixtures.test.ts`. No sibling source is imported.
 
 The active packed test installs the exact Catalog tarball outside the workspace,
 copies `tools/check-contract-fixtures.mjs` into that consumer and runs it there.
