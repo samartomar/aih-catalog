@@ -116,6 +116,22 @@ describe("exact packed consumer", () => {
     if (fixture) rmSync(fixture, { recursive: true, force: true });
   });
 
+  it("checks exported contract fixtures through the installed public readers", () => {
+    const script = join(consumer, "contract-fixtures.mjs");
+    writeFileSync(script, readFileSync(join(root, "tools/check-contract-fixtures.mjs")));
+    const output = execFileSync(process.execPath, [script], {
+      cwd: consumer,
+      encoding: "utf8",
+      timeout: 120_000,
+    });
+    const result = JSON.parse(output);
+    expect(result.declarations).toEqual([
+      "urn:aihq:package-support:1.0.0",
+      "urn:aihq:package-support:1.1.0",
+    ]);
+    expect(result.checked).toBeGreaterThanOrEqual(28);
+  });
+
   it("ships the release, schema and entry modules byte-identically, and no test fixtures", () => {
     for (const path of [
       ...exportTargets(pkg.exports).map((target) => target.slice(2)),
@@ -511,6 +527,7 @@ describe("exact packed consumer", () => {
         "CONTENT_PROJECTION_ID",
         "SCAN_BASELINE_SCHEMA_ID",
         "contractSupport",
+        "contractSupport11",
         "releaseInventory",
       ],
       unreachable: [

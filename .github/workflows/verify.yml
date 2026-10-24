@@ -28,5 +28,7 @@ jobs:
         env:
           AIHQ_RELEASE_BASELINE: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
         run: npm run verify
+      - name: Check fixtures from the exact pinned Scan package when published
+        run: npm run check:scan-fixtures
       - run: npm audit --audit-level=high
       - run: git diff --check

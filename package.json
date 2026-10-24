@@ -68,7 +68,44 @@
     "./source": {
       "types": "./dist/release/source-facts.d.ts",
       "import": "./dist/release/source-facts.js"
-    }
+    },
+    "./schemas/core-recipe/1.0.0.json": "./schemas/core-recipe/1.0.0.json",
+    "./schemas/core-recipe/1.1.0.json": "./schemas/core-recipe/1.1.0.json",
+    "./schemas/core-recipe/1.3.0.json": "./schemas/core-recipe/1.3.0.json",
+    "./schemas/release-content/1.0.0.json": "./schemas/release-content/1.0.0.json",
+    "./schemas/package-support/1.0.0.json": "./schemas/package-support/1.0.0.json",
+    "./package-support.json": "./package-support.json",
+    "./fixtures/manifest.json": "./fixtures/manifest.json",
+    "./fixtures/release-1.0.0-valid.json": "./fixtures/release-1.0.0-valid.json",
+    "./fixtures/release-1.0.0-invalid.json": "./fixtures/release-1.0.0-invalid.json",
+    "./fixtures/release-1.1.0-valid.json": "./fixtures/release-1.1.0-valid.json",
+    "./fixtures/release-1.1.0-invalid.json": "./fixtures/release-1.1.0-invalid.json",
+    "./fixtures/release-1.2.0-valid.json": "./fixtures/release-1.2.0-valid.json",
+    "./fixtures/release-1.2.0-invalid.json": "./fixtures/release-1.2.0-invalid.json",
+    "./fixtures/release-1.3.0-valid.json": "./fixtures/release-1.3.0-valid.json",
+    "./fixtures/release-1.3.0-invalid.json": "./fixtures/release-1.3.0-invalid.json",
+    "./fixtures/release-1.4.0-valid.json": "./fixtures/release-1.4.0-valid.json",
+    "./fixtures/release-1.4.0-invalid.json": "./fixtures/release-1.4.0-invalid.json",
+    "./fixtures/release-1.5.0-valid.json": "./fixtures/release-1.5.0-valid.json",
+    "./fixtures/release-1.5.0-invalid.json": "./fixtures/release-1.5.0-invalid.json",
+    "./fixtures/producer-declaration-3.0.0-valid.json": "./fixtures/producer-declaration-3.0.0-valid.json",
+    "./fixtures/producer-declaration-3.0.0-invalid.json": "./fixtures/producer-declaration-3.0.0-invalid.json",
+    "./fixtures/producer-declaration-3.1.0-valid.json": "./fixtures/producer-declaration-3.1.0-valid.json",
+    "./fixtures/producer-declaration-3.1.0-invalid.json": "./fixtures/producer-declaration-3.1.0-invalid.json",
+    "./fixtures/content-inventory-1.0.0-valid.json": "./fixtures/content-inventory-1.0.0-valid.json",
+    "./fixtures/content-inventory-1.0.0-invalid.json": "./fixtures/content-inventory-1.0.0-invalid.json",
+    "./fixtures/release-content-1.0.0-valid.json": "./fixtures/release-content-1.0.0-valid.json",
+    "./fixtures/release-content-1.0.0-invalid.json": "./fixtures/release-content-1.0.0-invalid.json",
+    "./fixtures/scan-baseline-1.0.0-valid.json": "./fixtures/scan-baseline-1.0.0-valid.json",
+    "./fixtures/scan-baseline-1.0.0-invalid.json": "./fixtures/scan-baseline-1.0.0-invalid.json",
+    "./fixtures/core-recipe-1.0.0-valid.json": "./fixtures/core-recipe-1.0.0-valid.json",
+    "./fixtures/core-recipe-1.0.0-invalid.json": "./fixtures/core-recipe-1.0.0-invalid.json",
+    "./fixtures/core-recipe-1.1.0-valid.json": "./fixtures/core-recipe-1.1.0-valid.json",
+    "./fixtures/core-recipe-1.1.0-invalid.json": "./fixtures/core-recipe-1.1.0-invalid.json",
+    "./fixtures/core-recipe-1.3.0-valid.json": "./fixtures/core-recipe-1.3.0-valid.json",
+    "./fixtures/core-recipe-1.3.0-invalid.json": "./fixtures/core-recipe-1.3.0-invalid.json",
+    "./schemas/package-support/1.1.0.json": "./schemas/package-support/1.1.0.json",
+    "./package-support-1.1.json": "./package-support-1.1.json"
   },
   "engines": {
     "node": ">=24.15.0 <25"
@@ -89,7 +126,7 @@
     "produce:ecc": "npm run build:dist && node tools/produce-upstream-inputs.mjs ecc",
     "produce:superpowers": "npm run build:dist && node tools/produce-upstream-inputs.mjs superpowers",
     "produce:mattpocock": "npm run build:dist && node tools/produce-upstream-inputs.mjs mattpocock",
-    "verify": "npm run typecheck && npm run lint && npm run build:dist && npm run check:materials && npm test && npm run verify:workflow-action-pins && npm run check:baseline-schemas",
+    "verify": "npm run typecheck && npm run lint && npm run build:dist && npm run check:materials && npm test && npm run verify:workflow-action-pins && npm run check:baseline-schemas && npm run check:contract-fixtures",
     "generate:catalog-index": "node tools/generate-catalog-index.mjs",
     "generate:catalog-collections": "node tools/generate-catalog-collections.mjs",
     "generate:catalog-qualification": "node tools/generate-catalog-qualification.mjs",
@@ -112,7 +149,10 @@
     "historical:check:catalog-index": "node tools/check-not-candidate.mjs && node tools/generate-catalog-index.mjs --check && node tools/generate-catalog-collections.mjs --check && node tools/generate-catalog-qualification.mjs --check && node tools/generate-catalog-presentation.mjs --check && node tools/generate-catalog-categories.mjs --check && node tools/generate-catalog-runtime-descriptors.mjs --check && node dist/production/catalog-defaults-v1.js --check && node tools/check-committed-catalog-defaults.mjs",
     "build:nuclei": "node tools/build-nuclei-helper.mjs",
     "check:baseline-schemas": "node tools/generate-baseline-schemas.mjs --check",
-    "prepare:release": "npm run build:dist && node tools/prepare-release.mjs"
+    "prepare:release": "npm run build:dist && node tools/prepare-release.mjs",
+    "generate:contract-fixtures": "node tools/generate-contract-fixtures.mjs",
+    "check:contract-fixtures": "node tools/generate-contract-fixtures.mjs --check",
+    "check:scan-fixtures": "node tools/check-pinned-scan-fixtures.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.1",
@@ -181,7 +221,13 @@
     "dist/producer/candidate.d.ts",
     "dist/producer/declaration.d.ts",
     "dist/producer/generate.d.ts",
-    "dist/producer/tree.d.ts"
+    "dist/producer/tree.d.ts",
+    "fixtures",
+    "package-support.json",
+    "schemas/release-content",
+    "schemas/package-support",
+    "docs/CONTRACT-FIXTURES.md",
+    "package-support-1.1.json"
   ],
   "private": true
 }
