@@ -53,3 +53,19 @@ instructions travel through an explicit private handoff.
 Carry existing authorization within its scope. Tests or instructions alone do not
 authorize tracker writes, pushes, merges, signing or publication. Semver/category
 labels do not establish triage readiness. Resolve current labels before edits.
+
+## Agent skills
+
+Use the installed Matt Pocock engineering skills and aih-extensions within this repository's existing rules. Keep the skills in their managed user installation.
+
+### Issue tracker
+
+GitHub Issues on `samartomar/aih-catalog`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Preserve accepted label mappings and existing categories. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+One product vocabulary with the existing decision authority. See `docs/agents/domain.md`.
