@@ -876,6 +876,7 @@ function checkPayload16(
         command.args.forEach((arg, index) => {
           const at = `${path}/payload/command/args/${index}`;
           if (isRecord(arg)) {
+            if (!fields(d, arg, at, ["material"])) return;
             if (typeof arg.material !== "string" || !contentIds.has(arg.material)) {
               d.add("unknown-material", at, "An argument material must name a content material.");
             }
@@ -1016,6 +1017,7 @@ function checkProvenance16(
     ) {
       return;
     }
+    id(d, entry.itemId, `${at}/itemId`);
     if (entry.status !== "verified" && entry.status !== "declared") {
       d.add("invalid-derived-from", `${at}/status`, "Expected verified or declared.");
       return;

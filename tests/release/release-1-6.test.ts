@@ -946,3 +946,41 @@ describe("release 1.6.0 closed admission", () => {
     expect(reasons(identityLess)).toContain("no-item-identities");
   });
 });
+
+describe("release 1.6.0 nested closed shapes", () => {
+  it("refuses an extra field on a hook command argument material object", () => {
+    const item = buildItem({
+      id: "hook-item",
+      kind: "hook",
+      payload: {
+        event: "pre-commit",
+        protocol: "claude-code-hooks",
+        command: {
+          interpreter: "node",
+          script: "skill-1",
+          args: [{ material: "skill-1", unexpected: true }],
+        },
+      },
+    });
+    const result = read(bindAny(release16([item])));
+    expect(result.valid).toBe(false);
+    if (result.valid) return;
+    expect(reasons(result)).toContain("unknown-field");
+  });
+
+  it("refuses a non-identifier derivedFrom itemId", () => {
+    const item = buildItem({
+      id: "alpha",
+      kind: "skill",
+      extra: {
+        derivedFrom: [
+          { itemId: null, status: "declared" },
+        ] as unknown as Json,
+      },
+    });
+    const result = read(bindAny(release16([item])));
+    expect(result.valid).toBe(false);
+    if (result.valid) return;
+    expect(reasons(result)).toContain("invalid-id");
+  });
+});

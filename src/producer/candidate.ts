@@ -347,6 +347,12 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
     ...(base?.checked.framework !== undefined
       ? { framework: base.checked.framework as Json }
       : {}),
+    ...(base?.checked.retired !== undefined
+      ? { retired: base.checked.retired as unknown as Json }
+      : {}),
+    ...(base?.checked.nativeRoutes !== undefined
+      ? { nativeRoutes: base.checked.nativeRoutes as Json }
+      : {}),
     ...(input.metadata === undefined && base?.metadata === undefined
       ? {}
       : { metadata: input.metadata ?? base?.metadata }),
