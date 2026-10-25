@@ -30,6 +30,7 @@ import type {
   DependencyRef,
   InputSpec,
   Json,
+  NameBasis,
 } from "./contracts.js";
 import {
   bytewiseCompare,
@@ -44,6 +45,7 @@ import { canonicalJson, deepFreeze } from "./json.js";
 import { readRelease, readReleaseContent } from "./reader.js";
 import { checkRecipeAgreement } from "./recipe-agreement.js";
 import { extractSourceFacts, type SourceDiscovery } from "./source-facts.js";
+import { isSpdxLicenseId } from "./spdx.js";
 
 export const PRODUCER_DECLARATION_SCHEMA_ID =
   "urn:aihq:catalog:producer-declaration:3.0.0" as const;
@@ -266,6 +268,14 @@ export function checkProducerDeclaration(value: unknown): AuthoringResult<Produc
       })),
     });
   const declaration = copy as ProducerDeclaration;
+  for (const [index, source] of declaration.sources.entries()) {
+    if (!isSpdxLicenseId(source.license)) {
+      return failure(
+        `/sources/${index}/license`,
+        "Expected an SPDX licence identifier or expression from the embedded SPDX License List.",
+      );
+    }
+  }
   const diagnostics = new Diagnostics();
   for (const [index, item] of declaration.items.entries()) {
     checkInputs(
@@ -338,7 +348,11 @@ function projectItemTo16(args: {
   source: ProducerSource;
   tree: SourceTree;
   entry?: string;
-  authoredName: boolean;
+  /** The display values and their recorded fallback bases, when publishable. */
+  display: {
+    readonly name?: { readonly value: string; readonly basis: NameBasis };
+    readonly description?: { readonly value: string; readonly basis: NameBasis };
+  };
   frameworkId: string;
   addresses: ReadonlyMap<string, { readonly sourcePath: string; readonly relPath: string }>;
 }): AuthoringResult<never> | undefined {
@@ -462,12 +476,12 @@ function projectItemTo16(args: {
   if (provenance?.derivedFrom !== undefined) {
     record.derivedFrom = provenance.derivedFrom as unknown as Json;
   }
-  if (item.name !== undefined) {
-    record.name = item.name;
-    record.nameBasis = item.nameBasis ?? "publisher";
-  } else if (args.authoredName) {
-    record.name = typeof record.label === "string" ? record.label : id;
-    record.nameBasis = "authored";
+  if (args.display.name !== undefined) {
+    record.name = args.display.name.value;
+    record.nameBasis = args.display.name.basis;
+  }
+  if (args.display.description !== undefined) {
+    record.descriptionBasis = args.display.description.basis;
   }
   record.size = { parts: partSizes(record, contentMembers), status: "measured" };
   (output.members as GeneratedMember[]).push({
@@ -636,6 +650,34 @@ export function compileProducerDeclaration(request: {
   for (const source of declaration.sources)
     if (!trees.has(source.id))
       return failure("/sourceFiles", `Missing source snapshot ${source.id}.`);
+  // Notices at the exact pinned snapshot must ship with the pins actually used:
+  // refuse any discovered NOTICE file that no declared item carries.
+  for (const source of declaration.sources) {
+    const tree = trees.get(source.id) as SourceTree;
+    const carried = new Set<string>();
+    for (const item of declaration.items) {
+      if (item.source !== source.id) continue;
+      if ("recipePath" in item) {
+        for (const member of item.materials) carried.add(member.path);
+      } else {
+        carried.add(item.skillPath);
+        carried.add(source.licensePath);
+        const directory = item.skillPath.split("/").slice(0, -1).join("/");
+        for (const supportPath of item.supportPaths ?? []) {
+          carried.add(directory === "" ? supportPath : `${directory}/${supportPath}`);
+        }
+      }
+    }
+    for (const path of tree.inventory.paths) {
+      if (!/^NOTICE(?:\.md|\.txt)?$/i.test(path.split("/").pop() ?? "")) continue;
+      if (!carried.has(path)) {
+        return failure(
+          "/declaration/sources",
+          `Source ${source.id} pins ${path} at revision ${tree.commit} and no declared item carries it; carry the pinned notice or remove it from the snapshot.`,
+        );
+      }
+    }
+  }
   const donor = parseDeclaration(donorProjection(declaration));
   // Large inventories retain full descriptive byte provenance once, rather than
   // multiplying it by every item. Small declarations keep their existing bytes.
@@ -759,18 +801,44 @@ export function compileProducerDeclaration(request: {
           `/items/${index}/configuration`,
           "Declared configuration must mirror the recipe's existing input specs; labels/help are display-only.",
         );
-      output.record.label = sourceFacts
-        ? sourceFacts.name.state === "authored"
-          ? sourceFacts.name.value
-          : sourceFacts.identifier.length <= 256
+      // Display fallback order: authored, first heading, key or file name, then an
+      // explicit publisher overlay. The chosen level is recorded as the basis. The
+      // file-name level uses the basename; a full path is never published as a name.
+      const identifierName =
+        sourceFacts === undefined
+          ? undefined
+          : sourceFacts.identifierBasis === "key"
             ? sourceFacts.identifier
-            : item.id
-        : item.label;
-      output.record.description = sourceFacts
-        ? sourceFacts.description.state === "authored"
+            : (sourceFacts.identifier.split("/").pop() ?? sourceFacts.identifier);
+      const displayName =
+        item.name ??
+        (sourceFacts?.name.state === "authored"
+          ? sourceFacts.name.value
+          : sourceFacts
+            ? identifierName !== undefined && identifierName.length <= 256
+              ? identifierName
+              : item.id
+            : item.label);
+      const nameBasis: NameBasis | undefined =
+        item.name !== undefined
+          ? (item.nameBasis ?? "publisher")
+          : sourceFacts?.name.state === "authored"
+            ? sourceFacts.name.basis
+            : sourceFacts
+              ? sourceFacts.identifierBasis
+              : undefined;
+      const displayDescription =
+        sourceFacts?.description.state === "authored"
           ? sourceFacts.description.value
-          : ""
-        : item.description;
+          : (item.description ?? "");
+      const descriptionBasis: NameBasis | undefined =
+        sourceFacts?.description.state === "authored"
+          ? sourceFacts.description.basis
+          : item.description
+            ? "publisher"
+            : undefined;
+      output.record.label = displayName;
+      output.record.description = displayDescription;
       output.record.kind = item.kind;
       output.record.dependencies = {
         requires: item.requires as unknown as Json,
@@ -838,7 +906,16 @@ export function compileProducerDeclaration(request: {
           source,
           tree,
           ...("skillPath" in donorItem ? { entry: donorItem.entry } : {}),
-          authoredName: sourceFacts?.name.state === "authored",
+          display: {
+            name:
+              nameBasis === undefined
+                ? undefined
+                : { value: String(displayName), basis: nameBasis },
+            description:
+              descriptionBasis === undefined
+                ? undefined
+                : { value: displayDescription, basis: descriptionBasis },
+          },
           frameworkId: (declaration.framework as { id: string }).id,
           addresses,
         });

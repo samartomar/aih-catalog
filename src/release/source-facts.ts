@@ -21,13 +21,22 @@ export interface SourceDiscovery {
   /** Native registration key, never the identity of an individual MCP tool. */
   readonly key?: string;
 }
+/** Which fallback level produced a display value; recorded as the published basis. */
+export type SourceFieldBasis = "authored" | "first-heading" | "key" | "file-name";
 export type SourceField =
-  | { readonly state: "authored"; readonly value: string; readonly locator: string }
+  | {
+      readonly state: "authored";
+      readonly value: string;
+      readonly locator: string;
+      readonly basis: SourceFieldBasis;
+    }
   | { readonly state: "absent" | "invalid"; readonly required: boolean; readonly locator: string };
 export interface SourceFacts {
   readonly profile: string;
   readonly status: "valid" | "profile-error" | "malformed" | "unsupported";
   readonly identifier: string;
+  /** Whether the identifier came from a registration key or the file path. */
+  readonly identifierBasis: "key" | "file-name";
   readonly provenance: {
     readonly path: string;
     readonly revision: string;
@@ -170,7 +179,12 @@ export function extractSourceFacts(input: {
       });
       return { state: "invalid", required, locator };
     }
-    return { state: "authored", value, locator };
+    return {
+      state: "authored",
+      value,
+      locator,
+      basis: key === "name" && nameLocator === "markdown.heading[1]" ? "first-heading" : "authored",
+    };
   };
   try {
     if (!profiles.has(input.profile)) status = "unsupported";
@@ -330,6 +344,7 @@ export function extractSourceFacts(input: {
     profile: input.profile,
     status,
     identifier: input.key ?? input.path,
+    identifierBasis: input.key !== undefined ? "key" : "file-name",
     provenance: { path: input.path, revision: input.revision, sha256: sha256Hex(input.bytes) },
     name,
     description,
