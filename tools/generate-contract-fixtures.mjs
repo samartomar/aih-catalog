@@ -133,6 +133,163 @@ for (const [version, id, context] of [
   };
   add("release-index-1.0.0", releaseIndex.schema, releaseIndex, "release-index",
     "Authored golden index over one public source: current, retired and revoked entries, a local location and one evidence location; unsigned-first reading with digests checked.");
+  // Golden scenarios: whole merge behaviours over committed index documents. The
+  // envelope carries the request, the per-source state and the authored expected
+  // outcome; the public checker executes each scenario through readReleaseIndex.
+  const IDX = "urn:aihq:catalog:release-index:1.0.0";
+  const FAR = "2999-01-01T00:00:00Z";
+  const AT = "2026-06-01T00:00:00Z";
+  const indexDoc = (sourceId, version, entries) => ({
+    schema: IDX, sourceId, version, issuedAt: "2026-01-01T00:00:00Z", expires: FAR, entries,
+  });
+  const sentry = (frameworkId, sha, sourceId, kind, status = "current") => ({
+    frameworkId,
+    name: `Framework ${frameworkId.slice("framework-".length)[0].toUpperCase()}${frameworkId.slice("framework-".length + 1)}`,
+    version: "1.0.0",
+    location: archive(frameworkId, sha),
+    sha256: release(sha),
+    schema: "urn:aihq:catalog:release:1.5.0",
+    status,
+    evidence: [],
+    source: { id: sourceId, kind },
+  });
+  const expectEntry = (frameworkId, status, sourceId, kind) => ({
+    frameworkId, version: "1.0.0", status, sources: [{ id: sourceId, kind }],
+  });
+  const addScenario = (name, envelope, provenance) => {
+    const contract = IDX;
+    const schemaExport = contractSupport.contracts.find((c) => c.id === contract)?.schemaExport;
+    const path = `fixtures/release-index/${name}.json`;
+    write(path, envelope);
+    fixtures.push({
+      name, contract, version: "1.0.0", export: `@aihq/catalog/${path}`, schemaExport,
+      reader: "release-index-scenario", scenario: true, provenance,
+      expected: { status: "accept" },
+    });
+  };
+  const sourceReq = (sourceId, document, authorized, extra = {}) => ({
+    sourceId, trust: "none", authorizedFrameworks: authorized,
+    index: document, ...extra,
+  });
+  addScenario("merge-public-local", {
+    scenario: "merge-public-local", evaluatedAt: AT,
+    sources: [
+      sourceReq("catalog-public", indexDoc("catalog-public", 3, [
+        sentry("framework-alpha", "merge-a", "catalog-public", "public"),
+        sentry("framework-beta", "merge-b", "catalog-public", "public", "retired"),
+      ]), ["framework-alpha", "framework-beta", "framework-gamma"]),
+      sourceReq("org-local", indexDoc("org-local", 2, [
+        sentry("framework-gamma", "merge-g", "org-local", "local"),
+      ]), ["framework-gamma"]),
+    ],
+    state: [
+      { sourceId: "catalog-public", lastVersion: 0, lastVerifiedAt: null, lastIndexSha256: null },
+      { sourceId: "org-local", lastVersion: 0, lastVerifiedAt: null, lastIndexSha256: null },
+    ],
+    expect: {
+      valid: true,
+      entries: [
+        expectEntry("framework-alpha", "current", "catalog-public", "public"),
+        expectEntry("framework-beta", "retired", "catalog-public", "public"),
+        expectEntry("framework-gamma", "current", "org-local", "local"),
+      ],
+      sourceDiagnostics: [["unsigned"], ["unsigned"]],
+      stateVersions: [3, 2],
+    },
+  }, "Unsigned public and local merge over committed index documents; retired stays listed.");
+  addScenario("conflict-two-sources", {
+    scenario: "conflict-two-sources", evaluatedAt: AT,
+    sources: [
+      sourceReq("catalog-public", indexDoc("catalog-public", 1, [
+        sentry("framework-alpha", "conflict-a", "catalog-public", "public"),
+      ]), ["framework-alpha", "framework-beta"]),
+      sourceReq("org-mirror", indexDoc("org-mirror", 9, [
+        sentry("framework-alpha", "conflict-b", "org-mirror", "organization"),
+        sentry("framework-beta", "conflict-bb", "org-mirror", "organization"),
+      ]), ["framework-alpha", "framework-beta"]),
+    ],
+    state: [
+      { sourceId: "catalog-public", lastVersion: 0, lastVerifiedAt: null, lastIndexSha256: null },
+      { sourceId: "org-mirror", lastVersion: 0, lastVerifiedAt: null, lastIndexSha256: null },
+    ],
+    expect: {
+      valid: true,
+      entries: [expectEntry("framework-beta", "current", "org-mirror", "organization")],
+      sourceDiagnostics: [["unsigned", "conflict"], ["unsigned", "conflict"]],
+      stateVersions: [1, 9],
+    },
+  }, "Two sources disagree on one release digest; the conflict is reported and neither entry is used.");
+  addScenario("rollback-refused", {
+    scenario: "rollback-refused", evaluatedAt: AT,
+    sources: [sourceReq("catalog-public", indexDoc("catalog-public", 2, [
+      sentry("framework-alpha", "rollback-a", "catalog-public", "public"),
+    ]), ["framework-alpha"])],
+    state: [{ sourceId: "catalog-public", lastVersion: 3, lastVerifiedAt: null, lastIndexSha256: release("accepted-v3") }],
+    expect: {
+      valid: true,
+      entries: [],
+      sourceDiagnostics: [["rollback-refused"]],
+      stateVersions: [3],
+    },
+  }, "An index version below the recorded version is refused and the recorded state is kept.");
+  addScenario("scope-unauthorized-framework", {
+    scenario: "scope-unauthorized-framework", evaluatedAt: AT,
+    sources: [sourceReq("catalog-public", indexDoc("catalog-public", 1, [
+      sentry("framework-alpha", "scope-a", "catalog-public", "public"),
+      sentry("framework-beta", "scope-b", "catalog-public", "public"),
+    ]), ["framework-alpha"])],
+    state: [{ sourceId: "catalog-public", lastVersion: 0, lastVerifiedAt: null, lastIndexSha256: null }],
+    expect: {
+      valid: true,
+      entries: [expectEntry("framework-alpha", "current", "catalog-public", "public")],
+      sourceDiagnostics: [["unsigned", "unauthorized-framework"]],
+      stateVersions: [1],
+    },
+  }, "A framework outside the source authorization is ignored with unauthorized-framework.");
+  addScenario("expired-index", {
+    scenario: "expired-index", evaluatedAt: AT,
+    sources: [sourceReq("catalog-public", {
+      schema: IDX, sourceId: "catalog-public", version: 4, issuedAt: "2026-01-01T00:00:00Z",
+      expires: "2026-01-15T00:00:00Z",
+      entries: [sentry("framework-alpha", "expired-a", "catalog-public", "public")],
+    }, ["framework-alpha"])],
+    state: [{ sourceId: "catalog-public", lastVersion: 0, lastVerifiedAt: null, lastIndexSha256: null }],
+    expect: {
+      valid: true,
+      entries: [],
+      sourceDiagnostics: [["expired"]],
+      stateVersions: [0],
+    },
+  }, "An expired index has its entries withheld and the state does not advance.");
+  addScenario("tuf-selected-offline", {
+    scenario: "tuf-selected-offline", evaluatedAt: AT,
+    sources: [{
+      sourceId: "catalog-public", trust: { tufRoot: "dGVzdC1yb290" },
+      authorizedFrameworks: ["framework-alpha"],
+      index: indexDoc("catalog-public", 1, [sentry("framework-alpha", "tuf-a", "catalog-public", "public")]),
+    }],
+    state: [{ sourceId: "catalog-public", lastVersion: 0, lastVerifiedAt: null, lastIndexSha256: null }],
+    expect: {
+      valid: true,
+      entries: [],
+      sourceDiagnostics: [["offline"]],
+      stateVersions: [0],
+    },
+  }, "A caller-selected TUF source reports offline with verification unavailable and contributes no entries.");
+  {
+    const cached = indexDoc("catalog-public", 1, [sentry("framework-alpha", "cache-a", "catalog-public", "public")]);
+    addScenario("offline-cache-reuse", {
+      scenario: "offline-cache-reuse", evaluatedAt: AT,
+      sources: [sourceReq("catalog-public", cached, ["framework-alpha"], { offline: true })],
+      state: [{ sourceId: "catalog-public", lastVersion: 1, lastVerifiedAt: null, lastIndexSha256: sha(bytes(cached)) }],
+      expect: {
+        valid: true,
+        entries: [expectEntry("framework-alpha", "current", "catalog-public", "public")],
+        sourceDiagnostics: [["offline"]],
+        stateVersions: [1],
+      },
+    }, "Offline reuse serves the unexpired recorded copy, says so, and never relabels it as verified.");
+  }
 }
 write("fixtures/manifest.json", { schema: "urn:aihq:catalog:fixture-manifest:1.0.0", package: contractSupport.package, fixtures });
 write("package-support.json", contractSupport);

@@ -23,14 +23,13 @@ import {
   type ReleaseIndexSourceResult,
   type ReleaseIndexSourceState,
 } from "./contracts.js";
-import { checkMaterialSource, fields, isId, isRecord, SHA256 } from "./document.js";
+import { checkMaterialSource, Diagnostics, fields, isId, isRecord, SHA256 } from "./document.js";
 import { deepFreeze, JsonAdmissionError, readCanonicalBytes } from "./json.js";
 import { sha256Hex } from "./sha256.js";
 import { EXACT_VERSION } from "./version.js";
 
 const RELEASE_SCHEMA_IDS = Object.freeze(Object.keys(RELEASE_RECIPE_SCHEMAS));
 const INDEX_MAX_ENTRIES = 4096;
-const MAX_DIAGNOSTICS = 256;
 const STATUS_ORDER: Readonly<Record<ReleaseIndexEntryStatus, number>> = Object.freeze({
   current: 0,
   retired: 1,
@@ -70,24 +69,7 @@ function parseInstant(value: unknown): number | undefined {
   return millis;
 }
 
-class IndexDiagnostics {
-  readonly list: ReleaseIndexDiagnostic[] = [];
-  add(
-    reason: string,
-    path: string,
-    message: string,
-    extra: Partial<ReleaseIndexDiagnostic> = {},
-  ): false {
-    if (this.list.length < MAX_DIAGNOSTICS) {
-      this.list.push(
-        Object.freeze({ code: "INPUT_INVALID", reason, message, blocking: true, path, ...extra }),
-      );
-    }
-    return false;
-  }
-}
-
-function checkEntry(d: IndexDiagnostics, value: unknown, path: string, sourceId: string): void {
+function checkEntry(d: Diagnostics, value: unknown, path: string, sourceId: string): void {
   if (
     !fields(
       d,
@@ -159,32 +141,31 @@ function checkEntry(d: IndexDiagnostics, value: unknown, path: string, sourceId:
       checkMaterialSource(d, location, `${path}/evidence/${index}`);
     });
   }
-  if (isRecord(entry.source)) {
-    if (!fields(d, entry.source, `${path}/source`, ["id", "kind"])) return;
-    if (!isId(entry.source.id)) {
-      d.add("invalid-id", `${path}/source/id`, "Expected a source identifier.");
-    } else if (entry.source.id !== sourceId) {
-      d.add(
-        "source-id-mismatch",
-        `${path}/source/id`,
-        "Every entry names the source that published this index document.",
-      );
-    }
-    if (
-      entry.source.kind !== "public" &&
-      entry.source.kind !== "organization" &&
-      entry.source.kind !== "local"
-    ) {
-      d.add(
-        "invalid-source-kind",
-        `${path}/source/kind`,
-        "Expected public, organization or local.",
-      );
-    }
+  if (!isRecord(entry.source)) {
+    d.add("invalid-type", `${path}/source`, "Expected an object.");
+    return;
+  }
+  if (!fields(d, entry.source, `${path}/source`, ["id", "kind"])) return;
+  if (!isId(entry.source.id)) {
+    d.add("invalid-id", `${path}/source/id`, "Expected a source identifier.");
+  } else if (entry.source.id !== sourceId) {
+    d.add(
+      "source-id-mismatch",
+      `${path}/source/id`,
+      "Every entry names the source that published this index document.",
+    );
+  }
+  if (
+    entry.source.kind !== "public" &&
+    entry.source.kind !== "organization" &&
+    entry.source.kind !== "local"
+  ) {
+    d.add("invalid-source-kind", `${path}/source/kind`, "Expected public, organization or local.");
   }
 }
 
 interface CheckedIndexDocument {
+  readonly sourceId: string;
   readonly version: number;
   readonly issuedAt: number;
   readonly expires: number;
@@ -196,7 +177,7 @@ function checkIndexDocument(value: unknown): {
   readonly diagnostics: readonly ReleaseIndexDiagnostic[];
   readonly document?: CheckedIndexDocument;
 } {
-  const d = new IndexDiagnostics();
+  const d = new Diagnostics();
   if (
     isRecord(value) &&
     Object.hasOwn(value, "schema") &&
@@ -214,10 +195,10 @@ function checkIndexDocument(value: unknown): {
         supported: [RELEASE_INDEX_SCHEMA_ID],
       }),
     );
-    return { diagnostics: d.list };
+    return { diagnostics: d.list as unknown as readonly ReleaseIndexDiagnostic[] };
   }
   if (!fields(d, value, "", ["schema", "sourceId", "version", "issuedAt", "expires", "entries"])) {
-    return { diagnostics: d.list };
+    return { diagnostics: d.list as unknown as readonly ReleaseIndexDiagnostic[] };
   }
   const sourceId = value.sourceId;
   if (!isId(sourceId)) d.add("invalid-id", "/sourceId", "Expected a source identifier.");
@@ -269,10 +250,12 @@ function checkIndexDocument(value: unknown): {
       seen.add(key);
     });
   }
-  if (d.list.length > 0) return { diagnostics: d.list };
+  if (d.list.length > 0)
+    return { diagnostics: d.list as unknown as readonly ReleaseIndexDiagnostic[] };
   return {
     diagnostics: [],
     document: {
+      sourceId: sourceId as string,
       version,
       issuedAt: issuedAt as number,
       expires: expires as number,
@@ -610,6 +593,19 @@ export function readReleaseIndex(request: ReadReleaseIndexRequest): ReadReleaseI
       continue;
     }
     const doc = checked.document;
+    if (doc.sourceId !== source.sourceId) {
+      structuralFailure = true;
+      finish([
+        Object.freeze({
+          code: "INPUT_INVALID",
+          reason: "source-id-mismatch",
+          message: "The index document names a different source than the one it was supplied for.",
+          blocking: true,
+          path: "/sourceId",
+        }),
+      ]);
+      continue;
+    }
 
     const scopeEntries = () => {
       const kept: ReleaseIndexEntry[] = [];

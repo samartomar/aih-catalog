@@ -108,7 +108,14 @@
     "./package-support-1.1.json": "./package-support-1.1.json",
     "./schemas/release-index/1.0.0.json": "./schemas/release-index/1.0.0.json",
     "./fixtures/release-index-1.0.0-valid.json": "./fixtures/release-index-1.0.0-valid.json",
-    "./fixtures/release-index-1.0.0-invalid.json": "./fixtures/release-index-1.0.0-invalid.json"
+    "./fixtures/release-index-1.0.0-invalid.json": "./fixtures/release-index-1.0.0-invalid.json",
+    "./fixtures/release-index/merge-public-local.json": "./fixtures/release-index/merge-public-local.json",
+    "./fixtures/release-index/conflict-two-sources.json": "./fixtures/release-index/conflict-two-sources.json",
+    "./fixtures/release-index/rollback-refused.json": "./fixtures/release-index/rollback-refused.json",
+    "./fixtures/release-index/scope-unauthorized-framework.json": "./fixtures/release-index/scope-unauthorized-framework.json",
+    "./fixtures/release-index/expired-index.json": "./fixtures/release-index/expired-index.json",
+    "./fixtures/release-index/tuf-selected-offline.json": "./fixtures/release-index/tuf-selected-offline.json",
+    "./fixtures/release-index/offline-cache-reuse.json": "./fixtures/release-index/offline-cache-reuse.json"
   },
   "engines": {
     "node": ">=24.15.0 <25"

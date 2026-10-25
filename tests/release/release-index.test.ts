@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readReleaseIndex } from "../../src/release/reader.js";
+import { readReleaseIndex } from "../../dist/release/reader.js";
 import { canonical, encode, type Json, sha256 } from "./fixtures.js";
 
 const NOW = "2026-06-01T00:00:00Z";
@@ -421,6 +421,58 @@ describe("readReleaseIndex", () => {
     ]);
     expect(future.valid).toBe(false);
     expect(future.sources[0]?.diagnostics[0]?.code).toBe("SCHEMA_UNSUPPORTED");
+  });
+
+  it("refuses entry sources that are not objects", () => {
+    for (const source of [null, "catalog-public", ["catalog-public"]]) {
+      const doc = indexDocument();
+      (doc.entries as Record<string, Json>[])[0]!.source = source as Json;
+      const result = read([{ sourceId: "catalog-public", doc }]);
+      expect(result.valid).toBe(false);
+      expect(result.entries).toEqual([]);
+      expect(result.sources[0]?.diagnostics.map((d) => d.reason)).toContain("invalid-type");
+    }
+  });
+
+  it("refuses a document published for a different source", () => {
+    const doc = indexDocument({
+      sourceId: "org-mirror",
+      entries: [entry({ sourceId: "org-mirror", kind: "organization" })],
+    });
+    const online = read([{ sourceId: "catalog-public", doc }]);
+    expect(online.valid).toBe(false);
+    expect(online.entries).toEqual([]);
+    expect(online.sources[0]?.diagnostics).toEqual([
+      expect.objectContaining({
+        code: "INPUT_INVALID",
+        reason: "source-id-mismatch",
+        path: "/sourceId",
+      }),
+    ]);
+    const bytes = bytesOf(doc);
+    const offline = readReleaseIndex({
+      evaluatedAt: NOW,
+      sources: [
+        {
+          sourceId: "catalog-public",
+          trust: "none",
+          authorizedFrameworks: ["alpha"],
+          indexBytes: bytes,
+          offline: true,
+        },
+      ],
+      state: [
+        {
+          sourceId: "catalog-public",
+          lastVersion: 1,
+          lastVerifiedAt: null,
+          lastIndexSha256: "0".repeat(64),
+        },
+      ],
+    });
+    expect(offline.valid).toBe(false);
+    expect(offline.entries).toEqual([]);
+    expect(offline.sources[0]?.diagnostics.map((d) => d.reason)).toContain("source-id-mismatch");
   });
 
   it("names the requesting source in missing-bytes diagnostics", () => {

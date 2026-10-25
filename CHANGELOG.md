@@ -14,7 +14,10 @@
   frameworks a source may publish or revoke; retired and revoked entries stay
   listed. A source whose host selected TUF reports `offline` and contributes
   nothing until #138 delivers verification. Package support and golden fixtures
-  list the new contract; tests run through packed public exports.
+  list the new contract; tests run through packed public exports. Golden
+  scenarios under `fixtures/release-index/` execute merge, conflict, rollback,
+  scope, expiry, offline reuse and the TUF-selected offline report through the
+  packed checker.
 
 - Add release 1.5, content-inventory 1.0 and Scan-baseline 1.0 contracts for
   samartomar/aih-catalog#109. Public readers bind every semantic content field

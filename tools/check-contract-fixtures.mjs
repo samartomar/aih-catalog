@@ -34,7 +34,7 @@ assert.deepEqual(contractSupport11.entries, contractSupport.entries);
 assert.deepEqual(contractSupport11.contracts.map(({ versions, fixtures, ...contract }) => contract), contractSupport.contracts);
 for (const contract of contractSupport11.contracts) {
   assert.deepEqual(contract.versions, [contract.id.split(":").at(-1)]);
-  assert.deepEqual(contract.fixtures, manifest.fixtures.filter(f => f.contract === contract.id).map(f => ({
+  assert.deepEqual(contract.fixtures, manifest.fixtures.filter(f => f.contract === contract.id && !f.scenario).map(f => ({
     export: f.export, expect: f.expected.status, ...(f.expected.code ? { code: f.expected.code } : {}),
   })));
   for (const fixture of contract.fixtures) data(fixture.export);
@@ -59,6 +59,33 @@ for (const fixture of manifest.fixtures) {
   assert.equal(fixture.schemaExport, declarations.get(fixture.contract)?.schemaExport);
   const bytes = data(fixture.export), document = JSON.parse(bytes);
   const valid = fixture.expected.status === "accept";
+  if (fixture.reader === "release-index-scenario") {
+    // Whole merge behaviours: the envelope carries the request, per-source state
+    // and the authored expected outcome; execute through the public reader.
+    const request = {
+      evaluatedAt: document.evaluatedAt,
+      sources: document.sources.map(source => ({
+        sourceId: source.sourceId,
+        trust: source.trust && typeof source.trust === "object"
+          ? { tufRoot: new TextEncoder().encode(source.trust.tufRoot) } : source.trust,
+        authorizedFrameworks: source.authorizedFrameworks,
+        indexBytes: encode(source.index),
+        ...(source.offline ? { offline: true } : {}),
+      })),
+      state: document.state,
+    };
+    const result = readReleaseIndex(request);
+    assert.equal(result.valid, document.expect.valid, `${fixture.name}: ${JSON.stringify(result)}`);
+    assert.deepEqual(result.entries.map(entry => ({
+      frameworkId: entry.frameworkId, version: entry.version, status: entry.status, sources: entry.sources,
+    })), document.expect.entries, fixture.name);
+    assert.deepEqual(result.sources.map(source => source.diagnostics.map(d => d.code)),
+      document.expect.sourceDiagnostics, fixture.name);
+    assert.deepEqual(result.sources.map(source => source.state.lastVersion),
+      document.expect.stateVersions, fixture.name);
+    results.push({ export: fixture.export, contract: fixture.contract, version: fixture.version, ...fixture.expected });
+    continue;
+  }
   const validate = validators.get(fixture.contract);
   assert.equal(validate(document), valid, `${fixture.name}: ${JSON.stringify(validate.errors)}`);
   let result;

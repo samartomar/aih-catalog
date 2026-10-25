@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
-import { readReleaseIndex } from "../../src/release/reader.js";
+import { readReleaseIndex } from "../../dist/release/reader.js";
 import { canonical, encode, type Json, sha256 } from "./fixtures.js";
 
 const root = resolve(import.meta.dirname, "../..");
@@ -188,6 +188,13 @@ const structural: [string, Mutation, string][] = [
       firstEntry(i).location = { kind: "local" };
     },
     "missing-field",
+  ],
+  [
+    "entry source as string",
+    (i) => {
+      firstEntry(i).source = "catalog-public";
+    },
+    "invalid-type",
   ],
 ];
 

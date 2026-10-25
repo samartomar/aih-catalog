@@ -250,6 +250,13 @@ describe("the published package keeps its intended runtime subset", () => {
       "./schemas/release-index/1.0.0.json",
       "./fixtures/release-index-1.0.0-valid.json",
       "./fixtures/release-index-1.0.0-invalid.json",
+      "./fixtures/release-index/merge-public-local.json",
+      "./fixtures/release-index/conflict-two-sources.json",
+      "./fixtures/release-index/rollback-refused.json",
+      "./fixtures/release-index/scope-unauthorized-framework.json",
+      "./fixtures/release-index/expired-index.json",
+      "./fixtures/release-index/tuf-selected-offline.json",
+      "./fixtures/release-index/offline-cache-reuse.json",
     ]);
     expect(manifest.private).toBe(true);
     expect(manifest.scripts.prepublishOnly).toBe("node tools/refuse-publication.mjs");

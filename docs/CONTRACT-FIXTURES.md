@@ -57,7 +57,12 @@ structural refusal. A schema pass alone never substitutes for reader admission.
 
 `npm run check:contract-fixtures` checks regeneration. Regenerate after building
 with `npm run generate:contract-fixtures`; `tools/generate-baseline-schemas.mjs`
-owns the standalone projection schema. The support 1.0 schema is copied from
+owns the standalone projection schema. The release index additionally ships golden
+scenario fixtures under `fixtures/release-index/`: each envelope carries the source
+requests (committed index documents), per-source state and the authored expected
+outcome, and the packed checker executes every scenario through the public
+`readReleaseIndex` (merge, conflict, rollback, scope, expiry, offline reuse and a
+caller-selected TUF source reported offline). The support 1.0 schema is copied from
 Core's public
 [`src/harness/schemas/package-support/1.0.0.json`](https://github.com/samartomar/aih-core/blob/47b75d0889f00f6f158e91f2860ca5e32d354ec7/src/harness/schemas/package-support/1.0.0.json).
 The 1.1 schema is copied from Core's
