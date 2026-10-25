@@ -423,6 +423,31 @@ describe("readReleaseIndex", () => {
     expect(future.sources[0]?.diagnostics[0]?.code).toBe("SCHEMA_UNSUPPORTED");
   });
 
+  it("names the requesting source in missing-bytes diagnostics", () => {
+    const doc = indexDocument();
+    const result = readReleaseIndex({
+      evaluatedAt: NOW,
+      sources: [
+        {
+          sourceId: "catalog-public",
+          trust: "none",
+          authorizedFrameworks: ["alpha"],
+          indexBytes: bytesOf(doc),
+        },
+        { sourceId: "org-mirror", trust: "none", authorizedFrameworks: ["alpha"] },
+      ],
+      state: [initialState("catalog-public"), initialState("org-mirror")],
+    });
+    expect(result.valid).toBe(false);
+    expect(result.sources[1]?.diagnostics).toEqual([
+      expect.objectContaining({
+        code: "INPUT_INVALID",
+        reason: "index-bytes-required",
+        path: "/sources/1/indexBytes",
+      }),
+    ]);
+  });
+
   it("refuses structural document faults with stable reasons", () => {
     const doc = indexDocument({
       entries: [entry({ frameworkId: "beta" }), entry({ frameworkId: "alpha" })],

@@ -23,7 +23,7 @@ import {
   type ReleaseIndexSourceResult,
   type ReleaseIndexSourceState,
 } from "./contracts.js";
-import { checkMaterialSource, isRecord, SHA256 } from "./document.js";
+import { checkMaterialSource, fields, isId, isRecord, SHA256 } from "./document.js";
 import { deepFreeze, JsonAdmissionError, readCanonicalBytes } from "./json.js";
 import { sha256Hex } from "./sha256.js";
 import { EXACT_VERSION } from "./version.js";
@@ -87,35 +87,6 @@ class IndexDiagnostics {
   }
 }
 
-/** Exact field set: unknown fields and missing required fields are both named. */
-function fields(
-  d: IndexDiagnostics,
-  value: unknown,
-  path: string,
-  required: readonly string[],
-  optional: readonly string[] = [],
-): value is Record<string, unknown> {
-  if (!isRecord(value)) return d.add("invalid-type", path, "Expected an object.");
-  let ok = true;
-  for (const key of Object.keys(value)) {
-    if (!required.includes(key) && !optional.includes(key)) {
-      ok = d.add("unknown-field", `${path}/${key}`, "This field is not part of the index format.");
-    }
-  }
-  for (const key of required) {
-    if (!Object.hasOwn(value, key))
-      ok = d.add("missing-field", `${path}/${key}`, "Required field.");
-  }
-  return ok;
-}
-
-const isId = (value: unknown): value is string =>
-  typeof value === "string" && value.length <= 128 && /^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(value);
-
-function checkLocation(d: IndexDiagnostics, value: unknown, path: string): void {
-  checkMaterialSource(d, value, path);
-}
-
 function checkEntry(d: IndexDiagnostics, value: unknown, path: string, sourceId: string): void {
   if (
     !fields(
@@ -171,7 +142,7 @@ function checkEntry(d: IndexDiagnostics, value: unknown, path: string, sourceId:
   ) {
     d.add("invalid-text", `${path}/reason`, "Expected a reason of 1 to 512 characters.");
   }
-  checkLocation(d, entry.location, `${path}/location`);
+  checkMaterialSource(d, entry.location, `${path}/location`);
   if (isRecord(entry.location) && entry.location.kind === "archive") {
     if (entry.location.sha256 !== entry.sha256) {
       d.add(
@@ -185,7 +156,7 @@ function checkEntry(d: IndexDiagnostics, value: unknown, path: string, sourceId:
     d.add("invalid-evidence", `${path}/evidence`, "Expected at most 64 evidence locations.");
   } else {
     entry.evidence.forEach((location, index) => {
-      checkLocation(d, location, `${path}/evidence/${index}`);
+      checkMaterialSource(d, location, `${path}/evidence/${index}`);
     });
   }
   if (isRecord(entry.source)) {
@@ -276,7 +247,7 @@ function checkIndexDocument(value: unknown): {
         typeof entry.frameworkId === "string" &&
         typeof entry.version === "string"
       ) {
-        keys.push(`${entry.frameworkId} ${entry.version}`);
+        keys.push(`${entry.frameworkId}\u0000${entry.version}`);
       }
     });
     const seen = new Set<string>();
@@ -605,7 +576,7 @@ export function readReleaseIndex(request: ReadReleaseIndexRequest): ReadReleaseI
             reason: "index-bytes-required",
             message: "Freshly acquired index bytes are required for an online read.",
             blocking: true,
-            path: "/sources/0/indexBytes",
+            path: `/sources/${sourceIndex}/indexBytes`,
           }),
         ]);
       }
@@ -747,7 +718,7 @@ export function readReleaseIndex(request: ReadReleaseIndexRequest): ReadReleaseI
 
   const groups = new Map<string, AdmittedEntry[]>();
   for (const item of admitted) {
-    const key = `${item.entry.frameworkId} ${item.entry.version}`;
+    const key = `${item.entry.frameworkId}\u0000${item.entry.version}`;
     const list = groups.get(key) ?? [];
     list.push(item);
     groups.set(key, list);

@@ -509,9 +509,7 @@ export type ReleaseIndexDiagnosticCode =
   | "conflict"
   | "unauthorized-framework"
   | "INPUT_INVALID"
-  | "SCHEMA_UNSUPPORTED"
-  /** Structural refusals share the release reader's full code vocabulary. */
-  | "SUGGESTION";
+  | "SCHEMA_UNSUPPORTED";
 
 /** Per-source diagnostic. Callers decide on `code`/`reason`, never on message text. */
 export interface ReleaseIndexDiagnostic {
@@ -522,9 +520,6 @@ export interface ReleaseIndexDiagnostic {
   readonly path?: string;
   readonly frameworkId?: string;
   readonly version?: string;
-  /** Structural refusals reuse the release reader's diagnostic shape. */
-  readonly selectionId?: string;
-  readonly itemId?: string;
   readonly encountered?: string;
   readonly supported?: readonly string[];
 }

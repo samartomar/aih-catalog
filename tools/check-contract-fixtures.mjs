@@ -79,7 +79,8 @@ for (const fixture of manifest.fixtures) {
         state: [{ sourceId: document.sourceId, lastVersion: 0, lastVerifiedAt: null, lastIndexSha256: null }],
       });
       break;
-    }    case "projection": {
+    }
+    case "projection": {
       const inventory = encode({ schema: "urn:aihq:catalog:content-inventory:1.0.0", projection: fixture.contract, release: document });
       result = readContentInventory(inventory, { expectedSha256: sha(inventory) }); break;
     }
