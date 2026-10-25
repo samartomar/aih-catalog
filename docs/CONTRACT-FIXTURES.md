@@ -58,6 +58,20 @@ Recipes are read by `readInstalledRelease` with their real item/material context
 the invalid recipe's descriptor digest is updated so the reader reaches the
 structural refusal. A schema pass alone never substitutes for reader admission.
 
+`@aihq/catalog/node` also exports `readRecipe(bytes)` for a Core recipe on its
+own, such as another package's fixture. It applies the same admission the
+release readers apply to every carried recipe: bounded strict UTF-8 JSON (no BOM,
+repeated keys or numbers that lose their authored value), an admitted Core recipe
+format and Core's structural schema. It returns `{ valid: true, recipe,
+diagnostics: [] }` or `{ valid: false, diagnostics }`: `INPUT_INVALID` with
+`recipe-unreadable` or `recipe-invalid`, or `SCHEMA_UNSUPPORTED`
+(`recipe-schema-unsupported`, with `encountered` and `supported`) for a string
+format Catalog does not admit. A missing or non-string `schema` is
+`recipe-invalid`. Agreement with an advertising item (ID, inputs, targets,
+scopes and material closure) needs that item, so it is checked only when a
+release is read. The result establishes structural admission, not execution
+authority.
+
 `npm run check:contract-fixtures` checks regeneration. Regenerate after building
 with `npm run generate:contract-fixtures`; `tools/generate-baseline-schemas.mjs`
 owns the standalone projection schema. The release index additionally ships golden
@@ -98,6 +112,20 @@ It imports public exports only, validates every declared schema and fixture,
 and verifies each public reader outcome. It also checks complete contract
 coverage, package identity and unique exact fixture exports. The output is a
 machine-readable fixture export manifest with the observed checks.
+
+`node tools/verify-contract-checks.mjs <core.tgz> [catalog.tgz]` adds Core's
+public `checkContracts` with `loadFixture`. It installs the exact Catalog tarball
+(packed from this checkout unless supplied) and the reviewed Core artifact into
+one outside consumer and runs one engine call per accepting package with that
+package's own public readers: Catalog's `readRecipe` and
+`checkProducerDeclaration`, Core's `validateRecipe`. Fixtures load only through
+the producing package's exports. Every derived row must pass in both directions,
+and every Catalog fixture for a contract Core accepts must be among them. It also
+loads every fixture the 1.1 declaration references, and checks that the
+unchanged 1.0 declaration still validates, with Core reporting each Catalog row
+`fixtures-missing` rather than inferring support. Catalog contracts no other
+package in that pair reads are covered by the packed fixture check above.
+Identify the Core artifact by commit and SHA-256.
 
 This contributes to the unreleased package target `0.1.0` / `v0.1.0`.
 Passing fixtures does not authorize publication. The initial delivery also

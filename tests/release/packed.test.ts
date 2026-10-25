@@ -644,6 +644,7 @@ describe("exact packed consumer", () => {
         "prepareProjectContext",
         "prepareReleaseBaseline",
         "readInstalledRelease",
+        "readRecipe",
         "resolveRelease",
       ],
       contracts: [
