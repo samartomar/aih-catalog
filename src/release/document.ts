@@ -996,11 +996,7 @@ function checkProvenance16(
  * file agreement, both recomputed identities, typed payload rules and provenance.
  * Items without any new field are read exactly as release 1.5 items.
  */
-function checkItem16(
-  d: Diagnostics,
-  item: Record<string, unknown>,
-  path: string,
-): void {
+function checkItem16(d: Diagnostics, item: Record<string, unknown>, path: string): void {
   const materials = (Array.isArray(item.materials) ? item.materials : []).filter(isRecord);
   const extended = materials.filter((member) => !Object.hasOwn(member, "path"));
   const legacy = materials.filter((member) => Object.hasOwn(member, "path"));

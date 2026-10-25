@@ -776,7 +776,12 @@ describe("release 1.6.0 consumer flow", () => {
       release: result.release,
       itemId: "alpha",
       configuration: {},
-      materialSource: { kind: "archive", url: "https://example.test/pkg.tgz", sha256: hex("pkg"), byteLength: 1000 },
+      materialSource: {
+        kind: "archive",
+        url: "https://example.test/pkg.tgz",
+        sha256: hex("pkg"),
+        byteLength: 1000,
+      },
     });
     expect(configured.valid).toBe(true);
     if (!configured.valid) return;
