@@ -1064,6 +1064,7 @@ function prepareSourceRefreshData(request: {
           (member) =>
             ({
               ...member,
+              path: String(memberPackagePath(member as unknown as Record<string, unknown>)),
               bytes: Buffer.from(
                 outputs.get(String(memberPackagePath(member as unknown as Record<string, unknown>)))
                   ?.bytes ?? [],

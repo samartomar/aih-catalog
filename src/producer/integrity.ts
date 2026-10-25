@@ -222,7 +222,7 @@ export function checkCandidateFiles(
     for (const member of baselineMembers(release)) declared.add(member.path);
     for (const item of items) {
       for (const member of [asRecord(item.recipe), ...(item.materials as Json[]).map(asRecord)]) {
-        declared.add(member.path as string);
+        declared.add(String(memberPackagePath(member as unknown as Record<string, unknown>)));
       }
     }
   }

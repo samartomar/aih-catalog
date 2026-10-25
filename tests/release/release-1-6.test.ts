@@ -898,7 +898,10 @@ describe("release 1.6.0 closed admission", () => {
     if (!evidence.valid) return;
     expect(evidence.descriptor.frameworkId).toBe(FRAMEWORK_ID);
     expect(evidence.descriptor.itemId).toBe("alpha");
-    expect(evidence.descriptor.contentSha256).toBe(result.release.items[0].contentSha256);
+    const checked = result.release.items[0];
+    expect(checked).toBeDefined();
+    if (checked === undefined) return;
+    expect(evidence.descriptor.contentSha256).toBe(checked.contentSha256);
     const behaviour = evidence.descriptor.materials.find((member) => member.role === "behaviour");
     expect(behaviour?.path).toBe("release/items/alpha/aih-behaviour.json");
     const skill = evidence.descriptor.materials.find((member) => member.path.endsWith("/SKILL.md"));

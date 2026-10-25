@@ -2,6 +2,7 @@ import { expect, it } from "vitest";
 import {
   checkProducerDeclaration,
   compileProducerDeclaration,
+  prepareSourceRefresh,
 } from "../../src/release/producer.js";
 import { readReleaseContent } from "../../src/release/reader.js";
 
@@ -178,6 +179,7 @@ it("compiles a 3.2.0 declaration into release 1.6.0 with behaviour files and ide
     expectedSha256: compiled.value.releaseSha256,
   });
   expect(reread.valid).toBe(true);
+  if (!reread.valid) return;
   expect(reread.release.baseline).toBeUndefined();
 });
 
@@ -258,4 +260,48 @@ it("refuses an unsupported supplied source mode", () => {
   expect(compiled.status).toBe("refused");
   if (compiled.status !== "refused") return;
   expect(compiled.diagnostics[0]?.path).toBe("/sourceFiles/0/modes");
+});
+
+it("refreshes a previous 1.6 release through the public producer flow", () => {
+  const compiled = compileProducerDeclaration({
+    declaration: declaration(),
+    sourceFiles: sourceFiles(),
+  });
+  expect(compiled.status).toBe("ok");
+  if (compiled.status !== "ok") return;
+  const updatedSkill = `${SKILL}\n\nExtra guidance after refresh.\n`;
+  const refreshed = prepareSourceRefresh({
+    declaration: declaration(),
+    source: "notes",
+    inventoryComplete: true,
+    sourceFiles: [
+      {
+        source: "notes",
+        revision: "b".repeat(40),
+        files: {
+          LICENSE: encode("MIT license fixture\n"),
+          "review/SKILL.md": encode(updatedSkill),
+          "mcp/SKILL.md": encode(MCP_SKILL),
+        },
+      },
+    ],
+    previous: {
+      releaseBytes: compiled.value.releaseBytes,
+      materials: compiled.value.materials.map((member) => ({
+        path: member.path,
+        bytes: member.bytes,
+      })),
+    },
+  });
+  expect(refreshed.status).toBe("ok");
+  if (refreshed.status !== "ok") return;
+  expect(refreshed.value.release.schema).toBe("urn:aihq:catalog:release:1.6.0");
+  const review = refreshed.value.release.items.find((item) => item.id === "notes.review");
+  expect(review?.materials.some((member) => "role" in member && member.role === "behaviour")).toBe(
+    true,
+  );
+  const behaviour = refreshed.value.materials.find(
+    (member) => member.path === "release/items/notes.review/aih-behaviour.json",
+  );
+  expect(behaviour).toBeDefined();
 });
