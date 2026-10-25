@@ -6,6 +6,12 @@ import { compileProducerDeclaration } from "../../src/release/producer.js";
 import { configureItem, readRelease, resolveSelections } from "../../src/release/reader.js";
 
 const root = resolve(import.meta.dirname, "../..");
+const memberPath = (member: unknown): string =>
+  String(
+    (member as { path?: string; packagePath?: string }).path ??
+      (member as { packagePath?: string }).packagePath,
+  );
+
 it("offers a real Extensions skill with complete notices and explicit companion closure", () => {
   const declaration = JSON.parse(
     readFileSync(resolve(root, "producer/extensions/declaration.json"), "utf8"),
@@ -62,7 +68,7 @@ it("offers a real Extensions skill with complete notices and explicit companion 
   expect(
     read.release.items
       .find((item) => item.id === "extensions.notices")
-      ?.materials.map((material) => material.path),
+      ?.materials.map((material) => memberPath(material)),
   ).toContainEqual(expect.stringContaining("NOTICE.md"));
 });
 

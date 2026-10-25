@@ -199,8 +199,14 @@ export async function prepareReleaseBaseline<Read extends BaselineArtifactRead, 
     let batchCoverage: BaselineCoverage[] | undefined;
     if (services.readContentCoverageBatch !== undefined) {
       const queries = read.release.items.flatMap((item) =>
-        [item.recipe, ...item.materials].map(({ path, sha256, byteLength }) => ({
-          descriptors: [{ path, sha256, byteLength }],
+        [item.recipe, ...item.materials].map((member) => ({
+          descriptors: [
+            {
+              path: String(memberPackagePath(member as unknown as Record<string, unknown>)),
+              sha256: member.sha256,
+              byteLength: member.byteLength,
+            },
+          ],
         })),
       );
       const expectedRows = queries.length;

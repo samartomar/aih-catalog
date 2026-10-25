@@ -3,7 +3,7 @@ import {
   checkProducerDeclaration,
   compileProducerDeclaration,
 } from "../../src/release/producer.js";
-import { readRelease } from "../../src/release/reader.js";
+import { readReleaseContent } from "../../src/release/reader.js";
 
 const encode = (text: string): Uint8Array => new TextEncoder().encode(text);
 
@@ -173,11 +173,12 @@ it("compiles a 3.2.0 declaration into release 1.6.0 with behaviour files and ide
   for (const member of review.materials as unknown as Record<string, unknown>[]) {
     expect(member.size).toMatchObject({ status: "measured" });
   }
-  // The compiled release passes its own public reader.
-  const reread = readRelease(compiled.value.releaseBytes, {
+  // The compiled release is pre-baseline content; it passes the content admission.
+  const reread = readReleaseContent(compiled.value.releaseBytes, {
     expectedSha256: compiled.value.releaseSha256,
   });
   expect(reread.valid).toBe(true);
+  expect(reread.release.baseline).toBeUndefined();
 });
 
 it("captures MCP payloads through the behaviour file with declared requirement inputs", () => {

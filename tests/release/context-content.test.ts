@@ -1,3 +1,8 @@
+const memberPath = (member: unknown): string =>
+  String(
+    (member as { path?: string; packagePath?: string }).path ??
+      (member as { packagePath?: string }).packagePath,
+  );
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -29,7 +34,8 @@ function contextMaterial(id: string): { path: string; text: string } {
   if (!found.found) throw new Error("aihq.project-context missing from the carried release");
   const material = found.item.materials.find((member) => member.id === id);
   if (material === undefined) throw new Error(`aihq.project-context/${id} missing`);
-  return { path: material.path, text: textAt(material.path) };
+  const path = memberPath(material);
+  return { path, text: textAt(path) };
 }
 
 const RETIRED_ROUTES = [
@@ -53,7 +59,7 @@ describe("aihq.project-context item", () => {
     expect(found.item.dependencies).toEqual({ requires: [], optional: [], conflicts: [] });
     expect(found.item.scopes).toEqual(["project"]);
     const materials = Object.fromEntries(
-      found.item.materials.map((member) => [member.id, member.path]),
+      found.item.materials.map((member) => [member.id, memberPath(member)]),
     );
     expect(materials).toEqual({
       "behavior-core":
@@ -63,9 +69,10 @@ describe("aihq.project-context item", () => {
         "release/materials/aihq/project-context/ai-coding/adapters/_shared-canonical-block.md",
     });
     for (const member of found.item.materials) {
-      const bytes = bytesAt(member.path);
-      expect(sha256(bytes), member.path).toBe(member.sha256);
-      expect(bytes.byteLength, member.path).toBe(member.byteLength);
+      const path = memberPath(member);
+      const bytes = bytesAt(path);
+      expect(sha256(bytes), path).toBe(member.sha256);
+      expect(bytes.byteLength, path).toBe(member.byteLength);
     }
   });
 
@@ -115,7 +122,7 @@ describe("aihq.project-context item", () => {
     expect(router).toContain("author-owned");
     const release = carried();
     for (const item of listItems(release)) {
-      expect(item.materials.some((material) => material.path.endsWith("/PROJECT.md"))).toBe(false);
+      expect(item.materials.some((material) => memberPath(material).endsWith("/PROJECT.md"))).toBe(false);
       const recipe = JSON.parse(textAt(item.recipe.path));
       for (const operation of recipe.operations) {
         expect(
@@ -160,7 +167,7 @@ function pointerRecipe(key: string) {
   return { item: found.item, recipe: JSON.parse(textAt(found.item.recipe.path)) };
 }
 
-type Material = { id: string; path: string; sha256: string; byteLength: number };
+type Material = { id: string; path?: string; packagePath?: string; sha256: string; byteLength: number };
 
 /** The item's single declared material, or a test failure. */
 function onlyMaterial(item: { materials: readonly Material[] }): Material {
@@ -253,7 +260,7 @@ describe("aihq.project-context-pointer items", () => {
   )("delivers %s as a canon-owned file with activation frontmatter and a byte check", (key, path) => {
     const { item, recipe } = pointerRecipe(key);
     const material = onlyMaterial(item);
-    const bytes = bytesAt(material.path);
+    const bytes = bytesAt(memberPath(material));
     expect(sha256(bytes)).toBe(material.sha256);
     expect(recipe.operations).toHaveLength(1);
     const [op] = recipe.operations;
@@ -281,14 +288,14 @@ describe("aihq.project-context-pointer items", () => {
 
   it("pins the exact Cursor and Kiro activation facts from the approved baseline", () => {
     const cursor = pointerRecipe("cursor-rules");
-    const cursorText = textAt(onlyMaterial(cursor.item).path);
+    const cursorText = textAt(memberPath(onlyMaterial(cursor.item)));
     expect(
       cursorText.startsWith(
         '---\ndescription: Routes to the AI canon in ai-coding/ (RULE_ROUTER.md)\nglobs: ["**/*"]\nalwaysApply: true\n---',
       ),
     ).toBe(true);
     const kiro = pointerRecipe("kiro-steering");
-    const kiroText = textAt(onlyMaterial(kiro.item).path);
+    const kiroText = textAt(memberPath(onlyMaterial(kiro.item)));
     expect(kiroText.startsWith("---\ninclusion: always\n---")).toBe(true);
     expect(kiroText).toContain("#[[file:ai-coding/RULE_ROUTER.md]]");
   });
@@ -331,11 +338,12 @@ describe("aihq.client items", () => {
       );
       expect(found.item.materials).toHaveLength(1);
       const material = onlyMaterial(found.item);
-      expect(material.path).toBe(
+      const materialAt = memberPath(material);
+      expect(materialAt).toBe(
         `release/materials/aihq/project-context/ai-coding/adapters/${id}.md`,
       );
-      const note = textAt(material.path);
-      expect(sha256(bytesAt(material.path))).toBe(material.sha256);
+      const note = textAt(materialAt);
+      expect(sha256(bytesAt(materialAt))).toBe(material.sha256);
       expect(note).toContain(`# ${label} adapter`);
       expect(note).toContain("- Entry:");
       expect(note).toContain("- Rule loading:");

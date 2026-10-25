@@ -89,7 +89,8 @@ describe("upstream refresh with authored context", () => {
     for (const item of context) {
       expect(next.checked.items.find((found) => found.id === item.id)).toEqual(item);
       for (const member of [item.recipe, ...item.materials]) {
-        expect(candidate.files.get(member.path)).toEqual(base.files.get(member.path));
+        const path = String((member as { path?: string; packagePath?: string }).path ?? (member as { packagePath?: string }).packagePath);
+        expect(candidate.files.get(path)).toEqual(base.files.get(path));
       }
     }
     expect(next.sources.find((source) => source.id === "aihq-project-context")).toEqual(

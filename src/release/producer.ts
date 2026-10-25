@@ -32,6 +32,7 @@ import type {
   Json,
 } from "./contracts.js";
 import {
+  bytewiseCompare,
   checkDependencies,
   checkInputs,
   Diagnostics,
@@ -40,7 +41,7 @@ import {
   safeMemberPath,
 } from "./document.js";
 import { canonicalJson, deepFreeze } from "./json.js";
-import { readRelease } from "./reader.js";
+import { readRelease, readReleaseContent } from "./reader.js";
 import { checkRecipeAgreement } from "./recipe-agreement.js";
 import { extractSourceFacts, type SourceDiscovery } from "./source-facts.js";
 
@@ -434,7 +435,7 @@ function projectItemTo16(args: {
         const value = member as Record<string, Json>;
         return `${String(value.relPath)}\t${String(value.sha256)}\n`;
       })
-      .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+      .sort(bytewiseCompare);
   const byMemberId = (a: Json, b: Json): number => {
     const left = String((a as Record<string, Json>).id);
     const right = String((b as Record<string, Json>).id);
@@ -493,8 +494,9 @@ function partSizes(
   contentMembers: readonly { member: { id: string; bytes: Uint8Array }; extended: Json }[],
 ): Json {
   const label = typeof record.label === "string" ? record.label : "";
+  const displayName = typeof record.name === "string" ? record.name : label;
   const parts: Json[] = [
-    { part: "name", bytes: Buffer.byteLength(label, "utf8"), chars: label.length },
+    { part: "name", bytes: Buffer.byteLength(displayName, "utf8"), chars: displayName.length },
   ];
   if (typeof record.description === "string") {
     parts.push({
@@ -919,7 +921,11 @@ export function compileProducerDeclaration(request: {
       .sort((a, b) => (String(a.id) < String(b.id) ? -1 : String(a.id) > String(b.id) ? 1 : 0)),
   });
   const releaseSha256 = sha256Hex(bytes);
-  const read = readRelease(bytes, { expectedSha256: releaseSha256 });
+  // Release 1.6 is compiled as pre-baseline content; release preparation binds
+  // the assessment. The content admission is the owning reader at this stage.
+  const read = schema16
+    ? readReleaseContent(bytes, { expectedSha256: releaseSha256 })
+    : readRelease(bytes, { expectedSha256: releaseSha256 });
   if (!read.valid)
     return deepFreeze({
       status: "refused",
@@ -1054,13 +1060,16 @@ function prepareSourceRefreshData(request: {
         record: record as unknown as { [key: string]: Json },
         recipePath: item.recipe.path,
         recipeBytes: Buffer.from(recipe.bytes),
-        members: item.materials.map((member) => ({
-          ...member,
-          bytes: Buffer.from(
-            outputs.get(String(memberPackagePath(member as unknown as Record<string, unknown>)))
-              ?.bytes ?? [],
-          ),
-        })),
+        members: item.materials.map(
+          (member) =>
+            ({
+              ...member,
+              bytes: Buffer.from(
+                outputs.get(String(memberPackagePath(member as unknown as Record<string, unknown>)))
+                  ?.bytes ?? [],
+              ),
+            }) as unknown as GeneratedMember,
+        ),
       });
     }
     const paths = new Set(Object.keys(snapshot.files));
@@ -1107,7 +1116,10 @@ function prepareSourceRefreshData(request: {
     });
     const releaseBytes = built.files.get("release/release.json") as Buffer;
     const releaseSha256 = sha256Hex(releaseBytes);
-    const read = readRelease(releaseBytes, { expectedSha256: releaseSha256 });
+    const read =
+      declaration.schema === PRODUCER_DECLARATION_SCHEMA_ID_3_2
+        ? readReleaseContent(releaseBytes, { expectedSha256: releaseSha256 })
+        : readRelease(releaseBytes, { expectedSha256: releaseSha256 });
     if (!read.valid) return failure("/previous", "Refreshed release failed its public reader.");
     return {
       status: "ok",

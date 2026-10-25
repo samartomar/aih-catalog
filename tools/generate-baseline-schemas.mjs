@@ -112,8 +112,7 @@ item16.allOf = [
 const release16 = structuredClone(release);
 release16.$id = "urn:aihq:catalog:release:1.6.0";
 release16.title = "Catalog release with behaviour files, two identities, typed payloads and provenance";
-release16.description = "Adds optional behaviour materials, contentSha256/behaviourSha256 identities, typed payloads, framework identity, provenance and measured sizes. All new fields are optional; recipes and item ids are unchanged. A baseline binding, required for prepared releases, is validated when present. The reader recomputes behaviour bytes and both identities.";
-release16.required = release16.required.filter((key) => key !== "baseline");
+release16.description = "Adds optional behaviour materials, contentSha256/behaviourSha256 identities, typed payloads, framework identity, provenance and measured sizes. All new fields are optional; recipes and item ids are unchanged. Like release 1.5, the release carries its baseline binding. The reader recomputes behaviour bytes and both identities.";
 release16.properties.schema.const = release16.$id;
 release16.properties.framework = object({ id: { $ref: "#/$defs/id" }, name: { type: "string", minLength: 1, maxLength: 256 }, version: { $ref: "#/$defs/version" }, description: { type: "string", minLength: 1, maxLength: 4096 } });
 release16.properties.retired = { type: "array", maxItems: 4096, items: object({ id: { $ref: "#/$defs/id" }, reason: { type: "string", minLength: 1, maxLength: 4096 }, replacedBy: { type: "array", maxItems: 4096, items: { $ref: "#/$defs/id" } } }, ["id", "reason"]) };

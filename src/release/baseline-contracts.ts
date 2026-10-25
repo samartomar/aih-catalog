@@ -1,6 +1,7 @@
 import type {
   CatalogDiagnostic,
   CatalogItem,
+  CatalogRelease,
   ItemDependencies,
   Json,
   ReleaseSource,
@@ -51,6 +52,10 @@ export interface ContentInventory {
     readonly sources: readonly ReleaseSource[];
     readonly items: readonly ContentItemDeclaration[];
     readonly metadata?: Json;
+    /** Release 1.6 content projection fields; absent for 1.5.0 content. */
+    readonly framework?: CatalogRelease["framework"];
+    readonly retired?: CatalogRelease["retired"];
+    readonly nativeRoutes?: CatalogRelease["nativeRoutes"];
   };
 }
 export type ContentInventoryResult =

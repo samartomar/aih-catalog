@@ -422,7 +422,10 @@ function checkItem(
   recipeSchemas: readonly RecipeSchemaId[],
   schema: ReleaseSchemaId,
 ): void {
-  const clientIds = schema === RELEASE_SCHEMA_ID_1_4 || schema === RELEASE_SCHEMA_ID_1_5;
+  const clientIds =
+    schema === RELEASE_SCHEMA_ID_1_4 ||
+    schema === RELEASE_SCHEMA_ID_1_5 ||
+    schema === RELEASE_SCHEMA_ID_1_6;
   const optional =
     schema === RELEASE_SCHEMA_ID_1_6
       ? ITEM16_OPTIONAL
@@ -561,7 +564,7 @@ const ITEM16_FIELDS = [
   "size",
 ] as const;
 
-const bytewiseCompare = (a: string, b: string): number => {
+export const bytewiseCompare = (a: string, b: string): number => {
   const left = encoder.encode(a);
   const right = encoder.encode(b);
   for (let index = 0; index < Math.min(left.length, right.length); index++) {
@@ -569,6 +572,12 @@ const bytewiseCompare = (a: string, b: string): number => {
   }
   return left.length - right.length;
 };
+
+/** UTF-8 byte length and digest of canonical text; identities are byte identities. */
+export function canonicalBytes(text: string): { readonly bytes: Uint8Array; readonly sha256: string } {
+  const bytes = encoder.encode(text);
+  return { bytes, sha256: sha256Hex(bytes) };
+}
 
 /** One extended release 1.6 material member. */
 function checkExtendedMember(
@@ -600,9 +609,15 @@ function checkExtendedMember(
   if (
     member.sourcePath !== undefined &&
     member.sourcePath !== null &&
-    (typeof member.sourcePath !== "string" || member.sourcePath.length > 4096)
+    (typeof member.sourcePath !== "string" ||
+      member.sourcePath.length > 4096 ||
+      !safeMemberPath(member.sourcePath))
   ) {
-    d.add("invalid-source-path", `${at}/sourcePath`, "Expected an upstream path or null.");
+    d.add(
+      "invalid-source-path",
+      `${at}/sourcePath`,
+      "Expected a safe source-relative path or null.",
+    );
   }
   if (
     member.executable !== true &&
@@ -689,8 +704,13 @@ function checkMcpEntries(
   }
   for (const [key, entry] of Object.entries(entries)) {
     const atEntry = `${at}/${key}`;
-    if (!isRecord(entry) || "input" in entry === "value" in entry) {
-      d.add("invalid-env-entry", atEntry, "Expected exactly one of input or value.");
+    if (!isRecord(entry)) {
+      d.add("invalid-env-entry", atEntry, "Expected an input or value entry.");
+      continue;
+    }
+    if ("input" in entry) {
+      if (!fields(d, entry, atEntry, ["input"])) continue;
+    } else if (!fields(d, entry, atEntry, ["value"])) {
       continue;
     }
     if ("value" in entry) {
@@ -728,6 +748,9 @@ function checkPayload16(
   const nonEmptyString = (value: unknown): value is string =>
     typeof value === "string" && value.length > 0 && value.length <= 4096;
   if (item.kind === "skill") {
+    if (!fields(d, payload, `${path}/payload`, ["dirName", "invocation", "invocationBasis"], ["namespace"])) {
+      return;
+    }
     if (!nonEmptyString(payload.dirName)) {
       d.add("invalid-payload", `${path}/payload/dirName`, "Expected the installed directory name.");
     }
@@ -746,6 +769,9 @@ function checkPayload16(
       );
     }
   } else if (item.kind === "rule") {
+    if (!fields(d, payload, `${path}/payload`, ["applyTo", "applyToBasis"], ["namespace", "inclusion", "placement"])) {
+      return;
+    }
     if (
       !Array.isArray(payload.applyTo) ||
       payload.applyTo.length === 0 ||
@@ -781,6 +807,9 @@ function checkPayload16(
       );
     }
   } else if (item.kind === "hook") {
+    if (!fields(d, payload, `${path}/payload`, ["event", "protocol", "command"], ["matcher", "timeoutSec"])) {
+      return;
+    }
     if (payload.protocol !== "claude-code-hooks") {
       d.add(
         "unsupported-protocol",
@@ -811,6 +840,9 @@ function checkPayload16(
     const command = isRecord(payload.command) ? payload.command : undefined;
     if (command === undefined) {
       d.add("invalid-payload", `${path}/payload/command`, "A hook payload carries its command.");
+      return;
+    }
+    if (!fields(d, command, `${path}/payload/command`, ["script"], ["program", "interpreter", "args"])) {
       return;
     }
     if (typeof command.script !== "string" || !contentIds.has(command.script)) {
@@ -856,6 +888,18 @@ function checkPayload16(
       }
     }
   } else if (item.kind === "mcp-server") {
+    if (
+      !fields(d, payload, `${path}/payload`, ["key", "transport"], [
+        "command",
+        "args",
+        "url",
+        "env",
+        "headers",
+        "derivation",
+      ])
+    ) {
+      return;
+    }
     if (!nonEmptyString(payload.key)) {
       d.add("invalid-payload", `${path}/payload/key`, "Expected the server key.");
     }
@@ -899,6 +943,11 @@ function checkPayload16(
       if (!isRecord(payload.derivation)) {
         d.add("invalid-payload", at, "Expected a derivation record.");
       } else {
+        if (
+          !fields(d, payload.derivation, at, ["sourceMaterial", "pointer", "transform"], ["editsSha256"])
+        ) {
+          return;
+        }
         if (!nonEmptyString(payload.derivation.sourceMaterial)) {
           d.add("invalid-payload", `${at}/sourceMaterial`, "Expected the source material id.");
         }
@@ -924,6 +973,9 @@ function checkPayload16(
       }
     }
   } else if (item.kind === "agent" || item.kind === "command" || item.kind === "document") {
+    if (!fields(d, payload, `${path}/payload`, ["files"])) {
+      return;
+    }
     if (!Array.isArray(payload.files)) {
       d.add("invalid-payload", `${path}/payload/files`, "Expected the carried file material ids.");
     } else {
@@ -952,14 +1004,27 @@ function checkProvenance16(
     d.add("invalid-derived-from", `${path}/derivedFrom`, "Expected an array of derivations.");
     return;
   }
-  const byRelPath = new Map(
-    content.map((member) => [String(member.relPath), String(member.sha256)]),
-  );
+  const contentRelPaths = new Set(content.map((member) => String(member.relPath)));
   derived.forEach((entry, index) => {
     const at = `${path}/derivedFrom/${index}`;
     if (!isRecord(entry)) {
       d.add("invalid-derived-from", at, "Expected a derivation record.");
       return;
+    }
+    if (
+      !fields(d, entry, at, ["itemId", "status"], ["releaseSha256", "proof"])
+    ) {
+      return;
+    }
+    if (entry.status !== "verified" && entry.status !== "declared") {
+      d.add("invalid-derived-from", `${at}/status`, "Expected verified or declared.");
+      return;
+    }
+    if (
+      entry.releaseSha256 !== undefined &&
+      (typeof entry.releaseSha256 !== "string" || !SHA256.test(entry.releaseSha256))
+    ) {
+      d.add("invalid-derived-from", `${at}/releaseSha256`, "Expected a lowercase SHA-256.");
     }
     if (entry.status === "verified") {
       const proof = entry.proof;
@@ -967,22 +1032,36 @@ function checkProvenance16(
         d.add("unverified-derivation", at, "A verified derivation carries per-material proof.");
         return;
       }
+      if (!fields(d, proof, `${at}/proof`, ["materials"])) return;
+      const seenRelPaths = new Set<string>();
       proof.materials.forEach((proofMember, proofIndex) => {
         const atProof = `${at}/proof/materials/${proofIndex}`;
-        if (
-          !isRecord(proofMember) ||
-          typeof proofMember.relPath !== "string" ||
-          typeof proofMember.sha256 !== "string"
-        ) {
+        if (!isRecord(proofMember) || !fields(d, proofMember, atProof, ["relPath", "sha256"])) {
           d.add("invalid-proof", atProof, "Expected a relPath and sha256 pair.");
           return;
         }
-        if (byRelPath.get(proofMember.relPath) !== proofMember.sha256) {
+        if (!safeMemberPath(proofMember.relPath)) {
+          d.add("invalid-proof", `${atProof}/relPath`, "Expected a safe item-relative path.");
+          return;
+        }
+        // Proof names this item's materials; the recorded digest is the derived-from
+        // source's hash at that path, which the reader cannot recompute without the
+        // source release, so admission checks shape and membership, not equality.
+        if (!contentRelPaths.has(String(proofMember.relPath))) {
           d.add(
             "unverified-derivation",
             atProof,
-            "Proof does not match this item's material at the relPath.",
+            "Proof names a relPath this item does not carry.",
           );
+          return;
+        }
+        if (seenRelPaths.has(String(proofMember.relPath))) {
+          d.add("invalid-proof", atProof, "Duplicate proof relPath.");
+          return;
+        }
+        seenRelPaths.add(String(proofMember.relPath));
+        if (typeof proofMember.sha256 !== "string" || !SHA256.test(proofMember.sha256)) {
+          d.add("invalid-proof", `${atProof}/sha256`, "Expected a lowercase SHA-256.");
         }
       });
     } else if (entry.proof !== undefined) {
@@ -1002,6 +1081,41 @@ function checkItem16(d: Diagnostics, item: Record<string, unknown>, path: string
   const legacy = materials.filter((member) => Object.hasOwn(member, "path"));
   const carries = ITEM16_FIELDS.some((field) => Object.hasOwn(item, field)) || extended.length > 0;
   if (!carries) return;
+  if (Object.hasOwn(item, "payload") && !isRecord(item.payload)) {
+    d.add("invalid-payload", `${path}/payload`, "Expected a typed payload object.");
+  }
+  if (item.size !== undefined) {
+    const atSize = `${path}/size`;
+    if (fields(d, item.size, atSize, ["parts"], ["status"])) {
+      if (
+        item.size.status !== undefined &&
+        item.size.status !== "measured" &&
+        item.size.status !== "unknown"
+      ) {
+        d.add("invalid-size", `${atSize}/status`, "Expected measured or unknown.");
+      }
+      if (Array.isArray(item.size.parts)) {
+        item.size.parts.forEach((part, index) => {
+          const atPart = `${atSize}/parts/${index}`;
+          if (!fields(d, part, atPart, ["part", "bytes", "chars"])) return;
+          if (
+            part.part !== "name" &&
+            part.part !== "description" &&
+            part.part !== "frontmatter" &&
+            part.part !== "body" &&
+            part.part !== "files"
+          ) {
+            d.add("invalid-size", `${atPart}/part`, "Expected a named content part.");
+          }
+          const nonNegative = (value: unknown) =>
+            typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+          if (!nonNegative(part.bytes) || !nonNegative(part.chars)) {
+            d.add("invalid-size", atPart, "Expected non-negative integer byte and character counts.");
+          }
+        });
+      }
+    }
+  }
   if (
     item.name !== undefined &&
     (typeof item.name !== "string" || PATH_SHAPED_NAME.test(item.name))
@@ -1091,18 +1205,11 @@ function checkItem16(d: Diagnostics, item: Record<string, unknown>, path: string
       }
     }
   }
-  const behaviourValue = {
-    kind: item.kind,
-    payload: item.payload ?? null,
-    requirements: { inputs: requirementInputs },
-    dependencies: normalizeDependencies(item.dependencies as Record<string, unknown>),
-    executable: derivedExecutable,
-  };
-  const behaviourText = `${canonicalJson(behaviourValue)}\n`;
-  const behaviourSha = sha256Hex(encoder.encode(behaviourText));
+  const identity = computeBehaviourIdentity(item);
+  if (identity === undefined) return;
   if (
-    behaviourMaterial.sha256 !== behaviourSha ||
-    behaviourMaterial.byteLength !== behaviourText.length
+    behaviourMaterial.sha256 !== sha256Hex(identity.behaviourBytes) ||
+    behaviourMaterial.byteLength !== identity.behaviourBytes.length
   ) {
     d.add(
       "behaviour-mismatch",
@@ -1112,15 +1219,7 @@ function checkItem16(d: Diagnostics, item: Record<string, unknown>, path: string
     );
     return;
   }
-  const contentLines = content
-    .map((member) => `${String(member.relPath)}\t${String(member.sha256)}\n`)
-    .sort(bytewiseCompare);
-  const allLines = extended
-    .map((member) => `${String(member.relPath)}\t${String(member.sha256)}\n`)
-    .sort(bytewiseCompare);
-  const contentSha = sha256Hex(encoder.encode(contentLines.join("")));
-  const behaviourIdentity = sha256Hex(encoder.encode(allLines.join("")));
-  if (item.contentSha256 !== contentSha) {
+  if (item.contentSha256 !== identity.contentSha256) {
     d.add(
       "content-hash-mismatch",
       `${path}/contentSha256`,
@@ -1128,7 +1227,7 @@ function checkItem16(d: Diagnostics, item: Record<string, unknown>, path: string
       { itemId: String(item.id) },
     );
   }
-  if (item.behaviourSha256 !== behaviourIdentity) {
+  if (item.behaviourSha256 !== identity.behaviourSha256) {
     d.add(
       "behaviour-hash-mismatch",
       `${path}/behaviourSha256`,
@@ -1138,6 +1237,51 @@ function checkItem16(d: Diagnostics, item: Record<string, unknown>, path: string
   }
   checkPayload16(d, item, path, content, requirementInputs);
   checkProvenance16(d, item, path, content);
+}
+
+/** The recomputed behaviour bytes and both identities for one checked 1.6 item. */
+export interface ItemBehaviourIdentity {
+  readonly behaviourBytes: Uint8Array;
+  readonly contentSha256: string;
+  readonly behaviourSha256: string;
+  readonly executable: Readonly<Record<string, true | false | "unknown">>;
+}
+
+/**
+ * Recomputes the synthesised behaviour bytes and both identities exactly as the
+ * reader does. Returns undefined when the item carries no release 1.6 material.
+ */
+export function computeBehaviourIdentity(item: Record<string, unknown>): ItemBehaviourIdentity | undefined {
+  const materials = (Array.isArray(item.materials) ? item.materials : []).filter(isRecord);
+  const extended = materials.filter((member) => !Object.hasOwn(member, "path"));
+  if (extended.length === 0) return undefined;
+  const content = extended.filter((member) => member.role !== "behaviour");
+  const derivedExecutable: Record<string, true | false | "unknown"> = {};
+  for (const member of content) {
+    derivedExecutable[String(member.relPath)] = member.executable as true | false | "unknown";
+  }
+  const requirementInputs =
+    isRecord(item.requirements) && isRecord(item.requirements.inputs)
+      ? item.requirements.inputs
+      : {};
+  const behaviourValue = {
+    kind: item.kind,
+    payload: item.payload ?? null,
+    requirements: { inputs: requirementInputs },
+    dependencies: normalizeDependencies(item.dependencies as Record<string, unknown>),
+    executable: derivedExecutable,
+  };
+  const identity = canonicalBytes(`${canonicalJson(behaviourValue)}\n`);
+  const lines = (members: readonly Record<string, unknown>[]) =>
+    members
+      .map((member) => `${String(member.relPath)}\t${String(member.sha256)}\n`)
+      .sort(bytewiseCompare);
+  return {
+    behaviourBytes: identity.bytes,
+    contentSha256: sha256Hex(encoder.encode(lines(content).join(""))),
+    behaviourSha256: sha256Hex(encoder.encode(lines(extended).join(""))),
+    executable: derivedExecutable,
+  };
 }
 
 /** Paths are package members: one path names one byte identity across the whole release. */
@@ -1487,10 +1631,7 @@ export function checkReleaseDocument(
     d.add("invalid-metadata", "/metadata", "Metadata is a descriptive object.");
   }
   if (d.list.length > 0) return { diagnostics: d.list };
-  // Release 1.5 requires its baseline binding; release 1.6 validates a binding when
-  // present, and release preparation adds the bound baseline assessment.
-  const hasBaseline = value.schema === RELEASE_SCHEMA_ID_1_5 || value.baseline !== undefined;
-  if (baselineFormat && !options.contentOnly && hasBaseline) {
+  if (baselineFormat && !options.contentOnly) {
     if (isRecord(value.baseline) && value.baseline.schema !== SCAN_BASELINE_SCHEMA_ID) {
       d.list.push({
         code: "SCHEMA_UNSUPPORTED",
@@ -1505,7 +1646,7 @@ export function checkReleaseDocument(
       d.add(
         "baseline-invalid",
         "/baseline",
-        "Release 1.5 requires a supported, bounded baseline binding.",
+        "Release 1.5 and 1.6 require a supported, bounded baseline binding.",
       );
     else if (!baselineMatchesContent(value, value.baseline))
       d.add(

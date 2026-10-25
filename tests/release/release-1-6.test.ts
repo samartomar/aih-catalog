@@ -82,8 +82,9 @@ function buildItem(options: {
   };
   const behaviourText = `${canonical(behaviourValue)}\n`;
   const behaviourMember = material(id, "behaviour", BEHAVIOUR_REL_PATH, null, false);
-  behaviourMember.sha256 = sha256(encode(behaviourText));
-  behaviourMember.byteLength = behaviourText.length;
+  const behaviourEncoded = encode(behaviourText);
+  behaviourMember.sha256 = sha256(behaviourEncoded);
+  behaviourMember.byteLength = behaviourEncoded.length;
   const withBehaviour = options.withBehaviour ?? true;
   const materials = (
     withBehaviour ? [...contentMaterials, behaviourMember] : contentMaterials
@@ -714,7 +715,7 @@ describe("release 1.6.0 names and provenance", () => {
     expect(reasons(result)).toContain("unverified-derivation");
   });
 
-  it("refuses derivation proof that does not match the item materials", () => {
+  it("refuses derivation proof that names a relPath the item does not carry", () => {
     const item = buildItem({
       id: "alpha",
       kind: "skill",
@@ -723,7 +724,7 @@ describe("release 1.6.0 names and provenance", () => {
           {
             itemId: "upstream-item",
             status: "verified",
-            proof: { materials: [{ relPath: "SKILL.md", sha256: hex("not-matching") }] },
+            proof: { materials: [{ relPath: "missing.md", sha256: hex("source-hash") }] },
           },
         ],
       },
@@ -732,6 +733,29 @@ describe("release 1.6.0 names and provenance", () => {
     expect(result.valid).toBe(false);
     if (result.valid) return;
     expect(reasons(result)).toContain("unverified-derivation");
+  });
+
+  it("accepts a real patched copy whose proof records the source hashes", () => {
+    // A modified copy: the proof names this item's materials with the
+    // derived-from source's digests, which the reader cannot recompute.
+    const item = buildItem({ id: "alpha", kind: "skill" });
+    const withProof = {
+      ...item,
+      derivedFrom: [
+        {
+          itemId: "upstream-item",
+          status: "verified",
+          proof: {
+            materials: [
+              { relPath: "SKILL.md", sha256: hex("source-skill-bytes") },
+              { relPath: "LICENSE", sha256: hex("source-license-bytes") },
+            ],
+          },
+        },
+      ],
+    };
+    const result = read(bindFrozen(release16([withProof])));
+    expect(result.valid).toBe(true);
   });
 
   it("accepts a declared derivation without proof and a verified one with matching proof", () => {
@@ -794,5 +818,128 @@ describe("release 1.6.0 consumer flow", () => {
       (member) => member.path === "package/release/items/alpha/SKILL.md",
     );
     expect(skill).toBeDefined();
+  });
+});
+
+describe("release 1.6.0 closed admission", () => {
+  it("refuses an unknown nested payload field as a whole", () => {
+    const item = buildItem({
+      id: "alpha",
+      kind: "skill",
+      payload: {
+        dirName: "alpha",
+        invocation: "user-only",
+        invocationBasis: "basis",
+        unexpected: true,
+      },
+    });
+    const result = read(bindAny(release16([item])));
+    expect(result.valid).toBe(false);
+    if (result.valid) return;
+    expect(reasons(result)).toContain("unknown-field");
+  });
+
+  it("refuses an explicit null payload", () => {
+    const item = buildItem({ id: "alpha", kind: "skill", payload: null });
+    const result = read(bindAny(release16([item])));
+    expect(result.valid).toBe(false);
+    if (result.valid) return;
+    expect(reasons(result)).toContain("invalid-payload");
+  });
+
+  it("refuses an absolute sourcePath on an extended material", () => {
+    const item = buildItem({ id: "alpha", kind: "skill" });
+    const materials = (item.materials as Record<string, Json>[]).map((member) =>
+      member.role === "content" ? { ...member, sourcePath: "/etc/passwd" } : member,
+    );
+    const result = read(bindAny(release16([{ ...item, materials }])));
+    expect(result.valid).toBe(false);
+    if (result.valid) return;
+    expect(reasons(result)).toContain("invalid-source-path");
+  });
+
+  it("requires clientId on a 1.6 client-adapter item", () => {
+    const item = buildItem({
+      id: "alpha",
+      kind: "client-adapter",
+      payload: { files: ["skill-1"] },
+      extra: {},
+    });
+    delete (item as Record<string, Json>).payload;
+    const result = read(bindAny(release16([item])));
+    expect(result.valid).toBe(false);
+    if (result.valid) return;
+    expect(reasons(result)).toContain("missing-field");
+  });
+
+  it("accepts a non-ASCII behaviour file by its UTF-8 byte length", () => {
+    const item = buildItem({
+      id: "alpha",
+      kind: "skill",
+      payload: { dirName: "alpha", invocation: "user-only", invocationBasis: "bäsis" },
+    });
+    const result = read(bindFrozen(release16([item])));
+    expect(result.valid).toBe(true);
+  });
+
+  it("derives the Scan item evidence descriptor with recomputed identities", async () => {
+    const { itemEvidenceDescriptor } = await import("../../src/release/reader.js");
+    const item = buildItem({
+      id: "alpha",
+      kind: "skill",
+      executable: { "SKILL.md": true, "LICENSE": false },
+    });
+    const document = bindFrozen(release16([item]));
+    const result = read(document);
+    expect(result.valid).toBe(true);
+    if (!result.valid) return;
+    const evidence = itemEvidenceDescriptor(result.release, { itemId: "alpha" });
+    expect(evidence.valid).toBe(true);
+    if (!evidence.valid) return;
+    expect(evidence.descriptor.frameworkId).toBe(FRAMEWORK_ID);
+    expect(evidence.descriptor.itemId).toBe("alpha");
+    expect(evidence.descriptor.contentSha256).toBe(result.release.items[0].contentSha256);
+    const behaviour = evidence.descriptor.materials.find((member) => member.role === "behaviour");
+    expect(behaviour?.path).toBe("release/items/alpha/aih-behaviour.json");
+    const skill = evidence.descriptor.materials.find((member) => member.path.endsWith("/SKILL.md"));
+    expect(skill?.executable).toBe(true);
+  });
+
+  it("refuses the evidence descriptor for an unknown or identity-less item", async () => {
+    const { itemEvidenceDescriptor } = await import("../../src/release/reader.js");
+    const item = buildItem({ id: "alpha", kind: "skill" });
+    const document = bindFrozen(release16([item]));
+    const result = read(document);
+    expect(result.valid).toBe(true);
+    if (!result.valid) return;
+    const unknown = itemEvidenceDescriptor(result.release, { itemId: "unknown" });
+    expect(unknown.valid).toBe(false);
+    const legacyItem = {
+      id: "legacy",
+      label: "Legacy",
+      kind: "skill",
+      sourceIds: ["upstream"],
+      targets: [],
+      scopes: ["project"],
+      inputs: {},
+      recipe: {
+        id: "legacy",
+        schema: "urn:aihq:core:recipe:1.0.0",
+        path: "release/recipes/legacy.json",
+        sha256: hex("legacy-recipe"),
+        byteLength: 500,
+      },
+      materials: [
+        { id: "skill", path: "release/materials/legacy/SKILL.md", sha256: hex("legacy"), byteLength: 100 },
+      ],
+      dependencies: { requires: [], optional: [], conflicts: [] },
+    } as unknown as Json;
+    const mixed = read(bindAny(release16([item, legacyItem])));
+    expect(mixed.valid).toBe(true);
+    if (!mixed.valid) return;
+    const identityLess = itemEvidenceDescriptor(mixed.release, { itemId: "legacy" });
+    expect(identityLess.valid).toBe(false);
+    if (identityLess.valid) return;
+    expect(reasons(identityLess)).toContain("no-item-identities");
   });
 });

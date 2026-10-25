@@ -30,6 +30,12 @@ import { renderedItemSha256 } from "../../src/release/project-context.js";
 import { listItems, readRelease } from "../../src/release/reader.js";
 import { sha256 } from "./fixtures.js";
 import { installedRoot } from "./installed-fixture.js";
+const memberPath = (member: unknown): string =>
+  String(
+    (member as { path?: string; packagePath?: string }).path ??
+      (member as { packagePath?: string }).packagePath,
+  );
+
 
 const root = resolve(import.meta.dirname, "../..");
 const bytesAt = (path: string) => readFileSync(resolve(root, path));
@@ -199,7 +205,7 @@ describe("the graph fixture recipe", () => {
 
   it("delivers the Core recorder program unmodified", () => {
     const material = item?.materials.find((member) => member.id === "recorder");
-    const bytes = bytesAt(material?.path as string);
+    const bytes = bytesAt(material === undefined ? "" : memberPath(material));
     expect(bytes.toString("utf8")).toBe(RECORDER_SOURCE);
     expect(sha256(bytes)).toBe(RECORDER_ORIGIN.sha256);
     expect(bytes.length).toBe(RECORDER_ORIGIN.byteLength);
@@ -214,7 +220,7 @@ describe("the bundle declaration", () => {
   const fixtureItem = listItems(checked(NATIVE_FIXTURE_RELEASE_PATH))[0];
   const bundleItem = listItems(checked(NATIVE_BUNDLES_RELEASE_PATH))[0];
   const bundleMaterial = bundleItem?.materials.find((member) => member.id === "bundle");
-  const bundle = JSON.parse(bytesAt(bundleMaterial?.path as string).toString("utf8"));
+  const bundle = JSON.parse(bytesAt(bundleMaterial === undefined ? "" : memberPath(bundleMaterial)).toString("utf8"));
 
   it("ships the bundle as an ordinary declared material with a recipe that writes only it", () => {
     expect(bundleMaterial?.sha256).toBe(sha256(Buffer.from(rendered.bundleBytes)));
@@ -457,7 +463,12 @@ describe("the bundle declaration", () => {
 describe("the graph fixture server", () => {
   const fixtureItem = listItems(checked(NATIVE_FIXTURE_RELEASE_PATH))[0];
   const member = (id: string) =>
-    bytesAt(fixtureItem?.materials.find((material) => material.id === id)?.path as string);
+    bytesAt(
+      (() => {
+        const found = fixtureItem?.materials.find((material) => material.id === id);
+        return found === undefined ? "" : memberPath(found);
+      })(),
+    );
 
   /** Runs the delivered server once over stdio in a throwaway directory laid out like the project. */
   function exchange(lines: string[], graph: Buffer = member("graph-data")) {

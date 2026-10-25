@@ -453,6 +453,34 @@ export interface PartSize {
   readonly chars: number;
 }
 
+/**
+ * Scan's item descriptor for one checked release 1.6 item, as the portable
+ * reader derives it: both identities are recomputed, the behaviour file is
+ * checked against the declarations, and every material is projected to the
+ * baseline scope's package-relative namespace with its executable state and role.
+ */
+export interface ItemEvidenceDescriptor {
+  readonly frameworkId: string;
+  readonly itemId: string;
+  readonly contentSha256: string;
+  readonly behaviourSha256: string;
+  readonly materials: readonly {
+    readonly path: string;
+    readonly sha256: string;
+    readonly byteLength: number;
+    readonly executable: boolean | "unknown";
+    readonly role: "content" | "behaviour";
+  }[];
+}
+
+export type ItemEvidenceResult =
+  | {
+      readonly valid: true;
+      readonly descriptor: ItemEvidenceDescriptor;
+      readonly diagnostics: readonly [];
+    }
+  | { readonly valid: false; readonly diagnostics: readonly CatalogDiagnostic[] };
+
 export type SourceOrigin =
   | { readonly kind: "git"; readonly repository: string; readonly revision: string }
   | {
@@ -526,7 +554,8 @@ export interface CatalogItem {
   readonly scopes: readonly ("project" | "user")[];
   readonly inputs: Readonly<Record<string, InputSpec>>;
   readonly recipe: RecipeDescriptor;
-  readonly materials: readonly MaterialMember[];
+  /** Legacy `path` members, release 1.6 extended materials, or a mix. */
+  readonly materials: readonly (MaterialMember | MaterialIdentity)[];
   /** Absent lists are normalized to empty lists, never to inferred items. */
   readonly dependencies: ItemDependencies;
   readonly metadata?: Json;

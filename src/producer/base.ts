@@ -42,6 +42,9 @@ const memberList = (item: Record_): Record_[] => [
   asRecord(item.recipe),
   ...(item.materials as Json[]).map(asRecord),
 ];
+/** Release 1.6 extended materials address package members by `packagePath`. */
+const packagePathOf = (member: Record_): string =>
+  String(Object.hasOwn(member, "path") ? member.path : (member as Record<string, Json>).packagePath);
 
 export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRelease {
   const files = new Map([...input].map(([path, bytes]) => [path, Buffer.from(bytes)] as const));
@@ -59,7 +62,7 @@ export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRe
   const referenced = new Set<string>([RELEASE_PATH]);
   for (const item of items) {
     for (const member of memberList(item)) {
-      const path = member.path as string;
+      const path = packagePathOf(member);
       const bytes = files.get(path);
       if (bytes === undefined) {
         return refuse("base-member-missing", `${path} is declared but absent`, {
@@ -90,7 +93,7 @@ export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRe
     referenced.add(HOOK_RELEASE_PATH);
     for (const item of (hookDocument.items as Json[]).map(asRecord)) {
       for (const member of memberList(item)) {
-        const path = member.path as string;
+        const path = packagePathOf(member);
         const bytes = files.get(path);
         if (bytes === undefined) {
           return refuse("base-member-missing", `${path} is declared but absent`, {
@@ -146,7 +149,7 @@ export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRe
     referenced.add(path);
     for (const item of (nativeDocument.items as Json[]).map(asRecord)) {
       for (const member of memberList(item)) {
-        const memberPath = member.path as string;
+        const memberPath = packagePathOf(member);
         const memberBytes = files.get(memberPath);
         if (memberBytes === undefined) {
           return refuse("base-member-missing", `${memberPath} is declared but absent`, {

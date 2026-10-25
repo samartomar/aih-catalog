@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:aihq:catalog:release-content:1.1.0",
   "title": "Catalog release with behaviour files, two identities, typed payloads and provenance",
-  "description": "Adds optional behaviour materials, contentSha256/behaviourSha256 identities, typed payloads, framework identity, provenance and measured sizes. All new fields are optional; recipes and item ids are unchanged. A baseline binding, required for prepared releases, is validated when present. The reader recomputes behaviour bytes and both identities.",
+  "description": "Adds optional behaviour materials, contentSha256/behaviourSha256 identities, typed payloads, framework identity, provenance and measured sizes. All new fields are optional; recipes and item ids are unchanged. Like release 1.5, the release carries its baseline binding. The reader recomputes behaviour bytes and both identities.",
   "type": "object",
   "additionalProperties": false,
   "required": [

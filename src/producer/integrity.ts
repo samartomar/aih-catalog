@@ -7,6 +7,7 @@ import {
   RELEASE_SCHEMA_ID_1_4,
   RELEASE_SCHEMA_ID_1_5,
 } from "../release/contracts.js";
+import { memberPackagePath } from "../release/document.js";
 import { AcquisitionFailure } from "../release/node-errors.js";
 import { verifyPackageRelease } from "../release/package-release.js";
 import { readRelease } from "../release/reader.js";
@@ -264,7 +265,8 @@ export function checkCandidateFiles(
         if (origin?.kind !== "git") continue;
         const prefix = `release/materials/${origin.repository.replace(/^https:\/\//, "")}/${origin.revision}/`;
         for (const member of item.materials) {
-          if (!member.path.startsWith(prefix)) misplaced.push(`${item.id}:${member.id}`);
+          if (!String(memberPackagePath(member as unknown as Record<string, unknown>)).startsWith(prefix))
+            misplaced.push(`${item.id}:${member.id}`);
         }
       }
     }
