@@ -10,7 +10,7 @@ import { Ajv2020 } from "ajv/dist/2020.js";
 import { contractSupport, contractSupport11 } from "@aihq/catalog/contracts";
 import { readRelease, readContentInventory, readReleaseIndex } from "@aihq/catalog/reader";
 import { checkProducerDeclaration } from "@aihq/catalog/producer";
-import { readInstalledRelease } from "@aihq/catalog/node";
+import { readInstalledRelease, readRecipe } from "@aihq/catalog/node";
 import manifest from "@aihq/catalog/fixtures/manifest.json" with { type: "json" };
 
 const data = specifier => readFileSync(fileURLToPath(import.meta.resolve(specifier)));
@@ -137,6 +137,10 @@ for (const fixture of manifest.fixtures) {
         put(item.recipe.path, bytes);
         result = await readInstalledRelease({ root });
       } finally { rmSync(root, { recursive: true, force: true }); }
+      // The standalone reader applies the same admission without an item.
+      const standalone = readRecipe(bytes);
+      assert.equal(standalone.valid, valid, `${fixture.name} standalone: ${JSON.stringify(standalone.diagnostics)}`);
+      if (!valid) assert(standalone.diagnostics.some(d => d.code === fixture.expected.code), `${fixture.name}: wrong standalone refusal`);
       break;
     }
     default: throw new Error(`Unknown public reader ${fixture.reader}`);

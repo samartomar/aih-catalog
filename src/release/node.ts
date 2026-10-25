@@ -55,6 +55,7 @@ export type {
   PrepareBaselineResult,
 } from "./prepare-baseline.js";
 export { prepareReleaseBaseline } from "./prepare-baseline.js";
+export { type ReadRecipeResult, readRecipe } from "./recipe-agreement.js";
 
 /**
  * The release documents this package exports, from `releaseInventory`. A caller

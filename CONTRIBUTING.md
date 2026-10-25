@@ -60,6 +60,11 @@ tree, individual notices and donor closures through
 material proof and one harmless script/interpreter check; native use remains separate.
 See [Anthropic content](docs/ANTHROPIC-CONTENT.md) for rights and prerequisites.
 
+`node tools/verify-contract-checks.mjs <core.tgz> [catalog.tgz]` runs Core's public
+`checkContracts` with `loadFixture` between the packed Catalog and the reviewed Core
+artifact, with each package's own public readers. See
+[package support and golden fixtures](docs/CONTRACT-FIXTURES.md).
+
 `node tools/verify-codex-config-drift.mjs <core.tgz>` uses the reviewed Core artifact
 in disposable offline fixtures to prove simulated Codex config table drift inside a
 managed block, recovery by moving the table below its END marker, and the matching

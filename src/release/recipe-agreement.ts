@@ -1,9 +1,10 @@
 /**
- * Compares a loaded recipe with the item that advertises it: Core recipe format,
- * recipe ID, the exact InputSpec mirror, prerequisite targets, admitted scopes
- * and the named material closure `{id,sha256,byteLength}`. Core repeats full
- * recipe validation; this check keeps Catalog from advertising a recipe that
- * says something different. Node host only: uses Core's owned structural schema.
+ * Admits Core recipe bytes and compares a loaded recipe with the item that
+ * advertises it: Core recipe format, recipe ID, the exact InputSpec mirror,
+ * prerequisite targets, admitted scopes and the named material closure
+ * `{id,sha256,byteLength}`. Core repeats full recipe validation; this check keeps
+ * Catalog from advertising a recipe that says something different. Node host
+ * only: uses Core's owned structural schema.
  */
 import { readFileSync } from "node:fs";
 import { Ajv2020 } from "ajv/dist/2020.js";
@@ -16,7 +17,7 @@ import {
   CORE_RECIPE_SCHEMA_ID_1_3,
 } from "./contracts.js";
 import { isRecord } from "./document.js";
-import { assertStrictValues, canonicalJson, textDepth } from "./json.js";
+import { assertStrictValues, canonicalJson, deepFreeze, textDepth } from "./json.js";
 
 const RECIPE_MAX_BYTES = 1_000_000;
 const fatalUtf8 = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
@@ -28,7 +29,7 @@ const compileRecipe = (version: string) =>
     ),
   );
 /** Core's owned structural schema for each recipe format Catalog admits. */
-const validators = {
+const validators: Readonly<Record<string, ReturnType<typeof compileRecipe>>> = {
   [CORE_RECIPE_SCHEMA_ID]: compileRecipe("1.0.0"),
   [CORE_RECIPE_SCHEMA_ID_1_1]: compileRecipe("1.1.0"),
   [CORE_RECIPE_SCHEMA_ID_1_3]: compileRecipe("1.3.0"),
@@ -49,7 +50,10 @@ function decimalIdentity(token: string): string {
 }
 
 /** Core permits ordinary JSON spacing; strict admission preserves keys and number values. */
-function readRecipe(bytes: Uint8Array): unknown {
+function parseRecipe(bytes: Uint8Array): unknown {
+  // Bytes from another realm or host bridge are still a Uint8Array.
+  if (!ArrayBuffer.isView(bytes) || Object.prototype.toString.call(bytes) !== "[object Uint8Array]")
+    throw new TypeError("recipe bytes");
   if (bytes.byteLength > RECIPE_MAX_BYTES) throw new TypeError("recipe byte limit");
   const text = fatalUtf8.decode(bytes);
   if (textDepth(text) > 32) throw new TypeError("recipe depth limit");
@@ -83,6 +87,79 @@ function readRecipe(bytes: Uint8Array): unknown {
   return value;
 }
 
+type Admission =
+  | { readonly recipe: Record<string, unknown> }
+  | { readonly reason: string; readonly message: string; readonly encountered?: unknown };
+
+/**
+ * The admission every Catalog recipe read applies: bounded strict UTF-8 JSON,
+ * then Core's structural schema for `schema`, which defaults to the recipe's own.
+ */
+function admitRecipe(bytes: Uint8Array, schema?: string): Admission {
+  let recipe: unknown;
+  try {
+    recipe = parseRecipe(bytes);
+  } catch {
+    return { reason: "recipe-unreadable", message: "The recipe is not bounded UTF-8 JSON." };
+  }
+  if (!isRecord(recipe))
+    return { reason: "recipe-unreadable", message: "The recipe is not a JSON object." };
+  const expected = schema ?? recipe.schema;
+  const validateRecipe = typeof expected === "string" ? validators[expected] : undefined;
+  if (recipe.schema !== expected || validateRecipe === undefined) {
+    return {
+      reason: "recipe-schema-mismatch",
+      message: "The recipe is not the advertised Core recipe format.",
+      encountered: recipe.schema,
+    };
+  }
+  if (!validateRecipe(recipe)) {
+    return {
+      reason: "recipe-invalid",
+      message: "The recipe does not satisfy Core's structural recipe contract.",
+    };
+  }
+  return { recipe };
+}
+
+export type ReadRecipeResult =
+  | {
+      readonly valid: true;
+      readonly recipe: Readonly<Record<string, unknown>>;
+      readonly diagnostics: readonly [];
+    }
+  | { readonly valid: false; readonly diagnostics: readonly CatalogDiagnostic[] };
+
+/**
+ * Reads one Core recipe document on its own, with the admission Catalog applies
+ * to every recipe it carries. Agreement with an advertising item is checked only
+ * when a release is read; an unadmitted recipe format is `SCHEMA_UNSUPPORTED`.
+ */
+export function readRecipe(bytes: Uint8Array): ReadRecipeResult {
+  const admitted = admitRecipe(bytes);
+  if ("recipe" in admitted)
+    return deepFreeze({ valid: true, recipe: admitted.recipe, diagnostics: [] as const });
+  const diagnostic: CatalogDiagnostic =
+    admitted.reason === "recipe-schema-mismatch"
+      ? {
+          code: "SCHEMA_UNSUPPORTED",
+          reason: "recipe-schema-unsupported",
+          message: "The recipe is not a Core recipe format Catalog admits.",
+          blocking: true,
+          ...(typeof admitted.encountered === "string"
+            ? { encountered: admitted.encountered }
+            : {}),
+          supported: Object.keys(validators),
+        }
+      : {
+          code: "INPUT_INVALID",
+          reason: admitted.reason,
+          message: admitted.message,
+          blocking: true,
+        };
+  return deepFreeze({ valid: false, diagnostics: [diagnostic] });
+}
+
 export function checkRecipeAgreement(item: CatalogItem, bytes: Uint8Array): CatalogDiagnostic[] {
   const diagnostics: CatalogDiagnostic[] = [];
   const report = (reason: string, message: string) =>
@@ -96,26 +173,12 @@ export function checkRecipeAgreement(item: CatalogItem, bytes: Uint8Array): Cata
         itemId: item.id,
       }),
     );
-  let recipe: unknown;
-  try {
-    recipe = readRecipe(bytes);
-  } catch {
-    report("recipe-unreadable", "The recipe is not bounded UTF-8 JSON.");
+  const admitted = admitRecipe(bytes, item.recipe.schema);
+  if (!("recipe" in admitted)) {
+    report(admitted.reason, admitted.message);
     return diagnostics;
   }
-  if (!isRecord(recipe)) {
-    report("recipe-unreadable", "The recipe is not a JSON object.");
-    return diagnostics;
-  }
-  const validateRecipe = validators[item.recipe.schema];
-  if (recipe.schema !== item.recipe.schema || validateRecipe === undefined) {
-    report("recipe-schema-mismatch", "The recipe is not the advertised Core recipe format.");
-    return diagnostics;
-  }
-  if (!validateRecipe(recipe)) {
-    report("recipe-invalid", "The recipe does not satisfy Core's structural recipe contract.");
-    return diagnostics;
-  }
+  const { recipe } = admitted;
   if (recipe.id !== item.recipe.id)
     report("recipe-id-mismatch", "The recipe ID differs from the item.");
   const same = (left: unknown, right: unknown) => {
