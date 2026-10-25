@@ -150,6 +150,7 @@ describe("the published package keeps its intended runtime subset", () => {
       "docs/ANTHROPIC-INVENTORY.md",
       "schemas/content-inventory",
       "schemas/scan-baseline",
+      "schemas/release-index",
       "docs/SCAN-BASELINE.md",
       "tools/refresh-source.mjs",
       "dist/producer/base.js",
@@ -246,6 +247,9 @@ describe("the published package keeps its intended runtime subset", () => {
       "./fixtures/core-recipe-1.3.0-invalid.json",
       "./schemas/package-support/1.1.0.json",
       "./package-support-1.1.json",
+      "./schemas/release-index/1.0.0.json",
+      "./fixtures/release-index-1.0.0-valid.json",
+      "./fixtures/release-index-1.0.0-invalid.json",
     ]);
     expect(manifest.private).toBe(true);
     expect(manifest.scripts.prepublishOnly).toBe("node tools/refuse-publication.mjs");

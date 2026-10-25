@@ -116,9 +116,14 @@ export class Diagnostics {
   }
 }
 
+/** Any collector the shared field checkers can report into. */
+export interface DiagnosticCollector {
+  add(reason: string, path: string, message: string, extra?: Partial<CatalogDiagnostic>): false;
+}
+
 /** Exact field set: unknown fields and missing required fields are both named. */
 function fields(
-  d: Diagnostics,
+  d: DiagnosticCollector,
   value: unknown,
   path: string,
   required: readonly string[],
@@ -179,7 +184,7 @@ function ascending(d: Diagnostics, ids: readonly string[], path: string): void {
   });
 }
 
-export function checkMaterialSource(d: Diagnostics, value: unknown, path: string): boolean {
+export function checkMaterialSource(d: DiagnosticCollector, value: unknown, path: string): boolean {
   if (isRecord(value) && value.kind === "local") {
     return fields(d, value, path, ["kind", "input"]) && isId(value.input)
       ? true

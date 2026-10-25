@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aihq:catalog:release-index:1.0.0",
+  "title": "Unsigned-first release index with versions, scope and rollback state",
+  "description": "One source's list of framework releases. Consumers merge several sources through readReleaseIndex, which reports per-source diagnostics, refuses rollbacks, scopes frameworks by source authorization and reads unsigned indexes honestly while still checking release digests. Status never deletes: retired and revoked entries stay listed.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "sourceId",
+    "version",
+    "issuedAt",
+    "expires",
+    "entries"
+  ],
+  "properties": {
+    "schema": {
+      "const": "urn:aihq:catalog:release-index:1.0.0"
+    },
+    "sourceId": {
+      "$ref": "#/$defs/id"
+    },
+    "version": {
+      "description": "Positive integer that only ever increases for this source.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "issuedAt": {
+      "$ref": "#/$defs/instant"
+    },
+    "expires": {
+      "$ref": "#/$defs/instant"
+    },
+    "entries": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": {
+        "$ref": "#/$defs/entry"
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "instant": {
+      "description": "RFC 3339 instant with Z or numeric offset and optional fractional seconds.",
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.[0-9]+)?(?:Z|[+-][0-2][0-9]:[0-5][0-9])$"
+    },
+    "version": {
+      "type": "string",
+      "maxLength": 256,
+      "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$"
+    },
+    "httpsUrl": {
+      "type": "string",
+      "minLength": 9,
+      "maxLength": 2048,
+      "pattern": "^https://[^\\s/?#@]+(?:[/?][^\\s#]*)?$"
+    },
+    "path": {
+      "description": "Canonical package-root-relative POSIX member path under Core's material path rules.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "pattern": "^(?!(?:[^/]*/)*\\.{1,2}(?:/|$))(?!(?:[^/]*/)*[^/]*[. ](?:/|$))[^/\\\\:\\p{C}]+(?:/[^/\\\\:\\p{C}]+){0,63}$"
+    },
+    "location": {
+      "description": "Where a release document or evidence artifact is acquired. An archive location names the exact release document bytes the entry sha256 digests.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "url",
+            "sha256",
+            "byteLength"
+          ],
+          "properties": {
+            "kind": {
+              "const": "archive"
+            },
+            "url": {
+              "$ref": "#/$defs/httpsUrl"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "byteLength": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 67108864
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "input"
+          ],
+          "properties": {
+            "kind": {
+              "const": "local"
+            },
+            "input": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        }
+      ]
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "frameworkId",
+        "name",
+        "version",
+        "location",
+        "sha256",
+        "schema",
+        "status",
+        "evidence",
+        "source"
+      ],
+      "properties": {
+        "frameworkId": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "version": {
+          "$ref": "#/$defs/version"
+        },
+        "location": {
+          "$ref": "#/$defs/location"
+        },
+        "sha256": {
+          "description": "SHA-256 of the exact release document bytes.",
+          "$ref": "#/$defs/sha256"
+        },
+        "schema": {
+          "description": "The release format the published release document declares.",
+          "enum": [
+            "urn:aihq:catalog:release:1.0.0",
+            "urn:aihq:catalog:release:1.1.0",
+            "urn:aihq:catalog:release:1.2.0",
+            "urn:aihq:catalog:release:1.3.0",
+            "urn:aihq:catalog:release:1.4.0",
+            "urn:aihq:catalog:release:1.5.0"
+          ]
+        },
+        "status": {
+          "enum": [
+            "current",
+            "retired",
+            "revoked"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "evidence": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/location"
+          }
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "kind"
+          ],
+          "properties": {
+            "id": {
+              "$ref": "#/$defs/id"
+            },
+            "kind": {
+              "enum": [
+                "public",
+                "organization",
+                "local"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

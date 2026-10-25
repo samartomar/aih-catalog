@@ -8,7 +8,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { contractSupport, contractSupport11 } from "@aihq/catalog/contracts";
-import { readRelease, readContentInventory } from "@aihq/catalog/reader";
+import { readRelease, readContentInventory, readReleaseIndex } from "@aihq/catalog/reader";
 import { checkProducerDeclaration } from "@aihq/catalog/producer";
 import { readInstalledRelease } from "@aihq/catalog/node";
 import manifest from "@aihq/catalog/fixtures/manifest.json" with { type: "json" };
@@ -65,7 +65,21 @@ for (const fixture of manifest.fixtures) {
   switch (fixture.reader) {
     case "release": result = readRelease(bytes, { expectedSha256: sha(bytes) }); break;
     case "inventory": result = readContentInventory(bytes, { expectedSha256: sha(bytes) }); break;
-    case "projection": {
+    case "release-index": {
+      // The index reader merges sources; one authorized unsigned source exercises
+      // schema and digest admission through the same public entry the host uses.
+      result = readReleaseIndex({
+        evaluatedAt: "2026-06-01T00:00:00Z",
+        sources: [{
+          sourceId: document.sourceId,
+          trust: "none",
+          authorizedFrameworks: [...new Set(document.entries.map(entry => entry.frameworkId))],
+          indexBytes: bytes,
+        }],
+        state: [{ sourceId: document.sourceId, lastVersion: 0, lastVerifiedAt: null, lastIndexSha256: null }],
+      });
+      break;
+    }    case "projection": {
       const inventory = encode({ schema: "urn:aihq:catalog:content-inventory:1.0.0", projection: fixture.contract, release: document });
       result = readContentInventory(inventory, { expectedSha256: sha(inventory) }); break;
     }

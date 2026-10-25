@@ -140,6 +140,7 @@ describe("release 1.1 documents", () => {
       "urn:aihq:catalog:content-inventory:1.0.0",
       "urn:aihq:catalog:scan-baseline:1.0.0",
       "urn:aihq:catalog:release-content:1.0.0",
+      "urn:aihq:catalog:release-index:1.0.0",
     ]);
     expect(contractSupport.contracts.find((c) => c.id === RELEASE_11)).toMatchObject({
       role: "both",

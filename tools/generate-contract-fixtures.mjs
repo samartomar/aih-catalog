@@ -94,6 +94,46 @@ for (const [version, id, context] of [
   const recipe = read(`release/recipes/${id}.json`);
   add(`core-recipe-${version}`, recipe.schema, recipe, "recipe", `Committed recipe for ${id}, byte content preserved in canonical JSON.`, `@aihq/catalog/fixtures/${context}.json`);
 }
+{
+  // Authored golden index: current, retired and revoked entries over one public
+  // source. Unsigned-first reading checks every release digest.
+  const release = seed => sha(Buffer.from(`${seed}\n`));
+  const archive = (slug, seed) => ({
+    kind: "archive",
+    url: `https://fixtures.aihq.example/releases/${slug}.json`,
+    sha256: release(seed),
+    byteLength: 17,
+  });
+  const entry = (frameworkId, version, status, location, extra = {}) => ({
+    frameworkId,
+    name: `Framework ${frameworkId.slice("framework-".length)[0].toUpperCase()}${frameworkId.slice("framework-".length + 1)}`,
+    version,
+    location,
+    sha256: location.kind === "archive" ? location.sha256 : release(`${frameworkId}-local`),
+    schema: "urn:aihq:catalog:release:1.5.0",
+    status,
+    evidence: [],
+    ...extra,
+    source: { id: "catalog-public", kind: "public" },
+  });
+  const alpha = entry("framework-alpha", "1.2.0", "current", archive("framework-alpha-1.2.0", "alpha-release"));
+  const beta = entry("framework-beta", "2.0.0", "retired", { kind: "local", input: "catalog-mirror" },
+    { reason: "Superseded by Framework Alpha 1.2.0." });
+  const gammaEvidence = archive("framework-gamma-assessment", "gamma-evidence");
+  const gamma = entry("framework-gamma", "0.9.0", "revoked",
+    archive("framework-gamma-0.9.0", "gamma-release"),
+    { reason: "Withdrawn by the publisher.", evidence: [gammaEvidence] });
+  const releaseIndex = {
+    schema: "urn:aihq:catalog:release-index:1.0.0",
+    sourceId: "catalog-public",
+    version: 3,
+    issuedAt: "2026-01-01T00:00:00Z",
+    expires: "2999-01-01T00:00:00Z",
+    entries: [alpha, beta, gamma],
+  };
+  add("release-index-1.0.0", releaseIndex.schema, releaseIndex, "release-index",
+    "Authored golden index over one public source: current, retired and revoked entries, a local location and one evidence location; unsigned-first reading with digests checked.");
+}
 write("fixtures/manifest.json", { schema: "urn:aihq:catalog:fixture-manifest:1.0.0", package: contractSupport.package, fixtures });
 write("package-support.json", contractSupport);
 write("package-support-1.1.json", contractSupport11);

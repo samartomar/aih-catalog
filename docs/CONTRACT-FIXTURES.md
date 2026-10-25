@@ -21,12 +21,16 @@ Support 1.0 identifies each version by its complete contract URN. Its closed
 schema permits only `id`, `role` and `schemaExport` in each contract entry;
 it does **not** permit a `versions` array or fixture references. Each supported
 release 1.0–1.5, producer declaration 3.0/3.1, content inventory 1.0,
-release-content projection 1.0, baseline 1.0 and admitted Core recipe version
-has a separate entry and an exact schema export. `both` describes formats
-Catalog reads and produces; producer declarations are `accepts`. Core owns the
-recipe and support schemas; Catalog exposes the schema bytes it uses without
-requiring Core to be installed. This declaration describes structural support,
-not runtime readiness, authentication or execution authority.
+release-content projection 1.0, baseline 1.0, release index 1.0.0 and admitted
+Core recipe version has a separate entry and an exact schema export. `both`
+describes formats Catalog reads and produces; producer declarations are
+`accepts`. Core owns the recipe and support schemas; Catalog exposes the schema
+bytes it uses without requiring Core to be installed. This declaration describes
+structural support, not runtime readiness, authentication or execution
+authority. The release index reads unsigned first: `readReleaseIndex` reports
+`unsigned` per source without a TUF root, still checks every release digest, and
+reports a TUF-selected source `offline` until samartomar/aih-catalog#138
+delivers verification.
 
 ## Consume fixtures
 

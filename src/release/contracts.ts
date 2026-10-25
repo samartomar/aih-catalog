@@ -27,6 +27,15 @@ export const RELEASE_SCHEMA_EXPORT_1_4 = "@aihq/catalog/schemas/release/1.4.0.js
 /** Release 1.5 binds the versioned content inventory to one baseline assessment. */
 export const RELEASE_SCHEMA_ID_1_5 = "urn:aihq:catalog:release:1.5.0" as const;
 export const RELEASE_SCHEMA_EXPORT_1_5 = "@aihq/catalog/schemas/release/1.5.0.json" as const;
+/**
+ * The release index 1.0.0: one unsigned-first merge surface over per-source index
+ * documents. TUF verification of index bytes is delivered separately
+ * (samartomar/aih-catalog#138); this contract ships the schema, diagnostics and
+ * honest unsigned reading now.
+ */
+export const RELEASE_INDEX_SCHEMA_ID = "urn:aihq:catalog:release-index:1.0.0" as const;
+export const RELEASE_INDEX_SCHEMA_EXPORT =
+  "@aihq/catalog/schemas/release-index/1.0.0.json" as const;
 export * from "./baseline-contracts.js";
 export type ReleaseSchemaId =
   | typeof RELEASE_SCHEMA_ID
@@ -141,6 +150,11 @@ export const contractSupport = Object.freeze({
       id: "urn:aihq:catalog:release-content:1.0.0",
       role: "both",
       schemaExport: "@aihq/catalog/schemas/release-content/1.0.0.json",
+    }),
+    Object.freeze({
+      id: RELEASE_INDEX_SCHEMA_ID,
+      role: "both",
+      schemaExport: RELEASE_INDEX_SCHEMA_EXPORT,
     }),
   ]),
   entries: Object.freeze([
@@ -425,6 +439,138 @@ export type ReadReleaseResult =
 export type GetItemResult =
   | { readonly found: true; readonly item: CatalogItem }
   | { readonly found: false; readonly diagnostics: readonly CatalogDiagnostic[] };
+
+/** Release index entry lifecycle. Nothing is deleted by a status change. */
+export type ReleaseIndexEntryStatus = "current" | "retired" | "revoked";
+/** Who published a source: the public Catalog, an organization, or a local mirror. */
+export type ReleaseIndexSourceKind = "public" | "organization" | "local";
+
+/** The publishing source recorded on every index entry. */
+export interface ReleaseIndexSourceRef {
+  readonly id: string;
+  readonly kind: ReleaseIndexSourceKind;
+}
+
+/**
+ * Where a release or evidence artifact is acquired. Core's material source, so the
+ * host acquires through the contract it already implements; a release location names
+ * the exact release document bytes the entry `sha256` digests.
+ */
+export type ReleaseIndexLocation = MaterialSource;
+
+/** One release in one source's index. `reason` names durable retirement/withdrawal. */
+export interface ReleaseIndexEntry {
+  readonly frameworkId: string;
+  readonly name: string;
+  readonly version: string;
+  readonly location: ReleaseIndexLocation;
+  /** SHA-256 of the exact release document bytes, checked while reading unsigned. */
+  readonly sha256: string;
+  /** The release format the published release document declares. */
+  readonly schema: ReleaseSchemaId;
+  readonly status: ReleaseIndexEntryStatus;
+  readonly reason?: string;
+  /** Evidence locations for the release; an empty list names none. */
+  readonly evidence: readonly ReleaseIndexLocation[];
+  readonly source: ReleaseIndexSourceRef;
+}
+
+/** Host-selected trust for one source. TUF verification itself arrives with #138. */
+export type ReleaseIndexTrust = "none" | { readonly tufRoot: Uint8Array };
+
+/** Persisted per-source state; the host owns persistence. `lastVersion` 0 means none. */
+export interface ReleaseIndexSourceState {
+  readonly sourceId: string;
+  readonly lastVersion: number;
+  /** When TUF last verified this source; `null` until a TUF root exists and verifies. */
+  readonly lastVerifiedAt: string | null;
+  /** Digest of the last accepted index bytes; `null` before any accepted read. */
+  readonly lastIndexSha256: string | null;
+}
+
+/** One source read: freshly acquired bytes, or the recorded copy when offline. */
+export interface ReleaseIndexSourceRequest {
+  readonly sourceId: string;
+  readonly trust: ReleaseIndexTrust;
+  /** Framework ids this source may publish and revoke; entries outside are ignored. */
+  readonly authorizedFrameworks: readonly string[];
+  /** Fresh index bytes, or the persisted copy when `offline` is true. */
+  readonly indexBytes?: Uint8Array;
+  /** The host declares acquisition failed and supplies the recorded copy, if any. */
+  readonly offline?: boolean;
+}
+
+export type ReleaseIndexDiagnosticCode =
+  | "unsigned"
+  | "expired"
+  | "rollback-refused"
+  | "offline"
+  | "root-revoked"
+  | "conflict"
+  | "unauthorized-framework"
+  | "INPUT_INVALID"
+  | "SCHEMA_UNSUPPORTED"
+  /** Structural refusals share the release reader's full code vocabulary. */
+  | "SUGGESTION";
+
+/** Per-source diagnostic. Callers decide on `code`/`reason`, never on message text. */
+export interface ReleaseIndexDiagnostic {
+  readonly code: ReleaseIndexDiagnosticCode;
+  readonly reason: string;
+  readonly message: string;
+  readonly blocking: boolean;
+  readonly path?: string;
+  readonly frameworkId?: string;
+  readonly version?: string;
+  /** Structural refusals reuse the release reader's diagnostic shape. */
+  readonly selectionId?: string;
+  readonly itemId?: string;
+  readonly encountered?: string;
+  readonly supported?: readonly string[];
+}
+
+/** One source's read outcome and the state to persist for it. */
+export interface ReleaseIndexSourceResult {
+  readonly sourceId: string;
+  readonly diagnostics: readonly ReleaseIndexDiagnostic[];
+  readonly state: ReleaseIndexSourceState;
+}
+
+/** A merged entry: sources that agree on the release digest, winning status applied. */
+export interface MergedReleaseIndexEntry {
+  readonly frameworkId: string;
+  readonly name: string;
+  readonly version: string;
+  readonly location: ReleaseIndexLocation;
+  readonly sha256: string;
+  readonly schema: ReleaseSchemaId;
+  readonly status: ReleaseIndexEntryStatus;
+  readonly reason?: string;
+  readonly evidence: readonly ReleaseIndexLocation[];
+  readonly sources: readonly ReleaseIndexSourceRef[];
+}
+
+export interface ReadReleaseIndexRequest {
+  /** Evaluation instant, RFC 3339; expiry and cache decisions compare against it. */
+  readonly evaluatedAt: string;
+  readonly sources: readonly ReleaseIndexSourceRequest[];
+  /** Exactly one state entry per requested source; missing or extra entries refuse. */
+  readonly state: readonly ReleaseIndexSourceState[];
+}
+
+export type ReadReleaseIndexResult =
+  | {
+      readonly valid: true;
+      readonly entries: readonly MergedReleaseIndexEntry[];
+      readonly sources: readonly ReleaseIndexSourceResult[];
+      readonly diagnostics: readonly [];
+    }
+  | {
+      readonly valid: false;
+      readonly entries: readonly MergedReleaseIndexEntry[];
+      readonly sources: readonly ReleaseIndexSourceResult[];
+      readonly diagnostics: readonly ReleaseIndexDiagnostic[];
+    };
 
 export interface RecipeReference {
   readonly source: MaterialSource;
