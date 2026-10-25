@@ -392,6 +392,18 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
     if (carriedDocument.schema === "urn:aihq:catalog:release:1.5.0") {
       carriedDocument.schema = "urn:aihq:catalog:release:1.4.0";
       delete carriedDocument.baseline;
+    } else if (
+      carriedDocument.schema === "urn:aihq:catalog:release:1.6.0" &&
+      carriedDocument.baseline !== undefined
+    ) {
+      // A carried adjacent 1.6 document follows this candidate's package identity,
+      // which changes the frozen inventory the baseline is bound to. Candidate
+      // building never rebinds evidence; release preparation must re-freeze it.
+      return refuse(
+        "adjacent-baseline",
+        `${path} carries a release 1.6 baseline this candidate cannot rebind; re-freeze evidence in release preparation`,
+        { path },
+      );
     }
     for (const item of (carriedDocument.items as Json[]).map(asRecord)) {
       for (const member of [asRecord(item.recipe), ...(item.materials as Json[]).map(asRecord)]) {
