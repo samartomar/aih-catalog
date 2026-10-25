@@ -31,6 +31,7 @@ import {
   Diagnostics,
   ID,
   isRecord,
+  memberPackagePath,
   SHA256,
 } from "./document.js";
 import { inputAccepts } from "./inputs.js";
@@ -451,7 +452,7 @@ function finish(
 const toMember = (prefix: string, member: MaterialMember): MaterialMember =>
   Object.freeze({
     id: member.id,
-    path: `${prefix}${member.path}`,
+    path: `${prefix}${String(memberPackagePath(member as unknown as Record<string, unknown>))}`,
     sha256: member.sha256,
     byteLength: member.byteLength,
   });

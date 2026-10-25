@@ -36,6 +36,7 @@ import {
   checkInputs,
   Diagnostics,
   isRecord,
+  memberPackagePath,
   safeMemberPath,
 } from "./document.js";
 import { canonicalJson, deepFreeze } from "./json.js";
@@ -1055,7 +1056,10 @@ function prepareSourceRefreshData(request: {
         recipeBytes: Buffer.from(recipe.bytes),
         members: item.materials.map((member) => ({
           ...member,
-          bytes: Buffer.from(outputs.get(member.path)?.bytes ?? []),
+          bytes: Buffer.from(
+            outputs.get(String(memberPackagePath(member as unknown as Record<string, unknown>)))
+              ?.bytes ?? [],
+          ),
         })),
       });
     }

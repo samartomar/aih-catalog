@@ -1268,8 +1268,7 @@
               }
             },
             "required": [
-              "kind",
-              "payload"
+              "kind"
             ]
           },
           "then": {
@@ -1317,8 +1316,7 @@
               }
             },
             "required": [
-              "kind",
-              "payload"
+              "kind"
             ]
           },
           "then": {
@@ -1378,8 +1376,7 @@
               }
             },
             "required": [
-              "kind",
-              "payload"
+              "kind"
             ]
           },
           "then": {
@@ -1472,8 +1469,7 @@
               }
             },
             "required": [
-              "kind",
-              "payload"
+              "kind"
             ]
           },
           "then": {
@@ -1667,8 +1663,7 @@
               }
             },
             "required": [
-              "kind",
-              "payload"
+              "kind"
             ]
           },
           "then": {
@@ -1700,8 +1695,7 @@
               }
             },
             "required": [
-              "kind",
-              "payload"
+              "kind"
             ]
           },
           "then": {
@@ -1733,8 +1727,7 @@
               }
             },
             "required": [
-              "kind",
-              "payload"
+              "kind"
             ]
           },
           "then": {

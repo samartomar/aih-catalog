@@ -763,3 +763,31 @@ describe("release 1.6.0 names and provenance", () => {
     expect(reasons(result)).toContain("executable-map-mismatch");
   });
 });
+
+describe("release 1.6.0 consumer flow", () => {
+  it("configureItem resolves extended materials by their package path", async () => {
+    const { configureItem } = await import("../../src/release/reader.js");
+    const item = buildItem({ id: "alpha", kind: "skill" });
+    const document = bindFrozen(release16([item]));
+    const result = read(document);
+    expect(result.valid).toBe(true);
+    if (!result.valid) return;
+    const configured = configureItem({
+      release: result.release,
+      itemId: "alpha",
+      configuration: {},
+      materialSource: { kind: "archive", url: "https://example.test/pkg.tgz", sha256: hex("pkg"), byteLength: 1000 },
+    });
+    expect(configured.valid).toBe(true);
+    if (!configured.valid) return;
+    const reference = configured.selection?.recipe.reference;
+    const behaviour = reference?.materials.find(
+      (member) => member.path === "package/release/items/alpha/aih-behaviour.json",
+    );
+    expect(behaviour).toBeDefined();
+    const skill = reference?.materials.find(
+      (member) => member.path === "package/release/items/alpha/SKILL.md",
+    );
+    expect(skill).toBeDefined();
+  });
+});

@@ -101,13 +101,13 @@ item16.properties.size = object({ parts: { type: "array", minItems: 1, maxItems:
 item16.properties.materials = { type: "array", maxItems: 4096, items: { oneOf: [{ $ref: "#/$defs/member" }, { $ref: "#/$defs/material16" }] } };
 item16.allOf = [
   ...(item16.allOf ?? []),
-  { if: { properties: { kind: { const: "skill" } }, required: ["kind", "payload"] }, then: { properties: { payload: skillPayload } } },
-  { if: { properties: { kind: { const: "rule" } }, required: ["kind", "payload"] }, then: { properties: { payload: rulePayload } } },
-  { if: { properties: { kind: { const: "hook" } }, required: ["kind", "payload"] }, then: { properties: { payload: hookPayload } } },
-  { if: { properties: { kind: { const: "mcp-server" } }, required: ["kind", "payload"] }, then: { properties: { payload: mcpPayload } } },
-  { if: { properties: { kind: { const: "agent" } }, required: ["kind", "payload"] }, then: { properties: { payload: filesPayload } } },
-  { if: { properties: { kind: { const: "command" } }, required: ["kind", "payload"] }, then: { properties: { payload: filesPayload } } },
-  { if: { properties: { kind: { const: "document" } }, required: ["kind", "payload"] }, then: { properties: { payload: filesPayload } } },
+  { if: { properties: { kind: { const: "skill" } }, required: ["kind"] }, then: { properties: { payload: skillPayload } } },
+  { if: { properties: { kind: { const: "rule" } }, required: ["kind"] }, then: { properties: { payload: rulePayload } } },
+  { if: { properties: { kind: { const: "hook" } }, required: ["kind"] }, then: { properties: { payload: hookPayload } } },
+  { if: { properties: { kind: { const: "mcp-server" } }, required: ["kind"] }, then: { properties: { payload: mcpPayload } } },
+  { if: { properties: { kind: { const: "agent" } }, required: ["kind"] }, then: { properties: { payload: filesPayload } } },
+  { if: { properties: { kind: { const: "command" } }, required: ["kind"] }, then: { properties: { payload: filesPayload } } },
+  { if: { properties: { kind: { const: "document" } }, required: ["kind"] }, then: { properties: { payload: filesPayload } } },
 ];
 const release16 = structuredClone(release);
 release16.$id = "urn:aihq:catalog:release:1.6.0";

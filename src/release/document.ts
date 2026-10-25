@@ -543,7 +543,7 @@ function checkItem(
   if (value.metadata !== undefined && !isRecord(value.metadata)) {
     d.add("invalid-metadata", `${path}/metadata`, "Metadata is a descriptive object.");
   }
-  if (schema === RELEASE_SCHEMA_ID_1_6) checkItem16(d, value, path, sources);
+  if (schema === RELEASE_SCHEMA_ID_1_6) checkItem16(d, value, path);
 }
 
 const ITEM16_FIELDS = [
@@ -1000,7 +1000,6 @@ function checkItem16(
   d: Diagnostics,
   item: Record<string, unknown>,
   path: string,
-  sources: ReadonlySet<string>,
 ): void {
   const materials = (Array.isArray(item.materials) ? item.materials : []).filter(isRecord);
   const extended = materials.filter((member) => !Object.hasOwn(member, "path"));
@@ -1143,11 +1142,10 @@ function checkItem16(
   }
   checkPayload16(d, item, path, content, requirementInputs);
   checkProvenance16(d, item, path, content);
-  void sources;
 }
 
 /** Paths are package members: one path names one byte identity across the whole release. */
-function memberPackagePath(member: Record<string, unknown>): unknown {
+export function memberPackagePath(member: Record<string, unknown>): unknown {
   return Object.hasOwn(member, "path") ? member.path : member.packagePath;
 }
 
@@ -1313,24 +1311,26 @@ function checkRelease16Fields(d: Diagnostics, value: Record<string, unknown>): v
         (member) => isRecord(member) && !Object.hasOwn(member, "path"),
       ) || ITEM16_FIELDS.some((field) => Object.hasOwn(item, field)),
   );
-  if (carrying.length === 0) return;
-  if (frameworkId === undefined) {
+  const publishesIdentity = framework !== undefined || carrying.length > 0;
+  if (carrying.length > 0 && frameworkId === undefined) {
     d.add(
       "framework-required",
       "/framework",
       "A release whose items carry behaviour files publishes the framework identity.",
     );
   }
-  (Array.isArray(value.sources) ? value.sources : []).forEach((source, index) => {
-    if (!isRecord(source)) return;
-    if (typeof source.license !== "string" || !SPDX_ID.test(source.license)) {
-      d.add(
-        "missing-license",
-        `/sources/${index}/license`,
-        "Each source hop carries an SPDX license identifier once the framework identity is published.",
-      );
-    }
-  });
+  if (publishesIdentity) {
+    (Array.isArray(value.sources) ? value.sources : []).forEach((source, index) => {
+      if (!isRecord(source)) return;
+      if (typeof source.license !== "string" || !SPDX_ID.test(source.license)) {
+        d.add(
+          "missing-license",
+          `/sources/${index}/license`,
+          "Each source hop carries an SPDX license identifier once the framework identity is published.",
+        );
+      }
+    });
+  }
   if (frameworkId !== undefined) {
     items.forEach((item, itemIndex) => {
       const materials = (Array.isArray(item.materials) ? item.materials : []).filter(isRecord);
