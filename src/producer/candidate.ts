@@ -1,7 +1,9 @@
 import type { Json } from "../release/contracts.js";
+/** Release 1.6 extended materials address package members by `packagePath`. */
+import { isRecord } from "../release/document.js";
 import { canonicalJson } from "../release/json.js";
 import { renderNativeFixture } from "../release/native-fixture-content.js";
-import { listItems, readRelease } from "../release/reader.js";
+import { listItems, readRelease, readReleaseContent } from "../release/reader.js";
 import type { BaseRelease, Record_ } from "./base.js";
 import { assertAcyclic, isTemplateItem, type ProducerDeclaration } from "./declaration.js";
 import { classifyDelta, type ItemDelta, repositoryUrl } from "./delta.js";
@@ -18,6 +20,9 @@ import {
 } from "./generate.js";
 import { operationalMetadata } from "./template.js";
 import type { SourceTree } from "./tree.js";
+
+const packagePathOf = (member: Record<string, Json>): string =>
+  String(Object.hasOwn(member, "path") ? member.path : member.packagePath);
 
 export type ReportedState =
   | "added"
@@ -134,7 +139,12 @@ function targetSourceId(
       `source id ${preferred} is already used by another origin`,
     );
   }
-  sources.set(preferred, { id: preferred, origin: { kind: "git", repository: url, revision } });
+  const prior = sources.get(declaredId);
+  sources.set(preferred, {
+    id: preferred,
+    origin: { kind: "git", repository: url, revision },
+    ...(isRecord(prior) && prior.license !== undefined ? { license: prior.license } : {}),
+  });
   return preferred;
 }
 
@@ -226,7 +236,17 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
     const item = compiled
       ? {
           ...compiled,
-          record: { ...compiled.record, sourceIds: [sourceId] },
+          record: {
+            ...compiled.record,
+            sourceIds: [sourceId],
+            materials: (Array.isArray(compiled.record.materials)
+              ? (compiled.record.materials as Json[]).map((member) =>
+                  isRecord(member) && !Object.hasOwn(member, "path") && member.role !== "behaviour"
+                    ? { ...member, sourceId }
+                    : member,
+                )
+              : compiled.record.materials) as Json,
+          },
         }
       : generateItem({
           item: delta.declared as import("./declaration.js").DeclaredSkillItem,
@@ -297,22 +317,35 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
 
   const document: Record_ = {
     schema:
-      finalItems.some((item) => item.clientId !== undefined) ||
-      base?.checked.schema === "urn:aihq:catalog:release:1.4.0" ||
-      base?.checked.schema === "urn:aihq:catalog:release:1.5.0"
-        ? "urn:aihq:catalog:release:1.4.0"
-        : finalItems.some(
-              (item) => asRecord(item.recipe).schema === "urn:aihq:core:recipe:1.3.0",
-            ) || base?.checked.schema === "urn:aihq:catalog:release:1.2.0"
-          ? "urn:aihq:catalog:release:1.2.0"
+      finalItems.some((item) =>
+        (item.materials as Json[]).some(
+          (member) => isRecord(member) && !Object.hasOwn(member, "path"),
+        ),
+      ) || base?.checked.schema === "urn:aihq:catalog:release:1.6.0"
+        ? "urn:aihq:catalog:release:1.6.0"
+        : finalItems.some((item) => item.clientId !== undefined) ||
+            base?.checked.schema === "urn:aihq:catalog:release:1.4.0" ||
+            base?.checked.schema === "urn:aihq:catalog:release:1.5.0"
+          ? "urn:aihq:catalog:release:1.4.0"
           : finalItems.some(
-                (item) => asRecord(item.recipe).schema === "urn:aihq:core:recipe:1.1.0",
-              ) || base?.checked.schema === "urn:aihq:catalog:release:1.1.0"
-            ? "urn:aihq:catalog:release:1.1.0"
-            : "urn:aihq:catalog:release:1.0.0",
+                (item) => asRecord(item.recipe).schema === "urn:aihq:core:recipe:1.3.0",
+              ) || base?.checked.schema === "urn:aihq:catalog:release:1.2.0"
+            ? "urn:aihq:catalog:release:1.2.0"
+            : finalItems.some(
+                  (item) => asRecord(item.recipe).schema === "urn:aihq:core:recipe:1.1.0",
+                ) || base?.checked.schema === "urn:aihq:catalog:release:1.1.0"
+              ? "urn:aihq:catalog:release:1.1.0"
+              : "urn:aihq:catalog:release:1.0.0",
     package: { name: input.package.name, version: input.package.version },
     sources: finalSources,
     items: finalItems,
+    ...(base?.checked.framework !== undefined ? { framework: base.checked.framework as Json } : {}),
+    ...(base?.checked.retired !== undefined
+      ? { retired: base.checked.retired as unknown as Json }
+      : {}),
+    ...(base?.checked.nativeRoutes !== undefined
+      ? { nativeRoutes: base.checked.nativeRoutes as Json }
+      : {}),
     ...(input.metadata === undefined && base?.metadata === undefined
       ? {}
       : { metadata: input.metadata ?? base?.metadata }),
@@ -333,7 +366,8 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
       continue;
     }
     for (const member of [asRecord(item.recipe), ...(item.materials as Json[]).map(asRecord)]) {
-      put(member.path as string, files.get(member.path as string) as Buffer);
+      const path = packagePathOf(member);
+      put(path, files.get(path) as Buffer);
     }
   }
   const releaseBytes = documentBytes(document);
@@ -351,10 +385,23 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
     if (carriedDocument.schema === "urn:aihq:catalog:release:1.5.0") {
       carriedDocument.schema = "urn:aihq:catalog:release:1.4.0";
       delete carriedDocument.baseline;
+    } else if (
+      carriedDocument.schema === "urn:aihq:catalog:release:1.6.0" &&
+      carriedDocument.baseline !== undefined
+    ) {
+      // A carried adjacent 1.6 document follows this candidate's package identity,
+      // which changes the frozen inventory the baseline is bound to. Candidate
+      // building never rebinds evidence; release preparation must re-freeze it.
+      refuse(
+        "adjacent-baseline",
+        `${path} carries a release 1.6 baseline this candidate cannot rebind; re-freeze evidence in release preparation`,
+        { path },
+      );
     }
     for (const item of (carriedDocument.items as Json[]).map(asRecord)) {
       for (const member of [asRecord(item.recipe), ...(item.materials as Json[]).map(asRecord)]) {
-        put(member.path as string, files.get(member.path as string) as Buffer);
+        const path = packagePathOf(member);
+        put(path, files.get(path) as Buffer);
       }
     }
     put(path, documentBytes(carriedDocument));
@@ -370,7 +417,12 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
       put(path, Buffer.from(bytes));
   }
 
-  const checked = readRelease(releaseBytes, { expectedSha256: sha256Hex(releaseBytes) });
+  // A release 1.6 candidate is pre-baseline content; full admission binds the
+  // baseline at release preparation.
+  const checked =
+    document.schema === "urn:aihq:catalog:release:1.6.0"
+      ? readReleaseContent(releaseBytes, { expectedSha256: sha256Hex(releaseBytes) })
+      : readRelease(releaseBytes, { expectedSha256: sha256Hex(releaseBytes) });
   if (!checked.valid) {
     return refuse("candidate-envelope-invalid", "the produced release document is invalid", {
       diagnostics: checked.diagnostics.map((d) => ({ reason: d.reason, path: d.path })),

@@ -28,6 +28,13 @@ export const RELEASE_SCHEMA_EXPORT_1_4 = "@aihq/catalog/schemas/release/1.4.0.js
 export const RELEASE_SCHEMA_ID_1_5 = "urn:aihq:catalog:release:1.5.0" as const;
 export const RELEASE_SCHEMA_EXPORT_1_5 = "@aihq/catalog/schemas/release/1.5.0.json" as const;
 /**
+ * Release 1.6 adds optional behaviour files, the contentSha256/behaviourSha256
+ * identities, typed payloads, framework identity, true provenance and measured
+ * sizes. Recipes, current item ids and the baseline binding are unchanged.
+ */
+export const RELEASE_SCHEMA_ID_1_6 = "urn:aihq:catalog:release:1.6.0" as const;
+export const RELEASE_SCHEMA_EXPORT_1_6 = "@aihq/catalog/schemas/release/1.6.0.json" as const;
+/**
  * The release index 1.0.0: one unsigned-first merge surface over per-source index
  * documents. TUF verification of index bytes is delivered separately
  * (samartomar/aih-catalog#138); this contract ships the schema, diagnostics and
@@ -43,7 +50,8 @@ export type ReleaseSchemaId =
   | typeof RELEASE_SCHEMA_ID_1_2
   | typeof RELEASE_SCHEMA_ID_1_3
   | typeof RELEASE_SCHEMA_ID_1_4
-  | typeof RELEASE_SCHEMA_ID_1_5;
+  | typeof RELEASE_SCHEMA_ID_1_5
+  | typeof RELEASE_SCHEMA_ID_1_6;
 export type RecipeSchemaId =
   | typeof CORE_RECIPE_SCHEMA_ID
   | typeof CORE_RECIPE_SCHEMA_ID_1_1
@@ -69,6 +77,11 @@ export const RELEASE_RECIPE_SCHEMAS: Readonly<Record<ReleaseSchemaId, readonly R
       CORE_RECIPE_SCHEMA_ID_1_3,
     ]),
     [RELEASE_SCHEMA_ID_1_5]: Object.freeze([
+      CORE_RECIPE_SCHEMA_ID,
+      CORE_RECIPE_SCHEMA_ID_1_1,
+      CORE_RECIPE_SCHEMA_ID_1_3,
+    ]),
+    [RELEASE_SCHEMA_ID_1_6]: Object.freeze([
       CORE_RECIPE_SCHEMA_ID,
       CORE_RECIPE_SCHEMA_ID_1_1,
       CORE_RECIPE_SCHEMA_ID_1_3,
@@ -137,9 +150,24 @@ export const contractSupport = Object.freeze({
       schemaExport: RELEASE_SCHEMA_EXPORT_1_5,
     }),
     Object.freeze({
+      id: RELEASE_SCHEMA_ID_1_6,
+      role: "both",
+      schemaExport: RELEASE_SCHEMA_EXPORT_1_6,
+    }),
+    Object.freeze({
+      id: "urn:aihq:catalog:producer-declaration:3.2.0",
+      role: "accepts",
+      schemaExport: "@aihq/catalog/schemas/producer-declaration/3.2.0.json",
+    }),
+    Object.freeze({
       id: "urn:aihq:catalog:content-inventory:1.0.0",
       role: "both",
       schemaExport: "@aihq/catalog/schemas/content-inventory/1.0.0.json",
+    }),
+    Object.freeze({
+      id: "urn:aihq:catalog:content-inventory:1.1.0",
+      role: "both",
+      schemaExport: "@aihq/catalog/schemas/content-inventory/1.1.0.json",
     }),
     Object.freeze({
       id: "urn:aihq:catalog:scan-baseline:1.0.0",
@@ -150,6 +178,11 @@ export const contractSupport = Object.freeze({
       id: "urn:aihq:catalog:release-content:1.0.0",
       role: "both",
       schemaExport: "@aihq/catalog/schemas/release-content/1.0.0.json",
+    }),
+    Object.freeze({
+      id: "urn:aihq:catalog:release-content:1.1.0",
+      role: "both",
+      schemaExport: "@aihq/catalog/schemas/release-content/1.1.0.json",
     }),
     Object.freeze({
       id: RELEASE_INDEX_SCHEMA_ID,
@@ -324,6 +357,130 @@ export interface MaterialMember {
   readonly byteLength: number;
 }
 
+/** Release 1.6: a material with item-relative identity, role, executable state and size. */
+export interface MaterialIdentity {
+  readonly id: string;
+  /** Item-relative POSIX path; the behaviour file lives at `aih-behaviour.json`. */
+  readonly relPath: string;
+  /** Upstream source-relative path, or null for publisher-synthesised bytes. */
+  readonly sourcePath?: string | null;
+  /** Package member path, replacing the legacy `path` on extended materials. */
+  readonly packagePath: string;
+  readonly sha256: string;
+  readonly byteLength: number;
+  /** Executable state read from the source tree mode at preparation. */
+  readonly executable: boolean | "unknown";
+  readonly sourceId: string;
+  /** `content` (the default) or `behaviour`. */
+  readonly role?: "content" | "behaviour";
+  readonly upstream?: {
+    readonly sourceId: string;
+    readonly path: string;
+    readonly gitBlob: string;
+    readonly transform: "identical" | "edited";
+  };
+  readonly size?: MaterialSize;
+}
+
+export interface MaterialSize {
+  readonly bytes: number;
+  readonly chars: number;
+  readonly status: "measured" | "unknown";
+}
+
+/** Release 1.6 typed payloads, one shape per kind. */
+export type ItemPayload =
+  | {
+      readonly dirName: string;
+      readonly namespace?: string;
+      readonly invocation: "user-only" | "model-allowed";
+      readonly invocationBasis: string;
+    }
+  | {
+      readonly namespace?: string;
+      readonly applyTo: readonly string[];
+      readonly applyToBasis: string;
+      readonly inclusion?: "always" | "fileMatch" | "manual";
+      readonly placement?: "file" | "entry-block" | "project-folder";
+    }
+  | {
+      readonly event: string;
+      readonly matcher?: string;
+      readonly protocol: "claude-code-hooks";
+      readonly timeoutSec?: number;
+      readonly command: {
+        readonly program?: string;
+        readonly interpreter?: "node" | "bash" | "python" | "pwsh";
+        readonly script: string;
+        readonly args?: readonly (string | { readonly material: string })[];
+      };
+    }
+  | {
+      readonly key: string;
+      readonly transport: "stdio" | "http" | "sse";
+      readonly command?: string;
+      readonly args?: readonly string[];
+      readonly url?: string;
+      readonly env?: Readonly<
+        Record<string, { readonly input: string } | { readonly value: string }>
+      >;
+      readonly headers?: Readonly<
+        Record<string, { readonly input: string } | { readonly value: string }>
+      >;
+      readonly derivation?: {
+        readonly sourceMaterial: string;
+        readonly pointer: string;
+        readonly transform: "identical" | "edited";
+        readonly editsSha256?: string;
+      };
+    }
+  | { readonly files: readonly string[] };
+
+export type NameBasis = "authored" | "first-heading" | "key" | "file-name" | "publisher";
+
+export interface DerivedFromRef {
+  readonly itemId: string;
+  readonly releaseSha256?: string;
+  readonly status: "verified" | "declared";
+  readonly proof?: {
+    readonly materials: readonly { readonly relPath: string; readonly sha256: string }[];
+  };
+}
+
+export interface PartSize {
+  readonly part: "name" | "description" | "frontmatter" | "body" | "files";
+  readonly bytes: number;
+  readonly chars: number;
+}
+
+/**
+ * Scan's item descriptor for one checked release 1.6 item, as the portable
+ * reader derives it: both identities are recomputed, the behaviour file is
+ * checked against the declarations, and every material is projected to the
+ * baseline scope's package-relative namespace with its executable state and role.
+ */
+export interface ItemEvidenceDescriptor {
+  readonly frameworkId: string;
+  readonly itemId: string;
+  readonly contentSha256: string;
+  readonly behaviourSha256: string;
+  readonly materials: readonly {
+    readonly path: string;
+    readonly sha256: string;
+    readonly byteLength: number;
+    readonly executable: boolean | "unknown";
+    readonly role: "content" | "behaviour";
+  }[];
+}
+
+export type ItemEvidenceResult =
+  | {
+      readonly valid: true;
+      readonly descriptor: ItemEvidenceDescriptor;
+      readonly diagnostics: readonly [];
+    }
+  | { readonly valid: false; readonly diagnostics: readonly CatalogDiagnostic[] };
+
 export type SourceOrigin =
   | { readonly kind: "git"; readonly repository: string; readonly revision: string }
   | {
@@ -339,6 +496,8 @@ export type SourceOrigin =
 export interface ReleaseSource {
   readonly id: string;
   readonly origin: SourceOrigin;
+  /** Release 1.6 optional SPDX license identifier for this source hop. */
+  readonly license?: string;
 }
 
 export type Prerequisite =
@@ -395,10 +554,26 @@ export interface CatalogItem {
   readonly scopes: readonly ("project" | "user")[];
   readonly inputs: Readonly<Record<string, InputSpec>>;
   readonly recipe: RecipeDescriptor;
-  readonly materials: readonly MaterialMember[];
+  /** Legacy `path` members, release 1.6 extended materials, or a mix. */
+  readonly materials: readonly (MaterialMember | MaterialIdentity)[];
   /** Absent lists are normalized to empty lists, never to inferred items. */
   readonly dependencies: ItemDependencies;
   readonly metadata?: Json;
+  /** Release 1.6 optional additions; absent on earlier formats. */
+  readonly name?: string;
+  readonly nameBasis?: NameBasis;
+  readonly descriptionBasis?: NameBasis;
+  readonly payload?: ItemPayload;
+  readonly requirements?: { readonly inputs?: Readonly<Record<string, InputSpec>> };
+  /** Content-material relPath → executable state, as frozen into the behaviour file. */
+  readonly executable?: Readonly<Record<string, true | false | "unknown">>;
+  /** Release 1.6 identities over content materials and over all materials. */
+  readonly contentSha256?: string;
+  readonly behaviourSha256?: string;
+  readonly source?: string;
+  readonly selectedBy?: string;
+  readonly derivedFrom?: readonly DerivedFromRef[];
+  readonly size?: { readonly parts: readonly PartSize[]; readonly status: "measured" | "unknown" };
 }
 
 /** An immutable view returned only by `readRelease`; other reader calls accept only these. */
@@ -413,6 +588,21 @@ export interface CatalogRelease {
   readonly metadata?: Json;
   /** Absent on historical releases; describes evidence, never a safety approval. */
   readonly baseline?: import("./baseline-contracts.js").ScanBaseline;
+  /** Release 1.6 optional published framework identity. */
+  readonly framework?: {
+    readonly id: string;
+    readonly name: string;
+    readonly version: string;
+    readonly description: string;
+  };
+  /** Release 1.6 optional retirement record; nothing is deleted by a status change. */
+  readonly retired?: readonly {
+    readonly id: string;
+    readonly reason: string;
+    readonly replacedBy?: readonly string[];
+  }[];
+  /** Release 1.6 optional display-only upstream plugin routes. */
+  readonly nativeRoutes?: readonly string[];
 }
 
 /**

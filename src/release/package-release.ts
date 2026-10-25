@@ -7,7 +7,7 @@
 import { createHash } from "node:crypto";
 import { baselineMembers } from "./baseline-members.js";
 import type { CatalogDiagnostic, CatalogRelease, ReleaseExport } from "./contracts.js";
-import { isRecord, safeMemberPath } from "./document.js";
+import { isRecord, memberPackagePath, safeMemberPath } from "./document.js";
 import { readContentInventory } from "./inventory.js";
 import { AcquisitionFailure } from "./node-errors.js";
 import { readRelease } from "./reader.js";
@@ -175,13 +175,14 @@ export function verifyPackageRelease(
   for (const item of release.items) {
     for (const member of [item.recipe, ...item.materials]) {
       if (signal?.aborted) failWith("cancelled");
-      const prior = verified.get(member.path);
+      const packagePath = String(memberPackagePath(member as unknown as Record<string, unknown>));
+      const prior = verified.get(packagePath);
       // Byte reuse cannot establish agreement with another item's advertised inputs.
       if (prior === `${member.sha256}:${member.byteLength}` && member !== item.recipe) continue;
       try {
-        const bytes = read(member.path, MEMBER_MAX_BYTES, member.byteLength);
-        if (sha256(bytes) !== member.sha256) failWith("member-sha256-mismatch", member.path);
-        verified.set(member.path, `${member.sha256}:${member.byteLength}`);
+        const bytes = read(packagePath, MEMBER_MAX_BYTES, member.byteLength);
+        if (sha256(bytes) !== member.sha256) failWith("member-sha256-mismatch", packagePath);
+        verified.set(packagePath, `${member.sha256}:${member.byteLength}`);
         if (member === item.recipe) diagnostics.push(...checkRecipeAgreement(item, bytes));
       } catch (error) {
         if (!(error instanceof AcquisitionFailure) || error.reason === "cancelled") throw error;

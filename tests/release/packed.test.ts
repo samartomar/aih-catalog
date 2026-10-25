@@ -650,7 +650,9 @@ describe("exact packed consumer", () => {
       contracts: [
         "BASELINE_ARTIFACT_MAX_BYTES",
         "CONTENT_INVENTORY_SCHEMA_ID",
+        "CONTENT_INVENTORY_SCHEMA_ID_1_1",
         "CONTENT_PROJECTION_ID",
+        "CONTENT_PROJECTION_ID_1_1",
         "SCAN_BASELINE_SCHEMA_ID",
         "contractSupport",
         "contractSupport11",

@@ -1,5 +1,5 @@
 import type { CatalogRelease, Json } from "../release/contracts.js";
-import { isRecord, safeMemberPath } from "../release/document.js";
+import { isRecord, memberPackagePath, safeMemberPath } from "../release/document.js";
 import { canonicalJson, textDepth } from "../release/json.js";
 import type { AuthoredAllowance } from "./authored.js";
 import { refuse } from "./errors.js";
@@ -53,7 +53,12 @@ export function derivedAllowances(
         if (!isRecord(input) || typeof input.id !== "string") continue;
         const material = item.materials.find((member) => member.id === input.id);
         const path = `release/materials/authored/${repository}/${upstream.derivation.outputSha256}/${example.path}`;
-        if (material?.path !== path || material.sha256 !== example.sha256) continue;
+        if (material === undefined) continue;
+        if (
+          String(memberPackagePath(material as unknown as Record<string, unknown>)) !== path ||
+          material.sha256 !== example.sha256
+        )
+          continue;
         if (!mapped.some((entry) => entry.path === path)) mapped.push({ ...example, path });
       }
     }

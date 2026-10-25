@@ -1,6 +1,6 @@
 import { baselineMembers } from "../release/baseline-members.js";
 import type { CatalogRelease, Json } from "../release/contracts.js";
-import { readRelease } from "../release/reader.js";
+import { readRelease, readReleaseContent } from "../release/reader.js";
 import { refuse } from "./errors.js";
 import {
   GUIDE_RELEASE_PATH,
@@ -42,24 +42,34 @@ const memberList = (item: Record_): Record_[] => [
   asRecord(item.recipe),
   ...(item.materials as Json[]).map(asRecord),
 ];
+/** Release 1.6 extended materials address package members by `packagePath`. */
+const packagePathOf = (member: Record_): string =>
+  String(
+    Object.hasOwn(member, "path") ? member.path : (member as Record<string, Json>).packagePath,
+  );
 
 export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRelease {
   const files = new Map([...input].map(([path, bytes]) => [path, Buffer.from(bytes)] as const));
   const releaseBytes = files.get(RELEASE_PATH);
   if (releaseBytes === undefined) return refuse("base-invalid", `${RELEASE_PATH} is missing`);
-  const read = readRelease(releaseBytes, { expectedSha256: sha256Hex(releaseBytes) });
+  const document = JSON.parse(releaseBytes.toString("utf8")) as Record_;
+  // A compiled release 1.6 base is pre-baseline content; admit it through the
+  // content reader. Earlier formats carry no baseline and use full admission.
+  const read =
+    document.schema === "urn:aihq:catalog:release:1.6.0"
+      ? readReleaseContent(releaseBytes, { expectedSha256: sha256Hex(releaseBytes) })
+      : readRelease(releaseBytes, { expectedSha256: sha256Hex(releaseBytes) });
   if (!read.valid) {
     return refuse("base-invalid", "the base release document is not a valid release", {
       diagnostics: read.diagnostics.map((d) => d.reason),
     });
   }
-  const document = JSON.parse(releaseBytes.toString("utf8")) as Record_;
   const checkedDocuments = [read.release];
   const items = (document.items as Json[]).map(asRecord);
   const referenced = new Set<string>([RELEASE_PATH]);
   for (const item of items) {
     for (const member of memberList(item)) {
-      const path = member.path as string;
+      const path = packagePathOf(member);
       const bytes = files.get(path);
       if (bytes === undefined) {
         return refuse("base-member-missing", `${path} is declared but absent`, {
@@ -90,7 +100,7 @@ export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRe
     referenced.add(HOOK_RELEASE_PATH);
     for (const item of (hookDocument.items as Json[]).map(asRecord)) {
       for (const member of memberList(item)) {
-        const path = member.path as string;
+        const path = packagePathOf(member);
         const bytes = files.get(path);
         if (bytes === undefined) {
           return refuse("base-member-missing", `${path} is declared but absent`, {
@@ -146,7 +156,7 @@ export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRe
     referenced.add(path);
     for (const item of (nativeDocument.items as Json[]).map(asRecord)) {
       for (const member of memberList(item)) {
-        const memberPath = member.path as string;
+        const memberPath = packagePathOf(member);
         const memberBytes = files.get(memberPath);
         if (memberBytes === undefined) {
           return refuse("base-member-missing", `${memberPath} is declared but absent`, {
