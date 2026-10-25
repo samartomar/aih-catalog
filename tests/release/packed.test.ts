@@ -132,6 +132,131 @@ describe("exact packed consumer", () => {
     expect(result.checked).toBeGreaterThanOrEqual(28);
   });
 
+  it("reads the release index through packed public exports only", () => {
+    const script = `
+      import assert from "node:assert/strict";
+      import { createHash } from "node:crypto";
+      import { readReleaseIndex } from "@aihq/catalog/reader";
+      const te = new TextEncoder();
+      const canonical = value => value === null || typeof value !== "object" ? JSON.stringify(value)
+        : Array.isArray(value) ? \`[\${value.map(canonical).join(",")}]\`
+        : \`{\${Object.keys(value).sort().map(key => \`\${JSON.stringify(key)}:\${canonical(value[key])}\`).join(",")}}\`;
+      const bytes = value => te.encode(\`\${canonical(value)}\\n\`);
+      const sha = value => createHash("sha256").update(value).digest("hex");
+      const digest = seed => sha(te.encode(seed));
+      const entry = (frameworkId, version, status, sha256, sourceId = "catalog-public", kind = "public") => ({
+        frameworkId, name: frameworkId, version,
+        location: { kind: "archive", url: \`https://example.test/\${frameworkId}-\${version}.json\`, sha256, byteLength: 10 },
+        sha256, schema: "urn:aihq:catalog:release:1.5.0", status, evidence: [],
+        source: { id: sourceId, kind },
+      });
+      const doc = (sourceId, version, entries) => ({
+        schema: "urn:aihq:catalog:release-index:1.0.0", sourceId, version,
+        issuedAt: "2026-01-01T00:00:00Z", expires: "2027-01-01T00:00:00Z", entries,
+      });
+      const fresh = (sourceId, document, authorized, state) => ({
+        evaluatedAt: "2026-06-01T00:00:00Z",
+        sources: [{ sourceId, trust: "none", authorizedFrameworks: authorized, indexBytes: bytes(document) }],
+        state: [state],
+      });
+      const none = (sourceId) => ({ sourceId, lastVersion: 0, lastVerifiedAt: null, lastIndexSha256: null });
+
+      // Unsigned merge with public and local sources; revoked stays visible.
+      const publicDoc = doc("catalog-public", 3, [entry("alpha", "1.0.0", "current", digest("a"))]);
+      const localDoc = doc("org-local", 2, [entry("alpha", "1.0.0", "revoked", digest("a"), "org-local", "local")]);
+      const merged = readReleaseIndex({
+        evaluatedAt: "2026-06-01T00:00:00Z",
+        sources: [
+          { sourceId: "catalog-public", trust: "none", authorizedFrameworks: ["alpha"], indexBytes: bytes(publicDoc) },
+          { sourceId: "org-local", trust: "none", authorizedFrameworks: ["alpha"], indexBytes: bytes(localDoc) },
+        ],
+        state: [none("catalog-public"), none("org-local")],
+      });
+      assert.equal(merged.valid, true, JSON.stringify(merged));
+      assert.equal(merged.entries.length, 1);
+      assert.equal(merged.entries[0].status, "revoked");
+      assert.deepEqual(merged.entries[0].sources, [{ id: "catalog-public", kind: "public" }, { id: "org-local", kind: "local" }]);
+      assert.deepEqual(merged.sources.map(s => s.state.lastVersion), [3, 2]);
+
+      // Two-source digest conflict: neither entry is used.
+      const conflicting = doc("org-mirror", 5, [entry("alpha", "1.0.0", "current", digest("other"), "org-mirror", "organization")]);
+      const conflict = readReleaseIndex({
+        evaluatedAt: "2026-06-01T00:00:00Z",
+        sources: [
+          { sourceId: "catalog-public", trust: "none", authorizedFrameworks: ["alpha"], indexBytes: bytes(publicDoc) },
+          { sourceId: "org-mirror", trust: "none", authorizedFrameworks: ["alpha"], indexBytes: bytes(conflicting) },
+        ],
+        state: [none("catalog-public"), none("org-mirror")],
+      });
+      assert.equal(conflict.valid, true);
+      assert.equal(conflict.entries.length, 0);
+      assert(conflict.sources.every(s => s.diagnostics.some(d => d.code === "conflict")));
+
+      // Rollback, expiry and source scope.
+      const rollback = readReleaseIndex(fresh("catalog-public", doc("catalog-public", 2, []), [], {
+        sourceId: "catalog-public", lastVersion: 3, lastVerifiedAt: null, lastIndexSha256: digest("accepted"),
+      }));
+      assert(rollback.sources[0].diagnostics.some(d => d.code === "rollback-refused"));
+      const expired = readReleaseIndex({
+        ...fresh("catalog-public", doc("catalog-public", 4, [entry("alpha", "1.0.0", "current", digest("a"))]), ["alpha"], none("catalog-public")),
+        evaluatedAt: "2028-06-01T00:00:00Z",
+      });
+      assert(expired.sources[0].diagnostics.some(d => d.code === "expired"));
+      assert.equal(expired.entries.length, 0);
+      const scoped = readReleaseIndex(fresh("catalog-public", publicDoc, ["beta"], none("catalog-public")));
+      assert(scoped.sources[0].diagnostics.some(d => d.code === "unauthorized-framework"));
+      assert.equal(scoped.entries.length, 0);
+
+      // A selected TUF source is offline, never unsigned, contributes nothing.
+      const tuf = readReleaseIndex({
+        evaluatedAt: "2026-06-01T00:00:00Z",
+        sources: [{ sourceId: "catalog-public", trust: { tufRoot: te.encode("root") }, authorizedFrameworks: ["alpha"], indexBytes: bytes(publicDoc) }],
+        state: [none("catalog-public")],
+      });
+      assert.equal(tuf.entries.length, 0);
+      assert(tuf.sources[0].diagnostics.some(d => d.code === "offline" && d.reason === "tuf-unavailable"));
+      assert(!tuf.sources[0].diagnostics.some(d => d.code === "unsigned"));
+
+      // Offline reuse of the recorded unsigned copy, labelled as a copy.
+      const cached = bytes(publicDoc);
+      const offline = readReleaseIndex({
+        evaluatedAt: "2026-06-01T00:00:00Z",
+        sources: [{ sourceId: "catalog-public", trust: "none", authorizedFrameworks: ["alpha"], indexBytes: cached, offline: true }],
+        state: [{ sourceId: "catalog-public", lastVersion: 3, lastVerifiedAt: null, lastIndexSha256: sha(cached) }],
+      });
+      assert.equal(offline.valid, true);
+      assert.equal(offline.entries.length, 1);
+      assert(offline.sources[0].diagnostics.some(d => d.code === "offline" && d.reason === "offline-cache"));
+      assert(!offline.sources[0].diagnostics.some(d => d.message.includes("verified")));
+      process.stdout.write(JSON.stringify({
+        merged: merged.entries.map(e => [e.frameworkId, e.status, e.sources.length]),
+        conflict: conflict.entries.length,
+        rollback: rollback.sources[0].diagnostics[0]?.code,
+        expired: expired.entries.length,
+        scoped: scoped.entries.length,
+        tuf: tuf.sources[0].diagnostics[0]?.reason,
+        offline: offline.entries.length,
+      }));
+    `;
+    writeFileSync(join(consumer, "release-index.mjs"), script);
+    const result = JSON.parse(
+      execFileSync(process.execPath, [join(consumer, "release-index.mjs")], {
+        cwd: consumer,
+        encoding: "utf8",
+        timeout: 60_000,
+      }),
+    );
+    expect(result).toEqual({
+      merged: [["alpha", "revoked", 2]],
+      conflict: 0,
+      rollback: "rollback-refused",
+      expired: 0,
+      scoped: 0,
+      tuf: "tuf-unavailable",
+      offline: 1,
+    });
+  });
+
   it("ships the release, schema and entry modules byte-identically, and no test fixtures", () => {
     for (const path of [
       ...exportTargets(pkg.exports).map((target) => target.slice(2)),

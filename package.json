@@ -105,7 +105,17 @@
     "./fixtures/core-recipe-1.3.0-valid.json": "./fixtures/core-recipe-1.3.0-valid.json",
     "./fixtures/core-recipe-1.3.0-invalid.json": "./fixtures/core-recipe-1.3.0-invalid.json",
     "./schemas/package-support/1.1.0.json": "./schemas/package-support/1.1.0.json",
-    "./package-support-1.1.json": "./package-support-1.1.json"
+    "./package-support-1.1.json": "./package-support-1.1.json",
+    "./schemas/release-index/1.0.0.json": "./schemas/release-index/1.0.0.json",
+    "./fixtures/release-index-1.0.0-valid.json": "./fixtures/release-index-1.0.0-valid.json",
+    "./fixtures/release-index-1.0.0-invalid.json": "./fixtures/release-index-1.0.0-invalid.json",
+    "./fixtures/release-index/merge-public-local.json": "./fixtures/release-index/merge-public-local.json",
+    "./fixtures/release-index/conflict-two-sources.json": "./fixtures/release-index/conflict-two-sources.json",
+    "./fixtures/release-index/rollback-refused.json": "./fixtures/release-index/rollback-refused.json",
+    "./fixtures/release-index/scope-unauthorized-framework.json": "./fixtures/release-index/scope-unauthorized-framework.json",
+    "./fixtures/release-index/expired-index.json": "./fixtures/release-index/expired-index.json",
+    "./fixtures/release-index/tuf-selected-offline.json": "./fixtures/release-index/tuf-selected-offline.json",
+    "./fixtures/release-index/offline-cache-reuse.json": "./fixtures/release-index/offline-cache-reuse.json"
   },
   "engines": {
     "node": ">=24.15.0 <25"
@@ -126,7 +136,7 @@
     "produce:ecc": "npm run build:dist && node tools/produce-upstream-inputs.mjs ecc",
     "produce:superpowers": "npm run build:dist && node tools/produce-upstream-inputs.mjs superpowers",
     "produce:mattpocock": "npm run build:dist && node tools/produce-upstream-inputs.mjs mattpocock",
-    "verify": "npm run typecheck && npm run lint && npm run build:dist && npm run check:materials && npm test && npm run verify:workflow-action-pins && npm run check:baseline-schemas && npm run check:contract-fixtures",
+    "verify": "npm run build:dist && npm run typecheck && npm run lint && npm run check:materials && npm test && npm run verify:workflow-action-pins && npm run check:baseline-schemas && npm run check:contract-fixtures",
     "generate:catalog-index": "node tools/generate-catalog-index.mjs",
     "generate:catalog-collections": "node tools/generate-catalog-collections.mjs",
     "generate:catalog-qualification": "node tools/generate-catalog-qualification.mjs",
@@ -198,6 +208,7 @@
     "docs/ANTHROPIC-INVENTORY.md",
     "schemas/content-inventory",
     "schemas/scan-baseline",
+    "schemas/release-index",
     "docs/SCAN-BASELINE.md",
     "tools/refresh-source.mjs",
     "dist/producer/base.js",

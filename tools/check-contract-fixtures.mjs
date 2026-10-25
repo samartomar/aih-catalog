@@ -8,7 +8,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { contractSupport, contractSupport11 } from "@aihq/catalog/contracts";
-import { readRelease, readContentInventory } from "@aihq/catalog/reader";
+import { readRelease, readContentInventory, readReleaseIndex } from "@aihq/catalog/reader";
 import { checkProducerDeclaration } from "@aihq/catalog/producer";
 import { readInstalledRelease } from "@aihq/catalog/node";
 import manifest from "@aihq/catalog/fixtures/manifest.json" with { type: "json" };
@@ -34,7 +34,7 @@ assert.deepEqual(contractSupport11.entries, contractSupport.entries);
 assert.deepEqual(contractSupport11.contracts.map(({ versions, fixtures, ...contract }) => contract), contractSupport.contracts);
 for (const contract of contractSupport11.contracts) {
   assert.deepEqual(contract.versions, [contract.id.split(":").at(-1)]);
-  assert.deepEqual(contract.fixtures, manifest.fixtures.filter(f => f.contract === contract.id).map(f => ({
+  assert.deepEqual(contract.fixtures, manifest.fixtures.filter(f => f.contract === contract.id && !f.scenario).map(f => ({
     export: f.export, expect: f.expected.status, ...(f.expected.code ? { code: f.expected.code } : {}),
   })));
   for (const fixture of contract.fixtures) data(fixture.export);
@@ -59,12 +59,54 @@ for (const fixture of manifest.fixtures) {
   assert.equal(fixture.schemaExport, declarations.get(fixture.contract)?.schemaExport);
   const bytes = data(fixture.export), document = JSON.parse(bytes);
   const valid = fixture.expected.status === "accept";
+  if (fixture.reader === "release-index-scenario") {
+    // Whole merge behaviours: the envelope carries the request, per-source state
+    // and the authored expected outcome; execute through the public reader.
+    const request = {
+      evaluatedAt: document.evaluatedAt,
+      sources: document.sources.map(source => ({
+        sourceId: source.sourceId,
+        trust: source.trust && typeof source.trust === "object"
+          ? { tufRoot: new TextEncoder().encode(source.trust.tufRoot) } : source.trust,
+        authorizedFrameworks: source.authorizedFrameworks,
+        indexBytes: encode(source.index),
+        ...(source.offline ? { offline: true } : {}),
+      })),
+      state: document.state,
+    };
+    const result = readReleaseIndex(request);
+    assert.equal(result.valid, document.expect.valid, `${fixture.name}: ${JSON.stringify(result)}`);
+    assert.deepEqual(result.entries.map(entry => ({
+      frameworkId: entry.frameworkId, version: entry.version, status: entry.status, sources: entry.sources,
+    })), document.expect.entries, fixture.name);
+    assert.deepEqual(result.sources.map(source => source.diagnostics.map(d => d.code)),
+      document.expect.sourceDiagnostics, fixture.name);
+    assert.deepEqual(result.sources.map(source => source.state.lastVersion),
+      document.expect.stateVersions, fixture.name);
+    results.push({ export: fixture.export, contract: fixture.contract, version: fixture.version, ...fixture.expected });
+    continue;
+  }
   const validate = validators.get(fixture.contract);
   assert.equal(validate(document), valid, `${fixture.name}: ${JSON.stringify(validate.errors)}`);
   let result;
   switch (fixture.reader) {
     case "release": result = readRelease(bytes, { expectedSha256: sha(bytes) }); break;
     case "inventory": result = readContentInventory(bytes, { expectedSha256: sha(bytes) }); break;
+    case "release-index": {
+      // The index reader merges sources; one authorized unsigned source exercises
+      // schema and digest admission through the same public entry the host uses.
+      result = readReleaseIndex({
+        evaluatedAt: "2026-06-01T00:00:00Z",
+        sources: [{
+          sourceId: document.sourceId,
+          trust: "none",
+          authorizedFrameworks: [...new Set(document.entries.map(entry => entry.frameworkId))],
+          indexBytes: bytes,
+        }],
+        state: [{ sourceId: document.sourceId, lastVersion: 0, lastVerifiedAt: null, lastIndexSha256: null }],
+      });
+      break;
+    }
     case "projection": {
       const inventory = encode({ schema: "urn:aihq:catalog:content-inventory:1.0.0", projection: fixture.contract, release: document });
       result = readContentInventory(inventory, { expectedSha256: sha(inventory) }); break;

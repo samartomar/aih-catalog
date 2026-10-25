@@ -95,9 +95,8 @@ export function coreArchiveUrl(value: unknown): value is string {
   }
 }
 
-const isId = (value: unknown): value is string =>
+export const isId = (value: unknown): value is string =>
   typeof value === "string" && value.length <= 128 && ID.test(value);
-
 /** Collects diagnostics for one document; reasons are stable, messages are human text. */
 export class Diagnostics {
   readonly list: CatalogDiagnostic[] = [];
@@ -116,9 +115,21 @@ export class Diagnostics {
   }
 }
 
+/** Optional structured detail shared by diagnostic collectors. */
+export interface DiagnosticDetail {
+  readonly blocking?: boolean;
+  readonly encountered?: string;
+  readonly supported?: readonly string[];
+}
+
+/** Any collector the shared field checkers can report into. */
+export interface DiagnosticCollector {
+  add(reason: string, path: string, message: string, extra?: DiagnosticDetail): false;
+}
+
 /** Exact field set: unknown fields and missing required fields are both named. */
-function fields(
-  d: Diagnostics,
+export function fields(
+  d: DiagnosticCollector,
   value: unknown,
   path: string,
   required: readonly string[],
@@ -179,7 +190,7 @@ function ascending(d: Diagnostics, ids: readonly string[], path: string): void {
   });
 }
 
-export function checkMaterialSource(d: Diagnostics, value: unknown, path: string): boolean {
+export function checkMaterialSource(d: DiagnosticCollector, value: unknown, path: string): boolean {
   if (isRecord(value) && value.kind === "local") {
     return fields(d, value, path, ["kind", "input"]) && isId(value.input)
       ? true

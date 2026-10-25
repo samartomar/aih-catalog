@@ -21,12 +21,16 @@ Support 1.0 identifies each version by its complete contract URN. Its closed
 schema permits only `id`, `role` and `schemaExport` in each contract entry;
 it does **not** permit a `versions` array or fixture references. Each supported
 release 1.0–1.5, producer declaration 3.0/3.1, content inventory 1.0,
-release-content projection 1.0, baseline 1.0 and admitted Core recipe version
-has a separate entry and an exact schema export. `both` describes formats
-Catalog reads and produces; producer declarations are `accepts`. Core owns the
-recipe and support schemas; Catalog exposes the schema bytes it uses without
-requiring Core to be installed. This declaration describes structural support,
-not runtime readiness, authentication or execution authority.
+release-content projection 1.0, baseline 1.0, release index 1.0.0 and admitted
+Core recipe version has a separate entry and an exact schema export. `both`
+describes formats Catalog reads and produces; producer declarations are
+`accepts`. Core owns the recipe and support schemas; Catalog exposes the schema
+bytes it uses without requiring Core to be installed. This declaration describes
+structural support, not runtime readiness, authentication or execution
+authority. The release index reads unsigned first: `readReleaseIndex` reports
+`unsigned` per source without a TUF root, still checks every release digest, and
+reports a TUF-selected source `offline` until samartomar/aih-catalog#138
+delivers verification.
 
 ## Consume fixtures
 
@@ -53,7 +57,12 @@ structural refusal. A schema pass alone never substitutes for reader admission.
 
 `npm run check:contract-fixtures` checks regeneration. Regenerate after building
 with `npm run generate:contract-fixtures`; `tools/generate-baseline-schemas.mjs`
-owns the standalone projection schema. The support 1.0 schema is copied from
+owns the standalone projection schema. The release index additionally ships golden
+scenario fixtures under `fixtures/release-index/`: each envelope carries the source
+requests (committed index documents), per-source state and the authored expected
+outcome, and the packed checker executes every scenario through the public
+`readReleaseIndex` (merge, conflict, rollback, scope, expiry, offline reuse and a
+caller-selected TUF source reported offline). The support 1.0 schema is copied from
 Core's public
 [`src/harness/schemas/package-support/1.0.0.json`](https://github.com/samartomar/aih-core/blob/47b75d0889f00f6f158e91f2860ca5e32d354ec7/src/harness/schemas/package-support/1.0.0.json).
 The 1.1 schema is copied from Core's
