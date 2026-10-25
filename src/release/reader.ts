@@ -14,6 +14,8 @@ import {
   type GetItemResult,
   type InputOrigin,
   type ItemDependencies,
+  type ItemEvidenceDescriptor,
+  type ItemEvidenceResult,
   type Json,
   type MaterialMember,
   type MaterialSource,
@@ -28,9 +30,11 @@ import {
   ARCHIVE_PACKAGE_PREFIX,
   checkMaterialSource,
   checkReleaseDocument,
+  computeBehaviourIdentity,
   Diagnostics,
   ID,
   isRecord,
+  memberPackagePath,
   SHA256,
 } from "./document.js";
 import { inputAccepts } from "./inputs.js";
@@ -60,6 +64,26 @@ export function readRelease(
   bytes: Uint8Array,
   options: { readonly expectedSha256: string },
 ): ReadReleaseResult {
+  return admitRelease(bytes, options, false);
+}
+
+/**
+ * Reads a release document as pre-baseline content: identical integrity and
+ * content admission, but the baseline binding is not required or attached.
+ * Release preparation binds the assessment; content compilation uses this.
+ */
+export function readReleaseContent(
+  bytes: Uint8Array,
+  options: { readonly expectedSha256: string },
+): ReadReleaseResult {
+  return admitRelease(bytes, options, true);
+}
+
+function admitRelease(
+  bytes: Uint8Array,
+  options: { readonly expectedSha256: string },
+  contentOnly: boolean,
+): ReadReleaseResult {
   const expected = (options as { expectedSha256?: unknown } | undefined)?.expectedSha256;
   if (typeof expected !== "string" || !SHA256.test(expected)) {
     return refused(
@@ -88,7 +112,7 @@ export function readRelease(
     if (!(error instanceof JsonAdmissionError)) throw error;
     return refused(invalid(error.reason, "The release is not bounded canonical JSON with one LF."));
   }
-  const checked = checkReleaseDocument(value);
+  const checked = checkReleaseDocument(value, { contentOnly });
   if (checked.document === undefined) return refused(...checked.diagnostics);
   const release = deepFreeze({
     sha256: actual,
@@ -112,6 +136,93 @@ function requireChecked(release: CatalogRelease): void {
 export function listItems(release: CatalogRelease): readonly CatalogItem[] {
   requireChecked(release);
   return release.items;
+}
+
+/**
+ * Derives Scan's item evidence descriptor for one release 1.6 item. Both
+ * identities are recomputed from the checked release and the behaviour file is
+ * checked against the item's declarations; a mismatch is a refusal. Material
+ * paths project to the baseline scope's package-relative namespace.
+ */
+export function itemEvidenceDescriptor(
+  release: CatalogRelease,
+  itemRef: { readonly itemId: string },
+): ItemEvidenceResult {
+  requireChecked(release);
+  const fail = (...diagnostics: CatalogDiagnostic[]): ItemEvidenceResult =>
+    Object.freeze({ valid: false, diagnostics: Object.freeze(diagnostics) });
+  const item = release.items.find((candidate) => candidate.id === itemRef.itemId);
+  if (item === undefined) return fail(itemNotFound(itemRef.itemId));
+  const record = item as unknown as Record<string, unknown>;
+  const identity = computeBehaviourIdentity(record);
+  if (identity === undefined) {
+    return fail(
+      invalid(
+        "no-item-identities",
+        "The item carries no release 1.6 identities, so no evidence descriptor can be derived.",
+        `/items/${item.id}`,
+      ),
+    );
+  }
+  const materials = ((Array.isArray(record.materials) ? record.materials : []) as unknown[]).filter(
+    isRecord,
+  );
+  const behaviourMaterial = materials.find(
+    (member) => member.role === "behaviour" && !Object.hasOwn(member, "path"),
+  );
+  if (
+    behaviourMaterial === undefined ||
+    behaviourMaterial.sha256 !== sha256Hex(identity.behaviourBytes) ||
+    behaviourMaterial.byteLength !== identity.behaviourBytes.length
+  ) {
+    return fail(
+      invalid(
+        "behaviour-mismatch",
+        "The behaviour file differs from the item's declarations.",
+        `/items/${item.id}/materials`,
+      ),
+    );
+  }
+  if (
+    item.contentSha256 !== identity.contentSha256 ||
+    item.behaviourSha256 !== identity.behaviourSha256
+  ) {
+    return fail(
+      invalid(
+        "identity-mismatch",
+        "The declared identities differ from the recomputed materials.",
+        `/items/${item.id}`,
+      ),
+    );
+  }
+  const frameworkId = release.framework?.id;
+  if (frameworkId === undefined) {
+    return fail(
+      invalid(
+        "framework-required",
+        "A behaviour-carrying release publishes the framework identity.",
+        "/framework",
+      ),
+    );
+  }
+  const descriptor: ItemEvidenceDescriptor = Object.freeze({
+    frameworkId,
+    itemId: item.id,
+    contentSha256: identity.contentSha256,
+    behaviourSha256: identity.behaviourSha256,
+    materials: materials
+      .filter((member) => !Object.hasOwn(member, "path"))
+      .map((member) =>
+        Object.freeze({
+          path: String(memberPackagePath(member)),
+          sha256: String(member.sha256),
+          byteLength: Number(member.byteLength),
+          executable: member.executable as boolean | "unknown",
+          role: (member.role === "behaviour" ? "behaviour" : "content") as "content" | "behaviour",
+        }),
+      ),
+  });
+  return Object.freeze({ valid: true, descriptor, diagnostics: Object.freeze([]) as readonly [] });
 }
 
 const itemNotFound = (itemId: unknown, extra: Partial<CatalogDiagnostic> = {}): CatalogDiagnostic =>
@@ -448,10 +559,13 @@ function finish(
   });
 }
 
-const toMember = (prefix: string, member: MaterialMember): MaterialMember =>
+const toMember = (
+  prefix: string,
+  member: MaterialMember | import("./contracts.js").MaterialIdentity,
+): MaterialMember =>
   Object.freeze({
     id: member.id,
-    path: `${prefix}${member.path}`,
+    path: `${prefix}${String(memberPackagePath(member as unknown as Record<string, unknown>))}`,
     sha256: member.sha256,
     byteLength: member.byteLength,
   });

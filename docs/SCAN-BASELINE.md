@@ -41,11 +41,14 @@ checked content -> inventory C -> Scan S1 -> signed artifact -> release R -> tar
 The content projection `urn:aihq:catalog:release-content:1.0.0` contains the entire
 raw release document with schema 1.5, excluding only `baseline`: package identity,
 sources, items, recipes, material descriptors, dependencies and all metadata.
-Array order and omitted/default declarations remain exact; computed reader fields
-and normalized dependency defaults are not substituted. Unknown fields are
-refused by release admission, never silently omitted. C has no own digest,
-signature, baseline/report/artifact reference, final release digest or tarball
-integrity. Original material bytes are identified by their declarations.
+Release 1.6 content freezes under `urn:aihq:catalog:content-inventory:1.1.0` and
+`urn:aihq:catalog:release-content:1.1.0`, including behaviour files and executable
+states; the 1.0 inventory and projection keep describing release 1.5 with their
+readers unchanged. Array order and omitted/default declarations remain exact;
+computed reader fields and normalized dependency defaults are not substituted.
+Unknown fields are refused by release admission, never silently omitted. C has no
+own digest, signature, baseline/report/artifact reference, final release digest or
+tarball integrity. Original material bytes are identified by their declarations.
 
 An older supported content document is upgraded to this projection when frozen;
 its prior format identifier is replaced by the defined 1.5 content format.

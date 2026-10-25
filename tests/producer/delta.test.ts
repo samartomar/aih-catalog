@@ -135,17 +135,26 @@ describe("targeted delta between two fixed immutable upstream commits", () => {
       expect(after.get(id)?.itemSha256, id).toBe(before.get(id)?.itemSha256);
       expect(after.get(id)?.sourceIds).toEqual(before.get(id)?.sourceIds);
       for (const member of [before.get(id)?.recipe, ...(before.get(id)?.materials ?? [])]) {
-        expect(sha256(result.files.get(member?.path ?? "") ?? ""), member?.path).toBe(
-          member?.sha256,
+        const memberPath = String(
+          (member as { path?: string; packagePath?: string } | undefined)?.path ??
+            (member as { packagePath?: string } | undefined)?.packagePath ??
+            "",
         );
-        expect(
-          result.files.get(member?.path ?? "")?.equals(baseFiles.get(member?.path ?? "") as Buffer),
-        ).toBe(true);
+        expect(sha256(result.files.get(memberPath) ?? ""), memberPath).toBe(member?.sha256);
+        expect(result.files.get(memberPath)?.equals(baseFiles.get(memberPath) as Buffer)).toBe(
+          true,
+        );
       }
     }
     // Changed items moved to the new immutable revision; unaffected ones stayed on the old.
-    expect(after.get("fixture.handoff")?.materials[1]?.path).toContain(commitB);
-    expect(after.get("fixture.writing-for-agents")?.materials[1]?.path).toContain(commitA);
+    const handoffMember = after.get("fixture.handoff")?.materials[1] as
+      | { path?: string; packagePath?: string }
+      | undefined;
+    expect(String(handoffMember?.path ?? handoffMember?.packagePath)).toContain(commitB);
+    const writingMember = after.get("fixture.writing-for-agents")?.materials[1] as
+      | { path?: string; packagePath?: string }
+      | undefined;
+    expect(String(writingMember?.path ?? writingMember?.packagePath)).toContain(commitA);
     expect(result.report.baseRevisions).toEqual([commitA]);
   });
 

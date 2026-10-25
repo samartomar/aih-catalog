@@ -1,3 +1,9 @@
+const memberPath = (member: unknown): string =>
+  String(
+    (member as { path?: string; packagePath?: string }).path ??
+      (member as { packagePath?: string }).packagePath,
+  );
+
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { expect, it } from "vitest";
@@ -57,7 +63,7 @@ it("compiles pinned Superpowers writing-skills with explicit TDD background and 
   );
   const item = checked.release.items.find((item) => item.id === "superpowers.skill.writing-skills");
   expect(
-    item?.materials.some((file) => file.path.endsWith("writing-skills/render-graphs.js")),
+    item?.materials.some((file) => memberPath(file).endsWith("writing-skills/render-graphs.js")),
   ).toBe(true);
   expect(
     checked.release.sources.some(

@@ -2,6 +2,10 @@ import { createHash } from "node:crypto";
 import type { CatalogItem, CatalogRelease, Json } from "../release/contracts.js";
 import type { Record_ } from "./base.js";
 
+/** Release 1.6 extended materials address package members by `packagePath`. */
+const packagePathOf = (member: { path?: string; packagePath?: string }): string =>
+  String(member.path ?? member.packagePath);
+
 /**
  * Allowances for one Catalog-authored source, declared by the maintainer:
  * author-owned paths the content may reference but Catalog never delivers, and
@@ -414,7 +418,7 @@ function examineRecipe(
       if (typeof id !== "string") continue;
       const member = materials.get(id);
       if (member === undefined) continue;
-      const bytes = files.get(member.path);
+      const bytes = files.get(packagePathOf(member));
       if (bytes === undefined) continue;
       let text: string;
       try {
@@ -584,7 +588,7 @@ export function checkAuthoredContent(
         );
       }
       const material = item.materials.find((candidate) => candidate.id === member);
-      const bytes = material === undefined ? undefined : files.get(material.path);
+      const bytes = material === undefined ? undefined : files.get(packagePathOf(material));
       const actualSha256 =
         bytes === undefined ? undefined : createHash("sha256").update(bytes).digest("hex");
       const examples =
@@ -594,7 +598,7 @@ export function checkAuthoredContent(
               (entry.literalExamples ?? [])
                 .filter(
                   (example) =>
-                    example.path === material.path &&
+                    example.path === packagePathOf(material) &&
                     example.sha256 === material.sha256 &&
                     actualSha256 === example.sha256,
                 )

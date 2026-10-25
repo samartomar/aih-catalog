@@ -13,8 +13,10 @@ import { ProducerRefusal } from "../producer/errors.js";
 import {
   documentBytes,
   type GeneratedItem,
+  type GeneratedMember,
   generateItem,
   sha256Hex,
+  supportMaterialId,
 } from "../producer/generate.js";
 import { pluginSkillPaths } from "../producer/plugin.js";
 import { generateTemplateItem } from "../producer/template.js";
@@ -30,14 +32,16 @@ import type {
   Json,
 } from "./contracts.js";
 import {
+  bytewiseCompare,
   checkDependencies,
   checkInputs,
   Diagnostics,
   isRecord,
+  memberPackagePath,
   safeMemberPath,
 } from "./document.js";
 import { canonicalJson, deepFreeze } from "./json.js";
-import { readRelease } from "./reader.js";
+import { readRelease, readReleaseContent } from "./reader.js";
 import { checkRecipeAgreement } from "./recipe-agreement.js";
 import { extractSourceFacts, type SourceDiscovery } from "./source-facts.js";
 
@@ -45,6 +49,9 @@ export const PRODUCER_DECLARATION_SCHEMA_ID =
   "urn:aihq:catalog:producer-declaration:3.0.0" as const;
 export const PRODUCER_DECLARATION_SCHEMA_ID_3_1 =
   "urn:aihq:catalog:producer-declaration:3.1.0" as const;
+/** Declaration 3.2 writes release 1.6 behaviour files, identities, payloads and provenance. */
+export const PRODUCER_DECLARATION_SCHEMA_ID_3_2 =
+  "urn:aihq:catalog:producer-declaration:3.2.0" as const;
 /** Local identity is a source ID, never a host path or a fabricated repository. */
 export type ProducerSource =
   | DeclaredSource
@@ -82,6 +89,26 @@ export type ProducerItem = Discovery & {
   readonly requires: readonly DependencyRef[];
   readonly optional: readonly DependencyRef[];
   readonly conflicts: readonly DependencyRef[];
+  /** Release 1.6 typed payload; derived for skill and files kinds when absent. */
+  readonly payload?: Json;
+  /** Release 1.6 server-introduced inputs (MCP environment values). */
+  readonly requirements?: { readonly inputs?: Readonly<Record<string, InputSpec>> };
+  /** Release 1.6 true provenance; source defaults to the declared source repository. */
+  readonly provenance?: {
+    readonly source?: string;
+    readonly selectedBy?: string;
+    readonly derivedFrom?: readonly {
+      readonly itemId: string;
+      readonly releaseSha256?: string;
+      readonly status: "verified" | "declared";
+      readonly proof?: {
+        readonly materials: readonly { readonly relPath: string; readonly sha256: string }[];
+      };
+    }[];
+  };
+  /** Release 1.6 display name and its recorded basis. */
+  readonly name?: string;
+  readonly nameBasis?: "authored" | "first-heading" | "key" | "file-name" | "publisher";
 } & (
     | {
         readonly recipePath: string;
@@ -92,12 +119,20 @@ export type ProducerItem = Discovery & {
 export interface ProducerDeclaration {
   readonly schema:
     | typeof PRODUCER_DECLARATION_SCHEMA_ID
-    | typeof PRODUCER_DECLARATION_SCHEMA_ID_3_1;
+    | typeof PRODUCER_DECLARATION_SCHEMA_ID_3_1
+    | typeof PRODUCER_DECLARATION_SCHEMA_ID_3_2;
   readonly format: "aihq-catalog-producer-declaration";
   readonly version: 3;
   readonly sources: readonly ProducerSource[];
   readonly items: readonly ProducerItem[];
   readonly authored?: readonly AuthoredAllowance[];
+  /** Release 1.6 published framework identity; required by declaration 3.2. */
+  readonly framework?: {
+    readonly id: string;
+    readonly name: string;
+    readonly version: string;
+    readonly description: string;
+  };
   /** Independent producer identity; defaults to supplied-catalog@0.0.0, never AIHQ curation. */
   readonly package?: { readonly name: string; readonly version: string };
 }
@@ -106,6 +141,12 @@ export interface SuppliedSourceFiles {
   /** Caller-declared immutable revision (40-character Git pin or 64-character local snapshot hash). */
   readonly revision: string;
   readonly files: Readonly<Record<string, Uint8Array>>;
+  /**
+   * Optional verified regular-file modes (0o644 or 0o755) keyed by source-relative
+   * path. Release 1.6 executable states are read from these modes at preparation,
+   * before the inventory is frozen; absent modes freeze as "unknown", never guessed.
+   */
+  readonly modes?: Readonly<Record<string, number>>;
 }
 export interface CompiledProducerDeclaration {
   readonly release: CatalogRelease;
@@ -127,6 +168,9 @@ const validate = ajv.compile(
 );
 const validateLocal = ajv.compile(
   JSON.parse(readFileSync(new URL("producer-declaration/3.1.0.json", schemaRoot), "utf8")),
+);
+const validate16 = ajv.compile(
+  JSON.parse(readFileSync(new URL("producer-declaration/3.2.0.json", schemaRoot), "utf8")),
 );
 const failure = (path: string, message: string): AuthoringResult<never> => ({
   status: "refused",
@@ -192,7 +236,8 @@ export function checkProducerDeclaration(value: unknown): AuthoringResult<Produc
   if (
     isRecord(copy) &&
     copy.schema !== PRODUCER_DECLARATION_SCHEMA_ID &&
-    copy.schema !== PRODUCER_DECLARATION_SCHEMA_ID_3_1
+    copy.schema !== PRODUCER_DECLARATION_SCHEMA_ID_3_1 &&
+    copy.schema !== PRODUCER_DECLARATION_SCHEMA_ID_3_2
   )
     return deepFreeze({
       status: "refused",
@@ -201,12 +246,16 @@ export function checkProducerDeclaration(value: unknown): AuthoringResult<Produc
           code: "SCHEMA_UNSUPPORTED",
           path: "/schema",
           message:
-            "Only producer-declaration:3.0.0 and 3.1.0 are supported; preserve the original and explicitly migrate older declarations.",
+            "Only producer-declaration:3.0.0, 3.1.0 and 3.2.0 are supported; preserve the original and explicitly migrate older declarations.",
         },
       ],
     });
   const validator =
-    isRecord(copy) && copy.schema === PRODUCER_DECLARATION_SCHEMA_ID_3_1 ? validateLocal : validate;
+    isRecord(copy) && copy.schema === PRODUCER_DECLARATION_SCHEMA_ID_3_1
+      ? validateLocal
+      : isRecord(copy) && copy.schema === PRODUCER_DECLARATION_SCHEMA_ID_3_2
+        ? validate16
+        : validate;
   if (!validator(copy))
     return deepFreeze({
       status: "refused",
@@ -277,6 +326,208 @@ export function checkProducerDeclaration(value: unknown): AuthoringResult<Produc
   return deepFreeze({ status: "ok", value: declaration, diagnostics: [] });
 }
 
+/**
+ * Release 1.6 projection for one compiled item: extended materials with measured
+ * sizes and executable states, the synthesised behaviour file and both identities.
+ * `addresses` maps every generated member id to its upstream source path and the
+ * item-relative path. Returns a refusal or undefined on success (record mutated).
+ */
+function projectItemTo16(args: {
+  output: GeneratedItem;
+  item: ProducerItem;
+  source: ProducerSource;
+  tree: SourceTree;
+  entry?: string;
+  authoredName: boolean;
+  frameworkId: string;
+  addresses: ReadonlyMap<string, { readonly sourcePath: string; readonly relPath: string }>;
+}): AuthoringResult<never> | undefined {
+  const { output, item, source, tree, addresses } = args;
+  const record = output.record;
+  const id = String(record.id);
+  const fail = (path: string, message: string): AuthoringResult<never> => ({
+    status: "refused",
+    diagnostics: [{ code: "INPUT_INVALID", path, message }],
+  });
+  const relPaths = new Set<string>();
+  const contentMembers = output.members.map((member) => {
+    const address = addresses.get(member.id);
+    if (address === undefined) {
+      throw new ProducerRefusal(
+        `member-address-missing`,
+        `${id}: no source address for material ${member.id}`,
+      );
+    }
+    if (relPaths.has(address.relPath)) {
+      throw new ProducerRefusal(
+        "duplicate-rel-path",
+        `${id}: two materials share the item-relative path ${address.relPath}`,
+      );
+    }
+    relPaths.add(address.relPath);
+    const mode = tree.mode?.(address.sourcePath);
+    const executable: boolean | "unknown" = mode === undefined ? "unknown" : (mode & 0o111) !== 0;
+    return {
+      member,
+      address,
+      executable,
+      extended: {
+        id: member.id,
+        relPath: address.relPath,
+        sourcePath: address.sourcePath,
+        packagePath: member.path,
+        sha256: member.sha256,
+        byteLength: member.byteLength,
+        executable,
+        sourceId: args.source.id,
+        role: "content",
+        size: measureMaterial(member.bytes),
+      } as Json,
+    };
+  });
+  const derivedExecutable: Record<string, true | false | "unknown"> = {};
+  for (const { extended, executable } of contentMembers) {
+    derivedExecutable[String((extended as Record<string, Json>).relPath)] = executable;
+  }
+  const contentIds = contentMembers.map(({ member }) => member.id);
+  const payload =
+    item.payload !== undefined
+      ? item.payload
+      : record.kind === "skill"
+        ? {
+            dirName: args.entry ?? id,
+            invocation: "user-only",
+            invocationBasis: "producer default: a skill runs only when invoked",
+          }
+        : record.kind === "agent" || record.kind === "command" || record.kind === "document"
+          ? { files: contentIds }
+          : undefined;
+  if (payload === undefined) {
+    return fail(
+      `/declaration/items/${id}/payload`,
+      `Declaration 3.2.0 item ${id} of kind ${String(record.kind)} declares no payload; rule, hook and mcp-server payloads cannot be derived.`,
+    );
+  }
+  const requirements = { inputs: (item.requirements?.inputs ?? {}) as unknown as Json };
+  const behaviourValue = {
+    kind: record.kind,
+    payload,
+    requirements,
+    dependencies: record.dependencies,
+    executable: derivedExecutable,
+  };
+  const behaviourBytes = documentBytes(behaviourValue);
+  const behaviourMember = {
+    id: "behaviour",
+    relPath: BEHAVIOUR_REL_PATH,
+    sourcePath: null,
+    packagePath: `${itemPackageFolder16(id)}/${BEHAVIOUR_REL_PATH}`,
+    sha256: sha256Hex(behaviourBytes),
+    byteLength: behaviourBytes.length,
+    executable: false,
+    sourceId: args.frameworkId,
+    role: "behaviour",
+    size: measureMaterial(behaviourBytes),
+  } as unknown as Json;
+  const lines = (members: readonly Json[]) =>
+    members
+      .map((member) => {
+        const value = member as Record<string, Json>;
+        return `${String(value.relPath)}\t${String(value.sha256)}\n`;
+      })
+      .sort(bytewiseCompare);
+  const byMemberId = (a: Json, b: Json): number => {
+    const left = String((a as Record<string, Json>).id);
+    const right = String((b as Record<string, Json>).id);
+    return left < right ? -1 : left > right ? 1 : 0;
+  };
+  const extendedMaterials = [
+    ...contentMembers.map(({ extended }) => extended),
+    behaviourMember,
+  ].sort(byMemberId);
+  record.materials = extendedMaterials;
+  record.payload = payload;
+  record.requirements = requirements;
+  record.executable = derivedExecutable;
+  record.contentSha256 = sha256Hex(
+    Buffer.from(lines(contentMembers.map(({ extended }) => extended)).join(""), "utf8"),
+  );
+  record.behaviourSha256 = sha256Hex(Buffer.from(lines(extendedMaterials).join(""), "utf8"));
+  const provenance = item.provenance;
+  const sourceIdentity =
+    provenance?.source ??
+    ("repository" in source ? `https://github.com/${source.repository}` : source.id);
+  record.source = sourceIdentity;
+  if (provenance?.selectedBy !== undefined) record.selectedBy = provenance.selectedBy;
+  if (provenance?.derivedFrom !== undefined) {
+    record.derivedFrom = provenance.derivedFrom as unknown as Json;
+  }
+  if (item.name !== undefined) {
+    record.name = item.name;
+    record.nameBasis = item.nameBasis ?? "publisher";
+  } else if (args.authoredName) {
+    record.name = typeof record.label === "string" ? record.label : id;
+    record.nameBasis = "authored";
+  }
+  record.size = { parts: partSizes(record, contentMembers), status: "measured" };
+  (output.members as GeneratedMember[]).push({
+    id: "behaviour",
+    path: String((behaviourMember as Record<string, Json>).packagePath),
+    sha256: String((behaviourMember as Record<string, Json>).sha256),
+    byteLength: behaviourBytes.length,
+    bytes: behaviourBytes,
+  });
+  return undefined;
+}
+
+const BEHAVIOUR_REL_PATH = "aih-behaviour.json";
+const itemPackageFolder16 = (itemId: string): string => `release/items/${itemId}`;
+
+const utf8Lossy = new TextDecoder("utf-8");
+
+function measureMaterial(bytes: Uint8Array): Json {
+  return { bytes: bytes.length, chars: utf8Lossy.decode(bytes).length, status: "measured" };
+}
+
+function partSizes(
+  record: Record<string, Json>,
+  contentMembers: readonly { member: { id: string; bytes: Uint8Array }; extended: Json }[],
+): Json {
+  const label = typeof record.label === "string" ? record.label : "";
+  const displayName = typeof record.name === "string" ? record.name : label;
+  const parts: Json[] = [
+    { part: "name", bytes: Buffer.byteLength(displayName, "utf8"), chars: displayName.length },
+  ];
+  if (typeof record.description === "string") {
+    parts.push({
+      part: "description",
+      bytes: Buffer.byteLength(record.description, "utf8"),
+      chars: record.description.length,
+    });
+  }
+  const skill = contentMembers.find(({ member }) => member.id === "skill");
+  if (skill !== undefined) {
+    const text = utf8Lossy.decode(skill.member.bytes);
+    const split = /^---\n([\s\S]*?)\n---\n?/u.exec(text);
+    const frontmatter = split?.[1] ?? "";
+    const body = split === null ? text : text.slice(split[0].length);
+    parts.push({
+      part: "frontmatter",
+      bytes: Buffer.byteLength(frontmatter, "utf8"),
+      chars: frontmatter.length,
+    });
+    parts.push({ part: "body", bytes: Buffer.byteLength(body, "utf8"), chars: body.length });
+  }
+  const carried = contentMembers.filter(({ member }) => member.id !== "skill");
+  const fileBytes = carried.reduce((total, { member }) => total + member.bytes.length, 0);
+  const fileChars = carried.reduce(
+    (total, { member }) => total + utf8Lossy.decode(member.bytes).length,
+    0,
+  );
+  parts.push({ part: "files", bytes: fileBytes, chars: fileChars });
+  return parts;
+}
+
 export function compileProducerDeclaration(request: {
   readonly declaration: unknown;
   readonly sourceFiles: readonly SuppliedSourceFiles[];
@@ -311,7 +562,8 @@ export function compileProducerDeclaration(request: {
   for (const [index, input] of request.sourceFiles.entries()) {
     const at = `/sourceFiles/${index}`;
     if (
-      !exactFields(input, ["source", "revision", "files"]) ||
+      (!exactFields(input, ["source", "revision", "files"]) &&
+        !exactFields(input, ["source", "revision", "files", "modes"])) ||
       Object.values(Object.getOwnPropertyDescriptors(input)).some((d) => !("value" in d)) ||
       typeof input.source !== "string" ||
       typeof input.revision !== "string" ||
@@ -322,6 +574,17 @@ export function compileProducerDeclaration(request: {
         at,
         "Expected source ID, lowercase 40-character Git pin or 64-character snapshot hash, and regular-file byte map.",
       );
+    if (input.modes !== undefined) {
+      if (!isRecord(input.modes)) return failure(`${at}/modes`, "Expected a path mode map.");
+      for (const [path, mode] of Object.entries(input.modes)) {
+        if (!safeMemberPath(path) || (mode !== 0o644 && mode !== 0o755)) {
+          return failure(
+            `${at}/modes`,
+            "Expected verified regular-file modes 0o644 or 0o755 keyed by source-relative path.",
+          );
+        }
+      }
+    }
     const source = declaration.sources.find((source) => source.id === input.source);
     if (!source || trees.has(input.source))
       return failure(`${at}/source`, "Supplied source must be declared exactly once.");
@@ -362,6 +625,7 @@ export function compileProducerDeclaration(request: {
         irregular: new Set(),
         opaquePrefixes: [],
       },
+      mode: (path) => (input.modes as Readonly<Record<string, number>> | undefined)?.[path],
       read: (path) => {
         const bytes = files.get(path);
         if (!bytes) throw new TypeError("missing supplied bytes");
@@ -400,6 +664,10 @@ export function compileProducerDeclaration(request: {
   );
   const generated: GeneratedItem[] = [];
   let generationPath = "/sourceFiles";
+  const schema16 = declaration.schema === PRODUCER_DECLARATION_SCHEMA_ID_3_2;
+  if (schema16 && declaration.framework === undefined) {
+    return failure("/framework", "Declaration 3.2.0 publishes the release 1.6 framework identity.");
+  }
   try {
     for (const source of declaration.sources) {
       const tree = trees.get(source.id) as SourceTree;
@@ -548,6 +816,34 @@ export function compileProducerDeclaration(request: {
             },
           ],
         });
+      if (schema16) {
+        const addresses = new Map<string, { sourcePath: string; relPath: string }>();
+        if ("recipePath" in donorItem) {
+          for (const member of donorItem.materials) {
+            addresses.set(member.id, { sourcePath: member.path, relPath: member.path });
+          }
+        } else {
+          addresses.set("license", { sourcePath: source.licensePath, relPath: "LICENSE" });
+          addresses.set("skill", { sourcePath: donorItem.skillPath, relPath: "SKILL.md" });
+          for (const supportPath of donorItem.supportPaths) {
+            addresses.set(supportMaterialId(supportPath), {
+              sourcePath: `${donorItem.directory}/${supportPath}`,
+              relPath: supportPath,
+            });
+          }
+        }
+        const projected = projectItemTo16({
+          output,
+          item,
+          source,
+          tree,
+          ...("skillPath" in donorItem ? { entry: donorItem.entry } : {}),
+          authoredName: sourceFacts?.name.state === "authored",
+          frameworkId: (declaration.framework as { id: string }).id,
+          addresses,
+        });
+        if (projected) return projected;
+      }
       generated.push(output);
     }
   } catch (error) {
@@ -574,27 +870,30 @@ export function compileProducerDeclaration(request: {
         : "Required supplied source bytes are missing or invalid.",
     );
   }
-  const schema = declaration.sources.some((source) => "origin" in source)
-    ? "urn:aihq:catalog:release:1.3.0"
-    : generated.some(
-          (item) =>
-            isRecord(item.record.recipe) &&
-            item.record.recipe.schema === "urn:aihq:core:recipe:1.3.0",
-        )
-      ? "urn:aihq:catalog:release:1.2.0"
+  const schema = schema16
+    ? "urn:aihq:catalog:release:1.6.0"
+    : declaration.sources.some((source) => "origin" in source)
+      ? "urn:aihq:catalog:release:1.3.0"
       : generated.some(
             (item) =>
               isRecord(item.record.recipe) &&
-              item.record.recipe.schema === "urn:aihq:core:recipe:1.1.0",
+              item.record.recipe.schema === "urn:aihq:core:recipe:1.3.0",
           )
-        ? "urn:aihq:catalog:release:1.1.0"
-        : "urn:aihq:catalog:release:1.0.0";
+        ? "urn:aihq:catalog:release:1.2.0"
+        : generated.some(
+              (item) =>
+                isRecord(item.record.recipe) &&
+                item.record.recipe.schema === "urn:aihq:core:recipe:1.1.0",
+            )
+          ? "urn:aihq:catalog:release:1.1.0"
+          : "urn:aihq:catalog:release:1.0.0";
   const bytes = documentBytes({
     schema,
     package: declaration.package ?? { name: "supplied-catalog", version: "0.0.0" },
     sources: declaration.sources
       .map((source) => ({
         id: source.id,
+        ...(schema16 ? { license: source.license } : {}),
         origin:
           "repository" in source
             ? {
@@ -605,6 +904,9 @@ export function compileProducerDeclaration(request: {
             : { kind: "local", revision: trees.get(source.id)?.commit },
       }))
       .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)),
+    ...(schema16 && declaration.framework !== undefined
+      ? { framework: declaration.framework as Json }
+      : {}),
     ...(sharedInventories.size === 0
       ? {}
       : {
@@ -619,7 +921,11 @@ export function compileProducerDeclaration(request: {
       .sort((a, b) => (String(a.id) < String(b.id) ? -1 : String(a.id) > String(b.id) ? 1 : 0)),
   });
   const releaseSha256 = sha256Hex(bytes);
-  const read = readRelease(bytes, { expectedSha256: releaseSha256 });
+  // Release 1.6 is compiled as pre-baseline content; release preparation binds
+  // the assessment. The content admission is the owning reader at this stage.
+  const read = schema16
+    ? readReleaseContent(bytes, { expectedSha256: releaseSha256 })
+    : readRelease(bytes, { expectedSha256: releaseSha256 });
   if (!read.valid)
     return deepFreeze({
       status: "refused",
@@ -754,10 +1060,17 @@ function prepareSourceRefreshData(request: {
         record: record as unknown as { [key: string]: Json },
         recipePath: item.recipe.path,
         recipeBytes: Buffer.from(recipe.bytes),
-        members: item.materials.map((member) => ({
-          ...member,
-          bytes: Buffer.from(outputs.get(member.path)?.bytes ?? []),
-        })),
+        members: item.materials.map(
+          (member) =>
+            ({
+              ...member,
+              path: String(memberPackagePath(member as unknown as Record<string, unknown>)),
+              bytes: Buffer.from(
+                outputs.get(String(memberPackagePath(member as unknown as Record<string, unknown>)))
+                  ?.bytes ?? [],
+              ),
+            }) as unknown as GeneratedMember,
+        ),
       });
     }
     const paths = new Set(Object.keys(snapshot.files));
@@ -804,7 +1117,10 @@ function prepareSourceRefreshData(request: {
     });
     const releaseBytes = built.files.get("release/release.json") as Buffer;
     const releaseSha256 = sha256Hex(releaseBytes);
-    const read = readRelease(releaseBytes, { expectedSha256: releaseSha256 });
+    const read =
+      declaration.schema === PRODUCER_DECLARATION_SCHEMA_ID_3_2
+        ? readReleaseContent(releaseBytes, { expectedSha256: releaseSha256 })
+        : readRelease(releaseBytes, { expectedSha256: releaseSha256 });
     if (!read.valid) return failure("/previous", "Refreshed release failed its public reader.");
     return {
       status: "ok",

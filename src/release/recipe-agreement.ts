@@ -136,7 +136,11 @@ export function checkRecipeAgreement(item: CatalogItem, bytes: Uint8Array): Cata
     report("recipe-scope-mismatch", "The item advertises a scope its recipe does not admit.");
   }
   const declared = Array.isArray(recipe.materials) ? [...recipe.materials] : undefined;
-  const expected = item.materials.map(({ id, sha256, byteLength }) => ({ id, sha256, byteLength }));
+  // The synthesised behaviour file is captured metadata, not part of the install
+  // recipe's material closure; recipes declare only content materials.
+  const expected = item.materials
+    .filter((member) => (member as unknown as Record<string, unknown>).role !== "behaviour")
+    .map(({ id, sha256, byteLength }) => ({ id, sha256, byteLength }));
   const byId = (a: unknown, b: unknown) => {
     const left = isRecord(a) ? String(a.id) : "";
     const right = isRecord(b) ? String(b.id) : "";

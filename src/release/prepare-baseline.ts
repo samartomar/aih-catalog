@@ -8,7 +8,7 @@ import { SCAN_BASELINE_SCHEMA_ID } from "./baseline-contracts.js";
 import { validBaseline } from "./baseline-wire.js";
 import { copyJson } from "./boundary.js";
 import type { CatalogDiagnostic, CatalogRelease } from "./contracts.js";
-import { isRecord } from "./document.js";
+import { isRecord, memberPackagePath } from "./document.js";
 import { createContentInventory } from "./inventory.js";
 import { canonicalJson, deepFreeze } from "./json.js";
 import { readRelease } from "./reader.js";
@@ -199,8 +199,14 @@ export async function prepareReleaseBaseline<Read extends BaselineArtifactRead, 
     let batchCoverage: BaselineCoverage[] | undefined;
     if (services.readContentCoverageBatch !== undefined) {
       const queries = read.release.items.flatMap((item) =>
-        [item.recipe, ...item.materials].map(({ path, sha256, byteLength }) => ({
-          descriptors: [{ path, sha256, byteLength }],
+        [item.recipe, ...item.materials].map((member) => ({
+          descriptors: [
+            {
+              path: String(memberPackagePath(member as unknown as Record<string, unknown>)),
+              sha256: member.sha256,
+              byteLength: member.byteLength,
+            },
+          ],
         })),
       );
       const expectedRows = queries.length;
@@ -257,7 +263,7 @@ export async function prepareReleaseBaseline<Read extends BaselineArtifactRead, 
       const members: ItemBaselineCoverage["members"][number][] = [];
       for (const member of [item.recipe, ...item.materials]) {
         const descriptor = {
-          path: member.path,
+          path: String(memberPackagePath(member as unknown as Record<string, unknown>)),
           sha256: member.sha256,
           byteLength: member.byteLength,
         };

@@ -1,0 +1,1642 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aihq:catalog:producer-declaration:3.2.0",
+  "title": "Supplied Catalog producer declaration v3 with release 1.6 behaviour fields",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "format",
+    "version",
+    "sources",
+    "items"
+  ],
+  "properties": {
+    "schema": {
+      "const": "urn:aihq:catalog:producer-declaration:3.2.0"
+    },
+    "format": {
+      "const": "aihq-catalog-producer-declaration"
+    },
+    "version": {
+      "const": 3
+    },
+    "sources": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "repository",
+              "licensePath",
+              "license"
+            ],
+            "properties": {
+              "id": {
+                "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/id"
+              },
+              "repository": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+              },
+              "licensePath": {
+                "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/path"
+              },
+              "license": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9.+-]{0,63}$"
+              },
+              "pluginManifestPath": {
+                "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/path"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "licensePath",
+              "license",
+              "origin"
+            ],
+            "properties": {
+              "id": {
+                "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/id"
+              },
+              "licensePath": {
+                "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/path"
+              },
+              "license": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9.+-]{0,63}$"
+              },
+              "pluginManifestPath": {
+                "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/path"
+              },
+              "origin": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "kind"
+                ],
+                "properties": {
+                  "kind": {
+                    "const": "local"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "items": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "source",
+              "label",
+              "description",
+              "kind",
+              "requires",
+              "optional",
+              "conflicts",
+              "clientCapabilities",
+              "activation",
+              "configuration",
+              "recipePath",
+              "materials"
+            ],
+            "properties": {
+              "id": {
+                "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/id"
+              },
+              "source": {
+                "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/id"
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "kind": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "requires": {
+                "type": "array",
+                "maxItems": 4096,
+                "items": {
+                  "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/dependencyRef"
+                }
+              },
+              "optional": {
+                "type": "array",
+                "maxItems": 4096,
+                "items": {
+                  "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/dependencyRef"
+                }
+              },
+              "conflicts": {
+                "type": "array",
+                "maxItems": 4096,
+                "items": {
+                  "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/dependencyRef"
+                }
+              },
+              "clientCapabilities": {
+                "type": "array",
+                "maxItems": 4096,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "client",
+                    "surface",
+                    "capability",
+                    "support"
+                  ],
+                  "properties": {
+                    "client": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 4096
+                    },
+                    "surface": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 4096
+                    },
+                    "capability": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 4096
+                    },
+                    "support": {
+                      "enum": [
+                        "supported",
+                        "unsupported",
+                        "unknown"
+                      ]
+                    },
+                    "reason": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 4096
+                    }
+                  },
+                  "allOf": [
+                    {
+                      "if": {
+                        "properties": {
+                          "support": {
+                            "const": "unsupported"
+                          }
+                        }
+                      },
+                      "then": {
+                        "required": [
+                          "reason"
+                        ],
+                        "properties": {
+                          "reason": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 4096
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "activation": {
+                "type": "array",
+                "maxItems": 4096,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "client",
+                    "surface",
+                    "instructions"
+                  ],
+                  "properties": {
+                    "client": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 4096
+                    },
+                    "surface": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 4096
+                    },
+                    "instructions": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 4096
+                    }
+                  }
+                }
+              },
+              "configuration": {
+                "type": "object",
+                "propertyNames": {
+                  "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/id"
+                },
+                "additionalProperties": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "required"
+                  ],
+                  "properties": {
+                    "type": {
+                      "enum": [
+                        "string",
+                        "boolean",
+                        "integer",
+                        "number"
+                      ]
+                    },
+                    "required": {
+                      "type": "boolean"
+                    },
+                    "default": {
+                      "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/scalar"
+                    },
+                    "enum": {
+                      "type": "array",
+                      "minItems": 1,
+                      "uniqueItems": true,
+                      "items": {
+                        "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/scalar"
+                      }
+                    },
+                    "description": {
+                      "type": "string",
+                      "maxLength": 4096
+                    },
+                    "sensitive": {
+                      "type": "boolean"
+                    },
+                    "minLength": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "maxLength": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "minimum": {
+                      "type": "number"
+                    },
+                    "maximum": {
+                      "type": "number"
+                    },
+                    "label": {
+                      "type": "string",
+                      "maxLength": 256
+                    },
+                    "help": {
+                      "type": "string",
+                      "maxLength": 4096
+                    }
+                  }
+                }
+              },
+              "recipePath": {
+                "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/path"
+              },
+              "materials": {
+                "type": "array",
+                "maxItems": 4096,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "id",
+                    "path"
+                  ],
+                  "properties": {
+                    "id": {
+                      "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/id"
+                    },
+                    "path": {
+                      "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/path"
+                    }
+                  }
+                }
+              },
+              "sourceDiscovery": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "profile",
+                  "path"
+                ],
+                "properties": {
+                  "profile": {
+                    "enum": [
+                      "agent-skills",
+                      "claude-skill",
+                      "claude-agent",
+                      "claude-command",
+                      "markdown",
+                      "claude-hooks",
+                      "claude-mcp-registration"
+                    ]
+                  },
+                  "path": {
+                    "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/path"
+                  },
+                  "key": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  }
+                }
+              },
+              "payload": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "dirName",
+                      "invocation",
+                      "invocationBasis"
+                    ],
+                    "properties": {
+                      "dirName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "namespace": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "invocation": {
+                        "enum": [
+                          "user-only",
+                          "model-allowed"
+                        ]
+                      },
+                      "invocationBasis": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 4096
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "applyTo",
+                      "applyToBasis"
+                    ],
+                    "properties": {
+                      "namespace": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "applyTo": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 4096,
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 4096
+                        }
+                      },
+                      "applyToBasis": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 4096
+                      },
+                      "inclusion": {
+                        "enum": [
+                          "always",
+                          "fileMatch",
+                          "manual"
+                        ]
+                      },
+                      "placement": {
+                        "enum": [
+                          "file",
+                          "entry-block",
+                          "project-folder"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "event",
+                      "protocol",
+                      "command"
+                    ],
+                    "properties": {
+                      "event": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "matcher": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 4096
+                      },
+                      "protocol": {
+                        "const": "claude-code-hooks"
+                      },
+                      "timeoutSec": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 86400
+                      },
+                      "command": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "script"
+                        ],
+                        "properties": {
+                          "program": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 4096
+                          },
+                          "interpreter": {
+                            "enum": [
+                              "node",
+                              "bash",
+                              "python",
+                              "pwsh"
+                            ]
+                          },
+                          "script": {
+                            "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/id"
+                          },
+                          "args": {
+                            "type": "array",
+                            "maxItems": 4096,
+                            "items": {
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "required": [
+                                    "material"
+                                  ],
+                                  "properties": {
+                                    "material": {
+                                      "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/id"
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "key",
+                      "transport"
+                    ],
+                    "properties": {
+                      "key": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "transport": {
+                        "enum": [
+                          "stdio",
+                          "http",
+                          "sse"
+                        ]
+                      },
+                      "command": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 4096
+                      },
+                      "args": {
+                        "type": "array",
+                        "maxItems": 4096,
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 4096
+                        }
+                      },
+                      "url": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 2048
+                      },
+                      "env": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "input"
+                              ],
+                              "properties": {
+                                "input": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 256
+                                }
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "value"
+                              ],
+                              "properties": {
+                                "value": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 4096
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "headers": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "input"
+                              ],
+                              "properties": {
+                                "input": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 256
+                                }
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "value"
+                              ],
+                              "properties": {
+                                "value": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 4096
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "derivation": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "sourceMaterial",
+                          "pointer",
+                          "transform"
+                        ],
+                        "properties": {
+                          "sourceMaterial": {
+                            "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/id"
+                          },
+                          "pointer": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 4096
+                          },
+                          "transform": {
+                            "enum": [
+                              "identical",
+                              "edited"
+                            ]
+                          },
+                          "editsSha256": {
+                            "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/sha256"
+                          }
+                        }
+                      }
+                    },
+                    "allOf": [
+                      {
+                        "if": {
+                          "properties": {
+                            "transport": {
+                              "const": "stdio"
+                            }
+                          }
+                        },
+                        "then": {
+                          "required": [
+                            "command"
+                          ],
+                          "properties": {
+                            "command": true
+                          }
+                        }
+                      },
+                      {
+                        "if": {
+                          "properties": {
+                            "transport": {
+                              "enum": [
+                                "http",
+                                "sse"
+                              ]
+                            }
+                          }
+                        },
+                        "then": {
+                          "required": [
+                            "url"
+                          ],
+                          "properties": {
+                            "url": true
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "files"
+                    ],
+                    "properties": {
+                      "files": {
+                        "type": "array",
+                        "maxItems": 4096,
+                        "items": {
+                          "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/id"
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              "requirements": {
+                "$ref": "#/$defs/requirements"
+              },
+              "provenance": {
+                "$ref": "#/$defs/provenance"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "nameBasis": {
+                "enum": [
+                  "authored",
+                  "first-heading",
+                  "key",
+                  "file-name",
+                  "publisher"
+                ]
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "source",
+              "label",
+              "description",
+              "kind",
+              "requires",
+              "optional",
+              "conflicts",
+              "clientCapabilities",
+              "activation",
+              "configuration",
+              "skillPath"
+            ],
+            "properties": {
+              "id": {
+                "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/id"
+              },
+              "source": {
+                "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/id"
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "kind": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "requires": {
+                "type": "array",
+                "maxItems": 4096,
+                "items": {
+                  "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/dependencyRef"
+                }
+              },
+              "optional": {
+                "type": "array",
+                "maxItems": 4096,
+                "items": {
+                  "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/dependencyRef"
+                }
+              },
+              "conflicts": {
+                "type": "array",
+                "maxItems": 4096,
+                "items": {
+                  "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/dependencyRef"
+                }
+              },
+              "clientCapabilities": {
+                "type": "array",
+                "maxItems": 4096,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "client",
+                    "surface",
+                    "capability",
+                    "support"
+                  ],
+                  "properties": {
+                    "client": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 4096
+                    },
+                    "surface": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 4096
+                    },
+                    "capability": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 4096
+                    },
+                    "support": {
+                      "enum": [
+                        "supported",
+                        "unsupported",
+                        "unknown"
+                      ]
+                    },
+                    "reason": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 4096
+                    }
+                  },
+                  "allOf": [
+                    {
+                      "if": {
+                        "properties": {
+                          "support": {
+                            "const": "unsupported"
+                          }
+                        }
+                      },
+                      "then": {
+                        "required": [
+                          "reason"
+                        ],
+                        "properties": {
+                          "reason": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 4096
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "activation": {
+                "type": "array",
+                "maxItems": 4096,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "client",
+                    "surface",
+                    "instructions"
+                  ],
+                  "properties": {
+                    "client": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 4096
+                    },
+                    "surface": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 4096
+                    },
+                    "instructions": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 4096
+                    }
+                  }
+                }
+              },
+              "configuration": {
+                "type": "object",
+                "propertyNames": {
+                  "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/id"
+                },
+                "additionalProperties": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "required"
+                  ],
+                  "properties": {
+                    "type": {
+                      "enum": [
+                        "string",
+                        "boolean",
+                        "integer",
+                        "number"
+                      ]
+                    },
+                    "required": {
+                      "type": "boolean"
+                    },
+                    "default": {
+                      "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/scalar"
+                    },
+                    "enum": {
+                      "type": "array",
+                      "minItems": 1,
+                      "uniqueItems": true,
+                      "items": {
+                        "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/scalar"
+                      }
+                    },
+                    "description": {
+                      "type": "string",
+                      "maxLength": 4096
+                    },
+                    "sensitive": {
+                      "type": "boolean"
+                    },
+                    "minLength": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "maxLength": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "minimum": {
+                      "type": "number"
+                    },
+                    "maximum": {
+                      "type": "number"
+                    },
+                    "label": {
+                      "type": "string",
+                      "maxLength": 256
+                    },
+                    "help": {
+                      "type": "string",
+                      "maxLength": 4096
+                    }
+                  }
+                }
+              },
+              "skillPath": {
+                "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/path"
+              },
+              "supportPaths": {
+                "type": "array",
+                "maxItems": 4096,
+                "items": {
+                  "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/path"
+                }
+              },
+              "sourceDiscovery": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "profile",
+                  "path"
+                ],
+                "properties": {
+                  "profile": {
+                    "enum": [
+                      "agent-skills",
+                      "claude-skill",
+                      "claude-agent",
+                      "claude-command",
+                      "markdown",
+                      "claude-hooks",
+                      "claude-mcp-registration"
+                    ]
+                  },
+                  "path": {
+                    "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/path"
+                  },
+                  "key": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  }
+                }
+              },
+              "payload": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "dirName",
+                      "invocation",
+                      "invocationBasis"
+                    ],
+                    "properties": {
+                      "dirName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "namespace": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "invocation": {
+                        "enum": [
+                          "user-only",
+                          "model-allowed"
+                        ]
+                      },
+                      "invocationBasis": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 4096
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "applyTo",
+                      "applyToBasis"
+                    ],
+                    "properties": {
+                      "namespace": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "applyTo": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 4096,
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 4096
+                        }
+                      },
+                      "applyToBasis": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 4096
+                      },
+                      "inclusion": {
+                        "enum": [
+                          "always",
+                          "fileMatch",
+                          "manual"
+                        ]
+                      },
+                      "placement": {
+                        "enum": [
+                          "file",
+                          "entry-block",
+                          "project-folder"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "event",
+                      "protocol",
+                      "command"
+                    ],
+                    "properties": {
+                      "event": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "matcher": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 4096
+                      },
+                      "protocol": {
+                        "const": "claude-code-hooks"
+                      },
+                      "timeoutSec": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 86400
+                      },
+                      "command": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "script"
+                        ],
+                        "properties": {
+                          "program": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 4096
+                          },
+                          "interpreter": {
+                            "enum": [
+                              "node",
+                              "bash",
+                              "python",
+                              "pwsh"
+                            ]
+                          },
+                          "script": {
+                            "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/id"
+                          },
+                          "args": {
+                            "type": "array",
+                            "maxItems": 4096,
+                            "items": {
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "required": [
+                                    "material"
+                                  ],
+                                  "properties": {
+                                    "material": {
+                                      "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/id"
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "key",
+                      "transport"
+                    ],
+                    "properties": {
+                      "key": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                      },
+                      "transport": {
+                        "enum": [
+                          "stdio",
+                          "http",
+                          "sse"
+                        ]
+                      },
+                      "command": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 4096
+                      },
+                      "args": {
+                        "type": "array",
+                        "maxItems": 4096,
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 4096
+                        }
+                      },
+                      "url": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 2048
+                      },
+                      "env": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "input"
+                              ],
+                              "properties": {
+                                "input": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 256
+                                }
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "value"
+                              ],
+                              "properties": {
+                                "value": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 4096
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "headers": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "input"
+                              ],
+                              "properties": {
+                                "input": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 256
+                                }
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "value"
+                              ],
+                              "properties": {
+                                "value": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 4096
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "derivation": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "sourceMaterial",
+                          "pointer",
+                          "transform"
+                        ],
+                        "properties": {
+                          "sourceMaterial": {
+                            "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/id"
+                          },
+                          "pointer": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 4096
+                          },
+                          "transform": {
+                            "enum": [
+                              "identical",
+                              "edited"
+                            ]
+                          },
+                          "editsSha256": {
+                            "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/sha256"
+                          }
+                        }
+                      }
+                    },
+                    "allOf": [
+                      {
+                        "if": {
+                          "properties": {
+                            "transport": {
+                              "const": "stdio"
+                            }
+                          }
+                        },
+                        "then": {
+                          "required": [
+                            "command"
+                          ],
+                          "properties": {
+                            "command": true
+                          }
+                        }
+                      },
+                      {
+                        "if": {
+                          "properties": {
+                            "transport": {
+                              "enum": [
+                                "http",
+                                "sse"
+                              ]
+                            }
+                          }
+                        },
+                        "then": {
+                          "required": [
+                            "url"
+                          ],
+                          "properties": {
+                            "url": true
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "files"
+                    ],
+                    "properties": {
+                      "files": {
+                        "type": "array",
+                        "maxItems": 4096,
+                        "items": {
+                          "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/id"
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              "requirements": {
+                "$ref": "#/$defs/requirements"
+              },
+              "provenance": {
+                "$ref": "#/$defs/provenance"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "nameBasis": {
+                "enum": [
+                  "authored",
+                  "first-heading",
+                  "key",
+                  "file-name",
+                  "publisher"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    "authored": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source",
+          "externalPaths",
+          "templatePlaceholders"
+        ],
+        "properties": {
+          "source": {
+            "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/id"
+          },
+          "externalPaths": {
+            "type": "array",
+            "maxItems": 4096,
+            "items": {
+              "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/path"
+            }
+          },
+          "templatePlaceholders": {
+            "type": "array",
+            "maxItems": 4096,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            }
+          },
+          "literalExamples": {
+            "type": "array",
+            "maxItems": 4096,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "path",
+                "sha256",
+                "tokens"
+              ],
+              "properties": {
+                "path": {
+                  "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/path"
+                },
+                "sha256": {
+                  "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/sha256"
+                },
+                "tokens": {
+                  "type": "array",
+                  "maxItems": 4096,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4096
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/packageName"
+        },
+        "version": {
+          "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/version"
+        }
+      }
+    },
+    "framework": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "version",
+        "description"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "version": {
+          "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/version"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      }
+    }
+  },
+  "$defs": {
+    "requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "inputs": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/requirementInput"
+          }
+        }
+      }
+    },
+    "requirementInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "required"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "string",
+            "boolean",
+            "integer",
+            "number"
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "default": {
+          "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/scalar"
+        },
+        "enum": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/scalar"
+          }
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "sensitive": {
+          "type": "boolean"
+        },
+        "minLength": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxLength": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minimum": {
+          "type": "number"
+        },
+        "maximum": {
+          "type": "number"
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "help": {
+          "type": "string",
+          "maxLength": 4096
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "selectedBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "derivedFrom": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "itemId",
+              "status"
+            ],
+            "properties": {
+              "itemId": {
+                "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/id"
+              },
+              "releaseSha256": {
+                "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/sha256"
+              },
+              "status": {
+                "enum": [
+                  "verified",
+                  "declared"
+                ]
+              },
+              "proof": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "materials"
+                ],
+                "properties": {
+                  "materials": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 4096,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "relPath",
+                        "sha256"
+                      ],
+                      "properties": {
+                        "relPath": {
+                          "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/path"
+                        },
+                        "sha256": {
+                          "$ref": "urn:aihq:catalog:release:1.2.0#/$defs/sha256"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

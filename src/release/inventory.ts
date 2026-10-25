@@ -1,7 +1,9 @@
 /** Portable inventory reader and freeze step: no acquisition or authentication. */
 import {
   CONTENT_INVENTORY_SCHEMA_ID,
+  CONTENT_INVENTORY_SCHEMA_ID_1_1,
   CONTENT_PROJECTION_ID,
+  CONTENT_PROJECTION_ID_1_1,
   type ContentInventory,
   type ContentInventoryResult,
 } from "./baseline-contracts.js";
@@ -12,6 +14,7 @@ import {
   RELEASE_MAX_DEPTH,
   RELEASE_RECIPE_SCHEMAS,
   RELEASE_SCHEMA_ID_1_5,
+  RELEASE_SCHEMA_ID_1_6,
 } from "./contracts.js";
 import { checkReleaseDocument, isRecord, SHA256 } from "./document.js";
 import { deepFreeze, JsonAdmissionError, readCanonicalBytes } from "./json.js";
@@ -74,10 +77,18 @@ export function readContentInventory(
     const value = admit(bytes, options);
     if (
       !isRecord(value) ||
-      value.schema !== CONTENT_INVENTORY_SCHEMA_ID ||
-      value.projection !== CONTENT_PROJECTION_ID
+      (value.schema !== CONTENT_INVENTORY_SCHEMA_ID &&
+        value.schema !== CONTENT_INVENTORY_SCHEMA_ID_1_1) ||
+      (value.projection !== CONTENT_PROJECTION_ID && value.projection !== CONTENT_PROJECTION_ID_1_1)
     )
       return refuse("unsupported-inventory", true);
+    if (
+      (value.schema === CONTENT_INVENTORY_SCHEMA_ID &&
+        value.projection !== CONTENT_PROJECTION_ID) ||
+      (value.schema === CONTENT_INVENTORY_SCHEMA_ID_1_1 &&
+        value.projection !== CONTENT_PROJECTION_ID_1_1)
+    )
+      return refuse("inventory-projection-mismatch", true);
     if (!exactFields(value, ["schema", "projection", "release"]) || !isRecord(value.release))
       return refuse("inventory-invalid");
     if (
@@ -85,7 +96,11 @@ export function readContentInventory(
       !Object.hasOwn(RELEASE_RECIPE_SCHEMAS, value.release.schema)
     )
       return refuse("unsupported-release", true);
-    if (value.release.schema !== RELEASE_SCHEMA_ID_1_5 || Object.hasOwn(value.release, "baseline"))
+    const expectedReleaseSchema =
+      value.schema === CONTENT_INVENTORY_SCHEMA_ID_1_1
+        ? RELEASE_SCHEMA_ID_1_6
+        : RELEASE_SCHEMA_ID_1_5;
+    if (value.release.schema !== expectedReleaseSchema || Object.hasOwn(value.release, "baseline"))
       return refuse("inventory-invalid");
     const checked = checkReleaseDocument(value.release, { contentOnly: true });
     if (!checked.document) return { valid: false, diagnostics: checked.diagnostics };

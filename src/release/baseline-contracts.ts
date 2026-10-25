@@ -1,6 +1,7 @@
 import type {
   CatalogDiagnostic,
   CatalogItem,
+  CatalogRelease,
   ItemDependencies,
   Json,
   ReleaseSource,
@@ -8,6 +9,9 @@ import type {
 
 export const CONTENT_INVENTORY_SCHEMA_ID = "urn:aihq:catalog:content-inventory:1.0.0" as const;
 export const CONTENT_PROJECTION_ID = "urn:aihq:catalog:release-content:1.0.0" as const;
+/** Inventory 1.1 describes release 1.6 content, including behaviour files and executable states. */
+export const CONTENT_INVENTORY_SCHEMA_ID_1_1 = "urn:aihq:catalog:content-inventory:1.1.0" as const;
+export const CONTENT_PROJECTION_ID_1_1 = "urn:aihq:catalog:release-content:1.1.0" as const;
 export const SCAN_BASELINE_SCHEMA_ID = "urn:aihq:catalog:scan-baseline:1.0.0" as const;
 export const BASELINE_ARTIFACT_MAX_BYTES = 64 * 1024 * 1024;
 
@@ -40,14 +44,18 @@ export type ContentItemDeclaration = Omit<CatalogItem, "itemSha256" | "dependenc
   readonly dependencies: Partial<ItemDependencies>;
 };
 export interface ContentInventory {
-  readonly schema: typeof CONTENT_INVENTORY_SCHEMA_ID;
-  readonly projection: typeof CONTENT_PROJECTION_ID;
+  readonly schema: typeof CONTENT_INVENTORY_SCHEMA_ID | typeof CONTENT_INVENTORY_SCHEMA_ID_1_1;
+  readonly projection: typeof CONTENT_PROJECTION_ID | typeof CONTENT_PROJECTION_ID_1_1;
   readonly release: {
-    readonly schema: "urn:aihq:catalog:release:1.5.0";
+    readonly schema: "urn:aihq:catalog:release:1.5.0" | "urn:aihq:catalog:release:1.6.0";
     readonly package: { readonly name: string; readonly version: string };
     readonly sources: readonly ReleaseSource[];
     readonly items: readonly ContentItemDeclaration[];
     readonly metadata?: Json;
+    /** Release 1.6 content projection fields; absent for 1.5.0 content. */
+    readonly framework?: CatalogRelease["framework"];
+    readonly retired?: CatalogRelease["retired"];
+    readonly nativeRoutes?: CatalogRelease["nativeRoutes"];
   };
 }
 export type ContentInventoryResult =

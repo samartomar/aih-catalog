@@ -323,7 +323,13 @@ describe("generic framework templates", () => {
       .find((entry) => entry.id === "framework")
       ?.materials.find((entry) => entry.id === "content");
     if (!reviewedMember) throw new Error("fixture lacks reviewed member");
-    tamperedFiles.set(reviewedMember.path, Buffer.from(`${reviewed} `));
+    tamperedFiles.set(
+      String(
+        (reviewedMember as { path?: string; packagePath?: string }).path ??
+          (reviewedMember as { packagePath?: string }).packagePath,
+      ),
+      Buffer.from(`${reviewed} `),
+    );
     expect(
       checkCandidateFiles(tamperedFiles, packageIdentity(), {
         authored: declaration.authored,

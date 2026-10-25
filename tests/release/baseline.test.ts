@@ -361,7 +361,10 @@ it("uses one authenticated batch in member order and owns the projected result",
         expect(queries.map((query) => query.descriptors)).toEqual(
           expected.map((member) => [
             {
-              path: member.path,
+              path: String(
+                (member as { path?: string; packagePath?: string }).path ??
+                  (member as { packagePath?: string }).packagePath,
+              ),
               sha256: member.sha256,
               byteLength: member.byteLength,
             },

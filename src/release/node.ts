@@ -29,7 +29,7 @@ import {
   type ReleaseExport,
   releaseInventory,
 } from "./contracts.js";
-import { coreArchiveUrl, ID, isRecord, safeMemberPath } from "./document.js";
+import { coreArchiveUrl, ID, isRecord, memberPackagePath, safeMemberPath } from "./document.js";
 import { AcquisitionFailure } from "./node-errors.js";
 import {
   diagnostic,
@@ -444,7 +444,9 @@ export async function resolveRelease(
     const declared = new Set(
       checked.release.items.flatMap((item) => [
         item.recipe.path,
-        ...item.materials.map((member) => member.path),
+        ...item.materials.map((member) =>
+          String(memberPackagePath(member as unknown as Record<string, unknown>)),
+        ),
       ]),
     );
     for (const path of archive.executables) {

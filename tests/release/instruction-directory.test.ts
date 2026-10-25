@@ -41,6 +41,12 @@ import {
 import { sha256 } from "./fixtures.js";
 import { installedRoot } from "./installed-fixture.js";
 
+const memberPath = (member: unknown): string =>
+  String(
+    (member as { path?: string; packagePath?: string }).path ??
+      (member as { packagePath?: string }).packagePath,
+  );
+
 // Armed filesystem faults for the write/cleanup failure tests: an entry fails the
 // named operation with `code` when the path string contains `match`; every other
 // call passes through to the real fs. Entries are cleared after each test.
@@ -222,7 +228,7 @@ describe("deriveProjectContextRelease (portable, no filesystem)", () => {
     expect(Object.isFrozen(derivation.from.package)).toBe(true);
     const declared = listItems(derived.release).flatMap((item) => [
       item.recipe.path,
-      ...item.materials.map((member) => member.path),
+      ...item.materials.map((member) => memberPath(member)),
     ]);
     expect([...files.keys()].sort()).toEqual([...declared, DERIVED_MANIFEST_PATH].sort());
   });
@@ -406,7 +412,7 @@ describe("prepareProjectContext with the default directory", () => {
       "release/release.json",
       ...listItems(release).flatMap((item) => [
         item.recipe.path,
-        ...item.materials.map((member) => member.path),
+        ...item.materials.map((member) => memberPath(member)),
       ]),
     ]);
     expect([...tree(out).keys()].sort()).toEqual([...declared].sort());
@@ -423,7 +429,7 @@ describe("prepareProjectContext behavior core", () => {
     if (!found.found) throw new Error("missing project context");
     const member = found.item.materials.find((entry) => entry.id === "behavior-core");
     if (member === undefined) throw new Error("missing behavior core");
-    const text = readFileSync(join(result.outputDirectory, member.path), "utf8");
+    const text = readFileSync(join(result.outputDirectory, memberPath(member)), "utf8");
     const principles = text.slice(
       text.indexOf("## 1. Think before coding"),
       text.indexOf("## Invariants (always hold)"),
@@ -496,7 +502,7 @@ describe("prepareProjectContext with a custom directory", () => {
       const found = getItem(release, itemId);
       if (!found.found) throw new Error(itemId);
       const member = found.item.materials.find((entry) => entry.id === id);
-      return (files.get(member?.path as string) as Buffer).toString("utf8");
+      return (files.get(member === undefined ? "" : memberPath(member)) as Buffer).toString("utf8");
     };
     expect(text("aihq.project-context", "rule-router")).toContain("`.ai/context/PROJECT.md`");
     expect(text("aihq.project-context-pointer.kiro-steering", "pointer")).toContain(

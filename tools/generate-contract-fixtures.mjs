@@ -55,8 +55,50 @@ function add(name, contract, document, reader, provenance, context = undefined) 
     });
   }
 }
-for (let minor = 0; minor <= 5; minor++) {
-  let document = structuredClone(minor === 0 ? matt : minor === 1 ? hooks : minor === 4 ? subset("release/release.json", ["mattpocock.grill-me", "aihq.client.claude"]) : mixed);
+// Project a committed 1.x release document into the release 1.6 shape: extended
+// materials, the synthesised behaviour file and both identities. Fixture-only
+// projection over real committed content; sizes stay absent (bytes are not read).
+const FRAMEWORK_ID = "fixture-framework";
+const projectRelease16 = (document) => {
+  const doc = structuredClone(document);
+  doc.schema = "urn:aihq:catalog:release:1.6.0";
+  doc.framework = {
+    id: FRAMEWORK_ID,
+    name: "Fixture Framework",
+    version: "1.0.0",
+    description: "Authored golden framework for the release 1.6 contract fixtures.",
+  };
+  for (const source of doc.sources) source.license = "MIT";
+  doc.items = doc.items.map((item) => {
+    const executable = {};
+    const content = item.materials.map((member) => {
+      const relPath = member.id === "license" ? "LICENSE" : member.id === "skill" ? "SKILL.md" : member.id;
+      executable[relPath] = "unknown";
+      return {
+        id: member.id, relPath, sourcePath: member.path, packagePath: member.path,
+        sha256: member.sha256, byteLength: member.byteLength,
+        executable: "unknown", sourceId: item.sourceIds[0], role: "content",
+      };
+    });
+    const behaviourText = `${canonical({ kind: item.kind, payload: null, requirements: { inputs: {} }, dependencies: item.dependencies, executable })}\n`;
+    const behaviour = {
+      id: "behaviour", relPath: "aih-behaviour.json", sourcePath: null,
+      packagePath: `release/items/${item.id}/aih-behaviour.json`,
+      sha256: sha(Buffer.from(behaviourText)), byteLength: behaviourText.length,
+      executable: false, sourceId: FRAMEWORK_ID, role: "behaviour",
+    };
+    const lines = (members) => members.map((m) => `${m.relPath}\t${m.sha256}\n`).sort();
+    const materials = [...content, behaviour].sort((a, b) => (a.id < b.id ? -1 : 1));
+    return {
+      ...item, materials, requirements: { inputs: {} }, executable,
+      contentSha256: sha(Buffer.from(lines(content).join(""))),
+      behaviourSha256: sha(Buffer.from(lines(materials).join(""))),
+    };
+  });
+  return doc;
+};
+for (let minor = 0; minor <= 6; minor++) {
+  let document = structuredClone(minor === 0 ? matt : minor === 1 ? hooks : minor === 4 ? subset("release/release.json", ["mattpocock.grill-me", "aihq.client.claude"]) : minor === 6 ? matt : mixed);
   document.schema = `urn:aihq:catalog:release:1.${minor}.0`;
   if (minor === 5) {
     const inventory = createContentInventory(bytes(document), { expectedSha256: sha(bytes(document)) });
@@ -73,18 +115,44 @@ for (let minor = 0; minor <= 5; minor++) {
     add("release-content-1.0.0", inventory.inventory.projection, inventory.inventory.release, "projection", "Real Extensions/Superpowers release-content projection.");
     add("scan-baseline-1.0.0", document.baseline.schema, document.baseline, "baseline", "Test-only evidence binding over real content; no authentication or production assessment claim.", "@aihq/catalog/fixtures/release-1.5.0-valid.json");
   }
-  add(`release-1.${minor}.0`, document.schema, document, "release", minor === 5
+  if (minor === 6) {
+    document = projectRelease16(document);
+    const inventory = createContentInventory(bytes(document), { expectedSha256: sha(bytes(document)) });
+    assert(inventory.valid, JSON.stringify(inventory));
+    assert.equal(inventory.inventory.schema, "urn:aihq:catalog:content-inventory:1.1.0");
+    document = { ...document, baseline: {
+      schema: "urn:aihq:catalog:scan-baseline:1.0.0",
+      inventory: { path: "fixtures/bound-inventory-1.1.0.json", sha256: inventory.sha256, byteLength: inventory.byteLength },
+      scanId: `scan:sha256:${"a".repeat(64)}`,
+      artifact: { sha256: sha(Buffer.from("fixture evidence 1.6\n")), byteLength: 19, location: { kind: "package", path: "fixtures/baseline-evidence.txt" } },
+      scope: { namespace: "package-relative", paths: ["release"], excludedPaths: [] },
+    } };
+    write("fixtures/bound-inventory-1.1.0.json", inventory.inventory);
+    add("content-inventory-1.1.0", inventory.inventory.schema, inventory.inventory, "inventory", "Real Matt grill-me closure projected to release 1.6 before evidence; behaviour files and executable states included.");
+    add("release-content-1.1.0", inventory.inventory.projection, inventory.inventory.release, "projection", "Real Matt grill-me release-content 1.1 projection with behaviour files and executable states.");
+  }
+  add(`release-1.${minor}.0`, document.schema, document, "release", minor === 6
+    ? "Real Matt grill-me closure projected to release 1.6 with behaviour files, both identities and a test-only evidence binding."
+    : minor === 5
     ? "Real Extensions grill-me/git-guard and Superpowers reviewed-tdd; test-only evidence binding."
     : minor === 0 || minor === 4 ? "Committed default release: Matt grill-me and its dependency closure; 1.4 also retains the real Claude client adapter."
     : minor === 1 ? "Committed protect-env hook release, unchanged."
     : "Committed Extensions grill-me/git-guard and Superpowers reviewed-tdd, with their declared dependency closure.");
 }
-for (const version of ["3.0.0", "3.1.0"]) {
+for (const version of ["3.0.0", "3.1.0", "3.2.0"]) {
   const declaration = read("producer/extensions/declaration.json");
   const ids = new Set(extensions.items.map(i => i.id));
   declaration.items = declaration.items.filter(i => ids.has(i.id));
   declaration.schema = `urn:aihq:catalog:producer-declaration:${version}`;
-  add(`producer-declaration-${version}`, declaration.schema, declaration, "producer", "Committed Extensions producer declaration: grill-me/git-guard and dependency closure; Git sources are valid in both 3.x formats.");
+  if (version === "3.2.0") {
+    declaration.framework = {
+      id: "extensions", name: "Extensions", version: "1.0.0",
+      description: "Authored golden framework for the producer declaration 3.2 fixture.",
+    };
+  }
+  add(`producer-declaration-${version}`, declaration.schema, declaration, "producer", version === "3.2.0"
+    ? "Committed Extensions producer declaration with the release 1.6 framework identity; grill-me/git-guard and dependency closure."
+    : "Committed Extensions producer declaration: grill-me/git-guard and dependency closure; Git sources are valid in both 3.x formats.");
 }
 for (const [version, id, context] of [
   ["1.0.0", "mattpocock.grill-me", "release-1.0.0-valid"],
