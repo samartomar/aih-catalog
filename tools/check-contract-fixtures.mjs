@@ -108,7 +108,10 @@ for (const fixture of manifest.fixtures) {
       break;
     }
     case "projection": {
-      const inventory = encode({ schema: "urn:aihq:catalog:content-inventory:1.0.0", projection: fixture.contract, release: document });
+      const inventorySchema = fixture.contract === "urn:aihq:catalog:release-content:1.1.0"
+        ? "urn:aihq:catalog:content-inventory:1.1.0"
+        : "urn:aihq:catalog:content-inventory:1.0.0";
+      const inventory = encode({ schema: inventorySchema, projection: fixture.contract, release: document });
       result = readContentInventory(inventory, { expectedSha256: sha(inventory) }); break;
     }
     case "producer": result = checkProducerDeclaration(document); break;

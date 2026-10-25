@@ -47,6 +47,7 @@ export function readCommitTree(input: {
   const paths = new Set<string>();
   const irregular = new Set<string>();
   const opaquePrefixes: string[] = [];
+  const modes = new Map<string, number>();
   const treeIds = new Set([rootTree]);
   const blobIds = new Map<string, string>();
   for (const line of UTF8.decode(run("ls-tree", "-r", "-t", "-z", "--full-tree", commit))
@@ -59,6 +60,7 @@ export function readCommitTree(input: {
     if (kind === "tree") treeIds.add(oid);
     else if (kind === "blob" && (mode === "100644" || mode === "100755")) {
       paths.add(path);
+      modes.set(path, mode === "100755" ? 0o755 : 0o644);
       blobIds.set(path, oid);
     } else if (kind === "blob") irregular.add(path);
     else if (kind === "commit") opaquePrefixes.push(path);
@@ -73,6 +75,7 @@ export function readCommitTree(input: {
     repository,
     commit,
     inventory: { complete: true, paths, irregular, opaquePrefixes },
+    mode: (path) => modes.get(path),
     read(path: string): Uint8Array {
       if (!paths.has(path)) {
         return refuse("source-file-unavailable", `upstream file ${path} is not a regular file`);

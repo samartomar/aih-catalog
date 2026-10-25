@@ -20,8 +20,8 @@ directly. Existing consumers continue using the unchanged `contractSupport` and
 Support 1.0 identifies each version by its complete contract URN. Its closed
 schema permits only `id`, `role` and `schemaExport` in each contract entry;
 it does **not** permit a `versions` array or fixture references. Each supported
-release 1.0–1.5, producer declaration 3.0/3.1, content inventory 1.0,
-release-content projection 1.0, baseline 1.0, release index 1.0.0 and admitted
+release 1.0–1.6, producer declaration 3.0/3.1/3.2, content inventory 1.0/1.1,
+release-content projection 1.0/1.1, baseline 1.0, release index 1.0.0 and admitted
 Core recipe version has a separate entry and an exact schema export. `both`
 describes formats Catalog reads and produces; producer declarations are
 `accepts`. Core owns the recipe and support schemas; Catalog exposes the schema
@@ -44,10 +44,13 @@ The corpus derives deterministically from committed real releases and producer
 declarations: Matt's grill-me, Extensions' git-guard, Superpowers' reviewed-tdd
 and their dependency closures. Earlier release formats contain only content
 they can represent. The 3.1 declaration uses the same real Git sources admitted
-by 3.0. Inventory/projection fixtures cover all content fields. Release 1.5 and
-baseline fixtures use a **test-only evidence binding** over real content; they
-do not claim an authenticated assessment. Every contract has an invalid document
-containing a forbidden field, checked against its schema and public reader.
+by 3.0; 3.2 adds the release 1.6 framework identity. Inventory/projection
+fixtures cover all content fields; the 1.1 inventory and projection describe
+release 1.6 content, including behaviour files and executable states, while 1.0
+keeps describing release 1.5. Release 1.5/1.6 and baseline fixtures use a
+**test-only evidence binding** over real content; they do not claim an
+authenticated assessment. Every contract has an invalid document containing a
+forbidden field, checked against its schema and public reader.
 
 The projection has no standalone reader: wrap it in content-inventory 1.0 and
 call `readContentInventory`. Baselines are read in their release context.

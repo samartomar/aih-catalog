@@ -3,23 +3,26 @@
 import {
   BASELINE_ARTIFACT_MAX_BYTES,
   CONTENT_INVENTORY_SCHEMA_ID,
+  CONTENT_INVENTORY_SCHEMA_ID_1_1,
   CONTENT_PROJECTION_ID,
+  CONTENT_PROJECTION_ID_1_1,
   SCAN_BASELINE_SCHEMA_ID,
   type ScanBaseline,
 } from "./baseline-contracts.js";
 import { exactFields } from "./boundary.js";
-import { RELEASE_SCHEMA_ID_1_5 } from "./contracts.js";
+import { RELEASE_SCHEMA_ID_1_5, RELEASE_SCHEMA_ID_1_6 } from "./contracts.js";
 import { coreArchiveUrl, isRecord, SHA256, safeMemberPath } from "./document.js";
 import { canonicalJson } from "./json.js";
 import { sha256Hex } from "./sha256.js";
 
 export function contentInventoryBytes(value: Record<string, unknown>): Uint8Array {
   const { baseline: _baseline, ...content } = value;
+  const schema16 = value.schema === RELEASE_SCHEMA_ID_1_6;
   return new TextEncoder().encode(
     `${canonicalJson({
-      schema: CONTENT_INVENTORY_SCHEMA_ID,
-      projection: CONTENT_PROJECTION_ID,
-      release: { ...content, schema: RELEASE_SCHEMA_ID_1_5 },
+      schema: schema16 ? CONTENT_INVENTORY_SCHEMA_ID_1_1 : CONTENT_INVENTORY_SCHEMA_ID,
+      projection: schema16 ? CONTENT_PROJECTION_ID_1_1 : CONTENT_PROJECTION_ID,
+      release: { ...content, schema: schema16 ? RELEASE_SCHEMA_ID_1_6 : RELEASE_SCHEMA_ID_1_5 },
     })}\n`,
   );
 }
