@@ -3,8 +3,8 @@
 ## Unreleased
 
 - Add `readRecipe(bytes)` to `@aihq/catalog/node` for samartomar/aih-catalog#148:
-  a standalone Core recipe reader sharing the admission release reads apply to
-  every carried recipe, so another package's recipe fixtures can be checked
+  a standalone Core recipe reader. It shares the admission that release reads
+  apply to every carried recipe, so another package's recipe fixtures can be checked
   without a release around them. Item agreement is unchanged and still checked
   in release context. `tools/verify-contract-checks.mjs` runs Core's
   `checkContracts` with `loadFixture` between the packed Catalog and a reviewed

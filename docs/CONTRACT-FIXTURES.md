@@ -62,8 +62,9 @@ repeated keys or numbers that lose their authored value), an admitted Core recip
 format and Core's structural schema. It returns `{ valid: true, recipe,
 diagnostics: [] }` or `{ valid: false, diagnostics }`: `INPUT_INVALID` with
 `recipe-unreadable` or `recipe-invalid`, or `SCHEMA_UNSUPPORTED`
-(`recipe-schema-unsupported`, with `encountered` and `supported`) for a format
-Catalog does not admit. Agreement with an advertising item (ID, inputs, targets,
+(`recipe-schema-unsupported`, with `encountered` and `supported`) for a string
+format Catalog does not admit. A missing or non-string `schema` is
+`recipe-invalid`. Agreement with an advertising item (ID, inputs, targets,
 scopes and material closure) needs that item, so it is checked only when a
 release is read. The result establishes structural admission, not execution
 authority.

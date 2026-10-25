@@ -89,13 +89,26 @@ function parseRecipe(bytes: Uint8Array): unknown {
 
 type Admission =
   | { readonly recipe: Record<string, unknown> }
-  | { readonly reason: string; readonly message: string; readonly encountered?: unknown };
+  | {
+      readonly reason: "recipe-unreadable" | "recipe-schema-mismatch" | "recipe-invalid";
+      readonly message: string;
+      readonly encountered?: string;
+    };
+
+const invalid = {
+  reason: "recipe-invalid",
+  message: "The recipe does not satisfy Core's structural recipe contract.",
+} as const;
 
 /**
  * The admission every Catalog recipe read applies: bounded strict UTF-8 JSON,
- * then Core's structural schema for `schema`, which defaults to the recipe's own.
+ * then Core's structural schema for the `advertised` format, or for the
+ * recipe's own `schema` when it is read without an item.
  */
-function admitRecipe(bytes: Uint8Array, schema?: string): Admission {
+function admitRecipe(
+  bytes: Uint8Array,
+  advertised: { readonly schema: unknown } | "own",
+): Admission {
   let recipe: unknown;
   try {
     recipe = parseRecipe(bytes);
@@ -104,21 +117,21 @@ function admitRecipe(bytes: Uint8Array, schema?: string): Admission {
   }
   if (!isRecord(recipe))
     return { reason: "recipe-unreadable", message: "The recipe is not a JSON object." };
-  const expected = schema ?? recipe.schema;
-  const validateRecipe = typeof expected === "string" ? validators[expected] : undefined;
+  // Without an item, a missing or non-string format is structurally invalid, as in Core.
+  if (advertised === "own" && typeof recipe.schema !== "string") return invalid;
+  const expected = advertised === "own" ? recipe.schema : advertised.schema;
+  const validateRecipe =
+    typeof expected === "string" && Object.hasOwn(validators, expected)
+      ? validators[expected]
+      : undefined;
   if (recipe.schema !== expected || validateRecipe === undefined) {
     return {
       reason: "recipe-schema-mismatch",
       message: "The recipe is not the advertised Core recipe format.",
-      encountered: recipe.schema,
+      ...(typeof recipe.schema === "string" ? { encountered: recipe.schema } : {}),
     };
   }
-  if (!validateRecipe(recipe)) {
-    return {
-      reason: "recipe-invalid",
-      message: "The recipe does not satisfy Core's structural recipe contract.",
-    };
-  }
+  if (!validateRecipe(recipe)) return invalid;
   return { recipe };
 }
 
@@ -136,7 +149,7 @@ export type ReadRecipeResult =
  * when a release is read; an unadmitted recipe format is `SCHEMA_UNSUPPORTED`.
  */
 export function readRecipe(bytes: Uint8Array): ReadRecipeResult {
-  const admitted = admitRecipe(bytes);
+  const admitted = admitRecipe(bytes, "own");
   if ("recipe" in admitted)
     return deepFreeze({ valid: true, recipe: admitted.recipe, diagnostics: [] as const });
   const diagnostic: CatalogDiagnostic =
@@ -146,9 +159,7 @@ export function readRecipe(bytes: Uint8Array): ReadRecipeResult {
           reason: "recipe-schema-unsupported",
           message: "The recipe is not a Core recipe format Catalog admits.",
           blocking: true,
-          ...(typeof admitted.encountered === "string"
-            ? { encountered: admitted.encountered }
-            : {}),
+          ...(admitted.encountered === undefined ? {} : { encountered: admitted.encountered }),
           supported: Object.keys(validators),
         }
       : {
@@ -173,7 +184,7 @@ export function checkRecipeAgreement(item: CatalogItem, bytes: Uint8Array): Cata
         itemId: item.id,
       }),
     );
-  const admitted = admitRecipe(bytes, item.recipe.schema);
+  const admitted = admitRecipe(bytes, item.recipe);
   if (!("recipe" in admitted)) {
     report(admitted.reason, admitted.message);
     return diagnostics;

@@ -145,6 +145,10 @@ assert(legacyFromCatalog.length > 0);
 for (const row of legacyFromCatalog) {
   assert.deepEqual([row.status, row.reason], ["unavailable", "fixtures-missing"], JSON.stringify(row));
 }
+// Catalog still reads Core's fixtures under its 1.0 declaration.
+const legacyByCatalog = legacy.filter((row) => row.readerPackage === "@aihq/catalog");
+assert.deepEqual(legacyByCatalog.map((row) => row.fixtureExport).sort(), byCatalog.map((row) => row.fixtureExport).sort());
+for (const row of legacyByCatalog) assert.equal(row.status, "passed", JSON.stringify(row));
 
 process.stdout.write(JSON.stringify({
   declarations: [coreSupport.schema, contractSupport11.schema],
@@ -155,6 +159,7 @@ process.stdout.write(JSON.stringify({
   readByCore: fromCatalog.map((row) => row.fixtureExport).sort(),
   referencedFixturesLoaded: referenced.length,
   legacyFixturesMissing: legacyFromCatalog.length,
+  legacyReadByCatalog: legacyByCatalog.length,
 }) + "\n");
 `,
   );

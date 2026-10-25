@@ -76,6 +76,31 @@ describe("standalone Core recipe reader", () => {
   });
 
   it.each([
+    ["constructor"],
+    ["toString"],
+    ["hasOwnProperty"],
+    ["__proto__"],
+  ])("refuses an inherited property name %s as an unadmitted format", (schema) => {
+    const result = readRecipe(bytes(JSON.stringify({ ...JSON.parse(guidance("x")), schema })));
+    expect(result.diagnostics).toEqual([
+      expect.objectContaining({
+        code: "SCHEMA_UNSUPPORTED",
+        reason: "recipe-schema-unsupported",
+        encountered: schema,
+      }),
+    ]);
+  });
+
+  it.each([
+    ["no format", "{}"],
+    ["a non-string format", '{"schema":3}'],
+  ])("refuses a recipe with %s as structurally invalid", (_name, text) => {
+    expect(readRecipe(bytes(text)).diagnostics).toEqual([
+      expect.objectContaining({ code: "INPUT_INVALID", reason: "recipe-invalid" }),
+    ]);
+  });
+
+  it.each([
     ["duplicate keys", guidance("urn:aihq:core:recipe:1.0.0").replace("{", '{"id":"ignored",')],
     [
       "a number that loses its authored value",
