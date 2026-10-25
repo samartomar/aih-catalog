@@ -455,8 +455,12 @@ describe("authored content checks", () => {
       "release/release.json",
       ...releaseOf(committed).items.flatMap((item) => [
         item.recipe.path,
-        ...item.materials.map((member) => String((member as { path?: string; packagePath?: string }).path ??
-          (member as { packagePath?: string }).packagePath)),
+        ...item.materials.map((member) =>
+          String(
+            (member as { path?: string; packagePath?: string }).path ??
+              (member as { packagePath?: string }).packagePath,
+          ),
+        ),
       ]),
     ]);
     const primary = new Map([...committed].filter(([path]) => primaryPaths.has(path)));

@@ -1,4 +1,6 @@
 import type { Json } from "../release/contracts.js";
+/** Release 1.6 extended materials address package members by `packagePath`. */
+import { isRecord } from "../release/document.js";
 import { canonicalJson } from "../release/json.js";
 import { renderNativeFixture } from "../release/native-fixture-content.js";
 import { listItems, readRelease, readReleaseContent } from "../release/reader.js";
@@ -18,12 +20,9 @@ import {
 } from "./generate.js";
 import { operationalMetadata } from "./template.js";
 import type { SourceTree } from "./tree.js";
-/** Release 1.6 extended materials address package members by `packagePath`. */
-import { isRecord } from "../release/document.js";
 
 const packagePathOf = (member: Record<string, Json>): string =>
   String(Object.hasOwn(member, "path") ? member.path : member.packagePath);
-
 
 export type ReportedState =
   | "added"
@@ -240,17 +239,13 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
           record: {
             ...compiled.record,
             sourceIds: [sourceId],
-            materials: (
-              Array.isArray(compiled.record.materials)
-                ? (compiled.record.materials as Json[]).map((member) =>
-                    isRecord(member) &&
-                    !Object.hasOwn(member, "path") &&
-                    member.role !== "behaviour"
-                      ? { ...member, sourceId }
-                      : member,
-                  )
-                : compiled.record.materials
-            ) as Json,
+            materials: (Array.isArray(compiled.record.materials)
+              ? (compiled.record.materials as Json[]).map((member) =>
+                  isRecord(member) && !Object.hasOwn(member, "path") && member.role !== "behaviour"
+                    ? { ...member, sourceId }
+                    : member,
+                )
+              : compiled.record.materials) as Json,
           },
         }
       : generateItem({
@@ -344,9 +339,7 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
     package: { name: input.package.name, version: input.package.version },
     sources: finalSources,
     items: finalItems,
-    ...(base?.checked.framework !== undefined
-      ? { framework: base.checked.framework as Json }
-      : {}),
+    ...(base?.checked.framework !== undefined ? { framework: base.checked.framework as Json } : {}),
     ...(base?.checked.retired !== undefined
       ? { retired: base.checked.retired as unknown as Json }
       : {}),
@@ -399,7 +392,7 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
       // A carried adjacent 1.6 document follows this candidate's package identity,
       // which changes the frozen inventory the baseline is bound to. Candidate
       // building never rebinds evidence; release preparation must re-freeze it.
-      return refuse(
+      refuse(
         "adjacent-baseline",
         `${path} carries a release 1.6 baseline this candidate cannot rebind; re-freeze evidence in release preparation`,
         { path },

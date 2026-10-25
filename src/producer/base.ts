@@ -44,7 +44,9 @@ const memberList = (item: Record_): Record_[] => [
 ];
 /** Release 1.6 extended materials address package members by `packagePath`. */
 const packagePathOf = (member: Record_): string =>
-  String(Object.hasOwn(member, "path") ? member.path : (member as Record<string, Json>).packagePath);
+  String(
+    Object.hasOwn(member, "path") ? member.path : (member as Record<string, Json>).packagePath,
+  );
 
 export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRelease {
   const files = new Map([...input].map(([path, bytes]) => [path, Buffer.from(bytes)] as const));

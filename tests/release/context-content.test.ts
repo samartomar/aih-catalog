@@ -3,6 +3,7 @@ const memberPath = (member: unknown): string =>
     (member as { path?: string; packagePath?: string }).path ??
       (member as { packagePath?: string }).packagePath,
   );
+
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -122,7 +123,9 @@ describe("aihq.project-context item", () => {
     expect(router).toContain("author-owned");
     const release = carried();
     for (const item of listItems(release)) {
-      expect(item.materials.some((material) => memberPath(material).endsWith("/PROJECT.md"))).toBe(false);
+      expect(item.materials.some((material) => memberPath(material).endsWith("/PROJECT.md"))).toBe(
+        false,
+      );
       const recipe = JSON.parse(textAt(item.recipe.path));
       for (const operation of recipe.operations) {
         expect(
@@ -167,7 +170,13 @@ function pointerRecipe(key: string) {
   return { item: found.item, recipe: JSON.parse(textAt(found.item.recipe.path)) };
 }
 
-type Material = { id: string; path?: string; packagePath?: string; sha256: string; byteLength: number };
+type Material = {
+  id: string;
+  path?: string;
+  packagePath?: string;
+  sha256: string;
+  byteLength: number;
+};
 
 /** The item's single declared material, or a test failure. */
 function onlyMaterial(item: { materials: readonly Material[] }): Material {
@@ -339,9 +348,7 @@ describe("aihq.client items", () => {
       expect(found.item.materials).toHaveLength(1);
       const material = onlyMaterial(found.item);
       const materialAt = memberPath(material);
-      expect(materialAt).toBe(
-        `release/materials/aihq/project-context/ai-coding/adapters/${id}.md`,
-      );
+      expect(materialAt).toBe(`release/materials/aihq/project-context/ai-coding/adapters/${id}.md`);
       const note = textAt(materialAt);
       expect(sha256(bytesAt(materialAt))).toBe(material.sha256);
       expect(note).toContain(`# ${label} adapter`);

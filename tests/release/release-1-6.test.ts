@@ -887,7 +887,7 @@ describe("release 1.6.0 closed admission", () => {
     const item = buildItem({
       id: "alpha",
       kind: "skill",
-      executable: { "SKILL.md": true, "LICENSE": false },
+      executable: { "SKILL.md": true, LICENSE: false },
     });
     const document = bindFrozen(release16([item]));
     const result = read(document);
@@ -933,7 +933,12 @@ describe("release 1.6.0 closed admission", () => {
         byteLength: 500,
       },
       materials: [
-        { id: "skill", path: "release/materials/legacy/SKILL.md", sha256: hex("legacy"), byteLength: 100 },
+        {
+          id: "skill",
+          path: "release/materials/legacy/SKILL.md",
+          sha256: hex("legacy"),
+          byteLength: 100,
+        },
       ],
       dependencies: { requires: [], optional: [], conflicts: [] },
     } as unknown as Json;
@@ -973,9 +978,7 @@ describe("release 1.6.0 nested closed shapes", () => {
       id: "alpha",
       kind: "skill",
       extra: {
-        derivedFrom: [
-          { itemId: null, status: "declared" },
-        ] as unknown as Json,
+        derivedFrom: [{ itemId: null, status: "declared" }] as unknown as Json,
       },
     });
     const result = read(bindAny(release16([item])));

@@ -3,6 +3,7 @@ const memberPath = (member: unknown): string =>
     (member as { path?: string; packagePath?: string }).path ??
       (member as { packagePath?: string }).packagePath,
   );
+
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { expect, it } from "vitest";

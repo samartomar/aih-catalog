@@ -6,7 +6,6 @@ import type { Record_ } from "./base.js";
 const packagePathOf = (member: { path?: string; packagePath?: string }): string =>
   String(member.path ?? member.packagePath);
 
-
 /**
  * Allowances for one Catalog-authored source, declared by the maintainer:
  * author-owned paths the content may reference but Catalog never delivers, and

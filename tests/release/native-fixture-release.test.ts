@@ -30,12 +30,12 @@ import { renderedItemSha256 } from "../../src/release/project-context.js";
 import { listItems, readRelease } from "../../src/release/reader.js";
 import { sha256 } from "./fixtures.js";
 import { installedRoot } from "./installed-fixture.js";
+
 const memberPath = (member: unknown): string =>
   String(
     (member as { path?: string; packagePath?: string }).path ??
       (member as { packagePath?: string }).packagePath,
   );
-
 
 const root = resolve(import.meta.dirname, "../..");
 const bytesAt = (path: string) => readFileSync(resolve(root, path));
@@ -220,7 +220,9 @@ describe("the bundle declaration", () => {
   const fixtureItem = listItems(checked(NATIVE_FIXTURE_RELEASE_PATH))[0];
   const bundleItem = listItems(checked(NATIVE_BUNDLES_RELEASE_PATH))[0];
   const bundleMaterial = bundleItem?.materials.find((member) => member.id === "bundle");
-  const bundle = JSON.parse(bytesAt(bundleMaterial === undefined ? "" : memberPath(bundleMaterial)).toString("utf8"));
+  const bundle = JSON.parse(
+    bytesAt(bundleMaterial === undefined ? "" : memberPath(bundleMaterial)).toString("utf8"),
+  );
 
   it("ships the bundle as an ordinary declared material with a recipe that writes only it", () => {
     expect(bundleMaterial?.sha256).toBe(sha256(Buffer.from(rendered.bundleBytes)));

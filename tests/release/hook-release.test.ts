@@ -9,12 +9,12 @@ import { fixtureGitEnvironment } from "../producer/git-environment.js";
 import { FixtureRepository } from "../producer/git-fixture.js";
 import { sha256 } from "./fixtures.js";
 import { installedRoot, rewriteRecipe } from "./installed-fixture.js";
+
 const memberPath = (member: unknown): string =>
   String(
     (member as { path?: string; packagePath?: string }).path ??
       (member as { packagePath?: string }).packagePath,
   );
-
 
 const root = resolve(import.meta.dirname, "../..");
 const bytesAt = (path: string) => readFileSync(resolve(root, path));
@@ -157,10 +157,14 @@ describe("carried hook release 1.1", () => {
         // This is the protected file's existing default stream, not a separate file.
         expect(readFileSync(alias, "utf8")).toBe("SYNTHETIC=before\n");
         const material = listItems(hookRelease())[0]?.materials[0];
-        const blocked = spawnSync(process.execPath, [resolve(root, material === undefined ? "" : memberPath(material))], {
-          input: JSON.stringify({ tool_name: "Write", tool_input: { file_path: alias } }),
-          encoding: "utf8",
-        });
+        const blocked = spawnSync(
+          process.execPath,
+          [resolve(root, material === undefined ? "" : memberPath(material))],
+          {
+            input: JSON.stringify({ tool_name: "Write", tool_input: { file_path: alias } }),
+            encoding: "utf8",
+          },
+        );
         expect(blocked.status).toBe(2);
       } finally {
         rmSync(project, { recursive: true, force: true });

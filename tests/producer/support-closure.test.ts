@@ -3,6 +3,7 @@ const memberPath = (member: unknown): string =>
     (member as { path?: string; packagePath?: string }).path ??
       (member as { packagePath?: string }).packagePath,
   );
+
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -254,7 +255,9 @@ describe("declared Matt Pocock support files", () => {
         sha256: sha256(SUPPORT_BYTES),
         byteLength: SUPPORT_BYTES.byteLength,
       });
-      expect(candidate.files.get(support === undefined ? "" : memberPath(support))).toEqual(SUPPORT_BYTES);
+      expect(candidate.files.get(support === undefined ? "" : memberPath(support))).toEqual(
+        SUPPORT_BYTES,
+      );
 
       const recipe = JSON.parse(
         (candidate.files.get(item.item.recipe.path) as Buffer).toString("utf8"),

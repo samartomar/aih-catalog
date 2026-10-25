@@ -132,7 +132,10 @@ describe("carried release", () => {
       ...adjacentDocuments.flatMap((release) => listItems(release)),
     ]) {
       for (const member of [item.recipe, ...item.materials]) {
-        const path = String((member as { path?: string; packagePath?: string }).path ?? (member as { packagePath?: string }).packagePath);
+        const path = String(
+          (member as { path?: string; packagePath?: string }).path ??
+            (member as { packagePath?: string }).packagePath,
+        );
         const bytes = bytesAt(path);
         expect(sha256(bytes), path).toBe(member.sha256);
         expect(bytes.byteLength, path).toBe(member.byteLength);

@@ -89,7 +89,10 @@ describe("upstream refresh with authored context", () => {
     for (const item of context) {
       expect(next.checked.items.find((found) => found.id === item.id)).toEqual(item);
       for (const member of [item.recipe, ...item.materials]) {
-        const path = String((member as { path?: string; packagePath?: string }).path ?? (member as { packagePath?: string }).packagePath);
+        const path = String(
+          (member as { path?: string; packagePath?: string }).path ??
+            (member as { packagePath?: string }).packagePath,
+        );
         expect(candidate.files.get(path)).toEqual(base.files.get(path));
       }
     }

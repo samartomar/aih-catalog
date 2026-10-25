@@ -13,9 +13,9 @@ import {
   type DependencyRef,
   type GetItemResult,
   type InputOrigin,
+  type ItemDependencies,
   type ItemEvidenceDescriptor,
   type ItemEvidenceResult,
-  type ItemDependencies,
   type Json,
   type MaterialMember,
   type MaterialSource,
@@ -43,6 +43,7 @@ import { sha256Hex } from "./sha256.js";
 
 export { createContentInventory, readContentInventory } from "./inventory.js";
 export { readReleaseIndex } from "./release-index.js";
+
 /** Views this reader produced. Other operations accept nothing else. */
 const checkedReleases = new WeakSet<object>();
 
@@ -182,7 +183,10 @@ export function itemEvidenceDescriptor(
       ),
     );
   }
-  if (item.contentSha256 !== identity.contentSha256 || item.behaviourSha256 !== identity.behaviourSha256) {
+  if (
+    item.contentSha256 !== identity.contentSha256 ||
+    item.behaviourSha256 !== identity.behaviourSha256
+  ) {
     return fail(
       invalid(
         "identity-mismatch",

@@ -574,7 +574,10 @@ export const bytewiseCompare = (a: string, b: string): number => {
 };
 
 /** UTF-8 byte length and digest of canonical text; identities are byte identities. */
-export function canonicalBytes(text: string): { readonly bytes: Uint8Array; readonly sha256: string } {
+export function canonicalBytes(text: string): {
+  readonly bytes: Uint8Array;
+  readonly sha256: string;
+} {
   const bytes = encoder.encode(text);
   return { bytes, sha256: sha256Hex(bytes) };
 }
@@ -748,7 +751,15 @@ function checkPayload16(
   const nonEmptyString = (value: unknown): value is string =>
     typeof value === "string" && value.length > 0 && value.length <= 4096;
   if (item.kind === "skill") {
-    if (!fields(d, payload, `${path}/payload`, ["dirName", "invocation", "invocationBasis"], ["namespace"])) {
+    if (
+      !fields(
+        d,
+        payload,
+        `${path}/payload`,
+        ["dirName", "invocation", "invocationBasis"],
+        ["namespace"],
+      )
+    ) {
       return;
     }
     if (!nonEmptyString(payload.dirName)) {
@@ -769,7 +780,15 @@ function checkPayload16(
       );
     }
   } else if (item.kind === "rule") {
-    if (!fields(d, payload, `${path}/payload`, ["applyTo", "applyToBasis"], ["namespace", "inclusion", "placement"])) {
+    if (
+      !fields(
+        d,
+        payload,
+        `${path}/payload`,
+        ["applyTo", "applyToBasis"],
+        ["namespace", "inclusion", "placement"],
+      )
+    ) {
       return;
     }
     if (
@@ -807,7 +826,15 @@ function checkPayload16(
       );
     }
   } else if (item.kind === "hook") {
-    if (!fields(d, payload, `${path}/payload`, ["event", "protocol", "command"], ["matcher", "timeoutSec"])) {
+    if (
+      !fields(
+        d,
+        payload,
+        `${path}/payload`,
+        ["event", "protocol", "command"],
+        ["matcher", "timeoutSec"],
+      )
+    ) {
       return;
     }
     if (payload.protocol !== "claude-code-hooks") {
@@ -842,7 +869,9 @@ function checkPayload16(
       d.add("invalid-payload", `${path}/payload/command`, "A hook payload carries its command.");
       return;
     }
-    if (!fields(d, command, `${path}/payload/command`, ["script"], ["program", "interpreter", "args"])) {
+    if (
+      !fields(d, command, `${path}/payload/command`, ["script"], ["program", "interpreter", "args"])
+    ) {
       return;
     }
     if (typeof command.script !== "string" || !contentIds.has(command.script)) {
@@ -890,14 +919,13 @@ function checkPayload16(
     }
   } else if (item.kind === "mcp-server") {
     if (
-      !fields(d, payload, `${path}/payload`, ["key", "transport"], [
-        "command",
-        "args",
-        "url",
-        "env",
-        "headers",
-        "derivation",
-      ])
+      !fields(
+        d,
+        payload,
+        `${path}/payload`,
+        ["key", "transport"],
+        ["command", "args", "url", "env", "headers", "derivation"],
+      )
     ) {
       return;
     }
@@ -945,7 +973,13 @@ function checkPayload16(
         d.add("invalid-payload", at, "Expected a derivation record.");
       } else {
         if (
-          !fields(d, payload.derivation, at, ["sourceMaterial", "pointer", "transform"], ["editsSha256"])
+          !fields(
+            d,
+            payload.derivation,
+            at,
+            ["sourceMaterial", "pointer", "transform"],
+            ["editsSha256"],
+          )
         ) {
           return;
         }
@@ -1012,9 +1046,7 @@ function checkProvenance16(
       d.add("invalid-derived-from", at, "Expected a derivation record.");
       return;
     }
-    if (
-      !fields(d, entry, at, ["itemId", "status"], ["releaseSha256", "proof"])
-    ) {
+    if (!fields(d, entry, at, ["itemId", "status"], ["releaseSha256", "proof"])) {
       return;
     }
     id(d, entry.itemId, `${at}/itemId`);
@@ -1112,7 +1144,11 @@ function checkItem16(d: Diagnostics, item: Record<string, unknown>, path: string
           const nonNegative = (value: unknown) =>
             typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
           if (!nonNegative(part.bytes) || !nonNegative(part.chars)) {
-            d.add("invalid-size", atPart, "Expected non-negative integer byte and character counts.");
+            d.add(
+              "invalid-size",
+              atPart,
+              "Expected non-negative integer byte and character counts.",
+            );
           }
         });
       }
@@ -1253,7 +1289,9 @@ export interface ItemBehaviourIdentity {
  * Recomputes the synthesised behaviour bytes and both identities exactly as the
  * reader does. Returns undefined when the item carries no release 1.6 material.
  */
-export function computeBehaviourIdentity(item: Record<string, unknown>): ItemBehaviourIdentity | undefined {
+export function computeBehaviourIdentity(
+  item: Record<string, unknown>,
+): ItemBehaviourIdentity | undefined {
   const materials = (Array.isArray(item.materials) ? item.materials : []).filter(isRecord);
   const extended = materials.filter((member) => !Object.hasOwn(member, "path"));
   if (extended.length === 0) return undefined;

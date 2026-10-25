@@ -40,12 +40,12 @@ import {
 } from "../../src/release/reader.js";
 import { sha256 } from "./fixtures.js";
 import { installedRoot } from "./installed-fixture.js";
+
 const memberPath = (member: unknown): string =>
   String(
     (member as { path?: string; packagePath?: string }).path ??
       (member as { packagePath?: string }).packagePath,
   );
-
 
 // Armed filesystem faults for the write/cleanup failure tests: an entry fails the
 // named operation with `code` when the path string contains `match`; every other

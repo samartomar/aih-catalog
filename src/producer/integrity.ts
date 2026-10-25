@@ -265,7 +265,11 @@ export function checkCandidateFiles(
         if (origin?.kind !== "git") continue;
         const prefix = `release/materials/${origin.repository.replace(/^https:\/\//, "")}/${origin.revision}/`;
         for (const member of item.materials) {
-          if (!String(memberPackagePath(member as unknown as Record<string, unknown>)).startsWith(prefix))
+          if (
+            !String(memberPackagePath(member as unknown as Record<string, unknown>)).startsWith(
+              prefix,
+            )
+          )
             misplaced.push(`${item.id}:${member.id}`);
         }
       }

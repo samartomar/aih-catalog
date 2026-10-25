@@ -141,20 +141,20 @@ describe("targeted delta between two fixed immutable upstream commits", () => {
             "",
         );
         expect(sha256(result.files.get(memberPath) ?? ""), memberPath).toBe(member?.sha256);
-        expect(
-          result.files.get(memberPath)?.equals(baseFiles.get(memberPath) as Buffer),
-        ).toBe(true);
+        expect(result.files.get(memberPath)?.equals(baseFiles.get(memberPath) as Buffer)).toBe(
+          true,
+        );
       }
     }
     // Changed items moved to the new immutable revision; unaffected ones stayed on the old.
     const handoffMember = after.get("fixture.handoff")?.materials[1] as
-          | { path?: string; packagePath?: string }
-          | undefined;
-        expect(String(handoffMember?.path ?? handoffMember?.packagePath)).toContain(commitB);
+      | { path?: string; packagePath?: string }
+      | undefined;
+    expect(String(handoffMember?.path ?? handoffMember?.packagePath)).toContain(commitB);
     const writingMember = after.get("fixture.writing-for-agents")?.materials[1] as
-          | { path?: string; packagePath?: string }
-          | undefined;
-        expect(String(writingMember?.path ?? writingMember?.packagePath)).toContain(commitA);
+      | { path?: string; packagePath?: string }
+      | undefined;
+    expect(String(writingMember?.path ?? writingMember?.packagePath)).toContain(commitA);
     expect(result.report.baseRevisions).toEqual([commitA]);
   });
 
