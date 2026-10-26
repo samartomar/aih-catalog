@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"extensions.notices"},{"itemId":"extensions.references"}]},"executable":{"LICENSE":"unknown","SKILL.md":"unknown"},"kind":"skill","payload":{"dirName":"observability-and-instrumentation","invocation":"model-allowed","invocationBasis":"default"},"requirements":{"inputs":{}}}

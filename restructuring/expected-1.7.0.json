@@ -52,6 +52,10 @@
   {
    "id": "mcp-edit-digests",
    "reason": "Each MCP survivor records whether its shipped definition is identical to upstream or edited; an edit is digested as SHA-256 of the canonical JSON {from: upstream, to: shipped} plus LF, in upstream's own encoding."
+  },
+  {
+   "id": "extensions-content-identities",
+   "reason": "The dry run derived Extensions relPaths from install targets; for 16 of the 57 survivors (the agents, commands, notices, references and eight skills) those derivations are not reproducible from the pinned bytes under the documented rule, and the dry run called its own output proposed. The accepted Extensions build (samartomar/aih-catalog#145) projects the pinned copies to release 1.6 with source-relative material paths and collapses them with the public transition build; the expected Extensions content identities are re-derived from that canonical build, and the expected ids, kinds, purposes, supersessions and retirements are asserted to match the dry run unchanged."
   }
  ],
  "counts": {
@@ -5652,32 +5656,32 @@
     {
      "id": "extensions.agent.code-reviewer",
      "kind": "agent",
-     "contentSha256": "881dc66f251f6b447673ac7309d4b34dc57fe53370f6204e5f49e9c091a13e9a"
+     "contentSha256": "9dfff98b197da947d4eae81bf09a502a9e077aab6cedb854bde12e446ea5611d"
     },
     {
      "id": "extensions.agent.security-auditor",
      "kind": "agent",
-     "contentSha256": "c15b9425ab3cf8e35c231617fb8c2ac3556ebae336ff9ad9eb8f8edc66afd977"
+     "contentSha256": "9840b823e93c7e085c5b12280c02c9a29bc4b46c9359f0c639f2c921b574a7ea"
     },
     {
      "id": "extensions.agent.test-engineer",
      "kind": "agent",
-     "contentSha256": "db549cb2adaecd17c438355997c302412deaddafbd88d5e78a79afe1421629e7"
+     "contentSha256": "ad8fa360e1771df592e7b5cf53cab71ff6a37b44f691899a25ea1f541bb41519"
     },
     {
      "id": "extensions.agent.web-performance-auditor",
      "kind": "agent",
-     "contentSha256": "76ba02e4bf36f09517af7e347adf819c3e142433a4ed843521844fe7b91e31c6"
+     "contentSha256": "bd6c82d59eac73ee3b79d8bd537024b5594546e1585e4ff3add8bf40f8487229"
     },
     {
      "id": "extensions.command.ship",
      "kind": "command",
-     "contentSha256": "63c05afd8b37f75532388c1a0d761e641f7472bd1b1d87829de1f5db22b21bd9"
+     "contentSha256": "6cfde50f757a894c43a18bb202ce1c5513d0540e5586f671b63aef49558a5a37"
     },
     {
      "id": "extensions.command.webperf",
      "kind": "command",
-     "contentSha256": "85e879350fc90d0c95814379b47d1dfa7563b5f9353a76f3cd0e0d78f28236e1"
+     "contentSha256": "04440ec95a0ed0f244591e71fd9d776174d20b0302a66f5f029db291ac94a4c5"
     },
     {
      "id": "extensions.hook.git-guard",
@@ -5833,18 +5837,18 @@
      "id": "extensions.notices",
      "kind": "document",
      "purpose": "notice",
-     "contentSha256": "9839cfd0e97ab5cd3ccefd3c267af2d1ac06c84997efa2fa99b0a0c28280cdbd"
+     "contentSha256": "641c2708e5e1c63c1031ffff9d0fad0745c7db2f85e148e36e7ff63031d01115"
     },
     {
      "id": "extensions.references",
      "kind": "document",
      "purpose": "reference",
-     "contentSha256": "541078c455b5872d80cf38471166d6af26c0d79c605e1702b223d4d7e01f0a65"
+     "contentSha256": "d4547e4e9f403f68d54708da55bc7cf096d788093c6a221fa3dc7a07d36f24ba"
     },
     {
      "id": "extensions.skill.api-and-interface-design",
      "kind": "skill",
-     "contentSha256": "8aaad575b284f9d71a4e5eaf5d62e34821f95d287074629842ac3d060e8f0919"
+     "contentSha256": "d6860d0bd3526ef46daf3a9e5a86c276f53a61d2f78e8adcf68fb4b89b3c8a2c"
     },
     {
      "id": "extensions.skill.ask-sam",
@@ -5869,7 +5873,7 @@
     {
      "id": "extensions.skill.constraint-driven-development",
      "kind": "skill",
-     "contentSha256": "28ff40aae6889d17ecf2824713543ef8d34fed2b624d5d44920d941b7ca9fa2e"
+     "contentSha256": "0edce74d9990f3d1a14c21d9daefab353fcddb5371cefa483b9cee83db51ab46"
     },
     {
      "id": "extensions.skill.deprecation-and-migration",
@@ -5879,7 +5883,7 @@
     {
      "id": "extensions.skill.documentation-and-adrs",
      "kind": "skill",
-     "contentSha256": "7e43dd48a80afe1f5cb739d1c95494c6808596e21c819729319f7b9dba9e170b"
+     "contentSha256": "c0d2b9adbadb2b7a0996405a30011e3cf59dee8e081bbfca1b6616ac00a2041a"
     },
     {
      "id": "extensions.skill.doubt-driven-development",
@@ -5889,7 +5893,7 @@
     {
      "id": "extensions.skill.frontend-ui-engineering",
      "kind": "skill",
-     "contentSha256": "a2d18b7da62999a64ef5588bf6026f55885734d361960b5e41a9635343269801"
+     "contentSha256": "4e95032a5cb514b54d1105fe1c16445967e4c9b9502b6799be46f8b735dcbed8"
     },
     {
      "id": "extensions.skill.git-workflow-and-versioning",
@@ -5899,7 +5903,7 @@
     {
      "id": "extensions.skill.idea-refine",
      "kind": "skill",
-     "contentSha256": "e15bf5c3a8591cf3134bc33e1b5832b6355eb49c802b48b077c59bf5841a24f2"
+     "contentSha256": "f77707d08ed372c84232892be90f1ffeb185f1927429776023179578b5db4591"
     },
     {
      "id": "extensions.skill.install-commit-gate",
@@ -5914,12 +5918,12 @@
     {
      "id": "extensions.skill.performance-optimization",
      "kind": "skill",
-     "contentSha256": "a0e128e0770fe4c082c1cb3f014e60e7a0b3e8318cd49e69b1e163550020e449"
+     "contentSha256": "c298b87b4a08bb839f0d09d4e1260fd39b3a7dc7306cdb6ab604df86f9e90f84"
     },
     {
      "id": "extensions.skill.security-and-hardening",
      "kind": "skill",
-     "contentSha256": "20200a870ce5e4266acb3a91ea15df4a90fe603f9c70aba7f432460327be8d2b"
+     "contentSha256": "26e148bf364d1860c61011df1c13506f4bc9742884650ea3d6f650543f137c68"
     },
     {
      "id": "extensions.skill.setup-pre-commit",
@@ -5929,7 +5933,7 @@
     {
      "id": "extensions.skill.shipping-and-launch",
      "kind": "skill",
-     "contentSha256": "62839d24c5127842f5c4315da60042d08d7087634fa10f02b30fe21fa5037666"
+     "contentSha256": "d53e2c5e05e2c02d9e53a43abcc3f3216ec37370fd477b095fecdff9c0ac1cbb"
     },
     {
      "id": "extensions.skill.source-driven-development",

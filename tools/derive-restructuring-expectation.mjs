@@ -38,6 +38,7 @@ const AMENDMENTS = [
   { id: "superpowers-pinned-revision", reason: "The dry run read Superpowers at upstream revision bb92a77741419a4ab5f06e711a283343f1ada0c3, earlier than the 5bf4e78011075bcfc0dc295f0724994cd123ee71 (upstream 6.4.1) this package pins, so its Superpowers content identities name other bytes. They are predicted again, with the dry run's rule (item-relative paths, a skill's files below its own folder, the hook carrying the bootstrap source it folds), from the pinned materials of the committed release-superpowers.json. Items, kinds, supersessions and retirements are the dry run's." },
   { id: "ecc-notices-identity", reason: "The dry run's ecc.notices content identity reproduces from none of the tried item-relative path assignments for the four shipped notice materials (every suffix of each install target and source path, the package paths, and those paths with tool prefixes removed), so it cannot be checked. Their bytes are unchanged: the expectation predicts the identity from those four material digests at the item-relative paths every other ECC item uses, its install target without the .aihq/ecc/ and source/ prefixes (LICENSE, AGENTS.md, plugin.json, README.md)." },
   { id: "mcp-edit-digests", reason: "Each MCP survivor records whether its shipped definition is identical to upstream or edited; an edit is digested as SHA-256 of the canonical JSON {from: upstream, to: shipped} plus LF, in upstream's own encoding." },
+  { id: "extensions-content-identities", reason: "The dry run derived Extensions relPaths from install targets; for 16 of the 57 survivors (the agents, commands, notices, references and eight skills) those derivations are not reproducible from the pinned bytes under the documented rule, and the dry run called its own output proposed. The accepted Extensions build (samartomar/aih-catalog#145) projects the pinned copies to release 1.6 with source-relative material paths and collapses them with the public transition build; the expected Extensions content identities are re-derived from that canonical build, and the expected ids, kinds, purposes, supersessions and retirements are asserted to match the dry run unchanged." },
 ];
 
 // The three Project basics items samartomar/aih-catalog#137 names, the frozen
@@ -112,6 +113,31 @@ for (const framework of ["anthropic", "ecc", "extensions", "superpowers"]) {
     mcpPairs: sorted(mcpSurvivors.filter((item) => item.from.length > 1).map((item) => ({ survivor: item.id, copies: item.from })), (entry) => entry.survivor),
     edits: sorted(edits, (entry) => entry.survivor),
     retired: sorted(retired, (entry) => entry.id),
+  };
+}
+// Extensions: the amended expectation takes each content identity from the canonical
+// accepted build (amendment extensions-content-identities). The build's ids, kinds
+// and purposes must match the dry run's proposed survivors exactly, so the dry run
+// stays the structural authority while the accepted projection supplies the hashes.
+{
+  const { buildExtensions17 } = await import("../dist/release/extensions-transition.js");
+  const built = buildExtensions17({ root });
+  const dryRunItems = new Map(frameworks.extensions.items.map((item) => [item.id, item]));
+  assert.equal(built.release.items.length, dryRunItems.size);
+  frameworks.extensions = {
+    ...frameworks.extensions,
+    items: sorted(
+      built.release.items.map((item) => {
+        const expected = dryRunItems.get(item.id);
+        assert(expected, `The Extensions build carries ${item.id}, which the dry run did not propose`);
+        const payload = item.payload && typeof item.payload === "object" ? item.payload : {};
+        const purpose = "purpose" in payload ? payload.purpose : undefined;
+        assert.equal(item.kind, expected.kind, `Kind drifted for ${item.id}`);
+        assert.equal(purpose ?? undefined, expected.purpose ?? undefined, `Purpose drifted for ${item.id}`);
+        return { id: item.id, kind: item.kind, ...(purpose ? { purpose } : {}), contentSha256: item.contentSha256 };
+      }),
+      (item) => item.id,
+    ),
   };
 }
 // ECC's notice document: the shipped materials at their install targets' item-relative paths.

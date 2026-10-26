@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"extensions.notices"},{"itemId":"extensions.references"}]},"executable":{"LICENSE":"unknown","SKILL.md":"unknown","agents/openai.yaml":"unknown"},"kind":"skill","payload":{"dirName":"frontend-ui-engineering","invocation":"model-allowed","invocationBasis":"default"},"requirements":{"inputs":{}}}

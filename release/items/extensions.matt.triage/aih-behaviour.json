@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"extensions.notices"}]},"executable":{"AGENT-BRIEF.md":"unknown","LICENSE":"unknown","OUT-OF-SCOPE.md":"unknown","SKILL.md":"unknown","agents/openai.yaml":"unknown"},"kind":"skill","payload":{"dirName":"triage","invocation":"model-allowed","invocationBasis":"default"},"requirements":{"inputs":{}}}

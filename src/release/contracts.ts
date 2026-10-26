@@ -317,6 +317,13 @@ export const preparedReleaseContent = Object.freeze([
     inventory: "release/baselines/project-basics/content-inventory.json",
   }),
   Object.freeze({
+    frameworkId: "extensions",
+    schema: RELEASE_SCHEMA_ID_1_7,
+    content: "release/release-extensions.content.json",
+    export: "@aihq/catalog/release-extensions.content.json",
+    inventory: "release/baselines/extensions/content-inventory.json",
+  }),
+  Object.freeze({
     frameworkId: "ecc",
     schema: RELEASE_SCHEMA_ID_1_7,
     content: "release/release-ecc.content.json",
