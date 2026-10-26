@@ -298,7 +298,11 @@ function mergedHookRecipe(
     if (checkIds.has(check.id)) throw new Error(`Duplicate check ${check.id}`);
     checkIds.add(check.id);
   }
-  for (const operation of recipe.operations as { id: string; requires?: string[]; checks?: string[] }[]) {
+  for (const operation of recipe.operations as {
+    id: string;
+    requires?: string[];
+    checks?: string[];
+  }[]) {
     for (const required of operation.requires ?? []) {
       if (!operationIds.has(required))
         throw new Error(`${operation.id} requires missing operation ${required}`);
