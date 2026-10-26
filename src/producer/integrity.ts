@@ -13,6 +13,7 @@ import { createContentInventory } from "../release/inventory.js";
 import { AcquisitionFailure } from "../release/node-errors.js";
 import { historicalDigest, verifyPackageRelease } from "../release/package-release.js";
 import { readRelease, readReleaseContent } from "../release/reader.js";
+import { itemRecipes } from "../release/release-17.js";
 import { type AuthoredAllowance, checkAuthoredContent, describeFinding } from "./authored.js";
 import type { Record_ } from "./base.js";
 import { assertRequiredClosure } from "./candidate.js";
@@ -245,13 +246,10 @@ export function checkCandidateFiles(
     );
     const problems: string[] = [];
     for (const item of release.items) {
-      // Release 1.7 items carry exactly one of a single recipe or a per-client
-      // transition map; every referenced recipe member must match the package bytes.
-      const recipeMembers = [
-        ...(item.recipe === undefined ? [] : [item.recipe]),
-        ...(item.recipes === undefined ? [] : Object.values(item.recipes)),
+      const members = [
+        ...itemRecipes(item as unknown as Record<string, unknown>).map(({ recipe }) => recipe),
+        ...item.materials,
       ] as unknown as Record<string, unknown>[];
-      const members = [...recipeMembers, ...item.materials] as unknown as Record<string, unknown>[];
       for (const member of members) {
         const path = String(memberPackagePath(member));
         const bytes = files.get(path);
@@ -292,16 +290,8 @@ export function checkCandidateFiles(
   for (const { items, release } of releases) {
     for (const member of baselineMembers(release)) declared.add(member.path);
     for (const item of items) {
-      const recipeMembers = [
-        ...(item.recipe === undefined ? [] : [asRecord(item.recipe as Json)]),
-        ...(
-          (item.recipes === undefined
-            ? []
-            : (Object.values(asRecord(item.recipes as Json)) as Json[])) as Json[]
-        ).map(asRecord),
-      ];
-      for (const member of [...recipeMembers, ...(item.materials as Json[]).map(asRecord)]) {
-        if (member === undefined || member === null) continue;
+      const recipes = itemRecipes(item).map(({ recipe }) => recipe);
+      for (const member of [...recipes, ...(item.materials as Json[]).map(asRecord)]) {
         declared.add(String(memberPackagePath(member as unknown as Record<string, unknown>)));
       }
     }
@@ -345,9 +335,14 @@ export function checkCandidateFiles(
         if (origin?.kind !== "git") continue;
         const prefix = `release/materials/${origin.repository.replace(/^https:\/\//, "")}/${origin.revision}/`;
         for (const member of item.materials) {
-          // The publisher-synthesised behaviour file lives under the item's own
-          // package folder (release 1.6/1.7); provenance pins the content bytes.
-          if ((member as { role?: string }).role === "behaviour") continue;
+          // A synthesised behaviour file is the Catalog's, never a source's pinned bytes; it
+          // lives in its own item folder.
+          const record = member as unknown as Record<string, unknown>;
+          if (
+            record.role === "behaviour" &&
+            record.packagePath === `release/items/${item.id}/aih-behaviour.json`
+          )
+            continue;
           if (
             !String(memberPackagePath(member as unknown as Record<string, unknown>)).startsWith(
               prefix,

@@ -115,6 +115,7 @@ describe("packed candidate", () => {
           path !== "tools/refresh-source.mjs" &&
           path !== "docs/FRAMEWORK-TEMPLATES.md" &&
           path !== "docs/PUBLIC-AUTHORING.md" &&
+          path !== "docs/NPM-SNAPSHOTS.md" &&
           path !== "docs/SCAN-BASELINE.md" &&
           path !== "docs/CONTRACT-FIXTURES.md" &&
           path !== "docs/EXTENSIONS-CONTENT.md" &&

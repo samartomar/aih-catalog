@@ -1,6 +1,7 @@
 import { baselineMembers } from "../release/baseline-members.js";
 import { type CatalogRelease, type Json, preparedReleaseContent } from "../release/contracts.js";
 import { readRelease, readReleaseContent } from "../release/reader.js";
+import { itemRecipes } from "../release/release-17.js";
 import { refuse } from "./errors.js";
 import {
   GUIDE_RELEASE_PATH,
@@ -43,13 +44,9 @@ export interface BaseRelease {
 }
 
 const asRecord = (value: Json | undefined): Record_ => value as Record_;
+/** An item's recipe, or each entry of a release 1.7 transition recipe map, and its materials. */
 const memberList = (item: Record_): Record_[] => [
-  // Release 1.7 items carry exactly one of a single recipe or a per-client
-  // transition map; collect whichever recipe members the item references.
-  ...(item.recipe === undefined ? [] : [asRecord(item.recipe)]),
-  ...(item.recipes === undefined
-    ? []
-    : (Object.values(item.recipes as Record<string, Json>) as unknown as Record_[])),
+  ...itemRecipes(item).map(({ recipe }) => recipe as Record_),
   ...(item.materials as Json[]).map(asRecord),
 ];
 /** Release 1.6 extended materials address package members by `packagePath`. */
