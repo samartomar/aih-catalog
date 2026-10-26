@@ -93,6 +93,18 @@ async function download(
   const reader = response.body.getReader();
   const chunks: Uint8Array[] = [];
   let total = 0;
+  let released = false;
+  const cancelReader = () => {
+    if (released) return;
+    released = true;
+    // Cancel settles a pending read even when the injected transport ignores signal.
+    // Do not await a custom underlying cancel hook: it may itself never settle.
+    void reader.cancel().catch(() => {});
+    reader.releaseLock();
+    chunks.length = 0;
+  };
+  signal.addEventListener("abort", cancelReader, { once: true });
+  if (signal.aborted) cancelReader();
   try {
     for (;;) {
       if (signal.aborted) npmFail("npm-cancelled");
@@ -102,10 +114,12 @@ async function download(
       if (total > max) npmFail("npm-byte-limit");
       chunks.push(chunk.value);
     }
+    if (signal.aborted) npmFail("npm-cancelled");
     if (length !== null && Number(length) !== total) npmFail("npm-length-mismatch");
     return Buffer.concat(chunks, total);
   } finally {
-    await reader.cancel().catch(() => {});
+    signal.removeEventListener("abort", cancelReader);
+    cancelReader();
   }
 }
 

@@ -253,6 +253,58 @@ await refused({ ...request, integrity: pin(tightenedManifest) }, "npm-byte-limit
   fetch: transport(tightenedManifest),
   limits: { metadataBytes: 512 },
 });
+for (const cause of ["deadline", "host-abort"]) {
+  let streamController;
+  let bodyCancelled = false;
+  let archiveRequested = false;
+  const body = new ReadableStream({
+    start(controller) {
+      streamController = controller;
+      controller.enqueue(new Uint8Array(64 * 1024));
+      // An upstream body that stalls after a bounded prefix.
+    },
+    cancel() {
+      bodyCancelled = true;
+    },
+  });
+  const host = new AbortController();
+  const request = {
+    name: "example",
+    version: "1.2.3",
+    integrity: "sha512-" + Buffer.alloc(64).toString("base64"),
+  };
+  const transport = async (url) => {
+    if (String(url).endsWith("/1.2.3")) {
+      return new Response(
+        JSON.stringify({
+          name: request.name,
+          version: request.version,
+          dist: { integrity: request.integrity, tarball: "https://example.invalid/archive.tgz" },
+        }),
+      );
+    }
+    archiveRequested = true;
+    return new Response(body);
+  };
+  const abortTimer = cause === "host-abort" ? setTimeout(() => host.abort(), 20) : undefined;
+  const result = await acquireNpmSnapshot(request, {
+    fetch: transport,
+    signal: host.signal,
+    limits: { timeoutMs: cause === "deadline" ? 20 : 1000 },
+  });
+  if (abortTimer !== undefined) clearTimeout(abortTimer);
+  assert.equal(archiveRequested, true);
+  assert.equal(result.valid, false);
+  assert.equal(result.diagnostics[0].reason, "npm-cancelled");
+  const cancelledAtReturn = bodyCancelled;
+  const lockedAtReturn = body.locked;
+  // Clean up the deliberately stalled fixture after recording the returned state.
+  if (!bodyCancelled) streamController.close();
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  assert.equal(cancelledAtReturn, true, cause + " cancels stalled body");
+  assert.equal(lockedAtReturn, false, cause + " releases body reader");
+}
+
 console.log("npm refusal fixtures passed");
 
 const { compileProducerDeclaration } = await import("@aihq/catalog/producer");
