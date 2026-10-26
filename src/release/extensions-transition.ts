@@ -265,13 +265,20 @@ function mergedHookRecipe(
   const guardRecipe = JSON.parse(
     readFileSync(resolve(root, `release/recipes/extensions.claude.hook.${hook.name}.json`), "utf8"),
   );
+  // One licence write survives the fold: the source recipe's, next to the
+  // delivered scripts. The guard's own licence write/check drop out; its
+  // registration and reviewed-command input stay. IDs must stay unique and
+  // every operation's requirement must resolve, or Core refuses the recipe.
+  const guardChecks = (guardRecipe.checks as { id: string }[]).filter(
+    (check) => !(sourceRecipe.checks as { id: string }[]).some((s) => s.id === check.id),
+  );
   const recipe = {
     ...sourceRecipe,
     id: `extensions.hook.${hook.name}`,
     description: `${hook.description} Exact pinned material delivery; the reviewed hook command is bound by the recipe input, no script execution by Catalog.`,
     schema: guardRecipe.schema,
     inputs: guardRecipe.inputs,
-    checks: [...sourceRecipe.checks, ...guardRecipe.checks],
+    checks: [...sourceRecipe.checks, ...guardChecks],
     operations: [
       ...sourceRecipe.operations,
       ...guardRecipe.operations.filter(
@@ -281,6 +288,25 @@ function mergedHookRecipe(
     prerequisites: guardRecipe.prerequisites,
     targets: ["project"],
   };
+  const operationIds = new Set<string>();
+  for (const operation of recipe.operations as { id: string }[]) {
+    if (operationIds.has(operation.id)) throw new Error(`Duplicate operation ${operation.id}`);
+    operationIds.add(operation.id);
+  }
+  const checkIds = new Set<string>();
+  for (const check of recipe.checks as { id: string }[]) {
+    if (checkIds.has(check.id)) throw new Error(`Duplicate check ${check.id}`);
+    checkIds.add(check.id);
+  }
+  for (const operation of recipe.operations as { id: string; requires?: string[]; checks?: string[] }[]) {
+    for (const required of operation.requires ?? []) {
+      if (!operationIds.has(required))
+        throw new Error(`${operation.id} requires missing operation ${required}`);
+    }
+    for (const check of operation.checks ?? []) {
+      if (!checkIds.has(check)) throw new Error(`${operation.id} names missing check ${check}`);
+    }
+  }
   const bytes = bytesOf(recipe);
   const path = `release/recipes/extensions.hook.${hook.name}.json`;
   return {

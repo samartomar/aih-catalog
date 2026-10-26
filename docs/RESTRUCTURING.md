@@ -49,7 +49,7 @@ with its reason:
   LF, both in upstream's own encoding (`mcpEditsSha256` in `@aihq/catalog/producer`).
 - **extensions-content-identities** (samartomar/aih-catalog#145): the dry run derived
   Extensions relPaths from install targets; for 16 of the 57 survivors (the agents,
-  commands, notices, references and nine skills) those derivations are not
+  commands, notices, references and eight skills) those derivations are not
   reproducible from the pinned bytes under the documented rule, and the dry run
   called its own output proposed. The expected Extensions content identities are
   re-derived from the canonical accepted build, which projects the pinned copies to
@@ -73,7 +73,7 @@ pending framework fails its `framework` row.
 
 `npm run check:restructuring` re-derives the expectation and compares every 1.7.0
 release the package lists in `releaseInventory` and every prepared 1.7.0 content
-document still awaiting its baseline (today Project basics); `npm run verify` runs it, so a
+document still awaiting its baseline (today Project basics and Extensions); `npm run verify` runs it, so a
 framework's 1.7.0 release cannot be added, and its index entry cannot ship, until it
 passes. `node tools/check-restructuring.mjs <release.json>` prints every row for one
 document.
