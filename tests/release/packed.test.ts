@@ -651,6 +651,7 @@ describe("exact packed consumer", () => {
         "gitCliTransport",
         "prepareProjectContext",
         "prepareReleaseBaseline",
+        "readInstalledPreparedContent",
         "readInstalledRelease",
         "readRecipe",
         "resolveGitRef",

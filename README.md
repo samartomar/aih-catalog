@@ -73,7 +73,10 @@ document skills, actual tool prerequisites and unobserved native use.
 content of the Project basics framework: a router guide, the working rules and a shared
 block for a project's entry files. Its baseline assessment is not bound yet, so it is
 listed in `preparedReleaseContent`, read with `readReleaseContent`, and refused by
-`readRelease`. See [Project basics content](docs/PROJECT-BASICS.md).
+`readRelease`. For internal use of a local package before release,
+`readInstalledPreparedContent({ root, frameworkId })` from `@aihq/catalog/node` reads
+any listed prepared content from an installed package with every byte verified, and
+labels it unbound and unauthenticated. See [Project basics content](docs/PROJECT-BASICS.md#internal-use-before-release).
 
 ## ECC release 1.7.0 content
 

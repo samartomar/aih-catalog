@@ -86,10 +86,13 @@ older archive from an exact earlier commit and identify it by commit and SHA-256
 
 Project basics checks build its prepared release 1.7.0 content, members and frozen
 content inventory with `node tools/generate-project-basics-release.mjs --check`, part of
-`npm run check:materials`; regenerate through that script. It fails when the renderer no
-longer reproduces the accepted context bytes or a text uses a placeholder outside the
-closed list. `node tools/verify-project-basics-consumer.mjs [catalog.tgz]` runs its packed
-public-only consumer. See [Project basics content](docs/PROJECT-BASICS.md).
+`npm run check:materials`; regenerate through that script. It fails when a text names a
+folder or an adapter note, or uses a placeholder outside the closed list.
+`node tools/verify-project-basics-consumer.mjs [catalog.tgz]` runs its packed public-only
+consumer, and `node tools/verify-project-basics-internal-consumer.mjs [--core <core.tgz>]
+[catalog.tgz]` checks the internal local-package path through `readInstalledPreparedContent`,
+with an exact Core archive also preparing and applying the content. See
+[Project basics content](docs/PROJECT-BASICS.md).
 
 Extensions release 1.7.0 checks build the Extensions prepared content with
 `node tools/generate-extensions-17-release.mjs --check`, part of `npm run

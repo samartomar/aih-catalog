@@ -95,7 +95,68 @@ members unchanged. Per-item coverage
 then comes from Scan's public item records over each item's `itemEvidenceDescriptor`;
 releases never embed scan records.
 
+## Internal use before release
+
+A consumer can use prepared content from a local package now, before any baseline is
+bound, without a second release format and without weakening release admission:
+
+```js
+import { readInstalledPreparedContent } from "@aihq/catalog/node";
+import { configureItem, resolveSelections, validateSelectionSet } from "@aihq/catalog/reader";
+
+const prepared = await readInstalledPreparedContent({ root: catalogPackageRoot, frameworkId: "project-basics" });
+if (!prepared.valid) throw new Error(JSON.stringify(prepared.diagnostics));
+// prepared.status: { kind: "prepared-content", baseline: "unbound", authenticated: false, productionRelease: false }
+const releases = { [prepared.release.sha256]: prepared.release };
+const resolved = resolveSelections({ releases, skips: [], roots: [{ releaseSha256: prepared.release.sha256,
+  itemId: "project-basics.shared-block", scope: "project", configuration: { projectFolder: "ai-coding" } }] });
+// validateSelectionSet, then configureItem({ release: prepared.release, itemId, configuration,
+// materialSource: prepared.source }) per selection; pass prepared.materialRoots to Core.
+```
+
+`readInstalledPreparedContent` takes an absolute installed package root and one framework
+from `preparedReleaseContent`; there is no default and no other name. It verifies what
+`readInstalledRelease` verifies for a release: the package identity, the exported paths of
+the content and of its inventory, every recipe and material member (and each recipe's
+agreement with its item), and in addition that the shipped content inventory is exactly
+the frozen inventory of the content. It refuses an unlisted framework
+(`prepared-content-unknown`), another package identity (`package-mismatch`), a missing
+export (`invalid-export`), another framework's document (`prepared-content-invalid`), a
+changed member (`member-sha256-mismatch`) and a stale inventory
+(`prepared-inventory-mismatch`).
+
+A first read discovers the content digest (`provenance.contentSha256`). A saved choice is
+bound to that digest and to the SHA-256 of the local archive the host installed; later
+reads pass `expectedContentSha256`, and different bytes are refused
+(`prepared-content-mismatch`), with `provenance.pinned` true when it matched.
+
+The result is never a release. `status` says the baseline is unbound and the content is
+neither authenticated nor a production release; `release.baseline` is absent;
+`readRelease`, `readInstalledRelease` and `resolveRelease` still refuse it; and the
+content has no release index entry. An unsigned release index is a different thing: it
+lists bound releases whose digests are checked, and it is not an authenticated Scan
+baseline either. `provenance` records the package identity and the exact content and
+inventory paths, digests and lengths, so a consumer can bind a saved choice to the
+exact local bytes it used.
+
+Catalog labels the content; it cannot carry that label through a host's later steps. The
+selections `configureItem` returns, and Core's prepared work and receipts, describe items
+and recipes, not the baseline state. A host that installs or shows this content keeps
+`status` and `provenance` beside its saved choice and displays them.
+
+This path delivers Project basics' files through their release 1.x recipes into the
+folder the project names. It does not do the installer's Project basics work
+(samartomar/aih-core#100): reading project facts, placing the shared block into each
+tool's entry files and reporting a changed or missing block stay with the installer.
+
 ## Checks
+
+- `node tools/verify-project-basics-internal-consumer.mjs [--core <core.tgz>] [catalog.tgz]`
+  installs the packed package offline into a disposable consumer and checks the internal
+  path through public exports only: the verified read and its labels, the refusals, and
+  browsing and composing the three items. With `--core` and an exact packed Core archive,
+  Core also prepares and applies the composed items into a disposable project folder. The
+  Catalog-only run is part of `npm test`.
 
 - `node tools/verify-project-basics-consumer.mjs [catalog.tgz]` installs the packed
   package into a disposable consumer and checks the content through public exports

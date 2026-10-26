@@ -38,6 +38,7 @@ import {
   failWith,
   frozenDiagnostic,
   sha256,
+  verifyPackagePreparedContent,
   verifyPackageRelease,
 } from "./package-release.js";
 import { DERIVED_MANIFEST_PATH, deriveProjectContextRelease } from "./project-context.js";
@@ -132,6 +133,24 @@ const contains = (parent: string, child: string): boolean =>
  * from, so project-context output never lands inside it whatever roots a caller passes.
  */
 const installedRoots = new WeakMap<CatalogRelease, string>();
+
+/** A Core material source input name: an identifier of at most 128 characters. */
+function checkSourceInput(sourceInput: unknown): void {
+  if (typeof sourceInput !== "string" || sourceInput.length > 128 || !ID.test(sourceInput))
+    failWith("invalid-source-input");
+}
+
+/** The canonical path of an absolute, existing installed package root. */
+function canonicalPackageRoot(root: unknown): string {
+  if (typeof root !== "string" || !isAbsolute(root)) failWith("invalid-root");
+  try {
+    if (!statSync(root as string).isDirectory()) failWith("root-unavailable");
+    return realpathSync.native(root as string);
+  } catch (error) {
+    if (error instanceof AcquisitionFailure) throw error;
+    return failWith("root-unavailable");
+  }
+}
 
 /**
  * Reads one member under a canonical root: every directory is a real directory
@@ -525,19 +544,9 @@ export async function readInstalledRelease(
   try {
     const { root, sourceInput = "catalog", signal } = (request ?? {}) as InstalledReleaseRequest;
     if (signal?.aborted) failWith("cancelled");
-    if (typeof sourceInput !== "string" || sourceInput.length > 128 || !ID.test(sourceInput)) {
-      failWith("invalid-source-input");
-    }
+    checkSourceInput(sourceInput);
     const exportName = releaseExport((request as { release?: unknown }).release);
-    if (typeof root !== "string" || !isAbsolute(root)) failWith("invalid-root");
-    let canonical: string;
-    try {
-      if (!statSync(root).isDirectory()) failWith("root-unavailable");
-      canonical = realpathSync.native(root);
-    } catch (error) {
-      if (error instanceof AcquisitionFailure) throw error;
-      return failWith("root-unavailable");
-    }
+    const canonical = canonicalPackageRoot(root);
     const checked = verifyPackageRelease(
       (path, limit, expected) => readMember(canonical, path, limit, expected),
       signal,
@@ -559,6 +568,117 @@ export async function readInstalledRelease(
         manifestPath: checked.manifestPath,
         manifestSha256: checked.manifestSha256,
       }),
+      diagnostics: Object.freeze([]),
+    });
+  } catch (error) {
+    return failureResult(error);
+  }
+}
+
+export interface InstalledPreparedContentRequest {
+  /** Framework of one `preparedReleaseContent` entry; there is no default. */
+  readonly frameworkId: string;
+  /**
+   * The content SHA-256 a saved choice was bound to; a different document is refused
+   * (`prepared-content-mismatch`). Omit only to discover the current digest.
+   */
+  readonly expectedContentSha256?: string;
+  /** Absolute path of the installed package root the caller selected. */
+  readonly root: string;
+  /** Name of the Core `controls.materialRoots` entry; defaults to `catalog`. */
+  readonly sourceInput?: string;
+  readonly signal?: AbortSignal;
+}
+
+export interface InstalledPreparedContentResult {
+  readonly valid: boolean;
+  /** A checked content view: portable reader operations accept it; it has no baseline. */
+  readonly release?: CatalogRelease;
+  /** What this is, for display: prepared content, never an authenticated release. */
+  readonly status?: {
+    readonly kind: "prepared-content";
+    readonly baseline: "unbound";
+    readonly authenticated: false;
+    readonly productionRelease: false;
+  };
+  readonly source?: { readonly kind: "local"; readonly input: string };
+  /** Pass to Core as `controls.materialRoots`; never place it in a portable policy. */
+  readonly materialRoots?: Readonly<Record<string, string>>;
+  readonly provenance?: {
+    readonly kind: "installed-prepared";
+    readonly package: { readonly name: string; readonly version: string };
+    readonly contentPath: string;
+    readonly contentSha256: string;
+    readonly contentByteLength: number;
+    readonly inventoryPath: string;
+    readonly inventorySha256: string;
+    readonly inventoryByteLength: number;
+    /** True when the caller pinned `expectedContentSha256` and the bytes matched it. */
+    readonly pinned: boolean;
+  };
+  readonly diagnostics: readonly CatalogDiagnostic[];
+}
+
+/**
+ * Reads one prepared release content document from an installed package root: the
+ * caller names its framework explicitly, and the package identity, the content, every
+ * recipe and material member and the frozen content inventory are verified as
+ * `readInstalledRelease` verifies a release. The result is labelled unbound and
+ * unauthenticated; no baseline is read or implied and `readRelease` still refuses it.
+ */
+export async function readInstalledPreparedContent(
+  request: InstalledPreparedContentRequest,
+): Promise<InstalledPreparedContentResult> {
+  try {
+    const {
+      root,
+      frameworkId,
+      expectedContentSha256,
+      sourceInput = "catalog",
+      signal,
+    } = (request ?? {}) as InstalledPreparedContentRequest;
+    if (signal?.aborted) failWith("cancelled");
+    checkSourceInput(sourceInput);
+    if (typeof frameworkId !== "string") failWith("prepared-content-unknown");
+    if (
+      expectedContentSha256 !== undefined &&
+      (typeof expectedContentSha256 !== "string" || !SHA256_HEX.test(expectedContentSha256))
+    )
+      failWith("invalid-expected-sha256");
+    const canonical = canonicalPackageRoot(root);
+    const checked = verifyPackagePreparedContent(
+      (path, limit, expected) => readMember(canonical, path, limit, expected),
+      frameworkId,
+      signal,
+      expectedContentSha256,
+    );
+    if (signal?.aborted) failWith("cancelled");
+    if (checked.diagnostics.length > 0) {
+      return Object.freeze({ valid: false, diagnostics: Object.freeze(checked.diagnostics) });
+    }
+    installedRoots.set(checked.release, canonical);
+    return Object.freeze({
+      valid: true,
+      release: checked.release,
+      status: Object.freeze({
+        kind: "prepared-content",
+        baseline: "unbound",
+        authenticated: false,
+        productionRelease: false,
+      } as const),
+      source: Object.freeze({ kind: "local", input: sourceInput }),
+      materialRoots: Object.freeze({ [sourceInput]: canonical }),
+      provenance: Object.freeze({
+        kind: "installed-prepared",
+        package: checked.release.package,
+        contentPath: checked.entry.content,
+        contentSha256: checked.contentSha256,
+        contentByteLength: checked.contentByteLength,
+        inventoryPath: checked.entry.inventory,
+        inventorySha256: checked.inventorySha256,
+        inventoryByteLength: checked.inventoryByteLength,
+        pinned: expectedContentSha256 !== undefined,
+      } as const),
       diagnostics: Object.freeze([]),
     });
   } catch (error) {
