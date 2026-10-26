@@ -127,7 +127,7 @@ it("offers EvalView deterministic checks without requiring its optional model AP
   const item = compiled.value.release.items.find((item) => item.id === "ecc.claude.mcp.evalview");
   if (!item) throw new Error("EvalView declaration missing");
   expect(JSON.stringify(item.metadata)).not.toContain("must provide OPENAI_API_KEY");
-  const recipeFile = compiled.value.materials.find((file) => file.path === item.recipe.path);
+  const recipeFile = compiled.value.materials.find((file) => file.path === item.recipe?.path);
   if (!recipeFile) throw new Error("EvalView recipe missing");
   const recipe = JSON.parse(new TextDecoder().decode(recipeFile.bytes));
   const server = recipe.operations.find(
@@ -193,7 +193,7 @@ it("offers Codex user-scope MCP registration for every translatable server and r
   if (compiled.status !== "ok") return;
   const item = compiled.value.release.items.find((item) => item.id === "ecc.codex.mcp.github");
   expect(item?.scopes).toEqual(["user"]);
-  const recipeFile = compiled.value.materials.find((file) => file.path === item?.recipe.path);
+  const recipeFile = compiled.value.materials.find((file) => file.path === item?.recipe?.path);
   if (!recipeFile) throw new Error("Codex recipe missing");
   const recipe = JSON.parse(new TextDecoder().decode(recipeFile.bytes));
   expect(recipe.targets).toEqual(["user"]);

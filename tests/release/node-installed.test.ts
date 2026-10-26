@@ -129,7 +129,11 @@ describe("readInstalledRelease", () => {
     const base = root("identity");
     const pkg = JSON.parse(readFileSync(join(base, "package.json"), "utf8"));
     writeFileSync(join(base, "package.json"), JSON.stringify({ ...pkg, version: "9.9.9" }));
-    expect(reasons(await readInstalledRelease({ root: base }))).toContain("package-mismatch");
+    expect(
+      reasons(await readInstalledRelease({ root: base, release: "./release-1.1.json" })),
+    ).toContain("package-mismatch");
+    // The frozen default's exact bytes are admitted by their recorded historical digest.
+    expect((await readInstalledRelease({ root: base })).valid).toBe(true);
   });
 
   it("refuses an export that leaves the package root", async () => {

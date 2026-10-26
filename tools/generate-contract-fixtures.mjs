@@ -532,6 +532,185 @@ for (const [version, id, context] of [
     behaviourOnly: { before: contexts.superpowers, after: contexts.variant, itemId: "superpowers.skill.test-driven-development" },
   }, "Deterministic set digests: display-only fields are outside; a behaviour-only member change, a changed cross-framework pin and a nested set change each change the digest.");
 }
+{
+  // Release 1.7 over real content: the three per-tool copies of Matt's grill-me and
+  // grilling in the committed Extensions release, projected to release 1.6 with
+  // source-relative paths, then collapsed by the public transition build into one
+  // tool-neutral item each. The frozen default's grill-me is superseded by name and
+  // source path; a split spreads the default's project context over three survivors.
+  const bytewise = (a, b) => Buffer.compare(Buffer.from(a), Buffer.from(b));
+  const { compileTransitionRelease } = await import("../dist/release/producer.js");
+  const { readRelease, readReleaseContent } = await import("../dist/release/reader.js");
+  const REVISION = /^[0-9a-f]{40}$/;
+  const sourcePathOf = (path) => {
+    const parts = path.split("/").slice(2);
+    const revision = parts.findIndex((part) => REVISION.test(part));
+    return revision >= 0 ? parts.slice(revision + 1).join("/") : parts.slice(2).join("/");
+  };
+  const sourceIdOf = (release, path) => {
+    const parts = path.split("/").slice(2);
+    const repository = `https://${parts.slice(0, 3).join("/")}`;
+    return release.sources.find((source) => source.origin.repository === repository)?.id;
+  };
+  const project16 = (release, framework, ids, shape) => {
+    const doc = { schema: "urn:aihq:catalog:release:1.6.0", package: release.package, framework,
+      sources: release.sources.map((source) => ({ ...source, license: "MIT" })), items: [] };
+    for (const id of ids) {
+      const item = structuredClone(release.items.find((candidate) => candidate.id === id));
+      assert(item, `Missing real item ${id}`);
+      const { payload, root, kind, source, selectedBy, sourceIds } = shape(item);
+      const executable = {};
+      const content = item.materials.map((member) => {
+        const sourcePath = sourcePathOf(member.path);
+        const relPath = root && sourcePath.startsWith(`${root}/`) ? sourcePath.slice(root.length + 1) : sourcePath.split("/").at(-1);
+        executable[relPath] = "unknown";
+        return { id: member.id, relPath, sourcePath, packagePath: member.path, sha256: member.sha256,
+          byteLength: member.byteLength, executable: "unknown",
+          sourceId: sourceIdOf(release, member.path) ?? item.sourceIds[0], role: "content" };
+      });
+      const sortedExecutable = Object.fromEntries(Object.entries(executable).sort(([a], [b]) => (a < b ? -1 : 1)));
+      const behaviourText = `${canonical({ kind: kind ?? item.kind, payload: payload ?? null, requirements: { inputs: {} },
+        dependencies: { requires: item.dependencies.requires ?? [], optional: item.dependencies.optional ?? [], conflicts: item.dependencies.conflicts ?? [] },
+        executable: sortedExecutable })}\n`;
+      const behaviour = { id: "behaviour", relPath: "aih-behaviour.json", sourcePath: null,
+        packagePath: `release/items/${item.id}/aih-behaviour.json`, sha256: sha(Buffer.from(behaviourText)),
+        byteLength: Buffer.byteLength(behaviourText), executable: false, sourceId: framework.id, role: "behaviour" };
+      const lines = (members) => members.map((m) => `${m.relPath}\t${m.sha256}\n`).sort(bytewise);
+      const materials = [...content, behaviour].sort((a, b) => (a.id < b.id ? -1 : 1));
+      const { metadata: _metadata, ...rest } = item;
+      // Per-tool copies share one name, which 1.6 allows only on one item: copies carry labels.
+      doc.items.push({ ...rest, ...(kind ? { kind } : {}), ...(sourceIds ? { sourceIds } : {}), materials, source, ...(selectedBy ? { selectedBy } : {}),
+        ...(payload ? { payload } : {}), requirements: { inputs: {} }, executable: sortedExecutable,
+        contentSha256: sha(Buffer.from(lines(content).join(""))),
+        behaviourSha256: sha(Buffer.from(lines(materials).join(""))) });
+    }
+    doc.items.sort((a, b) => (a.id < b.id ? -1 : 1));
+    return doc;
+  };
+  const MATT = "https://github.com/mattpocock/skills";
+  const EXT = "https://github.com/samartomar/aih-extensions";
+  const extensionsSource = read("release/release-extensions.json");
+  const tools = [["", "claude-code"], ["kiro.", "kiro-ide"], ["copilot.", "copilot-vscode"]];
+  const skills = ["grill-me", "grilling"];
+  const copies16 = project16(extensionsSource,
+    { id: "extensions", name: "Extensions", version: "1.0.0", description: "Golden Extensions copies in release 1.6: one copy per tool." },
+    ["extensions.notices", ...skills.flatMap((skill) => tools.map(([tool]) => `extensions.${tool}matt.${skill}`))],
+    (item) => item.kind === "skill"
+      ? { root: sourcePathOf(item.materials.find((m) => m.path.endsWith("/SKILL.md")).path).replace(/\/SKILL\.md$/, ""),
+          payload: { dirName: item.label, invocation: "model-allowed", invocationBasis: "default" },
+          source: MATT, selectedBy: EXT }
+      : { source: EXT });
+  const read16 = (document) => {
+    const result = readReleaseContent(bytes(document), { expectedSha256: sha(bytes(document)) });
+    assert(result.valid, JSON.stringify(result.diagnostics));
+    return result.release;
+  };
+  const copiesRelease = read16(copies16);
+  const frozenBytes = readFileSync(resolve(root, "release/release.json"));
+  const frozen = readRelease(frozenBytes, { expectedSha256: sha(frozenBytes) });
+  assert(frozen.valid, JSON.stringify(frozen.diagnostics));
+  const frozenItem = (id) => frozen.release.items.find((item) => item.id === id);
+  const transition = (overrides = {}) => compileTransitionRelease({
+    releases: { [copiesRelease.sha256]: copiesRelease, [frozen.release.sha256]: frozen.release },
+    earlier: [copiesRelease.sha256],
+    framework: { id: "extensions", name: "Extensions", version: "1.1.0", description: "Golden Extensions release 1.7: one tool-neutral item per piece of content." },
+    package: copiesRelease.package,
+    items: [
+      ...skills.map((skill) => ({
+        id: `extensions.matt.${skill}`, kind: "skill", role: "choosable", name: skill, nameBasis: "authored", descriptionBasis: "authored",
+        copies: tools.map(([tool, clientId]) => ({ releaseSha256: copiesRelease.sha256, itemId: `extensions.${tool}matt.${skill}`, clientId })),
+        hints: { tools: ["claude-code", "copilot-vscode", "kiro-ide"] },
+        supersedes: [{ match: "name+sourcePath", releaseSha256: frozen.release.sha256, itemId: `mattpocock.${skill}`,
+          itemSha256: frozenItem(`mattpocock.${skill}`).itemSha256, name: skill,
+          sourcePath: `skills/productivity/${skill}/SKILL.md` }],
+        ...overrides[skill],
+      })),
+      { id: "extensions.notices", kind: "document", purpose: "notice", role: "supporting", name: "Extensions notices", nameBasis: "publisher",
+        copies: [{ releaseSha256: copiesRelease.sha256, itemId: "extensions.notices" }] },
+    ],
+    sets: [{ id: "productivity", name: "Productivity", description: "Matt's productivity skills.", offer: "pre-ticked",
+      members: skills.map((skill) => ({ item: { framework: "extensions", itemId: `extensions.matt.${skill}` }, optional: false, defaultOn: true })),
+      firstRun: { framework: "extensions", itemId: "extensions.matt.grill-me" } }],
+  });
+  const compiled = transition();
+  assert.equal(compiled.status, "ok", JSON.stringify(compiled.diagnostics));
+  const release17 = compiled.value.release;
+  assert.equal(release17.items.filter((item) => item.name === "grill-me").length, 1);
+  // The 1.7.0 golden fixture: the compiled content plus a test-only evidence binding.
+  const content17 = JSON.parse(Buffer.from(compiled.value.releaseBytes).toString("utf8"));
+  const inventory17 = createContentInventory(compiled.value.releaseBytes, { expectedSha256: compiled.value.releaseSha256 });
+  assert(inventory17.valid, JSON.stringify(inventory17));
+  assert.equal(inventory17.inventory.schema, "urn:aihq:catalog:content-inventory:1.2.0");
+  const document17 = { ...content17, baseline: {
+    schema: "urn:aihq:catalog:scan-baseline:1.0.0",
+    inventory: { path: "fixtures/bound-inventory-1.2.0.json", sha256: inventory17.sha256, byteLength: inventory17.byteLength },
+    scanId: `scan:sha256:${"a".repeat(64)}`,
+    artifact: { sha256: sha(Buffer.from("fixture evidence 1.7\n")), byteLength: 20, location: { kind: "package", path: "fixtures/baseline-evidence.txt" } },
+    scope: { namespace: "package-relative", paths: ["release"], excludedPaths: [] },
+  } };
+  write("fixtures/bound-inventory-1.2.0.json", inventory17.inventory);
+  add("content-inventory-1.2.0", inventory17.inventory.schema, inventory17.inventory, "inventory", "Real Extensions grill-me/grilling copies collapsed to release 1.7 before evidence; behaviour files, transition recipes and supersession included.");
+  add("release-content-1.2.0", inventory17.inventory.projection, inventory17.inventory.release, "projection", "Real Extensions release 1.7 content projection: one item per content, recipe map, sets and retirement.");
+  add("release-1.7.0", document17.schema, document17, "release", "Real Extensions grill-me and grilling: three per-tool copies each collapse to one tool-neutral item with a recipe per client, supersede the frozen default's copies by name and source path, and carry a test-only evidence binding.");
+  // Release 1.6 and 1.7 documents of one framework coexisting, with hash vectors.
+  const copiesPath = "fixtures/release-1-7/extensions-copies-release-1.6.0.json";
+  write(copiesPath, copies16);
+  const releasePath = "fixtures/release-1-7/extensions-release-1.7.0.json";
+  write(releasePath, content17);
+  // Declarations only: hints, fallback and variantOf move itemSha256, never the identities.
+  const declared = transition({ "grill-me": { hints: { tools: ["claude-code"] }, variantOf: { itemId: "extensions.matt.grilling" } } });
+  assert.equal(declared.status, "ok", JSON.stringify(declared.diagnostics));
+  const vectorOf = (path, release) => ({ export: `@aihq/catalog/${path}`, schema: release.schema, releaseSha256: release.sha256,
+    items: release.items.map((item) => ({ id: item.id, itemSha256: item.itemSha256, contentSha256: item.contentSha256, behaviourSha256: item.behaviourSha256 })) });
+  const grill = (release) => release.items.find((item) => item.id === "extensions.matt.grill-me");
+  assert.equal(grill(declared.value.release).contentSha256, grill(release17).contentSha256);
+  assert.equal(grill(declared.value.release).behaviourSha256, grill(release17).behaviourSha256);
+  assert.notEqual(grill(declared.value.release).itemSha256, grill(release17).itemSha256);
+  const fixture17 = (name, envelope, provenance) => {
+    const path = `fixtures/release-1-7/${name}.json`;
+    write(path, { scenario: name, ...envelope });
+    fixtures.push({ name, contract: "urn:aihq:catalog:release:1.7.0", version: "1.7.0", export: `@aihq/catalog/${path}`,
+      schemaExport: "@aihq/catalog/schemas/release/1.7.0.json", reader: "release-1-7-scenario", scenario: true,
+      provenance, expected: { status: "accept" } });
+  };
+  fixture17("hash-vectors", {
+    releases: [vectorOf(copiesPath, copiesRelease), vectorOf(releasePath, release17)],
+    frozenDefault: { export: "@aihq/catalog/release.json", releaseSha256: frozen.release.sha256 },
+    declarationsOnly: { itemId: "extensions.matt.grill-me", changed: { hints: { tools: ["claude-code"] }, variantOf: { itemId: "extensions.matt.grilling" } },
+      itemSha256: grill(declared.value.release).itemSha256, contentSha256: grill(release17).contentSha256, behaviourSha256: grill(release17).behaviourSha256 },
+  }, "Release 1.6 copies and their release 1.7 collapse coexisting in one package, with deterministic digests; declarations move only itemSha256.");
+  // A split: the frozen default's project context spread over three survivors.
+  const basicsSource = read("release/release.json");
+  const contextItem = basicsSource.items.find((item) => item.id === "aihq.project-context");
+  const parts = [["fixture-basics.router", "document", "rule-router", { files: ["rule-router"] }],
+    ["fixture-basics.working-rules", "rule", "behavior-core", { applyTo: ["**"], applyToBasis: "publisher", placement: "project-folder" }],
+    ["fixture-basics.shared-block", "rule", "shared-block", { applyTo: ["**"], applyToBasis: "publisher", placement: "entry-block" }]];
+  const basicsInput = { ...basicsSource, sources: basicsSource.sources.filter((source) => contextItem.sourceIds.includes(source.id)),
+    items: parts.map(([id, kind, member]) => ({ ...contextItem, id, kind, label: id.split(".")[1],
+      materials: contextItem.materials.filter((m) => m.id === member), dependencies: { requires: [], optional: [], conflicts: [] } })) };
+  const basics16 = project16(basicsInput,
+    { id: "fixture-basics", name: "Fixture basics", version: "1.0.0", description: "Golden split fixture over the frozen default's project context." },
+    parts.map(([id]) => id),
+    (item) => ({ payload: parts.find(([id]) => id === item.id)[3], source: "https://github.com/samartomar/aih-catalog" }));
+  for (const source of basics16.sources) source.license = "Apache-2.0";
+  const basicsRelease = read16(basics16);
+  const split = compileTransitionRelease({
+    releases: { [basicsRelease.sha256]: basicsRelease, [frozen.release.sha256]: frozen.release },
+    earlier: [basicsRelease.sha256],
+    framework: { id: "fixture-basics", name: "Fixture basics", version: "1.1.0", description: "Golden split fixture: one earlier item spread over three survivors." },
+    package: basicsRelease.package,
+    items: parts.map(([id, kind]) => ({ id, kind, role: "choosable", name: id.split(".")[1], nameBasis: "publisher", ...(kind === "document" ? { purpose: "guide" } : {}),
+      copies: [{ releaseSha256: basicsRelease.sha256, itemId: id }],
+      supersedes: [{ match: "split", releaseSha256: frozen.release.sha256, itemId: "aihq.project-context", itemSha256: frozenItem("aihq.project-context").itemSha256 }] })),
+  });
+  assert.equal(split.status, "ok", JSON.stringify(split.diagnostics));
+  const splitPath = "fixtures/release-1-7/split-supersession-release-1.7.0.json";
+  write(splitPath, JSON.parse(Buffer.from(split.value.releaseBytes).toString("utf8")));
+  fixture17("split-supersession", {
+    release: `@aihq/catalog/${splitPath}`, earlier: { export: "@aihq/catalog/release.json", itemId: "aihq.project-context" },
+    survivors: parts.map(([id]) => id),
+  }, "The frozen default's project context spread over three survivors by split supersession.");
+}
 write("fixtures/manifest.json", { schema: "urn:aihq:catalog:fixture-manifest:1.0.0", package: contractSupport.package, fixtures });
 write("package-support.json", contractSupport);
 write("package-support-1.1.json", contractSupport11);

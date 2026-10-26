@@ -35,6 +35,14 @@ for (const entry of ordinary) {
 | `purpose` | `content` (ordinary selectable content), `hook` (client hook groups needing Core recipe 1.1) or `native-fixture` (material for native acceptance tests) |
 | `support` | `supported` for ordinary use, or `test-scope` for fixtures that prove nothing about production use |
 
+The default entry additionally carries `historical: true` and `sha256`, the exact
+digest of the frozen default `release.json`. That document stays exported under its
+original path and bytes through 1.x and is never regenerated. `readInstalledRelease`
+and `resolveRelease` admit those exact bytes without comparing their embedded package
+identity with the enclosing package, so a later package version still reads them;
+any other bytes, and every other release, keep the ordinary identity check
+(`package-mismatch`). `npm run check:release` verifies the bytes are unchanged.
+
 The inventory is discovery data, not a selection. Acquisition still names one release explicitly; the Node adapter accepts exactly the inventory names and refuses any other with `invalid-request`. New content in an existing release needs no consumer change. A new release document appears as a new inventory entry in a new package version; consumers that iterate the inventory pick it up, while a consumer that selects fixed names keeps working unchanged.
 
 | Release | Purpose | Support | Format |
@@ -59,8 +67,10 @@ Format versions are independent of the package version. This package reads every
 | `urn:aihq:catalog:release:1.1.0` | Supported | Core recipe 1.1 items (`hook.group`) | 1.0, 1.1 | The producer when an item uses recipe 1.1 |
 | `urn:aihq:catalog:release:1.2.0` | Supported | Core recipe 1.3 input-bound hook groups | 1.0, 1.1, 1.3 | The producer when an item uses recipe 1.3 |
 | `urn:aihq:catalog:release:1.3.0` | Supported; no shipped document | Local snapshot source origins | 1.0, 1.1, 1.3 | The producer when a declaration has a local source |
-| `urn:aihq:catalog:release:1.4.0` | Current | `clientId` on `client-adapter` items | 1.0, 1.1, 1.3 | The maintained candidate for `release.json` |
+| `urn:aihq:catalog:release:1.4.0` | Supported; frozen default | `clientId` on `client-adapter` items | 1.0, 1.1, 1.3 | Nothing: `release.json` is frozen through 1.x |
 | `urn:aihq:catalog:release:1.5.0` | Supported; fixture candidate only | Required versioned content inventory and baseline binding | 1.0, 1.1, 1.3 | [Release preparation](SCAN-BASELINE.md) after evidence verification |
+| `urn:aihq:catalog:release:1.6.0` | Supported; fixture candidate only | Optional behaviour files, both identities, typed payloads, framework identity and provenance | 1.0, 1.1, 1.3 | Producer declaration 3.2.0 |
+| `urn:aihq:catalog:release:1.7.0` | Supported; fixture candidate only | [One tool-neutral item per content](#release-17-one-item-per-content): closed kinds, role, supersession, retirement, embedded sets, transition recipe map | 1.0, 1.1, 1.3 | `compileTransitionRelease` |
 
 | Producer declaration | Status | Adds |
 | --- | --- | --- |
@@ -190,3 +200,47 @@ const completed = await apply(prepared.prepared, {
 For an archive, use the `release` and `source` returned by `resolveRelease` instead;
 the recipe reference uses `package/` member paths and needs no local material root.
 The exact recipe and named-material hashes remain equal across acquisition methods.
+
+## Release 1.7: one item per content
+
+Release 1.7.0 (`@aihq/catalog/schemas/release/1.7.0.json`) lists each piece of
+content once. A tool appears only as a display hint.
+
+- **Kinds are closed:** `skill | agent | command | rule | hook | mcp-server |
+  document`; a `document` payload carries `purpose: notice | license | reference |
+  guide` (and optional `placement`). Sets are not a kind. `KIND_TRANSITION` in
+  `@aihq/catalog/contracts` maps release 1.x kinds: instruction becomes a rule (or a
+  notice, licence or reference document), notice a document, template and framework
+  become sets, and client adapters and pointers retire.
+- **Every item** carries `role: choosable | supporting` (presentation only), `name`,
+  `source`, its behaviour file and both identities. `clientId` is gone.
+- **Recipes:** an item carries `recipe` or, during the transition, `recipes: {
+  [clientId]: entry }` with the recipes of the tool variants it replaced. Each entry is
+  a recipe descriptor plus the ascending content material ids and input names that
+  recipe uses. `configureItem` then requires `clientId` (`client-id-required`),
+  refuses a client without an entry (`client-unavailable`), checks the entry against
+  the item, and references exactly that entry's material closure. Installed and
+  archived reads check each entry's bytes against its own subset. Consumers use an
+  entry only until Core's binding table delivers that kind for that tool.
+- **Supersession** lives on survivors: `{ match: "hash" | "name+sourcePath" |
+  "split", releaseSha256, itemId, itemSha256, contentSha256?, behaviourSha256? }`. A
+  hash match names the survivor's own content identity, a `name+sourcePath` match its
+  name and one of its content source paths, and a split is claimed by at least two
+  survivors.
+- **Retirement:** `retired[]` entries `{ id, reason, replacedBy: { framework, itemId
+  }[] }` are sorted, never name a live item, and are carried unchanged by later
+  releases.
+- **Declarations only:** `fallback` and `variantOf` name another item of the release;
+  `hints.tools` lists client ids. They never affect `contentSha256`,
+  `behaviourSha256` or tool binding, but stay inside `itemSha256` and the content
+  inventory. Agents and commands never carry a fallback.
+- **Cross-release references** carry `contentSha256` and `behaviourSha256` beside
+  `itemSha256`; resolution compares all three.
+- **Sets** are embedded in the release and checked as release sets 1.0 are.
+
+Content inventory and `release-content` projection 1.2.0 describe release 1.7.0.
+Readers older than 1.7.0 refuse the whole format with `SCHEMA_UNSUPPORTED` and keep
+reading 1.6.0 and earlier. The build and the restructuring check are described in
+[public authoring](PUBLIC-AUTHORING.md#build-a-release-17-transition) and
+[the restructuring check](RESTRUCTURING.md).
+

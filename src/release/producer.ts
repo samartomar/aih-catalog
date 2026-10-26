@@ -47,7 +47,25 @@ import { checkRecipeAgreement } from "./recipe-agreement.js";
 import { extractSourceFacts, type SourceDiscovery } from "./source-facts.js";
 import { isSpdxLicenseId } from "./spdx.js";
 
+export {
+  compareRestructuring,
+  type FrameworkExpectation,
+  RESTRUCTURING_EXPECTATION_SCHEMA_ID,
+  type RestructuringCheck,
+  type RestructuringExpectation,
+  type RestructuringResult,
+  type RestructuringRow,
+} from "./restructuring.js";
 export { compileReleaseSets } from "./sets.js";
+export {
+  type CompiledTransitionRelease,
+  checkReleaseTransition,
+  compileTransitionRelease,
+  mcpEditsSha256,
+  type TransitionCopy,
+  type TransitionItemDeclaration,
+  type TransitionRequest,
+} from "./transition.js";
 
 export const PRODUCER_DECLARATION_SCHEMA_ID =
   "urn:aihq:catalog:producer-declaration:3.0.0" as const;
@@ -1160,6 +1178,7 @@ function prepareSourceRefreshData(request: {
     const outputs = new Map(compiled.value.materials.map((file) => [file.path, file]));
     const templates = new Map<string, GeneratedItem>();
     for (const item of compiled.value.release.items) {
+      if (item.recipe === undefined) throw new TypeError("Compiled recipe missing.");
       const recipe = outputs.get(item.recipe.path);
       if (!recipe) throw new TypeError("Compiled recipe missing.");
       const { itemSha256: _itemSha256, ...record } = item;

@@ -447,6 +447,7 @@ function readRecipe(
   item: CatalogItem,
   files: ReadonlyMap<string, Uint8Array>,
 ): Record_ | "unreadable" | undefined {
+  if (item.recipe === undefined) return undefined;
   const bytes = files.get(item.recipe.path);
   if (bytes === undefined) return undefined;
   let value: unknown;
@@ -560,7 +561,7 @@ export function checkAuthoredContent(
       references.push({
         itemId: item.id,
         member: "recipe",
-        target: item.recipe.path,
+        target: item.recipe?.path ?? "",
         line: 0,
         text: "recipe unreadable",
       });

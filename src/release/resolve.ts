@@ -246,6 +246,10 @@ export function resolveSelections(request: ResolveSelectionsRequest): ResolveSel
     if (
       "release" in dependency &&
       (item.itemSha256 !== dependency.itemSha256 ||
+        (dependency.contentSha256 !== undefined &&
+          item.contentSha256 !== dependency.contentSha256) ||
+        (dependency.behaviourSha256 !== undefined &&
+          item.behaviourSha256 !== dependency.behaviourSha256) ||
         releases.get(digest)?.byteLength !== dependency.release.manifest.byteLength)
     ) {
       report(

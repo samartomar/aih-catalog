@@ -77,6 +77,11 @@ function parseArgs(argv) {
 
 const options = parseArgs(process.argv.slice(2));
 const sourceRoot = resolve(options.root ?? root);
+// The default release.json is frozen through 1.x: this package's own release/ is never
+// replaced by a candidate. Dry runs and disposable --root copies stay available.
+if (options.apply && sourceRoot === root) {
+  usage("release/release.json is the frozen default release; --apply never replaces this package's release/");
+}
 const producer = (file) => import(`${new URL(`../dist/producer/${file}`, import.meta.url)}`);
 const [
   { parseDeclaration },

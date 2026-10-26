@@ -4,25 +4,52 @@ import {
   BASELINE_ARTIFACT_MAX_BYTES,
   CONTENT_INVENTORY_SCHEMA_ID,
   CONTENT_INVENTORY_SCHEMA_ID_1_1,
+  CONTENT_INVENTORY_SCHEMA_ID_1_2,
   CONTENT_PROJECTION_ID,
   CONTENT_PROJECTION_ID_1_1,
+  CONTENT_PROJECTION_ID_1_2,
   SCAN_BASELINE_SCHEMA_ID,
   type ScanBaseline,
 } from "./baseline-contracts.js";
 import { exactFields } from "./boundary.js";
-import { RELEASE_SCHEMA_ID_1_5, RELEASE_SCHEMA_ID_1_6 } from "./contracts.js";
+import {
+  RELEASE_SCHEMA_ID_1_5,
+  RELEASE_SCHEMA_ID_1_6,
+  RELEASE_SCHEMA_ID_1_7,
+} from "./contracts.js";
 import { coreArchiveUrl, isRecord, SHA256, safeMemberPath } from "./document.js";
 import { canonicalJson } from "./json.js";
 import { sha256Hex } from "./sha256.js";
 
+/** Each baseline-bound release format and the inventory/projection versions describing it. */
+export const INVENTORY_VERSIONS = [
+  {
+    release: RELEASE_SCHEMA_ID_1_5,
+    inventory: CONTENT_INVENTORY_SCHEMA_ID,
+    projection: CONTENT_PROJECTION_ID,
+  },
+  {
+    release: RELEASE_SCHEMA_ID_1_6,
+    inventory: CONTENT_INVENTORY_SCHEMA_ID_1_1,
+    projection: CONTENT_PROJECTION_ID_1_1,
+  },
+  {
+    release: RELEASE_SCHEMA_ID_1_7,
+    inventory: CONTENT_INVENTORY_SCHEMA_ID_1_2,
+    projection: CONTENT_PROJECTION_ID_1_2,
+  },
+] as const;
+
 export function contentInventoryBytes(value: Record<string, unknown>): Uint8Array {
   const { baseline: _baseline, ...content } = value;
-  const schema16 = value.schema === RELEASE_SCHEMA_ID_1_6;
+  // Earlier formats project as release 1.5 content, as inventory 1.0 always has.
+  const version =
+    INVENTORY_VERSIONS.find((entry) => entry.release === value.schema) ?? INVENTORY_VERSIONS[0];
   return new TextEncoder().encode(
     `${canonicalJson({
-      schema: schema16 ? CONTENT_INVENTORY_SCHEMA_ID_1_1 : CONTENT_INVENTORY_SCHEMA_ID,
-      projection: schema16 ? CONTENT_PROJECTION_ID_1_1 : CONTENT_PROJECTION_ID,
-      release: { ...content, schema: schema16 ? RELEASE_SCHEMA_ID_1_6 : RELEASE_SCHEMA_ID_1_5 },
+      schema: version.inventory,
+      projection: version.projection,
+      release: { ...content, schema: version.release },
     })}\n`,
   );
 }

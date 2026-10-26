@@ -300,6 +300,41 @@ Overlapping sets keep every reason. Consumers carry this qualified inclusion
 identity unchanged; they never expand sets themselves. Requests without `sets`
 resolve exactly as before, including `REQUIRED_ITEM_SKIPPED`, and gain `origins`.
 
+## Build a release 1.7 transition
+
+`compileTransitionRelease(request)` in `@aihq/catalog/producer` builds one release
+1.7.0 document from checked releases, typically the release 1.6 copies a producer
+declaration 3.2.0 compiles for each tool. The request names the supplied `releases`
+by exact digest, the framework's `earlier` releases, the `framework` and `package`,
+and one declaration per item: `{ id, kind, role, copies[{ releaseSha256, itemId,
+clientId? }], purpose?, payload?, name?, supersedes?, fallback?, variantOf?, hints? }`,
+plus optional `retired`, `sets` and `nativeRoutes`.
+
+- The survivor keeps the **union** of its copies' content materials (by item-relative
+  path, so licence and support files survive), dependencies, inputs and requirement
+  inputs. Same-release references to a collapsed copy follow its survivor; a
+  requirement beats a suggestion. Different bytes at one path, a requirement one copy
+  conflicts with, different payloads, targets, scopes or provenance are refused
+  (`conflicting-copies`), never silently picked.
+- Copies that name a `clientId` become the transition map, each entry keeping its own
+  material and input subset; without client ids the copies must share one recipe.
+- Each copy that does not keep its id is superseded by `hash` when its content identity
+  equals the survivor's, otherwise by `name+sourcePath`, and is retired with its
+  replacement. Declared supersessions are verified against the supplied releases.
+- A fresh behaviour file and both identities are synthesised; the behaviour files are
+  returned for caller-owned staging. The result is pre-baseline content.
+
+`checkReleaseTransition({ releases, earlier, release })`, which the build also runs,
+fails when an earlier item disappears without a retirement record
+(`dropped-without-retirement`), an earlier retirement changes (`retired-not-durable`),
+or an earlier item's bytes, or its name and source path, reappear under a new id
+without a supersession naming it (`unmapped-rename`). `mcpEditsSha256({ from, to })`
+digests an MCP definition the publisher edited.
+
+Before a framework's 1.7.0 release index entry ships, `compareRestructuring({ release,
+expectation })` must pass against `@aihq/catalog/restructuring/expected-1.7.0.json`;
+see [the restructuring check](RESTRUCTURING.md).
+
 ## Compare two checked releases
 
 `compareReleases({first,second})` reports the facts a consumer needs to judge a

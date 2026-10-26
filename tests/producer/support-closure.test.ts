@@ -260,7 +260,7 @@ describe("declared Matt Pocock support files", () => {
       );
 
       const recipe = JSON.parse(
-        (candidate.files.get(item.item.recipe.path) as Buffer).toString("utf8"),
+        (candidate.files.get(item.item.recipe?.path as string) as Buffer).toString("utf8"),
       ) as {
         operations: { kind: string; material?: string; target: { segments: unknown[] } }[];
       };

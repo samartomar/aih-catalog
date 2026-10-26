@@ -1,0 +1,1 @@
+{"earlier":{"export":"@aihq/catalog/release.json","itemId":"aihq.project-context"},"release":"@aihq/catalog/fixtures/release-1-7/split-supersession-release-1.7.0.json","scenario":"split-supersession","survivors":["fixture-basics.router","fixture-basics.working-rules","fixture-basics.shared-block"]}

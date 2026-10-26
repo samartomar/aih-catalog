@@ -182,6 +182,7 @@ describe("the published package keeps its intended runtime subset", () => {
       "schemas/package-support",
       "docs/CONTRACT-FIXTURES.md",
       "package-support-1.1.json",
+      "restructuring/expected-1.7.0.json",
     ]);
     expect(Object.keys(manifest.exports)).toEqual([
       "./contracts",
@@ -281,6 +282,22 @@ describe("the published package keeps its intended runtime subset", () => {
       "./fixtures/release-sets/ecc-typescript-choice.json",
       "./fixtures/release-sets/set-cycle.json",
       "./fixtures/release-sets/digest-vectors.json",
+      "./schemas/release/1.7.0.json",
+      "./schemas/content-inventory/1.2.0.json",
+      "./schemas/release-content/1.2.0.json",
+      "./fixtures/release-1.7.0-valid.json",
+      "./fixtures/release-1.7.0-invalid.json",
+      "./fixtures/content-inventory-1.2.0-valid.json",
+      "./fixtures/content-inventory-1.2.0-invalid.json",
+      "./fixtures/release-content-1.2.0-valid.json",
+      "./fixtures/release-content-1.2.0-invalid.json",
+      "./fixtures/bound-inventory-1.2.0.json",
+      "./fixtures/release-1-7/extensions-copies-release-1.6.0.json",
+      "./fixtures/release-1-7/extensions-release-1.7.0.json",
+      "./fixtures/release-1-7/hash-vectors.json",
+      "./fixtures/release-1-7/split-supersession.json",
+      "./fixtures/release-1-7/split-supersession-release-1.7.0.json",
+      "./restructuring/expected-1.7.0.json",
     ]);
     expect(manifest.private).toBe(true);
     expect(manifest.scripts.prepublishOnly).toBe("node tools/refuse-publication.mjs");

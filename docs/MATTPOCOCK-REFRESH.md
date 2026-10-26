@@ -48,6 +48,9 @@ Plugin inclusion is checked independently of file existence. Undeclared plugin
 entries and ambiguous manifests refuse; missing or non-regular support files refuse.
 The producer checks the whole resulting release and actual packed package before
 an atomic `--apply` swap. The donor seed generator cannot replace advanced content.
+The default `release.json` is now frozen through release 1.x, so `--apply` refuses
+this package's own `release/`; Matt's skills are delivered through the Extensions
+framework from release 1.7.
 
 The retained donor provider configuration, upstream snapshot and Scan assessments
 remain historical at their previous pins. They are not the delivery path for this

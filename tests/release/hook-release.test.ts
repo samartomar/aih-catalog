@@ -65,8 +65,8 @@ describe("carried hook release 1.1", () => {
       inputs: {},
       dependencies: { requires: [], optional: [], conflicts: [] },
     });
-    expect(item?.recipe.schema).toBe("urn:aihq:core:recipe:1.1.0");
-    const recipe = JSON.parse(bytesAt(item?.recipe.path as string).toString("utf8"));
+    expect(item?.recipe?.schema).toBe("urn:aihq:core:recipe:1.1.0");
+    const recipe = JSON.parse(bytesAt(item?.recipe?.path as string).toString("utf8"));
     const hooks = recipe.operations.filter((op: { kind: string }) => op.kind === "hook.group");
     expect(hooks).toHaveLength(1);
     const [hook] = hooks;
@@ -116,7 +116,7 @@ describe("carried hook release 1.1", () => {
     expect(schema.$id).toBe("urn:aihq:core:recipe:1.1.0");
     const validate = new Ajv2020({ allErrors: true, strict: true }).compile(schema);
     const item = listItems(hookRelease())[0];
-    const recipe = JSON.parse(bytesAt(item?.recipe.path as string).toString("utf8"));
+    const recipe = JSON.parse(bytesAt(item?.recipe?.path as string).toString("utf8"));
     expect(validate(recipe), JSON.stringify(validate.errors)).toBe(true);
     expect(recipe.inputs).toEqual(item?.inputs);
     expect(recipe.materials).toEqual(

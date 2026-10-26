@@ -26,7 +26,7 @@ describe("release 1.2 format admission", () => {
     const result = read(document());
     expect(result.valid).toBe(true);
     if (!result.valid) throw new Error("fixture");
-    expect(result.release.items[1]?.recipe.schema).toBe(recipeSchema);
+    expect(result.release.items[1]?.recipe?.schema).toBe(recipeSchema);
     expect(
       configureItem({
         release: result.release,

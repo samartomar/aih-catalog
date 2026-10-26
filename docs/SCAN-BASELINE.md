@@ -44,7 +44,10 @@ sources, items, recipes, material descriptors, dependencies and all metadata.
 Release 1.6 content freezes under `urn:aihq:catalog:content-inventory:1.1.0` and
 `urn:aihq:catalog:release-content:1.1.0`, including behaviour files and executable
 states; the 1.0 inventory and projection keep describing release 1.5 with their
-readers unchanged. Array order and omitted/default declarations remain exact;
+readers unchanged. Release 1.7 content freezes under
+`urn:aihq:catalog:content-inventory:1.2.0` and `urn:aihq:catalog:release-content:1.2.0`,
+which also carry supersession, retirement, embedded sets, transition recipe maps and
+the `fallback`, `variantOf` and `hints` declarations. Array order and omitted/default declarations remain exact;
 computed reader fields and normalized dependency defaults are not substituted.
 Unknown fields are refused by release admission, never silently omitted. C has no
 own digest, signature, baseline/report/artifact reference, final release digest or

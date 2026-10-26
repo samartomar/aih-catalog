@@ -1,4 +1,5 @@
 /** Release preparation with host-supplied public Scan/Core operations, never provider engines. */
+
 import type {
   ContentDescriptor,
   ContentInventoryResult,
@@ -12,6 +13,7 @@ import { isRecord, memberPackagePath } from "./document.js";
 import { createContentInventory } from "./inventory.js";
 import { canonicalJson, deepFreeze } from "./json.js";
 import { readRelease } from "./reader.js";
+import { catalogItemRecipes } from "./release-17.js";
 import { sha256Hex } from "./sha256.js";
 
 /** Structural subset of the public Scan read contract; the real reader checks the full report. */
@@ -199,15 +201,17 @@ export async function prepareReleaseBaseline<Read extends BaselineArtifactRead, 
     let batchCoverage: BaselineCoverage[] | undefined;
     if (services.readContentCoverageBatch !== undefined) {
       const queries = read.release.items.flatMap((item) =>
-        [item.recipe, ...item.materials].map((member) => ({
-          descriptors: [
-            {
-              path: String(memberPackagePath(member as unknown as Record<string, unknown>)),
-              sha256: member.sha256,
-              byteLength: member.byteLength,
-            },
-          ],
-        })),
+        [...catalogItemRecipes(item).map(({ recipe }) => recipe), ...item.materials].map(
+          (member) => ({
+            descriptors: [
+              {
+                path: String(memberPackagePath(member as unknown as Record<string, unknown>)),
+                sha256: member.sha256,
+                byteLength: member.byteLength,
+              },
+            ],
+          }),
+        ),
       );
       const expectedRows = queries.length;
       // Own the response before reconstructing occurrences. Scan observation JSON
@@ -261,7 +265,10 @@ export async function prepareReleaseBaseline<Read extends BaselineArtifactRead, 
     let occurrence = 0;
     for (const item of read.release.items) {
       const members: ItemBaselineCoverage["members"][number][] = [];
-      for (const member of [item.recipe, ...item.materials]) {
+      for (const member of [
+        ...catalogItemRecipes(item).map(({ recipe }) => recipe),
+        ...item.materials,
+      ]) {
         const descriptor = {
           path: String(memberPackagePath(member as unknown as Record<string, unknown>)),
           sha256: member.sha256,

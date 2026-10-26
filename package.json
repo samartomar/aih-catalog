@@ -138,7 +138,23 @@
     "./fixtures/release-sets/ecc-release-1.6.0.json": "./fixtures/release-sets/ecc-release-1.6.0.json",
     "./fixtures/release-sets/ecc-typescript-choice.json": "./fixtures/release-sets/ecc-typescript-choice.json",
     "./fixtures/release-sets/set-cycle.json": "./fixtures/release-sets/set-cycle.json",
-    "./fixtures/release-sets/digest-vectors.json": "./fixtures/release-sets/digest-vectors.json"
+    "./fixtures/release-sets/digest-vectors.json": "./fixtures/release-sets/digest-vectors.json",
+    "./schemas/release/1.7.0.json": "./schemas/release/1.7.0.json",
+    "./schemas/content-inventory/1.2.0.json": "./schemas/content-inventory/1.2.0.json",
+    "./schemas/release-content/1.2.0.json": "./schemas/release-content/1.2.0.json",
+    "./fixtures/release-1.7.0-valid.json": "./fixtures/release-1.7.0-valid.json",
+    "./fixtures/release-1.7.0-invalid.json": "./fixtures/release-1.7.0-invalid.json",
+    "./fixtures/content-inventory-1.2.0-valid.json": "./fixtures/content-inventory-1.2.0-valid.json",
+    "./fixtures/content-inventory-1.2.0-invalid.json": "./fixtures/content-inventory-1.2.0-invalid.json",
+    "./fixtures/release-content-1.2.0-valid.json": "./fixtures/release-content-1.2.0-valid.json",
+    "./fixtures/release-content-1.2.0-invalid.json": "./fixtures/release-content-1.2.0-invalid.json",
+    "./fixtures/bound-inventory-1.2.0.json": "./fixtures/bound-inventory-1.2.0.json",
+    "./fixtures/release-1-7/extensions-copies-release-1.6.0.json": "./fixtures/release-1-7/extensions-copies-release-1.6.0.json",
+    "./fixtures/release-1-7/extensions-release-1.7.0.json": "./fixtures/release-1-7/extensions-release-1.7.0.json",
+    "./fixtures/release-1-7/hash-vectors.json": "./fixtures/release-1-7/hash-vectors.json",
+    "./fixtures/release-1-7/split-supersession.json": "./fixtures/release-1-7/split-supersession.json",
+    "./fixtures/release-1-7/split-supersession-release-1.7.0.json": "./fixtures/release-1-7/split-supersession-release-1.7.0.json",
+    "./restructuring/expected-1.7.0.json": "./restructuring/expected-1.7.0.json"
   },
   "engines": {
     "node": ">=24.15.0 <25"
@@ -159,7 +175,7 @@
     "produce:ecc": "npm run build:dist && node tools/produce-upstream-inputs.mjs ecc",
     "produce:superpowers": "npm run build:dist && node tools/produce-upstream-inputs.mjs superpowers",
     "produce:mattpocock": "npm run build:dist && node tools/produce-upstream-inputs.mjs mattpocock",
-    "verify": "npm run build:dist && npm run typecheck && npm run lint && npm run check:materials && npm test && npm run verify:workflow-action-pins && npm run check:baseline-schemas && npm run check:contract-fixtures && npm run check:spdx-data",
+    "verify": "npm run build:dist && npm run typecheck && npm run lint && npm run check:materials && npm test && npm run verify:workflow-action-pins && npm run check:baseline-schemas && npm run check:contract-fixtures && npm run check:spdx-data && npm run check:restructuring",
     "generate:catalog-index": "node tools/generate-catalog-index.mjs",
     "generate:catalog-collections": "node tools/generate-catalog-collections.mjs",
     "generate:catalog-qualification": "node tools/generate-catalog-qualification.mjs",
@@ -186,7 +202,8 @@
     "generate:contract-fixtures": "node tools/generate-contract-fixtures.mjs",
     "check:contract-fixtures": "node tools/generate-contract-fixtures.mjs --check",
     "check:scan-fixtures": "node tools/check-pinned-scan-fixtures.mjs",
-    "check:spdx-data": "node tools/generate-spdx-data.mjs --check"
+    "check:spdx-data": "node tools/generate-spdx-data.mjs --check",
+    "check:restructuring": "node tools/derive-restructuring-expectation.mjs --check && node tools/check-restructuring.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.1",
@@ -263,7 +280,8 @@
     "schemas/release-content",
     "schemas/package-support",
     "docs/CONTRACT-FIXTURES.md",
-    "package-support-1.1.json"
+    "package-support-1.1.json",
+    "restructuring/expected-1.7.0.json"
   ],
   "private": true
 }
