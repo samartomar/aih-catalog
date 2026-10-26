@@ -35,8 +35,6 @@ export interface SourceFacts {
   readonly profile: string;
   readonly status: "valid" | "profile-error" | "malformed" | "unsupported";
   readonly identifier: string;
-  /** Whether the identifier came from a registration key or the file path. */
-  readonly identifierBasis: "key" | "file-name";
   readonly provenance: {
     readonly path: string;
     readonly revision: string;
@@ -344,7 +342,6 @@ export function extractSourceFacts(input: {
     profile: input.profile,
     status,
     identifier: input.key ?? input.path,
-    identifierBasis: input.key !== undefined ? "key" : "file-name",
     provenance: { path: input.path, revision: input.revision, sha256: sha256Hex(input.bytes) },
     name,
     description,

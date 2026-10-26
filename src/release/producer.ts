@@ -801,44 +801,55 @@ export function compileProducerDeclaration(request: {
           `/items/${index}/configuration`,
           "Declared configuration must mirror the recipe's existing input specs; labels/help are display-only.",
         );
-      // Display fallback order: authored, first heading, key or file name, then an
-      // explicit publisher overlay. The chosen level is recorded as the basis. The
+      // The published display name follows the ordered fallback (authored, first
+      // heading, key or file name, publisher overlay) and records its basis. The
       // file-name level uses the basename; a full path is never published as a name.
+      // The legacy label and description behavior stays byte-stable for existing content.
+      const identifierBasis: NameBasis =
+        item.sourceDiscovery?.key !== undefined ? "key" : "file-name";
       const identifierName =
         sourceFacts === undefined
           ? undefined
-          : sourceFacts.identifierBasis === "key"
+          : identifierBasis === "key"
             ? sourceFacts.identifier
             : (sourceFacts.identifier.split("/").pop() ?? sourceFacts.identifier);
-      const displayName =
-        item.name ??
-        (sourceFacts?.name.state === "authored"
-          ? sourceFacts.name.value
-          : sourceFacts
-            ? identifierName !== undefined && identifierName.length <= 256
-              ? identifierName
-              : item.id
-            : item.label);
       const nameBasis: NameBasis | undefined =
         item.name !== undefined
           ? (item.nameBasis ?? "publisher")
           : sourceFacts?.name.state === "authored"
             ? sourceFacts.name.basis
             : sourceFacts
-              ? sourceFacts.identifierBasis
+              ? identifierBasis
               : undefined;
-      const displayDescription =
-        sourceFacts?.description.state === "authored"
-          ? sourceFacts.description.value
-          : (item.description ?? "");
+      const displayName =
+        item.name ??
+        (sourceFacts?.name.state === "authored"
+          ? sourceFacts.name.value
+          : nameBasis === "key"
+            ? (sourceFacts?.identifier ?? item.id)
+            : nameBasis === "file-name"
+              ? identifierName !== undefined && identifierName.length <= 256
+                ? identifierName
+                : item.id
+              : item.label);
       const descriptionBasis: NameBasis | undefined =
         sourceFacts?.description.state === "authored"
           ? sourceFacts.description.basis
-          : item.description
+          : sourceFacts === undefined && item.description
             ? "publisher"
             : undefined;
-      output.record.label = displayName;
-      output.record.description = displayDescription;
+      output.record.label = sourceFacts
+        ? sourceFacts.name.state === "authored"
+          ? sourceFacts.name.value
+          : sourceFacts.identifier.length <= 256
+            ? sourceFacts.identifier
+            : item.id
+        : item.label;
+      output.record.description = sourceFacts
+        ? sourceFacts.description.state === "authored"
+          ? sourceFacts.description.value
+          : ""
+        : item.description;
       output.record.kind = item.kind;
       output.record.dependencies = {
         requires: item.requires as unknown as Json,
@@ -851,7 +862,23 @@ export function compileProducerDeclaration(request: {
           sha256: sha256Hex(documentBytes(declaration)),
         },
         ...(output.record.metadata as Record<string, Json>),
-        ...(sourceFacts ? { sourceFacts: sourceFacts as unknown as Json } : {}),
+        ...(sourceFacts
+          ? {
+              // The basis discriminator is producer machinery; stored source facts
+              // keep the original source shape for byte-stable releases.
+              sourceFacts: {
+                ...sourceFacts,
+                name:
+                  sourceFacts.name.state === "authored"
+                    ? (({ basis: _nameBasis, ...rest }) => rest)(sourceFacts.name)
+                    : sourceFacts.name,
+                description:
+                  sourceFacts.description.state === "authored"
+                    ? (({ basis: _descriptionBasis, ...rest }) => rest)(sourceFacts.description)
+                    : sourceFacts.description,
+              } as unknown as Json,
+            }
+          : {}),
         discovery: {
           label: output.record.label,
           description: output.record.description,
@@ -914,7 +941,7 @@ export function compileProducerDeclaration(request: {
             description:
               descriptionBasis === undefined
                 ? undefined
-                : { value: displayDescription, basis: descriptionBasis },
+                : { value: String(output.record.description), basis: descriptionBasis },
           },
           frameworkId: (declaration.framework as { id: string }).id,
           addresses,
