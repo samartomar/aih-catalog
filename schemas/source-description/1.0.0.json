@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aihq:catalog:source-description:1.0.0",
+  "title": "Source description: discovery data only",
+  "description": "What a source is called, who published it and where it was found. A locator is discovery data and never an exact pin: a git ref may name a branch or tag, an npm versionSpec may name a range or tag, and a local label names a folder the person points at. The exact source of saved intent or an install is a separate type, produced only by resolution and acquisition; reading a description never yields it. An organization's published source list uses this same descriptor and carries no authority or policy.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "id",
+    "label",
+    "locator"
+  ],
+  "properties": {
+    "schema": {
+      "const": "urn:aihq:catalog:source-description:1.0.0"
+    },
+    "id": {
+      "$ref": "#/$defs/id"
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "publisher": {
+      "description": "Who published the source; display text only and never an authority.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "locator": {
+      "$ref": "#/$defs/locator"
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "httpsUrl": {
+      "type": "string",
+      "minLength": 9,
+      "maxLength": 2048,
+      "pattern": "^https://[^\\s/?#@]+(?:[/?][^\\s#]*)?$"
+    },
+    "gitRef": {
+      "description": "A git reference as found: a branch, tag or commit. Mutable references stay mutable here; nothing is silently pinned.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[^\\s]{1,256}$"
+    },
+    "packageName": {
+      "type": "string",
+      "pattern": "^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$"
+    },
+    "versionSpec": {
+      "description": "An npm version spec as found: an exact version, a range or a tag such as latest. Discovery data only; installs use exact versions.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[^\\s]{1,128}$"
+    },
+    "locator": {
+      "description": "Where the source was found, in one of the three supported forms.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "repository"
+          ],
+          "properties": {
+            "kind": {
+              "const": "git"
+            },
+            "repository": {
+              "description": "The https URL of the git repository; other schemes are refused.",
+              "$ref": "#/$defs/httpsUrl"
+            },
+            "ref": {
+              "$ref": "#/$defs/gitRef"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "package"
+          ],
+          "properties": {
+            "kind": {
+              "const": "npm"
+            },
+            "package": {
+              "$ref": "#/$defs/packageName"
+            },
+            "versionSpec": {
+              "$ref": "#/$defs/versionSpec"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "label"
+          ],
+          "properties": {
+            "kind": {
+              "const": "local"
+            },
+            "label": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          }
+        }
+      ]
+    }
+  }
+}

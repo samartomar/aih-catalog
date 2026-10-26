@@ -98,6 +98,15 @@ export const SET_MAX_MEMBERS = 5000;
 export const RELEASE_INDEX_SCHEMA_ID = "urn:aihq:catalog:release-index:1.0.0" as const;
 export const RELEASE_INDEX_SCHEMA_EXPORT =
   "@aihq/catalog/schemas/release-index/1.0.0.json" as const;
+/**
+ * Source description 1.0.0: discovery data only. It says where a source was found
+ * (a git repository, an npm package or a local folder) and never what exactly gets
+ * installed; that is the separate exact source identity, produced only by
+ * resolution and acquisition (samartomar/aih-catalog#122 and #123).
+ */
+export const SOURCE_DESCRIPTION_SCHEMA_ID = "urn:aihq:catalog:source-description:1.0.0" as const;
+export const SOURCE_DESCRIPTION_SCHEMA_EXPORT =
+  "@aihq/catalog/schemas/source-description/1.0.0.json" as const;
 export * from "./baseline-contracts.js";
 export type ReleaseSchemaId =
   | typeof RELEASE_SCHEMA_ID
@@ -273,6 +282,11 @@ export const contractSupport = Object.freeze({
       id: "urn:aihq:catalog:release-content:1.2.0",
       role: "both",
       schemaExport: "@aihq/catalog/schemas/release-content/1.2.0.json",
+    }),
+    Object.freeze({
+      id: SOURCE_DESCRIPTION_SCHEMA_ID,
+      role: "both",
+      schemaExport: SOURCE_DESCRIPTION_SCHEMA_EXPORT,
     }),
   ]),
   entries: Object.freeze([
@@ -953,6 +967,67 @@ export type ReadReleaseIndexResult =
       readonly sources: readonly ReleaseIndexSourceResult[];
       readonly diagnostics: readonly ReleaseIndexDiagnostic[];
     };
+
+/**
+ * Where a source was found. A locator is discovery data: a git `ref` may name a
+ * branch or tag, an npm `versionSpec` may name a range or tag, and a local `label`
+ * names a folder the person points at. None of it is an exact pin.
+ */
+export type SourceLocator =
+  | { readonly kind: "git"; readonly repository: string; readonly ref?: string }
+  | { readonly kind: "npm"; readonly package: string; readonly versionSpec?: string }
+  | { readonly kind: "local"; readonly label: string };
+
+/**
+ * A source description (schema `urn:aihq:catalog:source-description:1.0.0`):
+ * what a source is called, who published it, and where it was found. Reading a
+ * description never yields an exact source identity, and a description grants no
+ * authority; an organization's published list uses this same descriptor.
+ */
+export interface SourceDescription {
+  readonly schema: typeof SOURCE_DESCRIPTION_SCHEMA_ID;
+  readonly id: string;
+  readonly label: string;
+  readonly publisher?: string;
+  readonly locator: SourceLocator;
+}
+
+/**
+ * The exact source of saved intent or an install: the exact commit that was
+ * verified reachable (or recorded unchecked), the exact npm version with its
+ * integrity, or the exact captured local bytes. Only resolution and acquisition
+ * produce this type; parsing or reading a description never does.
+ */
+export type ExactSourceIdentity =
+  | {
+      readonly kind: "git";
+      readonly repository: string;
+      readonly commit: string;
+      readonly reachable: boolean | "unchecked";
+    }
+  | {
+      readonly kind: "npm";
+      readonly package: string;
+      readonly version: string;
+      readonly integrity: string;
+    }
+  | { readonly kind: "local"; readonly captureSha256: string };
+
+export type ReadSourceDescriptionResult =
+  | {
+      readonly valid: true;
+      readonly description: SourceDescription;
+      readonly diagnostics: readonly [];
+    }
+  | { readonly valid: false; readonly diagnostics: readonly CatalogDiagnostic[] };
+
+export type CheckExactSourceIdentityResult =
+  | {
+      readonly valid: true;
+      readonly identity: ExactSourceIdentity;
+      readonly diagnostics: readonly [];
+    }
+  | { readonly valid: false; readonly diagnostics: readonly CatalogDiagnostic[] };
 
 export interface RecipeReference {
   readonly source: MaterialSource;

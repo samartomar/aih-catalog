@@ -13,6 +13,7 @@ import {
 } from "@aihq/catalog/reader";
 import { checkProducerDeclaration, compileReleaseSets } from "@aihq/catalog/producer";
 import { readInstalledRelease, readRecipe } from "@aihq/catalog/node";
+import { checkExactSourceIdentity, readSourceDescription } from "@aihq/catalog/source";
 import manifest from "@aihq/catalog/fixtures/manifest.json" with { type: "json" };
 
 const data = specifier => readFileSync(fileURLToPath(import.meta.resolve(specifier)));
@@ -98,6 +99,11 @@ for (const fixture of manifest.fixtures) {
     results.push({ export: fixture.export, contract: fixture.contract, version: fixture.version, ...fixture.expected });
     continue;
   }
+  if (fixture.reader === "source-description-scenario") {
+    checkSourceDescriptionScenario(fixture.name, document);
+    results.push({ export: fixture.export, contract: fixture.contract, version: fixture.version, ...fixture.expected });
+    continue;
+  }
   const validate = validators.get(fixture.contract);
   // A reader-validated invalid case passes its schema and is refused by the reader.
   assert.equal(validate(document), valid || fixture.validation === "reader", `${fixture.name}: ${JSON.stringify(validate.errors)}`);
@@ -129,6 +135,7 @@ for (const fixture of manifest.fixtures) {
       result = readContentInventory(inventory, { expectedSha256: sha(inventory) }); break;
     }
     case "producer": result = checkProducerDeclaration(document); break;
+    case "source-description": result = readSourceDescription(bytes); break;
     case "release-sets": {
       result = readReleaseSets(bytes, { expectedSha256: sha(bytes), release: contentRelease(fixture.context) });
       if (!valid) assert.deepEqual(result.diagnostics.map(d => d.reason).sort(), [...fixture.expected.reasons].sort(), fixture.name);
@@ -248,6 +255,56 @@ function checkSetsScenario(name, envelope) {
   const [old, changed] = [before, after].map(r => contentRelease(r).items.find(item => item.id === itemId));
   assert.equal(changed.contentSha256, old.contentSha256, `${name}: content unchanged`);
   assert.notEqual(changed.behaviourSha256, old.behaviourSha256, `${name}: behaviour changed`);
+}
+/** Executes source description and exact identity scenarios through the public source export. */
+function checkSourceDescriptionScenario(name, envelope) {
+  const run = (entry) => {
+    const expectRefusal = entry.expect.status === "refuse";
+    if (envelope.scenario === "locator-kinds") {
+      // An organization list is the same descriptor, one read per entry; a list
+      // entry carrying policy is refused like any unknown field, so a refusing
+      // list is expected when at least one entry refuses with the named reason.
+      const outcomes = (entry.list ?? [entry.document]).map((document) =>
+        readSourceDescription(encode(document)),
+      );
+      if (expectRefusal) {
+        assert(
+          outcomes.some(
+            (result) =>
+              !result.valid &&
+              result.diagnostics.some(
+                (d) =>
+                  d.code === entry.expect.code &&
+                  (entry.expect.reason === undefined || d.reason === entry.expect.reason),
+              ),
+          ),
+          `${name}/${entry.name}: no refusal matched ${JSON.stringify(entry.expect)} in ${JSON.stringify(outcomes)}`,
+        );
+        return;
+      }
+      for (const result of outcomes) {
+        assert.equal(result.valid, true, `${name}/${entry.name}: ${JSON.stringify(result)}`);
+        // Discovery data only: reading never yields an exact identity field.
+        for (const exact of ["commit", "integrity", "captureSha256", "reachable"]) {
+          assert(!JSON.stringify(result.description).includes(`"${exact}"`), `${name}/${entry.name}: ${exact} leaked into a description`);
+        }
+      }
+      return;
+    }
+    const result = checkExactSourceIdentity(entry.identity);
+    assert.equal(result.valid, !expectRefusal, `${name}/${entry.name}: ${JSON.stringify(result)}`);
+    if (!result.valid) {
+      assert(
+        result.diagnostics.some(
+          (d) =>
+            d.code === entry.expect.code &&
+            (entry.expect.reason === undefined || d.reason === entry.expect.reason),
+        ),
+        `${name}/${entry.name}: wrong refusal ${JSON.stringify(result)}`,
+      );
+    }
+  };
+  for (const entry of envelope.cases) run(entry);
 }
 // The standalone reader's own refusals, through the packed export.
 const recipeText = text => readRecipe(new TextEncoder().encode(text)).diagnostics.map(d => [d.code, d.reason]);

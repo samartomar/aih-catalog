@@ -662,6 +662,8 @@ describe("exact packed consumer", () => {
         "SCAN_BASELINE_SCHEMA_ID",
         "SET_MAX_DEPTH",
         "SET_MAX_MEMBERS",
+        "SOURCE_DESCRIPTION_SCHEMA_EXPORT",
+        "SOURCE_DESCRIPTION_SCHEMA_ID",
         "contractSupport",
         "contractSupport11",
         "preparedReleaseContent",

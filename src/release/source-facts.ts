@@ -351,9 +351,16 @@ export function extractSourceFacts(input: {
   });
 }
 
+export type { SourceDescription, SourceLocator } from "./contracts.js";
 export type {
   ParseSourceLinkResult,
   SourceLinkCandidate,
   SourceLinkDiagnostic,
 } from "./parse-source-link.js";
 export { PARSE_SOURCE_LINK_MAX_CHARACTERS, parseSourceLink } from "./parse-source-link.js";
+export {
+  checkExactSourceIdentity,
+  readSourceDescription,
+  SOURCE_DESCRIPTION_MAX_BYTES,
+  SOURCE_DESCRIPTION_MAX_DEPTH,
+} from "./source-description.js";

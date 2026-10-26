@@ -533,6 +533,85 @@ for (const [version, id, context] of [
   }, "Deterministic set digests: display-only fields are outside; a behaviour-only member change, a changed cross-framework pin and a nested set change each change the digest.");
 }
 {
+  // Source description 1.0: discovery data only. The base pair exercises one
+  // authored golden description; every locator kind and every exact identity kind
+  // is covered by the scenarios, executed through the public readers.
+  const SD = "urn:aihq:catalog:source-description:1.0.0";
+  const COMMIT = "a1b2c3d4e5f60718293a4b5c6d7e8f9012345678";
+  const SHA = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+  // base64 of 64 zero bytes: one complete sha512 digest.
+  const INTEGRITY = `sha512-${"A".repeat(86)}==`;
+  const base = {
+    schema: SD,
+    id: "org-example",
+    label: "Example organization MCP servers",
+    publisher: "example-org",
+    locator: { kind: "git", repository: "https://github.com/example/mcp-servers", ref: "main" },
+  };
+  add("source-description-1.0.0", SD, base, "source-description",
+    "Authored golden source description: an organization's git source found at a mutable ref; discovery data only, never an exact identity.");
+  const schemaExport = contractSupport.contracts.find((c) => c.id === SD)?.schemaExport;
+  assert(schemaExport, `Undeclared ${SD}`);
+  const sdScenario = (name, envelope, provenance) => {
+    const path = `fixtures/source-description/${name}.json`;
+    write(path, { scenario: name, ...envelope });
+    fixtures.push({ name, contract: SD, version: "1.0.0", export: `@aihq/catalog/${path}`, schemaExport,
+      reader: "source-description-scenario", scenario: true, provenance, expected: { status: "accept" } });
+  };
+  const accept = { status: "accept" };
+  const refuse = (code, reason) => ({ status: "refuse", code, reason });
+  const description = (id, label, locator, extra = {}) => ({ schema: SD, id, label, ...extra, locator });
+  sdScenario("locator-kinds", {
+    cases: [
+      { name: "git-ref", document: base, expect: accept },
+      { name: "git-default", document: description("src-git", "Git source", { kind: "git", repository: "https://github.com/example/skills" }), expect: accept },
+      { name: "npm-exact-spec", document: description("src-npm", "npm source", { kind: "npm", package: "example-skill", versionSpec: "1.2.3" }), expect: accept },
+      { name: "npm-mutable-spec", document: description("src-npm-latest", "npm source at latest", { kind: "npm", package: "example-skill", versionSpec: "latest" }), expect: accept },
+      { name: "npm-no-spec", document: description("src-npm-bare", "npm source unversioned", { kind: "npm", package: "@scope/tool" }), expect: accept },
+      { name: "local", document: description("src-local", "Local folder", { kind: "local", label: "my-agent-skills" }), expect: accept },
+      {
+        name: "organization-list",
+        list: [
+          description("org-list-git", "Organization git source", { kind: "git", repository: "https://github.com/example/org-skills", ref: "main" }, { publisher: "example-org" }),
+          description("org-list-npm", "Organization npm source", { kind: "npm", package: "example-org-package" }, { publisher: "example-org" }),
+        ],
+        expect: accept,
+      },
+      { name: "git-http", document: description("src-http", "Plain http source", { kind: "git", repository: "http://github.com/example/mcp" }), expect: refuse("INPUT_INVALID", "repository-not-https") },
+      { name: "git-ssh", document: description("src-ssh", "Ssh source", { kind: "git", repository: "git@github.com:example/mcp.git" }), expect: refuse("INPUT_INVALID", "repository-not-https") },
+      { name: "git-malformed-port", document: description("src-port", "Malformed port source", { kind: "git", repository: "https://example.com:99999/repo" }), expect: refuse("INPUT_INVALID", "repository-not-https") },
+      { name: "git-surrounding-whitespace", document: description("src-ws", "Whitespace-padded source", { kind: "git", repository: " https://example.com/repo" }), expect: refuse("INPUT_INVALID", "repository-not-https") },
+      { name: "locator-kind-unknown", document: description("src-hg", "Mercurial source", { kind: "hg", repository: "https://example.com/src" }), expect: refuse("INPUT_INVALID", "invalid-locator-kind") },
+      { name: "unknown-field", document: { ...description("src-extra", "Source with policy", { kind: "local", label: "folder" }), policy: "pre-ticked" }, expect: refuse("INPUT_INVALID", "unknown-field") },
+      {
+        name: "organization-list-with-policy",
+        list: [description("org-list-policy", "Organization source", { kind: "local", label: "folder" }), { ...description("org-list-policy-2", "Organization source with policy", { kind: "local", label: "folder" }), policy: "members-only" }],
+        expect: refuse("INPUT_INVALID", "unknown-field"),
+      },
+    ],
+  }, "Every locator kind accepted as discovery data, including mutable specs; non-https git repositories, unknown kinds and unknown fields — including a would-be policy on an organization list — refused precisely.");
+  sdScenario("exact-identity-kinds", {
+    cases: [
+      { name: "git-reachable", identity: { kind: "git", repository: "https://github.com/example/mcp", commit: COMMIT, reachable: true }, expect: accept },
+      { name: "git-unreachable", identity: { kind: "git", repository: "https://github.com/example/mcp", commit: COMMIT, reachable: false }, expect: accept },
+      { name: "git-unchecked", identity: { kind: "git", repository: "https://github.com/example/mcp", commit: COMMIT, reachable: "unchecked" }, expect: accept },
+      { name: "npm", identity: { kind: "npm", package: "@scope/tool", version: "1.2.3", integrity: INTEGRITY }, expect: accept },
+      { name: "local", identity: { kind: "local", captureSha256: SHA }, expect: accept },
+      { name: "git-mutable-commit", identity: { kind: "git", repository: "https://github.com/example/mcp", commit: "main", reachable: true }, expect: refuse("INPUT_INVALID", "invalid-commit") },
+      { name: "npm-range", identity: { kind: "npm", package: "tool", version: "^1.2.3", integrity: INTEGRITY }, expect: refuse("INPUT_INVALID", "version-not-exact") },
+      { name: "npm-tag", identity: { kind: "npm", package: "tool", version: "latest", integrity: INTEGRITY }, expect: refuse("INPUT_INVALID", "version-not-exact") },
+      { name: "npm-missing-integrity", identity: { kind: "npm", package: "tool", version: "1.2.3" }, expect: refuse("INPUT_INVALID", "missing-field") },
+      { name: "npm-weak-integrity", identity: { kind: "npm", package: "tool", version: "1.2.3", integrity: "md5-dGVzdA==" }, expect: refuse("INPUT_INVALID", "invalid-integrity") },
+      { name: "npm-short-integrity", identity: { kind: "npm", package: "tool", version: "1.2.3", integrity: "sha512-a" }, expect: refuse("INPUT_INVALID", "invalid-integrity") },
+      { name: "git-not-https", identity: { kind: "git", repository: "git@github.com:example/mcp.git", commit: COMMIT, reachable: true }, expect: refuse("INPUT_INVALID", "repository-not-https") },
+      { name: "git-malformed-port", identity: { kind: "git", repository: "https://example.com:99999/repo", commit: COMMIT, reachable: true }, expect: refuse("INPUT_INVALID", "repository-not-https") },
+      { name: "git-surrounding-whitespace", identity: { kind: "git", repository: " https://example.com/repo", commit: COMMIT, reachable: true }, expect: refuse("INPUT_INVALID", "repository-not-https") },
+      { name: "kind-unknown", identity: { kind: "archive", sha256: SHA }, expect: refuse("INPUT_INVALID", "invalid-kind") },
+      { name: "unknown-field", identity: { kind: "local", captureSha256: SHA, policy: "members-only" }, expect: refuse("INPUT_INVALID", "unknown-field") },
+      { name: "local-bad-sha", identity: { kind: "local", captureSha256: "nope" }, expect: refuse("INPUT_INVALID", "invalid-sha256") },
+      { name: "description-is-not-identity", identity: { kind: "git", repository: "https://github.com/example/mcp", ref: COMMIT }, expect: refuse("INPUT_INVALID", "missing-field") },
+    ],
+  }, "Every exact identity kind accepted with its exactness; mutable references, ranges and tags, non-https repositories, unknown kinds and unknown fields refused precisely; a source description is never an exact identity.");
   // Release 1.7 over real content: the three per-tool copies of Matt's grill-me and
   // grilling in the committed Extensions release, projected to release 1.6 with
   // source-relative paths, then collapsed by the public transition build into one
