@@ -1,4 +1,4 @@
-import { expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   checkProducerDeclaration,
   compileProducerDeclaration,
@@ -304,4 +304,144 @@ it("refreshes a previous 1.6 release through the public producer flow", () => {
     (member) => member.path === "release/items/notes.review/aih-behaviour.json",
   );
   expect(behaviour).toBeDefined();
+});
+
+describe("producer 3.2.0 acceptance recovery", () => {
+  it("records the first-heading basis for a markdown-profile name", () => {
+    const declarationWithDiscovery = declaration() as unknown as Record<string, unknown>;
+    const items = declarationWithDiscovery.items as Record<string, unknown>[];
+    items[0] = {
+      ...items[0],
+      sourceDiscovery: { profile: "markdown", path: "review/SKILL.md" },
+    };
+    const compiled = compileProducerDeclaration({
+      declaration: declarationWithDiscovery,
+      sourceFiles: sourceFiles(),
+    });
+    expect(compiled.status).toBe("ok");
+    if (compiled.status !== "ok") return;
+    const review = compiled.value.release.items.find((item) => item.id === "notes.review");
+    expect(review?.name).toBe("Review");
+    expect(review?.nameBasis).toBe("first-heading");
+  });
+
+  it("records the key and file-name bases from source discovery", () => {
+    const REFERENCE = "Plain reference material without a heading.\n";
+    const files = sourceFiles();
+    const first = files[0];
+    if (first === undefined) throw new Error("fixture source missing");
+    files[0] = {
+      ...first,
+      files: { ...first.files, "review/REFERENCE.md": encode(REFERENCE) },
+    };
+    const withKey = declaration() as unknown as Record<string, unknown>;
+    const keyItems = withKey.items as Record<string, unknown>[];
+    keyItems[0] = {
+      ...keyItems[0],
+      supportPaths: ["REFERENCE.md"],
+      sourceDiscovery: { profile: "markdown", path: "review/REFERENCE.md", key: "reference-key" },
+    };
+    const keyed = compileProducerDeclaration({ declaration: withKey, sourceFiles: files });
+    expect(keyed.status).toBe("ok");
+    if (keyed.status !== "ok") return;
+    const keyedItem = keyed.value.release.items.find((item) => item.id === "notes.review");
+    expect(keyedItem?.name).toBe("reference-key");
+    expect(keyedItem?.nameBasis).toBe("key");
+
+    const noKey = declaration() as unknown as Record<string, unknown>;
+    const noKeyItems = noKey.items as Record<string, unknown>[];
+    noKeyItems[0] = {
+      ...noKeyItems[0],
+      supportPaths: ["REFERENCE.md"],
+      sourceDiscovery: { profile: "markdown", path: "review/REFERENCE.md" },
+    };
+    const compiled = compileProducerDeclaration({ declaration: noKey, sourceFiles: files });
+    expect(compiled.status).toBe("ok");
+    if (compiled.status !== "ok") return;
+    const review = compiled.value.release.items.find((item) => item.id === "notes.review");
+    expect(review?.name).toBe("REFERENCE.md");
+    expect(review?.nameBasis).toBe("file-name");
+  });
+
+  it("refuses a source licence outside the SPDX license list", () => {
+    const bad = declaration() as unknown as {
+      sources: { license: string }[];
+    };
+    const first = bad.sources[0];
+    if (first === undefined) throw new Error("fixture source missing");
+    first.license = "not-a-real-license";
+    const checked = checkProducerDeclaration(bad);
+    expect(checked.status).toBe("refused");
+    if (checked.status !== "refused") return;
+    expect(checked.diagnostics[0]?.path).toBe("/sources/0/license");
+  });
+
+  it("accepts SPDX expressions over the embedded license list", () => {
+    const expression = declaration() as unknown as {
+      sources: { license: string }[];
+    };
+    const first = expression.sources[0];
+    if (first === undefined) throw new Error("fixture source missing");
+    first.license = "MIT OR Apache-2.0";
+    expect(checkProducerDeclaration(expression).status).toBe("ok");
+    first.license = "(MIT OR Apache-2.0) AND MIT";
+    expect(checkProducerDeclaration(expression).status).toBe("ok");
+    first.license = "Apache-2.0 WITH LLVM-exception";
+    expect(checkProducerDeclaration(expression).status).toBe("ok");
+    first.license = "LicenseRef-Personal";
+    expect(checkProducerDeclaration(expression).status).toBe("ok");
+  });
+
+  it("refuses a pinned root NOTICE file that no item carries", () => {
+    const files = sourceFiles();
+    const first = files[0];
+    if (first === undefined) throw new Error("fixture source missing");
+    files[0] = {
+      ...first,
+      files: { ...first.files, "NOTICE.md": encode("# Upstream notices\n") },
+    };
+    const compiled = compileProducerDeclaration({ declaration: declaration(), sourceFiles: files });
+    expect(compiled.status).toBe("refused");
+    if (compiled.status !== "refused") return;
+    expect(compiled.diagnostics[0]?.message).toContain("NOTICE.md");
+  });
+
+  it("accepts a snapshot whose root NOTICE file is carried", () => {
+    const withNotice = declaration() as unknown as Record<string, unknown>;
+    const items = withNotice.items as Record<string, unknown>[];
+    items[0] = {
+      ...items[0],
+      skillPath: "review/SKILL.md",
+      supportPaths: ["NOTICE.md"],
+    };
+    const files = sourceFiles();
+    const first = files[0];
+    if (first === undefined) throw new Error("fixture source missing");
+    files[0] = {
+      ...first,
+      files: { ...first.files, "review/NOTICE.md": encode("# Upstream notices\n") },
+    };
+    const compiled = compileProducerDeclaration({ declaration: withNotice, sourceFiles: files });
+    expect(compiled.status).toBe("ok");
+    if (compiled.status !== "ok") return;
+    const review = compiled.value.release.items.find((item) => item.id === "notes.review");
+    expect(
+      (review?.materials as unknown as Record<string, unknown>[]).some(
+        (member) => member.relPath === "NOTICE.md",
+      ),
+    ).toBe(true);
+  });
+});
+
+it("publishes the declared label as the publisher-level display name", () => {
+  const compiled = compileProducerDeclaration({
+    declaration: declaration(),
+    sourceFiles: sourceFiles(),
+  });
+  expect(compiled.status).toBe("ok");
+  if (compiled.status !== "ok") return;
+  const review = compiled.value.release.items.find((item) => item.id === "notes.review");
+  expect(review?.name).toBe("Review");
+  expect(review?.nameBasis).toBe("publisher");
+  expect(review?.descriptionBasis).toBe("publisher");
 });

@@ -149,7 +149,7 @@
     "produce:ecc": "npm run build:dist && node tools/produce-upstream-inputs.mjs ecc",
     "produce:superpowers": "npm run build:dist && node tools/produce-upstream-inputs.mjs superpowers",
     "produce:mattpocock": "npm run build:dist && node tools/produce-upstream-inputs.mjs mattpocock",
-    "verify": "npm run build:dist && npm run typecheck && npm run lint && npm run check:materials && npm test && npm run verify:workflow-action-pins && npm run check:baseline-schemas && npm run check:contract-fixtures",
+    "verify": "npm run build:dist && npm run typecheck && npm run lint && npm run check:materials && npm test && npm run verify:workflow-action-pins && npm run check:baseline-schemas && npm run check:contract-fixtures && npm run check:spdx-data",
     "generate:catalog-index": "node tools/generate-catalog-index.mjs",
     "generate:catalog-collections": "node tools/generate-catalog-collections.mjs",
     "generate:catalog-qualification": "node tools/generate-catalog-qualification.mjs",
@@ -175,7 +175,8 @@
     "prepare:release": "npm run build:dist && node tools/prepare-release.mjs",
     "generate:contract-fixtures": "node tools/generate-contract-fixtures.mjs",
     "check:contract-fixtures": "node tools/generate-contract-fixtures.mjs --check",
-    "check:scan-fixtures": "node tools/check-pinned-scan-fixtures.mjs"
+    "check:scan-fixtures": "node tools/check-pinned-scan-fixtures.mjs",
+    "check:spdx-data": "node tools/generate-spdx-data.mjs --check"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.1",

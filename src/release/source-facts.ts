@@ -21,8 +21,15 @@ export interface SourceDiscovery {
   /** Native registration key, never the identity of an individual MCP tool. */
   readonly key?: string;
 }
+/** Which fallback level produced a display value; recorded as the published basis. */
+export type SourceFieldBasis = "authored" | "first-heading" | "key" | "file-name";
 export type SourceField =
-  | { readonly state: "authored"; readonly value: string; readonly locator: string }
+  | {
+      readonly state: "authored";
+      readonly value: string;
+      readonly locator: string;
+      readonly basis: SourceFieldBasis;
+    }
   | { readonly state: "absent" | "invalid"; readonly required: boolean; readonly locator: string };
 export interface SourceFacts {
   readonly profile: string;
@@ -170,7 +177,12 @@ export function extractSourceFacts(input: {
       });
       return { state: "invalid", required, locator };
     }
-    return { state: "authored", value, locator };
+    return {
+      state: "authored",
+      value,
+      locator,
+      basis: key === "name" && nameLocator === "markdown.heading[1]" ? "first-heading" : "authored",
+    };
   };
   try {
     if (!profiles.has(input.profile)) status = "unsupported";

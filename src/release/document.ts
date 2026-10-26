@@ -23,6 +23,7 @@ import {
 import { checkInputSpec } from "./inputs.js";
 import { assertStrictValues, canonicalJson } from "./json.js";
 import { sha256Hex } from "./sha256.js";
+import { isSpdxLicenseId } from "./spdx.js";
 import { EXACT_VERSION } from "./version.js";
 
 /** The fixed member prefix of a Catalog package archive. */
@@ -53,8 +54,7 @@ const encoder = new TextEncoder();
 export const BEHAVIOUR_REL_PATH = "aih-behaviour.json" as const;
 /** Release 1.6 package folder holding one item's behaviour file. */
 export const itemPackageFolder = (itemId: string): string => `release/items/${itemId}`;
-/** SPDX license identifier form, shared with the producer declaration source license. */
-const SPDX_ID = /^[A-Za-z0-9][A-Za-z0-9.+-]{0,63}$/;
+/** SPDX licence validation over the embedded SPDX License List. */
 /** Closed hook placeholder list; anything else fails the build. */
 const HOOK_PLACEHOLDER = /^\{(projectDir|homeDir|itemDir|pluginRoot)\}$/;
 /** Shape of a display name that is really a path; names are never paths. */
@@ -1502,7 +1502,7 @@ function checkRelease16Fields(d: Diagnostics, value: Record<string, unknown>): v
   if (publishesIdentity) {
     (Array.isArray(value.sources) ? value.sources : []).forEach((source, index) => {
       if (!isRecord(source)) return;
-      if (typeof source.license !== "string" || !SPDX_ID.test(source.license)) {
+      if (typeof source.license !== "string" || !isSpdxLicenseId(source.license)) {
         d.add(
           "missing-license",
           `/sources/${index}/license`,
@@ -1641,7 +1641,7 @@ export function checkReleaseDocument(
       }
       if (
         source.license !== undefined &&
-        (typeof source.license !== "string" || !SPDX_ID.test(source.license))
+        (typeof source.license !== "string" || !isSpdxLicenseId(source.license))
       ) {
         d.add("invalid-license", `${at}/license`, "Expected an SPDX license identifier.");
       }

@@ -163,7 +163,11 @@ for (const family of ["extensions", "superpowers", "anthropic"]) {
     assert.equal(skill.description,"",skill.id+" must not maintain a second purpose");
     const source = records.find(source=>source.source===skill.source);
     const facts = extractSourceFacts({...skill.sourceDiscovery,revision:source.revision,bytes:source.files[skill.sourceDiscovery.path]});
-    assert.deepEqual(item.metadata.sourceFacts,facts);
+    // Stored source facts omit the producer's basis discriminator for byte-stable
+    // releases; compare the stored shape on both sides.
+    const stripBasis = (field) => field && field.state === "authored" ? (({ basis, ...rest }) => rest)(field) : field;
+    const comparable = { ...facts, name: stripBasis(facts.name), description: stripBasis(facts.description) };
+    assert.deepEqual(item.metadata.sourceFacts,comparable);
   }
   const selected = skills[0], selectedSource = records.find(source=>source.source===selected.source);
   const nextFiles = {...selectedSource.files,[selected.sourceDiscovery.path]:new TextEncoder().encode("---\\nname: "+selected.sourceDiscovery.path.split("/").at(-2)+"\\ndescription: Refreshed shared source purpose.\\n---\\nSource remains data.")};
