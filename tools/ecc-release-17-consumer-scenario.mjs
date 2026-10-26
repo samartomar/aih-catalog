@@ -183,10 +183,16 @@ await case_("collapsed MCP copies keep the union of dependencies and the licence
   // refused until it admits user scope; the shipped release-ecc.json Codex items stay that route.
   const user = resolveSelections({
     releases: { [release.sha256]: release },
-    roots: [{ releaseSha256: release.sha256, itemId: "ecc.mcp.github", scope: "user" }],
+    roots: [{ releaseSha256: release.sha256, itemId: "ecc.mcp.github", scope: "user", configuration: {} }],
     skips: [],
   });
   assert.equal(user.status, "refused");
+  // Refused for the notice's scope: the server's own dependency on ecc.notices.
+  const at = `/releases/${release.sha256}/items/${release.items.findIndex((entry) => entry.id === "ecc.mcp.github")}/dependencies/requires/`;
+  const scoped = user.diagnostics.filter((entry) => entry.message === "Item does not admit this scope.");
+  assert.equal(scoped.length, 1, JSON.stringify(user.diagnostics));
+  assert.ok(scoped[0].path.startsWith(at) && scoped[0].path.endsWith("/scope"), scoped[0].path);
+  assert.equal(item("ecc.mcp.github").dependencies.requires[Number(scoped[0].path.slice(at.length).split("/")[0])].itemId, "ecc.notices");
   assert.deepEqual(item("ecc.notices").scopes, ["project"]);
   const github = item("ecc.mcp.github");
   assert.deepEqual(github.payload.env, { GITHUB_PERSONAL_ACCESS_TOKEN: { input: "GITHUB_PERSONAL_ACCESS_TOKEN" } });
