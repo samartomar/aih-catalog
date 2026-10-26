@@ -82,8 +82,9 @@ await case_("it is labelled unbound and unauthenticated, and release readers sti
   assert.equal(installed.valid, false);
   const archiveBytes = readFileSync(process.argv[2]);
   const archive = { url: "https://example.invalid/catalog.tgz", sha256: sha256(archiveBytes), byteLength: archiveBytes.length };
-  const resolved = await resolveRelease({ archive, release: exportName }, { fetch: async () => new Response(archiveBytes) });
-  assert.equal(resolved.valid, false);
+  // Refused as a request, before anything is fetched: prepared content is not a release name.
+  const resolved = await resolveRelease({ archive, release: exportName }, { fetch: async () => { throw new Error("fetched"); } });
+  assert.deepEqual(reasons(resolved), ["invalid-request"]);
 });
 
 await case_("a saved choice re-reads pinned to its exact content digest", async () => {
