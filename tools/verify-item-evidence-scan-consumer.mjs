@@ -128,12 +128,22 @@ const sourceFiles = (overrides = {}) => [{
 }];
 
 const results = [];
+const record = (name, status, error) =>
+  results.push({ name, status, ...(error === undefined ? {} : { error }) });
 const case_ = (name, fn) => {
   try {
     fn();
-    results.push({ name, status: "pass" });
+    record(name, "pass");
   } catch (error) {
-    results.push({ name, status: "fail", error: String(error && error.message ? error.message : error) });
+    record(name, "fail", String(error && error.message ? error.message : error));
+  }
+};
+const asyncCase_ = async (name, fn) => {
+  try {
+    await fn();
+    record(name, "pass");
+  } catch (error) {
+    record(name, "fail", String(error && error.message ? error.message : error));
   }
 };
 
@@ -252,7 +262,7 @@ const main = async () => {
   // 4. A real local assessment covers the descriptor and verifies same.
   const baseAssessment = await assess(baseDescriptor, base.compiled.materials);
   let baseRecord;
-  try {
+  await asyncCase_("Scan item-record verification accepts the mapped descriptor", async () => {
     baseRecord = await recordItem(baseAssessment, baseDescriptor);
     assert.equal(baseRecord.schema, "urn:aihq:scan:item-record:1.0.0");
     assert.equal(baseRecord.coverage, "matched", JSON.stringify(baseRecord.materials));
@@ -262,10 +272,7 @@ const main = async () => {
     assert.equal(native.outcome, "succeeded");
     assert.equal(native.itemCoverage, "covered");
     assert.equal(await verifyItemRecord(baseRecord, baseAssessment, baseDescriptor), "same");
-    results.push({ name: "Scan item-record verification accepts the mapped descriptor", status: "pass" });
-  } catch (error) {
-    results.push({ name: "Scan item-record verification accepts the mapped descriptor", status: "fail", error: String(error && error.message ? error.message : error) });
-  }
+  });
 
   // 5. An assessment of old declarations never covers the changed item.
   const changed = [
@@ -273,7 +280,7 @@ const main = async () => {
     ["dependencies", { requires: [{ itemId: "notes.mcp" }] }],
   ];
   for (const [label, overrides] of changed) {
-    try {
+    await asyncCase_(\`old assessment never covers a \${label}-only change\`, async () => {
       const variant = checked(label, overrides);
       const variantDescriptor = descriptorFor(variant.release, "notes.review");
       assert.equal(variantDescriptor.contentSha256, baseDescriptor.contentSha256, \`\${label}: content identity unchanged\`);
@@ -282,12 +289,9 @@ const main = async () => {
       assert.equal(derived.coverage, "mismatched", \`\${label}: old capture never matches changed declarations\`);
       const verdict = await verifyItemRecord(baseRecord, baseAssessment, variantDescriptor);
       assert.ok(verdict !== "same", \`\${label}: old assessment must never verify same, got \${verdict}\`);
-      results.push({ name: \`old assessment never covers a \${label}-only change\`, status: "pass" });
-    } catch (error) {
-      results.push({ name: \`old assessment never covers a \${label}-only change\`, status: "fail", error: String(error && error.message ? error.message : error) });
-    }
+    });
   }
-  try {
+  await asyncCase_("old assessment never covers an executable-only change", async () => {
     const executableVariant = checked("executable", {}, { "review/SKILL.md": 0o755 });
     const executableDescriptor = descriptorFor(executableVariant.release, "notes.review");
     assert.equal(executableDescriptor.contentSha256, baseDescriptor.contentSha256);
@@ -299,13 +303,10 @@ const main = async () => {
     assert.equal(derived.materials.find((member) => member.path.endsWith("/SKILL.md")).executableComparison, "differs");
     const verdict = await verifyItemRecord(baseRecord, baseAssessment, executableDescriptor);
     assert.ok(verdict !== "same", \`executable: old assessment must never verify same, got \${verdict}\`);
-    results.push({ name: "old assessment never covers an executable-only change", status: "pass" });
-  } catch (error) {
-    results.push({ name: "old assessment never covers an executable-only change", status: "fail", error: String(error && error.message ? error.message : error) });
-  }
+  });
 
   // 6. A changed release stays verifiable against its own fresh assessment.
-  try {
+  await asyncCase_("changed release verifies against its own assessment", async () => {
     const variant = checked("payload-fresh", changed[0][1]);
     const variantDescriptor = descriptorFor(variant.release, "notes.review");
     const variantAssessment = await assess(variantDescriptor, variant.compiled.materials);
@@ -314,10 +315,7 @@ const main = async () => {
     assert.equal(await verifyItemRecord(variantRecord, variantAssessment, variantDescriptor), "same");
     const cross = await verifyItemRecord(baseRecord, baseAssessment, variantDescriptor);
     assert.ok(cross !== "same", "cross-check: base record never verifies the changed item");
-    results.push({ name: "changed release verifies against its own assessment", status: "pass" });
-  } catch (error) {
-    results.push({ name: "changed release verifies against its own assessment", status: "fail", error: String(error && error.message ? error.message : error) });
-  }
+  });
 
   console.log(JSON.stringify({ results }, null, 1));
 };
