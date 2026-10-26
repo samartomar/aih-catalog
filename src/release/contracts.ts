@@ -1036,6 +1036,147 @@ export type CheckExactSourceIdentityResult =
     }
   | { readonly valid: false; readonly diagnostics: readonly CatalogDiagnostic[] };
 
+/**
+ * One advertised ref of a Git remote, as `git ls-remote` reports it: the full
+ * refname and its object id. Annotated tags also advertise a
+ * `<refname>^{}` entry whose id is the tagged object peeled to a commit.
+ */
+export interface GitRemoteRef {
+  readonly name: string;
+  readonly oid: string;
+}
+
+/**
+ * One entry of a commit's recursive tree listing, as `git ls-tree -r -t`
+ * reports it. `mode` is the six-digit octal git mode; `type` is `tree`,
+ * `blob` or `commit` (a submodule gitlink).
+ */
+export interface GitTreeEntry {
+  readonly mode: string;
+  readonly type: "tree" | "blob" | "commit";
+  readonly oid: string;
+  readonly path: string;
+}
+
+/**
+ * One commit fetched at an exact id by a {@link GitRemoteTransport}. The
+ * caller verifies the commit bytes hash to the requested id, walks
+ * {@link GitAcquiredCommit.entries} under its own bounds and verifies every
+ * blob through {@link GitAcquiredCommit.readBlob}; a transport that returns
+ * mismatched objects fails the caller's checks, never the contract.
+ */
+export interface GitAcquiredCommit {
+  /** The raw commit object; `sha1("commit " + len + "\0" + bytes)` must equal the requested id. */
+  readonly commitBytes: Uint8Array;
+  /** The complete recursive listing of the commit's tree, including tree entries. */
+  readonly entries: readonly GitTreeEntry[];
+  /**
+   * Every blob of the tree keyed by its object id, read with bounded output
+   * while the transport's acquisition context is alive; the caller verifies
+   * each blob against its id and the tree entry that names it.
+   */
+  readonly blobs: ReadonlyMap<string, Uint8Array>;
+}
+
+/**
+ * The transport behind GitHub ref resolution and exact-commit acquisition.
+ * Implementations talk to one named repository over HTTPS with bounded output
+ * and throw on any failure; the default transport shells out to `git` with
+ * containment. Tests substitute a fixture transport, so every behavior stays
+ * provable without live network. Acquired bytes are data: nothing fetched
+ * through this seam is ever executed.
+ */
+export interface GitRemoteTransport {
+  /** Advertises `refs/heads/*` and `refs/tags/*` of the named repository. */
+  listRefs(repository: string): Promise<readonly GitRemoteRef[]>;
+  /**
+   * Every commit reachable from any branch or tag of the named repository,
+   * fetched with complete ancestry (a shallow or partial answer proves nothing).
+   * Throws when the closure cannot be enumerated.
+   */
+  branchTagClosure(repository: string): Promise<readonly string[]>;
+  /** Fetches one exact commit with its tree; throws when the commit is absent. */
+  fetchCommit(repository: string, commit: string): Promise<GitAcquiredCommit>;
+}
+
+/** Bounds for Git ref resolution and snapshot acquisition. */
+export interface GitSnapshotBounds {
+  /**
+   * Maximum number of captured source entries; the published default and
+   * ceiling follow Scan's capture limit `maxSourceEntries`.
+   */
+  readonly maxSourceEntries?: number;
+  /**
+   * Maximum total captured source bytes; the published default and ceiling
+   * follow Scan's capture limit `maxSourceBytes`.
+   */
+  readonly maxSourceBytes?: number;
+}
+
+/** Host controls for {@link resolveGitRef} and {@link acquireGitSnapshot}. */
+export interface GitResolutionControls extends GitSnapshotBounds {
+  readonly signal?: AbortSignal;
+  /** Total deadline for the operation, 1–60,000 ms (default 60,000). */
+  readonly timeoutMs?: number;
+  /** Transport override; defaults to the contained `git` command transport. */
+  readonly transport?: GitRemoteTransport;
+}
+
+/** A GitHub repository at one branch or tag, as discovery data names it. */
+export interface GitRefResolutionRequest {
+  /** One valid https repository URL, for example https://github.com/owner/repository. */
+  readonly repository: string;
+  /** One branch or tag name, without the refs/ prefix. */
+  readonly ref: string;
+}
+
+/**
+ * The result of resolving one GitHub ref. `reachable: false` is a refusal
+ * (a fork-only commit GitHub serves under the parent's name). When
+ * reachability cannot be checked the resolution still succeeds with
+ * `reachable: "unchecked"`, and `installable: false` records that the source
+ * cannot be made installable until it is checked.
+ */
+export interface ResolveGitRefResult {
+  readonly valid: boolean;
+  /** The exact 40-character commit, present exactly when resolution succeeded. */
+  readonly commit?: string;
+  /** Present exactly when a commit was resolved. */
+  readonly reachable?: boolean | "unchecked";
+  /** The exact git source identity; present exactly when `commit` and `reachable` are known. */
+  readonly identity?: ExactSourceIdentity;
+  /** True exactly when `reachable` is `true`. */
+  readonly installable: boolean;
+  readonly diagnostics: readonly CatalogDiagnostic[];
+}
+
+/**
+ * A bounded snapshot of one exact commit, shaped for
+ * `prepareSourceRefresh`'s supplied source files: the caller adds its
+ * declared source id and passes the object through. `captureSha256` is the
+ * SHA-256 of UTF-8 lines `path\tsha256\n`, one per file, sorted bytewise.
+ */
+export interface GitAcquiredSnapshot {
+  readonly repository: string;
+  /** The exact 40-character commit the bytes were acquired at. */
+  readonly revision: string;
+  /** Captured file bytes keyed by repository-relative POSIX path. */
+  readonly files: Readonly<Record<string, Uint8Array>>;
+  /** Verified regular-file modes (0o644 or 0o755) keyed by path. */
+  readonly modes: Readonly<Record<string, number>>;
+  readonly entryCount: number;
+  readonly byteLength: number;
+  readonly captureSha256: string;
+}
+
+export type AcquireGitSnapshotResult =
+  | {
+      readonly valid: true;
+      readonly snapshot: GitAcquiredSnapshot;
+      readonly diagnostics: readonly [];
+    }
+  | { readonly valid: false; readonly diagnostics: readonly CatalogDiagnostic[] };
+
 export interface RecipeReference {
   readonly source: MaterialSource;
   readonly path: string;
