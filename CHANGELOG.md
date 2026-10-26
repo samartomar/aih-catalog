@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- ECC release 1.7.0 content (samartomar/aih-catalog#136): `ecc.notices` now admits
+  user scope. Its recipe map keeps the shipped project recipe for `claude-code`,
+  `copilot-vscode` and `kiro-ide`, and adds for `codex` the same delivery moved into the
+  user home (`release/recipes/ecc.notices.user.json`, owned by
+  `tools/generate-ecc-release-17.mjs`). A user-scope selection of a collapsed MCP server
+  now resolves with its notice, where it was refused before. Content and behaviour
+  identities are unchanged.
+
 - Add ECC as prepared release 1.7.0 content for samartomar/aih-catalog#136
   (`@aihq/catalog/release-ecc.content.json`, with its frozen content inventory): 663
   tool-neutral items from the shipped ECC release, framework `{ id: "ecc", name: "ECC",
@@ -17,8 +25,7 @@
   copies' dependencies, so each keeps the notice dependency the Codex copies had
   dropped; the Copilot `api-design` copy collapses into `ecc.skill.api-design`. Renamed
   copies are superseded in their collapsed copy and, by name and source path, in the
-  shipped `release-ecc.json`. Because `ecc.notices` is project-only, a user-scope
-  selection of a collapsed server is refused for now. Every
+  shipped `release-ecc.json`. Every
   earlier ECC item id is a survivor or retired with a reason. The content passes the
   restructuring comparison; no baseline is bound, so it is listed in
   `preparedReleaseContent`, not `releaseInventory`. The Kiro-edition items survive

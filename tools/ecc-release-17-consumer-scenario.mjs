@@ -13,6 +13,7 @@ import { fileURLToPath } from "node:url";
 import { preparedReleaseContent, releaseInventory } from "@aihq/catalog/contracts";
 import { compareRestructuring } from "@aihq/catalog/producer";
 import {
+  configureItem,
   createContentInventory,
   itemEvidenceDescriptor,
   readRelease,
@@ -179,24 +180,49 @@ await case_("collapsed MCP copies keep the union of dependencies and the licence
     assert.deepEqual(survivor.scopes, ["project", "user"]);
     assert.ok(survivor.dependencies.requires.some((ref) => ref.itemId === "ecc.notices"));
   }
-  // The notice is delivered to the project only, so a user-scope (Codex) selection is
-  // refused until it admits user scope; the shipped release-ecc.json Codex items stay that route.
-  const user = resolveSelections({
-    releases: { [release.sha256]: release },
-    roots: [{ releaseSha256: release.sha256, itemId: "ecc.mcp.github", scope: "user", configuration: {} }],
-    skips: [],
-  });
-  assert.equal(user.status, "refused");
-  // Refused for the notice's scope: the server's own dependency on ecc.notices.
-  const at = `/releases/${release.sha256}/items/${release.items.findIndex((entry) => entry.id === "ecc.mcp.github")}/dependencies/requires/`;
-  const scoped = user.diagnostics.filter((entry) => entry.message === "Item does not admit this scope.");
-  assert.equal(scoped.length, 1, JSON.stringify(user.diagnostics));
-  assert.ok(scoped[0].path.startsWith(at) && scoped[0].path.endsWith("/scope"), scoped[0].path);
-  assert.equal(item("ecc.mcp.github").dependencies.requires[Number(scoped[0].path.slice(at.length).split("/")[0])].itemId, "ecc.notices");
-  assert.deepEqual(item("ecc.notices").scopes, ["project"]);
   const github = item("ecc.mcp.github");
   assert.deepEqual(github.payload.env, { GITHUB_PERSONAL_ACCESS_TOKEN: { input: "GITHUB_PERSONAL_ACCESS_TOKEN" } });
   assert.equal(github.requirements.inputs.GITHUB_PERSONAL_ACCESS_TOKEN.sensitive, true);
+});
+
+await case_("a user-scope Codex server selection resolves with its notice; the project route is unchanged", () => {
+  const resolveRoot = (itemId, scope) =>
+    resolveSelections({
+      releases: { [release.sha256]: release },
+      roots: [{ releaseSha256: release.sha256, itemId, scope, configuration: {} }],
+      skips: [],
+    });
+  const scoped = (result) => result.value.selections.map((selection) => `${selection.item.itemId}@${selection.scope}`).sort();
+  // Formerly refused: the notice the Codex copy dropped now has user-scope delivery.
+  const user = resolveRoot("ecc.mcp.github", "user");
+  assert.equal(user.status, "ok", JSON.stringify(user.diagnostics));
+  assert.deepEqual(scoped(user), ["ecc.mcp.github@user", "ecc.notices@user"]);
+  const project = resolveRoot("ecc.mcp.github", "project");
+  assert.equal(project.status, "ok", JSON.stringify(project.diagnostics));
+  assert.deepEqual(scoped(project), ["ecc.mcp.github@project", "ecc.notices@project"]);
+  // Each client's notice recipe delivers the same four materials in its own scope.
+  const notices = item("ecc.notices");
+  assert.deepEqual(notices.scopes, ["project", "user"]);
+  assert.deepEqual(Object.keys(notices.recipes), ["claude-code", "codex", "copilot-vscode", "kiro-ide"]);
+  const recipe = (clientId) => JSON.parse(member(notices.recipes[clientId].path).toString("utf8"));
+  const materials = contentOf(notices).map((entry) => entry.id).sort();
+  for (const clientId of Object.keys(notices.recipes)) {
+    const configured = configureItem({ release, itemId: "ecc.notices", configuration: {}, materialSource: { kind: "local", input: "catalog" }, clientId });
+    assert.equal(configured.valid, true, `${clientId}: ${JSON.stringify(configured.diagnostics)}`);
+    assert.deepEqual(configured.selection.recipe.reference.materials.map((entry) => entry.id).sort(), materials, clientId);
+    const scope = clientId === "codex" ? "user" : "project";
+    const root = clientId === "codex" ? "userHome" : "project";
+    assert.deepEqual(recipe(clientId).targets, [scope], clientId);
+    for (const operation of recipe(clientId).operations) {
+      assert.equal(operation.scope, scope, clientId);
+      assert.equal(operation.target.root, root, clientId);
+    }
+  }
+  // The project clients keep the exact notice recipe the shipped release delivers.
+  for (const clientId of ["claude-code", "copilot-vscode", "kiro-ide"])
+    assert.deepEqual(notices.recipes[clientId].sha256, earlier.release.items.find((entry) => entry.id === "ecc.notices").recipe.sha256);
+  const missing = configureItem({ release, itemId: "ecc.notices", configuration: {}, materialSource: { kind: "local", input: "catalog" }, clientId: "cursor" });
+  assert.equal(missing.diagnostics[0].reason, "client-unavailable");
 });
 
 await case_("every ECC MCP server has its own behaviour identity", () => {
