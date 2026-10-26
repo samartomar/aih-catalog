@@ -245,10 +245,16 @@ export function checkCandidateFiles(
     );
     const problems: string[] = [];
     for (const item of release.items) {
-      const members = [
+      // Release 1.7 items carry exactly one of a single recipe or a per-client
+      // transition map; every referenced recipe member must match the package bytes.
+      const recipeMembers = [
         ...(item.recipe === undefined ? [] : [item.recipe]),
-        ...item.materials,
+        ...(item.recipes === undefined ? [] : Object.values(item.recipes)),
       ] as unknown as Record<string, unknown>[];
+      const members = [...recipeMembers, ...item.materials] as unknown as Record<
+        string,
+        unknown
+      >[];
       for (const member of members) {
         const path = String(memberPackagePath(member));
         const bytes = files.get(path);
@@ -289,7 +295,14 @@ export function checkCandidateFiles(
   for (const { items, release } of releases) {
     for (const member of baselineMembers(release)) declared.add(member.path);
     for (const item of items) {
-      for (const member of [asRecord(item.recipe), ...(item.materials as Json[]).map(asRecord)]) {
+      const recipeMembers = [
+        ...(item.recipe === undefined ? [] : [asRecord(item.recipe as Json)]),
+        ...((item.recipes === undefined
+          ? []
+          : (Object.values(asRecord(item.recipes as Json)) as Json[])) as Json[]).map(asRecord),
+      ];
+      for (const member of [...recipeMembers, ...(item.materials as Json[]).map(asRecord)]) {
+        if (member === undefined || member === null) continue;
         declared.add(String(memberPackagePath(member as unknown as Record<string, unknown>)));
       }
     }
@@ -333,6 +346,9 @@ export function checkCandidateFiles(
         if (origin?.kind !== "git") continue;
         const prefix = `release/materials/${origin.repository.replace(/^https:\/\//, "")}/${origin.revision}/`;
         for (const member of item.materials) {
+          // The publisher-synthesised behaviour file lives under the item's own
+          // package folder (release 1.6/1.7); provenance pins the content bytes.
+          if ((member as { role?: string }).role === "behaviour") continue;
           if (
             !String(memberPackagePath(member as unknown as Record<string, unknown>)).startsWith(
               prefix,

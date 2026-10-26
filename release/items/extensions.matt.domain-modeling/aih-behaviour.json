@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"extensions.notices"}]},"executable":{"ADR-FORMAT.md":"unknown","GLOSSARY-FORMAT.md":"unknown","LICENSE":"unknown","SKILL.md":"unknown","agents/openai.yaml":"unknown"},"kind":"skill","payload":{"dirName":"domain-modeling","invocation":"model-allowed","invocationBasis":"default"},"requirements":{"inputs":{}}}

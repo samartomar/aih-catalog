@@ -400,7 +400,15 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
       );
     }
     for (const item of (carriedDocument.items as Json[]).map(asRecord)) {
-      for (const member of [asRecord(item.recipe), ...(item.materials as Json[]).map(asRecord)]) {
+      // Release 1.7 items carry exactly one of a single recipe or a per-client
+      // transition map; every referenced recipe member follows the candidate.
+      const recipeMembers = [
+        ...(item.recipe === undefined ? [] : [asRecord(item.recipe)]),
+        ...(item.recipes === undefined
+          ? []
+          : (Object.values(item.recipes as Record<string, Json>) as unknown as Record_[])),
+      ];
+      for (const member of [...recipeMembers, ...(item.materials as Json[]).map(asRecord)]) {
         const path = packagePathOf(member);
         put(path, files.get(path) as Buffer);
       }

@@ -202,6 +202,53 @@ before claiming that removal journey. Client invocation remains a separate
 ordinary-use acceptance task, requiring installed clients, compatible tools,
 authentication and explicit model-call authority.
 
+## Release 1.7.0 prepared content (samartomar/aih-catalog#145)
+
+The Extensions framework also ships its release 1.7.0 **prepared content**, awaiting
+its baseline assessment like Project basics:
+`release/release-extensions.content.json` with the frozen inventory
+`release/baselines/extensions/content-inventory.json`, both exported from the
+package and listed in `preparedReleaseContent`. `readRelease` refuses the document
+until a baseline binds; `readReleaseContent` reads it.
+
+The build (`src/release/extensions-transition.ts`, rendered by
+`tools/generate-extensions-17-release.mjs`) projects the committed release 1.2
+copies to release 1.6 and collapses them through the public transition compiler:
+
+- One tool-neutral item per piece of content: 57 items. The per-tool copies are
+  superseded by hash; the tools survive only as `hints.tools` display hints and a
+  per-client transition recipe map selected by `clientId`.
+- Matt's 27 skills name `https://github.com/mattpocock/skills` as `source` and
+  `https://github.com/samartomar/aih-extensions` as `selectedBy`, with no
+  `derivedFrom`: Matt wrote them, AIH-Extensions selected them, they do not read
+  as forks. Each of the 27 frozen-default copies is superseded by
+  `match: "name+sourcePath"` against the frozen default's recorded digest.
+- Matt's buckets are sets: `engineering` and `productivity` are `pre-ticked`,
+  `in-progress` and `specialists` are `listed`, `misc` and `deprecated` are
+  `on-request`. The pinned revision carries the engineering and productivity
+  skills; the other four buckets are declared empty at their offer level. The
+  `engineering` set and the complete starting template carry `firstRun` naming
+  `extensions.matt.setup-matt-pocock-skills`.
+- The two starting templates become sets (`extensions.template.specialists`,
+  `extensions.template.complete`); their items retire with no item successor. The
+  complete template offers the three hooks as `optional` members only.
+- The three hook sources fold into their hook items
+  (`extensions.hook.git-guard`, `.skill-guard`, `.lanes-card`): the pinned scripts,
+  the settings reference and the licence become the item's own materials, and the
+  merged recipe keeps the reviewed `hookCommand` input and the Core recipe 1.3 hook
+  group registration.
+- Collapsed survivors keep the union of every copy's dependencies and licence and
+  support materials; conflicting copies fail the build, never a silent pick.
+
+The scripted comparison against the amended expected projection
+(`npm run check:restructuring`) passes for this content before any index entry can
+ship, including the 27 supersessions; see [the restructuring check](RESTRUCTURING.md)
+for the `extensions-content-identities` amendment. The packed public-only consumer
+is `tools/verify-extensions-17-consumer.mjs`; run
+`node tools/generate-extensions-17-release.mjs --check` after any reviewed data edit
+(regeneration is part of `npm run check:materials`). The document claims no
+authenticated assessment; publication, signing and release activation stay blocked.
+
 The separate release is carried unchanged through unrelated source refreshes,
 with only embedded package identity following the candidate. Native fixture
 regeneration retains its existing dedicated behavior. These package inventory,

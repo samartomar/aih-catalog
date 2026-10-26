@@ -36,6 +36,7 @@ const AMENDMENTS = [
   { id: "superpowers-retirements", reason: "The dry run left 10 Superpowers items unmapped. The 9 per-tool plugin bundles and the duplicate skill library are retired with no item successor; upstream plugin routes become nativeRoutes." },
   { id: "superpowers-bootstrap-fallback", reason: "The session bootstrap hook gains a one-line rule as its fallback, an item the dry run did not have; samartomar/aih-catalog#144 names it, so one extra rule is admitted by kind." },
   { id: "mcp-edit-digests", reason: "Each MCP survivor records whether its shipped definition is identical to upstream or edited; an edit is digested as SHA-256 of the canonical JSON {from: upstream, to: shipped} plus LF, in upstream's own encoding." },
+  { id: "extensions-content-identities", reason: "The dry run derived Extensions relPaths from install targets; for 16 of the 57 survivors (the agents, commands, notices, references and nine skills) those derivations are not reproducible from the pinned bytes under the documented rule, and the dry run called its own output proposed. The accepted Extensions build (samartomar/aih-catalog#145) projects the pinned copies to release 1.6 with source-relative material paths and collapses them with the public transition build; the expected Extensions content identities are re-derived from that canonical build, and the expected ids, kinds, purposes, supersessions and retirements are asserted to match the dry run unchanged." },
 ];
 
 // The three Project basics items samartomar/aih-catalog#137 names, the frozen
@@ -89,6 +90,31 @@ for (const framework of ["anthropic", "ecc", "extensions", "superpowers"]) {
     mcpPairs: sorted(mcpSurvivors.filter((item) => item.from.length > 1).map((item) => ({ survivor: item.id, copies: item.from })), (entry) => entry.survivor),
     edits: sorted(edits, (entry) => entry.survivor),
     retired: sorted(retired, (entry) => entry.id),
+  };
+}
+// Extensions: the amended expectation takes each content identity from the canonical
+// accepted build (amendment extensions-content-identities). The build's ids, kinds
+// and purposes must match the dry run's proposed survivors exactly, so the dry run
+// stays the structural authority while the accepted projection supplies the hashes.
+{
+  const { buildExtensions17 } = await import("../dist/release/extensions-transition.js");
+  const built = buildExtensions17({ root });
+  const dryRunItems = new Map(frameworks.extensions.items.map((item) => [item.id, item]));
+  assert.equal(built.release.items.length, dryRunItems.size);
+  frameworks.extensions = {
+    ...frameworks.extensions,
+    items: sorted(
+      built.release.items.map((item) => {
+        const expected = dryRunItems.get(item.id);
+        assert(expected, `The Extensions build carries ${item.id}, which the dry run did not propose`);
+        const payload = item.payload && typeof item.payload === "object" ? item.payload : {};
+        const purpose = "purpose" in payload ? payload.purpose : undefined;
+        assert.equal(item.kind, expected.kind, `Kind drifted for ${item.id}`);
+        assert.equal(purpose ?? undefined, expected.purpose ?? undefined, `Purpose drifted for ${item.id}`);
+        return { id: item.id, kind: item.kind, ...(purpose ? { purpose } : {}), contentSha256: item.contentSha256 };
+      }),
+      (item) => item.id,
+    ),
   };
 }
 // The closing default release: no items, and a durable reason for each of the 46.

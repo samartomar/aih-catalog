@@ -44,7 +44,12 @@ export interface BaseRelease {
 
 const asRecord = (value: Json | undefined): Record_ => value as Record_;
 const memberList = (item: Record_): Record_[] => [
-  asRecord(item.recipe),
+  // Release 1.7 items carry exactly one of a single recipe or a per-client
+  // transition map; collect whichever recipe members the item references.
+  ...(item.recipe === undefined ? [] : [asRecord(item.recipe)]),
+  ...(item.recipes === undefined
+    ? []
+    : (Object.values(item.recipes as Record<string, Json>) as unknown as Record_[])),
   ...(item.materials as Json[]).map(asRecord),
 ];
 /** Release 1.6 extended materials address package members by `packagePath`. */

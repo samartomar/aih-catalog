@@ -47,6 +47,17 @@ with its reason:
 - **mcp-edit-digests:** each MCP survivor records `identical` or `edited`; an edit is
   digested as SHA-256 of the canonical JSON `{"from": upstream, "to": shipped}` plus
   LF, both in upstream's own encoding (`mcpEditsSha256` in `@aihq/catalog/producer`).
+- **extensions-content-identities** (samartomar/aih-catalog#145): the dry run derived
+  Extensions relPaths from install targets; for 16 of the 57 survivors (the agents,
+  commands, notices, references and nine skills) those derivations are not
+  reproducible from the pinned bytes under the documented rule, and the dry run
+  called its own output proposed. The expected Extensions content identities are
+  re-derived from the canonical accepted build, which projects the pinned copies to
+  release 1.6 with source-relative material paths and collapses them with the public
+  transition build. The build's ids, kinds and purposes are asserted to match the dry
+  run's proposed survivors exactly, so the dry run stays the structural authority;
+  supersessions (including the 27 against the frozen default), collapsed pairs and
+  retirements are unchanged.
 
 A framework ticket that changes what its release must contain amends this
 expectation in the same reviewed change, adding an amendment with its reason.

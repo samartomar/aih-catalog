@@ -81,6 +81,15 @@ longer reproduces the accepted context bytes or a text uses a placeholder outsid
 closed list. `node tools/verify-project-basics-consumer.mjs [catalog.tgz]` runs its packed
 public-only consumer. See [Project basics content](docs/PROJECT-BASICS.md).
 
+Extensions release 1.7.0 checks build the Extensions prepared content with
+`node tools/generate-extensions-17-release.mjs --check`, part of `npm run
+check:materials`; regenerate through that script after reviewed data edits. It fails
+when the transition build no longer reproduces the committed content, the frozen
+inventory, the behaviour files or the merged hook recipes. Its scripted comparison
+against the amended expected projection runs in `npm run check:restructuring`.
+`node tools/verify-extensions-17-consumer.mjs [catalog.tgz]` runs its packed
+public-only consumer. See [Extensions content](docs/EXTENSIONS-CONTENT.md#release-170-prepared-content-samartomaraih-catalog145).
+
 `node tools/verify-item-evidence-scan-consumer.mjs <scan.tgz> [catalog.tgz]` installs
 the packed Catalog and an exact packed Scan archive into a disposable consumer and
 maps one compiled release 1.6 item to Scan's item descriptor: `itemEvidenceDescriptor`
