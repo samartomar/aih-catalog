@@ -6,11 +6,13 @@
 //
 //   node tools/check-restructuring.mjs [release.json ...]
 //
-// With no arguments it checks every 1.7.0 release in the package's releaseInventory;
+// With no arguments it checks every 1.7.0 release in the package's releaseInventory
+// and every prepared 1.7.0 content document still awaiting its baseline binding, so
+// a framework's comparison passes before its release and index entry can ship;
 // explicit paths check those documents instead and print each row.
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { RELEASE_SCHEMA_ID_1_7, releaseInventory } from "../dist/release/contracts.js";
+import { preparedReleaseContent, RELEASE_SCHEMA_ID_1_7, releaseInventory } from "../dist/release/contracts.js";
 import { compareRestructuring } from "../dist/release/producer.js";
 import { readReleaseContent } from "../dist/release/reader.js";
 import { createHash } from "node:crypto";
@@ -21,9 +23,15 @@ const manifest = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"))
 const explicit = process.argv.slice(2);
 const targets = explicit.length > 0
   ? explicit.map((path) => resolve(path))
-  : releaseInventory.releases
-      .filter((entry) => entry.schema === RELEASE_SCHEMA_ID_1_7)
-      .map((entry) => resolve(root, manifest.exports[entry.release]));
+  : [
+      ...releaseInventory.releases
+        .filter((entry) => entry.schema === RELEASE_SCHEMA_ID_1_7)
+        .map((entry) => resolve(root, manifest.exports[entry.release])),
+      // Prepared content awaiting its baseline; each moves to releaseInventory once bound.
+      ...preparedReleaseContent
+        .filter((entry) => entry.schema === RELEASE_SCHEMA_ID_1_7)
+        .map((entry) => resolve(root, entry.content)),
+    ];
 let failed = 0;
 for (const path of targets) {
   const bytes = readFileSync(path);

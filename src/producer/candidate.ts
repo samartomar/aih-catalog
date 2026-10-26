@@ -1,6 +1,7 @@
 import type { Json } from "../release/contracts.js";
 /** Release 1.6 extended materials address package members by `packagePath`. */
 import { isRecord } from "../release/document.js";
+import { createContentInventory } from "../release/inventory.js";
 import { canonicalJson } from "../release/json.js";
 import { renderNativeFixture } from "../release/native-fixture-content.js";
 import { listItems, readRelease, readReleaseContent } from "../release/reader.js";
@@ -410,6 +411,16 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
   if (base?.guideDocument !== undefined)
     carryContentDocument(GUIDE_RELEASE_PATH, base.guideDocument);
   for (const [path, document] of base?.contentDocuments ?? []) carryContentDocument(path, document);
+  // Prepared content has no baseline to rebind: it follows the candidate's package
+  // identity with every member unchanged, and its content inventory is frozen again.
+  for (const [path, { document, inventory }] of base?.preparedDocuments ?? []) {
+    carryContentDocument(path, document);
+    const bytes = (out.get(path) as Buffer | undefined) ?? refuse("prepared-missing", path);
+    const frozen = createContentInventory(bytes, { expectedSha256: sha256Hex(bytes) });
+    if (!frozen.valid)
+      return refuse("prepared-invalid", `${path} cannot be frozen after carrying`, { path });
+    put(inventory, Buffer.from(frozen.bytes));
+  }
   if (base !== undefined && base.nativeDocuments.size > 0) {
     // The native-fixture documents pin the package identity inside the bundle, so they are
     // rendered again for this candidate's identity instead of rewriting the embedded field.

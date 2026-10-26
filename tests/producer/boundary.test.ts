@@ -148,6 +148,7 @@ describe("the published package keeps its intended runtime subset", () => {
       "producer/anthropic",
       "docs/ANTHROPIC-CONTENT.md",
       "docs/ANTHROPIC-INVENTORY.md",
+      "docs/PROJECT-BASICS.md",
       "schemas/content-inventory",
       "schemas/scan-baseline",
       "schemas/release-index",
@@ -298,6 +299,9 @@ describe("the published package keeps its intended runtime subset", () => {
       "./fixtures/release-1-7/split-supersession.json",
       "./fixtures/release-1-7/split-supersession-release-1.7.0.json",
       "./restructuring/expected-1.7.0.json",
+      "./release-project-basics.content.json",
+      "./release/baselines/project-basics/content-inventory.json",
+      "./fixtures/release-1-7/project-basics-release-1.7.0.json",
     ]);
     expect(manifest.private).toBe(true);
     expect(manifest.scripts.prepublishOnly).toBe("node tools/refuse-publication.mjs");

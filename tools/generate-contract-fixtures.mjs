@@ -710,6 +710,26 @@ for (const [version, id, context] of [
     release: `@aihq/catalog/${splitPath}`, earlier: { export: "@aihq/catalog/release.json", itemId: "aihq.project-context" },
     survivors: parts.map(([id]) => id),
   }, "The frozen default's project context spread over three survivors by split supersession.");
+  // Project basics: the prepared release 1.7.0 content, unchanged, with a test-only
+  // evidence binding over its shipped content inventory. Not an assessment.
+  const basicsContentPath = "release/release-project-basics.content.json";
+  const basicsInventoryPath = "release/baselines/project-basics/content-inventory.json";
+  const basicsContent = readFileSync(resolve(root, basicsContentPath));
+  const basicsInventory = readFileSync(resolve(root, basicsInventoryPath));
+  const basicsFrozen = createContentInventory(basicsContent, { expectedSha256: sha(basicsContent) });
+  assert(basicsFrozen.valid && Buffer.from(basicsFrozen.bytes).equals(basicsInventory), "Stale Project basics inventory; run node tools/generate-project-basics-release.mjs");
+  const basicsPath = "fixtures/release-1-7/project-basics-release-1.7.0.json";
+  write(basicsPath, { ...JSON.parse(basicsContent.toString("utf8")), baseline: {
+    schema: "urn:aihq:catalog:scan-baseline:1.0.0",
+    inventory: { path: basicsInventoryPath, sha256: sha(basicsInventory), byteLength: basicsInventory.byteLength },
+    scanId: `scan:sha256:${"a".repeat(64)}`,
+    artifact: { sha256: sha(Buffer.from("fixture evidence 1.7\n")), byteLength: 20, location: { kind: "package", path: "fixtures/baseline-evidence.txt" } },
+    scope: { namespace: "package-relative", paths: ["release"], excludedPaths: [] },
+  } });
+  fixtures.push({ name: "project-basics-release-1.7.0", contract: "urn:aihq:catalog:release:1.7.0", version: "1.7.0",
+    export: `@aihq/catalog/${basicsPath}`, schemaExport: "@aihq/catalog/schemas/release/1.7.0.json", reader: "release",
+    provenance: "The Project basics release 1.7.0 content exactly as shipped (router guide, working rules, shared block), with a test-only evidence binding over its shipped content inventory; it claims no authenticated assessment.",
+    expected: { status: "accept" } });
 }
 write("fixtures/manifest.json", { schema: "urn:aihq:catalog:fixture-manifest:1.0.0", package: contractSupport.package, fixtures });
 write("package-support.json", contractSupport);

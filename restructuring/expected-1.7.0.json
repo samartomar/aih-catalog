@@ -19,7 +19,7 @@
   },
   {
    "id": "project-basics-split",
-   "reason": "The dry run kept the project context as one rule. The maintainer split it into three Project basics items (a guide document and two rules). Their ids are named by samartomar/aih-catalog#137, so Project basics is pending and the default's project-context retirement names its replacements there."
+   "reason": "The dry run kept the project context as one rule. The maintainer split it into three Project basics items, named by samartomar/aih-catalog#137: the router, a guide document; the working rules and the shared block, two rules. Each captures one accepted material of the frozen default's project context unchanged, so its content identity is predicted from that material's frozen digest and its item-relative path; each supersedes the project context by split, and the default's project-context retirement names the three."
   },
   {
    "id": "copy-supersession",
@@ -8279,7 +8279,20 @@
     },
     {
      "id": "aihq.project-context",
-     "pending": "samartomar/aih-catalog#137 names the three Project basics items"
+     "replacedBy": [
+      {
+       "framework": "project-basics",
+       "itemId": "project-basics.router"
+      },
+      {
+       "framework": "project-basics",
+       "itemId": "project-basics.shared-block"
+      },
+      {
+       "framework": "project-basics",
+       "itemId": "project-basics.working-rules"
+      }
+     ]
     },
     {
      "id": "aihq.project-context-pointer.agents-md",
@@ -8555,10 +8568,45 @@
    ]
   },
   "project-basics": {
-   "status": "pending",
-   "reason": "samartomar/aih-catalog#137 names the three Project basics items",
-   "items": [],
-   "supersessions": [],
+   "status": "expected",
+   "items": [
+    {
+     "id": "project-basics.router",
+     "kind": "document",
+     "purpose": "guide",
+     "contentSha256": "1097ab454a489738aec8ada96c6c7f9159b6ea8b0befed3adcd59016c9225de0"
+    },
+    {
+     "id": "project-basics.shared-block",
+     "kind": "rule",
+     "contentSha256": "39815db81ed9e82b02bbcfbd10e4c64e5965dade9c257ad314290a966b301184"
+    },
+    {
+     "id": "project-basics.working-rules",
+     "kind": "rule",
+     "contentSha256": "2cfdd20e5868d6688361ecbe5e50e0624f2c5162d54802adf47907594b7b474d"
+    }
+   ],
+   "supersessions": [
+    {
+     "survivor": "project-basics.router",
+     "itemId": "aihq.project-context",
+     "match": "split",
+     "releaseSha256": "0ff699f240ac4c667c1891fe0f0a2629c60af67dfb1d9483405d2bbc45d6f124"
+    },
+    {
+     "survivor": "project-basics.shared-block",
+     "itemId": "aihq.project-context",
+     "match": "split",
+     "releaseSha256": "0ff699f240ac4c667c1891fe0f0a2629c60af67dfb1d9483405d2bbc45d6f124"
+    },
+    {
+     "survivor": "project-basics.working-rules",
+     "itemId": "aihq.project-context",
+     "match": "split",
+     "releaseSha256": "0ff699f240ac4c667c1891fe0f0a2629c60af67dfb1d9483405d2bbc45d6f124"
+    }
+   ],
    "mcpPairs": [],
    "edits": [],
    "retired": []

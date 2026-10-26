@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import type { CatalogRelease } from "../../src/release/contracts.js";
 import { canonicalJson } from "../../src/release/json.js";
@@ -384,5 +386,68 @@ describe("compileTransitionRelease", () => {
         "request-invalid",
       ]);
     }
+  });
+});
+
+describe("compileTransitionRelease placement", () => {
+  const read = (path: string) => {
+    const bytes = encode(
+      `${JSON.stringify(JSON.parse(readFileSync(resolve(import.meta.dirname, "../..", path), "utf8")))}\n`,
+    );
+    const result = readReleaseContent(bytes, { expectedSha256: sha256Hex(bytes) });
+    if (!result.valid) throw new Error(JSON.stringify(result.diagnostics));
+    return result.release;
+  };
+  const copiesRelease = () => read("fixtures/release-1-7/extensions-copies-release-1.6.0.json");
+  const build = (extra: Partial<TransitionItemDeclaration>, kind = "document") => {
+    const release = copiesRelease();
+    return compileTransitionRelease({
+      releases: { [release.sha256]: release },
+      earlier: [],
+      framework: { ...FRAMEWORK, id: "extensions" },
+      package: release.package,
+      items: [
+        {
+          id: "extensions.notices",
+          kind: kind as TransitionItemDeclaration["kind"],
+          role: "supporting",
+          purpose: "notice",
+          copies: [{ releaseSha256: release.sha256, itemId: "extensions.notices" }],
+          ...extra,
+        },
+      ],
+    });
+  };
+
+  it("carries a declared placement in a document's payload, which release 1.6 cannot hold", () => {
+    const result = build({ placement: "project-folder" });
+    expect(result.status, JSON.stringify(result.diagnostics)).toBe("ok");
+    if (result.status !== "ok") return;
+    const [notices] = result.value.release.items;
+    expect(notices?.payload).toMatchObject({ purpose: "notice", placement: "project-folder" });
+    const plain = build({});
+    expect(plain.status === "ok" && plain.value.release.items[0]?.payload).not.toHaveProperty(
+      "placement",
+    );
+  });
+
+  it("refuses a placement on a kind that has none", () => {
+    const release = copiesRelease();
+    const result = compileTransitionRelease({
+      releases: { [release.sha256]: release },
+      earlier: [],
+      framework: { ...FRAMEWORK, id: "extensions" },
+      package: release.package,
+      items: [
+        {
+          id: "extensions.matt.grill-me",
+          kind: "skill",
+          role: "choosable",
+          placement: "file",
+          copies: [{ releaseSha256: release.sha256, itemId: "extensions.matt.grill-me" }],
+        },
+      ],
+    });
+    expect(reasons(result)).toEqual(["placement-kind"]);
   });
 });

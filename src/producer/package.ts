@@ -13,6 +13,7 @@ import {
 import { tmpdir } from "node:os";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { readPackageArchive } from "../release/archive.js";
+import { preparedReleaseContent } from "../release/contracts.js";
 import type { AuthoredAllowance } from "./authored.js";
 import { parseBaseRelease } from "./base.js";
 import { refuse } from "./errors.js";
@@ -92,6 +93,18 @@ export function candidateManifestBytes(
     const path = `release/${name}`;
     if (!files.has(path) && manifest.exports[`./${name}`] === `./${path}`) {
       delete manifest.exports[`./${name}`];
+      changed = true;
+    }
+  }
+  // Prepared content and its frozen inventory are optional in the same way.
+  const prepared = new Set<string>(
+    preparedReleaseContent.flatMap((entry) => [entry.content, entry.inventory]),
+  );
+  for (const [name, target] of Object.entries(manifest.exports)) {
+    if (typeof target !== "string" || !target.startsWith("./")) continue;
+    const path = target.slice(2);
+    if (prepared.has(path) && !files.has(path)) {
+      delete manifest.exports[name];
       changed = true;
     }
   }

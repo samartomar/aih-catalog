@@ -288,6 +288,35 @@ export const contractSupport = Object.freeze({
   ]),
 } as const);
 
+/**
+ * Release 1.7.0 content this package ships prepared but not yet bound to its
+ * baseline assessment: the checked content, its members and the frozen content
+ * inventory an assessment must capture. It is not a release: `readRelease` refuses
+ * it until a baseline is bound, and it is absent from `releaseInventory` and every
+ * release index until then. `readReleaseContent` reads it.
+ */
+export const preparedReleaseContent = Object.freeze([
+  Object.freeze({
+    frameworkId: "project-basics",
+    schema: RELEASE_SCHEMA_ID_1_7,
+    content: "release/release-project-basics.content.json",
+    export: "@aihq/catalog/release-project-basics.content.json",
+    inventory: "release/baselines/project-basics/content-inventory.json",
+  }),
+] as const);
+
+/** Golden fixtures beyond each contract's valid and invalid pair, by contract URN. */
+const ADDITIONAL_FIXTURES: Readonly<
+  Record<string, readonly { readonly export: string; readonly expect: "accept" }[]>
+> = Object.freeze({
+  [RELEASE_SCHEMA_ID_1_7]: Object.freeze([
+    Object.freeze({
+      export: "@aihq/catalog/fixtures/release-1-7/project-basics-release-1.7.0.json",
+      expect: "accept" as const,
+    }),
+  ]),
+});
+
 /** Additive fixture-aware declaration; the 1.0 declaration above remains unchanged. */
 export const contractSupport11 = Object.freeze({
   schema: "urn:aihq:package-support:1.1.0",
@@ -308,6 +337,7 @@ export const contractSupport11 = Object.freeze({
             expect: "refuse" as const,
             code: "INPUT_INVALID",
           }),
+          ...(ADDITIONAL_FIXTURES[contract.id] ?? []),
         ]),
       });
     }),

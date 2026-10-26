@@ -4,13 +4,15 @@ import { clientAdapterProblems } from "../release/client-ids.js";
 import type { CatalogRelease, Json, ReleaseExport } from "../release/contracts.js";
 import {
   contractSupport,
+  preparedReleaseContent,
   RELEASE_SCHEMA_ID_1_4,
   RELEASE_SCHEMA_ID_1_5,
 } from "../release/contracts.js";
 import { memberPackagePath } from "../release/document.js";
+import { createContentInventory } from "../release/inventory.js";
 import { AcquisitionFailure } from "../release/node-errors.js";
 import { historicalDigest, verifyPackageRelease } from "../release/package-release.js";
-import { readRelease } from "../release/reader.js";
+import { readRelease, readReleaseContent } from "../release/reader.js";
 import { type AuthoredAllowance, checkAuthoredContent, describeFinding } from "./authored.js";
 import type { Record_ } from "./base.js";
 import { assertRequiredClosure } from "./candidate.js";
@@ -212,6 +214,63 @@ export function checkCandidateFiles(
       items: (parsed.items as Json[]).map(asRecord),
     });
   }
+  // Prepared release 1.7 content awaiting its baseline: the content reader admits it,
+  // and every recipe, material and behaviour descriptor and its frozen content
+  // inventory must match the package bytes exactly.
+  const prepared = preparedReleaseContent.filter((entry) => files.has(entry.content));
+  for (const entry of prepared) {
+    const contentBytes = files.get(entry.content) as Uint8Array;
+    const read = readReleaseContent(contentBytes, { expectedSha256: sha256Hex(contentBytes) });
+    if (!read.valid) {
+      note(
+        entry.content,
+        "release-envelope",
+        false,
+        read.diagnostics.map((d) => `${d.reason}${d.path ? ` ${d.path}` : ""}`).join("; "),
+      );
+      continue;
+    }
+    note(
+      entry.content,
+      "release-envelope",
+      read.release.schema === entry.schema,
+      read.release.schema,
+    );
+    const release = read.release;
+    note(
+      entry.content,
+      "package-identity",
+      release.package.name === identity.name && release.package.version === identity.version,
+      `${release.package.name}@${release.package.version} vs ${identity.name}@${identity.version}`,
+    );
+    const problems: string[] = [];
+    for (const item of release.items) {
+      const members = [
+        ...(item.recipe === undefined ? [] : [item.recipe]),
+        ...item.materials,
+      ] as unknown as Record<string, unknown>[];
+      for (const member of members) {
+        const path = String(memberPackagePath(member));
+        const bytes = files.get(path);
+        if (bytes === undefined) problems.push(`member-missing ${path}`);
+        else if (bytes.length !== member.byteLength || sha256Hex(bytes) !== member.sha256)
+          problems.push(`member-mismatch ${path}`);
+      }
+    }
+    const inventory = createContentInventory(contentBytes, {
+      expectedSha256: sha256Hex(contentBytes),
+    });
+    const shipped = files.get(entry.inventory);
+    if (
+      !inventory.valid ||
+      shipped === undefined ||
+      sha256Hex(shipped) !== sha256Hex(inventory.bytes)
+    )
+      problems.push(`inventory-mismatch ${entry.inventory}`);
+    note(entry.content, "member-bytes", problems.length === 0, problems.join("; "));
+    const parsed = JSON.parse(Buffer.from(contentBytes).toString("utf8")) as Record_;
+    releases.push({ path: entry.content, release, items: (parsed.items as Json[]).map(asRecord) });
+  }
   emit("release-envelope");
   if (!(merged.get("release-envelope")?.ok ?? false)) return { ok: false, checks };
   for (const name of [
@@ -223,7 +282,10 @@ export function checkCandidateFiles(
     emit(name);
   }
 
-  const declared = new Set<string>(documents.map((d) => d.path));
+  const declared = new Set<string>([
+    ...documents.map((d) => d.path),
+    ...prepared.flatMap((entry) => [entry.content, entry.inventory]),
+  ]);
   for (const { items, release } of releases) {
     for (const member of baselineMembers(release)) declared.add(member.path);
     for (const item of items) {

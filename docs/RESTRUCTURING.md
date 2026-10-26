@@ -33,8 +33,11 @@ with its reason:
 - **default-closing-release:** the default closes with no items and 46 retirements.
 - **matt-supersession:** the 27 Matt copies are superseded `name+sourcePath` against
   the frozen default's exact digest (the dry run found no hash matches).
-- **project-basics-split:** the project context becomes three Project basics items,
-  named by samartomar/aih-catalog#137; that framework is pending until then.
+- **project-basics-split:** the project context becomes the three Project basics items
+  named by samartomar/aih-catalog#137 (the router guide, the working rules and the shared
+  block); each captures one frozen context material unchanged, so its content identity is
+  predicted from that material's frozen digest, and each supersedes the project context
+  by `split`. The default's project-context retirement names the three.
 - **copy-supersession** and **copies-retired:** collapsed copies are superseded by
   hash or by name and source path, and retired with their replacement; templates and
   frameworks become sets.
@@ -58,7 +61,8 @@ one checked 1.7.0 release with its framework's section and returns one row per c
 pending framework fails its `framework` row.
 
 `npm run check:restructuring` re-derives the expectation and compares every 1.7.0
-release the package lists in `releaseInventory`; `npm run verify` runs it, so a
+release the package lists in `releaseInventory` and every prepared 1.7.0 content
+document still awaiting its baseline (today Project basics); `npm run verify` runs it, so a
 framework's 1.7.0 release cannot be added, and its index entry cannot ship, until it
 passes. `node tools/check-restructuring.mjs <release.json>` prints every row for one
 document.

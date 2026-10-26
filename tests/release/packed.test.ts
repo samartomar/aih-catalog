@@ -664,6 +664,7 @@ describe("exact packed consumer", () => {
         "SET_MAX_MEMBERS",
         "contractSupport",
         "contractSupport11",
+        "preparedReleaseContent",
         "releaseInventory",
       ],
       unreachable: [

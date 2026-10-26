@@ -27,6 +27,12 @@ const COMMITTED_ALLOWANCES: readonly AuthoredAllowance[] = [
     externalPaths: ["ai-coding/PROJECT.md"],
     templatePlaceholders: ["<your-tool>"],
   },
+  // Project basics names the author-owned PROJECT.md and the per-tool note Core supplies.
+  {
+    source: "project-basics",
+    externalPaths: ["ai-coding/PROJECT.md", "ai-coding/adapters/<your-tool>.md"],
+    templatePlaceholders: ["<your-tool>"],
+  },
 ];
 
 const TEMPLATE_ALLOWANCES: readonly AuthoredAllowance[] = [
@@ -561,6 +567,11 @@ describe("declaration authored allowances", () => {
       {
         source: "aihq-project-context",
         externalPaths: ["ai-coding/PROJECT.md"],
+        templatePlaceholders: ["<your-tool>"],
+      },
+      {
+        source: "project-basics",
+        externalPaths: ["ai-coding/PROJECT.md", "ai-coding/adapters/<your-tool>.md"],
         templatePlaceholders: ["<your-tool>"],
       },
     ]);

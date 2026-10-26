@@ -10,6 +10,10 @@ adapter note through the same generic Core recipes, ownership and lifecycle
 contracts as every other item. Client filenames, marker text, frontmatter and
 human guidance live in this supplied content — never in the Core engine.
 
+Release 1.7.0 splits the shared context into the three items of the
+[Project basics framework](PROJECT-BASICS.md); this document describes the frozen
+release 1.4 family those items supersede.
+
 `<dir>/PROJECT.md` is an optional author-owned file. The router and inline
 entry guidance point to it, but no Catalog recipe creates, updates, adopts or
 removes it. Authors create and edit it directly and may link further project
