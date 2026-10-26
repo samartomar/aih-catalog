@@ -1,15 +1,16 @@
 ## Start here
 
-Read `ai-coding/RULE_ROUTER.md` first — this repo's routing entry point. Load
-only task-relevant rules, then verify against repo evidence (PR diff, files, tests,
-schemas, CI) — never model memory or local notes.
+Read the rule router first: `RULE_ROUTER.md` in this project's shared guidance
+folder is this repo's routing entry point. Load only task-relevant rules, then
+verify against repo evidence (PR diff, files, tests, schemas, CI) — never model
+memory or local notes.
 
-Read `ai-coding/PROJECT.md` when present for author-owned project guidance.
+Read `PROJECT.md` in that folder when present for author-owned project guidance.
 Authors maintain coding practices, project guidelines and tool-use rules there
 once for every selected client; Catalog never writes or removes that file.
 
-Full working discipline: `ai-coding/rules/agent-behavior-core.md`. Read it before
-any non-trivial change; the essentials are inline below.
+Full working discipline: `agent-behavior-core.md` in that folder's `rules`
+subfolder. Read it before any non-trivial change; the essentials are inline below.
 
 Context changes take effect in the next new session; use an explicit native
 reload only where the selected client supports it. If required shared context

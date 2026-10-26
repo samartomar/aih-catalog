@@ -35,9 +35,9 @@ with its reason:
   the frozen default's exact digest (the dry run found no hash matches).
 - **project-basics-split:** the project context becomes the three Project basics items
   named by samartomar/aih-catalog#137 (the router guide, the working rules and the shared
-  block); each captures one frozen context material unchanged, so its content identity is
-  predicted from that material's frozen digest, and each supersedes the project context
-  by `split`. The default's project-context retirement names the three.
+  block); each carries the folder-neutral rendering of one frozen context material, so its
+  content identity is predicted from that rendered text, and each supersedes the project
+  context by `split`. The default's project-context retirement names the three.
 - **copy-supersession** and **copies-retired:** collapsed copies are superseded by
   hash or by name and source path, and retired with their replacement; templates and
   frameworks become sets.
