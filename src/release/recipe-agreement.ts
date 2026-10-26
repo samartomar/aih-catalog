@@ -15,6 +15,8 @@ import {
   CORE_RECIPE_SCHEMA_ID,
   CORE_RECIPE_SCHEMA_ID_1_1,
   CORE_RECIPE_SCHEMA_ID_1_3,
+  type RecipeDescriptor,
+  type RecipeMapEntry,
 } from "./contracts.js";
 import { isRecord } from "./document.js";
 import { assertStrictValues, canonicalJson, deepFreeze, textDepth } from "./json.js";
@@ -171,8 +173,20 @@ export function readRecipe(bytes: Uint8Array): ReadRecipeResult {
   return deepFreeze({ valid: false, diagnostics: [diagnostic] });
 }
 
-export function checkRecipeAgreement(item: CatalogItem, bytes: Uint8Array): CatalogDiagnostic[] {
+/**
+ * Checks recipe bytes against the item advertising them. A release 1.7 transition
+ * map entry agrees on its own subset: the item's inputs and content materials it names.
+ */
+export function checkRecipeAgreement(
+  item: CatalogItem,
+  bytes: Uint8Array,
+  descriptor: RecipeDescriptor | RecipeMapEntry | undefined = item.recipe,
+): CatalogDiagnostic[] {
   const diagnostics: CatalogDiagnostic[] = [];
+  const entry =
+    descriptor !== undefined && "materials" in descriptor
+      ? (descriptor as RecipeMapEntry)
+      : undefined;
   const report = (reason: string, message: string) =>
     diagnostics.push(
       Object.freeze({
@@ -180,17 +194,21 @@ export function checkRecipeAgreement(item: CatalogItem, bytes: Uint8Array): Cata
         reason,
         message,
         blocking: true,
-        path: item.recipe.path,
+        ...(descriptor === undefined ? {} : { path: descriptor.path }),
         itemId: item.id,
       }),
     );
-  const admitted = admitRecipe(bytes, item.recipe);
+  if (descriptor === undefined) {
+    report("recipe-missing", "The item advertises no recipe.");
+    return diagnostics;
+  }
+  const admitted = admitRecipe(bytes, descriptor);
   if (!("recipe" in admitted)) {
     report(admitted.reason, admitted.message);
     return diagnostics;
   }
   const { recipe } = admitted;
-  if (recipe.id !== item.recipe.id)
+  if (recipe.id !== descriptor.id)
     report("recipe-id-mismatch", "The recipe ID differs from the item.");
   const same = (left: unknown, right: unknown) => {
     try {
@@ -199,7 +217,11 @@ export function checkRecipeAgreement(item: CatalogItem, bytes: Uint8Array): Cata
       return false;
     }
   };
-  if (!same(recipe.inputs, item.inputs)) {
+  const inputs =
+    entry === undefined
+      ? item.inputs
+      : Object.fromEntries(entry.inputs.map((name) => [name, item.inputs[name]]));
+  if (!same(recipe.inputs, inputs)) {
     report("recipe-inputs-mismatch", "The recipe's input definitions differ from the item's.");
   }
   if (!same(recipe.prerequisites, item.targets)) {
@@ -214,6 +236,7 @@ export function checkRecipeAgreement(item: CatalogItem, bytes: Uint8Array): Cata
   // recipe's material closure; recipes declare only content materials.
   const expected = item.materials
     .filter((member) => (member as unknown as Record<string, unknown>).role !== "behaviour")
+    .filter((member) => entry === undefined || entry.materials.includes(member.id))
     .map(({ id, sha256, byteLength }) => ({ id, sha256, byteLength }));
   const byId = (a: unknown, b: unknown) => {
     const left = isRecord(a) ? String(a.id) : "";

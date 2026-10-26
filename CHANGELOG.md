@@ -2,6 +2,61 @@
 
 ## Unreleased
 
+- Add the Project basics framework for samartomar/aih-catalog#137 as prepared release
+  1.7.0 content (`@aihq/catalog/release-project-basics.content.json`): a router
+  `document` with purpose `guide`, the working rules and the shared block as `rule`s,
+  placed `project-folder`, `project-folder` and `entry-block`. The texts are the
+  accepted project context, byte-identical to the frozen default's materials; the
+  shared block that entry pointer recipes inlined is now a captured material. Each item
+  supersedes the frozen default's `aihq.project-context` by `split`, and the
+  restructuring expectation now names the three items. Its content inventory is frozen
+  and shipped; no baseline assessment is bound yet, so the content is listed in the new
+  `preparedReleaseContent` of `@aihq/catalog/contracts` rather than `releaseInventory`
+  and has no release index entry. `tools/generate-project-basics-release.mjs` owns the
+  output and fails on an unknown placeholder. Package support 1.1 lists its golden
+  fixture. See [Project basics content](docs/PROJECT-BASICS.md).
+- `compileTransitionRelease` declarations accept `placement` for a rule or document,
+  carried in its payload; release 1.6 documents cannot hold it.
+
+- Add release format 1.7.0 for samartomar/aih-catalog#142: one tool-neutral item
+  per piece of content. Kinds are closed (`skill | agent | command | rule | hook |
+  mcp-server | document`, a document carrying purpose `notice | license |
+  reference | guide`), `role: choosable | supporting` is presentation only, and
+  every item carries its behaviour file and both identities. An item carries
+  `recipe` or a transition map `recipes: { [clientId]: entry }` naming the content
+  materials and inputs each recipe uses; `configureItem` then requires `clientId`,
+  selects that entry, checks it against the item and refuses a missing client with
+  `client-unavailable`. Survivors carry `supersedes` (`hash`, `name+sourcePath` or
+  `split`), dropped items appear in `retired[]` with a reason and qualified
+  replacements, sets are embedded, and cross-release references carry both
+  identities. `fallback`, `variantOf` and `hints.tools` stay outside both
+  identities and tool binding but inside `itemSha256` and the content inventory;
+  agents and commands never take a fallback. Content inventory and
+  `release-content` projection 1.2.0 describe release 1.7.0. Earlier readers refuse
+  the whole format with `SCHEMA_UNSUPPORTED` and keep reading 1.6.0 and earlier.
+- Add the transition build to `@aihq/catalog/producer`: `compileTransitionRelease`
+  collapses checked per-tool copies into one item keeping the union of their
+  dependencies, licence and support materials and inputs, refuses conflicting copies,
+  maps 1.x kinds (instruction to rule or document, notice to document; templates and
+  frameworks become sets; adapters and pointers retire), supersedes and retires each
+  collapsed copy and carries earlier retirements forward. `checkReleaseTransition`
+  fails a release that drops an earlier item without retirement, changes a durable
+  retirement, or lets an earlier item's bytes or name and source path reappear under
+  a new id without supersession. `mcpEditsSha256` digests an edited MCP definition.
+- Freeze the default `release.json` (release 1.4.0) under its original path and
+  bytes. `releaseInventory` marks it `historical` with its exact digest; the Node
+  readers admit it by that digest instead of the enclosing-package identity check,
+  whole-package checks verify its bytes, and the generators refuse to replace them.
+  Every other release keeps the identity check.
+- Add the restructuring check: the October dry run is promoted under
+  `restructuring/`, an amended expected projection is derived with each difference
+  explained, and `compareRestructuring` compares a 1.7.0 release with it row by row
+  (hashes, the 27 Matt supersessions, collapsed MCP pairs and edit digests).
+  `npm run check:restructuring`, part of `npm run verify`, gates every listed 1.7.0
+  release. Package support, schema exports and golden fixtures (release 1.7.0,
+  inventory and projection 1.2.0, real Extensions copies collapsed beside their
+  1.6.0 form, hash vectors and a split supersession) list the new contracts.
+
 - Add release sets 1.0.0 and set resolution for samartomar/aih-catalog#135. A set
   groups one framework release's items: members with `optional`/`defaultOn`,
   nested `includes`/`requires`/`optional` sets, `offer`, narrowing-only

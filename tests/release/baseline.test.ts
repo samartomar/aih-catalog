@@ -357,7 +357,10 @@ it("uses one authenticated batch in member order and owns the projected result",
         calls.push("batch");
         const fixture = readRelease(contentBytes, { expectedSha256: sha256(contentBytes) });
         if (!fixture.valid) throw new Error("Invalid fixture");
-        const expected = fixture.release.items.flatMap((item) => [item.recipe, ...item.materials]);
+        const expected = fixture.release.items.flatMap((item) => [
+          ...(item.recipe ? [item.recipe] : []),
+          ...item.materials,
+        ]);
         expect(queries.map((query) => query.descriptors)).toEqual(
           expected.map((member) => [
             {

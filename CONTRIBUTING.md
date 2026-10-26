@@ -65,6 +65,22 @@ See [Anthropic content](docs/ANTHROPIC-CONTENT.md) for rights and prerequisites.
 artifact, with each package's own public readers. See
 [package support and golden fixtures](docs/CONTRACT-FIXTURES.md).
 
+Release 1.7 checks: `npm run check:restructuring` (part of `npm run verify`) re-derives
+`restructuring/expected-1.7.0.json` from the promoted dry run and compares every listed
+1.7.0 release with it; a framework's 1.7.0 release and index entry cannot ship until it
+passes ([the restructuring check](docs/RESTRUCTURING.md)).
+`node tools/verify-release-17-consumer.mjs [catalog.tgz] [--older <older-catalog.tgz>]`
+runs the packed release 1.7 consumer through public exports only; with `--older` an
+earlier packed Catalog must refuse the whole 1.7.0 format and still read 1.6.0. Pack the
+older archive from an exact earlier commit and identify it by commit and SHA-256.
+
+Project basics checks build its prepared release 1.7.0 content, members and frozen
+content inventory with `node tools/generate-project-basics-release.mjs --check`, part of
+`npm run check:materials`; regenerate through that script. It fails when the renderer no
+longer reproduces the accepted context bytes or a text uses a placeholder outside the
+closed list. `node tools/verify-project-basics-consumer.mjs [catalog.tgz]` runs its packed
+public-only consumer. See [Project basics content](docs/PROJECT-BASICS.md).
+
 `node tools/verify-item-evidence-scan-consumer.mjs <scan.tgz> [catalog.tgz]` installs
 the packed Catalog and an exact packed Scan archive into a disposable consumer and
 maps one compiled release 1.6 item to Scan's item descriptor: `itemEvidenceDescriptor`

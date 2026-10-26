@@ -23,13 +23,17 @@ import {
   type MaterialSource,
   RELEASE_MAX_BYTES,
   RELEASE_MAX_DEPTH,
+  RELEASE_SCHEMA_ID_1_7,
   type ReadReleaseResult,
+  type RecipeDescriptor,
+  type RecipeMapEntry,
   type SelectionRequest,
   type SelectionSetResult,
   type ValidateSelectionSetRequest,
 } from "./contracts.js";
 import {
   ARCHIVE_PACKAGE_PREFIX,
+  CLIENT_ID,
   checkMaterialSource,
   checkReleaseDocument,
   computeBehaviourIdentity,
@@ -41,6 +45,7 @@ import {
 } from "./document.js";
 import { inputAccepts } from "./inputs.js";
 import { deepFreeze, JsonAdmissionError, readCanonicalBytes } from "./json.js";
+import { recipeEntryProblem } from "./release-17.js";
 import { sha256Hex } from "./sha256.js";
 
 export { createContentInventory, readContentInventory } from "./inventory.js";
@@ -444,7 +449,12 @@ export function validateSelectionSet(request: ValidateSelectionSetRequest): Sele
       return undefined;
     }
     const item = release.items.find((candidate) => candidate.id === ref.itemId);
-    if (item === undefined || item.itemSha256 !== ref.itemSha256) {
+    if (
+      item === undefined ||
+      item.itemSha256 !== ref.itemSha256 ||
+      (ref.contentSha256 !== undefined && item.contentSha256 !== ref.contentSha256) ||
+      (ref.behaviourSha256 !== undefined && item.behaviourSha256 !== ref.behaviourSha256)
+    ) {
       report(
         "dependency-unresolved",
         "The referenced item identity is not in the supplied release.",
@@ -576,7 +586,7 @@ export function configureItem(request: ConfigureItemRequest): ConfigureItemResul
     diagnostics: readonly CatalogDiagnostic[],
     dependencies: ItemDependencies = empty,
   ) => Object.freeze({ valid: false, dependencies, diagnostics: Object.freeze([...diagnostics]) });
-  const { release, itemId, configuration, materialSource } = (request ??
+  const { release, itemId, configuration, materialSource, clientId } = (request ??
     {}) as ConfigureItemRequest;
   if (!isCheckedRelease(release)) {
     return fail([
@@ -590,12 +600,23 @@ export function configureItem(request: ConfigureItemRequest): ConfigureItemResul
   }
   const item = release.items.find((candidate) => candidate.id === itemId);
   if (item === undefined) return fail([itemNotFound(itemId)]);
+  const selected = selectRecipe(item, clientId);
+  if ("diagnostic" in selected) return fail([selected.diagnostic], item.dependencies);
+  const { recipe, entry } = selected;
   const sourceCheck = new Diagnostics();
   checkMaterialSource(sourceCheck, materialSource, "/materialSource");
   const diagnostics: CatalogDiagnostic[] = sourceCheck.list.map((d) =>
     Object.freeze({ ...d, itemId: item.id }),
   );
-  const checkedConfiguration = checkConfiguration(item, configuration, diagnostics, {
+  // A transition recipe configures only the inputs it names.
+  const configured =
+    entry === undefined
+      ? item
+      : ({
+          ...item,
+          inputs: Object.fromEntries(entry.inputs.map((name) => [name, item.inputs[name]])),
+        } as CatalogItem);
+  const checkedConfiguration = checkConfiguration(configured, configuration, diagnostics, {
     path: "/configuration",
   });
   if (checkedConfiguration === undefined || diagnostics.length > 0) {
@@ -612,16 +633,25 @@ export function configureItem(request: ConfigureItemRequest): ConfigureItemResul
       : { kind: "local", input: materialSource.input },
   );
   const prefix = source.kind === "archive" ? ARCHIVE_PACKAGE_PREFIX : "";
+  // Release 1.7 references exactly the recipe's content closure; earlier formats are unchanged.
+  const members =
+    release.schema !== RELEASE_SCHEMA_ID_1_7
+      ? item.materials
+      : item.materials.filter((member) =>
+          entry === undefined
+            ? (member as unknown as Record<string, unknown>).role !== "behaviour"
+            : entry.materials.includes(member.id),
+        );
   return deepFreeze({
     valid: true,
     selection: {
       recipe: {
         reference: {
           source,
-          path: `${prefix}${item.recipe.path}`,
-          sha256: item.recipe.sha256,
-          byteLength: item.recipe.byteLength,
-          materials: item.materials.map((member) => toMember(prefix, member)),
+          path: `${prefix}${recipe.path}`,
+          sha256: recipe.sha256,
+          byteLength: recipe.byteLength,
+          materials: members.map((member) => toMember(prefix, member)),
         },
       },
       configuration: checkedConfiguration.configuration,
@@ -632,10 +662,58 @@ export function configureItem(request: ConfigureItemRequest): ConfigureItemResul
       manifestSha256: release.sha256,
       itemId: item.id,
       itemSha256: item.itemSha256,
+      ...(entry === undefined ? {} : { clientId: clientId as string }),
     },
     dependencies: item.dependencies,
     diagnostics: [],
   });
+}
+
+/**
+ * The recipe `configureItem` references. A release 1.7 transition map requires
+ * `clientId`, selects that entry and checks its materials and inputs against the
+ * item; a missing entry is `client-unavailable`. A single recipe takes no client.
+ */
+function selectRecipe(
+  item: CatalogItem,
+  clientId: unknown,
+):
+  | { readonly recipe: RecipeDescriptor; readonly entry?: RecipeMapEntry }
+  | { readonly diagnostic: CatalogDiagnostic } {
+  const refuse = (reason: string, message: string, path = "/clientId") => ({
+    diagnostic: Object.freeze({
+      code: "INPUT_INVALID" as const,
+      reason,
+      message,
+      blocking: true,
+      path,
+      itemId: item.id,
+    }),
+  });
+  if (item.recipes === undefined) {
+    if (clientId !== undefined)
+      return refuse("client-id-unexpected", "This item carries one recipe; it takes no clientId.");
+    if (item.recipe === undefined) return refuse("recipe-missing", "The item has no recipe.");
+    return { recipe: item.recipe };
+  }
+  if (clientId === undefined)
+    return refuse(
+      "client-id-required",
+      "This item carries a recipe per client; name the clientId.",
+    );
+  if (typeof clientId !== "string" || !CLIENT_ID.test(clientId))
+    return refuse("invalid-client-id", "Expected a lowercase client identifier.");
+  if (!Object.hasOwn(item.recipes, clientId))
+    return refuse("client-unavailable", "The item has no recipe for this client.");
+  const entry = item.recipes[clientId] as RecipeMapEntry;
+  const problem = recipeEntryProblem(item, entry);
+  if (problem !== undefined)
+    return refuse(
+      problem,
+      "The selected recipe's materials or inputs disagree with the item.",
+      `/recipes/${clientId}`,
+    );
+  return { recipe: entry, entry };
 }
 
 export { resolveSelections } from "./resolve.js";

@@ -109,7 +109,7 @@ describe("native fixture release documents", () => {
         inputs: {},
         dependencies: { requires: [], optional: [], conflicts: [] },
       });
-      expect(items[0]?.recipe.schema).toBe("urn:aihq:core:recipe:1.0.0");
+      expect(items[0]?.recipe?.schema).toBe("urn:aihq:core:recipe:1.0.0");
     }
   });
 
@@ -125,7 +125,7 @@ describe("native fixture release documents", () => {
 
 describe("the graph fixture recipe", () => {
   const item = listItems(checked(NATIVE_FIXTURE_RELEASE_PATH))[0];
-  const recipe = JSON.parse(bytesAt(item?.recipe.path as string).toString("utf8"));
+  const recipe = JSON.parse(bytesAt(item?.recipe?.path as string).toString("utf8"));
   const target = (...segments: string[]) => ({
     root: "project",
     segments: segments.map((literal) => ({ literal })),
@@ -226,7 +226,7 @@ describe("the bundle declaration", () => {
 
   it("ships the bundle as an ordinary declared material with a recipe that writes only it", () => {
     expect(bundleMaterial?.sha256).toBe(sha256(Buffer.from(rendered.bundleBytes)));
-    const recipe = jsonAt(bundleItem?.recipe.path as string);
+    const recipe = jsonAt(bundleItem?.recipe?.path as string);
     expect(recipe.operations).toHaveLength(1);
     expect(recipe.operations[0]).toMatchObject({
       kind: "file.write",
@@ -316,9 +316,9 @@ describe("the bundle declaration", () => {
     expect(bundle.selection.itemSha256).toBe(renderedItemSha256(record));
     expect(bundle.selection.itemSha256).toBe(fixtureItem?.itemSha256);
     expect(bundle.selection.inputs).toEqual({});
-    const recipeBytes = bytesAt(fixtureItem?.recipe.path as string);
+    const recipeBytes = bytesAt(fixtureItem?.recipe?.path as string);
     expect(bundle.selection.recipe).toEqual({
-      path: `package/${fixtureItem?.recipe.path}`,
+      path: `package/${fixtureItem?.recipe?.path}`,
       sha256: sha256(recipeBytes),
       byteLength: recipeBytes.length,
     });
@@ -384,7 +384,7 @@ describe("the bundle declaration", () => {
   });
 
   it("derives the configuration and instruction outputs from the recipe, not from a run", () => {
-    const recipe = jsonAt(fixtureItem?.recipe.path as string);
+    const recipe = jsonAt(fixtureItem?.recipe?.path as string);
     const config = recipe.operations.find((op: { kind: string }) => op.kind === "config.entries");
     // Core edits an absent JSON target by applying entries to `{}` plus LF with two-space indent.
     let text = "{}\n";

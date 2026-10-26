@@ -31,7 +31,7 @@ describe("release 1.1 documents", () => {
     const result = read(release11());
     expect(result.diagnostics).toEqual([]);
     expect(result.valid && result.release.schema).toBe(RELEASE_11);
-    expect(result.valid && result.release.items.map((item) => item.recipe.schema)).toEqual([
+    expect(result.valid && result.release.items.map((item) => item.recipe?.schema)).toEqual([
       "urn:aihq:core:recipe:1.0.0",
       RECIPE_11,
     ]);
@@ -68,6 +68,7 @@ describe("release 1.1 documents", () => {
       "urn:aihq:catalog:release:1.4.0",
       "urn:aihq:catalog:release:1.5.0",
       "urn:aihq:catalog:release:1.6.0",
+      "urn:aihq:catalog:release:1.7.0",
     ]);
   });
 
@@ -147,6 +148,9 @@ describe("release 1.1 documents", () => {
       "urn:aihq:catalog:release-content:1.1.0",
       "urn:aihq:catalog:release-index:1.0.0",
       "urn:aihq:catalog:release-sets:1.0.0",
+      "urn:aihq:catalog:release:1.7.0",
+      "urn:aihq:catalog:content-inventory:1.2.0",
+      "urn:aihq:catalog:release-content:1.2.0",
       "urn:aihq:catalog:source-description:1.0.0",
     ]);
     expect(contractSupport.contracts.find((c) => c.id === RELEASE_11)).toMatchObject({

@@ -6,12 +6,18 @@
  */
 import { createHash } from "node:crypto";
 import { baselineMembers } from "./baseline-members.js";
-import type { CatalogDiagnostic, CatalogRelease, ReleaseExport } from "./contracts.js";
+import {
+  type CatalogDiagnostic,
+  type CatalogRelease,
+  type ReleaseExport,
+  releaseInventory,
+} from "./contracts.js";
 import { isRecord, memberPackagePath, safeMemberPath } from "./document.js";
 import { readContentInventory } from "./inventory.js";
 import { AcquisitionFailure } from "./node-errors.js";
 import { readRelease } from "./reader.js";
 import { checkRecipeAgreement } from "./recipe-agreement.js";
+import { catalogItemRecipes } from "./release-17.js";
 
 export const PACKAGE_JSON_MAX_BYTES = 1024 * 1024;
 export const RELEASE_MAX_BYTES = 16 * 1024 * 1024;
@@ -136,6 +142,8 @@ export function verifyPackageRelease(
   release: CatalogRelease;
   manifestPath: string;
   manifestSha256: string;
+  /** True when the release was admitted by its recorded historical digest. */
+  historical: boolean;
   diagnostics: CatalogDiagnostic[];
 } {
   const identity = packageIdentity(read("package.json", PACKAGE_JSON_MAX_BYTES), releaseExportName);
@@ -149,7 +157,14 @@ export function verifyPackageRelease(
     });
   }
   const release = result.release;
-  if (release.package.name !== identity.name || release.package.version !== identity.version) {
+  // The frozen default is admitted by its recorded exact digest instead of the
+  // enclosing package's identity. Any other bytes, and every other release, keep
+  // the ordinary identity check.
+  const historical = historicalDigest(releaseExportName) === manifestSha256;
+  if (
+    !historical &&
+    (release.package.name !== identity.name || release.package.version !== identity.version)
+  ) {
     failWith("package-mismatch", identity.releasePath);
   }
   const diagnostics: CatalogDiagnostic[] = [];
@@ -173,24 +188,48 @@ export function verifyPackageRelease(
   }
   const verified = new Map<string, string>();
   for (const item of release.items) {
-    for (const member of [item.recipe, ...item.materials]) {
+    const recipes = catalogItemRecipes(item);
+    const recipeMembers = new Set<unknown>(recipes.map(({ recipe }) => recipe));
+    for (const member of [...recipes.map(({ recipe }) => recipe), ...item.materials]) {
       if (signal?.aborted) failWith("cancelled");
       const packagePath = String(memberPackagePath(member as unknown as Record<string, unknown>));
       const prior = verified.get(packagePath);
+      const isRecipe = recipeMembers.has(member);
       // Byte reuse cannot establish agreement with another item's advertised inputs.
-      if (prior === `${member.sha256}:${member.byteLength}` && member !== item.recipe) continue;
+      if (prior === `${member.sha256}:${member.byteLength}` && !isRecipe) continue;
       try {
         const bytes = read(packagePath, MEMBER_MAX_BYTES, member.byteLength);
         if (sha256(bytes) !== member.sha256) failWith("member-sha256-mismatch", packagePath);
         verified.set(packagePath, `${member.sha256}:${member.byteLength}`);
-        if (member === item.recipe) diagnostics.push(...checkRecipeAgreement(item, bytes));
+        if (isRecipe)
+          diagnostics.push(
+            ...checkRecipeAgreement(
+              item,
+              bytes,
+              member as Parameters<typeof checkRecipeAgreement>[2],
+            ),
+          );
       } catch (error) {
         if (!(error instanceof AcquisitionFailure) || error.reason === "cancelled") throw error;
         diagnostics.push(diagnostic(error.reason, error.path, item.id));
       }
     }
   }
-  return { release, manifestPath: identity.releasePath, manifestSha256, diagnostics };
+  return {
+    release,
+    manifestPath: identity.releasePath,
+    manifestSha256,
+    historical,
+    diagnostics,
+  };
+}
+
+/** The recorded digest of a historical release export, or undefined for ordinary releases. */
+export function historicalDigest(releaseExportName: ReleaseExport): string | undefined {
+  const entry = releaseInventory.releases.find((release) => release.release === releaseExportName);
+  return entry !== undefined && "historical" in entry && entry.historical === true
+    ? entry.sha256
+    : undefined;
 }
 
 export function failureResult(error: unknown): {

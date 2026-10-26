@@ -126,7 +126,7 @@ describe("aihq.project-context item", () => {
       expect(item.materials.some((material) => memberPath(material).endsWith("/PROJECT.md"))).toBe(
         false,
       );
-      const recipe = JSON.parse(textAt(item.recipe.path));
+      const recipe = JSON.parse(textAt(item.recipe?.path as string));
       for (const operation of recipe.operations) {
         expect(
           operation.target?.segments?.some(
@@ -167,7 +167,7 @@ describe("aihq.project-context item", () => {
 function pointerRecipe(key: string) {
   const found = getItem(carried(), `aihq.project-context-pointer.${key}`);
   if (!found.found) throw new Error(`pointer item ${key} missing`);
-  return { item: found.item, recipe: JSON.parse(textAt(found.item.recipe.path)) };
+  return { item: found.item, recipe: JSON.parse(textAt(found.item.recipe?.path as string)) };
 }
 
 type Material = {

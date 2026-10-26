@@ -1,21 +1,8 @@
 /** Portable inventory reader and freeze step: no acquisition or authentication. */
-import {
-  CONTENT_INVENTORY_SCHEMA_ID,
-  CONTENT_INVENTORY_SCHEMA_ID_1_1,
-  CONTENT_PROJECTION_ID,
-  CONTENT_PROJECTION_ID_1_1,
-  type ContentInventory,
-  type ContentInventoryResult,
-} from "./baseline-contracts.js";
-import { contentInventoryBytes } from "./baseline-wire.js";
+import type { ContentInventory, ContentInventoryResult } from "./baseline-contracts.js";
+import { contentInventoryBytes, INVENTORY_VERSIONS } from "./baseline-wire.js";
 import { exactFields } from "./boundary.js";
-import {
-  RELEASE_MAX_BYTES,
-  RELEASE_MAX_DEPTH,
-  RELEASE_RECIPE_SCHEMAS,
-  RELEASE_SCHEMA_ID_1_5,
-  RELEASE_SCHEMA_ID_1_6,
-} from "./contracts.js";
+import { RELEASE_MAX_BYTES, RELEASE_MAX_DEPTH, RELEASE_RECIPE_SCHEMAS } from "./contracts.js";
 import { checkReleaseDocument, isRecord, SHA256 } from "./document.js";
 import { deepFreeze, JsonAdmissionError, readCanonicalBytes } from "./json.js";
 import { sha256Hex } from "./sha256.js";
@@ -75,19 +62,17 @@ export function readContentInventory(
 ): ContentInventoryResult {
   try {
     const value = admit(bytes, options);
+    const version = isRecord(value)
+      ? INVENTORY_VERSIONS.find((entry) => entry.inventory === value.schema)
+      : undefined;
     if (
-      !isRecord(value) ||
-      (value.schema !== CONTENT_INVENTORY_SCHEMA_ID &&
-        value.schema !== CONTENT_INVENTORY_SCHEMA_ID_1_1) ||
-      (value.projection !== CONTENT_PROJECTION_ID && value.projection !== CONTENT_PROJECTION_ID_1_1)
+      version === undefined ||
+      !INVENTORY_VERSIONS.some(
+        (entry) => entry.projection === (value as Record<string, unknown>).projection,
+      )
     )
       return refuse("unsupported-inventory", true);
-    if (
-      (value.schema === CONTENT_INVENTORY_SCHEMA_ID &&
-        value.projection !== CONTENT_PROJECTION_ID) ||
-      (value.schema === CONTENT_INVENTORY_SCHEMA_ID_1_1 &&
-        value.projection !== CONTENT_PROJECTION_ID_1_1)
-    )
+    if ((value as Record<string, unknown>).projection !== version.projection)
       return refuse("inventory-projection-mismatch", true);
     if (!exactFields(value, ["schema", "projection", "release"]) || !isRecord(value.release))
       return refuse("inventory-invalid");
@@ -96,10 +81,7 @@ export function readContentInventory(
       !Object.hasOwn(RELEASE_RECIPE_SCHEMAS, value.release.schema)
     )
       return refuse("unsupported-release", true);
-    const expectedReleaseSchema =
-      value.schema === CONTENT_INVENTORY_SCHEMA_ID_1_1
-        ? RELEASE_SCHEMA_ID_1_6
-        : RELEASE_SCHEMA_ID_1_5;
+    const expectedReleaseSchema = version.release;
     if (value.release.schema !== expectedReleaseSchema || Object.hasOwn(value.release, "baseline"))
       return refuse("inventory-invalid");
     const checked = checkReleaseDocument(value.release, { contentOnly: true });

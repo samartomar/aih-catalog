@@ -60,6 +60,14 @@ material and script/support closures. [Content guidance](docs/ANTHROPIC-CONTENT.
 and [inventory](docs/ANTHROPIC-INVENTORY.md) distinguish per-item rights, restricted
 document skills, actual tool prerequisites and unobserved native use.
 
+## Project basics
+
+`@aihq/catalog/release-project-basics.content.json` is the prepared release 1.7.0
+content of the Project basics framework: a router guide, the working rules and a shared
+block for a project's entry files. Its baseline assessment is not bound yet, so it is
+listed in `preparedReleaseContent`, read with `readReleaseContent`, and refused by
+`readRelease`. See [Project basics content](docs/PROJECT-BASICS.md).
+
 ## Optional Nuclei workflow
 
 `@aihq/catalog/workflows/nuclei` supplies local policy authoring; its adjacent manifest pins
@@ -91,6 +99,8 @@ platform evidence and real-tool execution limits are recorded in [delivery evide
 | `@aihq/catalog/release-ecc.json` | Optional pinned ECC declarations and exact MCP configurations | Data |
 | `@aihq/catalog/release-superpowers.json` | Optional pinned Superpowers skills and caller-configured Claude hook | Data |
 | `@aihq/catalog/release-anthropic.json` | Optional permitted Anthropic skill closures and notices | Data |
+| `@aihq/catalog/release-project-basics.content.json` | Prepared Project basics release 1.7.0 content, awaiting its baseline; read with `readReleaseContent` | Data |
+| `@aihq/catalog/release/baselines/project-basics/content-inventory.json` | Its frozen content inventory | Data |
 | `@aihq/catalog/package.json` | Installed package identity and location | Data |
 
 `releaseInventory` gives each exported release document's format, purpose (ordinary content, client hooks or a native acceptance fixture) and support tier, plus the package identity; selection still names one release explicitly. The [content contract](docs/CATALOG-CONTENT.md#release-inventory-and-format-compatibility) has the inventory, the current authoring target and the format compatibility table.

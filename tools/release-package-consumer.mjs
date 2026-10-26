@@ -4,7 +4,8 @@ import { createHash } from "node:crypto";
 import { lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createContentInventory, readRelease } from "@aihq/catalog/reader";
+import * as catalogContracts from "@aihq/catalog/contracts";
+import { createContentInventory, readRelease, readReleaseContent } from "@aihq/catalog/reader";
 import { prepareReleaseBaseline, readInstalledRelease } from "@aihq/catalog/node";
 import { readArtifact, readContentCoverage, readContentCoverageBatch } from "@aihq/scan/read";
 import { authenticateEvidence } from "@aihq/core";
@@ -34,7 +35,10 @@ const trustBytes = pinned(plan.trust, 1024 * 1024), trust = JSON.parse(trustByte
 const software = dirname(fileURLToPath(import.meta.resolve("@aihq/catalog/package.json")));
 const manifest = JSON.parse(regular(join(software, "package.json"), 1024 * 1024));
 assert.equal(manifest.name, "@aihq/catalog");
-const releaseExports = Object.entries(manifest.exports).filter(([, target]) => typeof target === "string" && target.startsWith("./release/"));
+// Prepared content awaiting its baseline is carried unchanged; it is not a qualified view.
+const prepared = catalogContracts.preparedReleaseContent ?? [];
+const preparedTargets = new Set(prepared.flatMap(entry => [`./${entry.content}`, `./${entry.inventory}`]));
+const releaseExports = Object.entries(manifest.exports).filter(([, target]) => typeof target === "string" && target.startsWith("./release/") && !preparedTargets.has(target));
 same(releaseExports.map(([key]) => key).sort(), [...Object.values(exportsById), ...historical].sort());
 const files = new Map(), folded = new Map(); let total = 0;
 const add = (path, bytes, mode = 0o644) => {
@@ -69,6 +73,15 @@ for (const exported of historical) {
     const baseline = checked.release.baseline; member(software, baseline.inventory);
     if (baseline.artifact.location.kind === "package") member(software, { ...baseline.artifact, path: baseline.artifact.location.path });
   }
+}
+for (const entry of prepared) {
+  const contentBytes = regular(join(software, entry.content), 16 * 1024 * 1024);
+  const content = readReleaseContent(contentBytes, { expectedSha256: sha(contentBytes) }); assert(content.valid, JSON.stringify(content));
+  const inventoryBytes = regular(join(software, entry.inventory), 16 * 1024 * 1024);
+  const frozen = createContentInventory(contentBytes, { expectedSha256: sha(contentBytes) });
+  assert(frozen.valid && sha(frozen.bytes) === sha(inventoryBytes), `Prepared content inventory differs: ${entry.inventory}`);
+  add(entry.content, contentBytes); add(entry.inventory, inventoryBytes);
+  for (const item of content.release.items) for (const descriptor of [item.recipe, ...item.materials].filter(Boolean)) member(software, { ...descriptor, path: descriptor.path ?? descriptor.packagePath });
 }
 const views = [];
 for (const view of plan.views) {

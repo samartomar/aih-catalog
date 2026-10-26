@@ -30,6 +30,11 @@ the candidate is staged and `release/` is untouched (a dry run). Review the outp
 directory, then re-run with `--apply` to replace `release/` atomically and commit
 the result like any other change.
 
+The default `release/release.json` is frozen through release 1.x: its exact bytes are
+recorded in `releaseInventory` and never regenerated. `--apply` therefore refuses this
+package's own `release/`; it still applies to a disposable copy named with `--root`, and
+dry runs stay available. Matt's skills move to the Extensions framework in release 1.7.
+
 Nothing the caller already had is overwritten or deleted. The output directory must be
 new or empty and must not overlap the package (it is refused otherwise, also through a
 link or alias); the producer writes into it and removes only directories it created
@@ -44,7 +49,7 @@ untouched refusal.
 | --- | --- |
 | `--commit <sha>` | Required. The immutable upstream commit to carry. |
 | `--source <id>` | Which declared source, when the declaration lists several. |
-| `--apply` | Replace `release/` with the verified candidate (never allowed from an unverified origin). |
+| `--apply` | Replace `release/` with the verified candidate (never allowed from an unverified origin, nor on this package's own frozen `release/`). |
 | `--advance-provenance` | Also re-pin unaffected items whose behavior is identical; reported as provenance-only. |
 | `--declaration <file>` | The producer declaration (default `producer/declaration.json`). |
 | `--out <dir>` | A new or empty directory for reports, the staged package and the packed artifact. |

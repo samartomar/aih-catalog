@@ -9,6 +9,7 @@ import type { AuthoringResult, CatalogItem, CatalogRelease, Diagnostic } from ".
 import { PACKAGE_NAME, SHA256 } from "./document.js";
 import { deepFreeze } from "./json.js";
 import { isCheckedRelease } from "./reader.js";
+import { sha256Hex } from "./sha256.js";
 import { semverPrecedence } from "./version.js";
 
 /** Two actual `readRelease` handles; `second` is described relative to `first`. */
@@ -115,7 +116,17 @@ function versionOrder(first: string, second: string): VersionComparison {
 
 const identity = (item: CatalogItem): ItemIdentity => ({
   itemSha256: item.itemSha256,
-  recipeSha256: item.recipe.sha256,
+  // A release 1.7 transition map compares as the sorted client/recipe digest lines.
+  recipeSha256:
+    item.recipe?.sha256 ??
+    sha256Hex(
+      new TextEncoder().encode(
+        Object.entries(item.recipes ?? {})
+          .map(([clientId, recipe]) => `${clientId}\t${recipe.sha256}\n`)
+          .sort(compare)
+          .join(""),
+      ),
+    ),
   materialSha256: [...new Set(item.materials.map((member) => member.sha256))].sort(compare),
 });
 const change = (same: boolean): Change => (same ? "unchanged" : "changed");

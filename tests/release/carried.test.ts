@@ -3,7 +3,8 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
-import { listItems, readRelease } from "../../src/release/reader.js";
+import { preparedReleaseContent } from "../../src/release/contracts.js";
+import { listItems, readRelease, readReleaseContent } from "../../src/release/reader.js";
 import {
   canonical,
   MATT_ITEM_IDS,
@@ -126,12 +127,22 @@ describe("carried release", () => {
       "release/release-superpowers.json",
       "release/release-anthropic.json",
     ]);
+    // Prepared content awaiting its baseline, read by the content reader, and its inventory.
+    const prepared = preparedReleaseContent.map((entry) => {
+      declared.add(entry.content);
+      declared.add(entry.inventory);
+      const bytes = bytesAt(entry.content);
+      const read = readReleaseContent(bytes, { expectedSha256: sha256(bytes) });
+      if (!read.valid) throw new Error(JSON.stringify(read.diagnostics));
+      return read.release;
+    });
     for (const item of [
       ...listItems(carried()),
       ...listItems(hookRead.release),
       ...adjacentDocuments.flatMap((release) => listItems(release)),
+      ...prepared.flatMap((release) => listItems(release)),
     ]) {
-      for (const member of [item.recipe, ...item.materials]) {
+      for (const member of [...(item.recipe ? [item.recipe] : []), ...item.materials]) {
         const path = String(
           (member as { path?: string; packagePath?: string }).path ??
             (member as { packagePath?: string }).packagePath,
@@ -159,9 +170,9 @@ describe("carried release", () => {
     expect(sha256(canonical(schema))).toBe(CORE_RECIPE_SCHEMA_CANONICAL_SHA256);
     const validate = new Ajv2020({ allErrors: true, strict: true }).compile(schema);
     for (const item of listItems(carried())) {
-      const recipe = JSON.parse(bytesAt(item.recipe.path).toString("utf8"));
+      const recipe = JSON.parse(bytesAt(item.recipe?.path as string).toString("utf8"));
       expect(validate(recipe), JSON.stringify(validate.errors)).toBe(true);
-      expect(recipe.id).toBe(item.recipe.id);
+      expect(recipe?.id).toBe(item.recipe?.id);
       expect(recipe.inputs).toEqual(item.inputs);
       expect(recipe.prerequisites).toEqual(item.targets);
       expect(item.scopes.every((scope) => recipe.targets.includes(scope))).toBe(true);

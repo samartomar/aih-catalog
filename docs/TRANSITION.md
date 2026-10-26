@@ -102,6 +102,9 @@ native conversation entry.
 Run `npm ci --ignore-scripts`, then `npm run verify`. Verification typechecks and
 lints once, compiles without rewriting committed defaults, checks the carried release
 (including the offline whole-package `check:release`) and retained generated material, runs the active tests once, and checks action pins.
+Verification also re-derives the release 1.7 restructuring expectation and compares
+every listed 1.7.0 release with it (`npm run check:restructuring`), and the whole-package
+check verifies the frozen default `release.json` bytes against their recorded digest.
 Read-only CI uses Node 24, audits dependencies and checks whitespace, with one
 20-minute job. The Node adapter declares Node 24.15–24.x; portable entries also
 run in a browser.

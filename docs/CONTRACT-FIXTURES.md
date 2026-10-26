@@ -20,8 +20,8 @@ directly. Existing consumers continue using the unchanged `contractSupport` and
 Support 1.0 identifies each version by its complete contract URN. Its closed
 schema permits only `id`, `role` and `schemaExport` in each contract entry;
 it does **not** permit a `versions` array or fixture references. Each supported
-release 1.0–1.6, producer declaration 3.0/3.1/3.2, content inventory 1.0/1.1,
-release-content projection 1.0/1.1, baseline 1.0, release index 1.0.0, release sets 1.0.0,
+release 1.0–1.7, producer declaration 3.0/3.1/3.2, content inventory 1.0/1.1/1.2,
+release-content projection 1.0/1.1/1.2, baseline 1.0, release index 1.0.0, release sets 1.0.0,
 source description 1.0.0 and admitted
 Core recipe version has a separate entry and an exact schema export. `both`
 describes formats Catalog reads and produces; producer declarations are
@@ -72,6 +72,24 @@ format Catalog does not admit. A missing or non-string `schema` is
 scopes and material closure) needs that item, so it is checked only when a
 release is read. The result establishes structural admission, not execution
 authority.
+
+Release 1.7 fixtures are built by the public transition build from real content.
+The three per-tool copies each of Matt's grill-me and grilling in the committed
+Extensions release are projected to release 1.6 with source-relative paths
+(`fixtures/release-1-7/extensions-copies-release-1.6.0.json`) and collapsed by
+`compileTransitionRelease` into one tool-neutral item each, with a recipe per client,
+hash supersession of the tool copies and `name+sourcePath` supersession of the frozen
+default's copies (`fixtures/release-1-7/extensions-release-1.7.0.json`). Grill-me's
+content identity equals the one the October dry run projected for it. The
+`release-1.7.0-valid` fixture adds a test-only evidence binding; inventory and
+projection 1.2.0 describe the same content. Two scenario envelopes are executed by
+the packed checker: `hash-vectors` (release 1.6 and 1.7 documents of one framework
+coexisting with deterministic digests, and declarations that move only `itemSha256`)
+and `split-supersession` (the frozen default's project context spread over three
+survivors). `project-basics-release-1.7.0` (read with `readRelease`) is the shipped
+Project basics content exactly as prepared, plus a test-only evidence binding over its
+shipped content inventory; package support 1.1 lists it under release 1.7.0 beside the
+valid and invalid pair. See [Project basics content](PROJECT-BASICS.md).
 
 Release sets 1.0 fixtures are read with `readReleaseSets` against a content-only
 context release under `fixtures/release-sets/`, itself real content projected to

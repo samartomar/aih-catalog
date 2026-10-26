@@ -133,12 +133,91 @@ const inventory11 = {
     projection: { const: "urn:aihq:catalog:release-content:1.1.0" }, release: { $ref: "#/$defs/releaseContent" } }),
   $defs: { ...release16.$defs, releaseContent: content16 },
 };
+// Release 1.7.0: one tool-neutral item per piece of content. Every release 1.6
+// item field is required, kinds are closed, documents carry a purpose, and an
+// item carries one recipe or a transition map keyed by client id. Supersession,
+// durable retirement, embedded sets and the declarations outside both identities
+// arrive here. The reader additionally recomputes behaviour files, identities and
+// set digests, and checks every cross-field rule.
+const sets = JSON.parse(readFileSync(resolve(root, "schemas/release-sets/1.0.0.json")));
+const setDefs = Object.fromEntries(Object.entries(sets.$defs).map(([key, value]) => [`set_${key}`, value]));
+const rewriteRefs = (value) => {
+  if (Array.isArray(value)) return value.map(rewriteRefs);
+  if (value === null || typeof value !== "object") return value;
+  return Object.fromEntries(Object.entries(value).map(([key, inner]) =>
+    [key, key === "$ref" && typeof inner === "string" ? inner.replace("#/$defs/", "#/$defs/set_") : rewriteRefs(inner)]));
+};
+for (const key of Object.keys(setDefs)) setDefs[key] = rewriteRefs(setDefs[key]);
+const clientId = { type: "string", pattern: "^[a-z][a-z0-9-]{0,63}$" };
+const idList = { type: "array", maxItems: 4096, uniqueItems: true, items: { $ref: "#/$defs/id" } };
+const recipe17 = structuredClone(base.$defs.item.properties.recipe);
+const recipeEntry = structuredClone(recipe17);
+recipeEntry.required.push("materials", "inputs");
+recipeEntry.properties.materials = { ...idList, description: "Ascending content material ids: exactly this recipe's material closure." };
+recipeEntry.properties.inputs = { ...idList, description: "Ascending input names of the item this recipe defines." };
+const itemIdentityRef = { releaseSha256: { $ref: "#/$defs/sha256" }, itemId: { $ref: "#/$defs/id" }, itemSha256: { $ref: "#/$defs/sha256" }, contentSha256: { $ref: "#/$defs/sha256" }, behaviourSha256: { $ref: "#/$defs/sha256" } };
+const supersession = { oneOf: [
+  object({ match: { const: "hash" }, ...itemIdentityRef }, ["match", "releaseSha256", "itemId", "itemSha256", "contentSha256"]),
+  object({ match: { const: "name+sourcePath" }, ...itemIdentityRef, name: { type: "string", minLength: 1, maxLength: 256 }, sourcePath: { $ref: "#/$defs/path" } }, ["match", "releaseSha256", "itemId", "itemSha256", "name", "sourcePath"]),
+  object({ match: { const: "split" }, ...itemIdentityRef }, ["match", "releaseSha256", "itemId", "itemSha256"]),
+] };
+const sameReleaseRef = object({ itemId: { $ref: "#/$defs/id" } });
+const documentPayload = object({ files: { type: "array", maxItems: 4096, items: { $ref: "#/$defs/id" } }, purpose: { enum: ["notice", "license", "reference", "guide"] }, placement: { enum: ["file", "entry-block", "project-folder"] } }, ["files", "purpose"]);
+const dependencyRef17 = structuredClone(base.$defs.dependencyRef);
+dependencyRef17.oneOf[1].required.push("contentSha256", "behaviourSha256");
+dependencyRef17.oneOf[1].properties.contentSha256 = { $ref: "#/$defs/sha256" };
+dependencyRef17.oneOf[1].properties.behaviourSha256 = { $ref: "#/$defs/sha256" };
+const dependencyList17 = { type: "array", items: { $ref: "#/$defs/dependencyRef17" } };
+const item17 = structuredClone(item16);
+delete item17.properties.clientId;
+item17.properties.kind = { enum: ["skill", "agent", "command", "rule", "hook", "mcp-server", "document"] };
+item17.properties.role = { enum: ["choosable", "supporting"], description: "Presentation only." };
+item17.properties.materials = { type: "array", maxItems: 4096, items: { $ref: "#/$defs/material16" } };
+item17.properties.recipe = recipe17;
+item17.properties.recipes = { type: "object", minProperties: 1, maxProperties: 64, propertyNames: clientId, additionalProperties: recipeEntry, description: "Transition recipes of the replaced tool variants, selected by clientId." };
+item17.properties.supersedes = { type: "array", minItems: 1, maxItems: 4096, items: supersession };
+item17.properties.fallback = sameReleaseRef;
+item17.properties.variantOf = sameReleaseRef;
+item17.properties.hints = object({ tools: { type: "array", maxItems: 64, uniqueItems: true, items: clientId } });
+item17.properties.payload = { oneOf: [skillPayload, rulePayload, hookPayload, mcpPayload, filesPayload, documentPayload] };
+item17.properties.dependencies = object({ requires: dependencyList17, optional: dependencyList17, conflicts: dependencyList17 }, []);
+item17.required = ["id", "label", "kind", "role", "name", "nameBasis", "source", "sourceIds", "targets", "scopes", "inputs", "materials", "dependencies", "payload", "requirements", "executable", "contentSha256", "behaviourSha256"];
+item17.oneOf = [{ required: ["recipe"], properties: { recipe: true } }, { required: ["recipes"], properties: { recipes: true } }];
+item17.allOf = item17.allOf.map((rule) => rule.if?.properties?.kind?.const === "document"
+  ? { ...rule, then: { properties: { payload: documentPayload } } } : rule);
+item17.allOf.push({ if: { properties: { kind: { enum: ["agent", "command"] } }, required: ["kind"] }, then: { properties: { fallback: false } } });
+const release17 = structuredClone(release16);
+release17.$id = "urn:aihq:catalog:release:1.7.0";
+release17.title = "Catalog release with one tool-neutral item per piece of content";
+release17.description = "Closed kinds, a presentation role, required behaviour files and both identities, supersession, durable retirement, embedded sets and an optional transition recipe map selected by clientId. Readers older than 1.7.0 refuse the whole format. Like release 1.5 and 1.6, the release carries its baseline binding.";
+release17.properties.schema.const = release17.$id;
+release17.required = ["schema", "package", "framework", "sources", "items", "baseline"];
+const source17 = structuredClone(source16);
+source17.required = [...source17.required, "license"];
+release17.properties.sources = { type: "array", items: source17 };
+release17.properties.items = { type: "array", items: { $ref: "#/$defs/item17" } };
+release17.properties.retired = { type: "array", maxItems: 4096, items: object({ id: { $ref: "#/$defs/id" }, reason: { type: "string", minLength: 1, maxLength: 4096 }, replacedBy: { type: "array", maxItems: 4096, items: object({ framework: { $ref: "#/$defs/id" }, itemId: { $ref: "#/$defs/id" } }) } }) };
+release17.properties.sets = { type: "array", maxItems: 4096, items: { $ref: "#/$defs/set_set" } };
+release17.$defs = { ...release16.$defs, ...setDefs, item17, dependencyRef17 };
+const content17 = structuredClone(release17);
+delete content17.$schema; delete content17.$id; delete content17.$defs;
+content17.required = content17.required.filter(key => key !== "baseline");
+delete content17.properties.baseline;
+const inventory12 = {
+  $schema: base.$schema, $id: "urn:aihq:catalog:content-inventory:1.2.0",
+  title: "Complete release content projection for release 1.7.0",
+  ...object({ schema: { const: "urn:aihq:catalog:content-inventory:1.2.0" },
+    projection: { const: "urn:aihq:catalog:release-content:1.2.0" }, release: { $ref: "#/$defs/releaseContent" } }),
+  $defs: { ...release17.$defs, releaseContent: content17 },
+};
 for (const [name, schema] of [
   ["release/1.5.0", release], ["content-inventory/1.0.0", inventory],
   ["release/1.6.0", release16], ["content-inventory/1.1.0", inventory11],
   ["scan-baseline/1.0.0", { $schema: base.$schema, $id: "urn:aihq:catalog:scan-baseline:1.0.0", ...baseline }],
   ["release-content/1.0.0", { $schema: base.$schema, $id: "urn:aihq:catalog:release-content:1.0.0", ...content, $defs: base.$defs }],
   ["release-content/1.1.0", { $schema: base.$schema, $id: "urn:aihq:catalog:release-content:1.1.0", ...content16, $defs: release16.$defs }],
+  ["release/1.7.0", release17], ["content-inventory/1.2.0", inventory12],
+  ["release-content/1.2.0", { $schema: base.$schema, $id: "urn:aihq:catalog:release-content:1.2.0", ...content17, $defs: release17.$defs }],
 ]) {
   const path = resolve(root, `schemas/${name}.json`), bytes = `${JSON.stringify(schema, null, 2)}\n`;
   if (process.argv.includes("--check")) {

@@ -1,5 +1,5 @@
 import { baselineMembers } from "../release/baseline-members.js";
-import type { CatalogRelease, Json } from "../release/contracts.js";
+import { type CatalogRelease, type Json, preparedReleaseContent } from "../release/contracts.js";
 import { readRelease, readReleaseContent } from "../release/reader.js";
 import { refuse } from "./errors.js";
 import {
@@ -34,6 +34,11 @@ export interface BaseRelease {
   readonly guideDocument?: Record_;
   /** Additional ordinary content manifests preserved by targeted refreshes. */
   readonly contentDocuments?: ReadonlyMap<string, Record_>;
+  /**
+   * Prepared release 1.7 content awaiting its baseline, by content path, with its
+   * content inventory path. Targeted refreshes carry it and re-freeze its inventory.
+   */
+  readonly preparedDocuments?: ReadonlyMap<string, { document: Record_; inventory: string }>;
   readonly nativeDocuments: ReadonlyMap<string, Record_>;
 }
 
@@ -175,6 +180,40 @@ export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRe
       }
     }
   }
+  const preparedDocuments = new Map<string, { document: Record_; inventory: string }>();
+  for (const entry of preparedReleaseContent) {
+    const bytes = files.get(entry.content);
+    if (bytes === undefined) continue;
+    const prepared = readReleaseContent(bytes, { expectedSha256: sha256Hex(bytes) });
+    if (!prepared.valid || prepared.release.schema !== entry.schema) {
+      return refuse("base-invalid", `the base ${entry.content} is not valid prepared content`, {
+        diagnostics: prepared.valid
+          ? [prepared.release.schema]
+          : prepared.diagnostics.map((d) => d.reason),
+      });
+    }
+    const document = JSON.parse(bytes.toString("utf8")) as Record_;
+    for (const item of (document.items as Json[]).map(asRecord)) {
+      for (const member of memberList(item)) {
+        const memberPath = packagePathOf(member);
+        const memberBytes = files.get(memberPath);
+        if (
+          memberBytes === undefined ||
+          memberBytes.length !== member.byteLength ||
+          sha256Hex(memberBytes) !== member.sha256
+        )
+          return refuse("base-member-mismatch", `${memberPath} is absent or changed`, {
+            itemId: item.id,
+            path: memberPath,
+          });
+        referenced.add(memberPath);
+      }
+    }
+    // Its frozen inventory is re-derived by the candidate; any stale copy is replaced.
+    referenced.add(entry.content);
+    referenced.add(entry.inventory);
+    preparedDocuments.set(entry.content, { document, inventory: entry.inventory });
+  }
   for (const checked of checkedDocuments) {
     for (const member of baselineMembers(checked)) {
       const bytes = files.get(member.path);
@@ -201,5 +240,6 @@ export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRe
     nativeDocuments,
     ...(guideDocument === undefined ? {} : { guideDocument }),
     contentDocuments,
+    preparedDocuments,
   };
 }
