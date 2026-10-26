@@ -11,6 +11,6 @@ it("builds, reads and resolves release sets through the installed packed public 
   });
   const receipt = JSON.parse(output);
   expect(receipt.ok).toBe(true);
-  expect(receipt.cases).toBe(27);
+  expect(receipt.cases).toBe(30);
   expect(receipt.archiveSha256).toMatch(/^[0-9a-f]{64}$/);
 }, 300_000);

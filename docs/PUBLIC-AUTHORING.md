@@ -248,13 +248,18 @@ identity, fills same-release reference digests and computes every `setSha256`.
 It refuses a hook member that is not optional (`hook-member-required`), an
 unpinned cross-framework member (`member-unpinned`), a cross-release reference
 without `setSha256` and `releaseVersion` (`set-ref-unpinned`), a set cycle
-(`set-cycle`) and nesting deeper than 8 (`set-depth-exceeded`). The document
-binds the framework id and version. `readReleaseSets` applies the same checks,
+(`set-cycle`) and nesting deeper than 8 (`set-depth-exceeded`). It also requires a
+member that is not optional to be on by default (`member-required-off`), a
+`firstRun` that names a member (`first-run-not-member`), and a reference to the
+same framework to stay in this release. A member from another framework is
+checked as a hook when it is resolved, against its own checked release. The
+document binds the framework id and version. `readReleaseSets` applies the same checks,
 recomputes every digest against the release's item identities and returns a
 checked view of that release carrying `sets`; a set built for earlier item
 declarations is refused with `set-digest-mismatch`. Release 1.7.0 carries sets in
 the release itself (samartomar/aih-catalog#142); the resolver reads `sets` from
-the checked view either way.
+the checked view either way. Node operations such as `prepareProjectContext`
+treat the view like the release it extends.
 
 `resolveSelections` accepts `sets[]` alongside its item roots and expands them in
 this order:
@@ -262,11 +267,12 @@ this order:
 1. Chosen sets in request order, each depth-first: `includes` in declared order,
    then members in declared order, taking `defaultOn` members unless the request
    names them, then `requires` sets. `optional` sets are never expanded.
-2. Option values: `always` sets, then chosen choices in the option's declared
-   order. Only the chosen set's own options take choices; with no choice only
+2. Option values, per chosen set in request order: `always` sets, then chosen
+   choices in the option's declared order. Only the chosen set's own options take choices; with no choice only
    always-included sets apply.
 3. Exclusions: `skips` and `members` entries with `include: false` remove the
-   item from every set. A member that is not optional cannot be excluded.
+   item from every set. Excluding an item that any chosen set requires (a member
+   that is not optional) is refused.
 4. Dependency closure with the existing rules and ordering.
 
 A member or set in another release resolves from the supplied checked release
@@ -278,7 +284,8 @@ An excluded item a selection requires, or an excluded required member, is
 `REQUIRED_EXCLUDED` with reason `required-excluded`; an excluded hook is never
 re-added. Conflicts keep `ITEM_CONFLICT`. Nesting deeper than 8 below a chosen set
 or more than 5,000 distinct resolved members is `SET_LIMIT_EXCEEDED`
-(`set-depth-exceeded`, `set-members-exceeded`); nothing is truncated. A cycle
+(`set-depth-exceeded`, `set-members-exceeded`); nothing is truncated. Members are
+counted as sets expand, before `skips` apply. A cycle
 across releases is `SET_CYCLE`; an unknown option, choice or member override is
 `INPUT_INVALID`.
 
@@ -409,13 +416,14 @@ configuration. Never pass partial closure to execution as successful resolution.
 Malformed requests, unchecked handles and path-bound overflow return no partial.
 Retry with the missing exact releases/items to obtain a validated composition. Diagnostic fields are
 `{code,path,message,related?,reason?,details?,reference?,declaredBy?}`. Paths are JSON pointers.
-Reason is absent for these new helpers; messages explain but are not machine
-interfaces. Existing Catalog reader/validator diagnostics retain their original
+`reason` is present on set refusals and `REQUIRED_EXCLUDED` and absent otherwise;
+messages explain but are not machine interfaces. Existing Catalog reader/validator diagnostics retain their original
 shape in `details:{owner:"catalog",diagnostics:[...]}`.
 
 Resolver codes are `INPUT_INVALID`, `RELEASE_UNAVAILABLE`, `ITEM_UNAVAILABLE`,
 `REFERENCE_AMBIGUOUS`, `REQUIRED_CYCLE`, `REQUIRED_ITEM_SKIPPED`, `ITEM_CONFLICT`,
-and `CONFIGURATION_CONFLICT`. Required cycles are refused by the reader for local
+`CONFIGURATION_CONFLICT`, and for requests with sets `REQUIRED_EXCLUDED`,
+`SET_UNAVAILABLE`, `SET_CYCLE` and `SET_LIMIT_EXCEEDED`. Required cycles are refused by the reader for local
 closure and by resolution for composed closure. Missing or identity-inconsistent
 references, conflicts and invalid final configuration refuse the entire composition.
 

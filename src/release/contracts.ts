@@ -34,12 +34,6 @@ export const RELEASE_SCHEMA_EXPORT_1_5 = "@aihq/catalog/schemas/release/1.5.0.js
  */
 export const RELEASE_SCHEMA_ID_1_6 = "urn:aihq:catalog:release:1.6.0" as const;
 export const RELEASE_SCHEMA_EXPORT_1_6 = "@aihq/catalog/schemas/release/1.6.0.json" as const;
-/**
- * The release index 1.0.0: one unsigned-first merge surface over per-source index
- * documents. TUF verification of index bytes is delivered separately
- * (samartomar/aih-catalog#138); this contract ships the schema, diagnostics and
- * honest unsigned reading now.
- */
 /** Release sets 1.0: release-level groups of items. Sets are not a kind and carry no files. */
 export const RELEASE_SETS_SCHEMA_ID = "urn:aihq:catalog:release-sets:1.0.0" as const;
 export const RELEASE_SETS_SCHEMA_EXPORT = "@aihq/catalog/schemas/release-sets/1.0.0.json" as const;
@@ -47,6 +41,12 @@ export const RELEASE_SETS_SCHEMA_EXPORT = "@aihq/catalog/schemas/release-sets/1.
 export const SET_MAX_DEPTH = 8;
 export const SET_MAX_MEMBERS = 5000;
 
+/**
+ * The release index 1.0.0: one unsigned-first merge surface over per-source index
+ * documents. TUF verification of index bytes is delivered separately
+ * (samartomar/aih-catalog#138); this contract ships the schema, diagnostics and
+ * honest unsigned reading now.
+ */
 export const RELEASE_INDEX_SCHEMA_ID = "urn:aihq:catalog:release-index:1.0.0" as const;
 export const RELEASE_INDEX_SCHEMA_EXPORT =
   "@aihq/catalog/schemas/release-index/1.0.0.json" as const;

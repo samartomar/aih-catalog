@@ -486,4 +486,45 @@ case_("malformed set selections are refused, never thrown", () => {
   assert.deepEqual(codes(resolve([kit], [choose(release, "tdd", { release: { releaseSha256: kit.sha256, scope: "project" } })])), ["SET_UNAVAILABLE"]);
 });
 
+case_("legacy requests keep every diagnostic after a configuration conflict", () => {
+  const configured = (value) => ({ releaseSha256: kit.sha256, itemId: "kit.tdd", scope: "project", configuration: { agentDirectory: value } });
+  const result = resolveSelections({
+    releases: { [kit.sha256]: kit },
+    roots: [configured(".claude"), configured(".other")],
+    skips: [{ releaseSha256: kit.sha256, itemId: "kit.base", scope: "project" }],
+  });
+  assert.equal(result.status, "refused");
+  assert.ok(codes(result).includes("CONFIGURATION_CONFLICT"));
+  assert.ok(codes(result).includes("REQUIRED_ITEM_SKIPPED"));
+});
+
+case_("an item one set excludes and another set requires is refused", () => {
+  const release = withSets(kit, [
+    set("loose", [member("kit", "kit.review", true, true)]),
+    set("strict", [member("kit", "kit.review")]),
+  ]);
+  const exclude = { members: [{ item: { framework: "kit", itemId: "kit.review" }, include: false }] };
+  for (const order of [[choose(release, "loose", exclude), choose(release, "strict")], [choose(release, "strict"), choose(release, "loose", exclude)]]) {
+    const result = resolve([release], order);
+    assert.deepEqual([result.status, codes(result), reasons(result)], ["refused", ["REQUIRED_EXCLUDED"], ["required-excluded"]]);
+  }
+});
+
+case_("option values follow every chosen set's depth-first expansion", () => {
+  const release = withSets(ecc, [
+    ...eccSets.slice(0, 3),
+    set("plain", [member("ecc", "ecc.rule.typescript")]),
+    set("picker", [member("ecc", "ecc.skill.review")], {
+      options: [{ id: "languages", name: "Languages",
+        choices: [{ id: "typescript", name: "TypeScript", sets: [{ framework: "ecc", setId: "typescript" }] }] }],
+    }),
+  ]);
+  const result = resolve([release], [choose(release, "picker", { options: { languages: ["typescript"] } }), choose(release, "plain")]);
+  assert.equal(result.status, "ok", JSON.stringify(result.diagnostics));
+  assert.deepEqual(originsOf(result, "ecc.rule.typescript").map((origin) => [origin.set.setId, origin.options ?? null]), [
+    ["plain", null],
+    ["picker", { languages: ["typescript"] }],
+  ]);
+});
+
 process.stdout.write(JSON.stringify({ results }));

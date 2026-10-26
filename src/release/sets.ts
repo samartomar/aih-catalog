@@ -5,10 +5,11 @@
  * references, optional hooks, acyclic bounded nesting and bottom-up digests.
  */
 import { exactFields } from "./boundary.js";
-import { checkedReleases } from "./checked.js";
+import { checkedReleases, extendedReleases } from "./checked.js";
 import {
   type AuthoringResult,
   type CatalogDiagnostic,
+  type CatalogItem,
   type CatalogRelease,
   type Diagnostic,
   RELEASE_MAX_BYTES,
@@ -30,6 +31,8 @@ const MAX_SETS = 4096;
 const MAX_REFS = 256;
 const MAX_TEXT = 4096;
 const VERSION = /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/;
+const isVersion = (value: unknown): value is string =>
+  typeof value === "string" && value.length <= 128 && VERSION.test(value);
 /** Fields the digest leaves out besides the members, which it covers as lines. */
 const UNDIGESTED = new Set([
   "id",
@@ -41,6 +44,8 @@ const UNDIGESTED = new Set([
   "members",
 ]);
 const encoder = new TextEncoder();
+const memberKey = (item: { readonly framework: string; readonly itemId: string }) =>
+  `${item.framework}\u0000${item.itemId}`;
 
 const isId = (value: unknown): value is string =>
   typeof value === "string" && value.length <= 128 && ID.test(value);
@@ -57,11 +62,12 @@ interface Problem {
 function memberLine(
   member: SetMember,
   release: CatalogRelease,
+  items: ReadonlyMap<string, CatalogItem>,
 ): { line?: string; problem?: Omit<Problem, "path"> } {
   const item = member.item as Record<string, unknown>;
   const own = item.framework === release.framework?.id;
   if (own) {
-    const found = release.items.find((candidate) => candidate.id === item.itemId);
+    const found = items.get(item.itemId as string);
     if (!found)
       return {
         problem: {
@@ -175,8 +181,7 @@ function checkShape(set: unknown, at: string, problems: Problem[], declaration: 
         !exactFields(item, ["framework", "itemId"], pinned) ||
         !isId(item.framework) ||
         !isId(item.itemId) ||
-        (item.releaseVersion !== undefined &&
-          (typeof item.releaseVersion !== "string" || !VERSION.test(item.releaseVersion))) ||
+        (item.releaseVersion !== undefined && !isVersion(item.releaseVersion)) ||
         [item.contentSha256, item.behaviourSha256].some(
           (digest) => digest !== undefined && (typeof digest !== "string" || !SHA256.test(digest)),
         )
@@ -202,8 +207,7 @@ function checkShape(set: unknown, at: string, problems: Problem[], declaration: 
         (ref.setSha256 !== undefined &&
           (typeof ref.setSha256 !== "string" || !SHA256.test(ref.setSha256))) ||
         (!declaration && ref.setSha256 === undefined) ||
-        (ref.releaseVersion !== undefined &&
-          (typeof ref.releaseVersion !== "string" || !VERSION.test(ref.releaseVersion)))
+        (ref.releaseVersion !== undefined && !isVersion(ref.releaseVersion))
       )
         fail(
           "set-invalid",
@@ -310,6 +314,7 @@ function checkSets(
   });
   if (problems.length) return { problems };
   const sets = values.map((value) => structuredClone(value) as Record<string, unknown>);
+  const items = new Map(release.items.map((item) => [item.id, item]));
   const byId = new Map<string, number>();
   sets.forEach((set, index) => {
     if (byId.has(set.id as string))
@@ -325,9 +330,9 @@ function checkSets(
     (set.members as SetMember[]).forEach((member, m) => {
       const path = `${at}/members/${m}`;
       const item = member.item as Record<string, unknown>;
-      const memberKey = `${item.framework}\u0000${item.itemId}`;
-      if (seen.has(memberKey)) fail("member-duplicate", path, "A set names each member once.");
-      seen.add(memberKey);
+      const name = memberKey(member.item);
+      if (seen.has(name)) fail("member-duplicate", path, "A set names each member once.");
+      seen.add(name);
       const pins = ["releaseVersion", "contentSha256", "behaviourSha256"].filter(
         (key) => key in item,
       );
@@ -338,8 +343,7 @@ function checkSets(
             `${path}/item`,
             "A member of this release takes its identities from it.",
           );
-        const found = release.items.find((candidate) => candidate.id === item.itemId);
-        if (found?.kind === "hook" && !member.optional)
+        if (items.get(item.itemId as string)?.kind === "hook" && !member.optional)
           fail("hook-member-required", path, "Every hook member of a set is optional.");
       } else if (pins.length !== 3)
         fail(
@@ -347,7 +351,7 @@ function checkSets(
           `${path}/item`,
           "A member from another framework is pinned by releaseVersion, contentSha256 and behaviourSha256.",
         );
-      const line = memberLine(member, release);
+      const line = memberLine(member, release, items);
       if (line.problem) fail(line.problem.reason, path, line.problem.message);
       else setLines.push(line.line as string);
     });
@@ -366,7 +370,7 @@ function checkSets(
         );
     }
     const firstRun = set.firstRun as { framework: string; itemId: string } | undefined;
-    if (firstRun && !seen.has(`${firstRun.framework}\u0000${firstRun.itemId}`))
+    if (firstRun && !seen.has(memberKey(firstRun)))
       fail("first-run-not-member", `${at}/firstRun`, "firstRun names a member of the set.");
   });
   if (problems.length) return { problems };
@@ -598,6 +602,7 @@ export function readReleaseSets(
   const sets = deepFreeze(checked.sets);
   const attached = deepFreeze({ ...release, sets }) as CatalogRelease;
   checkedReleases.add(attached);
+  extendedReleases.set(attached, release);
   return Object.freeze({
     valid: true,
     release: attached,
