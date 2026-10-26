@@ -858,3 +858,12 @@ export async function prepareProjectContext(
     });
   }
 }
+
+export {
+  acquireNpmSnapshot,
+  NPM_SNAPSHOT_LIMITS,
+  type NpmSnapshot,
+  type NpmSnapshotControls,
+  type NpmSnapshotRequest,
+  type NpmSnapshotResult,
+} from "./npm-snapshot.js";

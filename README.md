@@ -246,3 +246,9 @@ package. Publication, signing and candidate allocation remain separately owned b
 
 Catalog is Apache-2.0 licensed. Carried third-party material retains its source
 license and pinned provenance.
+
+For an ordinary npm package containing no Catalog release, call
+`acquireNpmSnapshot({ name, version, integrity })` from `@aihq/catalog/node`.
+It verifies an exact version and caller-held SHA-512 pin, returns bounded files
+and executable modes plus the exact npm identity, and runs no package code.
+See [npm snapshots](docs/NPM-SNAPSHOTS.md) for producer preparation and refusals.

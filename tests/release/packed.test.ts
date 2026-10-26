@@ -640,7 +640,9 @@ describe("exact packed consumer", () => {
     );
     expect(result).toEqual({
       node: [
+        "NPM_SNAPSHOT_LIMITS",
         "acquireBaselineArtifact",
+        "acquireNpmSnapshot",
         "prepareProjectContext",
         "prepareReleaseBaseline",
         "readInstalledRelease",

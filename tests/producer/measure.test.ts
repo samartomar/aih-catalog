@@ -41,6 +41,7 @@ function makeToolRepo(dir: string): void {
     "CHANGELOG.md",
     "docs/FRAMEWORK-TEMPLATES.md",
     "docs/PUBLIC-AUTHORING.md",
+    "docs/NPM-SNAPSHOTS.md",
     "docs/SCAN-BASELINE.md",
     "docs/CONTRACT-FIXTURES.md",
     "fixtures",
