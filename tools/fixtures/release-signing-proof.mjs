@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict';
+import { mkdtempSync,writeFileSync,readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { generateKeyPairSync,sign,verify,createHash } from 'node:crypto';
+import { parse } from 'yaml';
+import { releaseSigningPlan,executeReleaseSigningPlan } from '../release-signing.mjs';
+const root=mkdtempSync(join(tmpdir(),'catalog-signing-fixture-'));
+const release=join(root,'release.json'),index=join(root,'release-index.json');
+writeFileSync(release,'fixture release\n');writeFileSync(index,'fixture index\n');
+assert.throws(()=>releaseSigningPlan({release,index}),/publisher-required/);
+const plan=releaseSigningPlan({release,index,expectedIdentity:'fixture-only',expectedIssuer:'https://fixture.invalid'});
+const pair=generateKeyPairSync('ed25519');
+const calls=[];
+const output=await executeReleaseSigningPlan(plan,args=>{
+ calls.push(args[0]);
+ const file=args.at(-1),bundle=args[args.indexOf('--bundle')+1];
+ const digest=createHash('sha256').update(readFileSync(file)).digest();
+ if(args[0]==='sign-blob') writeFileSync(bundle,sign(null,digest,pair.privateKey));
+ else { assert(args.includes('--certificate-identity'));assert(args.includes('fixture-only'));assert(verify(null,digest,pair.publicKey,readFileSync(bundle))); }
+});
+assert.deepEqual(calls,['sign-blob','verify-blob','sign-blob','verify-blob']);
+assert.deepEqual(output,[release,release+'.sigstore.json',index,index+'.sigstore.json']);
+assert.throws(()=>releaseSigningPlan({release,index,expectedIdentity:'fixture',expectedIssuer:'fixture'}),/bundle-already-exists/);
+writeFileSync(release,'tampered\n');
+await assert.rejects(executeReleaseSigningPlan(plan,()=>{throw Error('must not sign changed bytes');}),/signing-input-changed/);
+const yaml=readFileSync('.github/workflow-templates/catalog-release-signing.yml.disabled','utf8');
+const workflow=parse(yaml);
+assert.deepEqual(Object.keys(workflow.on),['workflow_dispatch']);
+assert.equal(workflow.jobs.sign.if,'${{ false }}');
+assert.equal(workflow.jobs.sign.permissions['id-token'],'write');
+assert(!yaml.includes('git tag'));assert(!yaml.includes('gh release'));assert(!yaml.includes('npm publish'));
+console.log('Signing preparation passed (fixture key; no Sigstore/OIDC/publication)');

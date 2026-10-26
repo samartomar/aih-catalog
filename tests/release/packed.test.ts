@@ -655,6 +655,7 @@ describe("exact packed consumer", () => {
         "readRecipe",
         "resolveGitRef",
         "resolveRelease",
+        "verifyReleaseIndexTuf",
       ],
       contracts: [
         "BASELINE_ARTIFACT_MAX_BYTES",

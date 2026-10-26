@@ -43,6 +43,7 @@ function makeToolRepo(dir: string): void {
     "docs/PUBLIC-AUTHORING.md",
     "docs/NPM-SNAPSHOTS.md",
     "docs/SCAN-BASELINE.md",
+    "docs/RELEASE-TRUST.md",
     "docs/CONTRACT-FIXTURES.md",
     "fixtures",
     "package-support.json",

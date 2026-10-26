@@ -73,3 +73,31 @@ it("turns offered MCP values into input references and refuses a value it cannot
     mcpPayload(fact({ command: "demo", env: { MIXED: "a-${DEMO}" } }), "asset-0"),
   ).toThrow(/Unrepresentable MCP value/);
 });
+
+it("moves the notice recipe to the user home and refuses one that leaves the project", async () => {
+  const { userScopeRecipe } = await tool();
+  const target = (root: string) => ({
+    root,
+    segments: [{ literal: ".aihq" }, { literal: "LICENSE" }],
+  });
+  const recipe = {
+    id: "ecc.notices",
+    description: "Deliver.",
+    targets: ["project"],
+    operations: [{ id: "write", kind: "file.write", scope: "project", target: target("project") }],
+    checks: [{ id: "check", kind: "file.sha256", target: target("project") }],
+  };
+  const user = userScopeRecipe(recipe);
+  expect(user.targets).toEqual(["user"]);
+  expect(user.operations[0]).toMatchObject({ scope: "user", target: target("userHome") });
+  expect(user.checks[0].target).toEqual(target("userHome"));
+  expect(() => userScopeRecipe({ ...recipe, targets: ["project", "user"] })).toThrow(
+    /admits the project only/,
+  );
+  expect(() =>
+    userScopeRecipe({
+      ...recipe,
+      checks: [{ id: "check", kind: "file.sha256", target: target("userHome") }],
+    }),
+  ).toThrow(/outside the project root/);
+});
