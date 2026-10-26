@@ -39,7 +39,7 @@ try {
   seedConsumerLock(consumer, root);
   runNpm(["install", "--prefix", consumer, "--offline", "--ignore-scripts", "--no-audit", "--no-fund", archive, ...(core ? [core] : [])], fixture);
   cpSync(join(root, "tools/project-basics-internal-scenario.mjs"), join(consumer, "consume-project-basics-internal.mjs"));
-  const receipt = JSON.parse(execFileSync(process.execPath, [join(consumer, "consume-project-basics-internal.mjs"), ...(core ? ["core"] : [])], { cwd: consumer, env, encoding: "utf8", timeout: 180_000 }));
+  const receipt = JSON.parse(execFileSync(process.execPath, [join(consumer, "consume-project-basics-internal.mjs"), archive, ...(core ? ["core"] : [])], { cwd: consumer, env, encoding: "utf8", timeout: 180_000 }));
   const failures = receipt.results.filter((entry) => entry.status !== "pass");
   assert.equal(failures.length, 0, JSON.stringify(failures, null, 1));
   assert.equal(sha(readFileSync(archive)), archiveSha256);

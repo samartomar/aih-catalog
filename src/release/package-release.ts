@@ -89,6 +89,9 @@ const MESSAGES: Record<string, string> = {
     "The package lists no prepared release content for that framework identifier.",
   "prepared-content-invalid":
     "The prepared release content is not readable, or names another framework or format.",
+  "prepared-content-mismatch":
+    "The prepared release content differs from the expected SHA-256 the caller pinned.",
+  "invalid-expected-sha256": "Expected a bare lowercase SHA-256 to pin the prepared content.",
   "prepared-inventory-mismatch":
     "The shipped content inventory is not the frozen inventory of this prepared content.",
   "release-unchecked":
@@ -256,6 +259,7 @@ export function verifyPackagePreparedContent(
   read: (path: string, limit: number, expected?: number) => Uint8Array,
   frameworkId: string,
   signal?: AbortSignal,
+  expectedContentSha256?: string,
 ): {
   release: CatalogRelease;
   entry: (typeof preparedReleaseContent)[number];
@@ -269,10 +273,18 @@ export function verifyPackagePreparedContent(
     preparedReleaseContent.find((candidate) => candidate.frameworkId === frameworkId) ??
     failWith("prepared-content-unknown");
   const exportName = `./${entry.export.slice("@aihq/catalog/".length)}`;
-  const identity = packageIdentity(read("package.json", PACKAGE_JSON_MAX_BYTES), exportName);
-  if (identity.releasePath !== entry.content) failWith("invalid-export", "package.json");
+  const manifest = read("package.json", PACKAGE_JSON_MAX_BYTES);
+  const identity = packageIdentity(manifest, exportName);
+  // Both the content and its frozen inventory are exported at their listed paths.
+  if (
+    identity.releasePath !== entry.content ||
+    packageIdentity(manifest, `./${entry.inventory}`).releasePath !== entry.inventory
+  )
+    failWith("invalid-export", "package.json");
   const contentBytes = read(entry.content, RELEASE_MAX_BYTES);
   const contentSha256 = sha256(contentBytes);
+  if (expectedContentSha256 !== undefined && expectedContentSha256 !== contentSha256)
+    failWith("prepared-content-mismatch", entry.content);
   const result = readReleaseContent(contentBytes, { expectedSha256: contentSha256 });
   if (!result.valid) {
     throw Object.assign(new AcquisitionFailure("prepared-content-invalid", entry.content), {

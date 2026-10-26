@@ -15,7 +15,7 @@ it("reads, refuses, browses and composes installed prepared Project basics throu
   );
   const receipt = JSON.parse(output);
   expect(receipt.ok).toBe(true);
-  expect(receipt.cases).toBe(5);
+  expect(receipt.cases).toBe(8);
   expect(receipt.core.status).toBe("not-run");
   expect(receipt.archiveSha256).toMatch(/^[0-9a-f]{64}$/);
 }, 300_000);

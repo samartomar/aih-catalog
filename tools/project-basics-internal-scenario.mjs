@@ -5,7 +5,7 @@
 // applied by Core into a disposable project. No baseline is bound, none is fabricated,
 // and the content stays labelled unbound and unauthenticated throughout.
 //
-//   node consume-project-basics-internal.mjs [core]
+//   node consume-project-basics-internal.mjs <catalog.tgz> [core]
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -13,7 +13,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { preparedReleaseContent } from "@aihq/catalog/contracts";
-import { readInstalledPreparedContent, readInstalledRelease } from "@aihq/catalog/node";
+import { readInstalledPreparedContent, readInstalledRelease, resolveRelease } from "@aihq/catalog/node";
 import {
   configureItem,
   listItems,
@@ -60,6 +60,7 @@ await case_("the installed package's prepared content is read with every byte ve
     inventoryPath: entry.inventory,
     inventorySha256: sha256(inventory),
     inventoryByteLength: inventory.length,
+    pinned: false,
   });
   return { contentSha256: read.provenance.contentSha256, inventorySha256: read.provenance.inventorySha256 };
 });
@@ -76,14 +77,58 @@ await case_("it is labelled unbound and unauthenticated, and release readers sti
   const strict = readRelease(content, { expectedSha256: sha256(content) });
   assert.equal(strict.valid, false);
   assert.ok(reasons(strict).includes("baseline-invalid"));
-  const installed = await readInstalledRelease({ root, release: `./${entry.export.slice("@aihq/catalog/".length)}` });
+  const exportName = `./${entry.export.slice("@aihq/catalog/".length)}`;
+  const installed = await readInstalledRelease({ root, release: exportName });
   assert.equal(installed.valid, false);
+  const archiveBytes = readFileSync(process.argv[2]);
+  const archive = { url: "https://example.invalid/catalog.tgz", sha256: sha256(archiveBytes), byteLength: archiveBytes.length };
+  const resolved = await resolveRelease({ archive, release: exportName }, { fetch: async () => new Response(archiveBytes) });
+  assert.equal(resolved.valid, false);
+});
+
+await case_("a saved choice re-reads pinned to its exact content digest", async () => {
+  const pinned = await readInstalledPreparedContent({ root, frameworkId: FRAMEWORK, expectedContentSha256: read.provenance.contentSha256 });
+  assert.equal(pinned.valid, true, JSON.stringify(pinned.diagnostics));
+  assert.equal(pinned.provenance.pinned, true);
+  assert.deepEqual(reasons(await readInstalledPreparedContent({ root, frameworkId: FRAMEWORK, expectedContentSha256: "0".repeat(64) })), ["prepared-content-mismatch"]);
+  assert.deepEqual(reasons(await readInstalledPreparedContent({ root, frameworkId: FRAMEWORK, expectedContentSha256: "ABC" })), ["invalid-expected-sha256"]);
+});
+
+await case_("every prepared content the package lists is read the same way", async () => {
+  const listed = {};
+  for (const candidate of preparedReleaseContent) {
+    const each = await readInstalledPreparedContent({ root, frameworkId: candidate.frameworkId });
+    assert.equal(each.valid, true, `${candidate.frameworkId}: ${JSON.stringify(each.diagnostics)}`);
+    assert.equal(each.release.framework.id, candidate.frameworkId);
+    assert.equal(each.status.authenticated, false);
+    listed[candidate.frameworkId] = each.release.items.length;
+  }
+  return { listed };
 });
 
 await case_("only a listed framework can be selected, from an absolute root", async () => {
   assert.deepEqual(reasons(await readInstalledPreparedContent({ root, frameworkId: "not-listed" })), ["prepared-content-unknown"]);
   assert.deepEqual(reasons(await readInstalledPreparedContent({ root: "relative/root", frameworkId: FRAMEWORK })), ["invalid-root"]);
   assert.deepEqual(reasons(await readInstalledPreparedContent({ root, frameworkId: FRAMEWORK, sourceInput: "not an id" })), ["invalid-source-input"]);
+  const aborted = new AbortController();
+  aborted.abort();
+  assert.deepEqual(reasons(await readInstalledPreparedContent({ root, frameworkId: FRAMEWORK, signal: aborted.signal })), ["cancelled"]);
+});
+
+await case_("another package identity, a missing export or another framework's document is refused", async () => {
+  const manifestOf = (dir) => JSON.parse(readFileSync(join(dir, "package.json"), "utf8"));
+  const otherVersion = copyPackage("other-version");
+  writeFileSync(join(otherVersion, "package.json"), JSON.stringify({ ...manifestOf(otherVersion), version: "9.9.9" }));
+  assert.deepEqual(reasons(await readInstalledPreparedContent({ root: otherVersion, frameworkId: FRAMEWORK })), ["package-mismatch"]);
+  const unexported = copyPackage("unexported-inventory");
+  const manifest = manifestOf(unexported);
+  delete manifest.exports[`./${entry.inventory}`];
+  writeFileSync(join(unexported, "package.json"), JSON.stringify(manifest));
+  assert.deepEqual(reasons(await readInstalledPreparedContent({ root: unexported, frameworkId: FRAMEWORK })), ["invalid-export"]);
+  const other = preparedReleaseContent.find((candidate) => candidate.frameworkId !== FRAMEWORK);
+  const swapped = copyPackage("swapped-content");
+  cpSync(join(swapped, other.content), join(swapped, entry.content));
+  assert.deepEqual(reasons(await readInstalledPreparedContent({ root: swapped, frameworkId: FRAMEWORK })), ["prepared-content-invalid"]);
 });
 
 await case_("a changed material or a stale inventory is refused", async () => {
@@ -126,7 +171,7 @@ await case_("a consumer browses and composes Project basics through the portable
 });
 
 let core = { status: "not-run", reason: "No Core archive installed; Catalog public reader, resolver and configuration only." };
-if (process.argv[2] === "core") {
+if (process.argv[3] === "core") {
   await case_("Core prepares and applies the composed content into the project's named folder", async () => {
     const { apply, prepare } = await import("@aihq/core");
     const project = join(scratch, "project");

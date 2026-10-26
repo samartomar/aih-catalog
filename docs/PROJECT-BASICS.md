@@ -116,11 +116,19 @@ const resolved = resolveSelections({ releases, skips: [], roots: [{ releaseSha25
 
 `readInstalledPreparedContent` takes an absolute installed package root and one framework
 from `preparedReleaseContent`; there is no default and no other name. It verifies what
-`readInstalledRelease` verifies for a release: the package identity, every recipe and
-material member (and each recipe's agreement with its item), and in addition that the
-shipped content inventory is exactly the frozen inventory of the content. It refuses an
-unlisted framework (`prepared-content-unknown`), a changed member
-(`member-sha256-mismatch`) and a stale inventory (`prepared-inventory-mismatch`).
+`readInstalledRelease` verifies for a release: the package identity, the exported paths of
+the content and of its inventory, every recipe and material member (and each recipe's
+agreement with its item), and in addition that the shipped content inventory is exactly
+the frozen inventory of the content. It refuses an unlisted framework
+(`prepared-content-unknown`), another package identity (`package-mismatch`), a missing
+export (`invalid-export`), another framework's document (`prepared-content-invalid`), a
+changed member (`member-sha256-mismatch`) and a stale inventory
+(`prepared-inventory-mismatch`).
+
+A first read discovers the content digest (`provenance.contentSha256`). A saved choice is
+bound to that digest and to the SHA-256 of the local archive the host installed; later
+reads pass `expectedContentSha256`, and different bytes are refused
+(`prepared-content-mismatch`), with `provenance.pinned` true when it matched.
 
 The result is never a release. `status` says the baseline is unbound and the content is
 neither authenticated nor a production release; `release.baseline` is absent;
@@ -129,8 +137,17 @@ content has no release index entry. An unsigned release index is a different thi
 lists bound releases whose digests are checked, and it is not an authenticated Scan
 baseline either. `provenance` records the package identity and the exact content and
 inventory paths, digests and lengths, so a consumer can bind a saved choice to the
-exact local bytes it used. Hosts should identify the local archive they installed by
-its own SHA-256 as well.
+exact local bytes it used.
+
+Catalog labels the content; it cannot carry that label through a host's later steps. The
+selections `configureItem` returns, and Core's prepared work and receipts, describe items
+and recipes, not the baseline state. A host that installs or shows this content keeps
+`status` and `provenance` beside its saved choice and displays them.
+
+This path delivers Project basics' files through their release 1.x recipes into the
+folder the project names. It does not do the installer's Project basics work
+(samartomar/aih-core#100): reading project facts, placing the shared block into each
+tool's entry files and reporting a changed or missing block stay with the installer.
 
 ## Checks
 

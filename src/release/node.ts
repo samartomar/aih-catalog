@@ -134,6 +134,24 @@ const contains = (parent: string, child: string): boolean =>
  */
 const installedRoots = new WeakMap<CatalogRelease, string>();
 
+/** A Core material source input name: an identifier of at most 128 characters. */
+function checkSourceInput(sourceInput: unknown): void {
+  if (typeof sourceInput !== "string" || sourceInput.length > 128 || !ID.test(sourceInput))
+    failWith("invalid-source-input");
+}
+
+/** The canonical path of an absolute, existing installed package root. */
+function canonicalPackageRoot(root: unknown): string {
+  if (typeof root !== "string" || !isAbsolute(root)) failWith("invalid-root");
+  try {
+    if (!statSync(root as string).isDirectory()) failWith("root-unavailable");
+    return realpathSync.native(root as string);
+  } catch (error) {
+    if (error instanceof AcquisitionFailure) throw error;
+    return failWith("root-unavailable");
+  }
+}
+
 /**
  * Reads one member under a canonical root: every directory is a real directory
  * (no link), the file is regular, unchanged while read and exactly `expected` bytes.
@@ -526,19 +544,9 @@ export async function readInstalledRelease(
   try {
     const { root, sourceInput = "catalog", signal } = (request ?? {}) as InstalledReleaseRequest;
     if (signal?.aborted) failWith("cancelled");
-    if (typeof sourceInput !== "string" || sourceInput.length > 128 || !ID.test(sourceInput)) {
-      failWith("invalid-source-input");
-    }
+    checkSourceInput(sourceInput);
     const exportName = releaseExport((request as { release?: unknown }).release);
-    if (typeof root !== "string" || !isAbsolute(root)) failWith("invalid-root");
-    let canonical: string;
-    try {
-      if (!statSync(root).isDirectory()) failWith("root-unavailable");
-      canonical = realpathSync.native(root);
-    } catch (error) {
-      if (error instanceof AcquisitionFailure) throw error;
-      return failWith("root-unavailable");
-    }
+    const canonical = canonicalPackageRoot(root);
     const checked = verifyPackageRelease(
       (path, limit, expected) => readMember(canonical, path, limit, expected),
       signal,
@@ -570,6 +578,11 @@ export async function readInstalledRelease(
 export interface InstalledPreparedContentRequest {
   /** Framework of one `preparedReleaseContent` entry; there is no default. */
   readonly frameworkId: string;
+  /**
+   * The content SHA-256 a saved choice was bound to; a different document is refused
+   * (`prepared-content-mismatch`). Omit only to discover the current digest.
+   */
+  readonly expectedContentSha256?: string;
   /** Absolute path of the installed package root the caller selected. */
   readonly root: string;
   /** Name of the Core `controls.materialRoots` entry; defaults to `catalog`. */
@@ -600,6 +613,8 @@ export interface InstalledPreparedContentResult {
     readonly inventoryPath: string;
     readonly inventorySha256: string;
     readonly inventoryByteLength: number;
+    /** True when the caller pinned `expectedContentSha256` and the bytes matched it. */
+    readonly pinned: boolean;
   };
   readonly diagnostics: readonly CatalogDiagnostic[];
 }
@@ -618,27 +633,24 @@ export async function readInstalledPreparedContent(
     const {
       root,
       frameworkId,
+      expectedContentSha256,
       sourceInput = "catalog",
       signal,
     } = (request ?? {}) as InstalledPreparedContentRequest;
     if (signal?.aborted) failWith("cancelled");
-    if (typeof sourceInput !== "string" || sourceInput.length > 128 || !ID.test(sourceInput)) {
-      failWith("invalid-source-input");
-    }
+    checkSourceInput(sourceInput);
     if (typeof frameworkId !== "string") failWith("prepared-content-unknown");
-    if (typeof root !== "string" || !isAbsolute(root)) failWith("invalid-root");
-    let canonical: string;
-    try {
-      if (!statSync(root).isDirectory()) failWith("root-unavailable");
-      canonical = realpathSync.native(root);
-    } catch (error) {
-      if (error instanceof AcquisitionFailure) throw error;
-      return failWith("root-unavailable");
-    }
+    if (
+      expectedContentSha256 !== undefined &&
+      (typeof expectedContentSha256 !== "string" || !SHA256_HEX.test(expectedContentSha256))
+    )
+      failWith("invalid-expected-sha256");
+    const canonical = canonicalPackageRoot(root);
     const checked = verifyPackagePreparedContent(
       (path, limit, expected) => readMember(canonical, path, limit, expected),
       frameworkId,
       signal,
+      expectedContentSha256,
     );
     if (signal?.aborted) failWith("cancelled");
     if (checked.diagnostics.length > 0) {
@@ -665,6 +677,7 @@ export async function readInstalledPreparedContent(
         inventoryPath: checked.entry.inventory,
         inventorySha256: checked.inventorySha256,
         inventoryByteLength: checked.inventoryByteLength,
+        pinned: expectedContentSha256 !== undefined,
       } as const),
       diagnostics: Object.freeze([]),
     });
