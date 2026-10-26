@@ -91,9 +91,8 @@ export const SET_MAX_MEMBERS = 5000;
 
 /**
  * The release index 1.0.0: one unsigned-first merge surface over per-source index
- * documents. TUF verification of index bytes is delivered separately
- * (samartomar/aih-catalog#138); this contract ships the schema, diagnostics and
- * honest unsigned reading now.
+ * documents. Host-selected TUF roots require cryptographic proof from the Node
+ * verifier; sources without a selected root retain unsigned reading.
  */
 export const RELEASE_INDEX_SCHEMA_ID = "urn:aihq:catalog:release-index:1.0.0" as const;
 export const RELEASE_INDEX_SCHEMA_EXPORT =
@@ -876,8 +875,20 @@ export interface ReleaseIndexEntry {
   readonly source: ReleaseIndexSourceRef;
 }
 
-/** Host-selected trust for one source. TUF verification itself arrives with #138. */
+/** Host-selected trust; directly accepts Core getCatalogIndexTrust(snapshot). */
 export type ReleaseIndexTrust = "none" | { readonly tufRoot: Uint8Array };
+
+declare const releaseIndexVerification: unique symbol;
+/** Only the public Node TUF verifier can create this process-local proof. */
+export interface ReleaseIndexVerification {
+  readonly [releaseIndexVerification]: true;
+}
+export type ReleaseIndexTufState = Readonly<
+  Record<
+    "root" | "timestamp" | "snapshot" | "targets",
+    { readonly version: number; readonly sha256: string }
+  >
+>;
 
 /** Persisted per-source state; the host owns persistence. `lastVersion` 0 means none. */
 export interface ReleaseIndexSourceState {
@@ -887,12 +898,15 @@ export interface ReleaseIndexSourceState {
   readonly lastVerifiedAt: string | null;
   /** Digest of the last accepted index bytes; `null` before any accepted read. */
   readonly lastIndexSha256: string | null;
+  readonly tufState?: ReleaseIndexTufState;
+  readonly revokedRootSha256?: string;
 }
 
 /** One source read: freshly acquired bytes, or the recorded copy when offline. */
 export interface ReleaseIndexSourceRequest {
   readonly sourceId: string;
   readonly trust: ReleaseIndexTrust;
+  readonly verification?: ReleaseIndexVerification;
   /** Framework ids this source may publish and revoke; entries outside are ignored. */
   readonly authorizedFrameworks: readonly string[];
   /** Fresh index bytes, or the persisted copy when `offline` is true. */

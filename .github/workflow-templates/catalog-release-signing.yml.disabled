@@ -1,0 +1,53 @@
+# INERT PREPARATION ONLY. This file is not an Actions workflow.
+# Separate signer identity authorization and offline 2-of-3 root ceremony are
+# required before a reviewed activation. Preserve the existing CI/publication pause.
+name: Catalog release signing (inactive preparation)
+on:
+  workflow_dispatch:
+    inputs:
+      release_document:
+        required: true
+        type: string
+      release_index:
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  sign:
+    if: ${{ false }} # Activation requires separately reviewed production authorization.
+    environment: catalog-production-signing
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+      - name: Sign and verify both document digests with keyless Sigstore
+        env:
+          RELEASE_DOCUMENT: ${{ inputs.release_document }}
+          RELEASE_INDEX: ${{ inputs.release_index }}
+          EXPECTED_IDENTITY: ${{ vars.CATALOG_EXPECTED_CERTIFICATE_IDENTITY }}
+          EXPECTED_ISSUER: ${{ vars.CATALOG_EXPECTED_OIDC_ISSUER }}
+        run: |
+          node --input-type=module <<'JS'
+          import { execFileSync } from 'node:child_process';
+          import { releaseSigningPlan, executeReleaseSigningPlan } from './tools/release-signing.mjs';
+          const plan = releaseSigningPlan({release: process.env.RELEASE_DOCUMENT,
+            index: process.env.RELEASE_INDEX, expectedIdentity: process.env.EXPECTED_IDENTITY,
+            expectedIssuer: process.env.EXPECTED_ISSUER});
+          await executeReleaseSigningPlan(plan, args => execFileSync('cosign', args, {stdio:'inherit'}));
+          JS
+      # Publication preparation: keep all four exact files together. This job and
+      # upload step never run in this template; no release/tag/npm operation exists.
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: catalog-signed-documents
+          path: |
+            ${{ inputs.release_document }}
+            ${{ inputs.release_document }}.sigstore.json
+            ${{ inputs.release_index }}
+            ${{ inputs.release_index }}.sigstore.json

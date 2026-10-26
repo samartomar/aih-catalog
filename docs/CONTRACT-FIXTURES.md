@@ -30,8 +30,9 @@ bytes it uses without requiring Core to be installed. This declaration describes
 structural support, not runtime readiness, authentication or execution
 authority. The release index reads unsigned first: `readReleaseIndex` reports
 `unsigned` per source without a TUF root, still checks every release digest, and
-reports a TUF-selected source `offline` until samartomar/aih-catalog#138
-delivers verification.
+requires process-local cryptographic evidence for a TUF-selected source. See
+[release trust](RELEASE-TRUST.md) for the public Node verifier, host acquisition
+boundary and separate signing preparation.
 
 ## Consume fixtures
 
@@ -111,7 +112,9 @@ scenario fixtures under `fixtures/release-index/`: each envelope carries the sou
 requests (committed index documents), per-source state and the authored expected
 outcome, and the packed checker executes every scenario through the public
 `readReleaseIndex` (merge, conflict, rollback, scope, expiry, offline reuse and a
-caller-selected TUF source reported offline). The source description additionally
+caller-selected TUF source without a proof reported offline). The additional
+public `tuf-local.json` fixture covers signed index verification, consecutive root
+rotation, expiry, verified scoped root revocation and tampered release refusal. The source description additionally
 ships golden scenario fixtures under `fixtures/source-description/`: every locator
 kind and every exact identity kind, with refusals for non-https git repositories,
 unknown kinds, unknown fields and mutable references, replayed through the public
