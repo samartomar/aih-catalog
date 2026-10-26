@@ -47,7 +47,7 @@
     { "id": "superpowers.runtime-source.opencode", "tool": "OpenCode", "plugin": true },
     { "id": "superpowers.runtime-source.pi", "tool": "Pi", "plugin": true },
     { "id": "superpowers.runtime-source.skill-library", "reason": "A duplicate of the whole upstream skill library, carried for plugin manifests. Each of the 15 skills is an item of this release, so the library is not offered a second time.", "replacedBy": [] },
-    { "id": "superpowers.template.reviewed-tdd", "reason": "A Catalog-authored starting choice, not upstream's grouping. Templates become sets; its pinned Extensions member needs a release 1.7 Extensions item, so this release offers no reviewed-TDD set.", "replacedBy": [] }
+    { "id": "superpowers.template.reviewed-tdd", "reason": "A Catalog-authored starting choice, not upstream's grouping. Templates become sets, never items, so it has no item successor.", "replacedBy": [] }
   ],
   "nativeRoutes": [
     { "tool": "Claude Code", "line": "/plugin install superpowers@claude-plugins-official" },

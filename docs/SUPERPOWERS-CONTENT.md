@@ -136,7 +136,8 @@ No universal invocation or every-item client matrix is claimed.
 `@aihq/catalog/release-superpowers.content.json` is the same pinned framework as
 prepared release 1.7.0 content, published as `framework { id: "superpowers", name:
 "Superpowers", version, description }`. The name is upstream's README heading and the
-description is upstream's own `package.json` description. A person choosing Superpowers
+description is upstream's own `package.json` description. `version` is this framework
+release's own Catalog version (`1.0.0`), not upstream's 6.4.1. A person choosing Superpowers
 sees its 15 skills and its start-of-session bootstrap, not one copy per tool.
 
 | Item | Kind | Role | What it carries |
@@ -184,9 +185,9 @@ Every one of the 59 earlier items of `release-superpowers.json` is a live item o
 - the 9 per-tool plugin bundles (Codex, Cursor, Devin, Gemini, Hermes, Kimi, Muse,
   OpenCode, Pi) and the duplicate skill library retire with no item successor: the
   Catalog does not install plugins, and every skill is already an item;
-- the Catalog-authored reviewed-TDD template retires. Templates become sets, and its
-  pinned Extensions member needs a release 1.7 Extensions item, so this release offers
-  no reviewed-TDD set.
+- the Catalog-authored reviewed-TDD template retires: templates become sets, never items.
+  This release offers no reviewed-TDD set, because its pinned Extensions member needs a
+  release 1.7 Extensions item with both identities.
 
 The tool copies collapse through the public transition build from a release 1.6 form of
 the committed release, which is never shipped. Their `supersedes` entries therefore name

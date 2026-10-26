@@ -43,7 +43,7 @@
   },
   {
    "id": "superpowers-pinned-revision",
-   "reason": "The dry run read Superpowers at an earlier upstream revision than the snapshot this package pins (upstream 6.4.1), so its Superpowers content identities name other bytes. They are predicted again, with the dry run's rule (item-relative paths, a skill's files below its own folder, the hook carrying the bootstrap source it folds), from the pinned materials of the committed release-superpowers.json. Items, kinds, supersessions and retirements are the dry run's."
+   "reason": "The dry run read Superpowers at upstream revision bb92a77741419a4ab5f06e711a283343f1ada0c3, earlier than the 5bf4e78011075bcfc0dc295f0724994cd123ee71 (upstream 6.4.1) this package pins, so its Superpowers content identities name other bytes. They are predicted again, with the dry run's rule (item-relative paths, a skill's files below its own folder, the hook carrying the bootstrap source it folds), from the pinned materials of the committed release-superpowers.json. Items, kinds, supersessions and retirements are the dry run's."
   },
   {
    "id": "mcp-edit-digests",

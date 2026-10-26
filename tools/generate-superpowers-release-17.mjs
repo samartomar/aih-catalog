@@ -202,7 +202,7 @@ export function buildSuperpowers17() {
   const recipeBytes = bytesOf(recipe);
   outputs.set(recipePath(data.hook.id), { bytes: recipeBytes });
   const descriptor = (id, value, bytes) => ({ id, schema: value.schema, path: recipePath(id), sha256: sha256Hex(bytes), byteLength: bytes.byteLength });
-  copies.push(project(hookCopy, {
+  copies.push(project({ ...hookCopy, label: data.hook.name }, {
     relPath: (path) => path,
     materials: folded.materials,
     dependencies: folded.dependencies,

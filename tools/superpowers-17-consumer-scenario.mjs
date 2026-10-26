@@ -144,7 +144,7 @@ await case_("the session bootstrap is a hook with a typed payload and a one-line
 await case_("a fallback never stands in for an agent or command", () => {
   for (const entry of release.items)
     if (entry.fallback !== undefined) assert.ok(!["agent", "command"].includes(entry.kind), entry.id);
-  assert.notEqual(item(item(HOOK).fallback.itemId).kind, "agent");
+  assert.ok(!["agent", "command"].includes(item(item(HOOK).fallback.itemId).kind));
   // A release giving an agent or a command a fallback is refused as a whole.
   for (const kind of ["agent", "command"]) {
     const document = JSON.parse(contentBytes.toString("utf8"));
@@ -241,6 +241,16 @@ await case_("excluding the bootstrap hook never re-adds it, nor its fallback in 
   ok(withHook);
   assert.ok(selected(withHook).includes(HOOK));
   assert.ok(!selected(withHook).includes(RULE));
+  // Chosen and excluded at once, the exclusion is refused as excluding a chosen item:
+  // the hook is not re-added and the fallback is not put in its place.
+  for (const conflicting of [
+    resolve({ roots: [hookRoot], members: [{ item: { framework: "superpowers", itemId: HOOK }, include: false }] }),
+    resolve({ roots: [hookRoot], skips: [{ releaseSha256: release.sha256, itemId: HOOK, scope: "project" }] }),
+  ]) {
+    assert.equal(conflicting.status, "refused");
+    assert.ok(conflicting.diagnostics.some((entry) => entry.reason === "required-excluded"), JSON.stringify(conflicting.diagnostics));
+    assert.ok(!JSON.stringify(conflicting).includes(RULE));
+  }
   // Excluded, it is never re-added, and its fallback never takes its place.
   for (const excluded of [
     resolve({ members: [{ item: { framework: "superpowers", itemId: HOOK }, include: false }] }),
