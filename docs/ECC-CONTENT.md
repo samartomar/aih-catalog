@@ -184,7 +184,11 @@ The 697 earlier items become 663. Each keeps its id, except:
 | `ecc.kiro.steering.<name>` | `ecc.steering.<name>`, kind `rule` | hash |
 
 Every earlier id that does not survive is in `retired[]` with a reason and its
-replacement, and its survivor carries `supersedes`. `ecc.template.api-review`, a
+replacement. Its survivor supersedes it twice: by hash in the per-tool copy that the
+build collapses (the shipped item restated as release 1.6 in memory, not shipped), and
+by name and source path in the shipped `release-ecc.json`, whose digest an installed
+copy records. Kiro-edition items are retired as renamed, the collapsed copies as
+collapsed. `ecc.template.api-review`, a
 Catalog-authored starting choice rather than one of ECC's groups, retires with no
 successor. Item-relative paths are each file's install target without its tool prefix,
 and executable state comes from the pinned tree's file modes.
@@ -198,9 +202,12 @@ and executable state comes from the pinned tree's file modes.
   ${NAME}` names its token input. `derivation` records whether the offered definition
   is identical to upstream's (apart from its display description) or edited, with the
   edit digest. A server offered for both Claude and Codex carries a recipe for each
-  client and admits both scopes, project for Claude and user for Codex. Each keeps the
-  union of its copies' dependencies, so every server requires `ecc.notices`, which the
-  Codex copies had dropped, and carries the LICENSE. The servers share one upstream
+  client, and each recipe keeps its own scope: project for Claude, user for Codex. The
+  item lists both scopes. Each keeps the union of its copies' dependencies, so every
+  server requires `ecc.notices`, which the Codex copies had dropped, and carries the
+  LICENSE. `ecc.notices` is delivered to the project only, so a user-scope selection of
+  a server is refused until the notice admits user scope. Until then the Codex items of
+  `release-ecc.json` remain the user-scope route. The servers share one upstream
   file, so they share a content identity; each has its own `behaviourSha256`.
 - **Skills** may start when the model decides, since no pinned skill sets
   `disable-model-invocation`.

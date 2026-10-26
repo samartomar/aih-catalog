@@ -8,7 +8,7 @@ import {
   RELEASE_SCHEMA_ID_1_4,
   RELEASE_SCHEMA_ID_1_5,
 } from "../release/contracts.js";
-import { isRecord, memberPackagePath } from "../release/document.js";
+import { memberPackagePath } from "../release/document.js";
 import { createContentInventory } from "../release/inventory.js";
 import { AcquisitionFailure } from "../release/node-errors.js";
 import { historicalDigest, verifyPackageRelease } from "../release/package-release.js";
@@ -16,7 +16,7 @@ import { readRelease, readReleaseContent } from "../release/reader.js";
 import { checkRecipeAgreement } from "../release/recipe-agreement.js";
 import { catalogItemRecipes } from "../release/release-17.js";
 import { type AuthoredAllowance, checkAuthoredContent, describeFinding } from "./authored.js";
-import type { Record_ } from "./base.js";
+import { type Record_, recipeMembers } from "./base.js";
 import { assertRequiredClosure } from "./candidate.js";
 import { derivedAllowances } from "./derived.js";
 import { ProducerRefusal } from "./errors.js";
@@ -306,11 +306,7 @@ export function checkCandidateFiles(
   for (const { items, release } of releases) {
     for (const member of baselineMembers(release)) declared.add(member.path);
     for (const item of items) {
-      const recipes = isRecord(item.recipes) ? Object.values(item.recipes) : [item.recipe];
-      for (const member of [
-        ...recipes.map(asRecord),
-        ...(item.materials as Json[]).map(asRecord),
-      ]) {
+      for (const member of [...recipeMembers(item), ...(item.materials as Json[]).map(asRecord)]) {
         declared.add(String(memberPackagePath(member as unknown as Record<string, unknown>)));
       }
     }

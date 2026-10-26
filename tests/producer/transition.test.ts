@@ -344,31 +344,41 @@ describe("compileTransitionRelease", () => {
       ],
     });
     expect(reasons(mapped)).toEqual([]);
-    // Once superseded, the helper is mapped: another survivor sharing its bytes is no rename.
-    const sibling = copies([
-      item("notes.sibling", { label: "sibling", skillPath: "helper/SKILL.md" }),
+    // Once the helper is mapped, a survivor sharing its bytes because it supersedes its
+    // own copy of that content is no rename; one that supersedes nothing still is.
+    const supersededHelper = declared("notes.assist", [[moved, "notes.assist"]], {
+      supersedes: [
+        {
+          match: "hash",
+          releaseSha256: release.sha256,
+          itemId: "notes.helper",
+          itemSha256: old?.itemSha256 as string,
+          contentSha256: old?.contentSha256 as string,
+          behaviourSha256: old?.behaviourSha256 as string,
+        },
+      ],
+    });
+    const siblingCopies = copies([
+      item("notes.sibling-copy", { label: "sibling", skillPath: "helper/SKILL.md" }),
     ]);
     const shared = compileTransitionRelease({
       ...renamed,
-      releases: { ...renamed.releases, [sibling.sha256]: sibling },
+      releases: { ...renamed.releases, [siblingCopies.sha256]: siblingCopies },
+      earlier: [release.sha256, siblingCopies.sha256],
       items: [
         review,
-        declared("notes.assist", [[moved, "notes.assist"]], {
-          supersedes: [
-            {
-              match: "hash",
-              releaseSha256: release.sha256,
-              itemId: "notes.helper",
-              itemSha256: old?.itemSha256 as string,
-              contentSha256: old?.contentSha256 as string,
-              behaviourSha256: old?.behaviourSha256 as string,
-            },
-          ],
-        }),
-        declared("notes.sibling", [[sibling, "notes.sibling"]]),
+        supersededHelper,
+        declared("notes.sibling", [[siblingCopies, "notes.sibling-copy"]]),
       ],
     });
     expect(reasons(shared)).toEqual([]);
+    const stray = copies([item("notes.stray", { label: "stray", skillPath: "helper/SKILL.md" })]);
+    const unmapped = compileTransitionRelease({
+      ...renamed,
+      releases: { ...renamed.releases, [stray.sha256]: stray },
+      items: [review, supersededHelper, declared("notes.stray", [[stray, "notes.stray"]])],
+    });
+    expect(reasons(unmapped)).toContain("unmapped-rename");
   });
 
   it("keeps retirement records durable across releases", () => {

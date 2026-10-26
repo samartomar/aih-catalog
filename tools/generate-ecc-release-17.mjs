@@ -186,7 +186,7 @@ const sourcePathOf = (packagePath, revision) =>
  * captured materials with item-relative paths and executable state, behaviour file
  * and both identities. Display names are the authored name, else the file name.
  */
-function projectItem(item, { revision, modes, facts, files }) {
+function projectItem(item, { revision, modes, mcpFacts, files }) {
   const recipe = json(item.recipe.path);
   const writes = new Map(
     recipe.operations
@@ -217,13 +217,13 @@ function projectItem(item, { revision, modes, facts, files }) {
   const primary = content[0];
   const text = () => decoder.decode(files.get(primary.sourcePath));
   const kiro = primary.sourcePath.startsWith(".kiro/");
-  const facts_ = item.metadata?.sourceFacts;
+  const sourceFacts = item.metadata?.sourceFacts;
   const stem = primary.sourcePath.split("/").at(-1).replace(/\.md$/, "");
   let kind = item.kind;
   let payload;
   let requirements = { inputs: {} };
-  let name = facts_?.name?.state === "authored" ? facts_.name.value : stem;
-  let nameBasis = facts_?.name?.state === "authored" ? facts_.name.basis : "file-name";
+  let name = sourceFacts?.name?.state === "authored" ? sourceFacts.name.value : stem;
+  let nameBasis = sourceFacts?.name?.state === "authored" ? sourceFacts.name.basis : "file-name";
   if (item.kind === "skill") {
     const dirName = primary.sourcePath.split("/").at(-2);
     // No pinned ECC skill sets disable-model-invocation, so each may start when the model decides.
@@ -249,7 +249,7 @@ function projectItem(item, { revision, modes, facts, files }) {
     nameBasis = "file-name";
   } else if (item.kind === "mcp") {
     kind = "mcp-server";
-    const fact = facts[item.id];
+    const fact = mcpFacts[item.id];
     assert(fact, `${item.id}: no MCP facts`);
     const built = mcpPayload(fact, content.find((member) => member.sourcePath === fact.sourcePath).id);
     payload = built.payload;
@@ -263,7 +263,7 @@ function projectItem(item, { revision, modes, facts, files }) {
     id: item.id,
     label: item.label,
     ...(item.description ? { description: item.description } : {}),
-    ...(facts_?.description?.state === "authored" ? { descriptionBasis: facts_.description.basis } : {}),
+    ...(sourceFacts?.description?.state === "authored" ? { descriptionBasis: sourceFacts.description.basis } : {}),
     kind,
     name,
     nameBasis,
@@ -328,7 +328,7 @@ export function eccSets(items, manifests) {
   const { modules, profiles, components } = manifests;
   const choosable = items.filter((item) => item.role === "choosable" && !item.id.includes(".kiro-variant") && !item.id.startsWith("ecc.steering."));
   const primaryPath = (item) => item.materials.find((member) => member.role === "content" && member.sourcePath !== "LICENSE").sourcePath;
-  const member = (item, optional = item.kind === "hook", defaultOn = true) => ({
+  const member = (item, optional = false, defaultOn = true) => ({
     item: { framework: FRAMEWORK_ID, itemId: item.id },
     // Every hook member is optional, so a hook can be left out without losing the set.
     optional: optional || item.kind === "hook",
@@ -436,7 +436,7 @@ export function buildEcc17() {
   const revision = inventory.revision;
   const modes = new Map(inventory.entries.map((row) => [row.path, row.mode]));
   const files = new Map(snapshot.sources[0].files.map((file) => [file.path, Buffer.from(file.base64, "base64")]));
-  const context = { revision, modes, facts: inventory.itemFacts, files };
+  const context = { revision, modes, mcpFacts: inventory.itemFacts, files };
   // Published framework identity: the repository name and the pinned plugin manifest.
   const plugin = JSON.parse(decoder.decode(files.get(".claude-plugin/plugin.json")));
   const framework = { id: FRAMEWORK_ID, name: inventory.repository.split("/")[1], version: plugin.version, description: plugin.description };
@@ -475,15 +475,39 @@ export function buildEcc17() {
       });
     }
   }
+  // A renamed copy is also superseded in the shipped release-ecc.json, whose digest an
+  // installed copy records; its legacy items carry no identities, so the match is by
+  // the survivor's name and the source path both carry.
+  const copyItem = (entry) => [main, tools].find((release) => release.sha256 === entry.releaseSha256).items.find((candidate) => candidate.id === entry.itemId);
+  for (const declaration of declarations) {
+    const name = copyItem(declaration.copies[0]).name;
+    const supersedes = declaration.copies
+      .filter((entry) => entry.itemId !== declaration.id)
+      .map((entry) => {
+        const old = source.items.find((candidate) => candidate.id === entry.itemId);
+        const sourcePath = copyItem(entry).materials.find((material) => material.role === "content" && material.sourcePath !== "LICENSE").sourcePath;
+        return { match: "name+sourcePath", releaseSha256: source.sha256, itemId: old.id, itemSha256: old.itemSha256, name, sourcePath };
+      });
+    if (supersedes.length > 0) declaration.supersedes = supersedes;
+  }
+  // The Kiro edition's items keep their content under a new id; nothing collapses.
+  const renamed = declarations
+    .filter((declaration) => declaration.id.endsWith(".kiro-variant") || declaration.id.startsWith("ecc.steering."))
+    .map((declaration) => ({
+      id: declaration.copies[0].itemId,
+      reason: "Renamed: the Kiro edition's item keeps its content under a new id, namespaced kiro.",
+      replacedBy: [{ framework: FRAMEWORK_ID, itemId: declaration.id }],
+    }));
   const template = source.items.find(isTemplate);
   const draft = (sets) =>
     compileTransitionRelease({
-      releases: { [main.sha256]: main, [tools.sha256]: tools },
-      earlier: [main.sha256, tools.sha256],
+      releases: { [main.sha256]: main, [tools.sha256]: tools, [source.sha256]: source },
+      earlier: [source.sha256, main.sha256, tools.sha256],
       framework,
       package: source.package,
       items: declarations,
       retired: [
+        ...renamed,
         {
           id: template.id,
           reason: "A Catalog-authored starting choice, not one of ECC's own install groups. ECC's sets are its upstream modules and profiles, so this template has no successor.",

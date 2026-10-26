@@ -179,6 +179,15 @@ await case_("collapsed MCP copies keep the union of dependencies and the licence
     assert.deepEqual(survivor.scopes, ["project", "user"]);
     assert.ok(survivor.dependencies.requires.some((ref) => ref.itemId === "ecc.notices"));
   }
+  // The notice is delivered to the project only, so a user-scope (Codex) selection is
+  // refused until it admits user scope; the shipped release-ecc.json Codex items stay that route.
+  const user = resolveSelections({
+    releases: { [release.sha256]: release },
+    roots: [{ releaseSha256: release.sha256, itemId: "ecc.mcp.github", scope: "user" }],
+    skips: [],
+  });
+  assert.equal(user.status, "refused");
+  assert.deepEqual(item("ecc.notices").scopes, ["project"]);
   const github = item("ecc.mcp.github");
   assert.deepEqual(github.payload.env, { GITHUB_PERSONAL_ACCESS_TOKEN: { input: "GITHUB_PERSONAL_ACCESS_TOKEN" } });
   assert.equal(github.requirements.inputs.GITHUB_PERSONAL_ACCESS_TOKEN.sensitive, true);
@@ -205,10 +214,14 @@ await case_("every earlier ECC item id is a survivor, with supersedes when renam
     const entry = retired.get(old.id);
     assert.ok(entry?.reason, `${old.id} is neither a survivor nor retired`);
     for (const ref of entry.replacedBy) {
-      const survivor = live.get(ref.itemId);
-      assert.ok(survivor?.supersedes.some((record) => record.itemId === old.id), `${ref.itemId} does not supersede ${old.id}`);
+      // Superseded in the shipped release an installed copy records, by name and source path.
+      const record = live.get(ref.itemId)?.supersedes.find((candidate) => candidate.itemId === old.id && candidate.releaseSha256 === earlier.release.sha256);
+      assert.equal(record?.match, "name+sourcePath", `${ref.itemId} does not supersede ${old.id} in release-ecc.json`);
+      assert.equal(record.itemSha256, old.itemSha256);
     }
   }
+  assert.match(retired.get("ecc.kiro.skill.api-design").reason, /^Renamed/);
+  assert.match(retired.get("ecc.codex.mcp.github").reason, /^Collapsed/);
   assert.equal(release.retired.length, 134);
   assert.deepEqual(retired.get("ecc.template.api-review").replacedBy, []);
   // Kiro-edition copies survive under their own namespace; the main grid sets never list them.

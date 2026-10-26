@@ -15,14 +15,18 @@
   "coding-style (typescript)". The 35 Claude and 32 Codex MCP copies collapse into 35
   `mcp-server` items with typed payloads, a recipe per client and the union of both
   copies' dependencies, so each keeps the notice dependency the Codex copies had
-  dropped; the Copilot `api-design` copy collapses into `ecc.skill.api-design`. Every
+  dropped; the Copilot `api-design` copy collapses into `ecc.skill.api-design`. Renamed
+  copies are superseded in their collapsed copy and, by name and source path, in the
+  shipped `release-ecc.json`. Because `ecc.notices` is project-only, a user-scope
+  selection of a collapsed server is refused for now. Every
   earlier ECC item id is a survivor or retired with a reason. The content passes the
   restructuring comparison; no baseline is bound, so it is listed in
   `preparedReleaseContent`, not `releaseInventory`. The Kiro-edition items survive
   namespaced `kiro`; their set, hints and variants are samartomar/aih-catalog#143.
 - `compileTransitionRelease`: copies that each name their client keep their own scopes,
-  so the item admits their union, and an earlier item already superseded by a survivor
-  is not reported as renamed when other survivors share its bytes. Recipe agreement
+  so the item admits their union, and an earlier item already superseded is not
+  reported as renamed by a survivor that shares its bytes only because it supersedes
+  its own copy of the same content. Recipe agreement
   checks a transition map entry against at least one of the item's scopes, and the
   whole-package check covers every map entry of prepared content, its recipe
   agreement, and exempts behaviour files from pinned-source path checks.
