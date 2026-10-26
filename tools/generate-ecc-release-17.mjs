@@ -47,6 +47,7 @@ const MANIFEST = {
 const CLAUDE = "claude-code";
 const CODEX = "codex";
 const COPILOT = "copilot-vscode";
+const KIRO = "kiro-ide";
 
 /**
  * ECC's language and framework component ids name their rule directory, except
@@ -298,18 +299,44 @@ function projectItem(item, { revision, modes, mcpFacts, files }) {
 }
 
 /** A checked release 1.6 of copies; never shipped, only collapsed. */
-function copiesRelease(source, framework, items, context) {
+function copiesRelease(source, framework, items, context, overrides = {}) {
   const document = {
     schema: "urn:aihq:catalog:release:1.6.0",
     package: source.package,
     framework: { ...framework, description: `${framework.description} (per-tool copies)` },
     sources: [{ ...source.sources[0], license: "MIT" }],
-    items: items.map((item) => projectItem(item, context)).sort((a, b) => compare(a.id, b.id)),
+    items: items.map((item) => ({ ...projectItem(item, context), ...overrides[item.id] })).sort((a, b) => compare(a.id, b.id)),
   };
   const bytes = bytesOf(document);
   const read = readReleaseContent(bytes, { expectedSha256: sha256Hex(bytes) });
   assert(read.valid, `Release 1.6 copies refused: ${JSON.stringify(read.diagnostics.slice(0, 5))}`);
   return read.release;
+}
+
+/** Where the user-scope notice recipe is written; the generator owns its bytes. */
+export const USER_NOTICE_RECIPE_PATH = "release/recipes/ecc.notices.user.json";
+
+/**
+ * The shipped project notice recipe moved to the user home: the same materials, checks
+ * and item-relative layout under `~/.aihq/ecc/`, in user scope, as the Codex MCP recipes
+ * place their own copies. Every scope and root must be the project's, so nothing else moves.
+ */
+export function userScopeRecipe(recipe) {
+  const home = (target) => {
+    assert.equal(target.root, "project", "A notice target outside the project root");
+    return { ...target, root: "userHome" };
+  };
+  assert.deepEqual(recipe.targets, ["project"], "The shipped notice recipe admits the project only");
+  return {
+    ...recipe,
+    description: `${recipe.description} Delivered into the user home for user-scope items.`,
+    targets: ["user"],
+    operations: recipe.operations.map((operation) => {
+      assert.equal(operation.scope, "project", `Notice operation ${operation.id} outside the project scope`);
+      return { ...operation, scope: "user", target: home(operation.target) };
+    }),
+    checks: recipe.checks.map((check) => ({ ...check, target: home(check.target) })),
+  };
 }
 
 const ref = (setId) => ({ framework: FRAMEWORK_ID, setId });
@@ -445,6 +472,14 @@ export function buildEcc17() {
   // Per-tool copies share names, which one release 1.6 allows once, so they are two releases.
   const main = copiesRelease(source, framework, source.items.filter((item) => !isTemplate(item) && !isToolCopy(item)), context);
   const tools = copiesRelease(source, framework, source.items.filter((item) => isToolCopy(item) || item.id === "ecc.notices"), context);
+  // The notice every item requires, per client: the shipped project recipe for the project
+  // clients, and the same delivery in the user home for Codex, whose MCP servers are user
+  // scope. One notice admitting both scopes keeps every server's dependency closure.
+  const noticeItem = source.items.find((item) => item.id === "ecc.notices");
+  const userRecipeBytes = bytesOf(userScopeRecipe(json(noticeItem.recipe.path)));
+  const userRecipe = { ...noticeItem.recipe, path: USER_NOTICE_RECIPE_PATH, sha256: sha256Hex(userRecipeBytes), byteLength: userRecipeBytes.byteLength };
+  const kiroNotice = copiesRelease(source, framework, [noticeItem], context);
+  const codexNotice = copiesRelease(source, framework, [noticeItem], context, { "ecc.notices": { scopes: ["user"], recipe: userRecipe } });
   const copy = (release, itemId, clientId) => ({ releaseSha256: release.sha256, itemId, ...(clientId ? { clientId } : {}) });
   const has = (release, itemId) => release.items.some((item) => item.id === itemId);
   const declarations = [];
@@ -464,7 +499,13 @@ export function buildEcc17() {
     } else if (id.startsWith("ecc.kiro.steering.")) {
       declarations.push({ id: `ecc.steering.${id.slice("ecc.kiro.steering.".length)}`, kind: "rule", role: "choosable", copies: [copy(main, id)] });
     } else if (id === "ecc.notices") {
-      declarations.push({ id, kind: "document", purpose: "notice", role: "supporting", copies: [copy(main, id), copy(tools, id)] });
+      declarations.push({
+        id,
+        kind: "document",
+        purpose: "notice",
+        role: "supporting",
+        copies: [copy(main, id, CLAUDE), copy(codexNotice, id, CODEX), copy(tools, id, COPILOT), copy(kiroNotice, id, KIRO)],
+      });
     } else {
       const copilot = id.replace(/^ecc\.skill\./, "ecc.copilot.skill.");
       declarations.push({
@@ -478,7 +519,7 @@ export function buildEcc17() {
   // A renamed copy is also superseded in the shipped release-ecc.json, whose digest an
   // installed copy records; its legacy items carry no identities, so the match is by
   // the survivor's name and the source path both carry.
-  const copyItem = (entry) => [main, tools].find((release) => release.sha256 === entry.releaseSha256).items.find((candidate) => candidate.id === entry.itemId);
+  const copyItem = (entry) => [main, tools, kiroNotice, codexNotice].find((release) => release.sha256 === entry.releaseSha256).items.find((candidate) => candidate.id === entry.itemId);
   for (const declaration of declarations) {
     const name = copyItem(declaration.copies[0]).name;
     const supersedes = declaration.copies
@@ -501,7 +542,7 @@ export function buildEcc17() {
   const template = source.items.find(isTemplate);
   const draft = (sets) =>
     compileTransitionRelease({
-      releases: { [main.sha256]: main, [tools.sha256]: tools, [source.sha256]: source },
+      releases: { [main.sha256]: main, [tools.sha256]: tools, [kiroNotice.sha256]: kiroNotice, [codexNotice.sha256]: codexNotice, [source.sha256]: source },
       earlier: [source.sha256, main.sha256, tools.sha256],
       framework,
       package: source.package,
@@ -530,6 +571,7 @@ export function buildEcc17() {
     assert(live.has(item.id) || retired.get(item.id)?.reason, `${item.id} is neither a survivor nor retired`);
   const outputs = new Map();
   for (const file of compiled.value.materials) outputs.set(file.path, file.bytes);
+  outputs.set(USER_NOTICE_RECIPE_PATH, userRecipeBytes);
   outputs.set(CONTENT_PATH, compiled.value.releaseBytes);
   const frozen = createContentInventory(compiled.value.releaseBytes, { expectedSha256: compiled.value.releaseSha256 });
   assert(frozen.valid, JSON.stringify(frozen.diagnostics));

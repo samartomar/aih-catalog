@@ -205,9 +205,11 @@ and executable state comes from the pinned tree's file modes.
   client, and each recipe keeps its own scope: project for Claude, user for Codex. The
   item lists both scopes. Each keeps the union of its copies' dependencies, so every
   server requires `ecc.notices`, which the Codex copies had dropped, and carries the
-  LICENSE. `ecc.notices` is delivered to the project only, so a user-scope selection of
-  a server is refused until the notice admits user scope. Until then the Codex items of
-  `release-ecc.json` remain the user-scope route. The servers share one upstream
+  LICENSE. `ecc.notices` admits both scopes, so a server's dependency closure resolves
+  in either. Its recipe map delivers the same four materials through the shipped
+  project recipe for `claude-code`, `copilot-vscode` and `kiro-ide`. For `codex` it
+  uses the same recipe moved into the user home under `~/.aihq/ecc/`, generated as
+  `release/recipes/ecc.notices.user.json`. The servers share one upstream
   file, so they share a content identity; each has its own `behaviourSha256`.
 - **Skills** may start when the model decides, since no pinned skill sets
   `disable-model-invocation`.
