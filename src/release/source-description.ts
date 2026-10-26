@@ -49,11 +49,15 @@ const LOCATOR_KINDS = Object.freeze(["git", "npm", "local"] as const);
 
 /**
  * One valid https repository URL, checked with the platform URL parser: an https
- * protocol, a host, no credentials and no fragment. A malformed URL — a bad or
- * out-of-range port, no host — is refused, not merely a non-https scheme.
+ * protocol, a host, no credentials and no fragment. The literal https:// prefix
+ * and the absence of whitespace are checked first: the parser alone normalizes
+ * surrounding whitespace away and accepts scheme forms the closed schema does
+ * not. Malformed ports and other non-URL shapes are refused, not merely
+ * non-https schemes.
  */
 function httpsRepository(value: unknown): value is string {
   if (typeof value !== "string" || value.length > 2048) return false;
+  if (!value.startsWith("https://") || /\s/.test(value)) return false;
   try {
     const url = new URL(value);
     return (

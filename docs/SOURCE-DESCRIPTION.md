@@ -48,8 +48,10 @@ text:
 - Unknown fields, including a would-be policy on an organization list, are
   `INPUT_INVALID` with reason `unknown-field` and the field's path.
 - A repository that is not one valid https URL — http, ssh, `git@...`,
-  `git://`, or a malformed https URL such as a bad or out-of-range port — is
-  `INPUT_INVALID` with reason `repository-not-https`. The reader checks the URL
+  `git://`, an uppercase or whitespace-padded scheme, or a malformed https URL
+  such as a bad or out-of-range port — is
+  `INPUT_INVALID` with reason `repository-not-https`. The reader checks the
+  literal `https://` prefix and refuses whitespace before parsing, then checks
   with the platform parser; the schema pattern documents intent and the reader
   stays authoritative.
 - Unknown locator kinds are `INPUT_INVALID` with reason

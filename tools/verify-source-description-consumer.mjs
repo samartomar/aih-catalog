@@ -144,7 +144,7 @@ const refused = (document) => {
   assert.equal(result.valid, false, JSON.stringify(result));
   return result.diagnostics;
 };
-for (const repository of ["http://github.com/example/mcp", "ssh://git@github.com/example/mcp", "git@github.com:example/mcp.git", "git://github.com/example/mcp", "https://example.com:bad/repo", "https://example.com:99999/repo"]) {
+for (const repository of ["http://github.com/example/mcp", "ssh://git@github.com/example/mcp", "git@github.com:example/mcp.git", "git://github.com/example/mcp", "https://example.com:bad/repo", "https://example.com:99999/repo", " https://example.com/repo", "https://example.com/repo ", "https://example.com/\\nrepo", "HTTPS://example.com/repo"]) {
   assert(refused(description("src", "s", { kind: "git", repository })).some((d) => d.reason === "repository-not-https"), repository);
 }
 const unknownKind = refused(description("src", "s", { kind: "hg", repository: "https://example.com/x" }));

@@ -121,6 +121,10 @@ it("refuses a git repository that is not an https URL", () => {
     "git://github.com/example/mcp",
     "https://example.com:bad/repo",
     "https://example.com:99999/repo",
+    " https://example.com/repo",
+    "https://example.com/repo ",
+    "https://example.com/\nrepo",
+    "HTTPS://example.com/repo",
   ]) {
     const result = refuse(encode(description({ kind: "git", repository })));
     expect(result.diagnostics.map((d) => d.reason)).toContain("repository-not-https");
@@ -296,6 +300,16 @@ it("refuses mutable references and malformed exact identities precisely", () => 
   expect(malformedHttps.valid).toBe(false);
   if (!malformedHttps.valid)
     expect(malformedHttps.diagnostics.map((d) => d.reason)).toContain("repository-not-https");
+
+  const whitespaceHttps = checkExactSourceIdentity({
+    kind: "git",
+    repository: " https://example.com/repo",
+    commit: COMMIT,
+    reachable: true,
+  });
+  expect(whitespaceHttps.valid).toBe(false);
+  if (!whitespaceHttps.valid)
+    expect(whitespaceHttps.diagnostics.map((d) => d.reason)).toContain("repository-not-https");
 
   const unknown = checkExactSourceIdentity({ kind: "archive", sha256: SHA });
   expect(unknown.valid).toBe(false);
