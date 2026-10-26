@@ -61,6 +61,8 @@ export type {
 } from "./contracts.js";
 export {
   acquireGitSnapshot,
+  GIT_SNAPSHOT_MAX_FILE_BYTES,
+  GIT_SNAPSHOT_MAX_FILES,
   GIT_SNAPSHOT_MAX_SOURCE_BYTES,
   GIT_SNAPSHOT_MAX_SOURCE_ENTRIES,
   gitCliTransport,

@@ -2,10 +2,12 @@
 // Catalog package installs into a disposable consumer with lifecycle scripts
 // disabled; every case runs through the public exports only
 // (@aihq/catalog/node, /source and /producer) against a deterministic fixture
-// transport — no live network, no git binary. Throwing guards on the process
-// and network surfaces are armed before the package import, so any fetch,
-// install, execution or host discovery inside resolution or acquisition fails
-// the proof: nothing acquired is executed.
+// transport — no live network, no git binary. The fixture definitions are
+// shared verbatim with the unit tests (tools/git-resolution-fixture.mjs) so
+// the two cannot drift. Throwing guards on the process and network surfaces
+// are armed before the package import, so any fetch, install, execution or
+// host discovery inside resolution or acquisition fails the proof: nothing
+// acquired is executed.
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
@@ -62,11 +64,15 @@ runNpm([
   archive,
 ]);
 
+// The packed proof is self-contained (the consumer installs only the packed
+// package), so the shared fixture source is inlined ahead of the proof body;
+// both are ESM and the fixture only imports node:crypto.
+const fixtureSource = readFileSync(join(root, "tools/git-resolution-fixture.mjs"), "utf8");
+
 writeFileSync(
   join(consumer, "proof.mjs"),
-  `
+  `${fixtureSource}
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 
 // Arm the guards before the package import: any network, process or host
@@ -85,6 +91,8 @@ for (const name of ["node:http", "node:https", "node:net", "node:tls", "node:dns
 
 const {
   acquireGitSnapshot,
+  GIT_SNAPSHOT_MAX_FILE_BYTES,
+  GIT_SNAPSHOT_MAX_FILES,
   GIT_SNAPSHOT_MAX_SOURCE_BYTES,
   GIT_SNAPSHOT_MAX_SOURCE_ENTRIES,
   gitCliTransport,
@@ -93,56 +101,17 @@ const {
 const { checkExactSourceIdentity } = await import("@aihq/catalog/source");
 const { compileProducerDeclaration, prepareSourceRefresh } = await import("@aihq/catalog/producer");
 
-const REPOSITORY = "https://github.com/example/skills";
-const ENCODER = new TextEncoder();
-const gitOid = (type, bytes) => createHash("sha1").update(\`\${type} \${bytes.byteLength}\\0\`, "utf8").update(bytes).digest("hex");
-const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
-const commitObject = (parents = []) => ENCODER.encode(
-  \`tree \${"3".repeat(40)}\\n\${parents.map((parent) => \`parent \${parent}\\n\`).join("")}author fixture <fixture@example.com> 1700000000 +0000\\ncommitter fixture <fixture@example.com> 1700000000 +0000\\n\\nfixture\\n\`,
-);
-const COMMIT_BYTES = commitObject();
-const COMMIT = gitOid("commit", COMMIT_BYTES);
-const OTHER_COMMIT = gitOid("commit", commitObject([COMMIT]));
-const FORK_COMMIT = "f".repeat(40);
-
-// One deterministic fixture transport: real git object ids over canned refs,
-// ancestry closures and commit trees.
-const fixtureTransport = ({ refs = [], closure = [], commits = new Map(), listRefsError, closureError, fetchError } = {}) => ({
-  async listRefs() {
-    if (listRefsError) throw listRefsError;
-    return refs;
-  },
-  async branchTagClosure() {
-    if (closureError) throw closureError;
-    return closure;
-  },
-  async fetchCommit(_repository, commit) {
-    if (fetchError) throw fetchError;
-    const acquired = commits.get(commit);
-    if (!acquired) throw new Error("commit absent from the fixture");
-    return acquired;
-  },
-});
-const ref = (name, oid) => ({ name, oid });
-const blobEntry = (path, bytes, mode = "100644") => {
-  const oid = gitOid("blob", bytes);
-  return { entry: { mode, type: "blob", oid, path }, oid, bytes };
-};
-const acquiredCommit = (files) => {
-  const blobs = new Map();
-  const entries = [];
-  for (const file of files) {
-    const { entry, oid, bytes } = blobEntry(file.path, file.bytes, file.mode);
-    blobs.set(oid, bytes);
-    entries.push(entry);
-  }
-  return { commitBytes: COMMIT_BYTES, entries, blobs };
-};
+const REPOSITORY = FIXTURE_REPOSITORY;
+const ENCODER = FIXTURE_ENCODER;
 const reasons = (result) => result.diagnostics.map((d) => d.reason);
 
-// The published capture limits follow Scan's capture limits.
+// The published capture limits follow Scan's capture limits; the per-file and
+// file-count envelope is what prepareSourceRefresh consumes, so every accepted
+// snapshot is usable by it.
 assert.equal(GIT_SNAPSHOT_MAX_SOURCE_ENTRIES, 100_000);
 assert.equal(GIT_SNAPSHOT_MAX_SOURCE_BYTES, 256 * 1024 * 1024);
+assert.equal(GIT_SNAPSHOT_MAX_FILE_BYTES, 16 * 1024 * 1024);
+assert.equal(GIT_SNAPSHOT_MAX_FILES, 65_536);
 const defaultTransport = gitCliTransport();
 for (const method of ["listRefs", "branchTagClosure", "fetchCommit"]) {
   assert.equal(typeof defaultTransport[method], "function");
@@ -151,7 +120,7 @@ for (const method of ["listRefs", "branchTagClosure", "fetchCommit"]) {
 // Branch and tag refs resolve to an exact commit proven reachable from the
 // named repository; the result carries the exact git source identity.
 const reachableFixture = fixtureTransport({
-  refs: [ref("refs/heads/main", COMMIT), ref("refs/tags/v1", OTHER_COMMIT), ref("refs/tags/v2", "9".repeat(40)), ref("refs/tags/v2^{}", COMMIT)],
+  refs: [fixtureRef("refs/heads/main", COMMIT), fixtureRef("refs/tags/v1", OTHER_COMMIT), fixtureRef("refs/tags/v2", "9".repeat(40)), fixtureRef("refs/tags/v2^{}", COMMIT)],
   closure: [COMMIT, OTHER_COMMIT],
 });
 const branch = await resolveGitRef({ repository: REPOSITORY, ref: "main" }, { transport: reachableFixture });
@@ -168,7 +137,7 @@ assert.equal(annotatedTag.commit, COMMIT, "an annotated tag peels to its commit"
 
 // A fork-only commit is refused: the advertisement names it, the named
 // repository's ancestry does not contain it.
-const forkOnly = fixtureTransport({ refs: [ref("refs/heads/main", FORK_COMMIT)], closure: [COMMIT, OTHER_COMMIT] });
+const forkOnly = fixtureTransport({ refs: [fixtureRef("refs/heads/main", FORK_COMMIT)], closure: [COMMIT, OTHER_COMMIT] });
 const refused = await resolveGitRef({ repository: REPOSITORY, ref: "main" }, { transport: forkOnly });
 assert.equal(refused.valid, false);
 assert.equal(refused.reachable, false);
@@ -180,7 +149,7 @@ assert(reasons(refused).includes("git-commit-unreachable"));
 // An uncheckable reachability resolves unchecked and blocks installability.
 const unchecked = await resolveGitRef(
   { repository: REPOSITORY, ref: "main" },
-  { transport: fixtureTransport({ refs: [ref("refs/heads/main", COMMIT)], closureError: new Error("offline") }) },
+  { transport: fixtureTransport({ refs: [fixtureRef("refs/heads/main", COMMIT)], closureError: new Error("offline") }) },
 );
 assert.equal(unchecked.valid, true);
 assert.equal(unchecked.reachable, "unchecked");
@@ -192,7 +161,7 @@ assert(unchecked.diagnostics[0].message.includes("cannot be made installable unt
 
 // Invalid requests never reach the transport.
 const neverCalled = fixtureTransport({
-  refs: [ref("refs/heads/main", COMMIT)],
+  refs: [fixtureRef("refs/heads/main", COMMIT)],
   closure: [COMMIT],
   listRefsError: new Error("the transport must not be called"),
 });
@@ -215,7 +184,7 @@ const treeFiles = [
   { path: "skills/brought/SKILL.md", bytes: SKILL },
   { path: "skills/brought/run.sh", bytes: EXECUTABLE, mode: "100755" },
 ];
-const tree = acquiredCommit(treeFiles);
+const tree = fixtureAcquiredCommit(treeFiles);
 const acquireFixture = fixtureTransport({ commits: new Map([[COMMIT, tree]]) });
 const acquired = await acquireGitSnapshot({ repository: REPOSITORY, commit: COMMIT }, { transport: acquireFixture });
 assert.equal(acquired.valid, true);
@@ -227,10 +196,10 @@ assert.equal(snapshot.byteLength, LICENSE.byteLength + SKILL.byteLength + EXECUT
 assert.equal(snapshot.modes["skills/brought/run.sh"], 0o755);
 assert.equal(snapshot.modes["skills/brought/SKILL.md"], 0o644);
 const expectedListing = treeFiles
-  .map((file) => \`\${file.path}\\t\${sha256(file.bytes)}\\n\`)
+  .map((file) => \`\${file.path}\\t\${sha256Hex(file.bytes)}\\n\`)
   .sort()
   .join("");
-assert.equal(snapshot.captureSha256, sha256(ENCODER.encode(expectedListing)));
+assert.equal(snapshot.captureSha256, sha256Hex(ENCODER.encode(expectedListing)));
 
 const declaration = {
   schema: "urn:aihq:catalog:producer-declaration:3.1.0",
@@ -272,7 +241,7 @@ assert.equal(refreshed.value.release.sources[0].origin.kind, "git");
 assert.equal(refreshed.value.release.sources[0].origin.revision, COMMIT);
 
 // Exceeding a published bound is a named refusal.
-const twoFiles = acquiredCommit([
+const twoFiles = fixtureAcquiredCommit([
   { path: "a.txt", bytes: ENCODER.encode("a") },
   { path: "b.txt", bytes: ENCODER.encode("b") },
 ]);
@@ -288,10 +257,17 @@ const byteLimit = await acquireGitSnapshot(
 );
 assert.equal(byteLimit.valid, false);
 assert(reasons(byteLimit).includes("snapshot-byte-limit"));
+const bigFile = fixtureAcquiredCommit([{ path: "big.bin", bytes: new Uint8Array(GIT_SNAPSHOT_MAX_FILE_BYTES + 1) }]);
+const fileLimit = await acquireGitSnapshot(
+  { repository: REPOSITORY, commit: COMMIT },
+  { transport: fixtureTransport({ commits: new Map([[COMMIT, bigFile]]) }) },
+);
+assert.equal(fileLimit.valid, false);
+assert(reasons(fileLimit).includes("snapshot-file-limit"));
 
 // Traversal-shaped content is refused by name: links, submodules and
 // reserved git metadata never enter the snapshot.
-const link = acquiredCommit([{ path: "link", bytes: ENCODER.encode("../escape"), mode: "120000" }]);
+const link = fixtureAcquiredCommit([{ path: "link", bytes: ENCODER.encode("../escape"), mode: "120000" }]);
 assert(reasons(await acquireGitSnapshot({ repository: REPOSITORY, commit: COMMIT }, { transport: fixtureTransport({ commits: new Map([[COMMIT, link]]) }) })).includes("snapshot-link-refused"));
 const submodule = {
   commitBytes: COMMIT_BYTES,

@@ -57,6 +57,15 @@ import { frozenDiagnostic } from "./package-release.js";
 export const GIT_SNAPSHOT_MAX_SOURCE_ENTRIES = 100_000;
 export const GIT_SNAPSHOT_MAX_SOURCE_BYTES = 256 * 1024 * 1024;
 
+/**
+ * The per-file and file-count envelope `prepareSourceRefresh` consumes
+ * (its supplied-file admission mirrors these bounds), published so every
+ * accepted snapshot is usable by that consumer. Exceeding one is a named
+ * refusal (`snapshot-file-limit`, `snapshot-file-count`).
+ */
+export const GIT_SNAPSHOT_MAX_FILE_BYTES = 16 * 1024 * 1024;
+export const GIT_SNAPSHOT_MAX_FILES = 65_536;
+
 const DEFAULT_TIMEOUT_MS = 60_000;
 const EXACT_COMMIT = /^[0-9a-f]{40}$/;
 const UTF8 = new TextDecoder("utf-8", { fatal: true });
@@ -404,17 +413,29 @@ export const gitCliTransport = (
           ...context,
           maxBytes: TREE_LISTING_MAX_BYTES,
         });
+        let treeText: string;
+        try {
+          // Fatal decoding: a lossy decode could collapse distinct tree paths
+          // into one replacement-character name instead of failing closed.
+          treeText = UTF8.decode(listing);
+        } catch {
+          throw new GitTransportError("failed", "Git tree paths are not UTF-8");
+        }
         const entries: GitTreeEntry[] = [];
-        for (const row of listing.toString("utf8").split("\0")) {
+        const seen = new Set<string>();
+        for (const row of treeText.split("\0")) {
           if (row === "") continue;
           const match = /^(\d{6}) (blob|tree|commit) ([0-9a-f]{40})\t([\s\S]+)$/.exec(row);
           if (match === null) throw new GitTransportError("failed", "Git tree is malformed");
+          const path = match[4] as string;
+          if (seen.has(path)) throw new GitTransportError("failed", "Git tree lists a path twice");
+          seen.add(path);
           entries.push(
             Object.freeze({
               mode: match[1] as string,
               type: match[2] as GitTreeEntry["type"],
               oid: match[3] as string,
-              path: match[4] as string,
+              path,
             }),
           );
         }
@@ -664,12 +685,14 @@ export async function resolveGitRef(
 
 /**
  * Acquires a bounded snapshot of the files at one exact commit of the named
- * repository. The commit object is verified against its id, every blob
- * against its git object id, and every size bound against Scan's published
- * capture limits; exceeding a bound, a submodule, a git link or a reserved
- * `.git` path is a named refusal. The returned snapshot carries the exact
- * commit as `revision`, so the caller can pass `{ source, ...snapshot }`
- * straight to `prepareSourceRefresh`. Nothing acquired is executed.
+ * repository. The commit object is verified against its id and every blob
+ * against its git object id; Scan's published capture limits bound the tree,
+ * and the published per-file and file-count envelope keeps every accepted
+ * snapshot usable by `prepareSourceRefresh`. Exceeding a bound, a submodule,
+ * a git link or a reserved `.git` path is a named refusal. The returned
+ * snapshot carries the exact commit as `revision`, so the caller can pass
+ * `{ source, revision, files, modes }` straight to `prepareSourceRefresh`.
+ * Nothing acquired is executed.
  */
 export async function acquireGitSnapshot(
   request: { readonly repository: string; readonly commit: string },
@@ -809,12 +832,29 @@ export async function acquireGitSnapshot(
             }),
           );
         }
+        if (entryCount > GIT_SNAPSHOT_MAX_FILES) {
+          return invalid(
+            frozenDiagnostic({
+              reason: "snapshot-file-count",
+              message: `The snapshot exceeds the published file bound of ${GIT_SNAPSHOT_MAX_FILES} that prepareSourceRefresh consumes.`,
+            }),
+          );
+        }
         const bytes = acquired.blobs.get(entry.oid);
         if (bytes === undefined || gitObjectId("blob", bytes) !== entry.oid) {
           return invalid(
             frozenDiagnostic({
               reason: "git-object-mismatch",
               message: `The fetched bytes at ${JSON.stringify(entry.path)} do not match the pinned tree object.`,
+              path: `/entries/${entry.path}`,
+            }),
+          );
+        }
+        if (bytes.byteLength > GIT_SNAPSHOT_MAX_FILE_BYTES) {
+          return invalid(
+            frozenDiagnostic({
+              reason: "snapshot-file-limit",
+              message: `The file ${JSON.stringify(entry.path)} exceeds the published per-file bound of ${GIT_SNAPSHOT_MAX_FILE_BYTES} bytes that prepareSourceRefresh consumes.`,
               path: `/entries/${entry.path}`,
             }),
           );

@@ -1,104 +1,40 @@
-import { createHash } from "node:crypto";
-import { describe, expect, it } from "vitest";
-import type {
-  GitAcquiredCommit,
-  GitRemoteRef,
-  GitRemoteTransport,
-  GitTreeEntry,
-} from "../../src/release/contracts.js";
 import {
   acquireGitSnapshot,
+  GIT_SNAPSHOT_MAX_FILE_BYTES,
+  GIT_SNAPSHOT_MAX_FILES,
   GIT_SNAPSHOT_MAX_SOURCE_BYTES,
   GIT_SNAPSHOT_MAX_SOURCE_ENTRIES,
   gitCliTransport,
   resolveGitRef,
-} from "../../src/release/node.js";
-import { checkExactSourceIdentity } from "../../src/release/source-description.js";
+} from "@aihq/catalog/node";
+import { checkExactSourceIdentity } from "@aihq/catalog/source";
+import { describe, expect, it } from "vitest";
+import {
+  COMMIT,
+  COMMIT_BYTES,
+  FORK_COMMIT,
+  fixtureAcquiredCommit,
+  fixtureRef,
+  fixtureTransport,
+  gitOid,
+  FIXTURE_REPOSITORY as REPOSITORY,
+  sha256Hex,
+} from "../../tools/git-resolution-fixture.mjs";
 
-const REPOSITORY = "https://github.com/example/skills";
 const C0 = "0".repeat(40);
 const C1 = "1".repeat(40);
 const C2 = "2".repeat(40);
-const FORK = "f".repeat(40);
-const TREE = "3".repeat(40);
-
-const gitOid = (type: "blob" | "commit" | "tree", bytes: Uint8Array): string =>
-  createHash("sha1").update(`${type} ${bytes.byteLength}\0`, "utf8").update(bytes).digest("hex");
-
-const commitBytes = (parents: string[] = []): Uint8Array =>
-  new TextEncoder().encode(
-    `tree ${TREE}\n${parents.map((parent) => `parent ${parent}\n`).join("")}author fixture <fixture@example.com> 1700000000 +0000\ncommitter fixture <fixture@example.com> 1700000000 +0000\n\nfixture\n`,
-  );
-
-const COMMIT_BYTES = commitBytes();
-const COMMIT = gitOid("commit", COMMIT_BYTES);
-
-const sha256 = (bytes: Uint8Array) => createHash("sha256").update(bytes).digest("hex");
-
-interface FixtureTreeFile {
-  readonly path: string;
-  readonly bytes: Uint8Array;
-  readonly mode?: string;
-}
-
-const acquiredCommit = (files: readonly FixtureTreeFile[]): GitAcquiredCommit => {
-  const blobs = new Map<string, Uint8Array>();
-  const entries: GitTreeEntry[] = [];
-  for (const file of files) {
-    const oid = gitOid("blob", file.bytes);
-    blobs.set(oid, file.bytes);
-    entries.push(
-      Object.freeze({
-        mode: file.mode ?? "100644",
-        type: "blob" as const,
-        oid,
-        path: file.path,
-      }),
-    );
-  }
-  return Object.freeze({
-    commitBytes: COMMIT_BYTES,
-    entries: Object.freeze(entries),
-    blobs: Object.freeze(blobs),
-  });
-};
-
-interface FixtureTransportOptions {
-  readonly refs?: readonly GitRemoteRef[];
-  readonly closure?: readonly string[];
-  readonly commits?: ReadonlyMap<string, GitAcquiredCommit>;
-  readonly listRefsError?: Error;
-  readonly closureError?: Error;
-  readonly fetchError?: Error;
-}
-
-const transport = (options: FixtureTransportOptions): GitRemoteTransport => ({
-  async listRefs() {
-    if (options.listRefsError) throw options.listRefsError;
-    return Object.freeze(options.refs ?? []);
-  },
-  async branchTagClosure() {
-    if (options.closureError) throw options.closureError;
-    return Object.freeze(options.closure ?? []);
-  },
-  async fetchCommit(_repository, commit) {
-    if (options.fetchError) throw options.fetchError;
-    const acquired = options.commits?.get(commit);
-    if (!acquired) throw new Error("commit absent");
-    return acquired;
-  },
-});
-
-const ref = (name: string, oid: string): GitRemoteRef => Object.freeze({ name, oid });
+const ENCODER = new TextEncoder();
+const encode = (text: string) => ENCODER.encode(text);
 
 const reasons = (result: { diagnostics: readonly { reason: string }[] }) =>
   result.diagnostics.map((d) => d.reason);
 
 describe("resolveGitRef", () => {
-  const closed = transport({
-    refs: [ref("refs/heads/main", C1), ref("refs/tags/v1", C1)],
+  const closed = fixtureTransport({
+    refs: [fixtureRef("refs/heads/main", C1), fixtureRef("refs/tags/v1", C1)],
     closure: [C0, C1],
-    commits: new Map([[C1, acquiredCommit([])]]),
+    commits: new Map([[C1, fixtureAcquiredCommit([])]]),
   });
 
   it("resolves a branch to an exact commit with reachable true", async () => {
@@ -133,11 +69,11 @@ describe("resolveGitRef", () => {
 
   it("peels an annotated tag to its commit and prefers a tag over a branch", async () => {
     const tagObject = "9".repeat(40);
-    const both = transport({
+    const both = fixtureTransport({
       refs: [
-        ref("refs/heads/release", C0),
-        ref("refs/tags/release", tagObject),
-        ref("refs/tags/release^{}", C2),
+        fixtureRef("refs/heads/release", C0),
+        fixtureRef("refs/tags/release", tagObject),
+        fixtureRef("refs/tags/release^{}", C2),
       ],
       closure: [C0, C2],
     });
@@ -151,8 +87,8 @@ describe("resolveGitRef", () => {
   });
 
   it("refuses a fork-only commit with reachable false", async () => {
-    const fork = transport({
-      refs: [ref("refs/heads/main", FORK)],
+    const fork = fixtureTransport({
+      refs: [fixtureRef("refs/heads/main", FORK_COMMIT)],
       closure: [C0, C1],
     });
     const result = await resolveGitRef(
@@ -161,12 +97,12 @@ describe("resolveGitRef", () => {
     );
     expect(result.valid).toBe(false);
     expect(result.installable).toBe(false);
-    expect(result.commit).toBe(FORK);
+    expect(result.commit).toBe(FORK_COMMIT);
     expect(result.reachable).toBe(false);
     expect(result.identity).toEqual({
       kind: "git",
       repository: REPOSITORY,
-      commit: FORK,
+      commit: FORK_COMMIT,
       reachable: false,
     });
     expect(reasons(result)).toContain("git-commit-unreachable");
@@ -174,8 +110,8 @@ describe("resolveGitRef", () => {
   });
 
   it("marks an uncheckable reachability unchecked and blocks installability", async () => {
-    const offline = transport({
-      refs: [ref("refs/heads/main", C1)],
+    const offline = fixtureTransport({
+      refs: [fixtureRef("refs/heads/main", C1)],
       closureError: new Error("offline"),
     });
     const result = await resolveGitRef(
@@ -201,18 +137,18 @@ describe("resolveGitRef", () => {
 
   it("refuses precisely for invalid requests before any transport call", async () => {
     const calls: string[] = [];
-    const spy = transport({
-      refs: [ref("refs/heads/main", C1)],
+    const spy = fixtureTransport({
+      refs: [fixtureRef("refs/heads/main", C1)],
       closure: [C1],
     });
     const counting = {
-      listRefs: async () => {
+      listRefs: async (repository: string) => {
         calls.push("listRefs");
-        return spy.listRefs(REPOSITORY);
+        return spy.listRefs(repository);
       },
-      branchTagClosure: async () => {
+      branchTagClosure: async (repository: string) => {
         calls.push("closure");
-        return spy.branchTagClosure(REPOSITORY);
+        return spy.branchTagClosure(repository);
       },
       fetchCommit: spy.fetchCommit,
     };
@@ -257,7 +193,7 @@ describe("resolveGitRef", () => {
   });
 
   it("maps a ref-advertisement transport failure to a refusal", async () => {
-    const down = transport({ listRefsError: new Error("connection refused") });
+    const down = fixtureTransport({ listRefsError: new Error("connection refused") });
     const result = await resolveGitRef(
       { repository: REPOSITORY, ref: "main" },
       { transport: down },
@@ -279,17 +215,10 @@ describe("resolveGitRef", () => {
 });
 
 describe("acquireGitSnapshot", () => {
-  const fileA = {
-    path: "skills/a/SKILL.md",
-    bytes: new TextEncoder().encode("---\nname: a\n---\n"),
-  };
-  const fileB = {
-    path: "skills/b/SKILL.md",
-    bytes: new TextEncoder().encode("---\nname: b\n---\n"),
-    mode: "100755",
-  };
-  const acquired = acquiredCommit([fileA, fileB]);
-  const fixture = transport({ commits: new Map([[COMMIT, acquired]]) });
+  const fileA = { path: "skills/a/SKILL.md", bytes: encode("---\nname: a\n---\n") };
+  const fileB = { path: "skills/b/SKILL.md", bytes: encode("---\nname: b\n---\n"), mode: "100755" };
+  const acquired = fixtureAcquiredCommit([fileA, fileB]);
+  const fixture = fixtureTransport({ commits: new Map([[COMMIT, acquired]]) });
 
   it("acquires the exact commit into a bounded snapshot", async () => {
     const result = await acquireGitSnapshot(
@@ -307,10 +236,10 @@ describe("acquireGitSnapshot", () => {
     expect(snapshot.entryCount).toBe(2);
     expect(snapshot.byteLength).toBe(fileA.bytes.byteLength + fileB.bytes.byteLength);
     const lines = [fileA, fileB]
-      .map((file) => `${file.path}\t${sha256(file.bytes)}\n`)
+      .map((file) => `${file.path}\t${sha256Hex(file.bytes)}\n`)
       .sort()
       .join("");
-    expect(snapshot.captureSha256).toBe(sha256(new TextEncoder().encode(lines)));
+    expect(snapshot.captureSha256).toBe(sha256Hex(encode(lines)));
     expect(Object.isFrozen(snapshot)).toBe(true);
     expect(Object.isFrozen(snapshot.files)).toBe(true);
   });
@@ -334,7 +263,7 @@ describe("acquireGitSnapshot", () => {
   });
 
   it("maps an acquisition transport failure to a refusal", async () => {
-    const down = transport({ fetchError: new Error("connection refused") });
+    const down = fixtureTransport({ fetchError: new Error("connection refused") });
     const result = await acquireGitSnapshot(
       { repository: REPOSITORY, commit: COMMIT },
       { transport: down },
@@ -344,12 +273,12 @@ describe("acquireGitSnapshot", () => {
   });
 
   it("refuses a commit whose object does not match its id", async () => {
-    const lying = transport({
+    const lying = fixtureTransport({
       commits: new Map([
         [
           COMMIT,
           Object.freeze({
-            commitBytes: new TextEncoder().encode("bogus"),
+            commitBytes: encode("bogus"),
             entries: Object.freeze([]),
             blobs: Object.freeze(new Map()),
           }),
@@ -364,8 +293,8 @@ describe("acquireGitSnapshot", () => {
   });
 
   it("refuses a blob that does not match its pinned object id", async () => {
-    const original = new TextEncoder().encode("original\n");
-    const changed = new TextEncoder().encode("changed\n");
+    const original = encode("original\n");
+    const changed = encode("changed\n");
     const tampered = Object.freeze({
       commitBytes: COMMIT_BYTES,
       entries: Object.freeze([
@@ -380,7 +309,7 @@ describe("acquireGitSnapshot", () => {
     });
     const result = await acquireGitSnapshot(
       { repository: REPOSITORY, commit: COMMIT },
-      { transport: transport({ commits: new Map([[COMMIT, tampered]]) }) },
+      { transport: fixtureTransport({ commits: new Map([[COMMIT, tampered]]) }) },
     );
     expect(reasons(result)).toContain("git-object-mismatch");
   });
@@ -393,20 +322,20 @@ describe("acquireGitSnapshot", () => {
     });
     const result = await acquireGitSnapshot(
       { repository: REPOSITORY, commit: COMMIT },
-      { transport: transport({ commits: new Map([[COMMIT, incomplete]]) }) },
+      { transport: fixtureTransport({ commits: new Map([[COMMIT, incomplete]]) }) },
     );
     expect(reasons(result)).toContain("git-object-mismatch");
   });
 
   it("refuses trees over the entry bound with a named refusal", async () => {
     const files = [
-      { path: "a.txt", bytes: new TextEncoder().encode("a") },
-      { path: "b.txt", bytes: new TextEncoder().encode("b") },
+      { path: "a.txt", bytes: encode("a") },
+      { path: "b.txt", bytes: encode("b") },
     ];
     const result = await acquireGitSnapshot(
       { repository: REPOSITORY, commit: COMMIT },
       {
-        transport: transport({ commits: new Map([[COMMIT, acquiredCommit(files)]]) }),
+        transport: fixtureTransport({ commits: new Map([[COMMIT, fixtureAcquiredCommit(files)]]) }),
         maxSourceEntries: 1,
       },
     );
@@ -416,18 +345,45 @@ describe("acquireGitSnapshot", () => {
 
   it("refuses trees over the byte bound with a named refusal", async () => {
     const files = [
-      { path: "a.txt", bytes: new TextEncoder().encode("abcd") },
-      { path: "b.txt", bytes: new TextEncoder().encode("efgh") },
+      { path: "a.txt", bytes: encode("abcd") },
+      { path: "b.txt", bytes: encode("efgh") },
     ];
     const result = await acquireGitSnapshot(
       { repository: REPOSITORY, commit: COMMIT },
       {
-        transport: transport({ commits: new Map([[COMMIT, acquiredCommit(files)]]) }),
+        transport: fixtureTransport({ commits: new Map([[COMMIT, fixtureAcquiredCommit(files)]]) }),
         maxSourceBytes: 7,
       },
     );
     expect(result.valid).toBe(false);
     expect(reasons(result)).toContain("snapshot-byte-limit");
+  });
+
+  it("refuses a file past the per-file consumer envelope", async () => {
+    const big = { path: "big.bin", bytes: new Uint8Array(GIT_SNAPSHOT_MAX_FILE_BYTES + 1) };
+    const result = await acquireGitSnapshot(
+      { repository: REPOSITORY, commit: COMMIT },
+      {
+        transport: fixtureTransport({ commits: new Map([[COMMIT, fixtureAcquiredCommit([big])]]) }),
+      },
+    );
+    expect(result.valid).toBe(false);
+    expect(reasons(result)).toContain("snapshot-file-limit");
+  });
+
+  it("refuses a tree past the file-count consumer envelope", async () => {
+    const many = Array.from({ length: GIT_SNAPSHOT_MAX_FILES + 1 }, (_, index) => ({
+      path: `f${index}.txt`,
+      bytes: encode("x"),
+    }));
+    const result = await acquireGitSnapshot(
+      { repository: REPOSITORY, commit: COMMIT },
+      {
+        transport: fixtureTransport({ commits: new Map([[COMMIT, fixtureAcquiredCommit(many)]]) }),
+      },
+    );
+    expect(result.valid).toBe(false);
+    expect(reasons(result)).toContain("snapshot-file-count");
   });
 
   it("refuses submodules, git links and reserved paths by name", async () => {
@@ -442,19 +398,19 @@ describe("acquireGitSnapshot", () => {
       reasons(
         await acquireGitSnapshot(
           { repository: REPOSITORY, commit: COMMIT },
-          { transport: transport({ commits: new Map([[COMMIT, submodule]]) }) },
+          { transport: fixtureTransport({ commits: new Map([[COMMIT, submodule]]) }) },
         ),
       ),
     ).toContain("snapshot-submodule-refused");
 
-    const link = acquiredCommit([
-      { path: "link", bytes: new TextEncoder().encode("../escape"), mode: "120000" },
+    const link = fixtureAcquiredCommit([
+      { path: "link", bytes: encode("../escape"), mode: "120000" },
     ]);
     expect(
       reasons(
         await acquireGitSnapshot(
           { repository: REPOSITORY, commit: COMMIT },
-          { transport: transport({ commits: new Map([[COMMIT, link]]) }) },
+          { transport: fixtureTransport({ commits: new Map([[COMMIT, link]]) }) },
         ),
       ),
     ).toContain("snapshot-link-refused");
@@ -465,19 +421,17 @@ describe("acquireGitSnapshot", () => {
         Object.freeze({
           mode: "100644",
           type: "blob" as const,
-          oid: gitOid("blob", new TextEncoder().encode("x")),
+          oid: gitOid("blob", encode("x")),
           path: ".git/config",
         }),
       ]),
-      blobs: Object.freeze(
-        new Map([[gitOid("blob", new TextEncoder().encode("x")), new TextEncoder().encode("x")]]),
-      ),
+      blobs: Object.freeze(new Map([[gitOid("blob", encode("x")), encode("x")]])),
     });
     expect(
       reasons(
         await acquireGitSnapshot(
           { repository: REPOSITORY, commit: COMMIT },
-          { transport: transport({ commits: new Map([[COMMIT, reserved]]) }) },
+          { transport: fixtureTransport({ commits: new Map([[COMMIT, reserved]]) }) },
         ),
       ),
     ).toContain("snapshot-reserved-path");
@@ -490,26 +444,26 @@ describe("acquireGitSnapshot", () => {
         Object.freeze({
           mode: "100664",
           type: "blob" as const,
-          oid: gitOid("blob", new TextEncoder().encode("x")),
+          oid: gitOid("blob", encode("x")),
           path: "odd",
         }),
       ]),
-      blobs: Object.freeze(
-        new Map([[gitOid("blob", new TextEncoder().encode("x")), new TextEncoder().encode("x")]]),
-      ),
+      blobs: Object.freeze(new Map([[gitOid("blob", encode("x")), encode("x")]])),
     });
     const result = await acquireGitSnapshot(
       { repository: REPOSITORY, commit: COMMIT },
-      { transport: transport({ commits: new Map([[COMMIT, odd]]) }) },
+      { transport: fixtureTransport({ commits: new Map([[COMMIT, odd]]) }) },
     );
     expect(reasons(result)).toContain("unsupported-tree-entry");
   });
 });
 
 describe("published capture limits", () => {
-  it("follows Scan's capture limits and exports a contained default transport", () => {
+  it("follows Scan's capture limits and the consumer envelope", () => {
     expect(GIT_SNAPSHOT_MAX_SOURCE_ENTRIES).toBe(100_000);
     expect(GIT_SNAPSHOT_MAX_SOURCE_BYTES).toBe(256 * 1024 * 1024);
+    expect(GIT_SNAPSHOT_MAX_FILE_BYTES).toBe(16 * 1024 * 1024);
+    expect(GIT_SNAPSHOT_MAX_FILES).toBe(65_536);
     const defaultTransport = gitCliTransport();
     expect(typeof defaultTransport.listRefs).toBe("function");
     expect(typeof defaultTransport.branchTagClosure).toBe("function");

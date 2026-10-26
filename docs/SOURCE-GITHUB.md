@@ -12,12 +12,15 @@ commit for `prepareSourceRefresh`.
 `@aihq/catalog/node` with the published capture limits
 `GIT_SNAPSHOT_MAX_SOURCE_ENTRIES` (100,000 entries) and
 `GIT_SNAPSHOT_MAX_SOURCE_BYTES` (256 MiB), which follow `samartomar/aih-scan`'s
-capture limits so one intake bound serves both products. All network and
-process authority sits behind the public `GitRemoteTransport` seam; the
-default `gitCliTransport()` shells out to `git` with containment, and tests
-substitute a deterministic fixture transport, so every behavior is provable
-through the public exports without live network. Nothing acquired is executed:
-snapshot bytes are data for `prepareSourceRefresh`, never imported or run.
+capture limits so one intake bound serves both products, and the published
+per-file and file-count envelope `GIT_SNAPSHOT_MAX_FILE_BYTES` (16 MiB) and
+`GIT_SNAPSHOT_MAX_FILES` (65,536) that `prepareSourceRefresh` consumes, so
+every accepted snapshot is usable by it. All network and process authority
+sits behind the public `GitRemoteTransport` seam; the default
+`gitCliTransport()` shells out to `git` with containment, and tests substitute
+a deterministic fixture transport, so every behavior is provable through the
+public exports without live network. Nothing acquired is executed: snapshot
+bytes are data for `prepareSourceRefresh`, never imported or run.
 
 ## `resolveGitRef({ repository, ref }, controls)`
 
@@ -81,7 +84,9 @@ Refusals are precise; callers decide on `reason`:
 - `commit-invalid` — the acquisition commit is not one exact 40-character id.
 - `git-object-mismatch` — a fetched commit or blob does not match its id.
 - `snapshot-entry-limit`, `snapshot-byte-limit` — the tree exceeds a published
-  capture limit.
+  Scan capture limit.
+- `snapshot-file-limit`, `snapshot-file-count` — the tree exceeds the published
+  per-file or file-count envelope `prepareSourceRefresh` consumes.
 - `snapshot-submodule-refused` — the tree contains a submodule.
 - `snapshot-link-refused` — the tree contains a git link; links are never
   captured, so a linked path cannot escape the snapshot.

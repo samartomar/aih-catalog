@@ -220,10 +220,13 @@ snapshot of the files at that exact commit — the commit object and every blob
 verified against its git object id — sized by the published capture limits
 `GIT_SNAPSHOT_MAX_SOURCE_ENTRIES` (100,000) and `GIT_SNAPSHOT_MAX_SOURCE_BYTES`
 (256 MiB), which follow Scan's capture limits; exceeding one is a named
-refusal. The snapshot's `revision`, `files` and `modes` pass straight to
+refusal. The published per-file and file-count envelope
+(`GIT_SNAPSHOT_MAX_FILE_BYTES`, 16 MiB; `GIT_SNAPSHOT_MAX_FILES`, 65,536) is
+what `prepareSourceRefresh` consumes, so every accepted snapshot is usable by
+it. The snapshot's `revision`, `files` and `modes` pass straight to
 `prepareSourceRefresh`. All transport authority sits behind the public
 `GitRemoteTransport` seam with a contained `git` default, nothing acquired is
-executed, and exceeding a limit, a submodule, a git link or reserved `.git`
+executed, and exceeding a bound, a submodule, a git link or reserved `.git`
 metadata is refused by name. See [GitHub sources](docs/SOURCE-GITHUB.md) for
 the contract and the packed consumer check.
 
