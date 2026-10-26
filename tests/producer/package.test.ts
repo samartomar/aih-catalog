@@ -117,6 +117,7 @@ describe("packed candidate", () => {
           path !== "docs/PUBLIC-AUTHORING.md" &&
           path !== "docs/NPM-SNAPSHOTS.md" &&
           path !== "docs/SCAN-BASELINE.md" &&
+          path !== "docs/RELEASE-TRUST.md" &&
           path !== "docs/CONTRACT-FIXTURES.md" &&
           path !== "docs/EXTENSIONS-CONTENT.md" &&
           path !== "docs/EXTENSIONS-INVENTORY.md" &&

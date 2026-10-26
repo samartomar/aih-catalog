@@ -28,7 +28,7 @@ const verified = verifyReleaseIndexTuf({ sourceId, trust, indexBytes,
 if (!verified.valid) throw new Error(verified.reason);
 const result = readReleaseIndex({ evaluatedAt, state, sources: [{ sourceId,
   trust, indexBytes, verification: verified.verification, authorizedFrameworks }] });
-// Persist result.sources[].state, including tufState role floors, atomically.
+// Persist result.sources[].state, including tufRoots history, atomically.
 ```
 
 Without a selected root, call `readReleaseIndex` with `trust: "none"` and no
@@ -43,15 +43,15 @@ synchronous, portable and pure; the Node cryptographic seam uses pinned
 `@tufjs/models` public APIs to create its opaque evidence, never unchecked booleans.
 
 The supported profile is top-level TUF root/timestamp/snapshot/targets metadata,
-canonical UTF-8 JSON plus LF, at most 1 MiB/depth 32 per metadata file and at most
+strict UTF-8 JSON (whitespace permitted; duplicate keys refused), at most 1 MiB/depth 32 per metadata file and at most
 32 consecutive root rotations. Targets must bind the selected index path by exact
-length and SHA-256. Other TUF serializations or delegated targets need a future
-explicit adapter; they are refused here. Root updates require the old and new
+length and SHA-256. Delegated targets need a future explicit adapter; they are refused here. Root updates require the old and new
 thresholds, strictly consecutive versions, and a non-expired final root. All final
 roles must be unexpired at the caller's evaluation time. The reader preserves
 per-role version/digest floors alongside the existing index rollback state.
-Persist `revokedRootSha256` too: a verified root revocation is retained across
-reads and cannot be undone by replaying older metadata.
+Persist the complete root-hash-keyed `tufRoots` history: role floors and verified
+revocations survive unsigned reads and selecting another root. Replaying older
+metadata cannot undo a revocation.
 
 An authenticated top-level targets document may carry the extension
 `catalogRootRevocations: [{sourceId, rootSha256}]`, where the hash is the exact
@@ -111,13 +111,15 @@ and the selected TUF source root are independent consumer inputs.
 
 ## Local proof
 
-`node tools/verify-release-index-tuf-consumer.mjs [catalog.tgz]` installs the exact
+`node tools/verify-release-index-tuf-consumer.mjs [catalog.tgz] [core.tgz]` installs the exact
 packed package outside the checkout and uses only public exports and the public
 `fixtures/release-index/tuf-local.json`. Generated fixture private keys were
 discarded; these are not production roots or identities. Cases cover the unsigned
 changeover, root rotation, forged roots/signatures/proofs, expiry, scoped verified
 root revocation, rollback, exact cached readback, tampered index/release refusal
-and independence from Scan evidence policy. No live signer or transport is used.
+and independence from Scan evidence policy. With an exact Core archive, the same
+consumer also calls Core's public `getCatalogIndexTrust` and passes its result
+straight to the verifier and reader. No live signer or transport is used.
 
 `tests/release/release-signing-preparation.test.ts` exercises the workflow helper
 with ephemeral fixture keys and an injected fixture signer. It proves the two

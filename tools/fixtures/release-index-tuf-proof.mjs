@@ -50,7 +50,7 @@ const rotation=verify(f.rotated,{indexBytes:nextIndex,metadata:{roots:[enc(f.rot
 assert.equal(rotation.valid,true,JSON.stringify(rotation));
 const rotated=read(rotation.verification,{indexBytes:nextIndex},[result.sources[0].state]);
 assert.equal(rotated.entries.length,1,JSON.stringify(rotated));
-assert.equal(rotated.sources[0].state.tufState.root.version,2);
+assert.equal(Object.values(rotated.sources[0].state.tufRoots)[0].roles.root.version,2);
 const untrustedRoot=structuredClone(f.rotatedRoot);untrustedRoot.signatures=untrustedRoot.signatures.filter(s=>s.keyid.startsWith('next'));
 assert.equal(verify(f.rotated,{indexBytes:nextIndex,metadata:{roots:[enc(untrustedRoot)],...Object.fromEntries(Object.entries(f.rotated).map(([k,v])=>[k,enc(v)]))}}).valid,false);
 assert.equal(read(verified.verification,{},[rotated.sources[0].state]).sources[0].diagnostics[0].code,'rollback-refused');
@@ -68,4 +68,36 @@ assert.equal(readRelease(enc(tampered),{expectedSha256:result.entries[0].sha256}
 const withPolicy=read(verified.verification,{scanEvidencePolicy:{publisher:'untrusted'}});
 assert.equal(withPolicy.entries.length,1);
 assert.deepEqual(withPolicy.sources[0].state,result.sources[0].state);
+// Persist history through an unsigned read before reselecting the root.
+const revokedState=read(revoked.verification).sources[0].state;
+const unsignedAfter=read(undefined,{trust:'none'},[revokedState]);
+assert.equal(unsignedAfter.entries.length,1);
+assert.equal(read(verified.verification,{},[unsignedAfter.sources[0].state]).entries.length,0,'unsigned read erased revocation');
+const rotatedUnsigned=read(undefined,{trust:'none',indexBytes:nextIndex},[rotated.sources[0].state]);
+assert.equal(read(verified.verification,{},[rotatedUnsigned.sources[0].state]).entries.length,0,'unsigned read erased floors');
+// Selecting another bootstrap root preserves the old root's revocation and
+// keeps the new root's floors in a separate history entry.
+const nextTrust={tufRoot:enc(f.rotatedRoot)};
+const nextProof=verify(f.rotated,{trust:nextTrust,indexBytes:nextIndex});
+assert.equal(nextProof.valid,true);
+const switched=read(nextProof.verification,{trust:nextTrust,indexBytes:nextIndex},[revokedState]);
+assert.equal(switched.entries.length,1);
+assert.equal(Object.keys(switched.sources[0].state.tufRoots).length,2);
+assert.equal(read(verified.verification,{},[switched.sources[0].state]).sources[0].diagnostics[0].code,'root-revoked');
+assert.equal(verify(f.initial,{trust:{tufRoot:new Uint8Array(1024*1024+1)}}).valid,false);
+assert.equal(verify(f.initial,{metadata:{...Object.fromEntries(Object.entries(f.initial).map(([k,v])=>[k,enc(v)])),roots:Array(33).fill(enc(f.rotatedRoot))}}).valid,false);
+const plainRoot=new TextEncoder().encode(JSON.stringify(f.root));
+const plain=verify(f.initial,{trust:{tufRoot:plainRoot}});
+assert.equal(plain.valid,true,'standard TUF JSON root must be accepted');
+const pretty=verify(f.initial,{metadata:{roots:[],...Object.fromEntries(Object.entries(f.initial).map(([k,v])=>[k,new TextEncoder().encode(JSON.stringify(v,null,2))]))}});
+// Pretty-printed child bytes need matching signed parent hashes, so this refuses.
+assert.equal(pretty.valid,false);
+if(process.env.CATALOG_TUF_CHECK_CORE==='1') {
+ const { getCatalogIndexTrust }=await import('@aihq/core/harness/runtime');
+ const selected=getCatalogIndexTrust({catalogTufRootBase64:Buffer.from(plainRoot).toString('base64'),verificationKeys:[],verificationPublishers:[],scanEvidencePolicies:[],revocations:[]});
+ assert.deepEqual(selected.tufRoot,plainRoot);
+ const proof=verify(f.initial,{trust:selected});assert.equal(proof.valid,true);
+ assert.equal(read(proof.verification,{trust:selected}).entries.length,1);
+ console.log('Core public getCatalogIndexTrust handoff passed');
+}
 console.log('TUF packed consumer passed');

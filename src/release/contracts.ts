@@ -898,8 +898,16 @@ export interface ReleaseIndexSourceState {
   readonly lastVerifiedAt: string | null;
   /** Digest of the last accepted index bytes; `null` before any accepted read. */
   readonly lastIndexSha256: string | null;
-  readonly tufState?: ReleaseIndexTufState;
-  readonly revokedRootSha256?: string;
+  /** Historical floors and revocations remain bound to each selected bootstrap root. */
+  readonly tufRoots?: Readonly<
+    Record<
+      string,
+      {
+        readonly roles: ReleaseIndexTufState;
+        readonly revoked: boolean;
+      }
+    >
+  >;
 }
 
 /** One source read: freshly acquired bytes, or the recorded copy when offline. */

@@ -10,8 +10,8 @@ import { seedConsumerLock } from "./seed-consumer-lock.mjs";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
 assert(
-  args.length <= 1,
-  "Usage: node tools/verify-release-index-tuf-consumer.mjs [catalog.tgz]",
+  args.length <= 2,
+  "Usage: node tools/verify-release-index-tuf-consumer.mjs [catalog.tgz] [core.tgz]",
 );
 const fixture = mkdtempSync(join(tmpdir(), "aih-index-tuf-"));
 const npm = [
@@ -53,10 +53,14 @@ runNpm([
   "--no-audit",
   "--no-fund",
   archive,
+  ...(args[1] ? [resolve(args[1])] : []),
 ]);
 
 writeFileSync(join(consumer, "proof.mjs"), readFileSync(join(root, "tools/fixtures/release-index-tuf-proof.mjs")));
 const output = execFileSync(process.execPath, [join(consumer, "proof.mjs")], {
+ env: {...process.env, CATALOG_TUF_CHECK_CORE: args[1] ? "1" : "0"},
  cwd: consumer, encoding: "utf8", timeout: 120_000, maxBuffer: 4 * 1024 * 1024, windowsHide: true,
 });
 process.stdout.write(output);
+
+console.log(JSON.stringify({consumer, archive}));

@@ -394,51 +394,54 @@ function parseRequest(
         ),
       };
     }
-    if (item.tufState !== undefined) {
-      const roles = ["root", "timestamp", "snapshot", "targets"];
-      if (
-        !isRecord(item.tufState) ||
-        Object.keys(item.tufState).length !== 4 ||
-        roles.some((role) => {
-          const v = (item.tufState as Record<string, unknown>)[role];
-          return (
-            !isRecord(v) ||
-            !Number.isSafeInteger(v.version) ||
-            (v.version as number) < 1 ||
-            typeof v.sha256 !== "string" ||
-            !SHA256.test(v.sha256)
-          );
-        })
-      )
-        return {
-          failure: requestFailure(
-            "tuf-state-invalid",
-            "Expected persisted TUF role versions and digests.",
-          ),
+    const tufRoots: Record<
+      string,
+      { roles: import("./contracts.js").ReleaseIndexTufState; revoked: boolean }
+    > = {};
+    if (item.tufRoots !== undefined) {
+      if (!isRecord(item.tufRoots))
+        return { failure: requestFailure("tuf-state-invalid", "Expected per-root trust history.") };
+      for (const [hash, history] of Object.entries(item.tufRoots)) {
+        if (
+          !SHA256.test(hash) ||
+          !isRecord(history) ||
+          typeof history.revoked !== "boolean" ||
+          !isRecord(history.roles) ||
+          Object.keys(history.roles).length !== 4 ||
+          ["root", "timestamp", "snapshot", "targets"].some((role) => {
+            const floor = (history.roles as Record<string, unknown>)[role];
+            return (
+              !isRecord(floor) ||
+              !Number.isSafeInteger(floor.version) ||
+              (floor.version as number) < 1 ||
+              typeof floor.sha256 !== "string" ||
+              !SHA256.test(floor.sha256)
+            );
+          })
+        )
+          return {
+            failure: requestFailure(
+              "tuf-state-invalid",
+              "Expected root-bound role floors and revocations.",
+            ),
+          };
+        tufRoots[hash] = {
+          revoked: history.revoked,
+          roles: Object.fromEntries(
+            Object.entries(history.roles).map(([role, floor]) => [
+              role,
+              { ...(floor as { version: number; sha256: string }) },
+            ]),
+          ) as import("./contracts.js").ReleaseIndexTufState,
         };
+      }
     }
-    if (
-      item.revokedRootSha256 !== undefined &&
-      (typeof item.revokedRootSha256 !== "string" || !SHA256.test(item.revokedRootSha256))
-    )
-      return { failure: requestFailure("tuf-state-invalid", "Expected a revoked root digest.") };
     states.set(item.sourceId, {
       sourceId: item.sourceId,
       lastVersion: item.lastVersion,
       lastVerifiedAt: item.lastVerifiedAt,
       lastIndexSha256: item.lastIndexSha256,
-      ...(item.tufState === undefined
-        ? {}
-        : {
-            tufState: Object.fromEntries(
-              Object.entries(
-                item.tufState as Record<string, { version: number; sha256: string }>,
-              ).map(([role, floor]) => [role, { ...floor }]),
-            ),
-          }),
-      ...(item.revokedRootSha256 === undefined
-        ? {}
-        : { revokedRootSha256: item.revokedRootSha256 }),
+      ...(item.tufRoots === undefined ? {} : { tufRoots }),
     } as ReleaseIndexSourceState);
   }
   const seen = new Set<string>();
@@ -580,7 +583,10 @@ export function readReleaseIndex(request: ReadReleaseIndexRequest): ReadReleaseI
 
     const proof = source.verification;
     if (source.tufSelected) {
-      if (unchanged.revokedRootSha256 === source.rootSha256) {
+      if (
+        source.rootSha256 !== undefined &&
+        unchanged.tufRoots?.[source.rootSha256]?.revoked === true
+      ) {
         finish([
           withheld(
             "root-revoked",
@@ -613,7 +619,7 @@ export function readReleaseIndex(request: ReadReleaseIndexRequest): ReadReleaseI
         ]);
         continue;
       }
-      const prior = unchanged.tufState;
+      const prior = unchanged.tufRoots?.[proof.rootSha256]?.roles;
       if (
         prior !== undefined &&
         Object.entries(prior).some(([role, floor]) => {
@@ -643,7 +649,13 @@ export function readReleaseIndex(request: ReadReleaseIndexRequest): ReadReleaseI
             ),
           ],
           [],
-          { ...unchanged, tufState: proof.tufState, revokedRootSha256: proof.rootSha256 },
+          {
+            ...unchanged,
+            tufRoots: {
+              ...unchanged.tufRoots,
+              [proof.rootSha256]: { roles: proof.tufState, revoked: true },
+            },
+          },
         );
         continue;
       }
@@ -817,11 +829,19 @@ export function readReleaseIndex(request: ReadReleaseIndexRequest): ReadReleaseI
       ],
       kept,
       Object.freeze({
+        ...unchanged,
         sourceId: source.sourceId,
         lastVersion: doc.version,
         lastVerifiedAt:
           source.tufSelected && proof !== undefined ? proof.verifiedAt : unchanged.lastVerifiedAt,
-        ...(source.tufSelected && proof !== undefined ? { tufState: proof.tufState } : {}),
+        ...(source.tufSelected && proof !== undefined
+          ? {
+              tufRoots: {
+                ...unchanged.tufRoots,
+                [proof.rootSha256]: { roles: proof.tufState, revoked: false },
+              },
+            }
+          : {}),
         lastIndexSha256: digest,
       }),
     );

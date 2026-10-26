@@ -1,13 +1,13 @@
 /** Node cryptographic seam over host-acquired bytes. No acquisition or trust discovery. */
-import { Metadata, MetadataKind } from "@tufjs/models";
+import { Metadata, MetadataKind, type Root } from "@tufjs/models";
 import type {
   ReleaseIndexTrust,
   ReleaseIndexTufState,
   ReleaseIndexVerification,
 } from "./contracts.js";
 import { issueIndexVerification } from "./index-verification.js";
-import { readCanonicalBytes } from "./json.js";
 import { sha256Hex } from "./sha256.js";
+import { readUpstreamObject } from "./upstream-json.js";
 
 export interface VerifyReleaseIndexTufRequest {
   readonly sourceId: string;
@@ -30,8 +30,7 @@ export type VerifyReleaseIndexTufResult =
 /**
  * Verify TUF thresholds, dual-signed consecutive roots, expiry, metadata links
  * and the exact target digest. Does not evaluate Scan, discover authorities,
- * fetch, persist, or accept a verification boolean. Metadata must be bounded
- * canonical JSON plus LF, using the publisher's canonical TUF encoding.
+ * fetch, persist, or accept a verification boolean. Metadata uses bounded strict JSON; TUF canonicalizes the signed payload.
  */
 export function verifyReleaseIndexTuf(
   request: VerifyReleaseIndexTufRequest,
@@ -50,11 +49,8 @@ export function verifyReleaseIndexTuf(
       request.metadata.roots.length > 32
     )
       throw Error();
-    const decode = (bytes: Uint8Array) => {
-      const value = readCanonicalBytes(bytes, { maxBytes: 1024 * 1024, maxDepth: 32 });
-      if (!value || typeof value !== "object" || Array.isArray(value)) throw Error();
-      return value;
-    };
+    const decode = (bytes: Uint8Array) =>
+      readUpstreamObject(bytes) as ReturnType<Metadata<Root>["toJSON"]>;
     let rootBytes = request.trust.tufRoot;
     let root = Metadata.fromJSON(MetadataKind.Root, decode(rootBytes));
     root.verifyDelegate("root", root);
