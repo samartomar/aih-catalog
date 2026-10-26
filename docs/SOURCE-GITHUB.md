@@ -87,6 +87,8 @@ Refusals are precise; callers decide on `reason`:
   Scan capture limit.
 - `snapshot-file-limit`, `snapshot-file-count` — the tree exceeds the published
   per-file or file-count envelope `prepareSourceRefresh` consumes.
+- `snapshot-path-conflict` — two captured paths differ only in case;
+  `prepareSourceRefresh` refuses case-folded duplicates.
 - `snapshot-submodule-refused` — the tree contains a submodule.
 - `snapshot-link-refused` — the tree contains a git link; links are never
   captured, so a linked path cannot escape the snapshot.

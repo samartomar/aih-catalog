@@ -371,6 +371,21 @@ describe("acquireGitSnapshot", () => {
     expect(reasons(result)).toContain("snapshot-file-limit");
   });
 
+  it("refuses case-folded duplicate paths the consumer would reject", async () => {
+    const files = [
+      { path: "docs/README.md", bytes: encode("upper\n") },
+      { path: "docs/readme.md", bytes: encode("lower\n") },
+    ];
+    const result = await acquireGitSnapshot(
+      { repository: REPOSITORY, commit: COMMIT },
+      {
+        transport: fixtureTransport({ commits: new Map([[COMMIT, fixtureAcquiredCommit(files)]]) }),
+      },
+    );
+    expect(result.valid).toBe(false);
+    expect(reasons(result)).toContain("snapshot-path-conflict");
+  });
+
   it("refuses a tree past the file-count consumer envelope", async () => {
     const many = Array.from({ length: GIT_SNAPSHOT_MAX_FILES + 1 }, (_, index) => ({
       path: `f${index}.txt`,

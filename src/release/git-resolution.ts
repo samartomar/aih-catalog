@@ -766,6 +766,7 @@ export async function acquireGitSnapshot(
 
       const files = new Map<string, Uint8Array>();
       const modes = new Map<string, number>();
+      const folded = new Set<string>();
       let entryCount = 0;
       let byteLength = 0;
       const listing: string[] = [];
@@ -787,6 +788,16 @@ export async function acquireGitSnapshot(
             ),
           );
         }
+        if (folded.has(path.toLowerCase())) {
+          return invalid(
+            frozenDiagnostic({
+              reason: "snapshot-path-conflict",
+              message: `The path ${JSON.stringify(path)} differs only in case from another captured path; prepareSourceRefresh refuses case-folded duplicates.`,
+              path: `/entries/${path}`,
+            }),
+          );
+        }
+        folded.add(path.toLowerCase());
         if (entry.path === ".git" || entry.path.startsWith(".git/")) {
           return invalid(
             frozenDiagnostic({

@@ -264,6 +264,16 @@ const fileLimit = await acquireGitSnapshot(
 );
 assert.equal(fileLimit.valid, false);
 assert(reasons(fileLimit).includes("snapshot-file-limit"));
+const caseConflict = fixtureAcquiredCommit([
+  { path: "docs/README.md", bytes: ENCODER.encode("upper\\n") },
+  { path: "docs/readme.md", bytes: ENCODER.encode("lower\\n") },
+]);
+const conflict = await acquireGitSnapshot(
+  { repository: REPOSITORY, commit: COMMIT },
+  { transport: fixtureTransport({ commits: new Map([[COMMIT, caseConflict]]) }) },
+);
+assert.equal(conflict.valid, false);
+assert(reasons(conflict).includes("snapshot-path-conflict"));
 
 // Traversal-shaped content is refused by name: links, submodules and
 // reserved git metadata never enter the snapshot.

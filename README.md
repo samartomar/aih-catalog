@@ -226,9 +226,10 @@ what `prepareSourceRefresh` consumes, so every accepted snapshot is usable by
 it. The snapshot's `revision`, `files` and `modes` pass straight to
 `prepareSourceRefresh`. All transport authority sits behind the public
 `GitRemoteTransport` seam with a contained `git` default, nothing acquired is
-executed, and exceeding a bound, a submodule, a git link or reserved `.git`
-metadata is refused by name. See [GitHub sources](docs/SOURCE-GITHUB.md) for
-the contract and the packed consumer check.
+executed, and exceeding a bound, a case-folded path conflict, a submodule, a
+git link or reserved `.git` metadata is refused by name. See
+[GitHub sources](docs/SOURCE-GITHUB.md) for the contract and the packed
+consumer check.
 
 ## Prepare a content candidate
 
