@@ -34,7 +34,7 @@ const CONTEXT_ID = "aihq.project-context";
 /** The closed placeholder list; any other `{…}` in an item's text fails the build. */
 const PLACEHOLDER = /^\{(projectDir|homeDir|itemDir|pluginRoot)\}$/;
 export function placeholderProblems(text) {
-  return [...text.matchAll(/\{[^{}\s]*\}/g)]
+  return [...text.matchAll(/\{[^{}]*\}/g)]
     .map((match) => match[0])
     .filter((token) => !PLACEHOLDER.test(token));
 }
@@ -56,6 +56,8 @@ export const ITEMS = [
     name: "Rule router",
     description: "The routing guide: what to read first and which rules a task needs.",
     payload: { files: ["rule-router"] },
+    // The router routes to the working rules.
+    requires: ["project-basics.working-rules"],
   },
   {
     id: "project-basics.shared-block",
@@ -67,6 +69,8 @@ export const ITEMS = [
     name: "Shared block",
     description: "The shared essentials, placed as a marked block in each tool's entry files.",
     payload: { applyTo: ["**"], applyToBasis: "publisher", placement: "entry-block" },
+    // The block points to the router first and to the full working rules.
+    requires: ["project-basics.router", "project-basics.working-rules"],
   },
   {
     id: "project-basics.working-rules",
@@ -78,6 +82,7 @@ export const ITEMS = [
     name: "Working rules",
     description: "The full working discipline the router and the shared block point to.",
     payload: { applyTo: ["**"], applyToBasis: "publisher", placement: "project-folder" },
+    requires: [],
   },
 ];
 const materialPath = (relPath) => `release/materials/${FRAMEWORK}/${relPath}`;
@@ -134,11 +139,11 @@ export function buildProjectBasics({ texts } = {}) {
       descriptionBasis: "publisher",
       source: REPOSITORY,
       sourceIds: [SOURCE.id],
-      targets: frozenRecipe.prerequisites,
-      scopes: frozenRecipe.targets,
+      targets: context.targets,
+      scopes: context.scopes,
       inputs: {},
       recipe: { id: spec.id, schema: frozenRecipe.schema, path: recipePath(spec.id), sha256: sha256Hex(recipeBytes), byteLength: recipeBytes.byteLength },
-      dependencies: { requires: [], optional: [], conflicts: [] },
+      dependencies: { requires: spec.requires.map((itemId) => ({ itemId })), optional: [], conflicts: [] },
       payload: spec.payload,
       requirements: { inputs: {} },
       executable: { [spec.relPath]: false },
@@ -212,7 +217,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
         continue;
       }
       if (!Buffer.from(bytes).equals(current)) stale.push(path);
-      // Executable state is read from the committed tree mode, never assumed.
+      // Rendered text is declared non-executable; the committed regular-file mode must agree.
       else if (mode !== undefined && (statSync(target).mode & 0o111) !== 0) stale.push(`${path} (mode)`);
     } else {
       mkdirSync(dirname(target), { recursive: true });

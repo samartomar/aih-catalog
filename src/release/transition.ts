@@ -496,7 +496,7 @@ function buildItem(
     const prior = isRecord(payload) ? payload.placement : undefined;
     if (prior !== undefined && prior !== declaration.placement)
       refuse(
-        "conflicting-copies",
+        "placement-conflict",
         `${at}/placement`,
         "The declared placement differs from the copies'.",
       );

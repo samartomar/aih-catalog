@@ -12,7 +12,7 @@
 // explicit paths check those documents instead and print each row.
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { RELEASE_SCHEMA_ID_1_7, releaseInventory } from "../dist/release/contracts.js";
+import { preparedReleaseContent, RELEASE_SCHEMA_ID_1_7, releaseInventory } from "../dist/release/contracts.js";
 import { compareRestructuring } from "../dist/release/producer.js";
 import { readReleaseContent } from "../dist/release/reader.js";
 import { createHash } from "node:crypto";
@@ -21,15 +21,16 @@ const root = resolve(import.meta.dirname, "..");
 const expectation = JSON.parse(readFileSync(resolve(root, "restructuring/expected-1.7.0.json"), "utf8"));
 const manifest = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
 const explicit = process.argv.slice(2);
-// Prepared content, by package path; each moves to releaseInventory once bound.
-const PREPARED = ["release/release-project-basics.content.json"];
 const targets = explicit.length > 0
   ? explicit.map((path) => resolve(path))
   : [
       ...releaseInventory.releases
         .filter((entry) => entry.schema === RELEASE_SCHEMA_ID_1_7)
         .map((entry) => resolve(root, manifest.exports[entry.release])),
-      ...PREPARED.map((path) => resolve(root, path)),
+      // Prepared content awaiting its baseline; each moves to releaseInventory once bound.
+      ...preparedReleaseContent
+        .filter((entry) => entry.schema === RELEASE_SCHEMA_ID_1_7)
+        .map((entry) => resolve(root, entry.content)),
     ];
 let failed = 0;
 for (const path of targets) {

@@ -14,9 +14,10 @@ it("fails the build on any placeholder outside the closed list", async () => {
   expect(
     placeholderProblems("Run in {projectDir} and {itemDir}, {homeDir}, {pluginRoot}."),
   ).toEqual([]);
-  expect(placeholderProblems("See {repoName} and {project_dir}.")).toEqual([
+  expect(placeholderProblems("See {repoName}, {project_dir} and { projectDir }.")).toEqual([
     "{repoName}",
     "{project_dir}",
+    "{ projectDir }",
   ]);
   expect(() =>
     buildProjectBasics({ texts: { "project-basics.router": "# Router for {repoName}\n" } }),

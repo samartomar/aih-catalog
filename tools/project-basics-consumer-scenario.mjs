@@ -50,9 +50,11 @@ const context = frozen.release.items.find((item) => item.id === "aihq.project-co
 const frozenMember = (id) => context.materials.find((entry) => entry.id === id);
 // Item, kind, payload and the frozen material it captures, from the ticket's acceptance.
 const EXPECTED = [
-  { id: "project-basics.router", kind: "document", purpose: "guide", placement: "project-folder", material: "rule-router" },
-  { id: "project-basics.shared-block", kind: "rule", placement: "entry-block", material: "shared-block" },
-  { id: "project-basics.working-rules", kind: "rule", placement: "project-folder", material: "behavior-core" },
+  { id: "project-basics.router", kind: "document", purpose: "guide", placement: "project-folder", material: "rule-router",
+    requires: ["project-basics.working-rules"] },
+  { id: "project-basics.shared-block", kind: "rule", placement: "entry-block", material: "shared-block",
+    requires: ["project-basics.router", "project-basics.working-rules"] },
+  { id: "project-basics.working-rules", kind: "rule", placement: "project-folder", material: "behavior-core", requires: [] },
 ];
 const item = (id) => release.items.find((entry) => entry.id === id);
 
@@ -73,6 +75,8 @@ await case_("exactly three items: a guide router and two rules with their placem
     assert.equal(got.kind, want.kind, want.id);
     assert.equal(got.payload.placement, want.placement, want.id);
     assert.equal(got.payload.purpose, want.purpose, want.id);
+    // The texts route to each other: same-release requirements, never a cross-release pin.
+    assert.deepEqual(got.dependencies.requires.map((ref) => ref.itemId), want.requires, want.id);
   }
 });
 
@@ -116,7 +120,7 @@ await case_("the release carries no per-project facts, inputs or unknown placeho
     assert.deepEqual(got.inputs, {}, want.id);
     assert.deepEqual(got.requirements, { inputs: {} }, want.id);
     for (const material of got.materials.filter((entry) => entry.role === "content")) {
-      for (const match of member(material.packagePath).toString("utf8").matchAll(/\{[^{}\s]*\}/g))
+      for (const match of member(material.packagePath).toString("utf8").matchAll(/\{[^{}]*\}/g))
         assert.match(match[0], /^\{(projectDir|homeDir|itemDir|pluginRoot)\}$/, want.id);
     }
   }

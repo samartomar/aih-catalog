@@ -32,12 +32,26 @@ recipe split by material: it writes that item's own bytes under the default `ai-
 directory, takes no inputs and carries no tool map. Release 2.0.0 removes recipes from
 Catalog-maintained content.
 
+The items declare what their texts route to: the router requires the working rules,
+and the shared block requires the router and the working rules. These are same-release
+requirements.
+
 The texts name `ai-coding/PROJECT.md`, which stays author-owned and is never written by
-Catalog, and the router names the per-tool note `ai-coding/adapters/<your-tool>.md`,
-which Core's per-tool delivery supplies. The whole-package check admits exactly those
-two references for this source. Any `{…}` placeholder in these texts must be one of
-`{projectDir}`, `{homeDir}`, `{itemDir}` or `{pluginRoot}`; any other fails the build.
-The texts currently contain none.
+Catalog. The router also names the per-tool note `ai-coding/adapters/<your-tool>.md`.
+This release does not deliver that note: the client adapters retire with the pointers,
+and their per-tool delivery is Core's. The line remains because the accepted bytes are
+carried unchanged. The whole-package check admits exactly those two references for
+this source. `<your-tool>` is reader-facing prose, not a tool variable. Any `{…}`
+placeholder in these texts must be one of `{projectDir}`, `{homeDir}`, `{itemDir}` or
+`{pluginRoot}`, and any other brace token, spaced or not, fails the build. The texts
+currently contain none.
+
+**Open decision.** The accepted texts and recipes name the default `ai-coding`
+directory. A project that names another folder needs those references rendered for it;
+that rendering is the installer's (samartomar/aih-core#100). Whether the captured bytes
+should instead carry a folder-neutral form is a maintainer decision. It must be settled
+before a baseline binds these bytes, because changing them changes their content
+identity and any evidence over them.
 
 ## The split of the frozen default
 
@@ -71,7 +85,11 @@ qualify; missing materials or behaviour files cannot. **No assessment is bound y
 The content is therefore listed in `preparedReleaseContent` from
 `@aihq/catalog/contracts`, not in `releaseInventory`: `readReleaseContent` reads it,
 `readRelease` refuses it until its baseline is bound, and it has no release index entry.
-Its release index entry is `current` once the bound release exists. Per-item coverage
+Binding moves the content into an ordinary release: the bound document becomes its own
+release export with a `releaseInventory` entry and a qualification view at
+`release/baselines/project-basics/`, and its release index entry is then `current`.
+Until then, full package assembly carries the prepared content, its inventory and its
+members unchanged. Per-item coverage
 then comes from Scan's public item records over each item's `itemEvidenceDescriptor`;
 releases never embed scan records.
 
