@@ -241,6 +241,46 @@ describe("compileTransitionRelease", () => {
     expect(reasons(collapse(same, [undefined, undefined], true))).toContain("conflicting-copies");
   });
 
+  it("admits each client recipe's own scope when per-client copies deliver to different scopes", () => {
+    const claude = copies([item("notes.review")]);
+    // A user-scope copy of the same content, as a user-home tool's recipe delivers it.
+    const userScope = (() => {
+      const document = stripChecked(copies([kiro("notes.review")]));
+      const bytes = encode(
+        `${canonicalJson({
+          ...document,
+          items: document.items.map((entry) => ({ ...entry, scopes: ["user"] })),
+        })}\n`,
+      );
+      const read = readReleaseContent(bytes, { expectedSha256: sha256Hex(bytes) });
+      if (!read.valid) throw new Error(JSON.stringify(read.diagnostics));
+      return read.release;
+    })();
+    const collapse = (clients: (string | undefined)[]) =>
+      compileTransitionRelease(
+        request(
+          [claude, userScope],
+          [
+            declared("notes.review", [
+              [claude, "notes.review", clients[0]],
+              [userScope, "notes.kiro.review", clients[1]],
+            ]),
+          ],
+          { earlier: [] },
+        ),
+      );
+    const mapped = collapse(["claude-code", "codex"]);
+    expect(reasons(mapped)).toEqual([]);
+    if (mapped.status !== "ok") return;
+    expect(mapped.value.release.items[0]?.scopes).toEqual(["project", "user"]);
+    expect(Object.keys(mapped.value.release.items[0]?.recipes ?? {})).toEqual([
+      "claude-code",
+      "codex",
+    ]);
+    // One shared recipe cannot serve two scopes: the copies conflict.
+    expect(reasons(collapse([undefined, undefined]))).toContain("conflicting-copies");
+  });
+
   it("maps 1.x kinds and refuses kinds that become sets or retire", () => {
     expect(KIND_TRANSITION.instruction.becomes).toEqual(["rule", "document"]);
     expect(KIND_TRANSITION.notice.becomes).toEqual(["document"]);
@@ -304,6 +344,31 @@ describe("compileTransitionRelease", () => {
       ],
     });
     expect(reasons(mapped)).toEqual([]);
+    // Once superseded, the helper is mapped: another survivor sharing its bytes is no rename.
+    const sibling = copies([
+      item("notes.sibling", { label: "sibling", skillPath: "helper/SKILL.md" }),
+    ]);
+    const shared = compileTransitionRelease({
+      ...renamed,
+      releases: { ...renamed.releases, [sibling.sha256]: sibling },
+      items: [
+        review,
+        declared("notes.assist", [[moved, "notes.assist"]], {
+          supersedes: [
+            {
+              match: "hash",
+              releaseSha256: release.sha256,
+              itemId: "notes.helper",
+              itemSha256: old?.itemSha256 as string,
+              contentSha256: old?.contentSha256 as string,
+              behaviourSha256: old?.behaviourSha256 as string,
+            },
+          ],
+        }),
+        declared("notes.sibling", [[sibling, "notes.sibling"]]),
+      ],
+    });
+    expect(reasons(shared)).toEqual([]);
   });
 
   it("keeps retirement records durable across releases", () => {

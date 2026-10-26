@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"angular/patterns.md":false},"kind":"rule","payload":{"applyTo":["**/*.component.ts","**/*.component.html","**/*.service.ts","**/*.store.ts","**/*.routes.ts"],"applyToBasis":"authored: frontmatter paths","namespace":"angular"},"requirements":{"inputs":{}}}

@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"swift/patterns.md":false},"kind":"rule","payload":{"applyTo":["**/*.swift","**/Package.swift"],"applyToBasis":"authored: frontmatter paths","namespace":"swift"},"requirements":{"inputs":{}}}

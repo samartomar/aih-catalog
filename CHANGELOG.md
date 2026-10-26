@@ -2,6 +2,33 @@
 
 ## Unreleased
 
+- Add ECC as prepared release 1.7.0 content for samartomar/aih-catalog#136
+  (`@aihq/catalog/release-ecc.content.json`, with its frozen content inventory): 663
+  tool-neutral items from the shipped ECC release, framework `{ id: "ecc", name: "ECC",
+  version, description }` from the pinned plugin manifest. Each of ECC's 36 install
+  modules is a set carrying its upstream dependencies as `requires`, its targets
+  (narrowing only), its default as `offer` and its stability; each of its 7 profiles is
+  a set whose `includes` lists its modules; each rule directory is a set, the rules
+  module always includes `rules/common`, and every profile with the rules module carries
+  one `languages` option whose choices map to ECC's own module lists. Rules keep their
+  directory as `payload.namespace` and their file name as `name`, so they read
+  "coding-style (typescript)". The 35 Claude and 32 Codex MCP copies collapse into 35
+  `mcp-server` items with typed payloads, a recipe per client and the union of both
+  copies' dependencies, so each keeps the notice dependency the Codex copies had
+  dropped; the Copilot `api-design` copy collapses into `ecc.skill.api-design`. Every
+  earlier ECC item id is a survivor or retired with a reason. The content passes the
+  restructuring comparison; no baseline is bound, so it is listed in
+  `preparedReleaseContent`, not `releaseInventory`. The Kiro-edition items survive
+  namespaced `kiro`; their set, hints and variants are samartomar/aih-catalog#143.
+- `compileTransitionRelease`: copies that each name their client keep their own scopes,
+  so the item admits their union, and an earlier item already superseded by a survivor
+  is not reported as renamed when other survivors share its bytes. Recipe agreement
+  checks a transition map entry against at least one of the item's scopes, and the
+  whole-package check covers every map entry of prepared content, its recipe
+  agreement, and exempts behaviour files from pinned-source path checks.
+- The restructuring expectation gains the `ecc-notices-identity` amendment, and the
+  ECC set fixture `ecc-typescript-choice` a TypeScript and Python case.
+
 - Project basics (samartomar/aih-catalog#137) texts are now folder-neutral: the router
   and working rules link to each other relative to the folder a project chooses, the
   shared block names its neighbours without a path, and no text promises a per-tool

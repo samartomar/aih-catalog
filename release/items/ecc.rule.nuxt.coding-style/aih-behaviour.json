@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"nuxt/coding-style.md":false},"kind":"rule","payload":{"applyTo":["**/nuxt.config.*","**/app.config.*","**/app.vue","**/pages/**","**/layouts/**","**/middleware/**"],"applyToBasis":"authored: frontmatter paths","namespace":"nuxt"},"requirements":{"inputs":{}}}

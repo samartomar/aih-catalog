@@ -44,6 +44,10 @@ with its reason:
 - **folded-hook-sources:** hook sources fold into hook items named by their migration.
 - **superpowers-retirements** and **superpowers-bootstrap-fallback:** the 9 plugin
   bundles and the duplicate library retire; one fallback rule is admitted by kind.
+- **ecc-notices-identity:** the dry run's `ecc.notices` identity reproduces from no
+  assignment of item-relative paths to its four shipped materials, so the expectation
+  predicts it from those unchanged material digests at the paths every other ECC item
+  uses (the install target without its `.aihq/ecc/` and `source/` prefixes).
 - **mcp-edit-digests:** each MCP survivor records `identical` or `edited`; an edit is
   digested as SHA-256 of the canonical JSON `{"from": upstream, "to": shipped}` plus
   LF, both in upstream's own encoding (`mcpEditsSha256` in `@aihq/catalog/producer`).
@@ -62,7 +66,7 @@ pending framework fails its `framework` row.
 
 `npm run check:restructuring` re-derives the expectation and compares every 1.7.0
 release the package lists in `releaseInventory` and every prepared 1.7.0 content
-document still awaiting its baseline (today Project basics); `npm run verify` runs it, so a
+document still awaiting its baseline (today Project basics and ECC); `npm run verify` runs it, so a
 framework's 1.7.0 release cannot be added, and its index entry cannot ship, until it
 passes. `node tools/check-restructuring.mjs <release.json>` prints every row for one
 document.

@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"common/coding-style.md":false},"kind":"rule","payload":{"applyTo":["**"],"applyToBasis":"default: no paths frontmatter, so every file","namespace":"common"},"requirements":{"inputs":{}}}

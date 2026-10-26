@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"angular/testing.md":false},"kind":"rule","payload":{"applyTo":["**/*.spec.ts","**/*.test.ts"],"applyToBasis":"authored: frontmatter paths","namespace":"angular"},"requirements":{"inputs":{}}}

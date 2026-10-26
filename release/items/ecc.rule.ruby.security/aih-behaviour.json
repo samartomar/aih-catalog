@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"ruby/security.md":false},"kind":"rule","payload":{"applyTo":["**/*.rb","**/*.rake","**/Gemfile","**/Gemfile.lock","**/config/routes.rb","**/config/credentials*.yml.enc"],"applyToBasis":"authored: frontmatter paths","namespace":"ruby"},"requirements":{"inputs":{}}}

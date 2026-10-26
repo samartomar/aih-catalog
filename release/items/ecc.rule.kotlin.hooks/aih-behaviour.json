@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"kotlin/hooks.md":false},"kind":"rule","payload":{"applyTo":["**/*.kt","**/*.kts","**/build.gradle.kts"],"applyToBasis":"authored: frontmatter paths","namespace":"kotlin"},"requirements":{"inputs":{}}}

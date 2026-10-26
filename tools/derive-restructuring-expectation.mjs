@@ -35,6 +35,7 @@ const AMENDMENTS = [
   { id: "folded-hook-sources", reason: "Hook source items fold into their hook items. The hook ids are decided with the framework migrations, so these retirements are pending on those tickets." },
   { id: "superpowers-retirements", reason: "The dry run left 10 Superpowers items unmapped. The 9 per-tool plugin bundles and the duplicate skill library are retired with no item successor; upstream plugin routes become nativeRoutes." },
   { id: "superpowers-bootstrap-fallback", reason: "The session bootstrap hook gains a one-line rule as its fallback, an item the dry run did not have; samartomar/aih-catalog#144 names it, so one extra rule is admitted by kind." },
+  { id: "ecc-notices-identity", reason: "The dry run's ecc.notices content identity reproduces from no assignment of item-relative paths to the four shipped notice materials, so it cannot be checked. Their bytes are unchanged: the expectation predicts the identity from those four material digests at the item-relative paths every other ECC item uses, its install target without the .aihq/ecc/ and source/ prefixes (LICENSE, AGENTS.md, plugin.json, README.md)." },
   { id: "mcp-edit-digests", reason: "Each MCP survivor records whether its shipped definition is identical to upstream or edited; an edit is digested as SHA-256 of the canonical JSON {from: upstream, to: shipped} plus LF, in upstream's own encoding." },
 ];
 
@@ -90,6 +91,22 @@ for (const framework of ["anthropic", "ecc", "extensions", "superpowers"]) {
     edits: sorted(edits, (entry) => entry.survivor),
     retired: sorted(retired, (entry) => entry.id),
   };
+}
+// ECC's notice document: the shipped materials at their install targets' item-relative paths.
+{
+  const ecc = JSON.parse(readFileSync(resolve(root, "release/release-ecc.json"), "utf8"));
+  const notices = ecc.items.find((item) => item.id === "ecc.notices");
+  const recipe = JSON.parse(readFileSync(resolve(root, notices.recipe.path), "utf8"));
+  const lines = notices.materials.map((member) => {
+    const target = recipe.operations.find((operation) => operation.kind === "file.write" && operation.material === member.id);
+    const path = target.target.segments.map((segment) => segment.literal).join("/");
+    const relPath = path.replace(/^\.aihq\/ecc\/(?:source\/)?/, "");
+    assert.notEqual(relPath, path, `Unexpected ECC notice target ${path}`);
+    return `${relPath}\t${member.sha256}\n`;
+  }).sort();
+  const expected = frameworks.ecc.items.find((item) => item.id === "ecc.notices");
+  assert(expected, "The dry run carries no ecc.notices");
+  expected.contentSha256 = createHash("sha256").update(lines.join("")).digest("hex");
 }
 // The closing default release: no items, and a durable reason for each of the 46.
 const defaults = projection.before.filter((item) => item.framework === "default");

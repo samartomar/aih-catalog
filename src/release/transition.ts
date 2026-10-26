@@ -264,6 +264,9 @@ export function checkReleaseTransition(request: {
           `${oldItem.id} disappeared without a retirement record and its replacements.`,
         );
       const named = superseding(old, oldItem);
+      // A superseded item is mapped; survivors that merely share its bytes, such as
+      // MCP servers registered in one upstream file, are not a rename of it.
+      if (named.length > 0) continue;
       for (const item of release.items) {
         if (earlierIds.has(item.id) || named.includes(item)) continue;
         const bytes = contentKeys(item).includes(contentKey(oldItem));
@@ -519,11 +522,15 @@ function buildItem(
     `${at}/targets`,
     "targets",
   );
-  const scopes = agreed(
-    copies.map((copy) => copy.item.scopes as unknown as Json),
-    `${at}/scopes`,
-    "scopes",
-  );
+  // Per-client copies keep each recipe's own scope, so the item admits their union;
+  // copies sharing one recipe must agree on it.
+  const scopes = copies.every((copy) => copy.clientId !== undefined)
+    ? ([...new Set(copies.flatMap((copy) => copy.item.scopes))].sort(compare) as Json)
+    : agreed(
+        copies.map((copy) => copy.item.scopes as unknown as Json),
+        `${at}/scopes`,
+        "scopes",
+      );
   const source = agreed(
     copies.map((copy) => copy.item.source),
     `${at}/source`,

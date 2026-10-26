@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"php/patterns.md":false},"kind":"rule","payload":{"applyTo":["**/*.php","**/composer.json"],"applyToBasis":"authored: frontmatter paths","namespace":"php"},"requirements":{"inputs":{}}}

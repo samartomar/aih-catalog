@@ -42,6 +42,10 @@
    "reason": "The session bootstrap hook gains a one-line rule as its fallback, an item the dry run did not have; samartomar/aih-catalog#144 names it, so one extra rule is admitted by kind."
   },
   {
+   "id": "ecc-notices-identity",
+   "reason": "The dry run's ecc.notices content identity reproduces from no assignment of item-relative paths to the four shipped notice materials, so it cannot be checked. Their bytes are unchanged: the expectation predicts the identity from those four material digests at the item-relative paths every other ECC item uses, its install target without the .aihq/ecc/ and source/ prefixes (LICENSE, AGENTS.md, plugin.json, README.md)."
+  },
+  {
    "id": "mcp-edit-digests",
    "reason": "Each MCP survivor records whether its shipped definition is identical to upstream or edited; an edit is digested as SHA-256 of the canonical JSON {from: upstream, to: shipped} plus LF, in upstream's own encoding."
   }
@@ -1556,7 +1560,7 @@
      "id": "ecc.notices",
      "kind": "document",
      "purpose": "notice",
-     "contentSha256": "e897bc98bebd905e1515e6a1b236d7d4b09439e893dcaca1d02e82a53a0d20a4"
+     "contentSha256": "620500100a08339d1d67255c29fb5f80d12d45513948e7d5ac599e2bd4f196af"
     },
     {
      "id": "ecc.rule.README",
