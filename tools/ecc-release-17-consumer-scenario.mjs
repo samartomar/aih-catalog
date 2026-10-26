@@ -31,7 +31,7 @@ const member = (path) => readFileSync(join(root, path));
 const results = [];
 const case_ = async (name, fn) => {
   try {
-    results.push({ name, status: "pass", ...((await fn()) ?? {}) });
+    results.push({ ...((await fn()) ?? {}), name, status: "pass" });
   } catch (error) {
     results.push({ name, status: "fail", error: String(error?.stack ?? error) });
   }

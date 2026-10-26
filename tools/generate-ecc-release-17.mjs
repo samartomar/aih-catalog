@@ -78,6 +78,8 @@ function frontmatter(text) {
 
 /** The steering inclusion modes the release rule payload names. */
 const INCLUSION = Object.freeze(["always", "fileMatch", "manual"]);
+/** Authored Kiro modes the release does not name, kept only in the basis; any other word fails. */
+const UNNAMED_INCLUSION = Object.freeze(["auto"]);
 
 /**
  * A Kiro steering file's file patterns and inclusion. A named inclusion mode is kept
@@ -89,6 +91,7 @@ export function steeringPayload(text) {
   const head = frontmatter(text);
   const inclusion = head?.match(/^inclusion:\s*(\S+)\s*$/m)?.[1];
   assert(inclusion, "Kiro steering without an inclusion frontmatter");
+  assert(INCLUSION.includes(inclusion) || UNNAMED_INCLUSION.includes(inclusion), `Unrecognised Kiro steering inclusion ${inclusion}`);
   const pattern = head.match(/^fileMatchPattern:\s*"([^"]+)"\s*$/m)?.[1];
   assert.equal(pattern !== undefined, inclusion === "fileMatch", `Kiro steering inclusion ${inclusion} and fileMatchPattern disagree`);
   const kept = INCLUSION.includes(inclusion);
@@ -101,9 +104,8 @@ export function steeringPayload(text) {
 }
 
 /** A rule's file patterns: its authored `paths:` list, otherwise every file. */
-function ruleApplyTo(text, kiro) {
+function ruleApplyTo(text) {
   const head = frontmatter(text);
-  if (kiro) return steeringPayload(text);
   if (head === undefined || !/^paths:/m.test(head))
     return { applyTo: ["**"], applyToBasis: "default: no paths frontmatter, so every file" };
   assert(/^paths:\n(  - "[^"]+"\n?)+$/.test(head), "Unrecognised rule frontmatter");
@@ -270,7 +272,7 @@ function projectItem(item, { revision, modes, mcpFacts, files }) {
     // Rules keep their directory as their namespace; the Kiro edition's steering is "kiro".
     const parts = primary.sourcePath.split("/");
     const namespace = kiro ? "kiro" : parts.length > 2 ? parts[1] : undefined;
-    payload = { ...(namespace ? { namespace } : {}), ...ruleApplyTo(text(), kiro) };
+    payload = { ...(namespace ? { namespace } : {}), ...(kiro ? steeringPayload(text()) : ruleApplyTo(text())) };
     name = stem;
     nameBasis = "file-name";
   } else if (item.kind === "mcp") {

@@ -125,6 +125,9 @@ it("keeps a Kiro steering file's named inclusion and leaves an unnamed mode unse
   );
   expect(() => steeringPayload(steering("inclusion: fileMatch"))).toThrow(/disagree/);
   expect(() => steeringPayload("# No frontmatter\n")).toThrow(/without an inclusion/);
+  expect(() => steeringPayload(steering("inclusion: filematch"))).toThrow(
+    /Unrecognised Kiro steering inclusion filematch/,
+  );
 });
 
 it("builds a same-named ECC skill and its Kiro variant, the variant namespaced and naming it", async () => {

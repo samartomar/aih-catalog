@@ -222,7 +222,9 @@ and executable state comes from the pinned tree's file modes.
   is a `rule` that keeps its authored `inclusion` (`fileMatch` or `manual`) and its
   `fileMatchPattern` as `applyTo`, or every file without one. The pinned edition's
   `inclusion: auto` is not a mode the release names, so those eight files leave
-  `inclusion` unset and their `applyToBasis` records the authored word. Hints and
+  `inclusion` unset and their `applyToBasis` records the authored word. Unset here does
+  not mean `always`: read the basis before treating these eight as always included. Any
+  other unnamed word fails the build. Hints and
   `variantOf` are declarations only: they are not in the behaviour file, so neither
   identity changes, and each item keeps its shipped Kiro recipe. The build compiles the
   release a second time without them to check that.

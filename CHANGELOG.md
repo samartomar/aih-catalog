@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- ECC release 1.7.0 content (samartomar/aih-catalog#143): ECC's Kiro edition is one
+  set, `ecc.edition.kiro` "ECC for Kiro", listing its 43 skills and 22 steering files;
+  no other ECC set lists them. Each carries `hints: { tools: ["kiro"] }`, and each Kiro
+  skill names its same-named main-edition skill as `variantOf`. Steering keeps its
+  authored `inclusion` (`fileMatch` or `manual`) and `fileMatchPattern` as `applyTo`;
+  the pinned edition's `inclusion: auto`, which release 1.7.0 does not name, leaves
+  `inclusion` unset with the authored word in `applyToBasis`. That changes the 22
+  steering items' payloads and so their `behaviourSha256`; content identities, ids,
+  recipes and the restructuring comparison are unchanged.
+
 - Add `readInstalledPreparedContent({ root, frameworkId })` to `@aihq/catalog/node`
   (samartomar/aih-catalog#137): it reads one listed prepared release content document
   from an installed package, verifying the package identity, every recipe and material
@@ -38,7 +48,7 @@
   earlier ECC item id is a survivor or retired with a reason. The content passes the
   restructuring comparison; no baseline is bound, so it is listed in
   `preparedReleaseContent`, not `releaseInventory`. The Kiro-edition items survive
-  namespaced `kiro`; their set, hints and variants are samartomar/aih-catalog#143.
+  namespaced `kiro`; their set, hints and variants followed in samartomar/aih-catalog#143.
 - `compileTransitionRelease`: copies that each name their client keep their own scopes,
   so the item admits their union, and an earlier item already superseded is not
   reported as renamed by a survivor that shares its bytes only because it supersedes
