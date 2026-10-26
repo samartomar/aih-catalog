@@ -6,7 +6,9 @@
 //
 //   node tools/check-restructuring.mjs [release.json ...]
 //
-// With no arguments it checks every 1.7.0 release in the package's releaseInventory;
+// With no arguments it checks every 1.7.0 release in the package's releaseInventory
+// and every prepared 1.7.0 content document still awaiting its baseline binding, so
+// a framework's comparison passes before its release and index entry can ship;
 // explicit paths check those documents instead and print each row.
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -19,11 +21,16 @@ const root = resolve(import.meta.dirname, "..");
 const expectation = JSON.parse(readFileSync(resolve(root, "restructuring/expected-1.7.0.json"), "utf8"));
 const manifest = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
 const explicit = process.argv.slice(2);
+// Prepared content, by package path; each moves to releaseInventory once bound.
+const PREPARED = ["release/release-project-basics.content.json"];
 const targets = explicit.length > 0
   ? explicit.map((path) => resolve(path))
-  : releaseInventory.releases
-      .filter((entry) => entry.schema === RELEASE_SCHEMA_ID_1_7)
-      .map((entry) => resolve(root, manifest.exports[entry.release]));
+  : [
+      ...releaseInventory.releases
+        .filter((entry) => entry.schema === RELEASE_SCHEMA_ID_1_7)
+        .map((entry) => resolve(root, manifest.exports[entry.release])),
+      ...PREPARED.map((path) => resolve(root, path)),
+    ];
 let failed = 0;
 for (const path of targets) {
   const bytes = readFileSync(path);

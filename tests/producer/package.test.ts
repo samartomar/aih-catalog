@@ -129,6 +129,7 @@ describe("packed candidate", () => {
           path !== "docs/SUPERPOWERS-INVENTORY.md" &&
           path !== "docs/ECC-CONTENT.md" &&
           path !== "docs/ECC-INVENTORY.md" &&
+          path !== "docs/PROJECT-BASICS.md" &&
           !path.startsWith("producer/templates/framework/") &&
           !path.startsWith("producer/templates/public/"),
       ),

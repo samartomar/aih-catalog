@@ -55,6 +55,11 @@ export interface TransitionItemDeclaration {
   readonly copies: readonly TransitionCopy[];
   /** Required on a document; carried in its payload. */
   readonly purpose?: (typeof DOCUMENT_PURPOSES)[number];
+  /**
+   * Where a rule or document is placed, carried in its payload. Release 1.6
+   * document payloads cannot carry it, so a document survivor gains it here.
+   */
+  readonly placement?: "file" | "entry-block" | "project-folder";
   /** The typed payload when no copy carries one; otherwise it must equal theirs. */
   readonly payload?: Json;
   readonly label?: string;
@@ -484,6 +489,18 @@ function buildItem(
       ...(isRecord(payload) ? payload : { files: content.map((member) => member.id) }),
       purpose: declaration.purpose,
     } as Json;
+  }
+  if (declaration.placement !== undefined) {
+    if (kind !== "rule" && kind !== "document")
+      refuse("placement-kind", `${at}/placement`, "Only a rule or document has a placement.");
+    const prior = isRecord(payload) ? payload.placement : undefined;
+    if (prior !== undefined && prior !== declaration.placement)
+      refuse(
+        "conflicting-copies",
+        `${at}/placement`,
+        "The declared placement differs from the copies'.",
+      );
+    payload = { ...(isRecord(payload) ? payload : {}), placement: declaration.placement } as Json;
   }
   if (payload === undefined)
     refuse("payload-required", `${at}/payload`, "The item needs a typed payload.");

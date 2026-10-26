@@ -85,7 +85,10 @@ projection 1.2.0 describe the same content. Two scenario envelopes are executed 
 the packed checker: `hash-vectors` (release 1.6 and 1.7 documents of one framework
 coexisting with deterministic digests, and declarations that move only `itemSha256`)
 and `split-supersession` (the frozen default's project context spread over three
-survivors).
+survivors). `project-basics-release-1.7.0` (read with `readRelease`) is the shipped
+Project basics content exactly as prepared, plus a test-only evidence binding over its
+shipped content inventory; package support 1.1 lists it under release 1.7.0 beside the
+valid and invalid pair. See [Project basics content](PROJECT-BASICS.md).
 
 Release sets 1.0 fixtures are read with `readReleaseSets` against a content-only
 context release under `fixtures/release-sets/`, itself real content projected to

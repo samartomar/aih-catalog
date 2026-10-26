@@ -1,13 +1,21 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { contractSupport, releaseInventory } from "../../src/release/contracts.js";
+import {
+  contractSupport,
+  preparedReleaseContent,
+  releaseInventory,
+} from "../../src/release/contracts.js";
 import { readInstalledRelease } from "../../src/release/node.js";
 
 const root = resolve(import.meta.dirname, "../..");
 const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
-const releaseExports = Object.keys(pkg.exports).filter((name) =>
-  /^\.\/release[^/]*\.json$/.test(name),
+// Prepared content awaiting its baseline is not a release; it is listed separately.
+const preparedExports = new Set(
+  preparedReleaseContent.map((entry) => entry.export.replace("@aihq/catalog/", "./")),
+);
+const releaseExports = Object.keys(pkg.exports).filter(
+  (name) => /^\.\/release[^/]*\.json$/.test(name) && !preparedExports.has(name),
 );
 
 describe("release inventory", () => {

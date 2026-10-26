@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- Add the Project basics framework for samartomar/aih-catalog#137 as prepared release
+  1.7.0 content (`@aihq/catalog/release-project-basics.content.json`): a router
+  `document` with purpose `guide`, the working rules and the shared block as `rule`s,
+  placed `project-folder`, `project-folder` and `entry-block`. The texts are the
+  accepted project context, byte-identical to the frozen default's materials; the
+  shared block that entry pointer recipes inlined is now a captured material. Each item
+  supersedes the frozen default's `aihq.project-context` by `split`, and the
+  restructuring expectation now names the three items. Its content inventory is frozen
+  and shipped; no baseline assessment is bound yet, so the content is listed in the new
+  `preparedReleaseContent` of `@aihq/catalog/contracts` rather than `releaseInventory`
+  and has no release index entry. `tools/generate-project-basics-release.mjs` owns the
+  output and fails on an unknown placeholder. Package support 1.1 lists its golden
+  fixture. See [Project basics content](docs/PROJECT-BASICS.md).
+- `compileTransitionRelease` declarations accept `placement` for a rule or document,
+  carried in its payload; release 1.6 documents cannot hold it.
+
 - Add release format 1.7.0 for samartomar/aih-catalog#142: one tool-neutral item
   per piece of content. Kinds are closed (`skill | agent | command | rule | hook |
   mcp-server | document`, a document carrying purpose `notice | license |
