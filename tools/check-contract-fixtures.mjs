@@ -8,8 +8,10 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { contractSupport, contractSupport11 } from "@aihq/catalog/contracts";
-import { readRelease, readContentInventory, readReleaseIndex } from "@aihq/catalog/reader";
-import { checkProducerDeclaration } from "@aihq/catalog/producer";
+import {
+  readContentInventory, readRelease, readReleaseContent, readReleaseIndex, readReleaseSets, resolveSelections,
+} from "@aihq/catalog/reader";
+import { checkProducerDeclaration, compileReleaseSets } from "@aihq/catalog/producer";
 import { readInstalledRelease, readRecipe } from "@aihq/catalog/node";
 import manifest from "@aihq/catalog/fixtures/manifest.json" with { type: "json" };
 
@@ -86,8 +88,14 @@ for (const fixture of manifest.fixtures) {
     results.push({ export: fixture.export, contract: fixture.contract, version: fixture.version, ...fixture.expected });
     continue;
   }
+  if (fixture.reader === "release-sets-scenario") {
+    checkSetsScenario(fixture.name, document);
+    results.push({ export: fixture.export, contract: fixture.contract, version: fixture.version, ...fixture.expected });
+    continue;
+  }
   const validate = validators.get(fixture.contract);
-  assert.equal(validate(document), valid, `${fixture.name}: ${JSON.stringify(validate.errors)}`);
+  // A reader-validated invalid case passes its schema and is refused by the reader.
+  assert.equal(validate(document), valid || fixture.validation === "reader", `${fixture.name}: ${JSON.stringify(validate.errors)}`);
   let result;
   switch (fixture.reader) {
     case "release": result = readRelease(bytes, { expectedSha256: sha(bytes) }); break;
@@ -115,6 +123,11 @@ for (const fixture of manifest.fixtures) {
       result = readContentInventory(inventory, { expectedSha256: sha(inventory) }); break;
     }
     case "producer": result = checkProducerDeclaration(document); break;
+    case "release-sets": {
+      result = readReleaseSets(bytes, { expectedSha256: sha(bytes), release: contentRelease(fixture.context) });
+      if (!valid) assert.deepEqual(result.diagnostics.map(d => d.reason).sort(), [...fixture.expected.reasons].sort(), fixture.name);
+      break;
+    }
     case "baseline": {
       const release = encode({ ...json(fixture.context), baseline: document });
       result = readRelease(release, { expectedSha256: sha(release) }); break;
@@ -152,6 +165,59 @@ for (const fixture of manifest.fixtures) {
   assert.equal(accepted, valid, `${fixture.name}: ${JSON.stringify(result.diagnostics)}`);
   if (!valid) assert(result.diagnostics.some(d => d.code === fixture.expected.code), `${fixture.name}: wrong refusal ${JSON.stringify(result)}`);
   results.push({ export: fixture.export, contract: fixture.contract, version: fixture.version, ...fixture.expected });
+}
+/** Reads a content-only context release through the public reader. */
+function contentRelease(specifier) {
+  const bytes = data(specifier);
+  const read = readReleaseContent(bytes, { expectedSha256: sha(bytes) });
+  assert(read.valid, `${specifier}: ${JSON.stringify(read.diagnostics)}`);
+  return read.release;
+}
+/** Executes one release sets scenario through the public build, reader and resolver. */
+function checkSetsScenario(name, envelope) {
+  if (envelope.cases) {
+    const releases = envelope.releases.map(contentRelease);
+    const bytes = encode(envelope.sets.document);
+    const own = releases[envelope.releases.indexOf(envelope.sets.release)];
+    const attached = readReleaseSets(bytes, { expectedSha256: sha(bytes), release: own });
+    assert(attached.valid, `${name}: ${JSON.stringify(attached.diagnostics)}`);
+    const supplied = Object.fromEntries(releases.map(r => r === own ? [r.sha256, attached.release] : [r.sha256, r]));
+    for (const entry of envelope.cases) {
+      const set = attached.release.sets.find(candidate => candidate.id === entry.request.setId);
+      const result = resolveSelections({ releases: supplied, roots: [], skips: [], sets: [{
+        release: { releaseSha256: own.sha256, scope: "project" }, setSha256: set.setSha256, ...entry.request,
+      }] });
+      assert.equal(result.status, entry.expect.status, `${name}/${entry.name}: ${JSON.stringify(result.diagnostics)}`);
+      if (result.status !== "ok") {
+        assert.deepEqual(result.diagnostics.map(d => d.reason), entry.expect.reasons, `${name}/${entry.name}`);
+        continue;
+      }
+      assert.deepEqual(result.value.selections.map(s => s.item.itemId).sort(), entry.expect.selections, `${name}/${entry.name}`);
+      for (const [itemId, origins] of Object.entries(entry.expect.origins))
+        assert.deepEqual(result.value.selections.find(s => s.item.itemId === itemId)?.origins, origins, `${name}/${entry.name}/${itemId}`);
+    }
+    return;
+  }
+  if (envelope.build) {
+    const result = compileReleaseSets({ release: contentRelease(envelope.build.release), sets: envelope.build.sets });
+    assert.equal(result.status, envelope.expect.status, name);
+    assert.deepEqual(result.diagnostics.map(d => d.reason), envelope.expect.reasons, name);
+    return;
+  }
+  const digests = new Map();
+  for (const vector of envelope.vectors) {
+    const result = compileReleaseSets({ release: contentRelease(vector.release), sets: vector.sets });
+    assert.equal(result.status, "ok", `${name}/${vector.name}: ${JSON.stringify(result.diagnostics)}`);
+    const actual = result.value.document.sets.find(set => set.id === vector.setId).setSha256;
+    assert.equal(actual, vector.setSha256, `${name}/${vector.name}`);
+    digests.set(vector.name, actual);
+  }
+  for (const [a, b] of envelope.equal) assert.equal(digests.get(a), digests.get(b), `${name}: ${a} = ${b}`);
+  for (const [a, b] of envelope.distinct) assert.notEqual(digests.get(a), digests.get(b), `${name}: ${a} != ${b}`);
+  const { before, after, itemId } = envelope.behaviourOnly;
+  const [old, changed] = [before, after].map(r => contentRelease(r).items.find(item => item.id === itemId));
+  assert.equal(changed.contentSha256, old.contentSha256, `${name}: content unchanged`);
+  assert.notEqual(changed.behaviourSha256, old.behaviourSha256, `${name}: behaviour changed`);
 }
 // The standalone reader's own refusals, through the packed export.
 const recipeText = text => readRecipe(new TextEncoder().encode(text)).diagnostics.map(d => [d.code, d.reason]);
