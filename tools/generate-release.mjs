@@ -248,20 +248,22 @@ export function generateContextRelease(root) {
   return files;
 }
 
-/** SHA-256 of the frozen default release; kept equal to contracts' FROZEN_DEFAULT_RELEASE_SHA256 by tests. */
-export const FROZEN_DEFAULT_SHA256 = "0ff699f240ac4c667c1891fe0f0a2629c60af67dfb1d9483405d2bbc45d6f124";
+/** Whether `root` holds this package's frozen default: its exact recorded bytes. */
+async function frozenDefaultAt(root) {
+  const { FROZEN_DEFAULT_RELEASE_SHA256 } = await import(new URL("../dist/release/contracts.js", import.meta.url).href);
+  const path = resolve(root, RELEASE_PATH);
+  return existsSync(path) && createHash("sha256").update(readFileSync(path)).digest("hex") === FROZEN_DEFAULT_RELEASE_SHA256;
+}
 
 /** Writes each generated file under `root` through a same-directory temporary and rename. */
-function writeFiles(root, files) {
+async function writeFiles(root, files) {
   // This package's frozen default keeps its original path and bytes; generation never
   // replaces them. Disposable copies elsewhere remain ordinary generator inputs.
-  const frozen = resolve(root, RELEASE_PATH);
   if (
     resolve(root) === resolve(dirname(fileURLToPath(import.meta.url)), "..") &&
-    existsSync(frozen) &&
-    createHash("sha256").update(readFileSync(frozen)).digest("hex") === FROZEN_DEFAULT_SHA256 &&
     files.has(RELEASE_PATH) &&
-    !readFileSync(frozen).equals(files.get(RELEASE_PATH))
+    (await frozenDefaultAt(root)) &&
+    !readFileSync(resolve(root, RELEASE_PATH)).equals(files.get(RELEASE_PATH))
   ) {
     fail(`${RELEASE_PATH} is the frozen default release; it is never regenerated`);
   }
@@ -279,7 +281,10 @@ function writeFiles(root, files) {
 }
 
 /** Authored content remains reproducible independently of the upstream pin. */
-function checkContextContent(root) {
+async function checkContextContent(root) {
+  // The frozen default no longer follows the authored context source: its exact bytes
+  // are checked by the whole-package check, never reproduced from the current source.
+  if (await frozenDefaultAt(root)) return;
   const files = new Map();
   contextFamily((path, bytes) => files.set(path, bytes));
   const release = readJson(root, RELEASE_PATH);
@@ -489,14 +494,14 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     if (nativeOnly) {
       // No selector continuity is involved: the fixture items carry no owned client groups.
       const files = generateNativeRelease(root);
-      writeFiles(root, files);
+      await writeFiles(root, files);
       console.log(`Generated ${NATIVE_FIXTURE_RELEASE_PATH} and ${NATIVE_BUNDLES_RELEASE_PATH}: ${files.size - 2} recipe/material files; other release documents unchanged`);
       process.exit(0);
     }
     if (contextOnly) {
       // The authored context carries no hook selectors, so no continuity baseline is involved.
       const files = generateContextRelease(root);
-      writeFiles(root, files);
+      await writeFiles(root, files);
       console.log(`Generated the authored context in ${RELEASE_PATH}: ${files.size - 1} recipe/material files; upstream items and other release documents unchanged`);
       process.exit(0);
     }
@@ -516,7 +521,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       assertHookSelectorContinuity(committedHookBaseline(root, baseline), files);
     };
     if (check && advancedBeyondSnapshot(root)) {
-      checkContextContent(root);
+      await checkContextContent(root);
       checkHookRelease(root);
       checkNativeRelease(root);
       if (existsSync(resolve(root, "release/release-guide.json"))) {
@@ -553,7 +558,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       if (stale.length > 0) fail(`unexpected release files: ${stale.join(", ")}`);
     } else {
       for (const path of stale) rmSync(resolve(root, path));
-      writeFiles(root, files);
+      await writeFiles(root, files);
     }
     console.log(hooksOnly
       ? `Generated ${HOOK_RELEASE_PATH}: ${files.size - 1} hook recipe/material files; ${RELEASE_PATH} unchanged`

@@ -65,6 +65,15 @@ See [Anthropic content](docs/ANTHROPIC-CONTENT.md) for rights and prerequisites.
 artifact, with each package's own public readers. See
 [package support and golden fixtures](docs/CONTRACT-FIXTURES.md).
 
+Release 1.7 checks: `npm run check:restructuring` (part of `npm run verify`) re-derives
+`restructuring/expected-1.7.0.json` from the promoted dry run and compares every listed
+1.7.0 release with it; a framework's 1.7.0 release and index entry cannot ship until it
+passes ([the restructuring check](docs/RESTRUCTURING.md)).
+`node tools/verify-release-17-consumer.mjs [catalog.tgz] [--older <older-catalog.tgz>]`
+runs the packed release 1.7 consumer through public exports only; with `--older` an
+earlier packed Catalog must refuse the whole 1.7.0 format and still read 1.6.0. Pack the
+older archive from an exact earlier commit and identify it by commit and SHA-256.
+
 `node tools/verify-item-evidence-scan-consumer.mjs <scan.tgz> [catalog.tgz]` installs
 the packed Catalog and an exact packed Scan archive into a disposable consumer and
 maps one compiled release 1.6 item to Scan's item descriptor: `itemEvidenceDescriptor`

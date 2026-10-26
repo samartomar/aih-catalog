@@ -46,6 +46,7 @@ function makeToolRepo(dir: string): void {
     "fixtures",
     "package-support.json",
     "package-support-1.1.json",
+    "restructuring/expected-1.7.0.json",
     "docs/EXTENSIONS-CONTENT.md",
     "docs/EXTENSIONS-INVENTORY.md",
     "docs/ECC-CONTENT.md",

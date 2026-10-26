@@ -117,7 +117,31 @@ const refuse = (reason: string, path: string, message: string): never => {
 };
 const refused = (diagnostics: readonly Diagnostic[]) =>
   deepFreeze({ status: "refused" as const, diagnostics: [...diagnostics] });
-const same = (left: unknown, right: unknown) => canonicalJson(left) === canonicalJson(right);
+const same = (left: unknown, right: unknown) =>
+  left !== undefined && right !== undefined && canonicalJson(left) === canonicalJson(right);
+
+/**
+ * An earlier release's retirement in the release 1.7 shape. Release 1.6 names its
+ * replacements by same-release id, so they are qualified by that release's framework.
+ */
+export function durableRetirement(
+  entry: NonNullable<CatalogRelease["retired"]>[number],
+  frameworkId: string,
+): Retirement17 {
+  const replacedBy = (entry.replacedBy ?? []) as readonly (
+    | string
+    | { readonly framework: string; readonly itemId: string }
+  )[];
+  return {
+    id: entry.id,
+    reason: entry.reason,
+    replacedBy: replacedBy.map((ref) =>
+      typeof ref === "string"
+        ? { framework: frameworkId, itemId: ref }
+        : { framework: ref.framework, itemId: ref.itemId },
+    ),
+  };
+}
 const compare = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
 /**
@@ -188,7 +212,16 @@ export function checkReleaseTransition(request: {
       },
     ]);
   const earlier: CatalogRelease[] = [];
-  for (const [index, digest] of (Array.isArray(request.earlier) ? request.earlier : []).entries()) {
+  if (!Array.isArray(request.earlier))
+    return refused([
+      {
+        code: "INPUT_INVALID",
+        reason: "earlier-required",
+        path: "/earlier",
+        message: "Name the framework's earlier releases; an empty list states there are none.",
+      },
+    ]);
+  for (const [index, digest] of request.earlier.entries()) {
     const found = request.releases?.[digest];
     if (!isCheckedRelease(found) || found.sha256 !== digest)
       fail("release-unavailable", `/earlier/${index}`, "The earlier release was not supplied.");
@@ -208,7 +241,8 @@ export function checkReleaseTransition(request: {
   for (const old of earlier) {
     // A retirement recorded once is carried unchanged by every later release.
     for (const entry of old.retired ?? []) {
-      if (!same(retired.get(entry.id), entry))
+      const carried = durableRetirement(entry, String(old.framework?.id ?? release.framework?.id));
+      if (!same(retired.get(entry.id), carried))
         fail(
           "retired-not-durable",
           `/retired`,
@@ -658,8 +692,21 @@ export function compileTransitionRelease(
   request: TransitionRequest,
 ): AuthoringResult<CompiledTransitionRelease> {
   try {
-    if (!isRecord(request) || !Array.isArray(request.items) || !isRecord(request.releases))
-      refuse("request-invalid", "", "Expected releases, earlier releases and item declarations.");
+    if (
+      !isRecord(request) ||
+      !Array.isArray(request.items) ||
+      !isRecord(request.releases) ||
+      !Array.isArray(request.earlier) ||
+      !isRecord(request.framework) ||
+      typeof request.framework.id !== "string" ||
+      typeof request.framework.version !== "string" ||
+      !isRecord(request.package)
+    )
+      refuse(
+        "request-invalid",
+        "",
+        "Expected releases, earlier releases, framework, package and item declarations.",
+      );
     const framework = request.framework;
     const resolved = request.items.map((declaration, index) => {
       if (!(ITEM_KINDS as readonly string[]).includes(declaration.kind))
@@ -740,14 +787,8 @@ export function compileTransitionRelease(
     const live = new Set(items.map((item) => String(item.id)));
     const retired = new Map<string, Retirement17>();
     for (const old of earlier)
-      for (const entry of old?.retired ?? []) {
-        if (
-          "replacedBy" in entry &&
-          Array.isArray(entry.replacedBy) &&
-          entry.replacedBy.every(isRecord)
-        )
-          retired.set(entry.id, entry as Retirement17);
-      }
+      for (const entry of old?.retired ?? [])
+        retired.set(entry.id, durableRetirement(entry, String(old?.framework?.id ?? framework.id)));
     for (const entry of request.retired ?? []) {
       const prior = retired.get(entry.id);
       if (prior !== undefined && !same(prior, entry))

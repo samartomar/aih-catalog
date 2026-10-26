@@ -333,8 +333,4 @@ it("carries the frozen default's exact digest in the release inventory", async (
   expect(sha256(readFileSync(resolve(root, "release/release.json")))).toBe(
     FROZEN_DEFAULT_RELEASE_SHA256,
   );
-  // The generator's frozen digest literal stays equal to the contract's.
-  expect(readFileSync(resolve(root, "tools/generate-release.mjs"), "utf8")).toContain(
-    `FROZEN_DEFAULT_SHA256 = "${FROZEN_DEFAULT_RELEASE_SHA256}"`,
-  );
 });

@@ -1,5 +1,22 @@
 import { describe, expect, it } from "vitest";
 import type { CatalogRelease } from "../../src/release/contracts.js";
+import { canonicalJson } from "../../src/release/json.js";
+import { readReleaseContent } from "../../src/release/reader.js";
+import { sha256Hex } from "../../src/release/sha256.js";
+
+/** The document fields of a checked view, without the reader's computed ones. */
+const stripChecked = (release: CatalogRelease) => {
+  const {
+    sha256: _sha,
+    byteLength: _length,
+    ...document
+  } = release as CatalogRelease & Record<string, unknown>;
+  return {
+    ...document,
+    items: release.items.map(({ itemSha256: _item, ...item }) => item),
+  };
+};
+
 import { KIND_TRANSITION } from "../../src/release/contracts.js";
 import {
   checkReleaseTransition,
@@ -314,5 +331,58 @@ describe("compileTransitionRelease", () => {
       release: r1,
     });
     expect(check.status).toBe("ok");
+    // A later release built without r1's record is refused when checked against r1, not thrown.
+    const dropped = compileTransitionRelease(
+      request([r1], [declared("notes.review", [[r1, "notes.review"]])], {
+        earlier: [],
+        framework: { ...FRAMEWORK, version: "1.2.0" },
+      }),
+    );
+    expect(dropped.status).toBe("ok");
+    if (dropped.status !== "ok") return;
+    expect(
+      reasons(
+        checkReleaseTransition({
+          releases: { [r1.sha256]: r1, [dropped.value.release.sha256]: dropped.value.release },
+          earlier: [r1.sha256],
+          release: dropped.value.release,
+        }),
+      ),
+    ).toEqual(expect.arrayContaining(["retired-not-durable"]));
+  });
+
+  it("carries a release 1.6 retirement forward, qualified by its framework", () => {
+    const release = copies([item("notes.review")]);
+    const retiredOld = {
+      ...release,
+      retired: [{ id: "notes.gone", reason: "Retired in 1.6.", replacedBy: ["notes.review"] }],
+    };
+    // Re-read through the public reader so the view is checked.
+    const bytes = new TextEncoder().encode(`${canonicalJson(stripChecked(retiredOld))}\n`);
+    const read = readReleaseContent(bytes, { expectedSha256: sha256Hex(bytes) });
+    expect(read.valid).toBe(true);
+    if (!read.valid) return;
+    const built = compileTransitionRelease(
+      request([read.release], [declared("notes.review", [[read.release, "notes.review"]])]),
+    );
+    expect(reasons(built)).toEqual([]);
+    expect(built.status === "ok" && built.value.release.retired).toEqual([
+      {
+        id: "notes.gone",
+        reason: "Retired in 1.6.",
+        replacedBy: [{ framework: "notes", itemId: "notes.review" }],
+      },
+    ]);
+  });
+
+  it("requires the earlier releases, framework and package", () => {
+    const release = copies([item("notes.review")]);
+    const base = request([release], [declared("notes.review", [[release, "notes.review"]])]);
+    for (const missing of ["earlier", "framework", "package"] as const) {
+      const { [missing]: _omitted, ...rest } = base;
+      expect(reasons(compileTransitionRelease(rest as TransitionRequest))).toEqual([
+        "request-invalid",
+      ]);
+    }
   });
 });
