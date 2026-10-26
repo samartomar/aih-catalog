@@ -4,7 +4,8 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createContentInventory } from "@aihq/catalog/reader";
+import * as catalogContracts from "@aihq/catalog/contracts";
+import { createContentInventory, readReleaseContent } from "@aihq/catalog/reader";
 import { readInstalledRelease, acquireBaselineArtifact } from "@aihq/catalog/node";
 let input = ""; for await (const chunk of process.stdin) input += chunk;
 const expected = JSON.parse(input), root = dirname(fileURLToPath(import.meta.resolve("@aihq/catalog/package.json")));
@@ -19,4 +20,13 @@ for (const view of expected.views) {
   assert.equal(createHash("sha256").update(artifact).digest("hex"), view.baseline.artifact.sha256);
 }
 for (const exported of expected.unchangedExports) assert((await readInstalledRelease({ root, release: exported })).valid);
-console.log(JSON.stringify({ releaseExports: expected.views.length + expected.unchangedExports.length, qualifiedViews: expected.views.length, inventoryAndArtifactBytes: "exact", ownInstalledPublicReader: true }));
+// Prepared content awaiting its baseline: carried, read by the content reader, inventory exact.
+const preparedContent = [];
+for (const entry of catalogContracts.preparedReleaseContent ?? []) {
+  const bytes = readFileSync(join(root, entry.content)), sha256 = createHash("sha256").update(bytes).digest("hex");
+  const content = readReleaseContent(bytes, { expectedSha256: sha256 }); assert(content.valid, JSON.stringify(content));
+  const inventory = createContentInventory(bytes, { expectedSha256: sha256 }); assert(inventory.valid);
+  assert.deepEqual(Buffer.from(inventory.bytes), readFileSync(join(root, entry.inventory)));
+  preparedContent.push({ frameworkId: entry.frameworkId, sha256, inventorySha256: inventory.sha256 });
+}
+console.log(JSON.stringify({ releaseExports: expected.views.length + expected.unchangedExports.length, qualifiedViews: expected.views.length, preparedContent, inventoryAndArtifactBytes: "exact", ownInstalledPublicReader: true }));

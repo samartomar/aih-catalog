@@ -234,16 +234,6 @@
       ]
     },
     {
-      "source": "project-basics",
-      "externalPaths": [
-        "ai-coding/PROJECT.md",
-        "ai-coding/adapters/<your-tool>.md"
-      ],
-      "templatePlaceholders": [
-        "<your-tool>"
-      ]
-    },
-    {
       "source": "aihq-native-fixtures",
       "externalPaths": [],
       "templatePlaceholders": [

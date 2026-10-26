@@ -16,6 +16,7 @@ import {
 } from "@aihq/catalog/contracts";
 import { compareRestructuring } from "@aihq/catalog/producer";
 import {
+  configureItem,
   createContentInventory,
   itemEvidenceDescriptor,
   readRelease,
@@ -91,8 +92,11 @@ await case_("pointer and context text are captured content materials with exact 
     assert.equal(bytes.byteLength, material.byteLength, want.id);
     assert.equal(material.executable, false, want.id);
     assert.equal(got.executable[material.relPath], false, want.id);
-    // The accepted text: byte-identical to the frozen default's project context.
-    assert.equal(material.sha256, frozenMember(want.material).sha256, want.id);
+    // The folder-neutral form of the frozen context material it splits: it names no
+    // folder and promises no per-tool adapter note.
+    assert.ok(frozenMember(want.material), want.id);
+    assert.notEqual(material.sha256, frozenMember(want.material).sha256, want.id);
+    assert.doesNotMatch(bytes.toString("utf8"), /ai-coding|adapters\//, want.id);
     assert.equal(
       got.contentSha256,
       sha256(Buffer.from(`${material.relPath}\t${material.sha256}\n`)),
@@ -107,22 +111,39 @@ await case_("pointer and context text are captured content materials with exact 
   }
 });
 
-await case_("the release carries no per-project facts, inputs or unknown placeholders", () => {
+await case_("the release carries no per-project facts or unknown placeholders; the project names its folder", () => {
   for (const want of EXPECTED) {
     const got = item(want.id);
-    // The release 1.x recipe is the frozen context recipe split by material: it
-    // delivers this item's own bytes only, with no inputs and no tool map.
+    // The release 1.x recipe delivers this item's own bytes only, with no tool map,
+    // into the folder the project names (one input, default ai-coding).
     assert.equal(got.recipes, undefined, want.id);
     const recipe = JSON.parse(member(got.recipe.path).toString("utf8"));
     assert.equal(sha256(member(got.recipe.path)), got.recipe.sha256, want.id);
-    assert.deepEqual(recipe.inputs, {}, want.id);
+    assert.deepEqual(Object.keys(recipe.inputs), ["projectFolder"], want.id);
+    assert.equal(recipe.inputs.projectFolder.default, "ai-coding", want.id);
     assert.deepEqual(recipe.operations.map((operation) => operation.material), [want.material], want.id);
-    assert.deepEqual(got.inputs, {}, want.id);
+    for (const step of [...recipe.operations, ...recipe.checks])
+      assert.deepEqual(step.target.segments[0], { input: "projectFolder" }, want.id);
+    assert.deepEqual(got.inputs, recipe.inputs, want.id);
     assert.deepEqual(got.requirements, { inputs: {} }, want.id);
     for (const material of got.materials.filter((entry) => entry.role === "content")) {
       for (const match of member(material.packagePath).toString("utf8").matchAll(/\{[^{}]*\}/g))
         assert.match(match[0], /^\{(projectDir|homeDir|itemDir|pluginRoot)\}$/, want.id);
     }
+  }
+});
+
+await case_("a project-named folder configures each item through the public reader", () => {
+  for (const want of EXPECTED) {
+    const configured = configureItem({
+      release,
+      itemId: want.id,
+      configuration: { projectFolder: "team-ai" },
+      materialSource: { kind: "local", input: "catalog" },
+    });
+    assert.equal(configured.valid, true, JSON.stringify(configured.diagnostics));
+    assert.deepEqual(configured.selection.configuration, { projectFolder: "team-ai" });
+    assert.equal(configured.inputs.projectFolder.origin, "explicit");
   }
 });
 

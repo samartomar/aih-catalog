@@ -2,12 +2,20 @@
 
 ## Unreleased
 
+- Project basics (samartomar/aih-catalog#137) texts are now folder-neutral: the router
+  and working rules link to each other relative to the folder a project chooses, the
+  shared block names its neighbours without a path, and no text promises a per-tool
+  adapter note. The build fails on a text naming `ai-coding` or an `adapters/` path.
+  The release 1.x recipes take that folder as the `projectFolder` input (default
+  `ai-coding`). The three items get new content identities; the frozen default's
+  bytes are unchanged.
+
 - Add the Project basics framework for samartomar/aih-catalog#137 as prepared release
   1.7.0 content (`@aihq/catalog/release-project-basics.content.json`): a router
   `document` with purpose `guide`, the working rules and the shared block as `rule`s,
   placed `project-folder`, `project-folder` and `entry-block`. The texts are the
-  accepted project context, byte-identical to the frozen default's materials; the
-  shared block that entry pointer recipes inlined is now a captured material. Each item
+  project context in folder-neutral form (see below); the shared block that entry
+  pointer recipes inlined is now a captured material. Each item
   supersedes the frozen default's `aihq.project-context` by `split`, and the
   restructuring expectation now names the three items. Its content inventory is frozen
   and shipped; no baseline assessment is bound yet, so the content is listed in the new
