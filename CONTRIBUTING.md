@@ -74,6 +74,15 @@ disposable fixture root only — no live network scanning and no scan against th
 checkout. The Scan archive is built from exact committed Scan source; identify it by
 commit and SHA-256. See [baseline contract checks](docs/SCAN-BASELINE.md#item-evidence-descriptors).
 
+`node tools/verify-source-link-consumer.mjs [catalog.tgz]` installs the packed
+Catalog into a disposable consumer and exercises `parseSourceLink` from
+`@aihq/catalog/source` through the public export only: every accepted form, the
+published 2,048-character limit and its named refusal, exact-versus-mutable
+references, discovery notes and the no-guessed-candidate rule. Throwing guards
+on the process and network surfaces are armed before import, proving the parser
+never fetches, installs, executes or discovers the host. See
+[source links](docs/SOURCE-LINKS.md).
+
 `node tools/verify-codex-config-drift.mjs <core.tgz>` uses the reviewed Core artifact
 in disposable offline fixtures to prove simulated Codex config table drift inside a
 managed block, recovery by moving the table below its END marker, and the matching

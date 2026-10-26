@@ -350,3 +350,10 @@ export function extractSourceFacts(input: {
     diagnostics,
   });
 }
+
+export type {
+  ParseSourceLinkResult,
+  SourceLinkCandidate,
+  SourceLinkDiagnostic,
+} from "./parse-source-link.js";
+export { PARSE_SOURCE_LINK_MAX_CHARACTERS, parseSourceLink } from "./parse-source-link.js";
