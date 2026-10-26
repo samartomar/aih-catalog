@@ -883,23 +883,7 @@ export function compileProducerDeclaration(request: {
           sha256: sha256Hex(documentBytes(declaration)),
         },
         ...(output.record.metadata as Record<string, Json>),
-        ...(sourceFacts
-          ? {
-              // The basis discriminator is producer machinery; stored source facts
-              // keep the original source shape for byte-stable releases.
-              sourceFacts: {
-                ...sourceFacts,
-                name:
-                  sourceFacts.name.state === "authored"
-                    ? (({ basis: _nameBasis, ...rest }) => rest)(sourceFacts.name)
-                    : sourceFacts.name,
-                description:
-                  sourceFacts.description.state === "authored"
-                    ? (({ basis: _descriptionBasis, ...rest }) => rest)(sourceFacts.description)
-                    : sourceFacts.description,
-              } as unknown as Json,
-            }
-          : {}),
+        ...(sourceFacts ? { sourceFacts: sourceFacts as unknown as Json } : {}),
         discovery: {
           label: output.record.label,
           description: output.record.description,

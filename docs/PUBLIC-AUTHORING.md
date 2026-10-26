@@ -569,6 +569,25 @@ missing description remains empty with an explicit field state. Profile errors r
 visible on the affected item and do not claim conformance or freeze the entire family.
 An item without this optional field retains its existing authored overlay behavior.
 
+New compilations retain the complete `extractSourceFacts` result in
+`metadata.sourceFacts`, including `basis` on each authored field (`authored` or
+`first-heading` for the Markdown heading fallback). Absent and invalid fields
+retain their requiredness and locator without invented values or basis. The
+`SourceFacts` and `SourceField` types describe the interpreter result; release
+`metadata` remains descriptive JSON, not a typed `SourceFacts` admission boundary.
+Historical releases whose metadata omitted basis remain readable exactly as
+recorded: `readRelease` does not infer or backfill it. This repairs compilation
+within the existing metadata extension point, without changing a closed schema.
+
+Regenerating a framework manifest with the repaired compiler changes its release
+digest and affected `itemSha256` values, including dependent pins; it does not
+change captured material bytes. Consumers must use the new exact artifact and
+identities rather than treating an older archive as equivalent. The frozen
+default release is unchanged. `node tools/verify-source-fact-basis-consumer.mjs`
+checks extraction, emitted bytes, material identity and checked reading through
+a packed public package, including historical metadata and malformed input.
+
+
 Agent Skills conformance requires name/description and the standard's field rules;
 Claude's native skill/command profile permits absent prose. These are distinct claims.
 The ECC declarations use Claude native skills, agents and commands, ordinary Markdown,
