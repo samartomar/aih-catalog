@@ -135,6 +135,7 @@ describe("the published package keeps its intended runtime subset", () => {
       "workflows/nuclei/THIRD-PARTY-NOTICES.md",
       "schemas/producer-declaration",
       "docs/PUBLIC-AUTHORING.md",
+      "docs/NPM-SNAPSHOTS.md",
       "producer/templates/public",
       "producer/extensions",
       "docs/EXTENSIONS-CONTENT.md",

@@ -138,3 +138,8 @@ the merge requires no new public package bytes. See [VERSIONING.md](VERSIONING.m
 [RELEASING.md](RELEASING.md).
 
 Sign off commits under the Developer Certificate of Origin with `git commit -s`.
+
+`node tools/verify-npm-snapshot-consumer.mjs [catalog.tgz]` checks exact ordinary
+npm acquisition and supplied-snapshot preparation through installed public exports,
+with offline fixture transport and execution guards. The active tests include it.
+See [npm snapshots](docs/NPM-SNAPSHOTS.md) for bounds and named refusals.
