@@ -539,7 +539,8 @@ for (const [version, id, context] of [
   const SD = "urn:aihq:catalog:source-description:1.0.0";
   const COMMIT = "a1b2c3d4e5f60718293a4b5c6d7e8f9012345678";
   const SHA = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
-  const INTEGRITY = "sha512-dGVzdA==";
+  // base64 of 64 zero bytes: one complete sha512 digest.
+  const INTEGRITY = `sha512-${"A".repeat(86)}==`;
   const base = {
     schema: SD,
     id: "org-example",
@@ -578,6 +579,7 @@ for (const [version, id, context] of [
       },
       { name: "git-http", document: description("src-http", "Plain http source", { kind: "git", repository: "http://github.com/example/mcp" }), expect: refuse("INPUT_INVALID", "repository-not-https") },
       { name: "git-ssh", document: description("src-ssh", "Ssh source", { kind: "git", repository: "git@github.com:example/mcp.git" }), expect: refuse("INPUT_INVALID", "repository-not-https") },
+      { name: "git-malformed-port", document: description("src-port", "Malformed port source", { kind: "git", repository: "https://example.com:99999/repo" }), expect: refuse("INPUT_INVALID", "repository-not-https") },
       { name: "locator-kind-unknown", document: description("src-hg", "Mercurial source", { kind: "hg", repository: "https://example.com/src" }), expect: refuse("INPUT_INVALID", "invalid-locator-kind") },
       { name: "unknown-field", document: { ...description("src-extra", "Source with policy", { kind: "local", label: "folder" }), policy: "pre-ticked" }, expect: refuse("INPUT_INVALID", "unknown-field") },
       {
@@ -599,7 +601,9 @@ for (const [version, id, context] of [
       { name: "npm-tag", identity: { kind: "npm", package: "tool", version: "latest", integrity: INTEGRITY }, expect: refuse("INPUT_INVALID", "version-not-exact") },
       { name: "npm-missing-integrity", identity: { kind: "npm", package: "tool", version: "1.2.3" }, expect: refuse("INPUT_INVALID", "missing-field") },
       { name: "npm-weak-integrity", identity: { kind: "npm", package: "tool", version: "1.2.3", integrity: "md5-dGVzdA==" }, expect: refuse("INPUT_INVALID", "invalid-integrity") },
+      { name: "npm-short-integrity", identity: { kind: "npm", package: "tool", version: "1.2.3", integrity: "sha512-a" }, expect: refuse("INPUT_INVALID", "invalid-integrity") },
       { name: "git-not-https", identity: { kind: "git", repository: "git@github.com:example/mcp.git", commit: COMMIT, reachable: true }, expect: refuse("INPUT_INVALID", "repository-not-https") },
+      { name: "git-malformed-port", identity: { kind: "git", repository: "https://example.com:99999/repo", commit: COMMIT, reachable: true }, expect: refuse("INPUT_INVALID", "repository-not-https") },
       { name: "kind-unknown", identity: { kind: "archive", sha256: SHA }, expect: refuse("INPUT_INVALID", "invalid-kind") },
       { name: "unknown-field", identity: { kind: "local", captureSha256: SHA, policy: "members-only" }, expect: refuse("INPUT_INVALID", "unknown-field") },
       { name: "local-bad-sha", identity: { kind: "local", captureSha256: "nope" }, expect: refuse("INPUT_INVALID", "invalid-sha256") },

@@ -95,7 +95,8 @@ assert.equal(SOURCE_DESCRIPTION_MAX_DEPTH, 8);
 
 const COMMIT = "a1b2c3d4e5f60718293a4b5c6d7e8f9012345678";
 const SHA = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
-const INTEGRITY = "sha512-dGVzdA==";
+// base64 of 64 zero bytes: one complete sha512 digest.
+const INTEGRITY = "sha512-" + "A".repeat(86) + "==";
 const canonical = (value) => value === null || typeof value !== "object" ? JSON.stringify(value)
   : Array.isArray(value) ? \`[\${value.map(canonical).join(",")}]\`
   : \`{\${Object.keys(value).sort().map((key) => \`\${JSON.stringify(key)}:\${canonical(value[key])}\`).join(",")}}\`;
@@ -143,7 +144,7 @@ const refused = (document) => {
   assert.equal(result.valid, false, JSON.stringify(result));
   return result.diagnostics;
 };
-for (const repository of ["http://github.com/example/mcp", "ssh://git@github.com/example/mcp", "git@github.com:example/mcp.git", "git://github.com/example/mcp"]) {
+for (const repository of ["http://github.com/example/mcp", "ssh://git@github.com/example/mcp", "git@github.com:example/mcp.git", "git://github.com/example/mcp", "https://example.com:bad/repo", "https://example.com:99999/repo"]) {
   assert(refused(description("src", "s", { kind: "git", repository })).some((d) => d.reason === "repository-not-https"), repository);
 }
 const unknownKind = refused(description("src", "s", { kind: "hg", repository: "https://example.com/x" }));
@@ -182,7 +183,9 @@ assert(identityRefused({ kind: "npm", package: "tool", version: "^1.2.3", integr
 assert(identityRefused({ kind: "npm", package: "tool", version: "latest", integrity: INTEGRITY }).some((d) => d.reason === "version-not-exact"));
 assert(identityRefused({ kind: "npm", package: "tool", version: "1.2.3" }).some((d) => d.reason === "missing-field"));
 assert(identityRefused({ kind: "npm", package: "tool", version: "1.2.3", integrity: "md5-dGVzdA==" }).some((d) => d.reason === "invalid-integrity"));
+assert(identityRefused({ kind: "npm", package: "tool", version: "1.2.3", integrity: "sha512-a" }).some((d) => d.reason === "invalid-integrity"));
 assert(identityRefused({ kind: "git", repository: "git@github.com:example/mcp.git", commit: COMMIT, reachable: true }).some((d) => d.reason === "repository-not-https"));
+assert(identityRefused({ kind: "git", repository: "https://example.com:99999/repo", commit: COMMIT, reachable: true }).some((d) => d.reason === "repository-not-https"));
 assert(identityRefused({ kind: "archive", sha256: SHA }).some((d) => d.reason === "invalid-kind"));
 assert(identityRefused({ kind: "local", captureSha256: SHA, policy: "members-only" }).some((d) => d.reason === "unknown-field"));
 assert(identityRefused({ kind: "local", captureSha256: "nope" }).some((d) => d.reason === "invalid-sha256"));

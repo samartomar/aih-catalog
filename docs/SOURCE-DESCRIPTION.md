@@ -47,8 +47,11 @@ text:
   admits.
 - Unknown fields, including a would-be policy on an organization list, are
   `INPUT_INVALID` with reason `unknown-field` and the field's path.
-- A git repository that is not an https URL (http, ssh, `git@...`, `git://`)
-  is `INPUT_INVALID` with reason `repository-not-https`.
+- A repository that is not one valid https URL — http, ssh, `git@...`,
+  `git://`, or a malformed https URL such as a bad or out-of-range port — is
+  `INPUT_INVALID` with reason `repository-not-https`. The reader checks the URL
+  with the platform parser; the schema pattern documents intent and the reader
+  stays authoritative.
 - Unknown locator kinds are `INPUT_INVALID` with reason
   `invalid-locator-kind`, naming the encountered kind and the supported
   `git`, `npm`, `local`.
@@ -67,17 +70,19 @@ only by resolution and acquisition (samartomar/aih-catalog#122 and #123):
   commit and its reachability: `true`, `false` or `"unchecked"`. An unchecked
   identity cannot back saved intent or an install until it is checked.
 - `{ kind: "npm", package, version, integrity }` — one exact version with
-  subresource integrity (sha1, sha256 or sha512) over the exact package bytes.
+  subresource integrity (sha1, sha256 or sha512) over the exact package bytes:
+  the base64 digest must decode to the algorithm's full digest length.
 - `{ kind: "local", captureSha256 }` — the SHA-256 of the captured local bytes.
 
 `checkExactSourceIdentity(identity)` validates one without effects. Mutable
 references are refused precisely: a branch or tag commit is
-`invalid-commit`, an npm range or tag is `version-not-exact`, a non-https
-repository is `repository-not-https`, and unknown kinds, unknown fields,
-missing fields and malformed digests are each named. Parsing or reading a
-description never produces an exact identity — a parsed description carries a
-locator, not exact fields — and saved intent and installs use exact
-identities only.
+`invalid-commit`, an npm range or tag is `version-not-exact`, and a repository
+that is not one valid https URL — another scheme, or a malformed URL such as a
+bad or out-of-range port — is `repository-not-https`. Unknown kinds, unknown
+fields, missing fields, malformed digests and incomplete integrity digests are
+each named. Parsing or reading a description never produces an exact identity
+— a parsed description carries a locator, not exact fields — and saved intent
+and installs use exact identities only.
 
 ## Fixtures and package support
 
@@ -87,8 +92,9 @@ each locator and exact identity kind: the base pair
 `fixtures/source-description/locator-kinds.json` and
 `fixtures/source-description/exact-identity-kinds.json`, replayed through the
 public readers by `tools/check-contract-fixtures.mjs`. Package support lists
-the contract with its schema export and fixtures in both the 1.0 declaration
-and `contractSupport11`. The packed consumer check
+the contract with its schema export in the 1.0 declaration; the fixture-aware
+1.1 declaration (`contractSupport11`) adds its version and the valid and
+invalid fixture references. The packed consumer check
 (`node tools/verify-source-description-consumer.mjs`) installs the exact
 tarball into a disposable consumer and arms throwing guards on the process and
 network surfaces before import, proving the readers never fetch, install,

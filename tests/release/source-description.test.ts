@@ -22,7 +22,8 @@ const encode = (document: unknown): Uint8Array =>
   new TextEncoder().encode(`${canonical(document)}\n`);
 const COMMIT = "a1b2c3d4e5f60718293a4b5c6d7e8f9012345678";
 const SHA = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
-const INTEGRITY = "sha512-dGVzdA==";
+/** base64 of 64 zero bytes: one complete sha512 digest. */
+const INTEGRITY = `sha512-${"A".repeat(86)}==`;
 
 const description = (locator: unknown, extra: Record<string, unknown> = {}) => ({
   schema: SOURCE_DESCRIPTION_SCHEMA_ID,
@@ -118,6 +119,8 @@ it("refuses a git repository that is not an https URL", () => {
     "ssh://git@github.com/example/mcp",
     "git@github.com:example/mcp.git",
     "git://github.com/example/mcp",
+    "https://example.com:bad/repo",
+    "https://example.com:99999/repo",
   ]) {
     const result = refuse(encode(description({ kind: "git", repository })));
     expect(result.diagnostics.map((d) => d.reason)).toContain("repository-not-https");
@@ -264,6 +267,16 @@ it("refuses mutable references and malformed exact identities precisely", () => 
   if (!badIntegrity.valid)
     expect(badIntegrity.diagnostics.map((d) => d.reason)).toContain("invalid-integrity");
 
+  const shortIntegrity = checkExactSourceIdentity({
+    kind: "npm",
+    package: "tool",
+    version: "1.2.3",
+    integrity: "sha512-a",
+  });
+  expect(shortIntegrity.valid).toBe(false);
+  if (!shortIntegrity.valid)
+    expect(shortIntegrity.diagnostics.map((d) => d.reason)).toContain("invalid-integrity");
+
   const notHttps = checkExactSourceIdentity({
     kind: "git",
     repository: "git@github.com:example/mcp.git",
@@ -273,6 +286,16 @@ it("refuses mutable references and malformed exact identities precisely", () => 
   expect(notHttps.valid).toBe(false);
   if (!notHttps.valid)
     expect(notHttps.diagnostics.map((d) => d.reason)).toContain("repository-not-https");
+
+  const malformedHttps = checkExactSourceIdentity({
+    kind: "git",
+    repository: "https://example.com:99999/repo",
+    commit: COMMIT,
+    reachable: true,
+  });
+  expect(malformedHttps.valid).toBe(false);
+  if (!malformedHttps.valid)
+    expect(malformedHttps.diagnostics.map((d) => d.reason)).toContain("repository-not-https");
 
   const unknown = checkExactSourceIdentity({ kind: "archive", sha256: SHA });
   expect(unknown.valid).toBe(false);

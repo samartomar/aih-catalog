@@ -23,7 +23,7 @@ import {
   type SourceDescription,
   type SourceLocator,
 } from "./contracts.js";
-import { Diagnostics, fields, httpsUrl, isId, isRecord, PACKAGE_NAME, SHA256 } from "./document.js";
+import { Diagnostics, fields, isId, isRecord, PACKAGE_NAME, SHA256 } from "./document.js";
 import { deepFreeze, JsonAdmissionError, readCanonicalBytes } from "./json.js";
 import { EXACT_VERSION } from "./version.js";
 
@@ -37,9 +37,50 @@ const EXACT_COMMIT = /^[a-f0-9]{40}$/;
 const GIT_REF = /^[^\s]{1,256}$/;
 /** An npm version spec in discovery data: bounded text without whitespace. */
 const VERSION_SPEC = /^[^\s]{1,128}$/;
-/** npm subresource integrity: sha1, sha256 or sha512 over the exact tarball bytes. */
+/** npm subresource integrity spelling: an admitted algorithm and base64 text. */
 const INTEGRITY = /^(?:sha1|sha256|sha512)-[A-Za-z0-9+/]+={0,2}$/;
+/** The digest bytes each admitted integrity algorithm names. */
+const INTEGRITY_DIGEST_BYTES: Readonly<Record<string, number>> = Object.freeze({
+  sha1: 20,
+  sha256: 32,
+  sha512: 64,
+});
 const LOCATOR_KINDS = Object.freeze(["git", "npm", "local"] as const);
+
+/**
+ * One valid https repository URL, checked with the platform URL parser: an https
+ * protocol, a host, no credentials and no fragment. A malformed URL — a bad or
+ * out-of-range port, no host — is refused, not merely a non-https scheme.
+ */
+function httpsRepository(value: unknown): value is string {
+  if (typeof value !== "string" || value.length > 2048) return false;
+  try {
+    const url = new URL(value);
+    return (
+      url.protocol === "https:" &&
+      url.hostname !== "" &&
+      url.username === "" &&
+      url.password === "" &&
+      url.hash === ""
+    );
+  } catch {
+    return false;
+  }
+}
+
+/** npm subresource integrity whose base64 decodes to the algorithm's digest bytes. */
+function npmIntegrity(value: unknown): value is string {
+  if (typeof value !== "string" || value.length > 256 || !INTEGRITY.test(value)) return false;
+  const separator = value.indexOf("-");
+  const expected = INTEGRITY_DIGEST_BYTES[value.slice(0, separator)] as number;
+  const body = value.slice(separator + 1);
+  try {
+    const padded = body + "=".repeat((4 - (body.length % 4)) % 4);
+    return atob(padded).length === expected;
+  } catch {
+    return false;
+  }
+}
 
 const invalidDescription = (
   diagnostics: readonly CatalogDiagnostic[],
@@ -72,11 +113,11 @@ function checkLocator(d: Diagnostics, value: unknown): void {
   }
   if (kind === "git") {
     if (!fields(d, value, "/locator", ["kind", "repository"], ["ref"])) return;
-    if (!httpsUrl(value.repository)) {
+    if (!httpsRepository(value.repository)) {
       d.add(
         "repository-not-https",
         "/locator/repository",
-        "A git repository locator is an https URL; ssh, git and other schemes are refused.",
+        "A git repository locator is one valid https URL; other schemes and malformed URLs are refused.",
       );
     }
     if (value.ref !== undefined && (typeof value.ref !== "string" || !GIT_REF.test(value.ref))) {
@@ -218,11 +259,11 @@ export function checkExactSourceIdentity(identity: unknown): CheckExactSourceIde
     if (!fields(d, identity, "", ["kind", "repository", "commit", "reachable"])) {
       return invalidIdentity(d.list as unknown as readonly CatalogDiagnostic[]);
     }
-    if (!httpsUrl(identity.repository)) {
+    if (!httpsRepository(identity.repository)) {
       d.add(
         "repository-not-https",
         "/repository",
-        "A git repository is an https URL; ssh, git and other schemes are refused.",
+        "A git repository is one valid https URL; other schemes and malformed URLs are refused.",
       );
     }
     if (typeof identity.commit !== "string" || !EXACT_COMMIT.test(identity.commit)) {
@@ -259,15 +300,11 @@ export function checkExactSourceIdentity(identity: unknown): CheckExactSourceIde
         "Expected one exact npm version; ranges, tags and other mutable specs are refused.",
       );
     }
-    if (
-      typeof identity.integrity !== "string" ||
-      identity.integrity.length > 256 ||
-      !INTEGRITY.test(identity.integrity)
-    ) {
+    if (!npmIntegrity(identity.integrity)) {
       d.add(
         "invalid-integrity",
         "/integrity",
-        "Expected subresource integrity over the exact package bytes, such as sha512-... .",
+        "Expected subresource integrity over the exact package bytes: sha1, sha256 or sha512 and the base64 digest of its full byte length.",
       );
     }
     checked = {
