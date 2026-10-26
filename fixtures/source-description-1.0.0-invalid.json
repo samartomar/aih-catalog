@@ -1,0 +1,1 @@
+{"fixtureUnknownField":true,"id":"org-example","label":"Example organization MCP servers","locator":{"kind":"git","ref":"main","repository":"https://github.com/example/mcp-servers"},"publisher":"example-org","schema":"urn:aihq:catalog:source-description:1.0.0"}

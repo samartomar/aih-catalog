@@ -83,6 +83,15 @@ on the process and network surfaces are armed before import, proving the parser
 never fetches, installs, executes or discovers the host. See
 [source links](docs/SOURCE-LINKS.md).
 
+`node tools/verify-source-description-consumer.mjs [catalog.tgz]` installs the
+packed Catalog into a disposable consumer and exercises `readSourceDescription`
+and `checkExactSourceIdentity` from `@aihq/catalog/source` through the public
+export only: every locator and exact identity kind, the discovery-versus-exact
+split, named refusals for non-https git repositories, unknown fields, unknown
+format versions and mutable references. Throwing guards on the process and
+network surfaces are armed before import. See
+[source descriptions](docs/SOURCE-DESCRIPTION.md).
+
 `node tools/verify-codex-config-drift.mjs <core.tgz>` uses the reviewed Core artifact
 in disposable offline fixtures to prove simulated Codex config table drift inside a
 managed block, recovery by moving the table below its END marker, and the matching

@@ -138,7 +138,12 @@
     "./fixtures/release-sets/ecc-release-1.6.0.json": "./fixtures/release-sets/ecc-release-1.6.0.json",
     "./fixtures/release-sets/ecc-typescript-choice.json": "./fixtures/release-sets/ecc-typescript-choice.json",
     "./fixtures/release-sets/set-cycle.json": "./fixtures/release-sets/set-cycle.json",
-    "./fixtures/release-sets/digest-vectors.json": "./fixtures/release-sets/digest-vectors.json"
+    "./fixtures/release-sets/digest-vectors.json": "./fixtures/release-sets/digest-vectors.json",
+    "./schemas/source-description/1.0.0.json": "./schemas/source-description/1.0.0.json",
+    "./fixtures/source-description-1.0.0-valid.json": "./fixtures/source-description-1.0.0-valid.json",
+    "./fixtures/source-description-1.0.0-invalid.json": "./fixtures/source-description-1.0.0-invalid.json",
+    "./fixtures/source-description/locator-kinds.json": "./fixtures/source-description/locator-kinds.json",
+    "./fixtures/source-description/exact-identity-kinds.json": "./fixtures/source-description/exact-identity-kinds.json"
   },
   "engines": {
     "node": ">=24.15.0 <25"
@@ -234,6 +239,7 @@
     "schemas/scan-baseline",
     "schemas/release-index",
     "schemas/release-sets",
+    "schemas/source-description",
     "docs/SCAN-BASELINE.md",
     "tools/refresh-source.mjs",
     "dist/producer/base.js",

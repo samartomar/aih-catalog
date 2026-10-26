@@ -21,7 +21,8 @@ Support 1.0 identifies each version by its complete contract URN. Its closed
 schema permits only `id`, `role` and `schemaExport` in each contract entry;
 it does **not** permit a `versions` array or fixture references. Each supported
 release 1.0–1.6, producer declaration 3.0/3.1/3.2, content inventory 1.0/1.1,
-release-content projection 1.0/1.1, baseline 1.0, release index 1.0.0, release sets 1.0.0 and admitted
+release-content projection 1.0/1.1, baseline 1.0, release index 1.0.0, release sets 1.0.0,
+source description 1.0.0 and admitted
 Core recipe version has a separate entry and an exact schema export. `both`
 describes formats Catalog reads and produces; producer declarations are
 `accepts`. Core owns the recipe and support schemas; Catalog exposes the schema
@@ -92,7 +93,11 @@ scenario fixtures under `fixtures/release-index/`: each envelope carries the sou
 requests (committed index documents), per-source state and the authored expected
 outcome, and the packed checker executes every scenario through the public
 `readReleaseIndex` (merge, conflict, rollback, scope, expiry, offline reuse and a
-caller-selected TUF source reported offline). The support 1.0 schema is copied from
+caller-selected TUF source reported offline). The source description additionally
+ships golden scenario fixtures under `fixtures/source-description/`: every locator
+kind and every exact identity kind, with refusals for non-https git repositories,
+unknown kinds, unknown fields and mutable references, replayed through the public
+`readSourceDescription` and `checkExactSourceIdentity`. The support 1.0 schema is copied from
 Core's public
 [`src/harness/schemas/package-support/1.0.0.json`](https://github.com/samartomar/aih-core/blob/47b75d0889f00f6f158e91f2860ca5e32d354ec7/src/harness/schemas/package-support/1.0.0.json).
 The 1.1 schema is copied from Core's

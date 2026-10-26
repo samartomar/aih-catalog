@@ -152,6 +152,7 @@ describe("the published package keeps its intended runtime subset", () => {
       "schemas/scan-baseline",
       "schemas/release-index",
       "schemas/release-sets",
+      "schemas/source-description",
       "docs/SCAN-BASELINE.md",
       "tools/refresh-source.mjs",
       "dist/producer/base.js",
@@ -281,6 +282,11 @@ describe("the published package keeps its intended runtime subset", () => {
       "./fixtures/release-sets/ecc-typescript-choice.json",
       "./fixtures/release-sets/set-cycle.json",
       "./fixtures/release-sets/digest-vectors.json",
+      "./schemas/source-description/1.0.0.json",
+      "./fixtures/source-description-1.0.0-valid.json",
+      "./fixtures/source-description-1.0.0-invalid.json",
+      "./fixtures/source-description/locator-kinds.json",
+      "./fixtures/source-description/exact-identity-kinds.json",
     ]);
     expect(manifest.private).toBe(true);
     expect(manifest.scripts.prepublishOnly).toBe("node tools/refuse-publication.mjs");

@@ -76,7 +76,7 @@ platform evidence and real-tool execution limits are recorded in [delivery evide
 | `@aihq/catalog/contracts` | Public types, format identity, support declaration and the `releaseInventory` of every exported release | Portable |
 | `@aihq/catalog/reader` | Read, browse, configure, resolve relationships and validate selections | Portable |
 | `@aihq/catalog/producer` | Check v3 declarations and compile explicitly supplied source bytes | Node 24.15–24.x |
-| `@aihq/catalog/source` | Portable source facts (`extractSourceFacts`) and side-effect-free source-link parsing (`parseSourceLink`) | Portable |
+| `@aihq/catalog/source` | Portable source facts (`extractSourceFacts`), side-effect-free source-link parsing (`parseSourceLink`), and source description reading with exact identity checking (`readSourceDescription`, `checkExactSourceIdentity`) | Portable |
 | `@aihq/catalog/schemas/producer-declaration/3.0.0.json` | Public producer declaration schema | Data |
 | `@aihq/catalog/node` | Read an installed root, resolve an exact archive/registry version, or prepare the project context for a chosen instruction directory | Node 24.15–24.x |
 | `@aihq/catalog/workflows/nuclei` | Author Nuclei preparation, assessment and reconciliation Core policies, with TypeScript declarations | Node 24.15–24.x |
@@ -187,6 +187,12 @@ reference (a branch, tag or `latest`) stays recognised but reports
 are kept as non-authoritative notes, never treated as the source. Unrecognised
 input never yields a guessed candidate. See [source links](docs/SOURCE-LINKS.md)
 for the contract and the packed consumer check.
+
+## Describe a brought source
+
+`urn:aihq:catalog:source-description:1.0.0` is discovery data only: `{ id, label, publisher?, locator }`, where a locator is a git repository (`{ kind: "git", repository, ref? }`, https only), an npm package (`{ kind: "npm", package, versionSpec? }`) or a local folder (`{ kind: "local", label }`). `readSourceDescription(bytes)` from `@aihq/catalog/source` admits one bounded canonical JSON document (at most 64 KiB), refusing another format version as a whole with `SCHEMA_UNSUPPORTED` and naming every unknown field, non-https git repository or malformed locator precisely. A consumer builds, validates, saves and re-reads descriptions for MCP, skill and agent sources without inventing a format.
+
+The exact source of saved intent or an install is a separate type, produced only by resolution and acquisition: `{ kind: "git", repository, commit, reachable }`, `{ kind: "npm", package, version, integrity }` or `{ kind: "local", captureSha256 }`. `checkExactSourceIdentity(identity)` validates one, refusing mutable references (a branch, tag, range or `latest`) precisely; parsing or reading a description never produces an exact identity. An organization's published source list uses the same descriptor and grants no authority or policy. See [source descriptions](docs/SOURCE-DESCRIPTION.md) for the contract and the packed consumer check.
 
 ## Prepare a content candidate
 
