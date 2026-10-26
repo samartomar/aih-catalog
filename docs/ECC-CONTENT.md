@@ -215,9 +215,17 @@ and executable state comes from the pinned tree's file modes.
   file, so they share a content identity; each has its own `behaviourSha256`.
 - **Skills** may start when the model decides, since no pinned skill sets
   `disable-model-invocation`.
-- **Kiro edition.** Its skills and steering are namespaced `kiro` so their names stay
-  unique, and no main set lists them. Their own set, display hints, variants and
-  steering inclusion are samartomar/aih-catalog#143.
+- **Kiro edition.** ECC's separate Kiro edition, its 43 skills and 22 steering files, is
+  namespaced `kiro`, so a name is unique per kind and namespace and reads "tdd-workflow
+  (kiro)". Each carries the display hint `hints: { tools: ["kiro"] }`: written for Kiro.
+  Each Kiro skill names the main-edition skill of the same name as `variantOf`. Steering
+  is a `rule` that keeps its authored `inclusion` (`fileMatch` or `manual`) and its
+  `fileMatchPattern` as `applyTo`, or every file without one. The pinned edition's
+  `inclusion: auto` is not a mode the release names, so those eight files leave
+  `inclusion` unset and their `applyToBasis` records the authored word. Hints and
+  `variantOf` are declarations only: they are not in the behaviour file, so neither
+  identity changes, and each item keeps its shipped Kiro recipe. The build compiles the
+  release a second time without them to check that.
 
 ### Sets
 
@@ -226,6 +234,7 @@ and executable state comes from the pinned tree's file modes.
 | `ecc.module.<id>`, 36 | `install-modules.json` | Members are the items under the module's paths; `requires` are its dependencies; `targets` its targets; `offer` is `pre-ticked` for a default install, otherwise `listed`; `stability` is stable or, for beta and experimental, in-progress |
 | `ecc.rules.<directory>`, 22 | `rules/` | The rules of one directory |
 | `ecc.profile.<id>`, 7 | `install-profiles.json` | `includes` lists the profile's modules, in order |
+| `ecc.edition.kiro`, "ECC for Kiro" | The `.kiro/` skills and steering | Every Kiro-edition item, `listed`, with no targets, since the manifests name no Kiro module or target |
 
 `ecc.module.rules-core` always includes `ecc.rules.common`, with no choice made, and
 offers `rules/README.md` as an optional member that is off by default. Every profile
@@ -244,14 +253,20 @@ each module (default install, cost, stability, targets and dependencies) and eac
 profile are in the release's `metadata.eccInstallGroups`, with the manifests' digests.
 Modules whose paths hold no delivered item, such as the hook runtime and the translated
 documentation, are sets with no members. Every hook member of a set is optional; the
-pinned hook runtime has no admitted hook item.
+pinned hook runtime has no admitted hook item, and neither has the Kiro edition, whose
+hooks, agents and installer stay unsupported installation material. Kiro-edition items
+are members of "ECC for Kiro" only: no module, rules or profile set lists or includes
+them, and the build fails if one does.
 
 ### Checks and the baseline
 
 `npm run check:restructuring` compares the content with the amended expected
 projection: all 663 items and hashes, 33 supersessions, 32 MCP pairs, 35 edit records
-and 134 retirements. `node tools/verify-ecc-release-17-consumer.mjs [catalog.tgz]`
-checks it through the installed packed package's public exports only.
+and 134 retirements. The 65 Kiro-edition items and their renamings are among those
+rows; the set, hints, variants and inclusion change no checked field, so the
+expectation needs no amendment for them. `node tools/verify-ecc-release-17-consumer.mjs [catalog.tgz]`
+checks it through the installed packed package's public exports only, including the
+Kiro edition and a read through `readInstalledPreparedContent`.
 
 The baseline rule is unchanged ([baseline contract](SCAN-BASELINE.md)). The content
 inventory is frozen and shipped at `release/baselines/ecc/content-inventory.json`, but

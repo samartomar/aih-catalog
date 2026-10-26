@@ -4,7 +4,9 @@
 // frameworks as one pick-several option. `rules/common` is always included and
 // rules keep their language namespace. Per-tool copies (the Claude and Codex MCP
 // registrations, the Copilot and Kiro skill copies) collapse into one item each,
-// keeping the union of every copy's dependencies and licence material.
+// keeping the union of every copy's dependencies and licence material. ECC's Kiro
+// edition is one set of its own, namespaced kiro, hinted for Kiro, its skills naming
+// the main-edition skill they vary and its steering keeping its authored inclusion.
 //
 // The copies are the shipped release-ecc.json items restated as release 1.6 in
 // memory, with item-relative paths (the install target without its tool prefix)
@@ -49,6 +51,10 @@ const CODEX = "codex";
 const COPILOT = "copilot-vscode";
 const KIRO = "kiro-ide";
 
+/** The Kiro edition's display hint: written for Kiro. A hint never binds a tool. */
+const KIRO_HINTS = Object.freeze({ tools: Object.freeze(["kiro"]) });
+export const KIRO_SET_ID = "ecc.edition.kiro";
+
 /**
  * ECC's language and framework component ids name their rule directory, except
  * where the two names differ: `lang:go` is ECC's `rules/golang`, and `lang:c`
@@ -70,15 +76,34 @@ function frontmatter(text) {
   return match ? match[1] : undefined;
 }
 
+/** The steering inclusion modes the release rule payload names. */
+const INCLUSION = Object.freeze(["always", "fileMatch", "manual"]);
+
+/**
+ * A Kiro steering file's file patterns and inclusion. A named inclusion mode is kept
+ * as authored; `fileMatch` needs a `fileMatchPattern`, and only it may have one. An
+ * authored mode the release does not name (the pinned edition's `auto`) leaves
+ * `inclusion` unset rather than becoming another mode, and its basis says so.
+ */
+export function steeringPayload(text) {
+  const head = frontmatter(text);
+  const inclusion = head?.match(/^inclusion:\s*(\S+)\s*$/m)?.[1];
+  assert(inclusion, "Kiro steering without an inclusion frontmatter");
+  const pattern = head.match(/^fileMatchPattern:\s*"([^"]+)"\s*$/m)?.[1];
+  assert.equal(pattern !== undefined, inclusion === "fileMatch", `Kiro steering inclusion ${inclusion} and fileMatchPattern disagree`);
+  const kept = INCLUSION.includes(inclusion);
+  const basis = kept ? `authored: frontmatter inclusion ${inclusion}` : `authored: frontmatter inclusion ${inclusion}, a mode the release does not name, so inclusion is unset`;
+  return {
+    applyTo: pattern ? pattern.split(",").map((entry) => entry.trim()) : ["**"],
+    applyToBasis: pattern ? `${basis} and fileMatchPattern` : `${basis}; no fileMatchPattern, so every file`,
+    ...(kept ? { inclusion } : {}),
+  };
+}
+
 /** A rule's file patterns: its authored `paths:` list, otherwise every file. */
 function ruleApplyTo(text, kiro) {
   const head = frontmatter(text);
-  if (kiro) {
-    const pattern = head?.match(/^fileMatchPattern:\s*"([^"]+)"\s*$/m)?.[1];
-    return pattern
-      ? { applyTo: pattern.split(",").map((entry) => entry.trim()), applyToBasis: "authored: frontmatter fileMatchPattern" }
-      : { applyTo: ["**"], applyToBasis: "default: no fileMatchPattern frontmatter, so every file" };
-  }
+  if (kiro) return steeringPayload(text);
   if (head === undefined || !/^paths:/m.test(head))
     return { applyTo: ["**"], applyToBasis: "default: no paths frontmatter, so every file" };
   assert(/^paths:\n(  - "[^"]+"\n?)+$/.test(head), "Unrecognised rule frontmatter");
@@ -353,7 +378,9 @@ const under = (path, prefix) => path === prefix || path.startsWith(`${prefix}/`)
  */
 export function eccSets(items, manifests) {
   const { modules, profiles, components } = manifests;
-  const choosable = items.filter((item) => item.role === "choosable" && !item.id.includes(".kiro-variant") && !item.id.startsWith("ecc.steering."));
+  // The Kiro edition is its own set; no main set lists it.
+  const kiroEdition = items.filter((item) => item.payload.namespace === "kiro");
+  const choosable = items.filter((item) => item.role === "choosable" && !kiroEdition.includes(item));
   const primaryPath = (item) => item.materials.find((member) => member.role === "content" && member.sourcePath !== "LICENSE").sourcePath;
   const member = (item, optional = false, defaultOn = true) => ({
     item: { framework: FRAMEWORK_ID, itemId: item.id },
@@ -432,7 +459,17 @@ export function eccSets(items, manifests) {
     ordered.push(set);
   };
   for (const set of moduleSets) visit(set);
-  return [...ruleSets, ...ordered, ...profileSets];
+  // ECC's separate Kiro edition: its skills and steering, one set of its own. The
+  // upstream manifests name no Kiro module or target, so the set narrows no targets.
+  assert(kiroEdition.length > 0 && kiroEdition.every((item) => item.role === "choosable" && item.hints?.tools?.includes("kiro")), "Unhinted Kiro edition item");
+  const kiroSet = {
+    id: KIRO_SET_ID,
+    name: "ECC for Kiro",
+    description: "ECC's separate Kiro edition: its skills and steering, written for Kiro.",
+    members: kiroEdition.map((item) => member(item)),
+    offer: "listed",
+  };
+  return [...ruleSets, ...ordered, ...profileSets, kiroSet];
 }
 
 /** The upstream's own words for each set's default, cost, stability and targets. */
@@ -495,9 +532,19 @@ export function buildEcc17() {
         copies: has(tools, codex) ? [copy(main, id, CLAUDE), copy(tools, codex, CODEX)] : [copy(main, id)],
       });
     } else if (id.startsWith("ecc.kiro.skill.")) {
-      declarations.push({ id: `ecc.skill.${id.slice("ecc.kiro.skill.".length)}.kiro-variant`, kind: "skill", role: "choosable", copies: [copy(main, id)] });
+      // A Kiro skill names the main-edition skill of the same name that it varies.
+      const variantOf = main.items.find((candidate) => candidate.kind === "skill" && !candidate.payload.namespace && candidate.name === item.name);
+      assert(variantOf, `${id}: no main-edition skill named ${item.name}`);
+      declarations.push({
+        id: `ecc.skill.${id.slice("ecc.kiro.skill.".length)}.kiro-variant`,
+        kind: "skill",
+        role: "choosable",
+        copies: [copy(main, id)],
+        variantOf: { itemId: variantOf.id },
+        hints: KIRO_HINTS,
+      });
     } else if (id.startsWith("ecc.kiro.steering.")) {
-      declarations.push({ id: `ecc.steering.${id.slice("ecc.kiro.steering.".length)}`, kind: "rule", role: "choosable", copies: [copy(main, id)] });
+      declarations.push({ id: `ecc.steering.${id.slice("ecc.kiro.steering.".length)}`, kind: "rule", role: "choosable", copies: [copy(main, id)], hints: KIRO_HINTS });
     } else if (id === "ecc.notices") {
       declarations.push({
         id,
@@ -540,13 +587,13 @@ export function buildEcc17() {
       replacedBy: [{ framework: FRAMEWORK_ID, itemId: declaration.id }],
     }));
   const template = source.items.find(isTemplate);
-  const draft = (sets) =>
+  const draft = (sets, items = declarations) =>
     compileTransitionRelease({
       releases: { [main.sha256]: main, [tools.sha256]: tools, [kiroNotice.sha256]: kiroNotice, [codexNotice.sha256]: codexNotice, [source.sha256]: source },
       earlier: [source.sha256, main.sha256, tools.sha256],
       framework,
       package: source.package,
-      items: declarations,
+      items,
       retired: [
         ...renamed,
         {
@@ -561,6 +608,15 @@ export function buildEcc17() {
   const manifests = installManifests();
   const unset = draft();
   assert.equal(unset.status, "ok", JSON.stringify(unset.diagnostics.slice(0, 5)));
+  // Variants and hints are declarations only: without them every item keeps both
+  // identities, its recipe and its scopes.
+  const undeclared = draft(undefined, declarations.map(({ variantOf: _variant, hints: _hints, ...rest }) => rest));
+  assert.equal(undeclared.status, "ok", JSON.stringify(undeclared.diagnostics.slice(0, 5)));
+  undeclared.value.release.items.forEach((plain, index) => {
+    const declared = unset.value.release.items[index];
+    for (const field of ["id", "contentSha256", "behaviourSha256", "recipe", "recipes", "scopes", "targets"])
+      assert.deepEqual(declared[field], plain[field], `${plain.id}: variantOf or hints changed ${field}`);
+  });
   const compiled = draft(eccSets(unset.value.release.items, manifests));
   assert.equal(compiled.status, "ok", JSON.stringify(compiled.diagnostics.slice(0, 5)));
   const release = compiled.value.release;
@@ -569,6 +625,12 @@ export function buildEcc17() {
   const retired = new Map((release.retired ?? []).map((entry) => [entry.id, entry]));
   for (const item of source.items)
     assert(live.has(item.id) || retired.get(item.id)?.reason, `${item.id} is neither a survivor nor retired`);
+  // Kiro-edition items are members of the Kiro set only, and it holds nothing else.
+  for (const set of release.sets)
+    for (const entry of set.members) {
+      const kiro = release.items.find((item) => item.id === entry.item.itemId).payload.namespace === "kiro";
+      assert.equal(kiro, set.id === KIRO_SET_ID, `${set.id}: ${entry.item.itemId}`);
+    }
   const outputs = new Map();
   for (const file of compiled.value.materials) outputs.set(file.path, file.bytes);
   outputs.set(USER_NOTICE_RECIPE_PATH, userRecipeBytes);

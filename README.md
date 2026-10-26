@@ -81,8 +81,9 @@ labels it unbound and unauthenticated. See [Project basics content](docs/PROJECT
 ## ECC release 1.7.0 content
 
 `@aihq/catalog/release-ecc.content.json` is the prepared release 1.7.0 content of ECC:
-one item per piece of content, ECC's install modules and profiles as sets, and its
-languages and frameworks as one pick-several option. Like Project basics it awaits its
+one item per piece of content, ECC's install modules and profiles as sets, its
+languages and frameworks as one pick-several option, and its Kiro edition as one set,
+"ECC for Kiro". Like Project basics it awaits its
 baseline assessment, so it is listed in `preparedReleaseContent` and refused by
 `readRelease`; `release-ecc.json` stays the ordinary ECC release. See
 [ECC content](docs/ECC-CONTENT.md#release-170-content).
