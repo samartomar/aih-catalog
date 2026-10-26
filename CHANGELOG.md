@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Add the closing default release as prepared release 1.7.0 content for
+  samartomar/aih-catalog#146 (`@aihq/catalog/release-default.content.json`, with its
+  frozen content inventory): framework `default`, no items, and one `retired[]` entry
+  with a reason for each of the frozen default's 46 items. The 27 Matt copies name their
+  Extensions items, matched by name and source path; the 18 client adapters and entry
+  pointers have no successor, and their reason names Core's per-tool delivery; the
+  project context names the three Project basics items it is split into. The frozen
+  `release.json` is unchanged. No baseline is bound and no release index entry exists.
+
 - Add `readInstalledPreparedContent({ root, frameworkId })` to `@aihq/catalog/node`
   (samartomar/aih-catalog#137): it reads one listed prepared release content document
   from an installed package, verifying the package identity, every recipe and material

@@ -337,6 +337,17 @@ export const preparedReleaseContent = Object.freeze([
     export: "@aihq/catalog/release-superpowers.content.json",
     inventory: "release/baselines/superpowers/content-inventory.json",
   }),
+  /**
+   * The closing default: no items, one retirement per item of the frozen default.
+   * The frozen `release.json` itself stays a historical release, never prepared content.
+   */
+  Object.freeze({
+    frameworkId: "default",
+    schema: RELEASE_SCHEMA_ID_1_7,
+    content: "release/release-default.content.json",
+    export: "@aihq/catalog/release-default.content.json",
+    inventory: "release/baselines/default/content-inventory.json",
+  }),
 ] as const);
 
 /** Golden fixtures beyond each contract's valid and invalid pair, by contract URN. */

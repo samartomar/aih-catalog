@@ -61,8 +61,8 @@ Each item supersedes `aihq.project-context` of the frozen default (its exact dig
 `FROZEN_DEFAULT_RELEASE_SHA256`) with `match: "split"`. The amended restructuring
 expectation predicts each item's content identity from its folder-neutral rendered text
 and its item-relative path; `npm run check:restructuring` compares the prepared content with
-it. The closing default release that retires the project context belongs to
-samartomar/aih-catalog#146.
+it. The closing default release retires the project context and names the three items
+as its successors ([the default release](DEFAULT-RELEASE.md)).
 
 ## Preparation and the baseline
 
