@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"golang/security.md":false},"kind":"rule","payload":{"applyTo":["**/*.go","**/go.mod","**/go.sum"],"applyToBasis":"authored: frontmatter paths","namespace":"golang"},"requirements":{"inputs":{}}}

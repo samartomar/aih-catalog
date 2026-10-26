@@ -308,6 +308,8 @@ describe("the published package keeps its intended runtime subset", () => {
       "./release-superpowers.content.json",
       "./release/baselines/superpowers/content-inventory.json",
       "./fixtures/release-1-7/project-basics-release-1.7.0.json",
+      "./release-ecc.content.json",
+      "./release/baselines/ecc/content-inventory.json",
       "./schemas/source-description/1.0.0.json",
       "./fixtures/source-description-1.0.0-valid.json",
       "./fixtures/source-description-1.0.0-invalid.json",

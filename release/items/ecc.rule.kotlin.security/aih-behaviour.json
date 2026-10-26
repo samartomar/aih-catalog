@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"kotlin/security.md":false},"kind":"rule","payload":{"applyTo":["**/*.kt","**/*.kts"],"applyToBasis":"authored: frontmatter paths","namespace":"kotlin"},"requirements":{"inputs":{}}}

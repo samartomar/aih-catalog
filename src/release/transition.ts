@@ -242,6 +242,21 @@ export function checkReleaseTransition(request: {
         (entry) => entry.releaseSha256 === old.sha256 && entry.itemId === oldItem.id,
       ),
     );
+  /** The two ways a survivor can reappear as an earlier item. */
+  const matches = {
+    bytes: (item: CatalogItem, prior: CatalogItem) => contentKeys(item).includes(contentKey(prior)),
+    "name and source path": (item: CatalogItem, prior: CatalogItem) =>
+      displayName(item) === displayName(prior) &&
+      sourcePaths(item).some((path) => sharesSourcePath(prior, path)),
+  } as const;
+  /** Whether a survivor supersedes an earlier item it matches in the same way. */
+  const supersedesMatching = (item: CatalogItem, how: keyof typeof matches) =>
+    (item.supersedes ?? []).some((entry) => {
+      const prior = request.releases?.[entry.releaseSha256]?.items.find(
+        (candidate) => candidate.id === entry.itemId,
+      );
+      return prior !== undefined && matches[how](item, prior);
+    });
   let accounted = 0;
   for (const old of earlier) {
     // A retirement recorded once is carried unchanged by every later release.
@@ -266,16 +281,19 @@ export function checkReleaseTransition(request: {
       const named = superseding(old, oldItem);
       for (const item of release.items) {
         if (earlierIds.has(item.id) || named.includes(item)) continue;
-        const bytes = contentKeys(item).includes(contentKey(oldItem));
-        const renamed =
-          displayName(item) === displayName(oldItem) &&
-          sourcePaths(item).some((path) => sharesSourcePath(oldItem, path));
-        if (bytes || renamed)
-          fail(
-            "unmapped-rename",
-            `/items/${item.id}`,
-            `${oldItem.id}'s ${bytes ? "bytes" : "name and source path"} reappear under ${item.id} without a supersession.`,
-          );
+        const how = (Object.keys(matches) as (keyof typeof matches)[]).find((way) =>
+          matches[way](item, oldItem),
+        );
+        if (how === undefined) continue;
+        // Once the earlier item is mapped, a survivor that matches it only as it matches
+        // its own superseded copy, such as MCP servers registered in one upstream file,
+        // is not a rename of it.
+        if (named.length > 0 && supersedesMatching(item, how)) continue;
+        fail(
+          "unmapped-rename",
+          `/items/${item.id}`,
+          `${oldItem.id}'s ${how} reappear under ${item.id} without a supersession.`,
+        );
       }
     }
   }
@@ -519,11 +537,15 @@ function buildItem(
     `${at}/targets`,
     "targets",
   );
-  const scopes = agreed(
-    copies.map((copy) => copy.item.scopes as unknown as Json),
-    `${at}/scopes`,
-    "scopes",
-  );
+  // Per-client copies keep each recipe's own scope, so the item admits their union;
+  // copies sharing one recipe must agree on it.
+  const scopes = copies.every((copy) => copy.clientId !== undefined)
+    ? ([...new Set(copies.flatMap((copy) => copy.item.scopes))].sort(compare) as Json)
+    : agreed(
+        copies.map((copy) => copy.item.scopes as unknown as Json),
+        `${at}/scopes`,
+        "scopes",
+      );
   const source = agreed(
     copies.map((copy) => copy.item.source),
     `${at}/source`,

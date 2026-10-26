@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"java/hooks.md":false},"kind":"rule","payload":{"applyTo":["**/*.java","**/pom.xml","**/build.gradle","**/build.gradle.kts"],"applyToBasis":"authored: frontmatter paths","namespace":"java"},"requirements":{"inputs":{}}}

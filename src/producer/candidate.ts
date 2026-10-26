@@ -367,7 +367,10 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
       for (const member of made.members) put(member.path, member.bytes);
       continue;
     }
-    for (const member of [asRecord(item.recipe), ...(item.materials as Json[]).map(asRecord)]) {
+    for (const member of [
+      ...itemRecipes(item).map(({ recipe }) => recipe as Record_),
+      ...(item.materials as Json[]).map(asRecord),
+    ]) {
       const path = packagePathOf(member);
       put(path, files.get(path) as Buffer);
     }

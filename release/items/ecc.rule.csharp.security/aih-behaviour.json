@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"csharp/security.md":false},"kind":"rule","payload":{"applyTo":["**/*.cs","**/*.csx","**/*.csproj","**/appsettings*.json"],"applyToBasis":"authored: frontmatter paths","namespace":"csharp"},"requirements":{"inputs":{}}}

@@ -46,6 +46,10 @@
    "reason": "The dry run read Superpowers at upstream revision bb92a77741419a4ab5f06e711a283343f1ada0c3, earlier than the 5bf4e78011075bcfc0dc295f0724994cd123ee71 (upstream 6.4.1) this package pins, so its Superpowers content identities name other bytes. They are predicted again, with the dry run's rule (item-relative paths, a skill's files below its own folder, the hook carrying the bootstrap source it folds), from the pinned materials of the committed release-superpowers.json. Items, kinds, supersessions and retirements are the dry run's."
   },
   {
+   "id": "ecc-notices-identity",
+   "reason": "The dry run's ecc.notices content identity reproduces from none of the tried item-relative path assignments for the four shipped notice materials (every suffix of each install target and source path, the package paths, and those paths with tool prefixes removed), so it cannot be checked. Their bytes are unchanged: the expectation predicts the identity from those four material digests at the item-relative paths every other ECC item uses, its install target without the .aihq/ecc/ and source/ prefixes (LICENSE, AGENTS.md, plugin.json, README.md)."
+  },
+  {
    "id": "mcp-edit-digests",
    "reason": "Each MCP survivor records whether its shipped definition is identical to upstream or edited; an edit is digested as SHA-256 of the canonical JSON {from: upstream, to: shipped} plus LF, in upstream's own encoding."
   },
@@ -1564,7 +1568,7 @@
      "id": "ecc.notices",
      "kind": "document",
      "purpose": "notice",
-     "contentSha256": "e897bc98bebd905e1515e6a1b236d7d4b09439e893dcaca1d02e82a53a0d20a4"
+     "contentSha256": "620500100a08339d1d67255c29fb5f80d12d45513948e7d5ac599e2bd4f196af"
     },
     {
      "id": "ecc.rule.README",
