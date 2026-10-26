@@ -17,6 +17,12 @@ const args = (plan = planPath, destination = candidate) => [tool, "--runtime", r
 const first = JSON.parse(run(args())), receipt = JSON.parse(readFileSync(first.receipt));
 assert.equal(receipt.views.length, 5); assert.equal(receipt.unchangedExports.length, 4);
 assert.equal(receipt.installedReadback.releaseExports, 9); assert.equal(receipt.installedReadback.ownInstalledPublicReader, true);
+// Prepared content (no baseline bound) is carried byte for byte and read back by the content reader.
+const preparedSource = (await import(pathToFileURL(join(runtime, "node_modules/@aihq/catalog/dist/release/contracts.js")).href)).preparedReleaseContent ?? [];
+assert.deepEqual(receipt.installedReadback.preparedContent.map(entry => entry.frameworkId), preparedSource.map(entry => entry.frameworkId));
+for (const entry of preparedSource) {
+  for (const path of [entry.content, entry.inventory]) assert.deepEqual(readFileSync(join(candidate, "package", path)), readFileSync(join(runtime, "node_modules/@aihq/catalog", path)), path);
+}
 for (const view of receipt.views) {
   assert.equal(view.authentication.producerIdentity, "package-fixture");
   assert.equal(view.assessment.completion, "partial"); assert.equal(view.assessment.results[0].outcome, "failed");

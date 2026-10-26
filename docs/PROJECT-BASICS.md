@@ -99,6 +99,10 @@ releases never embed scan records.
   against the frozen default, behaviour files, recipes, placeholders, the split, the
   frozen inventory, evidence descriptors, the restructuring comparison, the golden
   fixture and the unbound state. It is part of `npm test`.
+- Full package assembly (`tools/assemble-release-package.mjs`) carries the prepared
+  content, its inventory and members unchanged. Its installed public readback reports
+  them as `preparedContent`, and `tools/verify-package-consumer.mjs` checks that they
+  arrive byte for byte.
 - The golden fixture `@aihq/catalog/fixtures/release-1-7/project-basics-release-1.7.0.json`
   is the shipped content with a **test-only evidence binding**; it claims no
   authenticated assessment. Package support 1.1 lists it under release 1.7.0.
