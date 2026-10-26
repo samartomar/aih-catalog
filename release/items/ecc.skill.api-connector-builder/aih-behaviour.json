@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"SKILL.md":false},"kind":"skill","payload":{"dirName":"api-connector-builder","invocation":"model-allowed","invocationBasis":"default: no disable-model-invocation frontmatter"},"requirements":{"inputs":{}}}

@@ -13,6 +13,8 @@ import { createContentInventory } from "../release/inventory.js";
 import { AcquisitionFailure } from "../release/node-errors.js";
 import { historicalDigest, verifyPackageRelease } from "../release/package-release.js";
 import { readRelease, readReleaseContent } from "../release/reader.js";
+import { checkRecipeAgreement } from "../release/recipe-agreement.js";
+import { catalogItemRecipes, itemRecipes } from "../release/release-17.js";
 import { type AuthoredAllowance, checkAuthoredContent, describeFinding } from "./authored.js";
 import type { Record_ } from "./base.js";
 import { assertRequiredClosure } from "./candidate.js";
@@ -244,9 +246,11 @@ export function checkCandidateFiles(
       `${release.package.name}@${release.package.version} vs ${identity.name}@${identity.version}`,
     );
     const problems: string[] = [];
+    const agreement: string[] = [];
     for (const item of release.items) {
+      const recipes = catalogItemRecipes(item);
       const members = [
-        ...(item.recipe === undefined ? [] : [item.recipe]),
+        ...recipes.map(({ recipe }) => recipe),
         ...item.materials,
       ] as unknown as Record<string, unknown>[];
       for (const member of members) {
@@ -256,7 +260,20 @@ export function checkCandidateFiles(
         else if (bytes.length !== member.byteLength || sha256Hex(bytes) !== member.sha256)
           problems.push(`member-mismatch ${path}`);
       }
+      // Each recipe, or each transition map entry, agrees with the item it configures.
+      for (const { recipe } of recipes) {
+        const bytes = files.get(recipe.path);
+        if (bytes === undefined) continue;
+        for (const d of checkRecipeAgreement(item, bytes, recipe))
+          agreement.push(`${d.reason} ${item.id} ${recipe.path}`);
+      }
     }
+    note(
+      entry.content,
+      "recipe-configuration-agreement",
+      agreement.length === 0,
+      agreement.join("; "),
+    );
     const inventory = createContentInventory(contentBytes, {
       expectedSha256: sha256Hex(contentBytes),
     });
@@ -289,7 +306,8 @@ export function checkCandidateFiles(
   for (const { items, release } of releases) {
     for (const member of baselineMembers(release)) declared.add(member.path);
     for (const item of items) {
-      for (const member of [asRecord(item.recipe), ...(item.materials as Json[]).map(asRecord)]) {
+      const recipes = itemRecipes(item).map(({ recipe }) => recipe);
+      for (const member of [...recipes, ...(item.materials as Json[]).map(asRecord)]) {
         declared.add(String(memberPackagePath(member as unknown as Record<string, unknown>)));
       }
     }
@@ -333,6 +351,14 @@ export function checkCandidateFiles(
         if (origin?.kind !== "git") continue;
         const prefix = `release/materials/${origin.repository.replace(/^https:\/\//, "")}/${origin.revision}/`;
         for (const member of item.materials) {
+          // A synthesised behaviour file is the Catalog's, never a source's pinned bytes; it
+          // lives in its own item folder.
+          const record = member as unknown as Record<string, unknown>;
+          if (
+            record.role === "behaviour" &&
+            record.packagePath === `release/items/${item.id}/aih-behaviour.json`
+          )
+            continue;
           if (
             !String(memberPackagePath(member as unknown as Record<string, unknown>)).startsWith(
               prefix,

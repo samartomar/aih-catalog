@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"mcp-configs/mcp-servers.json":false},"kind":"mcp-server","payload":{"derivation":{"pointer":"/mcpServers/vercel","sourceMaterial":"asset-0","transform":"identical"},"key":"vercel","transport":"http","url":"https://mcp.vercel.com"},"requirements":{"inputs":{}}}

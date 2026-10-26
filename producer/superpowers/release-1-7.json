@@ -1,0 +1,73 @@
+{
+  "framework": {
+    "id": "superpowers",
+    "name": "Superpowers",
+    "version": "1.0.0",
+    "nameSource": { "path": "README.md", "locator": "first-heading" },
+    "descriptionSource": { "path": "package.json", "locator": "description" }
+  },
+  "hook": {
+    "id": "superpowers.hook.session-start",
+    "copy": "superpowers.claude.hook.session-start",
+    "folds": "superpowers.runtime-source.claude-bootstrap",
+    "settings": "hooks/hooks.json",
+    "name": "session-start",
+    "nameBasis": "file-name",
+    "description": "Upstream's start-of-session bootstrap: on startup, clear and compact it adds the using-superpowers skill to the session's context.",
+    "descriptionBasis": "publisher"
+  },
+  "fallback": {
+    "id": "superpowers.rule.session-bootstrap",
+    "relPath": "session-bootstrap.md",
+    "text": "At the start of every session, before your first response, read the using-superpowers skill and follow it.\n",
+    "name": "Session bootstrap",
+    "description": "One-line rule for tools without hooks: read the using-superpowers skill at the start of every session.",
+    "requires": ["superpowers.skill.using-superpowers"]
+  },
+  "notices": {
+    "id": "superpowers.notices",
+    "name": "Superpowers notices",
+    "description": "MIT license, original README distribution/telemetry notice and release notes."
+  },
+  "set": {
+    "id": "superpowers",
+    "name": "Superpowers",
+    "description": "Upstream's plugin: its 15 skills and the start-of-session bootstrap.",
+    "offer": "pre-ticked"
+  },
+  "retired": [
+    { "id": "superpowers.runtime-source.claude-bootstrap", "reason": "Folded into the session bootstrap hook: its files are the hook's materials.", "replacedBy": ["superpowers.hook.session-start"] },
+    { "id": "superpowers.runtime-source.codex", "tool": "Codex", "plugin": true },
+    { "id": "superpowers.runtime-source.cursor", "tool": "Cursor", "plugin": true },
+    { "id": "superpowers.runtime-source.devin", "tool": "Devin", "plugin": true },
+    { "id": "superpowers.runtime-source.gemini", "tool": "Gemini", "plugin": true },
+    { "id": "superpowers.runtime-source.hermes", "tool": "Hermes", "plugin": true },
+    { "id": "superpowers.runtime-source.kimi", "tool": "Kimi", "plugin": true },
+    { "id": "superpowers.runtime-source.muse", "tool": "Muse", "plugin": true },
+    { "id": "superpowers.runtime-source.opencode", "tool": "OpenCode", "plugin": true },
+    { "id": "superpowers.runtime-source.pi", "tool": "Pi", "plugin": true },
+    { "id": "superpowers.runtime-source.skill-library", "reason": "A duplicate of the whole upstream skill library, carried for plugin manifests. Each of the 15 skills is an item of this release, so the library is not offered a second time.", "replacedBy": [] },
+    { "id": "superpowers.template.reviewed-tdd", "reason": "A Catalog-authored starting choice, not upstream's grouping. Templates become sets, never items, so it has no item successor.", "replacedBy": [] }
+  ],
+  "nativeRoutes": [
+    { "tool": "Claude Code", "line": "/plugin install superpowers@claude-plugins-official" },
+    { "tool": "Claude Code", "line": "/plugin marketplace add obra/superpowers-marketplace" },
+    { "tool": "Claude Code", "line": "/plugin install superpowers@superpowers-marketplace" },
+    { "tool": "Antigravity", "line": "agy plugin install https://github.com/obra/superpowers" },
+    { "tool": "Cursor", "line": "/add-plugin superpowers" },
+    { "tool": "Devin CLI", "line": "devin plugins install obra/superpowers" },
+    { "tool": "Factory Droid", "line": "droid plugin marketplace add https://github.com/obra/superpowers" },
+    { "tool": "Factory Droid", "line": "droid plugin install superpowers@superpowers" },
+    { "tool": "Gemini CLI", "line": "gemini extensions install https://github.com/obra/superpowers" },
+    { "tool": "GitHub Copilot CLI", "line": "copilot plugin marketplace add obra/superpowers-marketplace" },
+    { "tool": "GitHub Copilot CLI", "line": "copilot plugin install superpowers@superpowers-marketplace" },
+    { "tool": "Grok Build CLI", "line": "grok plugin install superpowers@xai-official --trust" },
+    { "tool": "Kimi Code", "line": "/plugins install https://github.com/obra/superpowers" },
+    { "tool": "OpenCode", "line": "Fetch and follow instructions from https://raw.githubusercontent.com/obra/superpowers/refs/heads/main/.opencode/INSTALL.md" },
+    { "tool": "Pi", "line": "pi install git:github.com/obra/superpowers" },
+    { "tool": "Qwen Code", "line": "qwen extensions install obra/superpowers" },
+    { "tool": "Hermes Agent", "line": "hermes plugins install obra/superpowers --enable" },
+    { "tool": "Muse", "line": "muse plugins install ./superpowers" },
+    { "tool": "Muse", "line": "muse plugins approve superpowers" }
+  ]
+}

@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"nuxt/testing.md":false},"kind":"rule","payload":{"applyTo":["**/nuxt.config.*","**/server/**/*.ts","**/pages/**","**/layouts/**","**/middleware/**"],"applyToBasis":"authored: frontmatter paths","namespace":"nuxt"},"requirements":{"inputs":{}}}

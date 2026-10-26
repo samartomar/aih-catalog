@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"SKILL.md":false,"hooks/quality-gate.py":false},"kind":"skill","payload":{"dirName":"delivery-gate","invocation":"model-allowed","invocationBasis":"default: no disable-model-invocation frontmatter"},"requirements":{"inputs":{}}}

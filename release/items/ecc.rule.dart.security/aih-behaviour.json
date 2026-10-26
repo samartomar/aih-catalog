@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"dart/security.md":false},"kind":"rule","payload":{"applyTo":["**/*.dart","**/pubspec.yaml","**/AndroidManifest.xml","**/Info.plist"],"applyToBasis":"authored: frontmatter paths","namespace":"dart"},"requirements":{"inputs":{}}}

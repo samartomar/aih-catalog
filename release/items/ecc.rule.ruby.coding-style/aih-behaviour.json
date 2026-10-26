@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"ruby/coding-style.md":false},"kind":"rule","payload":{"applyTo":["**/*.rb","**/*.rake","**/Gemfile","**/*.gemspec","**/config.ru"],"applyToBasis":"authored: frontmatter paths","namespace":"ruby"},"requirements":{"inputs":{}}}

@@ -53,6 +53,13 @@ runtime source references and an opt-in caller-configured Claude SessionStart gr
 [Content guidance](docs/SUPERPOWERS-CONTENT.md) and [inventory](docs/SUPERPOWERS-INVENTORY.md)
 record exact source identities, support closures, notices and native execution limits.
 
+`@aihq/catalog/release-superpowers.content.json` is the prepared release 1.7.0 content
+of the same pinned framework: the 15 skills listed once, the start-of-session bootstrap
+hook with a one-line fallback rule, the plugin bundles and duplicate skill library
+retired with reasons, and upstream's plugin routes as display-only lines. It awaits its
+baseline assessment: read it with `readReleaseContent`; `readRelease` refuses it until
+then. See [Superpowers release 1.7.0](docs/SUPERPOWERS-CONTENT.md#release-170-one-item-per-skill).
+
 ## Optional Anthropic skills
 
 `@aihq/catalog/release-anthropic.json` offers complete permitted pinned skill
@@ -67,6 +74,15 @@ content of the Project basics framework: a router guide, the working rules and a
 block for a project's entry files. Its baseline assessment is not bound yet, so it is
 listed in `preparedReleaseContent`, read with `readReleaseContent`, and refused by
 `readRelease`. See [Project basics content](docs/PROJECT-BASICS.md).
+
+## ECC release 1.7.0 content
+
+`@aihq/catalog/release-ecc.content.json` is the prepared release 1.7.0 content of ECC:
+one item per piece of content, ECC's install modules and profiles as sets, and its
+languages and frameworks as one pick-several option. Like Project basics it awaits its
+baseline assessment, so it is listed in `preparedReleaseContent` and refused by
+`readRelease`; `release-ecc.json` stays the ordinary ECC release. See
+[ECC content](docs/ECC-CONTENT.md#release-170-content).
 
 ## Optional Nuclei workflow
 
@@ -101,6 +117,10 @@ platform evidence and real-tool execution limits are recorded in [delivery evide
 | `@aihq/catalog/release-anthropic.json` | Optional permitted Anthropic skill closures and notices | Data |
 | `@aihq/catalog/release-project-basics.content.json` | Prepared Project basics release 1.7.0 content, awaiting its baseline; read with `readReleaseContent` | Data |
 | `@aihq/catalog/release/baselines/project-basics/content-inventory.json` | Its frozen content inventory | Data |
+| `@aihq/catalog/release-ecc.content.json` | Prepared ECC release 1.7.0 content, awaiting its baseline; read with `readReleaseContent` | Data |
+| `@aihq/catalog/release/baselines/ecc/content-inventory.json` | Its frozen content inventory | Data |
+| `@aihq/catalog/release-superpowers.content.json` | Prepared Superpowers release 1.7.0 content, awaiting its baseline; read with `readReleaseContent` | Data |
+| `@aihq/catalog/release/baselines/superpowers/content-inventory.json` | Its frozen content inventory | Data |
 | `@aihq/catalog/package.json` | Installed package identity and location | Data |
 
 `releaseInventory` gives each exported release document's format, purpose (ordinary content, client hooks or a native acceptance fixture) and support tier, plus the package identity; selection still names one release explicitly. The [content contract](docs/CATALOG-CONTENT.md#release-inventory-and-format-compatibility) has the inventory, the current authoring target and the format compatibility table.

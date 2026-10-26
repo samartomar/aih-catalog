@@ -41,6 +41,12 @@ in the focused test inventory; `node tools/verify-extensions-consumer.mjs <core.
 adds the explicit reviewed generic Core artifact proof. See
 [Extensions content](docs/EXTENSIONS-CONTENT.md) for source and execution limits.
 
+ECC release 1.7.0 content is built from the shipped ECC release and the pinned install
+manifests by `node tools/generate-ecc-release-17.mjs --check`, part of `npm run
+check:materials`; regenerate through that script. `node
+tools/verify-ecc-release-17-consumer.mjs [catalog.tgz]` runs its packed public-only
+consumer, part of `npm test`. See [ECC content](docs/ECC-CONTENT.md#release-170-content).
+
 ECC checks compile its separate v3 declarations, complete pinned-tree disposition
 and donor ledger with `node tools/generate-ecc-release.mjs --check`; regenerate
 through that owning script after reviewed data edits. The active packed public
@@ -51,7 +57,11 @@ Prepare/Apply proof. See [ECC content](docs/ECC-CONTENT.md) for prerequisites an
 Superpowers checks compile its ordinary v3 declarations and complete pinned tree
 with `node tools/generate-superpowers-release.mjs --check`; regenerate through that
 script. `node tools/verify-superpowers-consumer.mjs <core.tgz>` adds the exact reviewed
-Core packed proof. See [Superpowers content](docs/SUPERPOWERS-CONTENT.md).
+Core packed proof. Its prepared release 1.7.0 content is built by
+`node tools/generate-superpowers-release-17.mjs --check`, part of `npm run check:materials`;
+regenerate through that script after `release-superpowers.json` or
+`producer/superpowers/release-1-7.json` changes. `node tools/verify-superpowers-17-consumer.mjs
+[catalog.tgz]` runs its packed public-only consumer. See [Superpowers content](docs/SUPERPOWERS-CONTENT.md).
 
 Anthropic checks compile ordinary v3 declarations and verify the complete pinned
 tree, individual notices and donor closures through

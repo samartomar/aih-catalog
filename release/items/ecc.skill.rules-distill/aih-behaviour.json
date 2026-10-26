@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"SKILL.md":false,"scripts/scan-rules.sh":true,"scripts/scan-skills.sh":true},"kind":"skill","payload":{"dirName":"rules-distill","invocation":"model-allowed","invocationBasis":"default: no disable-model-invocation frontmatter"},"requirements":{"inputs":{}}}

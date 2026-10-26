@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"dart/coding-style.md":false},"kind":"rule","payload":{"applyTo":["**/*.dart","**/pubspec.yaml","**/analysis_options.yaml"],"applyToBasis":"authored: frontmatter paths","namespace":"dart"},"requirements":{"inputs":{}}}

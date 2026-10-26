@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"typescript/coding-style.md":false},"kind":"rule","payload":{"applyTo":["**/*.ts","**/*.tsx","**/*.js","**/*.jsx"],"applyToBasis":"authored: frontmatter paths","namespace":"typescript"},"requirements":{"inputs":{}}}
