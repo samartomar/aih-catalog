@@ -209,7 +209,9 @@ and executable state comes from the pinned tree's file modes.
   in either. Its recipe map delivers the same four materials through the shipped
   project recipe for `claude-code`, `copilot-vscode` and `kiro-ide`. For `codex` it
   uses the same recipe moved into the user home under `~/.aihq/ecc/`, generated as
-  `release/recipes/ecc.notices.user.json`. The servers share one upstream
+  `release/recipes/ecc.notices.user.json`. Unlike the single-recipe items that depend on
+  it, configuring the notice therefore needs a `clientId` from those four; any other
+  client is refused with `client-unavailable`. The servers share one upstream
   file, so they share a content identity; each has its own `behaviourSha256`.
 - **Skills** may start when the model decides, since no pinned skill sets
   `disable-model-invocation`.
