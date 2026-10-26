@@ -86,7 +86,7 @@ platform evidence and real-tool execution limits are recorded in [delivery evide
 | `@aihq/catalog/producer` | Check v3 declarations and compile explicitly supplied source bytes | Node 24.15–24.x |
 | `@aihq/catalog/source` | Portable source facts (`extractSourceFacts`), side-effect-free source-link parsing (`parseSourceLink`), and source description reading with exact identity checking (`readSourceDescription`, `checkExactSourceIdentity`) | Portable |
 | `@aihq/catalog/schemas/producer-declaration/3.0.0.json` | Public producer declaration schema | Data |
-| `@aihq/catalog/node` | Read an installed root, resolve an exact archive/registry version, or prepare the project context for a chosen instruction directory | Node 24.15–24.x |
+| `@aihq/catalog/node` | Read an installed root, resolve an exact archive/registry version, resolve a GitHub ref to an exact reachable commit, acquire a bounded snapshot at that commit, or prepare the project context for a chosen instruction directory | Node 24.15–24.x |
 | `@aihq/catalog/workflows/nuclei` | Author Nuclei preparation, assessment and reconciliation Core policies, with TypeScript declarations | Node 24.15–24.x |
 | `@aihq/catalog/release.json` | Default release (format 1.4.0) | Data |
 | `@aihq/catalog/schemas/release/1.5.0.json` | New release format with a pinned content baseline | Data |
@@ -203,6 +203,29 @@ for the contract and the packed consumer check.
 `urn:aihq:catalog:source-description:1.0.0` is discovery data only: `{ id, label, publisher?, locator }`, where a locator is a git repository (`{ kind: "git", repository, ref? }`, https only), an npm package (`{ kind: "npm", package, versionSpec? }`) or a local folder (`{ kind: "local", label }`). `readSourceDescription(bytes)` from `@aihq/catalog/source` admits one bounded canonical JSON document (at most 64 KiB), refusing another format version as a whole with `SCHEMA_UNSUPPORTED` and naming every unknown field, non-https git repository or malformed locator precisely. A consumer builds, validates, saves and re-reads descriptions for MCP, skill and agent sources without inventing a format.
 
 The exact source of saved intent or an install is a separate type, produced only by resolution and acquisition: `{ kind: "git", repository, commit, reachable }`, `{ kind: "npm", package, version, integrity }` or `{ kind: "local", captureSha256 }`. `checkExactSourceIdentity(identity)` validates one, refusing mutable references (a branch, tag, range or `latest`) precisely; parsing or reading a description never produces an exact identity. An organization's published source list uses the same descriptor and grants no authority or policy. See [source descriptions](docs/SOURCE-DESCRIPTION.md) for the contract and the packed consumer check.
+
+## Resolve and acquire a brought GitHub source
+
+`resolveGitRef({ repository, ref }, controls)` from `@aihq/catalog/node`
+resolves one GitHub repository at a branch or tag to an exact 40-character
+commit and proves the commit is reachable from the named repository, because
+GitHub serves any fork-network commit under the parent's name. The result
+reports `{ commit, reachable: true | false | "unchecked" }`, the exact git
+source identity, and `installable`, which is `true` exactly when the commit is
+reachable: `reachable: false` refuses a fork-only commit, and an unchecked
+result records that the source cannot be made installable until it is checked.
+
+`acquireGitSnapshot({ repository, commit }, controls)` acquires a bounded
+snapshot of the files at that exact commit — the commit object and every blob
+verified against its git object id — sized by the published capture limits
+`GIT_SNAPSHOT_MAX_SOURCE_ENTRIES` (100,000) and `GIT_SNAPSHOT_MAX_SOURCE_BYTES`
+(256 MiB), which follow Scan's capture limits; exceeding one is a named
+refusal. The snapshot's `revision`, `files` and `modes` pass straight to
+`prepareSourceRefresh`. All transport authority sits behind the public
+`GitRemoteTransport` seam with a contained `git` default, nothing acquired is
+executed, and exceeding a limit, a submodule, a git link or reserved `.git`
+metadata is refused by name. See [GitHub sources](docs/SOURCE-GITHUB.md) for
+the contract and the packed consumer check.
 
 ## Prepare a content candidate
 
