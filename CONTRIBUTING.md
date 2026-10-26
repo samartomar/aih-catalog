@@ -65,6 +65,15 @@ See [Anthropic content](docs/ANTHROPIC-CONTENT.md) for rights and prerequisites.
 artifact, with each package's own public readers. See
 [package support and golden fixtures](docs/CONTRACT-FIXTURES.md).
 
+`node tools/verify-item-evidence-scan-consumer.mjs <scan.tgz> [catalog.tgz]` installs
+the packed Catalog and an exact packed Scan archive into a disposable consumer and
+maps one compiled release 1.6 item to Scan's item descriptor: `itemEvidenceDescriptor`
+paths are projected into the baseline scope's package-relative namespace and passed to
+Scan's public `recordItem`/`verifyItemRecord`. Scan runs its local detector over a
+disposable fixture root only — no live network scanning and no scan against this
+checkout. The Scan archive is built from exact committed Scan source; identify it by
+commit and SHA-256. See [baseline contract checks](docs/SCAN-BASELINE.md#item-evidence-descriptors).
+
 `node tools/verify-codex-config-drift.mjs <core.tgz>` uses the reviewed Core artifact
 in disposable offline fixtures to prove simulated Codex config table drift inside a
 managed block, recovery by moving the table below its END marker, and the matching
