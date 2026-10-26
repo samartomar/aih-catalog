@@ -58,16 +58,17 @@ function add(name, contract, document, reader, provenance, context = undefined) 
 // Project a committed 1.x release document into the release 1.6 shape: extended
 // materials, the synthesised behaviour file and both identities. Fixture-only
 // projection over real committed content; sizes stay absent (bytes are not read).
-const FRAMEWORK_ID = "fixture-framework";
-const projectRelease16 = (document) => {
+const FIXTURE_FRAMEWORK = {
+  id: "fixture-framework",
+  name: "Fixture Framework",
+  version: "1.0.0",
+  description: "Authored golden framework for the release 1.6 contract fixtures.",
+};
+const projectRelease16 = (document, framework = FIXTURE_FRAMEWORK) => {
+  const FRAMEWORK_ID = framework.id;
   const doc = structuredClone(document);
   doc.schema = "urn:aihq:catalog:release:1.6.0";
-  doc.framework = {
-    id: FRAMEWORK_ID,
-    name: "Fixture Framework",
-    version: "1.0.0",
-    description: "Authored golden framework for the release 1.6 contract fixtures.",
-  };
+  doc.framework = { ...framework };
   for (const source of doc.sources) source.license = "MIT";
   doc.items = doc.items.map((item) => {
     const executable = {};
@@ -358,6 +359,178 @@ for (const [version, id, context] of [
       },
     }, "Offline reuse serves the unexpired recorded copy, says so, and never relabels it as verified.");
   }
+}
+{
+  // Release sets 1.0 over real content projected to release 1.6. The context
+  // releases are content-only (no evidence binding) and are read with
+  // readReleaseContent. Digests are computed here from the published formula,
+  // independently of the package's build.
+  const SETS = "urn:aihq:catalog:release-sets:1.0.0";
+  const UNDIGESTED = new Set(["id", "name", "description", "cost", "stability", "setSha256", "members"]);
+  const bytewise = (a, b) => Buffer.compare(Buffer.from(a), Buffer.from(b));
+  const framework = (id, name) => ({ id, name, version: "1.0.0",
+    description: `${name} content projected to release 1.6 for the release sets fixtures.` });
+  const superpowersRelease = projectRelease16(subset("release/release-superpowers.json",
+    ["superpowers.skill.test-driven-development", "superpowers.claude.hook.session-start"]), framework("superpowers", "Superpowers"));
+  const variantSource = subset("release/release-superpowers.json",
+    ["superpowers.skill.test-driven-development", "superpowers.claude.hook.session-start"]);
+  // Behaviour-only change: one added optional dependency, no content byte changed.
+  variantSource.items.find(item => item.id === "superpowers.skill.test-driven-development")
+    .dependencies.optional.push({ itemId: "superpowers.claude.hook.session-start" });
+  const variantRelease = projectRelease16(variantSource, framework("superpowers", "Superpowers"));
+  const extensionsRelease = projectRelease16(subset("release/release-extensions.json",
+    ["extensions.skill.security-and-hardening"]), framework("extensions", "Extensions"));
+  const eccSource = read("release/release-ecc.json");
+  const rules = language => eccSource.items.filter(item => item.id.startsWith(`ecc.rule.${language}.`)).map(item => item.id);
+  const eccRelease = projectRelease16(subset("release/release-ecc.json",
+    [...rules("common"), ...rules("typescript"), ...rules("python")]), framework("ecc", "ECC"));
+  const context = (name, document) => {
+    const path = `fixtures/release-sets/${name}-release-1.6.0.json`;
+    write(path, document);
+    return `@aihq/catalog/${path}`;
+  };
+  const contexts = {
+    superpowers: context("superpowers", superpowersRelease),
+    variant: context("superpowers-behaviour-variant", variantRelease),
+    extensions: context("extensions", extensionsRelease),
+    ecc: context("ecc", eccRelease),
+  };
+  const itemOf = (release, itemId) => release.items.find(item => item.id === itemId);
+  const pin = (release, itemId) => ({ framework: release.framework.id, itemId,
+    releaseVersion: release.framework.version, contentSha256: itemOf(release, itemId).contentSha256,
+    behaviourSha256: itemOf(release, itemId).behaviourSha256 });
+  // Builds set documents: fills same-release reference digests in declared order.
+  const buildSets = (release, declarations) => {
+    const built = new Map();
+    const fill = refs => refs?.map(ref => ref.framework === release.framework.id ? { ...ref, setSha256: built.get(ref.setId) } : ref);
+    const sets = declarations.map(declaration => {
+      const set = structuredClone(declaration);
+      for (const field of ["includes", "requires", "optional"]) if (set[field]) set[field] = fill(set[field]);
+      for (const option of set.options ?? []) {
+        if (option.always) option.always = fill(option.always);
+        for (const choice of option.choices) choice.sets = fill(choice.sets);
+      }
+      const lines = set.members.map(({ item, optional, defaultOn }) => {
+        const own = item.framework === release.framework.id;
+        const identity = own ? itemOf(release, item.itemId) : item;
+        return `${item.framework}\t${item.itemId}\t${identity.contentSha256}\t${identity.behaviourSha256}\t${optional}\t${defaultOn}\n`;
+      }).sort(bytewise).join("");
+      const rest = Object.fromEntries(Object.entries(set).filter(([key]) => !UNDIGESTED.has(key)));
+      set.setSha256 = sha(Buffer.from(lines + canonical(rest)));
+      built.set(set.id, set.setSha256);
+      return set;
+    });
+    return { schema: SETS, release: { framework: release.framework.id, releaseVersion: release.framework.version }, sets };
+  };
+  const template = itemOf(read("release/release-superpowers.json"), "superpowers.template.reviewed-tdd");
+  const reviewedTdd = (overrides = {}) => ({
+    id: "reviewed-tdd",
+    name: "Reviewed TDD",
+    description: template.description,
+    members: [
+      { item: { framework: "superpowers", itemId: "superpowers.skill.test-driven-development" }, optional: false, defaultOn: true },
+      { item: { framework: "superpowers", itemId: "superpowers.claude.hook.session-start" }, optional: true, defaultOn: false },
+      { item: pin(extensionsRelease, "extensions.skill.security-and-hardening"), optional: false, defaultOn: true },
+    ],
+    offer: "pre-ticked",
+    ...overrides,
+  });
+  const valid = buildSets(superpowersRelease, [reviewedTdd()]);
+  const invalid = structuredClone(valid);
+  invalid.sets[0].members[1] = { ...invalid.sets[0].members[1], optional: false, defaultOn: true };
+  invalid.sets[0].members[2] = { ...invalid.sets[0].members[2],
+    item: { framework: "extensions", itemId: "extensions.skill.security-and-hardening" } };
+  const schemaExport = contractSupport.contracts.find(c => c.id === SETS)?.schemaExport;
+  assert(schemaExport, `Undeclared ${SETS}`);
+  for (const [document, ok] of [[valid, true], [invalid, false]]) {
+    const path = `fixtures/release-sets-1.0.0-${ok ? "valid" : "invalid"}.json`;
+    write(path, document);
+    fixtures.push({ name: `release-sets-1.0.0-${ok ? "valid" : "invalid"}`, contract: SETS, version: "1.0.0",
+      export: `@aihq/catalog/${path}`, schemaExport, reader: "release-sets", context: contexts.superpowers,
+      provenance: ok
+        ? "Superpowers reviewed-tdd as a set over real content: required TDD skill, optional session hook off by default, and Extensions security-and-hardening pinned by release version and both identities."
+        : "The same set with its hook member required and the Extensions member unpinned. Schema-valid; the reader refuses both.",
+      expected: ok ? { status: "accept" } : { status: "refuse", code: "INPUT_INVALID", reasons: ["hook-member-required", "member-unpinned"] },
+      ...(ok ? {} : { validation: "reader" }),
+    });
+  }
+  const scenario = (name, envelope, provenance) => {
+    const path = `fixtures/release-sets/${name}.json`;
+    write(path, { scenario: name, ...envelope });
+    fixtures.push({ name, contract: SETS, version: "1.0.0", export: `@aihq/catalog/${path}`, schemaExport,
+      reader: "release-sets-scenario", scenario: true, provenance, expected: { status: "accept" } });
+  };
+  // ECC-style profile: modules are sets, the profile picks languages; common rules always apply.
+  const ref = setId => ({ framework: "ecc", setId });
+  const eccSets = buildSets(eccRelease, [
+    { id: "rules-common", name: "Common rules", description: "ECC rules/common.", offer: "pre-ticked",
+      members: rules("common").map(itemId => ({ item: { framework: "ecc", itemId }, optional: false, defaultOn: true })) },
+    { id: "rules-typescript", name: "TypeScript rules", description: "ECC rules/typescript.", offer: "listed",
+      members: rules("typescript").map(itemId => ({ item: { framework: "ecc", itemId }, optional: false, defaultOn: true })) },
+    { id: "rules-python", name: "Python rules", description: "ECC rules/python.", offer: "listed",
+      members: rules("python").map(itemId => ({ item: { framework: "ecc", itemId }, optional: false, defaultOn: true })) },
+    { id: "developer", name: "Developer profile", description: "ECC-style profile with a language choice.", offer: "pre-ticked",
+      members: [], options: [{ id: "languages", name: "Languages and frameworks", always: [ref("rules-common")],
+        choices: [{ id: "typescript", name: "TypeScript", sets: [ref("rules-typescript")] },
+          { id: "python", name: "Python", sets: [ref("rules-python")] }] }] },
+  ]);
+  const developer = eccSets.sets.find(set => set.id === "developer");
+  const inSet = options => ({ reasonIncluded: "in-set",
+    set: { framework: "ecc", setId: "developer", setSha256: developer.setSha256 }, ...(options ? { options } : {}) });
+  const closure = ids => [...new Set([...ids, ...ids.flatMap(id => itemOf(eccRelease, id).dependencies.requires.map(r => r.itemId))])].sort();
+  scenario("ecc-typescript-choice", {
+    releases: [contexts.ecc],
+    sets: { release: contexts.ecc, document: eccSets },
+    cases: [
+      { name: "no-choice", request: { setId: "developer" },
+        expect: { status: "ok", selections: closure(rules("common")),
+          origins: { "ecc.rule.common.testing": [inSet()] } } },
+      { name: "typescript", request: { setId: "developer", options: { languages: ["typescript"] } },
+        expect: { status: "ok", selections: closure([...rules("common"), ...rules("typescript")]),
+          origins: { "ecc.rule.common.testing": [inSet()],
+            "ecc.rule.typescript.testing": [inSet({ languages: ["typescript"] })] } } },
+      { name: "unknown-choice", request: { setId: "developer", options: { languages: ["rust"] } },
+        expect: { status: "refused", reasons: ["set-option-unknown"] } },
+    ],
+  }, "ECC-style profile over real ECC rules: with no choice only rules/common applies; choosing TypeScript adds its rules with the option origin.");
+  scenario("set-cycle", {
+    build: { release: contexts.superpowers, sets: [
+      { id: "a", name: "A", description: "Includes b.", offer: "listed", members: [], includes: [{ framework: "superpowers", setId: "b" }] },
+      { id: "b", name: "B", description: "Requires a.", offer: "listed", members: [], requires: [{ framework: "superpowers", setId: "a" }] },
+    ] },
+    expect: { status: "refused", reasons: ["set-cycle"] },
+  }, "Two sets that reference each other fail the build.");
+  const outer = hookOn => buildSets(superpowersRelease, [
+    reviewedTdd({ members: reviewedTdd().members.map((m, i) => i === 1 ? { ...m, defaultOn: hookOn } : m) }),
+    { id: "starter", name: "Starter", description: "Includes reviewed-tdd.", offer: "listed", members: [],
+      includes: [{ framework: "superpowers", setId: "reviewed-tdd" }] },
+  ]);
+  const vector = (name, release, document, setId) => ({ name, release, sets: document.sets.map(({ setSha256, ...set }) => {
+    // Declarations carry no digests: same-release references are filled by the build.
+    for (const field of ["includes", "requires", "optional"]) if (set[field]) set[field] = set[field].map(({ setSha256: _, ...r }) => r);
+    return set;
+  }), setId, setSha256: document.sets.find(set => set.id === setId).setSha256 });
+  const pinChanged = reviewedTdd();
+  pinChanged.members[2] = { ...pinChanged.members[2], item: { ...pinChanged.members[2].item, behaviourSha256: sha(Buffer.from("changed behaviour\n")) } };
+  const vectors = [
+    vector("reviewed-tdd", contexts.superpowers, valid, "reviewed-tdd"),
+    vector("reviewed-tdd-display-only", contexts.superpowers,
+      buildSets(superpowersRelease, [reviewedTdd({ name: "Renamed", description: "Reworded.", cost: { bytes: 1, chars: 1 }, stability: "deprecated" })]), "reviewed-tdd"),
+    vector("reviewed-tdd-behaviour-only", contexts.variant, buildSets(variantRelease, [reviewedTdd()]), "reviewed-tdd"),
+    vector("reviewed-tdd-cross-pin-changed", contexts.superpowers, buildSets(superpowersRelease, [pinChanged]), "reviewed-tdd"),
+    vector("starter", contexts.superpowers, outer(false), "starter"),
+    vector("starter-nested-changed", contexts.superpowers, outer(true), "starter"),
+  ];
+  const digest = name => vectors.find(v => v.name === name).setSha256;
+  assert.equal(digest("reviewed-tdd-display-only"), digest("reviewed-tdd"));
+  for (const changed of ["reviewed-tdd-behaviour-only", "reviewed-tdd-cross-pin-changed"]) assert.notEqual(digest(changed), digest("reviewed-tdd"));
+  assert.notEqual(digest("starter-nested-changed"), digest("starter"));
+  scenario("digest-vectors", {
+    vectors,
+    equal: [["reviewed-tdd", "reviewed-tdd-display-only"]],
+    distinct: [["reviewed-tdd", "reviewed-tdd-behaviour-only"], ["reviewed-tdd", "reviewed-tdd-cross-pin-changed"], ["starter", "starter-nested-changed"]],
+    behaviourOnly: { before: contexts.superpowers, after: contexts.variant, itemId: "superpowers.skill.test-driven-development" },
+  }, "Deterministic set digests: display-only fields are outside; a behaviour-only member change, a changed cross-framework pin and a nested set change each change the digest.");
 }
 write("fixtures/manifest.json", { schema: "urn:aihq:catalog:fixture-manifest:1.0.0", package: contractSupport.package, fixtures });
 write("package-support.json", contractSupport);

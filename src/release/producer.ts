@@ -47,6 +47,8 @@ import { checkRecipeAgreement } from "./recipe-agreement.js";
 import { extractSourceFacts, type SourceDiscovery } from "./source-facts.js";
 import { isSpdxLicenseId } from "./spdx.js";
 
+export { compileReleaseSets } from "./sets.js";
+
 export const PRODUCER_DECLARATION_SCHEMA_ID =
   "urn:aihq:catalog:producer-declaration:3.0.0" as const;
 export const PRODUCER_DECLARATION_SCHEMA_ID_3_1 =

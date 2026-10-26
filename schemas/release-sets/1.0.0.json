@@ -1,0 +1,333 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aihq:catalog:release-sets:1.0.0",
+  "title": "Release-level sets of one framework release",
+  "description": "Sets group a framework release's items and nested sets. Sets are not a kind and carry no files. Each setSha256 is SHA-256 over UTF-8 lines framework\\titemId\\tcontentSha256\\tbehaviourSha256\\toptional\\tdefaultOn\\n, one per member, sorted bytewise, followed by the canonical JSON of every other field except id, name, description, cost, stability and setSha256. Nested references carry their own digest, computed bottom-up. readReleaseSets recomputes every digest against the checked release and enforces what a schema cannot: members against the release, optional hooks, pinned cross-framework members and references, acyclic nesting at most 8 levels deep.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "release",
+    "sets"
+  ],
+  "properties": {
+    "schema": {
+      "const": "urn:aihq:catalog:release-sets:1.0.0"
+    },
+    "release": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "framework",
+        "releaseVersion"
+      ],
+      "properties": {
+        "framework": {
+          "$ref": "#/$defs/id"
+        },
+        "releaseVersion": {
+          "$ref": "#/$defs/version"
+        }
+      }
+    },
+    "sets": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": {
+        "$ref": "#/$defs/set"
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "version": {
+      "type": "string",
+      "maxLength": 128,
+      "pattern": "^\\d+\\.\\d+\\.\\d+(?:[-+][0-9A-Za-z.-]+)?$"
+    },
+    "set": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "description",
+        "setSha256",
+        "members",
+        "offer"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "setSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "members": {
+          "type": "array",
+          "maxItems": 5000,
+          "items": {
+            "$ref": "#/$defs/member"
+          }
+        },
+        "includes": {
+          "$ref": "#/$defs/setRefs"
+        },
+        "requires": {
+          "$ref": "#/$defs/setRefs"
+        },
+        "optional": {
+          "$ref": "#/$defs/setRefs"
+        },
+        "targets": {
+          "description": "Client ids the set suits. Only narrows what is offered; never binds delivery.",
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,63}$"
+          }
+        },
+        "offer": {
+          "enum": [
+            "pre-ticked",
+            "listed",
+            "on-request"
+          ]
+        },
+        "cost": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "bytes",
+            "chars"
+          ],
+          "properties": {
+            "bytes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "chars": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "stability": {
+          "enum": [
+            "stable",
+            "in-progress",
+            "deprecated"
+          ]
+        },
+        "options": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/option"
+          }
+        },
+        "firstRun": {
+          "$ref": "#/$defs/itemRef"
+        }
+      }
+    },
+    "itemRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "framework",
+        "itemId"
+      ],
+      "properties": {
+        "framework": {
+          "$ref": "#/$defs/id"
+        },
+        "itemId": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "member": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "item",
+        "optional",
+        "defaultOn"
+      ],
+      "properties": {
+        "item": {
+          "description": "A member of the set's own framework names framework and itemId. A member of another framework is also pinned by releaseVersion, contentSha256 and behaviourSha256.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "framework",
+            "itemId"
+          ],
+          "properties": {
+            "framework": {
+              "$ref": "#/$defs/id"
+            },
+            "itemId": {
+              "$ref": "#/$defs/id"
+            },
+            "releaseVersion": {
+              "$ref": "#/$defs/version"
+            },
+            "contentSha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "behaviourSha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          },
+          "dependentRequired": {
+            "releaseVersion": [
+              "contentSha256",
+              "behaviourSha256"
+            ],
+            "contentSha256": [
+              "releaseVersion",
+              "behaviourSha256"
+            ],
+            "behaviourSha256": [
+              "releaseVersion",
+              "contentSha256"
+            ]
+          }
+        },
+        "optional": {
+          "type": "boolean"
+        },
+        "defaultOn": {
+          "type": "boolean"
+        }
+      },
+      "if": {
+        "properties": {
+          "optional": {
+            "const": false
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "defaultOn": {
+            "const": true
+          }
+        }
+      }
+    },
+    "setRef": {
+      "description": "releaseVersion is present exactly when the set is in another release.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "framework",
+        "setId",
+        "setSha256"
+      ],
+      "properties": {
+        "framework": {
+          "$ref": "#/$defs/id"
+        },
+        "setId": {
+          "$ref": "#/$defs/id"
+        },
+        "setSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "releaseVersion": {
+          "$ref": "#/$defs/version"
+        }
+      }
+    },
+    "setRefs": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "$ref": "#/$defs/setRef"
+      }
+    },
+    "option": {
+      "description": "A pick-several choice; each choice maps to sets. always applies whether or not a choice is made.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "choices"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "always": {
+          "$ref": "#/$defs/setRefs"
+        },
+        "choices": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 256,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "name",
+              "sets"
+            ],
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/id"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "sets": {
+                "$ref": "#/$defs/setRefs"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

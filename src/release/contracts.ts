@@ -34,6 +34,13 @@ export const RELEASE_SCHEMA_EXPORT_1_5 = "@aihq/catalog/schemas/release/1.5.0.js
  */
 export const RELEASE_SCHEMA_ID_1_6 = "urn:aihq:catalog:release:1.6.0" as const;
 export const RELEASE_SCHEMA_EXPORT_1_6 = "@aihq/catalog/schemas/release/1.6.0.json" as const;
+/** Release sets 1.0: release-level groups of items. Sets are not a kind and carry no files. */
+export const RELEASE_SETS_SCHEMA_ID = "urn:aihq:catalog:release-sets:1.0.0" as const;
+export const RELEASE_SETS_SCHEMA_EXPORT = "@aihq/catalog/schemas/release-sets/1.0.0.json" as const;
+/** Set nesting below a chosen set, and distinct resolved members per request. */
+export const SET_MAX_DEPTH = 8;
+export const SET_MAX_MEMBERS = 5000;
+
 /**
  * The release index 1.0.0: one unsigned-first merge surface over per-source index
  * documents. TUF verification of index bytes is delivered separately
@@ -188,6 +195,11 @@ export const contractSupport = Object.freeze({
       id: RELEASE_INDEX_SCHEMA_ID,
       role: "both",
       schemaExport: RELEASE_INDEX_SCHEMA_EXPORT,
+    }),
+    Object.freeze({
+      id: RELEASE_SETS_SCHEMA_ID,
+      role: "both",
+      schemaExport: RELEASE_SETS_SCHEMA_EXPORT,
     }),
   ]),
   entries: Object.freeze([
@@ -603,6 +615,8 @@ export interface CatalogRelease {
   }[];
   /** Release 1.6 optional display-only upstream plugin routes. */
   readonly nativeRoutes?: readonly string[];
+  /** Checked release sets, present when attached by `readReleaseSets`. */
+  readonly sets?: readonly ReleaseSet[];
 }
 
 /**
@@ -862,12 +876,140 @@ export interface SelectionRef {
 export interface SelectionRoot extends SelectionRef {
   readonly configuration: Readonly<Record<string, Json>>;
 }
+/**
+ * A set member's item. A member from the set's own framework names only
+ * `{ framework, itemId }`; its identities come from the release. A member from
+ * another framework is pinned by that release's version and both identities.
+ */
+export type SetMemberItem =
+  | { readonly framework: string; readonly itemId: string }
+  | {
+      readonly framework: string;
+      readonly itemId: string;
+      readonly releaseVersion: string;
+      readonly contentSha256: string;
+      readonly behaviourSha256: string;
+    };
+export interface SetMember {
+  readonly item: SetMemberItem;
+  /** A person may leave the member out. Every hook member is optional. */
+  readonly optional: boolean;
+  /** Taken when the set is chosen, unless the request names the member. */
+  readonly defaultOn: boolean;
+}
+/** A nested set. `releaseVersion` is present exactly when the set is in another release. */
+export interface SetRef {
+  readonly framework: string;
+  readonly setId: string;
+  readonly setSha256: string;
+  readonly releaseVersion?: string;
+}
+/** A pick-several choice whose values map to sets. */
+export interface SetOption {
+  readonly id: string;
+  readonly name: string;
+  readonly description?: string;
+  /** Applied whether or not a choice is made, such as common rules. */
+  readonly always?: readonly SetRef[];
+  readonly choices: readonly {
+    readonly id: string;
+    readonly name: string;
+    readonly description?: string;
+    readonly sets: readonly SetRef[];
+  }[];
+}
+export interface ReleaseSet {
+  readonly id: string;
+  readonly name: string;
+  readonly description: string;
+  readonly setSha256: string;
+  readonly members: readonly SetMember[];
+  /** Expanded depth-first, before the members. */
+  readonly includes?: readonly SetRef[];
+  /** Sets this set needs; expanded after the members. */
+  readonly requires?: readonly SetRef[];
+  /** Sets offered alongside this one; never expanded by resolution. */
+  readonly optional?: readonly SetRef[];
+  /** Client ids the set suits. Only narrows what is offered; never binds delivery. */
+  readonly targets?: readonly string[];
+  readonly offer: "pre-ticked" | "listed" | "on-request";
+  /** Display size of the default members. Outside the digest. */
+  readonly cost?: { readonly bytes: number; readonly chars: number };
+  /** Display maturity. Outside the digest. */
+  readonly stability?: "stable" | "in-progress" | "deprecated";
+  readonly options?: readonly SetOption[];
+  /** The member to run first, such as a setup skill. */
+  readonly firstRun?: { readonly framework: string; readonly itemId: string };
+}
+/** The build input: a set without digests; same-release references may omit `setSha256`. */
+export type SetRefDeclaration = Omit<SetRef, "setSha256"> & { readonly setSha256?: string };
+export type ReleaseSetDeclaration = Omit<
+  ReleaseSet,
+  "setSha256" | "includes" | "requires" | "optional" | "options"
+> & {
+  readonly includes?: readonly SetRefDeclaration[];
+  readonly requires?: readonly SetRefDeclaration[];
+  readonly optional?: readonly SetRefDeclaration[];
+  readonly options?: readonly (Omit<SetOption, "always" | "choices"> & {
+    readonly always?: readonly SetRefDeclaration[];
+    readonly choices: readonly (Omit<SetOption["choices"][number], "sets"> & {
+      readonly sets: readonly SetRefDeclaration[];
+    })[];
+  })[];
+};
+/** Release sets 1.0 document: the sets of one framework release. */
+export interface ReleaseSetsDocument {
+  readonly schema: typeof RELEASE_SETS_SCHEMA_ID;
+  readonly release: { readonly framework: string; readonly releaseVersion: string };
+  readonly sets: readonly ReleaseSet[];
+}
+export type ReadReleaseSetsResult =
+  | {
+      readonly valid: true;
+      /** A checked release view equal to the supplied one, carrying `sets`. */
+      readonly release: CatalogRelease;
+      readonly sets: readonly ReleaseSet[];
+      readonly diagnostics: readonly [];
+    }
+  | { readonly valid: false; readonly diagnostics: readonly CatalogDiagnostic[] };
+/** One chosen set in a `resolveSelections` request. */
+export interface SetSelection {
+  readonly release: { readonly releaseSha256: string; readonly scope: "project" | "user" };
+  readonly setId: string;
+  readonly setSha256: string;
+  /** Option id to chosen choice ids. */
+  readonly options?: Readonly<Record<string, readonly string[]>>;
+  /** Overrides `defaultOn` for the named members; `include: false` excludes the item. */
+  readonly members?: readonly {
+    readonly item: { readonly framework: string; readonly itemId: string };
+    readonly include: boolean;
+  }[];
+}
+/** Qualified inclusion identity: why one resolved item is selected. */
+export type InclusionOrigin =
+  | { readonly reasonIncluded: "chosen" }
+  | {
+      readonly reasonIncluded: "in-set";
+      readonly set: {
+        readonly framework: string;
+        readonly setId: string;
+        readonly setSha256: string;
+      };
+      readonly options?: Readonly<Record<string, readonly string[]>>;
+    }
+  | {
+      readonly reasonIncluded: "required-by";
+      /** `framework` is absent only when the requiring release publishes no framework identity. */
+      readonly requiredBy: { readonly framework?: string; readonly itemId: string };
+    };
 export interface ResolveSelectionsRequest {
   /** Exact digest keys and actual readRelease handles, never serialized clones. */
   readonly releases: Readonly<Record<string, CatalogRelease>>;
   readonly roots: readonly SelectionRoot[];
   readonly skips: readonly SelectionRef[];
   readonly remove?: readonly SelectionRef[];
+  /** Chosen sets, expanded in request order before dependency closure. */
+  readonly sets?: readonly SetSelection[];
 }
 export interface Inclusion {
   readonly item: SelectionRef;
@@ -882,7 +1024,11 @@ export interface RemovalImpact {
   readonly orphaned: readonly SelectionRef[];
 }
 export interface ResolvedSelections {
-  readonly selections: readonly (SelectionRequest & { readonly scope: "project" | "user" })[];
+  readonly selections: readonly (SelectionRequest & {
+    readonly scope: "project" | "user";
+    /** Every reason the item is selected; overlapping sets keep each one. */
+    readonly origins: readonly InclusionOrigin[];
+  })[];
   readonly inclusions: readonly Inclusion[];
   readonly optional: readonly {
     readonly from: SelectionRef;

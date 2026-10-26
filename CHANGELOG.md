@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- Add release sets 1.0.0 and set resolution for samartomar/aih-catalog#135. A set
+  groups one framework release's items: members with `optional`/`defaultOn`,
+  nested `includes`/`requires`/`optional` sets, `offer`, narrowing-only
+  `targets`, pick-several `options`, `firstRun` and display-only `cost` and
+  `stability`. `setSha256` covers each member's framework, id, both identities,
+  `optional` and `defaultOn`, plus the canonical JSON of the semantic fields;
+  nested digests are computed bottom-up. `compileReleaseSets` (`./producer`)
+  refuses non-optional hooks, unpinned cross-framework members and references,
+  cycles and nesting deeper than 8; `readReleaseSets` (`./reader`) recomputes
+  every digest and attaches the sets to a checked release view.
+  `resolveSelections` accepts `sets[]`, expands them in the published order,
+  applies exclusions and dependency closure, and gives every selection
+  `origins[]`. New refusals: `REQUIRED_EXCLUDED`, `SET_UNAVAILABLE`, `SET_CYCLE`
+  and `SET_LIMIT_EXCEEDED`; conflicts keep `ITEM_CONFLICT`. Package support,
+  schema export and fixtures list the new contract.
+
 - Add `parseSourceLink(text)` to `@aihq/catalog/source` for
   samartomar/aih-catalog#120: a portable, side-effect-free parser that turns a
   pasted GitHub link, install command or npm package name into a candidate

@@ -69,6 +69,15 @@ Format versions are independent of the package version. This package reads every
 
 Author new declarations against producer declaration 3.1.0. The compiler chooses the release format: the lowest one that expresses the compiled content, so supplied output stays readable by older readers. Persisted documents in earlier formats remain readable; there is no need to rewrite them. Hook release 1.1 remains a distinct supported release rather than an older copy of the default release.
 
+### Release sets
+
+Release sets 1.0 (`urn:aihq:catalog:release-sets:1.0.0`) group a framework
+release's items, nested sets and pick-several options, with a set digest over the
+members' identities. `compileReleaseSets` builds them, `readReleaseSets` attaches
+checked sets to a checked release 1.6 view and `resolveSelections` expands chosen
+sets. See [choosing sets](PUBLIC-AUTHORING.md#choose-sets). Framework releases
+carry sets in release format 1.7.0 (samartomar/aih-catalog#142).
+
 ## Selection and configuration
 
 Use `readRelease(bytes,{expectedSha256})` with a caller-held integrity pin, then `listItems` or `getItem`. `configureItem` accepts an already resolved shared material source and ordinary values. Its result contains a generic Core recipe reference, configuration, descriptive provenance and the item's dependency declarations. It neither acquires material nor binds operation effects.

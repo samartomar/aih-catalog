@@ -151,6 +151,7 @@ describe("the published package keeps its intended runtime subset", () => {
       "schemas/content-inventory",
       "schemas/scan-baseline",
       "schemas/release-index",
+      "schemas/release-sets",
       "docs/SCAN-BASELINE.md",
       "tools/refresh-source.mjs",
       "dist/producer/base.js",
@@ -270,6 +271,16 @@ describe("the published package keeps its intended runtime subset", () => {
       "./fixtures/release-index/expired-index.json",
       "./fixtures/release-index/tuf-selected-offline.json",
       "./fixtures/release-index/offline-cache-reuse.json",
+      "./schemas/release-sets/1.0.0.json",
+      "./fixtures/release-sets-1.0.0-valid.json",
+      "./fixtures/release-sets-1.0.0-invalid.json",
+      "./fixtures/release-sets/superpowers-release-1.6.0.json",
+      "./fixtures/release-sets/superpowers-behaviour-variant-release-1.6.0.json",
+      "./fixtures/release-sets/extensions-release-1.6.0.json",
+      "./fixtures/release-sets/ecc-release-1.6.0.json",
+      "./fixtures/release-sets/ecc-typescript-choice.json",
+      "./fixtures/release-sets/set-cycle.json",
+      "./fixtures/release-sets/digest-vectors.json",
     ]);
     expect(manifest.private).toBe(true);
     expect(manifest.scripts.prepublishOnly).toBe("node tools/refuse-publication.mjs");

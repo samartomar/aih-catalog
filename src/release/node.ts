@@ -23,6 +23,7 @@ import {
 } from "node:fs";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { ARCHIVE_LIMITS, readPackageArchive } from "./archive.js";
+import { extendedReleases } from "./checked.js";
 import {
   type CatalogDiagnostic,
   type CatalogRelease,
@@ -785,7 +786,10 @@ export async function prepareProjectContext(
     }
     const { files, manifest, derivation } = derived.derived;
 
-    const installedRoot = installedRoots.get(release);
+    // A view carrying attached sets keeps the installed root of the release it extends.
+    const installedRoot =
+      installedRoots.get(release) ??
+      installedRoots.get(extendedReleases.get(release) as CatalogRelease);
     // The installed root is checked beside every caller root, never keyed among them.
     const protectedRoots = Object.values(roots);
     if (installedRoot !== undefined) protectedRoots.push(installedRoot);
