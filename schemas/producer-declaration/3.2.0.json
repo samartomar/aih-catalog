@@ -48,7 +48,7 @@
               },
               "license": {
                 "type": "string",
-                "pattern": "^[A-Za-z0-9][A-Za-z0-9.+-]{0,63}( (?:AND|OR|WITH) [A-Za-z0-9][A-Za-z0-9.+-]{0,63}){0,16}$",
+                "pattern": "^[A-Za-z0-9().+\\- ]{1,256}$",
                 "maxLength": 256
               },
               "pluginManifestPath": {
@@ -74,7 +74,7 @@
               },
               "license": {
                 "type": "string",
-                "pattern": "^[A-Za-z0-9][A-Za-z0-9.+-]{0,63}( (?:AND|OR|WITH) [A-Za-z0-9][A-Za-z0-9.+-]{0,63}){0,16}$",
+                "pattern": "^[A-Za-z0-9().+\\- ]{1,256}$",
                 "maxLength": 256
               },
               "pluginManifestPath": {

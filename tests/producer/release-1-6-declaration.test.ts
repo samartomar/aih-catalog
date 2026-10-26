@@ -367,7 +367,9 @@ describe("producer 3.2.0 acceptance recovery", () => {
     const bad = declaration() as unknown as {
       sources: { license: string }[];
     };
-    bad.sources[0].license = "not-a-real-license";
+    const first = bad.sources[0];
+    if (first === undefined) throw new Error("fixture source missing");
+    first.license = "not-a-real-license";
     const checked = checkProducerDeclaration(bad);
     expect(checked.status).toBe("refused");
     if (checked.status !== "refused") return;
@@ -378,9 +380,14 @@ describe("producer 3.2.0 acceptance recovery", () => {
     const expression = declaration() as unknown as {
       sources: { license: string }[];
     };
-    expression.sources[0].license = "MIT OR Apache-2.0";
-    const checked = checkProducerDeclaration(expression);
-    expect(checked.status).toBe("ok");
+    const first = expression.sources[0];
+    if (first === undefined) throw new Error("fixture source missing");
+    first.license = "MIT OR Apache-2.0";
+    expect(checkProducerDeclaration(expression).status).toBe("ok");
+    first.license = "(MIT OR Apache-2.0) AND MIT";
+    expect(checkProducerDeclaration(expression).status).toBe("ok");
+    first.license = "Apache-2.0 WITH LLVM-exception";
+    expect(checkProducerDeclaration(expression).status).toBe("ok");
   });
 
   it("refuses a pinned root NOTICE file that no item carries", () => {
@@ -422,4 +429,17 @@ describe("producer 3.2.0 acceptance recovery", () => {
       ),
     ).toBe(true);
   });
+});
+
+it("publishes the declared label as the publisher-level display name", () => {
+  const compiled = compileProducerDeclaration({
+    declaration: declaration(),
+    sourceFiles: sourceFiles(),
+  });
+  expect(compiled.status).toBe("ok");
+  if (compiled.status !== "ok") return;
+  const review = compiled.value.release.items.find((item) => item.id === "notes.review");
+  expect(review?.name).toBe("Review");
+  expect(review?.nameBasis).toBe("publisher");
+  expect(review?.descriptionBasis).toBe("publisher");
 });

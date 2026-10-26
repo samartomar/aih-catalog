@@ -62,8 +62,7 @@ export const DECLARATION_FORMAT = "aihq-catalog-producer-declaration";
 const ENTRY = /^[a-z0-9][a-z0-9-]{0,63}$/;
 // Structural shape first; semantic SPDX list/expression validation runs in
 // src/release/producer.ts over the embedded SPDX License List.
-const SPDX =
-  /^[A-Za-z0-9][A-Za-z0-9.+-]{0,63}( (?:AND|OR|WITH) [A-Za-z0-9][A-Za-z0-9.+-]{0,63}){0,16}$/;
+const SPDX = /^[A-Za-z0-9().+\- ]{1,256}$/;
 const PLACEHOLDER_MAX = 64;
 
 function keys(

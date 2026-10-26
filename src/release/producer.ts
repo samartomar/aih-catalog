@@ -813,14 +813,15 @@ export function compileProducerDeclaration(request: {
           : identifierBasis === "key"
             ? sourceFacts.identifier
             : (sourceFacts.identifier.split("/").pop() ?? sourceFacts.identifier);
-      const nameBasis: NameBasis | undefined =
+      const nameBasis: NameBasis =
         item.name !== undefined
           ? (item.nameBasis ?? "publisher")
           : sourceFacts?.name.state === "authored"
             ? sourceFacts.name.basis
             : sourceFacts
               ? identifierBasis
-              : undefined;
+              : // The declared label is the publisher's own display name.
+                "publisher";
       const displayName =
         item.name ??
         (sourceFacts?.name.state === "authored"
