@@ -123,6 +123,32 @@ rebuild is needed. Catalog performs no latest-summary selection. Preserve S1 in
 saved policies, reviews and prepared actions until an explicit edit selects other
 evidence. Content without evidence remains a valid runtime choice.
 
+## Item evidence descriptors
+
+Releases do not embed item scan records. For one release 1.6 item, the portable
+reader derives Scan's item descriptor so a consumer can derive item records from
+the baseline, the latest, or an explicitly chosen historical assessment:
+
+```js
+import { itemEvidenceDescriptor, readRelease } from "@aihq/catalog/reader";
+import { recordItem, verifyItemRecord } from "@aihq/scan/read";
+
+const evidence = itemEvidenceDescriptor(release, { itemId: "notes.review" });
+if (!evidence.valid) throw new Error(JSON.stringify(evidence.diagnostics));
+// { frameworkId, itemId, contentSha256, behaviourSha256,
+//   materials: [{ path, sha256, byteLength, executable, role }] }
+```
+
+Both identities are recomputed from the checked release and the behaviour file
+is checked against the item's declarations; a mismatch in either is a refusal,
+and every descriptor includes the behaviour file. Each `path` is the material's
+`packagePath`, expressed in the baseline scope's package-relative namespace, so
+the descriptor addresses exactly the bytes the baseline capture recorded. Pass
+the descriptor to Scan's public `recordItem` or `verifyItemRecord` with any
+assessment the consumer selected; an assessment captured for old declarations
+never covers the item after its payload, dependencies or executable state
+change, because the behaviour identity changes with them.
+
 ## Maintainer commands and proof
 
 The existing `prepare:candidate` prepares **content**, and `check:release` remains
