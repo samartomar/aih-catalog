@@ -275,9 +275,10 @@ export function projectBasicsRouterDoc(): string {
     rules: "[rules/agent-behavior-core.md](rules/agent-behavior-core.md)",
     adapters: [],
     managed: [
-      "haven't verified exists. The files in this folder, except `PROJECT.md`, are",
-      "delivered and updated as explicitly selected Catalog content; update the selection",
-      "to update them — hand-edits to these managed files conflict with the next update.",
+      "haven't verified exists. This router and",
+      "[rules/agent-behavior-core.md](rules/agent-behavior-core.md) are delivered and",
+      "updated as explicitly selected Catalog content; update the selection to update them —",
+      "hand-edits to these managed files conflict with the next update.",
     ],
   });
 }

@@ -38,8 +38,8 @@ const AMENDMENTS = [
   { id: "mcp-edit-digests", reason: "Each MCP survivor records whether its shipped definition is identical to upstream or edited; an edit is digested as SHA-256 of the canonical JSON {from: upstream, to: shipped} plus LF, in upstream's own encoding." },
 ];
 
-// The three Project basics items samartomar/aih-catalog#137 names, and the frozen
-// project-context material each captures at its item-relative path.
+// The three Project basics items samartomar/aih-catalog#137 names, the frozen
+// project-context material each splits, and its folder-neutral rendered text.
 const BASICS = [
   { id: "project-basics.router", kind: "document", purpose: "guide", material: "rule-router", relPath: "RULE_ROUTER.md", render: projectBasicsRouterDoc },
   { id: "project-basics.shared-block", kind: "rule", material: "shared-block", relPath: "shared-block.md", render: projectBasicsSharedBlock },

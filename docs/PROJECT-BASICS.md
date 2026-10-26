@@ -38,7 +38,11 @@ reports a changed or missing block (samartomar/aih-core#100). The payload placem
 where an item belongs; it does not name a folder or a tool. Each item's release 1.x
 recipe delivers that item's own bytes, with no tool map, into
 `{ input: "projectFolder" }/<relPath>`. `projectFolder` is one folder name at the project
-root, required, with default `ai-coding`. Release 2.0.0 removes recipes from
+root, required, with default `ai-coding`. Through this recipe the folder is a single
+segment: a nested folder such as `.ai/context` is not expressible, and Core's segment
+rules decide what a value may be. Placement-based delivery by the installer is not
+limited this way. Because the shared block names no folder, the installer's entry block
+or entry pointer must tell a tool where the project's folder is. Release 2.0.0 removes recipes from
 Catalog-maintained content.
 
 The items declare what their texts route to: the router requires the working rules, and
@@ -101,8 +105,10 @@ releases never embed scan records.
   fixture and the unbound state. It is part of `npm test`.
 - Full package assembly (`tools/assemble-release-package.mjs`) carries the prepared
   content, its inventory and members unchanged. Its installed public readback reports
-  them as `preparedContent`, and `tools/verify-package-consumer.mjs` checks that they
-  arrive byte for byte.
+  them as `preparedContent`, and `tools/verify-package-consumer.mjs` asserts that they
+  arrive byte for byte. That maintained proof currently stops earlier, at the
+  whole-package check of the frozen default (samartomar/aih-catalog#146), so these
+  assertions have only been exercised outside it so far.
 - The golden fixture `@aihq/catalog/fixtures/release-1-7/project-basics-release-1.7.0.json`
   is the shipped content with a **test-only evidence binding**; it claims no
   authenticated assessment. Package support 1.1 lists it under release 1.7.0.

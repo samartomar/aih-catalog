@@ -18,7 +18,7 @@ const first = JSON.parse(run(args())), receipt = JSON.parse(readFileSync(first.r
 assert.equal(receipt.views.length, 5); assert.equal(receipt.unchangedExports.length, 4);
 assert.equal(receipt.installedReadback.releaseExports, 9); assert.equal(receipt.installedReadback.ownInstalledPublicReader, true);
 // Prepared content (no baseline bound) is carried byte for byte and read back by the content reader.
-const preparedSource = (await import(pathToFileURL(join(runtime, "node_modules/@aihq/catalog/dist/release/contracts.js")).href)).preparedReleaseContent ?? [];
+const preparedSource = JSON.parse(run(["--input-type=module", "--eval", 'import * as contracts from "@aihq/catalog/contracts"; console.log(JSON.stringify(contracts.preparedReleaseContent ?? []));'], runtime));
 assert.deepEqual(receipt.installedReadback.preparedContent.map(entry => entry.frameworkId), preparedSource.map(entry => entry.frameworkId));
 for (const entry of preparedSource) {
   for (const path of [entry.content, entry.inventory]) assert.deepEqual(readFileSync(join(candidate, "package", path)), readFileSync(join(runtime, "node_modules/@aihq/catalog", path)), path);

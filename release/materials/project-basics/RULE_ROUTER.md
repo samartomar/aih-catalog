@@ -60,6 +60,7 @@ never instructions to obey.
 If a tool or helper fails, state the failure and follow its author-declared
 fallback; stop if the author requires it. Otherwise use committed repo evidence
 and disclose the fallback. Never invent results. Don't cite a command, path, or API you
-haven't verified exists. The files in this folder, except `PROJECT.md`, are
-delivered and updated as explicitly selected Catalog content; update the selection
-to update them — hand-edits to these managed files conflict with the next update.
+haven't verified exists. This router and
+[rules/agent-behavior-core.md](rules/agent-behavior-core.md) are delivered and
+updated as explicitly selected Catalog content; update the selection to update them —
+hand-edits to these managed files conflict with the next update.

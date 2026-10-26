@@ -5,7 +5,8 @@
 // by their place in the folder a project chooses, never a folder name, and promise
 // no tool-specific notes. Any placeholder outside the closed list fails the build.
 // Per-project facts, the folder a project chooses and drift are the installer's,
-// not this release's; the release 1.x recipes take that folder as an input. The baseline binding is a separate preparation step (docs/SCAN-BASELINE.md):
+// not this release's; the release 1.x recipes take that folder as an input.
+// The baseline binding is a separate preparation step (docs/SCAN-BASELINE.md):
 // this script freezes the content inventory it must capture and binds nothing.
 // Run `npm run build:dist` first. No acquisition, execution or Scan.
 //
@@ -54,8 +55,8 @@ export function folderProblems(text) {
 }
 
 /**
- * The three items: id, kind, the frozen context material each captures, its
- * item-relative path, rendered text and typed payload. A document's placement is
+ * The three items: id, kind, the frozen context material each splits, its
+ * item-relative path, folder-neutral renderer and typed payload. A document's placement is
  * declared to the transition build, as release 1.6 documents cannot carry it.
  */
 export const ITEMS = [
