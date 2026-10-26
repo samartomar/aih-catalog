@@ -10,7 +10,7 @@ import { Ajv2020 } from "ajv/dist/2020.js";
 import { contractSupport, contractSupport11 } from "@aihq/catalog/contracts";
 import { readRelease, readContentInventory, readReleaseIndex } from "@aihq/catalog/reader";
 import { checkProducerDeclaration } from "@aihq/catalog/producer";
-import { readInstalledRelease } from "@aihq/catalog/node";
+import { readInstalledRelease, readRecipe } from "@aihq/catalog/node";
 import manifest from "@aihq/catalog/fixtures/manifest.json" with { type: "json" };
 
 const data = specifier => readFileSync(fileURLToPath(import.meta.resolve(specifier)));
@@ -140,6 +140,10 @@ for (const fixture of manifest.fixtures) {
         put(item.recipe.path, bytes);
         result = await readInstalledRelease({ root });
       } finally { rmSync(root, { recursive: true, force: true }); }
+      // The standalone reader applies the same admission without an item.
+      const standalone = readRecipe(bytes);
+      assert.equal(standalone.valid, valid, `${fixture.name} standalone: ${JSON.stringify(standalone.diagnostics)}`);
+      if (!valid) assert(standalone.diagnostics.some(d => d.code === fixture.expected.code), `${fixture.name}: wrong standalone refusal`);
       break;
     }
     default: throw new Error(`Unknown public reader ${fixture.reader}`);
@@ -149,4 +153,9 @@ for (const fixture of manifest.fixtures) {
   if (!valid) assert(result.diagnostics.some(d => d.code === fixture.expected.code), `${fixture.name}: wrong refusal ${JSON.stringify(result)}`);
   results.push({ export: fixture.export, contract: fixture.contract, version: fixture.version, ...fixture.expected });
 }
+// The standalone reader's own refusals, through the packed export.
+const recipeText = text => readRecipe(new TextEncoder().encode(text)).diagnostics.map(d => [d.code, d.reason]);
+assert.deepEqual(recipeText('{"schema":"urn:aihq:core:recipe:1.2.0"}'), [["SCHEMA_UNSUPPORTED", "recipe-schema-unsupported"]]);
+assert.deepEqual(recipeText('{"schema":"constructor"}'), [["SCHEMA_UNSUPPORTED", "recipe-schema-unsupported"]]);
+assert.deepEqual(recipeText('{"schema":"urn:aihq:core:recipe:1.0.0","id":"a","id":"b"}'), [["INPUT_INVALID", "recipe-unreadable"]]);
 process.stdout.write(JSON.stringify({ declarations: [contractSupport.schema, contractSupport11.schema], checked: results.length, results }));
