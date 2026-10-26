@@ -251,10 +251,7 @@ export function checkCandidateFiles(
         ...(item.recipe === undefined ? [] : [item.recipe]),
         ...(item.recipes === undefined ? [] : Object.values(item.recipes)),
       ] as unknown as Record<string, unknown>[];
-      const members = [...recipeMembers, ...item.materials] as unknown as Record<
-        string,
-        unknown
-      >[];
+      const members = [...recipeMembers, ...item.materials] as unknown as Record<string, unknown>[];
       for (const member of members) {
         const path = String(memberPackagePath(member));
         const bytes = files.get(path);
@@ -297,9 +294,11 @@ export function checkCandidateFiles(
     for (const item of items) {
       const recipeMembers = [
         ...(item.recipe === undefined ? [] : [asRecord(item.recipe as Json)]),
-        ...((item.recipes === undefined
-          ? []
-          : (Object.values(asRecord(item.recipes as Json)) as Json[])) as Json[]).map(asRecord),
+        ...(
+          (item.recipes === undefined
+            ? []
+            : (Object.values(asRecord(item.recipes as Json)) as Json[])) as Json[]
+        ).map(asRecord),
       ];
       for (const member of [...recipeMembers, ...(item.materials as Json[]).map(asRecord)]) {
         if (member === undefined || member === null) continue;
