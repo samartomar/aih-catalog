@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"perl/patterns.md":false},"kind":"rule","payload":{"applyTo":["**/*.pl","**/*.pm","**/*.t","**/*.psgi","**/*.cgi"],"applyToBasis":"authored: frontmatter paths","namespace":"perl"},"requirements":{"inputs":{}}}

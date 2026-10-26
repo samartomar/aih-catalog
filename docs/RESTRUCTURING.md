@@ -49,6 +49,12 @@ with its reason:
 - **superpowers-pinned-revision:** the dry run read an earlier Superpowers revision than
   the package pins, so Superpowers content identities are predicted again with the same
   rule from the pinned materials of `release-superpowers.json`.
+- **ecc-notices-identity:** the dry run's `ecc.notices` identity reproduces from none of
+  the tried path assignments for its four shipped materials (every suffix of each
+  install target and source path, the package paths, and the paths with tool prefixes
+  removed), so the expectation
+  predicts it from those unchanged material digests at the paths every other ECC item
+  uses (the install target without its `.aihq/ecc/` and `source/` prefixes).
 - **mcp-edit-digests:** each MCP survivor records `identical` or `edited`; an edit is
   digested as SHA-256 of the canonical JSON `{"from": upstream, "to": shipped}` plus
   LF, both in upstream's own encoding (`mcpEditsSha256` in `@aihq/catalog/producer`).
@@ -67,7 +73,7 @@ pending framework fails its `framework` row.
 
 `npm run check:restructuring` re-derives the expectation and compares every 1.7.0
 release the package lists in `releaseInventory` and every prepared 1.7.0 content
-document still awaiting its baseline (today Project basics and Superpowers); `npm run verify` runs it, so a
+document still awaiting its baseline (today Project basics, Superpowers and ECC); `npm run verify` runs it, so a
 framework's 1.7.0 release cannot be added, and its index entry cannot ship, until it
 passes. `node tools/check-restructuring.mjs <release.json>` prints every row for one
 document.

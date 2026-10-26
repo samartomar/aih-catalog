@@ -159,3 +159,99 @@ The existing complete inventory, notices, support materials, donor dispositions 
 reviewed inclusion rules remain authoritative. Discovery of another upstream file is
 not admission. No hook configuration is currently an admitted ECC item; hook-related
 rules and skills are delivered instructions, not active hook registration.
+
+## Release 1.7.0 content
+
+`@aihq/catalog/release-ecc.content.json` is ECC as release format 1.7.0: one
+tool-neutral item per piece of content, with ECC's own install groups as sets. It is
+built by `node tools/generate-ecc-release-17.mjs` from the shipped `release-ecc.json`
+and the pinned `manifests/install-modules.json`, `install-profiles.json` and
+`install-components.json`, whose bytes are checked against the complete pinned tree.
+Nothing is fetched or run.
+
+The framework is `{ id: "ecc", name: "ECC", version, description }`: the repository
+name, and the version and description of the pinned `.claude-plugin/plugin.json`.
+
+### Items
+
+The 697 earlier items become 663. Each keeps its id, except:
+
+| Earlier items | Item | Match |
+| --- | --- | --- |
+| `ecc.claude.mcp.<key>` and `ecc.codex.mcp.<key>` | `ecc.mcp.<key>`, kind `mcp-server` | hash |
+| `ecc.copilot.skill.api-design` | `ecc.skill.api-design` | hash |
+| `ecc.kiro.skill.<name>` | `ecc.skill.<name>.kiro-variant` | hash |
+| `ecc.kiro.steering.<name>` | `ecc.steering.<name>`, kind `rule` | hash |
+
+Every earlier id that does not survive is in `retired[]` with a reason and its
+replacement. Its survivor supersedes it twice: by hash in the per-tool copy that the
+build collapses (the shipped item restated as release 1.6 in memory, not shipped), and
+by name and source path in the shipped `release-ecc.json`, whose digest an installed
+copy records. Kiro-edition items are retired as renamed, the collapsed copies as
+collapsed. `ecc.template.api-review`, a
+Catalog-authored starting choice rather than one of ECC's groups, retires with no
+successor. Item-relative paths are each file's install target without its tool prefix,
+and executable state comes from the pinned tree's file modes.
+
+- **Rules** keep their directory as `payload.namespace` and their file name as `name`,
+  so they read "coding-style (typescript)". `applyTo` is the authored `paths:`
+  frontmatter, or every file when there is none.
+- **MCP servers** carry the offered definition as a typed payload. An environment or
+  header value that is one `${NAME}` reference becomes an input reference with a
+  `requirements.inputs` entry (`${NAME:-}` is optional); `Authorization: Bearer
+  ${NAME}` names its token input. `derivation` records whether the offered definition
+  is identical to upstream's (apart from its display description) or edited, with the
+  edit digest. A server offered for both Claude and Codex carries a recipe for each
+  client, and each recipe keeps its own scope: project for Claude, user for Codex. The
+  item lists both scopes. Each keeps the union of its copies' dependencies, so every
+  server requires `ecc.notices`, which the Codex copies had dropped, and carries the
+  LICENSE. `ecc.notices` is delivered to the project only, so a user-scope selection of
+  a server is refused until the notice admits user scope. Until then the Codex items of
+  `release-ecc.json` remain the user-scope route. The servers share one upstream
+  file, so they share a content identity; each has its own `behaviourSha256`.
+- **Skills** may start when the model decides, since no pinned skill sets
+  `disable-model-invocation`.
+- **Kiro edition.** Its skills and steering are namespaced `kiro` so their names stay
+  unique, and no main set lists them. Their own set, display hints, variants and
+  steering inclusion are samartomar/aih-catalog#143.
+
+### Sets
+
+| Sets | From | Shape |
+| --- | --- | --- |
+| `ecc.module.<id>`, 36 | `install-modules.json` | Members are the items under the module's paths; `requires` are its dependencies; `targets` its targets; `offer` is `pre-ticked` for a default install, otherwise `listed`; `stability` is stable or, for beta and experimental, in-progress |
+| `ecc.rules.<directory>`, 22 | `rules/` | The rules of one directory |
+| `ecc.profile.<id>`, 7 | `install-profiles.json` | `includes` lists the profile's modules, in order |
+
+`ecc.module.rules-core` always includes `ecc.rules.common`, with no choice made, and
+offers `rules/README.md` as an optional member that is off by default. Every profile
+with the rules module carries one pick-several option, `languages`. Its choices are
+ECC's language and framework components: each maps to the rules directory of the same
+name (`go` to `golang`, and `c` to the shared `cpp`, as their descriptions say) and to
+the modules the component lists. A rules directory no component names (`dart`, `nuxt`,
+`php`, `react-native`, `web`) is a choice of its own. Picking TypeScript and Python on
+the developer profile therefore adds exactly the TypeScript and Python rules plus the
+common rules, each with an `in-set` origin naming the profile and, for a choice, the
+option.
+
+Set targets narrow and never bind: upstream's `claude` and `claude-project` read as
+`claude-code`, and other targets keep upstream's names. The upstream's own words for
+each module (default install, cost, stability, targets and dependencies) and each
+profile are in the release's `metadata.eccInstallGroups`, with the manifests' digests.
+Modules whose paths hold no delivered item, such as the hook runtime and the translated
+documentation, are sets with no members. Every hook member of a set is optional; the
+pinned hook runtime has no admitted hook item.
+
+### Checks and the baseline
+
+`npm run check:restructuring` compares the content with the amended expected
+projection: all 663 items and hashes, 33 supersessions, 32 MCP pairs, 35 edit records
+and 134 retirements. `node tools/verify-ecc-release-17-consumer.mjs [catalog.tgz]`
+checks it through the installed packed package's public exports only.
+
+The baseline rule is unchanged ([baseline contract](SCAN-BASELINE.md)). The content
+inventory is frozen and shipped at `release/baselines/ecc/content-inventory.json`, but
+**no assessment is bound yet**. The content is therefore listed in
+`preparedReleaseContent`, read with `readReleaseContent`, refused by `readRelease`, and
+has no release index entry. Binding one authentic, readable, matching assessment makes it
+an ordinary release with per-item coverage from Scan's item records.

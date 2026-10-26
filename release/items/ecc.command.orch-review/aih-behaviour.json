@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"orch-review.md":false},"kind":"command","payload":{"files":["asset-0"]},"requirements":{"inputs":{}}}

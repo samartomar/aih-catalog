@@ -13,7 +13,8 @@ import { createContentInventory } from "../release/inventory.js";
 import { AcquisitionFailure } from "../release/node-errors.js";
 import { historicalDigest, verifyPackageRelease } from "../release/package-release.js";
 import { readRelease, readReleaseContent } from "../release/reader.js";
-import { itemRecipes } from "../release/release-17.js";
+import { checkRecipeAgreement } from "../release/recipe-agreement.js";
+import { catalogItemRecipes, itemRecipes } from "../release/release-17.js";
 import { type AuthoredAllowance, checkAuthoredContent, describeFinding } from "./authored.js";
 import type { Record_ } from "./base.js";
 import { assertRequiredClosure } from "./candidate.js";
@@ -245,9 +246,11 @@ export function checkCandidateFiles(
       `${release.package.name}@${release.package.version} vs ${identity.name}@${identity.version}`,
     );
     const problems: string[] = [];
+    const agreement: string[] = [];
     for (const item of release.items) {
+      const recipes = catalogItemRecipes(item);
       const members = [
-        ...itemRecipes(item as unknown as Record<string, unknown>).map(({ recipe }) => recipe),
+        ...recipes.map(({ recipe }) => recipe),
         ...item.materials,
       ] as unknown as Record<string, unknown>[];
       for (const member of members) {
@@ -257,7 +260,20 @@ export function checkCandidateFiles(
         else if (bytes.length !== member.byteLength || sha256Hex(bytes) !== member.sha256)
           problems.push(`member-mismatch ${path}`);
       }
+      // Each recipe, or each transition map entry, agrees with the item it configures.
+      for (const { recipe } of recipes) {
+        const bytes = files.get(recipe.path);
+        if (bytes === undefined) continue;
+        for (const d of checkRecipeAgreement(item, bytes, recipe))
+          agreement.push(`${d.reason} ${item.id} ${recipe.path}`);
+      }
     }
+    note(
+      entry.content,
+      "recipe-configuration-agreement",
+      agreement.length === 0,
+      agreement.join("; "),
+    );
     const inventory = createContentInventory(contentBytes, {
       expectedSha256: sha256Hex(contentBytes),
     });

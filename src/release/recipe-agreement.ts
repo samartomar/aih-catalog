@@ -228,7 +228,13 @@ export function checkRecipeAgreement(
     report("recipe-targets-mismatch", "The recipe's prerequisites differ from the item's targets.");
   }
   const targets = Array.isArray(recipe.targets) ? recipe.targets : [];
-  if (!item.scopes.every((scope) => targets.includes(scope))) {
+  // A transition map entry serves its own client, so it admits at least one of the
+  // item's scopes; a single recipe admits every item scope.
+  if (
+    entry === undefined
+      ? !item.scopes.every((scope) => targets.includes(scope))
+      : !item.scopes.some((scope) => targets.includes(scope))
+  ) {
     report("recipe-scope-mismatch", "The item advertises a scope its recipe does not admit.");
   }
   const declared = Array.isArray(recipe.materials) ? [...recipe.materials] : undefined;

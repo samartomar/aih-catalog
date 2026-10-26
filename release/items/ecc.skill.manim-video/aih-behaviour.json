@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"SKILL.md":false,"assets/network_graph_scene.py":false},"kind":"skill","payload":{"dirName":"manim-video","invocation":"model-allowed","invocationBasis":"default: no disable-model-invocation frontmatter"},"requirements":{"inputs":{}}}

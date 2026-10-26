@@ -75,6 +75,15 @@ block for a project's entry files. Its baseline assessment is not bound yet, so 
 listed in `preparedReleaseContent`, read with `readReleaseContent`, and refused by
 `readRelease`. See [Project basics content](docs/PROJECT-BASICS.md).
 
+## ECC release 1.7.0 content
+
+`@aihq/catalog/release-ecc.content.json` is the prepared release 1.7.0 content of ECC:
+one item per piece of content, ECC's install modules and profiles as sets, and its
+languages and frameworks as one pick-several option. Like Project basics it awaits its
+baseline assessment, so it is listed in `preparedReleaseContent` and refused by
+`readRelease`; `release-ecc.json` stays the ordinary ECC release. See
+[ECC content](docs/ECC-CONTENT.md#release-170-content).
+
 ## Optional Nuclei workflow
 
 `@aihq/catalog/workflows/nuclei` supplies local policy authoring; its adjacent manifest pins
@@ -108,6 +117,8 @@ platform evidence and real-tool execution limits are recorded in [delivery evide
 | `@aihq/catalog/release-anthropic.json` | Optional permitted Anthropic skill closures and notices | Data |
 | `@aihq/catalog/release-project-basics.content.json` | Prepared Project basics release 1.7.0 content, awaiting its baseline; read with `readReleaseContent` | Data |
 | `@aihq/catalog/release/baselines/project-basics/content-inventory.json` | Its frozen content inventory | Data |
+| `@aihq/catalog/release-ecc.content.json` | Prepared ECC release 1.7.0 content, awaiting its baseline; read with `readReleaseContent` | Data |
+| `@aihq/catalog/release/baselines/ecc/content-inventory.json` | Its frozen content inventory | Data |
 | `@aihq/catalog/release-superpowers.content.json` | Prepared Superpowers release 1.7.0 content, awaiting its baseline; read with `readReleaseContent` | Data |
 | `@aihq/catalog/release/baselines/superpowers/content-inventory.json` | Its frozen content inventory | Data |
 | `@aihq/catalog/package.json` | Installed package identity and location | Data |

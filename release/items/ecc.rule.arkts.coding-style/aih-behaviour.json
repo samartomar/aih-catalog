@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"arkts/coding-style.md":false},"kind":"rule","payload":{"applyTo":["**/*.ets","**/*.ts","**/module.json5","**/oh-package.json5","**/build-profile.json5"],"applyToBasis":"authored: frontmatter paths","namespace":"arkts"},"requirements":{"inputs":{}}}

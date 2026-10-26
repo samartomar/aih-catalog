@@ -489,10 +489,15 @@ for (const [version, id, context] of [
         expect: { status: "ok", selections: closure([...rules("common"), ...rules("typescript")]),
           origins: { "ecc.rule.common.testing": [inSet()],
             "ecc.rule.typescript.testing": [inSet({ languages: ["typescript"] })] } } },
+      { name: "typescript-and-python", request: { setId: "developer", options: { languages: ["typescript", "python"] } },
+        expect: { status: "ok", selections: closure([...rules("common"), ...rules("typescript"), ...rules("python")]),
+          origins: { "ecc.rule.common.testing": [inSet()],
+            "ecc.rule.typescript.testing": [inSet({ languages: ["typescript"] })],
+            "ecc.rule.python.testing": [inSet({ languages: ["python"] })] } } },
       { name: "unknown-choice", request: { setId: "developer", options: { languages: ["rust"] } },
         expect: { status: "refused", reasons: ["set-option-unknown"] } },
     ],
-  }, "ECC-style profile over real ECC rules: with no choice only rules/common applies; choosing TypeScript adds its rules with the option origin.");
+  }, "ECC-style profile over real ECC rules: with no choice only rules/common applies; choosing TypeScript, or TypeScript and Python, adds exactly those rules with the option origins.");
   scenario("set-cycle", {
     build: { release: contexts.superpowers, sets: [
       { id: "a", name: "A", description: "Includes b.", offer: "listed", members: [], includes: [{ framework: "superpowers", setId: "b" }] },

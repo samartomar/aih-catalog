@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"SKILL.md":false,"agents/openai.yaml":false,"scripts/ito-baskets.js":false},"kind":"skill","payload":{"dirName":"ito-baskets","invocation":"model-allowed","invocationBasis":"default: no disable-model-invocation frontmatter"},"requirements":{"inputs":{}}}

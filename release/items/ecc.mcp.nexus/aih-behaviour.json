@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"mcp-configs/mcp-servers.json":false},"kind":"mcp-server","payload":{"args":["mcp"],"command":"nexus","derivation":{"pointer":"/mcpServers/nexus","sourceMaterial":"asset-0","transform":"identical"},"key":"nexus","transport":"stdio"},"requirements":{"inputs":{}}}
