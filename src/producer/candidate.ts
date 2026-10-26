@@ -5,7 +5,8 @@ import { createContentInventory } from "../release/inventory.js";
 import { canonicalJson } from "../release/json.js";
 import { renderNativeFixture } from "../release/native-fixture-content.js";
 import { listItems, readRelease, readReleaseContent } from "../release/reader.js";
-import { type BaseRelease, type Record_, recipeMembers } from "./base.js";
+import { itemRecipes } from "../release/release-17.js";
+import type { BaseRelease, Record_ } from "./base.js";
 import { assertAcyclic, isTemplateItem, type ProducerDeclaration } from "./declaration.js";
 import { classifyDelta, type ItemDelta, repositoryUrl } from "./delta.js";
 import { derivedSourceId, prepareSourceTree } from "./derived.js";
@@ -366,7 +367,10 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
       for (const member of made.members) put(member.path, member.bytes);
       continue;
     }
-    for (const member of [...recipeMembers(item), ...(item.materials as Json[]).map(asRecord)]) {
+    for (const member of [
+      ...itemRecipes(item).map(({ recipe }) => recipe as Record_),
+      ...(item.materials as Json[]).map(asRecord),
+    ]) {
       const path = packagePathOf(member);
       put(path, files.get(path) as Buffer);
     }
@@ -400,7 +404,9 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
       );
     }
     for (const item of (carriedDocument.items as Json[]).map(asRecord)) {
-      for (const member of [...recipeMembers(item), ...(item.materials as Json[]).map(asRecord)]) {
+      // A release 1.7 item carries one recipe or a transition map of them.
+      const recipes = itemRecipes(item).map(({ recipe }) => recipe as Record_);
+      for (const member of [...recipes, ...(item.materials as Json[]).map(asRecord)]) {
         const path = packagePathOf(member);
         put(path, files.get(path) as Buffer);
       }

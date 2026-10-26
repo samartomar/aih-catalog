@@ -53,6 +53,13 @@ runtime source references and an opt-in caller-configured Claude SessionStart gr
 [Content guidance](docs/SUPERPOWERS-CONTENT.md) and [inventory](docs/SUPERPOWERS-INVENTORY.md)
 record exact source identities, support closures, notices and native execution limits.
 
+`@aihq/catalog/release-superpowers.content.json` is the prepared release 1.7.0 content
+of the same pinned framework: the 15 skills listed once, the start-of-session bootstrap
+hook with a one-line fallback rule, the plugin bundles and duplicate skill library
+retired with reasons, and upstream's plugin routes as display-only lines. It awaits its
+baseline assessment: read it with `readReleaseContent`; `readRelease` refuses it until
+then. See [Superpowers release 1.7.0](docs/SUPERPOWERS-CONTENT.md#release-170-one-item-per-skill).
+
 ## Optional Anthropic skills
 
 `@aihq/catalog/release-anthropic.json` offers complete permitted pinned skill
@@ -95,7 +102,7 @@ platform evidence and real-tool execution limits are recorded in [delivery evide
 | `@aihq/catalog/producer` | Check v3 declarations and compile explicitly supplied source bytes | Node 24.15–24.x |
 | `@aihq/catalog/source` | Portable source facts (`extractSourceFacts`), side-effect-free source-link parsing (`parseSourceLink`), and source description reading with exact identity checking (`readSourceDescription`, `checkExactSourceIdentity`) | Portable |
 | `@aihq/catalog/schemas/producer-declaration/3.0.0.json` | Public producer declaration schema | Data |
-| `@aihq/catalog/node` | Read an installed root, resolve an exact archive/registry version, resolve a GitHub ref to an exact reachable commit, acquire a bounded snapshot at that commit, or prepare the project context for a chosen instruction directory | Node 24.15–24.x |
+| `@aihq/catalog/node` | Read an installed root, resolve an exact archive/registry version, resolve a GitHub ref to an exact reachable commit, acquire a bounded snapshot at that commit, acquire an ordinary npm package at an exact integrity pin, or prepare the project context for a chosen instruction directory | Node 24.15–24.x |
 | `@aihq/catalog/workflows/nuclei` | Author Nuclei preparation, assessment and reconciliation Core policies, with TypeScript declarations | Node 24.15–24.x |
 | `@aihq/catalog/release.json` | Default release (format 1.4.0) | Data |
 | `@aihq/catalog/schemas/release/1.5.0.json` | New release format with a pinned content baseline | Data |
@@ -112,6 +119,8 @@ platform evidence and real-tool execution limits are recorded in [delivery evide
 | `@aihq/catalog/release/baselines/project-basics/content-inventory.json` | Its frozen content inventory | Data |
 | `@aihq/catalog/release-ecc.content.json` | Prepared ECC release 1.7.0 content, awaiting its baseline; read with `readReleaseContent` | Data |
 | `@aihq/catalog/release/baselines/ecc/content-inventory.json` | Its frozen content inventory | Data |
+| `@aihq/catalog/release-superpowers.content.json` | Prepared Superpowers release 1.7.0 content, awaiting its baseline; read with `readReleaseContent` | Data |
+| `@aihq/catalog/release/baselines/superpowers/content-inventory.json` | Its frozen content inventory | Data |
 | `@aihq/catalog/package.json` | Installed package identity and location | Data |
 
 `releaseInventory` gives each exported release document's format, purpose (ordinary content, client hooks or a native acceptance fixture) and support tier, plus the package identity; selection still names one release explicitly. The [content contract](docs/CATALOG-CONTENT.md#release-inventory-and-format-compatibility) has the inventory, the current authoring target and the format compatibility table.
@@ -284,3 +293,9 @@ package. Publication, signing and candidate allocation remain separately owned b
 
 Catalog is Apache-2.0 licensed. Carried third-party material retains its source
 license and pinned provenance.
+
+For an ordinary npm package containing no Catalog release, call
+`acquireNpmSnapshot({ name, version, integrity })` from `@aihq/catalog/node`.
+It verifies an exact version and caller-held SHA-512 pin, returns bounded files
+and executable modes plus the exact npm identity, and runs no package code.
+See [npm snapshots](docs/NPM-SNAPSHOTS.md) for producer preparation and refusals.

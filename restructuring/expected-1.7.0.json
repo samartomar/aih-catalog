@@ -39,7 +39,11 @@
   },
   {
    "id": "superpowers-bootstrap-fallback",
-   "reason": "The session bootstrap hook gains a one-line rule as its fallback, an item the dry run did not have; samartomar/aih-catalog#144 names it, so one extra rule is admitted by kind."
+   "reason": "The session bootstrap hook gains a one-line rule as its fallback, an item the dry run did not have. samartomar/aih-catalog#144 names it superpowers.rule.session-bootstrap; its content identity is predicted from its authored line in producer/superpowers/release-1-7.json at its item-relative path, and the bootstrap source the hook folds is retired with the hook as its replacement."
+  },
+  {
+   "id": "superpowers-pinned-revision",
+   "reason": "The dry run read Superpowers at upstream revision bb92a77741419a4ab5f06e711a283343f1ada0c3, earlier than the 5bf4e78011075bcfc0dc295f0724994cd123ee71 (upstream 6.4.1) this package pins, so its Superpowers content identities name other bytes. They are predicted again, with the dry run's rule (item-relative paths, a skill's files below its own folder, the hook carrying the bootstrap source it folds), from the pinned materials of the committed release-superpowers.json. Items, kinds, supersessions and retirements are the dry run's."
   },
   {
    "id": "ecc-notices-identity",
@@ -7655,18 +7659,23 @@
     {
      "id": "superpowers.hook.session-start",
      "kind": "hook",
-     "contentSha256": "7f042247e75ef5a29a2e40575803ba9bc60cffe26ed3615049a4fbf803117c91"
+     "contentSha256": "f18d38d615d553acdf376f30b0b5cba513f7a2f4f7d43d279785a52af367030f"
     },
     {
      "id": "superpowers.notices",
      "kind": "document",
      "purpose": "notice",
-     "contentSha256": "a8e94f3a297b6ed61f0dae8a86f0b4d6ba81b2142a8f37a02d25dac6cf53735f"
+     "contentSha256": "3b5b73314087b1c7933afb8ce47e4892a330a0fd1f2ee8cc9e4fcc6917324cce"
+    },
+    {
+     "id": "superpowers.rule.session-bootstrap",
+     "kind": "rule",
+     "contentSha256": "a8891159f861fd8c56d0efda63800e01733c99e525e9319faa5d793c23825497"
     },
     {
      "id": "superpowers.skill.brainstorming",
      "kind": "skill",
-     "contentSha256": "12809a014453146e3791c3e9fbf014a1447371616d95c31089ea0915a8d70208"
+     "contentSha256": "672cc1494856c95ea9016d6945cc2a1b222fccd7cf47df2b3db8c95a17ce81d3"
     },
     {
      "id": "superpowers.skill.diagnosing-superpowers",
@@ -7681,7 +7690,7 @@
     {
      "id": "superpowers.skill.executing-plans",
      "kind": "skill",
-     "contentSha256": "7634bafa3b8031e89a30833fd7c4529d99df211fe1c28f1452553f0a59168361"
+     "contentSha256": "ac22807895d1882f75a33d23888da8bc2e4e483215c7ede6646f77f286e73776"
     },
     {
      "id": "superpowers.skill.finishing-a-development-branch",
@@ -7696,17 +7705,17 @@
     {
      "id": "superpowers.skill.requesting-code-review",
      "kind": "skill",
-     "contentSha256": "d1d5e383842512d8fcb369725c83e3e7623bfd30a070c53c4e8315be2fd4357e"
+     "contentSha256": "ef21fc98229033e4b42c02d7d16a073b07e34ffe3cdfab290f3e5421cbfa42cf"
     },
     {
      "id": "superpowers.skill.subagent-driven-development",
      "kind": "skill",
-     "contentSha256": "9f8d4c898682336a8ff954e7e0d1f8099f9354e52410e6a217108aeaa621886a"
+     "contentSha256": "6507d4cdf409574885c3c0c3275695bd1eb6e24d43e2b338c7706ed316cfcf74"
     },
     {
      "id": "superpowers.skill.systematic-debugging",
      "kind": "skill",
-     "contentSha256": "2d7d29995b7bb629d3a58c2ce9428521e31bdeb3cf3e070a23ee1b2c548a0583"
+     "contentSha256": "8c433ad8e4b4630cf5fae939797bec138d64d9985b3d45f7c80910e91be10240"
     },
     {
      "id": "superpowers.skill.test-driven-development",
@@ -7731,19 +7740,12 @@
     {
      "id": "superpowers.skill.writing-plans",
      "kind": "skill",
-     "contentSha256": "3077b75de72a3be27ea1454e4ef4a1381a3d47a3b11aa98a867895cf3bc2651f"
+     "contentSha256": "527fd4c656c76735554a6b61e5f1764215fa241628138da86ad52fcb110b408a"
     },
     {
      "id": "superpowers.skill.writing-skills",
      "kind": "skill",
      "contentSha256": "b0fdab532be805b30a2c2eb69e1fe7b096c15490b2cd6eda60bdd5aa4c051d62"
-    }
-   ],
-   "pendingItems": [
-    {
-     "kind": "rule",
-     "count": 1,
-     "reason": "samartomar/aih-catalog#144 names the bootstrap hook's fallback rule"
     }
    ],
    "supersessions": [
@@ -8182,7 +8184,12 @@
     },
     {
      "id": "superpowers.runtime-source.claude-bootstrap",
-     "pending": "the hook item it folds into is named by its framework migration"
+     "replacedBy": [
+      {
+       "framework": "superpowers",
+       "itemId": "superpowers.hook.session-start"
+      }
+     ]
     },
     {
      "id": "superpowers.runtime-source.codex",

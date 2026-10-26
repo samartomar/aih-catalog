@@ -28,10 +28,23 @@
   reported as renamed by a survivor that shares its bytes only because it supersedes
   its own copy of the same content. Recipe agreement
   checks a transition map entry against at least one of the item's scopes, and the
-  whole-package check covers every map entry of prepared content, its recipe
-  agreement, and exempts behaviour files from pinned-source path checks.
+  whole-package check verifies recipe agreement for prepared content.
 - The restructuring expectation gains the `ecc-notices-identity` amendment, and the
   ECC set fixture `ecc-typescript-choice` a TypeScript and Python case.
+- Add Superpowers as prepared release 1.7.0 content for samartomar/aih-catalog#144
+  (`@aihq/catalog/release-superpowers.content.json`), with `framework { id, name,
+  version, description }` from upstream's published metadata. The 15 skills are one
+  item each, with a typed payload recording `invocation` and its frontmatter basis and
+  a recipe per client. The session bootstrap is a `hook` with upstream's typed hook
+  payload, folding its former source item, and a `fallback` naming the one-line rule
+  `superpowers.rule.session-bootstrap`. The 9 plugin bundles and the duplicate skill
+  library are in `retired[]` with reasons, every earlier id is live or retired with its
+  replacements, upstream's install routes are display-only `nativeRoutes`, and the one
+  `superpowers` set marks every hook member optional. The restructuring expectation is
+  amended for the pinned revision and names the rule. No baseline is bound yet: the
+  content is listed in `preparedReleaseContent`. `release-superpowers.json` is unchanged.
+- Whole-package and candidate checks follow release 1.7 recipe maps, and the
+  provenance-path check no longer treats synthesised behaviour files as source bytes.
 
 - Project basics (samartomar/aih-catalog#137) texts are now folder-neutral: the router
   and working rules link to each other relative to the folder a project chooses, the
