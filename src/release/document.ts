@@ -17,11 +17,22 @@ import {
   RELEASE_SCHEMA_ID_1_4,
   RELEASE_SCHEMA_ID_1_5,
   RELEASE_SCHEMA_ID_1_6,
+  RELEASE_SCHEMA_ID_1_7,
   type RecipeSchemaId,
   type ReleaseSchemaId,
+  type ReleaseSet,
 } from "./contracts.js";
 import { checkInputSpec } from "./inputs.js";
 import { assertStrictValues, canonicalJson } from "./json.js";
+import {
+  checkItem17,
+  checkRelease17Items,
+  checkRetired17,
+  ITEM17_OPTIONAL,
+  ITEM17_REQUIRED,
+  itemRecipes,
+} from "./release-17.js";
+import { checkEmbeddedSets } from "./sets.js";
 import { sha256Hex } from "./sha256.js";
 import { isSpdxLicenseId } from "./spdx.js";
 import { EXACT_VERSION } from "./version.js";
@@ -44,7 +55,10 @@ const LOCAL_ORIGIN_SCHEMAS: readonly string[] = [
   RELEASE_SCHEMA_ID_1_4,
   RELEASE_SCHEMA_ID_1_5,
   RELEASE_SCHEMA_ID_1_6,
+  RELEASE_SCHEMA_ID_1_7,
 ];
+/** Formats whose items may carry extended materials and behaviour files. */
+const EXTENDED_SCHEMAS: readonly string[] = [RELEASE_SCHEMA_ID_1_6, RELEASE_SCHEMA_ID_1_7];
 const RESERVED = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\..*)?$/i;
 const MEMBER_MAX = 16 * 1024 * 1024;
 const RECIPE_MAX = 1_000_000;
@@ -343,7 +357,12 @@ export function checkInputs(d: Diagnostics, value: unknown, path: string): void 
   }
 }
 
-export function checkDependencies(d: Diagnostics, value: unknown, path: string): void {
+export function checkDependencies(
+  d: Diagnostics,
+  value: unknown,
+  path: string,
+  identities = false,
+): void {
   if (!fields(d, value, path, [], ["requires", "optional", "conflicts"])) return;
   for (const list of ["requires", "optional", "conflicts"] as const) {
     const refs = value[list];
@@ -355,7 +374,17 @@ export function checkDependencies(d: Diagnostics, value: unknown, path: string):
     refs.forEach((ref, index) => {
       const at = `${path}/${list}/${index}`;
       if (isRecord(ref) && Object.hasOwn(ref, "release")) {
-        if (!fields(d, ref, at, ["release", "itemId", "itemSha256"])) return;
+        // Release 1.7 references also carry both identities; checkItem17 requires them.
+        if (
+          !fields(
+            d,
+            ref,
+            at,
+            ["release", "itemId", "itemSha256"],
+            identities ? ["contentSha256", "behaviourSha256"] : [],
+          )
+        )
+          return;
         id(d, ref.itemId, `${at}/itemId`);
         sha(d, ref.itemSha256, `${at}/itemSha256`);
         if (!fields(d, ref.release, `${at}/release`, ["source", "manifest"])) return;
@@ -422,6 +451,7 @@ function checkItem(
   recipeSchemas: readonly RecipeSchemaId[],
   schema: ReleaseSchemaId,
 ): void {
+  const schema17 = schema === RELEASE_SCHEMA_ID_1_7;
   const clientIds =
     schema === RELEASE_SCHEMA_ID_1_4 ||
     schema === RELEASE_SCHEMA_ID_1_5 ||
@@ -432,12 +462,9 @@ function checkItem(
       : clientIds
         ? ["description", "metadata", "clientId"]
         : ["description", "metadata"];
-  if (
-    !fields(
-      d,
-      value,
-      path,
-      [
+  const required = schema17
+    ? ITEM17_REQUIRED
+    : ([
         "id",
         "label",
         "kind",
@@ -448,10 +475,8 @@ function checkItem(
         "recipe",
         "materials",
         "dependencies",
-      ],
-      optional,
-    )
-  ) {
+      ] as const);
+  if (!fields(d, value, path, required, schema17 ? ITEM17_OPTIONAL : optional)) {
     return;
   }
   if (clientIds) checkClientId(d, value, path);
@@ -506,23 +531,9 @@ function checkItem(
     d.add("invalid-scope", `${path}/scopes`, "Expected a nonempty unique subset of project/user.");
   }
   checkInputs(d, value.inputs, `${path}/inputs`);
-  const recipe = value.recipe;
-  if (fields(d, recipe, `${path}/recipe`, ["id", "schema", "path", "sha256", "byteLength"])) {
-    id(d, recipe.id, `${path}/recipe/id`);
-    if (!recipeSchemas.includes(recipe.schema as RecipeSchemaId)) {
-      d.add(
-        "unsupported-recipe-schema",
-        `${path}/recipe/schema`,
-        "This release format does not admit that Core recipe format.",
-        {
-          encountered: typeof recipe.schema === "string" ? recipe.schema.slice(0, 128) : undefined,
-          supported: recipeSchemas,
-        },
-      );
-    }
-    memberPath(d, recipe.path, `${path}/recipe/path`);
-    sha(d, recipe.sha256, `${path}/recipe/sha256`);
-    length(d, recipe.byteLength, `${path}/recipe/byteLength`, 1, RECIPE_MAX);
+  for (const { clientId, recipe } of schema17 ? itemRecipes(value) : [{ recipe: value.recipe }]) {
+    const at = clientId === undefined ? `${path}/recipe` : `${path}/recipes/${clientId}`;
+    checkRecipeDescriptor(d, recipe, at, recipeSchemas, clientId !== undefined);
   }
   if (!Array.isArray(value.materials) || value.materials.length > 4096) {
     d.add("invalid-materials", `${path}/materials`, "Expected at most 4096 material members.");
@@ -542,11 +553,48 @@ function checkItem(
     });
     ascending(d, ids, `${path}/materials`);
   }
-  checkDependencies(d, value.dependencies, `${path}/dependencies`);
+  checkDependencies(d, value.dependencies, `${path}/dependencies`, schema17);
   if (value.metadata !== undefined && !isRecord(value.metadata)) {
     d.add("invalid-metadata", `${path}/metadata`, "Metadata is a descriptive object.");
   }
-  if (schema === RELEASE_SCHEMA_ID_1_6) checkItem16(d, value, path);
+  if (EXTENDED_SCHEMAS.includes(schema)) checkItem16(d, value, path, schema);
+  if (schema17) checkItem17(d, value, path);
+}
+
+/** One recipe descriptor: the single recipe, or a transition map entry's descriptor fields. */
+function checkRecipeDescriptor(
+  d: Diagnostics,
+  recipe: unknown,
+  at: string,
+  recipeSchemas: readonly RecipeSchemaId[],
+  mapEntry: boolean,
+): void {
+  if (
+    !fields(
+      d,
+      recipe,
+      at,
+      mapEntry
+        ? ["id", "schema", "path", "sha256", "byteLength", "materials", "inputs"]
+        : ["id", "schema", "path", "sha256", "byteLength"],
+    )
+  )
+    return;
+  id(d, recipe.id, `${at}/id`);
+  if (!recipeSchemas.includes(recipe.schema as RecipeSchemaId)) {
+    d.add(
+      "unsupported-recipe-schema",
+      `${at}/schema`,
+      "This release format does not admit that Core recipe format.",
+      {
+        encountered: typeof recipe.schema === "string" ? recipe.schema.slice(0, 128) : undefined,
+        supported: recipeSchemas,
+      },
+    );
+  }
+  memberPath(d, recipe.path, `${at}/path`);
+  sha(d, recipe.sha256, `${at}/sha256`);
+  length(d, recipe.byteLength, `${at}/byteLength`, 1, RECIPE_MAX);
 }
 
 const ITEM16_FIELDS = [
@@ -590,8 +638,8 @@ function checkExtendedMember(
   sources: ReadonlySet<string>,
   schema: ReleaseSchemaId,
 ): void {
-  if (schema !== RELEASE_SCHEMA_ID_1_6) {
-    d.add("invalid-material", at, "Extended materials require release format 1.6.0.");
+  if (!EXTENDED_SCHEMAS.includes(schema)) {
+    d.add("invalid-material", at, "Extended materials require release format 1.6.0 or later.");
     return;
   }
   if (
@@ -740,6 +788,7 @@ function checkPayload16(
   path: string,
   content: readonly Record<string, unknown>[],
   requirementInputs: Record<string, unknown>,
+  schema: ReleaseSchemaId,
 ): void {
   const payload = item.payload;
   if (payload === undefined || payload === null) return;
@@ -1008,8 +1057,22 @@ function checkPayload16(
       }
     }
   } else if (item.kind === "agent" || item.kind === "command" || item.kind === "document") {
-    if (!fields(d, payload, `${path}/payload`, ["files"])) {
+    const documentFields =
+      schema === RELEASE_SCHEMA_ID_1_7 && item.kind === "document"
+        ? fields(d, payload, `${path}/payload`, ["files", "purpose"], ["placement"])
+        : fields(d, payload, `${path}/payload`, ["files"]);
+    if (!documentFields) {
       return;
+    }
+    if (
+      payload.placement !== undefined &&
+      !["file", "entry-block", "project-folder"].includes(payload.placement as string)
+    ) {
+      d.add(
+        "invalid-payload",
+        `${path}/payload/placement`,
+        "Expected file, entry-block or project-folder.",
+      );
     }
     if (!Array.isArray(payload.files)) {
       d.add("invalid-payload", `${path}/payload/files`, "Expected the carried file material ids.");
@@ -1109,7 +1172,12 @@ function checkProvenance16(
  * file agreement, both recomputed identities, typed payload rules and provenance.
  * Items without any new field are read exactly as release 1.5 items.
  */
-function checkItem16(d: Diagnostics, item: Record<string, unknown>, path: string): void {
+function checkItem16(
+  d: Diagnostics,
+  item: Record<string, unknown>,
+  path: string,
+  schema: ReleaseSchemaId,
+): void {
   const materials = (Array.isArray(item.materials) ? item.materials : []).filter(isRecord);
   const extended = materials.filter((member) => !Object.hasOwn(member, "path"));
   const legacy = materials.filter((member) => Object.hasOwn(member, "path"));
@@ -1273,7 +1341,7 @@ function checkItem16(d: Diagnostics, item: Record<string, unknown>, path: string
       { itemId: String(item.id) },
     );
   }
-  checkPayload16(d, item, path, content, requirementInputs);
+  checkPayload16(d, item, path, content, requirementInputs, schema);
   checkProvenance16(d, item, path, content);
 }
 
@@ -1332,9 +1400,14 @@ export function memberPackagePath(member: Record<string, unknown>): unknown {
 function checkPathIdentities(d: Diagnostics, items: readonly Record<string, unknown>[]): void {
   const seen = new Map<string, string>();
   items.forEach((item, itemIndex) => {
-    const recipe = item.recipe as Record<string, unknown>;
     const members = [
-      { at: `/items/${itemIndex}/recipe`, value: recipe },
+      ...itemRecipes(item).map(({ clientId, recipe }) => ({
+        at:
+          clientId === undefined
+            ? `/items/${itemIndex}/recipe`
+            : `/items/${itemIndex}/recipes/${clientId}`,
+        value: recipe,
+      })),
       ...(item.materials as Record<string, unknown>[]).map((value, index) => ({
         at: `/items/${itemIndex}/materials/${index}`,
         value,
@@ -1403,10 +1476,15 @@ export interface CheckedDocument {
   readonly items: readonly CatalogItem[];
   readonly metadata?: Json;
   readonly baseline?: ScanBaseline;
+  readonly sets?: readonly ReleaseSet[];
 }
 
 /** Release-level release 1.6 fields: framework identity, retirement, routes, names. */
-function checkRelease16Fields(d: Diagnostics, value: Record<string, unknown>): void {
+function checkRelease16Fields(
+  d: Diagnostics,
+  value: Record<string, unknown>,
+  schema: ReleaseSchemaId,
+): void {
   const framework = value.framework;
   let frameworkId: string | undefined;
   if (framework !== undefined) {
@@ -1443,7 +1521,8 @@ function checkRelease16Fields(d: Diagnostics, value: Record<string, unknown>): v
       }
     }
   }
-  if (value.retired !== undefined) {
+  if (schema === RELEASE_SCHEMA_ID_1_7) checkRetired17(d, value.retired);
+  else if (value.retired !== undefined) {
     if (!Array.isArray(value.retired) || value.retired.length > 4096) {
       d.add("invalid-retired", "/retired", "Expected at most 4096 retirement records.");
     } else {
@@ -1579,26 +1658,31 @@ export function checkReleaseDocument(
     );
     return { diagnostics: d.list };
   }
+  const schema17 = isRecord(value) && value.schema === RELEASE_SCHEMA_ID_1_7;
   const baselineFormat =
     isRecord(value) &&
-    (value.schema === RELEASE_SCHEMA_ID_1_5 || value.schema === RELEASE_SCHEMA_ID_1_6);
+    (value.schema === RELEASE_SCHEMA_ID_1_5 || value.schema === RELEASE_SCHEMA_ID_1_6 || schema17);
   if (
     !fields(
       d,
       value,
       "",
-      ["schema", "package", "sources", "items"],
-      baselineFormat
-        ? value.schema === RELEASE_SCHEMA_ID_1_6
-          ? ["metadata", "baseline", "framework", "retired", "nativeRoutes"]
-          : ["metadata", "baseline"]
-        : ["metadata"],
+      schema17
+        ? ["schema", "package", "framework", "sources", "items"]
+        : ["schema", "package", "sources", "items"],
+      schema17
+        ? ["metadata", "baseline", "retired", "nativeRoutes", "sets"]
+        : baselineFormat
+          ? value.schema === RELEASE_SCHEMA_ID_1_6
+            ? ["metadata", "baseline", "framework", "retired", "nativeRoutes"]
+            : ["metadata", "baseline"]
+          : ["metadata"],
     )
   ) {
     return { diagnostics: d.list };
   }
-  if (isRecord(value) && value.schema === RELEASE_SCHEMA_ID_1_6) {
-    checkRelease16Fields(d, value);
+  if (isRecord(value) && EXTENDED_SCHEMAS.includes(value.schema as string)) {
+    checkRelease16Fields(d, value, value.schema as ReleaseSchemaId);
   }
   const pkg = value.package;
   if (fields(d, pkg, "/package", ["name", "version"])) {
@@ -1630,7 +1714,7 @@ export function checkReleaseDocument(
           source,
           at,
           ["id", "origin"],
-          schema === RELEASE_SCHEMA_ID_1_6 ? ["license"] : [],
+          EXTENDED_SCHEMAS.includes(schema) ? ["license"] : [],
         )
       ) {
         return;
@@ -1686,7 +1770,7 @@ export function checkReleaseDocument(
       d.add(
         "baseline-invalid",
         "/baseline",
-        "Release 1.5 and 1.6 require a supported, bounded baseline binding.",
+        "Release 1.5 and later require a supported, bounded baseline binding.",
       );
     else if (!baselineMatchesContent(value, value.baseline))
       d.add(
@@ -1702,7 +1786,10 @@ export function checkReleaseDocument(
           : []),
       ];
       for (const item of value.items as Record<string, unknown>[]) {
-        for (const member of [item.recipe, ...(item.materials as unknown[])]) {
+        for (const member of [
+          ...itemRecipes(item).map(({ recipe }) => recipe),
+          ...(item.materials as unknown[]),
+        ]) {
           if (
             isRecord(member) &&
             reserved.some(
@@ -1723,6 +1810,17 @@ export function checkReleaseDocument(
   checkPathIdentities(d, items);
   checkRequiredClosure(d, items);
   if (d.list.length > 0) return { diagnostics: d.list };
+  let sets: readonly ReleaseSet[] | undefined;
+  if (schema17) {
+    checkRelease17Items(d, items, value.retired);
+    if (d.list.length > 0) return { diagnostics: d.list };
+    if (value.sets !== undefined) {
+      const embedded = checkEmbeddedSets(value.sets, value.framework, items);
+      for (const problem of embedded.problems) d.add(problem.reason, problem.path, problem.message);
+      if (d.list.length > 0) return { diagnostics: d.list };
+      sets = embedded.sets;
+    }
+  }
 
   const checked = items.map((item) => {
     const { dependencies, ...rest } = item;
@@ -1746,6 +1844,7 @@ export function checkReleaseDocument(
       ...(value.framework === undefined ? {} : { framework: value.framework as Json }),
       ...(value.retired === undefined ? {} : { retired: value.retired as Json[] }),
       ...(value.nativeRoutes === undefined ? {} : { nativeRoutes: value.nativeRoutes as Json[] }),
+      ...(sets === undefined ? {} : { sets }),
     },
   };
 }

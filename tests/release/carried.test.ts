@@ -131,7 +131,7 @@ describe("carried release", () => {
       ...listItems(hookRead.release),
       ...adjacentDocuments.flatMap((release) => listItems(release)),
     ]) {
-      for (const member of [item.recipe, ...item.materials]) {
+      for (const member of [...(item.recipe ? [item.recipe] : []), ...item.materials]) {
         const path = String(
           (member as { path?: string; packagePath?: string }).path ??
             (member as { packagePath?: string }).packagePath,
@@ -159,9 +159,9 @@ describe("carried release", () => {
     expect(sha256(canonical(schema))).toBe(CORE_RECIPE_SCHEMA_CANONICAL_SHA256);
     const validate = new Ajv2020({ allErrors: true, strict: true }).compile(schema);
     for (const item of listItems(carried())) {
-      const recipe = JSON.parse(bytesAt(item.recipe.path).toString("utf8"));
+      const recipe = JSON.parse(bytesAt(item.recipe?.path as string).toString("utf8"));
       expect(validate(recipe), JSON.stringify(validate.errors)).toBe(true);
-      expect(recipe.id).toBe(item.recipe.id);
+      expect(recipe?.id).toBe(item.recipe?.id);
       expect(recipe.inputs).toEqual(item.inputs);
       expect(recipe.prerequisites).toEqual(item.targets);
       expect(item.scopes.every((scope) => recipe.targets.includes(scope))).toBe(true);

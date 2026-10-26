@@ -31,8 +31,9 @@ function hookGroups(files: Files, label: string): Map<string, HookGroup[]> {
   }
   const groups = new Map<string, HookGroup[]>();
   for (const item of read.release.items) {
-    const recipeBytes = files.get(item.recipe.path);
+    const recipeBytes = item.recipe === undefined ? undefined : files.get(item.recipe.path);
     if (
+      item.recipe === undefined ||
       recipeBytes === undefined ||
       recipeBytes.byteLength !== item.recipe.byteLength ||
       sha256Hex(recipeBytes) !== item.recipe.sha256 ||

@@ -426,6 +426,33 @@ function checkSets(
   };
 }
 
+/**
+ * Release 1.7 sets embedded in the release document, checked in read mode against
+ * the document's own items once their identities have been recomputed.
+ */
+export function checkEmbeddedSets(
+  values: unknown,
+  framework: unknown,
+  items: readonly Record<string, unknown>[],
+): { sets?: ReleaseSet[]; problems: Problem[] } {
+  if (!Array.isArray(values))
+    return {
+      problems: [{ reason: "set-invalid", path: "/sets", message: "Expected an array of sets." }],
+    };
+  const release = { framework, items } as unknown as CatalogRelease;
+  return checkSets(values, release, "read");
+}
+
+/** Build-mode set compilation over a release view that is still being assembled. */
+export function buildEmbeddedSets(
+  values: readonly ReleaseSetDeclaration[],
+  framework: { readonly id: string; readonly version: string },
+  items: readonly Record<string, unknown>[],
+): { sets?: ReleaseSet[]; problems: Problem[] } {
+  const release = { framework, items } as unknown as CatalogRelease;
+  return checkSets(values, release, "build");
+}
+
 const releaseProblem = (release: unknown): Problem | undefined => {
   if (typeof release !== "object" || release === null || !checkedReleases.has(release))
     return {

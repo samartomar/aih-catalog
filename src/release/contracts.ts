@@ -34,6 +34,54 @@ export const RELEASE_SCHEMA_EXPORT_1_5 = "@aihq/catalog/schemas/release/1.5.0.js
  */
 export const RELEASE_SCHEMA_ID_1_6 = "urn:aihq:catalog:release:1.6.0" as const;
 export const RELEASE_SCHEMA_EXPORT_1_6 = "@aihq/catalog/schemas/release/1.6.0.json" as const;
+/**
+ * Release 1.7 gives one tool-neutral item per piece of content: closed kinds, a
+ * presentation role, required identities and behaviour files, supersession and
+ * retirement, embedded sets and an optional transition recipe map selected by
+ * `clientId`. Readers older than 1.7 refuse the whole format.
+ */
+export const RELEASE_SCHEMA_ID_1_7 = "urn:aihq:catalog:release:1.7.0" as const;
+export const RELEASE_SCHEMA_EXPORT_1_7 = "@aihq/catalog/schemas/release/1.7.0.json" as const;
+/** Release 1.7 closed item kinds. Sets are not a kind. */
+export const ITEM_KINDS = Object.freeze([
+  "skill",
+  "agent",
+  "command",
+  "rule",
+  "hook",
+  "mcp-server",
+  "document",
+] as const);
+export type ItemKind = (typeof ITEM_KINDS)[number];
+/** Release 1.7 purposes a `document` item carries. */
+export const DOCUMENT_PURPOSES = Object.freeze([
+  "notice",
+  "license",
+  "reference",
+  "guide",
+] as const);
+export type DocumentPurpose = (typeof DOCUMENT_PURPOSES)[number];
+/**
+ * How a release 1.x kind becomes a release 1.7 kind: `instruction` becomes a rule
+ * (or a notice, licence or reference document), `notice` a document, `template`
+ * and `framework` become sets, and client adapters and pointers retire.
+ */
+export const KIND_TRANSITION = Object.freeze({
+  skill: Object.freeze({ becomes: Object.freeze(["skill"]) }),
+  agent: Object.freeze({ becomes: Object.freeze(["agent"]) }),
+  command: Object.freeze({ becomes: Object.freeze(["command"]) }),
+  rule: Object.freeze({ becomes: Object.freeze(["rule"]) }),
+  hook: Object.freeze({ becomes: Object.freeze(["hook"]) }),
+  "mcp-server": Object.freeze({ becomes: Object.freeze(["mcp-server"]) }),
+  mcp: Object.freeze({ becomes: Object.freeze(["mcp-server"]) }),
+  document: Object.freeze({ becomes: Object.freeze(["document"]) }),
+  instruction: Object.freeze({ becomes: Object.freeze(["rule", "document"]) }),
+  notice: Object.freeze({ becomes: Object.freeze(["document"]) }),
+  template: Object.freeze({ becomes: "set" }),
+  framework: Object.freeze({ becomes: "set" }),
+  "client-adapter": Object.freeze({ becomes: "retired" }),
+  "client-entry-pointer": Object.freeze({ becomes: "retired" }),
+} as const);
 /** Release sets 1.0: release-level groups of items. Sets are not a kind and carry no files. */
 export const RELEASE_SETS_SCHEMA_ID = "urn:aihq:catalog:release-sets:1.0.0" as const;
 export const RELEASE_SETS_SCHEMA_EXPORT = "@aihq/catalog/schemas/release-sets/1.0.0.json" as const;
@@ -58,7 +106,8 @@ export type ReleaseSchemaId =
   | typeof RELEASE_SCHEMA_ID_1_3
   | typeof RELEASE_SCHEMA_ID_1_4
   | typeof RELEASE_SCHEMA_ID_1_5
-  | typeof RELEASE_SCHEMA_ID_1_6;
+  | typeof RELEASE_SCHEMA_ID_1_6
+  | typeof RELEASE_SCHEMA_ID_1_7;
 export type RecipeSchemaId =
   | typeof CORE_RECIPE_SCHEMA_ID
   | typeof CORE_RECIPE_SCHEMA_ID_1_1
@@ -93,10 +142,19 @@ export const RELEASE_RECIPE_SCHEMAS: Readonly<Record<ReleaseSchemaId, readonly R
       CORE_RECIPE_SCHEMA_ID_1_1,
       CORE_RECIPE_SCHEMA_ID_1_3,
     ]),
+    [RELEASE_SCHEMA_ID_1_7]: Object.freeze([
+      CORE_RECIPE_SCHEMA_ID,
+      CORE_RECIPE_SCHEMA_ID_1_1,
+      CORE_RECIPE_SCHEMA_ID_1_3,
+    ]),
   });
 /** Release documents: UTF-8 bytes including the single trailing LF. */
 export const RELEASE_MAX_BYTES = 16 * 1024 * 1024;
 export const RELEASE_MAX_DEPTH = 32;
+
+/** SHA-256 of the frozen default `release.json` bytes, terminator included. */
+export const FROZEN_DEFAULT_RELEASE_SHA256 =
+  "0ff699f240ac4c667c1891fe0f0a2629c60af67dfb1d9483405d2bbc45d6f124" as const;
 
 /** Kept equal to package.json `name` and `version` by the release tests. */
 const PACKAGE_IDENTITY = Object.freeze({ name: "@aihq/catalog", version: "0.1.0" } as const);
@@ -201,6 +259,21 @@ export const contractSupport = Object.freeze({
       role: "both",
       schemaExport: RELEASE_SETS_SCHEMA_EXPORT,
     }),
+    Object.freeze({
+      id: RELEASE_SCHEMA_ID_1_7,
+      role: "both",
+      schemaExport: RELEASE_SCHEMA_EXPORT_1_7,
+    }),
+    Object.freeze({
+      id: "urn:aihq:catalog:content-inventory:1.2.0",
+      role: "both",
+      schemaExport: "@aihq/catalog/schemas/content-inventory/1.2.0.json",
+    }),
+    Object.freeze({
+      id: "urn:aihq:catalog:release-content:1.2.0",
+      role: "both",
+      schemaExport: "@aihq/catalog/schemas/release-content/1.2.0.json",
+    }),
   ]),
   entries: Object.freeze([
     Object.freeze({ export: "@aihq/catalog/contracts", runtime: "portable" }),
@@ -268,6 +341,13 @@ export const releaseInventory = Object.freeze({
       schema: RELEASE_SCHEMA_ID_1_4,
       purpose: "content",
       support: "supported",
+      /**
+       * The frozen default: exported under its original path and exact bytes through
+       * 1.x and never regenerated. Readers admit it by this recorded digest instead
+       * of the enclosing-package identity check; every other release keeps that check.
+       */
+      historical: true,
+      sha256: FROZEN_DEFAULT_RELEASE_SHA256,
     }),
     Object.freeze({
       release: "./release-1.1.json",
@@ -446,7 +526,13 @@ export type ItemPayload =
         readonly editsSha256?: string;
       };
     }
-  | { readonly files: readonly string[] };
+  | {
+      readonly files: readonly string[];
+      /** Release 1.7: required on a `document`, never on an agent or command. */
+      readonly purpose?: DocumentPurpose;
+      /** Release 1.7 optional document placement, as on rules. */
+      readonly placement?: "file" | "entry-block" | "project-folder";
+    };
 
 export type NameBasis = "authored" | "first-heading" | "key" | "file-name" | "publisher";
 
@@ -528,6 +614,49 @@ export interface RecipeDescriptor {
   readonly byteLength: number;
 }
 
+/**
+ * Release 1.7 transition recipe: the recipe a replaced tool variant carried, plus
+ * the item content materials and inputs it uses. `configureItem` selects one by
+ * `clientId` and checks both against the item before referencing it.
+ */
+export interface RecipeMapEntry extends RecipeDescriptor {
+  /** Content material ids of the item, ascending; exactly the recipe's material closure. */
+  readonly materials: readonly string[];
+  /** Input names of the item, ascending; exactly the recipe's input definitions. */
+  readonly inputs: readonly string[];
+}
+
+/** The earlier item a release 1.7 survivor replaces, with every identity it had. */
+export interface SupersededItemRef {
+  /** Exact SHA-256 of the earlier release document that carried the item. */
+  readonly releaseSha256: string;
+  readonly itemId: string;
+  readonly itemSha256: string;
+  /** Present when the earlier item carried release 1.6 identities. */
+  readonly contentSha256?: string;
+  readonly behaviourSha256?: string;
+}
+
+/**
+ * Release 1.7 supersession on a surviving item: `hash` (same content identity),
+ * `name+sourcePath` (the survivor's name and one of its source paths), or `split`
+ * (one earlier item spread over several survivors of this release).
+ */
+export type Supersession =
+  | ({ readonly match: "hash" } & SupersededItemRef & { readonly contentSha256: string })
+  | ({ readonly match: "name+sourcePath" } & SupersededItemRef & {
+        readonly name: string;
+        readonly sourcePath: string;
+      })
+  | ({ readonly match: "split" } & SupersededItemRef);
+
+/** Release 1.7 durable retirement record: a reason and the replacements, possibly none. */
+export interface Retirement17 {
+  readonly id: string;
+  readonly reason: string;
+  readonly replacedBy: readonly { readonly framework: string; readonly itemId: string }[];
+}
+
 export type DependencyRef =
   | { readonly itemId: string }
   | {
@@ -541,6 +670,9 @@ export type DependencyRef =
       };
       readonly itemId: string;
       readonly itemSha256: string;
+      /** Release 1.7: cross-release references carry both identities. */
+      readonly contentSha256?: string;
+      readonly behaviourSha256?: string;
     };
 
 export interface ItemDependencies {
@@ -565,7 +697,10 @@ export interface CatalogItem {
   readonly targets: readonly Prerequisite[];
   readonly scopes: readonly ("project" | "user")[];
   readonly inputs: Readonly<Record<string, InputSpec>>;
-  readonly recipe: RecipeDescriptor;
+  /** Every release 1.0 to 1.6 item has one; a release 1.7 item has this or `recipes`. */
+  readonly recipe?: RecipeDescriptor;
+  /** Release 1.7 transition map, keyed by client id, in place of `recipe`. */
+  readonly recipes?: Readonly<Record<string, RecipeMapEntry>>;
   /** Legacy `path` members, release 1.6 extended materials, or a mix. */
   readonly materials: readonly (MaterialMember | MaterialIdentity)[];
   /** Absent lists are normalized to empty lists, never to inferred items. */
@@ -586,6 +721,18 @@ export interface CatalogItem {
   readonly selectedBy?: string;
   readonly derivedFrom?: readonly DerivedFromRef[];
   readonly size?: { readonly parts: readonly PartSize[]; readonly status: "measured" | "unknown" };
+  /** Release 1.7 presentation role; never affects identity, binding or resolution. */
+  readonly role?: "choosable" | "supporting";
+  /** Release 1.7 earlier items this survivor replaces. */
+  readonly supersedes?: readonly Supersession[];
+  /**
+   * Release 1.7 declarations only, outside both identities and tool binding but
+   * inside `itemSha256` and the content inventory. A fallback names a same-release
+   * item for tools lacking this kind; agents and commands never carry one.
+   */
+  readonly fallback?: { readonly itemId: string };
+  readonly variantOf?: { readonly itemId: string };
+  readonly hints?: { readonly tools: readonly string[] };
 }
 
 /** An immutable view returned only by `readRelease`; other reader calls accept only these. */
@@ -607,15 +754,21 @@ export interface CatalogRelease {
     readonly version: string;
     readonly description: string;
   };
-  /** Release 1.6 optional retirement record; nothing is deleted by a status change. */
-  readonly retired?: readonly {
-    readonly id: string;
-    readonly reason: string;
-    readonly replacedBy?: readonly string[];
-  }[];
+  /**
+   * Retirement record; nothing is deleted by a status change. Release 1.6 names
+   * same-release replacements by id; release 1.7 qualifies them by framework.
+   */
+  readonly retired?: readonly (
+    | {
+        readonly id: string;
+        readonly reason: string;
+        readonly replacedBy?: readonly string[];
+      }
+    | Retirement17
+  )[];
   /** Release 1.6 optional display-only upstream plugin routes. */
   readonly nativeRoutes?: readonly string[];
-  /** Checked release sets, present when attached by `readReleaseSets`. */
+  /** Checked release sets: embedded in release 1.7, or attached by `readReleaseSets`. */
   readonly sets?: readonly ReleaseSet[];
 }
 
@@ -786,6 +939,8 @@ export interface ConfigureItemRequest {
   readonly itemId: string;
   readonly configuration: Readonly<Record<string, Json>>;
   readonly materialSource: MaterialSource;
+  /** Required exactly when the item carries a release 1.7 `recipes` map. */
+  readonly clientId?: string;
 }
 
 export interface ConfigureItemResult {
@@ -805,6 +960,8 @@ export interface ConfigureItemResult {
     readonly manifestSha256: string;
     readonly itemId: string;
     readonly itemSha256: string;
+    /** The transition recipe's client, when the item carries a release 1.7 recipe map. */
+    readonly clientId?: string;
   };
   readonly dependencies: ItemDependencies;
   readonly diagnostics: readonly CatalogDiagnostic[];

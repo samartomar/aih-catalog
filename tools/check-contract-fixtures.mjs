@@ -88,6 +88,11 @@ for (const fixture of manifest.fixtures) {
     results.push({ export: fixture.export, contract: fixture.contract, version: fixture.version, ...fixture.expected });
     continue;
   }
+  if (fixture.reader === "release-1-7-scenario") {
+    checkRelease17Scenario(fixture.name, document);
+    results.push({ export: fixture.export, contract: fixture.contract, version: fixture.version, ...fixture.expected });
+    continue;
+  }
   if (fixture.reader === "release-sets-scenario") {
     checkSetsScenario(fixture.name, document);
     results.push({ export: fixture.export, contract: fixture.contract, version: fixture.version, ...fixture.expected });
@@ -116,9 +121,10 @@ for (const fixture of manifest.fixtures) {
       break;
     }
     case "projection": {
-      const inventorySchema = fixture.contract === "urn:aihq:catalog:release-content:1.1.0"
-        ? "urn:aihq:catalog:content-inventory:1.1.0"
-        : "urn:aihq:catalog:content-inventory:1.0.0";
+      const inventorySchema = {
+        "urn:aihq:catalog:release-content:1.1.0": "urn:aihq:catalog:content-inventory:1.1.0",
+        "urn:aihq:catalog:release-content:1.2.0": "urn:aihq:catalog:content-inventory:1.2.0",
+      }[fixture.contract] ?? "urn:aihq:catalog:content-inventory:1.0.0";
       const inventory = encode({ schema: inventorySchema, projection: fixture.contract, release: document });
       result = readContentInventory(inventory, { expectedSha256: sha(inventory) }); break;
     }
@@ -172,6 +178,30 @@ function contentRelease(specifier) {
   const read = readReleaseContent(bytes, { expectedSha256: sha(bytes) });
   assert(read.valid, `${specifier}: ${JSON.stringify(read.diagnostics)}`);
   return read.release;
+}
+/** Executes one release 1.7 scenario: deterministic hash vectors or a split supersession. */
+function checkRelease17Scenario(name, envelope) {
+  if (envelope.releases) {
+    for (const vector of envelope.releases) {
+      const release = contentRelease(vector.export);
+      assert.equal(release.schema, vector.schema, name);
+      assert.equal(release.sha256, vector.releaseSha256, name);
+      assert.deepEqual(release.items.map(({ id, itemSha256, contentSha256, behaviourSha256 }) =>
+        ({ id, itemSha256, contentSha256, behaviourSha256 })), vector.items, name);
+    }
+    assert.equal(sha(data(envelope.frozenDefault.export)), envelope.frozenDefault.releaseSha256, `${name}: frozen default`);
+    const collapsed = contentRelease(envelope.releases.at(-1).export).items.find(item => item.id === envelope.declarationsOnly.itemId);
+    assert.equal(collapsed.contentSha256, envelope.declarationsOnly.contentSha256, `${name}: declarations keep content identity`);
+    assert.equal(collapsed.behaviourSha256, envelope.declarationsOnly.behaviourSha256, `${name}: declarations keep behaviour identity`);
+    assert.notEqual(collapsed.itemSha256, envelope.declarationsOnly.itemSha256, `${name}: declarations move itemSha256`);
+    return;
+  }
+  const release = contentRelease(envelope.release);
+  const old = contentRelease(envelope.earlier.export).items.find(item => item.id === envelope.earlier.itemId);
+  assert(old, `${name}: earlier item`);
+  const survivors = release.items.filter(item => item.supersedes?.some(entry =>
+    entry.match === "split" && entry.itemId === old.id && entry.itemSha256 === old.itemSha256));
+  assert.deepEqual(survivors.map(item => item.id).sort(), [...envelope.survivors].sort(), name);
 }
 /** Executes one release sets scenario through the public build, reader and resolver. */
 function checkSetsScenario(name, envelope) {

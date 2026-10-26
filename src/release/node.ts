@@ -42,6 +42,7 @@ import {
 } from "./package-release.js";
 import { DERIVED_MANIFEST_PATH, deriveProjectContextRelease } from "./project-context.js";
 import { isCheckedRelease } from "./reader.js";
+import { catalogItemRecipes } from "./release-17.js";
 import { EXACT_VERSION } from "./version.js";
 
 export { acquireBaselineArtifact } from "./baseline-acquire.js";
@@ -445,7 +446,7 @@ export async function resolveRelease(
     if (signal.aborted) failWith(abortReason(signal) ?? "cancelled");
     const declared = new Set(
       checked.release.items.flatMap((item) => [
-        item.recipe.path,
+        ...catalogItemRecipes(item).map(({ recipe }) => recipe.path),
         ...item.materials.map((member) =>
           String(memberPackagePath(member as unknown as Record<string, unknown>)),
         ),
@@ -458,6 +459,7 @@ export async function resolveRelease(
     const pkg = checked.release.package;
     if (
       identity !== undefined &&
+      !checked.historical &&
       (pkg.name !== identity.package || pkg.version !== identity.version)
     ) {
       checked.diagnostics.push(diagnostic("package-mismatch", checked.manifestPath));

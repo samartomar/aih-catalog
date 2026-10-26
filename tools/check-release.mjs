@@ -8,6 +8,7 @@
 // also when another package root is checked.
 //
 //   node tools/check-release.mjs [package-root]
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -29,10 +30,18 @@ try {
     { name: manifest.name, version: manifest.version },
     { authored: declaration.authored },
   );
-  for (const check of result.checks) {
+  // The frozen default stays exported under its original path and exact bytes.
+  const { FROZEN_DEFAULT_RELEASE_SHA256 } = await import(`${new URL("../dist/release/contracts.js", import.meta.url)}`);
+  const frozen = createHash("sha256").update(readFileSync(join(root, "release/release.json"))).digest("hex");
+  const checks = [...result.checks, {
+    name: "frozen-default",
+    ok: frozen === FROZEN_DEFAULT_RELEASE_SHA256,
+    detail: frozen === FROZEN_DEFAULT_RELEASE_SHA256 ? "" : `release/release.json ${frozen} vs recorded ${FROZEN_DEFAULT_RELEASE_SHA256}`,
+  }];
+  for (const check of checks) {
     console.log(`${check.ok ? "pass" : "FAIL"} ${check.name}${check.detail ? `: ${check.detail}` : ""}`);
   }
-  if (!result.ok) {
+  if (!result.ok || frozen !== FROZEN_DEFAULT_RELEASE_SHA256) {
     console.error("check-release: the committed release failed its integrity checks");
     process.exitCode = 1;
   }

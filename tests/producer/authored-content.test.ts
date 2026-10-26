@@ -454,7 +454,7 @@ describe("authored content checks", () => {
     const primaryPaths = new Set([
       "release/release.json",
       ...releaseOf(committed).items.flatMap((item) => [
-        item.recipe.path,
+        item.recipe?.path,
         ...item.materials.map((member) =>
           String(
             (member as { path?: string; packagePath?: string }).path ??

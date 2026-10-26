@@ -12,6 +12,9 @@ export const CONTENT_PROJECTION_ID = "urn:aihq:catalog:release-content:1.0.0" as
 /** Inventory 1.1 describes release 1.6 content, including behaviour files and executable states. */
 export const CONTENT_INVENTORY_SCHEMA_ID_1_1 = "urn:aihq:catalog:content-inventory:1.1.0" as const;
 export const CONTENT_PROJECTION_ID_1_1 = "urn:aihq:catalog:release-content:1.1.0" as const;
+/** Content inventory and projection 1.2.0 describe release 1.7.0; 1.0 and 1.1 keep their meaning. */
+export const CONTENT_INVENTORY_SCHEMA_ID_1_2 = "urn:aihq:catalog:content-inventory:1.2.0" as const;
+export const CONTENT_PROJECTION_ID_1_2 = "urn:aihq:catalog:release-content:1.2.0" as const;
 export const SCAN_BASELINE_SCHEMA_ID = "urn:aihq:catalog:scan-baseline:1.0.0" as const;
 export const BASELINE_ARTIFACT_MAX_BYTES = 64 * 1024 * 1024;
 
@@ -44,8 +47,14 @@ export type ContentItemDeclaration = Omit<CatalogItem, "itemSha256" | "dependenc
   readonly dependencies: Partial<ItemDependencies>;
 };
 export interface ContentInventory {
-  readonly schema: typeof CONTENT_INVENTORY_SCHEMA_ID | typeof CONTENT_INVENTORY_SCHEMA_ID_1_1;
-  readonly projection: typeof CONTENT_PROJECTION_ID | typeof CONTENT_PROJECTION_ID_1_1;
+  readonly schema:
+    | typeof CONTENT_INVENTORY_SCHEMA_ID
+    | typeof CONTENT_INVENTORY_SCHEMA_ID_1_1
+    | typeof CONTENT_INVENTORY_SCHEMA_ID_1_2;
+  readonly projection:
+    | typeof CONTENT_PROJECTION_ID
+    | typeof CONTENT_PROJECTION_ID_1_1
+    | typeof CONTENT_PROJECTION_ID_1_2;
   readonly release: {
     readonly schema: "urn:aihq:catalog:release:1.5.0" | "urn:aihq:catalog:release:1.6.0";
     readonly package: { readonly name: string; readonly version: string };

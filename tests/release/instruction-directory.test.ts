@@ -227,7 +227,7 @@ describe("deriveProjectContextRelease (portable, no filesystem)", () => {
     });
     expect(Object.isFrozen(derivation.from.package)).toBe(true);
     const declared = listItems(derived.release).flatMap((item) => [
-      item.recipe.path,
+      item.recipe?.path,
       ...item.materials.map((member) => memberPath(member)),
     ]);
     expect([...files.keys()].sort()).toEqual([...declared, DERIVED_MANIFEST_PATH].sort());
@@ -411,7 +411,7 @@ describe("prepareProjectContext with the default directory", () => {
     const declared = new Set([
       "release/release.json",
       ...listItems(release).flatMap((item) => [
-        item.recipe.path,
+        item.recipe?.path,
         ...item.materials.map((member) => memberPath(member)),
       ]),
     ]);
@@ -483,7 +483,9 @@ describe("prepareProjectContext with a custom directory", () => {
     const targets: string[] = [];
     for (const item of listItems(release)) {
       expect(JSON.stringify(item), item.id).not.toContain("ai-coding");
-      const recipe = JSON.parse((files.get(item.recipe.path) as Buffer).toString("utf8"));
+      const recipe = JSON.parse(
+        (files.get(item.recipe?.path as string) as Buffer).toString("utf8"),
+      );
       for (const operation of recipe.operations) targets.push(targetPath(operation.target));
       for (const check of recipe.checks) targets.push(targetPath(check.target));
     }

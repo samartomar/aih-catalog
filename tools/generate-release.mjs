@@ -248,8 +248,23 @@ export function generateContextRelease(root) {
   return files;
 }
 
+/** SHA-256 of the frozen default release; kept equal to contracts' FROZEN_DEFAULT_RELEASE_SHA256 by tests. */
+export const FROZEN_DEFAULT_SHA256 = "0ff699f240ac4c667c1891fe0f0a2629c60af67dfb1d9483405d2bbc45d6f124";
+
 /** Writes each generated file under `root` through a same-directory temporary and rename. */
 function writeFiles(root, files) {
+  // This package's frozen default keeps its original path and bytes; generation never
+  // replaces them. Disposable copies elsewhere remain ordinary generator inputs.
+  const frozen = resolve(root, RELEASE_PATH);
+  if (
+    resolve(root) === resolve(dirname(fileURLToPath(import.meta.url)), "..") &&
+    existsSync(frozen) &&
+    createHash("sha256").update(readFileSync(frozen)).digest("hex") === FROZEN_DEFAULT_SHA256 &&
+    files.has(RELEASE_PATH) &&
+    !readFileSync(frozen).equals(files.get(RELEASE_PATH))
+  ) {
+    fail(`${RELEASE_PATH} is the frozen default release; it is never regenerated`);
+  }
   for (const [path, bytes] of files) {
     const output = resolve(root, path);
     mkdirSync(dirname(output), { recursive: true });

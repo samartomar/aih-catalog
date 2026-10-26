@@ -9,7 +9,7 @@ import {
 } from "../release/contracts.js";
 import { memberPackagePath } from "../release/document.js";
 import { AcquisitionFailure } from "../release/node-errors.js";
-import { verifyPackageRelease } from "../release/package-release.js";
+import { historicalDigest, verifyPackageRelease } from "../release/package-release.js";
 import { readRelease } from "../release/reader.js";
 import { type AuthoredAllowance, checkAuthoredContent, describeFinding } from "./authored.js";
 import type { Record_ } from "./base.js";
@@ -150,11 +150,17 @@ export function checkCandidateFiles(
     }
     note(document.path, "release-envelope", true);
     const release = read.release;
+    // The frozen default is admitted by its recorded exact digest instead of the
+    // enclosing package identity, so its bytes must stay exactly unchanged.
+    const historical = historicalDigest(document.export) === read.release.sha256;
     note(
       document.path,
       "package-identity",
-      release.package.name === identity.name && release.package.version === identity.version,
-      `${release.package.name}@${release.package.version} vs ${identity.name}@${identity.version}`,
+      historical ||
+        (release.package.name === identity.name && release.package.version === identity.version),
+      historical
+        ? `historical ${read.release.sha256}`
+        : `${release.package.name}@${release.package.version} vs ${identity.name}@${identity.version}`,
     );
     note(
       document.path,
@@ -303,7 +309,7 @@ export function checkCandidateFiles(
     // A recipe member that cannot be read is refused by member-bytes and recipe agreement.
     const configProblems = codexConfigBlockProblems(
       release.items.map((item) => {
-        const bytes = files.get(item.recipe.path);
+        const bytes = item.recipe === undefined ? undefined : files.get(item.recipe.path);
         let recipe: unknown;
         try {
           recipe =
