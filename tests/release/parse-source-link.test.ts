@@ -1,8 +1,5 @@
+import { PARSE_SOURCE_LINK_MAX_CHARACTERS, parseSourceLink } from "@aihq/catalog/source";
 import { expect, it } from "vitest";
-import {
-  PARSE_SOURCE_LINK_MAX_CHARACTERS,
-  parseSourceLink,
-} from "../../src/release/parse-source-link.js";
 
 const SHA = "a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4";
 
@@ -214,12 +211,32 @@ it("returns unrecognised with a diagnostic and never a guessed candidate", () =>
     "github.com/owner/repo",
     "https://github.com/owner",
     "https://github.com/owner/repo/extra/segments/here",
+    "https://github.com/owner/%",
+    "https://www.npmjs.com/package/%",
   ]) {
     const parsed = unrecognised(input);
     expect("candidate" in parsed).toBe(false);
     expect(parsed.diagnostics.length).toBeGreaterThan(0);
     expect(parsed.diagnostics.map((diagnostic) => diagnostic.code)).toContain("unrecognised");
   }
+});
+
+it("never reports a version with leading zeroes as exact", () => {
+  for (const input of ["npx -y package@01.2.3", "tool@01.2.3"]) {
+    const parsed = recognised(input);
+    expect(parsed.candidate).toEqual({
+      kind: "npm",
+      package: input.startsWith("npx") ? "package" : "tool",
+    });
+    expect(parsed.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      "reference-not-exact",
+    ]);
+  }
+  expect(
+    unrecognised("https://www.npmjs.com/package/tool/v/01.2.3").diagnostics.map(
+      (diagnostic) => diagnostic.code,
+    ),
+  ).toEqual(["unrecognised"]);
 });
 
 it("rejects a non-string input as a programming error", () => {

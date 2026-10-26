@@ -275,7 +275,23 @@ const cases = [
       diagnostics: [],
     },
   },
-  ...["", "   ", "hello world", "ftp://example.com/tool", "https://example.com/tool", "http://github.com/owner/repo", "github.com/owner/repo", "npx", "npx skills add not-a-url", "npm install tool", "https://github.com/owner", "https://github.com/owner/repo/extra/segments/here"].map((input) => ({ input, expected: unrecognised })),
+  ...["", "   ", "hello world", "ftp://example.com/tool", "https://example.com/tool", "http://github.com/owner/repo", "github.com/owner/repo", "npx", "npx skills add not-a-url", "npm install tool", "https://github.com/owner", "https://github.com/owner/repo/extra/segments/here", "https://github.com/owner/%", "https://www.npmjs.com/package/%", "https://www.npmjs.com/package/tool/v/01.2.3"].map((input) => ({ input, expected: unrecognised })),
+  {
+    input: "npx -y package@01.2.3",
+    expected: {
+      status: "recognised",
+      candidate: { kind: "npm", package: "package" },
+      diagnostics: [notExact("01.2.3")],
+    },
+  },
+  {
+    input: "tool@01.2.3",
+    expected: {
+      status: "recognised",
+      candidate: { kind: "npm", package: "tool" },
+      diagnostics: [notExact("01.2.3")],
+    },
+  },
 ];
 
 const runAll = () =>

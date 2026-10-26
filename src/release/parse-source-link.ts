@@ -18,6 +18,7 @@
  * candidate.
  */
 import { deepFreeze } from "./json.js";
+import { EXACT_VERSION } from "./version.js";
 
 /** Published input bound for `parseSourceLink`; exceeding it is `input-too-long`. */
 export const PARSE_SOURCE_LINK_MAX_CHARACTERS = 2048;
@@ -49,8 +50,6 @@ export type ParseSourceLinkResult =
     };
 
 const EXACT_COMMIT = /^[a-f0-9]{40}$/;
-const EXACT_VERSION =
-  /^\d+\.\d+\.\d+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
 const GITHUB_NAME = /^[A-Za-z0-9](?:[A-Za-z0-9_.-]*[A-Za-z0-9])?$/;
 const NPM_UNSCOPED = /^[a-z0-9][a-z0-9._-]*$/;
 const NPM_SCOPED = /^@[a-z0-9][a-z0-9._-]*\/[a-z0-9][a-z0-9._-]*$/;
@@ -144,7 +143,12 @@ function parseNpmPackagePage(text: string): NpmPackage | undefined {
     return undefined;
   }
   if (url.protocol !== "https:" || url.host !== "www.npmjs.com") return undefined;
-  const segments = url.pathname.split("/").filter(Boolean).map(decodeURIComponent);
+  let segments: string[];
+  try {
+    segments = url.pathname.split("/").filter(Boolean).map(decodeURIComponent);
+  } catch {
+    return undefined;
+  }
   if (segments[0] !== "package") return undefined;
   const rest = segments.slice(1);
   const head = rest[0];
