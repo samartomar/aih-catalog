@@ -166,7 +166,8 @@
     "./fixtures/source-description-1.0.0-valid.json": "./fixtures/source-description-1.0.0-valid.json",
     "./fixtures/source-description-1.0.0-invalid.json": "./fixtures/source-description-1.0.0-invalid.json",
     "./fixtures/source-description/locator-kinds.json": "./fixtures/source-description/locator-kinds.json",
-    "./fixtures/source-description/exact-identity-kinds.json": "./fixtures/source-description/exact-identity-kinds.json"
+    "./fixtures/source-description/exact-identity-kinds.json": "./fixtures/source-description/exact-identity-kinds.json",
+    "./fixtures/release-index/tuf-local.json": "./fixtures/release-index/tuf-local.json"
   },
   "engines": {
     "node": ">=24.15.0 <25"
@@ -225,6 +226,7 @@
     "vitest": "4.1.11"
   },
   "dependencies": {
+    "@tufjs/models": "5.0.0",
     "ajv": "8.20.0",
     "jsonc-parser": "3.3.1",
     "yaml": "^2.8.3"
@@ -296,7 +298,8 @@
     "schemas/package-support",
     "docs/CONTRACT-FIXTURES.md",
     "package-support-1.1.json",
-    "restructuring/expected-1.7.0.json"
+    "restructuring/expected-1.7.0.json",
+    "docs/RELEASE-TRUST.md"
   ],
   "private": true
 }

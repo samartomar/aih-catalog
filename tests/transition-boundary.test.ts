@@ -114,6 +114,7 @@ describe("Catalog migration boundary", () => {
         "docs/NPM-SNAPSHOTS.md",
         "docs/PROJECT-BASICS.md",
         "docs/PUBLIC-AUTHORING.md",
+        "docs/RELEASE-TRUST.md",
         "docs/SCAN-BASELINE.md",
         "docs/SUPERPOWERS-CONTENT.md",
         "docs/SUPERPOWERS-INVENTORY.md",
@@ -126,7 +127,7 @@ describe("Catalog migration boundary", () => {
       for (const path of paths) {
         if (path === "tools/refresh-source.mjs") continue;
         expect(path, path).not.toMatch(
-          /^(?:(?:ai-coding|tools|tests|\.git|\.codex|\.serena|\.code-review-graph|\.codebase-memory|catalog)\/|docs\/(?!(?:ANTHROPIC-CONTENT|ANTHROPIC-INVENTORY|CONTRACT-FIXTURES|ECC-CONTENT|ECC-INVENTORY|EXTENSIONS-CONTENT|EXTENSIONS-INVENTORY|SUPERPOWERS-CONTENT|SUPERPOWERS-INVENTORY|FRAMEWORK-TEMPLATES|NPM-SNAPSHOTS|PROJECT-BASICS|PUBLIC-AUTHORING|SCAN-BASELINE)\.md$))/u,
+          /^(?:(?:ai-coding|tools|tests|\.git|\.codex|\.serena|\.code-review-graph|\.codebase-memory|catalog)\/|docs\/(?!(?:ANTHROPIC-CONTENT|ANTHROPIC-INVENTORY|CONTRACT-FIXTURES|ECC-CONTENT|ECC-INVENTORY|EXTENSIONS-CONTENT|EXTENSIONS-INVENTORY|SUPERPOWERS-CONTENT|SUPERPOWERS-INVENTORY|FRAMEWORK-TEMPLATES|NPM-SNAPSHOTS|PROJECT-BASICS|PUBLIC-AUTHORING|RELEASE-TRUST|SCAN-BASELINE)\.md$))/u,
         );
         expect(path, path).not.toMatch(/(?:private-key|\.pem$|\.env(?:\.|$))/u);
         expect(path, path).not.toContain("..");

@@ -299,3 +299,11 @@ For an ordinary npm package containing no Catalog release, call
 It verifies an exact version and caller-held SHA-512 pin, returns bounded files
 and executable modes plus the exact npm identity, and runs no package code.
 See [npm snapshots](docs/NPM-SNAPSHOTS.md) for producer preparation and refusals.
+
+`readReleaseIndex` reads unsigned sources until the host selects a TUF root.
+With a selected root it requires opaque cryptographic evidence from the public
+Node `verifyReleaseIndexTuf` seam over host-acquired metadata; unsigned copies
+are withheld. [Release trust](docs/RELEASE-TRUST.md) covers Core's optional trust
+update handoff, rotation, expiry, scoped revocation, expected publisher identity,
+cosign verification and the inert signing blueprint. Production signer activation
+and the offline root ceremony remain separately authorized future work.

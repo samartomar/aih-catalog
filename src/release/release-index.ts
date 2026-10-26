@@ -4,9 +4,9 @@
  * Pure: no Node built-ins, filesystem, network or clock. The host acquires and
  * persists; this reader checks caller-supplied bytes against the published
  * contract, merges sources through one schema, reports per-source diagnostics
- * and returns the state to persist. TUF verification of index bytes arrives
- * with samartomar/aih-catalog#138: a source whose host selected TUF reports
- * `offline` and contributes nothing until then, never unsigned or verified.
+ * and returns the state to persist. The Node verifier supplies opaque TUF
+ * evidence bound to host-selected trust; this portable seam admits no claims
+ * of verification from serialized data.
  */
 import {
   type MergedReleaseIndexEntry,
@@ -24,6 +24,7 @@ import {
   type ReleaseIndexSourceState,
 } from "./contracts.js";
 import { checkMaterialSource, Diagnostics, fields, isId, isRecord, SHA256 } from "./document.js";
+import { type IndexVerificationRecord, indexVerification } from "./index-verification.js";
 import { deepFreeze, JsonAdmissionError, readCanonicalBytes } from "./json.js";
 import { sha256Hex } from "./sha256.js";
 import { EXACT_VERSION } from "./version.js";
@@ -281,6 +282,8 @@ const withheld = (
 interface SourceInput {
   readonly sourceId: string;
   readonly tufSelected: boolean;
+  readonly rootSha256?: string;
+  readonly verification?: IndexVerificationRecord;
   readonly authorized: ReadonlySet<string>;
   readonly bytes?: Uint8Array;
   readonly offline: boolean;
@@ -391,11 +394,54 @@ function parseRequest(
         ),
       };
     }
+    const tufRoots: Record<
+      string,
+      { roles: import("./contracts.js").ReleaseIndexTufState; revoked: boolean }
+    > = {};
+    if (item.tufRoots !== undefined) {
+      if (!isRecord(item.tufRoots))
+        return { failure: requestFailure("tuf-state-invalid", "Expected per-root trust history.") };
+      for (const [hash, history] of Object.entries(item.tufRoots)) {
+        if (
+          !SHA256.test(hash) ||
+          !isRecord(history) ||
+          typeof history.revoked !== "boolean" ||
+          !isRecord(history.roles) ||
+          Object.keys(history.roles).length !== 4 ||
+          ["root", "timestamp", "snapshot", "targets"].some((role) => {
+            const floor = (history.roles as Record<string, unknown>)[role];
+            return (
+              !isRecord(floor) ||
+              !Number.isSafeInteger(floor.version) ||
+              (floor.version as number) < 1 ||
+              typeof floor.sha256 !== "string" ||
+              !SHA256.test(floor.sha256)
+            );
+          })
+        )
+          return {
+            failure: requestFailure(
+              "tuf-state-invalid",
+              "Expected root-bound role floors and revocations.",
+            ),
+          };
+        tufRoots[hash] = {
+          revoked: history.revoked,
+          roles: Object.fromEntries(
+            Object.entries(history.roles).map(([role, floor]) => [
+              role,
+              { ...(floor as { version: number; sha256: string }) },
+            ]),
+          ) as import("./contracts.js").ReleaseIndexTufState,
+        };
+      }
+    }
     states.set(item.sourceId, {
       sourceId: item.sourceId,
       lastVersion: item.lastVersion,
       lastVerifiedAt: item.lastVerifiedAt,
       lastIndexSha256: item.lastIndexSha256,
+      ...(item.tufRoots === undefined ? {} : { tufRoots }),
     } as ReleaseIndexSourceState);
   }
   const seen = new Set<string>();
@@ -490,6 +536,10 @@ function parseRequest(
     sources.push({
       sourceId: item.sourceId,
       tufSelected,
+      rootSha256: tufSelected
+        ? sha256Hex((item.trust as { tufRoot: Uint8Array }).tufRoot)
+        : undefined,
+      verification: indexVerification(item.verification),
       authorized,
       bytes: item.indexBytes,
       offline: item.offline === true,
@@ -531,15 +581,84 @@ export function readReleaseIndex(request: ReadReleaseIndexRequest): ReadReleaseI
       }
     };
 
+    const proof = source.verification;
     if (source.tufSelected) {
-      finish([
-        withheld(
-          "offline",
-          "tuf-unavailable",
-          "TUF verification was selected for this source but that path is unavailable until samartomar/aih-catalog#138 delivers it; the source is treated as offline and contributes no entries.",
-        ),
-      ]);
-      continue;
+      if (
+        source.rootSha256 !== undefined &&
+        unchanged.tufRoots?.[source.rootSha256]?.revoked === true
+      ) {
+        finish([
+          withheld(
+            "root-revoked",
+            "root-revoked",
+            "The persisted verified revocation withholds this selected root.",
+          ),
+        ]);
+        continue;
+      }
+      if (
+        proof === undefined ||
+        proof.sourceId !== source.sourceId ||
+        proof.rootSha256 !== source.rootSha256 ||
+        source.bytes === undefined ||
+        proof.indexSha256 !== sha256Hex(source.bytes) ||
+        (!source.offline && proof.verifiedAt !== request.evaluatedAt)
+      ) {
+        finish([
+          withheld(
+            "offline",
+            "tuf-unavailable",
+            "TUF verification is unavailable without a cryptographically verified proof for these exact bytes, source and root.",
+          ),
+        ]);
+        continue;
+      }
+      if (proof.expires <= evaluatedAt) {
+        finish([
+          withheld("expired", "tuf-expired", "TUF metadata has expired; its entries are withheld."),
+        ]);
+        continue;
+      }
+      const prior = unchanged.tufRoots?.[proof.rootSha256]?.roles;
+      if (
+        prior !== undefined &&
+        Object.entries(prior).some(([role, floor]) => {
+          const next = proof.tufState[role as keyof typeof prior];
+          return (
+            next.version < floor.version ||
+            (next.version === floor.version && next.sha256 !== floor.sha256)
+          );
+        })
+      ) {
+        finish([
+          withheld(
+            "rollback-refused",
+            "tuf-rollback-refused",
+            "TUF metadata regresses or rewrites a recorded role version.",
+          ),
+        ]);
+        continue;
+      }
+      if (proof.revoked) {
+        finish(
+          [
+            withheld(
+              "root-revoked",
+              "root-revoked",
+              "Verified metadata revokes this source's selected root; its entries are withheld.",
+            ),
+          ],
+          [],
+          {
+            ...unchanged,
+            tufRoots: {
+              ...unchanged.tufRoots,
+              [proof.rootSha256]: { roles: proof.tufState, revoked: true },
+            },
+          },
+        );
+        continue;
+      }
     }
 
     if (source.bytes === undefined) {
@@ -644,7 +763,9 @@ export function readReleaseIndex(request: ReadReleaseIndexRequest): ReadReleaseI
           advisory(
             "offline",
             "offline-cache",
-            "Acquisition failed; the last checked copy is used and says so. The copy stays unsigned.",
+            source.tufSelected
+              ? "Acquisition failed; the last checked copy retains its TUF verification."
+              : "Acquisition failed; the last checked copy is used and says so. The copy stays unsigned.",
           ),
           ...dropped.map((entry) =>
             advisory(
@@ -685,11 +806,15 @@ export function readReleaseIndex(request: ReadReleaseIndexRequest): ReadReleaseI
     const { kept, dropped } = scopeEntries();
     finish(
       [
-        advisory(
-          "unsigned",
-          "unsigned-index",
-          "No TUF root is published for this source; the index is read unsigned and every release digest is still checked.",
-        ),
+        ...(source.tufSelected
+          ? []
+          : [
+              advisory(
+                "unsigned",
+                "unsigned-index",
+                "No TUF root was selected for this source; release bytes must still match the indexed digest.",
+              ),
+            ]),
         ...dropped.map((entry) =>
           advisory(
             "unauthorized-framework",
@@ -704,9 +829,19 @@ export function readReleaseIndex(request: ReadReleaseIndexRequest): ReadReleaseI
       ],
       kept,
       Object.freeze({
+        ...unchanged,
         sourceId: source.sourceId,
         lastVersion: doc.version,
-        lastVerifiedAt: unchanged.lastVerifiedAt,
+        lastVerifiedAt:
+          source.tufSelected && proof !== undefined ? proof.verifiedAt : unchanged.lastVerifiedAt,
+        ...(source.tufSelected && proof !== undefined
+          ? {
+              tufRoots: {
+                ...unchanged.tufRoots,
+                [proof.rootSha256]: { roles: proof.tufState, revoked: false },
+              },
+            }
+          : {}),
         lastIndexSha256: digest,
       }),
     );

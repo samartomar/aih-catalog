@@ -30,3 +30,9 @@ verification. Changed content bundled in a public tarball requires a new package
 version even when producer source is unchanged. Never infer merge, tag, signing,
 promotion or publication authority from tests or a semver label.
 See [VERSIONING.md](VERSIONING.md) for contribution classification.
+
+[Release trust preparation](docs/RELEASE-TRUST.md) documents the inert manual
+Sigstore blueprint, sibling bundles, caller-selected publisher identity and TUF
+verification. It activates no workflow or production identity and performs no
+root ceremony. The offline two-of-three ceremony and production signer identity
+each remain pending separate authorization before first production use.

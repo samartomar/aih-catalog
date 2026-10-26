@@ -888,3 +888,9 @@ export {
   type NpmSnapshotRequest,
   type NpmSnapshotResult,
 } from "./npm-snapshot.js";
+
+export {
+  type VerifyReleaseIndexTufRequest,
+  type VerifyReleaseIndexTufResult,
+  verifyReleaseIndexTuf,
+} from "./release-index-tuf.js";
