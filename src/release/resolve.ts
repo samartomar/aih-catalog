@@ -21,9 +21,10 @@ import type {
   SetSelection,
 } from "./contracts.js";
 import { SET_MAX_DEPTH, SET_MAX_MEMBERS } from "./contracts.js";
-import { ID, SHA256 } from "./document.js";
+import { ID, isId, SHA256 } from "./document.js";
 import { canonicalJson, deepFreeze } from "./json.js";
 import { isCheckedRelease, validateSelectionSet } from "./reader.js";
+import { memberKey } from "./sets.js";
 import { sha256Hex } from "./sha256.js";
 
 const compare = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
@@ -430,18 +431,13 @@ interface Taken {
 interface SetExpansion {
   /** Members taken by chosen sets, in expansion order, with their in-set origins. */
   readonly taken: Map<string, Taken>;
-  /** Items a request names with `include: false`. */
-  readonly excluded: Map<string, SelectionRef>;
+  /** Items a request names with `include: false`, with the override's path. */
+  readonly excluded: Map<string, { readonly ref: SelectionRef; readonly path: string }>;
   /** Members a chosen set requires: not optional. */
   readonly required: Set<string>;
 }
 /** Thrown to stop expansion once a refusal is reported; never truncates. */
 class StopExpansion extends Error {}
-/** Identifies a member by its qualified item reference. */
-const memberKey = (item: { readonly framework: string; readonly itemId: string }) =>
-  `${item.framework}\u0000${item.itemId}`;
-const isId = (value: unknown): value is string =>
-  typeof value === "string" && value.length <= 128 && ID.test(value);
 
 /**
  * Expands chosen sets in the published order. Step 1 takes every chosen set in
@@ -456,7 +452,7 @@ function expandSets(
   itemAt: ItemAt,
 ): SetExpansion | undefined {
   const taken = new Map<string, Taken>();
-  const excluded = new Map<string, SelectionRef>();
+  const excluded = new Map<string, { ref: SelectionRef; path: string }>();
   const required = new Set<string>();
   const fail = (code: string, path: string, message: string, reason: string): never => {
     report(code, path, message, undefined, undefined, reason);
@@ -553,7 +549,7 @@ function expandSets(
     readonly at: string;
     readonly entry: SetSelection;
     readonly identity: { framework: string; setId: string; setSha256: string };
-    readonly overrides: Map<string, boolean>;
+    readonly overrides: Map<string, { include: boolean; path: string }>;
     readonly seenMembers: Set<string>;
     readonly visited: Set<string>;
     readonly expanded: Expanded[];
@@ -593,14 +589,14 @@ function expandSets(
         )));
   /** Depth-first: includes, then members, then required sets. */
   const expand = (
-    chosen: Chosen,
+    current: Chosen,
     set: ReleaseSet,
     from: CatalogRelease,
     depth: number,
     stack: readonly string[],
     options: Readonly<Record<string, readonly string[]>> | undefined,
   ) => {
-    const { at } = chosen;
+    const { at } = current;
     const setKey = `${from.sha256}\u0000${set.id}`;
     if (stack.includes(setKey)) fail("SET_CYCLE", at, "Chosen sets form a cycle.", "set-cycle");
     if (depth > SET_MAX_DEPTH)
@@ -611,28 +607,28 @@ function expandSets(
         "set-depth-exceeded",
       );
     const visitKey = `${setKey}\u0001${canonicalJson(options ?? null)}`;
-    if (chosen.visited.has(visitKey)) return;
-    chosen.visited.add(visitKey);
+    if (current.visited.has(visitKey)) return;
+    current.visited.add(visitKey);
     const next = [...stack, setKey];
-    chosen.expanded.push({ set, release: from, depth, stack: next });
+    current.expanded.push({ set, release: from, depth, stack: next });
     const nested = (refs: readonly SetRef[] | undefined) => {
       for (const ref of refs ?? []) {
         const target = setAt(from, ref, at);
-        expand(chosen, target.set, target.release, depth + 1, next, options);
+        expand(current, target.set, target.release, depth + 1, next, options);
       }
     };
     nested(set.includes);
     for (const member of set.members) {
-      const ref = memberRef(member, from, chosen.entry.release.scope, at);
+      const ref = memberRef(member, from, current.entry.release.scope, at);
       const name = memberKey(member.item);
-      chosen.seenMembers.add(name);
-      const override = chosen.overrides.get(name);
-      if (override === false) {
+      current.seenMembers.add(name);
+      const override = current.overrides.get(name);
+      if (override?.include === false) {
         if (!member.optional) required.add(key(ref));
-        excluded.set(key(ref), ref);
+        excluded.set(key(ref), { ref, path: override.path });
         continue;
       }
-      if (!(override ?? member.defaultOn)) continue;
+      if (!(override?.include ?? member.defaultOn)) continue;
       if (!member.optional) required.add(key(ref));
       let entry = taken.get(key(ref));
       if (!entry) {
@@ -648,7 +644,7 @@ function expandSets(
       }
       const origin: InclusionOrigin = {
         reasonIncluded: "in-set",
-        set: chosen.identity,
+        set: current.identity,
         ...(options ? { options } : {}),
       };
       entry.origins.set(canonicalJson(origin), origin);
@@ -681,7 +677,7 @@ function expandSets(
         { framework, setId: entry.setId, setSha256: entry.setSha256 },
         at,
       ).set;
-      const overrides = new Map<string, boolean>();
+      const overrides = new Map<string, { include: boolean; path: string }>();
       (entry.members ?? []).forEach((override, o) => {
         const name = memberKey(override.item);
         if (overrides.has(name))
@@ -691,7 +687,7 @@ function expandSets(
             "A member is overridden once.",
             "set-member-repeated",
           );
-        overrides.set(name, override.include);
+        overrides.set(name, { include: override.include, path: `${at}/members/${o}` });
       });
       for (const [optionId, choiceIds] of Object.entries(entry.options ?? {})) {
         const option = top.options?.find((candidate) => candidate.id === optionId);
@@ -758,13 +754,13 @@ function expandSets(
       );
     });
   // An excluded item leaves every set; one that any chosen set requires is refused.
-  for (const [name, ref] of excluded) {
+  for (const [name, { ref, path }] of excluded) {
     taken.delete(name);
     if (!required.has(name)) continue;
     refused = true;
     report(
       "REQUIRED_EXCLUDED",
-      "/sets",
+      path,
       "A request excludes a member its set requires.",
       undefined,
       { reference: ref },

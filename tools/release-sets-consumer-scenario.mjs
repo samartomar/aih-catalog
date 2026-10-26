@@ -504,9 +504,13 @@ case_("an item one set excludes and another set requires is refused", () => {
     set("strict", [member("kit", "kit.review")]),
   ]);
   const exclude = { members: [{ item: { framework: "kit", itemId: "kit.review" }, include: false }] };
-  for (const order of [[choose(release, "loose", exclude), choose(release, "strict")], [choose(release, "strict"), choose(release, "loose", exclude)]]) {
+  for (const [order, path] of [
+    [[choose(release, "loose", exclude), choose(release, "strict")], "/sets/0/members/0"],
+    [[choose(release, "strict"), choose(release, "loose", exclude)], "/sets/1/members/0"],
+  ]) {
     const result = resolve([release], order);
     assert.deepEqual([result.status, codes(result), reasons(result)], ["refused", ["REQUIRED_EXCLUDED"], ["required-excluded"]]);
+    assert.equal(result.diagnostics[0].path, path);
   }
 });
 

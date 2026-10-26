@@ -23,7 +23,7 @@ import {
   SET_MAX_MEMBERS,
   type SetMember,
 } from "./contracts.js";
-import { bytewiseCompare, CLIENT_ID, ID, isRecord, SHA256 } from "./document.js";
+import { bytewiseCompare, CLIENT_ID, isId, isRecord, SHA256 } from "./document.js";
 import { canonicalJson, deepFreeze, JsonAdmissionError, readCanonicalBytes } from "./json.js";
 import { sha256Hex } from "./sha256.js";
 
@@ -44,11 +44,10 @@ const UNDIGESTED = new Set([
   "members",
 ]);
 const encoder = new TextEncoder();
-const memberKey = (item: { readonly framework: string; readonly itemId: string }) =>
+/** Identifies a set member by its qualified item reference. */
+export const memberKey = (item: { readonly framework: string; readonly itemId: string }) =>
   `${item.framework}\u0000${item.itemId}`;
 
-const isId = (value: unknown): value is string =>
-  typeof value === "string" && value.length <= 128 && ID.test(value);
 const isText = (value: unknown, max = MAX_TEXT): value is string =>
   typeof value === "string" && value.length > 0 && value.length <= max;
 
