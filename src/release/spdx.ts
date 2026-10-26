@@ -7,6 +7,8 @@
 import { SPDX_EXCEPTION_IDS, SPDX_LICENSE_IDS } from "./spdx-data.js";
 
 const TOKEN = /^[A-Za-z0-9.:+-]+$/;
+/** Custom licence references are valid SPDX expression elements. */
+const LICENSE_REF = /^LicenseRef-[A-Za-z0-9.-]+$/;
 
 interface Parser {
   readonly tokens: readonly string[];
@@ -32,7 +34,9 @@ function parseTerm(parser: Parser): boolean {
     if (!parseExpression(parser)) return false;
     return take(parser) === ")";
   }
-  if (!TOKEN.test(token) || !SPDX_LICENSE_IDS.has(token)) return false;
+  if (!TOKEN.test(token) || !SPDX_LICENSE_IDS.has(token)) {
+    if (!LICENSE_REF.test(token)) return false;
+  }
   if (peek(parser) === "WITH") {
     take(parser);
     const exception = take(parser);

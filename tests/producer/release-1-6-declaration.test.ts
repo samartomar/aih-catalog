@@ -388,6 +388,8 @@ describe("producer 3.2.0 acceptance recovery", () => {
     expect(checkProducerDeclaration(expression).status).toBe("ok");
     first.license = "Apache-2.0 WITH LLVM-exception";
     expect(checkProducerDeclaration(expression).status).toBe("ok");
+    first.license = "LicenseRef-Personal";
+    expect(checkProducerDeclaration(expression).status).toBe("ok");
   });
 
   it("refuses a pinned root NOTICE file that no item carries", () => {
