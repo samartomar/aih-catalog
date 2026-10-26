@@ -9,13 +9,14 @@ import { baselineMembers } from "./baseline-members.js";
 import {
   type CatalogDiagnostic,
   type CatalogRelease,
+  preparedReleaseContent,
   type ReleaseExport,
   releaseInventory,
 } from "./contracts.js";
 import { isRecord, memberPackagePath, safeMemberPath } from "./document.js";
-import { readContentInventory } from "./inventory.js";
+import { createContentInventory, readContentInventory } from "./inventory.js";
 import { AcquisitionFailure } from "./node-errors.js";
-import { readRelease } from "./reader.js";
+import { readRelease, readReleaseContent } from "./reader.js";
 import { checkRecipeAgreement } from "./recipe-agreement.js";
 import { catalogItemRecipes } from "./release-17.js";
 
@@ -84,6 +85,12 @@ const MESSAGES: Record<string, string> = {
   "archive-duplicate-entry":
     "The archive names one member more than once or by a case-folded duplicate.",
   "archive-executable-member": "The archive has an executable member no release item declares.",
+  "prepared-content-unknown":
+    "The package lists no prepared release content for that framework identifier.",
+  "prepared-content-invalid":
+    "The prepared release content is not readable, or names another framework or format.",
+  "prepared-inventory-mismatch":
+    "The shipped content inventory is not the frozen inventory of this prepared content.",
   "release-unchecked":
     "Expected a release view returned by readRelease, readInstalledRelease or resolveRelease.",
   "source-input-conflict":
@@ -103,7 +110,7 @@ const MESSAGES: Record<string, string> = {
 /** The package manifest's identity and the chosen release export path, read as data. */
 export function packageIdentity(
   bytes: Uint8Array,
-  releaseExportName: ReleaseExport = "./release.json",
+  releaseExportName: string = "./release.json",
 ): {
   name: string;
   version: string;
@@ -186,6 +193,27 @@ export function verifyPackageRelease(
       }
     }
   }
+  diagnostics.push(...verifyItemMembers(release, read, signal));
+  return {
+    release,
+    manifestPath: identity.releasePath,
+    manifestSha256,
+    historical,
+    diagnostics,
+  };
+}
+
+/**
+ * Every item's recipe and material members against the bytes `read` supplies, with
+ * each recipe checked for agreement with its item. Shared by releases and prepared
+ * content, so both admit exactly the same member bytes.
+ */
+function verifyItemMembers(
+  release: CatalogRelease,
+  read: (path: string, limit: number, expected?: number) => Uint8Array,
+  signal?: AbortSignal,
+): CatalogDiagnostic[] {
+  const diagnostics: CatalogDiagnostic[] = [];
   const verified = new Map<string, string>();
   for (const item of release.items) {
     const recipes = catalogItemRecipes(item);
@@ -215,12 +243,59 @@ export function verifyPackageRelease(
       }
     }
   }
+  return diagnostics;
+}
+
+/**
+ * Checks one prepared release content document the package lists in
+ * `preparedReleaseContent`: the package identity, the content through the content
+ * reader, every recipe and material member, and the shipped frozen content inventory.
+ * No baseline is read or implied; the content is not a release.
+ */
+export function verifyPackagePreparedContent(
+  read: (path: string, limit: number, expected?: number) => Uint8Array,
+  frameworkId: string,
+  signal?: AbortSignal,
+): {
+  release: CatalogRelease;
+  entry: (typeof preparedReleaseContent)[number];
+  contentSha256: string;
+  contentByteLength: number;
+  inventorySha256: string;
+  inventoryByteLength: number;
+  diagnostics: CatalogDiagnostic[];
+} {
+  const entry =
+    preparedReleaseContent.find((candidate) => candidate.frameworkId === frameworkId) ??
+    failWith("prepared-content-unknown");
+  const exportName = `./${entry.export.slice("@aihq/catalog/".length)}`;
+  const identity = packageIdentity(read("package.json", PACKAGE_JSON_MAX_BYTES), exportName);
+  if (identity.releasePath !== entry.content) failWith("invalid-export", "package.json");
+  const contentBytes = read(entry.content, RELEASE_MAX_BYTES);
+  const contentSha256 = sha256(contentBytes);
+  const result = readReleaseContent(contentBytes, { expectedSha256: contentSha256 });
+  if (!result.valid) {
+    throw Object.assign(new AcquisitionFailure("prepared-content-invalid", entry.content), {
+      diagnostics: result.diagnostics,
+    });
+  }
+  const release = result.release;
+  if (release.schema !== entry.schema || release.framework?.id !== entry.frameworkId)
+    failWith("prepared-content-invalid", entry.content);
+  if (release.package.name !== identity.name || release.package.version !== identity.version)
+    failWith("package-mismatch", entry.content);
+  const inventoryBytes = read(entry.inventory, RELEASE_MAX_BYTES);
+  const frozen = createContentInventory(contentBytes, { expectedSha256: contentSha256 });
+  if (!frozen.valid || sha256(frozen.bytes) !== sha256(inventoryBytes))
+    failWith("prepared-inventory-mismatch", entry.inventory);
   return {
     release,
-    manifestPath: identity.releasePath,
-    manifestSha256,
-    historical,
-    diagnostics,
+    entry,
+    contentSha256,
+    contentByteLength: contentBytes.length,
+    inventorySha256: sha256(inventoryBytes),
+    inventoryByteLength: inventoryBytes.length,
+    diagnostics: verifyItemMembers(release, read, signal),
   };
 }
 

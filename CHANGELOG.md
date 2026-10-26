@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Add `readInstalledPreparedContent({ root, frameworkId })` to `@aihq/catalog/node`
+  (samartomar/aih-catalog#137): it reads one listed prepared release content document
+  from an installed package, verifying the package identity, every recipe and material
+  member and the frozen content inventory, and returns a checked content view labelled
+  `{ kind: "prepared-content", baseline: "unbound", authenticated: false,
+  productionRelease: false }` with its material root and exact digests. Release
+  admission, baselines and the release index are unchanged; the content is still not a
+  release.
+
 - ECC release 1.7.0 content (samartomar/aih-catalog#136): `ecc.notices` now admits
   user scope. Its recipe map keeps the shipped project recipe for `claude-code`,
   `copilot-vscode` and `kiro-ide`, and adds for `codex` the same delivery moved into the

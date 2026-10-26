@@ -95,7 +95,51 @@ members unchanged. Per-item coverage
 then comes from Scan's public item records over each item's `itemEvidenceDescriptor`;
 releases never embed scan records.
 
+## Internal use before release
+
+A consumer can use prepared content from a local package now, before any baseline is
+bound, without a second release format and without weakening release admission:
+
+```js
+import { readInstalledPreparedContent } from "@aihq/catalog/node";
+import { configureItem, resolveSelections, validateSelectionSet } from "@aihq/catalog/reader";
+
+const prepared = await readInstalledPreparedContent({ root: catalogPackageRoot, frameworkId: "project-basics" });
+if (!prepared.valid) throw new Error(JSON.stringify(prepared.diagnostics));
+// prepared.status: { kind: "prepared-content", baseline: "unbound", authenticated: false, productionRelease: false }
+const releases = { [prepared.release.sha256]: prepared.release };
+const resolved = resolveSelections({ releases, skips: [], roots: [{ releaseSha256: prepared.release.sha256,
+  itemId: "project-basics.shared-block", scope: "project", configuration: { projectFolder: "ai-coding" } }] });
+// validateSelectionSet, then configureItem({ release: prepared.release, itemId, configuration,
+// materialSource: prepared.source }) per selection; pass prepared.materialRoots to Core.
+```
+
+`readInstalledPreparedContent` takes an absolute installed package root and one framework
+from `preparedReleaseContent`; there is no default and no other name. It verifies what
+`readInstalledRelease` verifies for a release: the package identity, every recipe and
+material member (and each recipe's agreement with its item), and in addition that the
+shipped content inventory is exactly the frozen inventory of the content. It refuses an
+unlisted framework (`prepared-content-unknown`), a changed member
+(`member-sha256-mismatch`) and a stale inventory (`prepared-inventory-mismatch`).
+
+The result is never a release. `status` says the baseline is unbound and the content is
+neither authenticated nor a production release; `release.baseline` is absent;
+`readRelease`, `readInstalledRelease` and `resolveRelease` still refuse it; and the
+content has no release index entry. An unsigned release index is a different thing: it
+lists bound releases whose digests are checked, and it is not an authenticated Scan
+baseline either. `provenance` records the package identity and the exact content and
+inventory paths, digests and lengths, so a consumer can bind a saved choice to the
+exact local bytes it used. Hosts should identify the local archive they installed by
+its own SHA-256 as well.
+
 ## Checks
+
+- `node tools/verify-project-basics-internal-consumer.mjs [--core <core.tgz>] [catalog.tgz]`
+  installs the packed package offline into a disposable consumer and checks the internal
+  path through public exports only: the verified read and its labels, the refusals, and
+  browsing and composing the three items. With `--core` and an exact packed Core archive,
+  Core also prepares and applies the composed items into a disposable project folder. The
+  Catalog-only run is part of `npm test`.
 
 - `node tools/verify-project-basics-consumer.mjs [catalog.tgz]` installs the packed
   package into a disposable consumer and checks the content through public exports

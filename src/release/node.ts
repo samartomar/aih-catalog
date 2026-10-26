@@ -38,6 +38,7 @@ import {
   failWith,
   frozenDiagnostic,
   sha256,
+  verifyPackagePreparedContent,
   verifyPackageRelease,
 } from "./package-release.js";
 import { DERIVED_MANIFEST_PATH, deriveProjectContextRelease } from "./project-context.js";
@@ -559,6 +560,112 @@ export async function readInstalledRelease(
         manifestPath: checked.manifestPath,
         manifestSha256: checked.manifestSha256,
       }),
+      diagnostics: Object.freeze([]),
+    });
+  } catch (error) {
+    return failureResult(error);
+  }
+}
+
+export interface InstalledPreparedContentRequest {
+  /** Framework of one `preparedReleaseContent` entry; there is no default. */
+  readonly frameworkId: string;
+  /** Absolute path of the installed package root the caller selected. */
+  readonly root: string;
+  /** Name of the Core `controls.materialRoots` entry; defaults to `catalog`. */
+  readonly sourceInput?: string;
+  readonly signal?: AbortSignal;
+}
+
+export interface InstalledPreparedContentResult {
+  readonly valid: boolean;
+  /** A checked content view: portable reader operations accept it; it has no baseline. */
+  readonly release?: CatalogRelease;
+  /** What this is, for display: prepared content, never an authenticated release. */
+  readonly status?: {
+    readonly kind: "prepared-content";
+    readonly baseline: "unbound";
+    readonly authenticated: false;
+    readonly productionRelease: false;
+  };
+  readonly source?: { readonly kind: "local"; readonly input: string };
+  /** Pass to Core as `controls.materialRoots`; never place it in a portable policy. */
+  readonly materialRoots?: Readonly<Record<string, string>>;
+  readonly provenance?: {
+    readonly kind: "installed-prepared";
+    readonly package: { readonly name: string; readonly version: string };
+    readonly contentPath: string;
+    readonly contentSha256: string;
+    readonly contentByteLength: number;
+    readonly inventoryPath: string;
+    readonly inventorySha256: string;
+    readonly inventoryByteLength: number;
+  };
+  readonly diagnostics: readonly CatalogDiagnostic[];
+}
+
+/**
+ * Reads one prepared release content document from an installed package root: the
+ * caller names its framework explicitly, and the package identity, the content, every
+ * recipe and material member and the frozen content inventory are verified as
+ * `readInstalledRelease` verifies a release. The result is labelled unbound and
+ * unauthenticated; no baseline is read or implied and `readRelease` still refuses it.
+ */
+export async function readInstalledPreparedContent(
+  request: InstalledPreparedContentRequest,
+): Promise<InstalledPreparedContentResult> {
+  try {
+    const {
+      root,
+      frameworkId,
+      sourceInput = "catalog",
+      signal,
+    } = (request ?? {}) as InstalledPreparedContentRequest;
+    if (signal?.aborted) failWith("cancelled");
+    if (typeof sourceInput !== "string" || sourceInput.length > 128 || !ID.test(sourceInput)) {
+      failWith("invalid-source-input");
+    }
+    if (typeof frameworkId !== "string") failWith("prepared-content-unknown");
+    if (typeof root !== "string" || !isAbsolute(root)) failWith("invalid-root");
+    let canonical: string;
+    try {
+      if (!statSync(root).isDirectory()) failWith("root-unavailable");
+      canonical = realpathSync.native(root);
+    } catch (error) {
+      if (error instanceof AcquisitionFailure) throw error;
+      return failWith("root-unavailable");
+    }
+    const checked = verifyPackagePreparedContent(
+      (path, limit, expected) => readMember(canonical, path, limit, expected),
+      frameworkId,
+      signal,
+    );
+    if (signal?.aborted) failWith("cancelled");
+    if (checked.diagnostics.length > 0) {
+      return Object.freeze({ valid: false, diagnostics: Object.freeze(checked.diagnostics) });
+    }
+    installedRoots.set(checked.release, canonical);
+    return Object.freeze({
+      valid: true,
+      release: checked.release,
+      status: Object.freeze({
+        kind: "prepared-content",
+        baseline: "unbound",
+        authenticated: false,
+        productionRelease: false,
+      } as const),
+      source: Object.freeze({ kind: "local", input: sourceInput }),
+      materialRoots: Object.freeze({ [sourceInput]: canonical }),
+      provenance: Object.freeze({
+        kind: "installed-prepared",
+        package: checked.release.package,
+        contentPath: checked.entry.content,
+        contentSha256: checked.contentSha256,
+        contentByteLength: checked.contentByteLength,
+        inventoryPath: checked.entry.inventory,
+        inventorySha256: checked.inventorySha256,
+        inventoryByteLength: checked.inventoryByteLength,
+      } as const),
       diagnostics: Object.freeze([]),
     });
   } catch (error) {
