@@ -53,8 +53,13 @@ unpublished, local package data.
 
 `node tools/verify-default-closing-consumer.mjs [catalog.tgz]` installs the packed package
 into a disposable consumer and checks, through public exports only, both documents from
-the same installed package: the frozen default by its historical digest, the empty item
-list, the 46 retirements and their reasons, the 27 Extensions successors and their
+the same installed package: the frozen default, and a copy of that package under a later
+version, where only the recorded digest admits it and one changed byte is refused, the empty
+item list, the 46 retirements and their reasons, the 27 Extensions successors and their
 name and source path, the 18 retirements without a successor, the project context
 split, the transition check, the restructuring comparison, the frozen content inventory
-and the unbound state. It is part of `npm test`.
+and the unbound state. It is part of `npm test`, as is
+`tests/release/default-closing-build.test.ts`, which feeds the build changed inputs: a
+missing Extensions successor, a different source path, name or record, a successor for
+per-tool delivery, a split over other than three items and an unknown frozen kind each
+fail it.

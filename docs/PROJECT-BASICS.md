@@ -167,9 +167,12 @@ tool's entry files and reporting a changed or missing block stay with the instal
 - Full package assembly (`tools/assemble-release-package.mjs`) carries the prepared
   content, its inventory and members unchanged. Its installed public readback reports
   them as `preparedContent`, and `tools/verify-package-consumer.mjs` asserts that they
-  arrive byte for byte. That maintained proof currently stops earlier, at the
-  whole-package check of the frozen default (samartomar/aih-catalog#146), so these
-  assertions have only been exercised outside it so far.
+  arrive byte for byte. That maintained proof currently stops earlier: its fixture plan
+  still qualifies the frozen default `release.json` as a view, which rewrites its bytes,
+  so the whole-package check of the frozen default fails. The closing default release
+  does not change that plan; carrying the frozen default as an unchanged historical
+  export there is separate assembly work. These assertions have only been exercised
+  outside it so far.
 - The golden fixture `@aihq/catalog/fixtures/release-1-7/project-basics-release-1.7.0.json`
   is the shipped content with a **test-only evidence binding**; it claims no
   authenticated assessment. Package support 1.1 lists it under release 1.7.0.

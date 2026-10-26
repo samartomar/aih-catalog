@@ -5,8 +5,9 @@
 // path and bytes. No Core, no execution, no Scan.
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
-import { dirname } from "node:path";
+import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   FROZEN_DEFAULT_RELEASE_SHA256,
@@ -51,7 +52,7 @@ const projectBasics = content("release-project-basics.content.json");
 const retired = new Map((closing.retired ?? []).map((entry) => [entry.id, entry]));
 const frozenOfKind = (...kinds) => frozen.release.items.filter((item) => kinds.includes(item.kind));
 
-await case_("the frozen default stays exported under its original path and bytes, admitted by its historical digest", async () => {
+await case_("the frozen default stays exported under its original path and bytes and reads from this package", async () => {
   assert.equal(sha256(frozenBytes), FROZEN_DEFAULT_RELEASE_SHA256);
   assert.equal(frozen.release.schema, "urn:aihq:catalog:release:1.4.0");
   assert.equal(frozen.release.items.length, 46);
@@ -66,6 +67,32 @@ await case_("the frozen default stays exported under its original path and bytes
   assert.equal(installed.provenance.manifestPath, "release/release.json");
   assert.equal(installed.provenance.manifestSha256, FROZEN_DEFAULT_RELEASE_SHA256);
   assert.deepEqual(installed.release.items.map((item) => item.id), frozen.release.items.map((item) => item.id));
+});
+
+await case_("a later version of this package admits the frozen default by its historical digest only", async () => {
+  // The frozen default embeds @aihq/catalog 0.1.0; under a later enclosing version only
+  // its recorded digest admits it, while the closing content keeps the identity check.
+  const later = mkdtempSync(join(tmpdir(), "aih-catalog-default-later-"));
+  try {
+    cpSync(root, later, { recursive: true });
+    const manifest = JSON.parse(readFileSync(join(later, "package.json"), "utf8"));
+    manifest.version = "0.2.0";
+    writeFileSync(join(later, "package.json"), `${JSON.stringify(manifest, null, 2)}\n`);
+    const admitted = await readInstalledRelease({ root: later, release: "./release.json" });
+    assert.equal(admitted.valid, true, JSON.stringify(admitted.diagnostics));
+    assert.equal(admitted.release.package.version, "0.1.0");
+    assert.equal(admitted.provenance.manifestSha256, FROZEN_DEFAULT_RELEASE_SHA256);
+    const closingLater = await readInstalledPreparedContent({ root: later, frameworkId: "default" });
+    assert.equal(closingLater.valid, false);
+    assert.ok(closingLater.diagnostics.some((d) => d.reason === "package-mismatch"), JSON.stringify(closingLater.diagnostics));
+    // One changed byte is no longer the frozen default: it is held to the package identity.
+    writeFileSync(join(later, "release/release.json"), frozenBytes.toString("utf8").replace("Ask Matt", "Ask Matt "));
+    const changed = await readInstalledRelease({ root: later, release: "./release.json" });
+    assert.equal(changed.valid, false);
+    assert.ok(changed.diagnostics.some((d) => d.reason === "package-mismatch"), JSON.stringify(changed.diagnostics));
+  } finally {
+    rmSync(later, { recursive: true, force: true });
+  }
 });
 
 await case_("a closing default release 1.7.0 with no items", () => {
@@ -164,8 +191,8 @@ await case_("the closing content is prepared, unbound and unauthenticated, and h
   const unbound = readRelease(contentBytes, { expectedSha256: sha256(contentBytes) });
   assert.equal(unbound.valid, false);
   assert.ok(unbound.diagnostics.some((entry) => entry.reason === "baseline-invalid"));
-  assert.ok(!releaseInventory.releases.some((entry) => entry.release.includes("default")));
   const [listed] = preparedReleaseContent.filter((entry) => entry.frameworkId === "default");
+  assert.ok(!releaseInventory.releases.some((entry) => entry.export === listed.export || entry.release === `./${CONTENT}`));
   assert.equal(listed.export, `@aihq/catalog/${CONTENT}`);
   assert.equal(listed.inventory, INVENTORY);
   assert.equal(listed.schema, closing.schema);
