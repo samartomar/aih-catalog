@@ -3,14 +3,16 @@
 // profiles as sets, the one languages-and-frameworks option, the always-included
 // common rules, optional hooks, the TypeScript and Python closure with its origins,
 // the collapsed MCP servers with their notice and distinct behaviour identities,
-// the identity and retirement mapping of every earlier ECC item, the restructuring
-// comparison and the unbound state. No Core, no execution, no Scan.
+// the identity and retirement mapping of every earlier ECC item, the Kiro edition's
+// own set, namespaces, hints, variants and steering inclusion, the restructuring
+// comparison and the unbound state, also through the installed internal reader. No Core, no execution, no Scan.
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { preparedReleaseContent, releaseInventory } from "@aihq/catalog/contracts";
+import { readInstalledPreparedContent } from "@aihq/catalog/node";
 import { compareRestructuring } from "@aihq/catalog/producer";
 import {
   configureItem,
@@ -29,8 +31,7 @@ const member = (path) => readFileSync(join(root, path));
 const results = [];
 const case_ = async (name, fn) => {
   try {
-    await fn();
-    results.push({ name, status: "pass" });
+    results.push({ ...((await fn()) ?? {}), name, status: "pass" });
   } catch (error) {
     results.push({ name, status: "fail", error: String(error?.stack ?? error) });
   }
@@ -52,6 +53,8 @@ const modules = Object.entries(groups.modules);
 const profiles = Object.entries(groups.profiles);
 const TARGETS = { claude: "claude-code", "claude-project": "claude-code", codex: "codex" };
 const STABILITY = { stable: "stable", beta: "in-progress", experimental: "in-progress" };
+const KIRO_SET = "ecc.edition.kiro";
+const kiroEdition = release.items.filter((entry) => entry.payload.namespace === "kiro");
 const contentOf = (entry) => entry.materials.filter((material) => material.role === "content");
 const resolve = (setId, options) => {
   const chosen = set(setId);
@@ -256,11 +259,100 @@ await case_("every earlier ECC item id is a survivor, with supersedes when renam
   assert.match(retired.get("ecc.codex.mcp.github").reason, /^Collapsed/);
   assert.equal(release.retired.length, 134);
   assert.deepEqual(retired.get("ecc.template.api-review").replacedBy, []);
-  // Kiro-edition copies survive under their own namespace; the main grid sets never list them.
-  const kiro = release.items.filter((entry) => entry.payload.namespace === "kiro");
-  assert.equal(kiro.length, 65);
-  const listed = new Set(release.sets.flatMap((entry) => entry.members.map((candidate) => candidate.item.itemId)));
-  assert.ok(kiro.every((entry) => !listed.has(entry.id)));
+  // Kiro-edition copies survive under their own namespace.
+  assert.equal(kiroEdition.length, 65);
+});
+
+await case_("ECC's Kiro edition is one set, ECC for Kiro, and no main ECC set lists its items", () => {
+  const edition = set(KIRO_SET);
+  assert.equal(edition.name, "ECC for Kiro");
+  assert.deepEqual(edition.members.map((entry) => entry.item.itemId).sort(), kiroEdition.map((entry) => entry.id).sort());
+  assert.equal(edition.targets, undefined);
+  for (const entry of release.sets)
+    for (const candidate of entry.members)
+      assert.equal(item(candidate.item.itemId).payload.namespace === "kiro", entry.id === KIRO_SET, `${entry.id}: ${candidate.item.itemId}`);
+  assert.ok(!release.sets.some((entry) => (entry.includes ?? []).some((ref) => ref.setId === KIRO_SET)));
+  // Every hook member is optional; the pinned edition's hooks are not admitted items.
+  for (const candidate of edition.members) if (item(candidate.item.itemId).kind === "hook") assert.equal(candidate.optional, true);
+  const chosen = resolve(KIRO_SET);
+  assert.equal(chosen.status, "ok", JSON.stringify(chosen.diagnostics));
+  const selected = chosen.value.selections.map((selection) => selection.item.itemId);
+  assert.deepEqual(selected.filter((id) => id !== "ecc.notices").sort(), kiroEdition.map((entry) => entry.id).sort());
+  const developer = resolve("ecc.profile.developer", { languages: ["typescript", "python"] });
+  assert.ok(!developer.value.selections.some((selection) => item(selection.item.itemId).payload.namespace === "kiro"));
+});
+
+await case_("Kiro-edition items are namespaced kiro, hinted for Kiro and unique per kind and namespace", () => {
+  const skills = kiroEdition.filter((entry) => entry.kind === "skill");
+  assert.equal(skills.length, 43);
+  assert.equal(kiroEdition.filter((entry) => entry.kind === "rule").length, 22);
+  for (const entry of kiroEdition) assert.deepEqual(entry.hints, { tools: ["kiro"] }, entry.id);
+  assert.ok(release.items.filter((entry) => entry.payload.namespace !== "kiro").every((entry) => entry.hints === undefined));
+  const keys = release.items.map((entry) => `${entry.kind}\t${entry.payload.namespace ?? ""}\t${entry.name.toLowerCase()}`);
+  assert.equal(new Set(keys).size, keys.length);
+});
+
+await case_("an ECC skill and its Kiro variant share a name; the variant shows as {name} (kiro) and names it", () => {
+  const main = item("ecc.skill.tdd-workflow");
+  const variant = item("ecc.skill.tdd-workflow.kiro-variant");
+  assert.equal(variant.name, main.name);
+  assert.equal(`${variant.name} (${variant.payload.namespace})`, "tdd-workflow (kiro)");
+  assert.deepEqual(variant.variantOf, { itemId: main.id });
+  assert.equal(main.variantOf, undefined);
+  for (const skill of kiroEdition.filter((entry) => entry.kind === "skill")) {
+    const varied = item(skill.variantOf.itemId);
+    assert.equal(varied.kind, "skill", skill.id);
+    assert.equal(varied.name, skill.name, skill.id);
+    assert.equal(varied.payload.namespace, undefined, skill.id);
+  }
+});
+
+await case_("variantOf and hints change neither identity nor tool binding", () => {
+  for (const entry of kiroEdition) {
+    // The behaviour file, which behaviourSha256 covers, carries neither declaration.
+    const behaviour = JSON.parse(member(entry.materials.find((material) => material.role === "behaviour").packagePath).toString("utf8"));
+    assert.deepEqual(Object.keys(behaviour).sort(), ["dependencies", "executable", "kind", "payload", "requirements"], entry.id);
+    // Each keeps the Kiro recipe its shipped copy delivers, and that copy's content.
+    const [superseded] = entry.supersedes;
+    const copy = earlier.release.items.find((candidate) => candidate.id === superseded.itemId);
+    assert.ok(superseded.itemId.startsWith("ecc.kiro."), entry.id);
+    assert.equal(entry.recipe.sha256, copy.recipe.sha256, entry.id);
+    assert.deepEqual(entry.scopes, copy.scopes, entry.id);
+    assert.deepEqual(contentOf(entry).map((material) => material.sha256).sort(), copy.materials.map((material) => material.sha256).sort(), entry.id);
+  }
+  const configured = configureItem({ release, itemId: "ecc.skill.tdd-workflow.kiro-variant", configuration: {}, materialSource: { kind: "local", input: "catalog" } });
+  assert.equal(configured.valid, true, JSON.stringify(configured.diagnostics));
+});
+
+await case_("Kiro steering keeps its authored inclusion and applyTo patterns", () => {
+  const steering = kiroEdition.filter((entry) => entry.kind === "rule");
+  const count = (inclusion) => steering.filter((entry) => entry.payload.inclusion === inclusion).length;
+  assert.deepEqual([count("fileMatch"), count("manual"), count("always"), count(undefined)], [11, 3, 0, 8]);
+  const cpp = item("ecc.steering.cpp-patterns").payload;
+  assert.equal(cpp.inclusion, "fileMatch");
+  assert.deepEqual(cpp.applyTo, ["*.cpp", "*.hpp", "*.h", "*.cc", "*.cxx"]);
+  assert.equal(item("ecc.steering.dev-mode").payload.inclusion, "manual");
+  for (const entry of steering) {
+    const text = member(contentOf(entry)[0].packagePath).toString("utf8");
+    const authored = text.match(/^inclusion:\s*(\S+)$/m)[1];
+    if (["always", "fileMatch", "manual"].includes(authored)) assert.equal(entry.payload.inclusion, authored, entry.id);
+    else assert.match(entry.payload.applyToBasis, new RegExp(`inclusion ${authored}, a mode the release does not name`), entry.id);
+    assert.equal(entry.payload.applyTo.length > 0 && (entry.payload.inclusion === "fileMatch") === !entry.payload.applyTo.includes("**"), true, entry.id);
+  }
+});
+
+await case_("the installed internal reader reads ECC with the Kiro set, unbound and unauthenticated", async () => {
+  const installed = await readInstalledPreparedContent({ root, frameworkId: "ecc" });
+  assert.equal(installed.valid, true, JSON.stringify(installed.diagnostics));
+  assert.deepEqual(
+    { baseline: installed.status.baseline, authenticated: installed.status.authenticated, productionRelease: installed.status.productionRelease },
+    { baseline: "unbound", authenticated: false, productionRelease: false },
+  );
+  assert.equal(installed.provenance.contentSha256, sha256(contentBytes));
+  assert.equal(installed.release.sets.find((entry) => entry.id === KIRO_SET).members.length, 65);
+  const pinned = await readInstalledPreparedContent({ root, frameworkId: "ecc", expectedContentSha256: sha256(contentBytes) });
+  assert.equal(pinned.valid, true, JSON.stringify(pinned.diagnostics));
+  return { contentSha256: sha256(contentBytes), inventorySha256: sha256(exported(INVENTORY)) };
 });
 
 await case_("the restructuring comparison against the amended expectation passes for ECC", () => {
@@ -270,6 +362,12 @@ await case_("the restructuring comparison against the amended expectation passes
   assert.deepEqual(result.counts.hash, { pass: 663, fail: 0 });
   assert.deepEqual(result.counts["mcp-pair"], { pass: 32, fail: 0 });
   assert.deepEqual(result.counts.edits, { pass: 35, fail: 0 });
+  // Every Kiro-edition item, its identity and its renaming are checked rows.
+  for (const entry of kiroEdition)
+    for (const check of ["item", "hash"]) {
+      const rows = result.rows.filter((row) => row.check === check && row.subject === entry.id);
+      assert.ok(rows.length === 1 && rows[0].status === "pass", `${check} ${entry.id}`);
+    }
 });
 
 await case_("the shipped content inventory is the frozen inventory and each item maps to a Scan descriptor", () => {

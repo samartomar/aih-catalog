@@ -101,3 +101,51 @@ it("moves the notice recipe to the user home and refuses one that leaves the pro
     }),
   ).toThrow(/outside the project root/);
 });
+
+it("keeps a Kiro steering file's named inclusion and leaves an unnamed mode unset", async () => {
+  const { steeringPayload } = await tool();
+  const steering = (head: string) => `---\n${head}\ndescription: Demo.\n---\n# Demo\n`;
+  expect(steeringPayload(steering('inclusion: fileMatch\nfileMatchPattern: "*.ts,*.tsx"'))).toEqual(
+    {
+      applyTo: ["*.ts", "*.tsx"],
+      applyToBasis: "authored: frontmatter inclusion fileMatch and fileMatchPattern",
+      inclusion: "fileMatch",
+    },
+  );
+  expect(steeringPayload(steering("inclusion: manual"))).toMatchObject({
+    applyTo: ["**"],
+    inclusion: "manual",
+  });
+  expect(steeringPayload(steering("inclusion: always")).inclusion).toBe("always");
+  const auto = steeringPayload(steering("inclusion: auto\nname: demo"));
+  expect(auto.inclusion).toBeUndefined();
+  expect(auto.applyToBasis).toMatch(/inclusion auto, a mode the release does not name/);
+  expect(() => steeringPayload(steering('inclusion: manual\nfileMatchPattern: "*.go"'))).toThrow(
+    /disagree/,
+  );
+  expect(() => steeringPayload(steering("inclusion: fileMatch"))).toThrow(/disagree/);
+  expect(() => steeringPayload("# No frontmatter\n")).toThrow(/without an inclusion/);
+  expect(() => steeringPayload(steering("inclusion: filematch"))).toThrow(
+    /Unrecognised Kiro steering inclusion filematch/,
+  );
+});
+
+it("builds a same-named ECC skill and its Kiro variant, the variant namespaced and naming it", async () => {
+  const { buildEcc17, KIRO_SET_ID } = await tool();
+  const { release } = buildEcc17();
+  const byId = (id: string) => release.items.find((item: { id: string }) => item.id === id);
+  const main = byId("ecc.skill.tdd-workflow");
+  const variant = byId("ecc.skill.tdd-workflow.kiro-variant");
+  expect(variant.name).toBe(main.name);
+  expect(main.payload.namespace).toBeUndefined();
+  expect(main.variantOf).toBeUndefined();
+  expect(main.hints).toBeUndefined();
+  expect(`${variant.name} (${variant.payload.namespace})`).toBe("tdd-workflow (kiro)");
+  expect(variant.variantOf).toEqual({ itemId: main.id });
+  expect(variant.hints).toEqual({ tools: ["kiro"] });
+  const kiro = release.sets.find((set: { id: string }) => set.id === KIRO_SET_ID);
+  expect(kiro.name).toBe("ECC for Kiro");
+  expect(kiro.members.map((member: { item: { itemId: string } }) => member.item.itemId)).toContain(
+    variant.id,
+  );
+});
