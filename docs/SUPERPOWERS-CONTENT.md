@@ -130,3 +130,88 @@ non-executed. A compatible extra real skill projection compiles and resolves thr
 unchanged generic APIs. Native client/hook/server/model execution, later alignment
 and lifecycle acceptance, formal native admission and publication remain separate.
 No universal invocation or every-item client matrix is claimed.
+
+## Release 1.7.0: one item per skill
+
+`@aihq/catalog/release-superpowers.content.json` is the same pinned framework as
+prepared release 1.7.0 content, published as `framework { id: "superpowers", name:
+"Superpowers", version, description }`. The name is upstream's README heading and the
+description is upstream's own `package.json` description. A person choosing Superpowers
+sees its 15 skills and its start-of-session bootstrap, not one copy per tool.
+
+| Item | Kind | Role | What it carries |
+| --- | --- | --- | --- |
+| `superpowers.skill.<name>` (15) | `skill` | choosable | The skill folder and LICENSE; payload `{ dirName, invocation, invocationBasis }` |
+| `superpowers.hook.session-start` | `hook` | choosable | The bootstrap files; payload from upstream's `hooks/hooks.json`; `fallback` names the rule below |
+| `superpowers.rule.session-bootstrap` | `rule` | supporting | One authored line: read the using-superpowers skill at the start of every session |
+| `superpowers.notices` | `document`, purpose `notice` | supporting | LICENSE, README and release notes |
+
+- **Skills.** Each skill collapses its Claude Code, Kiro IDE and Copilot VS Code copies
+  into one item. Its `recipes` map keeps each copy's recipe by client, and
+  `hints.tools` lists the three as display hints. `invocation` and its basis come from
+  the skill's frontmatter: no upstream skill sets `disable-model-invocation`, so each
+  is `model-allowed` with the basis `frontmatter: disable-model-invocation absent`.
+- **The bootstrap.** The hook folds the former bootstrap source item: its materials are
+  upstream's `hooks/`, plugin manifest and using-superpowers files at their source
+  paths, with their pinned executable states. The payload is upstream's one
+  `SessionStart` group: matcher `startup|clear|compact`, protocol `claude-code-hooks`
+  and the command `bash hooks/run-hook.cmd session-start`. Its Claude Code recipe writes
+  those files under `.superpowers-source/` and registers the group with the
+  caller-reviewed `hookCommand` input, which still has no default.
+- **The fallback.** `fallback` is a declaration only. It names the one-line rule for
+  tools that lack hooks; Core uses it only where it observes that rule's delivery. The
+  rule's release 1.x recipe writes the line to `.superpowers-source/session-bootstrap.md`;
+  placing it in a tool's entry files (`placement: "entry-block"`) is Core's. Agents and
+  commands never carry a fallback, and the reader refuses a release that gives one, so
+  a fallback never makes an agent or command deliverable to a tool that lacks that kind.
+- **The set.** One set, `superpowers`, follows upstream's plugin grouping: the 15
+  skills pre-ticked and the bootstrap hook offered. Every member is `optional`. The hook
+  is not `defaultOn`, because it needs a reviewed command. `resolveSelections` never
+  re-adds an excluded hook, and never adds its fallback in its place.
+- **Native routes.** `nativeRoutes` lists upstream's install commands per tool, each
+  quoted verbatim from a line of upstream's README. They are guidance only; the Catalog
+  never runs them, and no recipe uses them.
+
+### Where the earlier items went
+
+Every one of the 59 earlier items of `release-superpowers.json` is a live item or a
+`retired[]` entry with a reason and its replacements:
+
+- the Kiro and Copilot copies of each skill are superseded by `hash` and retired with
+  their skill item as the replacement; the Claude copies keep their ids;
+- `superpowers.claude.hook.session-start` collapses into the hook, and the bootstrap
+  source it required is folded into it (superseded by name and source path);
+- the 9 per-tool plugin bundles (Codex, Cursor, Devin, Gemini, Hermes, Kimi, Muse,
+  OpenCode, Pi) and the duplicate skill library retire with no item successor: the
+  Catalog does not install plugins, and every skill is already an item;
+- the Catalog-authored reviewed-TDD template retires. Templates become sets, and its
+  pinned Extensions member needs a release 1.7 Extensions item, so this release offers
+  no reviewed-TDD set.
+
+The tool copies collapse through the public transition build from a release 1.6 form of
+the committed release, which is never shipped. Their `supersedes` entries therefore name
+that form's digest; the durable mapping for installed copies is `retired[]`, by id.
+
+### Preparation, comparison and the baseline
+
+`node tools/generate-superpowers-release-17.mjs` builds the content from the committed
+`release-superpowers.json` and the reviewed data in
+`producer/superpowers/release-1-7.json`, through `compileTransitionRelease`. It writes
+the content, behaviour files, the hook's folded recipe, the rule and its recipe, and the
+frozen content inventory `release/baselines/superpowers/content-inventory.json`.
+`--check`, part of `npm run check:materials`, refuses stale output, a route line that is
+not in upstream's README and a hook declaration other than upstream's single group.
+
+`npm run check:restructuring` compares the content with the amended expectation: 18
+items and hashes, 30 supersessions and 43 retirements pass
+([the restructuring check](RESTRUCTURING.md)).
+
+**No assessment is bound yet.** The content is listed in `preparedReleaseContent`, not
+`releaseInventory`, and has no release index entry. The baseline rule is unchanged
+([baseline contract](SCAN-BASELINE.md)): one authentic, readable, exactly bound
+assessment of this frozen inventory, with per-item gaps visible, must be bound before
+the content becomes a release. `release-superpowers.json` stays unchanged and readable.
+
+`node tools/verify-superpowers-17-consumer.mjs [catalog.tgz]` installs the packed
+package into a disposable consumer and checks all of the above through public exports
+only. It is part of `npm test`.

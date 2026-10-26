@@ -34,7 +34,8 @@ const AMENDMENTS = [
   { id: "copies-retired", reason: "Every collapsed copy is also retired with its replacement, and templates and frameworks become sets, so their ids are retired; the dry run only marked them." },
   { id: "folded-hook-sources", reason: "Hook source items fold into their hook items. The hook ids are decided with the framework migrations, so these retirements are pending on those tickets." },
   { id: "superpowers-retirements", reason: "The dry run left 10 Superpowers items unmapped. The 9 per-tool plugin bundles and the duplicate skill library are retired with no item successor; upstream plugin routes become nativeRoutes." },
-  { id: "superpowers-bootstrap-fallback", reason: "The session bootstrap hook gains a one-line rule as its fallback, an item the dry run did not have; samartomar/aih-catalog#144 names it, so one extra rule is admitted by kind." },
+  { id: "superpowers-bootstrap-fallback", reason: "The session bootstrap hook gains a one-line rule as its fallback, an item the dry run did not have. samartomar/aih-catalog#144 names it superpowers.rule.session-bootstrap; its content identity is predicted from its authored line in producer/superpowers/release-1-7.json at its item-relative path, and the bootstrap source the hook folds is retired with the hook as its replacement." },
+  { id: "superpowers-pinned-revision", reason: "The dry run read Superpowers at an earlier upstream revision than the snapshot this package pins (upstream 6.4.1), so its Superpowers content identities name other bytes. They are predicted again, with the dry run's rule (item-relative paths, a skill's files below its own folder, the hook carrying the bootstrap source it folds), from the pinned materials of the committed release-superpowers.json. Items, kinds, supersessions and retirements are the dry run's." },
   { id: "mcp-edit-digests", reason: "Each MCP survivor records whether its shipped definition is identical to upstream or edited; an edit is digested as SHA-256 of the canonical JSON {from: upstream, to: shipped} plus LF, in upstream's own encoding." },
 ];
 
@@ -46,6 +47,24 @@ const BASICS = [
   { id: "project-basics.working-rules", kind: "rule", material: "behavior-core", relPath: "rules/agent-behavior-core.md", render: projectBasicsWorkingRulesDoc },
 ];
 const PENDING_HOOK = "the hook item it folds into is named by its framework migration";
+// Superpowers at the pinned revision: each survivor's predicted content identity over
+// the committed release's pinned materials, and the hook each folded source names.
+const SUPERPOWERS = JSON.parse(readFileSync(resolve(root, "release/release-superpowers.json"), "utf8"));
+const SUPERPOWERS_DATA = JSON.parse(readFileSync(resolve(root, "producer/superpowers/release-1-7.json"), "utf8"));
+const FOLDED = { [SUPERPOWERS_DATA.hook.folds]: SUPERPOWERS_DATA.hook.id };
+const contentIdentity = (lines) => createHash("sha256").update(lines.sort().join("")).digest("hex");
+function superpowersIdentity(id) {
+  const revision = `/${SUPERPOWERS.sources[0].origin.revision}/`;
+  const item = (itemId) => SUPERPOWERS.items.find((entry) => entry.id === itemId) ?? assert.fail(`No Superpowers ${itemId}`);
+  const lines = (materials, relPath) => materials.map((member) => `${relPath(member.path.slice(member.path.indexOf(revision) + revision.length))}\t${member.sha256}\n`);
+  if (id === SUPERPOWERS_DATA.hook.id) return contentIdentity(lines(item(SUPERPOWERS_DATA.hook.folds).materials, (path) => path));
+  const skill = /^superpowers\.skill\.(.+)$/.exec(id)?.[1];
+  if (skill !== undefined) return contentIdentity(lines(item(id).materials, (path) => path.startsWith(`skills/${skill}/`) ? path.slice(`skills/${skill}/`.length) : path));
+  return contentIdentity(lines(item(id).materials, (path) => path));
+}
+const rule = SUPERPOWERS_DATA.fallback;
+const SUPERPOWERS_RULE = { id: rule.id, kind: "rule",
+  contentSha256: contentIdentity([`${rule.relPath}\t${createHash("sha256").update(rule.text).digest("hex")}\n`]) };
 const before = new Map(projection.before.map((item) => [`${item.framework}|${item.id}`, item]));
 const frameworks = {};
 for (const framework of ["anthropic", "ecc", "extensions", "superpowers"]) {
@@ -75,7 +94,9 @@ for (const framework of ["anthropic", "ecc", "extensions", "superpowers"]) {
   const retired = [];
   for (const item of projection.before.filter((entry) => entry.framework === framework)) {
     if (live.has(item.id)) continue;
-    if (item.target === "fold-into-hook") retired.push({ id: item.id, pending: PENDING_HOOK });
+    if (item.target === "fold-into-hook" && Object.hasOwn(FOLDED, item.id))
+      retired.push({ id: item.id, replacedBy: [{ framework, itemId: FOLDED[item.id] }] });
+    else if (item.target === "fold-into-hook") retired.push({ id: item.id, pending: PENDING_HOOK });
     else if (item.survivor !== undefined && live.has(item.survivor))
       retired.push({ id: item.id, replacedBy: [{ framework, itemId: item.survivor }] });
     else if (item.target === "set" || item.target === "unmapped") retired.push({ id: item.id, replacedBy: [] });
@@ -83,8 +104,9 @@ for (const framework of ["anthropic", "ecc", "extensions", "superpowers"]) {
   }
   frameworks[framework] = {
     status: "expected",
-    items: sorted(survivors.map((item) => ({ id: item.id, kind: item.kind, ...(item.purpose ? { purpose: item.purpose } : {}), contentSha256: item.contentSha256 })), (item) => item.id),
-    ...(framework === "superpowers" ? { pendingItems: [{ kind: "rule", count: 1, reason: "samartomar/aih-catalog#144 names the bootstrap hook's fallback rule" }] } : {}),
+    items: sorted([...survivors.map((item) => ({ id: item.id, kind: item.kind, ...(item.purpose ? { purpose: item.purpose } : {}),
+      contentSha256: framework === "superpowers" ? superpowersIdentity(item.id) : item.contentSha256 })),
+      ...(framework === "superpowers" ? [SUPERPOWERS_RULE] : [])], (item) => item.id),
     supersessions: sorted(supersessions, (entry) => `${entry.survivor}\u0000${entry.itemId}`),
     mcpPairs: sorted(mcpSurvivors.filter((item) => item.from.length > 1).map((item) => ({ survivor: item.id, copies: item.from })), (entry) => entry.survivor),
     edits: sorted(edits, (entry) => entry.survivor),

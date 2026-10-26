@@ -142,7 +142,8 @@ describe("carried release", () => {
       ...adjacentDocuments.flatMap((release) => listItems(release)),
       ...prepared.flatMap((release) => listItems(release)),
     ]) {
-      for (const member of [...(item.recipe ? [item.recipe] : []), ...item.materials]) {
+      const recipes = item.recipe ? [item.recipe] : Object.values(item.recipes ?? {});
+      for (const member of [...recipes, ...item.materials]) {
         const path = String(
           (member as { path?: string; packagePath?: string }).path ??
             (member as { packagePath?: string }).packagePath,

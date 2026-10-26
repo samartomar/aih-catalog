@@ -317,6 +317,13 @@ export const preparedReleaseContent = Object.freeze([
     export: "@aihq/catalog/release-project-basics.content.json",
     inventory: "release/baselines/project-basics/content-inventory.json",
   }),
+  Object.freeze({
+    frameworkId: "superpowers",
+    schema: RELEASE_SCHEMA_ID_1_7,
+    content: "release/release-superpowers.content.json",
+    export: "@aihq/catalog/release-superpowers.content.json",
+    inventory: "release/baselines/superpowers/content-inventory.json",
+  }),
 ] as const);
 
 /** Golden fixtures beyond each contract's valid and invalid pair, by contract URN. */

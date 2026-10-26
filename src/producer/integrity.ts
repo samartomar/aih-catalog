@@ -247,6 +247,7 @@ export function checkCandidateFiles(
     for (const item of release.items) {
       const members = [
         ...(item.recipe === undefined ? [] : [item.recipe]),
+        ...Object.values(item.recipes ?? {}),
         ...item.materials,
       ] as unknown as Record<string, unknown>[];
       for (const member of members) {
@@ -289,7 +290,11 @@ export function checkCandidateFiles(
   for (const { items, release } of releases) {
     for (const member of baselineMembers(release)) declared.add(member.path);
     for (const item of items) {
-      for (const member of [asRecord(item.recipe), ...(item.materials as Json[]).map(asRecord)]) {
+      const recipes =
+        item.recipes === undefined
+          ? [asRecord(item.recipe)]
+          : Object.values(asRecord(item.recipes)).map(asRecord);
+      for (const member of [...recipes, ...(item.materials as Json[]).map(asRecord)]) {
         declared.add(String(memberPackagePath(member as unknown as Record<string, unknown>)));
       }
     }
@@ -333,6 +338,8 @@ export function checkCandidateFiles(
         if (origin?.kind !== "git") continue;
         const prefix = `release/materials/${origin.repository.replace(/^https:\/\//, "")}/${origin.revision}/`;
         for (const member of item.materials) {
+          // A synthesised behaviour file is the Catalog's, never a source's pinned bytes.
+          if ((member as unknown as Record<string, unknown>).role === "behaviour") continue;
           if (
             !String(memberPackagePath(member as unknown as Record<string, unknown>)).startsWith(
               prefix,

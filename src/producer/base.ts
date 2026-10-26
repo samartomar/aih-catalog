@@ -43,8 +43,11 @@ export interface BaseRelease {
 }
 
 const asRecord = (value: Json | undefined): Record_ => value as Record_;
+/** An item's recipe, or each entry of a release 1.7 transition recipe map, and its materials. */
 const memberList = (item: Record_): Record_[] => [
-  asRecord(item.recipe),
+  ...(item.recipes === undefined
+    ? [asRecord(item.recipe)]
+    : Object.values(asRecord(item.recipes)).map(asRecord)),
   ...(item.materials as Json[]).map(asRecord),
 ];
 /** Release 1.6 extended materials address package members by `packagePath`. */

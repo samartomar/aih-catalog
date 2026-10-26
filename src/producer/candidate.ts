@@ -400,7 +400,12 @@ export function buildCandidate(input: BuildCandidateInput): BuildCandidateResult
       );
     }
     for (const item of (carriedDocument.items as Json[]).map(asRecord)) {
-      for (const member of [asRecord(item.recipe), ...(item.materials as Json[]).map(asRecord)]) {
+      // A release 1.7 item carries one recipe or a transition map of them.
+      const recipes =
+        item.recipes === undefined
+          ? [asRecord(item.recipe)]
+          : Object.values(asRecord(item.recipes)).map(asRecord);
+      for (const member of [...recipes, ...(item.materials as Json[]).map(asRecord)]) {
         const path = packagePathOf(member);
         put(path, files.get(path) as Buffer);
       }
