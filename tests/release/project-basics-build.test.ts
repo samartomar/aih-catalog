@@ -24,11 +24,17 @@ it("fails the build on any placeholder outside the closed list", async () => {
   ).toThrow(/project-basics\.router: unknown placeholder \{repoName\}/);
 });
 
-it("fails the build when the rendered text no longer matches the accepted bytes", async () => {
-  const { buildProjectBasics } = await tool();
+it("fails the build when a text names a folder or an adapter note", async () => {
+  const { buildProjectBasics, folderProblems } = await tool();
+  expect(folderProblems("Read `ai-coding/RULE_ROUTER.md` and `adapters/claude.md`.")).toEqual([
+    "ai-coding",
+    "adapters/",
+  ]);
   expect(() =>
-    buildProjectBasics({ texts: { "project-basics.working-rules": "# Changed\n" } }),
-  ).toThrow(/no longer reproduces the accepted behavior-core bytes/);
+    buildProjectBasics({ texts: { "project-basics.working-rules": "# See ai-coding/\n" } }),
+  ).toThrow(
+    /project-basics\.working-rules: names ai-coding; Project basics text is folder-neutral/,
+  );
 });
 
 it("builds the committed content deterministically", async () => {
@@ -42,4 +48,20 @@ it("builds the committed content deterministically", async () => {
     "project-basics.shared-block",
     "project-basics.working-rules",
   ]);
+});
+
+it("keeps the folder-neutral texts on the one authored discipline", async () => {
+  const content = await import(
+    pathToFileURL(resolve(import.meta.dirname, "../../dist/release/context-content.js")).href
+  );
+  const tail = (text: string, from: string) => text.slice(text.indexOf(from));
+  expect(tail(content.projectBasicsSharedBlock(), "## Working agreement")).toBe(
+    tail(content.sharedBlockBody(), "## Working agreement"),
+  );
+  expect(tail(content.projectBasicsWorkingRulesDoc(), "## 1.")).toBe(
+    tail(content.behaviorCoreDoc(), "## 1."),
+  );
+  expect(tail(content.projectBasicsRouterDoc(), "## External action boundary")).not.toContain(
+    "ai-coding",
+  );
 });

@@ -148,9 +148,7 @@ const EXTERNAL_ACTION_BOUNDARY = [
 
 /** The shared canonical block body — identical in `_shared-canonical-block.md` and in every client entry file's managed block. */
 export function sharedBlockBody(dir: string = DEFAULT_INSTRUCTION_DIRECTORY): string {
-  return join(
-    "## Start here",
-    "",
+  return sharedBlock([
     `Read \`${dir}/RULE_ROUTER.md\` first — this repo's routing entry point. Load`,
     "only task-relevant rules, then verify against repo evidence (PR diff, files, tests,",
     "schemas, CI) — never model memory or local notes.",
@@ -161,6 +159,35 @@ export function sharedBlockBody(dir: string = DEFAULT_INSTRUCTION_DIRECTORY): st
     "",
     `Full working discipline: \`${dir}/rules/agent-behavior-core.md\`. Read it before`,
     "any non-trivial change; the essentials are inline below.",
+  ]);
+}
+
+/**
+ * The Project basics shared block: the same body, naming the router, PROJECT.md and the
+ * working rules by their place in the folder the project chooses, never a folder name.
+ * It is placed in entry files wherever a tool keeps them, so it carries no relative path.
+ */
+export function projectBasicsSharedBlock(): string {
+  return sharedBlock([
+    "Read the rule router first: `RULE_ROUTER.md` in this project's shared guidance",
+    "folder is this repo's routing entry point. Load only task-relevant rules, then",
+    "verify against repo evidence (PR diff, files, tests, schemas, CI) — never model",
+    "memory or local notes.",
+    "",
+    "Read `PROJECT.md` in that folder when present for author-owned project guidance.",
+    "Authors maintain coding practices, project guidelines and tool-use rules there",
+    "once for every selected client; Catalog never writes or removes that file.",
+    "",
+    "Full working discipline: `agent-behavior-core.md` in that folder's `rules`",
+    "subfolder. Read it before any non-trivial change; the essentials are inline below.",
+  ]);
+}
+
+function sharedBlock(start: Part): string {
+  return join(
+    "## Start here",
+    "",
+    start,
     "",
     "Context changes take effect in the next new session; use an explicit native",
     "reload only where the selected client supports it. If required shared context",
@@ -189,10 +216,19 @@ export function sharedBlockBody(dir: string = DEFAULT_INSTRUCTION_DIRECTORY): st
 
 /** The long-form working discipline the shared block and router route to. */
 export function behaviorCoreDoc(dir: string = DEFAULT_INSTRUCTION_DIRECTORY): string {
+  return behaviorCore(`\`${dir}/RULE_ROUTER.md\``);
+}
+
+/** The Project basics working rules, beside the router in the project's chosen folder. */
+export function projectBasicsWorkingRulesDoc(): string {
+  return behaviorCore("the router ([RULE_ROUTER.md](../RULE_ROUTER.md))");
+}
+
+function behaviorCore(router: string): string {
   return join(
     "# Agent behavior core",
     "",
-    `Canonical working discipline for every AI tool in this repo — the rulebook \`${dir}/RULE_ROUTER.md\` and the client entry files route to. Read it before any non-trivial change.`,
+    `Canonical working discipline for every AI tool in this repo — the rulebook ${router} and the client entry files route to. Read it before any non-trivial change.`,
     "",
     PRINCIPLES.flatMap((p) => [`## ${p.section.heading}`, "", p.section.lines, ""]),
     "## Invariants (always hold)",
@@ -211,6 +247,47 @@ export function behaviorCoreDoc(dir: string = DEFAULT_INSTRUCTION_DIRECTORY): st
 
 /** The static RULE_ROUTER — the entry point every selected client is pointed at. */
 export function ruleRouterDoc(dir: string = DEFAULT_INSTRUCTION_DIRECTORY): string {
+  return ruleRouter({
+    project: `\`${dir}/PROJECT.md\``,
+    rules: `\`${dir}/rules/agent-behavior-core.md\``,
+    adapters: [
+      "### External AI tooling / adapters",
+      "",
+      `Load \`${dir}/adapters/<your-tool>.md\` for tool-specific wiring (entry files,`,
+      "how it loads rules, boundaries).",
+      "",
+    ],
+    managed: [
+      `haven't verified exists. The files under \`${dir}/\` are delivered and updated`,
+      "as explicitly selected Catalog content; update the selection to update them —",
+      "hand-edits to these managed files conflict with the next update.",
+    ],
+  });
+}
+
+/**
+ * The Project basics router, in the folder the project chooses: it names its
+ * neighbours relative to that folder and promises no tool-specific notes.
+ */
+export function projectBasicsRouterDoc(): string {
+  return ruleRouter({
+    project: "`PROJECT.md` in this folder",
+    rules: "[rules/agent-behavior-core.md](rules/agent-behavior-core.md)",
+    adapters: [],
+    managed: [
+      "haven't verified exists. The files in this folder, except `PROJECT.md`, are",
+      "delivered and updated as explicitly selected Catalog content; update the selection",
+      "to update them — hand-edits to these managed files conflict with the next update.",
+    ],
+  });
+}
+
+function ruleRouter(refs: {
+  readonly project: string;
+  readonly rules: string;
+  readonly adapters: Part;
+  readonly managed: Part;
+}): string {
   return join(
     "# AI Rule Router",
     "",
@@ -220,8 +297,8 @@ export function ruleRouterDoc(dir: string = DEFAULT_INSTRUCTION_DIRECTORY): stri
     "",
     "## Always read first",
     "",
-    `- \`${dir}/PROJECT.md\`, when present — author-owned guidance shared by every selected client`,
-    `- \`${dir}/rules/agent-behavior-core.md\` — working discipline (think → simplify → surgical → goal-driven)`,
+    `- ${refs.project}, when present — author-owned guidance shared by every selected client`,
+    `- ${refs.rules} — working discipline (think → simplify → surgical → goal-driven)`,
     "- This router's task routing below — then only the files the task actually needs",
     "",
     "Read depth: for read-only validation you may identify these files and confirm",
@@ -230,7 +307,7 @@ export function ruleRouterDoc(dir: string = DEFAULT_INSTRUCTION_DIRECTORY): stri
     "",
     "## Project-owned guidance",
     "",
-    `Create or edit \`${dir}/PROJECT.md\` to maintain your own coding practices,`,
+    `Create or edit ${refs.project} to maintain your own coding practices,`,
     "project guidelines and tool-use rules once. This optional file is author-owned:",
     "Catalog does not create, update, adopt or remove it. It may link to further",
     "author-owned documents. Update this file directly; keep the supplied router,",
@@ -242,7 +319,7 @@ export function ruleRouterDoc(dir: string = DEFAULT_INSTRUCTION_DIRECTORY): stri
     "",
     "State the goal and the smallest viable change first. Load the repo's own project",
     `docs (commands, conventions, architecture) before editing; honor the Invariants`,
-    `in \`${dir}/rules/agent-behavior-core.md\` before broad work.`,
+    `in ${refs.rules} before broad work.`,
     "",
     "### Code review / PR",
     "",
@@ -261,11 +338,7 @@ export function ruleRouterDoc(dir: string = DEFAULT_INSTRUCTION_DIRECTORY): stri
     "Never read or emit plaintext secrets; validate all external input. Do not open",
     "`.env*` or `secrets/**` (`.env.example` / `.env.sample` are readable templates).",
     "",
-    "### External AI tooling / adapters",
-    "",
-    `Load \`${dir}/adapters/<your-tool>.md\` for tool-specific wiring (entry files,`,
-    "how it loads rules, boundaries).",
-    "",
+    refs.adapters,
     "## External action boundary",
     "",
     EXTERNAL_ACTION_BOUNDARY,
@@ -275,9 +348,7 @@ export function ruleRouterDoc(dir: string = DEFAULT_INSTRUCTION_DIRECTORY): stri
     "If a tool or helper fails, state the failure and follow its author-declared",
     "fallback; stop if the author requires it. Otherwise use committed repo evidence",
     "and disclose the fallback. Never invent results. Don't cite a command, path, or API you",
-    `haven't verified exists. The files under \`${dir}/\` are delivered and updated`,
-    "as explicitly selected Catalog content; update the selection to update them —",
-    "hand-edits to these managed files conflict with the next update.",
+    refs.managed,
   );
 }
 

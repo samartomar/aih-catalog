@@ -19,7 +19,7 @@
   },
   {
    "id": "project-basics-split",
-   "reason": "The dry run kept the project context as one rule. The maintainer split it into three Project basics items, named by samartomar/aih-catalog#137: the router, a guide document; the working rules and the shared block, two rules. Each captures one accepted material of the frozen default's project context unchanged, so its content identity is predicted from that material's frozen digest and its item-relative path; each supersedes the project context by split, and the default's project-context retirement names the three."
+   "reason": "The dry run kept the project context as one rule. The maintainer split it into three Project basics items, named by samartomar/aih-catalog#137: the router, a guide document; the working rules and the shared block, two rules. Each carries the folder-neutral form of one material of the frozen default's project context, rendered once by the authored context renderer: it names its neighbours by their place in the folder a project chooses, never a folder name, and promises no per-tool adapter notes. Its content identity is therefore predicted from that rendered text at its item-relative path, not from the frozen bytes; each supersedes the project context by split, and the default's project-context retirement names the three."
   },
   {
    "id": "copy-supersession",
@@ -8574,17 +8574,17 @@
      "id": "project-basics.router",
      "kind": "document",
      "purpose": "guide",
-     "contentSha256": "1097ab454a489738aec8ada96c6c7f9159b6ea8b0befed3adcd59016c9225de0"
+     "contentSha256": "52e1577021ba269ca9f8cac173820e3943e1fdc64fb3bce41217b8d24327a450"
     },
     {
      "id": "project-basics.shared-block",
      "kind": "rule",
-     "contentSha256": "39815db81ed9e82b02bbcfbd10e4c64e5965dade9c257ad314290a966b301184"
+     "contentSha256": "5a93b80226373ce1ed28991b0a0a5bcccb3b0cd5fc7d2d08e7a19d90eccb037c"
     },
     {
      "id": "project-basics.working-rules",
      "kind": "rule",
-     "contentSha256": "2cfdd20e5868d6688361ecbe5e50e0624f2c5162d54802adf47907594b7b474d"
+     "contentSha256": "ac1489d3fefb73046fcdafbd4cb885f98e70d5cab315a63ed554162acacc360b"
     }
    ],
    "supersessions": [

@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 // The Project basics framework: the frozen default's project context split into a
 // router document and two rules, prepared as release 1.7.0 content. The texts come
-// from the authored renderer and must equal the accepted bytes the frozen default
-// carries; any placeholder outside the closed list fails the build. Per-project
-// facts, the folder a project chooses and drift are the installer's, not this
-// release's. The baseline binding is a separate preparation step (docs/SCAN-BASELINE.md):
+// from the authored renderer's folder-neutral variant: they name their neighbours
+// by their place in the folder a project chooses, never a folder name, and promise
+// no tool-specific notes. Any placeholder outside the closed list fails the build.
+// Per-project facts, the folder a project chooses and drift are the installer's,
+// not this release's; the release 1.x recipes take that folder as an input. The baseline binding is a separate preparation step (docs/SCAN-BASELINE.md):
 // this script freezes the content inventory it must capture and binds nothing.
 // Run `npm run build:dist` first. No acquisition, execution or Scan.
 //
@@ -13,7 +14,11 @@ import assert from "node:assert/strict";
 import { chmodSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { behaviorCoreDoc, ruleRouterDoc, sharedBlockBody } from "../dist/release/context-content.js";
+import {
+  projectBasicsRouterDoc,
+  projectBasicsSharedBlock,
+  projectBasicsWorkingRulesDoc,
+} from "../dist/release/context-content.js";
 import { FROZEN_DEFAULT_RELEASE_SHA256 } from "../dist/release/contracts.js";
 import { computeBehaviourIdentity } from "../dist/release/document.js";
 import { canonicalJson } from "../dist/release/json.js";
@@ -40,6 +45,15 @@ export function placeholderProblems(text) {
 }
 
 /**
+ * Folder-neutral text: the project names its folder, so no item text may name a
+ * folder or promise the per-tool adapter notes this release does not deliver.
+ */
+const FOLDER_REFERENCE = /ai-coding|adapters\//g;
+export function folderProblems(text) {
+  return [...new Set([...text.matchAll(FOLDER_REFERENCE)].map((match) => match[0]))];
+}
+
+/**
  * The three items: id, kind, the frozen context material each captures, its
  * item-relative path, rendered text and typed payload. A document's placement is
  * declared to the transition build, as release 1.6 documents cannot carry it.
@@ -52,7 +66,7 @@ export const ITEMS = [
     placement: "project-folder",
     material: "rule-router",
     relPath: "RULE_ROUTER.md",
-    render: ruleRouterDoc,
+    render: projectBasicsRouterDoc,
     name: "Rule router",
     description: "The routing guide: what to read first and which rules a task needs.",
     payload: { files: ["rule-router"] },
@@ -65,7 +79,7 @@ export const ITEMS = [
     placement: "entry-block",
     material: "shared-block",
     relPath: "shared-block.md",
-    render: sharedBlockBody,
+    render: projectBasicsSharedBlock,
     name: "Shared block",
     description: "The shared essentials, placed as a marked block in each tool's entry files.",
     payload: { applyTo: ["**"], applyToBasis: "publisher", placement: "entry-block" },
@@ -78,7 +92,7 @@ export const ITEMS = [
     placement: "project-folder",
     material: "behavior-core",
     relPath: "rules/agent-behavior-core.md",
-    render: behaviorCoreDoc,
+    render: projectBasicsWorkingRulesDoc,
     name: "Working rules",
     description: "The full working discipline the router and the shared block point to.",
     payload: { applyTo: ["**"], applyToBasis: "publisher", placement: "project-folder" },
@@ -86,6 +100,17 @@ export const ITEMS = [
   },
 ];
 const materialPath = (relPath) => `release/materials/${FRAMEWORK}/${relPath}`;
+/** The release 1.x recipe input naming the project's folder, as Core recipes define inputs. */
+const FOLDER_INPUT = {
+  projectFolder: {
+    type: "string",
+    required: true,
+    default: "ai-coding",
+    minLength: 1,
+    maxLength: 64,
+    description: "Project folder, one name at the project root, that receives the Project basics files.",
+  },
+};
 const recipePath = (id) => `release/recipes/${id}.json`;
 
 /** Builds every output member from the frozen default and the authored renderer. */
@@ -102,19 +127,28 @@ export function buildProjectBasics({ texts } = {}) {
     const problems = placeholderProblems(text);
     if (problems.length > 0)
       throw new Error(`${spec.id}: unknown placeholder ${problems.join(", ")}; the closed list is {projectDir}, {homeDir}, {itemDir} and {pluginRoot}`);
+    const named = folderProblems(text);
+    if (named.length > 0)
+      throw new Error(`${spec.id}: names ${named.join(", ")}; Project basics text is folder-neutral`);
     const bytes = encoder.encode(text);
-    const accepted = context.materials.find((member) => member.id === spec.material);
-    assert.equal(sha256Hex(bytes), accepted.sha256, `${spec.id}: the renderer no longer reproduces the accepted ${spec.material} bytes`);
+    assert(context.materials.some((member) => member.id === spec.material), `${spec.id}: no frozen ${spec.material} to split`);
     outputs.set(materialPath(spec.relPath), { bytes, mode: 0o644 });
-    // The frozen recipe split by material: one operation and its check per item.
-    const operation = frozenRecipe.operations.find((entry) => entry.material === spec.material);
+    // The frozen recipe split by material, writing this item's bytes into the folder
+    // the project names rather than a fixed one: one operation and its check per item.
+    const target = {
+      root: "project",
+      segments: [{ input: "projectFolder" }, ...spec.relPath.split("/").map((literal) => ({ literal }))],
+    };
+    const frozenOperation = frozenRecipe.operations.find((entry) => entry.material === spec.material);
+    const purpose = `Write the pinned ${spec.relPath} into the project folder`;
     const recipe = {
       ...frozenRecipe,
       id: spec.id,
-      description: operation.purpose,
-      materials: frozenRecipe.materials.filter((entry) => entry.id === spec.material),
-      operations: [operation],
-      checks: frozenRecipe.checks.filter((check) => operation.checks.includes(check.id)),
+      description: `Deliver the Project basics ${spec.name.toLowerCase()} into the project folder.`,
+      inputs: FOLDER_INPUT,
+      materials: [{ id: spec.material, sha256: sha256Hex(bytes), byteLength: bytes.byteLength }],
+      operations: [{ ...frozenOperation, purpose, target }],
+      checks: [{ id: `${spec.material}-sha256`, kind: "file.sha256", purpose: `The installed ${spec.relPath} has the pinned bytes`, sha256: sha256Hex(bytes), target }],
     };
     const recipeBytes = bytesOf(recipe);
     outputs.set(recipePath(spec.id), { bytes: recipeBytes });
@@ -141,7 +175,7 @@ export function buildProjectBasics({ texts } = {}) {
       sourceIds: [SOURCE.id],
       targets: context.targets,
       scopes: context.scopes,
-      inputs: {},
+      inputs: FOLDER_INPUT,
       recipe: { id: spec.id, schema: frozenRecipe.schema, path: recipePath(spec.id), sha256: sha256Hex(recipeBytes), byteLength: recipeBytes.byteLength },
       dependencies: { requires: spec.requires.map((itemId) => ({ itemId })), optional: [], conflicts: [] },
       payload: spec.payload,

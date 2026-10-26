@@ -1,6 +1,6 @@
 # Agent behavior core
 
-Canonical working discipline for every AI tool in this repo — the rulebook `ai-coding/RULE_ROUTER.md` and the client entry files route to. Read it before any non-trivial change.
+Canonical working discipline for every AI tool in this repo — the rulebook the router ([RULE_ROUTER.md](../RULE_ROUTER.md)) and the client entry files route to. Read it before any non-trivial change.
 
 ## 1. Think before coding
 
