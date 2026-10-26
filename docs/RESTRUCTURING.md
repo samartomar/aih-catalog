@@ -84,7 +84,7 @@ pending framework fails its `framework` row.
 
 `npm run check:restructuring` re-derives the expectation and compares every 1.7.0
 release the package lists in `releaseInventory` and every prepared 1.7.0 content
-document still awaiting its baseline (today Project basics, Extensions, Superpowers and ECC); `npm run verify` runs it, so a
+document still awaiting its baseline (today Project basics, Extensions, Superpowers, ECC and the closing default); `npm run verify` runs it, so a
 framework's 1.7.0 release cannot be added, and its index entry cannot ship, until it
 passes. `node tools/check-restructuring.mjs <release.json>` prints every row for one
 document.

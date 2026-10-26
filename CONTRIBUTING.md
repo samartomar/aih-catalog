@@ -94,6 +94,13 @@ consumer, and `node tools/verify-project-basics-internal-consumer.mjs [--core <c
 with an exact Core archive also preparing and applying the content. See
 [Project basics content](docs/PROJECT-BASICS.md).
 
+The closing default release is built from the frozen default and the committed Extensions
+and Project basics content with `node tools/generate-default-closing-release.mjs --check`,
+part of `npm run check:materials`; regenerate through that script after either changes. It
+fails unless all 46 frozen items have exactly one disposition. `node
+tools/verify-default-closing-consumer.mjs [catalog.tgz]` runs its packed public-only
+consumer. See [the default release](docs/DEFAULT-RELEASE.md).
+
 Extensions release 1.7.0 checks build the Extensions prepared content with
 `node tools/generate-extensions-17-release.mjs --check`, part of `npm run
 check:materials`; regenerate through that script after reviewed data edits. It fails

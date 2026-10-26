@@ -78,6 +78,14 @@ listed in `preparedReleaseContent`, read with `readReleaseContent`, and refused 
 any listed prepared content from an installed package with every byte verified, and
 labels it unbound and unauthenticated. See [Project basics content](docs/PROJECT-BASICS.md#internal-use-before-release).
 
+## The closing default release
+
+`@aihq/catalog/release.json` stays the frozen default, unchanged and readable through
+1.x by its recorded digest. `@aihq/catalog/release-default.content.json` is the prepared
+release 1.7.0 content that closes it: no items, and one retirement with a reason and its
+successors for each of the default's 46 items. It awaits its baseline assessment like the
+other prepared content. See [the default release](docs/DEFAULT-RELEASE.md).
+
 ## ECC release 1.7.0 content
 
 `@aihq/catalog/release-ecc.content.json` is the prepared release 1.7.0 content of ECC:
