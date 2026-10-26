@@ -1,8 +1,8 @@
 // Owns src/release/spdx-data.ts: embeds the canonical SPDX license list and
 // exceptions. Deterministic for a given list version; the header records the
 // upstream version and release date so drift is reviewable.
-// Usage: node tools/generate-spdx-data.mjs
-import { writeFileSync } from "node:fs";
+// Usage: node tools/generate-spdx-data.mjs [--check]
+import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
@@ -29,13 +29,7 @@ if (licenses.licenseListVersion !== exceptions.licenseListVersion) {
     `SPDX list version mismatch: licenses ${licenses.licenseListVersion}, exceptions ${exceptions.licenseListVersion}`,
   );
 }
-const format = (ids) => {
-  const lines = [];
-  for (let index = 0; index < ids.length; index += 6) {
-    lines.push(`  ${ids.slice(index, index + 6).map((id) => JSON.stringify(id)).join(", ")},`);
-  }
-  return lines.join("\n");
-};
+const format = (ids) => ids.map((id) => `  ${JSON.stringify(id)},`).join("\n");
 
 const module = `/**
  * SPDX License List identifiers, embedded data. Source: the canonical SPDX
@@ -54,7 +48,18 @@ export const SPDX_EXCEPTION_IDS: ReadonlySet<string> = new Set([
 ${format(exceptionIds)}
 ]);
 `;
-writeFileSync(resolve(root, "src/release/spdx-data.ts"), module);
-console.log(
-  `spdx-data.ts: SPDX list v${licenses.licenseListVersion} (${licenses.releaseDate}): ${licenseIds.length} licenses, ${exceptionIds.length} exceptions`,
-);
+const target = resolve(root, "src/release/spdx-data.ts");
+if (process.argv.includes("--check")) {
+  if (readFileSync(target, "utf8") !== module) {
+    console.error("spdx-data.ts is stale; run node tools/generate-spdx-data.mjs");
+    process.exit(1);
+  }
+  console.log(
+    `spdx-data.ts is current: SPDX list v${licenses.licenseListVersion} (${licenses.releaseDate})`,
+  );
+} else {
+  writeFileSync(target, module);
+  console.log(
+    `spdx-data.ts: SPDX list v${licenses.licenseListVersion} (${licenses.releaseDate}): ${licenseIds.length} licenses, ${exceptionIds.length} exceptions`,
+  );
+}
