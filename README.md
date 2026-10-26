@@ -76,6 +76,7 @@ platform evidence and real-tool execution limits are recorded in [delivery evide
 | `@aihq/catalog/contracts` | Public types, format identity, support declaration and the `releaseInventory` of every exported release | Portable |
 | `@aihq/catalog/reader` | Read, browse, configure, resolve relationships and validate selections | Portable |
 | `@aihq/catalog/producer` | Check v3 declarations and compile explicitly supplied source bytes | Node 24.15–24.x |
+| `@aihq/catalog/source` | Portable source facts (`extractSourceFacts`) and side-effect-free source-link parsing (`parseSourceLink`) | Portable |
 | `@aihq/catalog/schemas/producer-declaration/3.0.0.json` | Public producer declaration schema | Data |
 | `@aihq/catalog/node` | Read an installed root, resolve an exact archive/registry version, or prepare the project context for a chosen instruction directory | Node 24.15–24.x |
 | `@aihq/catalog/workflows/nuclei` | Author Nuclei preparation, assessment and reconciliation Core policies, with TypeScript declarations | Node 24.15–24.x |
@@ -172,6 +173,20 @@ keep the full client roster explicit; this integration admits no native cell.
 ## Client hook items
 
 `release-1.1.json` carries opt-in client hook items that add, update and remove only their own group in a shared client settings array through Core's generic `hook.group` operation (Core recipe and execution policy 1.1). The first item, `aihq.hook.claude.protect-env`, blocks Claude Code edits to local `.env` files. Read it with `readInstalledRelease({ root, release: "./release-1.1.json" })`; a reader or Core without 1.1 support refuses it as unsupported rather than installing part of it. See [the content contract](docs/CATALOG-CONTENT.md#client-hook-items-release-11).
+
+## Parse a brought source link
+
+`parseSourceLink(text)` from `@aihq/catalog/source` turns pasted text — a GitHub
+link, an install command such as `npx -y package@1.2.3` or `npx skills add
+https://github.com/owner/repo --skill name`, an npm package page, or an npm
+package name — into a candidate source description, with nothing fetched,
+installed or run. Input above the published 2,048-character limit
+(`PARSE_SOURCE_LINK_MAX_CHARACTERS`) is refused as `input-too-long`. A mutable
+reference (a branch, tag or `latest`) stays recognised but reports
+`reference-not-exact`; discovery links such as the MCP servers directory page
+are kept as non-authoritative notes, never treated as the source. Unrecognised
+input never yields a guessed candidate. See [source links](docs/SOURCE-LINKS.md)
+for the contract and the packed consumer check.
 
 ## Prepare a content candidate
 

@@ -57,6 +57,21 @@
   and `SET_LIMIT_EXCEEDED`; conflicts keep `ITEM_CONFLICT`. Package support,
   schema export and fixtures list the new contract.
 
+- Add `parseSourceLink(text)` to `@aihq/catalog/source` for
+  samartomar/aih-catalog#120: a portable, side-effect-free parser that turns a
+  pasted GitHub link, install command or npm package name into a candidate
+  source description `{ status, candidate?, diagnostics }`. Input above the
+  published 2,048-character limit (`PARSE_SOURCE_LINK_MAX_CHARACTERS`) is
+  refused as `input-too-long`; a branch, tag, `latest` or implied default
+  branch stays recognised with an explicit `reference-not-exact` diagnostic and
+  is never silently pinned; discovery surfaces (the MCP servers directory page,
+  a `--skill` selector) are non-authoritative `discovery-note` entries, never
+  the source; unrecognised input never yields a guessed candidate. The parser
+  never fetches, installs, executes or discovers the host.
+  `tools/verify-source-link-consumer.mjs` proves the contract through the
+  packed public export with process and network guards armed. See
+  [source links](docs/SOURCE-LINKS.md).
+
 - Add `readRecipe(bytes)` to `@aihq/catalog/node` for samartomar/aih-catalog#148:
   a standalone Core recipe reader. It shares the admission that release reads
   apply to every carried recipe, so another package's recipe fixtures can be checked
