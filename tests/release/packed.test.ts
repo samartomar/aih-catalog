@@ -640,11 +640,18 @@ describe("exact packed consumer", () => {
     );
     expect(result).toEqual({
       node: [
+        "GIT_SNAPSHOT_MAX_FILES",
+        "GIT_SNAPSHOT_MAX_FILE_BYTES",
+        "GIT_SNAPSHOT_MAX_SOURCE_BYTES",
+        "GIT_SNAPSHOT_MAX_SOURCE_ENTRIES",
         "acquireBaselineArtifact",
+        "acquireGitSnapshot",
+        "gitCliTransport",
         "prepareProjectContext",
         "prepareReleaseBaseline",
         "readInstalledRelease",
         "readRecipe",
+        "resolveGitRef",
         "resolveRelease",
       ],
       contracts: [

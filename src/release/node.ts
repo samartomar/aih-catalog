@@ -46,7 +46,28 @@ import { catalogItemRecipes } from "./release-17.js";
 import { EXACT_VERSION } from "./version.js";
 
 export { acquireBaselineArtifact } from "./baseline-acquire.js";
-export type { ReleaseExport } from "./contracts.js";
+export type {
+  AcquireGitSnapshotResult,
+  GitAcquiredCommit,
+  GitAcquiredSnapshot,
+  GitRefResolutionRequest,
+  GitRemoteRef,
+  GitRemoteTransport,
+  GitResolutionControls,
+  GitSnapshotBounds,
+  GitTreeEntry,
+  ReleaseExport,
+  ResolveGitRefResult,
+} from "./contracts.js";
+export {
+  acquireGitSnapshot,
+  GIT_SNAPSHOT_MAX_FILE_BYTES,
+  GIT_SNAPSHOT_MAX_FILES,
+  GIT_SNAPSHOT_MAX_SOURCE_BYTES,
+  GIT_SNAPSHOT_MAX_SOURCE_ENTRIES,
+  gitCliTransport,
+  resolveGitRef,
+} from "./git-resolution.js";
 export type {
   BaselineArtifactRead,
   BaselineAuthentication,
