@@ -86,7 +86,7 @@ platform evidence and real-tool execution limits are recorded in [delivery evide
 | `@aihq/catalog/producer` | Check v3 declarations and compile explicitly supplied source bytes | Node 24.15–24.x |
 | `@aihq/catalog/source` | Portable source facts (`extractSourceFacts`), side-effect-free source-link parsing (`parseSourceLink`), and source description reading with exact identity checking (`readSourceDescription`, `checkExactSourceIdentity`) | Portable |
 | `@aihq/catalog/schemas/producer-declaration/3.0.0.json` | Public producer declaration schema | Data |
-| `@aihq/catalog/node` | Read an installed root, resolve an exact archive/registry version, resolve a GitHub ref to an exact reachable commit, acquire a bounded snapshot at that commit, or prepare the project context for a chosen instruction directory | Node 24.15–24.x |
+| `@aihq/catalog/node` | Read an installed root, resolve an exact archive/registry version, resolve a GitHub ref to an exact reachable commit, acquire a bounded snapshot at that commit, acquire an ordinary npm package at an exact integrity pin, or prepare the project context for a chosen instruction directory | Node 24.15–24.x |
 | `@aihq/catalog/workflows/nuclei` | Author Nuclei preparation, assessment and reconciliation Core policies, with TypeScript declarations | Node 24.15–24.x |
 | `@aihq/catalog/release.json` | Default release (format 1.4.0) | Data |
 | `@aihq/catalog/schemas/release/1.5.0.json` | New release format with a pinned content baseline | Data |
@@ -273,3 +273,9 @@ package. Publication, signing and candidate allocation remain separately owned b
 
 Catalog is Apache-2.0 licensed. Carried third-party material retains its source
 license and pinned provenance.
+
+For an ordinary npm package containing no Catalog release, call
+`acquireNpmSnapshot({ name, version, integrity })` from `@aihq/catalog/node`.
+It verifies an exact version and caller-held SHA-512 pin, returns bounded files
+and executable modes plus the exact npm identity, and runs no package code.
+See [npm snapshots](docs/NPM-SNAPSHOTS.md) for producer preparation and refusals.
