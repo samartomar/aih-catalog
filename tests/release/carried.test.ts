@@ -5,6 +5,7 @@ import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
 import { preparedReleaseContent } from "../../src/release/contracts.js";
 import { listItems, readRelease, readReleaseContent } from "../../src/release/reader.js";
+import { catalogItemRecipes } from "../../src/release/release-17.js";
 import {
   canonical,
   MATT_ITEM_IDS,
@@ -142,7 +143,8 @@ describe("carried release", () => {
       ...adjacentDocuments.flatMap((release) => listItems(release)),
       ...prepared.flatMap((release) => listItems(release)),
     ]) {
-      for (const member of [...(item.recipe ? [item.recipe] : []), ...item.materials]) {
+      const recipes = catalogItemRecipes(item).map(({ recipe }) => recipe);
+      for (const member of [...recipes, ...item.materials]) {
         const path = String(
           (member as { path?: string; packagePath?: string }).path ??
             (member as { packagePath?: string }).packagePath,

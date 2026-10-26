@@ -237,6 +237,57 @@ describe("whole-candidate integrity", () => {
     expect(failing(files)).toEqual(["provenance-paths"]);
   });
 
+  it("verifies every recipe of a release 1.7 transition map in prepared content", () => {
+    const base = committedRelease();
+    const committedFailing = (files: Map<string, Buffer>) =>
+      checkCandidateFiles(files, identity, { authored: declaration().authored })
+        .checks.filter((check) => !check.ok)
+        .map((c) => c.name);
+    expect(committedFailing(base)).toEqual([]);
+    // The folded hook recipe is reached only through the hook's recipe map.
+    const path = "release/recipes/superpowers.hook.session-start.json";
+    const bytes = base.get(path) as Buffer;
+    const altered = new Map(base).set(path, Buffer.from("X".repeat(bytes.length)));
+    expect(committedFailing(altered)).toContain("member-bytes");
+    const missing = new Map(base);
+    missing.delete(path);
+    expect(committedFailing(missing)).toContain("member-bytes");
+  }, 120_000);
+
+  it("admits a behaviour file in its own item folder, never a source member outside its pin", () => {
+    const base = committedRelease();
+    const path = "release/release-superpowers.content.json";
+    const relocate = (role: string, to: string) => {
+      const document = JSON.parse((base.get(path) as Buffer).toString("utf8")) as Doc;
+      const skill = itemOf(document, "superpowers.skill.brainstorming");
+      const target = (skill.materials as unknown as Record<string, string>[]).find(
+        (entry) => entry.role === role,
+      ) as Record<string, string>;
+      target.packagePath = to;
+      const files = new Map(base).set(path, documentBytes(document));
+      return checkCandidateFiles(files, identity).checks.find(
+        (check) => check.name === "provenance-paths",
+      );
+    };
+    expect(relocate("content", "release/materials/elsewhere/SKILL.md")?.detail).toContain(
+      "superpowers.skill.brainstorming:asset-0",
+    );
+    // A behaviour file outside its own item folder is refused before provenance applies.
+    const moved = JSON.parse((base.get(path) as Buffer).toString("utf8")) as Doc;
+    const behaviour = (
+      itemOf(moved, "superpowers.skill.brainstorming").materials as unknown as Record<
+        string,
+        string
+      >[]
+    ).find((entry) => entry.role === "behaviour") as Record<string, string>;
+    behaviour.packagePath = "release/items/other/aih-behaviour.json";
+    expect(failing(new Map(base).set(path, documentBytes(moved)))).toContain("release-envelope");
+    expect(
+      checkCandidateFiles(base, identity).checks.find((check) => check.name === "provenance-paths")
+        ?.ok,
+    ).toBe(true);
+  }, 120_000);
+
   it("throws a single refusal that names every failed check", () => {
     const base = genesis();
     base.set("release/stray.txt", Buffer.from("x"));

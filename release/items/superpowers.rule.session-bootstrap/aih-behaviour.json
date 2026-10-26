@@ -1,0 +1,1 @@
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"superpowers.skill.using-superpowers"}]},"executable":{"session-bootstrap.md":false},"kind":"rule","payload":{"applyTo":["**"],"applyToBasis":"publisher","inclusion":"always","placement":"entry-block"},"requirements":{"inputs":{}}}
