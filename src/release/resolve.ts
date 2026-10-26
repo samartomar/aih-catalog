@@ -8,13 +8,19 @@ import type {
   DependencyRef,
   Diagnostic,
   Inclusion,
+  InclusionOrigin,
+  ReleaseSet,
   RemovalImpact,
   ResolveSelectionsRequest,
   ResolveSelectionsResult,
   SelectionRef,
   SelectionRequest,
   SelectionRoot,
+  SetMember,
+  SetRef,
+  SetSelection,
 } from "./contracts.js";
+import { SET_MAX_DEPTH, SET_MAX_MEMBERS } from "./contracts.js";
 import { ID, SHA256 } from "./document.js";
 import { canonicalJson, deepFreeze } from "./json.js";
 import { isCheckedRelease, validateSelectionSet } from "./reader.js";
@@ -56,11 +62,13 @@ export function resolveSelections(request: ResolveSelectionsRequest): ResolveSel
     message: string,
     details?: readonly CatalogDiagnostic[],
     subject?: { reference: SelectionRef & { itemSha256?: string }; declaredBy?: SelectionRef },
+    reason?: string,
   ) => {
     diagnostics.push({
       code,
       path,
       message,
+      ...(reason ? { reason } : {}),
       ...(details ? { details: { owner: "catalog" as const, diagnostics: details } } : {}),
       // Copies, so a frozen result never aliases walk state or request data.
       ...(subject
@@ -89,15 +97,18 @@ export function resolveSelections(request: ResolveSelectionsRequest): ResolveSel
   let roots: SelectionRoot[];
   let skips: SelectionRef[];
   let remove: SelectionRef[];
+  let chosen: SetSelection[];
   try {
     const top = dataRecord(request);
-    if (!exactFields(top, ["releases", "roots", "skips"], ["remove"]))
+    if (!exactFields(top, ["releases", "roots", "skips"], ["remove", "sets"]))
       throw new TypeError("Request fields");
     supplied = dataRecord(top.releases);
     roots = copyJson(top.roots) as SelectionRoot[];
     skips = copyJson(top.skips) as SelectionRef[];
     remove = top.remove === undefined ? [] : (copyJson(top.remove) as SelectionRef[]);
-    if (![roots, skips, remove].every(Array.isArray)) throw new TypeError("Expected arrays");
+    chosen = top.sets === undefined ? [] : (copyJson(top.sets) as SetSelection[]);
+    if (![roots, skips, remove, chosen].every(Array.isArray))
+      throw new TypeError("Expected arrays");
   } catch {
     report("INPUT_INVALID", "", "Expected bounded plain request data and checked releases.");
     return refuse();
@@ -185,6 +196,9 @@ export function resolveSelections(request: ResolveSelectionsRequest): ResolveSel
   checkRefs(skips, "skips", false);
   checkRefs(remove, "remove", false);
   if (diagnostics.some((diagnostic) => !unavailable(diagnostic))) return refuse();
+  const before = diagnostics.length;
+  const expansion = expandSets(chosen, releases, report, itemAt);
+  if (expansion === undefined) return refuse();
 
   const configurations = new Map<string, SelectionRoot["configuration"]>();
   roots.forEach((root, index) => {
@@ -197,7 +211,24 @@ export function resolveSelections(request: ResolveSelectionsRequest): ResolveSel
       );
     else configurations.set(key(root), root.configuration);
   });
-  const skipped = new Set(skips.map(key));
+  const skipped = new Set([...skips.map(key), ...expansion.excluded.keys()]);
+  // Exclusions apply after expansion: a skipped member leaves every set at once.
+  for (const [index, skip] of skips.entries()) {
+    const taken = expansion.taken.get(key(skip));
+    if (!taken) continue;
+    expansion.taken.delete(key(skip));
+    if (expansion.required.has(key(skip)))
+      report(
+        "REQUIRED_EXCLUDED",
+        `/skips/${index}`,
+        "A request excludes a member its set requires.",
+        undefined,
+        { reference: skip },
+        "required-excluded",
+      );
+  }
+  if (diagnostics.length > before) return refuse();
+  const excludedCode = chosen.length ? "REQUIRED_EXCLUDED" : "REQUIRED_ITEM_SKIPPED";
   const selected = new Map<string, SelectionRef>();
   const resolveRef = (
     from: SelectionRef,
@@ -228,9 +259,10 @@ export function resolveSelections(request: ResolveSelectionsRequest): ResolveSel
     }
     return target;
   };
-  const sortedRoots = uniqueRefs(roots).filter((ref) =>
-    releases.get(ref.releaseSha256)?.items.some((item) => item.id === ref.itemId),
-  );
+  const sortedRoots = uniqueRefs([
+    ...roots,
+    ...[...expansion.taken.values()].map((entry) => entry.ref),
+  ]).filter((ref) => releases.get(ref.releaseSha256)?.items.some((item) => item.id === ref.itemId));
   // Each path is walked independently: shared dependencies retain all explanations.
   for (const root of sortedRoots) {
     const pending: SelectionRef[][] = [[root]];
@@ -252,8 +284,19 @@ export function resolveSelections(request: ResolveSelectionsRequest): ResolveSel
       }
       selected.set(currentKey, current);
       inclusions.push({ item: current, root, path });
-      if (skipped.has(currentKey))
-        report("REQUIRED_ITEM_SKIPPED", "/skips", "A skip suppresses a required selection.");
+      if (skipped.has(currentKey)) {
+        const declaredBy = path.length > 1 ? path[path.length - 2] : undefined;
+        if (chosen.length)
+          report(
+            excludedCode,
+            "/skips",
+            "A request excludes an item a selection requires.",
+            undefined,
+            { reference: current, ...(declaredBy ? { declaredBy } : {}) },
+            "required-excluded",
+          );
+        else report(excludedCode, "/skips", "A skip suppresses a required selection.");
+      }
       const item = itemAt(current, "/roots");
       if (!item) continue;
       const itemIndex = releases.get(current.releaseSha256)?.items.indexOf(item);
@@ -326,6 +369,36 @@ export function resolveSelections(request: ResolveSelectionsRequest): ResolveSel
       validated.diagnostics,
     );
   if (diagnostics.length) return refuse(true);
+  const frameworkOf = (ref: SelectionRef) => releases.get(ref.releaseSha256)?.framework?.id;
+  const requiredBy = new Map<string, Map<string, InclusionOrigin>>();
+  for (const inclusion of inclusions) {
+    const by = inclusion.path[inclusion.path.length - 2];
+    if (!by) continue;
+    const framework = frameworkOf(by);
+    const origin: InclusionOrigin = {
+      reasonIncluded: "required-by",
+      requiredBy: { ...(framework ? { framework } : {}), itemId: by.itemId },
+    };
+    const entries = requiredBy.get(key(inclusion.item)) ?? new Map<string, InclusionOrigin>();
+    entries.set(canonicalJson(origin), origin);
+    requiredBy.set(key(inclusion.item), entries);
+  }
+  const rootKeys = new Set(roots.map(key));
+  const withOrigins = selections.map((selection) => {
+    const ref = {
+      releaseSha256: selection.item.releaseSha256,
+      itemId: selection.item.itemId,
+      scope: selection.scope,
+    };
+    const origins: InclusionOrigin[] = [
+      ...(rootKeys.has(key(ref)) ? [{ reasonIncluded: "chosen" as const }] : []),
+      ...(expansion.taken.get(key(ref))?.origins.values() ?? []),
+      ...[...(requiredBy.get(key(ref))?.entries() ?? [])]
+        .sort(([a], [b]) => compare(a, b))
+        .map(([, origin]) => origin),
+    ];
+    return { ...selection, origins };
+  });
   const stableOptional = [
     ...new Map(
       optional.map((entry) => [`${key(entry.from)}\u0001${key(entry.to)}`, entry]),
@@ -334,11 +407,336 @@ export function resolveSelections(request: ResolveSelectionsRequest): ResolveSel
   return deepFreeze({
     status: "ok",
     value: {
-      selections,
+      selections: withOrigins,
       inclusions: stableInclusions(inclusions),
       optional: stableOptional,
       removalImpact: impact,
     },
     diagnostics: [],
   });
+}
+
+type Report = (
+  code: string,
+  path: string,
+  message: string,
+  details?: readonly CatalogDiagnostic[],
+  subject?: { reference: SelectionRef & { itemSha256?: string }; declaredBy?: SelectionRef },
+  reason?: string,
+) => void;
+type ItemAt = (ref: SelectionRef, at: string) => CatalogItem | undefined;
+interface Taken {
+  readonly ref: SelectionRef;
+  readonly origins: Map<string, InclusionOrigin>;
+}
+interface SetExpansion {
+  /** Members taken by chosen sets, in expansion order, with their in-set origins. */
+  readonly taken: Map<string, Taken>;
+  /** Items a request names with `include: false`. */
+  readonly excluded: Map<string, SelectionRef>;
+  /** Members a chosen set requires: not optional. */
+  readonly required: Set<string>;
+}
+/** Thrown to stop expansion once a refusal is reported; never truncates. */
+class Stop extends Error {}
+
+/**
+ * Expands chosen sets in the published order: chosen sets in request order,
+ * each depth-first (includes, members, required sets), then option values in
+ * declared order. Returns undefined after reporting a refusal.
+ */
+function expandSets(
+  chosen: readonly SetSelection[],
+  releases: ReadonlyMap<string, CatalogRelease>,
+  report: Report,
+  itemAt: ItemAt,
+): SetExpansion | undefined {
+  const taken = new Map<string, Taken>();
+  const excluded = new Map<string, SelectionRef>();
+  const required = new Set<string>();
+  let refused = false;
+  const fail = (code: string, path: string, message: string, reason: string): never => {
+    report(code, path, message, undefined, undefined, reason);
+    throw new Stop();
+  };
+  const frameworkRelease = (framework: string, version: string, at: string): CatalogRelease => {
+    const found = [...releases.values()].filter(
+      (release) => release.framework?.id === framework && release.framework.version === version,
+    );
+    if (found.length > 1)
+      fail(
+        "REFERENCE_AMBIGUOUS",
+        at,
+        "Several supplied releases share this framework version.",
+        "release-ambiguous",
+      );
+    if (!found.length)
+      fail(
+        "RELEASE_UNAVAILABLE",
+        at,
+        "The referenced framework release was not supplied.",
+        "release-unavailable",
+      );
+    return found[0] as CatalogRelease;
+  };
+  const setAt = (
+    from: CatalogRelease,
+    ref: { framework: string; setId: string; setSha256: string; releaseVersion?: string },
+    at: string,
+  ): { set: ReleaseSet; release: CatalogRelease } => {
+    const release =
+      ref.releaseVersion === undefined
+        ? from
+        : frameworkRelease(ref.framework, ref.releaseVersion, at);
+    const set = release.sets?.find((candidate) => candidate.id === ref.setId);
+    if (!set)
+      return fail(
+        "SET_UNAVAILABLE",
+        at,
+        "The referenced set is absent from its release.",
+        "set-unavailable",
+      );
+    if (set.setSha256 !== ref.setSha256)
+      fail(
+        "REFERENCE_AMBIGUOUS",
+        `${at}/setSha256`,
+        "The set digest differs from the checked release's set.",
+        "set-digest-mismatch",
+      );
+    return { set, release };
+  };
+  const memberRef = (
+    member: SetMember,
+    from: CatalogRelease,
+    scope: "project" | "user",
+    at: string,
+  ): SelectionRef => {
+    const item = member.item as {
+      framework: string;
+      itemId: string;
+      releaseVersion?: string;
+      contentSha256?: string;
+      behaviourSha256?: string;
+    };
+    const release =
+      item.releaseVersion === undefined
+        ? from
+        : frameworkRelease(item.framework, item.releaseVersion, at);
+    const ref = { releaseSha256: release.sha256, itemId: item.itemId, scope };
+    const found = itemAt(ref, at);
+    if (!found) throw new Stop();
+    if (
+      item.releaseVersion !== undefined &&
+      (found.contentSha256 !== item.contentSha256 || found.behaviourSha256 !== item.behaviourSha256)
+    )
+      fail(
+        "REFERENCE_AMBIGUOUS",
+        `${at}/item`,
+        "The supplied item does not match the member's pinned identities.",
+        "member-pin-mismatch",
+      );
+    if (found.kind === "hook" && !member.optional)
+      fail("INPUT_INVALID", at, "Every hook member of a set is optional.", "hook-member-required");
+    return ref;
+  };
+  let count = 0;
+  chosen.forEach((entry, index) => {
+    const at = `/sets/${index}`;
+    try {
+      if (
+        !exactFields(entry, ["release", "setId", "setSha256"], ["options", "members"]) ||
+        !exactFields(entry.release, ["releaseSha256", "scope"]) ||
+        typeof entry.release.releaseSha256 !== "string" ||
+        !SHA256.test(entry.release.releaseSha256) ||
+        (entry.release.scope !== "project" && entry.release.scope !== "user") ||
+        typeof entry.setId !== "string" ||
+        entry.setId.length > 128 ||
+        !ID.test(entry.setId) ||
+        typeof entry.setSha256 !== "string" ||
+        !SHA256.test(entry.setSha256) ||
+        (entry.options !== undefined &&
+          (typeof entry.options !== "object" ||
+            entry.options === null ||
+            Array.isArray(entry.options) ||
+            !Object.values(entry.options).every(
+              (values) =>
+                Array.isArray(values) &&
+                values.every((value) => typeof value === "string") &&
+                new Set(values).size === values.length,
+            ))) ||
+        (entry.members !== undefined &&
+          (!Array.isArray(entry.members) ||
+            !entry.members.every(
+              (override) =>
+                exactFields(override, ["item", "include"]) &&
+                typeof override.include === "boolean" &&
+                exactFields(override.item, ["framework", "itemId"]) &&
+                typeof override.item.framework === "string" &&
+                typeof override.item.itemId === "string",
+            )))
+      )
+        fail(
+          "INPUT_INVALID",
+          at,
+          "Expected { release: { releaseSha256, scope }, setId, setSha256, options?, members? }.",
+          "set-selection-invalid",
+        );
+      const release = releases.get(entry.release.releaseSha256);
+      if (!release)
+        fail(
+          "RELEASE_UNAVAILABLE",
+          `${at}/release`,
+          "Referenced release was not supplied.",
+          "release-unavailable",
+        );
+      const framework = (release as CatalogRelease).framework?.id as string;
+      const top = setAt(
+        release as CatalogRelease,
+        { framework, setId: entry.setId, setSha256: entry.setSha256 },
+        at,
+      ).set;
+      const identity = { framework, setId: top.id, setSha256: top.setSha256 };
+      const scope = entry.release.scope;
+      const overrides = new Map<string, boolean>();
+      (entry.members ?? []).forEach((override, o) => {
+        const name = `${override.item.framework}\u0000${override.item.itemId}`;
+        if (overrides.has(name))
+          fail(
+            "INPUT_INVALID",
+            `${at}/members/${o}`,
+            "A member is overridden once.",
+            "set-member-repeated",
+          );
+        overrides.set(name, override.include);
+      });
+      const requested = entry.options ?? {};
+      for (const optionId of Object.keys(requested)) {
+        const option = top.options?.find((candidate) => candidate.id === optionId);
+        if (!option)
+          fail(
+            "INPUT_INVALID",
+            `${at}/options/${pointer(optionId)}`,
+            "The set has no such option.",
+            "set-option-unknown",
+          );
+        for (const choiceId of requested[optionId] ?? [])
+          if (!option?.choices.some((choice) => choice.id === choiceId))
+            fail(
+              "INPUT_INVALID",
+              `${at}/options/${pointer(optionId)}`,
+              "The option has no such choice.",
+              "set-option-unknown",
+            );
+      }
+      const seenMembers = new Set<string>();
+      const visited = new Set<string>();
+      const order: { set: ReleaseSet; release: CatalogRelease; depth: number }[] = [];
+      const expand = (
+        set: ReleaseSet,
+        from: CatalogRelease,
+        depth: number,
+        stack: readonly string[],
+        options: Readonly<Record<string, readonly string[]>> | undefined,
+      ) => {
+        const setKey = `${from.sha256}\u0000${set.id}`;
+        if (stack.includes(setKey)) fail("SET_CYCLE", at, "Chosen sets form a cycle.", "set-cycle");
+        if (depth > SET_MAX_DEPTH)
+          fail(
+            "SET_LIMIT_EXCEEDED",
+            at,
+            "Sets nest more than 8 levels below a chosen set.",
+            "set-depth-exceeded",
+          );
+        const visitKey = `${setKey}\u0001${canonicalJson(options ?? null)}`;
+        if (visited.has(visitKey)) return;
+        visited.add(visitKey);
+        order.push({ set, release: from, depth });
+        const next = [...stack, setKey];
+        const nested = (refs: readonly SetRef[] | undefined) => {
+          for (const ref of refs ?? []) {
+            const target = setAt(from, ref, at);
+            expand(target.set, target.release, depth + 1, next, options);
+          }
+        };
+        nested(set.includes);
+        for (const member of set.members) {
+          const ref = memberRef(member, from, scope, at);
+          const name = `${member.item.framework}\u0000${member.item.itemId}`;
+          seenMembers.add(name);
+          const override = overrides.get(name);
+          if (override === false) {
+            if (!member.optional)
+              report(
+                "REQUIRED_EXCLUDED",
+                `${at}/members`,
+                "A request excludes a member its set requires.",
+                undefined,
+                { reference: ref },
+                "required-excluded",
+              );
+            excluded.set(key(ref), ref);
+            continue;
+          }
+          if (!(override ?? member.defaultOn)) continue;
+          if (!member.optional) required.add(key(ref));
+          const entry = taken.get(key(ref)) ?? { ref, origins: new Map<string, InclusionOrigin>() };
+          if (!taken.has(key(ref))) {
+            if (++count > SET_MAX_MEMBERS)
+              fail(
+                "SET_LIMIT_EXCEEDED",
+                at,
+                "Chosen sets resolve more than 5,000 members.",
+                "set-members-exceeded",
+              );
+            taken.set(key(ref), entry);
+          }
+          const origin: InclusionOrigin = {
+            reasonIncluded: "in-set",
+            set: identity,
+            ...(options ? { options } : {}),
+          };
+          entry.origins.set(canonicalJson(origin), origin);
+        }
+        nested(set.requires);
+      };
+      expand(top, release as CatalogRelease, 0, [], undefined);
+      // Option values follow the depth-first expansion; only the chosen set's
+      // own options take choices, every expanded set's always-included sets apply.
+      for (let cursor = 0; cursor < order.length; cursor++) {
+        const { set, release: from, depth } = order[cursor] as (typeof order)[number];
+        for (const option of set.options ?? []) {
+          for (const ref of option.always ?? []) {
+            const target = setAt(from, ref, at);
+            expand(target.set, target.release, depth + 1, [], undefined);
+          }
+          if (cursor !== 0) continue;
+          const picked = requested[option.id] ?? [];
+          for (const choice of option.choices) {
+            if (!picked.includes(choice.id)) continue;
+            for (const ref of choice.sets) {
+              const target = setAt(from, ref, at);
+              expand(target.set, target.release, depth + 1, [], { [option.id]: [choice.id] });
+            }
+          }
+        }
+      }
+      (entry.members ?? []).forEach((override, o) => {
+        if (!seenMembers.has(`${override.item.framework}\u0000${override.item.itemId}`))
+          report(
+            "INPUT_INVALID",
+            `${at}/members/${o}`,
+            "The chosen set has no such member.",
+            undefined,
+            undefined,
+            "set-member-unknown",
+          );
+      });
+    } catch (error) {
+      if (!(error instanceof Stop)) throw error;
+      refused = true;
+    }
+  });
+  // An explicitly excluded item leaves every set, as a skip does.
+  for (const name of excluded.keys()) taken.delete(name);
+  return refused ? undefined : { taken, excluded, required };
 }

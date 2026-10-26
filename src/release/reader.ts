@@ -4,6 +4,8 @@
  * Reads caller-supplied release bytes into an immutable checked view. No Node
  * built-ins, filesystem, network, package installation or code execution.
  */
+
+import { checkedReleases } from "./checked.js";
 import {
   type CatalogDiagnostic,
   type CatalogItem,
@@ -43,9 +45,7 @@ import { sha256Hex } from "./sha256.js";
 
 export { createContentInventory, readContentInventory } from "./inventory.js";
 export { readReleaseIndex } from "./release-index.js";
-
-/** Views this reader produced. Other operations accept nothing else. */
-const checkedReleases = new WeakSet<object>();
+export { readReleaseSets } from "./sets.js";
 
 function invalid(reason: string, message: string, path?: string): CatalogDiagnostic {
   return Object.freeze({

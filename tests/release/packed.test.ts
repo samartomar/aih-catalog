@@ -654,6 +654,8 @@ describe("exact packed consumer", () => {
         "CONTENT_PROJECTION_ID",
         "CONTENT_PROJECTION_ID_1_1",
         "SCAN_BASELINE_SCHEMA_ID",
+        "SET_MAX_DEPTH",
+        "SET_MAX_MEMBERS",
         "contractSupport",
         "contractSupport11",
         "releaseInventory",

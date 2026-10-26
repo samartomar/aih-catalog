@@ -21,7 +21,7 @@ Support 1.0 identifies each version by its complete contract URN. Its closed
 schema permits only `id`, `role` and `schemaExport` in each contract entry;
 it does **not** permit a `versions` array or fixture references. Each supported
 release 1.0–1.6, producer declaration 3.0/3.1/3.2, content inventory 1.0/1.1,
-release-content projection 1.0/1.1, baseline 1.0, release index 1.0.0 and admitted
+release-content projection 1.0/1.1, baseline 1.0, release index 1.0.0, release sets 1.0.0 and admitted
 Core recipe version has a separate entry and an exact schema export. `both`
 describes formats Catalog reads and produces; producer declarations are
 `accepts`. Core owns the recipe and support schemas; Catalog exposes the schema
@@ -71,6 +71,19 @@ format Catalog does not admit. A missing or non-string `schema` is
 scopes and material closure) needs that item, so it is checked only when a
 release is read. The result establishes structural admission, not execution
 authority.
+
+Release sets 1.0 fixtures are read with `readReleaseSets` against a content-only
+context release under `fixtures/release-sets/`, itself real content projected to
+release 1.6 and read with `readReleaseContent`. The valid fixture is Superpowers
+reviewed-tdd as a set: the required TDD skill, the optional session hook off by
+default and Extensions security-and-hardening pinned by release version and both
+identities. The invalid fixture makes the hook required and leaves the Extensions
+member unpinned; it passes its schema (`validation: "reader"` in the manifest)
+and the reader refuses it with both reasons. Scenario envelopes, executed by the
+packed checker through the public build, reader and resolver, cover an ECC-style
+profile over real ECC rules with a TypeScript choice, a set cycle failing the build,
+and digest vectors (display-only fields outside the digest; a behaviour-only member
+change, a changed cross-framework pin and a nested set change each change it).
 
 `npm run check:contract-fixtures` checks regeneration. Regenerate after building
 with `npm run generate:contract-fixtures`; `tools/generate-baseline-schemas.mjs`
