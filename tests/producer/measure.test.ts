@@ -58,6 +58,7 @@ function makeToolRepo(dir: string): void {
     "docs/ANTHROPIC-CONTENT.md",
     "docs/ANTHROPIC-INVENTORY.md",
     "docs/PROJECT-BASICS.md",
+    "docs/EXECUTABLE-CONTENT.md",
     "tools",
     "schemas",
     "producer",
