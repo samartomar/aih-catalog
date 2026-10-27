@@ -2,10 +2,13 @@ import { execFileSync, spawnSync } from "node:child_process";
 import {
   chmodSync,
   cpSync,
+  existsSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -71,11 +74,132 @@ describe("aih-supported repository AI bootstrap", () => {
     expect(stage).toMatch(/^100755\s/);
   });
 
+  it("plans Serena alone with explicit blockers and no mutations", () => {
+    expect(commandJson("setup-codex", "--tool", "serena", "--dry-run")).toMatchObject({
+      selected: ["serena"],
+      ready: false,
+      mutations: [],
+      candidate: {
+        package: "serena-agent==2.1.0",
+        python: "3.13.18",
+        mcp: "2.2.0",
+        agentInterface: "tools",
+        singleProject: true,
+      },
+    });
+  });
+
+  it("refuses selected setup and launch before touching unrelated state or executing repository code", () => {
+    const fixture = mkdtempSync(join(tmpdir(), "catalog-serena-"));
+    try {
+      mkdirSync(join(fixture, "tools"));
+      cpSync(join(root, "tools/repo-ai-tools.mjs"), join(fixture, "tools/repo-ai-tools.mjs"));
+      cpSync(join(root, "tools/repo-ai-tools"), join(fixture, "tools/repo-ai-tools"), {
+        recursive: true,
+      });
+      const preserved = [
+        ".codex/config.toml",
+        ".serena/project.yml",
+        ".githooks/pre-commit",
+        ".code-review-graph/index",
+        ".codebase-memory/index",
+        "node_modules/typescript/index.js",
+      ];
+      for (const path of preserved) {
+        mkdirSync(resolve(fixture, path, ".."), { recursive: true });
+        writeFileSync(
+          join(fixture, path),
+          path === ".codex/config.toml"
+            ? '[mcp_servers.other]\ncommand = "untouched"\n'
+            : "untrusted fixture; never execute\n",
+        );
+      }
+      execFileSync("git", ["init", "-q", fixture]);
+      execFileSync("git", ["-C", fixture, "add", "--all"]);
+      symlinkSync(join(fixture, ".."), join(fixture, "outside"), "dir");
+      const before = preserved.map((path) => readFileSync(join(fixture, path), "utf8"));
+      for (const args of [
+        ["setup-codex", "--tool", "serena"],
+        ["serena-mcp"],
+        ["doctor-codex", "--tool", "serena"],
+      ]) {
+        const result = spawnSync(process.execPath, ["tools/repo-ai-tools.mjs", ...args], {
+          cwd: fixture,
+          encoding: "utf8",
+          env: {
+            ...process.env,
+            PATH: "",
+            AIH_SUPPORTED_REPO_AI_TOOLS_HOME: join(fixture, "cache"),
+          },
+          timeout: 5000,
+        });
+        expect(result.status, result.stderr).toBe(1);
+        expect(result.stderr).toContain("Serena activation blocked:");
+        expect(result.stderr).toContain("proxy-tools");
+        expect(result.stderr).toContain("multipart-override");
+      }
+      expect(preserved.map((path) => readFileSync(join(fixture, path), "utf8"))).toEqual(before);
+      expect(existsSync(join(fixture, "cache"))).toBe(false);
+      expect(readdirSync(join(fixture, ".git", "hooks"))).not.toContain("pre-commit");
+    } finally {
+      rmSync(fixture, { recursive: true, force: true });
+    }
+  });
+
+  it("projects only the fixed Serena tools and refuses ambiguous client ownership", () => {
+    const fixture = mkdtempSync(join(tmpdir(), "catalog-serena-client-"));
+    try {
+      mkdirSync(join(fixture, "tools"));
+      mkdirSync(join(fixture, ".codex"));
+      cpSync(join(root, "tools/repo-ai-tools.mjs"), join(fixture, "tools/repo-ai-tools.mjs"));
+      cpSync(join(root, "tools/repo-ai-tools"), join(fixture, "tools/repo-ai-tools"), {
+        recursive: true,
+      });
+      const config = join(fixture, ".codex/config.toml");
+      const invoke = () =>
+        spawnSync(
+          process.execPath,
+          ["tools/repo-ai-tools.mjs", "projection-codex", "--tool", "serena"],
+          { cwd: fixture, encoding: "utf8", timeout: 5000 },
+        );
+      const sibling = '[mcp_servers.other]\ncommand = "untouched"\n';
+      writeFileSync(config, sibling);
+      const result = invoke();
+      expect(result.status, result.stderr).toBe(0);
+      expect(result.stdout).toContain('[mcp_servers."serena"]');
+      expect(result.stdout).toContain(
+        'enabled_tools = ["get_symbols_overview","find_symbol","find_referencing_symbols","find_implementations","get_diagnostics_for_file"]',
+      );
+      expect(result.stdout).not.toMatch(
+        /serena_repl|activate_project|execute_shell_command|replace_symbol_body|rename_symbol/,
+      );
+      expect(readFileSync(config, "utf8")).toBe(sibling);
+      for (const collision of [
+        '[mcp_servers.serena]\ncommand = "other"',
+        "[mcp_servers.'serena'.env]\nX = 'other'",
+        '["mcp_servers"."serena"]\ncommand = "other"',
+        '[mcp_servers."s\\u0065rena"]\ncommand = "other"',
+        '[mcp_servers]\nserena = {command = "other"}',
+        'mcp_servers.serena.command = "other"',
+        'mcp_servers = {serena = {command = "other"}}',
+        "# BEGIN AIH-SUPPORTED REPO TOOLING (managed by npm run repo:init)",
+      ]) {
+        writeFileSync(config, collision);
+        const refused = invoke();
+        expect(refused.status, collision).toBe(1);
+        expect(refused.stderr, collision).toMatch(/collision|ownership|legacy/i);
+        expect(readFileSync(config, "utf8")).toBe(collision);
+      }
+    } finally {
+      rmSync(fixture, { recursive: true, force: true });
+    }
+  });
+
   it("pins the narrow public helper toolchain", () => {
     expect(commandJson("plan")).toMatchObject({
       pins: {
         serena: {
-          package: "serena-agent==1.7.0",
+          package: "serena-agent==2.1.0",
           securityOverrides: ["python-multipart==0.0.32", "starlette==1.3.1"],
         },
         tokenSavior: { package: "token-savior-recall[mcp]==4.21.0" },
@@ -87,6 +211,7 @@ describe("aih-supported repository AI bootstrap", () => {
           tree: "d044ba6038ac705e8d0da6a4b545cbee00abe7d5",
         },
       },
+      cache: { generation: "966a8a0ef8c0552c" },
       runtime: {
         tokenOptimizer: { integration: "on-demand", commands: ["report", "coach"] },
         codeReviewGraph: { advisory: true },
@@ -201,6 +326,9 @@ describe("aih-supported repository AI bootstrap", () => {
     try {
       mkdirSync(join(fixture, "tools"));
       cpSync(join(root, "tools/repo-ai-tools.mjs"), join(fixture, "tools/repo-ai-tools.mjs"));
+      cpSync(join(root, "tools/repo-ai-tools"), join(fixture, "tools/repo-ai-tools"), {
+        recursive: true,
+      });
       mkdirSync(join(fixture, ".codex"));
       const config = `${header}\ncommand = "owned-by-someone-else"\n`;
       writeFileSync(join(fixture, ".codex/config.toml"), config);
@@ -242,6 +370,9 @@ describe("aih-supported repository AI bootstrap", () => {
       try {
         mkdirSync(join(fixture, "tools"));
         cpSync(join(root, "tools/repo-ai-tools.mjs"), join(fixture, "tools/repo-ai-tools.mjs"));
+        cpSync(join(root, "tools/repo-ai-tools"), join(fixture, "tools/repo-ai-tools"), {
+          recursive: true,
+        });
         mkdirSync(join(fixture, "bin"));
         const log = join(fixture, "calls.jsonl");
         const uv = join(fixture, "bin/uv");

@@ -474,6 +474,13 @@ export const releaseInventory = Object.freeze({
       support: "supported",
     }),
     Object.freeze({
+      release: "./release-web-artifacts.json",
+      export: "@aihq/catalog/release-web-artifacts.json",
+      schema: RELEASE_SCHEMA_ID_1_3,
+      purpose: "content",
+      support: "supported",
+    }),
+    Object.freeze({
       release: "./release-anthropic.json",
       export: "@aihq/catalog/release-anthropic.json",
       schema: RELEASE_SCHEMA_ID,

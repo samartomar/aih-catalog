@@ -125,6 +125,7 @@ describe("packed candidate", () => {
           !path.startsWith("producer/ecc/") &&
           !path.startsWith("producer/superpowers/") &&
           !path.startsWith("producer/anthropic/") &&
+          !path.startsWith("producer/web-artifacts/") &&
           path !== "docs/ANTHROPIC-CONTENT.md" &&
           path !== "docs/ANTHROPIC-INVENTORY.md" &&
           path !== "docs/SUPERPOWERS-CONTENT.md" &&
@@ -160,6 +161,8 @@ describe("packed candidate", () => {
       "dist/producer/tree.js",
       "dist/producer/windows-acl.js",
     ]);
+    expect(artifact.packedPaths).toContain("producer/web-artifacts/declaration.json");
+    expect(artifact.packedPaths).toContain("release/release-web-artifacts.json");
     expect(artifact.packedPaths).toContain("LICENSE");
     expect(artifact.packedPaths).toContain("release/release.json");
     expect(artifact.packedPaths).toContain("docs/FRAMEWORK-TEMPLATES.md");

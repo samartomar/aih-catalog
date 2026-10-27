@@ -4,13 +4,11 @@ import { closeSync, existsSync, mkdirSync, openSync, readFileSync, readSync, rea
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join, parse, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { refuseSerenaActivation, serenaCandidate, serenaPreparation, serenaProjection, serenaTools } from "./repo-ai-tools/serena-bootstrap.mjs";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const pins = {
-  serena: {
-    package: "serena-agent==1.7.0",
-    securityOverrides: ["python-multipart==0.0.32", "starlette==1.3.1"],
-  },
+  serena: serenaCandidate,
   tokenSavior: { package: "token-savior-recall[mcp]==4.21.0" },
   codeReviewGraph: { package: "code-review-graph==2.3.9", python: "3.14.10", wheelSha256: "908500a23f23fe05566090a2e5fce95f7f177d054090a355b46367546db5d910" },
   codebaseMemory: { version: "0.12.1", distribution: "native", artifacts: {
@@ -29,27 +27,7 @@ const pins = {
   },
 };
 
-const serenaEnabledTools = [
-  "get_symbols_overview",
-  "find_symbol",
-  "find_referencing_symbols",
-  "find_implementations",
-  "get_diagnostics_for_file",
-  "search_for_pattern",
-  "rename_symbol",
-  "replace_symbol_body",
-  "insert_before_symbol",
-  "insert_after_symbol",
-];
-const serenaExcludedTools = [
-  "create_text_file",
-  "read_file",
-  "execute_shell_command",
-  "replace_content",
-  "replace_in_files",
-  "find_file",
-  "list_dir",
-];
+const serenaEnabledTools = serenaTools;
 const tokenSaviorEnabledTools = [
   "get_entry_points",
   "search_codebase",
@@ -84,7 +62,7 @@ const codebaseMemoryEnabledTools = [
 
 const cacheGeneration = createHash("sha256").update(JSON.stringify(pins)).digest("hex").slice(0, 16);
 // Preserve unrelated helper locations when only the graph/memory pins change.
-const legacyPins = { ...pins, codeReviewGraph: { package: "code-review-graph==2.3.7" }, codebaseMemory: { package: "codebase-memory-mcp==0.10.5" } };
+const legacyPins = { ...pins, serena: { package: "serena-agent==1.7.0", securityOverrides: ["python-multipart==0.0.32", "starlette==1.3.1"] }, codeReviewGraph: { package: "code-review-graph==2.3.7" }, codebaseMemory: { package: "codebase-memory-mcp==0.10.5" } };
 const legacyGeneration = createHash("sha256").update(JSON.stringify(legacyPins)).digest("hex").slice(0, 16);
 const repoKey = createHash("sha256").update(`${repoRoot}\0${legacyGeneration}`).digest("hex").slice(0, 16);
 const cacheRoot =
@@ -100,8 +78,6 @@ const codeReviewGraphRoot = join(installRoot, "code-review-graph-2.3.9");
 const defaultCodebaseMemoryRoot = resolve(homedir(), ".cache", "codebase-memory-mcp");
 const codebaseMemoryProject = { name: `catalog-${createHash("sha256").update(repoRoot).digest("hex").slice(0, 16)}`, rootPath: repoRoot };
 
-const serenaOverridesPath = join(installRoot, "serena-security-overrides.txt");
-const serenaContextPath = join(installRoot, "serena-codex-context.yml");
 const codexConfigPath = join(repoRoot, ".codex", "config.toml");
 const scriptPath = fileURLToPath(import.meta.url);
 const blockBegin = "# BEGIN AIH-SUPPORTED REPO TOOLING (managed by npm run repo:init)";
@@ -116,10 +92,10 @@ const mcpServers = [
 
 const plan = {
   pins,
-  cache: { generation: cacheGeneration, keyInputs: ["repository-path", "tool-pins"] },
+  cache: { generation: legacyGeneration, toolsetGeneration: cacheGeneration, keyInputs: ["repository-path", "tool-pins"] },
   installRoot: "project-and-toolset-keyed user cache",
   runtime: {
-    serena: { context: "repo-symbols", mode: "no-memories", singleProject: true, excludedTools: serenaExcludedTools, enabledTools: serenaEnabledTools },
+    serena: { ...serenaPreparation(repoRoot), enabledTools: serenaEnabledTools },
     tokenSavior: { profile: "optimized", memory: false, shellHooks: false, excludePatterns: [".token-savior-cache.json"], enabledTools: tokenSaviorEnabledTools },
     tokenOptimizer: { integration: "on-demand", commands: ["report", "coach"], clients: ["claude", "codex"] },
     codeReviewGraph: { role: "broad-impact-review", advisory: true, enabledTools: codeReviewGraphEnabledTools },
@@ -261,18 +237,6 @@ function verifyTokenOptimizer() {
     throw new Error("token-optimizer checkout does not match the accepted commit and tree");
 }
 
-function writeSerenaContext() {
-  mkdirSync(dirname(serenaContextPath), { recursive: true });
-  writeFileSync(serenaContextPath, [
-    "description: aih-supported single-project symbolic lane for Codex",
-    "excluded_tools:",
-    ...serenaExcludedTools.map((tool) => `  - ${tool}`),
-    "included_optional_tools: []",
-    "single_project: true",
-    "",
-  ].join("\n"), "utf8");
-}
-
 function graphPython() {
   return process.platform === "win32" ? join(installRoot, "crg-2.3.9", "Scripts", "python.exe") : join(installRoot, "crg-2.3.9", "bin", "python");
 }
@@ -337,11 +301,7 @@ function installTools(selected) {
     else if (name === "code-review-graph") installGraph();
     else if (name === "codebase-memory-mcp") verifyMemorySettings();
     else if (name === "token-savior") installUvTool(pins.tokenSavior.package, "token-savior-recall v4.21.0");
-    else if (name === "serena") {
-      writeFileSync(serenaOverridesPath, `${pins.serena.securityOverrides.join("\n")}\n`, "utf8");
-      installUvTool(pins.serena.package, "serena-agent v1.7.0", { force: true, overrides: serenaOverridesPath });
-      writeSerenaContext();
-    }
+    else if (name === "serena") refuseSerenaActivation();
   }
 }
 
@@ -479,6 +439,7 @@ function verifySelectedProjection(selected) {
 }
 
 function verifyOtherHelper(name) {
+  if (name === "serena") refuseSerenaActivation();
   if (name === "token-optimizer") {
     verifyTokenOptimizer();
     return { configuration: "verified", freshness: "not-applicable", integration: "on-demand" };
@@ -487,15 +448,12 @@ function verifyOtherHelper(name) {
   const installed = run("uv", ["tool", "list"], { env: localToolEnv() });
   if (!installed.split(/\r?\n/).includes(expected) || !existsSync(executable(name)))
     throw new Error(`missing selected pinned helper: ${expected}`);
-  if (name === "serena") {
-    const overrides = run(toolPython("serena-agent"), ["-c", "import importlib.metadata as m; print('|'.join(m.version(n) for n in ('python-multipart','starlette')))"]);
-    if (overrides !== "0.0.32|1.3.1") throw new Error(`Serena security override mismatch: ${overrides}`);
-  }
   return { configuration: "verified", freshness: "not-applicable" };
 }
 
 function doctor() {
   const selected = selectedTools();
+  if (selected.includes("serena")) refuseSerenaActivation();
   verifySelectedProjection(selected);
   const statuses = {};
   for (const name of selected) {
@@ -531,7 +489,20 @@ function selectedTools() {
 }
 
 function setup({ dryRun = false } = {}) {
+  if (dryRun && !process.argv.includes("--tool")) {
+    process.stdout.write(`${JSON.stringify({ command: "setup-codex", dryRun: true, ...serenaPreparation(repoRoot), selectionRequired: "use --tool serena for independent preparation; legacy combined setup is blocked" }, null, 2)}\n`);
+    return;
+  }
   const selected = selectedTools();
+  if (selected.includes("serena")) {
+    if (selected.length !== 1) throw new Error("Serena preparation must be selected independently");
+    if (dryRun) {
+      process.stdout.write(`${JSON.stringify({ command: "setup-codex", dryRun: true, ...serenaPreparation(repoRoot) }, null, 2)}\n`);
+      return;
+    }
+    serenaProjection(repoRoot, scriptPath, existsSync(codexConfigPath) ? readFileSync(codexConfigPath, "utf8") : "");
+    refuseSerenaActivation();
+  }
   if (dryRun) {
     process.stdout.write(`${JSON.stringify({ command: "setup-codex", dryRun: true, selected, indexing: "manual-only", gitHooks: "unchanged", mutations: ["acquire selected qualified tools", "write selected Codex projection"] }, null, 2)}\n`);
     return;
@@ -554,8 +525,14 @@ function main() {
   if (command === "plan") process.stdout.write(`${JSON.stringify(plan, null, 2)}\n`);
   else if (command === "setup-codex") setup({ dryRun: process.argv.includes("--dry-run") });
   else if (command === "doctor-codex") doctor();
-  else if (command === "projection-codex") process.stdout.write(renderCodexConfig(undefined, selectedTools()));
-  else if (command === "serena-mcp") launch("serena", ["start-mcp-server", "--context", serenaContextPath, "--project", repoRoot, "--mode", "no-memories", "--enable-web-dashboard=false", "--enable-gui-log-window=false"], localToolEnv());
+  else if (command === "projection-codex") {
+    const selected = selectedTools();
+    if (selected.includes("serena")) {
+      if (selected.length !== 1) throw new Error("Serena preparation must be selected independently");
+      process.stdout.write(serenaProjection(repoRoot, scriptPath, existsSync(codexConfigPath) ? readFileSync(codexConfigPath, "utf8") : ""));
+    } else process.stdout.write(renderCodexConfig(undefined, selected));
+  }
+  else if (command === "serena-mcp") refuseSerenaActivation();
   else if (command === "token-savior-mcp") launch("token-savior", [], { ...localToolEnv(), TOKEN_SAVIOR_PROFILE: "optimized", TOKEN_SAVIOR_EXCLUDE_PATTERNS: ".token-savior-cache.json", TS_CAPTURE_DISABLED: "1", TS_MEMORY_DISABLE: "1", WORKSPACE_ROOTS: repoRoot });
   else if (command === "code-review-graph-mcp") {
     const status = graphStatus();
@@ -574,7 +551,7 @@ function main() {
   }
   else if (command === "token-optimizer-report") runTokenOptimizer("report");
   else if (command === "token-optimizer-coach") runTokenOptimizer("coach");
-  else throw new Error("usage: repo-ai-tools.mjs <plan|setup-codex|doctor-codex|serena-mcp|token-savior-mcp|codebase-memory-mcp|token-optimizer-report|token-optimizer-coach>");
+  else throw new Error("usage: repo-ai-tools.mjs <plan|setup-codex|doctor-codex|projection-codex|serena-mcp|token-savior-mcp|codebase-memory-mcp|token-optimizer-report|token-optimizer-coach>");
 }
 
 if (process.argv[1] !== undefined && resolve(process.argv[1]) === scriptPath) {

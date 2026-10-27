@@ -115,6 +115,14 @@ export function checkCandidateFiles(
           },
         ]
       : []),
+    ...(files.has("release/release-web-artifacts.json")
+      ? [
+          {
+            path: "release/release-web-artifacts.json",
+            export: "./release-web-artifacts.json" as const,
+          },
+        ]
+      : []),
     ...(files.has("release/release-anthropic.json")
       ? [{ path: "release/release-anthropic.json", export: "./release-anthropic.json" as const }]
       : []),

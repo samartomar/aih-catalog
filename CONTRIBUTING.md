@@ -168,3 +168,16 @@ Sign off commits under the Developer Certificate of Origin with `git commit -s`.
 npm acquisition and supplied-snapshot preparation through installed public exports,
 with offline fixture transport and execution guards. The active tests include it.
 See [npm snapshots](docs/NPM-SNAPSHOTS.md) for bounds and named refusals.
+
+The Catalog-authored standalone artifact adaptation is generated separately with
+`node tools/generate-web-artifacts-release.mjs [--check]` from
+`producer/web-artifacts`. It preserves the complete Anthropic release bytes.
+`node tools/verify-web-artifacts-consumer.mjs --without-core` checks a packed
+public scaffold without acquiring tools; supply an exact Core tarball for
+Prepare/review/Apply. The explicit isolated build/browser fixture and platform
+limits are documented in [Anthropic content](docs/ANTHROPIC-CONTENT.md#modern-standalone-artifact-adaptation).
+
+The bounded Nuclei authoring candidate has an offline fixture preparer at
+`tools/prepare-nuclei-candidate.mjs`. See [candidate qualification](docs/NUCLEI-CANDIDATE.md)
+for exact image metadata, provisioned Docker prerequisites and separate native
+execution gates. Controlled Docker consumer checks do not qualify the real candidate.
