@@ -223,6 +223,28 @@ def inside():
         with sqlite3.connect(database) as connection:
             connection.execute('UPDATE projects SET root_path=? WHERE name=?', ('/workspace/sample', project))
         results['independentRootAndUnrecordedRefusal'] = True
+        for field, bad_value in [('coverage_version', 999), ('index_mode', 'unknown')]:
+            with sqlite3.connect(database) as connection:
+                original = connection.execute(f'SELECT {field} FROM index_coverage_meta WHERE project=?', (project,)).fetchone()[0]
+                connection.execute(f'UPDATE index_coverage_meta SET {field}=? WHERE project=?', (bad_value, project))
+            unsupported = catalog('doctor-codex', '--tool', 'codebase-memory-mcp')
+            check(unsupported.returncode != 0, f'unsupported {field} accepted')
+            idle()
+            with sqlite3.connect(database) as connection:
+                connection.execute(f'UPDATE index_coverage_meta SET {field}=? WHERE project=?', (original, project))
+        results['unsupportedNativeGenerationRefusal'] = ['coverage_version=999', 'index_mode=unknown']
+        original_source = Path('sample.py').read_bytes()
+        for changed_path, payload in [(Path('sample.py'), b'x' * (16 * 1024 * 1024 + 1)), (Path('.codebase-memory.json'), b' ' * 65537)]:
+            changed_path.write_bytes(payload)
+            oversized = catalog('doctor-codex', '--tool', 'codebase-memory-mcp')
+            check(oversized.returncode != 0, f'oversized {changed_path} accepted')
+            idle()
+            if changed_path.name == 'sample.py':
+                changed_path.write_bytes(original_source)
+            else:
+                changed_path.unlink()
+        results['boundedSourceAndConfigRefusal'] = True
+
         port = native('config', 'get', 'ui_port')
         check(port.returncode == 0 and port.stdout.strip().isdigit(), 'native UI port unavailable')
         with socket.socket() as probe:
@@ -307,7 +329,7 @@ def main():
                'nodeSha256': hashlib.sha256(node.read_bytes()).hexdigest(),
                'inputHashes': {str(p.relative_to(snapshot)): hashlib.sha256(p.read_bytes()).hexdigest()
                                for p in snapshot.rglob('*') if p.is_file()},
-               'bounds': '180 CPU seconds;240s wall;one CBM worker;Node heap128MiB;offline isolated namespaces'}
+               'bounds': '180 CPU seconds per process;240s wall;one CBM worker;Node heap128MiB;offline isolated namespaces'}
     (output / 'process.json').write_text(json.dumps(receipt, indent=2) + '\n')
     print(json.dumps({'exit': code, 'output': str(output)}))
     raise SystemExit(code)

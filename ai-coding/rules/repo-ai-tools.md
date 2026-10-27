@@ -60,7 +60,7 @@ and capacity evidence. Setup and queries perform no indexing.
 
 The memory doctor reads native status and coverage, then opens the exact native
 0.12.1 store read-only. It binds project/root and generation, checks the native
-SHA-256 records against Git-visible source bytes, and validates native Git and
+SHA-256 records (coverage version 9, full mode and complete document links only) against Git-visible source bytes, and validates native Git and
 extension-configuration semantic digests. Native mtime/size `metadata_match`
 alone is insufficient: edits that preserve both must still refuse. New,
 missing, changed or unrecorded paths, unknown semantic inputs, incomplete hash
@@ -89,7 +89,7 @@ then exercises the copied Catalog launcher, setup/refusals, manual index/query,
 SHA/context drift, cache/build conflicts, no watcher/UI/diagnostics and owned
 cleanup. It needs existing Bubblewrap, Python 3 and Node for qualification only;
 it installs nothing. A fresh offline user/PID/mount/network/IPC/UTS namespace
-receives no host home/source/rendezvous or credentials. CPU/wall limits, one CBM
+receives no host home/source/rendezvous or credentials. Per-process CPU and wall limits, one CBM
 worker and a bounded Node heap apply. Only the explicitly named new task output
 is host-writable; no global temporary-prefix cleanup occurs. This is a synthetic
 CLI/MCP process fixture, not native-client/GUI loading or platform admission.
