@@ -14,11 +14,14 @@ let input = ""; for await (const chunk of process.stdin) input += chunk;
 const { plan, packageRoot, verifyOnly } = JSON.parse(input), started = performance.now();
 const sha = bytes => createHash("sha256").update(bytes).digest("hex");
 const same = (a, b) => assert.deepEqual(a, b);
-// The ordinary views this assembly qualifies. Every other declared release is carried byte
-// for byte: the frozen default (`./release.json`) is admitted by its recorded digest, and a
-// framework whose prepared release content awaits its baseline at release/baselines/<id>/
-// keeps its earlier release unchanged; that slot belongs to the prepared content.
+// Every declared release is classified here; an unclassified release refuses assembly.
+// Qualified: an ordinary release whose baseline slot release/baselines/<id>/ is free.
 const exportsById = { anthropic: "./release-anthropic.json" };
+// Carried byte for byte, never requalified: the frozen default, admitted by its recorded
+// digest; earlier releases whose prepared release content holds their baseline slot; and
+// releases this assembly has never qualified.
+const carried = ["./release.json", "./release-extensions.json", "./release-ecc.json", "./release-superpowers.json",
+  "./release-1.1.json", "./release-native-fixture.json", "./release-native-bundles.json", "./release-guide.json", "./release-web-artifacts.json"];
 // Prepared content awaiting its baseline is carried unchanged; it is not a qualified view.
 const prepared = catalogContracts.preparedReleaseContent ?? [];
 const closed = (value, required, optional = []) => {
@@ -52,10 +55,13 @@ const releaseExports = Object.entries(manifest.exports).filter(([, target]) => t
 // qualified views are ordinary entries and every other entry is carried unchanged.
 const declared = catalogContracts.releaseInventory.releases;
 same(releaseExports.map(([key]) => key).sort(), declared.map(entry => entry.release).sort());
+const classified = new Set([...Object.values(exportsById), ...carried]);
+for (const entry of declared) assert(classified.has(entry.release), `Unclassified release export: ${entry.release}; classify it as a qualified view or a carried release before assembly`);
+for (const exported of classified) assert(declared.some(entry => entry.release === exported), `Classified release is not declared: ${exported}`);
 for (const exported of Object.values(exportsById)) assert(declared.some(entry => entry.release === exported && entry.historical !== true), `Qualified view must be an ordinary release: ${exported}`);
-const historical = declared.map(entry => entry.release).filter(exported => !Object.values(exportsById).includes(exported)).sort();
+const historical = [...carried].sort();
 const frozenReleases = declared.filter(entry => entry.historical === true);
-assert(frozenReleases.length > 0 && frozenReleases.every(entry => /^[0-9a-f]{64}$/.test(entry.sha256)), "Frozen release digests must be recorded");
+assert(frozenReleases.length > 0 && frozenReleases.every(entry => carried.includes(entry.release) && /^[0-9a-f]{64}$/.test(entry.sha256)), "Frozen releases must be carried with recorded digests");
 const files = new Map(), folded = new Map(); let total = 0;
 const add = (path, bytes, mode = 0o644) => {
   assert(typeof path === "string" && !path.includes("\\") && !path.startsWith("/") && path.split("/").every(part => part && part !== "." && part !== ".." && !part.includes(":")), "Unsafe package path");
@@ -144,7 +150,11 @@ if (!verifyOnly) {
     if (entry.isDirectory()) { assert(directories.has(path), "Unexpected package directory"); walk(target, path); }
     else { const descriptor = expected.get(path); assert(descriptor && present.length < expectedFiles.length, "Unexpected package member"); assert.equal(stat.size, descriptor.byteLength, "Package member size changed"); const bytes = regular(target, descriptor.byteLength); present.push({ path, sha256: sha(bytes), byteLength: bytes.length }); }
   } };
-  walk(packageRoot); same(present.sort((a, b) => a.path < b.path ? -1 : 1), expectedFiles);
+  walk(packageRoot); present.sort((a, b) => a.path < b.path ? -1 : 1);
+  // Bounded: name the first changed member instead of diffing the whole tree.
+  assert.equal(present.length, expectedFiles.length, "Package member missing");
+  const changed = present.find((file, index) => file.path !== expectedFiles[index].path || file.sha256 !== expectedFiles[index].sha256);
+  assert(!changed, `Package member changed: ${changed?.path}`);
 }
 for (const [exported] of releaseExports) { const checked = await readInstalledRelease({ root: packageRoot, release: exported }); assert(checked.valid, `${exported}: ${JSON.stringify(checked)}`); }
 for (const entry of frozenReleases) { const bytes = regular(join(packageRoot, manifest.exports[entry.release].slice(2)), 16 * 1024 * 1024); assert.equal(sha(bytes), entry.sha256, `Assembled frozen release differs: ${entry.release}`); }

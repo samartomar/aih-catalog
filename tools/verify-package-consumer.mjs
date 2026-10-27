@@ -64,11 +64,18 @@ for (const [id, expected] of [["default", "The frozen default is historical"], [
 }
 const changedPath = join(out, "changed-plan.json"); writeFileSync(changedPath, JSON.stringify({ ...plan, version: 2 }));
 assert.throws(() => run([...args(changedPath), "--resume", "true"]), /Resume inputs or tooling changed/); refusals.push("resume-input-change");
-for (const [name, member] of [["resume-tree-change", "package/package.json"], ["resume-frozen-default-change", "package/release/release.json"]]) {
+// Appending changes a member's size; flipping one byte keeps it and needs the digest comparison.
+const flip = bytes => { const changed = Buffer.from(bytes); changed[0] ^= 1; return changed; };
+for (const [name, member, change, reason] of [["resume-tree-change", "package/package.json", bytes => Buffer.concat([bytes, Buffer.from("\n")]), "Package member size changed"],
+  ["resume-frozen-default-change", "package/release/release.json", bytes => Buffer.concat([bytes, Buffer.from("\n")]), "Package member size changed"],
+  ["resume-frozen-default-same-size-change", "package/release/release.json", flip, "Package member changed: release/release.json"]]) {
   const path = join(candidate, member), saved = readFileSync(path);
-  writeFileSync(path, Buffer.concat([saved, Buffer.from("\n")]));
-  try { assert.throws(() => run([...args(), "--resume", "true"])); refusals.push(name); }
-  finally { writeFileSync(path, saved); }
+  writeFileSync(path, change(saved));
+  try {
+    assert.throws(() => run([...args(), "--resume", "true"]));
+    const progress = JSON.parse(readFileSync(join(candidate, "progress.json"))); assert.equal(progress.phase, "qualification-failed");
+    assert(readFileSync(join(candidate, `qualification-${progress.timings.length - 1}.log`), "utf8").includes(reason), name); refusals.push(name);
+  } finally { writeFileSync(path, saved); }
 }
 const unexpectedMember = join(candidate, "package/unexpected-package-member.txt"); writeFileSync(unexpectedMember, "EXTRA");
 try { assert.throws(() => run([...args(), "--resume", "true"])); const progress = JSON.parse(readFileSync(join(candidate, "progress.json"))); assert.equal(progress.phase, "qualification-failed"); assert(readFileSync(join(candidate, `qualification-${progress.timings.length - 1}.log`), "utf8").includes("Unexpected package member")); refusals.push("unexpected-package-member"); }
@@ -81,13 +88,20 @@ try {
   assert.throws(() => run([...args(), "--resume", "true"]), /Checkpoint timings must be an array/);
   assert.equal(readFileSync(escapedLog, "utf8"), "UNCHANGED CHECKPOINT SENTINEL"); refusals.push("checkpoint-log-path-escape");
 } finally { writeFileSync(progressPath, originalProgress); }
-// A runtime whose frozen default differs from its recorded digest is refused, not carried or requalified.
-const runtimeFrozen = join(runtime, "node_modules/@aihq/catalog/release/release.json"), frozenOriginal = readFileSync(runtimeFrozen), frozenDestination = join(out, "frozen-default-refusal");
-try {
-  writeFileSync(runtimeFrozen, Buffer.concat([frozenOriginal, Buffer.from("\n")]));
-  assert.throws(() => run(args(planPath, frozenDestination))); assert.equal(existsSync(join(frozenDestination, "package")), false);
-  assert(readFileSync(join(frozenDestination, "qualification-0.log"), "utf8").includes("Frozen release differs from its recorded digest: ./release.json")); refusals.push("runtime-frozen-default-change");
-} finally { writeFileSync(runtimeFrozen, frozenOriginal); }
+// Changed carried bytes in the runtime are refused, not carried or requalified: the frozen
+// default against its recorded digest, a prepared inventory against its content and a
+// transition recipe map member against its descriptor. Each original is restored.
+const installedCatalog = join(runtime, "node_modules/@aihq/catalog");
+for (const [name, member, change, reason] of [["runtime-frozen-default-change", "release/release.json", bytes => Buffer.concat([bytes, Buffer.from("\n")]), "Frozen release differs from its recorded digest: ./release.json"],
+  ["runtime-prepared-inventory-change", "release/baselines/superpowers/content-inventory.json", bytes => Buffer.concat([bytes, Buffer.from("\n")]), "Prepared content inventory differs: release/baselines/superpowers/content-inventory.json"],
+  ["runtime-recipe-map-member-change", "release/recipes/superpowers.hook.session-start.json", flip, "Material differs: release/recipes/superpowers.hook.session-start.json"]]) {
+  const path = join(installedCatalog, member), original = readFileSync(path), destination = join(out, `${name}-refusal`);
+  try {
+    writeFileSync(path, change(original));
+    assert.throws(() => run(args(planPath, destination))); assert.equal(existsSync(join(destination, "package")), false);
+    assert(readFileSync(join(destination, "qualification-0.log"), "utf8").includes(reason), name); refusals.push(name);
+  } finally { writeFileSync(path, original); }
+}
 const sourceRefusal = join(out, "runtime-source-refusal");
 assert.throws(() => run([tool, "--runtime", root, "--plan", planPath, "--out", sourceRefusal]), /Selected runtime must be outside/);
 assert.equal(existsSync(sourceRefusal), false); refusals.push("runtime-inside-source");

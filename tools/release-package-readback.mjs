@@ -38,4 +38,7 @@ for (const entry of catalogContracts.preparedReleaseContent ?? []) {
   assert.deepEqual(Buffer.from(inventory.bytes), readFileSync(join(root, entry.inventory)));
   preparedContent.push({ frameworkId: entry.frameworkId, sha256, inventorySha256: inventory.sha256 });
 }
-console.log(JSON.stringify({ releaseExports: expected.views.length + expected.unchangedExports.length, qualifiedViews: expected.views.length, frozenExports, preparedContent, inventoryAndArtifactBytes: "exact", ownInstalledPublicReader: true }));
+// Count the installed package's own declared releases; every one is qualified or carried.
+const declared = catalogContracts.releaseInventory.releases.map(entry => entry.release).sort();
+assert.deepEqual([...expected.views.map(view => view.export), ...expected.unchangedExports].sort(), declared);
+console.log(JSON.stringify({ releaseExports: declared.length, qualifiedViews: expected.views.length, frozenExports, preparedContent, inventoryAndArtifactBytes: "exact", ownInstalledPublicReader: true }));

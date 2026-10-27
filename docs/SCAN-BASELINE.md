@@ -216,7 +216,9 @@ in `releaseInventory`, carried unchanged, and with the prepared release content,
 checks the whole package, packs without lifecycle scripts, installs the exact
 tarball offline and reads every release export using the final installed public reader.
 
-Only `anthropic` is qualified. The others are carried byte for byte, never requalified:
+The tool classifies every declared release and refuses an unclassified one. A release is
+qualified when assembly already qualified it and its baseline slot is free; only
+`anthropic` meets that. The others are carried byte for byte, never requalified:
 
 - The frozen default `release.json` is historical and admitted by its recorded digest
   ([the default release](DEFAULT-RELEASE.md)). Assembly checks its bytes against that
@@ -226,8 +228,10 @@ Only `anthropic` is qualified. The others are carried byte for byte, never requa
   content's frozen inventory, the one their next assessment must capture, so each
   earlier release stays unchanged and readable. Binding that baseline is the prepared
   content's own release work; assembly never qualifies prepared content.
-- The remaining releases, such as `release-guide.json` or `release-web-artifacts.json`,
-  carry no baseline and keep their exact bytes.
+- `release-1.1.json`, `release-native-fixture.json`, `release-native-bundles.json`,
+  `release-guide.json` and `release-web-artifacts.json` were never assembly views and
+  keep their exact bytes. Whether `release-web-artifacts.json` should become a qualified
+  view is an open release decision, not one this tool makes.
 It uses an explicitly selected, locked npm runtime containing public Catalog, Scan
 and Core packages. It performs no detector execution, signing, publication, trust
 change or native-client installation.
@@ -275,10 +279,11 @@ Each inventory is stored at
 paths before assessment. The inventory's original bytes remain unchanged; the
 report must capture the selected path. A report covering a different storage path
 cannot be relabeled. Artifacts respect the existing 16-MiB package-member bound.
-All material members, including each entry of a transition recipe map, are checked
-against the release descriptors, conflicting or case-aliased shared paths refuse, and obsolete unreferenced members are excluded
-from the assembled release tree. Every carried release, the prepared content and its
-frozen inventory, and their required members retain their exact bytes. No package version is allocated.
+All material members, including each entry of a transition recipe map, are
+checked against the release descriptors, conflicting or case-aliased shared paths
+refuse, and obsolete unreferenced members are excluded from the assembled release
+tree. Every carried release, the prepared content and its frozen inventory, and
+their required members retain their exact bytes. No package version is allocated.
 
 The output contains `package/`, `qualification.json`, the exact tarball, a
 disposable installed `consumer/`, full child-output logs, `progress.json` and final
@@ -311,8 +316,9 @@ release export, the carried releases and prepared content byte for byte, the fro
 default's recorded digest in the candidate and installed package, explicit missing
 item coverage, installed-reader agreement, unchanged reuse, artifact/inventory/checkpoint
 substitution refusals, refusal of a `default` or prepared-framework view, refusal of a
-changed frozen default in the runtime or a resumed candidate, changed executable-input
-refusals and simulated multiply-linked output protection. It runs no
+changed frozen default, prepared inventory or recipe map member in the runtime, refusal
+of a resized or same-size changed frozen default in a resumed candidate, changed
+executable-input refusals and simulated multiply-linked output protection. It runs no
 detector or production signer and cannot replace authentic assessment acceptance.
 
 
