@@ -21,8 +21,13 @@ assert.equal(candidate.nucleiVersion, '3.11.1'); assert.equal(candidate.dockerVe
 mkdirSync(output, { recursive: true });
 // Copy immutable archives: later source/build changes cannot change this fixture's subject.
 copyFileSync(core, join(output, 'core.tgz')); copyFileSync(catalog, join(output, 'catalog.tgz'));
+assert.equal(sha(join(output, 'core.tgz')), coreSha256, 'Core archive changed while copying');
+assert.equal(sha(join(output, 'catalog.tgz')), catalogSha256, 'Catalog archive changed while copying');
 const consumer = join(output, 'consumer'); seedConsumerLock(consumer, root);
-const npm = process.env.npm_execpath ?? resolve(process.execPath, '../../lib/node_modules/npm/bin/npm-cli.js');
+const npm = [process.env.npm_execpath,
+ join(dirname(process.execPath), 'node_modules/npm/bin/npm-cli.js'),
+ resolve(dirname(process.execPath), '../lib/node_modules/npm/bin/npm-cli.js')].find(path => path && existsSync(path));
+assert(npm, 'Existing runtime npm CLI required; no host installation is performed');
 execFileSync(process.execPath, [npm, 'install', '--prefix', consumer, '--ignore-scripts', '--offline', '--no-audit', '--no-fund',
  join(output, 'core.tgz'), join(output, 'catalog.tgz')], { cwd: output, timeout: 180000, maxBuffer: 32 << 20 });
 copyFileSync(join(root, 'tools/nuclei-native-smoke.mjs'), join(consumer, 'scenario.mjs'));
