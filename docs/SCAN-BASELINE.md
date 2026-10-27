@@ -210,10 +210,34 @@ The output is a test fixture, not production content or real provider execution.
 
 ## Assemble the complete local package
 
-`tools/assemble-release-package.mjs` qualifies the five ordinary release views,
-combines their exact material closure with the four unchanged exported documents,
+`tools/assemble-release-package.mjs` qualifies the ordinary release views,
+combines their exact material closure with every other release the package declares
+in `releaseInventory`, carried unchanged, and with the prepared release content,
 checks the whole package, packs without lifecycle scripts, installs the exact
-tarball offline and reads all nine exports using the final installed public reader.
+tarball offline and reads every release export using the final installed public reader.
+
+The tool classifies every declared release and refuses an unclassified one. An ordinary
+release is qualified when its baseline slot is free and this contract does not keep it
+unchanged: `anthropic`, and `web-artifacts`, a release added after new release preparation
+began requiring a baseline ([the transition](TRANSITION.md)). The others are carried byte
+for byte, never requalified:
+
+- The frozen default `release.json` is historical and admitted by its recorded digest
+  ([the default release](DEFAULT-RELEASE.md)). Assembly checks its bytes against that
+  digest before carrying them, and again in the assembled and installed package.
+- `extensions`, `ecc` and `superpowers` have release 1.7.0 prepared content awaiting
+  its baseline. Their `release/baselines/<id>/content-inventory.json` holds that
+  content's frozen inventory, the one their next assessment must capture. The prepared
+  ECC and Superpowers content also records the digest of the earlier release it
+  supersedes ([ECC](ECC-CONTENT.md), [Superpowers](SUPERPOWERS-CONTENT.md)). Binding
+  that baseline is the prepared content's own release work; assembly never qualifies
+  prepared content.
+- `release-1.1.json`, `release-native-fixture.json`, `release-native-bundles.json` and
+  `release-guide.json` are the four documents assembly has always kept unchanged.
+
+Until their prepared content binds a baseline, the assembled `extensions`, `ecc` and
+`superpowers` releases carry none; assembly does not establish their baseline acceptance.
+
 It uses an explicitly selected, locked npm runtime containing public Catalog, Scan
 and Core packages. It performs no detector execution, signing, publication, trust
 change or native-client installation.
@@ -226,14 +250,16 @@ node tools/assemble-release-package.mjs --runtime /absolute/installed-runtime \
 ```
 
 Use absolute input paths in the version-1 maintainer plan. Supply exactly one row
-for each `default`, `extensions`, `ecc`, `superpowers` and `anthropic` view:
+each for the `anthropic` and `web-artifacts` views. A `default` row, or a row for a
+framework whose prepared content holds its baseline slot, is refused with the reason
+before any package is written:
 
 ```json
 {
   "version": 1,
   "trust": {"path": "/accepted/trust.json", "sha256": "<exact digest>"},
   "views": [{
-    "id": "extensions",
+    "id": "anthropic",
     "content": {"path": "/staged/release.json", "sha256": "<content digest>"},
     "materialRoot": "/staged/package-members",
     "inventory": {"path": "/frozen/inventory.json", "sha256": "<inventory digest>"},
@@ -245,12 +271,13 @@ for each `default`, `extensions`, `ecc`, `superpowers` and `anthropic` view:
 }
 ```
 
-The abbreviated example needs the other four rows before it is executable. The
+The abbreviated example needs the `web-artifacts` row before it is executable. The
 tool rejects unknown fields, duplicate/missing views, altered inputs, unreadable or
 mismatched assessments and failed authentication. It derives each baseline from
-the checked original bytes and supplied exact scope. `expectedReleaseSha256`
-checks reproducible reuse of an already-qualified view, such as a dependency whose
-final identity was needed before preparing downstream content. Qualify that
+the checked original bytes and supplied exact scope. Conflicting bytes at a shared
+package path refuse with that path. `expectedReleaseSha256` checks reproducible reuse
+of an already-qualified view, such as a dependency whose final identity was needed
+before preparing downstream content. Qualify that
 dependency first through the existing per-view baseline gate; assembly does not
 infer or replace a dependency pin.
 
@@ -260,14 +287,16 @@ Each inventory is stored at
 paths before assessment. The inventory's original bytes remain unchanged; the
 report must capture the selected path. A report covering a different storage path
 cannot be relabeled. Artifacts respect the existing 16-MiB package-member bound.
-All material members are checked against the release descriptors, conflicting or
-case-aliased shared paths refuse, and obsolete unreferenced members are excluded
-from the assembled release tree. The four other exports and their required
-members retain their exact bytes. No package version is allocated.
+All material members, including each entry of a transition recipe map, are
+checked against the release descriptors, conflicting or case-aliased shared paths
+refuse, and obsolete unreferenced members are excluded from the assembled release
+tree. Every carried release, the prepared content and its frozen inventory, and
+their required members retain their exact bytes. No package version is allocated.
 
 The output contains `package/`, `qualification.json`, the exact tarball, a
 disposable installed `consumer/`, full child-output logs, `progress.json` and final
-`receipt.json`. Receipts retain content/release/inventory/artifact and selected
+`receipt.json`. Receipts retain content/release/inventory/artifact, the frozen
+releases with their recorded digests, prepared content identities and selected
 trust identities, original assessment outcomes and timestamps, actual item
 coverage, declared sources, locked runtime versions/digest, package-tree/tarball
 identity and per-phase duration/status. Authentication or qualification does not
@@ -289,10 +318,14 @@ directories outside the source workspace.
 node tools/verify-package-consumer.mjs /absolute/exact-installed-runtime /absolute/new-proof
 ```
 
-This maintained outside-source proof uses the complete installed content and five
-disposable fixture-signed, all-provider-failed reports. It verifies nine exports,
-four unchanged documents, explicit missing item coverage, installed-reader agreement,
-unchanged reuse, artifact/inventory/checkpoint substitution refusals, changed
+This maintained outside-source proof uses the complete installed content and
+disposable fixture-signed, all-provider-failed reports. It verifies every declared
+release export, the carried releases and prepared content byte for byte, the frozen
+default's recorded digest in the candidate and installed package, explicit missing
+item coverage, installed-reader agreement, unchanged reuse, artifact/inventory/checkpoint
+substitution refusals, refusal of a `default` or prepared-framework view, refusal of a
+changed frozen default, prepared inventory or recipe map member in the runtime, refusal
+of a resized or same-size changed frozen default in a resumed candidate, changed
 executable-input refusals and simulated multiply-linked output protection. It runs no
 detector or production signer and cannot replace authentic assessment acceptance.
 

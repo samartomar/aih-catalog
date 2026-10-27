@@ -18,9 +18,12 @@ const { publicKey, privateKey } = generateKeyPairSync("ed25519");
 const spki = publicKey.export({ type: "spki", format: "der" }), keyId = `ed25519:${hash(spki)}`;
 const trust = Buffer.from(`${canonical({ keys: [{ identity: "package-fixture", keyId, publicKeySpkiBase64: spki.toString("base64") }], publishers: [] })}\n`);
 const trustPath = join(out, "fixture-trust.json"); writeFileSync(trustPath, trust);
-const views = [];
-for (const id of ["default", "extensions", "ecc", "superpowers", "anthropic"]) {
-  const exported = id === "default" ? "./release.json" : `./release-${id}.json`;
+const views = [], decoys = [];
+// Only the ordinary views are qualified; the frozen default and releases whose prepared
+// content holds their baseline slot are carried unchanged. `decoy` signs a different
+// content's inventory for substitution refusals and is never part of the plan.
+for (const id of ["anthropic", "web-artifacts", "decoy"]) {
+  const exported = id === "decoy" ? "./release-extensions.json" : `./release-${id}.json`;
   const contentPath = fileURLToPath(import.meta.resolve(`@aihq/catalog/${exported.slice(2)}`));
   const content = readFileSync(contentPath), inventory = createContentInventory(content, { expectedSha256: hash(content) });
   assert(inventory.valid, JSON.stringify(inventory));
@@ -37,11 +40,11 @@ for (const id of ["default", "extensions", "ecc", "superpowers", "anthropic"]) {
   const artifact = await signArtifact({ report, annexes: [], signer: { privateKey, keyId } });
   const artifactPath = join(out, `${id}-artifact.json`), inventoryFile = join(out, `${id}-inventory.json`);
   writeFileSync(artifactPath, artifact.bytes); writeFileSync(inventoryFile, inventory.bytes);
-  views.push({ id, content: { path: contentPath, sha256: hash(content) }, materialRoot: software,
+  (id === "decoy" ? decoys : views).push({ id, content: { path: contentPath, sha256: hash(content) }, materialRoot: software,
     inventory: { path: inventoryFile, sha256: inventory.sha256 },
     artifact: { path: artifactPath, sha256: hash(artifact.bytes), byteLength: artifact.bytes.length },
     scanId: artifact.scanId, scope: { namespace: "package-relative", paths, excludedPaths: [] } });
 }
 const plan = { version: 1, trust: { path: trustPath, sha256: hash(trust) }, views };
 writeFileSync(join(out, "plan.json"), JSON.stringify(plan, null, 2) + "\n");
-console.log(JSON.stringify({ fixtureOnly: true, plan: join(out, "plan.json"), fullSoftware: software, views: views.length }));
+console.log(JSON.stringify({ fixtureOnly: true, plan: join(out, "plan.json"), fullSoftware: software, views: views.length, decoy: decoys[0] }));

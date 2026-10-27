@@ -15,8 +15,19 @@ const fixture = JSON.parse(run(["--input-type=module", "--eval", readFileSync(ne
 const planPath = fixture.plan, candidate = join(out, "candidate"), tool = join(root, "tools/assemble-release-package.mjs");
 const args = (plan = planPath, destination = candidate) => [tool, "--runtime", runtime, "--plan", plan, "--out", destination];
 const first = JSON.parse(run(args())), receipt = JSON.parse(readFileSync(first.receipt));
-assert.equal(receipt.views.length, 5); assert.equal(receipt.unchangedExports.length, 4);
-assert.equal(receipt.installedReadback.releaseExports, 9); assert.equal(receipt.installedReadback.ownInstalledPublicReader, true);
+// Two ordinary views are qualified; every other declared release, including the frozen
+// default and the releases whose prepared content holds their baseline slot, is carried
+// unchanged, and the frozen default keeps its recorded bytes.
+const declared = JSON.parse(run(["--input-type=module", "--eval", 'import * as contracts from "@aihq/catalog/contracts"; console.log(JSON.stringify({ releases: contracts.releaseInventory.releases, frozen: contracts.FROZEN_DEFAULT_RELEASE_SHA256 }));'], runtime));
+assert.deepEqual(receipt.views.map(view => view.id).sort(), ["anthropic", "web-artifacts"]);
+assert.deepEqual([...receipt.views.map(view => view.export), ...receipt.unchangedExports].sort(), declared.releases.map(entry => entry.release).sort());
+assert(receipt.unchangedExports.includes("./release.json")); assert.deepEqual(receipt.frozenExports, [{ export: "./release.json", sha256: declared.frozen }]);
+assert.equal(receipt.installedReadback.releaseExports, declared.releases.length); assert.equal(receipt.installedReadback.qualifiedViews, 2);
+assert.deepEqual(receipt.installedReadback.frozenExports, receipt.frozenExports); assert.equal(receipt.installedReadback.ownInstalledPublicReader, true);
+const frozenCandidate = readFileSync(join(candidate, "package/release/release.json"));
+assert.deepEqual(frozenCandidate, readFileSync(join(runtime, "node_modules/@aihq/catalog/release/release.json"))); assert.equal(createHash("sha256").update(frozenCandidate).digest("hex"), declared.frozen);
+const installedFrozen = readFileSync(join(candidate, "consumer/node_modules/@aihq/catalog/release/release.json"));
+assert.deepEqual(installedFrozen, frozenCandidate);
 // Prepared content (no baseline bound) is carried byte for byte and read back by the content reader.
 const preparedSource = JSON.parse(run(["--input-type=module", "--eval", 'import * as contracts from "@aihq/catalog/contracts"; console.log(JSON.stringify(contracts.preparedReleaseContent ?? []));'], runtime));
 assert.deepEqual(receipt.installedReadback.preparedContent.map(entry => entry.frameworkId), preparedSource.map(entry => entry.frameworkId));
@@ -37,18 +48,35 @@ assert.equal(resumedReceipt.timings.filter(row => row.phase === "pack").length, 
 assert.equal(resumedReceipt.timings.filter(row => row.phase === "install").length, 1);
 const plan = JSON.parse(readFileSync(planPath)), refusals = [];
 for (const field of ["artifact", "inventory"]) {
-  const changed = structuredClone(plan); changed.views[0][field] = changed.views[1][field];
+  const changed = structuredClone(plan); changed.views[0][field] = fixture.decoy[field];
   const path = join(out, `${field}-substitution.json`), destination = join(out, `${field}-refusal`); writeFileSync(path, JSON.stringify(changed));
   assert.throws(() => run(args(path, destination))); assert.equal(existsSync(join(destination, "package")), false);
   const details = readFileSync(join(destination, "qualification-0.log"), "utf8");
   assert(details.includes(field === "artifact" ? "Selected Scan ID differs" : "Frozen inventory differs from content")); refusals.push(`${field}-substitution`);
 }
+// Qualifying the frozen default, or an earlier release whose prepared content holds its
+// baseline slot, is refused before any package is written.
+for (const [id, expected] of [["default", "The frozen default is historical"], ["extensions", "Framework extensions has prepared release content awaiting its baseline at release/baselines/extensions/content-inventory.json"]]) {
+  const view = { ...structuredClone(fixture.decoy), id }, path = join(out, `${id}-view.json`), destination = join(out, `${id}-view-refusal`);
+  writeFileSync(path, JSON.stringify({ ...plan, views: [...plan.views, view] }));
+  assert.throws(() => run(args(path, destination))); assert.equal(existsSync(join(destination, "package")), false);
+  assert(readFileSync(join(destination, "qualification-0.log"), "utf8").includes(expected)); refusals.push(`${id}-view-qualification`);
+}
 const changedPath = join(out, "changed-plan.json"); writeFileSync(changedPath, JSON.stringify({ ...plan, version: 2 }));
 assert.throws(() => run([...args(changedPath), "--resume", "true"]), /Resume inputs or tooling changed/); refusals.push("resume-input-change");
-const packageJson = join(candidate, "package/package.json"), saved = readFileSync(packageJson);
-writeFileSync(packageJson, Buffer.concat([saved, Buffer.from("\n")]));
-try { assert.throws(() => run([...args(), "--resume", "true"])); refusals.push("resume-tree-change"); }
-finally { writeFileSync(packageJson, saved); }
+// Appending changes a member's size; flipping one byte keeps it and needs the digest comparison.
+const flip = bytes => { const changed = Buffer.from(bytes); changed[0] ^= 1; return changed; };
+for (const [name, member, change, reason] of [["resume-tree-change", "package/package.json", bytes => Buffer.concat([bytes, Buffer.from("\n")]), "Package member size changed"],
+  ["resume-frozen-default-change", "package/release/release.json", bytes => Buffer.concat([bytes, Buffer.from("\n")]), "Package member size changed"],
+  ["resume-frozen-default-same-size-change", "package/release/release.json", flip, "Package member changed: release/release.json"]]) {
+  const path = join(candidate, member), saved = readFileSync(path);
+  writeFileSync(path, change(saved));
+  try {
+    assert.throws(() => run([...args(), "--resume", "true"]));
+    const progress = JSON.parse(readFileSync(join(candidate, "progress.json"))); assert.equal(progress.phase, "qualification-failed");
+    assert(readFileSync(join(candidate, `qualification-${progress.timings.length - 1}.log`), "utf8").includes(reason), name); refusals.push(name);
+  } finally { writeFileSync(path, saved); }
+}
 const unexpectedMember = join(candidate, "package/unexpected-package-member.txt"); writeFileSync(unexpectedMember, "EXTRA");
 try { assert.throws(() => run([...args(), "--resume", "true"])); const progress = JSON.parse(readFileSync(join(candidate, "progress.json"))); assert.equal(progress.phase, "qualification-failed"); assert(readFileSync(join(candidate, `qualification-${progress.timings.length - 1}.log`), "utf8").includes("Unexpected package member")); refusals.push("unexpected-package-member"); }
 finally { unlinkSync(unexpectedMember); }
@@ -60,6 +88,20 @@ try {
   assert.throws(() => run([...args(), "--resume", "true"]), /Checkpoint timings must be an array/);
   assert.equal(readFileSync(escapedLog, "utf8"), "UNCHANGED CHECKPOINT SENTINEL"); refusals.push("checkpoint-log-path-escape");
 } finally { writeFileSync(progressPath, originalProgress); }
+// Changed carried bytes in the runtime are refused, not carried or requalified: the frozen
+// default against its recorded digest, a prepared inventory against its content and a
+// transition recipe map member against its descriptor. Each original is restored.
+const installedCatalog = join(runtime, "node_modules/@aihq/catalog");
+for (const [name, member, change, reason] of [["runtime-frozen-default-change", "release/release.json", bytes => Buffer.concat([bytes, Buffer.from("\n")]), "Frozen release differs from its recorded digest: ./release.json"],
+  ["runtime-prepared-inventory-change", "release/baselines/superpowers/content-inventory.json", bytes => Buffer.concat([bytes, Buffer.from("\n")]), "Prepared content inventory differs: release/baselines/superpowers/content-inventory.json"],
+  ["runtime-recipe-map-member-change", "release/recipes/superpowers.hook.session-start.json", flip, "Material differs: release/recipes/superpowers.hook.session-start.json"]]) {
+  const path = join(installedCatalog, member), original = readFileSync(path), destination = join(out, `${name}-refusal`);
+  try {
+    writeFileSync(path, change(original));
+    assert.throws(() => run(args(planPath, destination))); assert.equal(existsSync(join(destination, "package")), false);
+    assert(readFileSync(join(destination, "qualification-0.log"), "utf8").includes(reason), name); refusals.push(name);
+  } finally { writeFileSync(path, original); }
+}
 const sourceRefusal = join(out, "runtime-source-refusal");
 assert.throws(() => run([tool, "--runtime", root, "--plan", planPath, "--out", sourceRefusal]), /Selected runtime must be outside/);
 assert.equal(existsSync(sourceRefusal), false); refusals.push("runtime-inside-source");
@@ -86,6 +128,6 @@ for (const name of ["log", "receipt"]) {
 }
 const hash = bytes => createHash("sha256").update(bytes).digest("hex");
 const proof = { fixtureOnly: true, realDetectorExecution: false, productionSigning: false, publicPackageInstalled: true,
-  qualifiedViews: 5, totalReleaseExports: 9, preservedHistoricalExports: receipt.unchangedExports, allFailedOutcomesPreserved: true,
+  qualifiedViews: receipt.views.length, totalReleaseExports: receipt.installedReadback.releaseExports, preservedHistoricalExports: receipt.unchangedExports, frozenExports: receipt.frozenExports, allFailedOutcomesPreserved: true,
   verifiedReuse: true, tarball: first.tarball, tarballSha256: hash(readFileSync(first.tarball.path)), refusals, durationMs: Math.round(performance.now() - started) };
 writeFileSync(join(out, "proof.json"), JSON.stringify(proof, null, 2) + "\n"); console.log(JSON.stringify(proof));

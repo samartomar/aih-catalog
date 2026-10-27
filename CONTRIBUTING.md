@@ -17,7 +17,7 @@ schemas; regenerate through `node tools/generate-baseline-schemas.mjs`. The boun
 `tools/verify-baseline-consumer.mjs` proof additionally takes exact public Scan/Core
 tarballs and an isolated locked runtime. It uses fixture signatures and no scanners.
 `node tools/verify-package-consumer.mjs <exact-installed-runtime> <new-output>`
-additionally exercises complete nine-export qualification, packing, installed
+additionally exercises complete package qualification, packing, installed
 readback, reuse and substitution refusals with fixture evidence. The runtime must
 already contain the selected exact public Catalog/Scan/Core packages and v3 npm
 lock. [Full package preparation](docs/SCAN-BASELINE.md#assemble-the-complete-local-package)

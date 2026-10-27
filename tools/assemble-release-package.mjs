@@ -108,8 +108,9 @@ if (!state.installed) {
 const installedRoot = join(consumer, "node_modules/@aihq/catalog");
 const installed = JSON.parse(run(["--input-type=module", "--eval", worker], runtime, "installed-readback", JSON.stringify({ plan, packageRoot: installedRoot, verifyOnly: true })));
 assert.equal(installed.packageTreeSha256, qualify.packageTreeSha256);
-const publicReadback = JSON.parse(run(["--input-type=module", "--eval", readback], consumer, "public-readback", JSON.stringify({ views: qualify.views, unchangedExports: qualify.unchangedExports })));
-assert.equal(publicReadback.releaseExports, 9); assert.equal(publicReadback.qualifiedViews, 5);
+const publicReadback = JSON.parse(run(["--input-type=module", "--eval", readback], consumer, "public-readback", JSON.stringify({ views: qualify.views, unchangedExports: qualify.unchangedExports, frozenExports: qualify.frozenExports })));
+assert.equal(publicReadback.qualifiedViews, qualify.views.length); assert.equal(publicReadback.releaseExports, qualify.views.length + qualify.unchangedExports.length);
+assert.deepEqual(publicReadback.frozenExports, qualify.frozenExports);
 state.phase = "complete"; state.durationMs = Math.round(performance.now() - started); save();
 const result = { ...qualify, identity, tarball: state.tarball, installedReadback: publicReadback, timings: state.timings, durationMs: state.durationMs,
   totalRecordedPhaseMs: state.timings.reduce((sum, phase) => sum + phase.durationMs, 0), resumed: resume };
