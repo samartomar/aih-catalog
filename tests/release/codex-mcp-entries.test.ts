@@ -251,6 +251,16 @@ describe("pinned ECC servers", () => {
     expect(entriesOf("github")).toEqual([
       set(["mcp_servers", "github", "url"], "https://api.githubcopilot.com/mcp/readonly"),
     ]);
+    // Accepted #176 carries the exact local artifact route alongside the hosted one:
+    // pinned stdio command, read-only argv, and PAT environment mapping.
+    expect(entriesOf("github-local")).toEqual([
+      set(["mcp_servers", "github-local", "command"], "github-mcp-server"),
+      set(
+        ["mcp_servers", "github-local", "args"],
+        ["stdio", "--read-only", "--toolsets", "repos,issues,pull_requests"],
+      ),
+      set(["mcp_servers", "github-local", "env_vars"], ["GITHUB_PERSONAL_ACCESS_TOKEN"]),
+    ]);
     expect(entriesOf("memxus")).toEqual([
       set(["mcp_servers", "memxus", "url"], "https://mcp.memxus.com/mcp"),
       set(["mcp_servers", "memxus", "bearer_token_env_var"], "MEMXUS_API_KEY"),
