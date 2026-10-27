@@ -1,0 +1,312 @@
+{
+  "schema": "urn:aihq:catalog:producer-declaration:3.1.0",
+  "format": "aihq-catalog-producer-declaration",
+  "version": 3,
+  "package": {
+    "name": "@aihq/catalog",
+    "version": "0.1.0"
+  },
+  "sources": [
+    {
+      "id": "catalog-artifacts",
+      "origin": {
+        "kind": "local"
+      },
+      "licensePath": "LICENSE.txt",
+      "license": "Apache-2.0"
+    }
+  ],
+  "items": [
+    {
+      "id": "catalog.skill.web-artifacts-builder",
+      "source": "catalog-artifacts",
+      "label": "Standalone web artifacts (Catalog adaptation)",
+      "description": "Build a styled standalone HTML artifact with exact project-local dependencies.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/catalog.skill.web-artifacts-builder.json",
+      "materials": [
+        {
+          "id": "file-0",
+          "path": "LICENSE.txt"
+        },
+        {
+          "id": "file-1",
+          "path": "SKILL.md"
+        },
+        {
+          "id": "file-2",
+          "path": "artifact.mjs"
+        },
+        {
+          "id": "file-3",
+          "path": "template/build.mjs"
+        },
+        {
+          "id": "file-4",
+          "path": "template/components.package.json"
+        },
+        {
+          "id": "file-5",
+          "path": "template/components.pnpm-lock.yaml"
+        },
+        {
+          "id": "file-6",
+          "path": "template/index.html"
+        },
+        {
+          "id": "file-7",
+          "path": "template/package.json"
+        },
+        {
+          "id": "file-8",
+          "path": "template/pnpm-lock.yaml"
+        },
+        {
+          "id": "file-9",
+          "path": "template/pnpm-workspace.yaml"
+        },
+        {
+          "id": "file-10",
+          "path": "template/src/main.tsx"
+        },
+        {
+          "id": "file-11",
+          "path": "template/src/style.css"
+        },
+        {
+          "id": "file-12",
+          "path": "template/tsconfig.json"
+        },
+        {
+          "id": "file-13",
+          "path": "template/src/vite-env.d.ts"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Authored Agent Skills material; native loading remains unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Node >=26.12.1 <27 and project-local pnpm 12.15.0; exact locked build and separate offline browser proof required."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Select web-artifacts-builder-modern, read SKILL.md, acquire only the exact local runtime/package manager and locked dependencies; material Apply never installs tools."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "SKILL.md"
+      }
+    },
+    {
+      "id": "catalog.kiro.skill.web-artifacts-builder",
+      "source": "catalog-artifacts",
+      "label": "Standalone web artifacts (Catalog adaptation)",
+      "description": "Build a styled standalone HTML artifact with exact project-local dependencies.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/catalog.kiro.skill.web-artifacts-builder.json",
+      "materials": [
+        {
+          "id": "file-0",
+          "path": "LICENSE.txt"
+        },
+        {
+          "id": "file-1",
+          "path": "SKILL.md"
+        },
+        {
+          "id": "file-2",
+          "path": "artifact.mjs"
+        },
+        {
+          "id": "file-3",
+          "path": "template/build.mjs"
+        },
+        {
+          "id": "file-4",
+          "path": "template/components.package.json"
+        },
+        {
+          "id": "file-5",
+          "path": "template/components.pnpm-lock.yaml"
+        },
+        {
+          "id": "file-6",
+          "path": "template/index.html"
+        },
+        {
+          "id": "file-7",
+          "path": "template/package.json"
+        },
+        {
+          "id": "file-8",
+          "path": "template/pnpm-lock.yaml"
+        },
+        {
+          "id": "file-9",
+          "path": "template/pnpm-workspace.yaml"
+        },
+        {
+          "id": "file-10",
+          "path": "template/src/main.tsx"
+        },
+        {
+          "id": "file-11",
+          "path": "template/src/style.css"
+        },
+        {
+          "id": "file-12",
+          "path": "template/tsconfig.json"
+        },
+        {
+          "id": "file-13",
+          "path": "template/src/vite-env.d.ts"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Authored Agent Skills material; native loading remains unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Node >=26.12.1 <27 and project-local pnpm 12.15.0; exact locked build and separate offline browser proof required."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Select web-artifacts-builder-modern, read SKILL.md, acquire only the exact local runtime/package manager and locked dependencies; material Apply never installs tools."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "SKILL.md"
+      }
+    },
+    {
+      "id": "catalog.copilot.skill.web-artifacts-builder",
+      "source": "catalog-artifacts",
+      "label": "Standalone web artifacts (Catalog adaptation)",
+      "description": "Build a styled standalone HTML artifact with exact project-local dependencies.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/catalog.copilot.skill.web-artifacts-builder.json",
+      "materials": [
+        {
+          "id": "file-0",
+          "path": "LICENSE.txt"
+        },
+        {
+          "id": "file-1",
+          "path": "SKILL.md"
+        },
+        {
+          "id": "file-2",
+          "path": "artifact.mjs"
+        },
+        {
+          "id": "file-3",
+          "path": "template/build.mjs"
+        },
+        {
+          "id": "file-4",
+          "path": "template/components.package.json"
+        },
+        {
+          "id": "file-5",
+          "path": "template/components.pnpm-lock.yaml"
+        },
+        {
+          "id": "file-6",
+          "path": "template/index.html"
+        },
+        {
+          "id": "file-7",
+          "path": "template/package.json"
+        },
+        {
+          "id": "file-8",
+          "path": "template/pnpm-lock.yaml"
+        },
+        {
+          "id": "file-9",
+          "path": "template/pnpm-workspace.yaml"
+        },
+        {
+          "id": "file-10",
+          "path": "template/src/main.tsx"
+        },
+        {
+          "id": "file-11",
+          "path": "template/src/style.css"
+        },
+        {
+          "id": "file-12",
+          "path": "template/tsconfig.json"
+        },
+        {
+          "id": "file-13",
+          "path": "template/src/vite-env.d.ts"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Authored Agent Skills material; native loading remains unobserved."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Node >=26.12.1 <27 and project-local pnpm 12.15.0; exact locked build and separate offline browser proof required."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Select web-artifacts-builder-modern, read SKILL.md, acquire only the exact local runtime/package manager and locked dependencies; material Apply never installs tools."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "SKILL.md"
+      }
+    }
+  ]
+}

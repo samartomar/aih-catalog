@@ -694,6 +694,7 @@ describe("exact packed consumer", () => {
         ["./release-extensions.json", "content", "supported", true],
         ["./release-ecc.json", "content", "supported", true],
         ["./release-superpowers.json", "content", "supported", true],
+        ["./release-web-artifacts.json", "content", "supported", true],
         ["./release-anthropic.json", "content", "supported", true],
       ],
       defaultRelease: "./release.json",
