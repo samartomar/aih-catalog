@@ -55,6 +55,7 @@ describe("release inventory", () => {
       "./release-ecc.json": ["content", "supported"],
       "./release-superpowers.json": ["content", "supported"],
       "./release-anthropic.json": ["content", "supported"],
+      "./release-web-artifacts.json": ["content", "supported"],
     });
   });
 

@@ -111,6 +111,7 @@ describe("carried release", () => {
       "release/release-ecc.json",
       "release/release-superpowers.json",
       "release/release-anthropic.json",
+      "release/release-web-artifacts.json",
     ].map((path) => {
       const bytes = bytesAt(path);
       const read = readRelease(bytes, { expectedSha256: sha256(bytes) });
@@ -127,6 +128,7 @@ describe("carried release", () => {
       "release/release-ecc.json",
       "release/release-superpowers.json",
       "release/release-anthropic.json",
+      "release/release-web-artifacts.json",
     ]);
     // Prepared content awaiting its baseline, read by the content reader, and its inventory.
     const prepared = preparedReleaseContent.map((entry) => {
