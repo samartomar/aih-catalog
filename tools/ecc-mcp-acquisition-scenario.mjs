@@ -43,7 +43,13 @@ const handshake = (item, directory, key) => new Promise(resolve => {
   };
   const timer = setTimeout(() => finish({ status: "unverified", reason: "handshake-timeout" }), 20000);
   child.on("error", () => finish({ status: "unverified", reason: "process-unavailable" }));
-  child.on("exit", code => finish({ status: /api.?key|access.?token|credentials|authentication/i.test(stderr) ? "missing-auth-observed" : "unverified", reason: /offline-network-refused/.test(stderr) ? "offline-network-refused" : /offline-process-refused/.test(stderr) ? "offline-process-refused" : "process-exit", code }));
+  child.on("exit", code => {
+    const normalized = stderr.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    const missing = /missing|required|provide|not set|must.*set|must.*specify/i.test(stderr);
+    const named = Object.entries(item.requirements.inputs).filter(([name, input]) => input.required && missing && normalized.includes(name.replaceAll("_", "")));
+    const reason = /offline-network-refused/.test(stderr) ? "offline-network-refused" : /offline-process-refused/.test(stderr) ? "offline-process-refused" : ["railway", "codescene"].includes(key) && /ENOENT|binary.*not found|could not find.*binary|executable.*not found/i.test(stderr) ? "missing-native-runtime" : "process-exit";
+    finish({ status: named.length ? named.some(([, input]) => input.sensitive) ? "missing-auth-observed" : "missing-input-observed" : "unverified", reason, code });
+  });
   child.stderr.on("data", chunk => { size += chunk.length; if (size > 1048576) finish({ status: "unverified", reason: "output-bound" }); else stderr += chunk.toString(); });
   child.stdout.on("data", chunk => {
     size += chunk.length;
@@ -95,10 +101,15 @@ for (const [key, provider] of Object.entries(selected.providers)) {
     result.acquisition = "installed-and-offline-reproduced";
     result.installedTreeSha256 = first;
     result.handshake = await handshake(item, directory, key);
-    if (["memory", "filesystem", "sequential-thinking"].includes(key)) {
-      assert.equal(result.handshake.status, "schema-observed");
-      assert.equal(result.handshake.cleanup, "exited");
-    }
+    assert.equal(result.handshake.cleanup, "exited", `${key}: process cleanup was not verified`);
+    const localSchema = ["memory", "filesystem", "sequential-thinking"].includes(key);
+    const networkBlocked = ["browserbase", "confluence", "context7", "exa-web-search", "fal-ai", "firecrawl", "magic", "supabase", "railway"].includes(key) && result.handshake.reason === "offline-network-refused";
+    const processBlocked = ["browserbase", "codescene", "railway", "playwright"].includes(key) && result.handshake.reason === "offline-process-refused";
+    const nativeMissing = ["codescene", "railway"].includes(key) && result.handshake.reason === "missing-native-runtime";
+    const inputMissing = ["browserbase", "codescene", "confluence", "exa-web-search", "fal-ai", "firecrawl", "supabase"].includes(key) && ["missing-auth-observed", "missing-input-observed"].includes(result.handshake.status);
+    const schema = result.handshake.status === "schema-observed" && result.handshake.tools.length > 0;
+    assert(schema || (!localSchema && (networkBlocked || processBlocked || nativeMissing || inputMissing)), `${key}: unexpected handshake outcome ${JSON.stringify(result.handshake)}`);
+    result.handshake.expectedBlocked = !schema;
   } catch (error) {
     result.reason = key === "squish" && /EBADENGINE|Unsupported engine/.test(String(error.stderr)) ? "locked better-sqlite3 12.9.0 excludes Node 26" : "fixture-failed";
     result.expectedBlocked = key === "squish" && result.reason !== "fixture-failed";
