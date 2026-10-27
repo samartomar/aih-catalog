@@ -227,11 +227,17 @@ for byte, never requalified:
   digest before carrying them, and again in the assembled and installed package.
 - `extensions`, `ecc` and `superpowers` have release 1.7.0 prepared content awaiting
   its baseline. Their `release/baselines/<id>/content-inventory.json` holds that
-  content's frozen inventory, the one their next assessment must capture, so each
-  earlier release stays unchanged and readable. Binding that baseline is the prepared
-  content's own release work; assembly never qualifies prepared content.
+  content's frozen inventory, the one their next assessment must capture. The prepared
+  ECC and Superpowers content also records the digest of the earlier release it
+  supersedes ([ECC](ECC-CONTENT.md), [Superpowers](SUPERPOWERS-CONTENT.md)). Binding
+  that baseline is the prepared content's own release work; assembly never qualifies
+  prepared content.
 - `release-1.1.json`, `release-native-fixture.json`, `release-native-bundles.json` and
   `release-guide.json` are the four documents assembly has always kept unchanged.
+
+Until their prepared content binds a baseline, the assembled `extensions`, `ecc` and
+`superpowers` releases carry none; assembly does not establish their baseline acceptance.
+
 It uses an explicitly selected, locked npm runtime containing public Catalog, Scan
 and Core packages. It performs no detector execution, signing, publication, trust
 change or native-client installation.
