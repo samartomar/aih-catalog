@@ -1,4 +1,7 @@
-import { readFileSync } from "node:fs";
+// biome-ignore-all lint/suspicious/noTemplateCurlyInString: fixtures carry literal environment references
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { expect, it } from "vitest";
 import { compileProducerDeclaration } from "../../src/release/producer.js";
 import { configureItem, readRelease, resolveSelections } from "../../src/release/reader.js";
@@ -50,6 +53,16 @@ it("compiles pinned ECC content with notices and configures an exact memory MCP 
   });
   expect(checked.valid).toBe(true);
   if (!checked.valid) return;
+  // The accepted deterministic-acquisition recipe requires the separately acquired
+  // npm CLI and an isolated integrity-verified npm cache; supply real values from a
+  // disposable fixture only.
+  const fixture = mkdtempSync(join(tmpdir(), "aihq-ecc-memory-"));
+  const memoryConfiguration = {
+    npmCli: join(fixture, "npm-cli.js"),
+    npmCache: join(fixture, "npm-cache"),
+  };
+  writeFileSync(memoryConfiguration.npmCli, "// disposable fixture npm-cli.js\n");
+  mkdirSync(memoryConfiguration.npmCache);
   const resolved = resolveSelections({
     releases: { [checked.release.sha256]: checked.release },
     roots: [
@@ -63,7 +76,7 @@ it("compiles pinned ECC content with notices and configures an exact memory MCP 
         releaseSha256: checked.release.sha256,
         itemId: "ecc.claude.mcp.memory",
         scope: "project",
-        configuration: {},
+        configuration: memoryConfiguration,
       },
     ],
     skips: [],
@@ -74,7 +87,7 @@ it("compiles pinned ECC content with notices and configures an exact memory MCP 
   const configured = configureItem({
     release: checked.release,
     itemId: "ecc.claude.mcp.memory",
-    configuration: {},
+    configuration: memoryConfiguration,
     materialSource: { kind: "local", input: "catalog" },
   });
   expect(configured.valid).toBe(true);
@@ -82,14 +95,28 @@ it("compiles pinned ECC content with notices and configures an exact memory MCP 
     (item: { id: string }) => item.id === "ecc.claude.mcp.memory",
   );
   const recipe = JSON.parse(snapshot.recipes.ecc[item.recipePath]);
-  expect(recipe.prerequisites).toEqual([{ kind: "executable", name: "npx" }]);
+  expect(recipe.prerequisites).toEqual([{ kind: "executable", name: "node" }]);
   expect(
     recipe.operations.find((op: { kind: string }) => op.kind === "config.entries").entries,
   ).toContainEqual({
     action: "set",
     path: ["mcpServers", "memory"],
-    value: { literal: { command: "npx", args: ["-y", "@modelcontextprotocol/server-memory"] } },
+    value: {
+      literal: {
+        command: "node",
+        args: [
+          "-e",
+          `const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_MEMORY_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_MEMORY_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,"node_modules/@modelcontextprotocol/server-memory/dist/index.js");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);`,
+          "--",
+        ],
+        env: {
+          AIHQ_MCP_MEMORY_ROOT: "${AIHQ_MCP_MEMORY_ROOT}",
+          MEMORY_FILE_PATH: "${MEMORY_FILE_PATH}",
+        },
+      },
+    },
   });
+  rmSync(fixture, { recursive: true, force: true });
 }, 90_000);
 
 it("offers EvalView deterministic checks without requiring its optional model API key", () => {
@@ -156,8 +183,8 @@ it("offers Codex user-scope MCP registration for every translatable server and r
     .filter((item: { id: string }) => item.id.startsWith("ecc.codex.mcp."))
     .map((item: { id: string }) => item.id.slice("ecc.codex.mcp.".length));
   const excluded = inventory.codexMcpExclusions.map((row: { sourceKey: string }) => row.sourceKey);
-  expect(claudeKeys).toHaveLength(35);
-  expect(codexKeys).toHaveLength(32);
+  expect(claudeKeys).toHaveLength(37);
+  expect(codexKeys).toHaveLength(34);
   expect([...codexKeys, ...excluded].sort()).toEqual([...claudeKeys].sort());
   expect(excluded.sort()).toEqual(["filesystem", "ito-compute", "supabase"]);
   for (const row of inventory.codexMcpExclusions) expect(row.reason).toContain("args-placeholder");
@@ -203,16 +230,10 @@ it("offers Codex user-scope MCP registration for every translatable server and r
     "user",
   ]);
   expect(recipe.operations.at(-1).entries).toEqual([
-    { action: "set", path: ["mcp_servers", "github", "command"], value: { literal: "npx" } },
     {
       action: "set",
-      path: ["mcp_servers", "github", "args"],
-      value: { literal: ["-y", "@modelcontextprotocol/server-github"] },
-    },
-    {
-      action: "set",
-      path: ["mcp_servers", "github", "env_vars"],
-      value: { literal: ["GITHUB_PERSONAL_ACCESS_TOKEN"] },
+      path: ["mcp_servers", "github", "url"],
+      value: { literal: "https://api.githubcopilot.com/mcp/readonly" },
     },
   ]);
   const checked = readRelease(compiled.value.releaseBytes, {
