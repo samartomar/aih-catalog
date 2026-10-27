@@ -57,7 +57,8 @@ The memory doctor reports native status/partial counts and effective watcher
 state, with freshness **unverified** and a nonzero result until the disposable
 account/container manual-query/hash qualification is completed. No marker or
 positive node count establishes freshness. Native activation remains pending;
-projection and refusal tests cannot close native acceptance.
+projection and refusal tests cannot close native acceptance. MCP launch refuses
+that unverified freshness result.
 
 Use Token Savior for compact orientation, Serena for exact symbols and semantic
 edits, CRG for advisory broad-impact context, and CBM for find, trace and recall.

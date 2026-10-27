@@ -232,7 +232,7 @@ export function inspectCodebaseMemoryBootstrap(override = process.env.CBM_CACHE_
 }
 
 function localToolEnv() {
-  return { ...process.env, UV_TOOL_DIR: uvToolRoot, UV_TOOL_BIN_DIR: binRoot };
+  return { ...process.env, UV_CACHE_DIR: join(installRoot, "uv-cache"), UV_TOOL_DIR: uvToolRoot, UV_TOOL_BIN_DIR: binRoot };
 }
 
 function executable(name) {
@@ -356,6 +356,36 @@ function renderCodexConfig(override = process.env.CBM_CACHE_DIR, selected = mcpS
   return lines.join("\n");
 }
 
+function tomlKeys(text) {
+  const keys = [];
+  let remaining = text.trim();
+  while (remaining) {
+    const match = /^("(?:[^"\\]|\\.)*"|'[^']*'|[A-Za-z0-9_-]+)/.exec(remaining);
+    if (!match) throw new Error("ambiguous TOML key; reconcile Codex projection manually");
+    const key = match[0];
+    keys.push(key.startsWith('"') ? JSON.parse(key) : key.startsWith("'") ? key.slice(1, -1) : key);
+    remaining = remaining.slice(key.length).trimStart();
+    if (!remaining) break;
+    if (!remaining.startsWith(".")) throw new Error("ambiguous TOML key; reconcile Codex projection manually");
+    remaining = remaining.slice(1).trimStart();
+    if (!remaining) throw new Error("ambiguous TOML key; reconcile Codex projection manually");
+  }
+  return keys;
+}
+
+function assertNoServerCollision(text, name) {
+  for (const line of text.split(/\r?\n/)) {
+    const header = line.trimStart().startsWith("[[")
+      ? /^\s*\[\[(.*)\]\]\s*(?:#.*)?$/.exec(line)
+      : /^\s*\[(.*)\]\s*(?:#.*)?$/.exec(line);
+    // Parent tables and root inline/dotted assignments can also own a server.
+    const assignment = /^\s*([^#=]+)=/.exec(line);
+    const keys = header ? tomlKeys(header[1]) : assignment ? tomlKeys(assignment[1]) : [];
+    if (keys[0] === "mcp_servers" && (keys.length === 1 || keys[1] === name))
+      throw new Error(`existing Codex config already owns managed server: ${name}`);
+  }
+}
+
 function projectionUpdate(existing, selected) {
   let result = existing;
   if (existing.includes(blockBegin) || existing.includes(blockEnd))
@@ -369,11 +399,11 @@ function projectionUpdate(existing, selected) {
     if (start >= 0 && stop >= start) {
       if (result.indexOf(begin, start + begin.length) >= 0 || result.indexOf(end, stop + end.length) >= 0)
         throw new Error(`duplicate managed projection: ${name}`);
-      result = result.slice(0, start) + rendered + result.slice(stop + end.length);
+      assertNoServerCollision(result.slice(0, start) + result.slice(stop + end.length), name);
+      result = result.slice(0, start) + rendered.trimEnd() + result.slice(stop + end.length);
     } else {
       if (start >= 0 || stop >= 0) throw new Error(`malformed managed projection: ${name}`);
-      if (new RegExp(`^\\s*\\[mcp_servers\\.(?:"${name}"|${name})(?:\\]|\\.)`, "m").test(result))
-        throw new Error(`existing Codex config already owns managed server: ${name}`);
+      assertNoServerCollision(result, name);
       result = `${result.trimEnd()}\n\n${rendered}`;
     }
   }
@@ -417,22 +447,20 @@ export function assertCodebaseMemorySearchResponse(response) {
   if (!Array.isArray(files) || files.some((path) => typeof path !== "string"))
     throw new Error("codebase-memory search response is malformed");
   for (const path of files) {
-    const resolved = resolve(repoRoot, path);
-    if (resolved !== repoRoot && !isInside(repoRoot, resolved))
+    const resolved = canonicalPath(resolve(repoRoot, path));
+    if (resolved !== canonicalPath(repoRoot) && !isInside(canonicalPath(repoRoot), resolved))
       throw new Error("codebase-memory search response contains a path outside this repository root");
   }
 }
 
 function codebaseMemoryStatus() {
   const commands = codebaseMemoryCommands();
-  const inventory = parseJson(run(memoryExecutable(), commands.list, { env: codebaseMemoryEnv() }), "codebase-memory inventory");
-  const project = findCodebaseMemoryProject(inventory.projects);
   const status = parseJson(run(memoryExecutable(), commands.status, { env: codebaseMemoryEnv() }), "codebase-memory status");
   assertCodebaseMemoryScopedResponse(status, "status");
   if (status.status !== "ready") throw new Error("CBM native index status is not ready");
   if (status.watch?.watched !== false || status.watch?.reason !== "watcher_disabled")
     throw new Error("CBM effective daemon watcher is not proven disabled; coordinate with its owner, never stop it here");
-  return { project: project.name, native: status, freshness: "unverified", qualification: "pending isolated-account manual query/hash fixture" };
+  return { project: status.project, native: status, freshness: "unverified", qualification: "pending isolated-account manual query/hash fixture" };
 }
 
 function launch(name, args, env) {
@@ -443,17 +471,41 @@ function launch(name, args, env) {
   child.on("exit", (code) => { process.exitCode = code ?? 1; });
 }
 
+function verifySelectedProjection(selected) {
+  if (selected.every((name) => name === "token-optimizer")) return;
+  if (!existsSync(codexConfigPath)) throw new Error("selected Codex projection is missing");
+  const existing = readFileSync(codexConfigPath, "utf8");
+  if (projectionUpdate(existing, selected) !== existing) throw new Error("selected Codex projection differs from the pinned plan");
+}
+
+function verifyOtherHelper(name) {
+  if (name === "token-optimizer") {
+    verifyTokenOptimizer();
+    return { configuration: "verified", freshness: "not-applicable", integration: "on-demand" };
+  }
+  const expected = name === "serena" ? "serena-agent v1.7.0" : "token-savior-recall v4.21.0";
+  const installed = run("uv", ["tool", "list"], { env: localToolEnv() });
+  if (!installed.split(/\r?\n/).includes(expected) || !existsSync(executable(name)))
+    throw new Error(`missing selected pinned helper: ${expected}`);
+  if (name === "serena") {
+    const overrides = run(toolPython("serena-agent"), ["-c", "import importlib.metadata as m; print('|'.join(m.version(n) for n in ('python-multipart','starlette')))"]);
+    if (overrides !== "0.0.32|1.3.1") throw new Error(`Serena security override mismatch: ${overrides}`);
+  }
+  return { configuration: "verified", freshness: "not-applicable" };
+}
+
 function doctor() {
   const selected = selectedTools();
+  verifySelectedProjection(selected);
   const statuses = {};
   for (const name of selected) {
     if (name === "code-review-graph") statuses[name] = graphStatus();
     else if (name === "codebase-memory-mcp") {
       verifyMemorySettings();
       statuses[name] = codebaseMemoryStatus();
-    } else statuses[name] = { freshness: "not-assessed" };
+    } else statuses[name] = verifyOtherHelper(name);
   }
-  const ok = Object.values(statuses).every((status) => status.freshness === "current");
+  const ok = Object.values(statuses).every((status) => status.freshness === "current" || status.freshness === "not-applicable");
   if (!ok) process.exitCode = 1;
   // Reporting a usable launch projection does not qualify a graph or native session.
   process.stdout.write(`${JSON.stringify({ ok, repository: repoRoot, statuses }, null, 2)}\n`);
@@ -514,7 +566,8 @@ function main() {
   }
   else if (command === "codebase-memory-mcp") {
     verifyMemorySettings();
-    codebaseMemoryStatus(); // Native admission rejects build/cache/ABI conflicts; never stop peers.
+    const status = codebaseMemoryStatus();
+    if (status.freshness !== "current") throw new Error("CBM freshness is unverified; account-isolated native qualification required before launch");
     const child = spawn(memoryExecutable(), [], { cwd: repoRoot, env: codebaseMemoryEnv(), stdio: "inherit", windowsHide: true });
     child.on("error", fail);
     child.on("exit", (code) => { process.exitCode = code ?? 1; });

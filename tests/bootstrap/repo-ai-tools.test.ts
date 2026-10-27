@@ -25,7 +25,6 @@ function commandJson(...args: string[]): Record<string, unknown> {
 
 type Bootstrap = {
   cacheDir: string;
-  markerPath: string;
   allowedRoot: string;
   environment: Record<string, string>;
   project: { name: string; rootPath: string };
@@ -191,13 +190,19 @@ describe("aih-supported repository AI bootstrap", () => {
       expect(() => launcher.resolveCodebaseMemoryCacheDir(value)).toThrow(/CBM_CACHE_DIR/);
   });
 
-  it("refuses a client collision before acquisition and preserves deliberate hook policy", () => {
+  it.each([
+    '[mcp_servers."code-review-graph"]',
+    "[mcp_servers.'code-review-graph']",
+    '[ mcp_servers . "code-review-graph" . env ]',
+    '[mcp_servers."code-review-\\u0067raph"]',
+    "[mcp_servers]",
+  ])("refuses client collision %s before acquisition and preserves deliberate hook policy", (header) => {
     const fixture = mkdtempSync(join(tmpdir(), "catalog-bootstrap-"));
     try {
       mkdirSync(join(fixture, "tools"));
       cpSync(join(root, "tools/repo-ai-tools.mjs"), join(fixture, "tools/repo-ai-tools.mjs"));
       mkdirSync(join(fixture, ".codex"));
-      const config = '[mcp_servers."code-review-graph"]\ncommand = "owned-by-someone-else"\n';
+      const config = `${header}\ncommand = "owned-by-someone-else"\n`;
       writeFileSync(join(fixture, ".codex/config.toml"), config);
       execFileSync("git", ["init", "-q", fixture]);
       execFileSync("git", ["-C", fixture, "config", "core.hooksPath", "deliberate-hooks"]);
@@ -272,6 +277,22 @@ describe("aih-supported repository AI bootstrap", () => {
         expect(projection).toContain(existing);
         expect(projection).toContain('[mcp_servers."code-review-graph"]');
         expect(projection).not.toContain("codebase-memory");
+        const repeated = spawnSync(
+          process.execPath,
+          ["tools/repo-ai-tools.mjs", "setup-codex", "--tool", "code-review-graph"],
+          {
+            cwd: fixture,
+            encoding: "utf8",
+            env: {
+              ...process.env,
+              PATH: join(fixture, "bin"),
+              AIH_REPO_CRG_PYTHON: python,
+              AIH_SUPPORTED_REPO_AI_TOOLS_HOME: join(fixture, "cache"),
+            },
+          },
+        );
+        expect(repeated.status, repeated.stderr).toBe(0);
+        expect(readFileSync(join(fixture, ".codex/config.toml"), "utf8")).toBe(projection);
         const calls = readFileSync(log, "utf8");
         expect(calls).toContain('"venv"');
         expect(calls).toContain('"--require-hashes"');
