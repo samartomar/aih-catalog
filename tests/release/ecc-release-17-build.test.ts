@@ -14,7 +14,7 @@ it("builds the committed content deterministically", async () => {
   const second = buildEcc17();
   expect(first.releaseSha256).toBe(second.releaseSha256);
   expect([...first.outputs.keys()]).toEqual(expect.arrayContaining([CONTENT_PATH, INVENTORY_PATH]));
-  expect(first.release.items).toHaveLength(663);
+  expect(first.release.items).toHaveLength(665);
 });
 
 it("takes item-relative paths from install targets and refuses an unknown one", async () => {
