@@ -1,0 +1,841 @@
+{
+  "schema": "urn:aihq:core:recipe:1.0.0",
+  "id": "catalog.copilot.skill.web-artifacts-builder",
+  "description": "Build a styled standalone HTML artifact with exact project-local dependencies.",
+  "inputs": {},
+  "targets": [
+    "project"
+  ],
+  "materials": [],
+  "operations": [
+    {
+      "id": "write-file-0",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Install Catalog authored artifact adaptation",
+      "material": "file-0",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "LICENSE.txt"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-file-0"
+      ]
+    },
+    {
+      "id": "write-file-1",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Install Catalog authored artifact adaptation",
+      "material": "file-1",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "SKILL.md"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-file-1"
+      ]
+    },
+    {
+      "id": "write-file-2",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Install Catalog authored artifact adaptation",
+      "material": "file-2",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "artifact.mjs"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-file-2"
+      ]
+    },
+    {
+      "id": "write-file-3",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Install Catalog authored artifact adaptation",
+      "material": "file-3",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "template"
+          },
+          {
+            "literal": "build.mjs"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-file-3"
+      ]
+    },
+    {
+      "id": "write-file-4",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Install Catalog authored artifact adaptation",
+      "material": "file-4",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "template"
+          },
+          {
+            "literal": "components.package.json"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-file-4"
+      ]
+    },
+    {
+      "id": "write-file-5",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Install Catalog authored artifact adaptation",
+      "material": "file-5",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "template"
+          },
+          {
+            "literal": "components.pnpm-lock.yaml"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-file-5"
+      ]
+    },
+    {
+      "id": "write-file-6",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Install Catalog authored artifact adaptation",
+      "material": "file-6",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "template"
+          },
+          {
+            "literal": "index.html"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-file-6"
+      ]
+    },
+    {
+      "id": "write-file-7",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Install Catalog authored artifact adaptation",
+      "material": "file-7",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "template"
+          },
+          {
+            "literal": "package.json"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-file-7"
+      ]
+    },
+    {
+      "id": "write-file-8",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Install Catalog authored artifact adaptation",
+      "material": "file-8",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "template"
+          },
+          {
+            "literal": "pnpm-lock.yaml"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-file-8"
+      ]
+    },
+    {
+      "id": "write-file-9",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Install Catalog authored artifact adaptation",
+      "material": "file-9",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "template"
+          },
+          {
+            "literal": "pnpm-workspace.yaml"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-file-9"
+      ]
+    },
+    {
+      "id": "write-file-10",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Install Catalog authored artifact adaptation",
+      "material": "file-10",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "template"
+          },
+          {
+            "literal": "src"
+          },
+          {
+            "literal": "main.tsx"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-file-10"
+      ]
+    },
+    {
+      "id": "write-file-11",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Install Catalog authored artifact adaptation",
+      "material": "file-11",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "template"
+          },
+          {
+            "literal": "src"
+          },
+          {
+            "literal": "style.css"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-file-11"
+      ]
+    },
+    {
+      "id": "write-file-12",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Install Catalog authored artifact adaptation",
+      "material": "file-12",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "template"
+          },
+          {
+            "literal": "tsconfig.json"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-file-12"
+      ]
+    },
+    {
+      "id": "write-file-13",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Install Vite asset type declarations",
+      "material": "file-13",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "template"
+          },
+          {
+            "literal": "src"
+          },
+          {
+            "literal": "vite-env.d.ts"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-file-13"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "id": "check-file-0",
+      "kind": "file.sha256",
+      "purpose": "Verify authored material bytes",
+      "sha256": {
+        "materialSha256": "file-0"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "LICENSE.txt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-file-1",
+      "kind": "file.sha256",
+      "purpose": "Verify authored material bytes",
+      "sha256": {
+        "materialSha256": "file-1"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "SKILL.md"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-file-2",
+      "kind": "file.sha256",
+      "purpose": "Verify authored material bytes",
+      "sha256": {
+        "materialSha256": "file-2"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "artifact.mjs"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-file-3",
+      "kind": "file.sha256",
+      "purpose": "Verify authored material bytes",
+      "sha256": {
+        "materialSha256": "file-3"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "template"
+          },
+          {
+            "literal": "build.mjs"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-file-4",
+      "kind": "file.sha256",
+      "purpose": "Verify authored material bytes",
+      "sha256": {
+        "materialSha256": "file-4"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "template"
+          },
+          {
+            "literal": "components.package.json"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-file-5",
+      "kind": "file.sha256",
+      "purpose": "Verify authored material bytes",
+      "sha256": {
+        "materialSha256": "file-5"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "template"
+          },
+          {
+            "literal": "components.pnpm-lock.yaml"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-file-6",
+      "kind": "file.sha256",
+      "purpose": "Verify authored material bytes",
+      "sha256": {
+        "materialSha256": "file-6"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "template"
+          },
+          {
+            "literal": "index.html"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-file-7",
+      "kind": "file.sha256",
+      "purpose": "Verify authored material bytes",
+      "sha256": {
+        "materialSha256": "file-7"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "template"
+          },
+          {
+            "literal": "package.json"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-file-8",
+      "kind": "file.sha256",
+      "purpose": "Verify authored material bytes",
+      "sha256": {
+        "materialSha256": "file-8"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "template"
+          },
+          {
+            "literal": "pnpm-lock.yaml"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-file-9",
+      "kind": "file.sha256",
+      "purpose": "Verify authored material bytes",
+      "sha256": {
+        "materialSha256": "file-9"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "template"
+          },
+          {
+            "literal": "pnpm-workspace.yaml"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-file-10",
+      "kind": "file.sha256",
+      "purpose": "Verify authored material bytes",
+      "sha256": {
+        "materialSha256": "file-10"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "template"
+          },
+          {
+            "literal": "src"
+          },
+          {
+            "literal": "main.tsx"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-file-11",
+      "kind": "file.sha256",
+      "purpose": "Verify authored material bytes",
+      "sha256": {
+        "materialSha256": "file-11"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "template"
+          },
+          {
+            "literal": "src"
+          },
+          {
+            "literal": "style.css"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-file-12",
+      "kind": "file.sha256",
+      "purpose": "Verify authored material bytes",
+      "sha256": {
+        "materialSha256": "file-12"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "template"
+          },
+          {
+            "literal": "tsconfig.json"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-file-13",
+      "kind": "file.sha256",
+      "purpose": "Verify asset type declarations",
+      "sha256": {
+        "materialSha256": "file-13"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "web-artifacts-builder-modern"
+          },
+          {
+            "literal": "template"
+          },
+          {
+            "literal": "src"
+          },
+          {
+            "literal": "vite-env.d.ts"
+          }
+        ]
+      }
+    }
+  ],
+  "prerequisites": []
+}

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Add an independently attributed standalone artifact skill release with exact
+  project-local Vite 8/React 19/TypeScript 7/Tailwind 4 locks, optional component
+  helpers, and a bounded offline single-HTML consumer proof. Preserved upstream
+  Anthropic material remains unchanged. This does not publish or qualify native
+  clients or additional platforms.
+
+## Unreleased
+
 - Add the closing default release as prepared release 1.7.0 content for
   samartomar/aih-catalog#146 (`@aihq/catalog/release-default.content.json`, with its
   frozen content inventory): framework `default`, no items, and one `retired[]` entry

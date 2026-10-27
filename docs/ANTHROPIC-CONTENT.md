@@ -155,3 +155,59 @@ Whole-package integrity and candidate refresh carry this release and all previou
 releases. Native client/model/tool use and formal admission remain unexecuted.
 Publication remains blocked; future changed published bytes need a new package
 version owned by the release coordinator.
+
+## Modern standalone artifact adaptation
+
+Select `catalog.skill.web-artifacts-builder`, `catalog.kiro.skill.web-artifacts-builder`
+or `catalog.copilot.skill.web-artifacts-builder` from `@aihq/catalog/release-web-artifacts.json`.
+These install **web-artifacts-builder-modern** alongside the preserved upstream
+skill. The source is explicitly Catalog-authored (`catalog-artifacts`, local
+snapshot SHA-256); it is not attributed as unchanged Anthropic code. The new
+Apache-2.0 notice and SKILL.md identify its inspiration. The original snapshot,
+upstream recipes, component archive and supplemental shadcn notice are unchanged.
+
+`node artifact.mjs init <new-project>` copies a minimal frozen React project;
+`--components` selects the separate frozen lucide/CVA/clsx/tailwind-merge closure.
+Neither command acquires software. Use exact **Node 26.12.1** and project-local
+**pnpm 12.15.0**, verifying both the wrapper and platform-specific native binary.
+No global pnpm, Corepack enablement, floating create-vite or ecosystem installer
+is used. The default template has no optional component libraries. Runtime
+range is >=26.12.1 <27. Package-manager identity, transitive integrity and peers
+are recorded in the delivered manifest and pnpm lock. Dependency install uses
+`--frozen-lockfile --ignore-scripts` and a caller-owned local store. Keep caches
+and runtime locks local too; XDG_RUNTIME_DIR must be writable on sandboxed Linux.
+
+The exact stack is Vite 8.3.5, React/react-dom 19.3.1, TypeScript 7.0.2,
+@vitejs/plugin-react 6.1.2, Tailwind/@tailwindcss/vite 4.3.3 and React types
+19.3.0. Tailwind 4's CSS import and source directive replace old v3 config.
+Optional APIs are lucide-react 1.61.0 named icons, class-variance-authority 0.7.1,
+clsx 2.1.1 and tailwind-merge 3.7.0. Other component APIs remain unqualified.
+
+`pnpm run build` typechecks and uses Vite's in-memory single-entry output,
+inlining emitted JS/CSS into `dist/artifact.html` and source-imported assets as
+data URLs. Extra emitted chunks/assets refuse. Output refuses overwrite; move
+or remove the prior artifact explicitly before rebuilding. This route replaces
+Parcel only in the new authored adaptation. The upstream Parcel material stays
+readable. Build trusted local code only; arbitrary plugins/scripts execute code.
+Application-authored remote URLs/fetches still require a real offline browser
+check; bundle success alone cannot certify offline behavior.
+
+`node tools/verify-web-artifacts-consumer.mjs --without-core` checks packed
+public configuration/resolution, all three material layouts, scaffold selection,
+existing-project refusal and changed-material refusal without downloading tools.
+Supply an exact Core tarball instead of `--without-core` for public Prepare/review/
+Apply. Explicit `AIH_ARTIFACT_NODE`, `AIH_ARTIFACT_PNPM`, `AIH_ARTIFACT_STORE` and
+`AIH_ARTIFACT_PLAYWRIGHT` select the separately acquired isolated build/browser
+fixture. The consumer repeats frozen acquisition offline, builds representative
+optional APIs and a local SVG, checks computed Tailwind styles and interaction,
+and rejects any attempted network request while the browser is offline. Its
+receipt names the archive/release/lock/HTML identities and actual browser. The
+browser fixture is Playwright 1.64.1's explicitly managed Chromium 156.0.8078.4
+(revision 1248), separate from the Chrome 156.0.8078.47 candidate. It grants no
+native client, OS-wide or production admission. Set PLAYWRIGHT_BROWSERS_PATH to
+the isolated fixture directory; normal npm tests never acquire a browser.
+
+Linux x64 is the bounded local fixture target. Linux arm64, darwin x64/arm64 and
+win32 x64/arm64 remain **unverified** for build/browser/native loading; lock
+entries for platform packages are acquisition facts, not platform qualification.
+Publication remains blocked and 0.1.0 remains unreleased/not-ready.

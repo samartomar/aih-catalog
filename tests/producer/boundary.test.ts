@@ -187,6 +187,7 @@ describe("the published package keeps its intended runtime subset", () => {
       "package-support-1.1.json",
       "restructuring/expected-1.7.0.json",
       "docs/RELEASE-TRUST.md",
+      "producer/web-artifacts",
     ]);
     expect(Object.keys(manifest.exports)).toEqual([
       "./contracts",
@@ -209,6 +210,7 @@ describe("the published package keeps its intended runtime subset", () => {
       "./release-ecc.json",
       "./release-superpowers.json",
       "./release-anthropic.json",
+      "./release-web-artifacts.json",
       "./schemas/release/1.3.0.json",
       "./schemas/release/1.4.0.json",
       "./schemas/producer-declaration/3.1.0.json",
