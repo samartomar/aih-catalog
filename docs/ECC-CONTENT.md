@@ -134,9 +134,15 @@ an explicit `MEMORY_FILE_PATH`; filesystem roots and Supabase project scope reta
 their existing explicit host inputs. Playwright's requested Chrome and OS/browser
 dependencies remain separately qualified. A package with disabled lifecycle
 scripts can be installed while its native dependency remains unavailable.
-In particular, Railway's wrapper still needs a verified native CLI artifact;
-Squish's locked `better-sqlite3@12.9.0` excludes Node 26 and is blocked. No compiler
-or compatibility override is attempted.
+CodeScene and Railway additionally need preprovisioned native binaries. Their
+delivered native manifests bind official archive/member and binary SHA-256 values
+for five CodeScene and six Railway cells; CodeScene has no selected Windows arm64
+artifact. Their launchers refuse missing/different bytes before entering wrappers,
+so CodeScene cannot silently download a binary. Set `CS_MCP_BINARY_PATH` for
+CodeScene; put Railway's verified binary at the wrapper's `bin/railway(.exe)` path
+after npm acquisition (a later `npm ci` removes it). These byte pins do not qualify
+native OS/runtime behavior. Squish's locked `better-sqlite3@12.9.0` excludes Node 26
+and is blocked. No compiler or compatibility override is attempted.
 
 `ecc.mcp.github` selects GitHub's official hosted read-only OAuth route, with no
 backend version pin. `ecc.mcp.github-local` is an explicit alternative with PAT

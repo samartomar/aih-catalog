@@ -5,8 +5,8 @@ import { cpSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { seedConsumerLock } from "./seed-consumer-lock.mjs";
 const root = resolve(import.meta.dirname, "..");
-const [node, npmCli, cache, output, incompatibleNode, suppliedArchive] = process.argv.slice(2);
-assert([7, 8].includes(process.argv.length), "Usage: node tools/verify-ecc-mcp-acquisition.mjs <node26> <npm12-cli> <isolated-cache> <new-output> <incompatible-node-control> [catalog.tgz]");
+const [node, npmCli, cache, output, incompatibleNode, suppliedArchive, nativeFixtures] = process.argv.slice(2);
+assert([7, 8, 9].includes(process.argv.length), "Usage: node tools/verify-ecc-mcp-acquisition.mjs <node26> <npm12-cli> <isolated-cache> <new-output> <incompatible-node-control> [catalog.tgz] [native-fixture-directory]");
 mkdirSync(output);
 assert.equal(execFileSync(node, ["--version"], { encoding: "utf8", windowsHide: true }).trim(), "v26.12.1");
 const controlVersion = execFileSync(incompatibleNode, ["--version"], { encoding: "utf8", windowsHide: true }).trim();
@@ -20,5 +20,5 @@ run(["install", "--prefix", consumer, "--offline", "--ignore-scripts", "--no-aud
 cpSync(join(root, "tools/ecc-mcp-acquisition-scenario.mjs"), join(consumer, "scenario.mjs"));
 cpSync(join(root, "tools/ecc-mcp-offline-guard.cjs"), join(consumer, "offline-guard.cjs"));
 writeFileSync(join(output, "invocation.json"), JSON.stringify({ seam: "direct emitted acquisition helper and isolated stdio", coreApply: "not-run", nativeClient: "not-run" }));
-execFileSync(process.execPath, [join(consumer, "scenario.mjs"), node, npmCli, cache, output, archive, incompatibleNode], { cwd: consumer, windowsHide: true, stdio: "inherit", timeout: 1800000 });
+execFileSync(process.execPath, [join(consumer, "scenario.mjs"), node, npmCli, cache, output, archive, incompatibleNode, ...(nativeFixtures ? [nativeFixtures] : [])], { cwd: consumer, windowsHide: true, stdio: "inherit", timeout: 1800000 });
 console.log(JSON.stringify(JSON.parse(readFileSync(join(output, "receipt.json"))), null, 2));

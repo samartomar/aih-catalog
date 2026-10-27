@@ -4371,7 +4371,7 @@
     {
      "survivor": "ecc.mcp.codescene",
      "transform": "edited",
-     "editsSha256": "642501c22461721731bb2c8cc061af52e1e06a8e08fe75f5d6eb2937eb7d2ed0"
+     "editsSha256": "ae83e24d029b7e73eb07a28354b6f21ebe28c80135e3e231c86b59dee9901e82"
     },
     {
      "survivor": "ecc.mcp.confluence",
@@ -4477,7 +4477,7 @@
     {
      "survivor": "ecc.mcp.railway",
      "transform": "edited",
-     "editsSha256": "b3341f0caac7106680e56b7fd7f97d1b31d21d9419a03cd0ed36dd5005aa79c0"
+     "editsSha256": "51ec386aacd92a74f2ddf63beb6afcb516ed8970b27c7a9ac89c6e9b6a0d1843"
     },
     {
      "survivor": "ecc.mcp.sequential-thinking",
@@ -4492,7 +4492,7 @@
     {
      "survivor": "ecc.mcp.supabase",
      "transform": "edited",
-     "editsSha256": "d8b7fac1e892ed875709ce7b8978d0c19ec0ba08a0d8aa705be2c20c02a26e38"
+     "editsSha256": "452df40a80a38b8bd61aa9dad738d89abd3605d745ddca6284ae32a3cb8906bc"
     },
     {
      "survivor": "ecc.mcp.token-optimizer",

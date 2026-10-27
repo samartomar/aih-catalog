@@ -51601,7 +51601,7 @@
         "command": "node",
         "args": [
           "-e",
-          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_SUPABASE_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_SUPABASE_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/@supabase/mcp-server-supabase/dist/cli.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_SUPABASE_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_SUPABASE_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/@supabase/mcp-server-supabase/dist/cli.js\");import(require('node:url').pathToFileURL(p).href);",
           "--",
           "--project-ref=${SUPABASE_PROJECT_REF}",
           "--read-only"
@@ -51913,7 +51913,7 @@
         "command": "node",
         "args": [
           "-e",
-          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_RAILWAY_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_RAILWAY_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/@railway/cli/bin/railway.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_RAILWAY_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_RAILWAY_ROOT must name the reviewed installation directory');const nativeHash={\"win32/x64\":\"15e5b377108d6916d54fca5de772847a62b25a09cdff2884fd2695677b68a27d\",\"win32/arm64\":\"7939d61b2a5ea0675a558484cff82631449933136be417a79b97d8f752302476\",\"linux/x64\":\"8b1394f787d85cefdaa480027b5718212ad74c46b57a6ee21cd4436667dfc8e1\",\"linux/arm64\":\"20c06795e42a8735ce226fee49b4205e2560dd0cb66a1fefbd698d75fc33a78a\",\"darwin/x64\":\"ca6f2c38061e3f01c66f555a2c8aab8dc07b13f806d392ba152a6aef73664794\",\"darwin/arm64\":\"1d4dd2ea0804f46ea8715cb8786e7626b4a5dba67d1f166468c2fb18c6b0b7e8\"}[process.platform+'/'+process.arch];if(!nativeHash)throw Error('unsupported-native-artifact: no selected railway binary for this cell');const nativePath=require('node:path').join(r,'node_modules/@railway/cli/bin',process.platform==='win32'?'railway.exe':'railway');if(!nativePath||!require('node:path').isAbsolute(nativePath)||!require('node:fs').existsSync(nativePath))throw Error('missing-native-runtime: preprovision the exact railway 5.71.0 binary; no automatic native download');if(require('node:crypto').createHash('sha256').update(require('node:fs').readFileSync(nativePath)).digest('hex')!==nativeHash)throw Error('incompatible-native-artifact: railway binary SHA256 differs');const p=require('node:path').join(r,\"node_modules/@railway/cli/bin/railway.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
           "--",
           "mcp"
         ],
@@ -51924,7 +51924,7 @@
       "requiredHostEnvironment": [
         "AIHQ_MCP_RAILWAY_ROOT"
       ],
-      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_RAILWAY_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_RAILWAY_ROOT. The npm wrapper requires a separately verified native CLI artifact; lifecycle scripts stay disabled. 'mcp' proxies the hosted service; 'mcp local' is a distinct operation and is not selected. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_RAILWAY_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_RAILWAY_ROOT. The native railway 5.71.0 binary must be preprovisioned from the delivered archive/member/SHA256 manifest; missing or different native bytes refuse before wrapper startup. No automatic download or lifecycle script is allowed. Place it at node_modules/@railway/cli/bin/railway(.exe) after acquisition; npm ci removes it on retry. 'mcp' proxies the hosted service; 'mcp local' is a distinct unselected operation. Archive/binary bytes are pinned; native OS/runtime and authentication remain unqualified. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
@@ -51938,7 +51938,68 @@
         "lockSha256": "83bba9714a4a67a6007dcec5cd1784fcb21f63d538331da8aded7e4657f5e525",
         "node": "26.12.1",
         "npm": "12.2.1",
-        "blockers": "The npm wrapper requires a separately verified native CLI artifact; lifecycle scripts stay disabled. 'mcp' proxies the hosted service; 'mcp local' is a distinct operation and is not selected."
+        "blockers": "The native railway 5.71.0 binary must be preprovisioned from the delivered archive/member/SHA256 manifest; missing or different native bytes refuse before wrapper startup. No automatic download or lifecycle script is allowed. Place it at node_modules/@railway/cli/bin/railway(.exe) after acquisition; npm ci removes it on retry. 'mcp' proxies the hosted service; 'mcp local' is a distinct unselected operation. Archive/binary bytes are pinned; native OS/runtime and authentication remain unqualified.",
+        "native": {
+          "version": "5.71.0",
+          "repository": "https://github.com/railwayapp/cli",
+          "release": "https://github.com/railwayapp/cli/releases/tag/v5.71.0",
+          "targets": {
+            "win32/x64": {
+              "state": "bytes-verified-native-unqualified",
+              "url": "https://github.com/railwayapp/cli/releases/download/v5.71.0/railway-v5.71.0-x86_64-pc-windows-gnu.tar.gz",
+              "archiveSha256": "cdce88c5a2dd7e67d43816d2f09793c66bc73ad2d9d4d32eeee99242fc7bf8e9",
+              "member": "railway.exe",
+              "binaryName": "railway.exe",
+              "binarySha256": "15e5b377108d6916d54fca5de772847a62b25a09cdff2884fd2695677b68a27d",
+              "binaryBytes": 18555392
+            },
+            "win32/arm64": {
+              "state": "bytes-verified-native-unqualified",
+              "url": "https://github.com/railwayapp/cli/releases/download/v5.71.0/railway-v5.71.0-aarch64-pc-windows-msvc.tar.gz",
+              "archiveSha256": "8432874e9d6a38fc83b77b471f16f1cc86a3dc298e8493d5a4196ef06bc5447a",
+              "member": "railway.exe",
+              "binaryName": "railway.exe",
+              "binarySha256": "7939d61b2a5ea0675a558484cff82631449933136be417a79b97d8f752302476",
+              "binaryBytes": 15600128
+            },
+            "linux/x64": {
+              "state": "bytes-verified-native-unqualified",
+              "url": "https://github.com/railwayapp/cli/releases/download/v5.71.0/railway-v5.71.0-x86_64-unknown-linux-musl.tar.gz",
+              "archiveSha256": "2e682fd2ddf8d6fdf9e46d9d99d99646ff0022a6abb0c2bca93011348a269fb9",
+              "member": "railway",
+              "binaryName": "railway",
+              "binarySha256": "8b1394f787d85cefdaa480027b5718212ad74c46b57a6ee21cd4436667dfc8e1",
+              "binaryBytes": 21136728
+            },
+            "linux/arm64": {
+              "state": "bytes-verified-native-unqualified",
+              "url": "https://github.com/railwayapp/cli/releases/download/v5.71.0/railway-v5.71.0-aarch64-unknown-linux-musl.tar.gz",
+              "archiveSha256": "d160ad2a029eaac4b4c85012adb67c1f5709ba81f7320edb5a27be928211d638",
+              "member": "railway",
+              "binaryName": "railway",
+              "binarySha256": "20c06795e42a8735ce226fee49b4205e2560dd0cb66a1fefbd698d75fc33a78a",
+              "binaryBytes": 26979592
+            },
+            "darwin/x64": {
+              "state": "bytes-verified-native-unqualified",
+              "url": "https://github.com/railwayapp/cli/releases/download/v5.71.0/railway-v5.71.0-x86_64-apple-darwin.tar.gz",
+              "archiveSha256": "1b41dd77292657c80ae3dfccbe7653bbb40b7cdc95a8f4b06c2c1f0c2a009919",
+              "member": "railway",
+              "binaryName": "railway",
+              "binarySha256": "ca6f2c38061e3f01c66f555a2c8aab8dc07b13f806d392ba152a6aef73664794",
+              "binaryBytes": 17653360
+            },
+            "darwin/arm64": {
+              "state": "bytes-verified-native-unqualified",
+              "url": "https://github.com/railwayapp/cli/releases/download/v5.71.0/railway-v5.71.0-aarch64-apple-darwin.tar.gz",
+              "archiveSha256": "350748f2edf41f46b22c5d66cea4294d660e764804e252ddba08a27b19cd0bd1",
+              "member": "railway",
+              "binaryName": "railway",
+              "binarySha256": "1d4dd2ea0804f46ea8715cb8786e7626b4a5dba67d1f166468c2fb18c6b0b7e8",
+              "binaryBytes": 12958248
+            }
+          }
+        }
       }
     },
     "ecc.claude.mcp.cloudflare-docs": {
@@ -52163,19 +52224,21 @@
         "command": "node",
         "args": [
           "-e",
-          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_CODESCENE_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_CODESCENE_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/@codescene/codehealth-mcp/bin/cs-mcp.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_CODESCENE_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_CODESCENE_ROOT must name the reviewed installation directory');const nativeHash={\"win32/x64\":\"dba693ac4b130687387a622d1b14a63e2f17fa42460c5ad739000dd398e93192\",\"win32/arm64\":null,\"linux/x64\":\"29d0e09ae0b255b031f6b83fa00fb4aa4dd9b73a3f8ccb73d8937f443fe5e70d\",\"linux/arm64\":\"2e6dbf9d1816170212e7891dee5f4e3954f5b2b7bd5586c954b54925d7a019e1\",\"darwin/x64\":\"9dc0fd7defd695fc562be6a90ba5211a99ff306127421b87081e64165b338182\",\"darwin/arm64\":\"506fec63133724370c84856f75730ed37e265ca687dfaac10f4888433deba3d9\"}[process.platform+'/'+process.arch];if(!nativeHash)throw Error('unsupported-native-artifact: no selected codescene binary for this cell');const nativePath=process.env.CS_MCP_BINARY_PATH;if(!nativePath||!require('node:path').isAbsolute(nativePath)||!require('node:fs').existsSync(nativePath))throw Error('missing-native-runtime: preprovision the exact codescene 1.5.13 binary; no automatic native download');if(require('node:crypto').createHash('sha256').update(require('node:fs').readFileSync(nativePath)).digest('hex')!==nativeHash)throw Error('incompatible-native-artifact: codescene binary SHA256 differs');const p=require('node:path').join(r,\"node_modules/@codescene/codehealth-mcp/bin/cs-mcp.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
           "--"
         ],
         "env": {
           "CS_ACCESS_TOKEN": "${CS_ACCESS_TOKEN}",
-          "AIHQ_MCP_CODESCENE_ROOT": "${AIHQ_MCP_CODESCENE_ROOT}"
+          "AIHQ_MCP_CODESCENE_ROOT": "${AIHQ_MCP_CODESCENE_ROOT}",
+          "CS_MCP_BINARY_PATH": "${CS_MCP_BINARY_PATH}"
         }
       },
       "requiredHostEnvironment": [
         "AIHQ_MCP_CODESCENE_ROOT",
-        "CS_ACCESS_TOKEN"
+        "CS_ACCESS_TOKEN",
+        "CS_MCP_BINARY_PATH"
       ],
-      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_CODESCENE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_CODESCENE_ROOT, CS_ACCESS_TOKEN. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_CODESCENE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_CODESCENE_ROOT, CS_ACCESS_TOKEN, CS_MCP_BINARY_PATH. The native codescene 1.5.13 binary must be preprovisioned from the delivered archive/member/SHA256 manifest; missing or different native bytes refuse before wrapper startup. No automatic download or lifecycle script is allowed. CS_MCP_BINARY_PATH names that exact binary; Windows arm64 has no selected artifact. Archive/binary bytes are pinned; native OS/runtime and authentication remain unqualified. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
@@ -52189,7 +52252,63 @@
         "lockSha256": "5d7d7ff77ef97e07d8725e675ef8df35b7e54ce7183aa03afcd826e872aa21e5",
         "node": "26.12.1",
         "npm": "12.2.1",
-        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+        "blockers": "The native codescene 1.5.13 binary must be preprovisioned from the delivered archive/member/SHA256 manifest; missing or different native bytes refuse before wrapper startup. No automatic download or lifecycle script is allowed. CS_MCP_BINARY_PATH names that exact binary; Windows arm64 has no selected artifact. Archive/binary bytes are pinned; native OS/runtime and authentication remain unqualified.",
+        "native": {
+          "version": "1.5.13",
+          "repository": "https://github.com/codescene-oss/codescene-mcp-server",
+          "release": "https://github.com/codescene-oss/codescene-mcp-server/releases/tag/MCP-1.5.13",
+          "targets": {
+            "win32/x64": {
+              "state": "bytes-verified-native-unqualified",
+              "url": "https://github.com/codescene-oss/codescene-mcp-server/releases/download/MCP-1.5.13/cs-mcp-windows-amd64.exe",
+              "archiveSha256": "dba693ac4b130687387a622d1b14a63e2f17fa42460c5ad739000dd398e93192",
+              "member": "cs-mcp-windows-amd64.exe",
+              "binaryName": "cs-mcp.exe",
+              "binarySha256": "dba693ac4b130687387a622d1b14a63e2f17fa42460c5ad739000dd398e93192",
+              "binaryBytes": 87303408
+            },
+            "win32/arm64": {
+              "state": "missing-artifact",
+              "reason": "No selected official release artifact"
+            },
+            "linux/x64": {
+              "state": "bytes-verified-native-unqualified",
+              "url": "https://github.com/codescene-oss/codescene-mcp-server/releases/download/MCP-1.5.13/cs-mcp-linux-amd64.zip",
+              "archiveSha256": "15259d75bf461414e9e905ddb303e51e57527517cd4f469ed0bc40892232c7f0",
+              "member": "cs-mcp-linux-amd64",
+              "binaryName": "cs-mcp",
+              "binarySha256": "29d0e09ae0b255b031f6b83fa00fb4aa4dd9b73a3f8ccb73d8937f443fe5e70d",
+              "binaryBytes": 75617904
+            },
+            "linux/arm64": {
+              "state": "bytes-verified-native-unqualified",
+              "url": "https://github.com/codescene-oss/codescene-mcp-server/releases/download/MCP-1.5.13/cs-mcp-linux-aarch64.zip",
+              "archiveSha256": "d1eff18440d60dcddfd7ca1a3ea36eb69487ce1d1bb5568b5186280b5c56c1f4",
+              "member": "cs-mcp-linux-aarch64",
+              "binaryName": "cs-mcp",
+              "binarySha256": "2e6dbf9d1816170212e7891dee5f4e3954f5b2b7bd5586c954b54925d7a019e1",
+              "binaryBytes": 93803568
+            },
+            "darwin/x64": {
+              "state": "bytes-verified-native-unqualified",
+              "url": "https://github.com/codescene-oss/codescene-mcp-server/releases/download/MCP-1.5.13/cs-mcp-macos-amd64.zip",
+              "archiveSha256": "3344703ffd30948b576ccd979d9aa85f76a16b8eca90d143422eeae5d7b5b2e5",
+              "member": "cs-mcp-macos-amd64",
+              "binaryName": "cs-mcp",
+              "binarySha256": "9dc0fd7defd695fc562be6a90ba5211a99ff306127421b87081e64165b338182",
+              "binaryBytes": 88985856
+            },
+            "darwin/arm64": {
+              "state": "bytes-verified-native-unqualified",
+              "url": "https://github.com/codescene-oss/codescene-mcp-server/releases/download/MCP-1.5.13/cs-mcp-macos-aarch64.zip",
+              "archiveSha256": "5051eafa71b7cceaa13f5e955cd146b281285c5d43b21005d233ae33574f8b21",
+              "member": "cs-mcp-macos-aarch64",
+              "binaryName": "cs-mcp",
+              "binarySha256": "506fec63133724370c84856f75730ed37e265ca687dfaac10f4888433deba3d9",
+              "binaryBytes": 86913472
+            }
+          }
+        }
       }
     },
     "ecc.claude.mcp.magic": {
@@ -53212,7 +53331,7 @@
         "command": "node",
         "args": [
           "-e",
-          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_RAILWAY_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_RAILWAY_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/@railway/cli/bin/railway.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_RAILWAY_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_RAILWAY_ROOT must name the reviewed installation directory');const nativeHash={\"win32/x64\":\"15e5b377108d6916d54fca5de772847a62b25a09cdff2884fd2695677b68a27d\",\"win32/arm64\":\"7939d61b2a5ea0675a558484cff82631449933136be417a79b97d8f752302476\",\"linux/x64\":\"8b1394f787d85cefdaa480027b5718212ad74c46b57a6ee21cd4436667dfc8e1\",\"linux/arm64\":\"20c06795e42a8735ce226fee49b4205e2560dd0cb66a1fefbd698d75fc33a78a\",\"darwin/x64\":\"ca6f2c38061e3f01c66f555a2c8aab8dc07b13f806d392ba152a6aef73664794\",\"darwin/arm64\":\"1d4dd2ea0804f46ea8715cb8786e7626b4a5dba67d1f166468c2fb18c6b0b7e8\"}[process.platform+'/'+process.arch];if(!nativeHash)throw Error('unsupported-native-artifact: no selected railway binary for this cell');const nativePath=require('node:path').join(r,'node_modules/@railway/cli/bin',process.platform==='win32'?'railway.exe':'railway');if(!nativePath||!require('node:path').isAbsolute(nativePath)||!require('node:fs').existsSync(nativePath))throw Error('missing-native-runtime: preprovision the exact railway 5.71.0 binary; no automatic native download');if(require('node:crypto').createHash('sha256').update(require('node:fs').readFileSync(nativePath)).digest('hex')!==nativeHash)throw Error('incompatible-native-artifact: railway binary SHA256 differs');const p=require('node:path').join(r,\"node_modules/@railway/cli/bin/railway.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
           "--",
           "mcp"
         ],
@@ -53223,7 +53342,7 @@
       "requiredHostEnvironment": [
         "AIHQ_MCP_RAILWAY_ROOT"
       ],
-      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_RAILWAY_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_RAILWAY_ROOT. The npm wrapper requires a separately verified native CLI artifact; lifecycle scripts stay disabled. 'mcp' proxies the hosted service; 'mcp local' is a distinct operation and is not selected. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_RAILWAY_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_RAILWAY_ROOT. The native railway 5.71.0 binary must be preprovisioned from the delivered archive/member/SHA256 manifest; missing or different native bytes refuse before wrapper startup. No automatic download or lifecycle script is allowed. Place it at node_modules/@railway/cli/bin/railway(.exe) after acquisition; npm ci removes it on retry. 'mcp' proxies the hosted service; 'mcp local' is a distinct unselected operation. Archive/binary bytes are pinned; native OS/runtime and authentication remain unqualified. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
@@ -53237,7 +53356,68 @@
         "lockSha256": "83bba9714a4a67a6007dcec5cd1784fcb21f63d538331da8aded7e4657f5e525",
         "node": "26.12.1",
         "npm": "12.2.1",
-        "blockers": "The npm wrapper requires a separately verified native CLI artifact; lifecycle scripts stay disabled. 'mcp' proxies the hosted service; 'mcp local' is a distinct operation and is not selected."
+        "blockers": "The native railway 5.71.0 binary must be preprovisioned from the delivered archive/member/SHA256 manifest; missing or different native bytes refuse before wrapper startup. No automatic download or lifecycle script is allowed. Place it at node_modules/@railway/cli/bin/railway(.exe) after acquisition; npm ci removes it on retry. 'mcp' proxies the hosted service; 'mcp local' is a distinct unselected operation. Archive/binary bytes are pinned; native OS/runtime and authentication remain unqualified.",
+        "native": {
+          "version": "5.71.0",
+          "repository": "https://github.com/railwayapp/cli",
+          "release": "https://github.com/railwayapp/cli/releases/tag/v5.71.0",
+          "targets": {
+            "win32/x64": {
+              "state": "bytes-verified-native-unqualified",
+              "url": "https://github.com/railwayapp/cli/releases/download/v5.71.0/railway-v5.71.0-x86_64-pc-windows-gnu.tar.gz",
+              "archiveSha256": "cdce88c5a2dd7e67d43816d2f09793c66bc73ad2d9d4d32eeee99242fc7bf8e9",
+              "member": "railway.exe",
+              "binaryName": "railway.exe",
+              "binarySha256": "15e5b377108d6916d54fca5de772847a62b25a09cdff2884fd2695677b68a27d",
+              "binaryBytes": 18555392
+            },
+            "win32/arm64": {
+              "state": "bytes-verified-native-unqualified",
+              "url": "https://github.com/railwayapp/cli/releases/download/v5.71.0/railway-v5.71.0-aarch64-pc-windows-msvc.tar.gz",
+              "archiveSha256": "8432874e9d6a38fc83b77b471f16f1cc86a3dc298e8493d5a4196ef06bc5447a",
+              "member": "railway.exe",
+              "binaryName": "railway.exe",
+              "binarySha256": "7939d61b2a5ea0675a558484cff82631449933136be417a79b97d8f752302476",
+              "binaryBytes": 15600128
+            },
+            "linux/x64": {
+              "state": "bytes-verified-native-unqualified",
+              "url": "https://github.com/railwayapp/cli/releases/download/v5.71.0/railway-v5.71.0-x86_64-unknown-linux-musl.tar.gz",
+              "archiveSha256": "2e682fd2ddf8d6fdf9e46d9d99d99646ff0022a6abb0c2bca93011348a269fb9",
+              "member": "railway",
+              "binaryName": "railway",
+              "binarySha256": "8b1394f787d85cefdaa480027b5718212ad74c46b57a6ee21cd4436667dfc8e1",
+              "binaryBytes": 21136728
+            },
+            "linux/arm64": {
+              "state": "bytes-verified-native-unqualified",
+              "url": "https://github.com/railwayapp/cli/releases/download/v5.71.0/railway-v5.71.0-aarch64-unknown-linux-musl.tar.gz",
+              "archiveSha256": "d160ad2a029eaac4b4c85012adb67c1f5709ba81f7320edb5a27be928211d638",
+              "member": "railway",
+              "binaryName": "railway",
+              "binarySha256": "20c06795e42a8735ce226fee49b4205e2560dd0cb66a1fefbd698d75fc33a78a",
+              "binaryBytes": 26979592
+            },
+            "darwin/x64": {
+              "state": "bytes-verified-native-unqualified",
+              "url": "https://github.com/railwayapp/cli/releases/download/v5.71.0/railway-v5.71.0-x86_64-apple-darwin.tar.gz",
+              "archiveSha256": "1b41dd77292657c80ae3dfccbe7653bbb40b7cdc95a8f4b06c2c1f0c2a009919",
+              "member": "railway",
+              "binaryName": "railway",
+              "binarySha256": "ca6f2c38061e3f01c66f555a2c8aab8dc07b13f806d392ba152a6aef73664794",
+              "binaryBytes": 17653360
+            },
+            "darwin/arm64": {
+              "state": "bytes-verified-native-unqualified",
+              "url": "https://github.com/railwayapp/cli/releases/download/v5.71.0/railway-v5.71.0-aarch64-apple-darwin.tar.gz",
+              "archiveSha256": "350748f2edf41f46b22c5d66cea4294d660e764804e252ddba08a27b19cd0bd1",
+              "member": "railway",
+              "binaryName": "railway",
+              "binarySha256": "1d4dd2ea0804f46ea8715cb8786e7626b4a5dba67d1f166468c2fb18c6b0b7e8",
+              "binaryBytes": 12958248
+            }
+          }
+        }
       }
     },
     "ecc.codex.mcp.railway-hosted": {
@@ -53488,19 +53668,21 @@
         "command": "node",
         "args": [
           "-e",
-          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_CODESCENE_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_CODESCENE_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/@codescene/codehealth-mcp/bin/cs-mcp.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_CODESCENE_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_CODESCENE_ROOT must name the reviewed installation directory');const nativeHash={\"win32/x64\":\"dba693ac4b130687387a622d1b14a63e2f17fa42460c5ad739000dd398e93192\",\"win32/arm64\":null,\"linux/x64\":\"29d0e09ae0b255b031f6b83fa00fb4aa4dd9b73a3f8ccb73d8937f443fe5e70d\",\"linux/arm64\":\"2e6dbf9d1816170212e7891dee5f4e3954f5b2b7bd5586c954b54925d7a019e1\",\"darwin/x64\":\"9dc0fd7defd695fc562be6a90ba5211a99ff306127421b87081e64165b338182\",\"darwin/arm64\":\"506fec63133724370c84856f75730ed37e265ca687dfaac10f4888433deba3d9\"}[process.platform+'/'+process.arch];if(!nativeHash)throw Error('unsupported-native-artifact: no selected codescene binary for this cell');const nativePath=process.env.CS_MCP_BINARY_PATH;if(!nativePath||!require('node:path').isAbsolute(nativePath)||!require('node:fs').existsSync(nativePath))throw Error('missing-native-runtime: preprovision the exact codescene 1.5.13 binary; no automatic native download');if(require('node:crypto').createHash('sha256').update(require('node:fs').readFileSync(nativePath)).digest('hex')!==nativeHash)throw Error('incompatible-native-artifact: codescene binary SHA256 differs');const p=require('node:path').join(r,\"node_modules/@codescene/codehealth-mcp/bin/cs-mcp.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
           "--"
         ],
         "env": {
           "CS_ACCESS_TOKEN": "${CS_ACCESS_TOKEN}",
-          "AIHQ_MCP_CODESCENE_ROOT": "${AIHQ_MCP_CODESCENE_ROOT}"
+          "AIHQ_MCP_CODESCENE_ROOT": "${AIHQ_MCP_CODESCENE_ROOT}",
+          "CS_MCP_BINARY_PATH": "${CS_MCP_BINARY_PATH}"
         }
       },
       "requiredHostEnvironment": [
         "AIHQ_MCP_CODESCENE_ROOT",
-        "CS_ACCESS_TOKEN"
+        "CS_ACCESS_TOKEN",
+        "CS_MCP_BINARY_PATH"
       ],
-      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_CODESCENE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_CODESCENE_ROOT, CS_ACCESS_TOKEN. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_CODESCENE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_CODESCENE_ROOT, CS_ACCESS_TOKEN, CS_MCP_BINARY_PATH. The native codescene 1.5.13 binary must be preprovisioned from the delivered archive/member/SHA256 manifest; missing or different native bytes refuse before wrapper startup. No automatic download or lifecycle script is allowed. CS_MCP_BINARY_PATH names that exact binary; Windows arm64 has no selected artifact. Archive/binary bytes are pinned; native OS/runtime and authentication remain unqualified. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
@@ -53514,7 +53696,63 @@
         "lockSha256": "5d7d7ff77ef97e07d8725e675ef8df35b7e54ce7183aa03afcd826e872aa21e5",
         "node": "26.12.1",
         "npm": "12.2.1",
-        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+        "blockers": "The native codescene 1.5.13 binary must be preprovisioned from the delivered archive/member/SHA256 manifest; missing or different native bytes refuse before wrapper startup. No automatic download or lifecycle script is allowed. CS_MCP_BINARY_PATH names that exact binary; Windows arm64 has no selected artifact. Archive/binary bytes are pinned; native OS/runtime and authentication remain unqualified.",
+        "native": {
+          "version": "1.5.13",
+          "repository": "https://github.com/codescene-oss/codescene-mcp-server",
+          "release": "https://github.com/codescene-oss/codescene-mcp-server/releases/tag/MCP-1.5.13",
+          "targets": {
+            "win32/x64": {
+              "state": "bytes-verified-native-unqualified",
+              "url": "https://github.com/codescene-oss/codescene-mcp-server/releases/download/MCP-1.5.13/cs-mcp-windows-amd64.exe",
+              "archiveSha256": "dba693ac4b130687387a622d1b14a63e2f17fa42460c5ad739000dd398e93192",
+              "member": "cs-mcp-windows-amd64.exe",
+              "binaryName": "cs-mcp.exe",
+              "binarySha256": "dba693ac4b130687387a622d1b14a63e2f17fa42460c5ad739000dd398e93192",
+              "binaryBytes": 87303408
+            },
+            "win32/arm64": {
+              "state": "missing-artifact",
+              "reason": "No selected official release artifact"
+            },
+            "linux/x64": {
+              "state": "bytes-verified-native-unqualified",
+              "url": "https://github.com/codescene-oss/codescene-mcp-server/releases/download/MCP-1.5.13/cs-mcp-linux-amd64.zip",
+              "archiveSha256": "15259d75bf461414e9e905ddb303e51e57527517cd4f469ed0bc40892232c7f0",
+              "member": "cs-mcp-linux-amd64",
+              "binaryName": "cs-mcp",
+              "binarySha256": "29d0e09ae0b255b031f6b83fa00fb4aa4dd9b73a3f8ccb73d8937f443fe5e70d",
+              "binaryBytes": 75617904
+            },
+            "linux/arm64": {
+              "state": "bytes-verified-native-unqualified",
+              "url": "https://github.com/codescene-oss/codescene-mcp-server/releases/download/MCP-1.5.13/cs-mcp-linux-aarch64.zip",
+              "archiveSha256": "d1eff18440d60dcddfd7ca1a3ea36eb69487ce1d1bb5568b5186280b5c56c1f4",
+              "member": "cs-mcp-linux-aarch64",
+              "binaryName": "cs-mcp",
+              "binarySha256": "2e6dbf9d1816170212e7891dee5f4e3954f5b2b7bd5586c954b54925d7a019e1",
+              "binaryBytes": 93803568
+            },
+            "darwin/x64": {
+              "state": "bytes-verified-native-unqualified",
+              "url": "https://github.com/codescene-oss/codescene-mcp-server/releases/download/MCP-1.5.13/cs-mcp-macos-amd64.zip",
+              "archiveSha256": "3344703ffd30948b576ccd979d9aa85f76a16b8eca90d143422eeae5d7b5b2e5",
+              "member": "cs-mcp-macos-amd64",
+              "binaryName": "cs-mcp",
+              "binarySha256": "9dc0fd7defd695fc562be6a90ba5211a99ff306127421b87081e64165b338182",
+              "binaryBytes": 88985856
+            },
+            "darwin/arm64": {
+              "state": "bytes-verified-native-unqualified",
+              "url": "https://github.com/codescene-oss/codescene-mcp-server/releases/download/MCP-1.5.13/cs-mcp-macos-aarch64.zip",
+              "archiveSha256": "5051eafa71b7cceaa13f5e955cd146b281285c5d43b21005d233ae33574f8b21",
+              "member": "cs-mcp-macos-aarch64",
+              "binaryName": "cs-mcp",
+              "binarySha256": "506fec63133724370c84856f75730ed37e265ca687dfaac10f4888433deba3d9",
+              "binaryBytes": 86913472
+            }
+          }
+        }
       }
     },
     "ecc.codex.mcp.magic": {

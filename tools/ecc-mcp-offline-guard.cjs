@@ -1,7 +1,7 @@
 // Fixture guard for known Node network/process surfaces; not an OS sandbox claim.
 const { syncBuiltinESMExports } = require("node:module");
-const denyNetwork = () => { throw Error("offline-network-refused"); };
-const denyProcess = () => { throw Error("offline-process-refused"); };
+const denyNetwork = () => { process.stderr.write("offline-network-refused\n"); throw Error("offline-network-refused"); };
+const denyProcess = () => { process.stderr.write("offline-process-refused\n"); throw Error("offline-process-refused"); };
 globalThis.fetch = denyNetwork;
 for (const module of ["node:http", "node:https"]) {
   const api = require(module);

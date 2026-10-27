@@ -85,6 +85,13 @@ await case_("a local memory choice delivers an exact acquisition closure instead
     assert.match(dependency.integrity, /^sha512-/);
     assert.match(dependency.resolved, /^https:\/\/registry\.npmjs\.org\//);
   }
+  const codescene = item("ecc.mcp.codescene");
+  assert.equal(codescene.requirements.inputs.CS_MCP_BINARY_PATH.required, true);
+  const nativeRecipe = JSON.parse(member(codescene.recipes["claude-code"].path));
+  const manifest = JSON.parse(nativeRecipe.operations.find(operation => operation.kind === "file.write" && operation.target.segments.at(-1).literal === "native-artifacts.json").content.literal);
+  assert.equal(manifest.version, "1.5.13");
+  assert.match(manifest.targets["win32/x64"].binarySha256, /^[a-f0-9]{64}$/);
+  assert.equal(manifest.targets["win32/arm64"].state, "missing-artifact");
 });
 await case_("Python server choices expose isolated exact runtimes and refuse a shared environment", () => {
   for (const key of ["jira", "omega-memory"]) {

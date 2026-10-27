@@ -2,11 +2,11 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readReleaseContent, configureItem } from "@aihq/catalog/reader";
-const [node, npmCli, cache, output, archive, incompatibleNode] = process.argv.slice(2);
+const [node, npmCli, cache, output, archive, incompatibleNode, nativeFixtures] = process.argv.slice(2);
 const root = dirname(fileURLToPath(import.meta.resolve("@aihq/catalog/package.json")));
 const sha = bytes => createHash("sha256").update(bytes).digest("hex");
 const bytes = readFileSync(fileURLToPath(import.meta.resolve("@aihq/catalog/release-ecc.content.json")));
@@ -30,7 +30,8 @@ const treeDigest = directory => {
 const handshake = (item, directory, key) => new Promise(resolve => {
   const args = item.payload.args.map(arg => arg.replace("${ECC_FILESYSTEM_ROOT}", directory).replace("${SUPABASE_PROJECT_REF}", "fixture-project"));
   const rootVariable = `AIHQ_MCP_${key.replaceAll("-", "_").toUpperCase()}_ROOT`;
-  const child = spawn(node, ["--require", join(import.meta.dirname, "offline-guard.cjs"), ...args], { cwd: directory, env: { ...env, HOME: directory, USERPROFILE: directory, [rootVariable]: directory, MEMORY_FILE_PATH: join(directory, "memory.json") }, windowsHide: true, stdio: ["pipe", "pipe", "pipe"] });
+  const nativePath = join(directory, "native-codescene.binary");
+  const child = spawn(node, ["--require", join(import.meta.dirname, "offline-guard.cjs"), ...args], { cwd: directory, env: { ...env, HOME: directory, USERPROFILE: directory, [rootVariable]: directory, MEMORY_FILE_PATH: join(directory, "memory.json"), ...(key === "codescene" && existsSync(nativePath) ? { CS_MCP_BINARY_PATH: nativePath } : {}) }, windowsHide: true, stdio: ["pipe", "pipe", "pipe"] });
   let buffer = "", stderr = "", serverInfo, size = 0, done = false;
   const finish = result => {
     if (done) return;
@@ -47,7 +48,7 @@ const handshake = (item, directory, key) => new Promise(resolve => {
     const normalized = stderr.toUpperCase().replace(/[^A-Z0-9]/g, "");
     const missing = /missing|required|provide|not set|must.*set|must.*specify/i.test(stderr);
     const named = Object.entries(item.requirements.inputs).filter(([name, input]) => input.required && missing && normalized.includes(name.replaceAll("_", "")));
-    const reason = /offline-network-refused/.test(stderr) ? "offline-network-refused" : /offline-process-refused/.test(stderr) ? "offline-process-refused" : ["railway", "codescene"].includes(key) && /ENOENT|binary.*not found|could not find.*binary|executable.*not found/i.test(stderr) ? "missing-native-runtime" : "process-exit";
+    const reason = /offline-network-refused/.test(stderr) ? "offline-network-refused" : /offline-process-refused/.test(stderr) ? "offline-process-refused" : ["railway", "codescene"].includes(key) && /missing-native-runtime|unsupported-native-artifact|ENOENT|binary.*not found|could not find.*binary|executable.*not found/i.test(stderr) ? "missing-native-runtime" : "process-exit";
     finish({ status: named.length ? named.some(([, input]) => input.sensitive) ? "missing-auth-observed" : "missing-input-observed" : "unverified", reason, code });
   });
   child.stderr.on("data", chunk => { size += chunk.length; if (size > 1048576) finish({ status: "unverified", reason: "output-bound" }); else stderr += chunk.toString(); });
@@ -100,6 +101,20 @@ for (const [key, provider] of Object.entries(selected.providers)) {
     unlinkSync(join(directory, ".npmrc"));
     result.acquisition = "installed-and-offline-reproduced";
     result.installedTreeSha256 = first;
+    if (["codescene", "railway"].includes(key)) {
+      const missing = await handshake(item, directory, key);
+      assert.equal(missing.reason, "missing-native-runtime");
+      assert.equal(missing.cleanup, "exited");
+      result.missingNative = missing;
+      if (nativeFixtures) {
+        const manifest = JSON.parse(recipe.operations.find(operation => operation.kind === "file.write" && operation.target.segments.at(-1).literal === "native-artifacts.json").content.literal);
+        const bytes = readFileSync(join(nativeFixtures, `${key}-${process.platform}-${process.arch}.binary`));
+        assert.equal(sha(bytes), manifest.targets[`${process.platform}/${process.arch}`].binarySha256);
+        const target = key === "codescene" ? join(directory, "native-codescene.binary") : join(directory, "node_modules/@railway/cli/bin", process.platform === "win32" ? "railway.exe" : "railway");
+        writeFileSync(target, bytes);
+        result.nativeBinarySha256 = sha(bytes);
+      }
+    }
     result.handshake = await handshake(item, directory, key);
     assert.equal(result.handshake.cleanup, "exited", `${key}: process cleanup was not verified`);
     const localSchema = ["memory", "filesystem", "sequential-thinking"].includes(key);
@@ -116,7 +131,7 @@ for (const [key, provider] of Object.entries(selected.providers)) {
     writeFileSync(join(directory, "fixture-error.txt"), String(error.stack ?? error));
   }
   results.push(result);
-  writeFileSync(join(output, "receipt.json"), `${JSON.stringify({ archiveSha256: sha(readFileSync(archive)), releaseSha256: read.release.sha256, node: selected.node, npm: selected.npm, coreApply: "not-run", nativeClient: "not-run", results }, null, 2)}\n`);
+  writeFileSync(join(output, "receipt.json"), `${JSON.stringify({ archiveSha256: sha(readFileSync(archive)), releaseSha256: read.release.sha256, node: selected.node, npm: selected.npm, platform: process.platform, architecture: process.arch, coreApply: "not-run", nativeClient: "not-run", results }, null, 2)}\n`);
   console.log(`${key}: ${result.acquisition}${result.reason ? ` (${result.reason})` : ""}`);
 }
 if (results.some(result => result.reason === "fixture-failed" || (result.acquisition !== "installed-and-offline-reproduced" && !result.expectedBlocked))) process.exitCode = 1;
