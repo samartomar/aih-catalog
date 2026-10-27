@@ -45,11 +45,14 @@ const handshake = (item, directory, key) => new Promise(resolve => {
   const timer = setTimeout(() => finish({ status: "unverified", reason: "handshake-timeout" }), 20000);
   child.on("error", () => finish({ status: "unverified", reason: "process-unavailable" }));
   child.on("exit", code => {
-    const normalized = stderr.toUpperCase().replace(/[^A-Z0-9]/g, "");
-    const missing = /missing|required|provide|not set|must.*set|must.*specify/i.test(stderr);
+    // Node echoes the entire -e source above a thrown error. Only actual error
+    // lines and our standalone refusal markers can establish a refusal reason.
+    const errors = stderr.split(/\r?\n/).map(line => line.trim()).filter(line => /^(?:\w*Error:\s|offline-(?:network|process)-refused$)/.test(line) || (key === "supabase" && /^Please provide a personal access token \(PAT\) with the --access-token flag or set the SUPABASE_ACCESS_TOKEN environment variable\.?$/.test(line))).join("\n");
+    const normalized = errors.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    const missing = /missing|required|provide|not set|must.*set|must.*specify/i.test(errors);
     const named = Object.entries(item.requirements.inputs).filter(([name, input]) => input.required && missing && normalized.includes(name.replaceAll("_", "")));
-    const reason = /offline-network-refused/.test(stderr) ? "offline-network-refused" : /offline-process-refused/.test(stderr) ? "offline-process-refused" : ["railway", "codescene"].includes(key) && /missing-native-runtime|unsupported-native-artifact|ENOENT|binary.*not found|could not find.*binary|executable.*not found/i.test(stderr) ? "missing-native-runtime" : "process-exit";
-    finish({ status: named.length ? named.some(([, input]) => input.sensitive) ? "missing-auth-observed" : "missing-input-observed" : "unverified", reason, code });
+    const reason = /offline-network-refused/.test(errors) ? "offline-network-refused" : /offline-process-refused/.test(errors) ? "offline-process-refused" : ["railway", "codescene"].includes(key) && /incompatible-native-artifact/.test(errors) ? "incompatible-native-artifact" : ["railway", "codescene"].includes(key) && /missing-native-runtime|unsupported-native-artifact|ENOENT|binary.*not found|could not find.*binary|executable.*not found/i.test(errors) ? "missing-native-runtime" : "process-exit";
+    finish({ status: named.length ? named.some(([, input]) => input.sensitive) ? "missing-auth-observed" : "missing-input-observed" : "unverified", reason, code, errors });
   });
   child.stderr.on("data", chunk => { size += chunk.length; if (size > 1048576) finish({ status: "unverified", reason: "output-bound" }); else stderr += chunk.toString(); });
   child.stdout.on("data", chunk => {
@@ -113,7 +116,7 @@ for (const [key, provider] of Object.entries(selected.providers)) {
         const target = key === "codescene" ? join(directory, "native-codescene.binary") : join(directory, "node_modules/@railway/cli/bin", process.platform === "win32" ? "railway.exe" : "railway");
         writeFileSync(target, "wrong-native-bytes");
         const wrongNative = await handshake(item, directory, key);
-        assert.match(readFileSync(join(directory, "handshake-stderr.txt"), "utf8"), /incompatible-native-artifact/);
+        assert.equal(wrongNative.reason, "incompatible-native-artifact");
         assert.equal(wrongNative.cleanup, "exited");
         result.wrongNative = wrongNative;
         writeFileSync(target, bytes);

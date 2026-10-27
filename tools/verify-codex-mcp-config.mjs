@@ -223,12 +223,12 @@ const clientEdit = (text) => {
 const steps = {};
 const stateOf = async (label, fileState) => {
   const result = await checkFileState({ policy, target: { project } }, { materialRoots: controls.materialRoots });
-  // Core never evaluates prerequisites or custody here, so the status stays "incomplete" and
-  // names exactly those omissions; every file and check outcome is still compared.
+  // Both selected routes are hosted, with no executable prerequisite. Core
+  // leaves custody unevaluated; every file and check outcome is still compared.
   assert.equal(result.status, "incomplete", label + ": " + dump(result));
   assert.deepEqual(
     result.notChecked.map(({ kind, reason }) => kind + ":" + reason).sort(),
-    ["managed-set:custody-not-evaluated", "prerequisite:process-not-checked"],
+    ["managed-set:custody-not-evaluated"],
     label + ": " + dump(result.notChecked),
   );
   assert.equal(result.coverage.unavailableTargets + result.coverage.unavailableChecks, 0, dump(result.coverage));
