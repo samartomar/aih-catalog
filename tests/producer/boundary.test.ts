@@ -188,6 +188,8 @@ describe("the published package keeps its intended runtime subset", () => {
       "restructuring/expected-1.7.0.json",
       "docs/RELEASE-TRUST.md",
       "producer/web-artifacts",
+      "producer/executable-content",
+      "docs/EXECUTABLE-CONTENT.md",
     ]);
     expect(Object.keys(manifest.exports)).toEqual([
       "./contracts",
@@ -321,6 +323,7 @@ describe("the published package keeps its intended runtime subset", () => {
       "./fixtures/source-description/locator-kinds.json",
       "./fixtures/source-description/exact-identity-kinds.json",
       "./fixtures/release-index/tuf-local.json",
+      "./release-executable-content.json",
     ]);
     expect(manifest.private).toBe(true);
     expect(manifest.scripts.prepublishOnly).toBe("node tools/refuse-publication.mjs");

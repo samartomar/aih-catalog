@@ -126,6 +126,8 @@ describe("packed candidate", () => {
           !path.startsWith("producer/superpowers/") &&
           !path.startsWith("producer/anthropic/") &&
           !path.startsWith("producer/web-artifacts/") &&
+          !path.startsWith("producer/executable-content/") &&
+          path !== "docs/EXECUTABLE-CONTENT.md" &&
           path !== "docs/ANTHROPIC-CONTENT.md" &&
           path !== "docs/ANTHROPIC-INVENTORY.md" &&
           path !== "docs/SUPERPOWERS-CONTENT.md" &&
@@ -163,6 +165,7 @@ describe("packed candidate", () => {
     ]);
     expect(artifact.packedPaths).toContain("producer/web-artifacts/declaration.json");
     expect(artifact.packedPaths).toContain("release/release-web-artifacts.json");
+    expect(artifact.packedPaths).toContain("release/release-executable-content.json");
     expect(artifact.packedPaths).toContain("LICENSE");
     expect(artifact.packedPaths).toContain("release/release.json");
     expect(artifact.packedPaths).toContain("docs/FRAMEWORK-TEMPLATES.md");

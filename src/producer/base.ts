@@ -141,6 +141,7 @@ export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRe
     "release/release-superpowers.json",
     "release/release-anthropic.json",
     "release/release-web-artifacts.json",
+    "release/release-executable-content.json",
   ]) {
     const bytes = files.get(path);
     if (bytes === undefined) continue;
@@ -158,7 +159,8 @@ export function parseBaseRelease(input: ReadonlyMap<string, Uint8Array>): BaseRe
       path === "release/release-ecc.json" ||
       path === "release/release-superpowers.json" ||
       path === "release/release-anthropic.json" ||
-      path === "release/release-web-artifacts.json"
+      path === "release/release-web-artifacts.json" ||
+      path === "release/release-executable-content.json"
     )
       contentDocuments.set(path, nativeDocument);
     else nativeDocuments.set(path, nativeDocument);

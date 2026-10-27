@@ -1,0 +1,1383 @@
+{
+  "schema": "urn:aihq:core:recipe:1.0.0",
+  "id": "catalog.skill.executable-content-requirements",
+  "description": "Deliver executable workflow requirements and offline fixtures without installing runtimes.",
+  "inputs": {},
+  "targets": [
+    "project"
+  ],
+  "materials": [],
+  "operations": [
+    {
+      "id": "write-0",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-0",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "LICENSE.txt"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-0"
+      ]
+    },
+    {
+      "id": "write-1",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-1",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "SKILL.md"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-1"
+      ]
+    },
+    {
+      "id": "write-2",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-2",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "browser-artifacts.json"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-2"
+      ]
+    },
+    {
+      "id": "write-3",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-3",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "fixture.py"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-3"
+      ]
+    },
+    {
+      "id": "write-4",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-4",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "lock-status.json"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-4"
+      ]
+    },
+    {
+      "id": "write-5",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-5",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "locks"
+          },
+          {
+            "literal": "browser-linux-x64.txt"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-5"
+      ]
+    },
+    {
+      "id": "write-6",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-6",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "locks"
+          },
+          {
+            "literal": "evalview-314.txt"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-6"
+      ]
+    },
+    {
+      "id": "write-7",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-7",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "locks"
+          },
+          {
+            "literal": "evalview-linux-x64.txt"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-7"
+      ]
+    },
+    {
+      "id": "write-8",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-8",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "locks"
+          },
+          {
+            "literal": "gif-linux-x64.txt"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-8"
+      ]
+    },
+    {
+      "id": "write-9",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-9",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "locks"
+          },
+          {
+            "literal": "image-tools.txt"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-9"
+      ]
+    },
+    {
+      "id": "write-10",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-10",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "locks"
+          },
+          {
+            "literal": "mcp-evaluation-314.txt"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-10"
+      ]
+    },
+    {
+      "id": "write-11",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-11",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "locks"
+          },
+          {
+            "literal": "mcp-evaluator-linux-x64.txt"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-11"
+      ]
+    },
+    {
+      "id": "write-12",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-12",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "locks"
+          },
+          {
+            "literal": "observer-linux-x64.txt"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-12"
+      ]
+    },
+    {
+      "id": "write-13",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-13",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "locks"
+          },
+          {
+            "literal": "skill-authoring-linux-x64.txt"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-13"
+      ]
+    },
+    {
+      "id": "write-14",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-14",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "locks"
+          },
+          {
+            "literal": "skill-comply-linux-x64.txt"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-14"
+      ]
+    },
+    {
+      "id": "write-15",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-15",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "locks"
+          },
+          {
+            "literal": "slides-linux-x64.txt"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-15"
+      ]
+    },
+    {
+      "id": "write-16",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-16",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "locks"
+          },
+          {
+            "literal": "videodb-linux-x64.txt"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-16"
+      ]
+    },
+    {
+      "id": "write-17",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-17",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "media"
+          },
+          {
+            "literal": "fixture.jsx"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-17"
+      ]
+    },
+    {
+      "id": "write-18",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-18",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "media"
+          },
+          {
+            "literal": "package-lock.json"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-18"
+      ]
+    },
+    {
+      "id": "write-19",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-19",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "media"
+          },
+          {
+            "literal": "package.json"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-19"
+      ]
+    },
+    {
+      "id": "write-20",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-20",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "media"
+          },
+          {
+            "literal": "render.mjs"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-20"
+      ]
+    },
+    {
+      "id": "write-21",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-21",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "python-artifacts.json"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-21"
+      ]
+    },
+    {
+      "id": "write-22",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-22",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "requirements.json"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-22"
+      ]
+    },
+    {
+      "id": "write-23",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-23",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "workflow.mjs"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-23"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "id": "check-0",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-0"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "LICENSE.txt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-1",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-1"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "SKILL.md"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-2",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-2"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "browser-artifacts.json"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-3",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-3"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "fixture.py"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-4",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-4"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "lock-status.json"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-5",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-5"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "locks"
+          },
+          {
+            "literal": "browser-linux-x64.txt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-6",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-6"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "locks"
+          },
+          {
+            "literal": "evalview-314.txt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-7",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-7"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "locks"
+          },
+          {
+            "literal": "evalview-linux-x64.txt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-8",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-8"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "locks"
+          },
+          {
+            "literal": "gif-linux-x64.txt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-9",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-9"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "locks"
+          },
+          {
+            "literal": "image-tools.txt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-10",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-10"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "locks"
+          },
+          {
+            "literal": "mcp-evaluation-314.txt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-11",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-11"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "locks"
+          },
+          {
+            "literal": "mcp-evaluator-linux-x64.txt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-12",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-12"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "locks"
+          },
+          {
+            "literal": "observer-linux-x64.txt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-13",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-13"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "locks"
+          },
+          {
+            "literal": "skill-authoring-linux-x64.txt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-14",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-14"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "locks"
+          },
+          {
+            "literal": "skill-comply-linux-x64.txt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-15",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-15"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "locks"
+          },
+          {
+            "literal": "slides-linux-x64.txt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-16",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-16"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "locks"
+          },
+          {
+            "literal": "videodb-linux-x64.txt"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-17",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-17"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "media"
+          },
+          {
+            "literal": "fixture.jsx"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-18",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-18"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "media"
+          },
+          {
+            "literal": "package-lock.json"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-19",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-19"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "media"
+          },
+          {
+            "literal": "package.json"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-20",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-20"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "media"
+          },
+          {
+            "literal": "render.mjs"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-21",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-21"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "python-artifacts.json"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-22",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-22"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "requirements.json"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-23",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-23"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "workflow.mjs"
+          }
+        ]
+      }
+    }
+  ],
+  "prerequisites": []
+}

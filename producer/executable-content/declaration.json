@@ -1,0 +1,873 @@
+{
+  "schema": "urn:aihq:catalog:producer-declaration:3.1.0",
+  "format": "aihq-catalog-producer-declaration",
+  "version": 3,
+  "package": {
+    "name": "@aihq/catalog",
+    "version": "0.1.0"
+  },
+  "sources": [
+    {
+      "id": "catalog-executable",
+      "origin": {
+        "kind": "local"
+      },
+      "licensePath": "LICENSE.txt",
+      "license": "Apache-2.0"
+    }
+  ],
+  "items": [
+    {
+      "id": "catalog.skill.executable-content-requirements",
+      "source": "catalog-executable",
+      "label": "Executable content requirements (Catalog companion)",
+      "description": "Deliver executable workflow requirements and offline fixtures without installing runtimes.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/catalog.skill.executable-content-requirements.json",
+      "materials": [
+        {
+          "id": "file-0",
+          "path": "LICENSE.txt"
+        },
+        {
+          "id": "file-1",
+          "path": "SKILL.md"
+        },
+        {
+          "id": "file-2",
+          "path": "browser-artifacts.json"
+        },
+        {
+          "id": "file-3",
+          "path": "fixture.py"
+        },
+        {
+          "id": "file-4",
+          "path": "lock-status.json"
+        },
+        {
+          "id": "file-5",
+          "path": "locks/browser-linux-x64.txt"
+        },
+        {
+          "id": "file-6",
+          "path": "locks/evalview-314.txt"
+        },
+        {
+          "id": "file-7",
+          "path": "locks/evalview-linux-x64.txt"
+        },
+        {
+          "id": "file-8",
+          "path": "locks/gif-linux-x64.txt"
+        },
+        {
+          "id": "file-9",
+          "path": "locks/image-tools.txt"
+        },
+        {
+          "id": "file-10",
+          "path": "locks/mcp-evaluation-314.txt"
+        },
+        {
+          "id": "file-11",
+          "path": "locks/mcp-evaluator-linux-x64.txt"
+        },
+        {
+          "id": "file-12",
+          "path": "locks/observer-linux-x64.txt"
+        },
+        {
+          "id": "file-13",
+          "path": "locks/skill-authoring-linux-x64.txt"
+        },
+        {
+          "id": "file-14",
+          "path": "locks/skill-comply-linux-x64.txt"
+        },
+        {
+          "id": "file-15",
+          "path": "locks/slides-linux-x64.txt"
+        },
+        {
+          "id": "file-16",
+          "path": "locks/videodb-linux-x64.txt"
+        },
+        {
+          "id": "file-17",
+          "path": "media/fixture.jsx"
+        },
+        {
+          "id": "file-18",
+          "path": "media/package-lock.json"
+        },
+        {
+          "id": "file-19",
+          "path": "media/package.json"
+        },
+        {
+          "id": "file-20",
+          "path": "media/render.mjs"
+        },
+        {
+          "id": "file-21",
+          "path": "python-artifacts.json"
+        },
+        {
+          "id": "file-22",
+          "path": "requirements.json"
+        },
+        {
+          "id": "file-23",
+          "path": "workflow.mjs"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Companion file format only; native loading not observed."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "execution-algorithmic-art",
+          "support": "unknown",
+          "reason": "Browser p5.js template runtime; supplied template CDN version remains unchanged. Explicit browser/CDN network required; not a Node CLI or automatic installation. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "execution-mcp-evaluator",
+          "support": "unknown",
+          "reason": "API credentials and explicit paid invocation are separate. Stub fixture makes no model request. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "execution-skill-authoring",
+          "support": "unknown",
+          "reason": "Claude CLI/session required only by run_eval/run_loop; description improvement needs API credentials. Validation and report generation are offline. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "execution-evalview",
+          "support": "unknown",
+          "reason": "Optional separate backend; credentials/model invocation are never part of installation. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "execution-gif",
+          "support": "unknown",
+          "reason": "Pillow GIF fixture does not use FFmpeg; video conversion needs separately sourced FFmpeg 9.0.2 binary/codec distribution. imageio-ffmpeg bundled binary is not that candidate. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "execution-browser",
+          "support": "unknown",
+          "reason": "Playwright-managed Chromium build and OS libraries must be bound explicitly; Chrome for Testing 156.0.8078.47 is a separate explicit route. Windows arm64 Chrome for Testing blocked. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "execution-slides",
+          "support": "unknown",
+          "reason": "PPTX extraction and ReportLab PDF are separate from browser HTML export. HTML export needs Node 26.12.1 and Playwright 1.64.1/browser. Font files and licences need exact identities. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "execution-icons",
+          "support": "unknown",
+          "reason": "macOS only: Swift 6.4.1, AppKit/Foundation and exact SDK. iconify route also needs explicit backend/credentials; no native Linux fallback. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "execution-remotion",
+          "support": "unknown",
+          "reason": "Node 26.12.1; remotion and @remotion/google-fonts 4.0.539, React 19.3.1. Renderer/browser/font/FFmpeg 9.0.2 distributor closure unresolved. Do not silently use imageio bundled FFmpeg. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "execution-manim",
+          "support": "unknown",
+          "reason": "Cairo/Pango/LaTeX/fonts and FFmpeg 9.0.2 binary/codec closure unresolved; no host compilation. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "execution-videodb",
+          "support": "unknown",
+          "reason": "Service credentials, websocket and paid operations require explicit activation. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "execution-skill-comply",
+          "support": "unknown",
+          "reason": "pytest is optional test-only. Agent-running paths require explicit Claude client/session. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "execution-artifact-legacy",
+          "support": "unknown",
+          "reason": "Preserved upstream historical orchestration. Use separately delivered web-artifacts-builder-modern; never execute global pnpm install or floating Parcel path by default. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "execution-visual-companion",
+          "support": "unknown",
+          "reason": "Node 26.12.1 for helper/server; POSIX start/stop scripts require Bash and OS process tools. Explicit loopback/port and owned-process deadline; Windows wrapper unqualified. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "execution-graphviz",
+          "support": "unknown",
+          "reason": "Node 26.12.1 and Graphviz 16.1 dot with exact native package; rendering may invoke graph descriptions. Native package/font closure pending. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "execution-terminal",
+          "support": "unknown",
+          "reason": "Explicit WezTerm stable 20240203-110809-5046fc22; platform terminal alternatives need observed OS package and argv. PowerShell (powershell.exe) and pwsh are separate. X11 and Wayland are separate; no automatic launch. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "execution-wizard",
+          "support": "unknown",
+          "reason": "Bash and observed shell utility packages. gh 2.103.3 is optional only for selected GitHub operations; authentication/account actions remain explicit. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "execution-observer",
+          "support": "unknown",
+          "reason": "POSIX Bash process/pipe/flock/ps/kill/stat/date semantics require actual OS-package observations. Windows routes WSL-only until ported. Guardian activity heuristics do not prove safe idle detection. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "execution-node-utilities",
+          "support": "unknown",
+          "reason": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "execution-python-utilities",
+          "support": "unknown",
+          "reason": "Standard-library evaluator/gate/gacha; any optional external service remains caller-selected. No claim of semantic evaluation from heuristic output. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "execution-posix-utilities",
+          "support": "unknown",
+          "reason": "Bash/POSIX and actual installed utility capability/argv observations required; native Windows not qualified, WSL2 distinct. Never install or upgrade all host utilities. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "execution-client-plugins",
+          "support": "unknown",
+          "reason": "Client-owned Python/Node/TypeScript or cmd hook protocol. Actual host runtime, client loading, approvals and event bindings remain separately qualified. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Read SKILL.md and inspect workflow.mjs plan. Acquire exact isolated artifacts separately; no execution from material Apply."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "SKILL.md"
+      }
+    },
+    {
+      "id": "catalog.kiro.skill.executable-content-requirements",
+      "source": "catalog-executable",
+      "label": "Executable content requirements (Catalog companion)",
+      "description": "Deliver executable workflow requirements and offline fixtures without installing runtimes.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/catalog.kiro.skill.executable-content-requirements.json",
+      "materials": [
+        {
+          "id": "file-0",
+          "path": "LICENSE.txt"
+        },
+        {
+          "id": "file-1",
+          "path": "SKILL.md"
+        },
+        {
+          "id": "file-2",
+          "path": "browser-artifacts.json"
+        },
+        {
+          "id": "file-3",
+          "path": "fixture.py"
+        },
+        {
+          "id": "file-4",
+          "path": "lock-status.json"
+        },
+        {
+          "id": "file-5",
+          "path": "locks/browser-linux-x64.txt"
+        },
+        {
+          "id": "file-6",
+          "path": "locks/evalview-314.txt"
+        },
+        {
+          "id": "file-7",
+          "path": "locks/evalview-linux-x64.txt"
+        },
+        {
+          "id": "file-8",
+          "path": "locks/gif-linux-x64.txt"
+        },
+        {
+          "id": "file-9",
+          "path": "locks/image-tools.txt"
+        },
+        {
+          "id": "file-10",
+          "path": "locks/mcp-evaluation-314.txt"
+        },
+        {
+          "id": "file-11",
+          "path": "locks/mcp-evaluator-linux-x64.txt"
+        },
+        {
+          "id": "file-12",
+          "path": "locks/observer-linux-x64.txt"
+        },
+        {
+          "id": "file-13",
+          "path": "locks/skill-authoring-linux-x64.txt"
+        },
+        {
+          "id": "file-14",
+          "path": "locks/skill-comply-linux-x64.txt"
+        },
+        {
+          "id": "file-15",
+          "path": "locks/slides-linux-x64.txt"
+        },
+        {
+          "id": "file-16",
+          "path": "locks/videodb-linux-x64.txt"
+        },
+        {
+          "id": "file-17",
+          "path": "media/fixture.jsx"
+        },
+        {
+          "id": "file-18",
+          "path": "media/package-lock.json"
+        },
+        {
+          "id": "file-19",
+          "path": "media/package.json"
+        },
+        {
+          "id": "file-20",
+          "path": "media/render.mjs"
+        },
+        {
+          "id": "file-21",
+          "path": "python-artifacts.json"
+        },
+        {
+          "id": "file-22",
+          "path": "requirements.json"
+        },
+        {
+          "id": "file-23",
+          "path": "workflow.mjs"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Companion file format only; native loading not observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "execution-algorithmic-art",
+          "support": "unknown",
+          "reason": "Browser p5.js template runtime; supplied template CDN version remains unchanged. Explicit browser/CDN network required; not a Node CLI or automatic installation. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "execution-mcp-evaluator",
+          "support": "unknown",
+          "reason": "API credentials and explicit paid invocation are separate. Stub fixture makes no model request. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "execution-skill-authoring",
+          "support": "unknown",
+          "reason": "Claude CLI/session required only by run_eval/run_loop; description improvement needs API credentials. Validation and report generation are offline. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "execution-evalview",
+          "support": "unknown",
+          "reason": "Optional separate backend; credentials/model invocation are never part of installation. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "execution-gif",
+          "support": "unknown",
+          "reason": "Pillow GIF fixture does not use FFmpeg; video conversion needs separately sourced FFmpeg 9.0.2 binary/codec distribution. imageio-ffmpeg bundled binary is not that candidate. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "execution-browser",
+          "support": "unknown",
+          "reason": "Playwright-managed Chromium build and OS libraries must be bound explicitly; Chrome for Testing 156.0.8078.47 is a separate explicit route. Windows arm64 Chrome for Testing blocked. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "execution-slides",
+          "support": "unknown",
+          "reason": "PPTX extraction and ReportLab PDF are separate from browser HTML export. HTML export needs Node 26.12.1 and Playwright 1.64.1/browser. Font files and licences need exact identities. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "execution-icons",
+          "support": "unknown",
+          "reason": "macOS only: Swift 6.4.1, AppKit/Foundation and exact SDK. iconify route also needs explicit backend/credentials; no native Linux fallback. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "execution-remotion",
+          "support": "unknown",
+          "reason": "Node 26.12.1; remotion and @remotion/google-fonts 4.0.539, React 19.3.1. Renderer/browser/font/FFmpeg 9.0.2 distributor closure unresolved. Do not silently use imageio bundled FFmpeg. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "execution-manim",
+          "support": "unknown",
+          "reason": "Cairo/Pango/LaTeX/fonts and FFmpeg 9.0.2 binary/codec closure unresolved; no host compilation. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "execution-videodb",
+          "support": "unknown",
+          "reason": "Service credentials, websocket and paid operations require explicit activation. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "execution-skill-comply",
+          "support": "unknown",
+          "reason": "pytest is optional test-only. Agent-running paths require explicit Claude client/session. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "execution-artifact-legacy",
+          "support": "unknown",
+          "reason": "Preserved upstream historical orchestration. Use separately delivered web-artifacts-builder-modern; never execute global pnpm install or floating Parcel path by default. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "execution-visual-companion",
+          "support": "unknown",
+          "reason": "Node 26.12.1 for helper/server; POSIX start/stop scripts require Bash and OS process tools. Explicit loopback/port and owned-process deadline; Windows wrapper unqualified. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "execution-graphviz",
+          "support": "unknown",
+          "reason": "Node 26.12.1 and Graphviz 16.1 dot with exact native package; rendering may invoke graph descriptions. Native package/font closure pending. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "execution-terminal",
+          "support": "unknown",
+          "reason": "Explicit WezTerm stable 20240203-110809-5046fc22; platform terminal alternatives need observed OS package and argv. PowerShell (powershell.exe) and pwsh are separate. X11 and Wayland are separate; no automatic launch. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "execution-wizard",
+          "support": "unknown",
+          "reason": "Bash and observed shell utility packages. gh 2.103.3 is optional only for selected GitHub operations; authentication/account actions remain explicit. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "execution-observer",
+          "support": "unknown",
+          "reason": "POSIX Bash process/pipe/flock/ps/kill/stat/date semantics require actual OS-package observations. Windows routes WSL-only until ported. Guardian activity heuristics do not prove safe idle detection. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "execution-node-utilities",
+          "support": "unknown",
+          "reason": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "execution-python-utilities",
+          "support": "unknown",
+          "reason": "Standard-library evaluator/gate/gacha; any optional external service remains caller-selected. No claim of semantic evaluation from heuristic output. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "execution-posix-utilities",
+          "support": "unknown",
+          "reason": "Bash/POSIX and actual installed utility capability/argv observations required; native Windows not qualified, WSL2 distinct. Never install or upgrade all host utilities. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "execution-client-plugins",
+          "support": "unknown",
+          "reason": "Client-owned Python/Node/TypeScript or cmd hook protocol. Actual host runtime, client loading, approvals and event bindings remain separately qualified. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Read SKILL.md and inspect workflow.mjs plan. Acquire exact isolated artifacts separately; no execution from material Apply."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "SKILL.md"
+      }
+    },
+    {
+      "id": "catalog.copilot.skill.executable-content-requirements",
+      "source": "catalog-executable",
+      "label": "Executable content requirements (Catalog companion)",
+      "description": "Deliver executable workflow requirements and offline fixtures without installing runtimes.",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/catalog.copilot.skill.executable-content-requirements.json",
+      "materials": [
+        {
+          "id": "file-0",
+          "path": "LICENSE.txt"
+        },
+        {
+          "id": "file-1",
+          "path": "SKILL.md"
+        },
+        {
+          "id": "file-2",
+          "path": "browser-artifacts.json"
+        },
+        {
+          "id": "file-3",
+          "path": "fixture.py"
+        },
+        {
+          "id": "file-4",
+          "path": "lock-status.json"
+        },
+        {
+          "id": "file-5",
+          "path": "locks/browser-linux-x64.txt"
+        },
+        {
+          "id": "file-6",
+          "path": "locks/evalview-314.txt"
+        },
+        {
+          "id": "file-7",
+          "path": "locks/evalview-linux-x64.txt"
+        },
+        {
+          "id": "file-8",
+          "path": "locks/gif-linux-x64.txt"
+        },
+        {
+          "id": "file-9",
+          "path": "locks/image-tools.txt"
+        },
+        {
+          "id": "file-10",
+          "path": "locks/mcp-evaluation-314.txt"
+        },
+        {
+          "id": "file-11",
+          "path": "locks/mcp-evaluator-linux-x64.txt"
+        },
+        {
+          "id": "file-12",
+          "path": "locks/observer-linux-x64.txt"
+        },
+        {
+          "id": "file-13",
+          "path": "locks/skill-authoring-linux-x64.txt"
+        },
+        {
+          "id": "file-14",
+          "path": "locks/skill-comply-linux-x64.txt"
+        },
+        {
+          "id": "file-15",
+          "path": "locks/slides-linux-x64.txt"
+        },
+        {
+          "id": "file-16",
+          "path": "locks/videodb-linux-x64.txt"
+        },
+        {
+          "id": "file-17",
+          "path": "media/fixture.jsx"
+        },
+        {
+          "id": "file-18",
+          "path": "media/package-lock.json"
+        },
+        {
+          "id": "file-19",
+          "path": "media/package.json"
+        },
+        {
+          "id": "file-20",
+          "path": "media/render.mjs"
+        },
+        {
+          "id": "file-21",
+          "path": "python-artifacts.json"
+        },
+        {
+          "id": "file-22",
+          "path": "requirements.json"
+        },
+        {
+          "id": "file-23",
+          "path": "workflow.mjs"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Companion file format only; native loading not observed."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "execution-algorithmic-art",
+          "support": "unknown",
+          "reason": "Browser p5.js template runtime; supplied template CDN version remains unchanged. Explicit browser/CDN network required; not a Node CLI or automatic installation. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "execution-mcp-evaluator",
+          "support": "unknown",
+          "reason": "API credentials and explicit paid invocation are separate. Stub fixture makes no model request. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "execution-skill-authoring",
+          "support": "unknown",
+          "reason": "Claude CLI/session required only by run_eval/run_loop; description improvement needs API credentials. Validation and report generation are offline. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "execution-evalview",
+          "support": "unknown",
+          "reason": "Optional separate backend; credentials/model invocation are never part of installation. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "execution-gif",
+          "support": "unknown",
+          "reason": "Pillow GIF fixture does not use FFmpeg; video conversion needs separately sourced FFmpeg 9.0.2 binary/codec distribution. imageio-ffmpeg bundled binary is not that candidate. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "execution-browser",
+          "support": "unknown",
+          "reason": "Playwright-managed Chromium build and OS libraries must be bound explicitly; Chrome for Testing 156.0.8078.47 is a separate explicit route. Windows arm64 Chrome for Testing blocked. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "execution-slides",
+          "support": "unknown",
+          "reason": "PPTX extraction and ReportLab PDF are separate from browser HTML export. HTML export needs Node 26.12.1 and Playwright 1.64.1/browser. Font files and licences need exact identities. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "execution-icons",
+          "support": "unknown",
+          "reason": "macOS only: Swift 6.4.1, AppKit/Foundation and exact SDK. iconify route also needs explicit backend/credentials; no native Linux fallback. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "execution-remotion",
+          "support": "unknown",
+          "reason": "Node 26.12.1; remotion and @remotion/google-fonts 4.0.539, React 19.3.1. Renderer/browser/font/FFmpeg 9.0.2 distributor closure unresolved. Do not silently use imageio bundled FFmpeg. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "execution-manim",
+          "support": "unknown",
+          "reason": "Cairo/Pango/LaTeX/fonts and FFmpeg 9.0.2 binary/codec closure unresolved; no host compilation. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "execution-videodb",
+          "support": "unknown",
+          "reason": "Service credentials, websocket and paid operations require explicit activation. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "execution-skill-comply",
+          "support": "unknown",
+          "reason": "pytest is optional test-only. Agent-running paths require explicit Claude client/session. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "execution-artifact-legacy",
+          "support": "unknown",
+          "reason": "Preserved upstream historical orchestration. Use separately delivered web-artifacts-builder-modern; never execute global pnpm install or floating Parcel path by default. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "execution-visual-companion",
+          "support": "unknown",
+          "reason": "Node 26.12.1 for helper/server; POSIX start/stop scripts require Bash and OS process tools. Explicit loopback/port and owned-process deadline; Windows wrapper unqualified. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "execution-graphviz",
+          "support": "unknown",
+          "reason": "Node 26.12.1 and Graphviz 16.1 dot with exact native package; rendering may invoke graph descriptions. Native package/font closure pending. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "execution-terminal",
+          "support": "unknown",
+          "reason": "Explicit WezTerm stable 20240203-110809-5046fc22; platform terminal alternatives need observed OS package and argv. PowerShell (powershell.exe) and pwsh are separate. X11 and Wayland are separate; no automatic launch. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "execution-wizard",
+          "support": "unknown",
+          "reason": "Bash and observed shell utility packages. gh 2.103.3 is optional only for selected GitHub operations; authentication/account actions remain explicit. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "execution-observer",
+          "support": "unknown",
+          "reason": "POSIX Bash process/pipe/flock/ps/kill/stat/date semantics require actual OS-package observations. Windows routes WSL-only until ported. Guardian activity heuristics do not prove safe idle detection. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "execution-node-utilities",
+          "support": "unknown",
+          "reason": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "execution-python-utilities",
+          "support": "unknown",
+          "reason": "Standard-library evaluator/gate/gacha; any optional external service remains caller-selected. No claim of semantic evaluation from heuristic output. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "execution-posix-utilities",
+          "support": "unknown",
+          "reason": "Bash/POSIX and actual installed utility capability/argv observations required; native Windows not qualified, WSL2 distinct. Never install or upgrade all host utilities. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "execution-client-plugins",
+          "support": "unknown",
+          "reason": "Client-owned Python/Node/TypeScript or cmd hook protocol. Actual host runtime, client loading, approvals and event bindings remain separately qualified. Exact artifact closure unresolved; byte delivery is not executable readiness."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Read SKILL.md and inspect workflow.mjs plan. Acquire exact isolated artifacts separately; no execution from material Apply."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "SKILL.md"
+      }
+    }
+  ]
+}
