@@ -20,6 +20,15 @@ for (const view of expected.views) {
   assert.equal(createHash("sha256").update(artifact).digest("hex"), view.baseline.artifact.sha256);
 }
 for (const exported of expected.unchangedExports) assert((await readInstalledRelease({ root, release: exported })).valid);
+// Frozen releases keep their recorded bytes and are admitted by that digest.
+const frozenExports = catalogContracts.releaseInventory.releases.filter(entry => entry.historical === true).map(entry => ({ export: entry.release, sha256: entry.sha256 }));
+assert.deepEqual(frozenExports, expected.frozenExports);
+for (const entry of frozenExports) {
+  assert(expected.unchangedExports.includes(entry.export) && !expected.views.some(view => view.export === entry.export), `Frozen release must be carried unchanged: ${entry.export}`);
+  const checked = await readInstalledRelease({ root, release: entry.export }); assert(checked.valid, JSON.stringify(checked));
+  assert.equal(createHash("sha256").update(readFileSync(join(root, manifest.exports[entry.export]))).digest("hex"), entry.sha256);
+  assert.equal(checked.provenance.manifestSha256, entry.sha256);
+}
 // Prepared content awaiting its baseline: carried, read by the content reader, inventory exact.
 const preparedContent = [];
 for (const entry of catalogContracts.preparedReleaseContent ?? []) {
@@ -29,4 +38,4 @@ for (const entry of catalogContracts.preparedReleaseContent ?? []) {
   assert.deepEqual(Buffer.from(inventory.bytes), readFileSync(join(root, entry.inventory)));
   preparedContent.push({ frameworkId: entry.frameworkId, sha256, inventorySha256: inventory.sha256 });
 }
-console.log(JSON.stringify({ releaseExports: expected.views.length + expected.unchangedExports.length, qualifiedViews: expected.views.length, preparedContent, inventoryAndArtifactBytes: "exact", ownInstalledPublicReader: true }));
+console.log(JSON.stringify({ releaseExports: expected.views.length + expected.unchangedExports.length, qualifiedViews: expected.views.length, frozenExports, preparedContent, inventoryAndArtifactBytes: "exact", ownInstalledPublicReader: true }));
