@@ -15,13 +15,14 @@ const { plan, packageRoot, verifyOnly } = JSON.parse(input), started = performan
 const sha = bytes => createHash("sha256").update(bytes).digest("hex");
 const same = (a, b) => assert.deepEqual(a, b);
 // Every declared release is classified here; an unclassified release refuses assembly.
-// Qualified: an ordinary release whose baseline slot release/baselines/<id>/ is free.
-const exportsById = { anthropic: "./release-anthropic.json" };
+// Qualified: an ordinary release whose baseline slot release/baselines/<id>/ is free, unless
+// the accepted assembly contract names it unchanged. New release preparation requires a baseline.
+const exportsById = { anthropic: "./release-anthropic.json", "web-artifacts": "./release-web-artifacts.json" };
 // Carried byte for byte, never requalified: the frozen default, admitted by its recorded
 // digest; earlier releases whose prepared release content holds their baseline slot; and
-// releases this assembly has never qualified.
+// the four documents the accepted assembly contract keeps unchanged.
 const carried = ["./release.json", "./release-extensions.json", "./release-ecc.json", "./release-superpowers.json",
-  "./release-1.1.json", "./release-native-fixture.json", "./release-native-bundles.json", "./release-guide.json", "./release-web-artifacts.json"];
+  "./release-1.1.json", "./release-native-fixture.json", "./release-native-bundles.json", "./release-guide.json"];
 // Prepared content awaiting its baseline is carried unchanged; it is not a qualified view.
 const prepared = catalogContracts.preparedReleaseContent ?? [];
 const closed = (value, required, optional = []) => {

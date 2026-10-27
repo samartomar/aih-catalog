@@ -216,9 +216,11 @@ in `releaseInventory`, carried unchanged, and with the prepared release content,
 checks the whole package, packs without lifecycle scripts, installs the exact
 tarball offline and reads every release export using the final installed public reader.
 
-The tool classifies every declared release and refuses an unclassified one. A release is
-qualified when assembly already qualified it and its baseline slot is free; only
-`anthropic` meets that. The others are carried byte for byte, never requalified:
+The tool classifies every declared release and refuses an unclassified one. An ordinary
+release is qualified when its baseline slot is free and this contract does not keep it
+unchanged: `anthropic`, and `web-artifacts`, a release added after new release preparation
+began requiring a baseline ([the transition](TRANSITION.md)). The others are carried byte
+for byte, never requalified:
 
 - The frozen default `release.json` is historical and admitted by its recorded digest
   ([the default release](DEFAULT-RELEASE.md)). Assembly checks its bytes against that
@@ -228,10 +230,8 @@ qualified when assembly already qualified it and its baseline slot is free; only
   content's frozen inventory, the one their next assessment must capture, so each
   earlier release stays unchanged and readable. Binding that baseline is the prepared
   content's own release work; assembly never qualifies prepared content.
-- `release-1.1.json`, `release-native-fixture.json`, `release-native-bundles.json`,
-  `release-guide.json` and `release-web-artifacts.json` were never assembly views and
-  keep their exact bytes. Whether `release-web-artifacts.json` should become a qualified
-  view is an open release decision, not one this tool makes.
+- `release-1.1.json`, `release-native-fixture.json`, `release-native-bundles.json` and
+  `release-guide.json` are the four documents assembly has always kept unchanged.
 It uses an explicitly selected, locked npm runtime containing public Catalog, Scan
 and Core packages. It performs no detector execution, signing, publication, trust
 change or native-client installation.
@@ -244,8 +244,9 @@ node tools/assemble-release-package.mjs --runtime /absolute/installed-runtime \
 ```
 
 Use absolute input paths in the version-1 maintainer plan. Supply exactly one row
-for the `anthropic` view. A `default` row, or a row for a framework whose prepared
-content holds its baseline slot, is refused with the reason before any package is written:
+each for the `anthropic` and `web-artifacts` views. A `default` row, or a row for a
+framework whose prepared content holds its baseline slot, is refused with the reason
+before any package is written:
 
 ```json
 {
@@ -264,12 +265,13 @@ content holds its baseline slot, is refused with the reason before any package i
 }
 ```
 
-The tool rejects unknown fields, duplicate/missing views, altered inputs, unreadable or
+The abbreviated example needs the `web-artifacts` row before it is executable. The
+tool rejects unknown fields, duplicate/missing views, altered inputs, unreadable or
 mismatched assessments and failed authentication. It derives each baseline from
-the checked original bytes and supplied exact scope. Conflicting bytes at a shared package
-path refuse with that path. `expectedReleaseSha256`
-checks reproducible reuse of an already-qualified view, such as a dependency whose
-final identity was needed before preparing downstream content. Qualify that
+the checked original bytes and supplied exact scope. Conflicting bytes at a shared
+package path refuse with that path. `expectedReleaseSha256` checks reproducible reuse
+of an already-qualified view, such as a dependency whose final identity was needed
+before preparing downstream content. Qualify that
 dependency first through the existing per-view baseline gate; assembly does not
 infer or replace a dependency pin.
 

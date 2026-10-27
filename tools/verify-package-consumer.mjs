@@ -15,14 +15,14 @@ const fixture = JSON.parse(run(["--input-type=module", "--eval", readFileSync(ne
 const planPath = fixture.plan, candidate = join(out, "candidate"), tool = join(root, "tools/assemble-release-package.mjs");
 const args = (plan = planPath, destination = candidate) => [tool, "--runtime", runtime, "--plan", plan, "--out", destination];
 const first = JSON.parse(run(args())), receipt = JSON.parse(readFileSync(first.receipt));
-// One ordinary view is qualified; every other declared release, including the frozen
+// Two ordinary views are qualified; every other declared release, including the frozen
 // default and the releases whose prepared content holds their baseline slot, is carried
 // unchanged, and the frozen default keeps its recorded bytes.
 const declared = JSON.parse(run(["--input-type=module", "--eval", 'import * as contracts from "@aihq/catalog/contracts"; console.log(JSON.stringify({ releases: contracts.releaseInventory.releases, frozen: contracts.FROZEN_DEFAULT_RELEASE_SHA256 }));'], runtime));
-assert.deepEqual(receipt.views.map(view => view.id), ["anthropic"]);
+assert.deepEqual(receipt.views.map(view => view.id).sort(), ["anthropic", "web-artifacts"]);
 assert.deepEqual([...receipt.views.map(view => view.export), ...receipt.unchangedExports].sort(), declared.releases.map(entry => entry.release).sort());
 assert(receipt.unchangedExports.includes("./release.json")); assert.deepEqual(receipt.frozenExports, [{ export: "./release.json", sha256: declared.frozen }]);
-assert.equal(receipt.installedReadback.releaseExports, declared.releases.length); assert.equal(receipt.installedReadback.qualifiedViews, 1);
+assert.equal(receipt.installedReadback.releaseExports, declared.releases.length); assert.equal(receipt.installedReadback.qualifiedViews, 2);
 assert.deepEqual(receipt.installedReadback.frozenExports, receipt.frozenExports); assert.equal(receipt.installedReadback.ownInstalledPublicReader, true);
 const frozenCandidate = readFileSync(join(candidate, "package/release/release.json"));
 assert.deepEqual(frozenCandidate, readFileSync(join(runtime, "node_modules/@aihq/catalog/release/release.json"))); assert.equal(createHash("sha256").update(frozenCandidate).digest("hex"), declared.frozen);
