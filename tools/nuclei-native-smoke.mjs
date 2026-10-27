@@ -1,4 +1,5 @@
-// Owned synthetic native acceptance. Run only under the reviewed Catalog #65 scope.
+// Owned synthetic native acceptance. Requires separately authorized exact execution.
+// Historical mode retains Catalog #65; candidate mode binds the selected metadata and Docker version.
 // No installation, public target, security-setting changes, retries or report deletion.
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
@@ -26,13 +27,25 @@ assert(/^(127\.|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.)/.test(cfg.bindAddr
 assert.equal(cfg.port, 30883); assert.equal(cfg.target, 'http://host.docker.internal:30883/');
 const endpoint = process.platform === 'linux' ? 'unix:///var/run/docker.sock' : 'npipe:////./pipe/docker_engine';
 assert.equal(cfg.daemon, endpoint);
-const image = 'projectdiscovery/nuclei@sha256:9fd705284ac4b5f721fa1e23bf366f26e985cd4ec65927fe9a53cb3fcb0417a6';
+let candidate;
+if (cfg.candidate) {
+ assert.equal(sha(readFileSync(cfg.candidate)), cfg.candidateSha256, 'Candidate metadata changed');
+ candidate = JSON.parse(readFileSync(cfg.candidate));
+ assert.equal(candidate.nucleiVersion, '3.11.1'); assert.equal(candidate.dockerVersion, '29.9.2');
+ assert.equal(candidate.image.os, 'linux'); assert.equal(candidate.image.architecture, 'amd64');
+}
+const image = candidate?.image.reference ?? 'projectdiscovery/nuclei@sha256:9fd705284ac4b5f721fa1e23bf366f26e985cd4ec65927fe9a53cb3fcb0417a6';
+assert(/^projectdiscovery\/nuclei@sha256:[a-f0-9]{64}$/.test(image), 'Exact candidate image required');
 const docker = args => {
  const remaining = deadline - Date.now(); assert(remaining > 0, 'Original platform deadline expired');
  return execFileSync(cfg.dockerCli, ['--host', endpoint, '--config', cfg.dockerConfig, ...args], { encoding: 'utf8', timeout: Math.min(15000, remaining), maxBuffer: 1 << 20, windowsHide: true });
 };
 const version = JSON.parse(docker(['version', '--format', '{{json .}}']));
 assert.equal(version.Client.Os, process.platform === 'win32' ? 'windows' : 'linux');
+if (candidate) {
+ assert.equal(version.Client.Version, candidate.dockerVersion, 'Exact Docker client prerequisite');
+ assert.equal(version.Server.Version, candidate.dockerVersion, 'Exact Docker daemon prerequisite');
+}
 assert.equal(version.Server.Os, 'linux'); assert.equal(version.Server.Arch, 'amd64');
 if (process.platform === 'win32') {
  assert(!process.env.WSL_DISTRO_NAME, 'Native Windows only');
@@ -46,6 +59,7 @@ const root = resolve(cfg.output); assert(!existsSync(root), 'Never reuse a platf
 const ledgerFile = join(root, 'ledger.json');
 const ledger = { platform: process.platform, architecture: process.arch, hostname: hostname(), node: process.version,
  catalog: { sha256: cfg.catalogSha256, byteLength: readFileSync(cfg.catalog).length }, core: { sha256: cfg.coreSha256, byteLength: readFileSync(cfg.core).length },
+ candidate: candidate ? { metadataSha256: cfg.candidateSha256, nucleiVersion: candidate.nucleiVersion, dockerVersion: candidate.dockerVersion } : undefined,
  daemon: endpoint, dockerVersion: version, image, imageId: inspect[0].Id, bindAddress: cfg.bindAddress, port: cfg.port,
  windowStarted: new Date(started).toISOString(), windowDeadline: new Date(deadline).toISOString(), starts: [], status: 'preparing', realDocker: true, realNuclei: true, enterprise: 'actual-Core-admission:simulated-GitHub-transport:no-live-org' };
 const save = () => writeFileSync(ledgerFile, JSON.stringify(ledger, null, 2) + '\n'); save();
@@ -92,6 +106,17 @@ const base = { platform: process.platform, helper, target: cfg.target, allowHost
  containerUser: process.platform === 'linux' ? `${process.getuid()}:${process.getgid()}` : '1000:1000',
  daemon: endpoint, dockerCli: cfg.dockerCli, image, cpus: 1, memoryMiB: 512, pids: 128, rateLimit: 2,
  toolTimeoutSeconds: 30, cleanupTimeoutSeconds: 10, timeoutMs: 90000, maxReportBytes: 16777216 };
+// Refuse executable capabilities before any assessment/container start.
+const unsupported = join(root, 'unsupported.yaml');
+writeFileSync(unsupported, 'id: refused-code\ninfo:\n  name: Refused code\n  author: fixture\n  severity: info\ncode:\n  - engine: [sh]\n    source: echo forbidden\n');
+const refusedOutput = join(root, 'unsupported-preparation');
+const refusalPolicy = authorPreparationPolicy({ platform: process.platform, helper, output: refusedOutput,
+ official: [], custom: [{ source: unsupported, path: 'custom/refused.yaml' }], timeoutMs: 90000 });
+const refusalPlan = await ready(refusalPolicy, 'unsupported-template');
+const refused = await apply(refusalPlan.prepared, approve(refusalPlan), controls);
+writeFileSync(join(root, 'unsupported-template-apply.json'), JSON.stringify(refused, null, 2));
+assert.equal(refused.completion, 'incomplete'); assert(!existsSync(join(refusedOutput, 'templates.tar.gz')));
+ledger.unsupportedTemplateRefused = true; save();
 const snapshots = [];
 for (const scenario of ['finding', 'zero', 'cancel']) {
  assert(Date.now() < deadline - 120000, 'Original platform window exhausted during preparation');
