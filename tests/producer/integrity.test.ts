@@ -134,7 +134,7 @@ describe("whole-candidate integrity", () => {
         operation.format,
         operation.target.segments.map((segment) => segment.literal).join("/"),
       ]);
-    expect(codexTargets).toHaveLength(32);
+    expect(codexTargets).toHaveLength(34);
     expect(new Set(codexTargets.map((target) => target.join(" ")))).toEqual(
       new Set(["toml .codex/config.toml"]),
     );

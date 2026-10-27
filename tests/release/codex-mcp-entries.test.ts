@@ -207,8 +207,8 @@ describe("pinned ECC servers", () => {
     .filter(([id]) => id.startsWith("ecc.claude.mcp."))
     .map(([id, fact]) => ({ id, ...fact }));
 
-  it("covers all 35 offered Claude servers", () => {
-    expect(facts).toHaveLength(35);
+  it("covers all 37 offered Claude servers", () => {
+    expect(facts).toHaveLength(37);
   });
 
   it("refuses every raw upstream server that carries a display description", () => {
@@ -225,7 +225,7 @@ describe("pinned ECC servers", () => {
     }
   });
 
-  it("splits the offered servers into 32 translatable and 3 excluded for ${...} in args", () => {
+  it("splits the offered servers into 34 translatable and 3 excluded for ${...} in args", () => {
     const outcome = facts.map((fact) => ({
       key: fact.sourceKey as string,
       result: translateCodexMcpServer(fact.sourceKey as string, fact.offeredServer),
@@ -242,23 +242,21 @@ describe("pinned ECC servers", () => {
         reason: expect.stringContaining("args-placeholder"),
       });
     }
-    expect(outcome.filter((row) => row.result.supported)).toHaveLength(32);
+    expect(outcome.filter((row) => row.result.supported)).toHaveLength(34);
   });
 
   it("translates representative servers exactly", () => {
     const entriesOf = (key: string) =>
       supported(key, facts.find((fact) => fact.sourceKey === key)?.offeredServer).entries;
     expect(entriesOf("github")).toEqual([
-      set(["mcp_servers", "github", "command"], "npx"),
-      set(["mcp_servers", "github", "args"], ["-y", "@modelcontextprotocol/server-github"]),
-      set(["mcp_servers", "github", "env_vars"], ["GITHUB_PERSONAL_ACCESS_TOKEN"]),
+      set(["mcp_servers", "github", "url"], "https://api.githubcopilot.com/mcp/readonly"),
     ]);
     expect(entriesOf("memxus")).toEqual([
       set(["mcp_servers", "memxus", "url"], "https://mcp.memxus.com/mcp"),
       set(["mcp_servers", "memxus", "bearer_token_env_var"], "MEMXUS_API_KEY"),
     ]);
     expect(entriesOf("browser-use")).toEqual([
-      set(["mcp_servers", "browser-use", "url"], "https://api.browser-use.com/mcp"),
+      set(["mcp_servers", "browser-use", "url"], "https://api.browser-use.com/v3/mcp"),
       set(
         ["mcp_servers", "browser-use", "env_http_headers", "x-browser-use-api-key"],
         "BROWSER_USE_KEY",

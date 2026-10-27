@@ -159,7 +159,7 @@ describe("Catalog Codex MCP recipes", () => {
     }));
 
   it("register servers through TOML config.entries on the Codex user configuration without a refusal", () => {
-    expect(recipes).toHaveLength(32);
+    expect(recipes).toHaveLength(34);
     for (const { recipe } of recipes) {
       const register = recipe.operations.find((operation) => operation.id === "register-server");
       expect(register).toMatchObject({
@@ -180,6 +180,6 @@ describe("Catalog Codex MCP recipes", () => {
         ),
       },
     }));
-    expect(codexConfigBlockProblems(swapped)).toHaveLength(32);
+    expect(codexConfigBlockProblems(swapped)).toHaveLength(34);
   });
 });
