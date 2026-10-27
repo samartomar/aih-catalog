@@ -36,7 +36,7 @@ def inspect(root, data):
             if not path.is_absolute() or not path.resolve().is_relative_to(root):
                 raise ValueError("CRG native File marker does not identify the requested root")
         if metadata.get("build_state") != "complete":
-            return {"freshness": "partial", "build_state": metadata.get("build_state", "unknown")}
+            return {"freshness": "partial", "readiness": False, "build_state": metadata.get("build_state", "unknown")}
         changed = [filename for filename, digest in files.items()
                    if not Path(filename).is_file() or Path(filename).is_symlink()
                    or hashlib.sha256(Path(filename).read_bytes()).hexdigest() != digest]
@@ -51,7 +51,8 @@ def inspect(root, data):
                 "built_at_commit": metadata.get("git_head_sha"), "changed": changed[:50],
                 "missing": missing[:50], "extra": extra[:50],
                 "mismatch_count": len(changed) + len(missing) + len(extra),
-                "parse_coverage": "unknown; native fixture qualification required"}
+                "parse_coverage": "unknown; native fixture qualification required",
+                "readiness": False, "qualification": "pending native import/parser/index fixture"}
 
 
 if __name__ == "__main__":

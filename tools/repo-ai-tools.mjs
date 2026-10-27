@@ -460,7 +460,7 @@ function codebaseMemoryStatus() {
   if (status.status !== "ready") throw new Error("CBM native index status is not ready");
   if (status.watch?.watched !== false || status.watch?.reason !== "watcher_disabled")
     throw new Error("CBM effective daemon watcher is not proven disabled; coordinate with its owner, never stop it here");
-  return { project: status.project, native: status, freshness: "unverified", qualification: "pending isolated-account manual query/hash fixture" };
+  return { project: status.project, native: status, freshness: "unverified", readiness: false, qualification: "pending isolated-account manual query/hash fixture" };
 }
 
 function launch(name, args, env) {
@@ -505,7 +505,7 @@ function doctor() {
       statuses[name] = codebaseMemoryStatus();
     } else statuses[name] = verifyOtherHelper(name);
   }
-  const ok = Object.values(statuses).every((status) => status.freshness === "current" || status.freshness === "not-applicable");
+  const ok = Object.values(statuses).every((status) => (status.readiness === true && status.freshness === "current") || status.freshness === "not-applicable");
   if (!ok) process.exitCode = 1;
   // Reporting a usable launch projection does not qualify a graph or native session.
   process.stdout.write(`${JSON.stringify({ ok, repository: repoRoot, statuses }, null, 2)}\n`);
@@ -559,7 +559,7 @@ function main() {
   else if (command === "token-savior-mcp") launch("token-savior", [], { ...localToolEnv(), TOKEN_SAVIOR_PROFILE: "optimized", TOKEN_SAVIOR_EXCLUDE_PATTERNS: ".token-savior-cache.json", TS_CAPTURE_DISABLED: "1", TS_MEMORY_DISABLE: "1", WORKSPACE_ROOTS: repoRoot });
   else if (command === "code-review-graph-mcp") {
     const status = graphStatus();
-    if (status.freshness !== "current") throw new Error(`CRG freshness is ${status.freshness}; explicit fixture qualification/rebuild required`);
+    if (status.freshness !== "current" || status.readiness !== true) throw new Error(`CRG freshness is ${status.freshness}, readiness unqualified; explicit native fixture qualification required`);
     const child = spawn(graphPython(), ["-c", "from code_review_graph.cli import main; main()", "serve", "--repo", repoRoot, "--tools", codeReviewGraphEnabledTools.join(",")], { cwd: repoRoot, env: codeReviewGraphEnv(), stdio: "inherit", windowsHide: true });
     child.on("error", fail);
     child.on("exit", (code) => { process.exitCode = code ?? 1; });

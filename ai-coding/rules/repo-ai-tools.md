@@ -26,7 +26,9 @@ the lock is not interpreter-artifact or native qualification. A separately
 approved manual build is required before graph use. `doctor-codex --tool
 code-review-graph` reads schema 13, complete-build metadata, HEAD, native File
 hashes and native file discovery; it refuses conflicting native registry storage.
-It opens SQLite read-only rather than invoking a migrating GraphStore. Stale or
+It opens SQLite read-only rather than invoking a migrating GraphStore. Readiness
+and MCP launch remain blocked while native partial-parse qualification is unknown,
+even when the narrower HEAD/hash observation is current. Stale or
 partial graphs require an explicit repair with compatible snapshot/rebuild
 custody. Hash freshness does not prove complete parsing or executed test coverage.
 The six projected tools are read tools; automatic watching and embeddings are off.
