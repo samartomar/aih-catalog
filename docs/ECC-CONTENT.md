@@ -7,7 +7,9 @@ release bytes and saved selection pins remain unchanged. When preparing baseline
 qualified releases, qualify Extensions first, then explicitly rebind new ECC and
 Superpowers templates to that exact release before freezing, assessing and
 qualifying their downstream inventories. A new upstream release digest does not
-silently rewrite an existing template or saved selection.
+silently rewrite an existing template or saved selection. The order applies to binding
+the prepared release 1.7.0 content; [complete package assembly](SCAN-BASELINE.md#assemble-the-complete-local-package)
+carries the earlier Extensions, ECC and Superpowers releases unchanged.
 
 `@aihq/catalog/release-ecc.json` is a separately selected, unpublished local
 Catalog release. It preserves `affaan-m/ECC` at
