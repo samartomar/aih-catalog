@@ -42925,14 +42925,14 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Runtime executable nexus and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Local cost/privacy proxy - query your own usage & savings, route to the cheapest capable model, and mask secrets/PII before egress (nexus_stats, nexus_savings, nexus_recent, nexus_providers, nexus_cost_breakdown) Native MCP execution is separate."
+          "reason": "Unverified provider identity: bare nexus mcp configuration is preserved, but authoritative provider/package/release and command contract are unresolved. No lookalike package or runnable support claim."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Runtime executable nexus and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Local cost/privacy proxy - query your own usage & savings, route to the cheapest capable model, and mask secrets/PII before egress (nexus_stats, nexus_savings, nexus_recent, nexus_providers, nexus_cost_breakdown) Native MCP execution is separate."
+          "instructions": "Unverified provider identity: bare nexus mcp configuration is preserved, but authoritative provider/package/release and command contract are unresolved. No lookalike package or runnable support claim."
         }
       ],
       "configuration": {},
@@ -42993,14 +42993,14 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Host process environment must provide ITO_MCP_ENTRYPOINT. Runtime executable node and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Opt-in local Itô compute MCP. The canonical package is unpublished and must be built from Ito-Markets/ito-cloud-runtime/cli/ito-compute-cli. Exposes ito_auth, ito_find, ito_status, and ito_accept. ito_auth validates existing credentials; it does not start device login. Use ecc ito login [--no-browser] for device authorization, which stores tokens in macOS Keychain by default; explicit file fallback must retain owner-only settings. ECC itself performs no browser automation. ITO_API_KEY is forwarded directly to auth, find, status, and accept when configured; ITO_AUTH_MODE=legacy is not required. Native MCP execution is separate."
+          "reason": "Unverified host-owned entrypoint: ITO_MCP_ENTRYPOINT must name the actual separately built unpublished runtime with verified bytes. No managed acquisition or default activation is offered."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Host process environment must provide ITO_MCP_ENTRYPOINT. Runtime executable node and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Opt-in local Itô compute MCP. The canonical package is unpublished and must be built from Ito-Markets/ito-cloud-runtime/cli/ito-compute-cli. Exposes ito_auth, ito_find, ito_status, and ito_accept. ito_auth validates existing credentials; it does not start device login. Use ecc ito login [--no-browser] for device authorization, which stores tokens in macOS Keychain by default; explicit file fallback must retain owner-only settings. ECC itself performs no browser automation. ITO_API_KEY is forwarded directly to auth, find, status, and accept when configured; ITO_AUTH_MODE=legacy is not required. Native MCP execution is separate."
+          "instructions": "Unverified host-owned entrypoint: ITO_MCP_ENTRYPOINT must name the actual separately built unpublished runtime with verified bytes. No managed acquisition or default activation is offered."
         }
       ],
       "configuration": {},
@@ -43061,14 +43061,14 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Host process environment must provide JIRA_URL, JIRA_EMAIL, JIRA_API_TOKEN. Runtime executable uvx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Jira issue tracking — search, create, update, comment, transition issues Native MCP execution is separate."
+          "reason": "Catalog adaptation: isolated Python environment, exact server dependency closure, no uvx or shared environment. Jira URL/email/token retain their original account scope. Prepared hashed wheel-only locks are metadata projections, not installed environments. Exact Python 3.14.10 interpreter artifact, native wheels/import/stdio and platform qualification remain unqualified/unverified; missing artifact cells stay blocked. Preprovision the reviewed isolated environment with pip --require-hashes --only-binary=:all: against the matching lock; never compile, substitute MCP 2, ingest source or use a shared environment. AIHQ_MCP_JIRA_ROOT must equal the selected interpreter's venv prefix. Per-server approval and service authentication remain separate."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Host process environment must provide JIRA_URL, JIRA_EMAIL, JIRA_API_TOKEN. Runtime executable uvx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Jira issue tracking — search, create, update, comment, transition issues Native MCP execution is separate."
+          "instructions": "Catalog adaptation: isolated Python environment, exact server dependency closure, no uvx or shared environment. Jira URL/email/token retain their original account scope. Prepared hashed wheel-only locks are metadata projections, not installed environments. Exact Python 3.14.10 interpreter artifact, native wheels/import/stdio and platform qualification remain unqualified/unverified; missing artifact cells stay blocked. Preprovision the reviewed isolated environment with pip --require-hashes --only-binary=:all: against the matching lock; never compile, substitute MCP 2, ingest source or use a shared environment. AIHQ_MCP_JIRA_ROOT must equal the selected interpreter's venv prefix. Per-server approval and service authentication remain separate."
         }
       ],
       "configuration": {},
@@ -43129,14 +43129,82 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Host process environment must provide GITHUB_PERSONAL_ACCESS_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. GitHub operations - PRs, issues, repos Native MCP execution is separate."
+          "reason": "Catalog adaptation: official hosted GitHub MCP read-only route, authenticated by the client's separate OAuth flow; no binary/server pin for the hosted service. The default read-only toolset is explicitly requested; account grants and one-server approval remain separate. The selectable github-local alternative uses exact official 2.0.3 platform artifacts and a host-provided PAT. Configuration does not login, grant permissions, call tools or write repositories."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Host process environment must provide GITHUB_PERSONAL_ACCESS_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. GitHub operations - PRs, issues, repos Native MCP execution is separate."
+          "instructions": "Catalog adaptation: official hosted GitHub MCP read-only route, authenticated by the client's separate OAuth flow; no binary/server pin for the hosted service. The default read-only toolset is explicitly requested; account grants and one-server approval remain separate. The selectable github-local alternative uses exact official 2.0.3 platform artifacts and a host-provided PAT. Configuration does not login, grant permissions, call tools or write repositories."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "claude-mcp-registration",
+        "path": "mcp-configs/mcp-servers.json",
+        "key": "github"
+      }
+    },
+    {
+      "id": "ecc.claude.mcp.github-local",
+      "source": "ecc",
+      "label": "ecc.claude.mcp.github-local",
+      "description": "",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.claude.mcp.github-local.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact project recipe; native invocation unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets claude-code paths/configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets claude-code paths/configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Official GitHub MCP 2.0.3 local alternative. Preprovision the exact platform archive identified by the delivered artifact manifest; binary extraction, installed version/digest and native usability remain unqualified. PAT permissions and one-server approval are separate; repos/issues/pull_requests are read-only. No build, login or repository operation occurs at install."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "instructions": "Official GitHub MCP 2.0.3 local alternative. Preprovision the exact platform archive identified by the delivered artifact manifest; binary extraction, installed version/digest and native usability remain unqualified. PAT permissions and one-server approval are separate; repos/issues/pull_requests are read-only. No build, login or repository operation occurs at install."
         }
       ],
       "configuration": {},
@@ -43197,17 +43265,40 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Host process environment must provide FIRECRAWL_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Web scraping and crawling Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_FIRECRAWL_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_FIRECRAWL_ROOT, FIRECRAWL_API_KEY. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Host process environment must provide FIRECRAWL_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Web scraping and crawling Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_FIRECRAWL_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_FIRECRAWL_ROOT, FIRECRAWL_API_KEY. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",
@@ -43265,17 +43356,40 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Host process environment must provide SUPABASE_PROJECT_REF. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Supabase database operations Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_SUPABASE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_SUPABASE_ROOT, SUPABASE_ACCESS_TOKEN, SUPABASE_PROJECT_REF. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Host process environment must provide SUPABASE_PROJECT_REF. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Supabase database operations Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_SUPABASE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_SUPABASE_ROOT, SUPABASE_ACCESS_TOKEN, SUPABASE_PROJECT_REF. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",
@@ -43401,17 +43515,40 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Persistent memory across sessions Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_MEMORY_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_MEMORY_ROOT, MEMORY_FILE_PATH. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Persistent memory across sessions Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_MEMORY_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_MEMORY_ROOT, MEMORY_FILE_PATH. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",
@@ -43469,14 +43606,14 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Runtime executable uvx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Persistent agent memory with semantic search, multi-agent coordination, and knowledge graphs — run via uvx (richer than the basic memory store) Native MCP execution is separate."
+          "reason": "Catalog adaptation: isolated Python environment, exact server dependency closure, no uvx or shared environment. The [server] extra includes onnxruntime; OMEGA_HOME must name an explicit persistent store. Prepared hashed wheel-only locks are metadata projections, not installed environments. Exact Python 3.14.10 interpreter artifact, native wheels/import/stdio and platform qualification remain unqualified/unverified; missing artifact cells stay blocked. Preprovision the reviewed isolated environment with pip --require-hashes --only-binary=:all: against the matching lock; never compile, substitute MCP 2, ingest source or use a shared environment. AIHQ_MCP_OMEGA_ROOT must equal the selected interpreter's venv prefix. Per-server approval and service authentication remain separate."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Runtime executable uvx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Persistent agent memory with semantic search, multi-agent coordination, and knowledge graphs — run via uvx (richer than the basic memory store) Native MCP execution is separate."
+          "instructions": "Catalog adaptation: isolated Python environment, exact server dependency closure, no uvx or shared environment. The [server] extra includes onnxruntime; OMEGA_HOME must name an explicit persistent store. Prepared hashed wheel-only locks are metadata projections, not installed environments. Exact Python 3.14.10 interpreter artifact, native wheels/import/stdio and platform qualification remain unqualified/unverified; missing artifact cells stay blocked. Preprovision the reviewed isolated environment with pip --require-hashes --only-binary=:all: against the matching lock; never compile, substitute MCP 2, ingest source or use a shared environment. AIHQ_MCP_OMEGA_ROOT must equal the selected interpreter's venv prefix. Per-server approval and service authentication remain separate."
         }
       ],
       "configuration": {},
@@ -43537,14 +43674,14 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Runtime executable longhand and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Lossless Claude Code session history — indexes raw tool calls, file edits, and thinking blocks from ~/.claude/projects/*.jsonl into local SQLite + ChromaDB before Claude Code rotates them. Complements memory/omega-memory (synthesized) with verbatim recall. Install: pip install longhand && longhand setup Native MCP execution is separate."
+          "reason": "Unverified provider: Longhand 1.2.3 is beta and has no accepted default activation policy. Source configuration only; explicit beta acceptance and consent for session ingestion/hooks are required before activation."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Runtime executable longhand and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Lossless Claude Code session history — indexes raw tool calls, file edits, and thinking blocks from ~/.claude/projects/*.jsonl into local SQLite + ChromaDB before Claude Code rotates them. Complements memory/omega-memory (synthesized) with verbatim recall. Install: pip install longhand && longhand setup Native MCP execution is separate."
+          "instructions": "Unverified provider: Longhand 1.2.3 is beta and has no accepted default activation policy. Source configuration only; explicit beta acceptance and consent for session ingestion/hooks are required before activation."
         }
       ],
       "configuration": {},
@@ -43605,17 +43742,40 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Chain-of-thought reasoning Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_SEQUENTIAL_THINKING_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_SEQUENTIAL_THINKING_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Chain-of-thought reasoning Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_SEQUENTIAL_THINKING_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_SEQUENTIAL_THINKING_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",
@@ -43673,14 +43833,14 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Vercel deployments and projects Native MCP execution is separate."
+          "reason": "Documented Vercel project/deployment service via Streamable HTTP OAuth, available on all plans. No global setup helper, credentials or service operations run at installation; native/service scope remains unverified."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Vercel deployments and projects Native MCP execution is separate."
+          "instructions": "Documented Vercel project/deployment service via Streamable HTTP OAuth, available on all plans. No global setup helper, credentials or service operations run at installation; native/service scope remains unverified."
         }
       ],
       "configuration": {},
@@ -43741,14 +43901,105 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Railway deployments Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_RAILWAY_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_RAILWAY_ROOT. The native railway 5.71.0 binary must be preprovisioned from the delivered archive/member/SHA256 manifest; missing or different native bytes refuse before wrapper startup. No automatic download or lifecycle script is allowed. Place it at node_modules/@railway/cli/bin/railway(.exe) after acquisition; npm ci removes it on retry. 'mcp' proxies the hosted service; 'mcp local' is a distinct unselected operation. Archive/binary bytes are pinned; native OS/runtime and authentication remain unqualified. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Railway deployments Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_RAILWAY_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_RAILWAY_ROOT. The native railway 5.71.0 binary must be preprovisioned from the delivered archive/member/SHA256 manifest; missing or different native bytes refuse before wrapper startup. No automatic download or lifecycle script is allowed. Place it at node_modules/@railway/cli/bin/railway(.exe) after acquisition; npm ci removes it on retry. 'mcp' proxies the hosted service; 'mcp local' is a distinct unselected operation. Archive/binary bytes are pinned; native OS/runtime and authentication remain unqualified. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
+        }
+      ],
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
+      "sourceDiscovery": {
+        "profile": "claude-mcp-registration",
+        "path": "mcp-configs/mcp-servers.json",
+        "key": "railway"
+      }
+    },
+    {
+      "id": "ecc.claude.mcp.railway-hosted",
+      "source": "ecc",
+      "label": "ecc.claude.mcp.railway-hosted",
+      "description": "",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.claude.mcp.railway-hosted.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact project recipe; native invocation unobserved."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets claude-code paths/configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets claude-code paths/configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Official Railway hosted OAuth alternative. No local CLI or fictitious backend version is required. The client performs separately authorized OAuth and one-server approval. The railway choice is the 5.71.0 CLI proxy using 'mcp'; 'mcp local' is a distinct in-process operation and is not selected. No deployment, login or service mutation occurs at installation."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "instructions": "Official Railway hosted OAuth alternative. No local CLI or fictitious backend version is required. The client performs separately authorized OAuth and one-server approval. The railway choice is the 5.71.0 CLI proxy using 'mcp'; 'mcp local' is a distinct in-process operation and is not selected. No deployment, login or service mutation occurs at installation."
         }
       ],
       "configuration": {},
@@ -44081,14 +44332,14 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. ClickHouse analytics queries Native MCP execution is separate."
+          "reason": "Documented hosted ClickHouse Streamable HTTP OAuth service, read-only. No local package/backend version is asserted; account authorization and actual read-only tool scope remain unverified."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. ClickHouse analytics queries Native MCP execution is separate."
+          "instructions": "Documented hosted ClickHouse Streamable HTTP OAuth service, read-only. No local package/backend version is asserted; account authorization and actual read-only tool scope remain unverified."
         }
       ],
       "configuration": {},
@@ -44149,17 +44400,40 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Host process environment must provide EXA_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Web search, research, and data ingestion via Exa API — prefer task-scoped use for broader research after GitHub search and primary docs Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_EXA_WEB_SEARCH_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_EXA_WEB_SEARCH_ROOT, EXA_API_KEY. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Host process environment must provide EXA_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Web search, research, and data ingestion via Exa API — prefer task-scoped use for broader research after GitHub search and primary docs Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_EXA_WEB_SEARCH_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_EXA_WEB_SEARCH_ROOT, EXA_API_KEY. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",
@@ -44217,14 +44491,14 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Parallel Web Search — LLM-optimized web_search and web_fetch tools that take an objective + queries and return citation-backed excerpts in a single call (replaces multiple keyword searches). Works key-free for anonymous use. For higher rate limits, add a headers block: { \"Authorization\": \"Bearer YOUR_PARALLEL_API_KEY_HERE\" } using a key from platform.parallel.ai. Native MCP execution is separate."
+          "reason": "Catalog adaptation: anonymous limited-access Streamable HTTP endpoint. An optional account/key for higher limits is a separate service choice. No backend binary version is asserted. Configuration delivery is not approval, authentication or native service qualification."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Parallel Web Search — LLM-optimized web_search and web_fetch tools that take an objective + queries and return citation-backed excerpts in a single call (replaces multiple keyword searches). Works key-free for anonymous use. For higher rate limits, add a headers block: { \"Authorization\": \"Bearer YOUR_PARALLEL_API_KEY_HERE\" } using a key from platform.parallel.ai. Native MCP execution is separate."
+          "instructions": "Catalog adaptation: anonymous limited-access Streamable HTTP endpoint. An optional account/key for higher limits is a separate service choice. No backend binary version is asserted. Configuration delivery is not approval, authentication or native service qualification."
         }
       ],
       "configuration": {},
@@ -44285,17 +44559,40 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Live documentation lookup — use with /docs command and documentation-lookup skill (resolve-library-id, query-docs). Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_CONTEXT7_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_CONTEXT7_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Live documentation lookup — use with /docs command and documentation-lookup skill (resolve-library-id, query-docs). Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_CONTEXT7_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_CONTEXT7_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",
@@ -44353,17 +44650,40 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Host process environment must provide CS_ACCESS_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Optional. CodeScene Code Health MCP (community skill: codehealth-mcp). Not enabled by default — copy only if you opt in. Requires your own CS_ACCESS_TOKEN (no bundled credentials). See skills/codehealth-mcp/SKILL.md for data boundaries and failure behavior. Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_CODESCENE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_CODESCENE_ROOT, CS_ACCESS_TOKEN, CS_MCP_BINARY_PATH. The native codescene 1.5.13 binary must be preprovisioned from the delivered archive/member/SHA256 manifest; missing or different native bytes refuse before wrapper startup. No automatic download or lifecycle script is allowed. CS_MCP_BINARY_PATH names that exact binary; Windows arm64 has no selected artifact. Archive/binary bytes are pinned; native OS/runtime and authentication remain unqualified. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Host process environment must provide CS_ACCESS_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Optional. CodeScene Code Health MCP (community skill: codehealth-mcp). Not enabled by default — copy only if you opt in. Requires your own CS_ACCESS_TOKEN (no bundled credentials). See skills/codehealth-mcp/SKILL.md for data boundaries and failure behavior. Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_CODESCENE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_CODESCENE_ROOT, CS_ACCESS_TOKEN, CS_MCP_BINARY_PATH. The native codescene 1.5.13 binary must be preprovisioned from the delivered archive/member/SHA256 manifest; missing or different native bytes refuse before wrapper startup. No automatic download or lifecycle script is allowed. CS_MCP_BINARY_PATH names that exact binary; Windows arm64 has no selected artifact. Archive/binary bytes are pinned; native OS/runtime and authentication remain unqualified. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",
@@ -44421,17 +44741,40 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Magic UI components Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_MAGIC_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_MAGIC_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Magic UI components Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_MAGIC_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_MAGIC_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",
@@ -44489,14 +44832,14 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Host process environment must provide MEMXUS_API_KEY. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Universal persistent memory across Claude Code, Cursor, Gemini CLI and any AI tool — save context once, auto-recalled in every session. Note: review stored memories before use in production agents to avoid prompt-injection via memory-poisoning. Free at memxus.com Native MCP execution is separate."
+          "reason": "Unverified raw MCP path/token contract: retain source configuration and host environment references. Needs authoritative client configuration and separately authorized authentication/handshake; no session ingestion or ready claim."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Host process environment must provide MEMXUS_API_KEY. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Universal persistent memory across Claude Code, Cursor, Gemini CLI and any AI tool — save context once, auto-recalled in every session. Note: review stored memories before use in production agents to avoid prompt-injection via memory-poisoning. Free at memxus.com Native MCP execution is separate."
+          "instructions": "Unverified raw MCP path/token contract: retain source configuration and host environment references. Needs authoritative client configuration and separately authorized authentication/handshake; no session ingestion or ready claim."
         }
       ],
       "configuration": {},
@@ -44557,17 +44900,40 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Host process environment must provide ECC_FILESYSTEM_ROOT. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Filesystem operations (set your path) Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_FILESYSTEM_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_FILESYSTEM_ROOT, ECC_FILESYSTEM_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Host process environment must provide ECC_FILESYSTEM_ROOT. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Filesystem operations (set your path) Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_FILESYSTEM_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_FILESYSTEM_ROOT, ECC_FILESYSTEM_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",
@@ -44625,17 +44991,40 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Browser automation and testing via Playwright Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_PLAYWRIGHT_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_PLAYWRIGHT_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Actual Chrome 156.0.8078.47/browser OS dependencies require separate qualification. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Browser automation and testing via Playwright Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_PLAYWRIGHT_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_PLAYWRIGHT_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Actual Chrome 156.0.8078.47/browser OS dependencies require separate qualification. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",
@@ -44693,17 +45082,40 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Host process environment must provide FAL_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. AI image/video/audio generation via fal.ai models Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_FAL_AI_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_FAL_AI_ROOT, FAL_KEY. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Host process environment must provide FAL_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. AI image/video/audio generation via fal.ai models Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_FAL_AI_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_FAL_AI_ROOT, FAL_KEY. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",
@@ -44761,17 +45173,40 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Host process environment must provide BROWSERBASE_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Cloud browser sessions via Browserbase Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_BROWSERBASE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_BROWSERBASE_ROOT, BROWSERBASE_API_KEY, BROWSERBASE_PROJECT_ID, GEMINI_API_KEY. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Host process environment must provide BROWSERBASE_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Cloud browser sessions via Browserbase Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_BROWSERBASE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_BROWSERBASE_ROOT, BROWSERBASE_API_KEY, BROWSERBASE_PROJECT_ID, GEMINI_API_KEY. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",
@@ -44829,14 +45264,14 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Host process environment must provide BROWSER_USE_KEY. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. AI browser agent for web tasks Native MCP execution is separate."
+          "reason": "Catalog adaptation: documented v3 Streamable HTTP endpoint; BROWSER_USE_KEY is required. Browser sessions and paid calls require separate authorization. The older endpoint is not declared retired. Configuration delivery is not approval, authentication or native service qualification."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Host process environment must provide BROWSER_USE_KEY. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. AI browser agent for web tasks Native MCP execution is separate."
+          "instructions": "Catalog adaptation: documented v3 Streamable HTTP endpoint; BROWSER_USE_KEY is required. Browser sessions and paid calls require separate authorization. The older endpoint is not declared retired. Configuration delivery is not approval, authentication or native service qualification."
         }
       ],
       "configuration": {},
@@ -44897,14 +45332,14 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Multi-agent orchestration — dispatch parallel Claude Code agents in isolated worktrees. Plan projects, auto-chain missions, read structured reports. Repo: https://github.com/LEC-AI/claude-devfleet Native MCP execution is separate."
+          "reason": "Unverified provider/daemon ownership and endpoint contract: localhost configuration is retained as source evidence only. No daemon installation, ingestion or activation is offered."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Multi-agent orchestration — dispatch parallel Claude Code agents in isolated worktrees. Plan projects, auto-chain missions, read structured reports. Repo: https://github.com/LEC-AI/claude-devfleet Native MCP execution is separate."
+          "instructions": "Unverified provider/daemon ownership and endpoint contract: localhost configuration is retained as source evidence only. No daemon installation, ingestion or activation is offered."
         }
       ],
       "configuration": {},
@@ -44964,15 +45399,15 @@
           "client": "claude-code",
           "surface": "project",
           "capability": "native-execution",
-          "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Token optimization for 95%+ context reduction via content deduplication and compression Native MCP execution is separate."
+          "support": "unsupported",
+          "reason": "Unsupported provider: token-optimizer-mcp 2.17.0 is not a maintained runnable baseline. Source configuration is retained as unverified bytes only. Needs a maintained supported successor or explicit retirement decision; no managed acquisition or activation."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Token optimization for 95%+ context reduction via content deduplication and compression Native MCP execution is separate."
+          "instructions": "Unsupported provider: token-optimizer-mcp 2.17.0 is not a maintained runnable baseline. Source configuration is retained as unverified bytes only. Needs a maintained supported successor or explicit retirement decision; no managed acquisition or activation."
         }
       ],
       "configuration": {},
@@ -45033,14 +45468,14 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Laravel plugin discovery — search packages by keyword, health score, Laravel/PHP version compatibility. Use with laravel-plugin-discovery skill. Native MCP execution is separate."
+          "reason": "Documented anonymous Laraplugins plugin search/details Streamable HTTP endpoint; no key/account prerequisite. Service availability and tools schema remain unverified."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Laravel plugin discovery — search packages by keyword, health score, Laravel/PHP version compatibility. Use with laravel-plugin-discovery skill. Native MCP execution is separate."
+          "instructions": "Documented anonymous Laraplugins plugin search/details Streamable HTTP endpoint; no key/account prerequisite. Service availability and tools schema remain unverified."
         }
       ],
       "configuration": {},
@@ -45101,17 +45536,40 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Host process environment must provide CONFLUENCE_BASE_URL, CONFLUENCE_EMAIL, CONFLUENCE_API_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Confluence Cloud integration — search pages, retrieve content, explore spaces Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_CONFLUENCE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_CONFLUENCE_ROOT, CONFLUENCE_API_TOKEN, CONFLUENCE_BASE_URL, CONFLUENCE_EMAIL. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Host process environment must provide CONFLUENCE_BASE_URL, CONFLUENCE_EMAIL, CONFLUENCE_API_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Confluence Cloud integration — search pages, retrieve content, explore spaces Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_CONFLUENCE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_CONFLUENCE_ROOT, CONFLUENCE_API_TOKEN, CONFLUENCE_BASE_URL, CONFLUENCE_EMAIL. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",
@@ -45236,18 +45694,41 @@
           "client": "claude-code",
           "surface": "project",
           "capability": "native-execution",
-          "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Local-first persistent memory runtime for AI agents — MCP server for Claude Code, Cursor, OpenCode, Codex, Cline. Auto-captures context across sessions. 1-20ms recall, 283KB, no second LLM needed. Runs locally with SQLite. Supports cloud sync via Stripe checkout ($9-$99/mo). GitHub: https://github.com/michielhdoteth/squish | Docs: https://squishplugin.dev | (also available via local `squish run mcp`) Native MCP execution is separate."
+          "support": "unsupported",
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_SQUISH_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_SQUISH_ROOT. Blocked on Node 26: locked better-sqlite3 12.9.0 excludes Node 26; do not compile or override. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Local-first persistent memory runtime for AI agents — MCP server for Claude Code, Cursor, OpenCode, Codex, Cline. Auto-captures context across sessions. 1-20ms recall, 283KB, no second LLM needed. Runs locally with SQLite. Supports cloud sync via Stripe checkout ($9-$99/mo). GitHub: https://github.com/michielhdoteth/squish | Docs: https://squishplugin.dev | (also available via local `squish run mcp`) Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_SQUISH_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_SQUISH_ROOT. Blocked on Node 26: locked better-sqlite3 12.9.0 excludes Node 26; do not compile or override. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",
@@ -45308,14 +45789,14 @@
           "surface": "user",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Runtime executable nexus and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Local cost/privacy proxy - query your own usage & savings, route to the cheapest capable model, and mask secrets/PII before egress (nexus_stats, nexus_savings, nexus_recent, nexus_providers, nexus_cost_breakdown) Native MCP execution is separate."
+          "reason": "Unverified provider identity: bare nexus mcp configuration is preserved, but authoritative provider/package/release and command contract are unresolved. No lookalike package or runnable support claim."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Runtime executable nexus and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Local cost/privacy proxy - query your own usage & savings, route to the cheapest capable model, and mask secrets/PII before egress (nexus_stats, nexus_savings, nexus_recent, nexus_providers, nexus_cost_breakdown) Native MCP execution is separate."
+          "instructions": "Unverified provider identity: bare nexus mcp configuration is preserved, but authoritative provider/package/release and command contract are unresolved. No lookalike package or runnable support claim."
         }
       ],
       "configuration": {},
@@ -45379,14 +45860,14 @@
           "surface": "user",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Host process environment must provide JIRA_URL, JIRA_EMAIL, JIRA_API_TOKEN. Runtime executable uvx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Jira issue tracking — search, create, update, comment, transition issues Native MCP execution is separate."
+          "reason": "Catalog adaptation: isolated Python environment, exact server dependency closure, no uvx or shared environment. Jira URL/email/token retain their original account scope. Prepared hashed wheel-only locks are metadata projections, not installed environments. Exact Python 3.14.10 interpreter artifact, native wheels/import/stdio and platform qualification remain unqualified/unverified; missing artifact cells stay blocked. Preprovision the reviewed isolated environment with pip --require-hashes --only-binary=:all: against the matching lock; never compile, substitute MCP 2, ingest source or use a shared environment. AIHQ_MCP_JIRA_ROOT must equal the selected interpreter's venv prefix. Per-server approval and service authentication remain separate."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Host process environment must provide JIRA_URL, JIRA_EMAIL, JIRA_API_TOKEN. Runtime executable uvx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Jira issue tracking — search, create, update, comment, transition issues Native MCP execution is separate."
+          "instructions": "Catalog adaptation: isolated Python environment, exact server dependency closure, no uvx or shared environment. Jira URL/email/token retain their original account scope. Prepared hashed wheel-only locks are metadata projections, not installed environments. Exact Python 3.14.10 interpreter artifact, native wheels/import/stdio and platform qualification remain unqualified/unverified; missing artifact cells stay blocked. Preprovision the reviewed isolated environment with pip --require-hashes --only-binary=:all: against the matching lock; never compile, substitute MCP 2, ingest source or use a shared environment. AIHQ_MCP_JIRA_ROOT must equal the selected interpreter's venv prefix. Per-server approval and service authentication remain separate."
         }
       ],
       "configuration": {},
@@ -45450,14 +45931,85 @@
           "surface": "user",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Host process environment must provide GITHUB_PERSONAL_ACCESS_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. GitHub operations - PRs, issues, repos Native MCP execution is separate."
+          "reason": "Catalog adaptation: official hosted GitHub MCP read-only route, authenticated by the client's separate OAuth flow; no binary/server pin for the hosted service. The default read-only toolset is explicitly requested; account grants and one-server approval remain separate. The selectable github-local alternative uses exact official 2.0.3 platform artifacts and a host-provided PAT. Configuration does not login, grant permissions, call tools or write repositories."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Host process environment must provide GITHUB_PERSONAL_ACCESS_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. GitHub operations - PRs, issues, repos Native MCP execution is separate."
+          "instructions": "Catalog adaptation: official hosted GitHub MCP read-only route, authenticated by the client's separate OAuth flow; no binary/server pin for the hosted service. The default read-only toolset is explicitly requested; account grants and one-server approval remain separate. The selectable github-local alternative uses exact official 2.0.3 platform artifacts and a host-provided PAT. Configuration does not login, grant permissions, call tools or write repositories."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "claude-mcp-registration",
+        "path": "mcp-configs/mcp-servers.json",
+        "key": "github"
+      }
+    },
+    {
+      "id": "ecc.codex.mcp.github-local",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.github-local",
+      "description": "",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.github-local.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Official GitHub MCP 2.0.3 local alternative. Preprovision the exact platform archive identified by the delivered artifact manifest; binary extraction, installed version/digest and native usability remain unqualified. PAT permissions and one-server approval are separate; repos/issues/pull_requests are read-only. No build, login or repository operation occurs at install."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Official GitHub MCP 2.0.3 local alternative. Preprovision the exact platform archive identified by the delivered artifact manifest; binary extraction, installed version/digest and native usability remain unqualified. PAT permissions and one-server approval are separate; repos/issues/pull_requests are read-only. No build, login or repository operation occurs at install."
         }
       ],
       "configuration": {},
@@ -45521,17 +46073,40 @@
           "surface": "user",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Host process environment must provide FIRECRAWL_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Web scraping and crawling Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_FIRECRAWL_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_FIRECRAWL_ROOT, FIRECRAWL_API_KEY. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Host process environment must provide FIRECRAWL_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Web scraping and crawling Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_FIRECRAWL_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_FIRECRAWL_ROOT, FIRECRAWL_API_KEY. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",
@@ -45663,17 +46238,40 @@
           "surface": "user",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Persistent memory across sessions Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_MEMORY_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_MEMORY_ROOT, MEMORY_FILE_PATH. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Persistent memory across sessions Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_MEMORY_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_MEMORY_ROOT, MEMORY_FILE_PATH. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",
@@ -45734,14 +46332,14 @@
           "surface": "user",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Runtime executable uvx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Persistent agent memory with semantic search, multi-agent coordination, and knowledge graphs — run via uvx (richer than the basic memory store) Native MCP execution is separate."
+          "reason": "Catalog adaptation: isolated Python environment, exact server dependency closure, no uvx or shared environment. The [server] extra includes onnxruntime; OMEGA_HOME must name an explicit persistent store. Prepared hashed wheel-only locks are metadata projections, not installed environments. Exact Python 3.14.10 interpreter artifact, native wheels/import/stdio and platform qualification remain unqualified/unverified; missing artifact cells stay blocked. Preprovision the reviewed isolated environment with pip --require-hashes --only-binary=:all: against the matching lock; never compile, substitute MCP 2, ingest source or use a shared environment. AIHQ_MCP_OMEGA_ROOT must equal the selected interpreter's venv prefix. Per-server approval and service authentication remain separate."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Runtime executable uvx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Persistent agent memory with semantic search, multi-agent coordination, and knowledge graphs — run via uvx (richer than the basic memory store) Native MCP execution is separate."
+          "instructions": "Catalog adaptation: isolated Python environment, exact server dependency closure, no uvx or shared environment. The [server] extra includes onnxruntime; OMEGA_HOME must name an explicit persistent store. Prepared hashed wheel-only locks are metadata projections, not installed environments. Exact Python 3.14.10 interpreter artifact, native wheels/import/stdio and platform qualification remain unqualified/unverified; missing artifact cells stay blocked. Preprovision the reviewed isolated environment with pip --require-hashes --only-binary=:all: against the matching lock; never compile, substitute MCP 2, ingest source or use a shared environment. AIHQ_MCP_OMEGA_ROOT must equal the selected interpreter's venv prefix. Per-server approval and service authentication remain separate."
         }
       ],
       "configuration": {},
@@ -45805,14 +46403,14 @@
           "surface": "user",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Runtime executable longhand and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Lossless Claude Code session history — indexes raw tool calls, file edits, and thinking blocks from ~/.claude/projects/*.jsonl into local SQLite + ChromaDB before Claude Code rotates them. Complements memory/omega-memory (synthesized) with verbatim recall. Install: pip install longhand && longhand setup Native MCP execution is separate."
+          "reason": "Unverified provider: Longhand 1.2.3 is beta and has no accepted default activation policy. Source configuration only; explicit beta acceptance and consent for session ingestion/hooks are required before activation."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Runtime executable longhand and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Lossless Claude Code session history — indexes raw tool calls, file edits, and thinking blocks from ~/.claude/projects/*.jsonl into local SQLite + ChromaDB before Claude Code rotates them. Complements memory/omega-memory (synthesized) with verbatim recall. Install: pip install longhand && longhand setup Native MCP execution is separate."
+          "instructions": "Unverified provider: Longhand 1.2.3 is beta and has no accepted default activation policy. Source configuration only; explicit beta acceptance and consent for session ingestion/hooks are required before activation."
         }
       ],
       "configuration": {},
@@ -45876,17 +46474,40 @@
           "surface": "user",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Chain-of-thought reasoning Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_SEQUENTIAL_THINKING_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_SEQUENTIAL_THINKING_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Chain-of-thought reasoning Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_SEQUENTIAL_THINKING_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_SEQUENTIAL_THINKING_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",
@@ -45947,14 +46568,14 @@
           "surface": "user",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Vercel deployments and projects Native MCP execution is separate."
+          "reason": "Documented Vercel project/deployment service via Streamable HTTP OAuth, available on all plans. No global setup helper, credentials or service operations run at installation; native/service scope remains unverified."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Vercel deployments and projects Native MCP execution is separate."
+          "instructions": "Documented Vercel project/deployment service via Streamable HTTP OAuth, available on all plans. No global setup helper, credentials or service operations run at installation; native/service scope remains unverified."
         }
       ],
       "configuration": {},
@@ -46018,14 +46639,108 @@
           "surface": "user",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Railway deployments Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_RAILWAY_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_RAILWAY_ROOT. The native railway 5.71.0 binary must be preprovisioned from the delivered archive/member/SHA256 manifest; missing or different native bytes refuse before wrapper startup. No automatic download or lifecycle script is allowed. Place it at node_modules/@railway/cli/bin/railway(.exe) after acquisition; npm ci removes it on retry. 'mcp' proxies the hosted service; 'mcp local' is a distinct unselected operation. Archive/binary bytes are pinned; native OS/runtime and authentication remain unqualified. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Railway deployments Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_RAILWAY_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_RAILWAY_ROOT. The native railway 5.71.0 binary must be preprovisioned from the delivered archive/member/SHA256 manifest; missing or different native bytes refuse before wrapper startup. No automatic download or lifecycle script is allowed. Place it at node_modules/@railway/cli/bin/railway(.exe) after acquisition; npm ci removes it on retry. 'mcp' proxies the hosted service; 'mcp local' is a distinct unselected operation. Archive/binary bytes are pinned; native OS/runtime and authentication remain unqualified. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
+        }
+      ],
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
+      "sourceDiscovery": {
+        "profile": "claude-mcp-registration",
+        "path": "mcp-configs/mcp-servers.json",
+        "key": "railway"
+      }
+    },
+    {
+      "id": "ecc.codex.mcp.railway-hosted",
+      "source": "ecc",
+      "label": "ecc.codex.mcp.railway-hosted",
+      "description": "",
+      "kind": "mcp",
+      "recipePath": "catalog-recipes/ecc.codex.mcp.railway-hosted.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "mcp-configs/mcp-servers.json"
+        },
+        {
+          "id": "asset-1",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "mcp-configuration",
+          "support": "supported",
+          "reason": "Exact user recipe for the Codex user configuration; native invocation unobserved."
+        },
+        {
+          "client": "claude-code",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "project",
+          "capability": "mcp-configuration",
+          "support": "unsupported",
+          "reason": "This item targets the Codex user configuration; no translated native mechanism is offered."
+        },
+        {
+          "client": "codex",
+          "surface": "user",
+          "capability": "native-execution",
+          "support": "unknown",
+          "reason": "Official Railway hosted OAuth alternative. No local CLI or fictitious backend version is required. The client performs separately authorized OAuth and one-server approval. The railway choice is the 5.71.0 CLI proxy using 'mcp'; 'mcp local' is a distinct in-process operation and is not selected. No deployment, login or service mutation occurs at installation."
+        }
+      ],
+      "activation": [
+        {
+          "client": "codex",
+          "surface": "user",
+          "instructions": "Official Railway hosted OAuth alternative. No local CLI or fictitious backend version is required. The client performs separately authorized OAuth and one-server approval. The railway choice is the 5.71.0 CLI proxy using 'mcp'; 'mcp local' is a distinct in-process operation and is not selected. No deployment, login or service mutation occurs at installation."
         }
       ],
       "configuration": {},
@@ -46373,14 +47088,14 @@
           "surface": "user",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. ClickHouse analytics queries Native MCP execution is separate."
+          "reason": "Documented hosted ClickHouse Streamable HTTP OAuth service, read-only. No local package/backend version is asserted; account authorization and actual read-only tool scope remain unverified."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. ClickHouse analytics queries Native MCP execution is separate."
+          "instructions": "Documented hosted ClickHouse Streamable HTTP OAuth service, read-only. No local package/backend version is asserted; account authorization and actual read-only tool scope remain unverified."
         }
       ],
       "configuration": {},
@@ -46444,17 +47159,40 @@
           "surface": "user",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Host process environment must provide EXA_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Web search, research, and data ingestion via Exa API — prefer task-scoped use for broader research after GitHub search and primary docs Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_EXA_WEB_SEARCH_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_EXA_WEB_SEARCH_ROOT, EXA_API_KEY. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Host process environment must provide EXA_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Web search, research, and data ingestion via Exa API — prefer task-scoped use for broader research after GitHub search and primary docs Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_EXA_WEB_SEARCH_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_EXA_WEB_SEARCH_ROOT, EXA_API_KEY. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",
@@ -46515,14 +47253,14 @@
           "surface": "user",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Parallel Web Search — LLM-optimized web_search and web_fetch tools that take an objective + queries and return citation-backed excerpts in a single call (replaces multiple keyword searches). Works key-free for anonymous use. For higher rate limits, add a headers block: { \"Authorization\": \"Bearer YOUR_PARALLEL_API_KEY_HERE\" } using a key from platform.parallel.ai. Native MCP execution is separate."
+          "reason": "Catalog adaptation: anonymous limited-access Streamable HTTP endpoint. An optional account/key for higher limits is a separate service choice. No backend binary version is asserted. Configuration delivery is not approval, authentication or native service qualification."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Parallel Web Search — LLM-optimized web_search and web_fetch tools that take an objective + queries and return citation-backed excerpts in a single call (replaces multiple keyword searches). Works key-free for anonymous use. For higher rate limits, add a headers block: { \"Authorization\": \"Bearer YOUR_PARALLEL_API_KEY_HERE\" } using a key from platform.parallel.ai. Native MCP execution is separate."
+          "instructions": "Catalog adaptation: anonymous limited-access Streamable HTTP endpoint. An optional account/key for higher limits is a separate service choice. No backend binary version is asserted. Configuration delivery is not approval, authentication or native service qualification."
         }
       ],
       "configuration": {},
@@ -46586,17 +47324,40 @@
           "surface": "user",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Live documentation lookup — use with /docs command and documentation-lookup skill (resolve-library-id, query-docs). Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_CONTEXT7_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_CONTEXT7_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Live documentation lookup — use with /docs command and documentation-lookup skill (resolve-library-id, query-docs). Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_CONTEXT7_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_CONTEXT7_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",
@@ -46657,17 +47418,40 @@
           "surface": "user",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Host process environment must provide CS_ACCESS_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Optional. CodeScene Code Health MCP (community skill: codehealth-mcp). Not enabled by default — copy only if you opt in. Requires your own CS_ACCESS_TOKEN (no bundled credentials). See skills/codehealth-mcp/SKILL.md for data boundaries and failure behavior. Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_CODESCENE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_CODESCENE_ROOT, CS_ACCESS_TOKEN, CS_MCP_BINARY_PATH. The native codescene 1.5.13 binary must be preprovisioned from the delivered archive/member/SHA256 manifest; missing or different native bytes refuse before wrapper startup. No automatic download or lifecycle script is allowed. CS_MCP_BINARY_PATH names that exact binary; Windows arm64 has no selected artifact. Archive/binary bytes are pinned; native OS/runtime and authentication remain unqualified. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Host process environment must provide CS_ACCESS_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Optional. CodeScene Code Health MCP (community skill: codehealth-mcp). Not enabled by default — copy only if you opt in. Requires your own CS_ACCESS_TOKEN (no bundled credentials). See skills/codehealth-mcp/SKILL.md for data boundaries and failure behavior. Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_CODESCENE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_CODESCENE_ROOT, CS_ACCESS_TOKEN, CS_MCP_BINARY_PATH. The native codescene 1.5.13 binary must be preprovisioned from the delivered archive/member/SHA256 manifest; missing or different native bytes refuse before wrapper startup. No automatic download or lifecycle script is allowed. CS_MCP_BINARY_PATH names that exact binary; Windows arm64 has no selected artifact. Archive/binary bytes are pinned; native OS/runtime and authentication remain unqualified. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",
@@ -46728,17 +47512,40 @@
           "surface": "user",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Magic UI components Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_MAGIC_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_MAGIC_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Magic UI components Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_MAGIC_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_MAGIC_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",
@@ -46799,14 +47606,14 @@
           "surface": "user",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Host process environment must provide MEMXUS_API_KEY. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Universal persistent memory across Claude Code, Cursor, Gemini CLI and any AI tool — save context once, auto-recalled in every session. Note: review stored memories before use in production agents to avoid prompt-injection via memory-poisoning. Free at memxus.com Native MCP execution is separate."
+          "reason": "Unverified raw MCP path/token contract: retain source configuration and host environment references. Needs authoritative client configuration and separately authorized authentication/handshake; no session ingestion or ready claim."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Host process environment must provide MEMXUS_API_KEY. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Universal persistent memory across Claude Code, Cursor, Gemini CLI and any AI tool — save context once, auto-recalled in every session. Note: review stored memories before use in production agents to avoid prompt-injection via memory-poisoning. Free at memxus.com Native MCP execution is separate."
+          "instructions": "Unverified raw MCP path/token contract: retain source configuration and host environment references. Needs authoritative client configuration and separately authorized authentication/handshake; no session ingestion or ready claim."
         }
       ],
       "configuration": {},
@@ -46870,17 +47677,40 @@
           "surface": "user",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Browser automation and testing via Playwright Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_PLAYWRIGHT_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_PLAYWRIGHT_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Actual Chrome 156.0.8078.47/browser OS dependencies require separate qualification. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Browser automation and testing via Playwright Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_PLAYWRIGHT_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_PLAYWRIGHT_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Actual Chrome 156.0.8078.47/browser OS dependencies require separate qualification. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",
@@ -46941,17 +47771,40 @@
           "surface": "user",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Host process environment must provide FAL_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. AI image/video/audio generation via fal.ai models Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_FAL_AI_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_FAL_AI_ROOT, FAL_KEY. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Host process environment must provide FAL_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. AI image/video/audio generation via fal.ai models Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_FAL_AI_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_FAL_AI_ROOT, FAL_KEY. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",
@@ -47012,17 +47865,40 @@
           "surface": "user",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Host process environment must provide BROWSERBASE_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Cloud browser sessions via Browserbase Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_BROWSERBASE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_BROWSERBASE_ROOT, BROWSERBASE_API_KEY, BROWSERBASE_PROJECT_ID, GEMINI_API_KEY. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Host process environment must provide BROWSERBASE_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Cloud browser sessions via Browserbase Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_BROWSERBASE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_BROWSERBASE_ROOT, BROWSERBASE_API_KEY, BROWSERBASE_PROJECT_ID, GEMINI_API_KEY. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",
@@ -47083,14 +47959,14 @@
           "surface": "user",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Host process environment must provide BROWSER_USE_KEY. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. AI browser agent for web tasks Native MCP execution is separate."
+          "reason": "Catalog adaptation: documented v3 Streamable HTTP endpoint; BROWSER_USE_KEY is required. Browser sessions and paid calls require separate authorization. The older endpoint is not declared retired. Configuration delivery is not approval, authentication or native service qualification."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Host process environment must provide BROWSER_USE_KEY. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. AI browser agent for web tasks Native MCP execution is separate."
+          "instructions": "Catalog adaptation: documented v3 Streamable HTTP endpoint; BROWSER_USE_KEY is required. Browser sessions and paid calls require separate authorization. The older endpoint is not declared retired. Configuration delivery is not approval, authentication or native service qualification."
         }
       ],
       "configuration": {},
@@ -47154,14 +48030,14 @@
           "surface": "user",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Multi-agent orchestration — dispatch parallel Claude Code agents in isolated worktrees. Plan projects, auto-chain missions, read structured reports. Repo: https://github.com/LEC-AI/claude-devfleet Native MCP execution is separate."
+          "reason": "Unverified provider/daemon ownership and endpoint contract: localhost configuration is retained as source evidence only. No daemon installation, ingestion or activation is offered."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Multi-agent orchestration — dispatch parallel Claude Code agents in isolated worktrees. Plan projects, auto-chain missions, read structured reports. Repo: https://github.com/LEC-AI/claude-devfleet Native MCP execution is separate."
+          "instructions": "Unverified provider/daemon ownership and endpoint contract: localhost configuration is retained as source evidence only. No daemon installation, ingestion or activation is offered."
         }
       ],
       "configuration": {},
@@ -47224,15 +48100,15 @@
           "client": "codex",
           "surface": "user",
           "capability": "native-execution",
-          "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Token optimization for 95%+ context reduction via content deduplication and compression Native MCP execution is separate."
+          "support": "unsupported",
+          "reason": "Unsupported provider: token-optimizer-mcp 2.17.0 is not a maintained runnable baseline. Source configuration is retained as unverified bytes only. Needs a maintained supported successor or explicit retirement decision; no managed acquisition or activation."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Token optimization for 95%+ context reduction via content deduplication and compression Native MCP execution is separate."
+          "instructions": "Unsupported provider: token-optimizer-mcp 2.17.0 is not a maintained runnable baseline. Source configuration is retained as unverified bytes only. Needs a maintained supported successor or explicit retirement decision; no managed acquisition or activation."
         }
       ],
       "configuration": {},
@@ -47296,14 +48172,14 @@
           "surface": "user",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Laravel plugin discovery — search packages by keyword, health score, Laravel/PHP version compatibility. Use with laravel-plugin-discovery skill. Native MCP execution is separate."
+          "reason": "Documented anonymous Laraplugins plugin search/details Streamable HTTP endpoint; no key/account prerequisite. Service availability and tools schema remain unverified."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Laravel plugin discovery — search packages by keyword, health score, Laravel/PHP version compatibility. Use with laravel-plugin-discovery skill. Native MCP execution is separate."
+          "instructions": "Documented anonymous Laraplugins plugin search/details Streamable HTTP endpoint; no key/account prerequisite. Service availability and tools schema remain unverified."
         }
       ],
       "configuration": {},
@@ -47367,17 +48243,40 @@
           "surface": "user",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Host process environment must provide CONFLUENCE_BASE_URL, CONFLUENCE_EMAIL, CONFLUENCE_API_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Confluence Cloud integration — search pages, retrieve content, explore spaces Native MCP execution is separate."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_CONFLUENCE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_CONFLUENCE_ROOT, CONFLUENCE_API_TOKEN, CONFLUENCE_BASE_URL, CONFLUENCE_EMAIL. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Host process environment must provide CONFLUENCE_BASE_URL, CONFLUENCE_EMAIL, CONFLUENCE_API_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Confluence Cloud integration — search pages, retrieve content, explore spaces Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_CONFLUENCE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_CONFLUENCE_ROOT, CONFLUENCE_API_TOKEN, CONFLUENCE_BASE_URL, CONFLUENCE_EMAIL. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",
@@ -47508,18 +48407,41 @@
           "client": "codex",
           "surface": "user",
           "capability": "native-execution",
-          "support": "unknown",
-          "reason": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Local-first persistent memory runtime for AI agents — MCP server for Claude Code, Cursor, OpenCode, Codex, Cline. Auto-captures context across sessions. 1-20ms recall, 283KB, no second LLM needed. Runs locally with SQLite. Supports cloud sync via Stripe checkout ($9-$99/mo). GitHub: https://github.com/michielhdoteth/squish | Docs: https://squishplugin.dev | (also available via local `squish run mcp`) Native MCP execution is separate."
+          "support": "unsupported",
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_SQUISH_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_SQUISH_ROOT. Blocked on Node 26: locked better-sqlite3 12.9.0 excludes Node 26; do not compile or override. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "codex",
           "surface": "user",
-          "instructions": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Local-first persistent memory runtime for AI agents — MCP server for Claude Code, Cursor, OpenCode, Codex, Cline. Auto-captures context across sessions. 1-20ms recall, 283KB, no second LLM needed. Runs locally with SQLite. Supports cloud sync via Stripe checkout ($9-$99/mo). GitHub: https://github.com/michielhdoteth/squish | Docs: https://squishplugin.dev | (also available via local `squish run mcp`) Native MCP execution is separate."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_SQUISH_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_SQUISH_ROOT. Blocked on Node 26: locked better-sqlite3 12.9.0 excludes Node 26; do not compile or override. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
-      "configuration": {},
+      "configuration": {
+        "npmCli": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to the separately acquired npm 12.2.1 npm-cli.js; never inferred from Node's bundled npm."
+        },
+        "npmCache": {
+          "type": "string",
+          "required": true,
+          "minLength": 1,
+          "description": "Absolute path to a caller-owned isolated integrity-verified npm cache."
+        },
+        "acquisitionMode": {
+          "type": "string",
+          "required": false,
+          "default": "--offline",
+          "enum": [
+            "--offline",
+            "--online"
+          ],
+          "description": "Offline retry by default; online acquisition is an explicit reviewed network choice."
+        }
+      },
       "sourceDiscovery": {
         "profile": "claude-mcp-registration",
         "path": "mcp-configs/mcp-servers.json",

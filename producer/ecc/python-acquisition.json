@@ -1,0 +1,154 @@
+{
+  "scope": "metadata projection only; no interpreter downloaded, environment installed, imports or native qualification",
+  "providers": {
+    "jira": {
+      "package": "mcp-atlassian",
+      "version": "0.23.1"
+    },
+    "omega": {
+      "package": "omega-memory[server]",
+      "version": "1.5.20"
+    }
+  },
+  "targets": [
+    {
+      "provider": "jira",
+      "target": "x86_64-unknown-linux-gnu",
+      "python": "3.14.10",
+      "mcp": "1.30.0",
+      "uv": "0.13.5",
+      "projection": "wheel-only-metadata",
+      "interpreter": "unqualified",
+      "native": "unverified",
+      "lock": "producer/ecc/acquisition/jira/x86_64-unknown-linux-gnu.txt",
+      "sha256": "03f6bf4ab28d9f9675b080b43bd804437b13b8120910b2cb7f7e9add7fe8e328"
+    },
+    {
+      "provider": "jira",
+      "target": "aarch64-unknown-linux-gnu",
+      "python": "3.14.10",
+      "mcp": "1.30.0",
+      "uv": "0.13.5",
+      "projection": "wheel-only-metadata",
+      "interpreter": "unqualified",
+      "native": "unverified",
+      "lock": "producer/ecc/acquisition/jira/aarch64-unknown-linux-gnu.txt",
+      "sha256": "03f6bf4ab28d9f9675b080b43bd804437b13b8120910b2cb7f7e9add7fe8e328"
+    },
+    {
+      "provider": "jira",
+      "target": "aarch64-apple-darwin",
+      "python": "3.14.10",
+      "mcp": "1.30.0",
+      "uv": "0.13.5",
+      "projection": "wheel-only-metadata",
+      "interpreter": "unqualified",
+      "native": "unverified",
+      "lock": "producer/ecc/acquisition/jira/aarch64-apple-darwin.txt",
+      "sha256": "03f6bf4ab28d9f9675b080b43bd804437b13b8120910b2cb7f7e9add7fe8e328"
+    },
+    {
+      "provider": "jira",
+      "target": "x86_64-apple-darwin",
+      "python": "3.14.10",
+      "mcp": "1.30.0",
+      "uv": "0.13.5",
+      "projection": "blocked",
+      "interpreter": "unqualified",
+      "native": "unverified",
+      "reason": "cryptography 50.0.2 has no usable wheel for the projected target."
+    },
+    {
+      "provider": "jira",
+      "target": "x86_64-pc-windows-msvc",
+      "python": "3.14.10",
+      "mcp": "1.30.0",
+      "uv": "0.13.5",
+      "projection": "wheel-only-metadata",
+      "interpreter": "unqualified",
+      "native": "unverified",
+      "lock": "producer/ecc/acquisition/jira/x86_64-pc-windows-msvc.txt",
+      "sha256": "3d23d8bcbf02b55221825056dc823192f1e6a66b33dc0cf0d5cde81531a5aafe"
+    },
+    {
+      "provider": "jira",
+      "target": "aarch64-pc-windows-msvc",
+      "python": "3.14.10",
+      "mcp": "1.30.0",
+      "uv": "0.13.5",
+      "projection": "blocked",
+      "interpreter": "unqualified",
+      "native": "unverified",
+      "reason": "cryptography 50.0.2 has no usable wheel for the projected target."
+    },
+    {
+      "provider": "omega",
+      "target": "x86_64-unknown-linux-gnu",
+      "python": "3.14.10",
+      "mcp": "1.30.0",
+      "uv": "0.13.5",
+      "projection": "wheel-only-metadata",
+      "interpreter": "unqualified",
+      "native": "unverified",
+      "lock": "producer/ecc/acquisition/omega/x86_64-unknown-linux-gnu.txt",
+      "sha256": "555fd8253991e3f07ba89d8290695e5566bad590042907bbc2365cf900bffc22"
+    },
+    {
+      "provider": "omega",
+      "target": "aarch64-unknown-linux-gnu",
+      "python": "3.14.10",
+      "mcp": "1.30.0",
+      "uv": "0.13.5",
+      "projection": "wheel-only-metadata",
+      "interpreter": "unqualified",
+      "native": "unverified",
+      "lock": "producer/ecc/acquisition/omega/aarch64-unknown-linux-gnu.txt",
+      "sha256": "555fd8253991e3f07ba89d8290695e5566bad590042907bbc2365cf900bffc22"
+    },
+    {
+      "provider": "omega",
+      "target": "aarch64-apple-darwin",
+      "python": "3.14.10",
+      "mcp": "1.30.0",
+      "uv": "0.13.5",
+      "projection": "blocked",
+      "interpreter": "unqualified",
+      "native": "unverified",
+      "reason": "Default macOS 13 projection excludes onnxruntime 1.31.1 macOS >=14 wheel; newer OS projection remains unverified."
+    },
+    {
+      "provider": "omega",
+      "target": "x86_64-apple-darwin",
+      "python": "3.14.10",
+      "mcp": "1.30.0",
+      "uv": "0.13.5",
+      "projection": "blocked",
+      "interpreter": "unqualified",
+      "native": "unverified",
+      "reason": "cryptography 50.0.2 has no usable wheel for the projected target."
+    },
+    {
+      "provider": "omega",
+      "target": "x86_64-pc-windows-msvc",
+      "python": "3.14.10",
+      "mcp": "1.30.0",
+      "uv": "0.13.5",
+      "projection": "wheel-only-metadata",
+      "interpreter": "unqualified",
+      "native": "unverified",
+      "lock": "producer/ecc/acquisition/omega/x86_64-pc-windows-msvc.txt",
+      "sha256": "97ae135564cf619b7d8e14b80809bebb9b15df296432c4138eccb7841dc35e30"
+    },
+    {
+      "provider": "omega",
+      "target": "aarch64-pc-windows-msvc",
+      "python": "3.14.10",
+      "mcp": "1.30.0",
+      "uv": "0.13.5",
+      "projection": "blocked",
+      "interpreter": "unqualified",
+      "native": "unverified",
+      "reason": "cryptography 50.0.2 has no usable wheel for the projected target."
+    }
+  ]
+}

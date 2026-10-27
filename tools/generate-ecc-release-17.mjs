@@ -68,7 +68,7 @@ const TARGET_CLIENTS = Object.freeze({ claude: CLAUDE, "claude-project": CLAUDE,
 /** Upstream stability words, mapped onto the set field; the words themselves are in metadata. */
 const STABILITY = Object.freeze({ stable: "stable", beta: "in-progress", experimental: "in-progress" });
 
-const SECRET_NAME = /token|secret|password|credential|auth|api[-_]?key/i;
+const SECRET_NAME = /token|secret|password|credential|auth|api[-_]?key|(?:^|_)key$/i;
 
 /** The frontmatter block of a Markdown file, or undefined. */
 function frontmatter(text) {
@@ -160,7 +160,7 @@ export function mcpPayload(fact, sourceMaterial) {
     ...(offered.headers === undefined ? {} : { headers: record(offered.headers) }),
     derivation: {
       sourceMaterial,
-      pointer: `/mcpServers/${fact.sourceKey}`,
+      pointer: `/mcpServers/${fact.upstreamSourceKey ?? fact.sourceKey}`,
       transform,
       ...(transform === "edited" ? { editsSha256: mcpEditsSha256({ from: upstream, to: offered }) } : {}),
     },
@@ -290,8 +290,8 @@ function projectItem(item, { revision, modes, mcpFacts, files }) {
   const projected = {
     id: item.id,
     label: item.label,
-    ...(item.description ? { description: item.description } : {}),
-    ...(sourceFacts?.description?.state === "authored" ? { descriptionBasis: sourceFacts.description.basis } : {}),
+    ...(item.kind === "mcp" ? { description: mcpFacts[item.id].runtimePrerequisites } : item.description ? { description: item.description } : {}),
+    ...(item.kind !== "mcp" && sourceFacts?.description?.state === "authored" ? { descriptionBasis: sourceFacts.description.basis } : {}),
     kind,
     name,
     nameBasis,
@@ -382,7 +382,7 @@ export function eccSets(items, manifests) {
   const { modules, profiles, components } = manifests;
   // The Kiro edition is its own set; no main set lists it.
   const kiroEdition = items.filter((item) => item.payload.namespace === "kiro");
-  const choosable = items.filter((item) => item.role === "choosable" && !kiroEdition.includes(item));
+  const choosable = items.filter((item) => item.role === "choosable" && !kiroEdition.includes(item) && !["ecc.mcp.github-local", "ecc.mcp.railway-hosted"].includes(item.id));
   const primaryPath = (item) => item.materials.find((member) => member.role === "content" && member.sourcePath !== "LICENSE").sourcePath;
   const member = (item, optional = false, defaultOn = true) => ({
     item: { framework: FRAMEWORK_ID, itemId: item.id },
@@ -532,6 +532,7 @@ export function buildEcc17() {
         kind: "mcp-server",
         role: "choosable",
         copies: has(tools, codex) ? [copy(main, id, CLAUDE), copy(tools, codex, CODEX)] : [copy(main, id)],
+        ...(inventory.itemFacts[id].variantOf ? { variantOf: { itemId: `ecc.mcp.${inventory.itemFacts[id].variantOf}` } } : {}),
       });
     } else if (id.startsWith("ecc.kiro.skill.")) {
       // A Kiro skill names the main-edition skill of the same name that it varies.

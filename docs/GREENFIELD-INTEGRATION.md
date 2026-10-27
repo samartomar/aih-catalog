@@ -27,7 +27,7 @@ does not refresh the greenfield release. Follow
 
 ## Validation and publication
 
-Use Node 24.15–24.x, `npm ci --ignore-scripts` and `npm run verify`. Verify the
+Use Node 26.12.1–26.x, `npm ci --ignore-scripts` and `npm run verify`. Verify the
 exact packed public entries in disposable consumers, including recipe selection
 and the bounded handoff with an explicitly supplied reviewed Core tarball.
 The CI job checks hook selector continuity against the prior committed release
