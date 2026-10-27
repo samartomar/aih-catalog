@@ -4430,7 +4430,7 @@
     {
      "survivor": "ecc.mcp.jira",
      "transform": "edited",
-     "editsSha256": "48d146192b96039eee694617e546ea0c3398f837850f625114c9ed5a844114bd"
+     "editsSha256": "52026479b3d36df05995a084ddfc9070790950be878576fb0bccf347f5e3b87d"
     },
     {
      "survivor": "ecc.mcp.laraplugins",
@@ -4462,7 +4462,7 @@
     {
      "survivor": "ecc.mcp.omega-memory",
      "transform": "edited",
-     "editsSha256": "93d36452bb947145f4172044055b761334f854a9237153528c69616de7787a0f"
+     "editsSha256": "b9db6ed22ac3a0038a1fcc50f0c8342647327ddbfef4b10fdd30d0e4ac855ebb"
     },
     {
      "survivor": "ecc.mcp.parallel-search",
@@ -4492,7 +4492,7 @@
     {
      "survivor": "ecc.mcp.supabase",
      "transform": "edited",
-     "editsSha256": "c5353f4c432693c5805460a813f5610cbc77048dd52edf7e695a4839031a9046"
+     "editsSha256": "d8b7fac1e892ed875709ce7b8978d0c19ec0ba08a0d8aa705be2c20c02a26e38"
     },
     {
      "survivor": "ecc.mcp.token-optimizer",

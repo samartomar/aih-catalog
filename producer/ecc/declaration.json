@@ -43356,14 +43356,14 @@
           "surface": "project",
           "capability": "native-execution",
           "support": "unknown",
-          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_SUPABASE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_SUPABASE_ROOT, SUPABASE_PROJECT_REF. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
+          "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_SUPABASE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_SUPABASE_ROOT, SUPABASE_ACCESS_TOKEN, SUPABASE_PROJECT_REF. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "activation": [
         {
           "client": "claude-code",
           "surface": "project",
-          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_SUPABASE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_SUPABASE_ROOT, SUPABASE_PROJECT_REF. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
+          "instructions": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_SUPABASE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_SUPABASE_ROOT, SUPABASE_ACCESS_TOKEN, SUPABASE_PROJECT_REF. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
       "configuration": {
@@ -45694,7 +45694,7 @@
           "client": "claude-code",
           "surface": "project",
           "capability": "native-execution",
-          "support": "unknown",
+          "support": "unsupported",
           "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_SQUISH_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_SQUISH_ROOT. Blocked on Node 26: locked better-sqlite3 12.9.0 excludes Node 26; do not compile or override. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],
@@ -48407,7 +48407,7 @@
           "client": "codex",
           "surface": "user",
           "capability": "native-execution",
-          "support": "unknown",
+          "support": "unsupported",
           "reason": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_SQUISH_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_SQUISH_ROOT. Blocked on Node 26: locked better-sqlite3 12.9.0 excludes Node 26; do not compile or override. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation."
         }
       ],

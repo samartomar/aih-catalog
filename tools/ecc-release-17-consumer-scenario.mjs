@@ -90,6 +90,7 @@ await case_("Python server choices expose isolated exact runtimes and refuse a s
   for (const key of ["jira", "omega-memory"]) {
     const server = item(`ecc.mcp.${key}`);
     assert.equal(server.payload.command, "python");
+    assert.equal(server.payload.args[0], "-I");
     assert.ok(server.payload.args.join(" ").includes("3,14,10"));
     assert.ok(server.payload.args.join(" ").includes("1.30.0"));
     assert.match(server.description, /isolated/i);
@@ -109,6 +110,8 @@ await case_("official GitHub and Railway routes are separate explicit choices", 
   assert.equal(item("ecc.mcp.railway-hosted").payload.url, "https://mcp.railway.com");
   assert.ok(item("ecc.mcp.railway").payload.args.includes("mcp"));
   assert.ok(!item("ecc.mcp.railway").payload.args.includes("local"));
+  assert.ok(item("ecc.mcp.supabase").payload.args.includes("--read-only"));
+  assert.equal(item("ecc.mcp.supabase").requirements.inputs.SUPABASE_ACCESS_TOKEN.sensitive, true);
 });
 const resolve = (setId, options) => {
   const chosen = set(setId);

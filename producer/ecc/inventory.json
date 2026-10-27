@@ -51408,8 +51408,9 @@
       "offeredServer": {
         "command": "python",
         "args": [
+          "-I",
           "-c",
-          "import sys,os,importlib.metadata as m;assert sys.version_info[:3]==(3,14,10),'incompatible-runtime: Python 3.14.10 required';assert sys.prefix!=sys.base_prefix and os.path.realpath(sys.prefix)==os.path.realpath(os.environ['AIHQ_MCP_JIRA_ROOT']),'isolated-environment-required';assert m.version('mcp')=='1.30.0','incompatible MCP';assert m.version('mcp-atlassian')=='0.23.1','incompatible provider';sys.argv=['mcp-atlassian'];next(e for e in m.distribution('mcp-atlassian').entry_points if e.group=='console_scripts' and e.name=='mcp-atlassian').load()()"
+          "import sys,os,re,importlib.metadata as m\nfrom pathlib import Path\nif sys.version_info[:3]!=(3,14,10): raise SystemExit('incompatible-runtime: Python 3.14.10 required')\nif sys.prefix==sys.base_prefix or os.path.realpath(sys.prefix)!=os.path.realpath(os.environ['AIHQ_MCP_JIRA_ROOT']): raise SystemExit('isolated-environment-required')\nprefix=Path(sys.prefix).resolve()\nif re.search(r'^include-system-site-packages\\s*=\\s*true', (prefix/'pyvenv.cfg').read_text().lower(), re.M): raise SystemExit('shared-site-packages-refused')\ndef require_distribution(name,version):\n d=m.distribution(name)\n if d.version!=version or not Path(d.locate_file('')).resolve().is_relative_to(prefix): raise SystemExit('incompatible-or-shared-distribution: '+name)\nrequire_distribution('mcp','1.30.0')\nrequire_distribution('mcp-atlassian','0.23.1')\nsys.argv=['mcp-atlassian']\nnext(e for e in m.distribution('mcp-atlassian').entry_points if e.group=='console_scripts' and e.name=='mcp-atlassian').load()()"
         ],
         "env": {
           "JIRA_URL": "${JIRA_URL}",
@@ -51602,17 +51603,20 @@
           "-e",
           "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_SUPABASE_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_SUPABASE_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/@supabase/mcp-server-supabase/dist/cli.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
           "--",
-          "--project-ref=${SUPABASE_PROJECT_REF}"
+          "--project-ref=${SUPABASE_PROJECT_REF}",
+          "--read-only"
         ],
         "env": {
-          "AIHQ_MCP_SUPABASE_ROOT": "${AIHQ_MCP_SUPABASE_ROOT}"
+          "AIHQ_MCP_SUPABASE_ROOT": "${AIHQ_MCP_SUPABASE_ROOT}",
+          "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
         }
       },
       "requiredHostEnvironment": [
         "AIHQ_MCP_SUPABASE_ROOT",
+        "SUPABASE_ACCESS_TOKEN",
         "SUPABASE_PROJECT_REF"
       ],
-      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_SUPABASE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_SUPABASE_ROOT, SUPABASE_PROJECT_REF. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_SUPABASE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_SUPABASE_ROOT, SUPABASE_ACCESS_TOKEN, SUPABASE_PROJECT_REF. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
@@ -51712,8 +51716,9 @@
       "offeredServer": {
         "command": "python",
         "args": [
+          "-I",
           "-c",
-          "import sys,os,importlib.metadata as m;assert sys.version_info[:3]==(3,14,10),'incompatible-runtime: Python 3.14.10 required';assert sys.prefix!=sys.base_prefix and os.path.realpath(sys.prefix)==os.path.realpath(os.environ['AIHQ_MCP_OMEGA_ROOT']),'isolated-environment-required';assert m.version('mcp')=='1.30.0','incompatible MCP';assert m.version('omega-memory')=='1.5.20','incompatible provider';assert os.path.isabs(os.environ['OMEGA_HOME']),'explicit absolute OMEGA_HOME required';m.version('onnxruntime');sys.argv=['omega','serve'];next(e for e in m.distribution('omega-memory').entry_points if e.group=='console_scripts' and e.name=='omega').load()()"
+          "import sys,os,re,importlib.metadata as m\nfrom pathlib import Path\nif sys.version_info[:3]!=(3,14,10): raise SystemExit('incompatible-runtime: Python 3.14.10 required')\nif sys.prefix==sys.base_prefix or os.path.realpath(sys.prefix)!=os.path.realpath(os.environ['AIHQ_MCP_OMEGA_ROOT']): raise SystemExit('isolated-environment-required')\nprefix=Path(sys.prefix).resolve()\nif re.search(r'^include-system-site-packages\\s*=\\s*true', (prefix/'pyvenv.cfg').read_text().lower(), re.M): raise SystemExit('shared-site-packages-refused')\ndef require_distribution(name,version):\n d=m.distribution(name)\n if d.version!=version or not Path(d.locate_file('')).resolve().is_relative_to(prefix): raise SystemExit('incompatible-or-shared-distribution: '+name)\nrequire_distribution('mcp','1.30.0')\nrequire_distribution('omega-memory','1.5.20')\nif not os.path.isabs(os.environ['OMEGA_HOME']): raise SystemExit('explicit absolute OMEGA_HOME required')\nrequire_distribution('onnxruntime','1.31.1')\nsys.argv=['omega','serve']\nnext(e for e in m.distribution('omega-memory').entry_points if e.group=='console_scripts' and e.name=='omega').load()()"
         ],
         "env": {
           "AIHQ_MCP_OMEGA_ROOT": "${AIHQ_MCP_OMEGA_ROOT}",
@@ -52711,8 +52716,9 @@
       "offeredServer": {
         "command": "python",
         "args": [
+          "-I",
           "-c",
-          "import sys,os,importlib.metadata as m;assert sys.version_info[:3]==(3,14,10),'incompatible-runtime: Python 3.14.10 required';assert sys.prefix!=sys.base_prefix and os.path.realpath(sys.prefix)==os.path.realpath(os.environ['AIHQ_MCP_JIRA_ROOT']),'isolated-environment-required';assert m.version('mcp')=='1.30.0','incompatible MCP';assert m.version('mcp-atlassian')=='0.23.1','incompatible provider';sys.argv=['mcp-atlassian'];next(e for e in m.distribution('mcp-atlassian').entry_points if e.group=='console_scripts' and e.name=='mcp-atlassian').load()()"
+          "import sys,os,re,importlib.metadata as m\nfrom pathlib import Path\nif sys.version_info[:3]!=(3,14,10): raise SystemExit('incompatible-runtime: Python 3.14.10 required')\nif sys.prefix==sys.base_prefix or os.path.realpath(sys.prefix)!=os.path.realpath(os.environ['AIHQ_MCP_JIRA_ROOT']): raise SystemExit('isolated-environment-required')\nprefix=Path(sys.prefix).resolve()\nif re.search(r'^include-system-site-packages\\s*=\\s*true', (prefix/'pyvenv.cfg').read_text().lower(), re.M): raise SystemExit('shared-site-packages-refused')\ndef require_distribution(name,version):\n d=m.distribution(name)\n if d.version!=version or not Path(d.locate_file('')).resolve().is_relative_to(prefix): raise SystemExit('incompatible-or-shared-distribution: '+name)\nrequire_distribution('mcp','1.30.0')\nrequire_distribution('mcp-atlassian','0.23.1')\nsys.argv=['mcp-atlassian']\nnext(e for e in m.distribution('mcp-atlassian').entry_points if e.group=='console_scripts' and e.name=='mcp-atlassian').load()()"
         ],
         "env": {
           "JIRA_URL": "${JIRA_URL}",
@@ -53009,8 +53015,9 @@
       "offeredServer": {
         "command": "python",
         "args": [
+          "-I",
           "-c",
-          "import sys,os,importlib.metadata as m;assert sys.version_info[:3]==(3,14,10),'incompatible-runtime: Python 3.14.10 required';assert sys.prefix!=sys.base_prefix and os.path.realpath(sys.prefix)==os.path.realpath(os.environ['AIHQ_MCP_OMEGA_ROOT']),'isolated-environment-required';assert m.version('mcp')=='1.30.0','incompatible MCP';assert m.version('omega-memory')=='1.5.20','incompatible provider';assert os.path.isabs(os.environ['OMEGA_HOME']),'explicit absolute OMEGA_HOME required';m.version('onnxruntime');sys.argv=['omega','serve'];next(e for e in m.distribution('omega-memory').entry_points if e.group=='console_scripts' and e.name=='omega').load()()"
+          "import sys,os,re,importlib.metadata as m\nfrom pathlib import Path\nif sys.version_info[:3]!=(3,14,10): raise SystemExit('incompatible-runtime: Python 3.14.10 required')\nif sys.prefix==sys.base_prefix or os.path.realpath(sys.prefix)!=os.path.realpath(os.environ['AIHQ_MCP_OMEGA_ROOT']): raise SystemExit('isolated-environment-required')\nprefix=Path(sys.prefix).resolve()\nif re.search(r'^include-system-site-packages\\s*=\\s*true', (prefix/'pyvenv.cfg').read_text().lower(), re.M): raise SystemExit('shared-site-packages-refused')\ndef require_distribution(name,version):\n d=m.distribution(name)\n if d.version!=version or not Path(d.locate_file('')).resolve().is_relative_to(prefix): raise SystemExit('incompatible-or-shared-distribution: '+name)\nrequire_distribution('mcp','1.30.0')\nrequire_distribution('omega-memory','1.5.20')\nif not os.path.isabs(os.environ['OMEGA_HOME']): raise SystemExit('explicit absolute OMEGA_HOME required')\nrequire_distribution('onnxruntime','1.31.1')\nsys.argv=['omega','serve']\nnext(e for e in m.distribution('omega-memory').entry_points if e.group=='console_scripts' and e.name=='omega').load()()"
         ],
         "env": {
           "AIHQ_MCP_OMEGA_ROOT": "${AIHQ_MCP_OMEGA_ROOT}",

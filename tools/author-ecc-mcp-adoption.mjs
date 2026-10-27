@@ -50,10 +50,11 @@ for (const [key, provider] of Object.entries(acquisition.providers)) {
   const rootVariable = `AIHQ_MCP_${key.replaceAll("-", "_").toUpperCase()}_ROOT`;
   const entry = `node_modules/${provider.package}/${bin}`;
   const launcher = `const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.${rootVariable};if(!r)throw Error('missing-runtime: ${rootVariable} must name the reviewed installation directory');const p=require('node:path').join(r,${JSON.stringify(entry)});process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);`;
-  const rawArgs = key === "railway" ? ["mcp"] : key === "filesystem" ? ["${ECC_FILESYSTEM_ROOT}"] : key === "supabase" ? ["--project-ref=${SUPABASE_PROJECT_REF}"] : key === "playwright" ? ["--browser", "chrome"] : [];
+  const rawArgs = key === "railway" ? ["mcp"] : key === "filesystem" ? ["${ECC_FILESYSTEM_ROOT}"] : key === "supabase" ? ["--project-ref=${SUPABASE_PROJECT_REF}", "--read-only"] : key === "playwright" ? ["--browser", "chrome"] : [];
   fact.offeredServer = { command: "node", args: ["-e", launcher, "--", ...rawArgs], env: { ...(fact.offeredServer.env ?? {}), [rootVariable]: `\${${rootVariable}}` } };
   if (key === "memory") fact.offeredServer.env.MEMORY_FILE_PATH = "${MEMORY_FILE_PATH}";
   if (key === "browserbase") Object.assign(fact.offeredServer.env, { BROWSERBASE_PROJECT_ID: "${BROWSERBASE_PROJECT_ID}", GEMINI_API_KEY: "${GEMINI_API_KEY}" });
+  if (key === "supabase") fact.offeredServer.env.SUPABASE_ACCESS_TOKEN = "${SUPABASE_ACCESS_TOKEN}";
   const variables = [...JSON.stringify(fact.offeredServer).matchAll(/\$\{([A-Z_][A-Z0-9_]*)(:-[^}]*)?\}/g)];
   fact.requiredHostEnvironment = [...new Set(variables.filter(match => !match[2]).map(match => match[1]))].sort();
   fact.optionalHostEnvironment = [...new Set(variables.filter(match => match[2]).map(match => match[1]))].sort();
@@ -63,6 +64,7 @@ for (const [key, provider] of Object.entries(acquisition.providers)) {
   fact.acquisition = { package: provider.package, version: provider.version, integrity: direct.integrity, lockSha256: sha(lockText), node: acquisition.node, npm: acquisition.npm, blockers };
   fact.runtimePrerequisites = `${fact.overlay} Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. ${rootVariable} must name this recipe's runtime directory. Required host inputs: ${fact.requiredHostEnvironment.join(", ")}. ${blockers} ${key === "playwright" ? "Actual Chrome 156.0.8078.47/browser OS dependencies require separate qualification. " : ""}Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.`;
   item.clientCapabilities.find(capability => capability.capability === "native-execution").reason = fact.runtimePrerequisites;
+  item.clientCapabilities.find(capability => capability.capability === "native-execution").support = key === "squish" ? "unsupported" : "unknown";
   item.activation[0].instructions = fact.runtimePrerequisites;
   const recipe = JSON.parse(snapshot.recipes.ecc[item.recipePath]);
   recipe.inputs = {
@@ -86,9 +88,21 @@ const python = read("python-acquisition");
 for (const [key, providerKey, packageName, version, executable] of [["jira", "jira", "mcp-atlassian", "0.23.1", "mcp-atlassian"], ["omega-memory", "omega", "omega-memory", "1.5.20", "omega"]]) {
   const item = declaration.items.find(item => item.id === `ecc.claude.mcp.${key}`), fact = inventory.itemFacts[item.id];
   const variable = `AIHQ_MCP_${providerKey.toUpperCase()}_ROOT`;
-  const guard = `import sys,os,importlib.metadata as m;assert sys.version_info[:3]==(3,14,10),'incompatible-runtime: Python 3.14.10 required';assert sys.prefix!=sys.base_prefix and os.path.realpath(sys.prefix)==os.path.realpath(os.environ['${variable}']),'isolated-environment-required';assert m.version('mcp')=='1.30.0','incompatible MCP';assert m.version('${packageName}')=='${version}','incompatible provider';`;
-  const launch = `${guard}${providerKey === "omega" ? "assert os.path.isabs(os.environ['OMEGA_HOME']),'explicit absolute OMEGA_HOME required';m.version('onnxruntime');" : ""}sys.argv=['${executable}'${providerKey === "omega" ? ",'serve'" : ""}];next(e for e in m.distribution('${packageName}').entry_points if e.group=='console_scripts' and e.name=='${executable}').load()()`;
-  fact.offeredServer = { command: "python", args: ["-c", launch], env: { ...(fact.offeredServer.env ?? {}), [variable]: `\${${variable}}`, ...(providerKey === "omega" ? { OMEGA_HOME: "${OMEGA_HOME}" } : {}) } };
+  const guard = [
+    "import sys,os,re,importlib.metadata as m",
+    "from pathlib import Path",
+    "if sys.version_info[:3]!=(3,14,10): raise SystemExit('incompatible-runtime: Python 3.14.10 required')",
+    `if sys.prefix==sys.base_prefix or os.path.realpath(sys.prefix)!=os.path.realpath(os.environ['${variable}']): raise SystemExit('isolated-environment-required')`,
+    "prefix=Path(sys.prefix).resolve()",
+    "if re.search(r'^include-system-site-packages\\s*=\\s*true', (prefix/'pyvenv.cfg').read_text().lower(), re.M): raise SystemExit('shared-site-packages-refused')",
+    "def require_distribution(name,version):",
+    " d=m.distribution(name)",
+    " if d.version!=version or not Path(d.locate_file('')).resolve().is_relative_to(prefix): raise SystemExit('incompatible-or-shared-distribution: '+name)",
+    "require_distribution('mcp','1.30.0')",
+    `require_distribution('${packageName}','${version}')`,
+  ].join("\n");
+  const launch = `${guard}\n${providerKey === "omega" ? "if not os.path.isabs(os.environ['OMEGA_HOME']): raise SystemExit('explicit absolute OMEGA_HOME required')\nrequire_distribution('onnxruntime','1.31.1')\n" : ""}sys.argv=['${executable}'${providerKey === "omega" ? ",'serve'" : ""}]\nnext(e for e in m.distribution('${packageName}').entry_points if e.group=='console_scripts' and e.name=='${executable}').load()()`;
+  fact.offeredServer = { command: "python", args: ["-I", "-c", launch], env: { ...(fact.offeredServer.env ?? {}), [variable]: `\${${variable}}`, ...(providerKey === "omega" ? { OMEGA_HOME: "${OMEGA_HOME}" } : {}) } };
   fact.requiredHostEnvironment = [...new Set([...JSON.stringify(fact.offeredServer).matchAll(/\$\{([A-Z_][A-Z0-9_]*)\}/g)].map(match => match[1]))].sort();
   fact.optionalHostEnvironment = [];
   fact.overlay = "Catalog adaptation: isolated Python environment, exact server dependency closure, no uvx or shared environment.";

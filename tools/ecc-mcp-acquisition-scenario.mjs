@@ -6,7 +6,7 @@ import { mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readReleaseContent, configureItem } from "@aihq/catalog/reader";
-const [node, npmCli, cache, output, archive] = process.argv.slice(2);
+const [node, npmCli, cache, output, archive, incompatibleNode] = process.argv.slice(2);
 const root = dirname(fileURLToPath(import.meta.resolve("@aihq/catalog/package.json")));
 const sha = bytes => createHash("sha256").update(bytes).digest("hex");
 const bytes = readFileSync(fileURLToPath(import.meta.resolve("@aihq/catalog/release-ecc.content.json")));
@@ -28,13 +28,14 @@ const treeDigest = directory => {
   return hash.digest("hex");
 };
 const handshake = (item, directory, key) => new Promise(resolve => {
-  const args = item.payload.args.map(arg => arg.replace("${ECC_FILESYSTEM_ROOT}", directory));
+  const args = item.payload.args.map(arg => arg.replace("${ECC_FILESYSTEM_ROOT}", directory).replace("${SUPABASE_PROJECT_REF}", "fixture-project"));
   const rootVariable = `AIHQ_MCP_${key.replaceAll("-", "_").toUpperCase()}_ROOT`;
-  const child = spawn(node, args, { cwd: directory, env: { ...env, HOME: directory, USERPROFILE: directory, [rootVariable]: directory, MEMORY_FILE_PATH: join(directory, "memory.json") }, windowsHide: true, stdio: ["pipe", "pipe", "pipe"] });
-  let buffer = "", size = 0, done = false;
+  const child = spawn(node, ["--require", join(import.meta.dirname, "offline-guard.cjs"), ...args], { cwd: directory, env: { ...env, HOME: directory, USERPROFILE: directory, [rootVariable]: directory, MEMORY_FILE_PATH: join(directory, "memory.json") }, windowsHide: true, stdio: ["pipe", "pipe", "pipe"] });
+  let buffer = "", stderr = "", serverInfo, size = 0, done = false;
   const finish = result => {
     if (done) return;
     done = true; clearTimeout(timer);
+    writeFileSync(join(directory, "handshake-stderr.txt"), stderr);
     if (child.exitCode !== null || child.signalCode !== null) return resolve({ ...result, cleanup: "exited" });
     const stop = setTimeout(() => resolve({ ...result, cleanup: "unverified" }), 5000);
     child.once("exit", () => { clearTimeout(stop); resolve({ ...result, cleanup: "exited" }); });
@@ -42,8 +43,8 @@ const handshake = (item, directory, key) => new Promise(resolve => {
   };
   const timer = setTimeout(() => finish({ status: "unverified", reason: "handshake-timeout" }), 20000);
   child.on("error", () => finish({ status: "unverified", reason: "process-unavailable" }));
-  child.on("exit", code => finish({ status: "unverified", reason: "process-exit", code }));
-  child.stderr.on("data", chunk => { size += chunk.length; if (size > 1048576) finish({ status: "unverified", reason: "output-bound" }); });
+  child.on("exit", code => finish({ status: /api.?key|access.?token|credentials|authentication/i.test(stderr) ? "missing-auth-observed" : "unverified", reason: /offline-network-refused/.test(stderr) ? "offline-network-refused" : /offline-process-refused/.test(stderr) ? "offline-process-refused" : "process-exit", code }));
+  child.stderr.on("data", chunk => { size += chunk.length; if (size > 1048576) finish({ status: "unverified", reason: "output-bound" }); else stderr += chunk.toString(); });
   child.stdout.on("data", chunk => {
     size += chunk.length;
     if (size > 1048576) return finish({ status: "unverified", reason: "output-bound" });
@@ -53,10 +54,11 @@ const handshake = (item, directory, key) => new Promise(resolve => {
       let message;
       try { message = JSON.parse(line); } catch { continue; }
       if (message.id === 1 && message.result) {
+        serverInfo = message.result.serverInfo;
         child.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" })}\n`);
         child.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} })}\n`);
       }
-      if (message.id === 2 && Array.isArray(message.result?.tools)) finish({ status: "schema-observed", tools: message.result.tools.map(tool => tool.name), nativeClient: "not-run", toolCalls: 0 });
+      if (message.id === 2 && Array.isArray(message.result?.tools)) finish({ status: "schema-observed", serverInfo, tools: message.result.tools.map(tool => tool.name), nativeClient: "not-run", toolCalls: 0 });
     }
   });
   child.stdin.on("error", () => {});
@@ -76,7 +78,7 @@ for (const [key, provider] of Object.entries(selected.providers)) {
   const run = (executable, values) => execFileSync(executable, values, { cwd: directory, env: { ...env, HOME: directory, USERPROFILE: directory }, windowsHide: true, stdio: "pipe", timeout: 160000, encoding: "utf8", maxBuffer: 2097152 });
   const result = { key, ...provider, lockSha256: sha(readFileSync(join(directory, "package-lock.json"))), acquisition: "unverified", activation: "unverified" };
   try {
-    assert.throws(() => run(process.execPath, args), /incompatible-runtime/);
+    assert.throws(() => run(incompatibleNode, args), /incompatible-runtime/);
     assert.throws(() => run(node, args.map((arg, index) => index === 1 ? "" : arg)), /missing-runtime/);
     const installed = JSON.parse(run(node, args).trim().split("\n").at(-1));
     assert.equal(installed.installation, "installed");
@@ -92,12 +94,18 @@ for (const [key, provider] of Object.entries(selected.providers)) {
     unlinkSync(join(directory, ".npmrc"));
     result.acquisition = "installed-and-offline-reproduced";
     result.installedTreeSha256 = first;
-    result.handshake = ["memory", "filesystem", "sequential-thinking"].includes(key) ? await handshake(item, directory, key) : { status: "unverified", reason: "service/native startup not authorized by package installation" };
+    result.handshake = await handshake(item, directory, key);
+    if (["memory", "filesystem", "sequential-thinking"].includes(key)) {
+      assert.equal(result.handshake.status, "schema-observed");
+      assert.equal(result.handshake.cleanup, "exited");
+    }
   } catch (error) {
     result.reason = key === "squish" && /EBADENGINE|Unsupported engine/.test(String(error.stderr)) ? "locked better-sqlite3 12.9.0 excludes Node 26" : "fixture-failed";
+    result.expectedBlocked = key === "squish" && result.reason !== "fixture-failed";
     writeFileSync(join(directory, "fixture-error.txt"), String(error.stack ?? error));
   }
   results.push(result);
   writeFileSync(join(output, "receipt.json"), `${JSON.stringify({ archiveSha256: sha(readFileSync(archive)), releaseSha256: read.release.sha256, node: selected.node, npm: selected.npm, coreApply: "not-run", nativeClient: "not-run", results }, null, 2)}\n`);
   console.log(`${key}: ${result.acquisition}${result.reason ? ` (${result.reason})` : ""}`);
 }
+if (results.some(result => result.reason === "fixture-failed" || (result.acquisition !== "installed-and-offline-reproduced" && !result.expectedBlocked))) process.exitCode = 1;

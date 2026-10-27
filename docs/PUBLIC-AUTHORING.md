@@ -9,7 +9,7 @@ need not be curated, admitted or published by AIHQ.
 ## Versions and supported entries
 
 - `@aihq/catalog/producer` exposes `checkProducerDeclaration(value)` and
-  `compileProducerDeclaration({declaration,sourceFiles})` on Node 24.15–24.x.
+  `compileProducerDeclaration({declaration,sourceFiles})` on Node 26.12.1–26.x.
   It reuses the existing supplied-recipe and skill generators and Core-owned
   structural recipe schemas shipped in Catalog. Import loads those static schemas;
   calls operate on supplied data and bytes without host acquisition or writes.
