@@ -218,8 +218,9 @@ tarball offline and reads every release export using the final installed public 
 
 The tool classifies every declared release and refuses an unclassified one. An ordinary
 release is qualified when its baseline slot is free and this contract does not keep it
-unchanged: `anthropic`, and `web-artifacts`, a release added after new release preparation
-began requiring a baseline ([the transition](TRANSITION.md)). The others are carried byte
+unchanged: `anthropic`, `web-artifacts` and `executable-content`. The latter two
+were added after new release preparation began requiring a baseline
+([the transition](TRANSITION.md)). The others are carried byte
 for byte, never requalified:
 
 - The frozen default `release.json` is historical and admitted by its recorded digest
@@ -252,8 +253,8 @@ node tools/assemble-release-package.mjs --runtime /absolute/installed-runtime \
 Use absolute input paths in the version-1 maintainer plan. Supply exactly one row
 each for the `anthropic`, `web-artifacts` and `executable-content` views.
 The executable-content companion is an ordinary release with no prepared-content
-baseline slot; qualifying its delivered bytes does not qualify native execution. A `default` row, or a row for a
-framework whose prepared content holds its baseline slot, is refused with the reason
+baseline slot; qualifying its delivered bytes does not qualify native execution.
+A `default` row, or a row for a framework whose prepared content holds its baseline slot, is refused with the reason
 before any package is written:
 
 ```json
@@ -273,8 +274,8 @@ before any package is written:
 }
 ```
 
-The abbreviated example needs the `web-artifacts` and `executable-content` rows before it is executable. The
-tool rejects unknown fields, duplicate/missing views, altered inputs, unreadable or
+The abbreviated example needs the `web-artifacts` and `executable-content` rows
+before it is executable. The tool rejects unknown fields, duplicate/missing views, altered inputs, unreadable or
 mismatched assessments and failed authentication. It derives each baseline from
 the checked original bytes and supplied exact scope. Conflicting bytes at a shared
 package path refuse with that path. `expectedReleaseSha256` checks reproducible reuse
