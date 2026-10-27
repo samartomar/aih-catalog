@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readReleaseContent, configureItem } from "@aihq/catalog/reader";
@@ -32,7 +32,14 @@ const handshake = (item, directory, key) => new Promise(resolve => {
   const rootVariable = `AIHQ_MCP_${key.replaceAll("-", "_").toUpperCase()}_ROOT`;
   const child = spawn(node, args, { cwd: directory, env: { ...env, HOME: directory, USERPROFILE: directory, [rootVariable]: directory, MEMORY_FILE_PATH: join(directory, "memory.json") }, windowsHide: true, stdio: ["pipe", "pipe", "pipe"] });
   let buffer = "", size = 0, done = false;
-  const finish = result => { if (done) return; done = true; clearTimeout(timer); child.kill(); resolve(result); };
+  const finish = result => {
+    if (done) return;
+    done = true; clearTimeout(timer);
+    if (child.exitCode !== null || child.signalCode !== null) return resolve({ ...result, cleanup: "exited" });
+    const stop = setTimeout(() => resolve({ ...result, cleanup: "unverified" }), 5000);
+    child.once("exit", () => { clearTimeout(stop); resolve({ ...result, cleanup: "exited" }); });
+    child.stdin.destroy(); child.kill();
+  };
   const timer = setTimeout(() => finish({ status: "unverified", reason: "handshake-timeout" }), 20000);
   child.on("error", () => finish({ status: "unverified", reason: "process-unavailable" }));
   child.on("exit", code => finish({ status: "unverified", reason: "process-exit", code }));
@@ -80,6 +87,9 @@ for (const [key, provider] of Object.entries(selected.providers)) {
     writeFileSync(join(directory, "package-lock.json"), `${lock}\n`);
     assert.throws(() => run(node, args), /changed acquisition lock/);
     writeFileSync(join(directory, "package-lock.json"), lock);
+    writeFileSync(join(directory, ".npmrc"), "registry=https://unreviewed.invalid\n");
+    assert.throws(() => run(node, args), /ambient-project-config/);
+    unlinkSync(join(directory, ".npmrc"));
     result.acquisition = "installed-and-offline-reproduced";
     result.installedTreeSha256 = first;
     result.handshake = ["memory", "filesystem", "sequential-thinking"].includes(key) ? await handshake(item, directory, key) : { status: "unverified", reason: "service/native startup not authorized by package installation" };

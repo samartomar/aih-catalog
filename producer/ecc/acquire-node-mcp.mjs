@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
 const [npmCli, cache, mode, manifestHash, lockHash] = process.argv.slice(2);
 assert.equal(process.argv.length, 7, "Expected selected npm CLI, cache, mode and two reviewed digests");
@@ -14,6 +14,8 @@ assert(["--offline", "--online"].includes(mode));
 const sha = bytes => createHash("sha256").update(bytes).digest("hex");
 assert.equal(sha(readFileSync("package.json")), manifestHash, "changed acquisition manifest");
 assert.equal(sha(readFileSync("package-lock.json")), lockHash, "changed acquisition lock");
+assert(!existsSync(".npmrc"), "ambient-project-config: refuse an unmanaged runtime .npmrc");
+for (const name of ["user.npmrc", "global.npmrc"]) assert.equal(readFileSync(name).byteLength, 0, "changed isolated npm configuration");
 const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => /^(PATH|SystemRoot|WINDIR|TEMP|TMP|HOME|USERPROFILE)$/i.test(key)));
 const run = args => execFileSync(process.execPath, [npmCli, ...args], { env, windowsHide: true, stdio: "pipe", timeout: 120000, maxBuffer: 1048576, encoding: "utf8" });
 assert.equal(run(["--version"]).trim(), "12.2.1", "incompatible-runtime: selected npm must be 12.2.1; bundled npm is a separate observation");
