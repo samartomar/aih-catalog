@@ -33,6 +33,7 @@ type Bootstrap = {
   project: { name: string; rootPath: string };
   projection: string;
   commands: Record<string, string[]>;
+  inputs: { status: Record<string, unknown> };
 };
 
 type Tools = {
@@ -295,7 +296,12 @@ describe("aih-supported repository AI bootstrap", () => {
       CBM_ALLOWED_ROOT: root,
       CBM_DIAGNOSTICS: "false",
     });
-    expect(bootstrap.commands.status).toContain("json");
+    expect(bootstrap.commands.status).toEqual(["cli", "index_status"]);
+    expect(bootstrap.inputs.status).toMatchObject({
+      project: bootstrap.project.name,
+      format: "json",
+      verbose: true,
+    });
     const project = { name: bootstrap.project.name, root_path: root, nodes: 0, edges: 0 };
     expect(launcher.findCodebaseMemoryProject([project])).toEqual(project);
     expect(() => launcher.findCodebaseMemoryProject([project, project])).toThrow(/unambiguous/);

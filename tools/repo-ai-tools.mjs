@@ -4,6 +4,7 @@ import { closeSync, existsSync, mkdirSync, openSync, readFileSync, readSync, rea
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join, parse, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { inspectMemoryFiles } from "./repo-ai-tools/memory-status.mjs";
 import { refuseSerenaActivation, serenaCandidate, serenaPreparation, serenaProjection, serenaTools } from "./repo-ai-tools/serena-bootstrap.mjs";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -16,7 +17,7 @@ const pins = {
       url: "https://github.com/DeusData/codebase-memory-mcp/releases/download/v0.12.1/codebase-memory-mcp-linux-amd64-portable.tar.gz",
       archiveSha256: "8c3d0341064301e78ecc84cf7348d4e2c6562a0f57448243ea560aaa34de36c1",
       executableSha256: "77745491f0a9c346d6da23eed4d92b5feaa31a27a883c9faa4fa9f47c8183705",
-      qualification: "pending isolated-account fixture",
+      qualification: "runtime-checked account/root/digest closure; native platform admission separate",
     },
   } },
   tokenOptimizer: {
@@ -99,7 +100,7 @@ const plan = {
     tokenSavior: { profile: "optimized", memory: false, shellHooks: false, excludePatterns: [".token-savior-cache.json"], enabledTools: tokenSaviorEnabledTools },
     tokenOptimizer: { integration: "on-demand", commands: ["report", "coach"], clients: ["claude", "codex"] },
     codeReviewGraph: { role: "broad-impact-review", advisory: true, enabledTools: codeReviewGraphEnabledTools },
-    codebaseMemory: { role: "find-trace-recall", advisory: true, cache: "canonical-per-account", settings: { auto_index: false, auto_watch: false, watcher_enabled: false, ui_enabled: false }, freshness: "native qualification pending", enabledTools: codebaseMemoryEnabledTools },
+    codebaseMemory: { role: "find-trace-recall", advisory: true, cache: "canonical-per-account", settings: { auto_index: false, auto_watch: false, watcher_enabled: false, ui_enabled: false }, freshness: "native SHA256/source-context check on explicit doctor/launch", enabledTools: codebaseMemoryEnabledTools },
   },
   bootstrap: {
     codex: {
@@ -190,9 +191,9 @@ function codebaseMemoryEnvironment(override = process.env.CBM_CACHE_DIR) {
 
 function codebaseMemoryCommands() {
   return {
-    index: ["cli", "index_repository", "--repo-path", codebaseMemoryProject.rootPath, "--name", codebaseMemoryProject.name, "--mode", "moderate"],
+    index: ["cli", "index_repository", "--repo-path", codebaseMemoryProject.rootPath, "--name", codebaseMemoryProject.name, "--mode", "full"],
     list: ["cli", "list_projects", "--format", "json"],
-    status: ["cli", "index_status", "--project", codebaseMemoryProject.name, "--format", "json", "--diagnostics", "summary"],
+    status: ["cli", "index_status"],
     search: ["cli", "search_code", "--project", codebaseMemoryProject.name, "--pattern", "export", "--file-pattern", "index.ts", "--mode", "files", "--limit", "1", "--format", "json"],
   };
 }
@@ -204,6 +205,7 @@ export function inspectCodebaseMemoryBootstrap(override = process.env.CBM_CACHE_
     environment: codebaseMemoryEnvironment(override),
     projection: renderCodexConfig(override),
     commands: codebaseMemoryCommands(),
+    inputs: { status: memoryStatusInput() },
   };
 }
 
@@ -289,7 +291,7 @@ function verifyMemorySettings() {
 }
 
 function installTools(selected) {
-  mkdirSync(binRoot, { recursive: true });
+  if (selected.includes("token-savior")) mkdirSync(binRoot, { recursive: true });
   for (const name of selected) {
     if (name === "token-optimizer") {
       if (!existsSync(tokenOptimizerRoot)) {
@@ -413,14 +415,18 @@ export function assertCodebaseMemorySearchResponse(response) {
   }
 }
 
+function memoryStatusInput() {
+  return { project: codebaseMemoryProject.name, format: "json", diagnostics: "summary", verbose: true };
+}
+
 function codebaseMemoryStatus() {
   const commands = codebaseMemoryCommands();
-  const status = parseJson(run(memoryExecutable(), commands.status, { env: codebaseMemoryEnv() }), "codebase-memory status");
+  const status = parseJson(run(memoryExecutable(), commands.status, { env: codebaseMemoryEnv(), input: JSON.stringify(memoryStatusInput()) }), "codebase-memory status");
   assertCodebaseMemoryScopedResponse(status, "status");
   if (status.status !== "ready") throw new Error("CBM native index status is not ready");
   if (status.watch?.watched !== false || status.watch?.reason !== "watcher_disabled")
     throw new Error("CBM effective daemon watcher is not proven disabled; coordinate with its owner, never stop it here");
-  return { project: status.project, native: status, freshness: "unverified", readiness: false, qualification: "pending isolated-account manual query/hash fixture" };
+  return { project: status.project, native: status, ...inspectMemoryFiles({ cacheDir: codebaseMemoryConfiguration().cacheDir, project: codebaseMemoryProject, nativeStatus: status }) };
 }
 
 function launch(name, args, env) {
@@ -544,7 +550,7 @@ function main() {
   else if (command === "codebase-memory-mcp") {
     verifyMemorySettings();
     const status = codebaseMemoryStatus();
-    if (status.freshness !== "current") throw new Error("CBM freshness is unverified; account-isolated native qualification required before launch");
+    if (status.freshness !== "current" || status.readiness !== true) throw new Error(`CBM source freshness/readiness refused: ${status.reason}; explicit manual indexing or qualification required`);
     const child = spawn(memoryExecutable(), [], { cwd: repoRoot, env: codebaseMemoryEnv(), stdio: "inherit", windowsHide: true });
     child.on("error", fail);
     child.on("exit", (code) => { process.exitCode = code ?? 1; });

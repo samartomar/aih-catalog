@@ -53,19 +53,53 @@ launcher conservatively refuses any active or ambiguous daemon. An idle probe is
 not a concurrency lock; account-isolated race/coexistence qualification is still
 required before activation.
 
-Explicit indexing is a separate authorized operation. Initial 0.12.1 indexing
-requires a full rebuild; retain prior compatible bytes and capacity evidence.
-The memory doctor reports native status/partial counts and effective watcher
-state, with freshness **unverified** and a nonzero result until the disposable
-account/container manual-query/hash qualification is completed. No marker or
-positive node count establishes freshness. Native activation remains pending;
-projection and refusal tests cannot close native acceptance. MCP launch refuses
-that unverified freshness result.
+Explicit indexing is a separate authorized operation, using the selected
+project/root and full mode reported by `inspectCodebaseMemoryBootstrap`.
+Initial 0.12.1 indexing requires a full rebuild; retain compatible prior bytes
+and capacity evidence. Setup and queries perform no indexing.
 
-Use Token Savior for compact orientation, Serena for exact symbols and semantic
-edits, CRG for advisory broad-impact context, and CBM for find, trace and recall.
-Token Optimizer remains on demand. Optional helpers do not select the engineering
-workflow.
+The memory doctor reads native status and coverage, then opens the exact native
+0.12.1 store read-only. It binds project/root and generation, checks the native
+SHA-256 records against Git-visible source bytes, and validates native Git and
+extension-configuration semantic digests. Native mtime/size `metadata_match`
+alone is insufficient: edits that preserve both must still refuse. New,
+missing, changed or unrecorded paths, unknown semantic inputs, incomplete hash
+inventories, changed HEAD/configuration and partial/unknown parsing refuse
+readiness. No counts, marker file, environment override or fixture receipt grants
+readiness. Inspection is bounded to 10,000 native records, 256 MiB total and
+16 MiB per source file; larger/ambiguous inventories remain unqualified. Linked
+worktrees whose native canonical root differs are unqualified. Source fallback
+remains authoritative; graph edges are not executed coverage.
+
+MCP launch requires this point-in-time freshness/readiness check. A later edit in
+an open manual session does not refresh the graph automatically; use source
+verification and an explicit indexing operation before relying on changed symbols.
+The helper conservatively refuses another active account session rather than
+stopping it. The idle probe is not a concurrency lock or an admission of a live
+host upgrade window.
+
+For the explicit Linux x64 sample-repository seam, use the opt-in runner:
+
+```text
+python3 tools/repo-ai-tools/qualify-memory.py --binary TASK/portable/codebase-memory-mcp --node NODE_EXECUTABLE --output TASK/new-result-directory
+```
+
+It verifies exact binary bytes and namespace separation before native execution,
+then exercises the copied Catalog launcher, setup/refusals, manual index/query,
+SHA/context drift, cache/build conflicts, no watcher/UI/diagnostics and owned
+cleanup. It needs existing Bubblewrap, Python 3 and Node for qualification only;
+it installs nothing. A fresh offline user/PID/mount/network/IPC/UTS namespace
+receives no host home/source/rendezvous or credentials. CPU/wall limits, one CBM
+worker and a bounded Node heap apply. Only the explicitly named new task output
+is host-writable; no global temporary-prefix cleanup occurs. This is a synthetic
+CLI/MCP process fixture, not native-client/GUI loading or platform admission.
+Other five native OS/architecture cells and WSL2 remain unqualified. The CRG
+interpreter and native-parse gates above remain unchanged.
+
+Use Token Savior for compact orientation, the gated Serena preparation for exact
+read-only symbols, CRG for advisory broad-impact context, and CBM for manual
+find/trace/recall. Token Optimizer remains on demand. Optional helpers do not
+select the engineering workflow.
 
 ## Serena preparation
 
