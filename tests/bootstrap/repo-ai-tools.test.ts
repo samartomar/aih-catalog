@@ -1,7 +1,15 @@
 import { execFileSync, spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import {
+  chmodSync,
+  cpSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
-import { isAbsolute, join, parse, resolve } from "node:path";
+import { join, parse, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const root = resolve(import.meta.dirname, "../..");
@@ -72,8 +80,8 @@ describe("aih-supported repository AI bootstrap", () => {
           securityOverrides: ["python-multipart==0.0.32", "starlette==1.3.1"],
         },
         tokenSavior: { package: "token-savior-recall[mcp]==4.21.0" },
-        codeReviewGraph: { package: "code-review-graph==2.3.7" },
-        codebaseMemory: { package: "codebase-memory-mcp==0.10.5" },
+        codeReviewGraph: { package: "code-review-graph==2.3.9" },
+        codebaseMemory: { version: "0.12.1", distribution: "native" },
         tokenOptimizer: {
           tag: "v5.11.68",
           commit: "ffe3b8007542260b17648a2d9228c3dedda380ad",
@@ -88,17 +96,16 @@ describe("aih-supported repository AI bootstrap", () => {
     });
   });
 
-  it("makes dry-run disclose every local mutation class", () => {
-    expect(commandJson("setup-codex", "--dry-run")).toEqual({
-      command: "setup-codex",
-      dryRun: true,
-      mutations: [
-        "install pinned repo AI tools",
-        "write ignored Codex project projection",
-        "initialize project-scoped graph and memory indexes",
-        "enable the repository pre-commit hook path",
-      ],
+  it("selects graph setup without indexing or Git policy writes in dry-run", () => {
+    const result = commandJson("setup-codex", "--tool", "code-review-graph", "--dry-run");
+    expect(result).toMatchObject({
+      selected: ["code-review-graph"],
+      indexing: "manual-only",
+      gitHooks: "unchanged",
+      mutations: ["acquire selected qualified tools", "write selected Codex projection"],
     });
+    expect(JSON.stringify(result)).not.toContain("serena-agent");
+    expect(JSON.stringify(result)).not.toContain("token-savior");
   });
 
   it("keeps optional helper setup independent of engineering workflow plugins", () => {
@@ -135,87 +142,164 @@ describe("aih-supported repository AI bootstrap", () => {
       expect(ignored(path), path).toBe(true);
   });
 
-  it("uses one explicit aih-supported project/root for CBM", async () => {
-    const launcher = await tools();
-    const override = join(tmpdir(), "aih-supported-cbm-cache");
-    const bootstrap = launcher.inspectCodebaseMemoryBootstrap(override);
-    expect(isAbsolute(bootstrap.cacheDir)).toBe(true);
-    expect(bootstrap.cacheDir).toBe(resolve(override));
-    expect(bootstrap.allowedRoot).toBe(root);
-    expect(bootstrap.project).toEqual({ name: "aih-supported", rootPath: root });
-    expect(bootstrap.environment).toEqual({
-      CBM_CACHE_DIR: resolve(override),
-      CBM_ALLOWED_ROOT: root,
-      CBM_LOG_LEVEL: "warn",
-    });
-    expect(bootstrap.projection).toContain(`CBM_CACHE_DIR = ${JSON.stringify(resolve(override))}`);
-    expect(bootstrap.projection).toContain(`CBM_ALLOWED_ROOT = ${JSON.stringify(root)}`);
-    expect(bootstrap.commands).toEqual({
-      index: [
-        "cli",
-        "index_repository",
-        "--repo-path",
-        root,
-        "--name",
-        "aih-supported",
-        "--mode",
-        "moderate",
-      ],
-      list: ["cli", "list_projects"],
-      status: ["cli", "index_status", "--project", "aih-supported"],
-      search: [
-        "cli",
-        "search_code",
-        "--project",
-        "aih-supported",
-        "--pattern",
-        "export",
-        "--file-pattern",
-        "index.ts",
-        "--mode",
-        "files",
-        "--limit",
-        "1",
-      ],
-    });
-    expect(launcher.inspectCodebaseMemoryBootstrap(override)).toEqual(bootstrap);
+  it("projects only the selected graph with six read tools and no memory prerequisites", () => {
+    const result = spawnSync(
+      process.execPath,
+      ["tools/repo-ai-tools.mjs", "projection-codex", "--tool", "code-review-graph"],
+      {
+        cwd: root,
+        encoding: "utf8",
+        env: { ...process.env, CBM_CACHE_DIR: "invalid-relative" },
+      },
+    );
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout).toContain('[mcp_servers."code-review-graph"]');
+    expect(result.stdout).not.toContain("codebase-memory");
+    expect(result.stdout).not.toContain("build_or_update_graph_tool");
+    expect(result.stdout).toContain("list_graph_stats_tool");
   });
 
-  it("rejects unsafe CBM overrides and foreign project responses", async () => {
+  it("uses an account-wide canonical memory cache and independent project/root", async () => {
     const launcher = await tools();
-    const filesystemRoot = parse(root).root;
-    for (const value of [
-      "",
-      "  ",
-      "relative",
-      "\u0000cache",
-      filesystemRoot,
-      root,
-      join(root, "cache"),
-    ])
-      expect(() => launcher.resolveCodebaseMemoryCacheDir(value), JSON.stringify(value)).toThrow(
-        /CBM_CACHE_DIR/i,
-      );
-
-    const other = { name: "other", root_path: join(tmpdir(), "other"), nodes: 10, edges: 10 };
-    const target = { name: "aih-supported", root_path: root, nodes: 10, edges: 10 };
-    expect(launcher.findCodebaseMemoryProject([other, target])).toEqual(target);
-    expect(() => launcher.findCodebaseMemoryProject([other])).toThrow(/aih-supported/i);
-    expect(() =>
-      launcher.assertCodebaseMemoryScopedResponse(
-        { project: "aih-supported", root_path: root },
-        "status",
-      ),
-    ).not.toThrow();
+    const bootstrap = launcher.inspectCodebaseMemoryBootstrap(join(tmpdir(), "catalog-cbm-test"));
+    expect(bootstrap.cacheDir).toBe(join(tmpdir(), "catalog-cbm-test"));
+    expect(bootstrap.allowedRoot).toBe(root);
+    expect(bootstrap.project.rootPath).toBe(root);
+    expect(bootstrap.project.name).toMatch(/^catalog-[a-f0-9]{16}$/);
+    expect(bootstrap).not.toHaveProperty("markerPath");
+    expect(bootstrap.environment).toMatchObject({
+      CBM_ALLOWED_ROOT: root,
+      CBM_DIAGNOSTICS: "false",
+    });
+    expect(bootstrap.commands.status).toContain("json");
+    const project = { name: bootstrap.project.name, root_path: root, nodes: 0, edges: 0 };
+    expect(launcher.findCodebaseMemoryProject([project])).toEqual(project);
+    expect(() => launcher.findCodebaseMemoryProject([project, project])).toThrow(/unambiguous/);
+    expect(() => launcher.findCodebaseMemoryProject([{ ...project, root_path: tmpdir() }])).toThrow(
+      /root/,
+    );
     expect(() =>
       launcher.assertCodebaseMemoryScopedResponse({ project: "other", root_path: root }, "status"),
-    ).toThrow(/status/i);
+    ).toThrow(/status/);
+    expect(() => launcher.assertCodebaseMemorySearchResponse({ files: ["../outside.ts"] })).toThrow(
+      /search/,
+    );
     expect(() =>
       launcher.assertCodebaseMemorySearchResponse({ files: ["src/index.ts"] }),
     ).not.toThrow();
-    expect(() =>
-      launcher.assertCodebaseMemorySearchResponse({ files: ["../other/src/index.ts"] }),
-    ).toThrow(/search/i);
+    for (const value of ["", "relative", parse(root).root, root, join(root, "cache")])
+      expect(() => launcher.resolveCodebaseMemoryCacheDir(value)).toThrow(/CBM_CACHE_DIR/);
+  });
+
+  it("refuses a client collision before acquisition and preserves deliberate hook policy", () => {
+    const fixture = mkdtempSync(join(tmpdir(), "catalog-bootstrap-"));
+    try {
+      mkdirSync(join(fixture, "tools"));
+      cpSync(join(root, "tools/repo-ai-tools.mjs"), join(fixture, "tools/repo-ai-tools.mjs"));
+      mkdirSync(join(fixture, ".codex"));
+      const config = '[mcp_servers."code-review-graph"]\ncommand = "owned-by-someone-else"\n';
+      writeFileSync(join(fixture, ".codex/config.toml"), config);
+      execFileSync("git", ["init", "-q", fixture]);
+      execFileSync("git", ["-C", fixture, "config", "core.hooksPath", "deliberate-hooks"]);
+      const result = spawnSync(
+        process.execPath,
+        ["tools/repo-ai-tools.mjs", "setup-codex", "--tool", "code-review-graph"],
+        {
+          cwd: fixture,
+          encoding: "utf8",
+          env: {
+            ...process.env,
+            PATH: "",
+            AIH_SUPPORTED_REPO_AI_TOOLS_HOME: join(fixture, "cache"),
+          },
+        },
+      );
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain("already owns");
+      expect(readFileSync(join(fixture, ".codex/config.toml"), "utf8")).toBe(config);
+      expect(
+        execFileSync("git", ["-C", fixture, "config", "core.hooksPath"], {
+          encoding: "utf8",
+        }).trim(),
+      ).toBe("deliberate-hooks");
+      expect(
+        spawnSync("git", ["-C", fixture, "status", "--porcelain"], { encoding: "utf8" }).stdout,
+      ).not.toContain("cache");
+    } finally {
+      rmSync(fixture, { recursive: true, force: true });
+    }
+  });
+
+  it.skipIf(process.platform === "win32")(
+    "sets up only graph projection with stand-in installers in a disposable repository",
+    () => {
+      const fixture = mkdtempSync(join(tmpdir(), "catalog-projection-"));
+      try {
+        mkdirSync(join(fixture, "tools"));
+        cpSync(join(root, "tools/repo-ai-tools.mjs"), join(fixture, "tools/repo-ai-tools.mjs"));
+        mkdirSync(join(fixture, "bin"));
+        const log = join(fixture, "calls.jsonl");
+        const uv = join(fixture, "bin/uv");
+        const python = join(fixture, "bin/python");
+        writeFileSync(
+          uv,
+          `#!${process.execPath}\nimport { appendFileSync } from 'node:fs'; appendFileSync(${JSON.stringify(log)}, JSON.stringify(process.argv.slice(2)) + '\\n');\n`,
+        );
+        writeFileSync(python, `#!${process.execPath}\nprocess.stdout.write('3.14.10\\n');\n`);
+        chmodSync(uv, 0o755);
+        chmodSync(python, 0o755);
+        execFileSync("git", ["init", "-q", fixture]);
+        execFileSync("git", ["-C", fixture, "config", "core.hooksPath", "deliberate-hooks"]);
+        mkdirSync(join(fixture, ".codex"));
+        const existing = '[mcp_servers.serena]\ncommand = "existing-serena"\n';
+        writeFileSync(join(fixture, ".codex/config.toml"), existing);
+        const result = spawnSync(
+          process.execPath,
+          ["tools/repo-ai-tools.mjs", "setup-codex", "--tool", "code-review-graph"],
+          {
+            cwd: fixture,
+            encoding: "utf8",
+            env: {
+              ...process.env,
+              PATH: join(fixture, "bin"),
+              AIH_REPO_CRG_PYTHON: python,
+              AIH_SUPPORTED_REPO_AI_TOOLS_HOME: join(fixture, "cache"),
+            },
+          },
+        );
+        expect(result.status, result.stderr).toBe(0);
+        const projection = readFileSync(join(fixture, ".codex/config.toml"), "utf8");
+        expect(projection).toContain(existing);
+        expect(projection).toContain('[mcp_servers."code-review-graph"]');
+        expect(projection).not.toContain("codebase-memory");
+        const calls = readFileSync(log, "utf8");
+        expect(calls).toContain('"venv"');
+        expect(calls).toContain('"--require-hashes"');
+        expect(calls).not.toMatch(/tool","install|serena|index_repository|build|hooks|git/);
+        expect(
+          execFileSync("git", ["-C", fixture, "config", "core.hooksPath"], {
+            encoding: "utf8",
+          }).trim(),
+        ).toBe("deliberate-hooks");
+      } finally {
+        rmSync(fixture, { recursive: true, force: true });
+      }
+    },
+  );
+
+  it("refuses implicit and unknown helper selection before any mutation", () => {
+    for (const args of [
+      ["setup-codex"],
+      ["setup-codex", "--tool", "unknown"],
+      ["setup-codex", "--tool", "code-review-graph", "--tool", "code-review-graph"],
+    ]) {
+      const result = spawnSync(process.execPath, ["tools/repo-ai-tools.mjs", ...args], {
+        cwd: root,
+        encoding: "utf8",
+      });
+      expect(result.status).toBe(1);
+      expect(result.stderr).toMatch(/select|unknown|duplicate/);
+    }
   });
 
   it("does not commit an absolute override", () => {
