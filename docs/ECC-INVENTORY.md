@@ -12,7 +12,7 @@ All 3538 regular source files have one disposition: 810 supported material files
 
 The independent historical donor has 442 assets: 356 mapped to declarations and 86 explicitly unsupported aggregate/runtime assets. It is not the current delivered-item count.
 
-The 697 declarations comprise 145 instruction, 322 skill, 68 agent, 94 command, 67 mcp, 1 template. Raw original bytes and Catalog recipes remain separate.
+The 701 declarations comprise 145 instruction, 322 skill, 68 agent, 94 command, 71 mcp, 1 template. Raw original bytes and Catalog recipes remain separate.
 
 Full file paths, Git blob identities, modes, SHA-256 digests, lengths, notices, per-file owners/reasons, donor mappings and item facts are in [inventory.json](../producer/ecc/inventory.json). The supported original bytes are in [snapshot.json](../producer/ecc/snapshot.json); all selectable contracts are in [declaration.json](../producer/ecc/declaration.json). [Content guidance](ECC-CONTENT.md) explains client/prerequisite and distribution limits.
 
@@ -653,6 +653,7 @@ Full file paths, Git blob identities, modes, SHA-256 digests, lengths, notices, 
 | ecc.claude.mcp.ito-compute | mcp | 2 |
 | ecc.claude.mcp.jira | mcp | 2 |
 | ecc.claude.mcp.github | mcp | 2 |
+| ecc.claude.mcp.github-local | mcp | 2 |
 | ecc.claude.mcp.firecrawl | mcp | 2 |
 | ecc.claude.mcp.supabase | mcp | 2 |
 | ecc.claude.mcp.ecc-memory-vault | mcp | 2 |
@@ -662,6 +663,7 @@ Full file paths, Git blob identities, modes, SHA-256 digests, lengths, notices, 
 | ecc.claude.mcp.sequential-thinking | mcp | 2 |
 | ecc.claude.mcp.vercel | mcp | 2 |
 | ecc.claude.mcp.railway | mcp | 2 |
+| ecc.claude.mcp.railway-hosted | mcp | 2 |
 | ecc.claude.mcp.cloudflare-docs | mcp | 2 |
 | ecc.claude.mcp.cloudflare-workers-builds | mcp | 2 |
 | ecc.claude.mcp.cloudflare-workers-bindings | mcp | 2 |
@@ -687,6 +689,7 @@ Full file paths, Git blob identities, modes, SHA-256 digests, lengths, notices, 
 | ecc.codex.mcp.nexus | mcp | 2 |
 | ecc.codex.mcp.jira | mcp | 2 |
 | ecc.codex.mcp.github | mcp | 2 |
+| ecc.codex.mcp.github-local | mcp | 2 |
 | ecc.codex.mcp.firecrawl | mcp | 2 |
 | ecc.codex.mcp.ecc-memory-vault | mcp | 2 |
 | ecc.codex.mcp.memory | mcp | 2 |
@@ -695,6 +698,7 @@ Full file paths, Git blob identities, modes, SHA-256 digests, lengths, notices, 
 | ecc.codex.mcp.sequential-thinking | mcp | 2 |
 | ecc.codex.mcp.vercel | mcp | 2 |
 | ecc.codex.mcp.railway | mcp | 2 |
+| ecc.codex.mcp.railway-hosted | mcp | 2 |
 | ecc.codex.mcp.cloudflare-docs | mcp | 2 |
 | ecc.codex.mcp.cloudflare-workers-builds | mcp | 2 |
 | ecc.codex.mcp.cloudflare-workers-bindings | mcp | 2 |

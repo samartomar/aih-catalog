@@ -1,0 +1,12 @@
+{
+  "name": "aihq-mcp-sequential-thinking",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=26.12.1 <27",
+    "npm": "12.2.1"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server-sequential-thinking": "2.0.0"
+  }
+}

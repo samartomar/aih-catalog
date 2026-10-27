@@ -6107,6 +6107,7 @@
         "ecc.codex.mcp.nexus",
         "ecc.codex.mcp.jira",
         "ecc.codex.mcp.github",
+        "ecc.codex.mcp.github-local",
         "ecc.codex.mcp.firecrawl",
         "ecc.codex.mcp.ecc-memory-vault",
         "ecc.codex.mcp.memory",
@@ -6115,6 +6116,7 @@
         "ecc.codex.mcp.sequential-thinking",
         "ecc.codex.mcp.vercel",
         "ecc.codex.mcp.railway",
+        "ecc.codex.mcp.railway-hosted",
         "ecc.codex.mcp.cloudflare-docs",
         "ecc.codex.mcp.cloudflare-workers-builds",
         "ecc.codex.mcp.cloudflare-workers-bindings",
@@ -6136,7 +6138,9 @@
         "ecc.codex.mcp.confluence",
         "ecc.codex.mcp.evalview",
         "ecc.codex.mcp.squish",
-        "ecc.template.api-review"
+        "ecc.template.api-review",
+        "ecc.claude.mcp.github-local",
+        "ecc.claude.mcp.railway-hosted"
       ]
     },
     {
@@ -26984,6 +26988,7 @@
         "ecc.codex.mcp.nexus",
         "ecc.codex.mcp.jira",
         "ecc.codex.mcp.github",
+        "ecc.codex.mcp.github-local",
         "ecc.codex.mcp.firecrawl",
         "ecc.codex.mcp.ecc-memory-vault",
         "ecc.codex.mcp.memory",
@@ -26992,6 +26997,7 @@
         "ecc.codex.mcp.sequential-thinking",
         "ecc.codex.mcp.vercel",
         "ecc.codex.mcp.railway",
+        "ecc.codex.mcp.railway-hosted",
         "ecc.codex.mcp.cloudflare-docs",
         "ecc.codex.mcp.cloudflare-workers-builds",
         "ecc.codex.mcp.cloudflare-workers-bindings",
@@ -27012,7 +27018,9 @@
         "ecc.codex.mcp.laraplugins",
         "ecc.codex.mcp.confluence",
         "ecc.codex.mcp.evalview",
-        "ecc.codex.mcp.squish"
+        "ecc.codex.mcp.squish",
+        "ecc.claude.mcp.github-local",
+        "ecc.claude.mcp.railway-hosted"
       ]
     },
     {
@@ -51351,7 +51359,7 @@
         ]
       },
       "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable nexus and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Local cost/privacy proxy - query your own usage & savings, route to the cheapest capable model, and mask secrets/PII before egress (nexus_stats, nexus_savings, nexus_recent, nexus_providers, nexus_cost_breakdown) Native MCP execution is separate.",
+      "runtimePrerequisites": "Unverified provider identity: bare nexus mcp configuration is preserved, but authoritative provider/package/release and command contract are unresolved. No lookalike package or runnable support claim.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
@@ -51376,7 +51384,7 @@
       "requiredHostEnvironment": [
         "ITO_MCP_ENTRYPOINT"
       ],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide ITO_MCP_ENTRYPOINT. Runtime executable node and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Opt-in local Itô compute MCP. The canonical package is unpublished and must be built from Ito-Markets/ito-cloud-runtime/cli/ito-compute-cli. Exposes ito_auth, ito_find, ito_status, and ito_accept. ito_auth validates existing credentials; it does not start device login. Use ecc ito login [--no-browser] for device authorization, which stores tokens in macOS Keychain by default; explicit file fallback must retain owner-only settings. ECC itself performs no browser automation. ITO_API_KEY is forwarded directly to auth, find, status, and accept when configured; ITO_AUTH_MODE=legacy is not required. Native MCP execution is separate.",
+      "runtimePrerequisites": "Unverified host-owned entrypoint: ITO_MCP_ENTRYPOINT must name the actual separately built unpublished runtime with verified bytes. No managed acquisition or default activation is offered.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
@@ -51398,26 +51406,109 @@
         "description": "Jira issue tracking — search, create, update, comment, transition issues"
       },
       "offeredServer": {
-        "command": "uvx",
+        "command": "python",
         "args": [
-          "mcp-atlassian==0.21.0"
+          "-c",
+          "import sys,os,importlib.metadata as m;assert sys.version_info[:3]==(3,14,10),'incompatible-runtime: Python 3.14.10 required';assert sys.prefix!=sys.base_prefix and os.path.realpath(sys.prefix)==os.path.realpath(os.environ['AIHQ_MCP_JIRA_ROOT']),'isolated-environment-required';assert m.version('mcp')=='1.30.0','incompatible MCP';assert m.version('mcp-atlassian')=='0.23.1','incompatible provider';sys.argv=['mcp-atlassian'];next(e for e in m.distribution('mcp-atlassian').entry_points if e.group=='console_scripts' and e.name=='mcp-atlassian').load()()"
         ],
         "env": {
           "JIRA_URL": "${JIRA_URL}",
           "JIRA_EMAIL": "${JIRA_EMAIL}",
-          "JIRA_API_TOKEN": "${JIRA_API_TOKEN}"
+          "JIRA_API_TOKEN": "${JIRA_API_TOKEN}",
+          "AIHQ_MCP_JIRA_ROOT": "${AIHQ_MCP_JIRA_ROOT}"
         }
       },
       "requiredHostEnvironment": [
-        "JIRA_URL",
+        "AIHQ_MCP_JIRA_ROOT",
+        "JIRA_API_TOKEN",
         "JIRA_EMAIL",
-        "JIRA_API_TOKEN"
+        "JIRA_URL"
       ],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide JIRA_URL, JIRA_EMAIL, JIRA_API_TOKEN. Runtime executable uvx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Jira issue tracking — search, create, update, comment, transition issues Native MCP execution is separate.",
+      "runtimePrerequisites": "Catalog adaptation: isolated Python environment, exact server dependency closure, no uvx or shared environment. Jira URL/email/token retain their original account scope. Prepared hashed wheel-only locks are metadata projections, not installed environments. Exact Python 3.14.10 interpreter artifact, native wheels/import/stdio and platform qualification remain unqualified/unverified; missing artifact cells stay blocked. Preprovision the reviewed isolated environment with pip --require-hashes --only-binary=:all: against the matching lock; never compile, substitute MCP 2, ingest source or use a shared environment. AIHQ_MCP_JIRA_ROOT must equal the selected interpreter's venv prefix. Per-server approval and service authentication remain separate.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "Project scope, omit display description, substitute documented host environment references; command/package/URL stays upstream-authored."
+      "overlay": "Catalog adaptation: isolated Python environment, exact server dependency closure, no uvx or shared environment.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://pypi.org/pypi/mcp-atlassian/0.23.1/json",
+      "acquisition": {
+        "package": "mcp-atlassian",
+        "version": "0.23.1",
+        "python": "3.14.10",
+        "mcp": "1.30.0",
+        "targets": [
+          {
+            "provider": "jira",
+            "target": "x86_64-unknown-linux-gnu",
+            "python": "3.14.10",
+            "mcp": "1.30.0",
+            "uv": "0.13.5",
+            "projection": "wheel-only-metadata",
+            "interpreter": "unqualified",
+            "native": "unverified",
+            "lock": "producer/ecc/acquisition/jira/x86_64-unknown-linux-gnu.txt",
+            "sha256": "03f6bf4ab28d9f9675b080b43bd804437b13b8120910b2cb7f7e9add7fe8e328"
+          },
+          {
+            "provider": "jira",
+            "target": "aarch64-unknown-linux-gnu",
+            "python": "3.14.10",
+            "mcp": "1.30.0",
+            "uv": "0.13.5",
+            "projection": "wheel-only-metadata",
+            "interpreter": "unqualified",
+            "native": "unverified",
+            "lock": "producer/ecc/acquisition/jira/aarch64-unknown-linux-gnu.txt",
+            "sha256": "03f6bf4ab28d9f9675b080b43bd804437b13b8120910b2cb7f7e9add7fe8e328"
+          },
+          {
+            "provider": "jira",
+            "target": "aarch64-apple-darwin",
+            "python": "3.14.10",
+            "mcp": "1.30.0",
+            "uv": "0.13.5",
+            "projection": "wheel-only-metadata",
+            "interpreter": "unqualified",
+            "native": "unverified",
+            "lock": "producer/ecc/acquisition/jira/aarch64-apple-darwin.txt",
+            "sha256": "03f6bf4ab28d9f9675b080b43bd804437b13b8120910b2cb7f7e9add7fe8e328"
+          },
+          {
+            "provider": "jira",
+            "target": "x86_64-apple-darwin",
+            "python": "3.14.10",
+            "mcp": "1.30.0",
+            "uv": "0.13.5",
+            "projection": "blocked",
+            "interpreter": "unqualified",
+            "native": "unverified",
+            "reason": "cryptography 50.0.2 has no usable wheel for the projected target."
+          },
+          {
+            "provider": "jira",
+            "target": "x86_64-pc-windows-msvc",
+            "python": "3.14.10",
+            "mcp": "1.30.0",
+            "uv": "0.13.5",
+            "projection": "wheel-only-metadata",
+            "interpreter": "unqualified",
+            "native": "unverified",
+            "lock": "producer/ecc/acquisition/jira/x86_64-pc-windows-msvc.txt",
+            "sha256": "3d23d8bcbf02b55221825056dc823192f1e6a66b33dc0cf0d5cde81531a5aafe"
+          },
+          {
+            "provider": "jira",
+            "target": "aarch64-pc-windows-msvc",
+            "python": "3.14.10",
+            "mcp": "1.30.0",
+            "uv": "0.13.5",
+            "projection": "blocked",
+            "interpreter": "unqualified",
+            "native": "unverified",
+            "reason": "cryptography 50.0.2 has no usable wheel for the projected target."
+          }
+        ]
+      }
     },
     "ecc.claude.mcp.github": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -51434,23 +51525,17 @@
         "description": "GitHub operations - PRs, issues, repos"
       },
       "offeredServer": {
-        "command": "npx",
-        "args": [
-          "-y",
-          "@modelcontextprotocol/server-github"
-        ],
-        "env": {
-          "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
-        }
+        "type": "http",
+        "url": "https://api.githubcopilot.com/mcp/readonly"
       },
-      "requiredHostEnvironment": [
-        "GITHUB_PERSONAL_ACCESS_TOKEN"
-      ],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide GITHUB_PERSONAL_ACCESS_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. GitHub operations - PRs, issues, repos Native MCP execution is separate.",
+      "requiredHostEnvironment": [],
+      "runtimePrerequisites": "Catalog adaptation: official hosted GitHub MCP read-only route, authenticated by the client's separate OAuth flow; no binary/server pin for the hosted service. The default read-only toolset is explicitly requested; account grants and one-server approval remain separate. The selectable github-local alternative uses exact official 2.0.3 platform artifacts and a host-provided PAT. Configuration does not login, grant permissions, call tools or write repositories.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "Project scope, omit display description, substitute documented host environment references; command/package/URL stays upstream-authored."
+      "overlay": "Catalog adaptation: official hosted GitHub MCP read-only route, authenticated by the client's separate OAuth flow; no binary/server pin for the hosted service.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://github.com/github/github-mcp-server/blob/v2.0.3/docs/remote-server.md"
     },
     "ecc.claude.mcp.firecrawl": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -51467,23 +51552,37 @@
         "description": "Web scraping and crawling"
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "firecrawl-mcp"
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_FIRECRAWL_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_FIRECRAWL_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/firecrawl-mcp/dist/index.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--"
         ],
         "env": {
-          "FIRECRAWL_API_KEY": "${FIRECRAWL_API_KEY}"
+          "FIRECRAWL_API_KEY": "${FIRECRAWL_API_KEY}",
+          "AIHQ_MCP_FIRECRAWL_ROOT": "${AIHQ_MCP_FIRECRAWL_ROOT}"
         }
       },
       "requiredHostEnvironment": [
+        "AIHQ_MCP_FIRECRAWL_ROOT",
         "FIRECRAWL_API_KEY"
       ],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide FIRECRAWL_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Web scraping and crawling Native MCP execution is separate.",
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_FIRECRAWL_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_FIRECRAWL_ROOT, FIRECRAWL_API_KEY. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "Project scope, omit display description, substitute documented host environment references; command/package/URL stays upstream-authored."
+      "overlay": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/firecrawl-mcp/3.35.0",
+      "acquisition": {
+        "package": "firecrawl-mcp",
+        "version": "3.35.0",
+        "integrity": "sha512-NP0h7l/1eaQ+S7C7V5q5y0mq6aTiDDCZa5rWSXPqpvm/1/+DynamaFD16hcJ5VuKb+7/Vy4LyvMqJ2GoMIB4uQ==",
+        "lockSha256": "700cf8ed75b6c37ccc737ec068a703da0936d58c16536d21f31b8141c6ff1c69",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+      }
     },
     "ecc.claude.mcp.supabase": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -51498,21 +51597,37 @@
         "description": "Supabase database operations"
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "@supabase/mcp-server-supabase@latest",
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_SUPABASE_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_SUPABASE_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/@supabase/mcp-server-supabase/dist/cli.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--",
           "--project-ref=${SUPABASE_PROJECT_REF}"
-        ]
+        ],
+        "env": {
+          "AIHQ_MCP_SUPABASE_ROOT": "${AIHQ_MCP_SUPABASE_ROOT}"
+        }
       },
       "requiredHostEnvironment": [
+        "AIHQ_MCP_SUPABASE_ROOT",
         "SUPABASE_PROJECT_REF"
       ],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide SUPABASE_PROJECT_REF. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Supabase database operations Native MCP execution is separate.",
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_SUPABASE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_SUPABASE_ROOT, SUPABASE_PROJECT_REF. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "Project scope, omit display description, substitute documented host environment references; command/package/URL stays upstream-authored."
+      "overlay": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/@supabase/mcp-server-supabase/0.14.0",
+      "acquisition": {
+        "package": "@supabase/mcp-server-supabase",
+        "version": "0.14.0",
+        "integrity": "sha512-1ueKg0ZG7ugjdTr1AeKq84pIaJ4xmf3cY6UJ6ZF0SmwIUi7rCIonHKEnC0fj75VgCtq+QPW5HmNFhFuYy87bLA==",
+        "lockSha256": "f5c3828a40099824293504e42940b846f388e0faf6ed020a4234172fd070d662",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+      }
     },
     "ecc.claude.mcp.ecc-memory-vault": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -51551,18 +51666,37 @@
         "description": "Persistent memory across sessions"
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "@modelcontextprotocol/server-memory"
-        ]
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_MEMORY_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_MEMORY_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/@modelcontextprotocol/server-memory/dist/index.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--"
+        ],
+        "env": {
+          "AIHQ_MCP_MEMORY_ROOT": "${AIHQ_MCP_MEMORY_ROOT}",
+          "MEMORY_FILE_PATH": "${MEMORY_FILE_PATH}"
+        }
       },
-      "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Persistent memory across sessions Native MCP execution is separate.",
+      "requiredHostEnvironment": [
+        "AIHQ_MCP_MEMORY_ROOT",
+        "MEMORY_FILE_PATH"
+      ],
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_MEMORY_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_MEMORY_ROOT, MEMORY_FILE_PATH. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "Project scope, omit display description, substitute documented host environment references; command/package/URL stays upstream-authored."
+      "overlay": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/@modelcontextprotocol/server-memory/2.0.0",
+      "acquisition": {
+        "package": "@modelcontextprotocol/server-memory",
+        "version": "2.0.0",
+        "integrity": "sha512-h+oxQCpK6FOuhlPB9hAcSihAAahcnijuGTZGcXStGOL4UzFYB4ap+pvtSelxchkZlz7tnpY/e0sONaAs24Rurw==",
+        "lockSha256": "cd49585d468ed45c469057d741a2dab6ea4a0199aad50c942b25931b63975cef",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+      }
     },
     "ecc.claude.mcp.omega-memory": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -51576,18 +51710,104 @@
         "description": "Persistent agent memory with semantic search, multi-agent coordination, and knowledge graphs — run via uvx (richer than the basic memory store)"
       },
       "offeredServer": {
-        "command": "uvx",
+        "command": "python",
         "args": [
-          "omega-memory",
-          "serve"
-        ]
+          "-c",
+          "import sys,os,importlib.metadata as m;assert sys.version_info[:3]==(3,14,10),'incompatible-runtime: Python 3.14.10 required';assert sys.prefix!=sys.base_prefix and os.path.realpath(sys.prefix)==os.path.realpath(os.environ['AIHQ_MCP_OMEGA_ROOT']),'isolated-environment-required';assert m.version('mcp')=='1.30.0','incompatible MCP';assert m.version('omega-memory')=='1.5.20','incompatible provider';assert os.path.isabs(os.environ['OMEGA_HOME']),'explicit absolute OMEGA_HOME required';m.version('onnxruntime');sys.argv=['omega','serve'];next(e for e in m.distribution('omega-memory').entry_points if e.group=='console_scripts' and e.name=='omega').load()()"
+        ],
+        "env": {
+          "AIHQ_MCP_OMEGA_ROOT": "${AIHQ_MCP_OMEGA_ROOT}",
+          "OMEGA_HOME": "${OMEGA_HOME}"
+        }
       },
-      "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable uvx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Persistent agent memory with semantic search, multi-agent coordination, and knowledge graphs — run via uvx (richer than the basic memory store) Native MCP execution is separate.",
+      "requiredHostEnvironment": [
+        "AIHQ_MCP_OMEGA_ROOT",
+        "OMEGA_HOME"
+      ],
+      "runtimePrerequisites": "Catalog adaptation: isolated Python environment, exact server dependency closure, no uvx or shared environment. The [server] extra includes onnxruntime; OMEGA_HOME must name an explicit persistent store. Prepared hashed wheel-only locks are metadata projections, not installed environments. Exact Python 3.14.10 interpreter artifact, native wheels/import/stdio and platform qualification remain unqualified/unverified; missing artifact cells stay blocked. Preprovision the reviewed isolated environment with pip --require-hashes --only-binary=:all: against the matching lock; never compile, substitute MCP 2, ingest source or use a shared environment. AIHQ_MCP_OMEGA_ROOT must equal the selected interpreter's venv prefix. Per-server approval and service authentication remain separate.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "Project scope, omit display description, substitute documented host environment references; command/package/URL stays upstream-authored."
+      "overlay": "Catalog adaptation: isolated Python environment, exact server dependency closure, no uvx or shared environment.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://pypi.org/pypi/omega-memory/1.5.20/json",
+      "acquisition": {
+        "package": "omega-memory[server]",
+        "version": "1.5.20",
+        "python": "3.14.10",
+        "mcp": "1.30.0",
+        "targets": [
+          {
+            "provider": "omega",
+            "target": "x86_64-unknown-linux-gnu",
+            "python": "3.14.10",
+            "mcp": "1.30.0",
+            "uv": "0.13.5",
+            "projection": "wheel-only-metadata",
+            "interpreter": "unqualified",
+            "native": "unverified",
+            "lock": "producer/ecc/acquisition/omega/x86_64-unknown-linux-gnu.txt",
+            "sha256": "555fd8253991e3f07ba89d8290695e5566bad590042907bbc2365cf900bffc22"
+          },
+          {
+            "provider": "omega",
+            "target": "aarch64-unknown-linux-gnu",
+            "python": "3.14.10",
+            "mcp": "1.30.0",
+            "uv": "0.13.5",
+            "projection": "wheel-only-metadata",
+            "interpreter": "unqualified",
+            "native": "unverified",
+            "lock": "producer/ecc/acquisition/omega/aarch64-unknown-linux-gnu.txt",
+            "sha256": "555fd8253991e3f07ba89d8290695e5566bad590042907bbc2365cf900bffc22"
+          },
+          {
+            "provider": "omega",
+            "target": "aarch64-apple-darwin",
+            "python": "3.14.10",
+            "mcp": "1.30.0",
+            "uv": "0.13.5",
+            "projection": "blocked",
+            "interpreter": "unqualified",
+            "native": "unverified",
+            "reason": "Default macOS 13 projection excludes onnxruntime 1.31.1 macOS >=14 wheel; newer OS projection remains unverified."
+          },
+          {
+            "provider": "omega",
+            "target": "x86_64-apple-darwin",
+            "python": "3.14.10",
+            "mcp": "1.30.0",
+            "uv": "0.13.5",
+            "projection": "blocked",
+            "interpreter": "unqualified",
+            "native": "unverified",
+            "reason": "cryptography 50.0.2 has no usable wheel for the projected target."
+          },
+          {
+            "provider": "omega",
+            "target": "x86_64-pc-windows-msvc",
+            "python": "3.14.10",
+            "mcp": "1.30.0",
+            "uv": "0.13.5",
+            "projection": "wheel-only-metadata",
+            "interpreter": "unqualified",
+            "native": "unverified",
+            "lock": "producer/ecc/acquisition/omega/x86_64-pc-windows-msvc.txt",
+            "sha256": "97ae135564cf619b7d8e14b80809bebb9b15df296432c4138eccb7841dc35e30"
+          },
+          {
+            "provider": "omega",
+            "target": "aarch64-pc-windows-msvc",
+            "python": "3.14.10",
+            "mcp": "1.30.0",
+            "uv": "0.13.5",
+            "projection": "blocked",
+            "interpreter": "unqualified",
+            "native": "unverified",
+            "reason": "cryptography 50.0.2 has no usable wheel for the projected target."
+          }
+        ]
+      }
     },
     "ecc.claude.mcp.longhand": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -51606,7 +51826,7 @@
         ]
       },
       "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable longhand and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Lossless Claude Code session history — indexes raw tool calls, file edits, and thinking blocks from ~/.claude/projects/*.jsonl into local SQLite + ChromaDB before Claude Code rotates them. Complements memory/omega-memory (synthesized) with verbatim recall. Install: pip install longhand && longhand setup Native MCP execution is separate.",
+      "runtimePrerequisites": "Unverified provider: Longhand 1.2.3 is beta and has no accepted default activation policy. Source configuration only; explicit beta acceptance and consent for session ingestion/hooks are required before activation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
@@ -51624,18 +51844,35 @@
         "description": "Chain-of-thought reasoning"
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "@modelcontextprotocol/server-sequential-thinking"
-        ]
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_SEQUENTIAL_THINKING_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_SEQUENTIAL_THINKING_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/@modelcontextprotocol/server-sequential-thinking/dist/index.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--"
+        ],
+        "env": {
+          "AIHQ_MCP_SEQUENTIAL_THINKING_ROOT": "${AIHQ_MCP_SEQUENTIAL_THINKING_ROOT}"
+        }
       },
-      "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Chain-of-thought reasoning Native MCP execution is separate.",
+      "requiredHostEnvironment": [
+        "AIHQ_MCP_SEQUENTIAL_THINKING_ROOT"
+      ],
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_SEQUENTIAL_THINKING_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_SEQUENTIAL_THINKING_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "Project scope, omit display description, substitute documented host environment references; command/package/URL stays upstream-authored."
+      "overlay": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/@modelcontextprotocol/server-sequential-thinking/2.0.0",
+      "acquisition": {
+        "package": "@modelcontextprotocol/server-sequential-thinking",
+        "version": "2.0.0",
+        "integrity": "sha512-LAljkLByTHuOOPoQHAGNX5EiUJAvYuuTG7yEvdK5pRg7s7oxchNh8LwSkcuW3Y8bvQk4uZgjbjH3x7rNKpJ3Iw==",
+        "lockSha256": "e6d721690d1466f27b1842681e2cb217a5c8e14b337bd4d63f3c6e4318494b2e",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+      }
     },
     "ecc.claude.mcp.vercel": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -51650,7 +51887,7 @@
         "url": "https://mcp.vercel.com"
       },
       "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Vercel deployments and projects Native MCP execution is separate.",
+      "runtimePrerequisites": "Documented Vercel project/deployment service via Streamable HTTP OAuth, available on all plans. No global setup helper, credentials or service operations run at installation; native/service scope remains unverified.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
@@ -51668,18 +51905,36 @@
         "description": "Railway deployments"
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "@railway/mcp-server"
-        ]
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_RAILWAY_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_RAILWAY_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/@railway/cli/bin/railway.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--",
+          "mcp"
+        ],
+        "env": {
+          "AIHQ_MCP_RAILWAY_ROOT": "${AIHQ_MCP_RAILWAY_ROOT}"
+        }
       },
-      "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Railway deployments Native MCP execution is separate.",
+      "requiredHostEnvironment": [
+        "AIHQ_MCP_RAILWAY_ROOT"
+      ],
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_RAILWAY_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_RAILWAY_ROOT. The npm wrapper requires a separately verified native CLI artifact; lifecycle scripts stay disabled. 'mcp' proxies the hosted service; 'mcp local' is a distinct operation and is not selected. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "Project scope, omit display description, substitute documented host environment references; command/package/URL stays upstream-authored."
+      "overlay": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/@railway/cli/5.71.0",
+      "acquisition": {
+        "package": "@railway/cli",
+        "version": "5.71.0",
+        "integrity": "sha512-aLS50FAUwTENen3tBqBn9j3ID5OeYhdDcl+oSVv8mclntHD5yvF/Zh+2oD8emP/I4cUCEGDeDyJ8OVv4QBD9ww==",
+        "lockSha256": "83bba9714a4a67a6007dcec5cd1784fcb21f63d538331da8aded7e4657f5e525",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "The npm wrapper requires a separately verified native CLI artifact; lifecycle scripts stay disabled. 'mcp' proxies the hosted service; 'mcp local' is a distinct operation and is not selected."
+      }
     },
     "ecc.claude.mcp.cloudflare-docs": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -51770,7 +52025,7 @@
         "url": "https://mcp.clickhouse.cloud/mcp"
       },
       "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. ClickHouse analytics queries Native MCP execution is separate.",
+      "runtimePrerequisites": "Documented hosted ClickHouse Streamable HTTP OAuth service, read-only. No local package/backend version is asserted; account authorization and actual read-only tool scope remain unverified.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
@@ -51791,23 +52046,37 @@
         "description": "Web search, research, and data ingestion via Exa API — prefer task-scoped use for broader research after GitHub search and primary docs"
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "exa-mcp-server"
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_EXA_WEB_SEARCH_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_EXA_WEB_SEARCH_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/exa-mcp-server/dist/stdio.cjs\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--"
         ],
         "env": {
-          "EXA_API_KEY": "${EXA_API_KEY}"
+          "EXA_API_KEY": "${EXA_API_KEY}",
+          "AIHQ_MCP_EXA_WEB_SEARCH_ROOT": "${AIHQ_MCP_EXA_WEB_SEARCH_ROOT}"
         }
       },
       "requiredHostEnvironment": [
+        "AIHQ_MCP_EXA_WEB_SEARCH_ROOT",
         "EXA_API_KEY"
       ],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide EXA_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Web search, research, and data ingestion via Exa API — prefer task-scoped use for broader research after GitHub search and primary docs Native MCP execution is separate.",
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_EXA_WEB_SEARCH_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_EXA_WEB_SEARCH_ROOT, EXA_API_KEY. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "Project scope, omit display description, substitute documented host environment references; command/package/URL stays upstream-authored."
+      "overlay": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/exa-mcp-server/3.4.2",
+      "acquisition": {
+        "package": "exa-mcp-server",
+        "version": "3.4.2",
+        "integrity": "sha512-2pqkOuXnABXrwVkB6VyMYA9ywr1aqjBGKlLtcgTBMkWtIn74yY+pMPn8Km2SAGfLeENfWaIHv1L7/kF0b+E5BQ==",
+        "lockSha256": "85a960f9c20d7322c90d49d486ef76587d3686348656dac423844b257fa12abd",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+      }
     },
     "ecc.claude.mcp.parallel-search": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -51819,14 +52088,15 @@
       },
       "offeredServer": {
         "type": "http",
-        "url": "https://search.parallel.ai/mcp"
+        "url": "https://mcp.parallel.ai/mcp"
       },
       "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Parallel Web Search — LLM-optimized web_search and web_fetch tools that take an objective + queries and return citation-backed excerpts in a single call (replaces multiple keyword searches). Works key-free for anonymous use. For higher rate limits, add a headers block: { \"Authorization\": \"Bearer YOUR_PARALLEL_API_KEY_HERE\" } using a key from platform.parallel.ai. Native MCP execution is separate.",
+      "runtimePrerequisites": "Catalog adaptation: anonymous limited-access Streamable HTTP endpoint. An optional account/key for higher limits is a separate service choice. No backend binary version is asserted. Configuration delivery is not approval, authentication or native service qualification.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "Project scope, omit display description, substitute documented host environment references; command/package/URL stays upstream-authored."
+      "overlay": "Catalog adaptation: anonymous limited-access Streamable HTTP endpoint. An optional account/key for higher limits is a separate service choice. No backend binary version is asserted.",
+      "adaptationSource": "https://parallel.ai/mcp"
     },
     "ecc.claude.mcp.context7": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -51840,18 +52110,35 @@
         "description": "Live documentation lookup — use with /docs command and documentation-lookup skill (resolve-library-id, query-docs)."
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "@upstash/context7-mcp@latest"
-        ]
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_CONTEXT7_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_CONTEXT7_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/@upstash/context7-mcp/dist/index.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--"
+        ],
+        "env": {
+          "AIHQ_MCP_CONTEXT7_ROOT": "${AIHQ_MCP_CONTEXT7_ROOT}"
+        }
       },
-      "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Live documentation lookup — use with /docs command and documentation-lookup skill (resolve-library-id, query-docs). Native MCP execution is separate.",
+      "requiredHostEnvironment": [
+        "AIHQ_MCP_CONTEXT7_ROOT"
+      ],
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_CONTEXT7_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_CONTEXT7_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "Project scope, omit display description, substitute documented host environment references; command/package/URL stays upstream-authored."
+      "overlay": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/@upstash/context7-mcp/4.4.4",
+      "acquisition": {
+        "package": "@upstash/context7-mcp",
+        "version": "4.4.4",
+        "integrity": "sha512-T2DkjhweDnC2mRAclDiTrPG3KI1zYKhhjgY2SMKD9PVrbEaGD8x35VsIOqpwwDc2qiKBvfYCF/jqr+jQMu5PUA==",
+        "lockSha256": "6bae87c5664a603e12c6c81db0c21e1e72aff517105a16a2c55f40641418de7f",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+      }
     },
     "ecc.claude.mcp.codescene": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -51868,23 +52155,37 @@
         "description": "Optional. CodeScene Code Health MCP (community skill: codehealth-mcp). Not enabled by default — copy only if you opt in. Requires your own CS_ACCESS_TOKEN (no bundled credentials). See skills/codehealth-mcp/SKILL.md for data boundaries and failure behavior."
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "@codescene/codehealth-mcp"
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_CODESCENE_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_CODESCENE_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/@codescene/codehealth-mcp/bin/cs-mcp.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--"
         ],
         "env": {
-          "CS_ACCESS_TOKEN": "${CS_ACCESS_TOKEN}"
+          "CS_ACCESS_TOKEN": "${CS_ACCESS_TOKEN}",
+          "AIHQ_MCP_CODESCENE_ROOT": "${AIHQ_MCP_CODESCENE_ROOT}"
         }
       },
       "requiredHostEnvironment": [
+        "AIHQ_MCP_CODESCENE_ROOT",
         "CS_ACCESS_TOKEN"
       ],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide CS_ACCESS_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Optional. CodeScene Code Health MCP (community skill: codehealth-mcp). Not enabled by default — copy only if you opt in. Requires your own CS_ACCESS_TOKEN (no bundled credentials). See skills/codehealth-mcp/SKILL.md for data boundaries and failure behavior. Native MCP execution is separate.",
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_CODESCENE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_CODESCENE_ROOT, CS_ACCESS_TOKEN. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "Project scope, omit display description, substitute documented host environment references; command/package/URL stays upstream-authored."
+      "overlay": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/@codescene/codehealth-mcp/1.5.13",
+      "acquisition": {
+        "package": "@codescene/codehealth-mcp",
+        "version": "1.5.13",
+        "integrity": "sha512-UIZudKKiy17AMrBZ22q4Yyu5XOsiF25Zhq8c1GupOQne6JJgrLmcC24HPyDmXORDrmKcxp9Wh5T5OYuN2eXlAg==",
+        "lockSha256": "5d7d7ff77ef97e07d8725e675ef8df35b7e54ce7183aa03afcd826e872aa21e5",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+      }
     },
     "ecc.claude.mcp.magic": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -51898,18 +52199,35 @@
         "description": "Magic UI components"
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "@magicuidesign/mcp@latest"
-        ]
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_MAGIC_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_MAGIC_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/@magicuidesign/mcp/dist/server.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--"
+        ],
+        "env": {
+          "AIHQ_MCP_MAGIC_ROOT": "${AIHQ_MCP_MAGIC_ROOT}"
+        }
       },
-      "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Magic UI components Native MCP execution is separate.",
+      "requiredHostEnvironment": [
+        "AIHQ_MCP_MAGIC_ROOT"
+      ],
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_MAGIC_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_MAGIC_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "Project scope, omit display description, substitute documented host environment references; command/package/URL stays upstream-authored."
+      "overlay": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/@magicuidesign/mcp/2.0.0",
+      "acquisition": {
+        "package": "@magicuidesign/mcp",
+        "version": "2.0.0",
+        "integrity": "sha512-xeMxy/3fFWDFe4OAgSfHVZqUY4FHcNhPvRraHcw7dxwqY3VNKEqqa5ZtNu/8qVpl+KZLEh5vVN2iSGylO/H2yw==",
+        "lockSha256": "5d8b53f5ea276b354b1535b2abb55acea2362edb46f2cc223a1a0b3b5843b268",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+      }
     },
     "ecc.claude.mcp.memxus": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -51932,7 +52250,7 @@
       "requiredHostEnvironment": [
         "MEMXUS_API_KEY"
       ],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide MEMXUS_API_KEY. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Universal persistent memory across Claude Code, Cursor, Gemini CLI and any AI tool — save context once, auto-recalled in every session. Note: review stored memories before use in production agents to avoid prompt-injection via memory-poisoning. Free at memxus.com Native MCP execution is separate.",
+      "runtimePrerequisites": "Unverified raw MCP path/token contract: retain source configuration and host environment references. Needs authoritative client configuration and separately authorized authentication/handshake; no session ingestion or ready claim.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
@@ -51951,21 +52269,37 @@
         "description": "Filesystem operations (set your path)"
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "@modelcontextprotocol/server-filesystem",
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_FILESYSTEM_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_FILESYSTEM_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/@modelcontextprotocol/server-filesystem/dist/index.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--",
           "${ECC_FILESYSTEM_ROOT}"
-        ]
+        ],
+        "env": {
+          "AIHQ_MCP_FILESYSTEM_ROOT": "${AIHQ_MCP_FILESYSTEM_ROOT}"
+        }
       },
       "requiredHostEnvironment": [
+        "AIHQ_MCP_FILESYSTEM_ROOT",
         "ECC_FILESYSTEM_ROOT"
       ],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide ECC_FILESYSTEM_ROOT. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Filesystem operations (set your path) Native MCP execution is separate.",
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_FILESYSTEM_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_FILESYSTEM_ROOT, ECC_FILESYSTEM_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "Project scope, omit display description, substitute documented host environment references; command/package/URL stays upstream-authored."
+      "overlay": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/@modelcontextprotocol/server-filesystem/2.0.1",
+      "acquisition": {
+        "package": "@modelcontextprotocol/server-filesystem",
+        "version": "2.0.1",
+        "integrity": "sha512-K6n1daveB54TybQECAIzSp8DYq014Xfff159OtD1zjB48PONyMcQwyfMPw8jvhZnua/Jd+R/2HcCbTC3YVc3ag==",
+        "lockSha256": "7f39a0d713fd346c6798431ab870ae41308284591a2745cd5f19b138f3b63b53",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+      }
     },
     "ecc.claude.mcp.playwright": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -51981,20 +52315,37 @@
         "description": "Browser automation and testing via Playwright"
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "@playwright/mcp",
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_PLAYWRIGHT_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_PLAYWRIGHT_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/@playwright/mcp/cli.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--",
           "--browser",
           "chrome"
-        ]
+        ],
+        "env": {
+          "AIHQ_MCP_PLAYWRIGHT_ROOT": "${AIHQ_MCP_PLAYWRIGHT_ROOT}"
+        }
       },
-      "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Browser automation and testing via Playwright Native MCP execution is separate.",
+      "requiredHostEnvironment": [
+        "AIHQ_MCP_PLAYWRIGHT_ROOT"
+      ],
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_PLAYWRIGHT_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_PLAYWRIGHT_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Actual Chrome 156.0.8078.47/browser OS dependencies require separate qualification. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "Project scope, omit display description, substitute documented host environment references; command/package/URL stays upstream-authored."
+      "overlay": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/@playwright/mcp/0.0.83",
+      "acquisition": {
+        "package": "@playwright/mcp",
+        "version": "0.0.83",
+        "integrity": "sha512-oNcl+Ae2/IAjhfPeP46BfIkSakfmprY+aOtkv5MjrQ4lPav4/yNtPhL0iq8SlIM90oApWgBDUxaNKvktazUKOg==",
+        "lockSha256": "338afdc227fba32672d24622caffc63ee72e4cb855e81eed8955c8368dd3684c",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+      }
     },
     "ecc.claude.mcp.fal-ai": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -52011,23 +52362,37 @@
         "description": "AI image/video/audio generation via fal.ai models"
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "fal-ai-mcp-server"
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_FAL_AI_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_FAL_AI_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/fal-ai-mcp-server/dist/index.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--"
         ],
         "env": {
-          "FAL_KEY": "${FAL_KEY}"
+          "FAL_KEY": "${FAL_KEY}",
+          "AIHQ_MCP_FAL_AI_ROOT": "${AIHQ_MCP_FAL_AI_ROOT}"
         }
       },
       "requiredHostEnvironment": [
+        "AIHQ_MCP_FAL_AI_ROOT",
         "FAL_KEY"
       ],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide FAL_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. AI image/video/audio generation via fal.ai models Native MCP execution is separate.",
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_FAL_AI_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_FAL_AI_ROOT, FAL_KEY. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "Project scope, omit display description, substitute documented host environment references; command/package/URL stays upstream-authored."
+      "overlay": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/fal-ai-mcp-server/2.1.4",
+      "acquisition": {
+        "package": "fal-ai-mcp-server",
+        "version": "2.1.4",
+        "integrity": "sha512-Zaw39ltZD6T//h4vneWvc3+uvAi1ttjF6BcFxqxuCa3WfichOoZF4+L9GhwiwCHsXJJixhcwhqYIq4WPdSHEMQ==",
+        "lockSha256": "f55439eea6c80da406180027dbdf3409027cb371b8d41c50d2564a7152a1efc5",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+      }
     },
     "ecc.claude.mcp.browserbase": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -52044,23 +52409,41 @@
         "description": "Cloud browser sessions via Browserbase"
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "@browserbasehq/mcp-server-browserbase"
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_BROWSERBASE_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_BROWSERBASE_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/@browserbasehq/mcp/cli.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--"
         ],
         "env": {
-          "BROWSERBASE_API_KEY": "${BROWSERBASE_API_KEY}"
+          "BROWSERBASE_API_KEY": "${BROWSERBASE_API_KEY}",
+          "AIHQ_MCP_BROWSERBASE_ROOT": "${AIHQ_MCP_BROWSERBASE_ROOT}",
+          "BROWSERBASE_PROJECT_ID": "${BROWSERBASE_PROJECT_ID}",
+          "GEMINI_API_KEY": "${GEMINI_API_KEY}"
         }
       },
       "requiredHostEnvironment": [
-        "BROWSERBASE_API_KEY"
+        "AIHQ_MCP_BROWSERBASE_ROOT",
+        "BROWSERBASE_API_KEY",
+        "BROWSERBASE_PROJECT_ID",
+        "GEMINI_API_KEY"
       ],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide BROWSERBASE_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Cloud browser sessions via Browserbase Native MCP execution is separate.",
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_BROWSERBASE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_BROWSERBASE_ROOT, BROWSERBASE_API_KEY, BROWSERBASE_PROJECT_ID, GEMINI_API_KEY. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "Project scope, omit display description, substitute documented host environment references; command/package/URL stays upstream-authored."
+      "overlay": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/@browserbasehq/mcp/3.0.0",
+      "acquisition": {
+        "package": "@browserbasehq/mcp",
+        "version": "3.0.0",
+        "integrity": "sha512-BX07Le9/K56/vcWyCUsfuytHNrbuqeCRhFb4c5R8BZVa6L5b8xMDRYqGlflqAg7grwiwV+MOR9bCf5vPigrJhw==",
+        "lockSha256": "4728d1e31217a4de1af0bcd7ca9b8753778557c193cef5a58b9ca89481bb1e8a",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+      }
     },
     "ecc.claude.mcp.browser-use": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -52075,7 +52458,7 @@
       },
       "offeredServer": {
         "type": "http",
-        "url": "https://api.browser-use.com/mcp",
+        "url": "https://api.browser-use.com/v3/mcp",
         "headers": {
           "x-browser-use-api-key": "${BROWSER_USE_KEY}"
         }
@@ -52083,11 +52466,12 @@
       "requiredHostEnvironment": [
         "BROWSER_USE_KEY"
       ],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide BROWSER_USE_KEY. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. AI browser agent for web tasks Native MCP execution is separate.",
+      "runtimePrerequisites": "Catalog adaptation: documented v3 Streamable HTTP endpoint; BROWSER_USE_KEY is required. Browser sessions and paid calls require separate authorization. The older endpoint is not declared retired. Configuration delivery is not approval, authentication or native service qualification.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "Project scope, omit display description, substitute documented host environment references; command/package/URL stays upstream-authored."
+      "overlay": "Catalog adaptation: documented v3 Streamable HTTP endpoint; BROWSER_USE_KEY is required. Browser sessions and paid calls require separate authorization. The older endpoint is not declared retired.",
+      "adaptationSource": "https://browser-use.com/posts/best-cloud-browser-mcp-servers"
     },
     "ecc.claude.mcp.devfleet": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -52102,7 +52486,7 @@
         "url": "http://localhost:18801/mcp"
       },
       "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Multi-agent orchestration — dispatch parallel Claude Code agents in isolated worktrees. Plan projects, auto-chain missions, read structured reports. Repo: https://github.com/LEC-AI/claude-devfleet Native MCP execution is separate.",
+      "runtimePrerequisites": "Unverified provider/daemon ownership and endpoint contract: localhost configuration is retained as source evidence only. No daemon installation, ingestion or activation is offered.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
@@ -52127,7 +52511,7 @@
         ]
       },
       "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Token optimization for 95%+ context reduction via content deduplication and compression Native MCP execution is separate.",
+      "runtimePrerequisites": "Unsupported provider: token-optimizer-mcp 2.17.0 is not a maintained runnable baseline. Source configuration is retained as unverified bytes only. Needs a maintained supported successor or explicit retirement decision; no managed acquisition or activation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
@@ -52146,7 +52530,7 @@
         "url": "https://laraplugins.io/mcp/plugins"
       },
       "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Laravel plugin discovery — search packages by keyword, health score, Laravel/PHP version compatibility. Use with laravel-plugin-discovery skill. Native MCP execution is separate.",
+      "runtimePrerequisites": "Documented anonymous Laraplugins plugin search/details Streamable HTTP endpoint; no key/account prerequisite. Service availability and tools schema remain unverified.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
@@ -52169,27 +52553,41 @@
         "description": "Confluence Cloud integration — search pages, retrieve content, explore spaces"
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "confluence-mcp-server"
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_CONFLUENCE_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_CONFLUENCE_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/confluence-mcp-server/dist/index.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--"
         ],
         "env": {
           "CONFLUENCE_BASE_URL": "${CONFLUENCE_BASE_URL}",
           "CONFLUENCE_EMAIL": "${CONFLUENCE_EMAIL}",
-          "CONFLUENCE_API_TOKEN": "${CONFLUENCE_API_TOKEN}"
+          "CONFLUENCE_API_TOKEN": "${CONFLUENCE_API_TOKEN}",
+          "AIHQ_MCP_CONFLUENCE_ROOT": "${AIHQ_MCP_CONFLUENCE_ROOT}"
         }
       },
       "requiredHostEnvironment": [
+        "AIHQ_MCP_CONFLUENCE_ROOT",
+        "CONFLUENCE_API_TOKEN",
         "CONFLUENCE_BASE_URL",
-        "CONFLUENCE_EMAIL",
-        "CONFLUENCE_API_TOKEN"
+        "CONFLUENCE_EMAIL"
       ],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide CONFLUENCE_BASE_URL, CONFLUENCE_EMAIL, CONFLUENCE_API_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Confluence Cloud integration — search pages, retrieve content, explore spaces Native MCP execution is separate.",
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_CONFLUENCE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_CONFLUENCE_ROOT, CONFLUENCE_API_TOKEN, CONFLUENCE_BASE_URL, CONFLUENCE_EMAIL. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "Project scope, omit display description, substitute documented host environment references; command/package/URL stays upstream-authored."
+      "overlay": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/confluence-mcp-server/1.3.3",
+      "acquisition": {
+        "package": "confluence-mcp-server",
+        "version": "1.3.3",
+        "integrity": "sha512-hP8e4m94kj+P8c9dKW7Az59ZcALE5ftI1DeEDyXJVHeGIMBBScnCqJIyDr/G7UuWhBnC770L87kNs/1icl05iQ==",
+        "lockSha256": "9143829fdc004ee054891cd62fda34ef674a589d0422b49c0f35248564263787",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+      }
     },
     "ecc.claude.mcp.evalview": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -52242,18 +52640,35 @@
         "description": "Local-first persistent memory runtime for AI agents — MCP server for Claude Code, Cursor, OpenCode, Codex, Cline. Auto-captures context across sessions. 1-20ms recall, 283KB, no second LLM needed. Runs locally with SQLite. Supports cloud sync via Stripe checkout ($9-$99/mo). GitHub: https://github.com/michielhdoteth/squish | Docs: https://squishplugin.dev | (also available via local `squish run mcp`)"
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "squish-memory"
-        ]
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_SQUISH_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_SQUISH_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/squish-memory/bin/squish-mcp.mjs\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--"
+        ],
+        "env": {
+          "AIHQ_MCP_SQUISH_ROOT": "${AIHQ_MCP_SQUISH_ROOT}"
+        }
       },
-      "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Local-first persistent memory runtime for AI agents — MCP server for Claude Code, Cursor, OpenCode, Codex, Cline. Auto-captures context across sessions. 1-20ms recall, 283KB, no second LLM needed. Runs locally with SQLite. Supports cloud sync via Stripe checkout ($9-$99/mo). GitHub: https://github.com/michielhdoteth/squish | Docs: https://squishplugin.dev | (also available via local `squish run mcp`) Native MCP execution is separate.",
+      "requiredHostEnvironment": [
+        "AIHQ_MCP_SQUISH_ROOT"
+      ],
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_SQUISH_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_SQUISH_ROOT. Blocked on Node 26: locked better-sqlite3 12.9.0 excludes Node 26; do not compile or override. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "Project scope, omit display description, substitute documented host environment references; command/package/URL stays upstream-authored."
+      "overlay": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/squish-memory/1.9.0",
+      "acquisition": {
+        "package": "squish-memory",
+        "version": "1.9.0",
+        "integrity": "sha512-xQsTzehmjoqClFoAumqkSxO21J30D4ugxksRGejGYbKgaosTJuTFybMXoKYV7Qjm5ncT16JUuSfHB01qPzmp5w==",
+        "lockSha256": "0a583fa081a62266f556f75696ac8d8eec3571527fe4b6746ae3fcfa82efc368",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Blocked on Node 26: locked better-sqlite3 12.9.0 excludes Node 26; do not compile or override."
+      }
     },
     "ecc.codex.mcp.nexus": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -52272,7 +52687,7 @@
         ]
       },
       "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable nexus and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Local cost/privacy proxy - query your own usage & savings, route to the cheapest capable model, and mask secrets/PII before egress (nexus_stats, nexus_savings, nexus_recent, nexus_providers, nexus_cost_breakdown) Native MCP execution is separate.",
+      "runtimePrerequisites": "Unverified provider identity: bare nexus mcp configuration is preserved, but authoritative provider/package/release and command contract are unresolved. No lookalike package or runnable support claim.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
@@ -52294,26 +52709,109 @@
         "description": "Jira issue tracking — search, create, update, comment, transition issues"
       },
       "offeredServer": {
-        "command": "uvx",
+        "command": "python",
         "args": [
-          "mcp-atlassian==0.21.0"
+          "-c",
+          "import sys,os,importlib.metadata as m;assert sys.version_info[:3]==(3,14,10),'incompatible-runtime: Python 3.14.10 required';assert sys.prefix!=sys.base_prefix and os.path.realpath(sys.prefix)==os.path.realpath(os.environ['AIHQ_MCP_JIRA_ROOT']),'isolated-environment-required';assert m.version('mcp')=='1.30.0','incompatible MCP';assert m.version('mcp-atlassian')=='0.23.1','incompatible provider';sys.argv=['mcp-atlassian'];next(e for e in m.distribution('mcp-atlassian').entry_points if e.group=='console_scripts' and e.name=='mcp-atlassian').load()()"
         ],
         "env": {
           "JIRA_URL": "${JIRA_URL}",
           "JIRA_EMAIL": "${JIRA_EMAIL}",
-          "JIRA_API_TOKEN": "${JIRA_API_TOKEN}"
+          "JIRA_API_TOKEN": "${JIRA_API_TOKEN}",
+          "AIHQ_MCP_JIRA_ROOT": "${AIHQ_MCP_JIRA_ROOT}"
         }
       },
       "requiredHostEnvironment": [
-        "JIRA_URL",
+        "AIHQ_MCP_JIRA_ROOT",
+        "JIRA_API_TOKEN",
         "JIRA_EMAIL",
-        "JIRA_API_TOKEN"
+        "JIRA_URL"
       ],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide JIRA_URL, JIRA_EMAIL, JIRA_API_TOKEN. Runtime executable uvx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Jira issue tracking — search, create, update, comment, transition issues Native MCP execution is separate.",
+      "runtimePrerequisites": "Catalog adaptation: isolated Python environment, exact server dependency closure, no uvx or shared environment. Jira URL/email/token retain their original account scope. Prepared hashed wheel-only locks are metadata projections, not installed environments. Exact Python 3.14.10 interpreter artifact, native wheels/import/stdio and platform qualification remain unqualified/unverified; missing artifact cells stay blocked. Preprovision the reviewed isolated environment with pip --require-hashes --only-binary=:all: against the matching lock; never compile, substitute MCP 2, ingest source or use a shared environment. AIHQ_MCP_JIRA_ROOT must equal the selected interpreter's venv prefix. Per-server approval and service authentication remain separate.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://pypi.org/pypi/mcp-atlassian/0.23.1/json",
+      "acquisition": {
+        "package": "mcp-atlassian",
+        "version": "0.23.1",
+        "python": "3.14.10",
+        "mcp": "1.30.0",
+        "targets": [
+          {
+            "provider": "jira",
+            "target": "x86_64-unknown-linux-gnu",
+            "python": "3.14.10",
+            "mcp": "1.30.0",
+            "uv": "0.13.5",
+            "projection": "wheel-only-metadata",
+            "interpreter": "unqualified",
+            "native": "unverified",
+            "lock": "producer/ecc/acquisition/jira/x86_64-unknown-linux-gnu.txt",
+            "sha256": "03f6bf4ab28d9f9675b080b43bd804437b13b8120910b2cb7f7e9add7fe8e328"
+          },
+          {
+            "provider": "jira",
+            "target": "aarch64-unknown-linux-gnu",
+            "python": "3.14.10",
+            "mcp": "1.30.0",
+            "uv": "0.13.5",
+            "projection": "wheel-only-metadata",
+            "interpreter": "unqualified",
+            "native": "unverified",
+            "lock": "producer/ecc/acquisition/jira/aarch64-unknown-linux-gnu.txt",
+            "sha256": "03f6bf4ab28d9f9675b080b43bd804437b13b8120910b2cb7f7e9add7fe8e328"
+          },
+          {
+            "provider": "jira",
+            "target": "aarch64-apple-darwin",
+            "python": "3.14.10",
+            "mcp": "1.30.0",
+            "uv": "0.13.5",
+            "projection": "wheel-only-metadata",
+            "interpreter": "unqualified",
+            "native": "unverified",
+            "lock": "producer/ecc/acquisition/jira/aarch64-apple-darwin.txt",
+            "sha256": "03f6bf4ab28d9f9675b080b43bd804437b13b8120910b2cb7f7e9add7fe8e328"
+          },
+          {
+            "provider": "jira",
+            "target": "x86_64-apple-darwin",
+            "python": "3.14.10",
+            "mcp": "1.30.0",
+            "uv": "0.13.5",
+            "projection": "blocked",
+            "interpreter": "unqualified",
+            "native": "unverified",
+            "reason": "cryptography 50.0.2 has no usable wheel for the projected target."
+          },
+          {
+            "provider": "jira",
+            "target": "x86_64-pc-windows-msvc",
+            "python": "3.14.10",
+            "mcp": "1.30.0",
+            "uv": "0.13.5",
+            "projection": "wheel-only-metadata",
+            "interpreter": "unqualified",
+            "native": "unverified",
+            "lock": "producer/ecc/acquisition/jira/x86_64-pc-windows-msvc.txt",
+            "sha256": "3d23d8bcbf02b55221825056dc823192f1e6a66b33dc0cf0d5cde81531a5aafe"
+          },
+          {
+            "provider": "jira",
+            "target": "aarch64-pc-windows-msvc",
+            "python": "3.14.10",
+            "mcp": "1.30.0",
+            "uv": "0.13.5",
+            "projection": "blocked",
+            "interpreter": "unqualified",
+            "native": "unverified",
+            "reason": "cryptography 50.0.2 has no usable wheel for the projected target."
+          }
+        ]
+      }
     },
     "ecc.codex.mcp.github": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -52330,10 +52828,39 @@
         "description": "GitHub operations - PRs, issues, repos"
       },
       "offeredServer": {
+        "type": "http",
+        "url": "https://api.githubcopilot.com/mcp/readonly"
+      },
+      "requiredHostEnvironment": [],
+      "runtimePrerequisites": "Catalog adaptation: official hosted GitHub MCP read-only route, authenticated by the client's separate OAuth flow; no binary/server pin for the hosted service. The default read-only toolset is explicitly requested; account grants and one-server approval remain separate. The selectable github-local alternative uses exact official 2.0.3 platform artifacts and a host-provided PAT. Configuration does not login, grant permissions, call tools or write repositories.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://github.com/github/github-mcp-server/blob/v2.0.3/docs/remote-server.md"
+    },
+    "ecc.codex.mcp.github-local": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "github-local",
+      "rawServer": {
         "command": "npx",
         "args": [
           "-y",
           "@modelcontextprotocol/server-github"
+        ],
+        "env": {
+          "GITHUB_PERSONAL_ACCESS_TOKEN": "YOUR_GITHUB_PAT_HERE"
+        },
+        "description": "GitHub operations - PRs, issues, repos"
+      },
+      "offeredServer": {
+        "command": "github-mcp-server",
+        "args": [
+          "stdio",
+          "--read-only",
+          "--toolsets",
+          "repos,issues,pull_requests"
         ],
         "env": {
           "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
@@ -52342,11 +52869,15 @@
       "requiredHostEnvironment": [
         "GITHUB_PERSONAL_ACCESS_TOKEN"
       ],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide GITHUB_PERSONAL_ACCESS_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. GitHub operations - PRs, issues, repos Native MCP execution is separate.",
+      "runtimePrerequisites": "Official GitHub MCP 2.0.3 local alternative. Preprovision the exact platform archive identified by the delivered artifact manifest; binary extraction, installed version/digest and native usability remain unqualified. PAT permissions and one-server approval are separate; repos/issues/pull_requests are read-only. No build, login or repository operation occurs at install.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://github.com/github/github-mcp-server/blob/v2.0.3/docs/remote-server.md",
+      "upstreamSourceKey": "github",
+      "variantOf": "github"
     },
     "ecc.codex.mcp.firecrawl": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -52363,23 +52894,37 @@
         "description": "Web scraping and crawling"
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "firecrawl-mcp"
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_FIRECRAWL_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_FIRECRAWL_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/firecrawl-mcp/dist/index.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--"
         ],
         "env": {
-          "FIRECRAWL_API_KEY": "${FIRECRAWL_API_KEY}"
+          "FIRECRAWL_API_KEY": "${FIRECRAWL_API_KEY}",
+          "AIHQ_MCP_FIRECRAWL_ROOT": "${AIHQ_MCP_FIRECRAWL_ROOT}"
         }
       },
       "requiredHostEnvironment": [
+        "AIHQ_MCP_FIRECRAWL_ROOT",
         "FIRECRAWL_API_KEY"
       ],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide FIRECRAWL_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Web scraping and crawling Native MCP execution is separate.",
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_FIRECRAWL_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_FIRECRAWL_ROOT, FIRECRAWL_API_KEY. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/firecrawl-mcp/3.35.0",
+      "acquisition": {
+        "package": "firecrawl-mcp",
+        "version": "3.35.0",
+        "integrity": "sha512-NP0h7l/1eaQ+S7C7V5q5y0mq6aTiDDCZa5rWSXPqpvm/1/+DynamaFD16hcJ5VuKb+7/Vy4LyvMqJ2GoMIB4uQ==",
+        "lockSha256": "700cf8ed75b6c37ccc737ec068a703da0936d58c16536d21f31b8141c6ff1c69",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+      }
     },
     "ecc.codex.mcp.ecc-memory-vault": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -52418,18 +52963,37 @@
         "description": "Persistent memory across sessions"
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "@modelcontextprotocol/server-memory"
-        ]
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_MEMORY_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_MEMORY_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/@modelcontextprotocol/server-memory/dist/index.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--"
+        ],
+        "env": {
+          "AIHQ_MCP_MEMORY_ROOT": "${AIHQ_MCP_MEMORY_ROOT}",
+          "MEMORY_FILE_PATH": "${MEMORY_FILE_PATH}"
+        }
       },
-      "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Persistent memory across sessions Native MCP execution is separate.",
+      "requiredHostEnvironment": [
+        "AIHQ_MCP_MEMORY_ROOT",
+        "MEMORY_FILE_PATH"
+      ],
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_MEMORY_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_MEMORY_ROOT, MEMORY_FILE_PATH. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/@modelcontextprotocol/server-memory/2.0.0",
+      "acquisition": {
+        "package": "@modelcontextprotocol/server-memory",
+        "version": "2.0.0",
+        "integrity": "sha512-h+oxQCpK6FOuhlPB9hAcSihAAahcnijuGTZGcXStGOL4UzFYB4ap+pvtSelxchkZlz7tnpY/e0sONaAs24Rurw==",
+        "lockSha256": "cd49585d468ed45c469057d741a2dab6ea4a0199aad50c942b25931b63975cef",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+      }
     },
     "ecc.codex.mcp.omega-memory": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -52443,18 +53007,104 @@
         "description": "Persistent agent memory with semantic search, multi-agent coordination, and knowledge graphs — run via uvx (richer than the basic memory store)"
       },
       "offeredServer": {
-        "command": "uvx",
+        "command": "python",
         "args": [
-          "omega-memory",
-          "serve"
-        ]
+          "-c",
+          "import sys,os,importlib.metadata as m;assert sys.version_info[:3]==(3,14,10),'incompatible-runtime: Python 3.14.10 required';assert sys.prefix!=sys.base_prefix and os.path.realpath(sys.prefix)==os.path.realpath(os.environ['AIHQ_MCP_OMEGA_ROOT']),'isolated-environment-required';assert m.version('mcp')=='1.30.0','incompatible MCP';assert m.version('omega-memory')=='1.5.20','incompatible provider';assert os.path.isabs(os.environ['OMEGA_HOME']),'explicit absolute OMEGA_HOME required';m.version('onnxruntime');sys.argv=['omega','serve'];next(e for e in m.distribution('omega-memory').entry_points if e.group=='console_scripts' and e.name=='omega').load()()"
+        ],
+        "env": {
+          "AIHQ_MCP_OMEGA_ROOT": "${AIHQ_MCP_OMEGA_ROOT}",
+          "OMEGA_HOME": "${OMEGA_HOME}"
+        }
       },
-      "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable uvx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Persistent agent memory with semantic search, multi-agent coordination, and knowledge graphs — run via uvx (richer than the basic memory store) Native MCP execution is separate.",
+      "requiredHostEnvironment": [
+        "AIHQ_MCP_OMEGA_ROOT",
+        "OMEGA_HOME"
+      ],
+      "runtimePrerequisites": "Catalog adaptation: isolated Python environment, exact server dependency closure, no uvx or shared environment. The [server] extra includes onnxruntime; OMEGA_HOME must name an explicit persistent store. Prepared hashed wheel-only locks are metadata projections, not installed environments. Exact Python 3.14.10 interpreter artifact, native wheels/import/stdio and platform qualification remain unqualified/unverified; missing artifact cells stay blocked. Preprovision the reviewed isolated environment with pip --require-hashes --only-binary=:all: against the matching lock; never compile, substitute MCP 2, ingest source or use a shared environment. AIHQ_MCP_OMEGA_ROOT must equal the selected interpreter's venv prefix. Per-server approval and service authentication remain separate.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://pypi.org/pypi/omega-memory/1.5.20/json",
+      "acquisition": {
+        "package": "omega-memory[server]",
+        "version": "1.5.20",
+        "python": "3.14.10",
+        "mcp": "1.30.0",
+        "targets": [
+          {
+            "provider": "omega",
+            "target": "x86_64-unknown-linux-gnu",
+            "python": "3.14.10",
+            "mcp": "1.30.0",
+            "uv": "0.13.5",
+            "projection": "wheel-only-metadata",
+            "interpreter": "unqualified",
+            "native": "unverified",
+            "lock": "producer/ecc/acquisition/omega/x86_64-unknown-linux-gnu.txt",
+            "sha256": "555fd8253991e3f07ba89d8290695e5566bad590042907bbc2365cf900bffc22"
+          },
+          {
+            "provider": "omega",
+            "target": "aarch64-unknown-linux-gnu",
+            "python": "3.14.10",
+            "mcp": "1.30.0",
+            "uv": "0.13.5",
+            "projection": "wheel-only-metadata",
+            "interpreter": "unqualified",
+            "native": "unverified",
+            "lock": "producer/ecc/acquisition/omega/aarch64-unknown-linux-gnu.txt",
+            "sha256": "555fd8253991e3f07ba89d8290695e5566bad590042907bbc2365cf900bffc22"
+          },
+          {
+            "provider": "omega",
+            "target": "aarch64-apple-darwin",
+            "python": "3.14.10",
+            "mcp": "1.30.0",
+            "uv": "0.13.5",
+            "projection": "blocked",
+            "interpreter": "unqualified",
+            "native": "unverified",
+            "reason": "Default macOS 13 projection excludes onnxruntime 1.31.1 macOS >=14 wheel; newer OS projection remains unverified."
+          },
+          {
+            "provider": "omega",
+            "target": "x86_64-apple-darwin",
+            "python": "3.14.10",
+            "mcp": "1.30.0",
+            "uv": "0.13.5",
+            "projection": "blocked",
+            "interpreter": "unqualified",
+            "native": "unverified",
+            "reason": "cryptography 50.0.2 has no usable wheel for the projected target."
+          },
+          {
+            "provider": "omega",
+            "target": "x86_64-pc-windows-msvc",
+            "python": "3.14.10",
+            "mcp": "1.30.0",
+            "uv": "0.13.5",
+            "projection": "wheel-only-metadata",
+            "interpreter": "unqualified",
+            "native": "unverified",
+            "lock": "producer/ecc/acquisition/omega/x86_64-pc-windows-msvc.txt",
+            "sha256": "97ae135564cf619b7d8e14b80809bebb9b15df296432c4138eccb7841dc35e30"
+          },
+          {
+            "provider": "omega",
+            "target": "aarch64-pc-windows-msvc",
+            "python": "3.14.10",
+            "mcp": "1.30.0",
+            "uv": "0.13.5",
+            "projection": "blocked",
+            "interpreter": "unqualified",
+            "native": "unverified",
+            "reason": "cryptography 50.0.2 has no usable wheel for the projected target."
+          }
+        ]
+      }
     },
     "ecc.codex.mcp.longhand": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -52473,7 +53123,7 @@
         ]
       },
       "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable longhand and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Lossless Claude Code session history — indexes raw tool calls, file edits, and thinking blocks from ~/.claude/projects/*.jsonl into local SQLite + ChromaDB before Claude Code rotates them. Complements memory/omega-memory (synthesized) with verbatim recall. Install: pip install longhand && longhand setup Native MCP execution is separate.",
+      "runtimePrerequisites": "Unverified provider: Longhand 1.2.3 is beta and has no accepted default activation policy. Source configuration only; explicit beta acceptance and consent for session ingestion/hooks are required before activation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
@@ -52491,18 +53141,35 @@
         "description": "Chain-of-thought reasoning"
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "@modelcontextprotocol/server-sequential-thinking"
-        ]
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_SEQUENTIAL_THINKING_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_SEQUENTIAL_THINKING_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/@modelcontextprotocol/server-sequential-thinking/dist/index.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--"
+        ],
+        "env": {
+          "AIHQ_MCP_SEQUENTIAL_THINKING_ROOT": "${AIHQ_MCP_SEQUENTIAL_THINKING_ROOT}"
+        }
       },
-      "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Chain-of-thought reasoning Native MCP execution is separate.",
+      "requiredHostEnvironment": [
+        "AIHQ_MCP_SEQUENTIAL_THINKING_ROOT"
+      ],
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_SEQUENTIAL_THINKING_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_SEQUENTIAL_THINKING_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/@modelcontextprotocol/server-sequential-thinking/2.0.0",
+      "acquisition": {
+        "package": "@modelcontextprotocol/server-sequential-thinking",
+        "version": "2.0.0",
+        "integrity": "sha512-LAljkLByTHuOOPoQHAGNX5EiUJAvYuuTG7yEvdK5pRg7s7oxchNh8LwSkcuW3Y8bvQk4uZgjbjH3x7rNKpJ3Iw==",
+        "lockSha256": "e6d721690d1466f27b1842681e2cb217a5c8e14b337bd4d63f3c6e4318494b2e",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+      }
     },
     "ecc.codex.mcp.vercel": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -52517,7 +53184,7 @@
         "url": "https://mcp.vercel.com"
       },
       "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Vercel deployments and projects Native MCP execution is separate.",
+      "runtimePrerequisites": "Documented Vercel project/deployment service via Streamable HTTP OAuth, available on all plans. No global setup helper, credentials or service operations run at installation; native/service scope remains unverified.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
@@ -52535,18 +53202,62 @@
         "description": "Railway deployments"
       },
       "offeredServer": {
+        "command": "node",
+        "args": [
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_RAILWAY_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_RAILWAY_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/@railway/cli/bin/railway.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--",
+          "mcp"
+        ],
+        "env": {
+          "AIHQ_MCP_RAILWAY_ROOT": "${AIHQ_MCP_RAILWAY_ROOT}"
+        }
+      },
+      "requiredHostEnvironment": [
+        "AIHQ_MCP_RAILWAY_ROOT"
+      ],
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_RAILWAY_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_RAILWAY_ROOT. The npm wrapper requires a separately verified native CLI artifact; lifecycle scripts stay disabled. 'mcp' proxies the hosted service; 'mcp local' is a distinct operation and is not selected. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/@railway/cli/5.71.0",
+      "acquisition": {
+        "package": "@railway/cli",
+        "version": "5.71.0",
+        "integrity": "sha512-aLS50FAUwTENen3tBqBn9j3ID5OeYhdDcl+oSVv8mclntHD5yvF/Zh+2oD8emP/I4cUCEGDeDyJ8OVv4QBD9ww==",
+        "lockSha256": "83bba9714a4a67a6007dcec5cd1784fcb21f63d538331da8aded7e4657f5e525",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "The npm wrapper requires a separately verified native CLI artifact; lifecycle scripts stay disabled. 'mcp' proxies the hosted service; 'mcp local' is a distinct operation and is not selected."
+      }
+    },
+    "ecc.codex.mcp.railway-hosted": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "railway-hosted",
+      "rawServer": {
         "command": "npx",
         "args": [
           "-y",
           "@railway/mcp-server"
-        ]
+        ],
+        "description": "Railway deployments"
+      },
+      "offeredServer": {
+        "type": "http",
+        "url": "https://mcp.railway.com"
       },
       "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Railway deployments Native MCP execution is separate.",
+      "runtimePrerequisites": "Official Railway hosted OAuth alternative. No local CLI or fictitious backend version is required. The client performs separately authorized OAuth and one-server approval. The railway choice is the 5.71.0 CLI proxy using 'mcp'; 'mcp local' is a distinct in-process operation and is not selected. No deployment, login or service mutation occurs at installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/@railway/cli/5.71.0",
+      "upstreamSourceKey": "railway",
+      "variantOf": "railway"
     },
     "ecc.codex.mcp.cloudflare-docs": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -52637,7 +53348,7 @@
         "url": "https://mcp.clickhouse.cloud/mcp"
       },
       "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. ClickHouse analytics queries Native MCP execution is separate.",
+      "runtimePrerequisites": "Documented hosted ClickHouse Streamable HTTP OAuth service, read-only. No local package/backend version is asserted; account authorization and actual read-only tool scope remain unverified.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
@@ -52658,23 +53369,37 @@
         "description": "Web search, research, and data ingestion via Exa API — prefer task-scoped use for broader research after GitHub search and primary docs"
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "exa-mcp-server"
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_EXA_WEB_SEARCH_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_EXA_WEB_SEARCH_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/exa-mcp-server/dist/stdio.cjs\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--"
         ],
         "env": {
-          "EXA_API_KEY": "${EXA_API_KEY}"
+          "EXA_API_KEY": "${EXA_API_KEY}",
+          "AIHQ_MCP_EXA_WEB_SEARCH_ROOT": "${AIHQ_MCP_EXA_WEB_SEARCH_ROOT}"
         }
       },
       "requiredHostEnvironment": [
+        "AIHQ_MCP_EXA_WEB_SEARCH_ROOT",
         "EXA_API_KEY"
       ],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide EXA_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Web search, research, and data ingestion via Exa API — prefer task-scoped use for broader research after GitHub search and primary docs Native MCP execution is separate.",
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_EXA_WEB_SEARCH_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_EXA_WEB_SEARCH_ROOT, EXA_API_KEY. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/exa-mcp-server/3.4.2",
+      "acquisition": {
+        "package": "exa-mcp-server",
+        "version": "3.4.2",
+        "integrity": "sha512-2pqkOuXnABXrwVkB6VyMYA9ywr1aqjBGKlLtcgTBMkWtIn74yY+pMPn8Km2SAGfLeENfWaIHv1L7/kF0b+E5BQ==",
+        "lockSha256": "85a960f9c20d7322c90d49d486ef76587d3686348656dac423844b257fa12abd",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+      }
     },
     "ecc.codex.mcp.parallel-search": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -52686,14 +53411,15 @@
       },
       "offeredServer": {
         "type": "http",
-        "url": "https://search.parallel.ai/mcp"
+        "url": "https://mcp.parallel.ai/mcp"
       },
       "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Parallel Web Search — LLM-optimized web_search and web_fetch tools that take an objective + queries and return citation-backed excerpts in a single call (replaces multiple keyword searches). Works key-free for anonymous use. For higher rate limits, add a headers block: { \"Authorization\": \"Bearer YOUR_PARALLEL_API_KEY_HERE\" } using a key from platform.parallel.ai. Native MCP execution is separate.",
+      "runtimePrerequisites": "Catalog adaptation: anonymous limited-access Streamable HTTP endpoint. An optional account/key for higher limits is a separate service choice. No backend binary version is asserted. Configuration delivery is not approval, authentication or native service qualification.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored.",
+      "adaptationSource": "https://parallel.ai/mcp"
     },
     "ecc.codex.mcp.context7": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -52707,18 +53433,35 @@
         "description": "Live documentation lookup — use with /docs command and documentation-lookup skill (resolve-library-id, query-docs)."
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "@upstash/context7-mcp@latest"
-        ]
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_CONTEXT7_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_CONTEXT7_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/@upstash/context7-mcp/dist/index.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--"
+        ],
+        "env": {
+          "AIHQ_MCP_CONTEXT7_ROOT": "${AIHQ_MCP_CONTEXT7_ROOT}"
+        }
       },
-      "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Live documentation lookup — use with /docs command and documentation-lookup skill (resolve-library-id, query-docs). Native MCP execution is separate.",
+      "requiredHostEnvironment": [
+        "AIHQ_MCP_CONTEXT7_ROOT"
+      ],
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_CONTEXT7_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_CONTEXT7_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/@upstash/context7-mcp/4.4.4",
+      "acquisition": {
+        "package": "@upstash/context7-mcp",
+        "version": "4.4.4",
+        "integrity": "sha512-T2DkjhweDnC2mRAclDiTrPG3KI1zYKhhjgY2SMKD9PVrbEaGD8x35VsIOqpwwDc2qiKBvfYCF/jqr+jQMu5PUA==",
+        "lockSha256": "6bae87c5664a603e12c6c81db0c21e1e72aff517105a16a2c55f40641418de7f",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+      }
     },
     "ecc.codex.mcp.codescene": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -52735,23 +53478,37 @@
         "description": "Optional. CodeScene Code Health MCP (community skill: codehealth-mcp). Not enabled by default — copy only if you opt in. Requires your own CS_ACCESS_TOKEN (no bundled credentials). See skills/codehealth-mcp/SKILL.md for data boundaries and failure behavior."
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "@codescene/codehealth-mcp"
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_CODESCENE_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_CODESCENE_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/@codescene/codehealth-mcp/bin/cs-mcp.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--"
         ],
         "env": {
-          "CS_ACCESS_TOKEN": "${CS_ACCESS_TOKEN}"
+          "CS_ACCESS_TOKEN": "${CS_ACCESS_TOKEN}",
+          "AIHQ_MCP_CODESCENE_ROOT": "${AIHQ_MCP_CODESCENE_ROOT}"
         }
       },
       "requiredHostEnvironment": [
+        "AIHQ_MCP_CODESCENE_ROOT",
         "CS_ACCESS_TOKEN"
       ],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide CS_ACCESS_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Optional. CodeScene Code Health MCP (community skill: codehealth-mcp). Not enabled by default — copy only if you opt in. Requires your own CS_ACCESS_TOKEN (no bundled credentials). See skills/codehealth-mcp/SKILL.md for data boundaries and failure behavior. Native MCP execution is separate.",
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_CODESCENE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_CODESCENE_ROOT, CS_ACCESS_TOKEN. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/@codescene/codehealth-mcp/1.5.13",
+      "acquisition": {
+        "package": "@codescene/codehealth-mcp",
+        "version": "1.5.13",
+        "integrity": "sha512-UIZudKKiy17AMrBZ22q4Yyu5XOsiF25Zhq8c1GupOQne6JJgrLmcC24HPyDmXORDrmKcxp9Wh5T5OYuN2eXlAg==",
+        "lockSha256": "5d7d7ff77ef97e07d8725e675ef8df35b7e54ce7183aa03afcd826e872aa21e5",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+      }
     },
     "ecc.codex.mcp.magic": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -52765,18 +53522,35 @@
         "description": "Magic UI components"
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "@magicuidesign/mcp@latest"
-        ]
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_MAGIC_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_MAGIC_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/@magicuidesign/mcp/dist/server.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--"
+        ],
+        "env": {
+          "AIHQ_MCP_MAGIC_ROOT": "${AIHQ_MCP_MAGIC_ROOT}"
+        }
       },
-      "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Magic UI components Native MCP execution is separate.",
+      "requiredHostEnvironment": [
+        "AIHQ_MCP_MAGIC_ROOT"
+      ],
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_MAGIC_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_MAGIC_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/@magicuidesign/mcp/2.0.0",
+      "acquisition": {
+        "package": "@magicuidesign/mcp",
+        "version": "2.0.0",
+        "integrity": "sha512-xeMxy/3fFWDFe4OAgSfHVZqUY4FHcNhPvRraHcw7dxwqY3VNKEqqa5ZtNu/8qVpl+KZLEh5vVN2iSGylO/H2yw==",
+        "lockSha256": "5d8b53f5ea276b354b1535b2abb55acea2362edb46f2cc223a1a0b3b5843b268",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+      }
     },
     "ecc.codex.mcp.memxus": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -52799,7 +53573,7 @@
       "requiredHostEnvironment": [
         "MEMXUS_API_KEY"
       ],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide MEMXUS_API_KEY. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Universal persistent memory across Claude Code, Cursor, Gemini CLI and any AI tool — save context once, auto-recalled in every session. Note: review stored memories before use in production agents to avoid prompt-injection via memory-poisoning. Free at memxus.com Native MCP execution is separate.",
+      "runtimePrerequisites": "Unverified raw MCP path/token contract: retain source configuration and host environment references. Needs authoritative client configuration and separately authorized authentication/handshake; no session ingestion or ready claim.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
@@ -52819,20 +53593,37 @@
         "description": "Browser automation and testing via Playwright"
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "@playwright/mcp",
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_PLAYWRIGHT_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_PLAYWRIGHT_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/@playwright/mcp/cli.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--",
           "--browser",
           "chrome"
-        ]
+        ],
+        "env": {
+          "AIHQ_MCP_PLAYWRIGHT_ROOT": "${AIHQ_MCP_PLAYWRIGHT_ROOT}"
+        }
       },
-      "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Browser automation and testing via Playwright Native MCP execution is separate.",
+      "requiredHostEnvironment": [
+        "AIHQ_MCP_PLAYWRIGHT_ROOT"
+      ],
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_PLAYWRIGHT_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_PLAYWRIGHT_ROOT. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Actual Chrome 156.0.8078.47/browser OS dependencies require separate qualification. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/@playwright/mcp/0.0.83",
+      "acquisition": {
+        "package": "@playwright/mcp",
+        "version": "0.0.83",
+        "integrity": "sha512-oNcl+Ae2/IAjhfPeP46BfIkSakfmprY+aOtkv5MjrQ4lPav4/yNtPhL0iq8SlIM90oApWgBDUxaNKvktazUKOg==",
+        "lockSha256": "338afdc227fba32672d24622caffc63ee72e4cb855e81eed8955c8368dd3684c",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+      }
     },
     "ecc.codex.mcp.fal-ai": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -52849,23 +53640,37 @@
         "description": "AI image/video/audio generation via fal.ai models"
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "fal-ai-mcp-server"
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_FAL_AI_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_FAL_AI_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/fal-ai-mcp-server/dist/index.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--"
         ],
         "env": {
-          "FAL_KEY": "${FAL_KEY}"
+          "FAL_KEY": "${FAL_KEY}",
+          "AIHQ_MCP_FAL_AI_ROOT": "${AIHQ_MCP_FAL_AI_ROOT}"
         }
       },
       "requiredHostEnvironment": [
+        "AIHQ_MCP_FAL_AI_ROOT",
         "FAL_KEY"
       ],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide FAL_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. AI image/video/audio generation via fal.ai models Native MCP execution is separate.",
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_FAL_AI_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_FAL_AI_ROOT, FAL_KEY. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/fal-ai-mcp-server/2.1.4",
+      "acquisition": {
+        "package": "fal-ai-mcp-server",
+        "version": "2.1.4",
+        "integrity": "sha512-Zaw39ltZD6T//h4vneWvc3+uvAi1ttjF6BcFxqxuCa3WfichOoZF4+L9GhwiwCHsXJJixhcwhqYIq4WPdSHEMQ==",
+        "lockSha256": "f55439eea6c80da406180027dbdf3409027cb371b8d41c50d2564a7152a1efc5",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+      }
     },
     "ecc.codex.mcp.browserbase": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -52882,23 +53687,41 @@
         "description": "Cloud browser sessions via Browserbase"
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "@browserbasehq/mcp-server-browserbase"
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_BROWSERBASE_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_BROWSERBASE_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/@browserbasehq/mcp/cli.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--"
         ],
         "env": {
-          "BROWSERBASE_API_KEY": "${BROWSERBASE_API_KEY}"
+          "BROWSERBASE_API_KEY": "${BROWSERBASE_API_KEY}",
+          "AIHQ_MCP_BROWSERBASE_ROOT": "${AIHQ_MCP_BROWSERBASE_ROOT}",
+          "BROWSERBASE_PROJECT_ID": "${BROWSERBASE_PROJECT_ID}",
+          "GEMINI_API_KEY": "${GEMINI_API_KEY}"
         }
       },
       "requiredHostEnvironment": [
-        "BROWSERBASE_API_KEY"
+        "AIHQ_MCP_BROWSERBASE_ROOT",
+        "BROWSERBASE_API_KEY",
+        "BROWSERBASE_PROJECT_ID",
+        "GEMINI_API_KEY"
       ],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide BROWSERBASE_API_KEY. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Cloud browser sessions via Browserbase Native MCP execution is separate.",
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_BROWSERBASE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_BROWSERBASE_ROOT, BROWSERBASE_API_KEY, BROWSERBASE_PROJECT_ID, GEMINI_API_KEY. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/@browserbasehq/mcp/3.0.0",
+      "acquisition": {
+        "package": "@browserbasehq/mcp",
+        "version": "3.0.0",
+        "integrity": "sha512-BX07Le9/K56/vcWyCUsfuytHNrbuqeCRhFb4c5R8BZVa6L5b8xMDRYqGlflqAg7grwiwV+MOR9bCf5vPigrJhw==",
+        "lockSha256": "4728d1e31217a4de1af0bcd7ca9b8753778557c193cef5a58b9ca89481bb1e8a",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+      }
     },
     "ecc.codex.mcp.browser-use": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -52913,7 +53736,7 @@
       },
       "offeredServer": {
         "type": "http",
-        "url": "https://api.browser-use.com/mcp",
+        "url": "https://api.browser-use.com/v3/mcp",
         "headers": {
           "x-browser-use-api-key": "${BROWSER_USE_KEY}"
         }
@@ -52921,11 +53744,12 @@
       "requiredHostEnvironment": [
         "BROWSER_USE_KEY"
       ],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide BROWSER_USE_KEY. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. AI browser agent for web tasks Native MCP execution is separate.",
+      "runtimePrerequisites": "Catalog adaptation: documented v3 Streamable HTTP endpoint; BROWSER_USE_KEY is required. Browser sessions and paid calls require separate authorization. The older endpoint is not declared retired. Configuration delivery is not approval, authentication or native service qualification.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored.",
+      "adaptationSource": "https://browser-use.com/posts/best-cloud-browser-mcp-servers"
     },
     "ecc.codex.mcp.devfleet": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -52940,7 +53764,7 @@
         "url": "http://localhost:18801/mcp"
       },
       "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Multi-agent orchestration — dispatch parallel Claude Code agents in isolated worktrees. Plan projects, auto-chain missions, read structured reports. Repo: https://github.com/LEC-AI/claude-devfleet Native MCP execution is separate.",
+      "runtimePrerequisites": "Unverified provider/daemon ownership and endpoint contract: localhost configuration is retained as source evidence only. No daemon installation, ingestion or activation is offered.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
@@ -52965,7 +53789,7 @@
         ]
       },
       "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Token optimization for 95%+ context reduction via content deduplication and compression Native MCP execution is separate.",
+      "runtimePrerequisites": "Unsupported provider: token-optimizer-mcp 2.17.0 is not a maintained runnable baseline. Source configuration is retained as unverified bytes only. Needs a maintained supported successor or explicit retirement decision; no managed acquisition or activation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
@@ -52984,7 +53808,7 @@
         "url": "https://laraplugins.io/mcp/plugins"
       },
       "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Requires network reachability and any endpoint-specific account/OAuth authorization; upstream gives no complete credential contract. Laravel plugin discovery — search packages by keyword, health score, Laravel/PHP version compatibility. Use with laravel-plugin-discovery skill. Native MCP execution is separate.",
+      "runtimePrerequisites": "Documented anonymous Laraplugins plugin search/details Streamable HTTP endpoint; no key/account prerequisite. Service availability and tools schema remain unverified.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
@@ -53007,27 +53831,41 @@
         "description": "Confluence Cloud integration — search pages, retrieve content, explore spaces"
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "confluence-mcp-server"
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_CONFLUENCE_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_CONFLUENCE_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/confluence-mcp-server/dist/index.js\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--"
         ],
         "env": {
           "CONFLUENCE_BASE_URL": "${CONFLUENCE_BASE_URL}",
           "CONFLUENCE_EMAIL": "${CONFLUENCE_EMAIL}",
-          "CONFLUENCE_API_TOKEN": "${CONFLUENCE_API_TOKEN}"
+          "CONFLUENCE_API_TOKEN": "${CONFLUENCE_API_TOKEN}",
+          "AIHQ_MCP_CONFLUENCE_ROOT": "${AIHQ_MCP_CONFLUENCE_ROOT}"
         }
       },
       "requiredHostEnvironment": [
+        "AIHQ_MCP_CONFLUENCE_ROOT",
+        "CONFLUENCE_API_TOKEN",
         "CONFLUENCE_BASE_URL",
-        "CONFLUENCE_EMAIL",
-        "CONFLUENCE_API_TOKEN"
+        "CONFLUENCE_EMAIL"
       ],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Host process environment must provide CONFLUENCE_BASE_URL, CONFLUENCE_EMAIL, CONFLUENCE_API_TOKEN. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Confluence Cloud integration — search pages, retrieve content, explore spaces Native MCP execution is separate.",
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_CONFLUENCE_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_CONFLUENCE_ROOT, CONFLUENCE_API_TOKEN, CONFLUENCE_BASE_URL, CONFLUENCE_EMAIL. Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/confluence-mcp-server/1.3.3",
+      "acquisition": {
+        "package": "confluence-mcp-server",
+        "version": "1.3.3",
+        "integrity": "sha512-hP8e4m94kj+P8c9dKW7Az59ZcALE5ftI1DeEDyXJVHeGIMBBScnCqJIyDr/G7UuWhBnC770L87kNs/1icl05iQ==",
+        "lockSha256": "9143829fdc004ee054891cd62fda34ef674a589d0422b49c0f35248564263787",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Native dependency and platform readiness remain unverified; disabled install scripts are not permission to compile or fetch native binaries."
+      }
     },
     "ecc.codex.mcp.evalview": {
       "sourcePath": "mcp-configs/mcp-servers.json",
@@ -53080,18 +53918,100 @@
         "description": "Local-first persistent memory runtime for AI agents — MCP server for Claude Code, Cursor, OpenCode, Codex, Cline. Auto-captures context across sessions. 1-20ms recall, 283KB, no second LLM needed. Runs locally with SQLite. Supports cloud sync via Stripe checkout ($9-$99/mo). GitHub: https://github.com/michielhdoteth/squish | Docs: https://squishplugin.dev | (also available via local `squish run mcp`)"
       },
       "offeredServer": {
-        "command": "npx",
+        "command": "node",
         "args": [
-          "-y",
-          "squish-memory"
-        ]
+          "-e",
+          "const [a,b,c]=process.versions.node.split('.').map(Number);if(a!==26||b<12||(b===12&&c<1))throw Error('incompatible-runtime: Node >=26.12.1 <27 required');const r=process.env.AIHQ_MCP_SQUISH_ROOT;if(!r)throw Error('missing-runtime: AIHQ_MCP_SQUISH_ROOT must name the reviewed installation directory');const p=require('node:path').join(r,\"node_modules/squish-memory/bin/squish-mcp.mjs\");process.argv.splice(1,0,p);import(require('node:url').pathToFileURL(p).href);",
+          "--"
+        ],
+        "env": {
+          "AIHQ_MCP_SQUISH_ROOT": "${AIHQ_MCP_SQUISH_ROOT}"
+        }
       },
-      "requiredHostEnvironment": [],
-      "runtimePrerequisites": "Exact upstream command/transport preserved. Runtime executable npx and the offered server package/binary must be available; npx/uvx acquisition requires network and operator approval. Local-first persistent memory runtime for AI agents — MCP server for Claude Code, Cursor, OpenCode, Codex, Cline. Auto-captures context across sessions. 1-20ms recall, 283KB, no second LLM needed. Runs locally with SQLite. Supports cloud sync via Stripe checkout ($9-$99/mo). GitHub: https://github.com/michielhdoteth/squish | Docs: https://squishplugin.dev | (also available via local `squish run mcp`) Native MCP execution is separate.",
+      "requiredHostEnvironment": [
+        "AIHQ_MCP_SQUISH_ROOT"
+      ],
+      "runtimePrerequisites": "Catalog-authored exact npm acquisition and explicit local launcher; raw upstream bytes preserved. Node 26.12.1 and separately selected npm 12.2.1; offline verified-cache retry, no lifecycle scripts. AIHQ_MCP_SQUISH_ROOT must name this recipe's runtime directory. Required host inputs: AIHQ_MCP_SQUISH_ROOT. Blocked on Node 26: locked better-sqlite3 12.9.0 excludes Node 26; do not compile or override. Package installation, one-server approval, credentials and native/service activation are separate states; no browser, paid API or business operation is authorized by installation.",
       "optionalChoices": [
         "Do not select this server unless needed; never install all servers by default."
       ],
-      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored."
+      "overlay": "User scope, omit display description, forward documented host environment references by name through env_vars, bearer_token_env_var or env_http_headers; command/package/URL stays upstream-authored.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/squish-memory/1.9.0",
+      "acquisition": {
+        "package": "squish-memory",
+        "version": "1.9.0",
+        "integrity": "sha512-xQsTzehmjoqClFoAumqkSxO21J30D4ugxksRGejGYbKgaosTJuTFybMXoKYV7Qjm5ncT16JUuSfHB01qPzmp5w==",
+        "lockSha256": "0a583fa081a62266f556f75696ac8d8eec3571527fe4b6746ae3fcfa82efc368",
+        "node": "26.12.1",
+        "npm": "12.2.1",
+        "blockers": "Blocked on Node 26: locked better-sqlite3 12.9.0 excludes Node 26; do not compile or override."
+      }
+    },
+    "ecc.claude.mcp.github-local": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "github-local",
+      "rawServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-github"
+        ],
+        "env": {
+          "GITHUB_PERSONAL_ACCESS_TOKEN": "YOUR_GITHUB_PAT_HERE"
+        },
+        "description": "GitHub operations - PRs, issues, repos"
+      },
+      "offeredServer": {
+        "command": "github-mcp-server",
+        "args": [
+          "stdio",
+          "--read-only",
+          "--toolsets",
+          "repos,issues,pull_requests"
+        ],
+        "env": {
+          "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+        }
+      },
+      "requiredHostEnvironment": [
+        "GITHUB_PERSONAL_ACCESS_TOKEN"
+      ],
+      "runtimePrerequisites": "Official GitHub MCP 2.0.3 local alternative. Preprovision the exact platform archive identified by the delivered artifact manifest; binary extraction, installed version/digest and native usability remain unqualified. PAT permissions and one-server approval are separate; repos/issues/pull_requests are read-only. No build, login or repository operation occurs at install.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "Official GitHub MCP 2.0.3 local alternative. Preprovision the exact platform archive identified by the delivered artifact manifest; binary extraction, installed version/digest and native usability remain unqualified. PAT permissions and one-server approval are separate; repos/issues/pull_requests are read-only. No build, login or repository operation occurs at install.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://github.com/github/github-mcp-server/blob/v2.0.3/docs/remote-server.md",
+      "upstreamSourceKey": "github",
+      "variantOf": "github"
+    },
+    "ecc.claude.mcp.railway-hosted": {
+      "sourcePath": "mcp-configs/mcp-servers.json",
+      "sourceKey": "railway-hosted",
+      "rawServer": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@railway/mcp-server"
+        ],
+        "description": "Railway deployments"
+      },
+      "offeredServer": {
+        "type": "http",
+        "url": "https://mcp.railway.com"
+      },
+      "requiredHostEnvironment": [],
+      "runtimePrerequisites": "Official Railway hosted OAuth alternative. No local CLI or fictitious backend version is required. The client performs separately authorized OAuth and one-server approval. The railway choice is the 5.71.0 CLI proxy using 'mcp'; 'mcp local' is a distinct in-process operation and is not selected. No deployment, login or service mutation occurs at installation.",
+      "optionalChoices": [
+        "Do not select this server unless needed; never install all servers by default."
+      ],
+      "overlay": "Official Railway hosted OAuth alternative. No local CLI or fictitious backend version is required. The client performs separately authorized OAuth and one-server approval. The railway choice is the 5.71.0 CLI proxy using 'mcp'; 'mcp local' is a distinct in-process operation and is not selected. No deployment, login or service mutation occurs at installation.",
+      "optionalHostEnvironment": [],
+      "adaptationSource": "https://registry.npmjs.org/@railway/cli/5.71.0",
+      "upstreamSourceKey": "railway",
+      "variantOf": "railway"
     }
   },
   "codexMcpExclusions": [

@@ -6,6 +6,10 @@
  },
  "amendments": [
   {
+   "id": "mcp-adoption-176",
+   "reason": "Catalog #176 supplies reviewed exact Node locks and isolated Python server projections, replaces obsolete providers and updates documented hosted endpoints. Upstream material/content identities remain unchanged; authored recipe, runtime and MCP edit identities change. Native/service readiness stays independently qualified."
+  },
+  {
    "id": "behaviour-files",
    "reason": "The dry run predates behaviour files. Content identities are unaffected (they cover content materials only), so the expected contentSha256 values stand; no behaviourSha256 is predicted and none is compared."
   },
@@ -60,8 +64,8 @@
  ],
  "counts": {
   "mattSupersessions": 27,
-  "mcpPairs": 32,
-  "editedMcp": 15,
+  "mcpPairs": 34,
+  "editedMcp": 26,
   "defaultRetirements": 46
  },
  "frameworks": {
@@ -3894,6 +3898,16 @@
      "id": "ecc.steering.typescript-security",
      "kind": "rule",
      "contentSha256": "830734e37656a89b1650f14360ed03cddd239fc9d8c5c2fe3f6f5c1732e32f10"
+    },
+    {
+     "id": "ecc.mcp.github-local",
+     "kind": "mcp-server",
+     "contentSha256": "1ead8c2cdd5edfcc644fe9cf967e129b982dd4f6e3516cec2d6b0686f014c581"
+    },
+    {
+     "id": "ecc.mcp.railway-hosted",
+     "kind": "mcp-server",
+     "contentSha256": "1ead8c2cdd5edfcc644fe9cf967e129b982dd4f6e3516cec2d6b0686f014c581"
     }
    ],
    "supersessions": [
@@ -4060,6 +4074,26 @@
     {
      "survivor": "ecc.skill.api-design",
      "itemId": "ecc.copilot.skill.api-design",
+     "match": "hash"
+    },
+    {
+     "survivor": "ecc.mcp.github-local",
+     "itemId": "ecc.claude.mcp.github-local",
+     "match": "hash"
+    },
+    {
+     "survivor": "ecc.mcp.github-local",
+     "itemId": "ecc.codex.mcp.github-local",
+     "match": "hash"
+    },
+    {
+     "survivor": "ecc.mcp.railway-hosted",
+     "itemId": "ecc.claude.mcp.railway-hosted",
+     "match": "hash"
+    },
+    {
+     "survivor": "ecc.mcp.railway-hosted",
+     "itemId": "ecc.codex.mcp.railway-hosted",
      "match": "hash"
     }
    ],
@@ -4287,18 +4321,32 @@
       "ecc.claude.mcp.vercel",
       "ecc.codex.mcp.vercel"
      ]
+    },
+    {
+     "survivor": "ecc.mcp.github-local",
+     "copies": [
+      "ecc.claude.mcp.github-local",
+      "ecc.codex.mcp.github-local"
+     ]
+    },
+    {
+     "survivor": "ecc.mcp.railway-hosted",
+     "copies": [
+      "ecc.claude.mcp.railway-hosted",
+      "ecc.codex.mcp.railway-hosted"
+     ]
     }
    ],
    "edits": [
     {
      "survivor": "ecc.mcp.browser-use",
      "transform": "edited",
-     "editsSha256": "68ceeda56b814d504dedb652b6e73aecd8b0daa54ef7f5d4da68d3d1abc5e478"
+     "editsSha256": "ab7eed8f20c9e305aeaca16e468c5d7d6f6a06e270708d99c0fe93d57e4a1355"
     },
     {
      "survivor": "ecc.mcp.browserbase",
      "transform": "edited",
-     "editsSha256": "810775928fac6750370237f2f624d48e507dddbc5ab1292b7046586a2ce45968"
+     "editsSha256": "8a8e4206406857bacc37931a047a4bf892ba5e9ba8dae9f7e391ea4ff526d5d5"
     },
     {
      "survivor": "ecc.mcp.clickhouse",
@@ -4323,16 +4371,17 @@
     {
      "survivor": "ecc.mcp.codescene",
      "transform": "edited",
-     "editsSha256": "9770e252e5a1637c13d8beea607137b02604ff74c0bdb7346f01958b54532207"
+     "editsSha256": "642501c22461721731bb2c8cc061af52e1e06a8e08fe75f5d6eb2937eb7d2ed0"
     },
     {
      "survivor": "ecc.mcp.confluence",
      "transform": "edited",
-     "editsSha256": "5411bdc59070de997bdc884b11253675d41d92b3276b717f920592c0c76f6e5c"
+     "editsSha256": "9c5c6f5b23cbf5e07212f4b9c72f1c2854bdd2fd02a6c6b95b96c234471a2727"
     },
     {
      "survivor": "ecc.mcp.context7",
-     "transform": "identical"
+     "transform": "edited",
+     "editsSha256": "fb06384e2d4cbe494e8a1dee1775332944ed51560fe16e1eb944fa04b804b701"
     },
     {
      "survivor": "ecc.mcp.devfleet",
@@ -4351,27 +4400,27 @@
     {
      "survivor": "ecc.mcp.exa-web-search",
      "transform": "edited",
-     "editsSha256": "56e7dbd225ae39a15e5617aa50231533abbd1b679eb92ec8004c90afa8385721"
+     "editsSha256": "66f99832b5a48a1cbcc443594c8dae2f61b6d58615b7f0edc913554d20820445"
     },
     {
      "survivor": "ecc.mcp.fal-ai",
      "transform": "edited",
-     "editsSha256": "c672e0d9d84e4d7a992b90ee513132d987cf91d9937e82b1dd491fe8e25abf88"
+     "editsSha256": "29da7d9ddb48a80abcbebd1d0bef6badd519b15981d6fa0e42d72ded2c48745d"
     },
     {
      "survivor": "ecc.mcp.filesystem",
      "transform": "edited",
-     "editsSha256": "8af294404c6743667cedb7ceba38fd40c1018eff210ffba7dc585c8ee18b49f0"
+     "editsSha256": "e363f02694d072555e8dc73f8ee8cc67c8bddb45c5adba455faa6fdeaea0af8c"
     },
     {
      "survivor": "ecc.mcp.firecrawl",
      "transform": "edited",
-     "editsSha256": "87e8bc39c6c90aa939d655e35edcac7a724a92650c62dc923ed795454b74a537"
+     "editsSha256": "6ab90af72778636a0857763ed0553a8fce26deb30b37aec565fe8aedeed2ddcf"
     },
     {
      "survivor": "ecc.mcp.github",
      "transform": "edited",
-     "editsSha256": "085f2066c02923447b33d0fa2cb0ecdb97886f1a4361b478e18827fbcf2f0a65"
+     "editsSha256": "0fcebcb258db3db9453f40fea9d6e60e95b5760e8f9a18a33397698acd00de2e"
     },
     {
      "survivor": "ecc.mcp.ito-compute",
@@ -4381,7 +4430,7 @@
     {
      "survivor": "ecc.mcp.jira",
      "transform": "edited",
-     "editsSha256": "c54af57f44254f0f4aa55c1790284f81c6f17dd5d86d078db84308833b5f4527"
+     "editsSha256": "48d146192b96039eee694617e546ea0c3398f837850f625114c9ed5a844114bd"
     },
     {
      "survivor": "ecc.mcp.laraplugins",
@@ -4393,11 +4442,13 @@
     },
     {
      "survivor": "ecc.mcp.magic",
-     "transform": "identical"
+     "transform": "edited",
+     "editsSha256": "6e7c9b8efbe94c404528d83fefe8b3709fb680e03c250467b73079a29b2f5d6a"
     },
     {
      "survivor": "ecc.mcp.memory",
-     "transform": "identical"
+     "transform": "edited",
+     "editsSha256": "d213e0d2193a5bf6615f9a7e030d6aa29ab328ec57f955297306cd9e330485fa"
     },
     {
      "survivor": "ecc.mcp.memxus",
@@ -4410,32 +4461,38 @@
     },
     {
      "survivor": "ecc.mcp.omega-memory",
-     "transform": "identical"
+     "transform": "edited",
+     "editsSha256": "93d36452bb947145f4172044055b761334f854a9237153528c69616de7787a0f"
     },
     {
      "survivor": "ecc.mcp.parallel-search",
-     "transform": "identical"
+     "transform": "edited",
+     "editsSha256": "53fd1afa3a35d740e45bcf645061ec7c36bbb17c19844df885849d6ba3fbb0e9"
     },
     {
      "survivor": "ecc.mcp.playwright",
-     "transform": "identical"
+     "transform": "edited",
+     "editsSha256": "46e0036c4295a754538a2a673dc7b146ba29636085233c4bebfb3524381d0161"
     },
     {
      "survivor": "ecc.mcp.railway",
-     "transform": "identical"
+     "transform": "edited",
+     "editsSha256": "b3341f0caac7106680e56b7fd7f97d1b31d21d9419a03cd0ed36dd5005aa79c0"
     },
     {
      "survivor": "ecc.mcp.sequential-thinking",
-     "transform": "identical"
+     "transform": "edited",
+     "editsSha256": "2ea217054ca791409560476d84418ad7ad1e87ba6bea131dc3c794eba18a731a"
     },
     {
      "survivor": "ecc.mcp.squish",
-     "transform": "identical"
+     "transform": "edited",
+     "editsSha256": "3a9dcb4f17b8fe477481b58de7dea1f83effaa4849688b9c5925a8745205d982"
     },
     {
      "survivor": "ecc.mcp.supabase",
      "transform": "edited",
-     "editsSha256": "0adf195c254b1b0b21555d8ec437b7d820436e4306ead1f283064c26e0e4390c"
+     "editsSha256": "c5353f4c432693c5805460a813f5610cbc77048dd52edf7e695a4839031a9046"
     },
     {
      "survivor": "ecc.mcp.token-optimizer",
@@ -4444,6 +4501,16 @@
     {
      "survivor": "ecc.mcp.vercel",
      "transform": "identical"
+    },
+    {
+     "survivor": "ecc.mcp.github-local",
+     "transform": "edited",
+     "editsSha256": "320a7dc8ba69613d711bf0abaad6efa393c7828efe31517ce3562ef19952a589"
+    },
+    {
+     "survivor": "ecc.mcp.railway-hosted",
+     "transform": "edited",
+     "editsSha256": "ad5b3b8597c6e9f044125be92592b953e5b410f4a93d7abf86607fcf7c3c0450"
     }
    ],
    "retired": [
@@ -5647,6 +5714,42 @@
     {
      "id": "ecc.template.api-review",
      "replacedBy": []
+    },
+    {
+     "id": "ecc.claude.mcp.github-local",
+     "replacedBy": [
+      {
+       "framework": "ecc",
+       "itemId": "ecc.mcp.github-local"
+      }
+     ]
+    },
+    {
+     "id": "ecc.codex.mcp.github-local",
+     "replacedBy": [
+      {
+       "framework": "ecc",
+       "itemId": "ecc.mcp.github-local"
+      }
+     ]
+    },
+    {
+     "id": "ecc.claude.mcp.railway-hosted",
+     "replacedBy": [
+      {
+       "framework": "ecc",
+       "itemId": "ecc.mcp.railway-hosted"
+      }
+     ]
+    },
+    {
+     "id": "ecc.codex.mcp.railway-hosted",
+     "replacedBy": [
+      {
+       "framework": "ecc",
+       "itemId": "ecc.mcp.railway-hosted"
+      }
+     ]
     }
    ]
   },

@@ -45,11 +45,11 @@ raw/offered MCP configuration. No dependency edge is inferred from prose.
 - `ecc.copilot.skill.api-design`: a narrow Catalog projection of the portable
   API-design instruction to `.github/skills/api-design/SKILL.md`. This does not
   translate Claude-only agent, permission, hook or model semantics.
-- `ecc.claude.mcp.*`: each of the 35 authored server entries in
+- `ecc.claude.mcp.*`: each of the 35 upstream server entries plus two explicit Catalog route alternatives in
   `mcp-configs/mcp-servers.json`, offered independently in project `.mcp.json`.
   The raw `.mcp.json` chrome-devtools entry and Kiro MCP example are independently
   dispositioned as source configuration without an installation recipe.
-- `ecc.codex.mcp.*`: the Codex counterpart of 32 of those 35 servers, registered in the
+- `ecc.codex.mcp.*`: the Codex counterpart of 34 of those 37 choices, registered in the
   Codex user configuration (`~/.codex/config.toml`) through structured TOML `config.entries`;
   see [Codex MCP registration](#codex-mcp-registration).
 
@@ -73,10 +73,12 @@ cross-release pins intentionally require review on an Extensions refresh.
 ## MCP prerequisites and effects
 
 The offered command, argument list or HTTP URL remains in `inventory.itemFacts`
-and the generic `config.entries` recipe. Registration runs no server and does not
-install a runtime. `npx` servers need Node/npm and explicit network/package
-acquisition; `uvx` servers need uv and their named Python package; direct binaries
-must already exist on PATH. HTTP servers need reachable endpoints and any
+and the generic `config.entries` recipe. Registration runs no server. The selected
+Node recipes additionally deliver exact npm manifests/locks and run an explicit
+reviewed acquisition operation; see the acquisition section below. Python recipes
+deliver wheel-only lock projections and require a separately provisioned isolated
+interpreter. Direct binaries must already exist on PATH and remain unqualified
+until their exact artifact is checked. HTTP servers need reachable endpoints and any
 server-required account/OAuth authorization. Unknown server-specific requirements
 remain unknown, rather than invented credentials or claims of anonymous access.
 
@@ -89,8 +91,8 @@ The configured Itô path must name that real build; this package does not supply
 EvalView's `OPENAI_API_KEY` is optional: the offered `${OPENAI_API_KEY:-}`
 reference preserves its source-authored deterministic checks without a key.
 Credential values stay in the host environment and never enter the policy,
-Catalog material or project file. Runtime packages using `@latest` or unversioned
-names remain upstream mutable requests, not integrity-pinned server artifacts.
+Catalog material or project file. Unsupported/unresolved source configurations
+remain unverified; their retained commands are not integrity-pinned runnable artifacts.
 Optional memory/user-scope permissions and authentication choices remain described
 by the exact source; no account login or home configuration occurs here.
 
@@ -102,6 +104,79 @@ and [skill discovery](https://code.visualstudio.com/docs/agent-customization/age
 Those paths/syntax differ; this release offers no blanket MCP projection across
 all three clients. Current provider documentation establishes configuration
 syntax, not observed native execution of this pinned content.
+
+### Exact MCP acquisition and explicit routes
+
+New executable content requires Node `>=26.12.1 <27`. The selected acquisition
+fixture uses Node **26.12.1** and **npm 12.2.1**, acquired separately. Node's
+bundled npm **11.20.0** is an observation, not the selected acquisition manager.
+Catalog's public Node entry declarations and package engine use the same range.
+
+The 15 Node choices in `producer/ecc/mcp-acquisition.json` each carry a v3 npm
+lock binding every direct/transitive archive to registry identity and SHA-512
+integrity. Browserbase uses maintained `@browserbasehq/mcp@3.0.0`, including
+`BROWSERBASE_PROJECT_ID` and `GEMINI_API_KEY` for its default model, rather than
+the deprecated package. The other selected provider identities are unchanged.
+The recipes deliver their manifest, lock, empty npm configurations and bounded
+acquisition helper under `.aihq/ecc/source/<item-id>/runtime/` (project root for
+Claude, user home for Codex). Supply the required `npmCli` and `npmCache` inputs
+as absolute paths to the independently acquired npm 12 CLI and a caller-owned
+cache. Missing inputs refuse configuration. `acquisitionMode` defaults to
+`--offline`; `--online` explicitly requests registry acquisition in the review.
+Both modes verify the same lock, disable lifecycle scripts, enforce package
+engine ranges and ignore ambient npm credentials/configuration. Registration
+depends on successful acquisition; no server starts during Apply.
+
+Set the named `AIHQ_MCP_<PROVIDER>_ROOT` host environment value to that exact
+runtime directory before client activation. The launcher checks the Node range
+and loads the locked local entry point without npx. Memory additionally requires
+an explicit `MEMORY_FILE_PATH`; filesystem roots and Supabase project scope retain
+their existing explicit host inputs. Playwright's requested Chrome and OS/browser
+dependencies remain separately qualified. A package with disabled lifecycle
+scripts can be installed while its native dependency remains unavailable.
+In particular, Railway's wrapper still needs a verified native CLI artifact;
+Squish's locked `better-sqlite3@12.9.0` excludes Node 26 and is blocked. No compiler
+or compatibility override is attempted.
+
+`ecc.mcp.github` selects GitHub's official hosted read-only OAuth route, with no
+backend version pin. `ecc.mcp.github-local` is an explicit alternative with PAT
+input, read-only repos/issues/pull_requests toolsets and official **2.0.3** archive
+digests for six OS/architecture cells in its delivered artifact manifest. Local
+extraction, installed binary identity and native usability still need qualification.
+`ecc.mcp.railway` selects CLI **5.71.0** `mcp`, a proxy of the hosted service using
+separately authorized CLI credentials; `ecc.mcp.railway-hosted` selects direct
+OAuth at `https://mcp.railway.com`. The distinct `mcp local` operation is not
+selected. These two Catalog-authored alternatives are variants outside upstream
+install modules, so choosing a module does not silently choose both routes.
+
+Jira **0.23.1** and `omega-memory[server]` **1.5.20** have separate Python
+**3.14.10** / MCP **1.30.0** hashed wheel-only projections. Their launchers refuse
+a shared environment or a mismatched interpreter/provider/MCP version. OMEGA
+requires its actual server extra (including onnxruntime) and an explicit absolute
+`OMEGA_HOME` persistent store. The locks and per-target blockers in
+`producer/ecc/python-acquisition.json` are metadata evidence only. Exact interpreter
+artifacts, install/import/stdio, native wheel and OS qualification remain open;
+no implicit Python acquisition, source build or MCP 2 substitution occurs.
+The default macOS 13 OMEGA projection does not admit its macOS >=14 wheel; newer
+OS usability remains unverified. macOS x64 and Windows arm64 projections are
+blocked on cryptography wheels. A positive Linux projection qualifies no other cell.
+
+Browser Use uses its documented `/v3/mcp` endpoint, while Parallel uses
+`https://mcp.parallel.ai/mcp` anonymously at limited rates. ClickHouse retains
+OAuth/read-only scope, Cloudflare retains its four narrower services, Laraplugins
+remains anonymous, and Vercel retains its documented OAuth service scope. There
+are no fictitious hosted binary pins. Memxus/Devfleet/Nexus/Itô identities or
+contracts remain unverified, Token Optimizer remains unsupported, and Longhand's
+beta ingestion/hooks have no default activation approval.
+
+Run `node tools/author-ecc-mcp-adoption.mjs`, then the two ECC release generators,
+after reviewed adaptation/lock edits. Upstream file bytes and raw facts are
+unchanged; authored recipes, offered facts and behaviour identities change.
+`tools/lock-ecc-mcp.mjs` explicitly refreshes locks using supplied Node 26.12.1,
+npm 12.2.1, work and cache paths. Python projections use uv 0.13.5 with each
+committed `constraints.in`, `--python-version 3.14.10 --python-platform <target>
+--only-binary :all: --no-python-downloads --generate-hashes --no-header --no-annotate`.
+These commands prepare content, and grant no service, native-client or publication authority.
 
 ## Codex MCP registration
 
@@ -174,7 +249,8 @@ name, and the version and description of the pinned `.claude-plugin/plugin.json`
 
 ### Items
 
-The 697 earlier items become 663. Each keeps its id, except:
+The 697 original earlier items collapse to 663; two explicit Catalog route alternatives
+bring the prepared content to 665. Each original item keeps its id, except:
 
 | Earlier items | Item | Match |
 | --- | --- | --- |
@@ -263,8 +339,9 @@ them, and the build fails if one does.
 ### Checks and the baseline
 
 `npm run check:restructuring` compares the content with the amended expected
-projection: all 663 items and hashes, 33 supersessions, 32 MCP pairs, 35 edit records
-and 134 retirements. The 65 Kiro-edition items and their renamings are among those
+projection: all 665 items and hashes, 34 MCP pairs, 37 edit records
+and 138 retirements. The two Catalog route alternatives are independently selectable,
+and do not become members of upstream install modules. The 65 Kiro-edition items and their renamings are among those
 rows; the set, hints, variants and inclusion change no checked field, so the
 expectation needs no amendment for them. `node tools/verify-ecc-release-17-consumer.mjs [catalog.tgz]`
 checks it through the installed packed package's public exports only, including the

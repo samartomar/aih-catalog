@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
-  copyFileSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
@@ -11,7 +10,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { basename, delimiter, dirname, isAbsolute, join, resolve } from "node:path";
+import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { seedConsumerLock } from "./seed-consumer-lock.mjs";
 
@@ -67,14 +66,8 @@ try {
   mkdirSync(home);
   environment.HOME = home;
   environment.USERPROFILE = home;
-  // The github recipe requires an executable named npx. Prepare only looks it up, and Windows
-  // ships npx as a .cmd shim, so a stand-in that is never run keeps the host hermetic.
-  const stub = join(fixture, "bin");
-  mkdirSync(stub);
-  if (process.platform === "win32") copyFileSync(process.execPath, join(stub, "npx.exe"));
-  else writeFileSync(join(stub, "npx"), "#!/bin/sh\nexit 0\n", { mode: 0o755 });
   const pathKey = Object.keys(environment).find((key) => key.toLowerCase() === "path") ?? "PATH";
-  const consumerPath = stub + delimiter + (environment[pathKey] ?? "");
+  const consumerPath = environment[pathKey] ?? "";
   const catalogTarball =
     suppliedCatalog ??
     join(
@@ -164,24 +157,20 @@ const controls = { logging: "off", materialRoots: installed.materialRoots };
 // The expected managed statements, written out so a recipe change cannot move them silently.
 const githubSection = [
   "[mcp_servers.github]",
-  'command = "npx"',
-  'args = ["-y", "@modelcontextprotocol/server-github"]',
-  'env_vars = ["GITHUB_PERSONAL_ACCESS_TOKEN"]',
+  'url = "https://api.githubcopilot.com/mcp/readonly"',
 ];
 const browserSection = [
   "[mcp_servers.browser-use]",
-  'url = "https://api.browser-use.com/mcp"',
+  'url = "https://api.browser-use.com/v3/mcp"',
   "[mcp_servers.browser-use.env_http_headers]",
   'x-browser-use-api-key = "BROWSER_USE_KEY"',
 ];
 const entriesOf = (itemId) => recipes[itemId].operations.find((operation) => operation.kind === "config.entries").entries;
 const literalOf = (itemId, path) => entriesOf(itemId).find((entry) => entry.path.join(".") === path).value.literal;
-assert.equal(literalOf(itemIds[0], "mcp_servers.github.command"), "npx");
-assert.deepEqual(literalOf(itemIds[0], "mcp_servers.github.args"), ["-y", "@modelcontextprotocol/server-github"]);
-assert.deepEqual(literalOf(itemIds[0], "mcp_servers.github.env_vars"), ["GITHUB_PERSONAL_ACCESS_TOKEN"]);
-assert.equal(literalOf(itemIds[1], "mcp_servers.browser-use.url"), "https://api.browser-use.com/mcp");
+assert.equal(literalOf(itemIds[0], "mcp_servers.github.url"), "https://api.githubcopilot.com/mcp/readonly");
+assert.equal(literalOf(itemIds[1], "mcp_servers.browser-use.url"), "https://api.browser-use.com/v3/mcp");
 assert.equal(literalOf(itemIds[1], "mcp_servers.browser-use.env_http_headers.x-browser-use-api-key"), "BROWSER_USE_KEY");
-assert.equal(entriesOf(itemIds[0]).length, 3);
+assert.equal(entriesOf(itemIds[0]).length, 1);
 assert.equal(entriesOf(itemIds[1]).length, 2);
 
 const trailer = "# trailing note one\n# trailing note two\n";
@@ -329,9 +318,9 @@ steps.clientChange = { fileState: await stateOf("client change", "match") };
 // 4. managed drift
 {
   const before = read();
-  const managedValue = 'args = ["-y", "@modelcontextprotocol/server-github"]';
+  const managedValue = 'url = "https://api.githubcopilot.com/mcp/readonly"';
   assert.equal(before.split(managedValue).length, 2);
-  writeFileSync(configPath, before.replace(managedValue, 'args = ["-y", "@modelcontextprotocol/server-gitlab"]'));
+  writeFileSync(configPath, before.replace(managedValue, 'url = "https://example.invalid/changed"'));
   const drifted = await stateOf("managed drift", "changed");
   // Core reports file state per target file, not per key: the one changed target is
   // config.toml and its operationIds list every selection that registers a server there.

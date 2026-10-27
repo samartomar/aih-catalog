@@ -2,7 +2,7 @@
 // All product operations below use package public exports only.
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { compileProducerDeclaration, checkProducerDeclaration } from "@aihq/catalog/producer";
@@ -32,11 +32,12 @@ assert.equal(inventory.entries.length, 3538);
 assert.equal(inventory.donor.assets.length, 442);
 assert.equal(inventory.gitTree, "9d448bb479cc1af55c488357556ac24d8cd932d2");
 for (const item of installed.release.items) {
-  const configured = configureItem({ release: installed.release, itemId: item.id, configuration: {}, materialSource: installed.source });
+  const configuration = item.inputs.npmCli ? { npmCli: "/fixture/npm12/npm-cli.js", npmCache: "/fixture/npm-cache" } : {};
+  const configured = configureItem({ release: installed.release, itemId: item.id, configuration, materialSource: installed.source });
   assert.equal(configured.valid, true, `${item.id}: ${JSON.stringify(configured.diagnostics)}`);
 }
 const releases = { [installed.release.sha256]: installed.release, [extension.release.sha256]: extension.release };
-const roots = ["ecc.template.api-review", "ecc.claude.mcp.memory", "ecc.claude.mcp.evalview", "ecc.copilot.skill.api-design", "ecc.kiro.skill.api-design"].map(itemId => ({ releaseSha256: installed.release.sha256, itemId, scope: "project", configuration: {} }));
+const roots = ["ecc.template.api-review", "ecc.claude.mcp.memory", ...(process.argv[3] === "core" ? [] : ["ecc.claude.mcp.evalview"]), "ecc.copilot.skill.api-design", "ecc.kiro.skill.api-design"].map(itemId => ({ releaseSha256: installed.release.sha256, itemId, scope: "project", configuration: itemId === "ecc.claude.mcp.memory" ? { npmCli: process.argv[4] ?? "/fixture/npm12/npm-cli.js", npmCache: process.argv[5] ?? "/fixture/npm-cache", acquisitionMode: "--offline" } : {} }));
 const skipped = { releaseSha256: installed.release.sha256, itemId: "ecc.agent.code-reviewer", scope: "project" };
 const resolved = resolveSelections({ releases, roots, skips: [skipped] });
 assert.equal(resolved.status, "ok", JSON.stringify(resolved.diagnostics));
@@ -59,11 +60,13 @@ const selections = resolved.value.selections.map(selection => {
   return { ...configured.selection, id: selection.id, managementId: selection.id, scope: "project", requires: validated.requiresBySelectionId[selection.id] };
 });
 const memory = JSON.parse(snapshot.recipes.ecc[declaration.items.find(item => item.id === "ecc.claude.mcp.memory").recipePath]);
-assert.deepEqual(memory.prerequisites, [{ kind: "executable", name: "npx" }]);
-assert.deepEqual(memory.operations.find(op => op.kind === "config.entries").entries[0].value.literal, { command: "npx", args: ["-y", "@modelcontextprotocol/server-memory"] });
+assert.deepEqual(memory.prerequisites, [{ kind: "executable", name: "node" }]);
+assert.equal(memory.operations.find(op => op.kind === "config.entries").entries[0].value.literal.command, "node");
+assert.equal(memory.operations.find(op => op.id === "acquire-server").kind, "process.run");
 const github = inventory.itemFacts["ecc.claude.mcp.github"];
-assert.deepEqual(github.requiredHostEnvironment, ["GITHUB_PERSONAL_ACCESS_TOKEN"]);
-assert.equal(github.offeredServer.env.GITHUB_PERSONAL_ACCESS_TOKEN, "${GITHUB_PERSONAL_ACCESS_TOKEN}");
+assert.deepEqual(github.requiredHostEnvironment, []);
+assert.equal(github.offeredServer.url, "https://api.githubcopilot.com/mcp/readonly");
+assert.equal(inventory.itemFacts["ecc.claude.mcp.github-local"].offeredServer.env.GITHUB_PERSONAL_ACCESS_TOKEN, "${GITHUB_PERSONAL_ACCESS_TOKEN}");
 const archiveBytes = readFileSync(process.argv[2]);
 const archive = { url: "https://example.invalid/catalog-ecc.tgz", sha256: sha(archiveBytes), byteLength: archiveBytes.length };
 const acquired = await resolveRelease({ archive, release: "./release-ecc.json" }, { fetch: async url => { assert.equal(String(url), archive.url); return new Response(archiveBytes); } });
@@ -98,13 +101,19 @@ if (process.argv[3] === "core") {
   const prepared = await prepare({ useCase: "policy", policy, target: { project } }, controls);
   assert.equal(prepared.status, "ready", JSON.stringify(prepared.diagnostics));
   assert.deepEqual(JSON.parse(readFileSync(join(project, ".mcp.json"))).mcpServers, { neighbor });
+  const unapproved = await apply(prepared.prepared, { approved: false, origin: "automation", reviewDigest: prepared.review.reviewDigest }, controls);
+  assert(unapproved.diagnostics.some(diagnostic => diagnostic.code === "APPROVAL_REQUIRED"));
+  assert.deepEqual(JSON.parse(readFileSync(join(project, ".mcp.json"))).mcpServers, { neighbor });
+  assert(!existsSync(join(project, ".aihq/ecc/source/ecc.claude.mcp.memory/runtime")));
   const applied = await apply(prepared.prepared, { approved: true, origin: "automation", reviewDigest: prepared.review.reviewDigest }, controls);
   assert.equal(applied.completion, "complete", JSON.stringify(applied.diagnostics));
   const settings = JSON.parse(readFileSync(join(project, ".mcp.json")));
   assert.deepEqual(settings.mcpServers.neighbor, neighbor);
   assert.equal(settings.unrelated, true);
-  assert.deepEqual(settings.mcpServers.memory, { command: "npx", args: ["-y", "@modelcontextprotocol/server-memory"] });
-  assert.deepEqual(settings.mcpServers.evalview, { command: "python3", args: ["-m", "evalview", "mcp", "serve"], env: { OPENAI_API_KEY: "${OPENAI_API_KEY:-}" } });
+  assert.equal(settings.mcpServers.memory.command, "node");
+  assert.equal(settings.mcpServers.memory.env.MEMORY_FILE_PATH, "${MEMORY_FILE_PATH}");
+  const installedMemory = JSON.parse(readFileSync(join(project, ".aihq/ecc/source/ecc.claude.mcp.memory/runtime/node_modules/@modelcontextprotocol/server-memory/package.json")));
+  assert.equal(installedMemory.version, "2.0.0");
   for (const path of [".claude/skills/api-design/SKILL.md", ".github/skills/api-design/SKILL.md", ".kiro/skills/api-design/SKILL.md"]) assert(readFileSync(join(project, path)).length > 100);
   for (const operation of prepared.review.operations) if (operation.kind === "file.write" && operation.details.materialSha256) assert.equal(sha(readFileSync(operation.details.target)), operation.details.materialSha256);
   core = { status: "complete", prepared: prepared.status, applied: applied.completion, operations: prepared.review.operations.length, nativeExecution: "not-run" };
