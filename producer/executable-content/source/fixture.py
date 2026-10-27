@@ -5,6 +5,8 @@ import importlib.metadata
 import signal
 import platform
 import re
+import hashlib
+import runpy
 from pathlib import Path
 
 
@@ -16,7 +18,7 @@ def main():
     if hasattr(signal, 'SIGALRM'):
         signal.signal(signal.SIGALRM, timeout_handler)
         signal.alarm(25)
-    workflow, destination = sys.argv[1:]
+    workflow, destination, catalog_root = sys.argv[1:]
     requirements = json.loads(Path(__file__).with_name('requirements.json').read_text())
     selected = next(row for row in requirements['workflows'] if row['id'] == workflow)
     actual = '.'.join(map(str, sys.version_info[:3]))
@@ -44,12 +46,36 @@ def main():
         from mcp.types import CallToolResult, TextContent
         result = CallToolResult(content=[TextContent(type='text', text='fixture answer')])
         (output / 'evaluation.json').write_text(result.model_dump_json())
+        payloads = verified_payloads(requirements, workflow, catalog_root)
+        evaluation = next(path for path in payloads if path.name == 'evaluation.py')
+        sys.path.insert(0, str(evaluation.parent))
+        evaluator = runpy.run_path(str(evaluation), run_name='catalog_fixture')
+        questions = output / 'questions.xml'
+        questions.write_text('<evaluation><qa_pair><question>Fixture?</question><answer>Local</answer></qa_pair></evaluation>')
+        parsed = evaluator['parse_evaluation_file'](questions)
+        if parsed != [{'question': 'Fixture?', 'answer': 'Local'}]:
+            raise ValueError('delivered-evaluator-validation-failed')
+        (output / 'parsed-evaluation.json').write_text(json.dumps(parsed))
     elif workflow == 'skill-authoring':
-        import yaml
-        document = yaml.safe_load('name: fixture-skill\ndescription: Offline validation fixture\n')
-        if document['name'] != 'fixture-skill':
-            raise ValueError('invalid-skill')
-        (output / 'validation.json').write_text(json.dumps(document))
+        payloads = verified_payloads(requirements, workflow, catalog_root)
+        validator_path = next(path for path in payloads if path.name == 'quick_validate.py')
+        validator = runpy.run_path(str(validator_path), run_name='catalog_fixture')['validate_skill']
+        skill = output / 'fixture-skill'
+        skill.mkdir()
+        (skill / 'SKILL.md').write_text('---\nname: fixture-skill\ndescription: Offline fixture\n---\nBody\n')
+        valid, message = validator(skill)
+        if not valid:
+            raise ValueError('delivered-skill-validation-failed: ' + message)
+        (skill / 'SKILL.md').write_text('---\nname: fixture-skill\n---\nBody\n')
+        invalid, reason = validator(skill)
+        if invalid or reason != "Missing 'description' in frontmatter":
+            raise ValueError('delivered-skill-refusal-failed')
+        viewer = next(path for path in payloads if path.name == 'generate_review.py')
+        review = runpy.run_path(str(viewer), run_name='catalog_fixture')
+        if review['find_runs'](output) != []:
+            raise ValueError('delivered-review-discovery-failed')
+        (output / 'validation.json').write_text(json.dumps({'valid': valid, 'invalidRefused': not invalid,
+            'reason': reason, 'viewerRuns': []}))
     elif workflow == 'evalview':
         # No model call: package/import validation only, never claimed as evaluation success.
         import evalview
@@ -76,7 +102,51 @@ def main():
             raise ValueError('invalid-pdf')
     elif workflow == 'browser':
         browser_fixture(output)
-    print(json.dumps({'status': 'fixture-complete', 'workflow': workflow, 'nativeAdmission': 'unverified'}))
+    artifacts = []
+    for path in sorted(output.rglob('*')):
+        if path.is_symlink():
+            raise ValueError('symlink-output-refused')
+        if path.is_file():
+            data = path.read_bytes()
+            artifacts.append({'path': path.relative_to(output).as_posix(), 'byteLength': len(data),
+                'sha256': hashlib.sha256(data).hexdigest()})
+    print(json.dumps({'status': 'fixture-complete', 'workflow': workflow,
+        'nativeAdmission': 'unverified', 'artifacts': artifacts}))
+
+
+def verified_payloads(requirements, workflow, catalog_root):
+    """Load only the preserved packed payload bytes, never arbitrary project Python."""
+    root = Path(catalog_root)
+    if not root.is_absolute() or root.is_symlink():
+        raise ValueError('invalid-installed-catalog-root')
+    root = root.resolve(strict=True)
+    paths = []
+    for row in requirements['assets']:
+        if row['workflow'] != workflow:
+            continue
+        relative = Path(row['path'])
+        if relative.is_absolute() or '..' in relative.parts:
+            raise ValueError('invalid-material-path')
+        path = root
+        for segment in relative.parts:
+            path = path / segment
+            if path.is_symlink():
+                raise ValueError('symlink-material-refused')
+        if not path.is_file() or path.stat().st_size != row['byteLength']:
+            raise ValueError('material-length-mismatch')
+        if hashlib.sha256(path.read_bytes()).hexdigest() != row['sha256']:
+            raise ValueError('material-hash-mismatch')
+        paths.append(path)
+    allowed = set(paths)
+    for parent in {path.parent for path in paths}:
+        if any(path not in allowed for path in parent.glob('*.py')):
+            raise ValueError('unverified-python-sibling-refused')
+        if any(parent.glob('*.pyc')) or any(parent.glob('*.so')) or any(parent.glob('*.pyd')):
+            raise ValueError('unverified-python-extension-refused')
+        if any(path.is_dir() for path in parent.iterdir()):
+            raise ValueError('unverified-python-package-directory-refused')
+    sys.dont_write_bytecode = True
+    return paths
 
 
 def browser_fixture(output):

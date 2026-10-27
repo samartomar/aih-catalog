@@ -24,8 +24,9 @@ resolution files are separate from the original version-only projections.
 a compiler or changing the selected version. All six OS/architecture cells retain
 explicit blockers. WSL2 does not count as native Windows.
 
-The authored fixtures cover MCP result data without a backend call, safe skill
-YAML validation, EvalView import, two-frame GIF, a one-slide PPTX and separate
+The authored fixtures cover MCP result data and the verified delivered evaluator
+XML parser without a backend call, the delivered skill validator's success and
+refusal plus eval-viewer discovery, EvalView import, two-frame GIF, a one-slide PPTX and separate
 ReportLab PDF, and one real loopback page through Playwright-managed Chromium.
 The browser fixture closes its server/browser in `finally`; Windows process-tree
 cleanup remains unqualified and is refused. Exact interpreter versions, virtual

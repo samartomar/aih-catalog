@@ -2,9 +2,9 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {dirname,join} from 'node:path';
+import {dirname,join,resolve,relative,isAbsolute} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {mkdirSync,readFileSync,writeFileSync,existsSync} from 'node:fs';
+import {mkdirSync,readFileSync,writeFileSync,existsSync,lstatSync} from 'node:fs';
 import {readInstalledRelease} from '@aihq/catalog/node';
 import {configureItem,resolveSelections,validateSelectionSet} from '@aihq/catalog/reader';
 
@@ -68,10 +68,10 @@ assert.equal(evaluator.result.python,'3.14.10');assert.equal(evaluator.result.pa
 for(const row of inventory.workflows) {
   const plan=run(['plan',row.id]);assert.equal(plan.result.artifactClosure,'unresolved');
 }
-const absent=run(['fixture','mcp-evaluator',join(project,'absent-python'),join(project,'never-written')]);
+const absent=run(['fixture','mcp-evaluator',join(project,'absent-python'),join(project,'never-written'),root]);
 assert.equal(absent.exit,2);assert.equal(absent.result.reason,'runtime-unavailable');
 assert(!existsSync(join(project,'never-written')));
-assert.equal(run(['fixture','skill-authoring','python',join(project,'never-written')]).result.reason,'absolute-isolated-interpreter-required');
+assert.equal(run(['fixture','skill-authoring','python',join(project,'never-written'),root]).result.reason,'absolute-isolated-interpreter-required');
 assert.equal(run(['plan','invented']).exit,2);
 const terminal=run(['argv','terminal',join(project,'tools with spaces','wezterm')]);
 assert.equal(terminal.result.launchAllowed,false);assert.deepEqual(terminal.result.args,['--version']);
@@ -90,8 +90,38 @@ const fixtures=[];
 for(const id of ['mcp-evaluator','skill-authoring','evalview','gif','slides','browser']) {
   const python=process.env['AIH_EXECUTABLE_'+id.replaceAll('-','_').toUpperCase()+'_PYTHON'];
   if(!python) {fixtures.push({id,status:'not-run',reason:'exact-isolated-interpreter-and-closure-required'});continue;}
-  const result=run(['fixture',id,python,join(project,'output-'+id)]);
-  assert.equal(result.exit,0,JSON.stringify(result));fixtures.push({id,...result.result});
+  const result=run(['fixture',id,python,join(project,'output-'+id),root]);
+  assert.equal(result.exit,0,JSON.stringify(result));
+  const output=join(project,'output-'+id);
+  assert.equal(result.result.status,'fixture-complete');
+  assert(result.result.artifacts.length>0,'Fixture must identify produced bytes');
+  const artifacts=new Map();
+  for(const artifact of result.result.artifacts) {
+    assert(!isAbsolute(artifact.path) && !artifact.path.split('/').includes('..'));
+    const path=resolve(output,artifact.path);
+    assert(!relative(output,path).startsWith('..') && lstatSync(path).isFile());
+    const bytes=readFileSync(path);
+    assert.equal(bytes.length,artifact.byteLength);
+    assert.equal(createHash('sha256').update(bytes).digest('hex'),artifact.sha256);
+    assert(!artifacts.has(artifact.path));artifacts.set(artifact.path,bytes);
+  }
+  if(id==='mcp-evaluator') assert.deepEqual(JSON.parse(artifacts.get('parsed-evaluation.json')),[{question:'Fixture?',answer:'Local'}]);
+  if(id==='skill-authoring') assert.deepEqual(JSON.parse(artifacts.get('validation.json')),
+    {valid:true,invalidRefused:true,reason:"Missing 'description' in frontmatter",viewerRuns:[]});
+  if(id==='gif') {
+    const gif=artifacts.get('fixture.gif');assert.match(gif.subarray(0,6).toString(),/^GIF8[79]a$/);
+    assert.equal(gif.readUInt16LE(6),32);assert.equal(gif.readUInt16LE(8),32);
+  }
+  if(id==='slides') {
+    assert(artifacts.get('fixture.pdf').subarray(0,5).equals(Buffer.from('%PDF-')));
+    assert(artifacts.get('fixture.pptx').subarray(0,2).equals(Buffer.from('PK')));
+  }
+  if(id==='browser') {
+    const png=artifacts.get('local-page.png');assert.equal(png.subarray(1,4).toString(),'PNG');
+    assert.equal(JSON.parse(artifacts.get('browser.json')).route,'playwright-managed-chromium');
+  }
+  if(id==='evalview') assert.deepEqual(JSON.parse(artifacts.get('validation.json')),{imported:'evalview',modelInvoked:false});
+  fixtures.push({id,...result.result});
 }
 writeFileSync('receipt.json',JSON.stringify({assets:113,configured:true,absentRuntimeRefused:true,
   tamperRefused:true,native:'not-run',releaseSha256:loaded.release.sha256,core,fixtures},null,2)+'\n');

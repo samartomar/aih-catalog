@@ -719,13 +719,41 @@
             "literal": "executable-content-requirements"
           },
           {
-            "literal": "workflow.mjs"
+            "literal": "runtime-artifacts.json"
           }
         ]
       },
       "requires": [],
       "checks": [
         "check-23"
+      ]
+    },
+    {
+      "id": "write-24",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-24",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "workflow.mjs"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-24"
       ]
     }
   ],
@@ -1359,6 +1387,31 @@
       "purpose": "Verify companion bytes",
       "sha256": {
         "materialSha256": "file-23"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".github"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "runtime-artifacts.json"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-24",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-24"
       },
       "target": {
         "root": "project",

@@ -22,7 +22,7 @@ description: Inspect runtime requirements before running delivered evaluation, b
    compile missing wheels, search PATH, install global tools or relax TLS/sandbox
    guards to make a fixture pass.
 4. Once its exact environment has been independently acquired, an authorized
-   operator can run `node workflow.mjs fixture <workflow> <absolute-python> <new-output>`
+   operator can run `node workflow.mjs fixture <workflow> <absolute-python> <new-output> <absolute-installed-catalog-root>`
    for mcp-evaluator, skill-authoring, evalview, gif, slides or browser. The
    interpreter must be a virtual environment at the selected exact version.
    The command uses a 30-second process deadline and refuses existing output.
@@ -30,8 +30,13 @@ description: Inspect runtime requirements before running delivered evaluation, b
    result only; native support, upstream workflow equivalence and client loading
    still require their own evidence.
 
-The evaluator stub exercises MCP data without backend/API credentials or a paid
-model call. Skill-authoring validates harmless YAML; EvalView imports only.
+The evaluator stub exercises MCP data and the hash-verified delivered evaluator's
+XML parser without backend/API credentials or a paid model call. Skill-authoring
+calls the delivered quick validator on valid and invalid temporary skills and
+the delivered eval-viewer on an empty workspace; it starts no review server.
+Payload bytes and Python sibling closures are verified before loading. The
+explicit installed Catalog root is the disposable packed consumer root, never a
+product source checkout. EvalView imports only.
 GIF produces two frames. Slides produces a one-slide PPTX and a separate PDF,
 not a browser-rendered slide deck. Browser starts a loopback ephemeral-port
 server, checks one local page and closes its browser and server. The browser

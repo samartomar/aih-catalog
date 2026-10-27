@@ -1,0 +1,28 @@
+[
+  {
+    "python": "3.14.10",
+    "source": "uv 0.13.5 built-in official Python download inventory",
+    "query": {
+      "allPlatforms": true,
+      "allArchitectures": true,
+      "onlyDownloads": true
+    },
+    "inventoryResult": [],
+    "resultSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "status": "blocked",
+    "reason": "No exact interpreter artifact in selected uv inventory; no install or substitute attempted. This is not a claim that no distributor can ever provide an artifact."
+  },
+  {
+    "python": "3.15.2",
+    "source": "uv 0.13.5 built-in official Python download inventory",
+    "query": {
+      "allPlatforms": true,
+      "allArchitectures": true,
+      "onlyDownloads": true
+    },
+    "inventoryResult": [],
+    "resultSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "status": "blocked",
+    "reason": "No exact interpreter artifact in selected uv inventory; no install or substitute attempted. This is not a claim that no distributor can ever provide an artifact."
+  }
+]

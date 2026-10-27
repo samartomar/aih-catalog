@@ -119,6 +119,10 @@
         },
         {
           "id": "file-23",
+          "path": "runtime-artifacts.json"
+        },
+        {
+          "id": "file-24",
           "path": "workflow.mjs"
         }
       ],
@@ -403,6 +407,10 @@
         },
         {
           "id": "file-23",
+          "path": "runtime-artifacts.json"
+        },
+        {
+          "id": "file-24",
           "path": "workflow.mjs"
         }
       ],
@@ -687,6 +695,10 @@
         },
         {
           "id": "file-23",
+          "path": "runtime-artifacts.json"
+        },
+        {
+          "id": "file-24",
           "path": "workflow.mjs"
         }
       ],

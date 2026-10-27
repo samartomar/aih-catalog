@@ -26,17 +26,18 @@ if (command === 'list' && !id) {
     else console.log(JSON.stringify({status:'dry-run',executable,args:plans[id],shell:false,
       windowsHide:true,deadlineMs:5000,launchAllowed:false,requirements:workflow.requirements,
       fallback:'Return this plan as text; no terminal, display or observer is started.'}));
-  } else if (command === 'fixture' && args.length===2 && workflow.python) {
-    const [python, output] = args;
+  } else if (command === 'fixture' && args.length===3 && workflow.python) {
+    const [python, output, catalogRoot] = args;
     // No PATH lookup or interpreter substitution. The caller selects its isolated environment.
     if (!isAbsolute(python)) refuse('absolute-isolated-interpreter-required');
+    else if (!isAbsolute(catalogRoot)) refuse('absolute-installed-catalog-root-required');
     else {
       let regular = false;
       try { regular = lstatSync(python).isFile() || lstatSync(python).isSymbolicLink(); } catch { /* absent executable */ }
       if (!regular) refuse('runtime-unavailable');
       else if (!['mcp-evaluator','skill-authoring','evalview','gif','slides','browser'].includes(id)) refuse('fixture-not-implemented');
       else {
-        const result=spawnSync(python,['-I',fileURLToPath(new URL('./fixture.py',import.meta.url)),id,resolve(output)],
+        const result=spawnSync(python,['-I',fileURLToPath(new URL('./fixture.py',import.meta.url)),id,resolve(output),catalogRoot],
           {shell:false,windowsHide:true,timeout:30_000,killSignal:'SIGTERM',maxBuffer:1024*1024,encoding:'utf8'});
         if (result.error) refuse(result.error.code==='ETIMEDOUT'?'fixture-timeout':'runtime-unavailable');
         else {
@@ -46,5 +47,5 @@ if (command === 'list' && !id) {
         }
       }
     }
-  } else refuse('usage: list | plan <workflow> | argv <workflow> <absolute-executable> | fixture <workflow> <absolute-python> <new-output>');
+  } else refuse('usage: list | plan <workflow> | argv <workflow> <absolute-executable> | fixture <workflow> <absolute-python> <new-output> <absolute-installed-catalog-root>');
 }
