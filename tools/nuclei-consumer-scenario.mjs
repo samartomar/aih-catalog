@@ -48,6 +48,17 @@ const bundle = join(output, 'templates.tar.gz'); const bytes = readFileSync(bund
 const snapshot = JSON.parse(readFileSync(join(output, 'preparation.json')));
 assert(snapshot.warnings.length); assert.equal(snapshot.sha256, createHash('sha256').update(bytes).digest('hex'));
 checks.push('custom-warning-and-fixed-bundle');
+// Unsupported capability must fail at the installed public helper seam before Docker.
+const unsupported = join(root, 'unsupported.yaml');
+writeFileSync(unsupported, 'id: refused-code\ninfo:\n  name: Refused code\n  author: fixture\n  severity: info\ncode:\n  - engine: [sh]\n    source: echo forbidden\n');
+const refusedOutput = join(root, 'refused-preparation');
+const refusedPolicy = authorPreparationPolicy({ platform: process.platform, helper, output: refusedOutput,
+ official: [], custom: [{ source: unsupported, path: 'custom/refused.yaml' }] });
+p = await ready(refusedPolicy); result = await apply(p.prepared, approve(p), controls);
+assert.equal(result.completion, 'incomplete');
+assert(!existsSync(join(refusedOutput, 'templates.tar.gz')));
+checks.push('unsupported-template-refused-before-assessment');
+
 // Real Core Enterprise admission with simulated public GitHub transport; no live organization claim.
 const canonical = v => v === null || typeof v !== 'object' ? JSON.stringify(v) : Array.isArray(v)
  ? `[${v.map(canonical).join(',')}]` : `{${Object.keys(v).sort().map(k => `${JSON.stringify(k)}:${canonical(v[k])}`).join(',')}}`;
@@ -89,7 +100,7 @@ const base = { platform: process.platform, helper, bundle, bundleSha256: snapsho
  daemon: 'unix:///var/run/docker.sock', dockerCli: docker, image, toolTimeoutSeconds: 5,
  cleanupTimeoutSeconds: 3, timeoutMs: 30000 };
 process.env.DOCTOR_TEST_SECRET = 'never-forward'; process.env.DOCKER_HOST = 'tcp://forbidden.invalid:2375';
-for (const scenario of ['empty', 'empty-native', 'missing', 'failure', 'cancel', 'missing-image', 'image-disappeared']) {
+for (const scenario of ['finding', 'empty', 'empty-native', 'missing', 'failure', 'cancel', 'missing-image', 'image-disappeared']) {
  writeFileSync(stateFile, JSON.stringify({ image, scenario }));
  const options = { ...base, runDirectory: join(root, `run-${scenario}`), container: `aih-nuclei-${scenario}`, network: `aih-nuclei-${scenario}-net` };
  const policy = authorAssessmentPolicy(options); p = await ready(policy);
@@ -100,9 +111,19 @@ for (const scenario of ['empty', 'empty-native', 'missing', 'failure', 'cancel',
    while (Date.now() < deadline && !existsSync(join(options.runDirectory, 'reports', 'trace.jsonl'))) await new Promise(r => setTimeout(r, 25));
    assert(existsSync(join(options.runDirectory, 'reports', 'trace.jsonl')), 'fixture started'); controller.abort(); result = await pending;
  } else result = await apply(p.prepared, approve(p), controls);
- assert.equal(result.completion, scenario.startsWith('empty') ? 'complete' : scenario === 'cancel' ? 'cancelled' : 'incomplete', JSON.stringify({ result, helperManifest: existsSync(join(options.runDirectory, 'manifest.json')) ? JSON.parse(readFileSync(join(options.runDirectory, 'manifest.json'))) : null, stderr: existsSync(join(options.runDirectory, 'reports', 'stderr.log')) ? readFileSync(join(options.runDirectory, 'reports', 'stderr.log'), 'utf8') : null }));
+ assert.equal(result.completion, (scenario.startsWith('empty') || scenario === 'finding') ? 'complete' : scenario === 'cancel' ? 'cancelled' : 'incomplete', JSON.stringify({ result, helperManifest: existsSync(join(options.runDirectory, 'manifest.json')) ? JSON.parse(readFileSync(join(options.runDirectory, 'manifest.json'))) : null, stderr: existsSync(join(options.runDirectory, 'reports', 'stderr.log')) ? readFileSync(join(options.runDirectory, 'reports', 'stderr.log'), 'utf8') : null }));
  assert(existsSync(join(options.runDirectory, 'index.md')));
  assert(!readFileSync(join(options.runDirectory, 'index.md'), 'utf8').includes('<script>'));
+ if (scenario === 'finding') {
+   const retained = JSON.parse(readFileSync(join(options.runDirectory, 'manifest.json')));
+   assert.equal(retained.findings, 1); assert.equal(retained.image, image);
+   assert.equal(retained.bundleSHA256, snapshot.sha256); assert.equal(retained.cleanupConfirmed, true);
+   for (const artifact of retained.artifacts) {
+     const bytes = readFileSync(join(options.runDirectory, artifact.path));
+     assert.equal(sha(bytes), artifact.sha256); assert.equal(bytes.length, artifact.bytes);
+   }
+   checks.push('bounded-finding-serialized-evidence-digests');
+ }
  if (scenario === 'empty') {
    assert.equal(readFileSync(join(options.runDirectory, 'reports', 'findings.jsonl')).length, 0);
    // Refuse run-directory reuse rather than mixing reports.

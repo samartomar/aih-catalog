@@ -176,7 +176,7 @@
     "./release-executable-content.json": "./release/release-executable-content.json"
   },
   "engines": {
-    "node": ">=24.15.0 <25"
+    "node": ">=26.12.1 <27"
   },
   "scripts": {
     "build": "npm run build:dist",

@@ -105,8 +105,8 @@ lints once, compiles without rewriting committed defaults, checks the carried re
 Verification also re-derives the release 1.7 restructuring expectation and compares
 every listed 1.7.0 release with it (`npm run check:restructuring`), and the whole-package
 check verifies the frozen default `release.json` bytes against their recorded digest.
-Read-only CI uses Node 24, audits dependencies and checks whitespace, with one
-20-minute job. The Node adapter declares Node 24.15–24.x; portable entries also
+The read-only CI definition selects Node 26.12.1, audits dependencies and checks whitespace, with one
+20-minute job. The Node adapter declares `>=26.12.1 <27`; portable entries also
 run in a browser.
 
 The package test packs actual bytes into a task-owned temporary directory,

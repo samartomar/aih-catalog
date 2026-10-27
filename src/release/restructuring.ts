@@ -169,6 +169,7 @@ export function compareRestructuring(request: {
       const found = (items.get(expected.survivor)?.supersedes ?? []).find(
         (entry) =>
           entry.itemId === expected.itemId &&
+          entry.match === expected.match &&
           (expected.releaseSha256 === undefined || entry.releaseSha256 === expected.releaseSha256),
       );
       row(

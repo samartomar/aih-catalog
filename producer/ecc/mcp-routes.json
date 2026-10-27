@@ -1,0 +1,72 @@
+{
+  "github": {
+    "release": "https://github.com/github/github-mcp-server/releases/tag/v2.0.3",
+    "version": "2.0.3",
+    "localArtifacts": [
+      {
+        "architecture": "arm64",
+        "url": "https://github.com/github/github-mcp-server/releases/download/v2.0.3/github-mcp-server_Darwin_arm64.tar.gz",
+        "native": "unverified",
+        "platform": "darwin",
+        "sha256": "5c95c01f75a7ec2370607e989b2968d314b02a54d78af8a9fdf38f3dfe6135f4"
+      },
+      {
+        "architecture": "x64",
+        "url": "https://github.com/github/github-mcp-server/releases/download/v2.0.3/github-mcp-server_Darwin_x86_64.tar.gz",
+        "native": "unverified",
+        "platform": "darwin",
+        "sha256": "115350858c3287843274efbf45e821d98f15d3304cb2c074740461ed32b45598"
+      },
+      {
+        "architecture": "arm64",
+        "url": "https://github.com/github/github-mcp-server/releases/download/v2.0.3/github-mcp-server_Linux_arm64.tar.gz",
+        "native": "unverified",
+        "platform": "linux",
+        "sha256": "5d2ddc71273fec8917e8f42cf19f26a6bd7acbb679b3a57de2917018b2eadf82"
+      },
+      {
+        "architecture": "x64",
+        "url": "https://github.com/github/github-mcp-server/releases/download/v2.0.3/github-mcp-server_Linux_x86_64.tar.gz",
+        "native": "unverified",
+        "platform": "linux",
+        "sha256": "f797c20fe02a755865d0e2d46184ab47e31bf1619b0855b8d89c531e45a651c2"
+      },
+      {
+        "architecture": "arm64",
+        "url": "https://github.com/github/github-mcp-server/releases/download/v2.0.3/github-mcp-server_Windows_arm64.zip",
+        "native": "unverified",
+        "platform": "win32",
+        "sha256": "d1321c411023c9a08e7709c2e9689551e3bff5a57033a3e5ff5f2c1db0c67a6f"
+      },
+      {
+        "architecture": "x64",
+        "url": "https://github.com/github/github-mcp-server/releases/download/v2.0.3/github-mcp-server_Windows_x86_64.zip",
+        "native": "unverified",
+        "platform": "win32",
+        "sha256": "f0e1b9880a1b88730d1250d1c25cfee39617ec3e800a7a252f2279cd0c8394e0"
+      }
+    ],
+    "repository": "https://github.com/github/github-mcp-server",
+    "hosted": {
+      "authentication": "OAuth in client; local PAT route separate",
+      "version": "service observation only",
+      "url": "https://api.githubcopilot.com/mcp/readonly"
+    }
+  },
+  "railway": {
+    "hosted": {
+      "authentication": "OAuth in client",
+      "version": "service observation only",
+      "url": "https://mcp.railway.com"
+    },
+    "proxy": {
+      "args": [
+        "mcp"
+      ],
+      "native": "unverified",
+      "reason": "npm wrapper postinstall fetches native CLI; disabled lifecycle is not runnable readiness",
+      "version": "5.71.0",
+      "authentication": "separately authorized Railway CLI login"
+    }
+  }
+}

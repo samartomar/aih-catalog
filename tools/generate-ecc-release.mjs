@@ -90,7 +90,7 @@ export function generateEccRelease(identity = JSON.parse(readFileSync(resolve(ro
   for (const item of declaration.items.filter(item => item.id.startsWith("ecc.claude.mcp."))) {
     const fact = inventory.itemFacts[item.id];
     assert(fact, `Missing MCP facts ${item.id}`);
-    assert.deepEqual(fact.rawServer, rawServers[fact.sourceKey], `Raw MCP facts differ ${item.id}`);
+    assert.deepEqual(fact.rawServer, rawServers[fact.upstreamSourceKey ?? fact.sourceKey], `Raw MCP facts differ ${item.id}`);
     assert.equal(item.clientCapabilities.find(capability => capability.capability === "native-execution")?.reason, fact.runtimePrerequisites, `MCP execution facts differ ${item.id}`);
     assert.equal(item.activation[0]?.instructions, fact.runtimePrerequisites, `MCP activation facts differ ${item.id}`);
     const recipe = JSON.parse(snapshot.recipes.ecc[item.recipePath]);
@@ -121,7 +121,7 @@ export function generateEccRelease(identity = JSON.parse(readFileSync(resolve(ro
     assert.equal(item.kind, "mcp");
     assert(!translated.has(fact.sourceKey), `Duplicate Codex MCP item ${item.id}`);
     translated.add(fact.sourceKey);
-    assert.deepEqual(fact.rawServer, rawServers[fact.sourceKey], `Raw MCP facts differ ${item.id}`);
+    assert.deepEqual(fact.rawServer, rawServers[fact.upstreamSourceKey ?? fact.sourceKey], `Raw MCP facts differ ${item.id}`);
     const sibling = inventory.itemFacts[`ecc.claude.mcp.${fact.sourceKey}`];
     const siblingItem = claudeItems.find(claude => claude.id === `ecc.claude.mcp.${fact.sourceKey}`);
     assert(sibling && siblingItem, `Codex MCP item without a Claude counterpart ${item.id}`);
@@ -135,7 +135,10 @@ export function generateEccRelease(identity = JSON.parse(readFileSync(resolve(ro
     const recipe = JSON.parse(snapshot.recipes.ecc[item.recipePath]);
     const claudeRecipe = JSON.parse(snapshot.recipes.ecc[siblingItem.recipePath]);
     const home = (target) => ({ root: "userHome", segments: target.segments.map(segment => segment.literal === siblingItem.id ? { literal: item.id } : segment) });
-    const delivered = claudeRecipe.operations.filter(operation => operation.kind === "file.write").map(operation => ({ ...operation, scope: "user", target: home(operation.target) }));
+    const delivered = [
+      ...claudeRecipe.operations.filter(operation => operation.kind === "file.write").map(operation => ({ ...operation, scope: "user", target: home(operation.target) })),
+      ...claudeRecipe.operations.filter(operation => operation.kind === "process.run").map(operation => ({ ...operation, scope: "user", cwd: home(operation.cwd) })),
+    ];
     assert.deepEqual(recipe.operations.slice(0, -1), delivered, `Codex MCP material delivery differs from the Claude counterpart ${item.id}`);
     assert.deepEqual(recipe.checks, claudeRecipe.checks.map(check => ({ ...check, target: home(check.target) })), `Codex MCP material checks differ ${item.id}`);
     assert.deepEqual(recipe.operations.at(-1), {
@@ -146,7 +149,7 @@ export function generateEccRelease(identity = JSON.parse(readFileSync(resolve(ro
       target: { root: "userHome", segments: [{ literal: ".codex" }, { literal: "config.toml" }] },
       format: "toml",
       entries: translation.entries,
-      requires: [],
+      requires: claudeRecipe.operations.find(operation => operation.kind === "config.entries").requires,
       checks: [],
     }, `Codex MCP operation differs from the translation ${item.id}`);
     assert.deepEqual(recipe.prerequisites, translation.prerequisites, `Codex MCP prerequisites differ ${item.id}`);

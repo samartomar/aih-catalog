@@ -44,19 +44,20 @@ export function authorEccCodexMcp(declaration, snapshot, inventory) {
       target: { root: "userHome", segments: [{ literal: ".codex" }, { literal: "config.toml" }] },
       format: "toml",
       entries: translation.entries,
-      requires: [],
+      requires: claudeRecipe.operations.find(operation => operation.kind === "config.entries").requires,
       checks: [],
     };
     const recipe = {
       schema: "urn:aihq:core:recipe:1.0.0",
       id,
       description: "Catalog overlay: deliver pinned ECC mcp material and register the exact offered server in the Codex user configuration; execute no source code.",
-      inputs: {},
+      inputs: claudeRecipe.inputs,
       materials: [],
       targets: ["user"],
       prerequisites: translation.prerequisites,
       operations: [
         ...claudeRecipe.operations.filter(operation => operation.kind === "file.write").map(operation => ({ ...operation, scope: "user", target: retarget(operation.target) })),
+        ...claudeRecipe.operations.filter(operation => operation.kind === "process.run").map(operation => ({ ...operation, scope: "user", cwd: retarget(operation.cwd) })),
         register,
       ],
       checks: claudeRecipe.checks.map(check => ({ ...check, target: retarget(check.target) })),
@@ -67,7 +68,7 @@ export function authorEccCodexMcp(declaration, snapshot, inventory) {
       id,
       source: "ecc",
       label: id,
-      description: `Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact upstream server. ${prerequisites}`,
+      description: sibling.sourceDiscovery ? "" : `Pinned ECC mcp server registered in the Codex user configuration through structured TOML entries translated from the exact offered server. ${prerequisites}`,
       kind: "mcp",
       recipePath,
       materials: sibling.materials.map(material => ({ ...material })),
@@ -77,10 +78,11 @@ export function authorEccCodexMcp(declaration, snapshot, inventory) {
       clientCapabilities: [
         { client: "codex", surface: "user", capability: "mcp-configuration", support: "supported", reason: "Exact user recipe for the Codex user configuration; native invocation unobserved." },
         ...["claude-code", "kiro-ide", "copilot-vscode"].map(client => ({ client, surface: "project", capability: "mcp-configuration", support: "unsupported", reason: unsupportedReason })),
-        { client: "codex", surface: "user", capability: "native-execution", support: "unknown", reason: prerequisites },
+        { client: "codex", surface: "user", capability: "native-execution", support: sibling.clientCapabilities.find(capability => capability.capability === "native-execution").support, reason: prerequisites },
       ],
       activation: [{ client: "codex", surface: "user", instructions: prerequisites }],
-      configuration: {},
+      configuration: sibling.configuration,
+      ...(sibling.sourceDiscovery ? { sourceDiscovery: sibling.sourceDiscovery } : {}),
     });
     facts.set(id, {
       ...claudeFact,

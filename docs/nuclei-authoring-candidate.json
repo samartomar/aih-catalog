@@ -1,0 +1,54 @@
+{
+  "purpose": "Nuclei authoring qualification candidate; not native admission",
+  "nucleiVersion": "3.11.1",
+  "dockerVersion": "29.9.2",
+  "checkedAt": "2026-10-27T05:38:18.009721+00:00",
+  "sources": {
+    "release": "https://github.com/projectdiscovery/nuclei/releases/tag/v3.11.1",
+    "tag": "https://hub.docker.com/v2/repositories/projectdiscovery/nuclei/tags/v3.11.1",
+    "docker": "https://docs.docker.com/engine/release-notes/29/"
+  },
+  "image": {
+    "reference": "projectdiscovery/nuclei@sha256:9fd705284ac4b5f721fa1e23bf366f26e985cd4ec65927fe9a53cb3fcb0417a6",
+    "os": "linux",
+    "architecture": "amd64",
+    "manifestUrl": "https://registry-1.docker.io/v2/projectdiscovery/nuclei/manifests/sha256:9fd705284ac4b5f721fa1e23bf366f26e985cd4ec65927fe9a53cb3fcb0417a6",
+    "manifestBytes": 953,
+    "configUrl": "https://registry-1.docker.io/v2/projectdiscovery/nuclei/blobs/sha256:2eb4a29e8ee0359a6ea648bc376d4e5760701b752e1f99d2fcb0d8d1cd1a8466",
+    "configDigest": "sha256:2eb4a29e8ee0359a6ea648bc376d4e5760701b752e1f99d2fcb0d8d1cd1a8466",
+    "layers": [
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 3846391,
+        "digest": "sha256:55afa1ecc21d2bb5e5045f32dafee56272ffd89860bac26f6c32123439af26a4"
+      },
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 315041066,
+        "digest": "sha256:820eb9ef4e6aa2e3291f62026c13f1afc802ddaccb97940e81c0da72148db617"
+      },
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 46208038,
+        "digest": "sha256:971def0d98a740d4a51bb02ea21587f0fdf99aafec4f03eb58f11f42b284e801"
+      }
+    ]
+  },
+  "platforms": [
+    {
+      "helper": "linux-x64",
+      "container": "linux/amd64",
+      "status": "artifact-identified; execution-pending",
+      "blocker": "Requires separately provisioned Docker 29.9.2 and the exact locally available image."
+    },
+    {
+      "helper": "win32-x64",
+      "container": "linux/amd64 via Docker Desktop",
+      "status": "unqualified",
+      "blocker": "No Windows container image is listed by the official tag. Native Windows Docker Desktop Linux-container execution remains unqualified for this candidate; Linux evidence is not Windows proof."
+    }
+  ],
+  "otherPlatforms": "No macOS, arm64 or WSL qualification inferred.",
+  "templateSnapshot": "Unchanged; assessment uses only its separately prepared digest-bound bundle.",
+  "hostActivation": "Not performed; provisioned Docker remains external prerequisite."
+}

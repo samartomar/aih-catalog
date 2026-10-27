@@ -176,3 +176,8 @@ The Catalog-authored standalone artifact adaptation is generated separately with
 public scaffold without acquiring tools; supply an exact Core tarball for
 Prepare/review/Apply. The explicit isolated build/browser fixture and platform
 limits are documented in [Anthropic content](docs/ANTHROPIC-CONTENT.md#modern-standalone-artifact-adaptation).
+
+The bounded Nuclei authoring candidate has an offline fixture preparer at
+`tools/prepare-nuclei-candidate.mjs`. See [candidate qualification](docs/NUCLEI-CANDIDATE.md)
+for exact image metadata, provisioned Docker prerequisites and separate native
+execution gates. Controlled Docker consumer checks do not qualify the real candidate.

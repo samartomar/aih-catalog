@@ -295,9 +295,9 @@ export const contractSupport = Object.freeze({
     Object.freeze({
       export: "@aihq/catalog/producer",
       runtime: "node",
-      nodeRange: ">=24.15.0 <25",
+      nodeRange: ">=26.12.1 <27",
     }),
-    Object.freeze({ export: "@aihq/catalog/node", runtime: "node", nodeRange: ">=24.15.0 <25" }),
+    Object.freeze({ export: "@aihq/catalog/node", runtime: "node", nodeRange: ">=26.12.1 <27" }),
   ]),
 } as const);
 

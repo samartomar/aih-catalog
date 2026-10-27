@@ -41,8 +41,10 @@ else if (command === 'create') {
   s.started = true; writeFileSync(file, JSON.stringify(s));
   mkdirSync(join(s.reports, 'markdown'), { recursive: true });
   writeFileSync(join(s.reports, 'markdown', 'index.md'), '# Controlled native Markdown export fixture\n');
-  if (s.scenario !== 'missing') writeFileSync(join(s.reports, 'findings.jsonl'), '');
-  if (s.scenario !== 'empty-native') writeFileSync(join(s.reports, 'results.sarif'), JSON.stringify({ version: '2.1.0', runs: [{ tool: { driver: { name: 'controlled-substitute' } }, results: [] }] }));
+  const finding = s.scenario === 'finding';
+  if (s.scenario !== 'missing') writeFileSync(join(s.reports, 'findings.jsonl'), finding
+    ? JSON.stringify({ 'template-id': 'controlled-http', 'matched-at': s.target, info: { severity: 'info' } }) + '\n' : '');
+  if (s.scenario !== 'empty-native') writeFileSync(join(s.reports, 'results.sarif'), JSON.stringify({ version: '2.1.0', runs: [{ tool: { driver: { name: 'controlled-substitute' } }, results: finding ? [{ ruleId: 'controlled-http', message: { text: 'Controlled bounded finding' } }] : [] }] }));
   writeFileSync(join(s.reports, 'trace.jsonl'), JSON.stringify({ template: s.template, input: s.target, type: 'http', error: 'none' }));
   writeFileSync(join(s.reports, 'markdown', 'untrusted.md'), '<script>do not execute</script>\n[run](javascript:alert(1))');
   writeFileSync(join(s.reports, 'errors.jsonl'), '');

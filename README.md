@@ -111,11 +111,11 @@ platform evidence and real-tool execution limits are recorded in [delivery evide
 | --- | --- | --- |
 | `@aihq/catalog/contracts` | Public types, format identity, support declaration and the `releaseInventory` of every exported release | Portable |
 | `@aihq/catalog/reader` | Read, browse, configure, resolve relationships and validate selections | Portable |
-| `@aihq/catalog/producer` | Check v3 declarations and compile explicitly supplied source bytes | Node 24.15–24.x |
+| `@aihq/catalog/producer` | Check v3 declarations and compile explicitly supplied source bytes | Node 26.12.1–26.x |
 | `@aihq/catalog/source` | Portable source facts (`extractSourceFacts`), side-effect-free source-link parsing (`parseSourceLink`), and source description reading with exact identity checking (`readSourceDescription`, `checkExactSourceIdentity`) | Portable |
 | `@aihq/catalog/schemas/producer-declaration/3.0.0.json` | Public producer declaration schema | Data |
-| `@aihq/catalog/node` | Read an installed root, resolve an exact archive/registry version, resolve a GitHub ref to an exact reachable commit, acquire a bounded snapshot at that commit, acquire an ordinary npm package at an exact integrity pin, or prepare the project context for a chosen instruction directory | Node 24.15–24.x |
-| `@aihq/catalog/workflows/nuclei` | Author Nuclei preparation, assessment and reconciliation Core policies, with TypeScript declarations | Node 24.15–24.x |
+| `@aihq/catalog/node` | Read an installed root, resolve an exact archive/registry version, resolve a GitHub ref to an exact reachable commit, acquire a bounded snapshot at that commit, acquire an ordinary npm package at an exact integrity pin, or prepare the project context for a chosen instruction directory | Node 26.12.1–26.x |
+| `@aihq/catalog/workflows/nuclei` | Author Nuclei preparation, assessment and reconciliation Core policies, with TypeScript declarations | Node 26.12.1–26.x; native helper qualification remains separate |
 | `@aihq/catalog/release.json` | Default release (format 1.4.0) | Data |
 | `@aihq/catalog/schemas/release/1.5.0.json` | New release format with a pinned content baseline | Data |
 | `@aihq/catalog/schemas/content-inventory/1.0.0.json` | Complete content projection before evidence | Data |

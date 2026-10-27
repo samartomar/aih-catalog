@@ -56,14 +56,86 @@ const STABILITY = { stable: "stable", beta: "in-progress", experimental: "in-pro
 const KIRO_SET = "ecc.edition.kiro";
 const kiroEdition = release.items.filter((entry) => entry.payload.namespace === "kiro");
 const contentOf = (entry) => entry.materials.filter((material) => material.role === "content");
+await case_("hosted MCP choices expose current endpoints and keep secrets as required inputs", () => {
+  const browser = item("ecc.mcp.browser-use");
+  assert.equal(browser.payload.url, "https://api.browser-use.com/v3/mcp");
+  assert.deepEqual(browser.payload.headers, { "x-browser-use-api-key": { input: "BROWSER_USE_KEY" } });
+  assert.equal(browser.requirements.inputs.BROWSER_USE_KEY.sensitive, true);
+  const parallel = item("ecc.mcp.parallel-search");
+  assert.equal(parallel.payload.url, "https://mcp.parallel.ai/mcp");
+  assert.equal(parallel.payload.headers, undefined);
+  assert.deepEqual(parallel.requirements.inputs, {});
+  assert.equal(item("ecc.mcp.laraplugins").payload.url, "https://laraplugins.io/mcp/plugins");
+  assert.deepEqual(item("ecc.mcp.laraplugins").requirements.inputs, {});
+});
+await case_("a local memory choice delivers an exact acquisition closure instead of floating npx", () => {
+  assert.equal(configureItem({ release, itemId: "ecc.mcp.memory", configuration: {}, materialSource: { kind: "local", input: "catalog" }, clientId: "claude-code" }).valid, false);
+  assert.equal(json("package.json").engines.node, ">=26.12.1 <27");
+  const memory = item("ecc.mcp.memory");
+  assert.equal(memory.payload.command, "node");
+  assert.ok(!memory.payload.args.some(arg => arg.includes("npx")));
+  const recipe = JSON.parse(member(memory.recipes["claude-code"].path));
+  const lock = recipe.operations.find(entry => entry.kind === "file.write" && entry.target.segments.at(-1).literal === "package-lock.json");
+  assert.ok(lock, "selected memory server has no delivered lock");
+  const closure = JSON.parse(lock.content.literal);
+  assert.equal(closure.lockfileVersion, 3);
+  assert.equal(closure.packages["node_modules/@modelcontextprotocol/server-memory"].version, "2.0.0");
+  for (const [path, dependency] of Object.entries(closure.packages)) {
+    if (!path) continue;
+    assert.match(dependency.integrity, /^sha512-/);
+    assert.match(dependency.resolved, /^https:\/\/registry\.npmjs\.org\//);
+  }
+  const codescene = item("ecc.mcp.codescene");
+  assert.equal(codescene.requirements.inputs.CS_MCP_BINARY_PATH.required, true);
+  const nativeRecipe = JSON.parse(member(codescene.recipes["claude-code"].path));
+  const manifest = JSON.parse(nativeRecipe.operations.find(operation => operation.kind === "file.write" && operation.target.segments.at(-1).literal === "native-artifacts.json").content.literal);
+  assert.equal(manifest.version, "1.5.13");
+  assert.match(manifest.targets["win32/x64"].binarySha256, /^[a-f0-9]{64}$/);
+  assert.equal(manifest.targets["win32/arm64"].state, "missing-artifact");
+});
+await case_("Python server choices expose isolated exact runtimes and refuse a shared environment", () => {
+  for (const key of ["jira", "omega-memory"]) {
+    const server = item(`ecc.mcp.${key}`);
+    assert.equal(server.payload.command, "python");
+    assert.equal(server.payload.args[0], "-I");
+    assert.ok(server.payload.args.join(" ").includes("3,14,10"));
+    assert.ok(server.payload.args.join(" ").includes("1.30.0"));
+    assert.match(server.description, /isolated/i);
+    assert.match(server.description, /unqualified|unverified/i);
+  }
+  assert.ok(item("ecc.mcp.omega-memory").requirements.inputs.OMEGA_HOME);
+});
+await case_("official GitHub and Railway routes are separate explicit choices", () => {
+  const github = item("ecc.mcp.github");
+  assert.equal(github.payload.transport, "http");
+  assert.equal(github.payload.url, "https://api.githubcopilot.com/mcp/readonly");
+  assert.equal(github.payload.command, undefined);
+  const local = item("ecc.mcp.github-local");
+  assert.equal(local.payload.command, "github-mcp-server");
+  assert.deepEqual(local.payload.args, ["stdio", "--read-only", "--toolsets", "repos,issues,pull_requests"]);
+  assert.equal(local.requirements.inputs.GITHUB_PERSONAL_ACCESS_TOKEN.sensitive, true);
+  assert.equal(item("ecc.mcp.railway-hosted").payload.url, "https://mcp.railway.com");
+  assert.ok(item("ecc.mcp.railway").payload.args.includes("mcp"));
+  assert.ok(!item("ecc.mcp.railway").payload.args.includes("local"));
+  assert.ok(item("ecc.mcp.supabase").payload.args.includes("--read-only"));
+  assert.equal(item("ecc.mcp.supabase").requirements.inputs.SUPABASE_ACCESS_TOKEN.sensitive, true);
+});
 const resolve = (setId, options) => {
   const chosen = set(setId);
-  return resolveSelections({
+  const request = {
     releases: { [release.sha256]: release },
     roots: [],
     skips: [],
     sets: [{ release: { releaseSha256: release.sha256, scope: "project" }, setId, setSha256: chosen.setSha256, ...(options ? { options } : {}) }],
-  });
+  };
+  const initial = resolveSelections(request);
+  if (initial.status === "ok") return initial;
+  const missing = initial.diagnostics.flatMap(diagnostic => diagnostic.details?.diagnostics ?? []);
+  if (!missing.length || missing.some(diagnostic => diagnostic.reason !== "input-required" || !/\/(npmCli|npmCache)$/.test(diagnostic.path))) return initial;
+  // These configuration-only profiles still need explicit acquisition inputs;
+  // none of these fixture paths is executed by this packed reader scenario.
+  request.roots = [...new Set(missing.map(diagnostic => diagnostic.itemId))].map(itemId => ({ releaseSha256: release.sha256, itemId, scope: "project", configuration: { npmCli: "/fixture/npm-cli.js", npmCache: "/fixture/npm-cache" } }));
+  return resolveSelections(request);
 };
 const ruleIds = (result) => result.value.selections.map((selection) => selection.item.itemId).filter((id) => item(id).kind === "rule").sort();
 const rulesIn = (directory) => release.items.filter((entry) => entry.kind === "rule" && entry.payload.namespace === directory).map((entry) => entry.id).sort();
@@ -168,7 +240,7 @@ await case_("a profile with TypeScript and Python resolves to exactly those rule
 
 await case_("collapsed MCP copies keep the union of dependencies and the licence notice", () => {
   const servers = release.items.filter((entry) => entry.kind === "mcp-server");
-  assert.equal(servers.length, 35);
+  assert.equal(servers.length, 37);
   for (const server of servers) {
     assert.ok(server.dependencies.requires.some((ref) => ref.itemId === "ecc.notices"), `${server.id} lacks its notice`);
     assert.ok(contentOf(server).some((entry) => entry.relPath === "LICENSE"), `${server.id} lacks its licence`);
@@ -176,14 +248,14 @@ await case_("collapsed MCP copies keep the union of dependencies and the licence
   }
   // The Codex copies had dropped the notice dependency; their survivors keep it.
   const dropped = earlier.release.items.filter((entry) => entry.id.startsWith("ecc.codex.mcp.") && !entry.dependencies.requires.some((ref) => ref.itemId === "ecc.notices"));
-  assert.equal(dropped.length, 32);
+  assert.equal(dropped.length, 34);
   for (const copy of dropped) {
     const survivor = item(copy.id.replace("ecc.codex.mcp.", "ecc.mcp."));
     assert.deepEqual(Object.keys(survivor.recipes), ["claude-code", "codex"]);
     assert.deepEqual(survivor.scopes, ["project", "user"]);
     assert.ok(survivor.dependencies.requires.some((ref) => ref.itemId === "ecc.notices"));
   }
-  const github = item("ecc.mcp.github");
+  const github = item("ecc.mcp.github-local");
   assert.deepEqual(github.payload.env, { GITHUB_PERSONAL_ACCESS_TOKEN: { input: "GITHUB_PERSONAL_ACCESS_TOKEN" } });
   assert.equal(github.requirements.inputs.GITHUB_PERSONAL_ACCESS_TOKEN.sensitive, true);
 });
@@ -257,7 +329,7 @@ await case_("every earlier ECC item id is a survivor, with supersedes when renam
   }
   assert.match(retired.get("ecc.kiro.skill.api-design").reason, /^Renamed/);
   assert.match(retired.get("ecc.codex.mcp.github").reason, /^Collapsed/);
-  assert.equal(release.retired.length, 134);
+  assert.equal(release.retired.length, 138);
   assert.deepEqual(retired.get("ecc.template.api-review").replacedBy, []);
   // Kiro-edition copies survive under their own namespace.
   assert.equal(kiroEdition.length, 65);
@@ -358,10 +430,10 @@ await case_("the installed internal reader reads ECC with the Kiro set, unbound 
 await case_("the restructuring comparison against the amended expectation passes for ECC", () => {
   const result = compareRestructuring({ release, expectation: json("restructuring/expected-1.7.0.json") });
   assert.equal(result.status, "pass", JSON.stringify(result.rows.filter((row) => row.status === "fail").slice(0, 5)));
-  assert.deepEqual(result.counts.item, { pass: 663, fail: 0 });
-  assert.deepEqual(result.counts.hash, { pass: 663, fail: 0 });
-  assert.deepEqual(result.counts["mcp-pair"], { pass: 32, fail: 0 });
-  assert.deepEqual(result.counts.edits, { pass: 35, fail: 0 });
+  assert.deepEqual(result.counts.item, { pass: 665, fail: 0 });
+  assert.deepEqual(result.counts.hash, { pass: 665, fail: 0 });
+  assert.deepEqual(result.counts["mcp-pair"], { pass: 34, fail: 0 });
+  assert.deepEqual(result.counts.edits, { pass: 37, fail: 0 });
   // Every Kiro-edition item, its identity and its renaming are checked rows.
   for (const entry of kiroEdition)
     for (const check of ["item", "hash"]) {

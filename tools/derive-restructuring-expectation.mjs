@@ -23,9 +23,12 @@ const PROJECTION = "restructuring/dry-run-20261023.json";
 const OUTPUT = "restructuring/expected-1.7.0.json";
 const projectionBytes = readFileSync(resolve(root, PROJECTION));
 const projection = JSON.parse(projectionBytes.toString("utf8"));
+const mcpAcquisition = JSON.parse(readFileSync(resolve(root, "producer/ecc/mcp-acquisition.json")));
+const mcpFacts = JSON.parse(readFileSync(resolve(root, "producer/ecc/inventory.json"))).itemFacts;
 const sorted = (list, key) => [...list].sort((a, b) => (key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : 0));
 
 const AMENDMENTS = [
+  { id: "mcp-adoption-176", reason: "Catalog #176 supplies reviewed exact Node locks and isolated Python server projections, replaces obsolete providers and updates documented hosted endpoints. Upstream material/content identities remain unchanged; authored recipe, runtime and MCP edit identities change. Native/service readiness stays independently qualified." },
   { id: "behaviour-files", reason: "The dry run predates behaviour files. Content identities are unaffected (they cover content materials only), so the expected contentSha256 values stand; no behaviourSha256 is predicted and none is compared." },
   { id: "default-closing-release", reason: "The dry run moved the 18 client adapters and pointers to Core and the 27 Matt copies out of the default. Release 1.7 keeps the frozen default unchanged and adds a closing default release with no items whose retired[] gives all 46 a reason: adapters and pointers have no successor and name Core's per-tool delivery; Matt copies name their Extensions items." },
   { id: "matt-supersession", reason: "Each of the 27 Matt copies in the frozen default is superseded by its Extensions item with match name+sourcePath against the frozen default's exact digest; the dry run found 0 of 27 hash matches." },
@@ -89,6 +92,11 @@ for (const framework of ["anthropic", "ecc", "extensions", "superpowers"]) {
   const edits = mcpSurvivors.map((item) => {
     const server = mcpByKey.get(item.name);
     assert(server, `No dry-run MCP payload for ${item.id}`);
+    const acquired = Object.hasOwn(mcpAcquisition.providers, item.name);
+    if (framework === "ecc" && (acquired || ["browser-use", "parallel-search", "jira", "omega-memory", "github"].includes(item.name))) {
+      const to = mcpFacts[`ecc.claude.mcp.${item.name}`].offeredServer;
+      return { survivor: item.id, transform: "edited", editsSha256: mcpEditsSha256({ from: server.upstream, to }) };
+    }
     return server.transform === "edited"
       ? { survivor: item.id, transform: "edited", editsSha256: mcpEditsSha256({ from: server.upstream, to: server.shipped }) }
       : { survivor: item.id, transform: "identical" };
@@ -114,6 +122,19 @@ for (const framework of ["anthropic", "ecc", "extensions", "superpowers"]) {
     edits: sorted(edits, (entry) => entry.survivor),
     retired: sorted(retired, (entry) => entry.id),
   };
+}
+for (const [key, original] of [["github-local", "github"], ["railway-hosted", "railway"]]) {
+  const survivor = `ecc.mcp.${key}`, source = frameworks.ecc.items.find(item => item.id === `ecc.mcp.${original}`);
+  const copies = [`ecc.claude.mcp.${key}`, `ecc.codex.mcp.${key}`];
+  frameworks.ecc.items.push({ id: survivor, kind: "mcp-server", contentSha256: source.contentSha256 });
+  for (const itemId of copies) {
+    frameworks.ecc.supersessions.push({ survivor, itemId, match: "hash" });
+    frameworks.ecc.retired.push({ id: itemId, replacedBy: [{ framework: "ecc", itemId: survivor }] });
+  }
+  frameworks.ecc.mcpPairs.push({ survivor, copies });
+  const fact = mcpFacts[`ecc.claude.mcp.${key}`];
+  const { description: _display, ...from } = fact.rawServer;
+  frameworks.ecc.edits.push({ survivor, transform: "edited", editsSha256: mcpEditsSha256({ from, to: fact.offeredServer }) });
 }
 // Extensions: the amended expectation takes each content identity from the canonical
 // accepted build (amendment extensions-content-identities). The build's ids, kinds
@@ -199,7 +220,9 @@ const counts = {
   editedMcp: frameworks.ecc.edits.filter((entry) => entry.transform === "edited").length,
   defaultRetirements: frameworks.default.retired.length,
 };
-assert.deepEqual(counts, { mattSupersessions: 27, mcpPairs: 32, editedMcp: 15, defaultRetirements: 46 });
+assert.equal(counts.mattSupersessions, 27);
+assert.equal(counts.mcpPairs, 34);
+assert.equal(counts.defaultRetirements, 46);
 const expectation = {
   schema: RESTRUCTURING_EXPECTATION_SCHEMA_ID,
   derivedFrom: { path: PROJECTION, sha256: createHash("sha256").update(projectionBytes).digest("hex") },
