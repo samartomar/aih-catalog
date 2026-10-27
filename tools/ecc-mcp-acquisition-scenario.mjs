@@ -111,6 +111,11 @@ for (const [key, provider] of Object.entries(selected.providers)) {
         const bytes = readFileSync(join(nativeFixtures, `${key}-${process.platform}-${process.arch}.binary`));
         assert.equal(sha(bytes), manifest.targets[`${process.platform}/${process.arch}`].binarySha256);
         const target = key === "codescene" ? join(directory, "native-codescene.binary") : join(directory, "node_modules/@railway/cli/bin", process.platform === "win32" ? "railway.exe" : "railway");
+        writeFileSync(target, "wrong-native-bytes");
+        const wrongNative = await handshake(item, directory, key);
+        assert.match(readFileSync(join(directory, "handshake-stderr.txt"), "utf8"), /incompatible-native-artifact/);
+        assert.equal(wrongNative.cleanup, "exited");
+        result.wrongNative = wrongNative;
         writeFileSync(target, bytes);
         result.nativeBinarySha256 = sha(bytes);
       }

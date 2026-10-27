@@ -122,12 +122,20 @@ await case_("official GitHub and Railway routes are separate explicit choices", 
 });
 const resolve = (setId, options) => {
   const chosen = set(setId);
-  return resolveSelections({
+  const request = {
     releases: { [release.sha256]: release },
     roots: [],
     skips: [],
     sets: [{ release: { releaseSha256: release.sha256, scope: "project" }, setId, setSha256: chosen.setSha256, ...(options ? { options } : {}) }],
-  });
+  };
+  const initial = resolveSelections(request);
+  if (initial.status === "ok") return initial;
+  const missing = initial.diagnostics.flatMap(diagnostic => diagnostic.details?.diagnostics ?? []);
+  if (!missing.length || missing.some(diagnostic => diagnostic.reason !== "input-required" || !/\/(npmCli|npmCache)$/.test(diagnostic.path))) return initial;
+  // These configuration-only profiles still need explicit acquisition inputs;
+  // none of these fixture paths is executed by this packed reader scenario.
+  request.roots = [...new Set(missing.map(diagnostic => diagnostic.itemId))].map(itemId => ({ releaseSha256: release.sha256, itemId, scope: "project", configuration: { npmCli: "/fixture/npm-cli.js", npmCache: "/fixture/npm-cache" } }));
+  return resolveSelections(request);
 };
 const ruleIds = (result) => result.value.selections.map((selection) => selection.item.itemId).filter((id) => item(id).kind === "rule").sort();
 const rulesIn = (directory) => release.items.filter((entry) => entry.kind === "rule" && entry.payload.namespace === directory).map((entry) => entry.id).sort();
