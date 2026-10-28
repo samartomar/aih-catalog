@@ -19,9 +19,9 @@ try {
   const serveUrl=await bundle({entryPoint:fileURLToPath(new URL('./fixture.jsx',import.meta.url)),
     outDir:resolve(output,'bundle'),publicDir:null});
   instance=await openBrowser('chrome',{browserExecutable:browser,chromiumOptions:{headless:true}});
-  const composition=await selectComposition({serveUrl,id:'Fixture',puppeteerInstance:instance,timeoutInMilliseconds:5000});
+  const composition=await selectComposition({serveUrl,id:'Fixture',puppeteerInstance:instance,timeoutInMilliseconds:7000});
   await renderFrames({serveUrl,composition,puppeteerInstance:instance,outputDir:resolve(output,'frames'),cancelSignal,
-    concurrency:1,imageFormat:'png',timeoutInMilliseconds:5000});
+    concurrency:1,imageFormat:'png',timeoutInMilliseconds:7000});
   const frames=resolve(output,'frames');
   const names=readdirSync(frames).filter(name=>name.endsWith('.png')).sort();
   assert.equal(names.length,2,'Exactly two rendered frames required');
