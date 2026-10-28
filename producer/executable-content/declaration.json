@@ -124,6 +124,18 @@
         {
           "id": "file-24",
           "path": "workflow.mjs"
+        },
+        {
+          "id": "file-25",
+          "path": "adaptations/mcp-builder-mcp2/catalog_mcp2_evaluation.py"
+        },
+        {
+          "id": "file-26",
+          "path": "adaptations/mcp-builder-mcp2/catalog_mcp2_connections.py"
+        },
+        {
+          "id": "file-27",
+          "path": "adaptations/mcp-builder-mcp2/provenance.json"
         }
       ],
       "requires": [],
@@ -412,6 +424,18 @@
         {
           "id": "file-24",
           "path": "workflow.mjs"
+        },
+        {
+          "id": "file-25",
+          "path": "adaptations/mcp-builder-mcp2/catalog_mcp2_evaluation.py"
+        },
+        {
+          "id": "file-26",
+          "path": "adaptations/mcp-builder-mcp2/catalog_mcp2_connections.py"
+        },
+        {
+          "id": "file-27",
+          "path": "adaptations/mcp-builder-mcp2/provenance.json"
         }
       ],
       "requires": [],
@@ -700,6 +724,18 @@
         {
           "id": "file-24",
           "path": "workflow.mjs"
+        },
+        {
+          "id": "file-25",
+          "path": "adaptations/mcp-builder-mcp2/catalog_mcp2_evaluation.py"
+        },
+        {
+          "id": "file-26",
+          "path": "adaptations/mcp-builder-mcp2/catalog_mcp2_connections.py"
+        },
+        {
+          "id": "file-27",
+          "path": "adaptations/mcp-builder-mcp2/provenance.json"
         }
       ],
       "requires": [],

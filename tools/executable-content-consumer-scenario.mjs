@@ -65,6 +65,12 @@ const run=args=>{
 const evaluator=run(['plan','mcp-evaluator']);
 assert.equal(evaluator.exit,0);assert.equal(evaluator.result.execution,'blocked');
 assert.equal(evaluator.result.python,'3.14.10');assert.equal(evaluator.result.packages.mcp,'2.3.0');
+assert.equal(evaluator.result.entrypoint,'adaptations/mcp-builder-mcp2/catalog_mcp2_evaluation.py');
+for(const row of inventory.adaptations['mcp-evaluator'].files) {
+  const bytes=readFileSync(join(skill,row.path));
+  assert.equal(bytes.length,row.byteLength);
+  assert.equal(createHash('sha256').update(bytes).digest('hex'),row.sha256);
+}
 for(const row of inventory.workflows) {
   const plan=run(['plan',row.id]);assert.equal(plan.result.artifactClosure,'unresolved');
 }

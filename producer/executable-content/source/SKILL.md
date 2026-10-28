@@ -69,3 +69,14 @@ unchanged. It does not replace their licensing, lifecycle, APIs or instruction
 files. The existing modern web-artifacts adaptation is independent. Material
 Apply writes this companion only; it never installs dependencies or activates
 accounts, hooks, terminals, services, native clients or paid APIs.
+
+## MCP 2 evaluator route
+
+The preserved upstream evaluator imports an MCP v1 connection name removed by the
+pinned MCP 2.3.0. Select the authored
+`adaptations/mcp-builder-mcp2/catalog_mcp2_evaluation.py` entrypoint instead; read
+its adjacent provenance and use the existing MCP evaluator lock/environment.
+`node workflow.mjs plan mcp-evaluator` exposes this explicit entrypoint.
+The fixture hashes both the frozen payloads and authored adapter before parsing
+local XML. It never runs a model or connects to a server. Actual evaluation and
+transport execution need separate caller approval, credentials and native proof.

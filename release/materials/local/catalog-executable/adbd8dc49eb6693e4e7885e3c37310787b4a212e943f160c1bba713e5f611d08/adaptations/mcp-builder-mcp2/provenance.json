@@ -1,0 +1,52 @@
+{
+  "id": "catalog-mcp-builder-mcp2",
+  "license": "Apache-2.0",
+  "upstream": {
+    "repository": "https://github.com/anthropics/skills",
+    "revision": "34040c9c568585f6929bedeaad110ad08f079624"
+  },
+  "runtime": {
+    "python": "3.14.10",
+    "mcp": "2.3.0",
+    "httpx2": "2.16.0"
+  },
+  "reason": "MCP2 removed streamablehttp_client; headers/timeouts move to an owned httpx2 client and Tool fields use snake_case.",
+  "publicApi": "https://github.com/modelcontextprotocol/python-sdk/blob/v2.3.0/src/mcp/client/streamable_http.py",
+  "migration": "https://py.sdk.modelcontextprotocol.io/migration/#streamablehttp_client-removed",
+  "sdk": {
+    "wheel": "mcp-2.3.0-py3-none-any.whl",
+    "sha256": "dd0c44c089d16453e8ae31a3877a0054d7a2314caaa81f5e0541b9b1734b2377",
+    "transportSourceSha256": "60633eecc51ff986de1b71f8a3a23e8c7b2d4bd1cd06d1d49557522e6d74a843"
+  },
+  "sources": [
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/mcp-builder/scripts/evaluation.py",
+      "sha256": "49ed1d17cdce5da101b210197740713f49b935c29d4f339542a14b132658e6f7",
+      "byteLength": 12579
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/mcp-builder/scripts/connections.py",
+      "sha256": "9403668a2041568772082a8b334122c1f88daf0541fb393af4522d0094a47a6e",
+      "byteLength": 4875
+    }
+  ],
+  "changes": [
+    "Add explicit Catalog adapter entrypoint importing catalog_mcp2_connections.",
+    "Use streamable_http_client with owned httpx2.AsyncClient and original-equivalent30/300s timeout.",
+    "Map Tool.input_schema without changing the Anthropic dictionary key.",
+    "Keep frozen original113 assets and all dependency/interpreter pins unchanged."
+  ],
+  "derived": [
+    {
+      "path": "adaptations/mcp-builder-mcp2/catalog_mcp2_evaluation.py",
+      "sha256": "6b1587327fa5c3cce7b23ae3abaf250903ba198113a550525d6c772a76225efe",
+      "byteLength": 12792
+    },
+    {
+      "path": "adaptations/mcp-builder-mcp2/catalog_mcp2_connections.py",
+      "sha256": "3c7cd43e1bcf37e09b76fa4373d670e9eb00aff9cd3df755b0c4f13e9436032f",
+      "byteLength": 5464
+    }
+  ],
+  "execution": "Unverified until exact derived package fixture runs; no backend/client operation authorized by delivery."
+}

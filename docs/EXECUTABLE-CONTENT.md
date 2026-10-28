@@ -76,3 +76,19 @@ Product 0.1.0 is unreleased/not-ready, publication remains blocked, and hosted C
 is owner-paused. No schemas, package-support declarations or exported contract
 fixtures change. The public release inventory gains one content entry; exact-head
 X1 evidence is retained for that additive registry change before integration.
+
+## MCP 2 evaluator adaptation
+
+The frozen MCP builder connection module uses an API removed by MCP 2.3.0.
+Use the separately delivered `adaptations/mcp-builder-mcp2/catalog_mcp2_evaluation.py`
+entrypoint with the existing exact MCP evaluator environment. Its adjacent
+`provenance.json` binds the original revision/hashes, mechanical changes and new
+derived bytes. The original 113 assets and all runtime/package pins stay unchanged.
+The original upstream entrypoint is not asserted compatible with MCP 2.
+
+The existing `workflow.mjs fixture mcp-evaluator` command now verifies the frozen
+payloads and derived adapter bytes, then runs the adapter's unchanged XML parser.
+This proves local parsing only after actual execution; HTTP/SSE/stdio sessions,
+model evaluation, credentials and real client loading remain separately gated.
+The adapter owns its HTTP client and preserves the former helper's 30/300 second
+timeouts; it uses MCP 2's `Tool.input_schema` field. Delivery never invokes it.

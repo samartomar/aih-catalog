@@ -47,7 +47,8 @@ def main():
         result = CallToolResult(content=[TextContent(type='text', text='fixture answer')])
         (output / 'evaluation.json').write_text(result.model_dump_json())
         payloads = verified_payloads(requirements, workflow, catalog_root)
-        evaluation = next(path for path in payloads if path.name == 'evaluation.py')
+        # Originals stay verified; execute the separately delivered, hash-bound MCP2 adapter.
+        evaluation = verified_adaptation(requirements, workflow)
         sys.path.insert(0, str(evaluation.parent))
         evaluator = runpy.run_path(str(evaluation), run_name='catalog_fixture')
         questions = output / 'questions.xml'
@@ -147,6 +148,40 @@ def verified_payloads(requirements, workflow, catalog_root):
             raise ValueError('unverified-python-package-directory-refused')
     sys.dont_write_bytecode = True
     return paths
+
+
+def verified_adaptation(requirements, workflow):
+    """Verify the explicit authored route, without altering frozen upstream files."""
+    root = Path(__file__).resolve().parent
+    selected = requirements['adaptations'][workflow]
+    paths = []
+    for row in selected['files']:
+        relative = Path(row['path'])
+        if relative.is_absolute() or '..' in relative.parts:
+            raise ValueError('invalid-adaptation-path')
+        path = root
+        for segment in relative.parts:
+            path = path / segment
+            if path.is_symlink():
+                raise ValueError('symlink-adaptation-refused')
+        if not path.is_file() or path.stat().st_size != row['byteLength']:
+            raise ValueError('adaptation-length-mismatch')
+        if hashlib.sha256(path.read_bytes()).hexdigest() != row['sha256']:
+            raise ValueError('adaptation-hash-mismatch')
+        paths.append(path)
+    entry = root / selected['entrypoint']
+    if entry not in paths:
+        raise ValueError('unverified-adaptation-entrypoint')
+    allowed = set(paths)
+    for parent in {path.parent for path in paths}:
+        if any(path not in allowed for path in parent.glob('*.py')):
+            raise ValueError('unverified-adaptation-sibling')
+        if any(parent.glob('*.pyc')) or any(parent.glob('*.so')) or any(parent.glob('*.pyd')):
+            raise ValueError('unverified-adaptation-extension')
+        if any(path.is_dir() for path in parent.iterdir()):
+            raise ValueError('unverified-adaptation-package')
+    sys.dont_write_bytecode = True
+    return entry
 
 
 def browser_fixture(output):

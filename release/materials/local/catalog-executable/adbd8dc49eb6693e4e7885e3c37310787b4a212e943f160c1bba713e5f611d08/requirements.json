@@ -980,7 +980,9 @@
           "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
         }
       },
-      "lock": "locks/mcp-evaluator-linux-x64.txt"
+      "lock": "locks/mcp-evaluator-linux-x64.txt",
+      "adaptation": "adaptations/mcp-builder-mcp2/provenance.json",
+      "entrypoint": "adaptations/mcp-builder-mcp2/catalog_mcp2_evaluation.py"
     },
     {
       "id": "skill-authoring",
@@ -1707,5 +1709,27 @@
       },
       "lock": null
     }
-  ]
+  ],
+  "adaptations": {
+    "mcp-evaluator": {
+      "entrypoint": "adaptations/mcp-builder-mcp2/catalog_mcp2_evaluation.py",
+      "files": [
+        {
+          "path": "adaptations/mcp-builder-mcp2/catalog_mcp2_evaluation.py",
+          "sha256": "6b1587327fa5c3cce7b23ae3abaf250903ba198113a550525d6c772a76225efe",
+          "byteLength": 12792
+        },
+        {
+          "path": "adaptations/mcp-builder-mcp2/catalog_mcp2_connections.py",
+          "sha256": "3c7cd43e1bcf37e09b76fa4373d670e9eb00aff9cd3df755b0c4f13e9436032f",
+          "byteLength": 5464
+        },
+        {
+          "path": "adaptations/mcp-builder-mcp2/provenance.json",
+          "sha256": "c815d216890335827df760bc6b9431931ee01bdccd8540162ee3b2a3b168ee6a",
+          "byteLength": 2331
+        }
+      ]
+    }
+  }
 }

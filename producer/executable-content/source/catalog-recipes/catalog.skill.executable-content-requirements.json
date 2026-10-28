@@ -755,6 +755,108 @@
       "checks": [
         "check-24"
       ]
+    },
+    {
+      "id": "write-25",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-25",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "adaptations"
+          },
+          {
+            "literal": "mcp-builder-mcp2"
+          },
+          {
+            "literal": "catalog_mcp2_evaluation.py"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-25"
+      ]
+    },
+    {
+      "id": "write-26",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-26",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "adaptations"
+          },
+          {
+            "literal": "mcp-builder-mcp2"
+          },
+          {
+            "literal": "catalog_mcp2_connections.py"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-26"
+      ]
+    },
+    {
+      "id": "write-27",
+      "kind": "file.write",
+      "scope": "project",
+      "purpose": "Deliver Catalog executable-content companion",
+      "material": "file-27",
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "adaptations"
+          },
+          {
+            "literal": "mcp-builder-mcp2"
+          },
+          {
+            "literal": "provenance.json"
+          }
+        ]
+      },
+      "requires": [],
+      "checks": [
+        "check-27"
+      ]
     }
   ],
   "checks": [
@@ -1427,6 +1529,99 @@
           },
           {
             "literal": "workflow.mjs"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-25",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-25"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "adaptations"
+          },
+          {
+            "literal": "mcp-builder-mcp2"
+          },
+          {
+            "literal": "catalog_mcp2_evaluation.py"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-26",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-26"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "adaptations"
+          },
+          {
+            "literal": "mcp-builder-mcp2"
+          },
+          {
+            "literal": "catalog_mcp2_connections.py"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check-27",
+      "kind": "file.sha256",
+      "purpose": "Verify companion bytes",
+      "sha256": {
+        "materialSha256": "file-27"
+      },
+      "target": {
+        "root": "project",
+        "segments": [
+          {
+            "literal": ".claude"
+          },
+          {
+            "literal": "skills"
+          },
+          {
+            "literal": "executable-content-requirements"
+          },
+          {
+            "literal": "adaptations"
+          },
+          {
+            "literal": "mcp-builder-mcp2"
+          },
+          {
+            "literal": "provenance.json"
           }
         ]
       }

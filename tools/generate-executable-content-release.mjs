@@ -20,6 +20,15 @@ export function generateExecutableContentRelease(identity = JSON.parse(readFileS
   assert.equal(bytes.length,row.byteLength,row.path);assert.equal(sha(bytes),row.sha256,row.path);
   assert(inventory.workflows.some(workflow=>workflow.id===row.workflow));
  }
+ for (const adaptation of Object.values(inventory.adaptations)) {
+  for (const member of adaptation.files) {
+   assert(/^[A-Za-z0-9_./-]+$/.test(member.path) && !member.path.startsWith('/')
+    && member.path.split('/').every(part=>part && part!=='.' && part!=='..'));
+   const bytes=readFileSync(resolve(root,'producer/executable-content/source',member.path));
+   assert.equal(bytes.length,member.byteLength,member.path);assert.equal(sha(bytes),member.sha256,member.path);
+  }
+  assert(adaptation.files.some(member=>member.path===adaptation.entrypoint));
+ }
  function collect(directory, prefix='') {
   for(const entry of readdirSync(directory,{withFileTypes:true})) {
    assert(!entry.isSymbolicLink(),'Authored symlinks are refused');
