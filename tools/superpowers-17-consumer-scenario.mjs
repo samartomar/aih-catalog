@@ -103,7 +103,8 @@ await case_("the 15 skills are items, each with a typed payload, its invocation 
     // One item per skill across tools: the three tool copies' recipes, one per client.
     assert.deepEqual(Object.keys(got.recipes), ["claude-code", "copilot-vscode", "kiro-ide"], name);
     assert.equal(got.recipe, undefined, name);
-    assert.ok(got.hints.tools.includes("claude-code"), name);
+    // A skill is tool-neutral: its recipe keys are never shown as tool hints.
+    assert.equal(got.hints, undefined, name);
     for (const material of got.materials) {
       const bytes = member(material.packagePath);
       assert.equal(sha256(bytes), material.sha256, `${name} ${material.relPath}`);
@@ -128,6 +129,9 @@ await case_("the session bootstrap is a hook with a typed payload and a one-line
   assert.deepEqual(hook.payload.command.args, ["session-start"]);
   assert.ok(hook.materials.some((entry) => entry.relPath === "hooks/session-start" && entry.executable === true));
   assert.ok(hook.materials.some((entry) => entry.relPath === "skills/using-superpowers/SKILL.md"));
+  // Registration files are never hook material.
+  assert.ok(!hook.materials.some((entry) => entry.relPath === "hooks/hooks.json" || entry.relPath.startsWith(".claude-plugin/")));
+  assert.deepEqual(hook.hints, { tools: ["claude-code"] });
   // The fallback names a same-release rule of exactly one line.
   assert.deepEqual(hook.fallback, { itemId: RULE });
   const rule = item(RULE);
@@ -216,7 +220,6 @@ await case_("every hook member of every set is optional", () => {
   assert.ok(!plugin.members.some((entry) => entry.item.itemId === RULE));
 });
 
-const HOOK_COMMAND = "bash .superpowers-source/hooks/run-hook.cmd session-start";
 const setChoice = (members) => ({
   release: { releaseSha256: release.sha256, scope: "project" },
   setId: release.sets[0].id,
@@ -226,7 +229,7 @@ const setChoice = (members) => ({
 const resolve = ({ roots = [], skips = [], members } = {}) =>
   resolveSelections({ releases: { [release.sha256]: release }, roots, skips, sets: [setChoice(members)] });
 const selected = (result) => result.value.selections.map((selection) => selection.item.itemId);
-const hookRoot = { releaseSha256: release.sha256, itemId: HOOK, scope: "project", configuration: { hookCommand: HOOK_COMMAND } };
+const hookRoot = { releaseSha256: release.sha256, itemId: HOOK, scope: "project", configuration: {} };
 const ok = (result) => assert.equal(result.status, "ok", JSON.stringify(result.diagnostics));
 
 await case_("excluding the bootstrap hook never re-adds it, nor its fallback in its place", () => {
@@ -236,7 +239,7 @@ await case_("excluding the bootstrap hook never re-adds it, nor its fallback in 
   assert.equal(selected(chosen).filter((id) => id.startsWith("superpowers.skill.")).length, 15);
   assert.ok(!selected(chosen).includes(HOOK));
   assert.ok(!selected(chosen).includes(RULE));
-  // Chosen with its reviewed command, the hook is taken and its fallback still is not.
+  // Chosen, the hook is taken with no command typed in, and its fallback still is not.
   const withHook = resolve({ roots: [hookRoot] });
   ok(withHook);
   assert.ok(selected(withHook).includes(HOOK));
@@ -269,8 +272,9 @@ await case_("items configure through the public reader with their client recipe"
   assert.equal(skill.valid, true, JSON.stringify(skill.diagnostics));
   const missing = configureItem({ release, itemId: "superpowers.skill.brainstorming", configuration: {}, materialSource: source });
   assert.equal(missing.valid, false);
-  const hook = configureItem({ release, itemId: HOOK, clientId: "claude-code", configuration: { hookCommand: HOOK_COMMAND }, materialSource: source });
+  const hook = configureItem({ release, itemId: HOOK, clientId: "claude-code", configuration: {}, materialSource: source });
   assert.equal(hook.valid, true, JSON.stringify(hook.diagnostics));
+  assert.deepEqual(item(HOOK).inputs, {});
   const rule = configureItem({ release, itemId: RULE, configuration: {}, materialSource: source });
   assert.equal(rule.valid, true, JSON.stringify(rule.diagnostics));
 });

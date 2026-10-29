@@ -65,8 +65,21 @@ const RULE_DIRECTORY_ALIASES = Object.freeze({ go: "golang", c: "cpp" });
 /** Upstream install targets as recipe client ids where this release names that client. */
 const TARGET_CLIENTS = Object.freeze({ claude: CLAUDE, "claude-project": CLAUDE, codex: CODEX });
 
-/** Upstream stability words, mapped onto the set field; the words themselves are in metadata. */
-const STABILITY = Object.freeze({ stable: "stable", beta: "in-progress", experimental: "in-progress" });
+/**
+ * ECC modules that are not sets, each with the reason its pinned paths give no item:
+ * a set is never offered empty. Every empty module needs a reason here, and every
+ * reason here must name an empty module.
+ */
+export const OMITTED_MODULES = Object.freeze({
+  "supply-chain-domain": "Its eight pinned skills each declare Apache-2.0 while ECC supplies only its MIT LICENSE, with no skill-specific licence or notice, so the Catalog does not redistribute them (producer/ecc/inventory.json).",
+  ...Object.fromEntries(["docs-de-de", "docs-ja-jp", "docs-ko-kr", "docs-pt-br", "docs-ru", "docs-tr", "docs-uk-ua", "docs-vi-vn", "docs-zh-cn", "docs-zh-tw"].map((id) => [
+    id,
+    "Translated reference documentation of ECC's agents, commands, skills and rules: repository documentation, not installable content, so no item carries it (producer/ecc/inventory.json).",
+  ])),
+});
+
+/** ECC's hook facts: the pinned registration bytes and the reviewed command translation. */
+const HOOK_FACTS_PATH = "producer/ecc/hook-facts.json";
 
 const SECRET_NAME = /token|secret|password|credential|auth|api[-_]?key|(?:^|_)key$/i;
 
@@ -184,6 +197,45 @@ export function itemRelativePath(target) {
   throw new Error(`Unrecognised ECC install target ${path}`);
 }
 
+/**
+ * ECC's 24 Claude Code hooks: event, matcher, timeout, async and description from the
+ * exact pinned hooks/hooks.json bytes (checked against the tree ledger), and the reviewed
+ * command each item runs once upstream's inline root resolver is dropped. Every string
+ * argument and path the translation names appears in the registered command, except
+ * where a recorded translation says why the item runs what the bootstrap would spawn.
+ */
+export function hookFacts(inventory = json("producer/ecc/inventory.json")) {
+  const data = json(HOOK_FACTS_PATH);
+  const row = inventory.entries.find((entry) => entry.path === data.registration.path);
+  const bytes = encoder.encode(data.registration.text);
+  assert(row && sha256Hex(bytes) === row.sha256 && bytes.byteLength === row.byteLength, "hooks/hooks.json differs from the pinned tree");
+  assert.equal(row.disposition, "unsupported-installation", "The registration file is never delivered");
+  const groups = Object.entries(JSON.parse(data.registration.text).hooks).flatMap(([event, list]) => list.map((group) => ({ event, group })));
+  assert.deepEqual(data.hooks.map((hook) => hook.upstreamId), groups.map(({ group }) => group.id), "One item per upstream hook group, in upstream order");
+  const hooks = data.hooks.map((hook, index) => {
+    const { event, group } = groups[index];
+    assert.equal(group.hooks.length, 1, `${hook.upstreamId}: one command per group`);
+    const [handler] = group.hooks;
+    assert.equal(handler.type, "command");
+    assert.match(handler.command, /^node /, `${hook.upstreamId}: a node command`);
+    const named = [hook.registeredScript ?? hook.script, ...(hook.registeredScript ? [] : hook.args.map((arg) => (typeof arg === "string" ? arg : arg.material)))];
+    // A path appears as written or as the path.join of its segments the wrapper uses.
+    const joined = (text) => `path.join(${text.split("/").map((segment) => `'${segment}'`).join(",")})`;
+    for (const text of named) assert(handler.command.includes(text) || handler.command.includes(joined(text)), `${hook.upstreamId}: ${text} is not in the registered command`);
+    assert(hook.registeredScript === undefined || hook.translation, `${hook.upstreamId}: a changed script needs its recorded translation`);
+    assert(hook.closure.every((path) => path !== data.registration.path && !path.includes(".claude-plugin/")), `${hook.upstreamId}: registration file in its closure`);
+    return {
+      ...hook,
+      event,
+      ...(group.matcher === undefined ? {} : { matcher: group.matcher }),
+      ...(handler.timeout === undefined ? {} : { timeoutSec: handler.timeout }),
+      async: handler.async === true,
+      description: group.description,
+    };
+  });
+  return { ...data, hooks };
+}
+
 /** The pinned upstream install manifests, checked against the complete tree ledger. */
 export function installManifests() {
   const data = json(MANIFESTS_PATH);
@@ -214,7 +266,7 @@ const sourcePathOf = (packagePath, revision) =>
  * captured materials with item-relative paths and executable state, behaviour file
  * and both identities. Display names are the authored name, else the file name.
  */
-function projectItem(item, { revision, modes, mcpFacts, files }) {
+function projectItem(item, { revision, modes, mcpFacts, files, hookFacts }) {
   const recipe = json(item.recipe.path);
   const writes = new Map(
     recipe.operations
@@ -286,12 +338,17 @@ function projectItem(item, { revision, modes, mcpFacts, files }) {
     nameBasis = "key";
   } else if (item.kind === "agent" || item.kind === "command") {
     payload = { files: [primary.id] };
+  } else if (item.kind === "hook") {
+    // The copy carries no payload: release 1.6 has no async, so the item declares it.
+    name = (hookFacts.get(item.id) ?? assert.fail(`${item.id}: no hook facts`)).upstreamId;
+    nameBasis = "key";
   } else throw new Error(`${item.id}: kind ${item.kind} has no release 1.6 copy`);
   const projected = {
     id: item.id,
     label: item.label,
     ...(item.kind === "mcp" ? { description: mcpFacts[item.id].runtimePrerequisites } : item.description ? { description: item.description } : {}),
     ...(item.kind !== "mcp" && sourceFacts?.description?.state === "authored" ? { descriptionBasis: sourceFacts.description.basis } : {}),
+    ...(item.kind === "hook" ? { descriptionBasis: "authored" } : {}),
     kind,
     name,
     nameBasis,
@@ -302,7 +359,7 @@ function projectItem(item, { revision, modes, mcpFacts, files }) {
     inputs: item.inputs,
     recipe: item.recipe,
     dependencies: item.dependencies,
-    payload,
+    ...(payload === undefined ? {} : { payload }),
     requirements,
     executable: Object.fromEntries(Object.entries(executable).sort(([a], [b]) => compare(a, b))),
     materials: [...content, { id: "behaviour", relPath: "aih-behaviour.json", role: "behaviour", sha256: "" }],
@@ -323,6 +380,20 @@ function projectItem(item, { revision, modes, mcpFacts, files }) {
   projected.contentSha256 = identity.contentSha256;
   projected.behaviourSha256 = computeBehaviourIdentity(projected).behaviourSha256;
   return projected;
+}
+
+/** A hook's typed payload: the upstream group's facts and the reviewed command, by material id. */
+function hookPayload(copy, fact) {
+  const content = copy.materials.filter((member) => member.role === "content");
+  const idOf = (sourcePath) => content.find((member) => member.sourcePath === sourcePath)?.id ?? assert.fail(`${copy.id}: no material ${sourcePath}`);
+  return {
+    event: fact.event,
+    ...(fact.matcher === undefined ? {} : { matcher: fact.matcher }),
+    protocol: "claude-code-hooks",
+    ...(fact.timeoutSec === undefined ? {} : { timeoutSec: fact.timeoutSec }),
+    ...(fact.async ? { async: true } : {}),
+    command: { interpreter: "node", script: idOf(fact.script), args: fact.args.map((arg) => (typeof arg === "string" ? arg : { material: idOf(arg.material) })) },
+  };
 }
 
 /** A checked release 1.6 of copies; never shipped, only collapsed. */
@@ -386,9 +457,9 @@ export function eccSets(items, manifests) {
   const primaryPath = (item) => item.materials.find((member) => member.role === "content" && member.sourcePath !== "LICENSE").sourcePath;
   const member = (item, optional = false, defaultOn = true) => ({
     item: { framework: FRAMEWORK_ID, itemId: item.id },
-    // Every hook member is optional, so a hook can be left out without losing the set.
+    // Every hook member is optional and never pre-ticked, so a hook is always a choice.
     optional: optional || item.kind === "hook",
-    defaultOn,
+    defaultOn: defaultOn && item.kind !== "hook",
   });
   const rules = choosable.filter((item) => item.kind === "rule");
   const directories = [...new Set(rules.map((item) => item.payload.namespace).filter(Boolean))].sort(compare);
@@ -420,6 +491,7 @@ export function eccSets(items, manifests) {
   const languages = {
     id: "languages",
     name: "Languages and frameworks",
+    multiple: true,
     description: "Pick several: each adds its ECC rule modules and the ECC modules its component lists. The common rules come with the rules module, with no choice made.",
     choices: [...choices.values()].sort((a, b) => compare(a.id, b.id)),
   };
@@ -439,15 +511,25 @@ export function eccSets(items, manifests) {
       ...(module.dependencies.length ? { requires: module.dependencies.map((dependency) => ref(moduleSet(dependency))) } : {}),
       targets: targets(module.targets),
       offer: module.defaultInstall ? "pre-ticked" : "listed",
-      stability: STABILITY[module.stability],
+      // The upstream's own words, copied.
+      cost: module.cost,
+      stability: module.stability,
     };
   });
+  // A module with no item is not a set; each has a recorded reason, and nothing refers to it.
+  const empty = new Set(moduleSets.filter((set) => set.members.length === 0 && !set.includes).map((set) => set.id));
+  assert.deepEqual([...empty].sort(compare), Object.keys(OMITTED_MODULES).map(moduleSet).sort(compare), "Every empty ECC module needs exactly one recorded reason");
+  const kept = (refs) => refs.filter((ref) => !empty.has(ref.setId));
+  for (const set of moduleSets) if (set.requires) set.requires = kept(set.requires);
+  for (const choice of choices.values()) choice.sets = kept(choice.sets);
+  for (const [id, choice] of choices) if (choice.sets.length === 0) choices.delete(id);
+  languages.choices = [...choices.values()].sort((a, b) => compare(a.id, b.id));
   const profileSets = Object.entries(profiles.value.profiles).map(([id, profile]) => ({
     id: profileSet(id),
     name: id,
     description: profile.description,
     members: [],
-    includes: profile.modules.map((module) => ref(moduleSet(module))),
+    includes: kept(profile.modules.map((module) => ref(moduleSet(module)))),
     offer: "listed",
     ...(profile.modules.includes("rules-core") ? { options: [languages] } : {}),
   }));
@@ -460,7 +542,7 @@ export function eccSets(items, manifests) {
     for (const dependency of set.requires ?? []) visit(byId.get(dependency.setId), [...stack, set.id]);
     ordered.push(set);
   };
-  for (const set of moduleSets) visit(set);
+  for (const set of moduleSets) if (!empty.has(set.id)) visit(set);
   // ECC's separate Kiro edition: its skills and steering, one set of its own. The
   // upstream manifests name no Kiro module or target, so the set narrows no targets.
   assert(kiroEdition.length > 0 && kiroEdition.every((item) => item.role === "choosable" && item.hints?.tools?.includes("kiro")), "Unhinted Kiro edition item");
@@ -475,7 +557,7 @@ export function eccSets(items, manifests) {
 }
 
 /** The upstream's own words for each set's default, cost, stability and targets. */
-function installMetadata(manifests) {
+function installMetadata(manifests, hookFacts) {
   return {
     eccInstallGroups: {
       manifests: Object.values(manifests).map(({ path, sha256 }) => ({ path, sha256 })),
@@ -487,7 +569,9 @@ function installMetadata(manifests) {
       ),
       profiles: Object.fromEntries(Object.entries(manifests.profiles.value.profiles).map(([id, profile]) => [profileSet(id), { id, modules: profile.modules }])),
       ruleDirectoryAliases: RULE_DIRECTORY_ALIASES,
+      omittedModules: OMITTED_MODULES,
     },
+    eccHooks: { registration: { path: hookFacts.registration.path, sha256: hookFacts.registration.sha256 }, bootstrap: hookFacts.bootstrap, translations: hookFacts.hooks.filter((hook) => hook.translation).map(({ upstreamId, registeredScript, translation }) => ({ upstreamId, registeredScript, translation })) },
   };
 }
 
@@ -502,7 +586,8 @@ export function buildEcc17() {
   const revision = inventory.revision;
   const modes = new Map(inventory.entries.map((row) => [row.path, row.mode]));
   const files = new Map(snapshot.sources[0].files.map((file) => [file.path, Buffer.from(file.base64, "base64")]));
-  const context = { revision, modes, mcpFacts: inventory.itemFacts, files };
+  const hookFactsData = hookFacts(inventory);
+  const context = { revision, modes, mcpFacts: inventory.itemFacts, files, hookFacts: new Map(hookFactsData.hooks.map((hook) => [hook.itemId, hook])) };
   // Published framework identity: the repository name and the pinned plugin manifest.
   const plugin = JSON.parse(decoder.decode(files.get(".claude-plugin/plugin.json")));
   const framework = { id: FRAMEWORK_ID, name: inventory.repository.split("/")[1], version: plugin.version, description: plugin.description };
@@ -563,6 +648,8 @@ export function buildEcc17() {
         kind: item.kind,
         role: "choosable",
         copies: id.startsWith("ecc.skill.") && has(tools, copilot) ? [copy(main, id, CLAUDE), copy(tools, copilot, COPILOT)] : [copy(main, id)],
+        // A hook speaks Claude Code's hook protocol: written for Claude Code, a display hint only.
+        ...(item.kind === "hook" ? { hints: { tools: [CLAUDE] }, payload: hookPayload(item, context.hookFacts.get(id)) } : {}),
       });
     }
   }
@@ -606,7 +693,8 @@ export function buildEcc17() {
         },
       ],
       ...(sets ? { sets } : {}),
-      metadata: installMetadata(manifests),
+      metadata: installMetadata(manifests, hookFactsData),
+      readMaterial: (packagePath) => new Uint8Array(readFileSync(resolve(root, packagePath))),
     });
   const manifests = installManifests();
   const unset = draft();

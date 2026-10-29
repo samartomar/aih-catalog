@@ -172,19 +172,37 @@ const item17 = structuredClone(item16);
 delete item17.properties.clientId;
 item17.properties.kind = { enum: ["skill", "agent", "command", "rule", "hook", "mcp-server", "document"] };
 item17.properties.role = { enum: ["choosable", "supporting"], description: "Presentation only." };
-item17.properties.materials = { type: "array", maxItems: 4096, items: { $ref: "#/$defs/material16" } };
+// Sizes as the contract states them: exact bytes, characters when the bytes are text, labelled token counts.
+const tokenCounts = (key) => ({ type: "array", maxItems: 16, items: object({ tokenizer: { $ref: "#/$defs/id" }, [key]: { type: "integer", minimum: 0 } }) });
+const material17 = structuredClone(material16);
+material17.properties.size = object({ bytes: { type: "integer", minimum: 0 }, chars: { type: ["integer", "null"], minimum: 0 }, tokens: tokenCounts("count"), status: { enum: ["measured", "not-text", "unsupported"] } });
+item17.properties.materials = { type: "array", maxItems: 4096, items: { $ref: "#/$defs/material17" } };
+item17.properties.size = object({ parts: { type: "array", minItems: 1, maxItems: 8, items: object({ part: { enum: ["name", "description", "frontmatter", "body", "files"] }, bytes: { type: "integer", minimum: 0 }, chars: { type: ["integer", "null"], minimum: 0 } }) }, tokens: tokenCounts("sum") });
+// Provenance hops replace the 1.6 URL fields: the source whose tree holds the bytes,
+// who selected it when not the source, and real modified hops, nearest first.
+const hop = { sourceId: { $ref: "#/$defs/id" }, path: { $ref: "#/$defs/path" }, revision: { type: "string", minLength: 1, maxLength: 128 } };
+delete item17.properties.selectedBy;
+delete item17.properties.derivedFrom;
+item17.properties.provenance = object({
+  source: object({ ...hop, license: { type: "string", minLength: 1, maxLength: 256 } }),
+  selectedBy: object(hop),
+  derivedFrom: { type: "array", maxItems: 64, items: object({ ...hop, license: { type: "string", minLength: 1, maxLength: 256 }, ancestry: { enum: ["verified", "declared"] } }) },
+}, ["source", "derivedFrom"]);
 item17.properties.recipe = recipe17;
 item17.properties.recipes = { type: "object", minProperties: 1, maxProperties: 64, propertyNames: clientId, additionalProperties: recipeEntry, description: "Transition recipes of the replaced tool variants, selected by clientId." };
 item17.properties.supersedes = { type: "array", minItems: 1, maxItems: 4096, items: supersession };
 item17.properties.fallback = sameReleaseRef;
 item17.properties.variantOf = sameReleaseRef;
 item17.properties.hints = object({ tools: { type: "array", maxItems: 64, uniqueItems: true, items: clientId } });
-item17.properties.payload = { oneOf: [skillPayload, rulePayload, hookPayload, mcpPayload, filesPayload, documentPayload] };
+const hookPayload17 = structuredClone(hookPayload);
+hookPayload17.properties.async = { type: "boolean", description: "Runs without blocking the tool, as the upstream registers it." };
+item17.properties.payload = { oneOf: [skillPayload, rulePayload, hookPayload17, mcpPayload, filesPayload, documentPayload] };
 item17.properties.dependencies = object({ requires: dependencyList17, optional: dependencyList17, conflicts: dependencyList17 }, []);
 item17.required = ["id", "label", "kind", "role", "name", "nameBasis", "source", "sourceIds", "targets", "scopes", "inputs", "materials", "dependencies", "payload", "requirements", "executable", "contentSha256", "behaviourSha256"];
 item17.oneOf = [{ required: ["recipe"], properties: { recipe: true } }, { required: ["recipes"], properties: { recipes: true } }];
 item17.allOf = item17.allOf.map((rule) => rule.if?.properties?.kind?.const === "document"
-  ? { ...rule, then: { properties: { payload: documentPayload } } } : rule);
+  ? { ...rule, then: { properties: { payload: documentPayload } } }
+  : rule.if?.properties?.kind?.const === "hook" ? { ...rule, then: { properties: { payload: hookPayload17 } } } : rule);
 item17.allOf.push({ if: { properties: { kind: { enum: ["agent", "command"] } }, required: ["kind"] }, then: { properties: { fallback: false } } });
 const release17 = structuredClone(release16);
 release17.$id = "urn:aihq:catalog:release:1.7.0";
@@ -198,7 +216,7 @@ release17.properties.sources = { type: "array", items: source17 };
 release17.properties.items = { type: "array", items: { $ref: "#/$defs/item17" } };
 release17.properties.retired = { type: "array", maxItems: 4096, items: object({ id: { $ref: "#/$defs/id" }, reason: { type: "string", minLength: 1, maxLength: 4096 }, replacedBy: { type: "array", maxItems: 4096, items: object({ framework: { $ref: "#/$defs/id" }, itemId: { $ref: "#/$defs/id" } }) } }) };
 release17.properties.sets = { type: "array", maxItems: 4096, items: { $ref: "#/$defs/set_set" } };
-release17.$defs = { ...release16.$defs, ...setDefs, item17, dependencyRef17 };
+release17.$defs = { ...release16.$defs, ...setDefs, item17, material17, dependencyRef17 };
 const content17 = structuredClone(release17);
 delete content17.$schema; delete content17.$id; delete content17.$defs;
 content17.required = content17.required.filter(key => key !== "baseline");

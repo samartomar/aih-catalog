@@ -240,8 +240,9 @@ source facts; Kiro's separately authored mirror retains its own path and bytes.
 
 The existing complete inventory, notices, support materials, donor dispositions and
 reviewed inclusion rules remain authoritative. Discovery of another upstream file is
-not admission. No hook configuration is currently an admitted ECC item; hook-related
-rules and skills are delivered instructions, not active hook registration.
+not admission. ECC's 24 Claude Code hooks are admitted from the pinned
+`hooks/hooks.json` (see Release 1.7.0 content); that registration file itself stays
+unsupported installation material and is never delivered.
 
 ## Release 1.7.0 content
 
@@ -258,7 +259,7 @@ name, and the version and description of the pinned `.claude-plugin/plugin.json`
 ### Items
 
 The 697 original earlier items collapse to 663; two explicit Catalog route alternatives
-bring the prepared content to 665. Each original item keeps its id, except:
+bring the prepared content to 665, and ECC's 24 upstream hooks (see Hooks) to 689. Each original item keeps its id, except:
 
 | Earlier items | Item | Match |
 | --- | --- | --- |
@@ -317,14 +318,14 @@ and executable state comes from the pinned tree's file modes.
 
 | Sets | From | Shape |
 | --- | --- | --- |
-| `ecc.module.<id>`, 36 | `install-modules.json` | Members are the items under the module's paths; `requires` are its dependencies; `targets` its targets; `offer` is `pre-ticked` for a default install, otherwise `listed`; `stability` is stable or, for beta and experimental, in-progress |
+| `ecc.module.<id>`, 25 of 36 | `install-modules.json` | Members are the items under the module's paths; `requires` are its dependencies; `targets` its targets; `offer` is `pre-ticked` for a default install, otherwise `listed`; `cost` and `stability` are upstream's own words, copied |
 | `ecc.rules.<directory>`, 22 | `rules/` | The rules of one directory |
 | `ecc.profile.<id>`, 7 | `install-profiles.json` | `includes` lists the profile's modules, in order |
 | `ecc.edition.kiro`, "ECC for Kiro" | The `.kiro/` skills and steering | Every Kiro-edition item, `listed`, with no targets, since the manifests name no Kiro module or target |
 
 `ecc.module.rules-core` always includes `ecc.rules.common`, with no choice made, and
 offers `rules/README.md` as an optional member that is off by default. Every profile
-with the rules module carries one pick-several option, `languages`. Its choices are
+with the rules module carries one pick-several option, `languages` (`multiple: true`). Its choices are
 ECC's language and framework components: each maps to the rules directory of the same
 name (`go` to `golang`, and `c` to the shared `cpp`, as their descriptions say) and to
 the modules the component lists. A rules directory no component names (`dart`, `nuxt`,
@@ -337,17 +338,44 @@ Set targets narrow and never bind: upstream's `claude` and `claude-project` read
 `claude-code`, and other targets keep upstream's names. The upstream's own words for
 each module (default install, cost, stability, targets and dependencies) and each
 profile are in the release's `metadata.eccInstallGroups`, with the manifests' digests.
-Modules whose paths hold no delivered item, such as the hook runtime and the translated
-documentation, are sets with no members. Every hook member of a set is optional; the
-pinned hook runtime has no admitted hook item, and neither has the Kiro edition, whose
-hooks, agents and installer stay unsupported installation material. Kiro-edition items
+No set is empty. The 11 modules whose pinned paths give no item are not sets, and
+`metadata.eccInstallGroups.omittedModules` records why: `supply-chain-domain`'s eight
+skills each declare Apache-2.0 while ECC supplies only its MIT LICENSE, and the ten
+`docs-*` modules hold translated repository documentation. Profiles, module
+dependencies and language choices leave them out. The Kiro edition's hooks, agents and
+installer stay unsupported installation material. Kiro-edition items
 are members of "ECC for Kiro" only: no module, rules or profile set lists or includes
 them, and the build fails if one does.
+
+### Hooks
+
+ECC's 24 Claude Code hooks are items `ecc.hook.<upstream id>` (`:` becomes `-`), one per
+group of the pinned `hooks/hooks.json`, named by upstream's id with its description.
+`producer/ecc/hook-facts.json` carries the exact registration bytes (checked against the
+tree ledger) and the reviewed translation of each command. Upstream wraps every command
+in an inline `node -e` root resolver that searches `~/.claude` for an ECC install; an
+item folder keeps `scripts/hooks/` and `scripts/lib/`, which find their root from their
+own location, so the payload runs the script the wrapper would run:
+`{ event, matcher, protocol: "claude-code-hooks", timeoutSec?, async?, command: {
+interpreter: "node", script, args } }`, with `run-with-flags.js` given the hook's own
+script as a material argument. `session:start`'s bootstrap finds its root only under
+`~/.claude`, so its item runs what that bootstrap spawns
+(`run-with-flags.js session:start <session-start.js> minimal,standard,strict`). Seven
+groups are registered `async` and keep it. Materials are each hook's reviewed run-time
+closure under its source paths, with their pinned executable bits, plus ECC's LICENSE;
+`pre:observe:continuous-learning` also targets `bash`, which its observation needs.
+Dropped with the wrapper: its inner 30-second child limit (300 for
+`stop:format-typecheck`; the registered timeout still applies), its stdout suppression
+of echoed hook input, and the PostToolUse dispatcher's `ECC_POSTTOOLUSE_PASSTHROUGH`
+echo; `metadata.eccHooks` records this. Each hook is a member of `hooks-runtime` and
+every set that includes it as `optional: true, defaultOn: false`: hooks are always a
+choice. The legacy recipe registers one owned Claude hook group with the same command
+written literally under `${CLAUDE_PROJECT_DIR}`.
 
 ### Checks and the baseline
 
 `npm run check:restructuring` compares the content with the amended expected
-projection: all 665 items and hashes, 34 MCP pairs, 37 edit records
+projection: all 689 items and hashes, 34 MCP pairs, 37 edit records
 and 138 retirements. The two Catalog route alternatives are independently selectable,
 and do not become members of upstream install modules. The 65 Kiro-edition items and their renamings are among those
 rows; the set, hints, variants and inclusion change no checked field, so the

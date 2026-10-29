@@ -32,7 +32,9 @@ import {
   memberPackagePath,
 } from "./document.js";
 import { canonicalJson, deepFreeze } from "./json.js";
+import { measureItem17, measureMaterial17 } from "./measure.js";
 import { isCheckedRelease, readReleaseContent } from "./reader.js";
+import { sourceRevision } from "./release-17.js";
 import { buildEmbeddedSets } from "./sets.js";
 import { sha256Hex } from "./sha256.js";
 
@@ -72,6 +74,24 @@ export interface TransitionItemDeclaration {
   readonly fallback?: { readonly itemId: string };
   readonly variantOf?: { readonly itemId: string };
   readonly hints?: { readonly tools: readonly string[] };
+  /**
+   * Item-relative paths a copy carried that the survivor leaves out, such as a hook
+   * registration file: the survivor's own payload is its registration.
+   */
+  readonly withoutMaterials?: readonly string[];
+  /**
+   * Who selected the content when that is not its source, and real modified hops,
+   * nearest first. Each names a release source and a path; the pin and licence are
+   * that source's own. The source hop is derived from the item's primary material.
+   */
+  readonly provenance?: {
+    readonly selectedBy?: { readonly sourceId: string; readonly path: string };
+    readonly derivedFrom?: readonly {
+      readonly sourceId: string;
+      readonly path: string;
+      readonly ancestry: "verified" | "declared";
+    }[];
+  };
 }
 
 export interface TransitionRequest {
@@ -92,6 +112,16 @@ export interface TransitionRequest {
   readonly sets?: readonly ReleaseSetDeclaration[];
   readonly nativeRoutes?: readonly string[];
   readonly metadata?: Json;
+  /**
+   * The exact bytes of a package member, by package path. When supplied, every
+   * material and item carries its measured size; behaviour files are measured as built.
+   */
+  readonly readMaterial?: (packagePath: string) => Uint8Array;
+  /**
+   * Sources named only by provenance hops (an upstream an item was copied and edited
+   * from), each with its pin and SPDX licence. A source no hop names is not published.
+   */
+  readonly provenanceSources?: readonly Json[];
 }
 
 export interface CompiledTransitionRelease {
@@ -406,6 +436,123 @@ function agreed<T>(values: readonly (T | undefined)[], at: string, what: string)
   return present[0];
 }
 
+/** The exact bytes of one content material, checked against its declared identity. */
+function memberBytes(request: TransitionRequest, member: Record<string, unknown>): Uint8Array {
+  const read = request.readMaterial as (packagePath: string) => Uint8Array;
+  const bytes = read(String(member.packagePath));
+  if (bytes.byteLength !== member.byteLength || sha256Hex(bytes) !== member.sha256)
+    refuse(
+      "material-bytes-mismatch",
+      `/materials/${String(member.id)}`,
+      `The bytes at ${String(member.packagePath)} differ from the material's identity.`,
+    );
+  return bytes;
+}
+
+const LICENCE_PATH = /(^|\/)(LICENSE|LICENCE|NOTICE|COPYING)([.-][^/]*)?$/i;
+
+/**
+ * The material that is the item, as its payload names it: a skill's SKILL.md, a hook's
+ * own script (the material a runner is given, else the script it runs), an agent's or command's file, an MCP server's source definition, a rule's
+ * Markdown text; otherwise its first non-licence content material.
+ */
+function primaryMaterial(
+  kind: string,
+  payload: Json,
+  content: readonly Record<string, unknown>[],
+): Record<string, unknown> | undefined {
+  const value = isRecord(payload) ? payload : {};
+  const byId = (id: unknown) => content.find((member) => member.id === id);
+  const named =
+    kind === "skill"
+      ? content.find((member) => member.relPath === "SKILL.md")
+      : kind === "hook" && isRecord(value.command)
+        ? // A runner given the hook's own script names that script; otherwise the script.
+          (byId(
+            (
+              (Array.isArray(value.command.args) ? value.command.args : []).find(isRecord) as
+                | Record<string, Json>
+                | undefined
+            )?.material,
+          ) ?? byId(value.command.script))
+        : kind === "mcp-server" && isRecord(value.derivation)
+          ? byId(value.derivation.sourceMaterial)
+          : Array.isArray(value.files)
+            ? byId(value.files[0])
+            : kind === "rule"
+              ? content.find((member) => /\.md$/i.test(String(member.relPath)))
+              : undefined;
+  return (
+    named ??
+    [...content]
+      .sort((a, b) => compare(String(a.id), String(b.id)))
+      .find((member) => !LICENCE_PATH.test(String(member.sourcePath ?? member.relPath)))
+  );
+}
+
+/**
+ * Contract provenance: the source hop whose tree holds the primary material (a skill
+ * names its folder), the declared selection and real modified hops, each at its
+ * release source's own pin and SPDX licence.
+ */
+function provenanceOf(
+  declaration: TransitionItemDeclaration,
+  kind: string,
+  payload: Json,
+  content: readonly Record<string, unknown>[],
+  copies: readonly Resolved[],
+  request: TransitionRequest,
+  at: string,
+): Json {
+  const sources = new Map<string, unknown>([
+    ...(request.provenanceSources ?? [])
+      .filter((source): source is Record<string, Json> => isRecord(source))
+      .map((source) => [String(source.id), source as unknown] as const),
+    ...copies.flatMap((copy) =>
+      copy.release.sources.map((source) => [source.id, source as unknown] as const),
+    ),
+  ]);
+  const pin = (sourceId: string, path: string, where: string) => {
+    const source = sources.get(sourceId);
+    const revision = sourceRevision(source, request.framework.version);
+    if (source === undefined || revision === undefined)
+      refuse("provenance-source", where, `No pinned release source ${sourceId}.`);
+    return {
+      sourceId,
+      path,
+      revision: revision as string,
+      license: (source as { license: string }).license,
+    };
+  };
+  const primary = primaryMaterial(kind, payload ?? null, content);
+  if (primary === undefined || typeof primary.sourcePath !== "string")
+    refuse("provenance-source", `${at}/provenance`, "The item has no source material.");
+  const sourcePath = String((primary as Record<string, unknown>).sourcePath);
+  const path =
+    kind === "skill" && sourcePath.endsWith("/SKILL.md")
+      ? sourcePath.slice(0, -"/SKILL.md".length)
+      : sourcePath;
+  const selectedBy = declaration.provenance?.selectedBy;
+  return {
+    source: pin(
+      String((primary as Record<string, unknown>).sourceId),
+      path,
+      `${at}/provenance/source`,
+    ),
+    ...(selectedBy === undefined
+      ? {}
+      : {
+          selectedBy: (({ license: _license, ...rest }) => rest)(
+            pin(selectedBy.sourceId, selectedBy.path, `${at}/provenance/selectedBy`),
+          ),
+        }),
+    derivedFrom: (declaration.provenance?.derivedFrom ?? []).map((hop, index) => ({
+      ...pin(hop.sourceId, hop.path, `${at}/provenance/derivedFrom/${index}`),
+      ancestry: hop.ancestry,
+    })),
+  } as unknown as Json;
+}
+
 function buildItem(
   declaration: TransitionItemDeclaration,
   index: number,
@@ -477,6 +624,18 @@ function buildItem(
       byId.set(member.id, member.relPath);
       byRelPath.set(member.relPath, structuredClone(member) as unknown as Record<string, Json>);
     }
+  }
+  // A copy's registration file is not the survivor's content; each drop is declared.
+  const withoutIds = new Set<string>();
+  for (const relPath of declaration.withoutMaterials ?? []) {
+    const left = byRelPath.get(relPath);
+    if (left !== undefined) withoutIds.add(String(left.id));
+    if (!byRelPath.delete(relPath))
+      refuse(
+        "material-not-carried",
+        `${at}/withoutMaterials`,
+        `No copy carries ${relPath}, so it cannot be left out.`,
+      );
   }
   const content = [...byRelPath.values()].sort((a, b) => compare(String(a.id), String(b.id)));
   if (content.some((member) => member.id === "behaviour" || member.relPath === BEHAVIOUR_REL_PATH))
@@ -551,16 +710,6 @@ function buildItem(
     `${at}/source`,
     "provenance sources",
   );
-  const selectedBy = agreed(
-    copies.map((copy) => copy.item.selectedBy),
-    `${at}/selectedBy`,
-    "selections",
-  );
-  const derivedFrom = agreed(
-    copies.map((copy) => copy.item.derivedFrom as Json | undefined),
-    `${at}/derivedFrom`,
-    "derivations",
-  );
   const dependencies = remapDependencies(copies, survivorOf, declaration.id, request.releases, at);
   // Recipes: one per client while the transition map lasts, or the copies' one shared recipe.
   const clients = copies.map((copy) => copy.clientId);
@@ -585,6 +734,7 @@ function buildItem(
         materials: copy.item.materials
           .filter((member) => (member as MaterialIdentity).role !== "behaviour")
           .map((member) => member.id)
+          .filter((id) => !withoutIds.has(id))
           .sort(compare),
         inputs: Object.keys(copy.item.inputs).sort(compare),
       };
@@ -602,6 +752,8 @@ function buildItem(
   const provisional: Record<string, unknown> = {
     id: declaration.id,
     kind,
+    // A release 1.7 item: its behaviour identity takes the contract encoding.
+    role: declaration.role,
     payload,
     requirements: { inputs: requirementsInputs },
     dependencies,
@@ -624,7 +776,16 @@ function buildItem(
     sourceId: frameworkId,
     role: "behaviour",
   };
-  const materials = [...content, behaviour].sort((a, b) => compare(String(a.id), String(b.id)));
+  // A copy's release 1.6 size has another shape; release 1.7 measures its own.
+  const measured = (
+    { size: _copied, ...member }: Record<string, unknown>,
+    bytes: () => Uint8Array,
+  ) =>
+    request.readMaterial === undefined ? member : { ...member, size: measureMaterial17(bytes()) };
+  const materials = [
+    ...content.map((member) => measured(member, () => memberBytes(request, member))),
+    measured(behaviour, () => identity.behaviourBytes),
+  ].sort((a, b) => compare(String(a.id), String(b.id)));
   const recomputed = computeBehaviourIdentity({ ...provisional, materials }) as NonNullable<
     ReturnType<typeof computeBehaviourIdentity>
   >;
@@ -692,8 +853,7 @@ function buildItem(
       ? { descriptionBasis: declaration.descriptionBasis ?? first.item.descriptionBasis }
       : {}),
     source: source ?? refuse("source-required", `${at}/source`, "The copies record their source."),
-    ...(selectedBy === undefined ? {} : { selectedBy }),
-    ...(derivedFrom === undefined ? {} : { derivedFrom }),
+    provenance: provenanceOf(declaration, kind, payload ?? null, content, copies, request, at),
     sourceIds: [...new Set(copies.flatMap((copy) => copy.item.sourceIds))].sort(compare),
     targets,
     scopes,
@@ -707,6 +867,25 @@ function buildItem(
     executable,
     contentSha256: recomputed.contentSha256,
     behaviourSha256: recomputed.behaviourSha256,
+    ...(request.readMaterial === undefined
+      ? {}
+      : {
+          size: measureItem17({
+            name: String(name),
+            ...(typeof (declaration.description ?? first.item.description) === "string"
+              ? { description: (declaration.description ?? first.item.description) as string }
+              : {}),
+            // Frontmatter and body are parts of Markdown text only.
+            primary: ((member) =>
+              member !== undefined && /\.md$/i.test(String(member.relPath))
+                ? String(member.id)
+                : undefined)(primaryMaterial(kind, payload ?? null, content)),
+            content: content.map((member) => ({
+              id: String(member.id),
+              bytes: memberBytes(request, member),
+            })),
+          }),
+        }),
     ...(supersedes.size === 0
       ? {}
       : {
@@ -803,8 +982,16 @@ export function compileTransitionRelease(
         return built.item;
       })
       .sort((a, b) => compare(String(a.id), String(b.id)));
-    // Sources: those the survivors use, agreeing across the supplied releases.
+    // Sources: those the survivors use, agreeing across the supplied releases, and
+    // those only a provenance hop names.
     const used = new Set(items.flatMap((item) => item.sourceIds as string[]));
+    const hopped = new Set(
+      items.flatMap((item) =>
+        ((item.provenance as { derivedFrom?: { sourceId: string }[] }).derivedFrom ?? []).map(
+          (hop) => hop.sourceId,
+        ),
+      ),
+    );
     const sources = new Map<string, Json>();
     for (const copies of resolved) {
       for (const copy of copies) {
@@ -819,6 +1006,10 @@ export function compileTransitionRelease(
           sources.set(source.id, source as unknown as Json);
         }
       }
+    }
+    for (const source of request.provenanceSources ?? []) {
+      const id = isRecord(source) ? String(source.id) : "";
+      if (hopped.has(id) && !used.has(id)) sources.set(id, source);
     }
     // Retirement: collapsed copies of this framework's earlier releases, declared
     // retirements, and every earlier retirement carried forward unchanged.

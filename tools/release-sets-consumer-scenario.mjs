@@ -31,7 +31,7 @@ const skill = (id, extra = {}) => ({
 const hook = (id, extra = {}) =>
   skill(id, {
     kind: "hook",
-    payload: { event: "SessionStart", protocol: "claude-code-hooks", command: { script: "skill" } },
+    payload: { event: "SessionStart", protocol: "claude-code-hooks", command: { interpreter: "node", script: "skill" } },
     ...extra,
   });
 const skillText = (id, extra = "") => `---\ndescription: ${id}.\n---\n# ${id}\n\nUse ${id}.${extra}\n`;
@@ -173,7 +173,7 @@ case_("a nested set change changes every set that includes it", () => {
 case_("display-only fields stay outside the digest; semantic fields are inside", () => {
   const base = digestOf(kit, [set("tdd", [member("kit", "kit.tdd")])], "tdd");
   const display = digestOf(kit, [set("tdd", [member("kit", "kit.tdd")], {
-    name: "Renamed", description: "Reworded", cost: { bytes: 10, chars: 10 }, stability: "deprecated",
+    name: "Renamed", description: "Reworded", cost: "heavy", stability: "beta",
   })], "tdd");
   assert.equal(display, base);
   assert.notEqual(digestOf(kit, [set("tdd", [member("kit", "kit.tdd")], { offer: "listed" })], "tdd"), base);
@@ -345,7 +345,7 @@ const eccSets = [
   set("developer", [member("ecc", "ecc.skill.review")], {
     offer: "listed",
     options: [{
-      id: "languages", name: "Languages",
+      id: "languages", name: "Languages", multiple: true,
       always: [{ framework: "ecc", setId: "common-rules" }],
       choices: [
         { id: "typescript", name: "TypeScript", sets: [{ framework: "ecc", setId: "typescript" }] },
@@ -463,7 +463,7 @@ case_("expansion is depth-first and keeps each distinct origin in published orde
       requires: [{ framework: "ecc", setId: "python" }],
       optional: [{ framework: "ecc", setId: "common-rules" }],
       options: [{
-        id: "languages", name: "Languages",
+        id: "languages", name: "Languages", multiple: true,
         choices: [{ id: "typescript", name: "TypeScript", sets: [{ framework: "ecc", setId: "typescript" }] }],
       }],
     }),
@@ -519,7 +519,7 @@ case_("option values follow every chosen set's depth-first expansion", () => {
     ...eccSets.slice(0, 3),
     set("plain", [member("ecc", "ecc.rule.typescript")]),
     set("picker", [member("ecc", "ecc.skill.review")], {
-      options: [{ id: "languages", name: "Languages",
+      options: [{ id: "languages", name: "Languages", multiple: true,
         choices: [{ id: "typescript", name: "TypeScript", sets: [{ framework: "ecc", setId: "typescript" }] }] }],
     }),
   ]);

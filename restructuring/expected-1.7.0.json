@@ -58,6 +58,18 @@
    "reason": "Each MCP survivor records whether its shipped definition is identical to upstream or edited; an edit is digested as SHA-256 of the canonical JSON {from: upstream, to: shipped} plus LF, in upstream's own encoding."
   },
   {
+   "id": "matt-buckets",
+   "reason": "The dry run carried only the 27 skills of Matt's plugin. Matt's buckets are sets in upstream's own grouping, so the Extensions release also carries the skills his pinned tree holds in the in-progress (7) and misc (3) buckets, each collapsing its three per-tool copies; his misc setup-pre-commit is already the Extensions skill copied from it, and the pinned tree has no skills in a specialists or deprecated bucket. Their content identities, copy supersessions and copy retirements come from the accepted Extensions build, limited to those ten items."
+  },
+  {
+   "id": "ecc-hooks",
+   "reason": "The dry run published none of ECC's 24 Claude Code hooks. Each upstream hook group in the pinned hooks/hooks.json is one hook item; its content identity is predicted from the reviewed run-time closure in producer/ecc/hook-facts.json and the pinned tree ledger's digests, at the source-relative paths its item folder keeps, plus ECC's LICENSE."
+  },
+  {
+   "id": "hook-registration-materials",
+   "reason": "A hook's materials never include a hook registration file. The three Extensions hooks leave out hooks/hooks.json and the Superpowers bootstrap leaves out hooks/hooks.json and its .claude-plugin manifests, so their predicted content identities cover the remaining materials."
+  },
+  {
    "id": "extensions-content-identities",
    "reason": "The dry run derived Extensions relPaths from install targets; for 16 of the 57 survivors (the agents, commands, notices, references and eight skills) those derivations are not reproducible from the pinned bytes under the documented rule, and the dry run called its own output proposed. The accepted Extensions build (samartomar/aih-catalog#145) projects the pinned copies to release 1.6 with source-relative material paths and collapses them with the public transition build; the expected Extensions content identities are re-derived from that canonical build, and the expected ids, kinds, purposes, supersessions and retirements are asserted to match the dry run unchanged."
   }
@@ -1394,6 +1406,126 @@
      "contentSha256": "c123680a0c03fe974735f6481509fa208d4280f1829f3790a8c3809eed78cdc6"
     },
     {
+     "id": "ecc.hook.post-dispatcher-async",
+     "kind": "hook",
+     "contentSha256": "54ad6be7d7f0455719b818ad29cdbd7785ca3d55a199d9708e6ac0c22c794c62"
+    },
+    {
+     "id": "ecc.hook.post-dispatcher-sync",
+     "kind": "hook",
+     "contentSha256": "b92f6a61a88d42ff43a05b67d74f73cc52e12b94bbff972f7b3618b7cd7318cc"
+    },
+    {
+     "id": "ecc.hook.post-mcp-health-check",
+     "kind": "hook",
+     "contentSha256": "e67e51cb320354c2d44791b95990cd2ea68349c019ccdf1f20d3148a9d97de65"
+    },
+    {
+     "id": "ecc.hook.post-skill-track",
+     "kind": "hook",
+     "contentSha256": "4682815cf631890d54e5b25c6499548106467bece5cbfe7cbd76d0354eb41485"
+    },
+    {
+     "id": "ecc.hook.pre-bash-dispatcher",
+     "kind": "hook",
+     "contentSha256": "6b351f7701ecc0856bc7690f37ce35ae42477a6be8b4fddb50dce38b37f4afc4"
+    },
+    {
+     "id": "ecc.hook.pre-compact",
+     "kind": "hook",
+     "contentSha256": "5a8b8b27a6eb924327431b8976f694a15efbf26da3ad08c0d17de522ff080419"
+    },
+    {
+     "id": "ecc.hook.pre-config-protection",
+     "kind": "hook",
+     "contentSha256": "ffdd46c5fb116bac3784e7e4ca5ef06abdd605216cdd95392ca5a0451157e226"
+    },
+    {
+     "id": "ecc.hook.pre-edit-write-gateguard-fact-force",
+     "kind": "hook",
+     "contentSha256": "5189d2d65b4b0f8131f46c3ec05ae30ee0c83524e31ad5ed1b3f87fdf3dea6e7"
+    },
+    {
+     "id": "ecc.hook.pre-edit-write-suggest-compact",
+     "kind": "hook",
+     "contentSha256": "0d7fca04f0f11f638d1b13446a47d2a08db4f38034a8b35e42f8bc158574b6d5"
+    },
+    {
+     "id": "ecc.hook.pre-governance-capture",
+     "kind": "hook",
+     "contentSha256": "5949e50db8a5037669fef63caf48097bebf967223db355b5ce328648b173ae32"
+    },
+    {
+     "id": "ecc.hook.pre-mcp-health-check",
+     "kind": "hook",
+     "contentSha256": "e67e51cb320354c2d44791b95990cd2ea68349c019ccdf1f20d3148a9d97de65"
+    },
+    {
+     "id": "ecc.hook.pre-observe-continuous-learning",
+     "kind": "hook",
+     "contentSha256": "0f6618095aabc126bbe08b46b7b43ec71c2e2a4f4945f02a0ba2485e0cf8975f"
+    },
+    {
+     "id": "ecc.hook.pre-powershell-gateguard-fact-force",
+     "kind": "hook",
+     "contentSha256": "5189d2d65b4b0f8131f46c3ec05ae30ee0c83524e31ad5ed1b3f87fdf3dea6e7"
+    },
+    {
+     "id": "ecc.hook.pre-write-doc-file-warning",
+     "kind": "hook",
+     "contentSha256": "8fb204a32c336eb9f7373301e6cc4ea00e84b615585384387c72db89cd521d93"
+    },
+    {
+     "id": "ecc.hook.session-end-marker",
+     "kind": "hook",
+     "contentSha256": "1e80eb66c57f44cb1f2ab75893e044d4e6f51f29f998ce63842e3ac8aadf54e6"
+    },
+    {
+     "id": "ecc.hook.session-start",
+     "kind": "hook",
+     "contentSha256": "d7a05a03b59d95d7eca8a8c2c1ed0c7bfa06c3ff54223dc92f6a0a59f7a7cb7b"
+    },
+    {
+     "id": "ecc.hook.session-start-plan-canvas-sessions",
+     "kind": "hook",
+     "contentSha256": "a73b1d7135478adfe69e4a5a19b8eb3a78ce2168a0abbb1f061e8c75ba71d4f2"
+    },
+    {
+     "id": "ecc.hook.stop-check-console-log",
+     "kind": "hook",
+     "contentSha256": "6385ef5468a26af24a58e59e1a89e836b2c4cd36f43678ba9959a005b506f172"
+    },
+    {
+     "id": "ecc.hook.stop-cost-tracker",
+     "kind": "hook",
+     "contentSha256": "6323caa8dde7ea86dc45a8e176c2e559882d8c4de8d8eea0fd945a254a7ae69f"
+    },
+    {
+     "id": "ecc.hook.stop-desktop-notify",
+     "kind": "hook",
+     "contentSha256": "51175bd82843c7a010ac2b0ab6a927f17cc5cab180fc488ab63e1e176282f399"
+    },
+    {
+     "id": "ecc.hook.stop-evaluate-session",
+     "kind": "hook",
+     "contentSha256": "2ebce7dea10c80259f37167326f53cb108c75b31ee84b899d4f84f3dc2de5216"
+    },
+    {
+     "id": "ecc.hook.stop-format-typecheck",
+     "kind": "hook",
+     "contentSha256": "5778fe85b6f695810dc771be1bfedcc04f8f84c7153385725141f53a439d5a24"
+    },
+    {
+     "id": "ecc.hook.stop-plan-canvas-pending",
+     "kind": "hook",
+     "contentSha256": "b845408460fd6d4d9307ebed7aa784ac9825c28e5b1a45d4f88f1f810f3bb2c0"
+    },
+    {
+     "id": "ecc.hook.stop-session-end",
+     "kind": "hook",
+     "contentSha256": "f86f9366d33fb08319ad8e17976ece99a6aa7241f23a322c3fef109e300be8ae"
+    },
+    {
      "id": "ecc.mcp.browser-use",
      "kind": "mcp-server",
      "contentSha256": "1ead8c2cdd5edfcc644fe9cf967e129b982dd4f6e3516cec2d6b0686f014c581"
@@ -1484,6 +1616,11 @@
      "contentSha256": "1ead8c2cdd5edfcc644fe9cf967e129b982dd4f6e3516cec2d6b0686f014c581"
     },
     {
+     "id": "ecc.mcp.github-local",
+     "kind": "mcp-server",
+     "contentSha256": "1ead8c2cdd5edfcc644fe9cf967e129b982dd4f6e3516cec2d6b0686f014c581"
+    },
+    {
      "id": "ecc.mcp.ito-compute",
      "kind": "mcp-server",
      "contentSha256": "1ead8c2cdd5edfcc644fe9cf967e129b982dd4f6e3516cec2d6b0686f014c581"
@@ -1540,6 +1677,11 @@
     },
     {
      "id": "ecc.mcp.railway",
+     "kind": "mcp-server",
+     "contentSha256": "1ead8c2cdd5edfcc644fe9cf967e129b982dd4f6e3516cec2d6b0686f014c581"
+    },
+    {
+     "id": "ecc.mcp.railway-hosted",
      "kind": "mcp-server",
      "contentSha256": "1ead8c2cdd5edfcc644fe9cf967e129b982dd4f6e3516cec2d6b0686f014c581"
     },
@@ -3898,16 +4040,6 @@
      "id": "ecc.steering.typescript-security",
      "kind": "rule",
      "contentSha256": "830734e37656a89b1650f14360ed03cddd239fc9d8c5c2fe3f6f5c1732e32f10"
-    },
-    {
-     "id": "ecc.mcp.github-local",
-     "kind": "mcp-server",
-     "contentSha256": "1ead8c2cdd5edfcc644fe9cf967e129b982dd4f6e3516cec2d6b0686f014c581"
-    },
-    {
-     "id": "ecc.mcp.railway-hosted",
-     "kind": "mcp-server",
-     "contentSha256": "1ead8c2cdd5edfcc644fe9cf967e129b982dd4f6e3516cec2d6b0686f014c581"
     }
    ],
    "supersessions": [
@@ -5789,22 +5921,32 @@
     {
      "id": "extensions.hook.git-guard",
      "kind": "hook",
-     "contentSha256": "1c2bdab914b3c12868832c98540fde73519f953617d65c868256cd1032033630"
+     "contentSha256": "842b7572f2f4c92d51445d79d6d368df7f851207e6e73893d0dac80feb09bedf"
     },
     {
      "id": "extensions.hook.lanes-card",
      "kind": "hook",
-     "contentSha256": "4234a77e8ae2fdc64cf98d692d386223d9e82ecb0fbc494dc97275006e494ffc"
+     "contentSha256": "9898ccea6108d184fa934968209b9e4e60242bb76faa2c7b3ed33c4b3b82f564"
     },
     {
      "id": "extensions.hook.skill-guard",
      "kind": "hook",
-     "contentSha256": "0251a711b5e9bae4108217ba2e7c3dc11aa00e18c10a17e7789dc3f3c1b8f94f"
+     "contentSha256": "d5fafe8d2df184d09af8511cef95e9b0d09dd02f74bc5625c80d294b8b143ce7"
     },
     {
      "id": "extensions.matt.ask-matt",
      "kind": "skill",
      "contentSha256": "35d0fbafda77b56a5467f4e8de1ae5dacd62eb96a0b3097be267aff0c3eab6a3"
+    },
+    {
+     "id": "extensions.matt.chief-of-staff",
+     "kind": "skill",
+     "contentSha256": "cc80f0113b9a501ed9be0e24b6bdbebd6e521f57ce98ac600243271100a01adb"
+    },
+    {
+     "id": "extensions.matt.claude-handoff",
+     "kind": "skill",
+     "contentSha256": "4f9dff7e740311626c4a71f1046c1b097105c6020860ead17ddc9fd0f2b44281"
     },
     {
      "id": "extensions.matt.code-review",
@@ -5825,6 +5967,11 @@
      "id": "extensions.matt.domain-modeling",
      "kind": "skill",
      "contentSha256": "387bc58ffcd343f2388c5c5638cbbc95ced5698ad459309145befc492d6a431e"
+    },
+    {
+     "id": "extensions.matt.git-guardrails-claude-code",
+     "kind": "skill",
+     "contentSha256": "5312943752e0b8039e334f033215da732b93a657995939e5af0ad26d517d1de1"
     },
     {
      "id": "extensions.matt.grill-me",
@@ -5862,6 +6009,16 @@
      "contentSha256": "adab140c89d33d51ff4ec660ad1f3d6c6bf71a725272fc055c70753f9529e08c"
     },
     {
+     "id": "extensions.matt.loop-me",
+     "kind": "skill",
+     "contentSha256": "48f49aa4abab10a8583ff67d94065ba03674531bf53707cfd5ced64417cc0384"
+    },
+    {
+     "id": "extensions.matt.migrate-to-shoehorn",
+     "kind": "skill",
+     "contentSha256": "5c702ac1241c34771200b5b435b776f651b80f69e5ae9efcd7de5e12f729f585"
+    },
+    {
      "id": "extensions.matt.pr",
      "kind": "skill",
      "contentSha256": "8adb157a450881565e87a2b9b34f90be9f9c46b1cbb625d0ac689129f633dc78"
@@ -5882,9 +6039,19 @@
      "contentSha256": "59f86b23bc8052efa774a50096082bec5b9e2c2eed503d2b95346dff40d7d841"
     },
     {
+     "id": "extensions.matt.scaffold-exercises",
+     "kind": "skill",
+     "contentSha256": "579a74bcca30424ded751b045e39a874abdfe1693d975a5cb94ebaa0d6a48c57"
+    },
+    {
      "id": "extensions.matt.setup-matt-pocock-skills",
      "kind": "skill",
      "contentSha256": "0504ed953fe824d035ba0dadc636e1b835d17e9b5522043200e44e4b6b5ce737"
+    },
+    {
+     "id": "extensions.matt.setup-ts-deep-modules",
+     "kind": "skill",
+     "contentSha256": "14049cc72c037ebaf7bb485ec07c44e857cfaeb18959d42b2a5c59c777d5e61a"
     },
     {
      "id": "extensions.matt.tdd",
@@ -5932,9 +6099,24 @@
      "contentSha256": "9debaee0883cee9f80e0abe1857072cfe81816821d7d5faffb9437556b1679f8"
     },
     {
+     "id": "extensions.matt.writing-beats",
+     "kind": "skill",
+     "contentSha256": "da310e622f5f30342741264d3c059cf056aa407f9404df2df2d9a2cb1ab68dbb"
+    },
+    {
      "id": "extensions.matt.writing-for-agents",
      "kind": "skill",
      "contentSha256": "a41945b3a17b596e4b740cffae23ba7d835d0d34d3e328d65165da268dec6f47"
+    },
+    {
+     "id": "extensions.matt.writing-fragments",
+     "kind": "skill",
+     "contentSha256": "3be9a41c2eafb23c2ae2e251f25de3b9532e53decd87f6d484a4f54d1a2eda75"
+    },
+    {
+     "id": "extensions.matt.writing-shape",
+     "kind": "skill",
+     "contentSha256": "cdae28c980b92b07cd0da92ed1cdc91bf4edaf38e2a3b13ddd919284a7ebff0b"
     },
     {
      "id": "extensions.notices",
@@ -6122,6 +6304,26 @@
      "releaseSha256": "0ff699f240ac4c667c1891fe0f0a2629c60af67dfb1d9483405d2bbc45d6f124"
     },
     {
+     "survivor": "extensions.matt.chief-of-staff",
+     "itemId": "extensions.copilot.matt.chief-of-staff",
+     "match": "hash"
+    },
+    {
+     "survivor": "extensions.matt.chief-of-staff",
+     "itemId": "extensions.kiro.matt.chief-of-staff",
+     "match": "hash"
+    },
+    {
+     "survivor": "extensions.matt.claude-handoff",
+     "itemId": "extensions.copilot.matt.claude-handoff",
+     "match": "hash"
+    },
+    {
+     "survivor": "extensions.matt.claude-handoff",
+     "itemId": "extensions.kiro.matt.claude-handoff",
+     "match": "hash"
+    },
+    {
      "survivor": "extensions.matt.code-review",
      "itemId": "extensions.copilot.matt.code-review",
      "match": "hash"
@@ -6184,6 +6386,16 @@
      "itemId": "mattpocock.domain-modeling",
      "match": "name+sourcePath",
      "releaseSha256": "0ff699f240ac4c667c1891fe0f0a2629c60af67dfb1d9483405d2bbc45d6f124"
+    },
+    {
+     "survivor": "extensions.matt.git-guardrails-claude-code",
+     "itemId": "extensions.copilot.matt.git-guardrails-claude-code",
+     "match": "hash"
+    },
+    {
+     "survivor": "extensions.matt.git-guardrails-claude-code",
+     "itemId": "extensions.kiro.matt.git-guardrails-claude-code",
+     "match": "hash"
     },
     {
      "survivor": "extensions.matt.grill-me",
@@ -6298,6 +6510,26 @@
      "releaseSha256": "0ff699f240ac4c667c1891fe0f0a2629c60af67dfb1d9483405d2bbc45d6f124"
     },
     {
+     "survivor": "extensions.matt.loop-me",
+     "itemId": "extensions.copilot.matt.loop-me",
+     "match": "hash"
+    },
+    {
+     "survivor": "extensions.matt.loop-me",
+     "itemId": "extensions.kiro.matt.loop-me",
+     "match": "hash"
+    },
+    {
+     "survivor": "extensions.matt.migrate-to-shoehorn",
+     "itemId": "extensions.copilot.matt.migrate-to-shoehorn",
+     "match": "hash"
+    },
+    {
+     "survivor": "extensions.matt.migrate-to-shoehorn",
+     "itemId": "extensions.kiro.matt.migrate-to-shoehorn",
+     "match": "hash"
+    },
+    {
      "survivor": "extensions.matt.pr",
      "itemId": "extensions.copilot.matt.pr",
      "match": "hash"
@@ -6362,6 +6594,16 @@
      "releaseSha256": "0ff699f240ac4c667c1891fe0f0a2629c60af67dfb1d9483405d2bbc45d6f124"
     },
     {
+     "survivor": "extensions.matt.scaffold-exercises",
+     "itemId": "extensions.copilot.matt.scaffold-exercises",
+     "match": "hash"
+    },
+    {
+     "survivor": "extensions.matt.scaffold-exercises",
+     "itemId": "extensions.kiro.matt.scaffold-exercises",
+     "match": "hash"
+    },
+    {
      "survivor": "extensions.matt.setup-matt-pocock-skills",
      "itemId": "extensions.copilot.matt.setup-matt-pocock-skills",
      "match": "hash"
@@ -6376,6 +6618,16 @@
      "itemId": "mattpocock.setup-matt-pocock-skills",
      "match": "name+sourcePath",
      "releaseSha256": "0ff699f240ac4c667c1891fe0f0a2629c60af67dfb1d9483405d2bbc45d6f124"
+    },
+    {
+     "survivor": "extensions.matt.setup-ts-deep-modules",
+     "itemId": "extensions.copilot.matt.setup-ts-deep-modules",
+     "match": "hash"
+    },
+    {
+     "survivor": "extensions.matt.setup-ts-deep-modules",
+     "itemId": "extensions.kiro.matt.setup-ts-deep-modules",
+     "match": "hash"
     },
     {
      "survivor": "extensions.matt.tdd",
@@ -6522,6 +6774,16 @@
      "releaseSha256": "0ff699f240ac4c667c1891fe0f0a2629c60af67dfb1d9483405d2bbc45d6f124"
     },
     {
+     "survivor": "extensions.matt.writing-beats",
+     "itemId": "extensions.copilot.matt.writing-beats",
+     "match": "hash"
+    },
+    {
+     "survivor": "extensions.matt.writing-beats",
+     "itemId": "extensions.kiro.matt.writing-beats",
+     "match": "hash"
+    },
+    {
      "survivor": "extensions.matt.writing-for-agents",
      "itemId": "extensions.copilot.matt.writing-for-agents",
      "match": "hash"
@@ -6536,6 +6798,26 @@
      "itemId": "mattpocock.writing-for-agents",
      "match": "name+sourcePath",
      "releaseSha256": "0ff699f240ac4c667c1891fe0f0a2629c60af67dfb1d9483405d2bbc45d6f124"
+    },
+    {
+     "survivor": "extensions.matt.writing-fragments",
+     "itemId": "extensions.copilot.matt.writing-fragments",
+     "match": "hash"
+    },
+    {
+     "survivor": "extensions.matt.writing-fragments",
+     "itemId": "extensions.kiro.matt.writing-fragments",
+     "match": "hash"
+    },
+    {
+     "survivor": "extensions.matt.writing-shape",
+     "itemId": "extensions.copilot.matt.writing-shape",
+     "match": "hash"
+    },
+    {
+     "survivor": "extensions.matt.writing-shape",
+     "itemId": "extensions.kiro.matt.writing-shape",
+     "match": "hash"
     },
     {
      "survivor": "extensions.references",
@@ -6832,6 +7114,24 @@
      ]
     },
     {
+     "id": "extensions.copilot.matt.chief-of-staff",
+     "replacedBy": [
+      {
+       "framework": "extensions",
+       "itemId": "extensions.matt.chief-of-staff"
+      }
+     ]
+    },
+    {
+     "id": "extensions.copilot.matt.claude-handoff",
+     "replacedBy": [
+      {
+       "framework": "extensions",
+       "itemId": "extensions.matt.claude-handoff"
+      }
+     ]
+    },
+    {
      "id": "extensions.copilot.matt.code-review",
      "replacedBy": [
       {
@@ -6864,6 +7164,15 @@
       {
        "framework": "extensions",
        "itemId": "extensions.matt.domain-modeling"
+      }
+     ]
+    },
+    {
+     "id": "extensions.copilot.matt.git-guardrails-claude-code",
+     "replacedBy": [
+      {
+       "framework": "extensions",
+       "itemId": "extensions.matt.git-guardrails-claude-code"
       }
      ]
     },
@@ -6931,6 +7240,24 @@
      ]
     },
     {
+     "id": "extensions.copilot.matt.loop-me",
+     "replacedBy": [
+      {
+       "framework": "extensions",
+       "itemId": "extensions.matt.loop-me"
+      }
+     ]
+    },
+    {
+     "id": "extensions.copilot.matt.migrate-to-shoehorn",
+     "replacedBy": [
+      {
+       "framework": "extensions",
+       "itemId": "extensions.matt.migrate-to-shoehorn"
+      }
+     ]
+    },
+    {
      "id": "extensions.copilot.matt.pr",
      "replacedBy": [
       {
@@ -6967,11 +7294,29 @@
      ]
     },
     {
+     "id": "extensions.copilot.matt.scaffold-exercises",
+     "replacedBy": [
+      {
+       "framework": "extensions",
+       "itemId": "extensions.matt.scaffold-exercises"
+      }
+     ]
+    },
+    {
      "id": "extensions.copilot.matt.setup-matt-pocock-skills",
      "replacedBy": [
       {
        "framework": "extensions",
        "itemId": "extensions.matt.setup-matt-pocock-skills"
+      }
+     ]
+    },
+    {
+     "id": "extensions.copilot.matt.setup-ts-deep-modules",
+     "replacedBy": [
+      {
+       "framework": "extensions",
+       "itemId": "extensions.matt.setup-ts-deep-modules"
       }
      ]
     },
@@ -7057,11 +7402,38 @@
      ]
     },
     {
+     "id": "extensions.copilot.matt.writing-beats",
+     "replacedBy": [
+      {
+       "framework": "extensions",
+       "itemId": "extensions.matt.writing-beats"
+      }
+     ]
+    },
+    {
      "id": "extensions.copilot.matt.writing-for-agents",
      "replacedBy": [
       {
        "framework": "extensions",
        "itemId": "extensions.matt.writing-for-agents"
+      }
+     ]
+    },
+    {
+     "id": "extensions.copilot.matt.writing-fragments",
+     "replacedBy": [
+      {
+       "framework": "extensions",
+       "itemId": "extensions.matt.writing-fragments"
+      }
+     ]
+    },
+    {
+     "id": "extensions.copilot.matt.writing-shape",
+     "replacedBy": [
+      {
+       "framework": "extensions",
+       "itemId": "extensions.matt.writing-shape"
       }
      ]
     },
@@ -7329,6 +7701,24 @@
      ]
     },
     {
+     "id": "extensions.kiro.matt.chief-of-staff",
+     "replacedBy": [
+      {
+       "framework": "extensions",
+       "itemId": "extensions.matt.chief-of-staff"
+      }
+     ]
+    },
+    {
+     "id": "extensions.kiro.matt.claude-handoff",
+     "replacedBy": [
+      {
+       "framework": "extensions",
+       "itemId": "extensions.matt.claude-handoff"
+      }
+     ]
+    },
+    {
      "id": "extensions.kiro.matt.code-review",
      "replacedBy": [
       {
@@ -7361,6 +7751,15 @@
       {
        "framework": "extensions",
        "itemId": "extensions.matt.domain-modeling"
+      }
+     ]
+    },
+    {
+     "id": "extensions.kiro.matt.git-guardrails-claude-code",
+     "replacedBy": [
+      {
+       "framework": "extensions",
+       "itemId": "extensions.matt.git-guardrails-claude-code"
       }
      ]
     },
@@ -7428,6 +7827,24 @@
      ]
     },
     {
+     "id": "extensions.kiro.matt.loop-me",
+     "replacedBy": [
+      {
+       "framework": "extensions",
+       "itemId": "extensions.matt.loop-me"
+      }
+     ]
+    },
+    {
+     "id": "extensions.kiro.matt.migrate-to-shoehorn",
+     "replacedBy": [
+      {
+       "framework": "extensions",
+       "itemId": "extensions.matt.migrate-to-shoehorn"
+      }
+     ]
+    },
+    {
      "id": "extensions.kiro.matt.pr",
      "replacedBy": [
       {
@@ -7464,11 +7881,29 @@
      ]
     },
     {
+     "id": "extensions.kiro.matt.scaffold-exercises",
+     "replacedBy": [
+      {
+       "framework": "extensions",
+       "itemId": "extensions.matt.scaffold-exercises"
+      }
+     ]
+    },
+    {
      "id": "extensions.kiro.matt.setup-matt-pocock-skills",
      "replacedBy": [
       {
        "framework": "extensions",
        "itemId": "extensions.matt.setup-matt-pocock-skills"
+      }
+     ]
+    },
+    {
+     "id": "extensions.kiro.matt.setup-ts-deep-modules",
+     "replacedBy": [
+      {
+       "framework": "extensions",
+       "itemId": "extensions.matt.setup-ts-deep-modules"
       }
      ]
     },
@@ -7554,11 +7989,38 @@
      ]
     },
     {
+     "id": "extensions.kiro.matt.writing-beats",
+     "replacedBy": [
+      {
+       "framework": "extensions",
+       "itemId": "extensions.matt.writing-beats"
+      }
+     ]
+    },
+    {
      "id": "extensions.kiro.matt.writing-for-agents",
      "replacedBy": [
       {
        "framework": "extensions",
        "itemId": "extensions.matt.writing-for-agents"
+      }
+     ]
+    },
+    {
+     "id": "extensions.kiro.matt.writing-fragments",
+     "replacedBy": [
+      {
+       "framework": "extensions",
+       "itemId": "extensions.matt.writing-fragments"
+      }
+     ]
+    },
+    {
+     "id": "extensions.kiro.matt.writing-shape",
+     "replacedBy": [
+      {
+       "framework": "extensions",
+       "itemId": "extensions.matt.writing-shape"
       }
      ]
     },
@@ -7766,7 +8228,7 @@
     {
      "id": "superpowers.hook.session-start",
      "kind": "hook",
-     "contentSha256": "f18d38d615d553acdf376f30b0b5cba513f7a2f4f7d43d279785a52af367030f"
+     "contentSha256": "355f61f598c42ac17bb305ab53471029232c31b51df432c8367709bb245c4231"
     },
     {
      "id": "superpowers.notices",

@@ -462,7 +462,8 @@ export const releaseInventory = Object.freeze({
     Object.freeze({
       release: "./release-ecc.json",
       export: "@aihq/catalog/release-ecc.json",
-      schema: RELEASE_SCHEMA_ID,
+      // Format 1.2.0 since ECC's hooks are items: a hook group recipe needs Core recipe 1.3.
+      schema: RELEASE_SCHEMA_ID_1_2,
       purpose: "content",
       support: "supported",
     }),
@@ -617,6 +618,14 @@ export type ItemPayload =
     };
 
 export type NameBasis = "authored" | "first-heading" | "key" | "file-name" | "publisher";
+
+/** One provenance hop: a release source, the path in its tree, its pin and SPDX licence. */
+export interface ProvenanceHop {
+  readonly sourceId: string;
+  readonly path: string;
+  readonly revision: string;
+  readonly license: string;
+}
 
 export interface DerivedFromRef {
   readonly itemId: string;
@@ -800,9 +809,32 @@ export interface CatalogItem {
   readonly contentSha256?: string;
   readonly behaviourSha256?: string;
   readonly source?: string;
+  /** Release 1.6 provenance; release 1.7 carries `provenance` instead. */
   readonly selectedBy?: string;
   readonly derivedFrom?: readonly DerivedFromRef[];
-  readonly size?: { readonly parts: readonly PartSize[]; readonly status: "measured" | "unknown" };
+  /** Release 1.6 parts with a status; release 1.7 parts with labelled token sums. */
+  readonly size?:
+    | { readonly parts: readonly PartSize[]; readonly status: "measured" | "unknown" }
+    | {
+        readonly parts: readonly {
+          readonly part: PartSize["part"];
+          readonly bytes: number;
+          readonly chars: number | null;
+        }[];
+        readonly tokens: readonly { readonly tokenizer: string; readonly sum: number }[];
+      };
+  /**
+   * Release 1.7 provenance: the source hop whose tree holds the shipped bytes, who
+   * selected it when not the source, and real modified hops, nearest first. Each hop
+   * names a release source at that source's pin and SPDX licence.
+   */
+  readonly provenance?: {
+    readonly source: ProvenanceHop;
+    readonly selectedBy?: Omit<ProvenanceHop, "license">;
+    readonly derivedFrom: readonly (ProvenanceHop & {
+      readonly ancestry: "verified" | "declared";
+    })[];
+  };
   /** Release 1.7 presentation role; never affects identity, binding or resolution. */
   readonly role?: "choosable" | "supporting";
   /** Release 1.7 earlier items this survivor replaces. */
@@ -1372,6 +1404,8 @@ export interface SetRef {
 export interface SetOption {
   readonly id: string;
   readonly name: string;
+  /** Whether several choices may be picked, as the upstream offers them. */
+  readonly multiple: boolean;
   readonly description?: string;
   /** Applied whether or not a choice is made, such as common rules. */
   readonly always?: readonly SetRef[];
@@ -1397,10 +1431,10 @@ export interface ReleaseSet {
   /** Client ids the set suits. Only narrows what is offered; never binds delivery. */
   readonly targets?: readonly string[];
   readonly offer: "pre-ticked" | "listed" | "on-request";
-  /** Display size of the default members. Outside the digest. */
-  readonly cost?: { readonly bytes: number; readonly chars: number };
-  /** Display maturity. Outside the digest. */
-  readonly stability?: "stable" | "in-progress" | "deprecated";
+  /** The upstream's own cost words, copied, such as ECC's "medium". Outside the digest. */
+  readonly cost?: string;
+  /** The upstream's own maturity words, copied, such as ECC's "beta". Outside the digest. */
+  readonly stability?: string;
   readonly options?: readonly SetOption[];
   /** The member to run first, such as a setup skill. */
   readonly firstRun?: { readonly framework: string; readonly itemId: string };

@@ -43,7 +43,8 @@ const case_ = async (name, fn) => {
 const CONTENT = "release-extensions.content.json";
 const INVENTORY = "release/baselines/extensions/content-inventory.json";
 const MATT = "https://github.com/mattpocock/skills";
-const SELECTED_BY = "https://github.com/samartomar/aih-extensions";
+// AIH-Extensions selects Matt's plugin at its own pinned revision.
+const SELECTED_REVISION = "2481164a51ea7f9e480d51ef52f3d5cf15b017fa";
 const SETUP = "extensions.matt.setup-matt-pocock-skills";
 const contentBytes = exported(CONTENT);
 const read = readReleaseContent(contentBytes, { expectedSha256: sha256(contentBytes) });
@@ -66,11 +67,12 @@ await case_("a separate release 1.7.0 with a published framework identity and on
   assert.equal(release.framework.id, "extensions");
   assert.equal(release.framework.name, "Extensions");
   assert.equal(release.package.name, "@aihq/catalog");
-  assert.equal(release.items.length, 57);
-  assert.equal(release.sets.length, 8);
-  assert.equal(release.retired.length, 118);
-  // Matt's skills are found once, inside AIH-Extensions, never per tool.
-  assert.equal(mattItems.length, 27);
+  assert.equal(release.items.length, 67);
+  assert.equal(release.sets.length, 6);
+  assert.equal(release.retired.length, 138);
+  // Matt's skills are found once, inside AIH-Extensions, never per tool: the 27 of his
+  // plugin and the 10 of his pinned in-progress and misc buckets.
+  assert.equal(mattItems.length, 37);
   for (const name of mattNames) {
     assert.equal(item(`extensions.matt.${name}`) !== undefined, true, name);
     assert.equal(item(`extensions.kiro.matt.${name}`), undefined, name);
@@ -78,11 +80,14 @@ await case_("a separate release 1.7.0 with a published framework identity and on
   }
 });
 
-await case_("Matt's skills carry true provenance: his repository, selected by AIH-Extensions, no fork", () => {
+await case_("Matt's skills carry true provenance: his repository, his plugin selected by AIH-Extensions, no fork", () => {
   for (const entry of mattItems) {
     assert.equal(entry.source, MATT, entry.id);
-    assert.equal(entry.selectedBy, SELECTED_BY, entry.id);
-    assert.equal(entry.derivedFrom, undefined, entry.id);
+    assert.equal(entry.provenance.source.sourceId, "matt", entry.id);
+    assert.equal(entry.provenance.source.path, `skills/${entry.provenance.source.path.split("/")[1]}/${entry.name}`, entry.id);
+    assert.deepEqual(entry.provenance.derivedFrom, [], entry.id);
+    const plugin = ["engineering", "productivity"].includes(entry.provenance.source.path.split("/")[1]);
+    assert.deepEqual(entry.provenance.selectedBy, plugin ? { sourceId: "extensions", path: "source-declarations/v1.json", revision: SELECTED_REVISION } : undefined, entry.id);
   }
   // The per-tool copies are retired and name their survivor.
   for (const name of mattNames)
@@ -99,21 +104,21 @@ await case_("Matt's buckets are sets with the accepted offer levels and firstRun
     engineering: "pre-ticked",
     productivity: "pre-ticked",
     "in-progress": "listed",
-    specialists: "listed",
     misc: "on-request",
-    deprecated: "on-request",
     "extensions.template.specialists": "listed",
     "extensions.template.complete": "listed",
   });
-  // The pinned revision carries the engineering and productivity skills; the other
-  // buckets are declared empty at their offer level.
+  // Each bucket set holds the skills Matt's pinned tree has in that bucket; misc also
+  // names the Extensions copy of his setup-pre-commit. No bucket set is empty, and the
+  // buckets with no skill at the pin are recorded, not offered.
   const engineering = set("engineering");
   assert.equal(engineering.members.length, 20);
   assert.equal(engineering.firstRun.framework, "extensions");
   assert.equal(engineering.firstRun.itemId, SETUP);
   assert.equal(set("productivity").members.length, 7);
-  for (const id of ["in-progress", "specialists", "misc", "deprecated"])
-    assert.deepEqual(set(id).members, [], id);
+  assert.equal(set("in-progress").members.length, 7);
+  assert.deepEqual(set("misc").members.map((entry) => entry.item.itemId).sort(), ["extensions.matt.git-guardrails-claude-code", "extensions.matt.migrate-to-shoehorn", "extensions.matt.scaffold-exercises", "extensions.skill.setup-pre-commit"]);
+  assert.deepEqual(Object.keys(release.metadata.mattBuckets.notSets).sort(), ["deprecated", "specialists"]);
   for (const memberEntry of set("engineering").members)
     assert.equal(memberEntry.item.itemId.startsWith("extensions.matt."), true);
   const complete = set("extensions.template.complete");
@@ -126,9 +131,9 @@ await case_("Matt's buckets are sets with the accepted offer levels and firstRun
     );
 });
 
-await case_("the Specialists set has offer listed (fixture)", () => {
-  assert.equal(set("specialists").offer, "listed");
-  assert.equal(set("specialists").name, "Specialists");
+await case_("Matt's pinned tree has no specialists skills, so the AIH-Extensions specialists set is the only one", () => {
+  assert.equal(set("specialists"), undefined);
+  assert.equal(set("extensions.template.specialists").offer, "listed");
 });
 
 await case_("every hook member of every Extensions set is optional", () => {
@@ -184,19 +189,19 @@ await case_("collapsed survivors keep the union of materials, dependencies and l
     assert.equal(new Set(relPaths).size, relPaths.length, entry.id);
     assert.ok(relPaths.includes("LICENSE"), entry.id);
   }
-  // The folded hooks keep the pinned scripts and the settings reference.
+  // The folded hooks keep the pinned scripts; the hooks.json registration is not material.
   const hook = item("extensions.hook.git-guard");
   const hookPaths = hook.materials.filter((material) => material.role !== "behaviour").map((material) => material.sourcePath).sort();
   assert.deepEqual(hookPaths, [
     "LICENSE",
     "hooks/git-guard.mjs",
-    "hooks/hooks.json",
     "hooks/lib/git-context.mjs",
     "hooks/lib/git-policy.mjs",
     "hooks/lib/shell.mjs",
   ]);
   assert.equal(hook.payload.protocol, "claude-code-hooks");
-  assert.equal(hook.payload.command.program, "node");
+  assert.equal(hook.payload.command.interpreter, "node");
+  assert.equal(hook.payload.command.program, undefined);
   assert.equal(hook.payload.timeoutSec, 10);
   assert.ok(hook.payload.command.script, "the command names a script material");
 });
@@ -248,18 +253,20 @@ await case_("per-tool delivery is a transition recipe map selected by clientId",
   assert.equal(asClaude.valid, true, JSON.stringify(asClaude.diagnostics));
 });
 
-await case_("the folded hook configures through its reviewed command input", () => {
+await case_("the folded hook configures with no input: its recipe registers the literal command", () => {
   const hook = item("extensions.hook.git-guard");
-  assert.equal(typeof hook.inputs.hookCommand, "object");
-  assert.equal(hook.inputs.hookCommand.required, true);
+  assert.deepEqual(hook.inputs, {});
   const recipe = JSON.parse(member(hook.recipe.path).toString("utf8"));
   assert.equal(sha256(member(hook.recipe.path)), hook.recipe.sha256);
   assert.equal(recipe.schema, "urn:aihq:core:recipe:1.3.0");
-  assert.ok(recipe.operations.some((operation) => operation.kind === "hook.group"));
+  const group = recipe.operations.find((operation) => operation.kind === "hook.group");
+  assert.equal(group.group.literal.hooks[0].command, 'node "${CLAUDE_PROJECT_DIR}/.aih-extensions/source/hooks/git-guard.mjs"');
+  assert.deepEqual(group.selector, { path: ["hooks", 0, "command"], value: group.group.literal.hooks[0].command });
+  assert.ok(!recipe.operations.some((operation) => operation.kind === "file.write" && operation.target.segments.at(-1).literal === "hooks.json"));
   const configured = configureItem({
     release,
     itemId: hook.id,
-    configuration: { hookCommand: 'node "$CLAUDE_PROJECT_DIR/.aih-extensions/source/hooks/git-guard.mjs"' },
+    configuration: {},
     materialSource: { kind: "local", input: "catalog" },
   });
   assert.equal(configured.valid, true, JSON.stringify(configured.diagnostics));
@@ -341,10 +348,11 @@ await case_("the shipped content inventory is the frozen inventory of this conte
 await case_("the restructuring comparison passes, including the 27 supersessions", () => {
   const result = compareRestructuring({ release, expectation: json("restructuring/expected-1.7.0.json") });
   assert.equal(result.status, "pass", JSON.stringify(result.rows.filter((row) => row.status === "fail")));
-  assert.deepEqual(result.counts.item, { pass: 57, fail: 0 });
-  assert.deepEqual(result.counts.hash, { pass: 57, fail: 0 });
-  assert.deepEqual(result.counts.supersession, { pass: 133, fail: 0 });
-  assert.deepEqual(result.counts.retired, { pass: 118, fail: 0 });
+  assert.deepEqual(result.counts.item, { pass: 67, fail: 0 });
+  assert.deepEqual(result.counts.hash, { pass: 67, fail: 0 });
+  // The ten Matt bucket skills each supersede and retire their two other tool copies.
+  assert.deepEqual(result.counts.supersession, { pass: 153, fail: 0 });
+  assert.deepEqual(result.counts.retired, { pass: 138, fail: 0 });
 });
 
 await case_("the content is not yet a qualified release: no baseline is bound or listed", () => {

@@ -2268,29 +2268,16 @@
           ]
         },
         "cost": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "bytes",
-            "chars"
-          ],
-          "properties": {
-            "bytes": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "chars": {
-              "type": "integer",
-              "minimum": 0
-            }
-          }
+          "description": "The upstream's own cost words, copied. Outside the digest.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
         },
         "stability": {
-          "enum": [
-            "stable",
-            "in-progress",
-            "deprecated"
-          ]
+          "description": "The upstream's own maturity words, copied. Outside the digest.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
         },
         "options": {
           "type": "array",
@@ -2429,6 +2416,7 @@
       "required": [
         "id",
         "name",
+        "multiple",
         "choices"
       ],
       "properties": {
@@ -2439,6 +2427,10 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 256
+        },
+        "multiple": {
+          "description": "Whether several choices may be picked.",
+          "type": "boolean"
         },
         "description": {
           "type": "string",
@@ -2601,7 +2593,7 @@
           "type": "array",
           "maxItems": 4096,
           "items": {
-            "$ref": "#/$defs/material16"
+            "$ref": "#/$defs/material17"
           }
         },
         "dependencies": {
@@ -2807,6 +2799,10 @@
                       }
                     }
                   }
+                },
+                "async": {
+                  "type": "boolean",
+                  "description": "Runs without blocking the tool, as the upstream registers it."
                 }
               }
             },
@@ -3075,72 +3071,12 @@
           "minLength": 1,
           "maxLength": 4096
         },
-        "selectedBy": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 4096
-        },
-        "derivedFrom": {
-          "type": "array",
-          "maxItems": 4096,
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "itemId",
-              "status"
-            ],
-            "properties": {
-              "itemId": {
-                "$ref": "#/$defs/id"
-              },
-              "releaseSha256": {
-                "$ref": "#/$defs/sha256"
-              },
-              "status": {
-                "enum": [
-                  "verified",
-                  "declared"
-                ]
-              },
-              "proof": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                  "materials"
-                ],
-                "properties": {
-                  "materials": {
-                    "type": "array",
-                    "minItems": 1,
-                    "maxItems": 4096,
-                    "items": {
-                      "type": "object",
-                      "additionalProperties": false,
-                      "required": [
-                        "relPath",
-                        "sha256"
-                      ],
-                      "properties": {
-                        "relPath": {
-                          "$ref": "#/$defs/path"
-                        },
-                        "sha256": {
-                          "$ref": "#/$defs/sha256"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
         "size": {
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "parts"
+            "parts",
+            "tokens"
           ],
           "properties": {
             "parts": {
@@ -3170,17 +3106,35 @@
                     "minimum": 0
                   },
                   "chars": {
-                    "type": "integer",
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
                     "minimum": 0
                   }
                 }
               }
             },
-            "status": {
-              "enum": [
-                "measured",
-                "unknown"
-              ]
+            "tokens": {
+              "type": "array",
+              "maxItems": 16,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "tokenizer",
+                  "sum"
+                ],
+                "properties": {
+                  "tokenizer": {
+                    "$ref": "#/$defs/id"
+                  },
+                  "sum": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              }
             }
           }
         },
@@ -3190,6 +3144,105 @@
             "supporting"
           ],
           "description": "Presentation only."
+        },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source",
+            "derivedFrom"
+          ],
+          "properties": {
+            "source": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "sourceId",
+                "path",
+                "revision",
+                "license"
+              ],
+              "properties": {
+                "sourceId": {
+                  "$ref": "#/$defs/id"
+                },
+                "path": {
+                  "$ref": "#/$defs/path"
+                },
+                "revision": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                },
+                "license": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                }
+              }
+            },
+            "selectedBy": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "sourceId",
+                "path",
+                "revision"
+              ],
+              "properties": {
+                "sourceId": {
+                  "$ref": "#/$defs/id"
+                },
+                "path": {
+                  "$ref": "#/$defs/path"
+                },
+                "revision": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                }
+              }
+            },
+            "derivedFrom": {
+              "type": "array",
+              "maxItems": 64,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "sourceId",
+                  "path",
+                  "revision",
+                  "license",
+                  "ancestry"
+                ],
+                "properties": {
+                  "sourceId": {
+                    "$ref": "#/$defs/id"
+                  },
+                  "path": {
+                    "$ref": "#/$defs/path"
+                  },
+                  "revision": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "license": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "ancestry": {
+                    "enum": [
+                      "verified",
+                      "declared"
+                    ]
+                  }
+                }
+              }
+            }
+          }
         },
         "recipes": {
           "type": "object",
@@ -3627,6 +3680,10 @@
                         }
                       }
                     }
+                  },
+                  "async": {
+                    "type": "boolean",
+                    "description": "Runs without blocking the tool, as the upstream registers it."
                   }
                 }
               }
@@ -3978,6 +4035,140 @@
           }
         }
       ]
+    },
+    "material17": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "relPath",
+        "packagePath",
+        "sha256",
+        "byteLength",
+        "executable",
+        "sourceId"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "relPath": {
+          "$ref": "#/$defs/path"
+        },
+        "sourcePath": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4096
+        },
+        "packagePath": {
+          "$ref": "#/$defs/path"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "byteLength": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 16777216
+        },
+        "executable": {
+          "enum": [
+            true,
+            false,
+            "unknown"
+          ]
+        },
+        "sourceId": {
+          "$ref": "#/$defs/id"
+        },
+        "role": {
+          "enum": [
+            "content",
+            "behaviour"
+          ]
+        },
+        "upstream": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sourceId",
+            "path",
+            "gitBlob",
+            "transform"
+          ],
+          "properties": {
+            "sourceId": {
+              "$ref": "#/$defs/id"
+            },
+            "path": {
+              "$ref": "#/$defs/path"
+            },
+            "gitBlob": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{40}$"
+            },
+            "transform": {
+              "enum": [
+                "identical",
+                "edited"
+              ]
+            }
+          }
+        },
+        "size": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "bytes",
+            "chars",
+            "tokens",
+            "status"
+          ],
+          "properties": {
+            "bytes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "chars": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "tokens": {
+              "type": "array",
+              "maxItems": 16,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "tokenizer",
+                  "count"
+                ],
+                "properties": {
+                  "tokenizer": {
+                    "$ref": "#/$defs/id"
+                  },
+                  "count": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              }
+            },
+            "status": {
+              "enum": [
+                "measured",
+                "not-text",
+                "unsupported"
+              ]
+            }
+          }
+        }
+      }
     },
     "dependencyRef17": {
       "oneOf": [

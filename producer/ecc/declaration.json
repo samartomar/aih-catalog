@@ -48467,7 +48467,7 @@
         },
         {
           "itemId": "extensions.skill.security-and-hardening",
-          "itemSha256": "d81a488606e91e90652437a7c06d1167f1f5f47d87d1f1e357d619ec27f7c272",
+          "itemSha256": "f0f869f6bc6a98c4a009f9b1012188170c038c3f6fedc77bc8f49958e4a0ae41",
           "release": {
             "source": {
               "kind": "local",
@@ -48475,8 +48475,8 @@
             },
             "manifest": {
               "path": "release/release-extensions.json",
-              "sha256": "26e08ee053ce0f04efe51cbf17862ec0b4a4b5c625e4c9922cdbb7d0123918c7",
-              "byteLength": 6005947
+              "sha256": "f0aa47cf414323690121dbe1ce7adf1149a2fb28502629eae6daf0f961fff057",
+              "byteLength": 7794982
             }
           }
         }
@@ -48525,6 +48525,2226 @@
           "client": "claude-code",
           "surface": "project",
           "instructions": "Catalog-authored starting choice: ECC API design plus the pinned Extensions security skill. MCP memory and Claude code-reviewer are optional; this is not an upstream dependency claim."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.hook.pre-bash-dispatcher",
+      "source": "ecc",
+      "label": "ecc.hook.pre-bash-dispatcher",
+      "description": "Consolidated Bash preflight dispatcher for quality, tmux, push, and GateGuard checks",
+      "kind": "hook",
+      "recipePath": "catalog-recipes/ecc.hook.pre-bash-dispatcher.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "scripts/hooks/pre-bash-dispatcher.js"
+        },
+        {
+          "id": "asset-1",
+          "path": "scripts/hooks/auto-tmux-dev.js"
+        },
+        {
+          "id": "asset-2",
+          "path": "scripts/hooks/bash-hook-dispatcher.js"
+        },
+        {
+          "id": "asset-3",
+          "path": "scripts/hooks/block-no-verify.js"
+        },
+        {
+          "id": "asset-4",
+          "path": "scripts/hooks/gateguard-fact-force.js"
+        },
+        {
+          "id": "asset-5",
+          "path": "scripts/hooks/gateguard-heredoc.js"
+        },
+        {
+          "id": "asset-6",
+          "path": "scripts/hooks/post-bash-build-complete.js"
+        },
+        {
+          "id": "asset-7",
+          "path": "scripts/hooks/post-bash-command-log.js"
+        },
+        {
+          "id": "asset-8",
+          "path": "scripts/hooks/post-bash-pr-created.js"
+        },
+        {
+          "id": "asset-9",
+          "path": "scripts/hooks/pre-bash-commit-quality.js"
+        },
+        {
+          "id": "asset-10",
+          "path": "scripts/hooks/pre-bash-git-push-reminder.js"
+        },
+        {
+          "id": "asset-11",
+          "path": "scripts/hooks/pre-bash-tmux-reminder.js"
+        },
+        {
+          "id": "asset-12",
+          "path": "scripts/hooks/pretooluse-visible-output.js"
+        },
+        {
+          "id": "asset-13",
+          "path": "scripts/lib/hook-flags.js"
+        },
+        {
+          "id": "asset-14",
+          "path": "scripts/lib/powershell-destructive-command.js"
+        },
+        {
+          "id": "asset-15",
+          "path": "scripts/lib/shell-substitution.js"
+        },
+        {
+          "id": "license",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "supported",
+          "reason": "Generic Core 1.3 owned Claude settings group with a literal command; exact hook invocation has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Kiro hook translation is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Copilot hook translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "instructions": "Ensure node is available, apply to the project, then review/reload hooks in Claude Code. Only matching PreToolUse payloads receive this hook; invocation proof belongs to later client acceptance."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.hook.pre-powershell-gateguard-fact-force",
+      "source": "ecc",
+      "label": "ecc.hook.pre-powershell-gateguard-fact-force",
+      "description": "PowerShell fact-forcing gate: inspect destructive commands without running unrelated Bash-only preflight hooks",
+      "kind": "hook",
+      "recipePath": "catalog-recipes/ecc.hook.pre-powershell-gateguard-fact-force.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "scripts/hooks/run-with-flags.js"
+        },
+        {
+          "id": "asset-1",
+          "path": "scripts/hooks/gateguard-fact-force.js"
+        },
+        {
+          "id": "asset-2",
+          "path": "scripts/hooks/gateguard-heredoc.js"
+        },
+        {
+          "id": "asset-3",
+          "path": "scripts/hooks/pretooluse-visible-output.js"
+        },
+        {
+          "id": "asset-4",
+          "path": "scripts/lib/hook-flags.js"
+        },
+        {
+          "id": "asset-5",
+          "path": "scripts/lib/powershell-destructive-command.js"
+        },
+        {
+          "id": "asset-6",
+          "path": "scripts/lib/shell-substitution.js"
+        },
+        {
+          "id": "license",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "supported",
+          "reason": "Generic Core 1.3 owned Claude settings group with a literal command; exact hook invocation has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Kiro hook translation is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Copilot hook translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "instructions": "Ensure node is available, apply to the project, then review/reload hooks in Claude Code. Only matching PreToolUse payloads receive this hook; invocation proof belongs to later client acceptance."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.hook.pre-write-doc-file-warning",
+      "source": "ecc",
+      "label": "ecc.hook.pre-write-doc-file-warning",
+      "description": "Doc file warning: warn about non-standard documentation files (exit code 0; warns only)",
+      "kind": "hook",
+      "recipePath": "catalog-recipes/ecc.hook.pre-write-doc-file-warning.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "scripts/hooks/run-with-flags.js"
+        },
+        {
+          "id": "asset-1",
+          "path": "scripts/hooks/doc-file-warning.js"
+        },
+        {
+          "id": "asset-2",
+          "path": "scripts/hooks/pretooluse-visible-output.js"
+        },
+        {
+          "id": "asset-3",
+          "path": "scripts/lib/hook-flags.js"
+        },
+        {
+          "id": "license",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "supported",
+          "reason": "Generic Core 1.3 owned Claude settings group with a literal command; exact hook invocation has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Kiro hook translation is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Copilot hook translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "instructions": "Ensure node is available, apply to the project, then review/reload hooks in Claude Code. Only matching PreToolUse payloads receive this hook; invocation proof belongs to later client acceptance."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.hook.pre-edit-write-suggest-compact",
+      "source": "ecc",
+      "label": "ecc.hook.pre-edit-write-suggest-compact",
+      "description": "Suggest manual compaction at logical intervals",
+      "kind": "hook",
+      "recipePath": "catalog-recipes/ecc.hook.pre-edit-write-suggest-compact.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "scripts/hooks/run-with-flags.js"
+        },
+        {
+          "id": "asset-1",
+          "path": "scripts/hooks/pretooluse-visible-output.js"
+        },
+        {
+          "id": "asset-2",
+          "path": "scripts/hooks/suggest-compact.js"
+        },
+        {
+          "id": "asset-3",
+          "path": "scripts/lib/agent-data-home.js"
+        },
+        {
+          "id": "asset-4",
+          "path": "scripts/lib/hook-flags.js"
+        },
+        {
+          "id": "asset-5",
+          "path": "scripts/lib/path-safety.js"
+        },
+        {
+          "id": "asset-6",
+          "path": "scripts/lib/transcript-context.js"
+        },
+        {
+          "id": "asset-7",
+          "path": "scripts/lib/utils.js"
+        },
+        {
+          "id": "license",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "supported",
+          "reason": "Generic Core 1.3 owned Claude settings group with a literal command; exact hook invocation has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Kiro hook translation is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Copilot hook translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "instructions": "Ensure node is available, apply to the project, then review/reload hooks in Claude Code. Only matching PreToolUse payloads receive this hook; invocation proof belongs to later client acceptance."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.hook.pre-observe-continuous-learning",
+      "source": "ecc",
+      "label": "ecc.hook.pre-observe-continuous-learning",
+      "description": "Capture tool use observations for continuous learning",
+      "kind": "hook",
+      "recipePath": "catalog-recipes/ecc.hook.pre-observe-continuous-learning.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "scripts/hooks/run-with-flags.js"
+        },
+        {
+          "id": "asset-1",
+          "path": "scripts/hooks/observe-runner.js"
+        },
+        {
+          "id": "asset-2",
+          "path": "scripts/hooks/pretooluse-visible-output.js"
+        },
+        {
+          "id": "asset-3",
+          "path": "scripts/lib/hook-flags.js"
+        },
+        {
+          "id": "asset-4",
+          "path": "skills/continuous-learning-v2/agents/observer-loop.sh"
+        },
+        {
+          "id": "asset-5",
+          "path": "skills/continuous-learning-v2/agents/session-guardian.sh"
+        },
+        {
+          "id": "asset-6",
+          "path": "skills/continuous-learning-v2/agents/start-observer.sh"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/continuous-learning-v2/config.json"
+        },
+        {
+          "id": "asset-8",
+          "path": "skills/continuous-learning-v2/hooks/observe.sh"
+        },
+        {
+          "id": "asset-9",
+          "path": "skills/continuous-learning-v2/scripts/detect-project.sh"
+        },
+        {
+          "id": "asset-10",
+          "path": "skills/continuous-learning-v2/scripts/instinct-cli.py"
+        },
+        {
+          "id": "asset-11",
+          "path": "skills/continuous-learning-v2/scripts/lib/homunculus-dir.sh"
+        },
+        {
+          "id": "license",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "supported",
+          "reason": "Generic Core 1.3 owned Claude settings group with a literal command; exact hook invocation has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Kiro hook translation is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Copilot hook translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "instructions": "Ensure node and bash are available, apply to the project, then review/reload hooks in Claude Code. Only matching PreToolUse payloads receive this hook; invocation proof belongs to later client acceptance."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.hook.pre-governance-capture",
+      "source": "ecc",
+      "label": "ecc.hook.pre-governance-capture",
+      "description": "Capture governance events (secrets, policy violations, approval requests). Enable with ECC_GOVERNANCE_CAPTURE=1",
+      "kind": "hook",
+      "recipePath": "catalog-recipes/ecc.hook.pre-governance-capture.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "scripts/hooks/run-with-flags.js"
+        },
+        {
+          "id": "asset-1",
+          "path": "scripts/hooks/gateguard-fact-force.js"
+        },
+        {
+          "id": "asset-2",
+          "path": "scripts/hooks/gateguard-heredoc.js"
+        },
+        {
+          "id": "asset-3",
+          "path": "scripts/hooks/governance-capture.js"
+        },
+        {
+          "id": "asset-4",
+          "path": "scripts/hooks/pretooluse-visible-output.js"
+        },
+        {
+          "id": "asset-5",
+          "path": "scripts/lib/hook-flags.js"
+        },
+        {
+          "id": "asset-6",
+          "path": "scripts/lib/powershell-destructive-command.js"
+        },
+        {
+          "id": "asset-7",
+          "path": "scripts/lib/shell-substitution.js"
+        },
+        {
+          "id": "license",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "supported",
+          "reason": "Generic Core 1.3 owned Claude settings group with a literal command; exact hook invocation has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Kiro hook translation is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Copilot hook translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "instructions": "Ensure node is available, apply to the project, then review/reload hooks in Claude Code. Only matching PreToolUse payloads receive this hook; invocation proof belongs to later client acceptance."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.hook.pre-config-protection",
+      "source": "ecc",
+      "label": "ecc.hook.pre-config-protection",
+      "description": "Block modifications to linter/formatter config files. Steers agent to fix code instead of weakening configs.",
+      "kind": "hook",
+      "recipePath": "catalog-recipes/ecc.hook.pre-config-protection.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "scripts/hooks/run-with-flags.js"
+        },
+        {
+          "id": "asset-1",
+          "path": "scripts/hooks/config-protection.js"
+        },
+        {
+          "id": "asset-2",
+          "path": "scripts/hooks/pretooluse-visible-output.js"
+        },
+        {
+          "id": "asset-3",
+          "path": "scripts/lib/hook-flags.js"
+        },
+        {
+          "id": "license",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "supported",
+          "reason": "Generic Core 1.3 owned Claude settings group with a literal command; exact hook invocation has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Kiro hook translation is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Copilot hook translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "instructions": "Ensure node is available, apply to the project, then review/reload hooks in Claude Code. Only matching PreToolUse payloads receive this hook; invocation proof belongs to later client acceptance."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.hook.pre-mcp-health-check",
+      "source": "ecc",
+      "label": "ecc.hook.pre-mcp-health-check",
+      "description": "Check MCP server health before MCP tool execution and block unhealthy MCP calls",
+      "kind": "hook",
+      "recipePath": "catalog-recipes/ecc.hook.pre-mcp-health-check.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "scripts/hooks/run-with-flags.js"
+        },
+        {
+          "id": "asset-1",
+          "path": "scripts/hooks/mcp-health-check.js"
+        },
+        {
+          "id": "asset-2",
+          "path": "scripts/hooks/pretooluse-visible-output.js"
+        },
+        {
+          "id": "asset-3",
+          "path": "scripts/lib/hook-flags.js"
+        },
+        {
+          "id": "license",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "supported",
+          "reason": "Generic Core 1.3 owned Claude settings group with a literal command; exact hook invocation has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Kiro hook translation is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Copilot hook translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "instructions": "Ensure node is available, apply to the project, then review/reload hooks in Claude Code. Only matching PreToolUse payloads receive this hook; invocation proof belongs to later client acceptance."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.hook.pre-edit-write-gateguard-fact-force",
+      "source": "ecc",
+      "label": "ecc.hook.pre-edit-write-gateguard-fact-force",
+      "description": "Fact-forcing gate: block first Edit/Write/MultiEdit per file and demand investigation (importers, data schemas, user instruction) before allowing",
+      "kind": "hook",
+      "recipePath": "catalog-recipes/ecc.hook.pre-edit-write-gateguard-fact-force.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "scripts/hooks/run-with-flags.js"
+        },
+        {
+          "id": "asset-1",
+          "path": "scripts/hooks/gateguard-fact-force.js"
+        },
+        {
+          "id": "asset-2",
+          "path": "scripts/hooks/gateguard-heredoc.js"
+        },
+        {
+          "id": "asset-3",
+          "path": "scripts/hooks/pretooluse-visible-output.js"
+        },
+        {
+          "id": "asset-4",
+          "path": "scripts/lib/hook-flags.js"
+        },
+        {
+          "id": "asset-5",
+          "path": "scripts/lib/powershell-destructive-command.js"
+        },
+        {
+          "id": "asset-6",
+          "path": "scripts/lib/shell-substitution.js"
+        },
+        {
+          "id": "license",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "supported",
+          "reason": "Generic Core 1.3 owned Claude settings group with a literal command; exact hook invocation has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Kiro hook translation is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Copilot hook translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "instructions": "Ensure node is available, apply to the project, then review/reload hooks in Claude Code. Only matching PreToolUse payloads receive this hook; invocation proof belongs to later client acceptance."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.hook.pre-compact",
+      "source": "ecc",
+      "label": "ecc.hook.pre-compact",
+      "description": "Save state before context compaction",
+      "kind": "hook",
+      "recipePath": "catalog-recipes/ecc.hook.pre-compact.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "scripts/hooks/run-with-flags.js"
+        },
+        {
+          "id": "asset-1",
+          "path": "scripts/hooks/pre-compact.js"
+        },
+        {
+          "id": "asset-2",
+          "path": "scripts/hooks/pretooluse-visible-output.js"
+        },
+        {
+          "id": "asset-3",
+          "path": "scripts/lib/agent-data-home.js"
+        },
+        {
+          "id": "asset-4",
+          "path": "scripts/lib/hook-flags.js"
+        },
+        {
+          "id": "asset-5",
+          "path": "scripts/lib/llm-summary.js"
+        },
+        {
+          "id": "asset-6",
+          "path": "scripts/lib/path-safety.js"
+        },
+        {
+          "id": "asset-7",
+          "path": "scripts/lib/transcript-context.js"
+        },
+        {
+          "id": "asset-8",
+          "path": "scripts/lib/utils.js"
+        },
+        {
+          "id": "license",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "supported",
+          "reason": "Generic Core 1.3 owned Claude settings group with a literal command; exact hook invocation has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Kiro hook translation is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Copilot hook translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "instructions": "Ensure node is available, apply to the project, then review/reload hooks in Claude Code. Only matching PreCompact payloads receive this hook; invocation proof belongs to later client acceptance."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.hook.session-start",
+      "source": "ecc",
+      "label": "ecc.hook.session-start",
+      "description": "Load previous context and detect package manager on new session",
+      "kind": "hook",
+      "recipePath": "catalog-recipes/ecc.hook.session-start.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "scripts/hooks/run-with-flags.js"
+        },
+        {
+          "id": "asset-1",
+          "path": "scripts/hooks/pretooluse-visible-output.js"
+        },
+        {
+          "id": "asset-2",
+          "path": "scripts/hooks/session-start-bootstrap.js"
+        },
+        {
+          "id": "asset-3",
+          "path": "scripts/hooks/session-start.js"
+        },
+        {
+          "id": "asset-4",
+          "path": "scripts/lib/agent-data-home.js"
+        },
+        {
+          "id": "asset-5",
+          "path": "scripts/lib/hook-flags.js"
+        },
+        {
+          "id": "asset-6",
+          "path": "scripts/lib/instinct-relevance.js"
+        },
+        {
+          "id": "asset-7",
+          "path": "scripts/lib/observer-sessions.js"
+        },
+        {
+          "id": "asset-8",
+          "path": "scripts/lib/package-manager.js"
+        },
+        {
+          "id": "asset-9",
+          "path": "scripts/lib/path-safety.js"
+        },
+        {
+          "id": "asset-10",
+          "path": "scripts/lib/project-detect.js"
+        },
+        {
+          "id": "asset-11",
+          "path": "scripts/lib/resolve-ecc-root.js"
+        },
+        {
+          "id": "asset-12",
+          "path": "scripts/lib/session-aliases.js"
+        },
+        {
+          "id": "asset-13",
+          "path": "scripts/lib/utils.js"
+        },
+        {
+          "id": "license",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "supported",
+          "reason": "Generic Core 1.3 owned Claude settings group with a literal command; exact hook invocation has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Kiro hook translation is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Copilot hook translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "instructions": "Ensure node is available, apply to the project, then review/reload hooks in Claude Code. Only matching SessionStart payloads receive this hook; invocation proof belongs to later client acceptance."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.hook.session-start-plan-canvas-sessions",
+      "source": "ecc",
+      "label": "ecc.hook.session-start-plan-canvas-sessions",
+      "description": "Surface open Plan Canvas review sessions so a fresh session can resume the loop",
+      "kind": "hook",
+      "recipePath": "catalog-recipes/ecc.hook.session-start-plan-canvas-sessions.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "scripts/hooks/run-with-flags.js"
+        },
+        {
+          "id": "asset-1",
+          "path": "scripts/hooks/plan-canvas-sessions.js"
+        },
+        {
+          "id": "asset-2",
+          "path": "scripts/hooks/pretooluse-visible-output.js"
+        },
+        {
+          "id": "asset-3",
+          "path": "scripts/lib/hook-flags.js"
+        },
+        {
+          "id": "license",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "supported",
+          "reason": "Generic Core 1.3 owned Claude settings group with a literal command; exact hook invocation has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Kiro hook translation is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Copilot hook translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "instructions": "Ensure node is available, apply to the project, then review/reload hooks in Claude Code. Only matching SessionStart payloads receive this hook; invocation proof belongs to later client acceptance."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.hook.post-dispatcher-sync",
+      "source": "ecc",
+      "label": "ecc.hook.post-dispatcher-sync",
+      "description": "Run synchronous PostToolUse hooks in one process while preserving per-hook controls",
+      "kind": "hook",
+      "recipePath": "catalog-recipes/ecc.hook.post-dispatcher-sync.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "scripts/hooks/posttooluse-dispatcher.js"
+        },
+        {
+          "id": "asset-1",
+          "path": "scripts/hooks/auto-tmux-dev.js"
+        },
+        {
+          "id": "asset-2",
+          "path": "scripts/hooks/bash-hook-dispatcher.js"
+        },
+        {
+          "id": "asset-3",
+          "path": "scripts/hooks/block-no-verify.js"
+        },
+        {
+          "id": "asset-4",
+          "path": "scripts/hooks/design-quality-check.js"
+        },
+        {
+          "id": "asset-5",
+          "path": "scripts/hooks/ecc-context-monitor.js"
+        },
+        {
+          "id": "asset-6",
+          "path": "scripts/hooks/ecc-metrics-bridge.js"
+        },
+        {
+          "id": "asset-7",
+          "path": "scripts/hooks/gateguard-fact-force.js"
+        },
+        {
+          "id": "asset-8",
+          "path": "scripts/hooks/gateguard-heredoc.js"
+        },
+        {
+          "id": "asset-9",
+          "path": "scripts/hooks/governance-capture.js"
+        },
+        {
+          "id": "asset-10",
+          "path": "scripts/hooks/observe-runner.js"
+        },
+        {
+          "id": "asset-11",
+          "path": "scripts/hooks/post-bash-build-complete.js"
+        },
+        {
+          "id": "asset-12",
+          "path": "scripts/hooks/post-bash-command-log.js"
+        },
+        {
+          "id": "asset-13",
+          "path": "scripts/hooks/post-bash-pr-created.js"
+        },
+        {
+          "id": "asset-14",
+          "path": "scripts/hooks/post-edit-accumulator.js"
+        },
+        {
+          "id": "asset-15",
+          "path": "scripts/hooks/post-edit-console-warn.js"
+        },
+        {
+          "id": "asset-16",
+          "path": "scripts/hooks/pre-bash-commit-quality.js"
+        },
+        {
+          "id": "asset-17",
+          "path": "scripts/hooks/pre-bash-git-push-reminder.js"
+        },
+        {
+          "id": "asset-18",
+          "path": "scripts/hooks/pre-bash-tmux-reminder.js"
+        },
+        {
+          "id": "asset-19",
+          "path": "scripts/hooks/pretooluse-visible-output.js"
+        },
+        {
+          "id": "asset-20",
+          "path": "scripts/hooks/quality-gate.js"
+        },
+        {
+          "id": "asset-21",
+          "path": "scripts/hooks/session-activity-tracker.js"
+        },
+        {
+          "id": "asset-22",
+          "path": "scripts/hooks/skill-run-tracker.js"
+        },
+        {
+          "id": "asset-23",
+          "path": "scripts/lib/agent-data-home.js"
+        },
+        {
+          "id": "asset-24",
+          "path": "scripts/lib/hook-flags.js"
+        },
+        {
+          "id": "asset-25",
+          "path": "scripts/lib/package-manager.js"
+        },
+        {
+          "id": "asset-26",
+          "path": "scripts/lib/path-safety.js"
+        },
+        {
+          "id": "asset-27",
+          "path": "scripts/lib/powershell-destructive-command.js"
+        },
+        {
+          "id": "asset-28",
+          "path": "scripts/lib/resolve-formatter.js"
+        },
+        {
+          "id": "asset-29",
+          "path": "scripts/lib/session-bridge.js"
+        },
+        {
+          "id": "asset-30",
+          "path": "scripts/lib/shell-substitution.js"
+        },
+        {
+          "id": "asset-31",
+          "path": "scripts/lib/skill-evolution/tracker.js"
+        },
+        {
+          "id": "asset-32",
+          "path": "scripts/lib/utils.js"
+        },
+        {
+          "id": "license",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "supported",
+          "reason": "Generic Core 1.3 owned Claude settings group with a literal command; exact hook invocation has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Kiro hook translation is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Copilot hook translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "instructions": "Ensure node is available, apply to the project, then review/reload hooks in Claude Code. Only matching PostToolUse payloads receive this hook; invocation proof belongs to later client acceptance."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.hook.post-dispatcher-async",
+      "source": "ecc",
+      "label": "ecc.hook.post-dispatcher-async",
+      "description": "Run background PostToolUse hooks in one process while preserving per-hook controls",
+      "kind": "hook",
+      "recipePath": "catalog-recipes/ecc.hook.post-dispatcher-async.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "scripts/hooks/posttooluse-dispatcher.js"
+        },
+        {
+          "id": "asset-1",
+          "path": "scripts/hooks/auto-tmux-dev.js"
+        },
+        {
+          "id": "asset-2",
+          "path": "scripts/hooks/bash-hook-dispatcher.js"
+        },
+        {
+          "id": "asset-3",
+          "path": "scripts/hooks/block-no-verify.js"
+        },
+        {
+          "id": "asset-4",
+          "path": "scripts/hooks/design-quality-check.js"
+        },
+        {
+          "id": "asset-5",
+          "path": "scripts/hooks/ecc-context-monitor.js"
+        },
+        {
+          "id": "asset-6",
+          "path": "scripts/hooks/ecc-metrics-bridge.js"
+        },
+        {
+          "id": "asset-7",
+          "path": "scripts/hooks/gateguard-fact-force.js"
+        },
+        {
+          "id": "asset-8",
+          "path": "scripts/hooks/gateguard-heredoc.js"
+        },
+        {
+          "id": "asset-9",
+          "path": "scripts/hooks/governance-capture.js"
+        },
+        {
+          "id": "asset-10",
+          "path": "scripts/hooks/observe-runner.js"
+        },
+        {
+          "id": "asset-11",
+          "path": "scripts/hooks/post-bash-build-complete.js"
+        },
+        {
+          "id": "asset-12",
+          "path": "scripts/hooks/post-bash-command-log.js"
+        },
+        {
+          "id": "asset-13",
+          "path": "scripts/hooks/post-bash-pr-created.js"
+        },
+        {
+          "id": "asset-14",
+          "path": "scripts/hooks/post-edit-accumulator.js"
+        },
+        {
+          "id": "asset-15",
+          "path": "scripts/hooks/post-edit-console-warn.js"
+        },
+        {
+          "id": "asset-16",
+          "path": "scripts/hooks/pre-bash-commit-quality.js"
+        },
+        {
+          "id": "asset-17",
+          "path": "scripts/hooks/pre-bash-git-push-reminder.js"
+        },
+        {
+          "id": "asset-18",
+          "path": "scripts/hooks/pre-bash-tmux-reminder.js"
+        },
+        {
+          "id": "asset-19",
+          "path": "scripts/hooks/pretooluse-visible-output.js"
+        },
+        {
+          "id": "asset-20",
+          "path": "scripts/hooks/quality-gate.js"
+        },
+        {
+          "id": "asset-21",
+          "path": "scripts/hooks/session-activity-tracker.js"
+        },
+        {
+          "id": "asset-22",
+          "path": "scripts/hooks/skill-run-tracker.js"
+        },
+        {
+          "id": "asset-23",
+          "path": "scripts/lib/agent-data-home.js"
+        },
+        {
+          "id": "asset-24",
+          "path": "scripts/lib/hook-flags.js"
+        },
+        {
+          "id": "asset-25",
+          "path": "scripts/lib/package-manager.js"
+        },
+        {
+          "id": "asset-26",
+          "path": "scripts/lib/path-safety.js"
+        },
+        {
+          "id": "asset-27",
+          "path": "scripts/lib/powershell-destructive-command.js"
+        },
+        {
+          "id": "asset-28",
+          "path": "scripts/lib/resolve-formatter.js"
+        },
+        {
+          "id": "asset-29",
+          "path": "scripts/lib/session-bridge.js"
+        },
+        {
+          "id": "asset-30",
+          "path": "scripts/lib/shell-substitution.js"
+        },
+        {
+          "id": "asset-31",
+          "path": "scripts/lib/skill-evolution/tracker.js"
+        },
+        {
+          "id": "asset-32",
+          "path": "scripts/lib/utils.js"
+        },
+        {
+          "id": "asset-33",
+          "path": "skills/continuous-learning-v2/agents/observer-loop.sh"
+        },
+        {
+          "id": "asset-34",
+          "path": "skills/continuous-learning-v2/agents/session-guardian.sh"
+        },
+        {
+          "id": "asset-35",
+          "path": "skills/continuous-learning-v2/agents/start-observer.sh"
+        },
+        {
+          "id": "asset-36",
+          "path": "skills/continuous-learning-v2/config.json"
+        },
+        {
+          "id": "asset-37",
+          "path": "skills/continuous-learning-v2/hooks/observe.sh"
+        },
+        {
+          "id": "asset-38",
+          "path": "skills/continuous-learning-v2/scripts/detect-project.sh"
+        },
+        {
+          "id": "asset-39",
+          "path": "skills/continuous-learning-v2/scripts/instinct-cli.py"
+        },
+        {
+          "id": "asset-40",
+          "path": "skills/continuous-learning-v2/scripts/lib/homunculus-dir.sh"
+        },
+        {
+          "id": "license",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "supported",
+          "reason": "Generic Core 1.3 owned Claude settings group with a literal command; exact hook invocation has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Kiro hook translation is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Copilot hook translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "instructions": "Ensure node is available, apply to the project, then review/reload hooks in Claude Code. Only matching PostToolUse payloads receive this hook; invocation proof belongs to later client acceptance."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.hook.post-mcp-health-check",
+      "source": "ecc",
+      "label": "ecc.hook.post-mcp-health-check",
+      "description": "Track failed MCP tool calls, mark unhealthy servers, and attempt reconnect",
+      "kind": "hook",
+      "recipePath": "catalog-recipes/ecc.hook.post-mcp-health-check.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "scripts/hooks/run-with-flags.js"
+        },
+        {
+          "id": "asset-1",
+          "path": "scripts/hooks/mcp-health-check.js"
+        },
+        {
+          "id": "asset-2",
+          "path": "scripts/hooks/pretooluse-visible-output.js"
+        },
+        {
+          "id": "asset-3",
+          "path": "scripts/lib/hook-flags.js"
+        },
+        {
+          "id": "license",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "supported",
+          "reason": "Generic Core 1.3 owned Claude settings group with a literal command; exact hook invocation has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Kiro hook translation is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Copilot hook translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "instructions": "Ensure node is available, apply to the project, then review/reload hooks in Claude Code. Only matching PostToolUseFailure payloads receive this hook; invocation proof belongs to later client acceptance."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.hook.post-skill-track",
+      "source": "ecc",
+      "label": "ecc.hook.post-skill-track",
+      "description": "Record hard Skill tool failures for skill-health telemetry",
+      "kind": "hook",
+      "recipePath": "catalog-recipes/ecc.hook.post-skill-track.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "scripts/hooks/run-with-flags.js"
+        },
+        {
+          "id": "asset-1",
+          "path": "scripts/hooks/pretooluse-visible-output.js"
+        },
+        {
+          "id": "asset-2",
+          "path": "scripts/hooks/skill-run-tracker.js"
+        },
+        {
+          "id": "asset-3",
+          "path": "scripts/lib/agent-data-home.js"
+        },
+        {
+          "id": "asset-4",
+          "path": "scripts/lib/hook-flags.js"
+        },
+        {
+          "id": "asset-5",
+          "path": "scripts/lib/path-safety.js"
+        },
+        {
+          "id": "asset-6",
+          "path": "scripts/lib/skill-evolution/tracker.js"
+        },
+        {
+          "id": "asset-7",
+          "path": "scripts/lib/utils.js"
+        },
+        {
+          "id": "license",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "supported",
+          "reason": "Generic Core 1.3 owned Claude settings group with a literal command; exact hook invocation has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Kiro hook translation is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Copilot hook translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "instructions": "Ensure node is available, apply to the project, then review/reload hooks in Claude Code. Only matching PostToolUseFailure payloads receive this hook; invocation proof belongs to later client acceptance."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.hook.stop-plan-canvas-pending",
+      "source": "ecc",
+      "label": "ecc.hook.stop-plan-canvas-pending",
+      "description": "Deliver undelivered Plan Canvas browser feedback before the agent stops",
+      "kind": "hook",
+      "recipePath": "catalog-recipes/ecc.hook.stop-plan-canvas-pending.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "scripts/hooks/run-with-flags.js"
+        },
+        {
+          "id": "asset-1",
+          "path": "scripts/hooks/plan-canvas-pending.js"
+        },
+        {
+          "id": "asset-2",
+          "path": "scripts/hooks/pretooluse-visible-output.js"
+        },
+        {
+          "id": "asset-3",
+          "path": "scripts/lib/hook-flags.js"
+        },
+        {
+          "id": "license",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "supported",
+          "reason": "Generic Core 1.3 owned Claude settings group with a literal command; exact hook invocation has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Kiro hook translation is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Copilot hook translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "instructions": "Ensure node is available, apply to the project, then review/reload hooks in Claude Code. Only matching Stop payloads receive this hook; invocation proof belongs to later client acceptance."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.hook.stop-format-typecheck",
+      "source": "ecc",
+      "label": "ecc.hook.stop-format-typecheck",
+      "description": "Batch format (Biome/Prettier) and typecheck (tsc) all JS/TS files edited this response — runs once at Stop instead of after every Edit",
+      "kind": "hook",
+      "recipePath": "catalog-recipes/ecc.hook.stop-format-typecheck.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "scripts/hooks/run-with-flags.js"
+        },
+        {
+          "id": "asset-1",
+          "path": "scripts/hooks/pretooluse-visible-output.js"
+        },
+        {
+          "id": "asset-2",
+          "path": "scripts/hooks/stop-format-typecheck.js"
+        },
+        {
+          "id": "asset-3",
+          "path": "scripts/lib/agent-data-home.js"
+        },
+        {
+          "id": "asset-4",
+          "path": "scripts/lib/hook-flags.js"
+        },
+        {
+          "id": "asset-5",
+          "path": "scripts/lib/package-manager.js"
+        },
+        {
+          "id": "asset-6",
+          "path": "scripts/lib/path-safety.js"
+        },
+        {
+          "id": "asset-7",
+          "path": "scripts/lib/resolve-formatter.js"
+        },
+        {
+          "id": "asset-8",
+          "path": "scripts/lib/utils.js"
+        },
+        {
+          "id": "license",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "supported",
+          "reason": "Generic Core 1.3 owned Claude settings group with a literal command; exact hook invocation has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Kiro hook translation is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Copilot hook translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "instructions": "Ensure node is available, apply to the project, then review/reload hooks in Claude Code. Only matching Stop payloads receive this hook; invocation proof belongs to later client acceptance."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.hook.stop-check-console-log",
+      "source": "ecc",
+      "label": "ecc.hook.stop-check-console-log",
+      "description": "Check for console.log in modified files after each response",
+      "kind": "hook",
+      "recipePath": "catalog-recipes/ecc.hook.stop-check-console-log.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "scripts/hooks/run-with-flags.js"
+        },
+        {
+          "id": "asset-1",
+          "path": "scripts/hooks/check-console-log.js"
+        },
+        {
+          "id": "asset-2",
+          "path": "scripts/hooks/pretooluse-visible-output.js"
+        },
+        {
+          "id": "asset-3",
+          "path": "scripts/lib/agent-data-home.js"
+        },
+        {
+          "id": "asset-4",
+          "path": "scripts/lib/hook-flags.js"
+        },
+        {
+          "id": "asset-5",
+          "path": "scripts/lib/path-safety.js"
+        },
+        {
+          "id": "asset-6",
+          "path": "scripts/lib/utils.js"
+        },
+        {
+          "id": "license",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "supported",
+          "reason": "Generic Core 1.3 owned Claude settings group with a literal command; exact hook invocation has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Kiro hook translation is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Copilot hook translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "instructions": "Ensure node is available, apply to the project, then review/reload hooks in Claude Code. Only matching Stop payloads receive this hook; invocation proof belongs to later client acceptance."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.hook.stop-session-end",
+      "source": "ecc",
+      "label": "ecc.hook.stop-session-end",
+      "description": "Persist session state after each response (Stop carries transcript_path)",
+      "kind": "hook",
+      "recipePath": "catalog-recipes/ecc.hook.stop-session-end.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "scripts/hooks/run-with-flags.js"
+        },
+        {
+          "id": "asset-1",
+          "path": "scripts/hooks/pretooluse-visible-output.js"
+        },
+        {
+          "id": "asset-2",
+          "path": "scripts/hooks/session-end.js"
+        },
+        {
+          "id": "asset-3",
+          "path": "scripts/lib/agent-data-home.js"
+        },
+        {
+          "id": "asset-4",
+          "path": "scripts/lib/hook-flags.js"
+        },
+        {
+          "id": "asset-5",
+          "path": "scripts/lib/llm-summary.js"
+        },
+        {
+          "id": "asset-6",
+          "path": "scripts/lib/path-safety.js"
+        },
+        {
+          "id": "asset-7",
+          "path": "scripts/lib/transcript-context.js"
+        },
+        {
+          "id": "asset-8",
+          "path": "scripts/lib/utils.js"
+        },
+        {
+          "id": "license",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "supported",
+          "reason": "Generic Core 1.3 owned Claude settings group with a literal command; exact hook invocation has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Kiro hook translation is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Copilot hook translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "instructions": "Ensure node is available, apply to the project, then review/reload hooks in Claude Code. Only matching Stop payloads receive this hook; invocation proof belongs to later client acceptance."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.hook.stop-evaluate-session",
+      "source": "ecc",
+      "label": "ecc.hook.stop-evaluate-session",
+      "description": "Evaluate session for extractable patterns",
+      "kind": "hook",
+      "recipePath": "catalog-recipes/ecc.hook.stop-evaluate-session.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "scripts/hooks/run-with-flags.js"
+        },
+        {
+          "id": "asset-1",
+          "path": "scripts/hooks/evaluate-session.js"
+        },
+        {
+          "id": "asset-2",
+          "path": "scripts/hooks/pretooluse-visible-output.js"
+        },
+        {
+          "id": "asset-3",
+          "path": "scripts/lib/agent-data-home.js"
+        },
+        {
+          "id": "asset-4",
+          "path": "scripts/lib/hook-flags.js"
+        },
+        {
+          "id": "asset-5",
+          "path": "scripts/lib/path-safety.js"
+        },
+        {
+          "id": "asset-6",
+          "path": "scripts/lib/utils.js"
+        },
+        {
+          "id": "asset-7",
+          "path": "skills/continuous-learning/config.json"
+        },
+        {
+          "id": "license",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "supported",
+          "reason": "Generic Core 1.3 owned Claude settings group with a literal command; exact hook invocation has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Kiro hook translation is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Copilot hook translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "instructions": "Ensure node is available, apply to the project, then review/reload hooks in Claude Code. Only matching Stop payloads receive this hook; invocation proof belongs to later client acceptance."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.hook.stop-cost-tracker",
+      "source": "ecc",
+      "label": "ecc.hook.stop-cost-tracker",
+      "description": "Track token and cost metrics per session",
+      "kind": "hook",
+      "recipePath": "catalog-recipes/ecc.hook.stop-cost-tracker.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "scripts/hooks/run-with-flags.js"
+        },
+        {
+          "id": "asset-1",
+          "path": "scripts/hooks/cost-tracker.js"
+        },
+        {
+          "id": "asset-2",
+          "path": "scripts/hooks/pretooluse-visible-output.js"
+        },
+        {
+          "id": "asset-3",
+          "path": "scripts/lib/agent-data-home.js"
+        },
+        {
+          "id": "asset-4",
+          "path": "scripts/lib/hook-flags.js"
+        },
+        {
+          "id": "asset-5",
+          "path": "scripts/lib/path-safety.js"
+        },
+        {
+          "id": "asset-6",
+          "path": "scripts/lib/session-bridge.js"
+        },
+        {
+          "id": "asset-7",
+          "path": "scripts/lib/utils.js"
+        },
+        {
+          "id": "license",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "supported",
+          "reason": "Generic Core 1.3 owned Claude settings group with a literal command; exact hook invocation has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Kiro hook translation is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Copilot hook translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "instructions": "Ensure node is available, apply to the project, then review/reload hooks in Claude Code. Only matching Stop payloads receive this hook; invocation proof belongs to later client acceptance."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.hook.stop-desktop-notify",
+      "source": "ecc",
+      "label": "ecc.hook.stop-desktop-notify",
+      "description": "Send desktop notification (macOS/WSL) with task summary when Claude responds",
+      "kind": "hook",
+      "recipePath": "catalog-recipes/ecc.hook.stop-desktop-notify.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "scripts/hooks/run-with-flags.js"
+        },
+        {
+          "id": "asset-1",
+          "path": "scripts/hooks/desktop-notify.js"
+        },
+        {
+          "id": "asset-2",
+          "path": "scripts/hooks/pretooluse-visible-output.js"
+        },
+        {
+          "id": "asset-3",
+          "path": "scripts/lib/agent-data-home.js"
+        },
+        {
+          "id": "asset-4",
+          "path": "scripts/lib/hook-flags.js"
+        },
+        {
+          "id": "asset-5",
+          "path": "scripts/lib/path-safety.js"
+        },
+        {
+          "id": "asset-6",
+          "path": "scripts/lib/utils.js"
+        },
+        {
+          "id": "license",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "supported",
+          "reason": "Generic Core 1.3 owned Claude settings group with a literal command; exact hook invocation has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Kiro hook translation is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Copilot hook translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "instructions": "Ensure node is available, apply to the project, then review/reload hooks in Claude Code. Only matching Stop payloads receive this hook; invocation proof belongs to later client acceptance."
+        }
+      ],
+      "configuration": {}
+    },
+    {
+      "id": "ecc.hook.session-end-marker",
+      "source": "ecc",
+      "label": "ecc.hook.session-end-marker",
+      "description": "Session end lifecycle marker (non-blocking)",
+      "kind": "hook",
+      "recipePath": "catalog-recipes/ecc.hook.session-end-marker.json",
+      "materials": [
+        {
+          "id": "asset-0",
+          "path": "scripts/hooks/run-with-flags.js"
+        },
+        {
+          "id": "asset-1",
+          "path": "scripts/hooks/pretooluse-visible-output.js"
+        },
+        {
+          "id": "asset-2",
+          "path": "scripts/hooks/session-end-marker.js"
+        },
+        {
+          "id": "asset-3",
+          "path": "scripts/lib/agent-data-home.js"
+        },
+        {
+          "id": "asset-4",
+          "path": "scripts/lib/hook-flags.js"
+        },
+        {
+          "id": "asset-5",
+          "path": "scripts/lib/observer-sessions.js"
+        },
+        {
+          "id": "asset-6",
+          "path": "scripts/lib/path-safety.js"
+        },
+        {
+          "id": "asset-7",
+          "path": "scripts/lib/utils.js"
+        },
+        {
+          "id": "license",
+          "path": "LICENSE"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "ecc.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "supported",
+          "reason": "Generic Core 1.3 owned Claude settings group with a literal command; exact hook invocation has not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Kiro hook translation is offered."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "hooks/settings",
+          "capability": "automatic-hook-activation",
+          "support": "unsupported",
+          "reason": "Claude Code hook protocol only; no Copilot hook translation is offered."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/settings.json",
+          "instructions": "Ensure node is available, apply to the project, then review/reload hooks in Claude Code. Only matching SessionEnd payloads receive this hook; invocation proof belongs to later client acceptance."
         }
       ],
       "configuration": {}

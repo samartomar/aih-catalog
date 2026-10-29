@@ -470,7 +470,7 @@ for (const [version, id, context] of [
     { id: "rules-python", name: "Python rules", description: "ECC rules/python.", offer: "listed",
       members: rules("python").map(itemId => ({ item: { framework: "ecc", itemId }, optional: false, defaultOn: true })) },
     { id: "developer", name: "Developer profile", description: "ECC-style profile with a language choice.", offer: "pre-ticked",
-      members: [], options: [{ id: "languages", name: "Languages and frameworks", always: [ref("rules-common")],
+      members: [], options: [{ id: "languages", name: "Languages and frameworks", multiple: true, always: [ref("rules-common")],
         choices: [{ id: "typescript", name: "TypeScript", sets: [ref("rules-typescript")] },
           { id: "python", name: "Python", sets: [ref("rules-python")] }] }] },
   ]);
@@ -520,7 +520,7 @@ for (const [version, id, context] of [
   const vectors = [
     vector("reviewed-tdd", contexts.superpowers, valid, "reviewed-tdd"),
     vector("reviewed-tdd-display-only", contexts.superpowers,
-      buildSets(superpowersRelease, [reviewedTdd({ name: "Renamed", description: "Reworded.", cost: { bytes: 1, chars: 1 }, stability: "deprecated" })]), "reviewed-tdd"),
+      buildSets(superpowersRelease, [reviewedTdd({ name: "Renamed", description: "Reworded.", cost: "heavy", stability: "beta" })]), "reviewed-tdd"),
     vector("reviewed-tdd-behaviour-only", contexts.variant, buildSets(variantRelease, [reviewedTdd()]), "reviewed-tdd"),
     vector("reviewed-tdd-cross-pin-changed", contexts.superpowers, buildSets(superpowersRelease, [pinChanged]), "reviewed-tdd"),
     vector("starter", contexts.superpowers, outer(false), "starter"),
@@ -673,6 +673,10 @@ for (const [version, id, context] of [
   };
   const MATT = "https://github.com/mattpocock/skills";
   const EXT = "https://github.com/samartomar/aih-extensions";
+  // Whether the model may start a skill is its author's disable-model-invocation flag.
+  const invocationOf = (text) => /^disable-model-invocation:\s*true\s*$/m.test(/^---\r?\n([\s\S]*?)\r?\n---/.exec(text)?.[1] ?? "")
+    ? { invocation: "user-only", invocationBasis: "frontmatter: disable-model-invocation: true" }
+    : { invocation: "model-allowed", invocationBasis: "frontmatter: disable-model-invocation absent" };
   const extensionsSource = read("release/release-extensions.json");
   const tools = [["", "claude-code"], ["kiro.", "kiro-ide"], ["copilot.", "copilot-vscode"]];
   const skills = ["grill-me", "grilling"];
@@ -681,7 +685,7 @@ for (const [version, id, context] of [
     ["extensions.notices", ...skills.flatMap((skill) => tools.map(([tool]) => `extensions.${tool}matt.${skill}`))],
     (item) => item.kind === "skill"
       ? { root: sourcePathOf(item.materials.find((m) => m.path.endsWith("/SKILL.md")).path).replace(/\/SKILL\.md$/, ""),
-          payload: { dirName: item.label, invocation: "model-allowed", invocationBasis: "default" },
+          payload: { dirName: item.label, ...invocationOf(readFileSync(resolve(root, item.materials.find((m) => m.path.endsWith("/SKILL.md")).path), "utf8")) },
           source: MATT, selectedBy: EXT }
       : { source: EXT });
   const read16 = (document) => {

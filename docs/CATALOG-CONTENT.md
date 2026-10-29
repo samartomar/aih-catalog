@@ -51,7 +51,7 @@ The inventory is discovery data, not a selection. Acquisition still names one re
 | `./release-1.1.json` | hook | supported | 1.1.0 |
 | `./release-guide.json` | content | supported | 1.0.0 |
 | `./release-extensions.json` | content | supported | 1.2.0 |
-| `./release-ecc.json` | content | supported | 1.0.0 |
+| `./release-ecc.json` | content | supported | 1.2.0 |
 | `./release-superpowers.json` | content | supported | 1.2.0 |
 | `./release-anthropic.json` | content | supported | 1.0.0 |
 | `./release-native-fixture.json` | native-fixture | test-scope | 1.0.0 |
@@ -214,6 +214,33 @@ content once. A tool appears only as a display hint.
   become sets, and client adapters and pointers retire.
 - **Every item** carries `role: choosable | supporting` (presentation only), `name`,
   `source`, its behaviour file and both identities. `clientId` is gone.
+- **The two identities, exactly.** `contentSha256` is SHA-256 over the UTF-8 lines
+  `relPath<TAB>sha256<LF>` of the content materials, sorted bytewise.
+  `behaviourSha256` is SHA-256 over the canonical JSON (keys sorted, no whitespace) of
+  `{ kind, payload, requirements, dependencies, materials, executable }`, where
+  `materials` is that exact content-identity text and `dependencies` lists `requires`,
+  `optional` and `conflicts`. The behaviour file `aih-behaviour.json` (the same object
+  without `materials`, as canonical JSON plus LF) stays a material, so Scan and Core
+  read the declared behaviour as bytes. The reader recomputes both and refuses a
+  mismatch. Release 1.6 keeps its own `behaviourSha256` over every material line,
+  the behaviour file included. Release 1.7 keeps
+  executable states `true | false | "unknown"` where a pin records no file mode; the
+  contract's boolean form arrives with release 2.0.
+- **Provenance:** `provenance: { source, selectedBy?, derivedFrom }` names hops
+  `{ sourceId, path, revision, license }` (the selection omits `license`, a modified
+  hop adds `ancestry: verified | declared`). Every hop names a release source at that
+  source's pin and SPDX licence; content its own publisher authored names the
+  framework version as its revision. `verified` needs per-material upstream proof.
+- **Sizes:** each material carries `size: { bytes, chars, tokens, status }` (`chars`
+  are Unicode code points of UTF-8 text, `null` with `status: "not-text"` otherwise;
+  `tokens` stays empty until a tokenizer is chosen), and each item `size: { parts:
+  { part, bytes, chars }[], tokens }` over its name, description, Markdown frontmatter
+  and body, and other files. Sizes are estimates of text, never usage.
+- **Hooks:** the payload is `{ event, matcher?, protocol, timeoutSec?, async?, command:
+  { interpreter | program, script, args? } }`. As Core renders it, a hook names its
+  interpreter or a program given its script as a material argument, never both or
+  neither, and its materials never include a hook registration file (`hooks.json`,
+  `.claude-plugin/`, a Claude settings file); the reader refuses otherwise.
 - **Recipes:** an item carries `recipe` or, during the transition, `recipes: {
   [clientId]: entry }` with the recipes of the tool variants it replaced. Each entry is
   a recipe descriptor plus the ascending content material ids and input names that
@@ -231,12 +258,15 @@ content once. A tool appears only as a display hint.
   }[] }` are sorted, never name a live item, and are carried unchanged by later
   releases.
 - **Declarations only:** `fallback` and `variantOf` name another item of the release;
-  `hints.tools` lists client ids. They never affect `contentSha256`,
+  `hints.tools` lists client ids, only for content written for one tool (a hook's
+  protocol, ECC's Kiro edition), never a tool-neutral item's recipe keys. They never affect `contentSha256`,
   `behaviourSha256` or tool binding, but stay inside `itemSha256` and the content
   inventory. Agents and commands never carry a fallback.
 - **Cross-release references** carry `contentSha256` and `behaviourSha256` beside
   `itemSha256`; resolution compares all three.
-- **Sets** are embedded in the release and checked as release sets 1.0 are.
+- **Sets** are embedded in the release and checked as release sets 1.0 are. A set
+  is never empty; `cost` and `stability` are the upstream's own words, and an option
+  says whether several choices may be picked (`multiple`).
 
 Content inventory and `release-content` projection 1.2.0 describe release 1.7.0.
 Readers older than 1.7.0 refuse the whole format with `SCHEMA_UNSUPPORTED` and keep

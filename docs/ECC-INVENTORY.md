@@ -8,11 +8,11 @@ Revision: 5064474d4d762dc9640234a41617cccb79185cec
 
 Complete Git tree: 9d448bb479cc1af55c488357556ac24d8cd932d2
 
-All 3538 regular source files have one disposition: 810 supported material files and 2728 files without an installation recipe. Supported material means exact file delivery, not native execution. Each unsupported row names a reason and the Catalog ECC adapter maintainer as owner.
+All 3538 regular source files have one disposition: 868 supported material files and 2670 files without an installation recipe. Supported material means exact file delivery, not native execution. Each unsupported row names a reason and the Catalog ECC adapter maintainer as owner.
 
 The independent historical donor has 442 assets: 356 mapped to declarations and 86 explicitly unsupported aggregate/runtime assets. It is not the current delivered-item count.
 
-The 701 declarations comprise 145 instruction, 322 skill, 68 agent, 94 command, 71 mcp, 1 template. Raw original bytes and Catalog recipes remain separate.
+The 725 declarations comprise 145 instruction, 322 skill, 68 agent, 94 command, 71 mcp, 1 template, 24 hook. Raw original bytes and Catalog recipes remain separate.
 
 Full file paths, Git blob identities, modes, SHA-256 digests, lengths, notices, per-file owners/reasons, donor mappings and item facts are in [inventory.json](../producer/ecc/inventory.json). The supported original bytes are in [snapshot.json](../producer/ecc/snapshot.json); all selectable contracts are in [declaration.json](../producer/ecc/declaration.json). [Content guidance](ECC-CONTENT.md) explains client/prerequisite and distribution limits.
 
@@ -721,3 +721,27 @@ Full file paths, Git blob identities, modes, SHA-256 digests, lengths, notices, 
 | ecc.codex.mcp.evalview | mcp | 2 |
 | ecc.codex.mcp.squish | mcp | 2 |
 | ecc.template.api-review | template | 1 |
+| ecc.hook.pre-bash-dispatcher | hook | 17 |
+| ecc.hook.pre-powershell-gateguard-fact-force | hook | 8 |
+| ecc.hook.pre-write-doc-file-warning | hook | 5 |
+| ecc.hook.pre-edit-write-suggest-compact | hook | 9 |
+| ecc.hook.pre-observe-continuous-learning | hook | 13 |
+| ecc.hook.pre-governance-capture | hook | 9 |
+| ecc.hook.pre-config-protection | hook | 5 |
+| ecc.hook.pre-mcp-health-check | hook | 5 |
+| ecc.hook.pre-edit-write-gateguard-fact-force | hook | 8 |
+| ecc.hook.pre-compact | hook | 10 |
+| ecc.hook.session-start | hook | 15 |
+| ecc.hook.session-start-plan-canvas-sessions | hook | 5 |
+| ecc.hook.post-dispatcher-sync | hook | 34 |
+| ecc.hook.post-dispatcher-async | hook | 42 |
+| ecc.hook.post-mcp-health-check | hook | 5 |
+| ecc.hook.post-skill-track | hook | 9 |
+| ecc.hook.stop-plan-canvas-pending | hook | 5 |
+| ecc.hook.stop-format-typecheck | hook | 10 |
+| ecc.hook.stop-check-console-log | hook | 8 |
+| ecc.hook.stop-session-end | hook | 10 |
+| ecc.hook.stop-evaluate-session | hook | 9 |
+| ecc.hook.stop-cost-tracker | hook | 9 |
+| ecc.hook.stop-desktop-notify | hook | 8 |
+| ecc.hook.session-end-marker | hook | 9 |

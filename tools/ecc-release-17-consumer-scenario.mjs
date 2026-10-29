@@ -1,7 +1,7 @@
 // Copied into an outside consumer; only public package interfaces are imported.
 // ECC release 1.7.0 content: the framework identity, ECC's install modules and
 // profiles as sets, the one languages-and-frameworks option, the always-included
-// common rules, optional hooks, the TypeScript and Python closure with its origins,
+// common rules, ECC's 24 hooks optional and never pre-ticked, the TypeScript and Python closure with its origins,
 // the collapsed MCP servers with their notice and distinct behaviour identities,
 // the identity and retirement mapping of every earlier ECC item, the Kiro edition's
 // own set, namespaces, hints, variants and steering inclusion, the restructuring
@@ -52,7 +52,6 @@ const groups = release.metadata.eccInstallGroups;
 const modules = Object.entries(groups.modules);
 const profiles = Object.entries(groups.profiles);
 const TARGETS = { claude: "claude-code", "claude-project": "claude-code", codex: "codex" };
-const STABILITY = { stable: "stable", beta: "in-progress", experimental: "in-progress" };
 const KIRO_SET = "ecc.edition.kiro";
 const kiroEdition = release.items.filter((entry) => entry.payload.namespace === "kiro");
 const contentOf = (entry) => entry.materials.filter((material) => material.role === "content");
@@ -148,17 +147,24 @@ await case_("the release is ECC release format 1.7.0 with its published framewor
   assert.equal(release.sources[0].license, "MIT");
 });
 
-await case_("each ECC module is a set with its upstream dependencies, narrowing targets, default and stability", () => {
+await case_("each ECC module with content is a set with its upstream dependencies, narrowing targets, default and own words", () => {
   assert.equal(modules.length, 36);
+  // A module whose pinned paths give no item is not a set, and says why.
+  const omitted = new Set(Object.keys(groups.omittedModules).map((id) => `ecc.module.${id}`));
+  assert.equal(omitted.size, 11);
   for (const [setId, words] of modules) {
     const module = set(setId);
+    if (omitted.has(setId)) {
+      assert.equal(module, undefined, setId);
+      continue;
+    }
     assert.ok(module, setId);
-    assert.deepEqual((module.requires ?? []).map((ref) => ref.setId), words.dependencies.map((id) => `ecc.module.${id}`), setId);
+    assert.deepEqual((module.requires ?? []).map((ref) => ref.setId), words.dependencies.map((id) => `ecc.module.${id}`).filter((id) => !omitted.has(id)), setId);
     assert.equal(module.optional, undefined, setId);
     assert.deepEqual(module.targets, [...new Set(words.targets.map((target) => TARGETS[target] ?? target))].sort(), setId);
     assert.equal(module.offer, words.defaultInstall ? "pre-ticked" : "listed", setId);
-    assert.equal(module.stability, STABILITY[words.stability], setId);
-    assert.ok(["light", "medium", "heavy"].includes(words.cost), setId);
+    assert.equal(module.stability, words.stability, setId);
+    assert.equal(module.cost, words.cost, setId);
   }
   // The upstream's own words come from the pinned install manifests named by digest.
   assert.deepEqual(groups.manifests.map((entry) => entry.path).sort(), ["manifests/install-components.json", "manifests/install-modules.json", "manifests/install-profiles.json"]);
@@ -172,7 +178,7 @@ await case_("each ECC profile is a set whose includes list its module sets", () 
   for (const [setId, words] of profiles) {
     const profile = set(setId);
     assert.deepEqual(profile.members, [], setId);
-    assert.deepEqual(profile.includes.map((ref) => ref.setId), words.modules.map((id) => `ecc.module.${id}`), setId);
+    assert.deepEqual(profile.includes.map((ref) => ref.setId), words.modules.filter((id) => !Object.hasOwn(groups.omittedModules, id)).map((id) => `ecc.module.${id}`), setId);
   }
 });
 
@@ -185,6 +191,7 @@ await case_("languages and frameworks are one pick-several option mapping to ECC
     assert.deepEqual(entry.options[0], option);
   }
   assert.equal(option.id, "languages");
+  assert.equal(option.multiple, true);
   const typescript = option.choices.find((choice) => choice.id === "typescript");
   assert.deepEqual(typescript.sets.map((ref) => ref.setId), ["ecc.rules.typescript", "ecc.module.framework-language"]);
   assert.deepEqual(option.choices.find((choice) => choice.id === "go").sets.map((ref) => ref.setId), ["ecc.rules.golang", "ecc.module.framework-language"]);
@@ -208,17 +215,19 @@ await case_("rules/common is always included with no choice made, and rules keep
   assert.equal(item("ecc.rule.common.coding-style").payload.namespace, "common");
 });
 
-await case_("every hook member of every ECC set is optional", () => {
+await case_("every hook member of every ECC set is optional and never pre-ticked", () => {
   let hooks = 0;
   for (const entry of release.sets)
     for (const candidate of entry.members)
       if (item(candidate.item.itemId)?.kind === "hook") {
         hooks++;
         assert.equal(candidate.optional, true, `${entry.id}: ${candidate.item.itemId}`);
+        assert.equal(candidate.defaultOn, false, `${entry.id}: ${candidate.item.itemId}`);
       }
-  // The pinned ECC hook runtime has no admitted hook item, so its module set has no members.
-  assert.equal(hooks, release.items.filter((entry) => entry.kind === "hook").length);
-  assert.deepEqual(set("ecc.module.hooks-runtime").members, []);
+  // ECC's 24 upstream hooks are the members of its hook runtime module.
+  assert.equal(hooks, 24);
+  assert.equal(release.items.filter((entry) => entry.kind === "hook").length, 24);
+  assert.equal(set("ecc.module.hooks-runtime").members.length, 24);
 });
 
 await case_("a profile with TypeScript and Python resolves to exactly those rule modules plus the common rules", () => {
@@ -359,7 +368,8 @@ await case_("Kiro-edition items are namespaced kiro, hinted for Kiro and unique 
   assert.equal(skills.length, 43);
   assert.equal(kiroEdition.filter((entry) => entry.kind === "rule").length, 22);
   for (const entry of kiroEdition) assert.deepEqual(entry.hints, { tools: ["kiro"] }, entry.id);
-  assert.ok(release.items.filter((entry) => entry.payload.namespace !== "kiro").every((entry) => entry.hints === undefined));
+  // Outside the Kiro edition only hooks carry a hint: written for Claude Code's hook protocol.
+  assert.ok(release.items.filter((entry) => entry.payload.namespace !== "kiro").every((entry) => entry.kind === "hook" ? entry.hints.tools.join() === "claude-code" : entry.hints === undefined));
   const keys = release.items.map((entry) => `${entry.kind}\t${entry.payload.namespace ?? ""}\t${entry.name.toLowerCase()}`);
   assert.equal(new Set(keys).size, keys.length);
 });
@@ -430,8 +440,8 @@ await case_("the installed internal reader reads ECC with the Kiro set, unbound 
 await case_("the restructuring comparison against the amended expectation passes for ECC", () => {
   const result = compareRestructuring({ release, expectation: json("restructuring/expected-1.7.0.json") });
   assert.equal(result.status, "pass", JSON.stringify(result.rows.filter((row) => row.status === "fail").slice(0, 5)));
-  assert.deepEqual(result.counts.item, { pass: 665, fail: 0 });
-  assert.deepEqual(result.counts.hash, { pass: 665, fail: 0 });
+  assert.deepEqual(result.counts.item, { pass: 689, fail: 0 });
+  assert.deepEqual(result.counts.hash, { pass: 689, fail: 0 });
   assert.deepEqual(result.counts["mcp-pair"], { pass: 34, fail: 0 });
   assert.deepEqual(result.counts.edits, { pass: 37, fail: 0 });
   // Every Kiro-edition item, its identity and its renaming are checked rows.

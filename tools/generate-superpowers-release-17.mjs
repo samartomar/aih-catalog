@@ -14,7 +14,7 @@ import assert from "node:assert/strict";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { computeBehaviourIdentity } from "../dist/release/document.js";
+import { computeBehaviourIdentity, isHookRegistrationPath } from "../dist/release/document.js";
 import { canonicalJson } from "../dist/release/json.js";
 import { compileTransitionRelease } from "../dist/release/producer.js";
 import { createContentInventory, readRelease, readReleaseContent } from "../dist/release/reader.js";
@@ -191,18 +191,34 @@ export function buildSuperpowers17() {
     const material = folded.materials.find((member) => sourcePathOf(member, revision) === sourcePath);
     return foldedRecipe.operations.find((operation) => operation.material === material.id).id;
   };
+  // Registration files are not hook material: the payload is the registration.
+  const registrationIds = new Set(folded.materials.filter((member) => isHookRegistrationPath(sourcePathOf(member, revision))).map((member) => member.id));
+  const registrationWrites = foldedRecipe.operations.filter((operation) => registrationIds.has(operation.material));
+  const droppedChecks = new Set(registrationWrites.flatMap((operation) => operation.checks));
+  // The literal command, as Core renders the payload with {pluginRoot} set to the item's
+  // folder: bash runs the installed run-hook.cmd with its argument.
+  const installed = (sourcePath) => foldedRecipe.operations.find((operation) => operation.id === writeOf(sourcePath)).target.segments.map((segment) => segment.literal).join("/");
+  const pluginRoot = installed("hooks/run-hook.cmd").slice(0, -"/hooks/run-hook.cmd".length);
+  const command = `CLAUDE_PLUGIN_ROOT="\${CLAUDE_PROJECT_DIR}/${pluginRoot}" bash "\${CLAUDE_PROJECT_DIR}/${installed("hooks/run-hook.cmd")}" "session-start"`;
+  const { groupBindings: _bound, ...literal } = register;
+  const group = structuredClone(literal.group);
+  for (const entry of group.literal.hooks) entry.command = command;
   const recipe = {
     ...hookRecipe,
     id: data.hook.id,
-    description: "Deliver the pinned Superpowers bootstrap files and register its SessionStart group with a caller-reviewed command.",
-    materials: foldedRecipe.materials,
-    operations: [...foldedRecipe.operations, { ...register, requires: [writeOf("hooks/run-hook.cmd"), writeOf("hooks/session-start")] }],
-    checks: foldedRecipe.checks,
+    description: "Deliver the pinned Superpowers bootstrap files and register its SessionStart group with the literal bash command.",
+    inputs: {},
+    materials: foldedRecipe.materials.filter((member) => !registrationIds.has(member.id)),
+    operations: [
+      ...foldedRecipe.operations.filter((operation) => !registrationWrites.includes(operation)),
+      { ...literal, group, selector: { path: ["hooks", 0, "command"], value: command }, requires: [writeOf("hooks/run-hook.cmd"), writeOf("hooks/session-start")] },
+    ],
+    checks: foldedRecipe.checks.filter((check) => !droppedChecks.has(check.id)),
   };
   const recipeBytes = bytesOf(recipe);
   outputs.set(recipePath(data.hook.id), { bytes: recipeBytes });
   const descriptor = (id, value, bytes) => ({ id, schema: value.schema, path: recipePath(id), sha256: sha256Hex(bytes), byteLength: bytes.byteLength });
-  copies.push(project({ ...hookCopy, label: data.hook.name }, {
+  copies.push(project({ ...hookCopy, label: data.hook.name, inputs: {} }, {
     relPath: (path) => path,
     materials: folded.materials,
     dependencies: folded.dependencies,
@@ -280,7 +296,6 @@ export function buildSuperpowers17() {
         descriptionBasis: facts.description.basis,
         payload: { dirName: name, ...skillInvocation(skillMd(name)) },
         copies: TOOLS.map(([prefix, clientId]) => ({ releaseSha256: copyRelease, itemId: `${prefix}${name}`, clientId })),
-        hints: { tools: TOOLS.map(([, clientId]) => clientId).sort(compare) },
       };
     }),
     {
@@ -307,6 +322,7 @@ export function buildSuperpowers17() {
       // The folded source's bytes reappear in the hook, which names it by name and path.
       supersedes: [{ match: "name+sourcePath", releaseSha256: earlier.release.sha256, itemId: folded.id, itemSha256: earlier.release.items.find((entry) => entry.id === folded.id).itemSha256, name: data.hook.name, sourcePath: hookSourcePath }],
       fallback: { itemId: rule.id },
+      withoutMaterials: folded.materials.filter((member) => registrationIds.has(member.id)).map((member) => sourcePathOf(member, revision)).sort(compare),
       hints: { tools: ["claude-code"] },
     },
     {
@@ -335,7 +351,7 @@ export function buildSuperpowers17() {
     description: data.set.description,
     offer: data.set.offer,
     // Upstream's plugin groups every skill with the bootstrap; each may be left out.
-    // The bootstrap needs a caller-reviewed command, so it is offered and never pre-ticked.
+    // Every hook is optional and never pre-ticked.
     members: [
       ...skills.map((name) => ({ item: { framework: framework.id, itemId: `superpowers.skill.${name}` }, optional: true, defaultOn: true })),
       { item: { framework: framework.id, itemId: data.hook.id }, optional: true, defaultOn: false },
@@ -350,6 +366,7 @@ export function buildSuperpowers17() {
     retired,
     sets,
     nativeRoutes: nativeRoutes(data.nativeRoutes, readme),
+    readMaterial: (packagePath) => outputs.get(packagePath)?.bytes ?? new Uint8Array(readFileSync(resolve(root, packagePath))),
   });
   assert.equal(compiled.status, "ok", JSON.stringify(compiled.diagnostics));
   for (const file of compiled.value.materials) outputs.set(file.path, { bytes: file.bytes });

@@ -42,6 +42,13 @@ with its reason:
   hash or by name and source path, and retired with their replacement; templates and
   frameworks become sets.
 - **folded-hook-sources:** hook sources fold into hook items named by their migration.
+- **hook-registration-materials:** hook items leave out hook registration files, so
+  the Extensions hooks and the Superpowers bootstrap are predicted without them.
+- **matt-buckets:** the ten skills of Matt's pinned in-progress and misc buckets join
+  the 27 plugin skills; their identities, copy supersessions and retirements come from
+  the accepted Extensions build.
+- **ecc-hooks:** ECC's 24 upstream hooks are items, each predicted from its reviewed
+  run-time closure and the pinned ledger digests.
 - **superpowers-retirements** and **superpowers-bootstrap-fallback:** the 9 plugin
   bundles and the duplicate library retire; the bootstrap hook's fallback is the rule
   `superpowers.rule.session-bootstrap` (samartomar/aih-catalog#144), predicted from its

@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- Bring the prepared release 1.7.0 contents into line with the Catalog contract in one
+  regeneration (samartomar/aih-catalog#136, #144, #145, #146, #134). Hooks: the reader
+  refuses a hook naming both an interpreter and a program, a program not given its
+  script as a material argument, a hook with neither, and a hook registration file as
+  hook material, as Core renders hooks; the payload gains optional `async`. The
+  Extensions hooks run `interpreter: "node"` and the Superpowers bootstrap keeps
+  `bash`. They drop `hooks/hooks.json` and the `.claude-plugin/` manifests, and their
+  legacy recipes register the literal command, so no hook needs a `hookCommand` input.
+  ECC's 24 upstream Claude Code hooks are optional, never pre-ticked items in
+  `ecc.module.hooks-runtime`, each with its reviewed run-time closure (58 more pinned
+  files admitted). Sets: Matt's in-progress (7) and misc (3) skills are admitted, so
+  each bucket set holds its pinned skills. `specialists` and `deprecated` hold none at
+  the pin and are not sets. ECC sets copy upstream's `cost` and `stability` words.
+  `languages` is `multiple: true`. The 11 ECC modules with no item are left out with
+  recorded reasons, and no set may be empty. `behaviourSha256` is the contract's
+  canonical-JSON encoding. Every material and item carries measured sizes, provenance
+  is hops `{ sourceId, path, revision, license }` in place of URL `selectedBy`, and
+  tool hints mark only content written for one tool.
 - Refresh the Extensions content to aih-extensions `2481164a` and the Matt companion
   to `59db609e`, the Matt revision Extensions pins (samartomar/aih-catalog#145).
   Before this, they were pinned at `79f016c2` and `d81f3a18`. The 1.2

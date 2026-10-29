@@ -1926,7 +1926,37 @@
         "extensions.copilot.matt.teach",
         "extensions.copilot.matt.to-questionnaire",
         "extensions.copilot.matt.wait-what",
-        "extensions.copilot.matt.writing-for-agents"
+        "extensions.copilot.matt.writing-for-agents",
+        "extensions.matt.chief-of-staff",
+        "extensions.kiro.matt.chief-of-staff",
+        "extensions.copilot.matt.chief-of-staff",
+        "extensions.matt.claude-handoff",
+        "extensions.kiro.matt.claude-handoff",
+        "extensions.copilot.matt.claude-handoff",
+        "extensions.matt.loop-me",
+        "extensions.kiro.matt.loop-me",
+        "extensions.copilot.matt.loop-me",
+        "extensions.matt.setup-ts-deep-modules",
+        "extensions.kiro.matt.setup-ts-deep-modules",
+        "extensions.copilot.matt.setup-ts-deep-modules",
+        "extensions.matt.writing-beats",
+        "extensions.kiro.matt.writing-beats",
+        "extensions.copilot.matt.writing-beats",
+        "extensions.matt.writing-fragments",
+        "extensions.kiro.matt.writing-fragments",
+        "extensions.copilot.matt.writing-fragments",
+        "extensions.matt.writing-shape",
+        "extensions.kiro.matt.writing-shape",
+        "extensions.copilot.matt.writing-shape",
+        "extensions.matt.git-guardrails-claude-code",
+        "extensions.kiro.matt.git-guardrails-claude-code",
+        "extensions.copilot.matt.git-guardrails-claude-code",
+        "extensions.matt.migrate-to-shoehorn",
+        "extensions.kiro.matt.migrate-to-shoehorn",
+        "extensions.copilot.matt.migrate-to-shoehorn",
+        "extensions.matt.scaffold-exercises",
+        "extensions.kiro.matt.scaffold-exercises",
+        "extensions.copilot.matt.scaffold-exercises"
       ]
     },
     {
@@ -3044,6 +3074,314 @@
       "disposition": "unsupported-installation",
       "reason": "Claude marketplace/plugin discovery metadata: retained as provenance. Catalog installs granular project content and owned hook groups; it does not register this upstream plugin or execute marketplace installation.",
       "items": []
+    },
+    {
+      "source": "matt",
+      "revision": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "path": "skills/in-progress/chief-of-staff/SKILL.md",
+      "sha256": "a187d9e36e65373d2d1f469790858dd57d6eb72b6ea16932df9c40616ac9f720",
+      "byteLength": 3816,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.chief-of-staff",
+        "extensions.kiro.matt.chief-of-staff",
+        "extensions.copilot.matt.chief-of-staff"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "path": "skills/in-progress/chief-of-staff/agents/openai.yaml",
+      "sha256": "c0f68ed9da6977adc97a791be3bb0830d301b2d27f9c635d92d6f325bffefb83",
+      "byteLength": 184,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.chief-of-staff",
+        "extensions.kiro.matt.chief-of-staff",
+        "extensions.copilot.matt.chief-of-staff"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "path": "skills/in-progress/claude-handoff/SKILL.md",
+      "sha256": "79357a18425d66d4c24048bedf83dceb79d3bba356f38014950f764a7fab4026",
+      "byteLength": 1424,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.claude-handoff",
+        "extensions.kiro.matt.claude-handoff",
+        "extensions.copilot.matt.claude-handoff"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "path": "skills/in-progress/claude-handoff/agents/openai.yaml",
+      "sha256": "2308a672978864633286fb9f0792b08657e501426b3f7883fc418d5d2eac5eb0",
+      "byteLength": 141,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.claude-handoff",
+        "extensions.kiro.matt.claude-handoff",
+        "extensions.copilot.matt.claude-handoff"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "path": "skills/in-progress/loop-me/SKILL.md",
+      "sha256": "e44d1cc3e760fb86ac42964c2a5f1fcac511715db50fb375f3f7be814de1eaa7",
+      "byteLength": 2522,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.loop-me",
+        "extensions.kiro.matt.loop-me",
+        "extensions.copilot.matt.loop-me"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "path": "skills/in-progress/loop-me/agents/openai.yaml",
+      "sha256": "b66fa10079957051be6a812f45e55b67ac394b71d5ba88349962b4c9205802c3",
+      "byteLength": 140,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.loop-me",
+        "extensions.kiro.matt.loop-me",
+        "extensions.copilot.matt.loop-me"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "path": "skills/in-progress/setup-ts-deep-modules/SKILL.md",
+      "sha256": "29acca66ac99d4532e2a6f0370d8125d7cba1e87c9ac66573203c75189d3e6c7",
+      "byteLength": 7546,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.setup-ts-deep-modules",
+        "extensions.kiro.matt.setup-ts-deep-modules",
+        "extensions.copilot.matt.setup-ts-deep-modules"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "path": "skills/in-progress/setup-ts-deep-modules/agents/openai.yaml",
+      "sha256": "159f680217d50747702620c05fd65734a152185b3219a8ca5ee4630878a354fa",
+      "byteLength": 149,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.setup-ts-deep-modules",
+        "extensions.kiro.matt.setup-ts-deep-modules",
+        "extensions.copilot.matt.setup-ts-deep-modules"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "path": "skills/in-progress/setup-ts-deep-modules/dependency-cruiser.config.cjs",
+      "sha256": "3c4973bec69f73b2117654abf9e666a7c28665b213be20e6d39869e29842428e",
+      "byteLength": 3712,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.setup-ts-deep-modules",
+        "extensions.kiro.matt.setup-ts-deep-modules",
+        "extensions.copilot.matt.setup-ts-deep-modules"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "path": "skills/in-progress/writing-beats/SKILL.md",
+      "sha256": "a96abafa2372eede8267d770138b322d6125da8adaa7ccf0a5e08e4ee13ee71e",
+      "byteLength": 4855,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.writing-beats",
+        "extensions.kiro.matt.writing-beats",
+        "extensions.copilot.matt.writing-beats"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "path": "skills/in-progress/writing-beats/agents/openai.yaml",
+      "sha256": "ddaef01da61d8e3c5f482c4403033c20cf5823f08a1dbf1d4c871670831d01e2",
+      "byteLength": 142,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.writing-beats",
+        "extensions.kiro.matt.writing-beats",
+        "extensions.copilot.matt.writing-beats"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "path": "skills/in-progress/writing-fragments/SKILL.md",
+      "sha256": "298b0edd23df229183630de592ed8aa4289233560f2040691f6eb77caeaad4ea",
+      "byteLength": 3558,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.writing-fragments",
+        "extensions.kiro.matt.writing-fragments",
+        "extensions.copilot.matt.writing-fragments"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "path": "skills/in-progress/writing-fragments/agents/openai.yaml",
+      "sha256": "81167f25ee8ea1bb4b4958f12b6702ea972ad31b05e03ec91e39fa4bae0c2641",
+      "byteLength": 140,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.writing-fragments",
+        "extensions.kiro.matt.writing-fragments",
+        "extensions.copilot.matt.writing-fragments"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "path": "skills/in-progress/writing-shape/SKILL.md",
+      "sha256": "f5e6c57bdd85178ace4a260c92f46da6b64ddee18215b461d875739c68976f72",
+      "byteLength": 5922,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.writing-shape",
+        "extensions.kiro.matt.writing-shape",
+        "extensions.copilot.matt.writing-shape"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "path": "skills/in-progress/writing-shape/agents/openai.yaml",
+      "sha256": "56de45430e23104ff178415f5ecf7821d51a9cfabd8814b1607ebf39da2ef5cd",
+      "byteLength": 144,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.writing-shape",
+        "extensions.kiro.matt.writing-shape",
+        "extensions.copilot.matt.writing-shape"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "path": "skills/misc/git-guardrails-claude-code/SKILL.md",
+      "sha256": "69b291d655626a01602b998a1836fcb93c058ede68dfafddfd71e87f17074764",
+      "byteLength": 2313,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.git-guardrails-claude-code",
+        "extensions.kiro.matt.git-guardrails-claude-code",
+        "extensions.copilot.matt.git-guardrails-claude-code"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "path": "skills/misc/git-guardrails-claude-code/agents/openai.yaml",
+      "sha256": "d53cd783fc0ac208dec9a4c267989284384785aab6422dccdaed42f9e40243ec",
+      "byteLength": 112,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.git-guardrails-claude-code",
+        "extensions.kiro.matt.git-guardrails-claude-code",
+        "extensions.copilot.matt.git-guardrails-claude-code"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "path": "skills/misc/git-guardrails-claude-code/scripts/block-dangerous-git.sh",
+      "sha256": "234922b83c0a1737ee7300806c21ac0f389b07aaeb65c2d71ccedafbc5e1ea4b",
+      "byteLength": 507,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.git-guardrails-claude-code",
+        "extensions.kiro.matt.git-guardrails-claude-code",
+        "extensions.copilot.matt.git-guardrails-claude-code"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "path": "skills/misc/migrate-to-shoehorn/SKILL.md",
+      "sha256": "de4da4c11d924fac79c924b2ee3d2db4a5cb98386eb490a599119463d036ae72",
+      "byteLength": 2795,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.migrate-to-shoehorn",
+        "extensions.kiro.matt.migrate-to-shoehorn",
+        "extensions.copilot.matt.migrate-to-shoehorn"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "path": "skills/misc/migrate-to-shoehorn/agents/openai.yaml",
+      "sha256": "395c2db852e66a199f1cd07f7ed92d66cb6f0787460c5475926f1a5e778b699d",
+      "byteLength": 110,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.migrate-to-shoehorn",
+        "extensions.kiro.matt.migrate-to-shoehorn",
+        "extensions.copilot.matt.migrate-to-shoehorn"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "path": "skills/misc/scaffold-exercises/SKILL.md",
+      "sha256": "75f5c9d771606fb9762f16522efc954df11c324f87148d8ff069bce166257de9",
+      "byteLength": 3589,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.scaffold-exercises",
+        "extensions.kiro.matt.scaffold-exercises",
+        "extensions.copilot.matt.scaffold-exercises"
+      ]
+    },
+    {
+      "source": "matt",
+      "revision": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "path": "skills/misc/scaffold-exercises/agents/openai.yaml",
+      "sha256": "525b33913340bea7947ad2de17f2a7c5fb94be543345fe80ae753b9a44ba601d",
+      "byteLength": 108,
+      "disposition": "supported-material",
+      "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
+      "items": [
+        "extensions.matt.scaffold-exercises",
+        "extensions.kiro.matt.scaffold-exercises",
+        "extensions.copilot.matt.scaffold-exercises"
+      ]
     }
   ]
 }
