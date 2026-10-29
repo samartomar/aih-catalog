@@ -219,28 +219,39 @@ The build (`src/release/extensions-transition.ts`, rendered by
 `tools/generate-extensions-17-release.mjs`) projects the committed release 1.2
 copies to release 1.6 and collapses them through the public transition compiler:
 
-- One tool-neutral item per piece of content: 57 items. The per-tool copies are
-  superseded by hash; the tools survive only as `hints.tools` display hints and a
-  per-client transition recipe map selected by `clientId`.
-- Matt's 27 skills name `https://github.com/mattpocock/skills` as `source` and
-  `https://github.com/samartomar/aih-extensions` as `selectedBy`, with no
-  `derivedFrom`: Matt wrote them, AIH-Extensions selected them, they do not read
-  as forks. Each of the 27 frozen-default copies is superseded by
-  `match: "name+sourcePath"` against the frozen default's recorded digest.
-- Matt's buckets are sets: `engineering` and `productivity` are `pre-ticked`,
-  `in-progress` and `specialists` are `listed`, `misc` and `deprecated` are
-  `on-request`. The pinned revision carries the engineering and productivity
-  skills; the other four buckets are declared empty at their offer level. The
-  `engineering` set and the complete starting template carry `firstRun` naming
-  `extensions.matt.setup-matt-pocock-skills`.
+- One tool-neutral item per piece of content: 67 items. The per-tool copies are
+  superseded by hash; the tools survive only as a per-client transition recipe map
+  selected by `clientId`. Tool-neutral content carries no tool hint; the three hooks,
+  which speak Claude Code's hook protocol, carry `hints.tools: ["claude-code"]`.
+- Every item carries `provenance` hops `{ sourceId, path, revision, license }` at its
+  release source's pin. Matt's skills name `matt` and their folder as the source hop.
+  The 27 skills of Matt's plugin also name AIH-Extensions'
+  `source-declarations/v1.json` as `selectedBy`, and each of their frozen-default
+  copies is superseded by `match: "name+sourcePath"` against the frozen default's
+  recorded digest. The skills, agents, commands and references AIH-Extensions copies
+  and edits name a `declared` `derivedFrom` hop (Addy Osmani's `agent-skills` at the
+  vendored pin, or Matt's `skills/misc/setup-pre-commit`), as its
+  `scripts/upstream.config.mjs` lists them; the `addy` source is published for those
+  hops only.
+- Matt's buckets are sets, one per bucket his pinned tree holds skills in:
+  `engineering` (20) and `productivity` (7) are `pre-ticked`, `in-progress` (7) is
+  `listed` and `misc` (4, including the Extensions copy of `setup-pre-commit`) is
+  `on-request`. The pinned tree has no `specialists` bucket and its `deprecated`
+  bucket holds only a README saying it is empty, so neither is a set; release
+  `metadata.mattBuckets` records why. The `engineering` set and the complete starting
+  template carry `firstRun` naming `extensions.matt.setup-matt-pocock-skills`.
 - The two starting templates become sets (`extensions.template.specialists`,
   `extensions.template.complete`); their items retire with no item successor. The
-  complete template offers the three hooks as `optional` members only.
+  complete template offers the three hooks as `optional` members, never pre-ticked.
 - The three hook sources fold into their hook items
-  (`extensions.hook.git-guard`, `.skill-guard`, `.lanes-card`): the pinned scripts,
-  the settings reference and the licence become the item's own materials, and the
-  merged recipe keeps the reviewed `hookCommand` input and the Core recipe 1.3 hook
-  group registration.
+  (`extensions.hook.git-guard`, `.skill-guard`, `.lanes-card`): the pinned scripts and
+  the licence become the item's own materials. `hooks/hooks.json` is not material: the
+  payload `{ event, matcher, protocol, timeoutSec, command: { interpreter: "node",
+  script } }` is the registration Core renders. The legacy Core recipe 1.3 hook group
+  carries the same command literally, `node "${CLAUDE_PROJECT_DIR}/<installed script>"`,
+  so no item asks for a command input.
+- Every material and item carries its measured size: bytes, characters of UTF-8
+  text (null otherwise) and an empty token list until a tokenizer is chosen.
 - Collapsed survivors keep the union of every copy's dependencies and licence and
   support materials; conflicting copies fail the build, never a silent pick.
 

@@ -4238,11 +4238,11 @@
             },
             "manifest": {
               "path": "release/release-extensions.json",
-              "sha256": "26e08ee053ce0f04efe51cbf17862ec0b4a4b5c625e4c9922cdbb7d0123918c7",
-              "byteLength": 6005947
+              "sha256": "f0aa47cf414323690121dbe1ce7adf1149a2fb28502629eae6daf0f961fff057",
+              "byteLength": 7794982
             }
           },
-          "itemSha256": "d81a488606e91e90652437a7c06d1167f1f5f47d87d1f1e357d619ec27f7c272"
+          "itemSha256": "f0f869f6bc6a98c4a009f9b1012188170c038c3f6fedc77bc8f49958e4a0ae41"
         }
       ],
       "optional": [

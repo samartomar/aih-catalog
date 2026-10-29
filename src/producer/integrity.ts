@@ -343,7 +343,13 @@ export function checkCandidateFiles(
     }
 
     const sources = new Map(release.sources.map((source) => [source.id, source]));
-    const referenced = new Set(release.items.flatMap((item) => item.sourceIds));
+    // A source is referenced by a material or, for a release 1.7 item, a provenance hop.
+    const referenced = new Set(
+      release.items.flatMap((item) => [
+        ...item.sourceIds,
+        ...(item.provenance?.derivedFrom ?? []).map((hop) => hop.sourceId),
+      ]),
+    );
     const unused = [...sources.keys()].filter((id) => !referenced.has(id));
     note(
       path,

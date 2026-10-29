@@ -227,6 +227,7 @@ export function buildProjectBasics({ texts } = {}) {
       copies: [{ releaseSha256: input16.release.sha256, itemId: spec.id }],
       supersedes: [{ match: "split", releaseSha256: frozen.release.sha256, itemId: CONTEXT_ID, itemSha256: context.itemSha256 }],
     })),
+    readMaterial: (packagePath) => outputs.get(packagePath)?.bytes ?? assert.fail(`No rendered member ${packagePath}`),
   });
   assert.equal(compiled.status, "ok", JSON.stringify(compiled.diagnostics));
   for (const file of compiled.value.materials) outputs.set(file.path, { bytes: file.bytes });

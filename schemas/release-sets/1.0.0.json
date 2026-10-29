@@ -115,29 +115,16 @@
           ]
         },
         "cost": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "bytes",
-            "chars"
-          ],
-          "properties": {
-            "bytes": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "chars": {
-              "type": "integer",
-              "minimum": 0
-            }
-          }
+          "description": "The upstream's own cost words, copied. Outside the digest.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
         },
         "stability": {
-          "enum": [
-            "stable",
-            "in-progress",
-            "deprecated"
-          ]
+          "description": "The upstream's own maturity words, copied. Outside the digest.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
         },
         "options": {
           "type": "array",
@@ -276,6 +263,7 @@
       "required": [
         "id",
         "name",
+        "multiple",
         "choices"
       ],
       "properties": {
@@ -286,6 +274,10 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 256
+        },
+        "multiple": {
+          "description": "Whether several choices may be picked.",
+          "type": "boolean"
         },
         "description": {
           "type": "string",

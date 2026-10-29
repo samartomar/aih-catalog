@@ -10963,6 +10963,1740 @@
           "description": "Reviewed Node command pointing at the installed .aih-extensions/source/hooks/lanes-card.mjs in this project. Supply a compatible quoted absolute path or reviewed CLAUDE_PROJECT_DIR expression; no default, no native execution guarantee."
         }
       }
+    },
+    {
+      "id": "extensions.matt.chief-of-staff",
+      "source": "matt",
+      "label": "extensions.matt.chief-of-staff",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.matt.chief-of-staff.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/in-progress/chief-of-staff/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/in-progress/chief-of-staff/agents/openai.yaml"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open the project in the selected client and discover/invoke chief-of-staff. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/in-progress/chief-of-staff/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.kiro.matt.chief-of-staff",
+      "source": "matt",
+      "label": "extensions.kiro.matt.chief-of-staff",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.kiro.matt.chief-of-staff.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/in-progress/chief-of-staff/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/in-progress/chief-of-staff/agents/openai.yaml"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open the project in the selected client and discover/invoke chief-of-staff. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/in-progress/chief-of-staff/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.copilot.matt.chief-of-staff",
+      "source": "matt",
+      "label": "extensions.copilot.matt.chief-of-staff",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.copilot.matt.chief-of-staff.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/in-progress/chief-of-staff/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/in-progress/chief-of-staff/agents/openai.yaml"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open the project in the selected client and discover/invoke chief-of-staff. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/in-progress/chief-of-staff/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.matt.claude-handoff",
+      "source": "matt",
+      "label": "extensions.matt.claude-handoff",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.matt.claude-handoff.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/in-progress/claude-handoff/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/in-progress/claude-handoff/agents/openai.yaml"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open the project in the selected client and discover/invoke claude-handoff. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/in-progress/claude-handoff/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.kiro.matt.claude-handoff",
+      "source": "matt",
+      "label": "extensions.kiro.matt.claude-handoff",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.kiro.matt.claude-handoff.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/in-progress/claude-handoff/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/in-progress/claude-handoff/agents/openai.yaml"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open the project in the selected client and discover/invoke claude-handoff. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/in-progress/claude-handoff/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.copilot.matt.claude-handoff",
+      "source": "matt",
+      "label": "extensions.copilot.matt.claude-handoff",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.copilot.matt.claude-handoff.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/in-progress/claude-handoff/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/in-progress/claude-handoff/agents/openai.yaml"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open the project in the selected client and discover/invoke claude-handoff. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/in-progress/claude-handoff/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.matt.loop-me",
+      "source": "matt",
+      "label": "extensions.matt.loop-me",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.matt.loop-me.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/in-progress/loop-me/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/in-progress/loop-me/agents/openai.yaml"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open the project in the selected client and discover/invoke loop-me. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/in-progress/loop-me/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.kiro.matt.loop-me",
+      "source": "matt",
+      "label": "extensions.kiro.matt.loop-me",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.kiro.matt.loop-me.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/in-progress/loop-me/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/in-progress/loop-me/agents/openai.yaml"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open the project in the selected client and discover/invoke loop-me. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/in-progress/loop-me/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.copilot.matt.loop-me",
+      "source": "matt",
+      "label": "extensions.copilot.matt.loop-me",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.copilot.matt.loop-me.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/in-progress/loop-me/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/in-progress/loop-me/agents/openai.yaml"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open the project in the selected client and discover/invoke loop-me. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/in-progress/loop-me/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.matt.setup-ts-deep-modules",
+      "source": "matt",
+      "label": "extensions.matt.setup-ts-deep-modules",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.matt.setup-ts-deep-modules.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/in-progress/setup-ts-deep-modules/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/in-progress/setup-ts-deep-modules/agents/openai.yaml"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/in-progress/setup-ts-deep-modules/dependency-cruiser.config.cjs"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open the project in the selected client and discover/invoke setup-ts-deep-modules. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/in-progress/setup-ts-deep-modules/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.kiro.matt.setup-ts-deep-modules",
+      "source": "matt",
+      "label": "extensions.kiro.matt.setup-ts-deep-modules",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.kiro.matt.setup-ts-deep-modules.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/in-progress/setup-ts-deep-modules/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/in-progress/setup-ts-deep-modules/agents/openai.yaml"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/in-progress/setup-ts-deep-modules/dependency-cruiser.config.cjs"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open the project in the selected client and discover/invoke setup-ts-deep-modules. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/in-progress/setup-ts-deep-modules/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.copilot.matt.setup-ts-deep-modules",
+      "source": "matt",
+      "label": "extensions.copilot.matt.setup-ts-deep-modules",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.copilot.matt.setup-ts-deep-modules.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/in-progress/setup-ts-deep-modules/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/in-progress/setup-ts-deep-modules/agents/openai.yaml"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/in-progress/setup-ts-deep-modules/dependency-cruiser.config.cjs"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open the project in the selected client and discover/invoke setup-ts-deep-modules. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/in-progress/setup-ts-deep-modules/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.matt.writing-beats",
+      "source": "matt",
+      "label": "extensions.matt.writing-beats",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.matt.writing-beats.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/in-progress/writing-beats/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/in-progress/writing-beats/agents/openai.yaml"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open the project in the selected client and discover/invoke writing-beats. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/in-progress/writing-beats/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.kiro.matt.writing-beats",
+      "source": "matt",
+      "label": "extensions.kiro.matt.writing-beats",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.kiro.matt.writing-beats.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/in-progress/writing-beats/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/in-progress/writing-beats/agents/openai.yaml"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open the project in the selected client and discover/invoke writing-beats. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/in-progress/writing-beats/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.copilot.matt.writing-beats",
+      "source": "matt",
+      "label": "extensions.copilot.matt.writing-beats",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.copilot.matt.writing-beats.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/in-progress/writing-beats/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/in-progress/writing-beats/agents/openai.yaml"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open the project in the selected client and discover/invoke writing-beats. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/in-progress/writing-beats/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.matt.writing-fragments",
+      "source": "matt",
+      "label": "extensions.matt.writing-fragments",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.matt.writing-fragments.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/in-progress/writing-fragments/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/in-progress/writing-fragments/agents/openai.yaml"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open the project in the selected client and discover/invoke writing-fragments. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/in-progress/writing-fragments/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.kiro.matt.writing-fragments",
+      "source": "matt",
+      "label": "extensions.kiro.matt.writing-fragments",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.kiro.matt.writing-fragments.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/in-progress/writing-fragments/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/in-progress/writing-fragments/agents/openai.yaml"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open the project in the selected client and discover/invoke writing-fragments. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/in-progress/writing-fragments/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.copilot.matt.writing-fragments",
+      "source": "matt",
+      "label": "extensions.copilot.matt.writing-fragments",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.copilot.matt.writing-fragments.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/in-progress/writing-fragments/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/in-progress/writing-fragments/agents/openai.yaml"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open the project in the selected client and discover/invoke writing-fragments. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/in-progress/writing-fragments/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.matt.writing-shape",
+      "source": "matt",
+      "label": "extensions.matt.writing-shape",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.matt.writing-shape.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/in-progress/writing-shape/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/in-progress/writing-shape/agents/openai.yaml"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open the project in the selected client and discover/invoke writing-shape. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/in-progress/writing-shape/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.kiro.matt.writing-shape",
+      "source": "matt",
+      "label": "extensions.kiro.matt.writing-shape",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.kiro.matt.writing-shape.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/in-progress/writing-shape/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/in-progress/writing-shape/agents/openai.yaml"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open the project in the selected client and discover/invoke writing-shape. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/in-progress/writing-shape/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.copilot.matt.writing-shape",
+      "source": "matt",
+      "label": "extensions.copilot.matt.writing-shape",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.copilot.matt.writing-shape.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/in-progress/writing-shape/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/in-progress/writing-shape/agents/openai.yaml"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open the project in the selected client and discover/invoke writing-shape. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/in-progress/writing-shape/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.matt.git-guardrails-claude-code",
+      "source": "matt",
+      "label": "extensions.matt.git-guardrails-claude-code",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.matt.git-guardrails-claude-code.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/misc/git-guardrails-claude-code/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/misc/git-guardrails-claude-code/agents/openai.yaml"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/misc/git-guardrails-claude-code/scripts/block-dangerous-git.sh"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open the project in the selected client and discover/invoke git-guardrails-claude-code. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/misc/git-guardrails-claude-code/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.kiro.matt.git-guardrails-claude-code",
+      "source": "matt",
+      "label": "extensions.kiro.matt.git-guardrails-claude-code",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.kiro.matt.git-guardrails-claude-code.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/misc/git-guardrails-claude-code/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/misc/git-guardrails-claude-code/agents/openai.yaml"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/misc/git-guardrails-claude-code/scripts/block-dangerous-git.sh"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open the project in the selected client and discover/invoke git-guardrails-claude-code. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/misc/git-guardrails-claude-code/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.copilot.matt.git-guardrails-claude-code",
+      "source": "matt",
+      "label": "extensions.copilot.matt.git-guardrails-claude-code",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.copilot.matt.git-guardrails-claude-code.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/misc/git-guardrails-claude-code/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/misc/git-guardrails-claude-code/agents/openai.yaml"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/misc/git-guardrails-claude-code/scripts/block-dangerous-git.sh"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open the project in the selected client and discover/invoke git-guardrails-claude-code. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/misc/git-guardrails-claude-code/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.matt.migrate-to-shoehorn",
+      "source": "matt",
+      "label": "extensions.matt.migrate-to-shoehorn",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.matt.migrate-to-shoehorn.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/misc/migrate-to-shoehorn/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/misc/migrate-to-shoehorn/agents/openai.yaml"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open the project in the selected client and discover/invoke migrate-to-shoehorn. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/misc/migrate-to-shoehorn/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.kiro.matt.migrate-to-shoehorn",
+      "source": "matt",
+      "label": "extensions.kiro.matt.migrate-to-shoehorn",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.kiro.matt.migrate-to-shoehorn.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/misc/migrate-to-shoehorn/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/misc/migrate-to-shoehorn/agents/openai.yaml"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open the project in the selected client and discover/invoke migrate-to-shoehorn. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/misc/migrate-to-shoehorn/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.copilot.matt.migrate-to-shoehorn",
+      "source": "matt",
+      "label": "extensions.copilot.matt.migrate-to-shoehorn",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.copilot.matt.migrate-to-shoehorn.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/misc/migrate-to-shoehorn/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/misc/migrate-to-shoehorn/agents/openai.yaml"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open the project in the selected client and discover/invoke migrate-to-shoehorn. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/misc/migrate-to-shoehorn/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.matt.scaffold-exercises",
+      "source": "matt",
+      "label": "extensions.matt.scaffold-exercises",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.matt.scaffold-exercises.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/misc/scaffold-exercises/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/misc/scaffold-exercises/agents/openai.yaml"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "claude-code",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "claude-code",
+          "surface": ".claude/skills",
+          "instructions": "Open the project in the selected client and discover/invoke scaffold-exercises. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/misc/scaffold-exercises/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.kiro.matt.scaffold-exercises",
+      "source": "matt",
+      "label": "extensions.kiro.matt.scaffold-exercises",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.kiro.matt.scaffold-exercises.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/misc/scaffold-exercises/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/misc/scaffold-exercises/agents/openai.yaml"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "kiro-ide",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "kiro-ide",
+          "surface": ".kiro/skills",
+          "instructions": "Open the project in the selected client and discover/invoke scaffold-exercises. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/misc/scaffold-exercises/SKILL.md"
+      }
+    },
+    {
+      "id": "extensions.copilot.matt.scaffold-exercises",
+      "source": "matt",
+      "label": "extensions.copilot.matt.scaffold-exercises",
+      "description": "",
+      "kind": "skill",
+      "recipePath": "catalog-recipes/extensions.copilot.matt.scaffold-exercises.json",
+      "materials": [
+        {
+          "id": "license",
+          "path": "LICENSE"
+        },
+        {
+          "id": "asset-1",
+          "path": "skills/misc/scaffold-exercises/SKILL.md"
+        },
+        {
+          "id": "asset-2",
+          "path": "skills/misc/scaffold-exercises/agents/openai.yaml"
+        }
+      ],
+      "requires": [
+        {
+          "itemId": "extensions.notices"
+        }
+      ],
+      "optional": [],
+      "conflicts": [],
+      "clientCapabilities": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "capability": "skill-material-format",
+          "support": "supported",
+          "reason": "Documented project Agent Skills layout; exact native loading and execution have not been observed."
+        },
+        {
+          "client": "copilot-vscode",
+          "surface": "agent-tools",
+          "capability": "automatic-guardrails",
+          "support": "unsupported",
+          "reason": "Skills are instructions, not enforced hook registration or tool interception."
+        }
+      ],
+      "activation": [
+        {
+          "client": "copilot-vscode",
+          "surface": ".github/skills",
+          "instructions": "Open the project in the selected client and discover/invoke scaffold-exercises. Script/tool/MCP requirements in the skill remain caller-owned; installation does not run them."
+        }
+      ],
+      "configuration": {},
+      "sourceDiscovery": {
+        "profile": "agent-skills",
+        "path": "skills/misc/scaffold-exercises/SKILL.md"
+      }
     }
   ]
 }

@@ -37,7 +37,7 @@ const reasons = (document: unknown) => {
 const itemOf = (document: Doc, id: string) => document.items.find((item: Doc) => item.id === id);
 /** Recomputes an edited item's behaviour file and both identities, as the build does. */
 function restamp(item: Doc): void {
-  const identity = computeBehaviourIdentity(item) as NonNullable<
+  const identity = computeBehaviourIdentity(item, "1.7") as NonNullable<
     ReturnType<typeof computeBehaviourIdentity>
   >;
   const behaviour = item.materials.find((member: Doc) => member.role === "behaviour");

@@ -20,7 +20,12 @@ import {
   FROZEN_DEFAULT_RELEASE_SHA256,
   RELEASE_SCHEMA_ID_1_6,
 } from "./contracts.js";
-import { BEHAVIOUR_REL_PATH, bytewiseCompare, itemPackageFolder } from "./document.js";
+import {
+  BEHAVIOUR_REL_PATH,
+  bytewiseCompare,
+  isHookRegistrationPath,
+  itemPackageFolder,
+} from "./document.js";
 import { canonicalJson } from "./json.js";
 import { createContentInventory, readRelease, readReleaseContent } from "./reader.js";
 import { sha256Hex } from "./sha256.js";
@@ -50,17 +55,115 @@ const CLIENTS = [
   { prefix: "kiro.", clientId: "kiro-ide" },
   { prefix: "copilot.", clientId: "copilot-vscode" },
 ] as const;
-const TOOL_HINTS = [...CLIENTS.map((client) => client.clientId)].sort();
-/** Matt's buckets at the pinned revision and their offer levels (the parent decision). */
+/**
+ * Matt's buckets that hold skills at the pinned revision, with their offer levels
+ * (the parent decision). A bucket with no skill there is not a set; MATT_BUCKET_FACTS
+ * records why.
+ */
 const MATT_BUCKETS = [
-  { id: "engineering", name: "Engineering", offer: "pre-ticked" },
-  { id: "productivity", name: "Productivity", offer: "pre-ticked" },
-  { id: "in-progress", name: "In progress", offer: "listed" },
-  { id: "specialists", name: "Specialists", offer: "listed" },
-  { id: "misc", name: "Misc", offer: "on-request" },
-  { id: "deprecated", name: "Deprecated", offer: "on-request" },
+  {
+    id: "engineering",
+    name: "Engineering",
+    offer: "pre-ticked",
+    description: "Matt Pocock's engineering skills.",
+  },
+  {
+    id: "productivity",
+    name: "Productivity",
+    offer: "pre-ticked",
+    description: "Matt Pocock's productivity skills.",
+  },
+  {
+    id: "in-progress",
+    name: "In progress",
+    offer: "listed",
+    description: "Matt Pocock's in-progress skills: work he has not yet moved into his plugin.",
+  },
+  {
+    id: "misc",
+    name: "Misc",
+    offer: "on-request",
+    description: "Matt Pocock's misc skills, outside his plugin.",
+  },
 ] as const;
-const EMPTY_BUCKET_NOTE = "None of Matt's skills in this bucket are pinned at this revision.";
+/** The buckets Matt's plugin ships (its .claude-plugin/plugin.json), which AIH-Extensions selects. */
+const MATT_PLUGIN_BUCKETS: readonly string[] = ["engineering", "productivity"];
+/** Where AIH-Extensions declares that it builds on Matt's plugin at its pin. */
+const EXTENSIONS_SELECTION = { sourceId: "extensions", path: "source-declarations/v1.json" };
+const MATT_BUCKET_FACTS = {
+  revision: "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+  sets: ["engineering", "productivity", "in-progress", "misc"],
+  notSets: {
+    specialists: "Matt's pinned tree has no skills/specialists bucket.",
+    deprecated:
+      "Matt's pinned skills/deprecated holds only its README, which says the bucket is empty: a retired skill is deleted.",
+  },
+  copied:
+    "Matt's misc setup-pre-commit ships once, as extensions.skill.setup-pre-commit, which AIH-Extensions copies from it.",
+};
+/** Extensions items that are Matt's skills copied by AIH-Extensions, by Matt bucket. */
+const MATT_COPIED: Readonly<Record<string, { readonly bucket: string; readonly path: string }>> = {
+  "extensions.skill.setup-pre-commit": { bucket: "misc", path: "skills/misc/setup-pre-commit" },
+};
+/**
+ * Addy Osmani's agent-skills at the pin AIH-Extensions vendors from (its vendor.lock.json).
+ * Named only by the derivedFrom hops of the content AIH-Extensions copies and edits.
+ */
+const ADDY_SOURCE = {
+  id: "addy",
+  license: "MIT",
+  origin: {
+    kind: "git",
+    repository: "https://github.com/addyosmani/agent-skills",
+    revision: "aeac41d4d005999432bb7312f7ff06383a91d59d",
+  },
+};
+/**
+ * The upstream path of each Extensions path AIH-Extensions copies from Addy Osmani,
+ * as its scripts/upstream.config.mjs `copies` declares them at the Extensions pin.
+ * Patched in place by that file's edits, so the hops are declared, not verified.
+ */
+const ADDY_COPIES: Readonly<Record<string, string>> = {
+  ...Object.fromEntries(
+    [
+      "security-and-hardening",
+      "performance-optimization",
+      "observability-and-instrumentation",
+      "ci-cd-and-automation",
+      "deprecation-and-migration",
+      "frontend-ui-engineering",
+      "shipping-and-launch",
+      "code-simplification",
+      "api-and-interface-design",
+      "documentation-and-adrs",
+      "doubt-driven-development",
+      "source-driven-development",
+      "constraint-driven-development",
+      "git-workflow-and-versioning",
+      "idea-refine",
+      "browser-testing-with-devtools",
+    ].map((name) => [`skills/${name}`, `skills/${name}`]),
+  ),
+  "agents/code-reviewer.md": "agents/code-reviewer.md",
+  "agents/security-auditor.md": "agents/security-auditor.md",
+  "agents/test-engineer.md": "agents/test-engineer.md",
+  "agents/web-performance-auditor.md": "agents/web-performance-auditor.md",
+  "commands/ship.md": ".claude/commands/ship.md",
+  "commands/webperf.md": ".claude/commands/webperf.md",
+  references: "references",
+};
+/** The declared derivedFrom hop of one Extensions path copied from an upstream. */
+const derivation = (path: string) => {
+  const copied = Object.values(MATT_COPIED).find(
+    (entry) => path === `skills/${entry.path.split("/").at(-1)}`,
+  );
+  const hop = copied
+    ? { sourceId: "matt", path: copied.path, ancestry: "declared" as const }
+    : ADDY_COPIES[path] === undefined
+      ? undefined
+      : { sourceId: "addy", path: ADDY_COPIES[path] as string, ancestry: "declared" as const };
+  return hop === undefined ? {} : { provenance: { derivedFrom: [hop] } };
+};
 /** Hook facts read from the pinned hooks.json; the script names pick each item's material. */
 const HOOKS = [
   {
@@ -152,8 +255,28 @@ interface Projected16 {
   readonly items: ReadonlyMap<string, Record<string, unknown>>;
 }
 
+/**
+ * The executable bit of each pinned source file, from the git mode the producer
+ * inventory records for it at its pin.
+ */
+function pinnedModes(root: string): (sourceId: string, sourcePath: string) => boolean {
+  const inventory = JSON.parse(
+    readFileSync(resolve(root, "producer/extensions/inventory.json"), "utf8"),
+  ) as { entries: { source: string; path: string; mode: string }[] };
+  const modes = new Map(
+    inventory.entries.map((row) => [`${row.source}\u0000${row.path}`, row.mode]),
+  );
+  return (sourceId, sourcePath) => {
+    const mode = modes.get(`${sourceId}\u0000${sourcePath}`);
+    if (mode !== "100644" && mode !== "100755")
+      throw new Error(`No pinned file mode for ${sourceId}:${sourcePath}`);
+    return mode === "100755";
+  };
+}
+
 /** Projects every committed release 1.2 item to the release 1.6 shape, one per tool copy. */
-function projectCopies(release12: CatalogRelease): Projected16 {
+function projectCopies(release12: CatalogRelease, root: string): Projected16 {
+  const executableOf = pinnedModes(root);
   const items = release12.items.map((item) => {
     const members = item.materials as unknown as readonly Material12[];
     const skill = members.find((member) => member.path.endsWith("/SKILL.md"));
@@ -161,11 +284,16 @@ function projectCopies(release12: CatalogRelease): Projected16 {
       ? sourcePathOf(skill.path).split("/").slice(0, -1).join("/")
       : undefined;
     const isMatt = item.sourceIds.includes("matt");
-    const executable: Record<string, true | false | "unknown"> = {};
+    const skillText = () => {
+      if (!skill) throw new Error(`${item.id} carries no SKILL.md`);
+      return readFileSync(resolve(root, skill.path), "utf8");
+    };
+    const executable: Record<string, boolean> = {};
     const content = members.map((member) => {
       const sourcePath = sourcePathOf(member.path);
       const relPath = relPathOf(item.kind, skillRoot, sourcePath);
-      executable[relPath] = "unknown";
+      const sourceId = sourceIdOf(release12, member.path);
+      executable[relPath] = executableOf(sourceId, sourcePath);
       return {
         id: member.id,
         relPath,
@@ -173,8 +301,8 @@ function projectCopies(release12: CatalogRelease): Projected16 {
         packagePath: member.path,
         sha256: member.sha256,
         byteLength: member.byteLength,
-        executable: "unknown" as const,
-        sourceId: sourceIdOf(release12, member.path),
+        executable: executable[relPath],
+        sourceId,
         role: "content" as const,
       };
     });
@@ -183,7 +311,7 @@ function projectCopies(release12: CatalogRelease): Projected16 {
     );
     const behaviourValue = {
       kind: item.kind,
-      payload: item.kind === "skill" ? skillPayload(item.label) : null,
+      payload: item.kind === "skill" ? skillPayload(item.label, skillText()) : null,
       requirements: { inputs: {} },
       dependencies: {
         requires: item.dependencies.requires,
@@ -224,7 +352,7 @@ function projectCopies(release12: CatalogRelease): Projected16 {
         optional: item.dependencies.optional,
         conflicts: item.dependencies.conflicts,
       },
-      ...(item.kind === "skill" ? { payload: skillPayload(item.label) } : {}),
+      ...(item.kind === "skill" ? { payload: skillPayload(item.label, skillText()) } : {}),
       requirements: { inputs: {} },
       executable: executableSorted,
       materials,
@@ -248,11 +376,29 @@ function projectCopies(release12: CatalogRelease): Projected16 {
   };
 }
 
-const skillPayload = (dirName: string) => ({
-  dirName,
-  invocation: "model-allowed",
-  invocationBasis: "default",
-});
+/**
+ * A skill's payload: its folder, and whether the model may start it, from the author's
+ * own `disable-model-invocation` frontmatter flag, which decides it.
+ */
+const skillPayload = (dirName: string, text: string) => {
+  const frontmatter = /^---\r?\n([\s\S]*?)\r?\n---/.exec(text)?.[1];
+  if (frontmatter === undefined) throw new Error(`${dirName}: SKILL.md carries no frontmatter`);
+  const flag = /^disable-model-invocation:\s*(\S+)\s*$/m.exec(frontmatter)?.[1];
+  if (flag !== undefined && flag !== "true" && flag !== "false")
+    throw new Error(`${dirName}: unexpected disable-model-invocation ${flag}`);
+  return {
+    dirName,
+    ...(flag === "true"
+      ? { invocation: "user-only", invocationBasis: "frontmatter: disable-model-invocation: true" }
+      : {
+          invocation: "model-allowed",
+          invocationBasis:
+            flag === undefined
+              ? "frontmatter: disable-model-invocation absent"
+              : "frontmatter: disable-model-invocation: false",
+        }),
+  };
+};
 
 /** The merged recipe of one folded hook: pinned script writes plus the pinned registration. */
 function mergedHookRecipe(
@@ -272,18 +418,54 @@ function mergedHookRecipe(
   const guardChecks = (guardRecipe.checks as { id: string }[]).filter(
     (check) => !(sourceRecipe.checks as { id: string }[]).some((s) => s.id === check.id),
   );
+  type Operation = {
+    id: string;
+    kind: string;
+    material?: string;
+    checks?: string[];
+    target: { segments: { literal: string }[] };
+  };
+  const pathOf = (operation: Operation) =>
+    operation.target.segments.map((segment) => segment.literal).join("/");
+  // The registration file is not hook material: the payload is the registration.
+  const registrationWrites = (sourceRecipe.operations as Operation[]).filter(
+    (operation) => operation.kind === "file.write" && isHookRegistrationPath(pathOf(operation)),
+  );
+  const dropped = new Set(registrationWrites.map((operation) => operation.material));
+  const droppedChecks = new Set(registrationWrites.flatMap((operation) => operation.checks ?? []));
+  const script = (sourceRecipe.operations as Operation[]).find(
+    (operation) =>
+      operation.kind === "file.write" && pathOf(operation).endsWith(`/${hook.name}.mjs`),
+  );
+  if (!script) throw new Error(`The ${hook.name} hook recipe writes no ${hook.name}.mjs`);
+  // The literal command Core would render: node with the quoted installed script.
+  const command = `node "\${CLAUDE_PROJECT_DIR}/${pathOf(script)}"`;
+  const register = (operation: Record<string, unknown>) => {
+    if (operation.kind !== "hook.group") return operation;
+    const { groupBindings: _bound, ...rest } = operation;
+    const group = structuredClone(rest.group) as { literal: { hooks: { command: string }[] } };
+    for (const entry of group.literal.hooks) entry.command = command;
+    return { ...rest, group, selector: { path: ["hooks", 0, "command"], value: command } };
+  };
   const recipe = {
     ...sourceRecipe,
     id: `extensions.hook.${hook.name}`,
-    description: `${hook.description} Exact pinned material delivery; the reviewed hook command is bound by the recipe input, no script execution by Catalog.`,
+    description: `${hook.description} Exact pinned material delivery and one owned Claude hook group with a literal node command; no script execution by Catalog.`,
     schema: guardRecipe.schema,
-    inputs: guardRecipe.inputs,
-    checks: [...sourceRecipe.checks, ...guardChecks],
+    inputs: {},
+    materials: (sourceRecipe.materials as { id: string }[]).filter(
+      (member) => !dropped.has(member.id),
+    ),
+    checks: [...sourceRecipe.checks, ...guardChecks].filter(
+      (check: { id: string }) => !droppedChecks.has(check.id),
+    ),
     operations: [
-      ...sourceRecipe.operations,
-      ...guardRecipe.operations.filter(
-        (operation: { id: string }) => operation.id !== "write-license",
+      ...(sourceRecipe.operations as Operation[]).filter(
+        (operation) => !registrationWrites.includes(operation),
       ),
+      ...guardRecipe.operations
+        .filter((operation: { id: string }) => operation.id !== "write-license")
+        .map(register),
     ],
     prerequisites: guardRecipe.prerequisites,
     targets: ["project"],
@@ -353,9 +535,10 @@ export function buildExtensions17(
     return item;
   };
 
-  const projected = projectCopies(release12.release);
+  const projected = projectCopies(release12.release, root);
   // The hook folds are decided before the copies document is read: both hook copies
-  // carry the merged recipe, the executable target and the reviewed-command input.
+  // carry the merged recipe with its literal command and the executable target; no
+  // command input remains.
   const hookRecipes = new Map(HOOKS.map((hook) => [hook.name, mergedHookRecipe(root, hook)]));
   for (const hook of HOOKS) {
     const merged = hookRecipes.get(hook.name);
@@ -365,7 +548,7 @@ export function buildExtensions17(
     if (!claude || !source)
       throw new Error(`The copies release carries no hook fold for ${hook.name}`);
     for (const record of [claude, source]) {
-      record.inputs = structuredClone(claude.inputs);
+      record.inputs = {};
       record.targets = [{ kind: "executable", name: "node" }];
       record.recipe = merged.record;
     }
@@ -403,8 +586,9 @@ export function buildExtensions17(
     replacedBy: { framework: string; itemId: string }[];
   }[] = [];
 
-  // Matt's 27 skills: true provenance (Matt's repository, selected by Extensions),
-  // each superseding its frozen-default copy by name and source path.
+  // Matt's skills in every bucket his pinned tree holds: true provenance (Matt's
+  // repository). AIH-Extensions selects the two buckets Matt's plugin ships; the 27
+  // plugin skills also supersede their frozen-default copies by name and source path.
   const mattNames = release12.release.items
     .filter((item) => item.id.startsWith("extensions.matt."))
     .map((item) => item.id.slice("extensions.matt.".length))
@@ -414,8 +598,8 @@ export function buildExtensions17(
       item16(`extensions.matt.${name}`).materials as unknown as readonly Material16[]
     ).find((member) => member.sourcePath?.endsWith("/SKILL.md"));
     if (!skill?.sourcePath) throw new Error(`extensions.matt.${name} carries no SKILL.md`);
-    const bucket = skill.sourcePath.split("/")[1];
-    if (bucket !== "engineering" && bucket !== "productivity")
+    const bucket = skill.sourcePath.split("/")[1] as string;
+    if (!MATT_BUCKETS.some((entry) => entry.id === bucket))
       throw new Error(
         `extensions.matt.${name} sits outside Matt's pinned buckets: ${skill.sourcePath}`,
       );
@@ -423,7 +607,8 @@ export function buildExtensions17(
   };
   for (const name of mattNames) {
     const id = `extensions.matt.${name}`;
-    const frozenCopy = frozenItem(`mattpocock.${name}`);
+    const plugin = MATT_PLUGIN_BUCKETS.includes(bucketOf(name));
+    const frozenCopy = plugin ? frozenItem(`mattpocock.${name}`) : undefined;
     declarations.push({
       id,
       kind: "skill",
@@ -432,17 +617,21 @@ export function buildExtensions17(
       nameBasis: "authored",
       descriptionBasis: "authored",
       copies: toolCopies(`matt.${name}`),
-      hints: { tools: TOOL_HINTS },
-      supersedes: [
-        {
-          match: "name+sourcePath",
-          releaseSha256: frozen.release.sha256,
-          itemId: `mattpocock.${name}`,
-          itemSha256: frozenCopy.itemSha256,
-          name,
-          sourcePath: `skills/${bucketOf(name)}/${name}/SKILL.md`,
-        },
-      ],
+      ...(plugin ? { provenance: { selectedBy: EXTENSIONS_SELECTION } } : {}),
+      ...(frozenCopy === undefined
+        ? {}
+        : {
+            supersedes: [
+              {
+                match: "name+sourcePath" as const,
+                releaseSha256: frozen.release.sha256,
+                itemId: `mattpocock.${name}`,
+                itemSha256: frozenCopy.itemSha256,
+                name,
+                sourcePath: `skills/${bucketOf(name)}/${name}/SKILL.md`,
+              },
+            ],
+          }),
     });
   }
 
@@ -466,7 +655,7 @@ export function buildExtensions17(
       nameBasis: "authored",
       descriptionBasis: "authored",
       copies: toolCopies(`skill.${name}`),
-      hints: { tools: TOOL_HINTS },
+      ...derivation(`skills/${name}`),
     });
   }
   const nativeBases = (family: "agent" | "command") =>
@@ -490,7 +679,7 @@ export function buildExtensions17(
         nameBasis: "authored",
         descriptionBasis: "authored",
         copies: toolCopies(`${family}.${name}`),
-        hints: { tools: TOOL_HINTS },
+        ...derivation(`${family}s/${name}.md`),
         payload: { files: contentIds(claudeId) },
       });
     }
@@ -515,10 +704,12 @@ export function buildExtensions17(
     nameBasis: "publisher",
     descriptionBasis: "publisher",
     copies: toolCopies("references"),
+    ...derivation("references"),
   });
 
-  // The three hooks: the pinned hook source folds into its hook item, so the
-  // scripts, settings reference and licence become the item's own materials.
+  // The three hooks: the pinned hook source folds into its hook item, so the scripts
+  // and licence become the item's own materials. The hooks.json registration is not
+  // material: the payload registers the hook, run by node with its script.
   for (const hook of HOOKS) {
     const merged = hookRecipes.get(hook.name);
     if (!merged) throw new Error(`No merged recipe for ${hook.name}`);
@@ -537,12 +728,14 @@ export function buildExtensions17(
       nameBasis: "authored",
       descriptionBasis: "authored",
       copies: [copyRef(claudeId), copyRef(sourceId)],
+      withoutMaterials: ["hooks/hooks.json"],
+      hints: { tools: ["claude-code"] },
       payload: {
         event: hook.event,
         matcher: hook.matcher,
         protocol: "claude-code-hooks",
         timeoutSec: 10,
-        command: { program: "node", script: script.id },
+        command: { interpreter: "node", script: script.id },
       },
     });
     retired.push({
@@ -563,24 +756,25 @@ export function buildExtensions17(
     }
   }
 
-  // Matt's buckets are sets; the pinned revision carries engineering and
-  // productivity skills, the other buckets are declared empty at their offer level.
+  // Matt's buckets are sets, one per bucket his pinned tree holds skills in. His misc
+  // setup-pre-commit ships as the Extensions skill copied from it, so misc names that.
   const mattItem = (name: string) => `extensions.matt.${name}`;
   const member = (itemId: string, optional = false, defaultOn = true) => ({
     item: { framework: FRAMEWORK.id, itemId },
     optional,
     defaultOn,
   });
-  const bucketMembers = (bucket: string) =>
-    mattNames.filter((name) => bucketOf(name) === bucket).map((name) => member(mattItem(name)));
+  const bucketMembers = (bucket: string) => [
+    ...mattNames.filter((name) => bucketOf(name) === bucket).map((name) => member(mattItem(name))),
+    ...Object.entries(MATT_COPIED)
+      .filter(([, copied]) => copied.bucket === bucket)
+      .map(([itemId]) => member(itemId)),
+  ];
   const sets = [
     ...MATT_BUCKETS.map((bucket) => ({
       id: bucket.id,
       name: bucket.name,
-      description:
-        bucket.id === "engineering" || bucket.id === "productivity"
-          ? `Matt Pocock's ${bucket.id} skills.`
-          : `Matt Pocock's ${bucket.id} skills. ${EMPTY_BUCKET_NOTE}`,
+      description: bucket.description,
       offer: bucket.offer,
       members: bucketMembers(bucket.id),
       ...(bucket.id === "engineering"
@@ -627,6 +821,9 @@ export function buildExtensions17(
     items: declarations,
     retired,
     sets,
+    metadata: { mattBuckets: MATT_BUCKET_FACTS },
+    provenanceSources: [ADDY_SOURCE],
+    readMaterial: (packagePath) => new Uint8Array(readFileSync(resolve(root, packagePath))),
   });
   if (compiled.status !== "ok") {
     throw new Error(`Extensions release 1.7.0 refused: ${JSON.stringify(compiled.diagnostics)}`);

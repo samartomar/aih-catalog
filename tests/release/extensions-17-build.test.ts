@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -11,7 +10,6 @@ const tool = async () =>
       .href
   );
 const root = resolve(import.meta.dirname, "../..");
-const sha256 = (text: string) => createHash("sha256").update(text).digest("hex");
 
 interface MaterialLike {
   relPath?: string;
@@ -24,21 +22,24 @@ interface ItemLike {
   source?: string;
   selectedBy?: string;
   derivedFrom?: unknown;
+  provenance?: {
+    source: { sourceId: string; path: string };
+    selectedBy?: { sourceId: string };
+    derivedFrom: unknown[];
+  };
   materials?: MaterialLike[];
   supersedes?: { itemId: string; match: string; sourcePath?: string; name?: string }[];
   contentSha256?: string;
 }
 
 /** Recomputes one projected copy's identities after a mutation, keeping it readable. */
+const { computeBehaviourIdentity } = await import(
+  pathToFileURL(resolve(import.meta.dirname, "../../dist/release/document.js")).href
+);
 const reidentify = (item: Record<string, unknown>) => {
-  const materials = item.materials as MaterialLike[];
-  const lines = (members: MaterialLike[]) =>
-    members
-      .map((member) => `${member.relPath}\t${member.sha256}\n`)
-      .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
-  const content = materials.filter((member) => member.relPath !== "aih-behaviour.json");
-  item.contentSha256 = sha256(lines(content).join(""));
-  item.behaviourSha256 = sha256(lines(materials).join(""));
+  const identity = computeBehaviourIdentity(item);
+  item.contentSha256 = identity.contentSha256;
+  item.behaviourSha256 = identity.behaviourSha256;
 };
 
 it("builds the committed content deterministically", async () => {
@@ -47,9 +48,9 @@ it("builds the committed content deterministically", async () => {
   const second = buildExtensions17({ root });
   expect(first.releaseSha256).toBe(second.releaseSha256);
   expect([...first.outputs.keys()]).toContain(EXTENSIONS_17_CONTENT_PATH);
-  expect(first.release.items).toHaveLength(57);
-  expect(first.release.sets).toHaveLength(8);
-  expect(first.release.retired).toHaveLength(118);
+  expect(first.release.items).toHaveLength(67);
+  expect(first.release.sets).toHaveLength(6);
+  expect(first.release.retired).toHaveLength(138);
   // The committed document is the build output.
   const committed = readFileSync(resolve(root, EXTENSIONS_17_CONTENT_PATH));
   const rendered = first.outputs.get(EXTENSIONS_17_CONTENT_PATH);
@@ -67,27 +68,37 @@ it("renders the accepted Matt grouping, provenance and supersession facts", asyn
     if (!found) throw new Error(`The release carries no ${id}`);
     return found;
   };
-  const MATT = "https://github.com/mattpocock/skills";
-  const EXT = "https://github.com/samartomar/aih-extensions";
   const matt = release.items.filter((entry: { id: string }) =>
     entry.id.startsWith("extensions.matt."),
   );
-  expect(matt).toHaveLength(27);
+  // The 27 skills of Matt's plugin, selected by AIH-Extensions, and the 10 of his
+  // pinned in-progress and misc buckets, which only his own grouping offers.
+  expect(matt).toHaveLength(37);
   for (const entry of matt as unknown as ItemLike[]) {
-    expect(entry.source).toBe(MATT);
-    expect(entry.selectedBy).toBe(EXT);
-    expect(entry.derivedFrom).toBeUndefined();
+    // Provenance is hops; the URL `source` of release 1.6 is gone.
+    expect(entry.source).toBeUndefined();
+    expect(entry.selectedBy).toBeUndefined();
+    expect(entry.provenance?.source.sourceId).toBe("matt");
+    expect(entry.provenance?.derivedFrom).toEqual([]);
+    const plugin = ["engineering", "productivity"].includes(
+      entry.provenance?.source.path.split("/")[1] ?? "",
+    );
+    expect(entry.provenance?.selectedBy?.sourceId).toBe(plugin ? "extensions" : undefined);
   }
-  expect(item("extensions.matt.setup-matt-pocock-skills").source).toBe(MATT);
+  expect(item("extensions.matt.setup-matt-pocock-skills").provenance?.source.path).toBe(
+    "skills/engineering/setup-matt-pocock-skills",
+  );
   const grill = item("extensions.matt.grill-me");
   const frozenEntry = grill.supersedes?.find((entry) => entry.itemId === "mattpocock.grill-me");
   expect(frozenEntry?.match).toBe("name+sourcePath");
   expect(frozenEntry?.sourcePath).toBe("skills/productivity/grill-me/SKILL.md");
   expect(frozenEntry?.name).toBe("grill-me");
-  // No skill sits outside Matt's two pinned buckets.
+  // No skill sits outside the buckets Matt's pinned tree holds skills in.
   for (const entry of matt as unknown as ItemLike[]) {
     const skill = entry.materials?.find((member) => member.sourcePath?.endsWith("/SKILL.md"));
-    expect(["engineering", "productivity"]).toContain(skill?.sourcePath?.split("/")[1]);
+    expect(["engineering", "productivity", "in-progress", "misc"]).toContain(
+      skill?.sourcePath?.split("/")[1],
+    );
   }
 });
 

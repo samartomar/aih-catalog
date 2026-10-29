@@ -148,17 +148,23 @@ sees its 15 skills and its start-of-session bootstrap, not one copy per tool.
 | `superpowers.notices` | `document`, purpose `notice` | supporting | LICENSE, README and release notes |
 
 - **Skills.** Each skill collapses its Claude Code, Kiro IDE and Copilot VS Code copies
-  into one item. Its `recipes` map keeps each copy's recipe by client, and
-  `hints.tools` lists the three as display hints. `invocation` and its basis come from
+  into one item. Its `recipes` map keeps each copy's recipe by client; a skill is
+  tool-neutral, so it carries no tool hint. `invocation` and its basis come from
   the skill's frontmatter: no upstream skill sets `disable-model-invocation`, so each
   is `model-allowed` with the basis `frontmatter: disable-model-invocation absent`.
 - **The bootstrap.** The hook folds the former bootstrap source item: its materials are
-  upstream's `hooks/`, plugin manifest and using-superpowers files at their source
-  paths, with their pinned executable states. The payload is upstream's one
-  `SessionStart` group: matcher `startup|clear|compact`, protocol `claude-code-hooks`
-  and the command `bash hooks/run-hook.cmd session-start`. Its Claude Code recipe writes
-  those files under `.superpowers-source/` and registers the group with the
-  caller-reviewed `hookCommand` input, which still has no default.
+  upstream's `hooks/` scripts and using-superpowers files at their source paths, with
+  their pinned executable states. Registration files are never hook material, so
+  `hooks/hooks.json` and the `.claude-plugin/` manifests are left out (`session-start`
+  finds its root from its own folder). The payload is upstream's one `SessionStart`
+  group: matcher `startup|clear|compact`, protocol `claude-code-hooks` and the command
+  `bash hooks/run-hook.cmd session-start`; the hook carries `hints.tools:
+  ["claude-code"]`. Its Claude Code recipe writes those files under `.superpowers-source/`
+  and registers the group with the literal command built from the payload alone, as
+  Core renders it: `bash "${CLAUDE_PROJECT_DIR}/.superpowers-source/hooks/run-hook.cmd"
+  "session-start"`. No command input remains. `session-start` finds its folder itself;
+  without `CLAUDE_PLUGIN_ROOT` it emits its context as top-level `additionalContext`,
+  and whether Claude Code reads that form is for the native observation to show.
 - **The fallback.** `fallback` is a declaration only. It names the one-line rule for
   tools that lack hooks; Core uses it only where it observes that rule's delivery. The
   rule's release 1.x recipe writes the line to `.superpowers-source/session-bootstrap.md`;
@@ -167,7 +173,7 @@ sees its 15 skills and its start-of-session bootstrap, not one copy per tool.
   a fallback never makes an agent or command deliverable to a tool that lacks that kind.
 - **The set.** One set, `superpowers`, follows upstream's plugin grouping: the 15
   skills pre-ticked and the bootstrap hook offered. Every member is `optional`. The hook
-  is not `defaultOn`, because it needs a reviewed command. `resolveSelections` never
+  is not `defaultOn`: every hook is a choice. `resolveSelections` never
   re-adds an excluded hook, and never adds its fallback in its place.
 - **Native routes.** `nativeRoutes` lists upstream's install commands per tool, each
   quoted verbatim from a line of upstream's README. They are guidance only; the Catalog

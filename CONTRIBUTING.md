@@ -110,13 +110,23 @@ against the amended expected projection runs in `npm run check:restructuring`.
 `node tools/verify-extensions-17-consumer.mjs [catalog.tgz]` runs its packed
 public-only consumer. See [Extensions content](docs/EXTENSIONS-CONTENT.md#release-170-prepared-content-samartomaraih-catalog145).
 
+`node tools/verify-conformance-consumer.mjs [catalog.tgz]` (run by
+`tests/release/conformance-packed.test.ts`) checks the prepared 1.7.0 contents against
+the Catalog contract through the packed public exports only: hook runners and
+registration files, ECC's hooks as optional never-pre-ticked items, no empty set,
+Matt's buckets, ECC's set words and pick-several option, both identity encodings
+recomputed independently, measured sizes, provenance hops, skill invocation and tool
+hints. Pass an earlier commit's tarball to see which clauses it breaks.
+
 `node tools/verify-item-evidence-scan-consumer.mjs <scan.tgz> [catalog.tgz]` installs
 the packed Catalog and an exact packed Scan archive into a disposable consumer and
-maps one compiled release 1.6 item to Scan's item descriptor: `itemEvidenceDescriptor`
-paths are projected into the baseline scope's package-relative namespace and passed to
-Scan's public `recordItem`/`verifyItemRecord`. Scan runs its local detector over a
-disposable fixture root only — no live network scanning and no scan against this
-checkout. The Scan archive is built from exact committed Scan source; identify it by
+maps prepared release 1.7 items (a skill and three hooks, with executable scripts) to
+Scan's item descriptor, then derives records with Scan's public `recordItems` and
+`verifyItemRecord` from a local request 2.0.0 assessment of their exact package
+members. On Linux every item is `matched`; Windows records no file modes, so there
+every record is `unavailable`. A payload-only or executable-only change is never
+covered by the old assessment. Scan runs its local detector over a disposable copy
+only — no live network scanning and no scan against this checkout. The Scan archive is built from exact committed Scan source; identify it by
 commit and SHA-256. See [baseline contract checks](docs/SCAN-BASELINE.md#item-evidence-descriptors).
 
 `node tools/verify-source-link-consumer.mjs [catalog.tgz]` installs the packed

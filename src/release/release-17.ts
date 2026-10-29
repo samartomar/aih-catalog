@@ -27,7 +27,7 @@ const MAX_TEXT = 4096;
 /** Kinds delivered only natively; a fallback can never stand in for them. */
 const NATIVE_ONLY = new Set(["agent", "command"]);
 
-/** Release 1.7 item fields: everything a 1.6 item may carry is required, plus `role`. */
+/** Release 1.7 item fields: the 1.6 fields an item always carries, plus `role` and provenance hops in place of the URL `source`. */
 export const ITEM17_REQUIRED = [
   "id",
   "label",
@@ -35,7 +35,7 @@ export const ITEM17_REQUIRED = [
   "role",
   "name",
   "nameBasis",
-  "source",
+  "provenance",
   "sourceIds",
   "targets",
   "scopes",
@@ -54,8 +54,6 @@ export const ITEM17_OPTIONAL = [
   "description",
   "descriptionBasis",
   "metadata",
-  "selectedBy",
-  "derivedFrom",
   "size",
   "supersedes",
   "fallback",
@@ -385,7 +383,10 @@ export function checkRelease17Items(
   d: DiagnosticCollector,
   items: readonly Record<string, unknown>[],
   retired: unknown,
+  sources: unknown = [],
+  framework: unknown = undefined,
 ): void {
+  checkProvenance17(d, items, sources, framework);
   const ids = new Map(items.map((item, index) => [String(item.id), index]));
   if (Array.isArray(retired)) {
     retired.forEach((entry, index) => {
@@ -425,4 +426,94 @@ export function checkRelease17Items(
       );
     }
   }
+}
+
+/**
+ * The revision an item's hop names: the pinned commit of a Git source, or the
+ * framework version for content its own publisher authored (no upstream commit).
+ */
+export function sourceRevision(source: unknown, frameworkVersion: unknown): string | undefined {
+  if (!isRecord(source) || !isRecord(source.origin)) return undefined;
+  if (source.origin.kind === "authored")
+    return typeof frameworkVersion === "string" ? frameworkVersion : undefined;
+  return typeof source.origin.revision === "string" ? source.origin.revision : undefined;
+}
+
+/**
+ * Release 1.7 provenance, as the contract states it: the source hop whose tree holds
+ * the shipped bytes, who selected it when that is not the source, and real modified
+ * hops. Every hop names a release source at that source's own pin and licence.
+ */
+function checkProvenance17(
+  d: DiagnosticCollector,
+  items: readonly Record<string, unknown>[],
+  sources: unknown,
+  framework: unknown,
+): void {
+  const byId = new Map(
+    (Array.isArray(sources) ? sources : [])
+      .filter(isRecord)
+      .map((source) => [String(source.id), source] as const),
+  );
+  const version = isRecord(framework) ? framework.version : undefined;
+  const hop = (
+    value: unknown,
+    at: string,
+    required: readonly string[],
+    optional: string[] = [],
+  ) => {
+    if (!fields(d, value, at, required, optional)) return;
+    const source = byId.get(String(value.sourceId));
+    if (!isId(value.sourceId) || source === undefined) {
+      d.add("unknown-source", `${at}/sourceId`, "A hop names a release source.");
+      return;
+    }
+    if (!safeMemberPath(value.path))
+      d.add("invalid-provenance", `${at}/path`, "A hop names a safe source-relative path.");
+    if (value.revision !== sourceRevision(source, version))
+      d.add("provenance-revision-mismatch", `${at}/revision`, "A hop names its source's pin.");
+    if (required.includes("license") && value.license !== source.license)
+      d.add(
+        "provenance-license-mismatch",
+        `${at}/license`,
+        "A hop names its source's SPDX licence.",
+      );
+  };
+  items.forEach((item, index) => {
+    const at = `/items/${index}/provenance`;
+    const provenance = item.provenance;
+    if (!fields(d, provenance, at, ["source", "derivedFrom"], ["selectedBy"])) return;
+    hop(provenance.source, `${at}/source`, ["sourceId", "path", "revision", "license"]);
+    if (provenance.selectedBy !== undefined)
+      hop(provenance.selectedBy, `${at}/selectedBy`, ["sourceId", "path", "revision"]);
+    if (!Array.isArray(provenance.derivedFrom) || provenance.derivedFrom.length > 64) {
+      d.add("invalid-provenance", `${at}/derivedFrom`, "Expected at most 64 real modified hops.");
+      return;
+    }
+    provenance.derivedFrom.forEach((entry, h) => {
+      const atHop = `${at}/derivedFrom/${h}`;
+      hop(entry, atHop, ["sourceId", "path", "revision", "license", "ancestry"]);
+      if (isRecord(entry) && entry.ancestry !== "verified" && entry.ancestry !== "declared")
+        d.add("invalid-provenance", `${atHop}/ancestry`, "Expected verified or declared.");
+      // `verified` needs per-material proof (material upstream records); none is claimed here.
+      if (
+        isRecord(entry) &&
+        entry.ancestry === "verified" &&
+        !(
+          Array.isArray(item.materials) &&
+          item.materials.some(
+            (member) =>
+              isRecord(member) &&
+              isRecord(member.upstream) &&
+              member.upstream.sourceId === entry.sourceId,
+          )
+        )
+      )
+        d.add(
+          "unverified-derivation",
+          atHop,
+          "A verified hop carries per-material upstream proof.",
+        );
+    });
+  });
 }

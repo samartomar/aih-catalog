@@ -40,7 +40,8 @@ const request = { registry: REGISTRY, package: "@aihq/catalog", version: "0.1.0"
 const version = () =>
   JSON.parse(readFileSync(join(packageRoot(), "package.json"), "utf8")).version as string;
 
-describe("resolveRelease", () => {
+// Each case tars the whole package, which grows with its content.
+describe("resolveRelease", { timeout: 30_000 }, () => {
   it("resolves an exact registry version into a checked release and pinned archive source", async () => {
     expect(version()).toBe("0.1.0");
     const archive = tarGz(packageEntries(packageRoot()));

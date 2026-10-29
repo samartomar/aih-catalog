@@ -6140,7 +6140,31 @@
         "ecc.codex.mcp.squish",
         "ecc.template.api-review",
         "ecc.claude.mcp.github-local",
-        "ecc.claude.mcp.railway-hosted"
+        "ecc.claude.mcp.railway-hosted",
+        "ecc.hook.pre-bash-dispatcher",
+        "ecc.hook.pre-powershell-gateguard-fact-force",
+        "ecc.hook.pre-write-doc-file-warning",
+        "ecc.hook.pre-edit-write-suggest-compact",
+        "ecc.hook.pre-observe-continuous-learning",
+        "ecc.hook.pre-governance-capture",
+        "ecc.hook.pre-config-protection",
+        "ecc.hook.pre-mcp-health-check",
+        "ecc.hook.pre-edit-write-gateguard-fact-force",
+        "ecc.hook.pre-compact",
+        "ecc.hook.session-start",
+        "ecc.hook.session-start-plan-canvas-sessions",
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async",
+        "ecc.hook.post-mcp-health-check",
+        "ecc.hook.post-skill-track",
+        "ecc.hook.stop-plan-canvas-pending",
+        "ecc.hook.stop-format-typecheck",
+        "ecc.hook.stop-check-console-log",
+        "ecc.hook.stop-session-end",
+        "ecc.hook.stop-evaluate-session",
+        "ecc.hook.stop-cost-tracker",
+        "ecc.hook.stop-desktop-notify",
+        "ecc.hook.session-end-marker"
       ]
     },
     {
@@ -26640,7 +26664,7 @@
       "byteLength": 42739,
       "disposition": "unsupported-installation",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
+      "reason": "Upstream hook registration: read as hook facts for the ecc.hook.* items (producer/ecc/hook-facts.json); a registration file is never delivered as hook material.",
       "items": []
     },
     {
@@ -29308,10 +29332,14 @@
       "mode": "100755",
       "sha256": "b9bba06d2b73495601a04a69ba1b907271220d967794eed613b0b3924a91ffd9",
       "byteLength": 4967,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-bash-dispatcher",
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async"
+      ]
     },
     {
       "path": "scripts/hooks/bash-hook-dispatcher.js",
@@ -29319,10 +29347,14 @@
       "mode": "100644",
       "sha256": "b6e4163536d8092b63cfca205372d699f38550d6dd0fe2e74abde2f029f6ecbe",
       "byteLength": 5679,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-bash-dispatcher",
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async"
+      ]
     },
     {
       "path": "scripts/hooks/block-no-verify.js",
@@ -29330,10 +29362,14 @@
       "mode": "100644",
       "sha256": "ee2f295cc37103f211dec04e643aa2d513be5aa6959fcd6997a03d85d97939d7",
       "byteLength": 14365,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-bash-dispatcher",
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async"
+      ]
     },
     {
       "path": "scripts/hooks/check-console-log.js",
@@ -29341,10 +29377,12 @@
       "mode": "100755",
       "sha256": "382623502ffe25ffc2cc7fe810bc79a181600a46c43595fe8de0da148998b7b1",
       "byteLength": 2476,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.stop-check-console-log"
+      ]
     },
     {
       "path": "scripts/hooks/check-hook-enabled.js",
@@ -29363,10 +29401,12 @@
       "mode": "100644",
       "sha256": "04e6c0fbe1f3e9ef1dcfe3c015464838ad9045571efa443259e46bfaa1da4ea3",
       "byteLength": 5491,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-config-protection"
+      ]
     },
     {
       "path": "scripts/hooks/cost-tracker.js",
@@ -29374,10 +29414,12 @@
       "mode": "100755",
       "sha256": "3a6007ef6c7ae3c38fc8e2a076a4aa51c37753e86a22cacca51ab438d6573a71",
       "byteLength": 9694,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.stop-cost-tracker"
+      ]
     },
     {
       "path": "scripts/hooks/cursor-session-env.js",
@@ -29396,10 +29438,13 @@
       "mode": "100644",
       "sha256": "ffac3f7c2b226e68c808b7e23d515727e0db32e166ed14d25674dfa9a407be33",
       "byteLength": 3859,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async"
+      ]
     },
     {
       "path": "scripts/hooks/desktop-notify.js",
@@ -29407,10 +29452,12 @@
       "mode": "100644",
       "sha256": "ee5c5c366958848683c17527d1572f10cf86f8ec52a9ba645202db8652d9c046",
       "byteLength": 9036,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.stop-desktop-notify"
+      ]
     },
     {
       "path": "scripts/hooks/doc-file-warning.js",
@@ -29418,10 +29465,12 @@
       "mode": "100644",
       "sha256": "a91eea1e20c0affaf0460dd128afad46af5a0d71dc7f52d7e4b875c5607225d1",
       "byteLength": 3696,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-write-doc-file-warning"
+      ]
     },
     {
       "path": "scripts/hooks/ecc-context-monitor.js",
@@ -29429,10 +29478,13 @@
       "mode": "100644",
       "sha256": "6c9399ca4e1bd0162cf824fd4c94f5c05e580bb3146e6e365f38b6f7bd14e5ec",
       "byteLength": 10319,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async"
+      ]
     },
     {
       "path": "scripts/hooks/ecc-metrics-bridge.js",
@@ -29440,10 +29492,13 @@
       "mode": "100644",
       "sha256": "294cab36c415275ce1171d6115cc7ac131ef2aff5e511f5105fc03010928870d",
       "byteLength": 10217,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async"
+      ]
     },
     {
       "path": "scripts/hooks/ecc-statusline.js",
@@ -29462,10 +29517,12 @@
       "mode": "100644",
       "sha256": "d3bf18be2af61791b25bcb8fb7cc44b911bf9d59579fbcfc0c6af16579574db6",
       "byteLength": 2980,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.stop-evaluate-session"
+      ]
     },
     {
       "path": "scripts/hooks/gateguard-fact-force.js",
@@ -29473,10 +29530,17 @@
       "mode": "100644",
       "sha256": "15faa517e321ecab9ccfd68931b47fdd8976ba3f9105a59359919f9e734fc3e8",
       "byteLength": 44948,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-bash-dispatcher",
+        "ecc.hook.pre-powershell-gateguard-fact-force",
+        "ecc.hook.pre-governance-capture",
+        "ecc.hook.pre-edit-write-gateguard-fact-force",
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async"
+      ]
     },
     {
       "path": "scripts/hooks/gateguard-heredoc.js",
@@ -29484,10 +29548,17 @@
       "mode": "100644",
       "sha256": "456d319cdafef02497573618af17d8caaef9a91c574bae55341157d6a3c3a60c",
       "byteLength": 8634,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-bash-dispatcher",
+        "ecc.hook.pre-powershell-gateguard-fact-force",
+        "ecc.hook.pre-governance-capture",
+        "ecc.hook.pre-edit-write-gateguard-fact-force",
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async"
+      ]
     },
     {
       "path": "scripts/hooks/governance-capture.js",
@@ -29495,10 +29566,14 @@
       "mode": "100644",
       "sha256": "8001160e9bc469dd57aa000ff483962c00841701973e9d1cf122105b88a839d8",
       "byteLength": 10865,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-governance-capture",
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async"
+      ]
     },
     {
       "path": "scripts/hooks/insaits-security-monitor.py",
@@ -29528,10 +29603,13 @@
       "mode": "100644",
       "sha256": "472f207813342a3735458baf2c437009e20f008ea15e41bb18b5ba1f38e6079d",
       "byteLength": 24270,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-mcp-health-check",
+        "ecc.hook.post-mcp-health-check"
+      ]
     },
     {
       "path": "scripts/hooks/observe-runner.js",
@@ -29539,10 +29617,14 @@
       "mode": "100644",
       "sha256": "0ac9f619f326a5465f04ddc4cdade192132b6a47d011067af00b7a5d17f5efed",
       "byteLength": 5587,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-observe-continuous-learning",
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async"
+      ]
     },
     {
       "path": "scripts/hooks/plan-canvas-pending.js",
@@ -29550,10 +29632,12 @@
       "mode": "100644",
       "sha256": "18feb739884b028791b432b8185888451fa27fe23f94adc96747c9b9c773f018",
       "byteLength": 8036,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.stop-plan-canvas-pending"
+      ]
     },
     {
       "path": "scripts/hooks/plan-canvas-sessions.js",
@@ -29561,10 +29645,12 @@
       "mode": "100644",
       "sha256": "f894fdc9a38ba2c4b92035e026d58775dcec4679ea5035e7df0fe1d2b359445b",
       "byteLength": 1998,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.session-start-plan-canvas-sessions"
+      ]
     },
     {
       "path": "scripts/hooks/plugin-hook-bootstrap.js",
@@ -29583,10 +29669,14 @@
       "mode": "100755",
       "sha256": "f47e296e4536ba71572c27b6611919d1b350bc1f2d293b1c1ddb2c7662e506b4",
       "byteLength": 1351,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-bash-dispatcher",
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async"
+      ]
     },
     {
       "path": "scripts/hooks/post-bash-command-log.js",
@@ -29594,10 +29684,14 @@
       "mode": "100644",
       "sha256": "286bc8dc082ab9e23e228a744788b5bfce91fa3cb842dd2db3dfb96bd2eb464a",
       "byteLength": 2165,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-bash-dispatcher",
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async"
+      ]
     },
     {
       "path": "scripts/hooks/post-bash-dispatcher.js",
@@ -29616,10 +29710,14 @@
       "mode": "100755",
       "sha256": "360a4d5428801786fda5c03ebfa065033aa6382448d0035bd7c44904ee686e6a",
       "byteLength": 1769,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-bash-dispatcher",
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async"
+      ]
     },
     {
       "path": "scripts/hooks/post-edit-accumulator.js",
@@ -29627,10 +29725,13 @@
       "mode": "100644",
       "sha256": "b69e6128795c7d9a5db9af45e4f709a6192d427ac998962c3564926aaa9d35a4",
       "byteLength": 2363,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async"
+      ]
     },
     {
       "path": "scripts/hooks/post-edit-console-warn.js",
@@ -29638,10 +29739,13 @@
       "mode": "100644",
       "sha256": "de72d89dc4cedb4ba0ba799edacad79b69165ec9aac5be6d65950cd0cd3b5c2d",
       "byteLength": 1996,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async"
+      ]
     },
     {
       "path": "scripts/hooks/post-edit-format.js",
@@ -29671,10 +29775,13 @@
       "mode": "100644",
       "sha256": "74262d37a1f02d63b44ce498178cb3327b429c6d278c7aed5453905efe71b725",
       "byteLength": 10300,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async"
+      ]
     },
     {
       "path": "scripts/hooks/pre-bash-commit-quality.js",
@@ -29682,10 +29789,14 @@
       "mode": "100644",
       "sha256": "b517247be502c3f4255d06112a7ecf6f0a9321c9426135eaa0c46eba42984a5b",
       "byteLength": 16177,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-bash-dispatcher",
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async"
+      ]
     },
     {
       "path": "scripts/hooks/pre-bash-dev-server-block.js",
@@ -29704,10 +29815,12 @@
       "mode": "100644",
       "sha256": "101ea77e0f50eae5179f3f6b5b4cb9b3f2ea77706b145ba376d6efffd33ca91b",
       "byteLength": 555,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-bash-dispatcher"
+      ]
     },
     {
       "path": "scripts/hooks/pre-bash-git-push-reminder.js",
@@ -29715,10 +29828,14 @@
       "mode": "100755",
       "sha256": "171a7b03e588059aabab78cf64e10fa8170af112b1ceb6fa3d749df503c7fa72",
       "byteLength": 1618,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-bash-dispatcher",
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async"
+      ]
     },
     {
       "path": "scripts/hooks/pre-bash-tmux-reminder.js",
@@ -29726,10 +29843,14 @@
       "mode": "100755",
       "sha256": "df1d631016eb98d0fd53787572d76ecc65be180f91e38f05adb76a964e824a4c",
       "byteLength": 1806,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-bash-dispatcher",
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async"
+      ]
     },
     {
       "path": "scripts/hooks/pre-compact.js",
@@ -29737,10 +29858,12 @@
       "mode": "100644",
       "sha256": "98eee132c60edc683066233b227e65f0a4e752683efe97384509577bbbfb8bd6",
       "byteLength": 6863,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-compact"
+      ]
     },
     {
       "path": "scripts/hooks/pre-write-doc-warn.js",
@@ -29759,10 +29882,35 @@
       "mode": "100644",
       "sha256": "0508766aad2ff7540a717bacacc6e23e2452c65d75d0485039ec1a3eae7e6018",
       "byteLength": 938,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-bash-dispatcher",
+        "ecc.hook.pre-powershell-gateguard-fact-force",
+        "ecc.hook.pre-write-doc-file-warning",
+        "ecc.hook.pre-edit-write-suggest-compact",
+        "ecc.hook.pre-observe-continuous-learning",
+        "ecc.hook.pre-governance-capture",
+        "ecc.hook.pre-config-protection",
+        "ecc.hook.pre-mcp-health-check",
+        "ecc.hook.pre-edit-write-gateguard-fact-force",
+        "ecc.hook.pre-compact",
+        "ecc.hook.session-start",
+        "ecc.hook.session-start-plan-canvas-sessions",
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async",
+        "ecc.hook.post-mcp-health-check",
+        "ecc.hook.post-skill-track",
+        "ecc.hook.stop-plan-canvas-pending",
+        "ecc.hook.stop-format-typecheck",
+        "ecc.hook.stop-check-console-log",
+        "ecc.hook.stop-session-end",
+        "ecc.hook.stop-evaluate-session",
+        "ecc.hook.stop-cost-tracker",
+        "ecc.hook.stop-desktop-notify",
+        "ecc.hook.session-end-marker"
+      ]
     },
     {
       "path": "scripts/hooks/quality-gate.js",
@@ -29770,10 +29918,13 @@
       "mode": "100755",
       "sha256": "66874c9ff75bf74483b17a699b217865ae6a47cfe1462fd2b1f037511aecb582",
       "byteLength": 4962,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async"
+      ]
     },
     {
       "path": "scripts/hooks/run-with-flags-shell.sh",
@@ -29792,10 +29943,32 @@
       "mode": "100755",
       "sha256": "0b30fae9163681b118307e62f23d055682d42faf004218b11d3ce76378f2f209",
       "byteLength": 8985,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-powershell-gateguard-fact-force",
+        "ecc.hook.pre-write-doc-file-warning",
+        "ecc.hook.pre-edit-write-suggest-compact",
+        "ecc.hook.pre-observe-continuous-learning",
+        "ecc.hook.pre-governance-capture",
+        "ecc.hook.pre-config-protection",
+        "ecc.hook.pre-mcp-health-check",
+        "ecc.hook.pre-edit-write-gateguard-fact-force",
+        "ecc.hook.pre-compact",
+        "ecc.hook.session-start",
+        "ecc.hook.session-start-plan-canvas-sessions",
+        "ecc.hook.post-mcp-health-check",
+        "ecc.hook.post-skill-track",
+        "ecc.hook.stop-plan-canvas-pending",
+        "ecc.hook.stop-format-typecheck",
+        "ecc.hook.stop-check-console-log",
+        "ecc.hook.stop-session-end",
+        "ecc.hook.stop-evaluate-session",
+        "ecc.hook.stop-cost-tracker",
+        "ecc.hook.stop-desktop-notify",
+        "ecc.hook.session-end-marker"
+      ]
     },
     {
       "path": "scripts/hooks/session-activity-tracker.js",
@@ -29803,10 +29976,13 @@
       "mode": "100644",
       "sha256": "51c2110a507c7f545f9040cb0bb5cf23c935b1f05018aea15bf4685bfb17a53a",
       "byteLength": 16360,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async"
+      ]
     },
     {
       "path": "scripts/hooks/session-end-marker.js",
@@ -29814,10 +29990,12 @@
       "mode": "100755",
       "sha256": "dd24fbec816a9dc738e45c5b126f3823365410c3d0e0fde52ea8ee8e1384a234",
       "byteLength": 1815,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.session-end-marker"
+      ]
     },
     {
       "path": "scripts/hooks/session-end.js",
@@ -29825,10 +30003,12 @@
       "mode": "100644",
       "sha256": "e457fad77b8e25634e651af12e235cac8daeb523edd04bae381a6aaf6e9b9cab",
       "byteLength": 14031,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.stop-session-end"
+      ]
     },
     {
       "path": "scripts/hooks/session-start-bootstrap.js",
@@ -29847,10 +30027,12 @@
       "mode": "100644",
       "sha256": "fcdf42219b0b9625407a217461e6c717b3547f580bd6ec178e37354df5e6667a",
       "byteLength": 28723,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.session-start"
+      ]
     },
     {
       "path": "scripts/hooks/skill-run-tracker.js",
@@ -29858,10 +30040,14 @@
       "mode": "100644",
       "sha256": "1dbb93800818af03798c4775f1fa4997d6c68b603b4b0837df0a38b4e54dfe32",
       "byteLength": 4935,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async",
+        "ecc.hook.post-skill-track"
+      ]
     },
     {
       "path": "scripts/hooks/stop-format-typecheck.js",
@@ -29869,10 +30055,12 @@
       "mode": "100644",
       "sha256": "a02d73b611527ba5816781893ea347b646fa7ddce7bcb50820d8c9079c798f0d",
       "byteLength": 8880,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.stop-format-typecheck"
+      ]
     },
     {
       "path": "scripts/hooks/suggest-compact.js",
@@ -29880,10 +30068,12 @@
       "mode": "100644",
       "sha256": "e031a96b7d05b689a457eb4c2c02dd8e1171cd5e68633f30b60a3f0f6ce4471a",
       "byteLength": 10518,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-edit-write-suggest-compact"
+      ]
     },
     {
       "path": "scripts/install-apply.js",
@@ -29946,10 +30136,24 @@
       "mode": "100644",
       "sha256": "0a39212f81838cd9756ade0048c296a6f79acf6dc8416ded6b15cd8c5be07ae8",
       "byteLength": 7802,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-edit-write-suggest-compact",
+        "ecc.hook.pre-compact",
+        "ecc.hook.session-start",
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async",
+        "ecc.hook.post-skill-track",
+        "ecc.hook.stop-format-typecheck",
+        "ecc.hook.stop-check-console-log",
+        "ecc.hook.stop-session-end",
+        "ecc.hook.stop-evaluate-session",
+        "ecc.hook.stop-cost-tracker",
+        "ecc.hook.stop-desktop-notify",
+        "ecc.hook.session-end-marker"
+      ]
     },
     {
       "path": "scripts/lib/agent-proximity/distance.js",
@@ -30331,10 +30535,35 @@
       "mode": "100644",
       "sha256": "1f5fbf2d2ebd0ab07a3e54406db18c2932ae7bf965513ec12c521da1be54425d",
       "byteLength": 4333,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-bash-dispatcher",
+        "ecc.hook.pre-powershell-gateguard-fact-force",
+        "ecc.hook.pre-write-doc-file-warning",
+        "ecc.hook.pre-edit-write-suggest-compact",
+        "ecc.hook.pre-observe-continuous-learning",
+        "ecc.hook.pre-governance-capture",
+        "ecc.hook.pre-config-protection",
+        "ecc.hook.pre-mcp-health-check",
+        "ecc.hook.pre-edit-write-gateguard-fact-force",
+        "ecc.hook.pre-compact",
+        "ecc.hook.session-start",
+        "ecc.hook.session-start-plan-canvas-sessions",
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async",
+        "ecc.hook.post-mcp-health-check",
+        "ecc.hook.post-skill-track",
+        "ecc.hook.stop-plan-canvas-pending",
+        "ecc.hook.stop-format-typecheck",
+        "ecc.hook.stop-check-console-log",
+        "ecc.hook.stop-session-end",
+        "ecc.hook.stop-evaluate-session",
+        "ecc.hook.stop-cost-tracker",
+        "ecc.hook.stop-desktop-notify",
+        "ecc.hook.session-end-marker"
+      ]
     },
     {
       "path": "scripts/lib/inspection.js",
@@ -30760,10 +30989,12 @@
       "mode": "100644",
       "sha256": "64aae588687ba3ebb9f0975488c4e55d96f512d9851cde8aaacfa2bc040b4573",
       "byteLength": 6258,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.session-start"
+      ]
     },
     {
       "path": "scripts/lib/invocation-environment.js",
@@ -30793,10 +31024,13 @@
       "mode": "100644",
       "sha256": "ce2caaae62f8f50ff48cf07ce9cf1ae2b8e37162bd897e59055f6cf68725db97",
       "byteLength": 5343,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-compact",
+        "ecc.hook.stop-session-end"
+      ]
     },
     {
       "path": "scripts/lib/loopback-guard.js",
@@ -30936,10 +31170,13 @@
       "mode": "100644",
       "sha256": "f8d12ce13a257a33f41e6b796891aa8af001c48a8237f24afd4216a2e5f3bfaa",
       "byteLength": 6073,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.session-start",
+        "ecc.hook.session-end-marker"
+      ]
     },
     {
       "path": "scripts/lib/opencode-paths.js",
@@ -30980,10 +31217,15 @@
       "mode": "100644",
       "sha256": "636f8bc8379ae0c26be1f7c5b61555cf2a274698a4f9fbd34e9eced9eacb3662",
       "byteLength": 12261,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.session-start",
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async",
+        "ecc.hook.stop-format-typecheck"
+      ]
     },
     {
       "path": "scripts/lib/path-safety.js",
@@ -30991,10 +31233,24 @@
       "mode": "100644",
       "sha256": "542126cf47247161dd26713a1f33d34af2881db46435ac8ecef76a8be31c062c",
       "byteLength": 2985,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-edit-write-suggest-compact",
+        "ecc.hook.pre-compact",
+        "ecc.hook.session-start",
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async",
+        "ecc.hook.post-skill-track",
+        "ecc.hook.stop-format-typecheck",
+        "ecc.hook.stop-check-console-log",
+        "ecc.hook.stop-session-end",
+        "ecc.hook.stop-evaluate-session",
+        "ecc.hook.stop-cost-tracker",
+        "ecc.hook.stop-desktop-notify",
+        "ecc.hook.session-end-marker"
+      ]
     },
     {
       "path": "scripts/lib/plan-canvas/markdown.js",
@@ -31057,10 +31313,17 @@
       "mode": "100644",
       "sha256": "fe9dd797b037f64de16bd9d4e38a7d3ea705833e65eab9377a70e9f10c261c67",
       "byteLength": 69966,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-bash-dispatcher",
+        "ecc.hook.pre-powershell-gateguard-fact-force",
+        "ecc.hook.pre-governance-capture",
+        "ecc.hook.pre-edit-write-gateguard-fact-force",
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async"
+      ]
     },
     {
       "path": "scripts/lib/project-detect.js",
@@ -31068,10 +31331,12 @@
       "mode": "100644",
       "sha256": "7327769601bc44fc669a5a3d9e936beb4eef3783835d70d0fa8c5b6c73c48624",
       "byteLength": 14263,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.session-start"
+      ]
     },
     {
       "path": "scripts/lib/resolve-ecc-root.js",
@@ -31090,10 +31355,14 @@
       "mode": "100644",
       "sha256": "4e0ecb82f611c1d3ea17767f4df1abf90bb508054fbfb51371f24c92263eee58",
       "byteLength": 6222,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async",
+        "ecc.hook.stop-format-typecheck"
+      ]
     },
     {
       "path": "scripts/lib/session-adapters/canonical-session.js",
@@ -31178,10 +31447,12 @@
       "mode": "100644",
       "sha256": "a601ab52fddf9b2d2010460815eb8820e14dce3268efca0dce79dd4bc4b6d2fc",
       "byteLength": 12365,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.session-start"
+      ]
     },
     {
       "path": "scripts/lib/session-bridge.js",
@@ -31189,10 +31460,14 @@
       "mode": "100644",
       "sha256": "9ad9c91f1ad63c04ab3bbefba28608403ff9e0b60744ac3f18eea9478e0d040d",
       "byteLength": 4881,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async",
+        "ecc.hook.stop-cost-tracker"
+      ]
     },
     {
       "path": "scripts/lib/session-manager.d.ts",
@@ -31233,10 +31508,17 @@
       "mode": "100644",
       "sha256": "36023c065ca40d2b40feccb3659deaa4dd195eda9ccf3ccd89ae44c0c45b10be",
       "byteLength": 14915,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-bash-dispatcher",
+        "ecc.hook.pre-powershell-gateguard-fact-force",
+        "ecc.hook.pre-governance-capture",
+        "ecc.hook.pre-edit-write-gateguard-fact-force",
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async"
+      ]
     },
     {
       "path": "scripts/lib/skill-evolution/dashboard.js",
@@ -31288,10 +31570,14 @@
       "mode": "100644",
       "sha256": "a4aaf552a06e45e5ccb1fe76c4ec98566ff088967102f86f968dadb6b102054b",
       "byteLength": 6081,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async",
+        "ecc.hook.post-skill-track"
+      ]
     },
     {
       "path": "scripts/lib/skill-evolution/versioning.js",
@@ -31442,10 +31728,14 @@
       "mode": "100644",
       "sha256": "38f399260f79904bc8a97448d1dff965aaf0f04596143ce344fdbf64747bf0a2",
       "byteLength": 10578,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-edit-write-suggest-compact",
+        "ecc.hook.pre-compact",
+        "ecc.hook.stop-session-end"
+      ]
     },
     {
       "path": "scripts/lib/utils.d.ts",
@@ -31464,10 +31754,24 @@
       "mode": "100644",
       "sha256": "d230d03b89c197fa150b5d92733d8bc152293ddb2c11020864da8ea6909696e8",
       "byteLength": 19052,
-      "disposition": "unsupported-installation",
+      "disposition": "supported-material",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
-      "items": []
+      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
+      "items": [
+        "ecc.hook.pre-edit-write-suggest-compact",
+        "ecc.hook.pre-compact",
+        "ecc.hook.session-start",
+        "ecc.hook.post-dispatcher-sync",
+        "ecc.hook.post-dispatcher-async",
+        "ecc.hook.post-skill-track",
+        "ecc.hook.stop-format-typecheck",
+        "ecc.hook.stop-check-console-log",
+        "ecc.hook.stop-session-end",
+        "ecc.hook.stop-evaluate-session",
+        "ecc.hook.stop-cost-tracker",
+        "ecc.hook.stop-desktop-notify",
+        "ecc.hook.session-end-marker"
+      ]
     },
     {
       "path": "scripts/lib/worktree-lifecycle/git.js",
@@ -33297,7 +33601,9 @@
       "owner": "Catalog ECC adapter maintainer",
       "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
       "items": [
-        "ecc.skill.continuous-learning-v2"
+        "ecc.skill.continuous-learning-v2",
+        "ecc.hook.pre-observe-continuous-learning",
+        "ecc.hook.post-dispatcher-async"
       ]
     },
     {
@@ -33323,7 +33629,9 @@
       "owner": "Catalog ECC adapter maintainer",
       "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
       "items": [
-        "ecc.skill.continuous-learning-v2"
+        "ecc.skill.continuous-learning-v2",
+        "ecc.hook.pre-observe-continuous-learning",
+        "ecc.hook.post-dispatcher-async"
       ]
     },
     {
@@ -33336,7 +33644,9 @@
       "owner": "Catalog ECC adapter maintainer",
       "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
       "items": [
-        "ecc.skill.continuous-learning-v2"
+        "ecc.skill.continuous-learning-v2",
+        "ecc.hook.pre-observe-continuous-learning",
+        "ecc.hook.post-dispatcher-async"
       ]
     },
     {
@@ -33349,7 +33659,9 @@
       "owner": "Catalog ECC adapter maintainer",
       "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
       "items": [
-        "ecc.skill.continuous-learning-v2"
+        "ecc.skill.continuous-learning-v2",
+        "ecc.hook.pre-observe-continuous-learning",
+        "ecc.hook.post-dispatcher-async"
       ]
     },
     {
@@ -33362,7 +33674,9 @@
       "owner": "Catalog ECC adapter maintainer",
       "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
       "items": [
-        "ecc.skill.continuous-learning-v2"
+        "ecc.skill.continuous-learning-v2",
+        "ecc.hook.pre-observe-continuous-learning",
+        "ecc.hook.post-dispatcher-async"
       ]
     },
     {
@@ -33375,7 +33689,9 @@
       "owner": "Catalog ECC adapter maintainer",
       "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
       "items": [
-        "ecc.skill.continuous-learning-v2"
+        "ecc.skill.continuous-learning-v2",
+        "ecc.hook.pre-observe-continuous-learning",
+        "ecc.hook.post-dispatcher-async"
       ]
     },
     {
@@ -33388,7 +33704,9 @@
       "owner": "Catalog ECC adapter maintainer",
       "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
       "items": [
-        "ecc.skill.continuous-learning-v2"
+        "ecc.skill.continuous-learning-v2",
+        "ecc.hook.pre-observe-continuous-learning",
+        "ecc.hook.post-dispatcher-async"
       ]
     },
     {
@@ -33401,7 +33719,9 @@
       "owner": "Catalog ECC adapter maintainer",
       "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
       "items": [
-        "ecc.skill.continuous-learning-v2"
+        "ecc.skill.continuous-learning-v2",
+        "ecc.hook.pre-observe-continuous-learning",
+        "ecc.hook.post-dispatcher-async"
       ]
     },
     {
@@ -33453,7 +33773,8 @@
       "owner": "Catalog ECC adapter maintainer",
       "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
       "items": [
-        "ecc.skill.continuous-learning"
+        "ecc.skill.continuous-learning",
+        "ecc.hook.stop-evaluate-session"
       ]
     },
     {

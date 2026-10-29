@@ -225,19 +225,22 @@ function checkShape(set: unknown, at: string, problems: Problem[], declaration: 
       new Set(set.targets).size !== set.targets.length)
   )
     fail("set-invalid", `${at}/targets`, "targets lists unique client ids.");
+  // The upstream's own words, copied; never a Catalog estimate.
+  for (const field of ["cost", "stability"] as const)
+    if (set[field] !== undefined && !isText(set[field], 256))
+      fail("set-invalid", `${at}/${field}`, `${field} is the upstream's own bounded words.`);
   if (
-    set.cost !== undefined &&
-    (!exactFields(set.cost, ["bytes", "chars"]) ||
-      ![set.cost.bytes, set.cost.chars].every((n) => Number.isSafeInteger(n) && (n as number) >= 0))
+    Array.isArray(set.members) &&
+    set.members.length === 0 &&
+    !(["includes", "requires", "options"] as const).some(
+      (field) => Array.isArray(set[field]) && (set[field] as unknown[]).length > 0,
+    )
   )
-    fail("set-invalid", `${at}/cost`, "cost is { bytes, chars } of non-negative integers.");
-  if (
-    set.stability !== undefined &&
-    set.stability !== "stable" &&
-    set.stability !== "in-progress" &&
-    set.stability !== "deprecated"
-  )
-    fail("set-invalid", `${at}/stability`, "stability is stable, in-progress or deprecated.");
+    fail(
+      "set-empty",
+      `${at}/members`,
+      "A set offers at least one member, included or required set, or option.",
+    );
   if (set.options !== undefined) {
     if (!Array.isArray(set.options) || set.options.length > 64)
       fail("set-invalid", `${at}/options`, "options is a bounded array.");
@@ -246,15 +249,20 @@ function checkShape(set: unknown, at: string, problems: Problem[], declaration: 
       set.options.forEach((option, o) => {
         const path = `${at}/options/${o}`;
         if (
-          !exactFields(option, ["id", "name", "choices"], ["description", "always"]) ||
+          !exactFields(option, ["id", "name", "multiple", "choices"], ["description", "always"]) ||
           !isId(option.id) ||
           !isText(option.name, 256) ||
+          typeof option.multiple !== "boolean" ||
           (option.description !== undefined && !isText(option.description)) ||
           !Array.isArray(option.choices) ||
           option.choices.length === 0 ||
           option.choices.length > MAX_REFS
         ) {
-          fail("set-invalid", path, "An option is { id, name, description?, always?, choices[] }.");
+          fail(
+            "set-invalid",
+            path,
+            "An option is { id, name, multiple, description?, always?, choices[] }.",
+          );
           return;
         }
         if (optionIds.has(option.id))

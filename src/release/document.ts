@@ -612,6 +612,20 @@ const ITEM16_FIELDS = [
   "size",
 ] as const;
 
+/**
+ * Hook registration files: an upstream `hooks.json`, a Claude Code plugin manifest
+ * folder, or a Claude settings file. They register hooks; they are never a hook's material.
+ */
+export function isHookRegistrationPath(relPath: string): boolean {
+  const segments = relPath.split("/");
+  const name = segments.at(-1) ?? "";
+  return (
+    name === "hooks.json" ||
+    segments.includes(".claude-plugin") ||
+    (segments.at(-2) === ".claude" && /^settings(\.local)?\.json$/.test(name))
+  );
+}
+
 export const bytewiseCompare = (a: string, b: string): number => {
   const left = encoder.encode(a);
   const right = encoder.encode(b);
@@ -715,7 +729,9 @@ function checkExtendedMember(
       }
     }
   }
-  if (member.size !== undefined) {
+  if (member.size !== undefined && schema === RELEASE_SCHEMA_ID_1_7) {
+    checkMeasure17(d, member.size, `${at}/size`, member.byteLength);
+  } else if (member.size !== undefined) {
     const atSize = `${at}/size`;
     if (fields(d, member.size, atSize, ["bytes", "chars", "status"])) {
       const nonNegative = (value: unknown) =>
@@ -729,6 +745,78 @@ function checkExtendedMember(
     }
   }
 }
+
+const nonNegativeInteger = (value: unknown) =>
+  typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+
+/** Labelled token counts: each names its tokenizer once; never summed across tokenizers. */
+function checkTokens(d: Diagnostics, tokens: unknown, at: string, countKey: "count" | "sum"): void {
+  if (!Array.isArray(tokens) || tokens.length > 16) {
+    d.add("invalid-size", at, "Expected at most 16 labelled token counts.");
+    return;
+  }
+  const seen = new Set<string>();
+  tokens.forEach((entry, index) => {
+    const atEntry = `${at}/${index}`;
+    if (!fields(d, entry, atEntry, ["tokenizer", countKey])) return;
+    if (typeof entry.tokenizer !== "string" || !isId(entry.tokenizer) || seen.has(entry.tokenizer))
+      d.add("invalid-size", `${atEntry}/tokenizer`, "Expected one unique tokenizer id.");
+    else seen.add(entry.tokenizer);
+    if (!nonNegativeInteger(entry[countKey]))
+      d.add("invalid-size", `${atEntry}/${countKey}`, "Expected a non-negative integer count.");
+  });
+}
+
+/**
+ * Release 1.7 material size, as the contract states it: exact bytes (the material's
+ * own length), characters when the bytes are text, and labelled token counts.
+ */
+function checkMeasure17(d: Diagnostics, size: unknown, at: string, byteLength: unknown): void {
+  if (!fields(d, size, at, ["bytes", "chars", "tokens", "status"])) return;
+  if (!nonNegativeInteger(size.bytes) || size.bytes !== byteLength)
+    d.add("invalid-size", `${at}/bytes`, "Size bytes equal the material's byte length.");
+  if (size.status !== "measured" && size.status !== "not-text" && size.status !== "unsupported")
+    d.add("invalid-size", `${at}/status`, "Expected measured, not-text or unsupported.");
+  else if (
+    (size.status === "measured") !== nonNegativeInteger(size.chars) ||
+    (size.status !== "measured" && size.chars !== null)
+  )
+    d.add(
+      "invalid-size",
+      `${at}/chars`,
+      "Measured text carries its character count; otherwise null.",
+    );
+  checkTokens(d, size.tokens, `${at}/tokens`, "count");
+}
+
+/** Release 1.7 item size: measured parts and labelled token sums. */
+function checkItemSize17(d: Diagnostics, size: unknown, at: string): void {
+  if (!fields(d, size, at, ["parts", "tokens"])) return;
+  if (!Array.isArray(size.parts) || size.parts.length === 0 || size.parts.length > 8) {
+    d.add("invalid-size", `${at}/parts`, "Expected one to eight measured parts.");
+  } else {
+    const seen = new Set<string>();
+    size.parts.forEach((part, index) => {
+      const atPart = `${at}/parts/${index}`;
+      if (!fields(d, part, atPart, ["part", "bytes", "chars"])) return;
+      if (!ITEM_SIZE_PARTS.includes(part.part as string) || seen.has(part.part as string))
+        d.add("invalid-size", `${atPart}/part`, "Expected a named content part, once.");
+      else seen.add(part.part as string);
+      if (
+        !nonNegativeInteger(part.bytes) ||
+        !(part.chars === null || nonNegativeInteger(part.chars))
+      )
+        d.add(
+          "invalid-size",
+          atPart,
+          "Expected byte and character counts; characters may be null.",
+        );
+    });
+  }
+  checkTokens(d, size.tokens, `${at}/tokens`, "sum");
+}
+
+const ITEM_SIZE_PARTS: readonly string[] = ["name", "description", "frontmatter", "body", "files"];
 
 function checkPlaceholders(d: Diagnostics, text: string, at: string): void {
   for (const match of text.matchAll(/\{[^{}]*\}/g)) {
@@ -881,7 +969,9 @@ function checkPayload16(
         payload,
         `${path}/payload`,
         ["event", "protocol", "command"],
-        ["matcher", "timeoutSec"],
+        schema === RELEASE_SCHEMA_ID_1_7
+          ? ["matcher", "timeoutSec", "async"]
+          : ["matcher", "timeoutSec"],
       )
     ) {
       return;
@@ -912,6 +1002,20 @@ function checkPayload16(
         (payload.timeoutSec as number) > 86400)
     ) {
       d.add("invalid-payload", `${path}/payload/timeoutSec`, "Expected an integer second bound.");
+    }
+    if (payload.async !== undefined && typeof payload.async !== "boolean") {
+      d.add("invalid-payload", `${path}/payload/async`, "Expected true or false.");
+    }
+    // A hook's materials never include a hook registration file: its own or another's.
+    for (const member of content) {
+      if (isHookRegistrationPath(String(member.relPath))) {
+        d.add(
+          "hook-registration-material",
+          `${path}/materials`,
+          "A hook's materials never include a hook registration file.",
+          { encountered: String(member.relPath).slice(0, 256) },
+        );
+      }
     }
     const command = isRecord(payload.command) ? payload.command : undefined;
     if (command === undefined) {
@@ -946,6 +1050,33 @@ function checkPayload16(
       } else {
         checkPlaceholders(d, command.program, `${path}/payload/command/program`);
       }
+    }
+    // The same rule Core renders by: an interpreter runs the script, or a program is
+    // given the script as a material argument; never both, never neither (no shebang).
+    if (command.interpreter !== undefined && command.program !== undefined) {
+      d.add(
+        "hook-command-ambiguous",
+        `${path}/payload/command`,
+        "A hook names its interpreter or its program, not both.",
+      );
+    } else if (command.interpreter === undefined && command.program === undefined) {
+      d.add(
+        "interpreter-required",
+        `${path}/payload/command`,
+        "A hook names its interpreter or program; a shebang is never relied on.",
+      );
+    } else if (
+      command.program !== undefined &&
+      !(
+        Array.isArray(command.args) &&
+        command.args.some((arg) => isRecord(arg) && arg.material === command.script)
+      )
+    ) {
+      d.add(
+        "hook-command-ambiguous",
+        `${path}/payload/command/args`,
+        "A program is given the hook script as a material argument.",
+      );
     }
     if (command.args !== undefined) {
       if (!Array.isArray(command.args)) {
@@ -1186,7 +1317,9 @@ function checkItem16(
   if (Object.hasOwn(item, "payload") && !isRecord(item.payload)) {
     d.add("invalid-payload", `${path}/payload`, "Expected a typed payload object.");
   }
-  if (item.size !== undefined) {
+  if (item.size !== undefined && schema === RELEASE_SCHEMA_ID_1_7) {
+    checkItemSize17(d, item.size, `${path}/size`);
+  } else if (item.size !== undefined) {
     const atSize = `${path}/size`;
     if (fields(d, item.size, atSize, ["parts"], ["status"])) {
       if (
@@ -1311,7 +1444,7 @@ function checkItem16(
       }
     }
   }
-  const identity = computeBehaviourIdentity(item);
+  const identity = computeBehaviourIdentity(item, schema === RELEASE_SCHEMA_ID_1_7 ? "1.7" : "1.6");
   if (identity === undefined) return;
   if (
     behaviourMaterial.sha256 !== sha256Hex(identity.behaviourBytes) ||
@@ -1356,9 +1489,12 @@ export interface ItemBehaviourIdentity {
 /**
  * Recomputes the synthesised behaviour bytes and both identities exactly as the
  * reader does. Returns undefined when the item carries no release 1.6 material.
+ * Release 1.7 uses the contract's behaviour encoding (`behaviourSha256Of`); release
+ * 1.6 keeps its identity over all material lines, the behaviour file included.
  */
 export function computeBehaviourIdentity(
   item: Record<string, unknown>,
+  format: "1.6" | "1.7" = "1.6",
 ): ItemBehaviourIdentity | undefined {
   const materials = (Array.isArray(item.materials) ? item.materials : []).filter(isRecord);
   const extended = materials.filter((member) => !Object.hasOwn(member, "path"));
@@ -1380,16 +1516,47 @@ export function computeBehaviourIdentity(
     executable: derivedExecutable,
   };
   const identity = canonicalBytes(`${canonicalJson(behaviourValue)}\n`);
-  const lines = (members: readonly Record<string, unknown>[]) =>
-    members
-      .map((member) => `${String(member.relPath)}\t${String(member.sha256)}\n`)
-      .sort(bytewiseCompare);
+  const contentLines = contentIdentityText(content);
   return {
     behaviourBytes: identity.bytes,
-    contentSha256: sha256Hex(encoder.encode(lines(content).join(""))),
-    behaviourSha256: sha256Hex(encoder.encode(lines(extended).join(""))),
+    contentSha256: sha256Hex(encoder.encode(contentLines)),
+    behaviourSha256:
+      format === "1.6"
+        ? sha256Hex(encoder.encode(contentIdentityText(extended)))
+        : behaviourSha256Of({ ...behaviourValue, contentLines }),
     executable: derivedExecutable,
   };
+}
+
+/** The exact text `contentSha256` hashes: one `relPath\tsha256\n` line per content material, sorted bytewise. */
+export function contentIdentityText(
+  content: readonly { readonly relPath?: unknown; readonly sha256?: unknown }[],
+): string {
+  return content
+    .map((member) => `${String(member.relPath)}\t${String(member.sha256)}\n`)
+    .sort(bytewiseCompare)
+    .join("");
+}
+
+/**
+ * The behaviour identity, exactly as the Catalog contract states it: SHA-256 over the
+ * canonical JSON (keys sorted, no whitespace) of `{ kind, payload, requirements,
+ * dependencies, materials, executable }`, where `materials` is the content identity's
+ * own text (`contentIdentityText`). It changes when what the item does changes even if
+ * no file does. The behaviour file stays a material: Scan and Core read its bytes.
+ */
+export function behaviourSha256Of(value: {
+  readonly kind: unknown;
+  readonly payload: unknown;
+  readonly requirements: unknown;
+  readonly dependencies: unknown;
+  readonly executable: unknown;
+  readonly contentLines: string;
+}): string {
+  const { contentLines, ...rest } = value;
+  return sha256Hex(
+    encoder.encode(canonicalJson({ ...rest, materials: contentLines } as unknown as Json)),
+  );
 }
 
 /** Paths are package members: one path names one byte identity across the whole release. */
@@ -1812,7 +1979,7 @@ export function checkReleaseDocument(
   if (d.list.length > 0) return { diagnostics: d.list };
   let sets: readonly ReleaseSet[] | undefined;
   if (schema17) {
-    checkRelease17Items(d, items, value.retired);
+    checkRelease17Items(d, items, value.retired, value.sources, value.framework);
     if (d.list.length > 0) return { diagnostics: d.list };
     if (value.sets !== undefined) {
       const embedded = checkEmbeddedSets(value.sets, value.framework, items);

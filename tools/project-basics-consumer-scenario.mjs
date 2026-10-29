@@ -173,7 +173,7 @@ await case_("every item maps to a Scan item descriptor over its package members"
     assert.equal(descriptor.descriptor.contentSha256, got.contentSha256);
     assert.equal(descriptor.descriptor.behaviourSha256, got.behaviourSha256);
     assert.deepEqual(
-      descriptor.descriptor.materials.map((entry) => [entry.path, entry.role]).sort(),
+      descriptor.descriptor.materials.map((entry) => [entry.capturePath, entry.role]).sort(),
       got.materials.map((entry) => [entry.packagePath, entry.role]).sort(),
     );
   }

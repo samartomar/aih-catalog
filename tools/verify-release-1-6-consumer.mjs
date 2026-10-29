@@ -300,7 +300,7 @@ case_("itemEvidenceDescriptor returns recomputed identities", () => {
   const review = read.release.items.find((item) => item.id === "notes.review");
   assert.equal(evidence.descriptor.contentSha256, review.contentSha256);
   assert.ok(
-    evidence.descriptor.materials.some((member) => member.role === "behaviour" && member.path.endsWith("aih-behaviour.json")),
+    evidence.descriptor.materials.some((member) => member.role === "behaviour" && member.relPath === "aih-behaviour.json" && member.capturePath.endsWith("/aih-behaviour.json")),
   );
 });
 

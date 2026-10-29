@@ -14,7 +14,8 @@ it("resolves mixed ECC and Extensions through exact installed archives and expan
   );
   const receipt = JSON.parse(output);
   expect(receipt.inventory).toEqual({ files: 3538, donorAssets: 442 });
-  expect(receipt.items).toBe(701);
+  // 677 declared items and 24 hook items, one per pinned upstream hook group.
+  expect(receipt.items).toBe(725);
   expect(receipt.mixedSelections).toContain("extensions.skill.security-and-hardening");
   expect(receipt.mixedSelections).toContain("ecc.skill.api-design");
   expect(receipt.expansion.itemId).toBe("ecc.extra.api-reference");

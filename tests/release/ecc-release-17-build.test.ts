@@ -14,8 +14,36 @@ it("builds the committed content deterministically", async () => {
   const second = buildEcc17();
   expect(first.releaseSha256).toBe(second.releaseSha256);
   expect([...first.outputs.keys()]).toEqual(expect.arrayContaining([CONTENT_PATH, INVENTORY_PATH]));
-  expect(first.release.items).toHaveLength(665);
-});
+  expect(first.release.items).toHaveLength(689);
+  // Two builds, each measuring every material's bytes.
+}, 120_000);
+
+it("publishes each upstream hook group of the pinned hooks.json as exactly one hook item with its facts", async () => {
+  const { buildEcc17, hookFacts } = await tool();
+  const facts = hookFacts();
+  const upstream = Object.entries(
+    JSON.parse(facts.registration.text).hooks as Record<
+      string,
+      { id: string; matcher?: string; hooks: { timeout?: number; async?: boolean }[] }[]
+    >,
+  ).flatMap(([event, groups]) => groups.map((group) => ({ event, group })));
+  expect(upstream).toHaveLength(24);
+  const hooks = buildEcc17().release.items.filter((item: { kind: string }) => item.kind === "hook");
+  expect(hooks).toHaveLength(24);
+  for (const { event, group } of upstream) {
+    const matching = hooks.filter((item: { name: string }) => item.name === group.id);
+    expect(matching, group.id).toHaveLength(1);
+    const [handler] = group.hooks;
+    expect(matching[0].payload).toMatchObject({
+      event,
+      matcher: group.matcher,
+      protocol: "claude-code-hooks",
+      ...(handler?.timeout === undefined ? {} : { timeoutSec: handler.timeout }),
+      command: { interpreter: "node" },
+    });
+    expect(matching[0].payload.async === true).toBe(handler?.async === true);
+  }
+}, 120_000);
 
 it("takes item-relative paths from install targets and refuses an unknown one", async () => {
   const { itemRelativePath } = await tool();

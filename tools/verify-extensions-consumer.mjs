@@ -54,7 +54,8 @@ const sourceFiles = snapshot.sources.map(source => ({ source: source.id, revisio
 const compiled = compileProducerDeclaration({ declaration, sourceFiles });
 assert.equal(compiled.status, "ok", JSON.stringify(compiled.diagnostics));
 assert.equal(compiled.value.releaseSha256, installed.release.sha256);
-assert.equal(inventory.entries.length, 230);
+// 22 more rows: the files of Matt's ten pinned in-progress and misc skills.
+assert.equal(inventory.entries.length, 252);
 for (const item of installed.release.items) {
  const configured = configureItem({ release: installed.release, itemId: item.id, configuration: item.id.startsWith("extensions.claude.hook.") ? { hookCommand: "node reviewed-project-hook.mjs" } : {}, materialSource: installed.source });
  assert.equal(configured.valid, true, JSON.stringify(configured.diagnostics));

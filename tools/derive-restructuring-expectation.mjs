@@ -16,6 +16,7 @@ import {
   projectBasicsWorkingRulesDoc,
 } from "../dist/release/context-content.js";
 import { FROZEN_DEFAULT_RELEASE_SHA256 } from "../dist/release/contracts.js";
+import { isHookRegistrationPath } from "../dist/release/document.js";
 import { mcpEditsSha256, RESTRUCTURING_EXPECTATION_SCHEMA_ID } from "../dist/release/producer.js";
 
 const root = resolve(import.meta.dirname, "..");
@@ -41,6 +42,9 @@ const AMENDMENTS = [
   { id: "superpowers-pinned-revision", reason: "The dry run read Superpowers at upstream revision bb92a77741419a4ab5f06e711a283343f1ada0c3, earlier than the 5bf4e78011075bcfc0dc295f0724994cd123ee71 (upstream 6.4.1) this package pins, so its Superpowers content identities name other bytes. They are predicted again, with the dry run's rule (item-relative paths, a skill's files below its own folder, the hook carrying the bootstrap source it folds), from the pinned materials of the committed release-superpowers.json. Items, kinds, supersessions and retirements are the dry run's." },
   { id: "ecc-notices-identity", reason: "The dry run's ecc.notices content identity reproduces from none of the tried item-relative path assignments for the four shipped notice materials (every suffix of each install target and source path, the package paths, and those paths with tool prefixes removed), so it cannot be checked. Their bytes are unchanged: the expectation predicts the identity from those four material digests at the item-relative paths every other ECC item uses, its install target without the .aihq/ecc/ and source/ prefixes (LICENSE, AGENTS.md, plugin.json, README.md)." },
   { id: "mcp-edit-digests", reason: "Each MCP survivor records whether its shipped definition is identical to upstream or edited; an edit is digested as SHA-256 of the canonical JSON {from: upstream, to: shipped} plus LF, in upstream's own encoding." },
+  { id: "matt-buckets", reason: "The dry run carried only the 27 skills of Matt's plugin. Matt's buckets are sets in upstream's own grouping, so the Extensions release also carries the skills his pinned tree holds in the in-progress (7) and misc (3) buckets, each collapsing its three per-tool copies; his misc setup-pre-commit is already the Extensions skill copied from it, and the pinned tree has no skills in a specialists or deprecated bucket. Their content identities, copy supersessions and copy retirements come from the accepted Extensions build, limited to those ten items." },
+  { id: "ecc-hooks", reason: "The dry run published none of ECC's 24 Claude Code hooks. Each upstream hook group in the pinned hooks/hooks.json is one hook item; its content identity is predicted from the reviewed run-time closure in producer/ecc/hook-facts.json and the pinned tree ledger's digests, at the source-relative paths its item folder keeps, plus ECC's LICENSE." },
+  { id: "hook-registration-materials", reason: "A hook's materials never include a hook registration file. The three Extensions hooks leave out hooks/hooks.json and the Superpowers bootstrap leaves out hooks/hooks.json and its .claude-plugin manifests, so their predicted content identities cover the remaining materials." },
   { id: "extensions-content-identities", reason: "The dry run derived Extensions relPaths from install targets; for 16 of the 57 survivors (the agents, commands, notices, references and eight skills) those derivations are not reproducible from the pinned bytes under the documented rule, and the dry run called its own output proposed. The accepted Extensions build (samartomar/aih-catalog#145) projects the pinned copies to release 1.6 with source-relative material paths and collapses them with the public transition build; the expected Extensions content identities are re-derived from that canonical build, and the expected ids, kinds, purposes, supersessions and retirements are asserted to match the dry run unchanged." },
 ];
 
@@ -62,7 +66,8 @@ function superpowersIdentity(id) {
   const revision = `/${SUPERPOWERS.sources[0].origin.revision}/`;
   const item = (itemId) => SUPERPOWERS.items.find((entry) => entry.id === itemId) ?? assert.fail(`No Superpowers ${itemId}`);
   const lines = (materials, relPath) => materials.map((member) => `${relPath(member.path.slice(member.path.indexOf(revision) + revision.length))}\t${member.sha256}\n`);
-  if (id === SUPERPOWERS_DATA.hook.id) return contentIdentity(lines(item(SUPERPOWERS_DATA.hook.folds).materials, (path) => path));
+  if (id === SUPERPOWERS_DATA.hook.id)
+    return contentIdentity(lines(item(SUPERPOWERS_DATA.hook.folds).materials, (path) => path).filter((line) => !isHookRegistrationPath(line.split("	")[0])));
   const skill = /^superpowers\.skill\.(.+)$/.exec(id)?.[1];
   if (skill !== undefined) return contentIdentity(lines(item(id).materials, (path) => path.startsWith(`skills/${skill}/`) ? path.slice(`skills/${skill}/`.length) : path));
   return contentIdentity(lines(item(id).materials, (path) => path));
@@ -144,7 +149,20 @@ for (const [key, original] of [["github-local", "github"], ["railway-hosted", "r
   const { buildExtensions17 } = await import("../dist/release/extensions-transition.js");
   const built = buildExtensions17({ root });
   const dryRunItems = new Map(frameworks.extensions.items.map((item) => [item.id, item]));
+  // Amendment matt-buckets: Matt's in-progress and misc skills, outside his plugin.
+  const buckets = built.release.items.filter((item) => item.kind === "skill" && /^skills\/(in-progress|misc)\//.test(item.provenance?.source.path ?? ""));
+  assert.deepEqual(buckets.map((item) => item.id.split(".")[2]).sort(), ["chief-of-staff", "claude-handoff", "git-guardrails-claude-code", "loop-me", "migrate-to-shoehorn", "scaffold-exercises", "setup-ts-deep-modules", "writing-beats", "writing-fragments", "writing-shape"]);
+  for (const item of buckets) dryRunItems.set(item.id, { id: item.id, kind: "skill" });
+  const bucketIds = new Set(buckets.map((item) => item.id));
   assert.equal(built.release.items.length, dryRunItems.size);
+  frameworks.extensions.supersessions = sorted([
+    ...frameworks.extensions.supersessions,
+    ...buckets.flatMap((item) => item.supersedes.map((entry) => ({ survivor: item.id, itemId: entry.itemId, match: entry.match }))),
+  ], (entry) => `${entry.survivor} ${entry.itemId}`);
+  frameworks.extensions.retired = sorted([
+    ...frameworks.extensions.retired,
+    ...built.release.retired.filter((entry) => entry.replacedBy.some((ref) => bucketIds.has(ref.itemId))).map((entry) => ({ id: entry.id, replacedBy: entry.replacedBy })),
+  ], (entry) => entry.id);
   frameworks.extensions = {
     ...frameworks.extensions,
     items: sorted(
@@ -176,6 +194,19 @@ for (const [key, original] of [["github-local", "github"], ["railway-hosted", "r
   const expected = frameworks.ecc.items.find((item) => item.id === "ecc.notices");
   assert(expected, "The dry run carries no ecc.notices");
   expected.contentSha256 = createHash("sha256").update(lines.join("")).digest("hex");
+}
+// Amendment ecc-hooks: one hook item per pinned upstream hook group, its content
+// identity over the reviewed closure's ledger digests and ECC's LICENSE.
+{
+  const ledger = new Map(JSON.parse(readFileSync(resolve(root, "producer/ecc/inventory.json"), "utf8")).entries.map((row) => [row.path, row]));
+  const facts = JSON.parse(readFileSync(resolve(root, "producer/ecc/hook-facts.json"), "utf8"));
+  assert.equal(facts.hooks.length, 24);
+  for (const hook of facts.hooks) {
+    const lines = [...hook.closure, "LICENSE"].map((path) => `${path}	${(ledger.get(path) ?? assert.fail(`No pinned ${path}`)).sha256}
+`);
+    frameworks.ecc.items.push({ id: hook.itemId, kind: "hook", contentSha256: contentIdentity(lines) });
+  }
+  frameworks.ecc.items = sorted(frameworks.ecc.items, (item) => item.id);
 }
 // The closing default release: no items, and a durable reason for each of the 46.
 const defaults = projection.before.filter((item) => item.framework === "default");
