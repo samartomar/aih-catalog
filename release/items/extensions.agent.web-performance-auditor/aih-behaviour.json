@@ -1,1 +1,1 @@
-{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"extensions.notices"},{"itemId":"extensions.references"}]},"executable":{"LICENSE":"unknown","agents/web-performance-auditor.md":"unknown"},"kind":"agent","payload":{"files":["asset-1","license"]},"requirements":{"inputs":{}}}
+{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"extensions.notices"},{"itemId":"extensions.references"}]},"executable":{"LICENSE":false,"agents/web-performance-auditor.md":false},"kind":"agent","payload":{"files":["asset-1","license"]},"requirements":{"inputs":{}}}

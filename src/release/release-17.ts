@@ -27,7 +27,7 @@ const MAX_TEXT = 4096;
 /** Kinds delivered only natively; a fallback can never stand in for them. */
 const NATIVE_ONLY = new Set(["agent", "command"]);
 
-/** Release 1.7 item fields: everything a 1.6 item may carry is required, plus `role`. */
+/** Release 1.7 item fields: the 1.6 fields an item always carries, plus `role` and provenance hops in place of the URL `source`. */
 export const ITEM17_REQUIRED = [
   "id",
   "label",
@@ -35,7 +35,7 @@ export const ITEM17_REQUIRED = [
   "role",
   "name",
   "nameBasis",
-  "source",
+  "provenance",
   "sourceIds",
   "targets",
   "scopes",
@@ -54,7 +54,6 @@ export const ITEM17_OPTIONAL = [
   "description",
   "descriptionBasis",
   "metadata",
-  "provenance",
   "size",
   "supersedes",
   "fallback",
@@ -482,7 +481,6 @@ function checkProvenance17(
   };
   items.forEach((item, index) => {
     const at = `/items/${index}/provenance`;
-    if (item.provenance === undefined) return;
     const provenance = item.provenance;
     if (!fields(d, provenance, at, ["source", "derivedFrom"], ["selectedBy"])) return;
     hop(provenance.source, `${at}/source`, ["sourceId", "path", "revision", "license"]);

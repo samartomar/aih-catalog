@@ -213,7 +213,8 @@ content once. A tool appears only as a display hint.
   notice, licence or reference document), notice a document, template and framework
   become sets, and client adapters and pointers retire.
 - **Every item** carries `role: choosable | supporting` (presentation only), `name`,
-  `source`, its behaviour file and both identities. `clientId` is gone.
+  `provenance`, its behaviour file and both identities. `clientId` and release 1.6's
+  URL `source` and `selectedBy` are gone.
 - **The two identities, exactly.** `contentSha256` is SHA-256 over the UTF-8 lines
   `relPath<TAB>sha256<LF>` of the content materials, sorted bytewise.
   `behaviourSha256` is SHA-256 over the canonical JSON (keys sorted, no whitespace) of
@@ -223,9 +224,9 @@ content once. A tool appears only as a display hint.
   without `materials`, as canonical JSON plus LF) stays a material, so Scan and Core
   read the declared behaviour as bytes. The reader recomputes both and refuses a
   mismatch. Release 1.6 keeps its own `behaviourSha256` over every material line,
-  the behaviour file included. Release 1.7 keeps
-  executable states `true | false | "unknown"` where a pin records no file mode; the
-  contract's boolean form arrives with release 2.0.
+  the behaviour file included. Every prepared 1.7 material declares its executable
+  bit from its pinned git mode, and the committed member file carries that mode, so a
+  Scan request 2.0.0 capture on Linux records the same bit.
 - **Provenance:** `provenance: { source, selectedBy?, derivedFrom }` names hops
   `{ sourceId, path, revision, license }` (the selection omits `license`, a modified
   hop adds `ancestry: verified | declared`). Every hop names a release source at that

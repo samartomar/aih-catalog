@@ -9,7 +9,8 @@
       "byteLength": 694,
       "disposition": "unsupported-installation",
       "reason": "Claude marketplace/plugin discovery metadata: retained as provenance. Catalog installs granular project content and owned hook groups; it does not register this upstream plugin or execute marketplace installation.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -19,7 +20,8 @@
       "byteLength": 842,
       "disposition": "unsupported-installation",
       "reason": "Claude marketplace/plugin discovery metadata: retained as provenance. Catalog installs granular project content and owned hook groups; it does not register this upstream plugin or execute marketplace installation.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -29,7 +31,8 @@
       "byteLength": 173,
       "disposition": "unsupported-installation",
       "reason": "Upstream constraint checker ignore configuration: repository-specific quality-floor policy, not installed into consumer repositories.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -39,7 +42,8 @@
       "byteLength": 32,
       "disposition": "unsupported-installation",
       "reason": "Upstream Git normalization settings: source repository policy only; Catalog does not override consumer Git attributes.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -49,7 +53,8 @@
       "byteLength": 1041,
       "disposition": "unsupported-installation",
       "reason": "Upstream GitHub Actions workflow: validates or refreshes the upstream repository, not user client content. Catalog does not install CI or grant repository automation permissions.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -59,7 +64,8 @@
       "byteLength": 3650,
       "disposition": "unsupported-installation",
       "reason": "Upstream GitHub Actions workflow: validates or refreshes the upstream repository, not user client content. Catalog does not install CI or grant repository automation permissions.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -69,7 +75,8 @@
       "byteLength": 42,
       "disposition": "unsupported-installation",
       "reason": "Upstream repository ignore rules: source repository policy only; Catalog does not modify consumer ignore state.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -79,7 +86,8 @@
       "byteLength": 5071,
       "disposition": "unsupported-installation",
       "reason": "Upstream repository maintainer instructions: do not govern consumer projects or this Catalog repository. Retained as source audit only; never replaces project instructions.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -181,7 +189,8 @@
         "extensions.claude.hook.git-guard",
         "extensions.claude.hook.skill-guard",
         "extensions.claude.hook.lanes-card"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -193,7 +202,8 @@
       "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
       "items": [
         "extensions.notices"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -203,7 +213,8 @@
       "byteLength": 15158,
       "disposition": "unsupported-installation",
       "reason": "Upstream installation/maintenance documentation: preserved in the full snapshot for inspection. Its home installer/plugin commands are not performed by granular Catalog recipes; use the Catalog-specific guide for these projections.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -217,7 +228,8 @@
         "extensions.agent.code-reviewer",
         "extensions.kiro.agent.code-reviewer",
         "extensions.copilot.agent.code-reviewer"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -231,7 +243,8 @@
         "extensions.agent.security-auditor",
         "extensions.kiro.agent.security-auditor",
         "extensions.copilot.agent.security-auditor"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -245,7 +258,8 @@
         "extensions.agent.test-engineer",
         "extensions.kiro.agent.test-engineer",
         "extensions.copilot.agent.test-engineer"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -259,7 +273,8 @@
         "extensions.agent.web-performance-auditor",
         "extensions.kiro.agent.web-performance-auditor",
         "extensions.copilot.agent.web-performance-auditor"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -273,7 +288,8 @@
         "extensions.command.ship",
         "extensions.kiro.command.ship",
         "extensions.copilot.command.ship"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -287,7 +303,8 @@
         "extensions.command.webperf",
         "extensions.kiro.command.webperf",
         "extensions.copilot.command.webperf"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -297,7 +314,8 @@
       "byteLength": 11264,
       "disposition": "unsupported-installation",
       "reason": "Upstream installation/maintenance documentation: preserved in the full snapshot for inspection. Its home installer/plugin commands are not performed by granular Catalog recipes; use the Catalog-specific guide for these projections.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -307,7 +325,8 @@
       "byteLength": 5694,
       "disposition": "unsupported-installation",
       "reason": "Upstream installation/maintenance documentation: preserved in the full snapshot for inspection. Its home installer/plugin commands are not performed by granular Catalog recipes; use the Catalog-specific guide for these projections.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -317,7 +336,8 @@
       "byteLength": 7484,
       "disposition": "unsupported-installation",
       "reason": "Upstream installation/maintenance documentation: preserved in the full snapshot for inspection. Its home installer/plugin commands are not performed by granular Catalog recipes; use the Catalog-specific guide for these projections.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -327,7 +347,8 @@
       "byteLength": 6469,
       "disposition": "unsupported-installation",
       "reason": "Upstream installation/maintenance documentation: preserved in the full snapshot for inspection. Its home installer/plugin commands are not performed by granular Catalog recipes; use the Catalog-specific guide for these projections.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -337,7 +358,8 @@
       "byteLength": 9059,
       "disposition": "unsupported-installation",
       "reason": "Upstream installation/maintenance documentation: preserved in the full snapshot for inspection. Its home installer/plugin commands are not performed by granular Catalog recipes; use the Catalog-specific guide for these projections.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -347,7 +369,8 @@
       "byteLength": 3337,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation guide: describes model-call evaluation harness; not a client instruction or runtime registration.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -357,7 +380,8 @@
       "byteLength": 446,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -367,7 +391,8 @@
       "byteLength": 111,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -377,7 +402,8 @@
       "byteLength": 467,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation prompt fixture: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -387,7 +413,8 @@
       "byteLength": 388,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -397,7 +424,8 @@
       "byteLength": 109,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -407,7 +435,8 @@
       "byteLength": 856,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation prompt fixture: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -417,7 +446,8 @@
       "byteLength": 2153,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation guide: describes model-call evaluation harness; not a client instruction or runtime registration.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -427,7 +457,8 @@
       "byteLength": 465,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation check script: evaluates source content in a separate harness. Catalog does not execute it, schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -437,7 +468,8 @@
       "byteLength": 157,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation harness settings: configure a separate evaluation run. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -447,7 +479,8 @@
       "byteLength": 451,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -457,7 +490,8 @@
       "byteLength": 120,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -467,7 +501,8 @@
       "byteLength": 538,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation prompt fixture: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -477,7 +512,8 @@
       "byteLength": 429,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -487,7 +523,8 @@
       "byteLength": 111,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -497,7 +534,8 @@
       "byteLength": 776,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation prompt fixture: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -507,7 +545,8 @@
       "byteLength": 225,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -517,7 +556,8 @@
       "byteLength": 118,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -527,7 +567,8 @@
       "byteLength": 417,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation prompt fixture: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -537,7 +578,8 @@
       "byteLength": 143,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -547,7 +589,8 @@
       "byteLength": 116,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -557,7 +600,8 @@
       "byteLength": 113,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -567,7 +611,8 @@
       "byteLength": 415,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation prompt fixture: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -577,7 +622,8 @@
       "byteLength": 470,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -587,7 +633,8 @@
       "byteLength": 109,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -597,7 +644,8 @@
       "byteLength": 843,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation prompt fixture: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -607,7 +655,8 @@
       "byteLength": 506,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -617,7 +666,8 @@
       "byteLength": 106,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation grader rubric: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -627,7 +677,8 @@
       "byteLength": 993,
       "disposition": "unsupported-installation",
       "reason": "Upstream evaluation prompt fixture: evaluates source skills in a separate harness. Catalog does not schedule model calls or install evaluation harness fixtures.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -637,7 +688,8 @@
       "byteLength": 26402,
       "disposition": "unsupported-installation",
       "reason": "Upstream AIH Guide source, manual and generated agent profiles: Catalog delivers the Guide through its separately pinned Guide release (docs/GUIDE-CONTENT.md). Retained here as provenance only; no Extensions choice installs it.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -647,7 +699,8 @@
       "byteLength": 412,
       "disposition": "unsupported-installation",
       "reason": "Upstream AIH Guide source, manual and generated agent profiles: Catalog delivers the Guide through its separately pinned Guide release (docs/GUIDE-CONTENT.md). Retained here as provenance only; no Extensions choice installs it.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -657,7 +710,8 @@
       "byteLength": 26630,
       "disposition": "unsupported-installation",
       "reason": "Upstream AIH Guide source, manual and generated agent profiles: Catalog delivers the Guide through its separately pinned Guide release (docs/GUIDE-CONTENT.md). Retained here as provenance only; no Extensions choice installs it.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -667,7 +721,8 @@
       "byteLength": 26541,
       "disposition": "unsupported-installation",
       "reason": "Upstream AIH Guide source, manual and generated agent profiles: Catalog delivers the Guide through its separately pinned Guide release (docs/GUIDE-CONTENT.md). Retained here as provenance only; no Extensions choice installs it.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -677,7 +732,8 @@
       "byteLength": 26601,
       "disposition": "unsupported-installation",
       "reason": "Upstream AIH Guide source, manual and generated agent profiles: Catalog delivers the Guide through its separately pinned Guide release (docs/GUIDE-CONTENT.md). Retained here as provenance only; no Extensions choice installs it.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -687,7 +743,8 @@
       "byteLength": 1440,
       "disposition": "unsupported-installation",
       "reason": "Upstream AIH Guide source, manual and generated agent profiles: Catalog delivers the Guide through its separately pinned Guide release (docs/GUIDE-CONTENT.md). Retained here as provenance only; no Extensions choice installs it.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -697,7 +754,8 @@
       "byteLength": 162,
       "disposition": "unsupported-installation",
       "reason": "Upstream AIH Guide source, manual and generated agent profiles: Catalog delivers the Guide through its separately pinned Guide release (docs/GUIDE-CONTENT.md). Retained here as provenance only; no Extensions choice installs it.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -707,7 +765,8 @@
       "byteLength": 26061,
       "disposition": "unsupported-installation",
       "reason": "Upstream AIH Guide source, manual and generated agent profiles: Catalog delivers the Guide through its separately pinned Guide release (docs/GUIDE-CONTENT.md). Retained here as provenance only; no Extensions choice installs it.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -717,7 +776,8 @@
       "byteLength": 11074,
       "disposition": "unsupported-installation",
       "reason": "Upstream machine-readable hook declarations for its own tooling: retained as provenance. Catalog's reviewed declaration and recipes remain the delivery authority and do not consume this file.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -729,7 +789,8 @@
       "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
       "items": [
         "extensions.hook-source.git-guard"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -743,7 +804,8 @@
         "extensions.hook-source.git-guard",
         "extensions.hook-source.skill-guard",
         "extensions.hook-source.lanes-card"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -755,7 +817,8 @@
       "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
       "items": [
         "extensions.hook-source.lanes-card"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -767,7 +830,8 @@
       "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
       "items": [
         "extensions.hook-source.lanes-card"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -779,7 +843,8 @@
       "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
       "items": [
         "extensions.hook-source.git-guard"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -791,7 +856,8 @@
       "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
       "items": [
         "extensions.hook-source.git-guard"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -803,7 +869,8 @@
       "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
       "items": [
         "extensions.hook-source.git-guard"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -813,7 +880,8 @@
       "byteLength": 1644,
       "disposition": "unsupported-installation",
       "reason": "OpenCode plugin adapter: selected clients are Claude Code, Kiro IDE and Copilot VSCode. Its OpenCode tool payload/interception mechanism has no declared mapping for those clients; no plugin loader registration.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -825,7 +893,8 @@
       "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
       "items": [
         "extensions.hook-source.skill-guard"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -837,7 +906,8 @@
       "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
       "items": [
         "extensions.notices"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -849,7 +919,8 @@
       "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
       "items": [
         "extensions.notices"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -859,7 +930,8 @@
       "byteLength": 966,
       "disposition": "unsupported-installation",
       "reason": "Upstream npm/maintainer package metadata and script entrypoints: not executed, imported, or installed as an Extensions runtime dependency.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -873,7 +945,8 @@
         "extensions.references",
         "extensions.kiro.references",
         "extensions.copilot.references"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -887,7 +960,8 @@
         "extensions.references",
         "extensions.kiro.references",
         "extensions.copilot.references"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -901,7 +975,8 @@
         "extensions.references",
         "extensions.kiro.references",
         "extensions.copilot.references"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -915,7 +990,8 @@
         "extensions.references",
         "extensions.kiro.references",
         "extensions.copilot.references"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -929,7 +1005,8 @@
         "extensions.references",
         "extensions.kiro.references",
         "extensions.copilot.references"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -943,7 +1020,8 @@
         "extensions.references",
         "extensions.kiro.references",
         "extensions.copilot.references"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -957,7 +1035,8 @@
         "extensions.references",
         "extensions.kiro.references",
         "extensions.copilot.references"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -967,7 +1046,8 @@
       "byteLength": 8658,
       "disposition": "unsupported-installation",
       "reason": "Upstream upstream revision checker: retained for exact source audit; not executed or installed as a privileged Catalog runtime. Catalog uses ordinary declarations and supplied bytes.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -977,7 +1057,8 @@
       "byteLength": 1552,
       "disposition": "unsupported-installation",
       "reason": "Upstream upstream Git cache helper: retained for exact source audit; not executed or installed as a privileged Catalog runtime. Catalog uses ordinary declarations and supplied bytes.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -987,7 +1068,8 @@
       "byteLength": 4252,
       "disposition": "unsupported-installation",
       "reason": "Upstream Guide build and install helper: retained for exact source audit; not executed or installed as a privileged Catalog runtime. Catalog uses ordinary declarations and supplied bytes.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -997,7 +1079,8 @@
       "byteLength": 5438,
       "disposition": "unsupported-installation",
       "reason": "Upstream hook declaration checker: retained for exact source audit; not executed or installed as a privileged Catalog runtime. Catalog uses ordinary declarations and supplied bytes.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1007,7 +1090,8 @@
       "byteLength": 3238,
       "disposition": "unsupported-installation",
       "reason": "Upstream maintainer context-size measurement: retained for exact source audit; not executed or installed as a privileged Catalog runtime. Catalog uses ordinary declarations and supplied bytes.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1017,7 +1101,8 @@
       "byteLength": 1122,
       "disposition": "unsupported-installation",
       "reason": "Upstream upstream pin mover: retained for exact source audit; not executed or installed as a privileged Catalog runtime. Catalog uses ordinary declarations and supplied bytes.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1027,7 +1112,8 @@
       "byteLength": 396,
       "disposition": "unsupported-installation",
       "reason": "Upstream maintainer path utilities: retained for exact source audit; not executed or installed as a privileged Catalog runtime. Catalog uses ordinary declarations and supplied bytes.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1037,7 +1123,8 @@
       "byteLength": 32246,
       "disposition": "unsupported-installation",
       "reason": "Upstream upstream client/home installer and remover: retained for exact source audit; not executed or installed as a privileged Catalog runtime. Catalog uses ordinary declarations and supplied bytes.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1047,7 +1134,8 @@
       "byteLength": 7238,
       "disposition": "unsupported-installation",
       "reason": "Upstream source declaration checker: retained for exact source audit; not executed or installed as a privileged Catalog runtime. Catalog uses ordinary declarations and supplied bytes.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1057,7 +1145,8 @@
       "byteLength": 11834,
       "disposition": "unsupported-installation",
       "reason": "Upstream optional maintainer tools setup: retained for exact source audit; not executed or installed as a privileged Catalog runtime. Catalog uses ordinary declarations and supplied bytes.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1067,7 +1156,8 @@
       "byteLength": 18679,
       "disposition": "unsupported-installation",
       "reason": "Upstream vendor source and patch configuration: retained for exact source audit; not executed or installed as a privileged Catalog runtime. Catalog uses ordinary declarations and supplied bytes.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1077,7 +1167,8 @@
       "byteLength": 5597,
       "disposition": "unsupported-installation",
       "reason": "Upstream upstream vendor refresh renderer: retained for exact source audit; not executed or installed as a privileged Catalog runtime. Catalog uses ordinary declarations and supplied bytes.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1091,7 +1182,8 @@
         "extensions.skill.api-and-interface-design",
         "extensions.kiro.skill.api-and-interface-design",
         "extensions.copilot.skill.api-and-interface-design"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1105,7 +1197,8 @@
         "extensions.skill.api-and-interface-design",
         "extensions.kiro.skill.api-and-interface-design",
         "extensions.copilot.skill.api-and-interface-design"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1119,7 +1212,8 @@
         "extensions.skill.ask-sam",
         "extensions.kiro.skill.ask-sam",
         "extensions.copilot.skill.ask-sam"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1133,7 +1227,8 @@
         "extensions.skill.ask-sam",
         "extensions.kiro.skill.ask-sam",
         "extensions.copilot.skill.ask-sam"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1147,7 +1242,8 @@
         "extensions.skill.browser-testing-with-devtools",
         "extensions.kiro.skill.browser-testing-with-devtools",
         "extensions.copilot.skill.browser-testing-with-devtools"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1161,7 +1257,8 @@
         "extensions.skill.browser-testing-with-devtools",
         "extensions.kiro.skill.browser-testing-with-devtools",
         "extensions.copilot.skill.browser-testing-with-devtools"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1175,7 +1272,8 @@
         "extensions.skill.ci-cd-and-automation",
         "extensions.kiro.skill.ci-cd-and-automation",
         "extensions.copilot.skill.ci-cd-and-automation"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1189,7 +1287,8 @@
         "extensions.skill.ci-cd-and-automation",
         "extensions.kiro.skill.ci-cd-and-automation",
         "extensions.copilot.skill.ci-cd-and-automation"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1203,7 +1302,8 @@
         "extensions.skill.code-simplification",
         "extensions.kiro.skill.code-simplification",
         "extensions.copilot.skill.code-simplification"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1217,7 +1317,8 @@
         "extensions.skill.code-simplification",
         "extensions.kiro.skill.code-simplification",
         "extensions.copilot.skill.code-simplification"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1231,7 +1332,8 @@
         "extensions.skill.constraint-driven-development",
         "extensions.kiro.skill.constraint-driven-development",
         "extensions.copilot.skill.constraint-driven-development"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1245,7 +1347,8 @@
         "extensions.skill.constraint-driven-development",
         "extensions.kiro.skill.constraint-driven-development",
         "extensions.copilot.skill.constraint-driven-development"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1259,7 +1362,8 @@
         "extensions.skill.constraint-driven-development",
         "extensions.kiro.skill.constraint-driven-development",
         "extensions.copilot.skill.constraint-driven-development"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1273,7 +1377,8 @@
         "extensions.skill.deprecation-and-migration",
         "extensions.kiro.skill.deprecation-and-migration",
         "extensions.copilot.skill.deprecation-and-migration"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1287,7 +1392,8 @@
         "extensions.skill.deprecation-and-migration",
         "extensions.kiro.skill.deprecation-and-migration",
         "extensions.copilot.skill.deprecation-and-migration"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1301,7 +1407,8 @@
         "extensions.skill.documentation-and-adrs",
         "extensions.kiro.skill.documentation-and-adrs",
         "extensions.copilot.skill.documentation-and-adrs"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1315,7 +1422,8 @@
         "extensions.skill.documentation-and-adrs",
         "extensions.kiro.skill.documentation-and-adrs",
         "extensions.copilot.skill.documentation-and-adrs"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1329,7 +1437,8 @@
         "extensions.skill.doubt-driven-development",
         "extensions.kiro.skill.doubt-driven-development",
         "extensions.copilot.skill.doubt-driven-development"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1343,7 +1452,8 @@
         "extensions.skill.doubt-driven-development",
         "extensions.kiro.skill.doubt-driven-development",
         "extensions.copilot.skill.doubt-driven-development"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1357,7 +1467,8 @@
         "extensions.skill.frontend-ui-engineering",
         "extensions.kiro.skill.frontend-ui-engineering",
         "extensions.copilot.skill.frontend-ui-engineering"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1371,7 +1482,8 @@
         "extensions.skill.frontend-ui-engineering",
         "extensions.kiro.skill.frontend-ui-engineering",
         "extensions.copilot.skill.frontend-ui-engineering"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1385,7 +1497,8 @@
         "extensions.skill.git-workflow-and-versioning",
         "extensions.kiro.skill.git-workflow-and-versioning",
         "extensions.copilot.skill.git-workflow-and-versioning"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1399,7 +1512,8 @@
         "extensions.skill.git-workflow-and-versioning",
         "extensions.kiro.skill.git-workflow-and-versioning",
         "extensions.copilot.skill.git-workflow-and-versioning"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1413,7 +1527,8 @@
         "extensions.skill.idea-refine",
         "extensions.kiro.skill.idea-refine",
         "extensions.copilot.skill.idea-refine"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1427,7 +1542,8 @@
         "extensions.skill.idea-refine",
         "extensions.kiro.skill.idea-refine",
         "extensions.copilot.skill.idea-refine"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1441,7 +1557,8 @@
         "extensions.skill.idea-refine",
         "extensions.kiro.skill.idea-refine",
         "extensions.copilot.skill.idea-refine"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1455,7 +1572,8 @@
         "extensions.skill.idea-refine",
         "extensions.kiro.skill.idea-refine",
         "extensions.copilot.skill.idea-refine"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1469,7 +1587,8 @@
         "extensions.skill.idea-refine",
         "extensions.kiro.skill.idea-refine",
         "extensions.copilot.skill.idea-refine"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1483,7 +1602,8 @@
         "extensions.skill.idea-refine",
         "extensions.kiro.skill.idea-refine",
         "extensions.copilot.skill.idea-refine"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1497,7 +1617,8 @@
         "extensions.skill.install-commit-gate",
         "extensions.kiro.skill.install-commit-gate",
         "extensions.copilot.skill.install-commit-gate"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1511,7 +1632,8 @@
         "extensions.skill.install-commit-gate",
         "extensions.kiro.skill.install-commit-gate",
         "extensions.copilot.skill.install-commit-gate"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1525,7 +1647,8 @@
         "extensions.skill.install-commit-gate",
         "extensions.kiro.skill.install-commit-gate",
         "extensions.copilot.skill.install-commit-gate"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1539,7 +1662,8 @@
         "extensions.skill.observability-and-instrumentation",
         "extensions.kiro.skill.observability-and-instrumentation",
         "extensions.copilot.skill.observability-and-instrumentation"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1553,7 +1677,8 @@
         "extensions.skill.performance-optimization",
         "extensions.kiro.skill.performance-optimization",
         "extensions.copilot.skill.performance-optimization"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1567,7 +1692,8 @@
         "extensions.skill.performance-optimization",
         "extensions.kiro.skill.performance-optimization",
         "extensions.copilot.skill.performance-optimization"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1581,7 +1707,8 @@
         "extensions.skill.performance-optimization",
         "extensions.kiro.skill.performance-optimization",
         "extensions.copilot.skill.performance-optimization"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1595,7 +1722,8 @@
         "extensions.skill.security-and-hardening",
         "extensions.kiro.skill.security-and-hardening",
         "extensions.copilot.skill.security-and-hardening"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1609,7 +1737,8 @@
         "extensions.skill.security-and-hardening",
         "extensions.kiro.skill.security-and-hardening",
         "extensions.copilot.skill.security-and-hardening"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1623,7 +1752,8 @@
         "extensions.skill.security-and-hardening",
         "extensions.kiro.skill.security-and-hardening",
         "extensions.copilot.skill.security-and-hardening"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1637,7 +1767,8 @@
         "extensions.skill.setup-pre-commit",
         "extensions.kiro.skill.setup-pre-commit",
         "extensions.copilot.skill.setup-pre-commit"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1651,7 +1782,8 @@
         "extensions.skill.setup-pre-commit",
         "extensions.kiro.skill.setup-pre-commit",
         "extensions.copilot.skill.setup-pre-commit"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1665,7 +1797,8 @@
         "extensions.skill.shipping-and-launch",
         "extensions.kiro.skill.shipping-and-launch",
         "extensions.copilot.skill.shipping-and-launch"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1679,7 +1812,8 @@
         "extensions.skill.source-driven-development",
         "extensions.kiro.skill.source-driven-development",
         "extensions.copilot.skill.source-driven-development"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1693,7 +1827,8 @@
         "extensions.skill.source-driven-development",
         "extensions.kiro.skill.source-driven-development",
         "extensions.copilot.skill.source-driven-development"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1703,7 +1838,8 @@
       "byteLength": 6852,
       "disposition": "unsupported-installation",
       "reason": "Upstream machine-readable source declarations for its own tooling: retained as provenance. Catalog's reviewed declaration and recipes remain the delivery authority and do not consume this file.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1713,7 +1849,8 @@
       "byteLength": 5914,
       "disposition": "unsupported-installation",
       "reason": "Upstream schema for its source declarations: retained as provenance. Catalog's reviewed declaration and recipes remain the delivery authority and do not consume this file.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1723,7 +1860,8 @@
       "byteLength": 8414,
       "disposition": "unsupported-installation",
       "reason": "Upstream maintainer regression test: validates installer/guard/tool behavior in its source harness. Preserved for audit; not installed into consumer projects and not run by Catalog.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1733,7 +1871,8 @@
       "byteLength": 7149,
       "disposition": "unsupported-installation",
       "reason": "Upstream maintainer regression test: validates installer/guard/tool behavior in its source harness. Preserved for audit; not installed into consumer projects and not run by Catalog.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1743,7 +1882,8 @@
       "byteLength": 21296,
       "disposition": "unsupported-installation",
       "reason": "Upstream maintainer regression test: validates installer/guard/tool behavior in its source harness. Preserved for audit; not installed into consumer projects and not run by Catalog.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1753,7 +1893,8 @@
       "byteLength": 1957,
       "disposition": "unsupported-installation",
       "reason": "Upstream maintainer regression test: validates installer/guard/tool behavior in its source harness. Preserved for audit; not installed into consumer projects and not run by Catalog.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1763,7 +1904,8 @@
       "byteLength": 7535,
       "disposition": "unsupported-installation",
       "reason": "Upstream maintainer regression test: validates installer/guard/tool behavior in its source harness. Preserved for audit; not installed into consumer projects and not run by Catalog.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1773,7 +1915,8 @@
       "byteLength": 7334,
       "disposition": "unsupported-installation",
       "reason": "Upstream maintainer regression test: validates installer/guard/tool behavior in its source harness. Preserved for audit; not installed into consumer projects and not run by Catalog.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1783,7 +1926,8 @@
       "byteLength": 3221,
       "disposition": "unsupported-installation",
       "reason": "Upstream maintainer regression test: validates installer/guard/tool behavior in its source harness. Preserved for audit; not installed into consumer projects and not run by Catalog.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1793,7 +1937,8 @@
       "byteLength": 2935,
       "disposition": "unsupported-installation",
       "reason": "Upstream maintainer regression test: validates installer/guard/tool behavior in its source harness. Preserved for audit; not installed into consumer projects and not run by Catalog.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1803,7 +1948,8 @@
       "byteLength": 2669,
       "disposition": "unsupported-installation",
       "reason": "Upstream maintainer regression test: validates installer/guard/tool behavior in its source harness. Preserved for audit; not installed into consumer projects and not run by Catalog.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1813,7 +1959,8 @@
       "byteLength": 10826,
       "disposition": "unsupported-installation",
       "reason": "Upstream maintainer regression test: validates installer/guard/tool behavior in its source harness. Preserved for audit; not installed into consumer projects and not run by Catalog.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1823,7 +1970,8 @@
       "byteLength": 9171,
       "disposition": "unsupported-installation",
       "reason": "Upstream maintainer regression test: validates installer/guard/tool behavior in its source harness. Preserved for audit; not installed into consumer projects and not run by Catalog.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "extensions",
@@ -1835,7 +1983,8 @@
       "reason": "Pinned material delivered by the named granular choices; scripts are copied as data and never executed by Catalog.",
       "items": [
         "extensions.notices"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -1957,7 +2106,8 @@
         "extensions.matt.scaffold-exercises",
         "extensions.kiro.matt.scaffold-exercises",
         "extensions.copilot.matt.scaffold-exercises"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -1971,7 +2121,8 @@
         "extensions.matt.ask-matt",
         "extensions.kiro.matt.ask-matt",
         "extensions.copilot.matt.ask-matt"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -1985,7 +2136,8 @@
         "extensions.matt.ask-matt",
         "extensions.kiro.matt.ask-matt",
         "extensions.copilot.matt.ask-matt"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -1999,7 +2151,8 @@
         "extensions.matt.ask-matt",
         "extensions.kiro.matt.ask-matt",
         "extensions.copilot.matt.ask-matt"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2013,7 +2166,8 @@
         "extensions.matt.code-review",
         "extensions.kiro.matt.code-review",
         "extensions.copilot.matt.code-review"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2027,7 +2181,8 @@
         "extensions.matt.code-review",
         "extensions.kiro.matt.code-review",
         "extensions.copilot.matt.code-review"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2041,7 +2196,8 @@
         "extensions.matt.codebase-design",
         "extensions.kiro.matt.codebase-design",
         "extensions.copilot.matt.codebase-design"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2055,7 +2211,8 @@
         "extensions.matt.codebase-design",
         "extensions.kiro.matt.codebase-design",
         "extensions.copilot.matt.codebase-design"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2069,7 +2226,8 @@
         "extensions.matt.codebase-design",
         "extensions.kiro.matt.codebase-design",
         "extensions.copilot.matt.codebase-design"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2083,7 +2241,8 @@
         "extensions.matt.codebase-design",
         "extensions.kiro.matt.codebase-design",
         "extensions.copilot.matt.codebase-design"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2097,7 +2256,8 @@
         "extensions.matt.diagnosing-bugs",
         "extensions.kiro.matt.diagnosing-bugs",
         "extensions.copilot.matt.diagnosing-bugs"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2111,7 +2271,8 @@
         "extensions.matt.diagnosing-bugs",
         "extensions.kiro.matt.diagnosing-bugs",
         "extensions.copilot.matt.diagnosing-bugs"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2125,7 +2286,8 @@
         "extensions.matt.diagnosing-bugs",
         "extensions.kiro.matt.diagnosing-bugs",
         "extensions.copilot.matt.diagnosing-bugs"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2139,7 +2301,8 @@
         "extensions.matt.domain-modeling",
         "extensions.kiro.matt.domain-modeling",
         "extensions.copilot.matt.domain-modeling"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2153,7 +2316,8 @@
         "extensions.matt.domain-modeling",
         "extensions.kiro.matt.domain-modeling",
         "extensions.copilot.matt.domain-modeling"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2167,7 +2331,8 @@
         "extensions.matt.domain-modeling",
         "extensions.kiro.matt.domain-modeling",
         "extensions.copilot.matt.domain-modeling"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2181,7 +2346,8 @@
         "extensions.matt.domain-modeling",
         "extensions.kiro.matt.domain-modeling",
         "extensions.copilot.matt.domain-modeling"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2195,7 +2361,8 @@
         "extensions.matt.grill-with-docs",
         "extensions.kiro.matt.grill-with-docs",
         "extensions.copilot.matt.grill-with-docs"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2209,7 +2376,8 @@
         "extensions.matt.grill-with-docs",
         "extensions.kiro.matt.grill-with-docs",
         "extensions.copilot.matt.grill-with-docs"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2223,7 +2391,8 @@
         "extensions.matt.implement-spec",
         "extensions.kiro.matt.implement-spec",
         "extensions.copilot.matt.implement-spec"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2237,7 +2406,8 @@
         "extensions.matt.implement-spec",
         "extensions.kiro.matt.implement-spec",
         "extensions.copilot.matt.implement-spec"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2251,7 +2421,8 @@
         "extensions.matt.implement",
         "extensions.kiro.matt.implement",
         "extensions.copilot.matt.implement"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2265,7 +2436,8 @@
         "extensions.matt.implement",
         "extensions.kiro.matt.implement",
         "extensions.copilot.matt.implement"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2279,7 +2451,8 @@
         "extensions.matt.improve-codebase-architecture",
         "extensions.kiro.matt.improve-codebase-architecture",
         "extensions.copilot.matt.improve-codebase-architecture"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2293,7 +2466,8 @@
         "extensions.matt.improve-codebase-architecture",
         "extensions.kiro.matt.improve-codebase-architecture",
         "extensions.copilot.matt.improve-codebase-architecture"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2307,7 +2481,8 @@
         "extensions.matt.improve-codebase-architecture",
         "extensions.kiro.matt.improve-codebase-architecture",
         "extensions.copilot.matt.improve-codebase-architecture"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2321,7 +2496,8 @@
         "extensions.matt.pr",
         "extensions.kiro.matt.pr",
         "extensions.copilot.matt.pr"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2335,7 +2511,8 @@
         "extensions.matt.pr",
         "extensions.kiro.matt.pr",
         "extensions.copilot.matt.pr"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2349,7 +2526,8 @@
         "extensions.matt.pr",
         "extensions.kiro.matt.pr",
         "extensions.copilot.matt.pr"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2363,7 +2541,8 @@
         "extensions.matt.prototype",
         "extensions.kiro.matt.prototype",
         "extensions.copilot.matt.prototype"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2377,7 +2556,8 @@
         "extensions.matt.prototype",
         "extensions.kiro.matt.prototype",
         "extensions.copilot.matt.prototype"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2391,7 +2571,8 @@
         "extensions.matt.prototype",
         "extensions.kiro.matt.prototype",
         "extensions.copilot.matt.prototype"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2405,7 +2586,8 @@
         "extensions.matt.prototype",
         "extensions.kiro.matt.prototype",
         "extensions.copilot.matt.prototype"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2419,7 +2601,8 @@
         "extensions.matt.research",
         "extensions.kiro.matt.research",
         "extensions.copilot.matt.research"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2433,7 +2616,8 @@
         "extensions.matt.research",
         "extensions.kiro.matt.research",
         "extensions.copilot.matt.research"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2447,7 +2631,8 @@
         "extensions.matt.retro",
         "extensions.kiro.matt.retro",
         "extensions.copilot.matt.retro"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2461,7 +2646,8 @@
         "extensions.matt.retro",
         "extensions.kiro.matt.retro",
         "extensions.copilot.matt.retro"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2475,7 +2661,8 @@
         "extensions.matt.setup-matt-pocock-skills",
         "extensions.kiro.matt.setup-matt-pocock-skills",
         "extensions.copilot.matt.setup-matt-pocock-skills"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2489,7 +2676,8 @@
         "extensions.matt.setup-matt-pocock-skills",
         "extensions.kiro.matt.setup-matt-pocock-skills",
         "extensions.copilot.matt.setup-matt-pocock-skills"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2503,7 +2691,8 @@
         "extensions.matt.setup-matt-pocock-skills",
         "extensions.kiro.matt.setup-matt-pocock-skills",
         "extensions.copilot.matt.setup-matt-pocock-skills"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2517,7 +2706,8 @@
         "extensions.matt.setup-matt-pocock-skills",
         "extensions.kiro.matt.setup-matt-pocock-skills",
         "extensions.copilot.matt.setup-matt-pocock-skills"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2531,7 +2721,8 @@
         "extensions.matt.setup-matt-pocock-skills",
         "extensions.kiro.matt.setup-matt-pocock-skills",
         "extensions.copilot.matt.setup-matt-pocock-skills"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2545,7 +2736,8 @@
         "extensions.matt.setup-matt-pocock-skills",
         "extensions.kiro.matt.setup-matt-pocock-skills",
         "extensions.copilot.matt.setup-matt-pocock-skills"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2559,7 +2751,8 @@
         "extensions.matt.setup-matt-pocock-skills",
         "extensions.kiro.matt.setup-matt-pocock-skills",
         "extensions.copilot.matt.setup-matt-pocock-skills"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2573,7 +2766,8 @@
         "extensions.matt.tdd",
         "extensions.kiro.matt.tdd",
         "extensions.copilot.matt.tdd"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2587,7 +2781,8 @@
         "extensions.matt.tdd",
         "extensions.kiro.matt.tdd",
         "extensions.copilot.matt.tdd"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2601,7 +2796,8 @@
         "extensions.matt.tdd",
         "extensions.kiro.matt.tdd",
         "extensions.copilot.matt.tdd"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2615,7 +2811,8 @@
         "extensions.matt.tdd",
         "extensions.kiro.matt.tdd",
         "extensions.copilot.matt.tdd"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2629,7 +2826,8 @@
         "extensions.matt.to-spec",
         "extensions.kiro.matt.to-spec",
         "extensions.copilot.matt.to-spec"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2643,7 +2841,8 @@
         "extensions.matt.to-spec",
         "extensions.kiro.matt.to-spec",
         "extensions.copilot.matt.to-spec"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2657,7 +2856,8 @@
         "extensions.matt.to-tickets",
         "extensions.kiro.matt.to-tickets",
         "extensions.copilot.matt.to-tickets"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2671,7 +2871,8 @@
         "extensions.matt.to-tickets",
         "extensions.kiro.matt.to-tickets",
         "extensions.copilot.matt.to-tickets"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2685,7 +2886,8 @@
         "extensions.matt.triage",
         "extensions.kiro.matt.triage",
         "extensions.copilot.matt.triage"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2699,7 +2901,8 @@
         "extensions.matt.triage",
         "extensions.kiro.matt.triage",
         "extensions.copilot.matt.triage"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2713,7 +2916,8 @@
         "extensions.matt.triage",
         "extensions.kiro.matt.triage",
         "extensions.copilot.matt.triage"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2727,7 +2931,8 @@
         "extensions.matt.triage",
         "extensions.kiro.matt.triage",
         "extensions.copilot.matt.triage"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2741,7 +2946,8 @@
         "extensions.matt.wayfinder",
         "extensions.kiro.matt.wayfinder",
         "extensions.copilot.matt.wayfinder"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2755,7 +2961,8 @@
         "extensions.matt.wayfinder",
         "extensions.kiro.matt.wayfinder",
         "extensions.copilot.matt.wayfinder"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2769,7 +2976,8 @@
         "extensions.matt.wizard",
         "extensions.kiro.matt.wizard",
         "extensions.copilot.matt.wizard"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2783,7 +2991,8 @@
         "extensions.matt.wizard",
         "extensions.kiro.matt.wizard",
         "extensions.copilot.matt.wizard"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2797,7 +3006,8 @@
         "extensions.matt.wizard",
         "extensions.kiro.matt.wizard",
         "extensions.copilot.matt.wizard"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2811,7 +3021,8 @@
         "extensions.matt.grill-me",
         "extensions.kiro.matt.grill-me",
         "extensions.copilot.matt.grill-me"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2825,7 +3036,8 @@
         "extensions.matt.grill-me",
         "extensions.kiro.matt.grill-me",
         "extensions.copilot.matt.grill-me"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2839,7 +3051,8 @@
         "extensions.matt.grilling",
         "extensions.kiro.matt.grilling",
         "extensions.copilot.matt.grilling"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2853,7 +3066,8 @@
         "extensions.matt.grilling",
         "extensions.kiro.matt.grilling",
         "extensions.copilot.matt.grilling"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2867,7 +3081,8 @@
         "extensions.matt.handoff",
         "extensions.kiro.matt.handoff",
         "extensions.copilot.matt.handoff"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2881,7 +3096,8 @@
         "extensions.matt.handoff",
         "extensions.kiro.matt.handoff",
         "extensions.copilot.matt.handoff"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2895,7 +3111,8 @@
         "extensions.matt.teach",
         "extensions.kiro.matt.teach",
         "extensions.copilot.matt.teach"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2909,7 +3126,8 @@
         "extensions.matt.teach",
         "extensions.kiro.matt.teach",
         "extensions.copilot.matt.teach"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2923,7 +3141,8 @@
         "extensions.matt.teach",
         "extensions.kiro.matt.teach",
         "extensions.copilot.matt.teach"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2937,7 +3156,8 @@
         "extensions.matt.teach",
         "extensions.kiro.matt.teach",
         "extensions.copilot.matt.teach"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2951,7 +3171,8 @@
         "extensions.matt.teach",
         "extensions.kiro.matt.teach",
         "extensions.copilot.matt.teach"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2965,7 +3186,8 @@
         "extensions.matt.teach",
         "extensions.kiro.matt.teach",
         "extensions.copilot.matt.teach"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2979,7 +3201,8 @@
         "extensions.matt.to-questionnaire",
         "extensions.kiro.matt.to-questionnaire",
         "extensions.copilot.matt.to-questionnaire"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -2993,7 +3216,8 @@
         "extensions.matt.to-questionnaire",
         "extensions.kiro.matt.to-questionnaire",
         "extensions.copilot.matt.to-questionnaire"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3007,7 +3231,8 @@
         "extensions.matt.wait-what",
         "extensions.kiro.matt.wait-what",
         "extensions.copilot.matt.wait-what"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3021,7 +3246,8 @@
         "extensions.matt.wait-what",
         "extensions.kiro.matt.wait-what",
         "extensions.copilot.matt.wait-what"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3035,7 +3261,8 @@
         "extensions.matt.writing-for-agents",
         "extensions.kiro.matt.writing-for-agents",
         "extensions.copilot.matt.writing-for-agents"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3049,7 +3276,8 @@
         "extensions.matt.writing-for-agents",
         "extensions.kiro.matt.writing-for-agents",
         "extensions.copilot.matt.writing-for-agents"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3063,7 +3291,8 @@
         "extensions.matt.writing-for-agents",
         "extensions.kiro.matt.writing-for-agents",
         "extensions.copilot.matt.writing-for-agents"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3073,7 +3302,8 @@
       "byteLength": 1690,
       "disposition": "unsupported-installation",
       "reason": "Claude marketplace/plugin discovery metadata: retained as provenance. Catalog installs granular project content and owned hook groups; it does not register this upstream plugin or execute marketplace installation.",
-      "items": []
+      "items": [],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3087,7 +3317,8 @@
         "extensions.matt.chief-of-staff",
         "extensions.kiro.matt.chief-of-staff",
         "extensions.copilot.matt.chief-of-staff"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3101,7 +3332,8 @@
         "extensions.matt.chief-of-staff",
         "extensions.kiro.matt.chief-of-staff",
         "extensions.copilot.matt.chief-of-staff"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3115,7 +3347,8 @@
         "extensions.matt.claude-handoff",
         "extensions.kiro.matt.claude-handoff",
         "extensions.copilot.matt.claude-handoff"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3129,7 +3362,8 @@
         "extensions.matt.claude-handoff",
         "extensions.kiro.matt.claude-handoff",
         "extensions.copilot.matt.claude-handoff"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3143,7 +3377,8 @@
         "extensions.matt.loop-me",
         "extensions.kiro.matt.loop-me",
         "extensions.copilot.matt.loop-me"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3157,7 +3392,8 @@
         "extensions.matt.loop-me",
         "extensions.kiro.matt.loop-me",
         "extensions.copilot.matt.loop-me"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3171,7 +3407,8 @@
         "extensions.matt.setup-ts-deep-modules",
         "extensions.kiro.matt.setup-ts-deep-modules",
         "extensions.copilot.matt.setup-ts-deep-modules"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3185,7 +3422,8 @@
         "extensions.matt.setup-ts-deep-modules",
         "extensions.kiro.matt.setup-ts-deep-modules",
         "extensions.copilot.matt.setup-ts-deep-modules"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3199,7 +3437,8 @@
         "extensions.matt.setup-ts-deep-modules",
         "extensions.kiro.matt.setup-ts-deep-modules",
         "extensions.copilot.matt.setup-ts-deep-modules"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3213,7 +3452,8 @@
         "extensions.matt.writing-beats",
         "extensions.kiro.matt.writing-beats",
         "extensions.copilot.matt.writing-beats"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3227,7 +3467,8 @@
         "extensions.matt.writing-beats",
         "extensions.kiro.matt.writing-beats",
         "extensions.copilot.matt.writing-beats"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3241,7 +3482,8 @@
         "extensions.matt.writing-fragments",
         "extensions.kiro.matt.writing-fragments",
         "extensions.copilot.matt.writing-fragments"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3255,7 +3497,8 @@
         "extensions.matt.writing-fragments",
         "extensions.kiro.matt.writing-fragments",
         "extensions.copilot.matt.writing-fragments"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3269,7 +3512,8 @@
         "extensions.matt.writing-shape",
         "extensions.kiro.matt.writing-shape",
         "extensions.copilot.matt.writing-shape"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3283,7 +3527,8 @@
         "extensions.matt.writing-shape",
         "extensions.kiro.matt.writing-shape",
         "extensions.copilot.matt.writing-shape"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3297,7 +3542,8 @@
         "extensions.matt.git-guardrails-claude-code",
         "extensions.kiro.matt.git-guardrails-claude-code",
         "extensions.copilot.matt.git-guardrails-claude-code"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3311,7 +3557,8 @@
         "extensions.matt.git-guardrails-claude-code",
         "extensions.kiro.matt.git-guardrails-claude-code",
         "extensions.copilot.matt.git-guardrails-claude-code"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3325,7 +3572,8 @@
         "extensions.matt.git-guardrails-claude-code",
         "extensions.kiro.matt.git-guardrails-claude-code",
         "extensions.copilot.matt.git-guardrails-claude-code"
-      ]
+      ],
+      "mode": "100755"
     },
     {
       "source": "matt",
@@ -3339,7 +3587,8 @@
         "extensions.matt.migrate-to-shoehorn",
         "extensions.kiro.matt.migrate-to-shoehorn",
         "extensions.copilot.matt.migrate-to-shoehorn"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3353,7 +3602,8 @@
         "extensions.matt.migrate-to-shoehorn",
         "extensions.kiro.matt.migrate-to-shoehorn",
         "extensions.copilot.matt.migrate-to-shoehorn"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3367,7 +3617,8 @@
         "extensions.matt.scaffold-exercises",
         "extensions.kiro.matt.scaffold-exercises",
         "extensions.copilot.matt.scaffold-exercises"
-      ]
+      ],
+      "mode": "100644"
     },
     {
       "source": "matt",
@@ -3381,7 +3632,8 @@
         "extensions.matt.scaffold-exercises",
         "extensions.kiro.matt.scaffold-exercises",
         "extensions.copilot.matt.scaffold-exercises"
-      ]
+      ],
+      "mode": "100644"
     }
   ]
 }

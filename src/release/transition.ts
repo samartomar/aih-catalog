@@ -463,27 +463,22 @@ function primaryMaterial(
 ): Record<string, unknown> | undefined {
   const value = isRecord(payload) ? payload : {};
   const byId = (id: unknown) => content.find((member) => member.id === id);
-  const named =
-    kind === "skill"
-      ? content.find((member) => member.relPath === "SKILL.md")
-      : kind === "hook" && isRecord(value.command)
-        ? // A runner given the hook's own script names that script; otherwise the script.
-          (byId(
-            (
-              (Array.isArray(value.command.args) ? value.command.args : []).find(isRecord) as
-                | Record<string, Json>
-                | undefined
-            )?.material,
-          ) ?? byId(value.command.script))
-        : kind === "mcp-server" && isRecord(value.derivation)
-          ? byId(value.derivation.sourceMaterial)
-          : Array.isArray(value.files)
-            ? byId(value.files[0])
-            : kind === "rule"
-              ? content.find((member) => /\.md$/i.test(String(member.relPath)))
-              : undefined;
+  const named = (): Record<string, unknown> | undefined => {
+    if (kind === "skill") return content.find((member) => member.relPath === "SKILL.md");
+    if (kind === "hook" && isRecord(value.command)) {
+      // A runner given the hook's own script names that script; otherwise the script.
+      const args = Array.isArray(value.command.args) ? value.command.args : [];
+      const given = args.find((arg): arg is { [key: string]: Json } => isRecord(arg));
+      return byId(given?.material) ?? byId(value.command.script);
+    }
+    if (kind === "mcp-server" && isRecord(value.derivation))
+      return byId(value.derivation.sourceMaterial);
+    if (Array.isArray(value.files)) return byId(value.files[0]);
+    if (kind === "rule") return content.find((member) => /\.md$/i.test(String(member.relPath)));
+    return undefined;
+  };
   return (
-    named ??
+    named() ??
     [...content]
       .sort((a, b) => compare(String(a.id), String(b.id)))
       .find((member) => !LICENCE_PATH.test(String(member.sourcePath ?? member.relPath)))
@@ -705,11 +700,6 @@ function buildItem(
         `${at}/scopes`,
         "scopes",
       );
-  const source = agreed(
-    copies.map((copy) => copy.item.source),
-    `${at}/source`,
-    "provenance sources",
-  );
   const dependencies = remapDependencies(copies, survivorOf, declaration.id, request.releases, at);
   // Recipes: one per client while the transition map lasts, or the copies' one shared recipe.
   const clients = copies.map((copy) => copy.clientId);
@@ -752,8 +742,6 @@ function buildItem(
   const provisional: Record<string, unknown> = {
     id: declaration.id,
     kind,
-    // A release 1.7 item: its behaviour identity takes the contract encoding.
-    role: declaration.role,
     payload,
     requirements: { inputs: requirementsInputs },
     dependencies,
@@ -762,7 +750,7 @@ function buildItem(
       { id: "behaviour", relPath: BEHAVIOUR_REL_PATH, role: "behaviour", sha256: "" },
     ],
   };
-  const identity = computeBehaviourIdentity(provisional) as NonNullable<
+  const identity = computeBehaviourIdentity(provisional, "1.7") as NonNullable<
     ReturnType<typeof computeBehaviourIdentity>
   >;
   const behaviour = {
@@ -786,7 +774,7 @@ function buildItem(
     ...content.map((member) => measured(member, () => memberBytes(request, member))),
     measured(behaviour, () => identity.behaviourBytes),
   ].sort((a, b) => compare(String(a.id), String(b.id)));
-  const recomputed = computeBehaviourIdentity({ ...provisional, materials }) as NonNullable<
+  const recomputed = computeBehaviourIdentity({ ...provisional, materials }, "1.7") as NonNullable<
     ReturnType<typeof computeBehaviourIdentity>
   >;
   const name = declaration.name ?? first.item.name ?? first.item.label;
@@ -852,7 +840,6 @@ function buildItem(
     ...((declaration.descriptionBasis ?? first.item.descriptionBasis)
       ? { descriptionBasis: declaration.descriptionBasis ?? first.item.descriptionBasis }
       : {}),
-    source: source ?? refuse("source-required", `${at}/source`, "The copies record their source."),
     provenance: provenanceOf(declaration, kind, payload ?? null, content, copies, request, at),
     sourceIds: [...new Set(copies.flatMap((copy) => copy.item.sourceIds))].sort(compare),
     targets,

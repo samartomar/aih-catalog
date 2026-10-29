@@ -159,7 +159,10 @@ export function itemEvidenceDescriptor(
   const item = release.items.find((candidate) => candidate.id === itemRef.itemId);
   if (item === undefined) return fail(itemNotFound(itemRef.itemId));
   const record = item as unknown as Record<string, unknown>;
-  const identity = computeBehaviourIdentity(record);
+  const identity = computeBehaviourIdentity(
+    record,
+    release.schema === RELEASE_SCHEMA_ID_1_7 ? "1.7" : "1.6",
+  );
   if (identity === undefined) {
     return fail(
       invalid(
@@ -210,23 +213,38 @@ export function itemEvidenceDescriptor(
       ),
     );
   }
-  const descriptor: ItemEvidenceDescriptor = Object.freeze({
+  // Scan's item descriptor: the behaviour fields it recomputes both identities and the
+  // behaviour file from, and each material by item-relative path and capture path.
+  const dependencies = isRecord(record.dependencies) ? record.dependencies : {};
+  const descriptor: ItemEvidenceDescriptor = deepFreeze({
     frameworkId,
     itemId: item.id,
     contentSha256: identity.contentSha256,
     behaviourSha256: identity.behaviourSha256,
+    kind: item.kind,
+    payload: (record.payload ?? null) as Json,
+    requirements: {
+      inputs: (isRecord(record.requirements) && isRecord(record.requirements.inputs)
+        ? record.requirements.inputs
+        : {}) as Json,
+    },
+    dependencies: {
+      requires: (dependencies.requires ?? []) as Json,
+      optional: (dependencies.optional ?? []) as Json,
+      conflicts: (dependencies.conflicts ?? []) as Json,
+    },
     materials: materials
       .filter((member) => !Object.hasOwn(member, "path"))
-      .map((member) =>
-        Object.freeze({
-          path: String(memberPackagePath(member)),
-          sha256: String(member.sha256),
-          byteLength: Number(member.byteLength),
-          executable: member.executable as boolean | "unknown",
-          role: (member.role === "behaviour" ? "behaviour" : "content") as "content" | "behaviour",
-        }),
-      ),
-  });
+      .map((member) => ({
+        materialId: String(member.id),
+        relPath: String(member.relPath),
+        capturePath: String(memberPackagePath(member)),
+        sha256: String(member.sha256),
+        byteLength: Number(member.byteLength),
+        executable: member.executable as boolean | "unknown",
+        role: (member.role === "behaviour" ? "behaviour" : "content") as "content" | "behaviour",
+      })),
+  }) as ItemEvidenceDescriptor;
   return Object.freeze({ valid: true, descriptor, diagnostics: Object.freeze([]) as readonly [] });
 }
 

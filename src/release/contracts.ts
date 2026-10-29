@@ -648,13 +648,28 @@ export interface PartSize {
  * checked against the declarations, and every material is projected to the
  * baseline scope's package-relative namespace with its executable state and role.
  */
+/**
+ * Scan's item descriptor (`recordItems`): the subject, the behaviour fields Scan
+ * recomputes both identities and the behaviour file from, and every material by its
+ * item-relative path and its capture (package) path.
+ */
 export interface ItemEvidenceDescriptor {
   readonly frameworkId: string;
   readonly itemId: string;
   readonly contentSha256: string;
   readonly behaviourSha256: string;
+  readonly kind: string;
+  readonly payload: Json;
+  readonly requirements: { readonly inputs: Json };
+  readonly dependencies: {
+    readonly requires: Json;
+    readonly optional: Json;
+    readonly conflicts: Json;
+  };
   readonly materials: readonly {
-    readonly path: string;
+    readonly materialId: string;
+    readonly relPath: string;
+    readonly capturePath: string;
     readonly sha256: string;
     readonly byteLength: number;
     readonly executable: boolean | "unknown";

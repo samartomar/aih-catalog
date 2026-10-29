@@ -1483,7 +1483,7 @@
     {
      "id": "ecc.hook.session-start",
      "kind": "hook",
-     "contentSha256": "d7a05a03b59d95d7eca8a8c2c1ed0c7bfa06c3ff54223dc92f6a0a59f7a7cb7b"
+     "contentSha256": "4e86681abc0faa0fa5665d47f533e5472d7d98218925fe119ce9ecf908b25133"
     },
     {
      "id": "ecc.hook.session-start-plan-canvas-sessions",

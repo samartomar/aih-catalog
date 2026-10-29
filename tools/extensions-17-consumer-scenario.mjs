@@ -42,7 +42,6 @@ const case_ = async (name, fn) => {
 
 const CONTENT = "release-extensions.content.json";
 const INVENTORY = "release/baselines/extensions/content-inventory.json";
-const MATT = "https://github.com/mattpocock/skills";
 // AIH-Extensions selects Matt's plugin at its own pinned revision.
 const SELECTED_REVISION = "2481164a51ea7f9e480d51ef52f3d5cf15b017fa";
 const SETUP = "extensions.matt.setup-matt-pocock-skills";
@@ -82,7 +81,7 @@ await case_("a separate release 1.7.0 with a published framework identity and on
 
 await case_("Matt's skills carry true provenance: his repository, his plugin selected by AIH-Extensions, no fork", () => {
   for (const entry of mattItems) {
-    assert.equal(entry.source, MATT, entry.id);
+    assert.equal(entry.source, undefined, entry.id);
     assert.equal(entry.provenance.source.sourceId, "matt", entry.id);
     assert.equal(entry.provenance.source.path, `skills/${entry.provenance.source.path.split("/")[1]}/${entry.name}`, entry.id);
     assert.deepEqual(entry.provenance.derivedFrom, [], entry.id);

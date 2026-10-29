@@ -30016,12 +30016,10 @@
       "mode": "100644",
       "sha256": "48f949ebc4ab83a9e8d3b6bee91bb201511046a8c504f53f8d1e48e29f03bc0d",
       "byteLength": 2936,
-      "disposition": "supported-material",
+      "disposition": "unsupported-installation",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
-      "items": [
-        "ecc.hook.session-start"
-      ]
+      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
+      "items": []
     },
     {
       "path": "scripts/hooks/session-start.js",
@@ -31346,12 +31344,10 @@
       "mode": "100644",
       "sha256": "84e824141f957c10fc6954403d735425546e6c10aedda42ac341aa4547680efe",
       "byteLength": 7279,
-      "disposition": "supported-material",
+      "disposition": "unsupported-installation",
       "owner": "Catalog ECC adapter maintainer",
-      "reason": "Exact source material in declared recipe; this disposition does not establish native execution.",
-      "items": [
-        "ecc.hook.session-start"
-      ]
+      "reason": "ECC executable/plugin/installer lifecycle is not installed by these file/config recipes; runtime adaptation remains separately owned by Catalog ECC adapter maintainer.",
+      "items": []
     },
     {
       "path": "scripts/lib/resolve-formatter.js",

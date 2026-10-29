@@ -198,7 +198,8 @@ const hookPayload17 = structuredClone(hookPayload);
 hookPayload17.properties.async = { type: "boolean", description: "Runs without blocking the tool, as the upstream registers it." };
 item17.properties.payload = { oneOf: [skillPayload, rulePayload, hookPayload17, mcpPayload, filesPayload, documentPayload] };
 item17.properties.dependencies = object({ requires: dependencyList17, optional: dependencyList17, conflicts: dependencyList17 }, []);
-item17.required = ["id", "label", "kind", "role", "name", "nameBasis", "source", "sourceIds", "targets", "scopes", "inputs", "materials", "dependencies", "payload", "requirements", "executable", "contentSha256", "behaviourSha256"];
+delete item17.properties.source;
+item17.required = ["id", "label", "kind", "role", "name", "nameBasis", "provenance", "sourceIds", "targets", "scopes", "inputs", "materials", "dependencies", "payload", "requirements", "executable", "contentSha256", "behaviourSha256"];
 item17.oneOf = [{ required: ["recipe"], properties: { recipe: true } }, { required: ["recipes"], properties: { recipes: true } }];
 item17.allOf = item17.allOf.map((rule) => rule.if?.properties?.kind?.const === "document"
   ? { ...rule, then: { properties: { payload: documentPayload } } }

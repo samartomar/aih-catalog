@@ -2484,7 +2484,7 @@
         "role",
         "name",
         "nameBasis",
-        "source",
+        "provenance",
         "sourceIds",
         "targets",
         "scopes",
@@ -3065,11 +3065,6 @@
         },
         "behaviourSha256": {
           "$ref": "#/$defs/sha256"
-        },
-        "source": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 4096
         },
         "size": {
           "type": "object",

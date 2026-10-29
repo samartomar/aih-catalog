@@ -255,8 +255,28 @@ interface Projected16 {
   readonly items: ReadonlyMap<string, Record<string, unknown>>;
 }
 
+/**
+ * The executable bit of each pinned source file, from the git mode the producer
+ * inventory records for it at its pin.
+ */
+function pinnedModes(root: string): (sourceId: string, sourcePath: string) => boolean {
+  const inventory = JSON.parse(
+    readFileSync(resolve(root, "producer/extensions/inventory.json"), "utf8"),
+  ) as { entries: { source: string; path: string; mode: string }[] };
+  const modes = new Map(
+    inventory.entries.map((row) => [`${row.source}\u0000${row.path}`, row.mode]),
+  );
+  return (sourceId, sourcePath) => {
+    const mode = modes.get(`${sourceId}\u0000${sourcePath}`);
+    if (mode !== "100644" && mode !== "100755")
+      throw new Error(`No pinned file mode for ${sourceId}:${sourcePath}`);
+    return mode === "100755";
+  };
+}
+
 /** Projects every committed release 1.2 item to the release 1.6 shape, one per tool copy. */
 function projectCopies(release12: CatalogRelease, root: string): Projected16 {
+  const executableOf = pinnedModes(root);
   const items = release12.items.map((item) => {
     const members = item.materials as unknown as readonly Material12[];
     const skill = members.find((member) => member.path.endsWith("/SKILL.md"));
@@ -268,11 +288,12 @@ function projectCopies(release12: CatalogRelease, root: string): Projected16 {
       if (!skill) throw new Error(`${item.id} carries no SKILL.md`);
       return readFileSync(resolve(root, skill.path), "utf8");
     };
-    const executable: Record<string, true | false | "unknown"> = {};
+    const executable: Record<string, boolean> = {};
     const content = members.map((member) => {
       const sourcePath = sourcePathOf(member.path);
       const relPath = relPathOf(item.kind, skillRoot, sourcePath);
-      executable[relPath] = "unknown";
+      const sourceId = sourceIdOf(release12, member.path);
+      executable[relPath] = executableOf(sourceId, sourcePath);
       return {
         id: member.id,
         relPath,
@@ -280,8 +301,8 @@ function projectCopies(release12: CatalogRelease, root: string): Projected16 {
         packagePath: member.path,
         sha256: member.sha256,
         byteLength: member.byteLength,
-        executable: "unknown" as const,
-        sourceId: sourceIdOf(release12, member.path),
+        executable: executable[relPath],
+        sourceId,
         role: "content" as const,
       };
     });

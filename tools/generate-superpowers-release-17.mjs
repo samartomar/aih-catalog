@@ -195,11 +195,10 @@ export function buildSuperpowers17() {
   const registrationIds = new Set(folded.materials.filter((member) => isHookRegistrationPath(sourcePathOf(member, revision))).map((member) => member.id));
   const registrationWrites = foldedRecipe.operations.filter((operation) => registrationIds.has(operation.material));
   const droppedChecks = new Set(registrationWrites.flatMap((operation) => operation.checks));
-  // The literal command, as Core renders the payload with {pluginRoot} set to the item's
-  // folder: bash runs the installed run-hook.cmd with its argument.
+  // The literal command built from the payload alone, as Core renders it: its
+  // interpreter, the installed script, then each argument.
   const installed = (sourcePath) => foldedRecipe.operations.find((operation) => operation.id === writeOf(sourcePath)).target.segments.map((segment) => segment.literal).join("/");
-  const pluginRoot = installed("hooks/run-hook.cmd").slice(0, -"/hooks/run-hook.cmd".length);
-  const command = `CLAUDE_PLUGIN_ROOT="\${CLAUDE_PROJECT_DIR}/${pluginRoot}" bash "\${CLAUDE_PROJECT_DIR}/${installed("hooks/run-hook.cmd")}" "session-start"`;
+  const command = `bash "\${CLAUDE_PROJECT_DIR}/${installed("hooks/run-hook.cmd")}" "session-start"`;
   const { groupBindings: _bound, ...literal } = register;
   const group = structuredClone(literal.group);
   for (const entry of group.literal.hooks) entry.command = command;

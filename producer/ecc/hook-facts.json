@@ -271,7 +271,6 @@
       "closure": [
         "scripts/hooks/run-with-flags.js",
         "scripts/hooks/pretooluse-visible-output.js",
-        "scripts/hooks/session-start-bootstrap.js",
         "scripts/hooks/session-start.js",
         "scripts/lib/agent-data-home.js",
         "scripts/lib/hook-flags.js",
@@ -280,7 +279,6 @@
         "scripts/lib/package-manager.js",
         "scripts/lib/path-safety.js",
         "scripts/lib/project-detect.js",
-        "scripts/lib/resolve-ecc-root.js",
         "scripts/lib/session-aliases.js",
         "scripts/lib/utils.js"
       ]

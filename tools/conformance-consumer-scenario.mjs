@@ -209,6 +209,7 @@ await case_("provenance is hops at their source's pin and licence, never a bare 
       }
       for (const hop of [source, ...derivedFrom]) assert.equal(hop.license, sources.get(hop.sourceId).license, item.id);
       assert.ok(!Object.hasOwn(item, "selectedBy"), `${item.id} carries a URL selection`);
+      assert.ok(!Object.hasOwn(item, "source"), `${item.id} carries a URL source`);
     }
   }
   const selected = releases.extensions.items.filter((item) => item.provenance.selectedBy?.sourceId === "extensions");

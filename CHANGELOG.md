@@ -9,17 +9,23 @@
   hook material, as Core renders hooks; the payload gains optional `async`. The
   Extensions hooks run `interpreter: "node"` and the Superpowers bootstrap keeps
   `bash`. They drop `hooks/hooks.json` and the `.claude-plugin/` manifests, and their
-  legacy recipes register the literal command, so no hook needs a `hookCommand` input.
-  ECC's 24 upstream Claude Code hooks are optional, never pre-ticked items in
-  `ecc.module.hooks-runtime`, each with its reviewed run-time closure (58 more pinned
-  files admitted). Sets: Matt's in-progress (7) and misc (3) skills are admitted, so
-  each bucket set holds its pinned skills. `specialists` and `deprecated` hold none at
-  the pin and are not sets. ECC sets copy upstream's `cost` and `stability` words.
-  `languages` is `multiple: true`. The 11 ECC modules with no item are left out with
-  recorded reasons, and no set may be empty. `behaviourSha256` is the contract's
-  canonical-JSON encoding. Every material and item carries measured sizes, provenance
-  is hops `{ sourceId, path, revision, license }` in place of URL `selectedBy`, and
-  tool hints mark only content written for one tool.
+  legacy recipes register the literal command built from the payload, so no hook
+  needs a `hookCommand` input. ECC's 24 upstream Claude Code hooks are optional, never
+  pre-ticked items in `ecc.module.hooks-runtime`, each with its reviewed run-time
+  closure (56 more pinned files admitted); `release-ecc.json` moves to format 1.2.0,
+  which admits hook items. Sets: Matt's in-progress (7) and misc (3) skills are
+  admitted, so each bucket set holds its pinned skills; `specialists` and `deprecated`
+  hold none at the pin and are not sets. ECC sets copy upstream's `cost` and
+  `stability` words, `languages` is `multiple: true`, the 11 ECC modules with no item
+  are left out with recorded reasons, and no set may be empty. Release 1.7
+  `behaviourSha256` is the contract's canonical-JSON encoding (release 1.6 keeps its
+  line identity). Every material and item carries measured sizes; provenance is hops
+  `{ sourceId, path, revision, license }` in place of the URL `source` and
+  `selectedBy`; every material declares its pinned executable bit and the committed
+  member file carries that mode; tool hints mark only content written for one tool; a
+  skill's invocation follows its author's `disable-model-invocation` flag. The item
+  evidence descriptor is Scan's new descriptor (`materialId`, item-relative `relPath`,
+  `capturePath`, and the behaviour fields), for Scan's `recordItems`.
 - Refresh the Extensions content to aih-extensions `2481164a` and the Matt companion
   to `59db609e`, the Matt revision Extensions pins (samartomar/aih-catalog#145).
   Before this, they were pinned at `79f016c2` and `d81f3a18`. The 1.2

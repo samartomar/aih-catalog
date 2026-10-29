@@ -160,10 +160,11 @@ sees its 15 skills and its start-of-session bootstrap, not one copy per tool.
   group: matcher `startup|clear|compact`, protocol `claude-code-hooks` and the command
   `bash hooks/run-hook.cmd session-start`; the hook carries `hints.tools:
   ["claude-code"]`. Its Claude Code recipe writes those files under `.superpowers-source/`
-  and registers the group with the literal command Core renders, with `{pluginRoot}` set
-  to the installed folder: `CLAUDE_PLUGIN_ROOT="${CLAUDE_PROJECT_DIR}/.superpowers-source"
-  bash "${CLAUDE_PROJECT_DIR}/.superpowers-source/hooks/run-hook.cmd" "session-start"`.
-  No command input remains.
+  and registers the group with the literal command built from the payload alone, as
+  Core renders it: `bash "${CLAUDE_PROJECT_DIR}/.superpowers-source/hooks/run-hook.cmd"
+  "session-start"`. No command input remains. `session-start` finds its folder itself;
+  without `CLAUDE_PLUGIN_ROOT` it emits its context as top-level `additionalContext`,
+  and whether Claude Code reads that form is for the native observation to show.
 - **The fallback.** `fallback` is a declaration only. It names the one-line rule for
   tools that lack hooks; Core uses it only where it observes that rule's delivery. The
   rule's release 1.x recipe writes the line to `.superpowers-source/session-bootstrap.md`;

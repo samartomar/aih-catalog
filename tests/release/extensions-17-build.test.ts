@@ -68,7 +68,6 @@ it("renders the accepted Matt grouping, provenance and supersession facts", asyn
     if (!found) throw new Error(`The release carries no ${id}`);
     return found;
   };
-  const MATT = "https://github.com/mattpocock/skills";
   const matt = release.items.filter((entry: { id: string }) =>
     entry.id.startsWith("extensions.matt."),
   );
@@ -76,7 +75,8 @@ it("renders the accepted Matt grouping, provenance and supersession facts", asyn
   // pinned in-progress and misc buckets, which only his own grouping offers.
   expect(matt).toHaveLength(37);
   for (const entry of matt as unknown as ItemLike[]) {
-    expect(entry.source).toBe(MATT);
+    // Provenance is hops; the URL `source` of release 1.6 is gone.
+    expect(entry.source).toBeUndefined();
     expect(entry.selectedBy).toBeUndefined();
     expect(entry.provenance?.source.sourceId).toBe("matt");
     expect(entry.provenance?.derivedFrom).toEqual([]);
@@ -85,7 +85,9 @@ it("renders the accepted Matt grouping, provenance and supersession facts", asyn
     );
     expect(entry.provenance?.selectedBy?.sourceId).toBe(plugin ? "extensions" : undefined);
   }
-  expect(item("extensions.matt.setup-matt-pocock-skills").source).toBe(MATT);
+  expect(item("extensions.matt.setup-matt-pocock-skills").provenance?.source.path).toBe(
+    "skills/engineering/setup-matt-pocock-skills",
+  );
   const grill = item("extensions.matt.grill-me");
   const frozenEntry = grill.supersedes?.find((entry) => entry.itemId === "mattpocock.grill-me");
   expect(frozenEntry?.match).toBe("name+sourcePath");

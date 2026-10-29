@@ -1444,7 +1444,7 @@ function checkItem16(
       }
     }
   }
-  const identity = computeBehaviourIdentity(item);
+  const identity = computeBehaviourIdentity(item, schema === RELEASE_SCHEMA_ID_1_7 ? "1.7" : "1.6");
   if (identity === undefined) return;
   if (
     behaviourMaterial.sha256 !== sha256Hex(identity.behaviourBytes) ||
@@ -1489,12 +1489,12 @@ export interface ItemBehaviourIdentity {
 /**
  * Recomputes the synthesised behaviour bytes and both identities exactly as the
  * reader does. Returns undefined when the item carries no release 1.6 material.
- * A release 1.7 item (it carries `role`) uses the contract's behaviour encoding
- * (`behaviourSha256Of`); a release 1.6 item keeps its identity over all material
- * lines, the behaviour file included.
+ * Release 1.7 uses the contract's behaviour encoding (`behaviourSha256Of`); release
+ * 1.6 keeps its identity over all material lines, the behaviour file included.
  */
 export function computeBehaviourIdentity(
   item: Record<string, unknown>,
+  format: "1.6" | "1.7" = "1.6",
 ): ItemBehaviourIdentity | undefined {
   const materials = (Array.isArray(item.materials) ? item.materials : []).filter(isRecord);
   const extended = materials.filter((member) => !Object.hasOwn(member, "path"));
@@ -1521,7 +1521,7 @@ export function computeBehaviourIdentity(
     behaviourBytes: identity.bytes,
     contentSha256: sha256Hex(encoder.encode(contentLines)),
     behaviourSha256:
-      item.role === undefined
+      format === "1.6"
         ? sha256Hex(encoder.encode(contentIdentityText(extended)))
         : behaviourSha256Of({ ...behaviourValue, contentLines }),
     executable: derivedExecutable,

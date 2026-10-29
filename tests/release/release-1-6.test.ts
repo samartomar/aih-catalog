@@ -903,9 +903,19 @@ describe("release 1.6.0 closed admission", () => {
     if (checked === undefined) return;
     expect(evidence.descriptor.contentSha256).toBe(checked.contentSha256);
     const behaviour = evidence.descriptor.materials.find((member) => member.role === "behaviour");
-    expect(behaviour?.path).toBe("release/items/alpha/aih-behaviour.json");
-    const skill = evidence.descriptor.materials.find((member) => member.path.endsWith("/SKILL.md"));
+    expect(behaviour?.capturePath).toBe("release/items/alpha/aih-behaviour.json");
+    expect(behaviour?.relPath).toBe("aih-behaviour.json");
+    const skill = evidence.descriptor.materials.find((member) => member.relPath === "SKILL.md");
     expect(skill?.executable).toBe(true);
+    expect(skill?.materialId).toBeDefined();
+    // Scan recomputes both identities and the behaviour file from these fields.
+    expect(evidence.descriptor.kind).toBe("skill");
+    expect(evidence.descriptor.requirements).toEqual({ inputs: {} });
+    expect(Object.keys(evidence.descriptor.dependencies).sort()).toEqual([
+      "conflicts",
+      "optional",
+      "requires",
+    ]);
   });
 
   it("refuses the evidence descriptor for an unknown or identity-less item", async () => {
