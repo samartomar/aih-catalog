@@ -192,6 +192,33 @@ declared release export explicitly when preparing that document. Output R goes t
 a new file for review and staging, and is packed only after ordinary integrity
 checks of the completed staged package.
 
+Prepared release content has no release export until its baseline binds, so
+`--prepared <framework-id>` replaces `--release` for it; the two are exclusive.
+The staged package is read through `readInstalledPreparedContent`, pinned to the
+`--content-sha256` digest, so its package identity, every recipe and material
+member and its frozen inventory are checked first. The binding's `inventory` must
+then equal that framework's shipped `release/baselines/<id>/content-inventory.json`
+path, digest and length exactly, or preparation refuses with
+`prepared-inventory-mismatch` before any evidence is read. The same mandatory gate
+follows: authentic readable evidence, matching Scan ID, inventory capture and
+scope, with partial coverage retained in `itemCoverage`. The receipt adds
+`prepared: {frameworkId, contentPath, inventoryPath}`. The output R is the final
+release document for that framework; moving it into `releaseInventory` is a
+separate, reviewed activation change, and nothing here activates or publishes it.
+
+```sh
+node tools/prepare-release.mjs prepare --prepared extensions \
+  --content release/release-extensions.content.json --content-sha256 <sha256> \
+  --baseline binding.json --trust configured-trust.json --runtime <isolated-installed-runtime> \
+  --package-root <staged-package> --out <new-final-release.json> --receipt <new-qualification.json>
+```
+
+`tests/release/prepare-prepared.test.ts` exercises this route with the packed
+package's real Project basics prepared content. The installed Scan and Core entries
+are test doubles there, checking an Ed25519 fixture signature under fixture trust.
+That establishes Catalog's route and its refusals, but not real Scan or Core
+behavior or a real assessment.
+
 ```sh
 node tools/verify-baseline-consumer.mjs <exact-scan.tgz> <exact-core.tgz> <new-output-dir> [scan-runtime-lock.json]
 ```

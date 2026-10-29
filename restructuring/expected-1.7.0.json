@@ -5759,7 +5759,7 @@
     {
      "id": "extensions.agent.code-reviewer",
      "kind": "agent",
-     "contentSha256": "9dfff98b197da947d4eae81bf09a502a9e077aab6cedb854bde12e446ea5611d"
+     "contentSha256": "e6e65d2a76ca8404d207de11fb248584b27d4c701b375840cbe14a0dc5e3b083"
     },
     {
      "id": "extensions.agent.security-auditor",
@@ -5769,7 +5769,7 @@
     {
      "id": "extensions.agent.test-engineer",
      "kind": "agent",
-     "contentSha256": "ad8fa360e1771df592e7b5cf53cab71ff6a37b44f691899a25ea1f541bb41519"
+     "contentSha256": "744fcd98390190db5e5f3ecf4ddd29fb9204adef279f58fa84d19d24de55809b"
     },
     {
      "id": "extensions.agent.web-performance-auditor",
@@ -5779,7 +5779,7 @@
     {
      "id": "extensions.command.ship",
      "kind": "command",
-     "contentSha256": "6cfde50f757a894c43a18bb202ce1c5513d0540e5586f671b63aef49558a5a37"
+     "contentSha256": "366574428f9eb38caec6dceb74783fd2229f1d64441e4feb841d75b6ea61992e"
     },
     {
      "id": "extensions.command.webperf",
@@ -5804,12 +5804,12 @@
     {
      "id": "extensions.matt.ask-matt",
      "kind": "skill",
-     "contentSha256": "6b22df5362840e1ab3989b0a86a20e08b5a8674d05078c4194db83ad56063b78"
+     "contentSha256": "35d0fbafda77b56a5467f4e8de1ae5dacd62eb96a0b3097be267aff0c3eab6a3"
     },
     {
      "id": "extensions.matt.code-review",
      "kind": "skill",
-     "contentSha256": "6b339eb31734286e8739bbc0f0bc9f816f08e4d0d4263e524e7ef260ae3b46e2"
+     "contentSha256": "8745f371afd3dc4a47a7263eaee5c5127d2f61c3ecb909c6f00398214ab9c738"
     },
     {
      "id": "extensions.matt.codebase-design",
@@ -5819,7 +5819,7 @@
     {
      "id": "extensions.matt.diagnosing-bugs",
      "kind": "skill",
-     "contentSha256": "a5bf8413b2b721a5a0ba34bf93d01bb3c6cbc00342b5e3c0aff8ebd52d2b4820"
+     "contentSha256": "00ef435adbb1199c8e1ecb07631333eedb41fefcb7cb1f86cb2fb80f0b6fd0dd"
     },
     {
      "id": "extensions.matt.domain-modeling",
@@ -5839,17 +5839,17 @@
     {
      "id": "extensions.matt.grilling",
      "kind": "skill",
-     "contentSha256": "dce59b03a8ec99e5c2509f47e9fa912b4df0ddabc5e2a973c82ae84251f2deb0"
+     "contentSha256": "c35c97c7934fd40860f928a1008c838a32a9cb31686011401013c5d44a1dd063"
     },
     {
      "id": "extensions.matt.handoff",
      "kind": "skill",
-     "contentSha256": "ceb3486ec369333d644077fba1f1e45b6ae39aa9c84e685103092f0cd23edb2b"
+     "contentSha256": "530461a96616fafc87b36cfbc6ce26cf2cb72b24b33018f7944a4355bb426e90"
     },
     {
      "id": "extensions.matt.implement",
      "kind": "skill",
-     "contentSha256": "5efc3182756d0c4ec26493cf97688ae310194560717cf413deacf7fb4ed36b44"
+     "contentSha256": "abb21f007f8a83c7155a5f1ed8afb9aadafaf5e923c00398ad7dc517b7116356"
     },
     {
      "id": "extensions.matt.implement-spec",
@@ -5884,17 +5884,17 @@
     {
      "id": "extensions.matt.setup-matt-pocock-skills",
      "kind": "skill",
-     "contentSha256": "4483ae9d96a8d26b2d22ea88bc5a7f852ec4995057b250626fddfeda415ac2f7"
+     "contentSha256": "0504ed953fe824d035ba0dadc636e1b835d17e9b5522043200e44e4b6b5ce737"
     },
     {
      "id": "extensions.matt.tdd",
      "kind": "skill",
-     "contentSha256": "4b4790622385b1b24c594413cfdba6b4d61b8e9330332baefd0ab86cb2a9d047"
+     "contentSha256": "8e5984db0631596f4f74598cc59c3b8bca4a520e4a9322fe6002f61d2d3338f8"
     },
     {
      "id": "extensions.matt.teach",
      "kind": "skill",
-     "contentSha256": "1eae82493ebb9ee76a5d9e7fb06cac7440e57ac68c7e2aa959b5ecbbcc916c4f"
+     "contentSha256": "31dd2a49033a1812a35def405e1ea36bec74055aed35d8bbea51fa7a6b1ad42a"
     },
     {
      "id": "extensions.matt.to-questionnaire",
@@ -5909,7 +5909,7 @@
     {
      "id": "extensions.matt.to-tickets",
      "kind": "skill",
-     "contentSha256": "2de2ffb5dd9f1ddce6a12309cc71338963c25e3358d22c194385fddd1b16965a"
+     "contentSha256": "b57b5ec9cf1f02ca808d344934a79e1b20ed31195fb1d690e7fcbd9254e68492"
     },
     {
      "id": "extensions.matt.triage",
@@ -5924,12 +5924,12 @@
     {
      "id": "extensions.matt.wayfinder",
      "kind": "skill",
-     "contentSha256": "354b5ef9263710131e006dcf0af1bc267e83e3d45f7177d4a7606112ffbdbf39"
+     "contentSha256": "09338f1e395c1b04be84216f3fa649d7d00bc038b1d796cfd5d0812d6ed9c4cf"
     },
     {
      "id": "extensions.matt.wizard",
      "kind": "skill",
-     "contentSha256": "12d12a697b3b54fdc456e342310770282aea3256fcc1ac91e2727d005248b410"
+     "contentSha256": "9debaee0883cee9f80e0abe1857072cfe81816821d7d5faffb9437556b1679f8"
     },
     {
      "id": "extensions.matt.writing-for-agents",
@@ -5940,18 +5940,18 @@
      "id": "extensions.notices",
      "kind": "document",
      "purpose": "notice",
-     "contentSha256": "641c2708e5e1c63c1031ffff9d0fad0745c7db2f85e148e36e7ff63031d01115"
+     "contentSha256": "6e3588d390d7629f013f8c7b17449b203603fd025d333c585e8ebd6133d85e7e"
     },
     {
      "id": "extensions.references",
      "kind": "document",
      "purpose": "reference",
-     "contentSha256": "d4547e4e9f403f68d54708da55bc7cf096d788093c6a221fa3dc7a07d36f24ba"
+     "contentSha256": "cfda266a76c2060f9819ae6f881780b673173751df444feb858c3871a7387116"
     },
     {
      "id": "extensions.skill.api-and-interface-design",
      "kind": "skill",
-     "contentSha256": "d6860d0bd3526ef46daf3a9e5a86c276f53a61d2f78e8adcf68fb4b89b3c8a2c"
+     "contentSha256": "8aaad575b284f9d71a4e5eaf5d62e34821f95d287074629842ac3d060e8f0919"
     },
     {
      "id": "extensions.skill.ask-sam",
@@ -5976,7 +5976,7 @@
     {
      "id": "extensions.skill.constraint-driven-development",
      "kind": "skill",
-     "contentSha256": "0edce74d9990f3d1a14c21d9daefab353fcddb5371cefa483b9cee83db51ab46"
+     "contentSha256": "28ff40aae6889d17ecf2824713543ef8d34fed2b624d5d44920d941b7ca9fa2e"
     },
     {
      "id": "extensions.skill.deprecation-and-migration",
@@ -5986,7 +5986,7 @@
     {
      "id": "extensions.skill.documentation-and-adrs",
      "kind": "skill",
-     "contentSha256": "c0d2b9adbadb2b7a0996405a30011e3cf59dee8e081bbfca1b6616ac00a2041a"
+     "contentSha256": "7e43dd48a80afe1f5cb739d1c95494c6808596e21c819729319f7b9dba9e170b"
     },
     {
      "id": "extensions.skill.doubt-driven-development",
@@ -5996,7 +5996,7 @@
     {
      "id": "extensions.skill.frontend-ui-engineering",
      "kind": "skill",
-     "contentSha256": "4e95032a5cb514b54d1105fe1c16445967e4c9b9502b6799be46f8b735dcbed8"
+     "contentSha256": "a2d18b7da62999a64ef5588bf6026f55885734d361960b5e41a9635343269801"
     },
     {
      "id": "extensions.skill.git-workflow-and-versioning",
@@ -6006,7 +6006,7 @@
     {
      "id": "extensions.skill.idea-refine",
      "kind": "skill",
-     "contentSha256": "f77707d08ed372c84232892be90f1ffeb185f1927429776023179578b5db4591"
+     "contentSha256": "e15bf5c3a8591cf3134bc33e1b5832b6355eb49c802b48b077c59bf5841a24f2"
     },
     {
      "id": "extensions.skill.install-commit-gate",
@@ -6021,12 +6021,12 @@
     {
      "id": "extensions.skill.performance-optimization",
      "kind": "skill",
-     "contentSha256": "c298b87b4a08bb839f0d09d4e1260fd39b3a7dc7306cdb6ab604df86f9e90f84"
+     "contentSha256": "a0e128e0770fe4c082c1cb3f014e60e7a0b3e8318cd49e69b1e163550020e449"
     },
     {
      "id": "extensions.skill.security-and-hardening",
      "kind": "skill",
-     "contentSha256": "26e148bf364d1860c61011df1c13506f4bc9742884650ea3d6f650543f137c68"
+     "contentSha256": "20200a870ce5e4266acb3a91ea15df4a90fe603f9c70aba7f432460327be8d2b"
     },
     {
      "id": "extensions.skill.setup-pre-commit",
@@ -6036,7 +6036,7 @@
     {
      "id": "extensions.skill.shipping-and-launch",
      "kind": "skill",
-     "contentSha256": "d53e2c5e05e2c02d9e53a43abcc3f3216ec37370fd477b095fecdff9c0ac1cbb"
+     "contentSha256": "62839d24c5127842f5c4315da60042d08d7087634fa10f02b30fe21fa5037666"
     },
     {
      "id": "extensions.skill.source-driven-development",

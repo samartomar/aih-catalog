@@ -481,23 +481,49 @@ describe("authored content checks", () => {
   });
 
   it("refuses changed shared upstream material when another release retains its exact pin", () => {
+    // Extensions now pins a newer Matt revision than the frozen default, so no committed
+    // release shares the frozen grilling skill. Re-point one companion copy at the
+    // frozen default's exact grilling bytes to recreate a retained shared pin.
+    const shared = new Map(committedRelease());
+    const frozen = itemOf(readDoc(shared), "mattpocock.grilling").materials.find(
+      (m) => m.id === "skill",
+    );
+    const extensions = JSON.parse(
+      (shared.get("release/release-extensions.json") as Buffer).toString("utf8"),
+    );
+    const copy = extensions.items
+      .find((item: { id: string }) => item.id === "extensions.copilot.matt.grilling")
+      .materials.find((m: { id: string }) => m.id === "asset-1");
+    if (!frozen || !copy) throw new Error("expected the grilling skill materials");
+    Object.assign(copy, {
+      path: frozen.path,
+      sha256: frozen.sha256,
+      byteLength: frozen.byteLength,
+    });
+    shared.set("release/release-extensions.json", documentBytes(extensions));
     const files = withMaterialText(
-      committedRelease(),
+      shared,
       "mattpocock.grilling",
       "skill",
       "Changed material re-hashed for the primary release only.\n",
     );
     const result = checkCandidateFiles(files, identity, { authored: COMMITTED_ALLOWANCES });
     expect(result.ok).toBe(false);
-    expect(result.checks.filter((check) => !check.ok)).toEqual([
-      {
-        name: "member-bytes",
-        ok: false,
-        detail: expect.stringContaining(
-          "release/release-extensions.json: member-length-mismatch extensions.copilot.matt.grilling",
-        ),
-      },
+    // The hand-made shared pin also trips exactly the provenance and recipe checks;
+    // the cross-release member-bytes refusal is the behaviour under test.
+    const failed = result.checks.filter((check) => !check.ok);
+    expect(failed.map((check) => check.name).sort()).toEqual([
+      "member-bytes",
+      "provenance-paths",
+      "recipe-configuration-agreement",
     ]);
+    expect(failed).toContainEqual({
+      name: "member-bytes",
+      ok: false,
+      detail: expect.stringContaining(
+        "release/release-extensions.json: member-length-mismatch extensions.copilot.matt.grilling",
+      ),
+    });
   });
 
   it("does not mutate the files map or the committed bytes", () => {

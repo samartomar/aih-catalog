@@ -13,7 +13,7 @@ it("configures real Extensions projections and an additional ordinary item throu
     },
   );
   const result = JSON.parse(output);
-  expect(result.inventory).toEqual({ extensions: 121, matt: 81 });
+  expect(result.inventory).toEqual({ extensions: 149, matt: 81 });
   expect(result.items).toBe(172);
   expect(result.expansion.itemId).toBe("extensions.extra.security-reference");
   expect(result.archiveSha256).toMatch(/^[0-9a-f]{64}$/);

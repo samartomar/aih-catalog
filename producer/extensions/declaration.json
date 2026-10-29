@@ -991,6 +991,10 @@
         {
           "id": "asset-2",
           "path": "skills/performance-optimization/agents/openai.yaml"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/performance-optimization/references/optimization-patterns.md"
         }
       ],
       "requires": [
@@ -4237,6 +4241,10 @@
         {
           "id": "asset-2",
           "path": "skills/performance-optimization/agents/openai.yaml"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/performance-optimization/references/optimization-patterns.md"
         }
       ],
       "requires": [
@@ -7483,6 +7491,10 @@
         {
           "id": "asset-2",
           "path": "skills/performance-optimization/agents/openai.yaml"
+        },
+        {
+          "id": "asset-3",
+          "path": "skills/performance-optimization/references/optimization-patterns.md"
         }
       ],
       "requires": [

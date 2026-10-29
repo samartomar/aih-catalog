@@ -24,14 +24,18 @@ Packing does not authorize publication or establish native invocation.
 ## Inventory and provenance
 
 [The full disposition ledger](EXTENSIONS-INVENTORY.md) covers every one of the
-121 tracked artifacts in Extensions
-[`79f016c25c454937d67dcf49c3cf3070e0339832`](https://github.com/samartomar/aih-extensions/tree/79f016c25c454937d67dcf49c3cf3070e0339832).
+149 tracked artifacts in Extensions
+[`2481164a51ea7f9e480d51ef52f3d5cf15b017fa`](https://github.com/samartomar/aih-extensions/tree/2481164a51ea7f9e480d51ef52f3d5cf15b017fa).
 The companion inventory contains all 27 Matt plugin skills and their support
 material, 81 files including license and plugin inventory, from
-[`d81f3a183412e71a5b1e84ca21bc1a35eea03a60`](https://github.com/mattpocock/skills/tree/d81f3a183412e71a5b1e84ca21bc1a35eea03a60).
-All 68 Extensions and 81 Matt original files retained by the prior aggregate
-are present with identical SHA-256 and byte lengths. The complete upstream
-Extensions inventory adds 53 artifacts; it does not replace the donor renderer.
+[`59db609eb1e18aaf59b63284d0e52255aff0c63c`](https://github.com/mattpocock/skills/tree/59db609eb1e18aaf59b63284d0e52255aff0c63c),
+the Matt revision that Extensions pins at that commit.
+Moving from Extensions `79f016c2` and Matt `d81f3a18` changed 13 delivered
+Extensions files and 15 delivered Matt files. The 28 new Extensions artifacts
+are listed with their dispositions. Only one is delivered:
+`skills/performance-optimization/references/optimization-patterns.md`, which the
+refreshed skill links. No artifact was removed. Matt's plugin still lists the
+same 27 skills, and no item id, required relationship or supersession changed.
 No moving branch, latest revision or silent source substitution is used.
 
 `producer/extensions/snapshot.json` separates original upstream `sources[].files`
