@@ -44,6 +44,9 @@ const MANIFEST = {
   profiles: "manifests/install-profiles.json",
   components: "manifests/install-components.json",
 };
+const NPM_ACQUIRED_MCP = new Set(
+  Object.keys(json("producer/ecc/mcp-acquisition.json").providers).map((key) => `ecc.mcp.${key}`),
+);
 
 /** The tool each per-tool copy was written for, as a recipe-map client id. */
 const CLAUDE = "claude-code";
@@ -453,7 +456,14 @@ export function eccSets(items, manifests) {
   const { modules, profiles, components } = manifests;
   // The Kiro edition is its own set; no main set lists it.
   const kiroEdition = items.filter((item) => item.payload.namespace === "kiro");
-  const choosable = items.filter((item) => item.role === "choosable" && !kiroEdition.includes(item) && !["ecc.mcp.github-local", "ecc.mcp.railway-hosted"].includes(item.id));
+  // Caller-owned acquisition paths keep these servers as standalone explicit choices.
+  const choosable = items.filter(
+    (item) =>
+      item.role === "choosable" &&
+      !kiroEdition.includes(item) &&
+      !NPM_ACQUIRED_MCP.has(item.id) &&
+      !["ecc.mcp.github-local", "ecc.mcp.railway-hosted"].includes(item.id),
+  );
   const primaryPath = (item) => item.materials.find((member) => member.role === "content" && member.sourcePath !== "LICENSE").sourcePath;
   const member = (item, optional = false, defaultOn = true) => ({
     item: { framework: FRAMEWORK_ID, itemId: item.id },

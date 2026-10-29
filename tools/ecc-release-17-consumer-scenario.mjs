@@ -170,7 +170,7 @@ await case_("each ECC module with content is a set with its upstream dependencie
   assert.deepEqual(groups.manifests.map((entry) => entry.path).sort(), ["manifests/install-components.json", "manifests/install-modules.json", "manifests/install-profiles.json"]);
   assert.equal(set("ecc.module.agents-core").members.length, 68);
   assert.equal(set("ecc.module.commands-core").members.length, 94);
-  assert.equal(set("ecc.module.platform-configs").members.filter((entry) => item(entry.item.itemId).kind === "mcp-server").length, 35);
+  assert.equal(set("ecc.module.platform-configs").members.filter((entry) => item(entry.item.itemId).kind === "mcp-server").length, 20);
 });
 
 await case_("each ECC profile is a set whose includes list its module sets", () => {
