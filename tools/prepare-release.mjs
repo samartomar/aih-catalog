@@ -42,6 +42,8 @@ if (mode === "freeze") {
   for (const key of ["--baseline", "--trust", "--runtime", "--package-root"]) if (!options[key]) throw new Error(`Missing ${key}.`);
   const packageRoot = resolve(options["--package-root"]);
   const control = path => readCanonicalBytes(bounded(resolve(path), 16 * 1024 * 1024), { maxBytes: 16 * 1024 * 1024, maxDepth: 32 });
+  // Read the binding once: the checked value is the value the gate and receipt use.
+  const baseline = control(options["--baseline"]);
   let prepared;
   if (options["--prepared"]) {
     // Prepared content has no release export yet: read it as the named framework's
@@ -50,7 +52,7 @@ if (mode === "freeze") {
     const checked = await readInstalledPreparedContent({ root: packageRoot, frameworkId: options["--prepared"], expectedContentSha256: expectedSha256 });
     if (!checked.valid) throw new Error(JSON.stringify(checked.diagnostics));
     const { contentPath, inventoryPath, inventorySha256, inventoryByteLength } = checked.provenance;
-    const bound = control(options["--baseline"])?.inventory;
+    const bound = baseline?.inventory;
     if (bound?.path !== inventoryPath || bound?.sha256 !== inventorySha256 || bound?.byteLength !== inventoryByteLength)
       throw new Error(JSON.stringify([{ code: "INPUT_INVALID", reason: "prepared-inventory-mismatch", path: inventoryPath,
         message: "The baseline must bind the prepared content's shipped frozen inventory.", blocking: true }]));
@@ -77,7 +79,7 @@ if (mode === "freeze") {
       inventorySha256: result.inventory.sha256, authentication: result.authentication, itemCoverage: result.itemCoverage,
     } : result));
   `;
-  const baseline = control(options["--baseline"]), trustBytes = bounded(resolve(options["--trust"]), 16 * 1024 * 1024);
+  const trustBytes = bounded(resolve(options["--trust"]), 16 * 1024 * 1024);
   const trust = readCanonicalBytes(trustBytes, { maxBytes: 16 * 1024 * 1024, maxDepth: 32 });
   const result = JSON.parse(execFileSync(process.execPath, ["--input-type=module", "--eval", runtimeSource], {
     cwd: resolve(options["--runtime"]), windowsHide: true, encoding: "utf8", timeout: 180000, maxBuffer: 64 * 1024 * 1024,

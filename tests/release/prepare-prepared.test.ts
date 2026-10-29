@@ -302,6 +302,20 @@ describe("prepared content baseline binding at the packed package", () => {
     expect(existsSync(result.out)).toBe(false);
   });
 
+  it("refuses a binding whose requested scope differs from the assessment's selection", () => {
+    const staged = stage("other-scope");
+    const result = prepare(staged, {
+      baseline: {
+        ...staged.baseline,
+        scope: { namespace: "package-relative", paths: ["release/items"], excludedPaths: [] },
+      },
+      extra: ["--prepared", FRAMEWORK],
+    });
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain("baseline-scope-mismatch");
+    expect(existsSync(result.out)).toBe(false);
+  });
+
   it("refuses content that is not that framework's shipped prepared content", () => {
     const staged = stage("other-content");
     const extensions = readFileSync(join(installed, "release/release-extensions.content.json"));
@@ -315,6 +329,7 @@ describe("prepared content baseline binding at the packed package", () => {
     const staged = stage("routes");
     const plain = prepare(staged);
     expect(plain.status).not.toBe(0);
+    expect(plain.stderr).toContain("does not contain the exact checked input content");
     expect(existsSync(plain.out)).toBe(false);
     const mixed = prepare(staged, {
       extra: ["--prepared", FRAMEWORK, "--release", "./release.json"],

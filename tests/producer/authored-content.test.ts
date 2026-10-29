@@ -509,9 +509,15 @@ describe("authored content checks", () => {
     );
     const result = checkCandidateFiles(files, identity, { authored: COMMITTED_ALLOWANCES });
     expect(result.ok).toBe(false);
-    // The hand-made shared pin also trips the provenance and recipe checks; the
-    // cross-release member-bytes refusal is the behaviour under test.
-    expect(result.checks.filter((check) => !check.ok)).toContainEqual({
+    // The hand-made shared pin also trips exactly the provenance and recipe checks;
+    // the cross-release member-bytes refusal is the behaviour under test.
+    const failed = result.checks.filter((check) => !check.ok);
+    expect(failed.map((check) => check.name).sort()).toEqual([
+      "member-bytes",
+      "provenance-paths",
+      "recipe-configuration-agreement",
+    ]);
+    expect(failed).toContainEqual({
       name: "member-bytes",
       ok: false,
       detail: expect.stringContaining(
