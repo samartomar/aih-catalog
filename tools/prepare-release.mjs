@@ -6,20 +6,22 @@ import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
 import { createContentInventory } from "../dist/release/reader.js";
-import { readInstalledRelease } from "../dist/release/node.js";
+import { readInstalledPreparedContent, readInstalledRelease } from "../dist/release/node.js";
 import { readCanonicalBytes } from "../dist/release/json.js";
 
 const [mode, ...args] = process.argv.slice(2), options = {};
 const started = performance.now();
-const allowed = new Set(["--content", "--content-sha256", "--out", "--baseline", "--trust", "--runtime", "--package-root", "--release", "--receipt"]);
+const allowed = new Set(["--content", "--content-sha256", "--out", "--baseline", "--trust", "--runtime", "--package-root", "--release", "--prepared", "--receipt"]);
 for (let i = 0; i < args.length; i += 2) {
   if (!allowed.has(args[i]) || !args[i + 1] || args[i + 1].startsWith("--") || Object.hasOwn(options, args[i]))
     throw new Error("Expected unique --name value arguments.");
   options[args[i]] = args[i + 1];
 }
 if (!["freeze", "prepare"].includes(mode) || !options["--content"] || !options["--content-sha256"] || !options["--out"])
-  throw new Error("Usage: prepare-release.mjs freeze|prepare --content file --content-sha256 hex --out new-file [--baseline file --trust file --runtime installed-root --package-root staged-package]");
-if (options["--receipt"] && mode !== "prepare") throw new Error("Receipts require baseline preparation.");
+  throw new Error("Usage: prepare-release.mjs freeze|prepare --content file --content-sha256 hex --out new-file [--baseline file --trust file --runtime installed-root --package-root staged-package [--release export | --prepared framework-id]]");
+if ((options["--receipt"] || options["--release"] || options["--prepared"]) && mode !== "prepare")
+  throw new Error("Receipts, --release and --prepared require baseline preparation.");
+if (options["--release"] && options["--prepared"]) throw new Error("Choose one of --prepared and --release.");
 const outputPath = resolve(options["--out"]), receiptPath = options["--receipt"] && resolve(options["--receipt"]);
 if (existsSync(outputPath) || (receiptPath && (existsSync(receiptPath) || receiptPath === outputPath)))
   throw new Error("Release and receipt outputs must be distinct new files.");
@@ -38,10 +40,26 @@ if (mode === "freeze") {
   console.log(JSON.stringify({ sha256: result.sha256, byteLength: result.byteLength }));
 } else {
   for (const key of ["--baseline", "--trust", "--runtime", "--package-root"]) if (!options[key]) throw new Error(`Missing ${key}.`);
-  const checkedContent = await readInstalledRelease({ root: resolve(options["--package-root"]), release: options["--release"] });
-  if (!checkedContent.valid || checkedContent.release.sha256 !== expectedSha256)
-    throw new Error("The staged package does not contain the exact checked input content and material.");
+  const packageRoot = resolve(options["--package-root"]);
   const control = path => readCanonicalBytes(bounded(resolve(path), 16 * 1024 * 1024), { maxBytes: 16 * 1024 * 1024, maxDepth: 32 });
+  let prepared;
+  if (options["--prepared"]) {
+    // Prepared content has no release export yet: read it as the named framework's
+    // prepared content, pinned to the input digest, with its members and frozen
+    // inventory verified. The binding must name that shipped inventory exactly.
+    const checked = await readInstalledPreparedContent({ root: packageRoot, frameworkId: options["--prepared"], expectedContentSha256: expectedSha256 });
+    if (!checked.valid) throw new Error(JSON.stringify(checked.diagnostics));
+    const { contentPath, inventoryPath, inventorySha256, inventoryByteLength } = checked.provenance;
+    const bound = control(options["--baseline"])?.inventory;
+    if (bound?.path !== inventoryPath || bound?.sha256 !== inventorySha256 || bound?.byteLength !== inventoryByteLength)
+      throw new Error(JSON.stringify([{ code: "INPUT_INVALID", reason: "prepared-inventory-mismatch", path: inventoryPath,
+        message: "The baseline must bind the prepared content's shipped frozen inventory.", blocking: true }]));
+    prepared = { frameworkId: options["--prepared"], contentPath, inventoryPath };
+  } else {
+    const checkedContent = await readInstalledRelease({ root: packageRoot, release: options["--release"] });
+    if (!checkedContent.valid || checkedContent.release.sha256 !== expectedSha256)
+      throw new Error("The staged package does not contain the exact checked input content and material.");
+  }
   // Node resolves ESM import conditions from the explicitly selected installed
   // runtime. No require-condition fallback or package-private target discovery.
   const runtimeSource = `
@@ -64,7 +82,7 @@ if (mode === "freeze") {
   const result = JSON.parse(execFileSync(process.execPath, ["--input-type=module", "--eval", runtimeSource], {
     cwd: resolve(options["--runtime"]), windowsHide: true, encoding: "utf8", timeout: 180000, maxBuffer: 64 * 1024 * 1024,
     input: JSON.stringify({ contentBase64: contentBytes.toString("base64"), expectedSha256,
-      baseline, trust, packageRoot: resolve(options["--package-root"]) }),
+      baseline, trust, packageRoot }),
   }));
   if (!result.valid) throw new Error(JSON.stringify(result.diagnostics));
   const releaseBytes = Buffer.from(result.releaseBase64, "base64");
@@ -72,6 +90,7 @@ if (mode === "freeze") {
   if (receiptPath) writeFileSync(receiptPath, JSON.stringify({
     schema: "urn:aihq:catalog:qualification-receipt:1.0.0",
     content: { sha256: expectedSha256, byteLength: contentBytes.length },
+    ...(prepared && { prepared }),
     release: { sha256: result.releaseSha256, byteLength: releaseBytes.length },
     inventorySha256: result.inventorySha256, baseline,
     trustSha256: createHash("sha256").update(trustBytes).digest("hex"),

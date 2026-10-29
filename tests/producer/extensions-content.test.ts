@@ -98,6 +98,9 @@ it("offers individually configured Claude hook groups without claiming Kiro or C
   });
 });
 
+const FROZEN_MATT_REVISION = "d81f3a183412e71a5b1e84ca21bc1a35eea03a60";
+const EXTENSIONS_MATT_REVISION = "59db609eb1e18aaf59b63284d0e52255aff0c63c";
+
 it.each([
   "extensions",
   "extensions.kiro",
@@ -154,7 +157,7 @@ it.each([
   "extensions",
   "extensions.kiro",
   "extensions.copilot",
-])("%s retains the required closure of every maintained same-pin Matt skill", (namespace) => {
+])("%s retains the required closure of every frozen-default Matt skill at its own pin", (namespace) => {
   const checked = (path: string) => {
     const bytes = readFileSync(resolve(root, path));
     const read = readRelease(bytes, {
@@ -173,7 +176,13 @@ it.each([
     const itemId = `${namespace}.matt.${skill.id.slice("mattpocock.".length)}`;
     const projected = extensions.items.find((item) => item.id === itemId);
     if (!projected) throw new Error(`Missing companion ${itemId}`);
-    expect(sourcePin(extensions, projected)).toEqual(sourcePin(maintained, skill));
+    // The frozen default keeps its historical Matt pin; the companion pins the Matt
+    // revision that Extensions itself selects. Closure parity holds across the move.
+    expect(sourcePin(maintained, skill)).toMatchObject({ revision: FROZEN_MATT_REVISION });
+    expect(sourcePin(extensions, projected)).toMatchObject({
+      kind: "git",
+      revision: EXTENSIONS_MATT_REVISION,
+    });
     const resolveRoot = (release: typeof maintained, id: string) =>
       resolveSelections({
         releases: { [release.sha256]: release },
