@@ -47,6 +47,15 @@ const MANIFEST = {
 const NPM_ACQUIRED_MCP = new Set(
   Object.keys(json("producer/ecc/mcp-acquisition.json").providers).map((key) => `ecc.mcp.${key}`),
 );
+/**
+ * A required input with no default that is not a host-held secret: only the caller can
+ * type it, so a set cannot fill it. Both recipe configuration and the environment inputs
+ * an MCP server introduces count.
+ */
+const needsCallerInput = (item) =>
+  Object.values({ ...item.inputs, ...item.requirements?.inputs }).some(
+    (spec) => spec.required && spec.sensitive !== true && spec.default === undefined,
+  );
 
 /** The tool each per-tool copy was written for, as a recipe-map client id. */
 const CLAUDE = "claude-code";
@@ -456,12 +465,15 @@ export function eccSets(items, manifests) {
   const { modules, profiles, components } = manifests;
   // The Kiro edition is its own set; no main set lists it.
   const kiroEdition = items.filter((item) => item.payload.namespace === "kiro");
-  // Caller-owned acquisition paths keep these servers as standalone explicit choices.
+  // Caller-owned acquisition paths and other caller-typed inputs keep these servers as
+  // standalone explicit choices: a set or profile must install without typed input.
+  for (const id of NPM_ACQUIRED_MCP)
+    assert(needsCallerInput(items.find((item) => item.id === id)), `${id}: npm paths are caller input`);
   const choosable = items.filter(
     (item) =>
       item.role === "choosable" &&
       !kiroEdition.includes(item) &&
-      !NPM_ACQUIRED_MCP.has(item.id) &&
+      !needsCallerInput(item) &&
       !["ecc.mcp.github-local", "ecc.mcp.railway-hosted"].includes(item.id),
   );
   const primaryPath = (item) => item.materials.find((member) => member.role === "content" && member.sourcePath !== "LICENSE").sourcePath;
