@@ -50,17 +50,17 @@ it("accepts ECC's pre-ticked sets with TypeScript rules", () => {
       "ecc.module.workflow-quality",
       "ecc.rules.typescript",
     ].map((setId) => setChoice(setId)),
-    240,
+    231,
   );
 });
 
 it.each([
-  ["ecc.profile.minimal", 309],
-  ["ecc.profile.core", 309],
-  ["ecc.profile.developer", 317],
-  ["ecc.profile.security", 328],
-  ["ecc.profile.research", 335],
-  ["ecc.profile.full", 470],
+  ["ecc.profile.minimal", 300],
+  ["ecc.profile.core", 300],
+  ["ecc.profile.developer", 308],
+  ["ecc.profile.security", 319],
+  ["ecc.profile.research", 326],
+  ["ecc.profile.full", 461],
 ])("accepts %s with TypeScript rules", (profile, count) => {
   expectResolvedCount(profile, [setChoice(profile, { languages: ["typescript"] })], count);
 });

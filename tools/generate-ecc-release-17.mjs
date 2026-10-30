@@ -48,6 +48,14 @@ const NPM_ACQUIRED_MCP = new Set(
   Object.keys(json("producer/ecc/mcp-acquisition.json").providers).map((key) => `ecc.mcp.${key}`),
 );
 /**
+ * The reviewed readiness of every ECC MCP server. The Catalog has no structured field
+ * that tells a server that runs as installed from one with an unverified provider, beta
+ * consent, preprovisioning or a setup value, so only the servers this list names ready
+ * may be set members.
+ */
+const MCP_READINESS = json("producer/ecc/mcp-starting-sets.json");
+const MCP_READY = new Set(Object.keys(MCP_READINESS.ready));
+/**
  * A required input with no default, secret or not: someone must supply it at install, so
  * a set cannot fill it. Both recipe configuration and the environment inputs an MCP server
  * introduces count.
@@ -469,11 +477,18 @@ export function eccSets(items, manifests) {
   // as standalone explicit choices: a set or profile must install without supplied input.
   for (const id of NPM_ACQUIRED_MCP)
     assert(needsCallerInput(items.find((item) => item.id === id)), `${id}: npm paths are caller input`);
+  // A server that does not run as installed is never pre-ticked or listed in a set; every
+  // ECC MCP server must be reviewed, and a ready one must need no supplied input.
+  const servers = items.filter((item) => item.kind === "mcp-server").map((item) => item.id).sort(compare);
+  assert.deepEqual([...MCP_READY, ...Object.keys(MCP_READINESS.notReady)].sort(compare), servers, "every ECC MCP server is reviewed exactly once");
+  for (const id of MCP_READY)
+    assert(!needsCallerInput(items.find((item) => item.id === id)), `${id}: a ready server needs no supplied input`);
   const choosable = items.filter(
     (item) =>
       item.role === "choosable" &&
       !kiroEdition.includes(item) &&
       !needsCallerInput(item) &&
+      (item.kind !== "mcp-server" || MCP_READY.has(item.id)) &&
       !["ecc.mcp.github-local", "ecc.mcp.railway-hosted"].includes(item.id),
   );
   const primaryPath = (item) => item.materials.find((member) => member.role === "content" && member.sourcePath !== "LICENSE").sourcePath;
