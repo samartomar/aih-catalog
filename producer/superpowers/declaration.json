@@ -18,7 +18,7 @@
     {
       "id": "superpowers.notices",
       "source": "superpowers",
-      "label": "superpowers.notices",
+      "label": "Superpowers licenses and upstream notices",
       "description": "MIT license, original README distribution/telemetry notice and release notes. This is exact source reference material, not plugin installation.",
       "kind": "instruction",
       "recipePath": "catalog-recipes/superpowers.notices.json",
@@ -3559,7 +3559,7 @@
     {
       "id": "superpowers.runtime-source.cursor",
       "source": "superpowers",
-      "label": "superpowers.runtime-source.cursor",
+      "label": "Cursor plugin source",
       "description": "Exact pinned source material delivery; Catalog projection only, native execution unknown.",
       "kind": "instruction",
       "recipePath": "catalog-recipes/superpowers.runtime-source.cursor.json",
@@ -3625,7 +3625,7 @@
     {
       "id": "superpowers.runtime-source.codex",
       "source": "superpowers",
-      "label": "superpowers.runtime-source.codex",
+      "label": "Codex plugin source",
       "description": "Exact pinned source material delivery; Catalog projection only, native execution unknown.",
       "kind": "instruction",
       "recipePath": "catalog-recipes/superpowers.runtime-source.codex.json",
@@ -3696,7 +3696,7 @@
     {
       "id": "superpowers.runtime-source.devin",
       "source": "superpowers",
-      "label": "superpowers.runtime-source.devin",
+      "label": "Devin plugin source",
       "description": "Exact pinned source material delivery; Catalog projection only, native execution unknown.",
       "kind": "instruction",
       "recipePath": "catalog-recipes/superpowers.runtime-source.devin.json",
@@ -3755,7 +3755,7 @@
     {
       "id": "superpowers.runtime-source.gemini",
       "source": "superpowers",
-      "label": "superpowers.runtime-source.gemini",
+      "label": "Gemini plugin source",
       "description": "Exact pinned source material delivery; Catalog projection only, native execution unknown.",
       "kind": "instruction",
       "recipePath": "catalog-recipes/superpowers.runtime-source.gemini.json",
@@ -3818,7 +3818,7 @@
     {
       "id": "superpowers.runtime-source.hermes",
       "source": "superpowers",
-      "label": "superpowers.runtime-source.hermes",
+      "label": "Hermes plugin source",
       "description": "Exact pinned source material delivery; Catalog projection only, native execution unknown.",
       "kind": "instruction",
       "recipePath": "catalog-recipes/superpowers.runtime-source.hermes.json",
@@ -3881,7 +3881,7 @@
     {
       "id": "superpowers.runtime-source.kimi",
       "source": "superpowers",
-      "label": "superpowers.runtime-source.kimi",
+      "label": "Kimi plugin source",
       "description": "Exact pinned source material delivery; Catalog projection only, native execution unknown.",
       "kind": "instruction",
       "recipePath": "catalog-recipes/superpowers.runtime-source.kimi.json",
@@ -3944,7 +3944,7 @@
     {
       "id": "superpowers.runtime-source.muse",
       "source": "superpowers",
-      "label": "superpowers.runtime-source.muse",
+      "label": "Muse plugin source",
       "description": "Exact pinned source material delivery; Catalog projection only, native execution unknown.",
       "kind": "instruction",
       "recipePath": "catalog-recipes/superpowers.runtime-source.muse.json",
@@ -4010,7 +4010,7 @@
     {
       "id": "superpowers.runtime-source.opencode",
       "source": "superpowers",
-      "label": "superpowers.runtime-source.opencode",
+      "label": "OpenCode plugin source",
       "description": "Exact pinned source material delivery; Catalog projection only, native execution unknown.",
       "kind": "instruction",
       "recipePath": "catalog-recipes/superpowers.runtime-source.opencode.json",
@@ -4085,7 +4085,7 @@
     {
       "id": "superpowers.runtime-source.pi",
       "source": "superpowers",
-      "label": "superpowers.runtime-source.pi",
+      "label": "Pi plugin source",
       "description": "Exact pinned source material delivery; Catalog projection only, native execution unknown.",
       "kind": "instruction",
       "recipePath": "catalog-recipes/superpowers.runtime-source.pi.json",
@@ -4148,7 +4148,7 @@
     {
       "id": "superpowers.claude.hook.session-start",
       "source": "superpowers",
-      "label": "superpowers.claude.hook.session-start",
+      "label": "Claude Code: session-start hook group",
       "description": "Opt-in independently owned Claude project SessionStart group with caller-supplied command; material/configuration only, no bootstrap execution claim.",
       "kind": "hook",
       "recipePath": "catalog-recipes/superpowers.claude.hook.session-start.json",
@@ -4215,7 +4215,7 @@
     {
       "id": "superpowers.template.reviewed-tdd",
       "source": "superpowers",
-      "label": "superpowers.template.reviewed-tdd",
+      "label": "Reviewed TDD starting choice",
       "description": "Catalog-authored starting choice: Superpowers TDD and pinned Extensions security-and-hardening. These curated requirements are not upstream-authored dependency claims.",
       "kind": "template",
       "recipePath": "catalog-recipes/superpowers.template.reviewed-tdd.json",

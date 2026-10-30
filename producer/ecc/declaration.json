@@ -48451,7 +48451,7 @@
     {
       "id": "ecc.template.api-review",
       "source": "ecc",
-      "label": "ecc.template.api-review",
+      "label": "API review starting choice",
       "description": "Pinned ECC template source delivery. Catalog-authored starting choice: ECC API design plus the pinned Extensions security skill. MCP memory and Claude code-reviewer are optional; this is not an upstream dependency claim.",
       "kind": "template",
       "recipePath": "catalog-recipes/ecc.template.api-review.json",
@@ -48532,7 +48532,7 @@
     {
       "id": "ecc.hook.pre-bash-dispatcher",
       "source": "ecc",
-      "label": "ecc.hook.pre-bash-dispatcher",
+      "label": "pre:bash:dispatcher",
       "description": "Consolidated Bash preflight dispatcher for quality, tmux, push, and GateGuard checks",
       "kind": "hook",
       "recipePath": "catalog-recipes/ecc.hook.pre-bash-dispatcher.json",
@@ -48648,7 +48648,7 @@
     {
       "id": "ecc.hook.pre-powershell-gateguard-fact-force",
       "source": "ecc",
-      "label": "ecc.hook.pre-powershell-gateguard-fact-force",
+      "label": "pre:powershell:gateguard-fact-force",
       "description": "PowerShell fact-forcing gate: inspect destructive commands without running unrelated Bash-only preflight hooks",
       "kind": "hook",
       "recipePath": "catalog-recipes/ecc.hook.pre-powershell-gateguard-fact-force.json",
@@ -48728,7 +48728,7 @@
     {
       "id": "ecc.hook.pre-write-doc-file-warning",
       "source": "ecc",
-      "label": "ecc.hook.pre-write-doc-file-warning",
+      "label": "pre:write:doc-file-warning",
       "description": "Doc file warning: warn about non-standard documentation files (exit code 0; warns only)",
       "kind": "hook",
       "recipePath": "catalog-recipes/ecc.hook.pre-write-doc-file-warning.json",
@@ -48796,7 +48796,7 @@
     {
       "id": "ecc.hook.pre-edit-write-suggest-compact",
       "source": "ecc",
-      "label": "ecc.hook.pre-edit-write-suggest-compact",
+      "label": "pre:edit-write:suggest-compact",
       "description": "Suggest manual compaction at logical intervals",
       "kind": "hook",
       "recipePath": "catalog-recipes/ecc.hook.pre-edit-write-suggest-compact.json",
@@ -48880,7 +48880,7 @@
     {
       "id": "ecc.hook.pre-observe-continuous-learning",
       "source": "ecc",
-      "label": "ecc.hook.pre-observe-continuous-learning",
+      "label": "pre:observe:continuous-learning",
       "description": "Capture tool use observations for continuous learning",
       "kind": "hook",
       "recipePath": "catalog-recipes/ecc.hook.pre-observe-continuous-learning.json",
@@ -48980,7 +48980,7 @@
     {
       "id": "ecc.hook.pre-governance-capture",
       "source": "ecc",
-      "label": "ecc.hook.pre-governance-capture",
+      "label": "pre:governance-capture",
       "description": "Capture governance events (secrets, policy violations, approval requests). Enable with ECC_GOVERNANCE_CAPTURE=1",
       "kind": "hook",
       "recipePath": "catalog-recipes/ecc.hook.pre-governance-capture.json",
@@ -49064,7 +49064,7 @@
     {
       "id": "ecc.hook.pre-config-protection",
       "source": "ecc",
-      "label": "ecc.hook.pre-config-protection",
+      "label": "pre:config-protection",
       "description": "Block modifications to linter/formatter config files. Steers agent to fix code instead of weakening configs.",
       "kind": "hook",
       "recipePath": "catalog-recipes/ecc.hook.pre-config-protection.json",
@@ -49132,7 +49132,7 @@
     {
       "id": "ecc.hook.pre-mcp-health-check",
       "source": "ecc",
-      "label": "ecc.hook.pre-mcp-health-check",
+      "label": "pre:mcp-health-check",
       "description": "Check MCP server health before MCP tool execution and block unhealthy MCP calls",
       "kind": "hook",
       "recipePath": "catalog-recipes/ecc.hook.pre-mcp-health-check.json",
@@ -49200,7 +49200,7 @@
     {
       "id": "ecc.hook.pre-edit-write-gateguard-fact-force",
       "source": "ecc",
-      "label": "ecc.hook.pre-edit-write-gateguard-fact-force",
+      "label": "pre:edit-write:gateguard-fact-force",
       "description": "Fact-forcing gate: block first Edit/Write/MultiEdit per file and demand investigation (importers, data schemas, user instruction) before allowing",
       "kind": "hook",
       "recipePath": "catalog-recipes/ecc.hook.pre-edit-write-gateguard-fact-force.json",
@@ -49280,7 +49280,7 @@
     {
       "id": "ecc.hook.pre-compact",
       "source": "ecc",
-      "label": "ecc.hook.pre-compact",
+      "label": "pre:compact",
       "description": "Save state before context compaction",
       "kind": "hook",
       "recipePath": "catalog-recipes/ecc.hook.pre-compact.json",
@@ -49368,7 +49368,7 @@
     {
       "id": "ecc.hook.session-start",
       "source": "ecc",
-      "label": "ecc.hook.session-start",
+      "label": "session:start",
       "description": "Load previous context and detect package manager on new session",
       "kind": "hook",
       "recipePath": "catalog-recipes/ecc.hook.session-start.json",
@@ -49468,7 +49468,7 @@
     {
       "id": "ecc.hook.session-start-plan-canvas-sessions",
       "source": "ecc",
-      "label": "ecc.hook.session-start-plan-canvas-sessions",
+      "label": "session-start:plan-canvas-sessions",
       "description": "Surface open Plan Canvas review sessions so a fresh session can resume the loop",
       "kind": "hook",
       "recipePath": "catalog-recipes/ecc.hook.session-start-plan-canvas-sessions.json",
@@ -49536,7 +49536,7 @@
     {
       "id": "ecc.hook.post-dispatcher-sync",
       "source": "ecc",
-      "label": "ecc.hook.post-dispatcher-sync",
+      "label": "post:dispatcher:sync",
       "description": "Run synchronous PostToolUse hooks in one process while preserving per-hook controls",
       "kind": "hook",
       "recipePath": "catalog-recipes/ecc.hook.post-dispatcher-sync.json",
@@ -49720,7 +49720,7 @@
     {
       "id": "ecc.hook.post-dispatcher-async",
       "source": "ecc",
-      "label": "ecc.hook.post-dispatcher-async",
+      "label": "post:dispatcher:async",
       "description": "Run background PostToolUse hooks in one process while preserving per-hook controls",
       "kind": "hook",
       "recipePath": "catalog-recipes/ecc.hook.post-dispatcher-async.json",
@@ -49936,7 +49936,7 @@
     {
       "id": "ecc.hook.post-mcp-health-check",
       "source": "ecc",
-      "label": "ecc.hook.post-mcp-health-check",
+      "label": "post:mcp-health-check",
       "description": "Track failed MCP tool calls, mark unhealthy servers, and attempt reconnect",
       "kind": "hook",
       "recipePath": "catalog-recipes/ecc.hook.post-mcp-health-check.json",
@@ -50004,7 +50004,7 @@
     {
       "id": "ecc.hook.post-skill-track",
       "source": "ecc",
-      "label": "ecc.hook.post-skill-track",
+      "label": "post:skill:track",
       "description": "Record hard Skill tool failures for skill-health telemetry",
       "kind": "hook",
       "recipePath": "catalog-recipes/ecc.hook.post-skill-track.json",
@@ -50088,7 +50088,7 @@
     {
       "id": "ecc.hook.stop-plan-canvas-pending",
       "source": "ecc",
-      "label": "ecc.hook.stop-plan-canvas-pending",
+      "label": "stop:plan-canvas-pending",
       "description": "Deliver undelivered Plan Canvas browser feedback before the agent stops",
       "kind": "hook",
       "recipePath": "catalog-recipes/ecc.hook.stop-plan-canvas-pending.json",
@@ -50156,7 +50156,7 @@
     {
       "id": "ecc.hook.stop-format-typecheck",
       "source": "ecc",
-      "label": "ecc.hook.stop-format-typecheck",
+      "label": "stop:format-typecheck",
       "description": "Batch format (Biome/Prettier) and typecheck (tsc) all JS/TS files edited this response — runs once at Stop instead of after every Edit",
       "kind": "hook",
       "recipePath": "catalog-recipes/ecc.hook.stop-format-typecheck.json",
@@ -50244,7 +50244,7 @@
     {
       "id": "ecc.hook.stop-check-console-log",
       "source": "ecc",
-      "label": "ecc.hook.stop-check-console-log",
+      "label": "stop:check-console-log",
       "description": "Check for console.log in modified files after each response",
       "kind": "hook",
       "recipePath": "catalog-recipes/ecc.hook.stop-check-console-log.json",
@@ -50324,7 +50324,7 @@
     {
       "id": "ecc.hook.stop-session-end",
       "source": "ecc",
-      "label": "ecc.hook.stop-session-end",
+      "label": "stop:session-end",
       "description": "Persist session state after each response (Stop carries transcript_path)",
       "kind": "hook",
       "recipePath": "catalog-recipes/ecc.hook.stop-session-end.json",
@@ -50412,7 +50412,7 @@
     {
       "id": "ecc.hook.stop-evaluate-session",
       "source": "ecc",
-      "label": "ecc.hook.stop-evaluate-session",
+      "label": "stop:evaluate-session",
       "description": "Evaluate session for extractable patterns",
       "kind": "hook",
       "recipePath": "catalog-recipes/ecc.hook.stop-evaluate-session.json",
@@ -50496,7 +50496,7 @@
     {
       "id": "ecc.hook.stop-cost-tracker",
       "source": "ecc",
-      "label": "ecc.hook.stop-cost-tracker",
+      "label": "stop:cost-tracker",
       "description": "Track token and cost metrics per session",
       "kind": "hook",
       "recipePath": "catalog-recipes/ecc.hook.stop-cost-tracker.json",
@@ -50580,7 +50580,7 @@
     {
       "id": "ecc.hook.stop-desktop-notify",
       "source": "ecc",
-      "label": "ecc.hook.stop-desktop-notify",
+      "label": "stop:desktop-notify",
       "description": "Send desktop notification (macOS/WSL) with task summary when Claude responds",
       "kind": "hook",
       "recipePath": "catalog-recipes/ecc.hook.stop-desktop-notify.json",
@@ -50660,7 +50660,7 @@
     {
       "id": "ecc.hook.session-end-marker",
       "source": "ecc",
-      "label": "ecc.hook.session-end-marker",
+      "label": "session:end:marker",
       "description": "Session end lifecycle marker (non-blocking)",
       "kind": "hook",
       "recipePath": "catalog-recipes/ecc.hook.session-end-marker.json",

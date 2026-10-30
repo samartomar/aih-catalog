@@ -26,7 +26,7 @@
   },
   "notices": {
     "id": "superpowers.notices",
-    "name": "Superpowers notices",
+    "name": "Superpowers licenses and upstream notices",
     "description": "MIT license, original README distribution/telemetry notice and release notes."
   },
   "set": {

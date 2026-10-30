@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- No shipped item is displayed by its id. ECC's 24 hook items take the upstream hook's
+  own id from the pinned `hooks/hooks.json` (`session:start`), and
+  `superpowers.notices` becomes "Superpowers licenses and upstream notices". The
+  release 1.2 ECC template and the Superpowers runtime sources, Claude hook group and
+  template get publisher names. A test fails when any item in a shipped release
+  has a label or name equal to its id or containing its namespace prefix.
 - Bring the prepared release 1.7.0 contents into line with the Catalog contract in one
   regeneration (samartomar/aih-catalog#136, #144, #145, #146, #134). Hooks: the reader
   refuses a hook naming both an interpreter and a program, a program not given its
