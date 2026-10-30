@@ -318,7 +318,7 @@ and executable state comes from the pinned tree's file modes.
 
 | Sets | From | Shape |
 | --- | --- | --- |
-| `ecc.module.<id>`, 25 of 36 | `install-modules.json` | Members are the items under the module's paths, except the 22 MCP servers that need a supplied input; `requires` are its dependencies; `targets` its targets; `offer` is `pre-ticked` for a default install, otherwise `listed`; `cost` and `stability` are upstream's own words, copied |
+| `ecc.module.<id>`, 25 of 36 | `install-modules.json` | Members are the items under the module's paths, except the 31 MCP servers that do not run as installed; `requires` are its dependencies; `targets` its targets; `offer` is `pre-ticked` for a default install, otherwise `listed`; `cost` and `stability` are upstream's own words, copied |
 | `ecc.rules.<directory>`, 22 | `rules/` | The rules of one directory |
 | `ecc.profile.<id>`, 7 | `install-profiles.json` | `includes` lists the profile's modules, in order |
 | `ecc.edition.kiro`, "ECC for Kiro" | The `.kiro/` skills and steering | Every Kiro-edition item, `listed`, with no targets, since the manifests name no Kiro module or target |
@@ -337,6 +337,19 @@ have one and remain independently selectable, asking for those inputs:
 - `ecc.mcp.browser-use` (`BROWSER_USE_KEY`), `ecc.mcp.memxus` (`MEMXUS_API_KEY`) and
   `ecc.mcp.github-local` (`GITHUB_PERSONAL_ACCESS_TOKEN`), for a secret. A secret never
   has a default, and the item keeps it marked sensitive.
+
+A set or profile also lists only MCP servers that run from the pick as installed: a
+documented hosted endpoint with no unsupported or unverified provider, beta consent,
+preprovisioning or setup value. The Catalog has no structured field that tells these
+apart, so `producer/ecc/mcp-starting-sets.json` is the reviewed record of every ECC MCP
+server, ready or not, with its reason, and the build fails on a server it does not name.
+Six are ready: `clickhouse`, `github`, `laraplugins`, `parallel-search` and `vercel` are
+in `ecc.module.platform-configs`, and `railway-hosted` stays an alternative to `railway`.
+The other 31 include the 22 above and nine that need no input but still do not run as
+installed: the four `cloudflare-*` endpoints, which have no complete credential contract;
+`devfleet`, `nexus` and `token-optimizer`, whose provider is unverified or unsupported;
+`longhand`, a beta that needs consent; and `evalview`, whose Python package must be
+preprovisioned. Each remains individually selectable with its description unchanged.
 
 `ecc.module.rules-core` always includes `ecc.rules.common`, with no choice made, and
 offers `rules/README.md` as an optional member that is off by default. Every profile
