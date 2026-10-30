@@ -26,6 +26,7 @@ import { canonicalJson } from "../dist/release/json.js";
 import { compileTransitionRelease, mcpEditsSha256 } from "../dist/release/producer.js";
 import { createContentInventory, readRelease, readReleaseContent } from "../dist/release/reader.js";
 import { sha256Hex } from "../dist/release/sha256.js";
+import { firstHeading } from "../dist/release/source-facts.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const encoder = new TextEncoder();
@@ -284,7 +285,8 @@ const sourcePathOf = (packagePath, revision) =>
 /**
  * One shipped release-ecc.json item restated as a release 1.6 copy: typed payload,
  * captured materials with item-relative paths and executable state, behaviour file
- * and both identities. Display names are the authored name, else the file name.
+ * and both identities. Display names follow the Catalog order: a usable authored name,
+ * else the first usable heading, else the file name without its folder.
  */
 function projectItem(item, { revision, modes, mcpFacts, files, hookFacts }) {
   const recipe = json(item.recipe.path);
@@ -318,12 +320,26 @@ function projectItem(item, { revision, modes, mcpFacts, files, hookFacts }) {
   const text = () => decoder.decode(files.get(primary.sourcePath));
   const kiro = primary.sourcePath.startsWith(".kiro/");
   const sourceFacts = item.metadata?.sourceFacts;
-  const stem = primary.sourcePath.split("/").at(-1).replace(/\.md$/, "");
   let kind = item.kind;
   let payload;
   let requirements = { inputs: {} };
-  let name = sourceFacts?.name?.state === "authored" ? sourceFacts.name.value : stem;
-  let nameBasis = sourceFacts?.name?.state === "authored" ? sourceFacts.name.basis : "file-name";
+  // The shipped item's label is the producer's display name in the Catalog order: a
+  // usable author name, else a usable heading no sibling shares, else the file name
+  // without its folder. The copy keeps that name and records which level produced it.
+  const sourceFile = sourceFacts?.identifier.split("/").at(-1);
+  let name = sourceFacts ? item.label : primary.sourcePath.split("/").at(-1);
+  let nameBasis = !sourceFacts
+    ? "file-name"
+    : sourceFacts.name?.state === "authored" && sourceFacts.name.value === item.label
+      ? sourceFacts.name.basis
+      : item.label === sourceFile
+        ? "file-name"
+        : "first-heading";
+  assert(
+    nameBasis !== "first-heading" || firstHeading(sourceFacts.profile, files.get(sourceFacts.provenance.path)) === item.label,
+    `${item.id}: label ${item.label} is not its source's name, heading or file name`,
+  );
+  let label = item.label;
   if (item.kind === "skill") {
     const dirName = primary.sourcePath.split("/").at(-2);
     // No pinned ECC skill sets disable-model-invocation, so each may start when the model decides.
@@ -339,14 +355,14 @@ function projectItem(item, { revision, modes, mcpFacts, files, hookFacts }) {
     payload = { files: content.map((member) => member.id) };
     name = "ECC notices";
     nameBasis = "publisher";
+    // Its discovered source is LICENSE; the label agrees with the publisher's name.
+    label = name;
   } else if (item.kind === "instruction") {
     kind = "rule";
     // Rules keep their directory as their namespace; the Kiro edition's steering is "kiro".
     const parts = primary.sourcePath.split("/");
     const namespace = kiro ? "kiro" : parts.length > 2 ? parts[1] : undefined;
     payload = { ...(namespace ? { namespace } : {}), ...(kiro ? steeringPayload(text()) : ruleApplyTo(text())) };
-    name = stem;
-    nameBasis = "file-name";
   } else if (item.kind === "mcp") {
     kind = "mcp-server";
     const fact = mcpFacts[item.id];
@@ -356,6 +372,8 @@ function projectItem(item, { revision, modes, mcpFacts, files, hookFacts }) {
     requirements = { inputs: built.inputs };
     name = fact.sourceKey;
     nameBasis = "key";
+    // The copy's own registration key; the shipped label may carry a shared key.
+    label = name;
   } else if (item.kind === "agent" || item.kind === "command") {
     payload = { files: [primary.id] };
   } else if (item.kind === "hook") {
@@ -365,7 +383,7 @@ function projectItem(item, { revision, modes, mcpFacts, files, hookFacts }) {
   } else throw new Error(`${item.id}: kind ${item.kind} has no release 1.6 copy`);
   const projected = {
     id: item.id,
-    label: item.label,
+    label,
     ...(item.kind === "mcp" ? { description: mcpFacts[item.id].runtimePrerequisites } : item.description ? { description: item.description } : {}),
     ...(item.kind !== "mcp" && sourceFacts?.description?.state === "authored" ? { descriptionBasis: sourceFacts.description.basis } : {}),
     ...(item.kind === "hook" ? { descriptionBasis: "authored" } : {}),

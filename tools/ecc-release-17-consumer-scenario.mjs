@@ -209,7 +209,7 @@ await case_("rules/common is always included with no choice made, and rules keep
   assert.deepEqual(ruleIds(plain), rulesIn("common"));
   assert.deepEqual(set("ecc.module.rules-core").includes.map((ref) => ref.setId), ["ecc.rules.common"]);
   const style = item("ecc.rule.typescript.coding-style");
-  assert.equal(`${style.name} (${style.payload.namespace})`, "coding-style (typescript)");
+  assert.equal(`${style.name} (${style.payload.namespace})`, "coding-style.md (typescript)");
   assert.equal(style.nameBasis, "file-name");
   assert.deepEqual(style.payload.applyTo, ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]);
   assert.equal(item("ecc.rule.common.coding-style").payload.namespace, "common");
