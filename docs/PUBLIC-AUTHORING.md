@@ -563,8 +563,10 @@ metadata retention is not a claim of native execution or permission enforcement.
 A V3 item may declare `sourceDiscovery:{profile,path,key?}`. The path must be one of its
 delivered source materials. When present, compilation derives `label`, `description`,
 `metadata.discovery` and `metadata.sourceFacts` from those exact supplied bytes. The
-required legacy declaration `label` remains stable fallback data and `description` can
-be empty; neither overrides derived purpose. Missing name uses the source identifier;
+`label` is the author's name, else the first level-one Markdown heading outside
+frontmatter and fenced code, else the registration key or the file name without its
+folder; the declared `label` applies only without discovery. A path-shaped heading
+such as `/ecc-guide` is skipped; a label is never a path. `description` can be empty;
 missing description remains empty with an explicit field state. Profile errors remain
 visible on the affected item and do not claim conformance or freeze the entire family.
 An item without this optional field retains its existing authored overlay behavior.

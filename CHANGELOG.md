@@ -6,8 +6,15 @@
   own id from the pinned `hooks/hooks.json` (`session:start`), and
   `superpowers.notices` becomes "Superpowers licenses and upstream notices". The
   release 1.2 ECC template and the Superpowers runtime sources, Claude hook group and
-  template get publisher names. A test fails when any item in a shipped release
-  has a label or name equal to its id or containing its namespace prefix.
+  template get publisher names. A source-discovered item's label is no longer its source
+  path: it is the author's name, else the first usable Markdown heading, else the key
+  or the file name without its folder (`commands/aside.md` becomes "Aside Command",
+  `hooks/hooks.json` becomes `hooks.json`). The ECC and Superpowers declarations pin the
+  regenerated `release-extensions.json`. In the ECC release 1.7.0 content `ecc.notices`
+  is labelled "ECC notices", as it is named. A test fails when any item in a shipped release has
+  a label or name equal to its id, containing its namespace prefix, path-shaped, with a
+  separator that is not the author's own text, or ending in a file extension when the
+  source offers a name or heading.
 - Bring the prepared release 1.7.0 contents into line with the Catalog contract in one
   regeneration (samartomar/aih-catalog#136, #144, #145, #146, #134). Hooks: the reader
   refuses a hook naming both an interpreter and a program, a program not given its

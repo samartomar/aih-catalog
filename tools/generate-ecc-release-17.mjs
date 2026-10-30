@@ -324,6 +324,7 @@ function projectItem(item, { revision, modes, mcpFacts, files, hookFacts }) {
   let requirements = { inputs: {} };
   let name = sourceFacts?.name?.state === "authored" ? sourceFacts.name.value : stem;
   let nameBasis = sourceFacts?.name?.state === "authored" ? sourceFacts.name.basis : "file-name";
+  let label = item.label;
   if (item.kind === "skill") {
     const dirName = primary.sourcePath.split("/").at(-2);
     // No pinned ECC skill sets disable-model-invocation, so each may start when the model decides.
@@ -339,6 +340,8 @@ function projectItem(item, { revision, modes, mcpFacts, files, hookFacts }) {
     payload = { files: content.map((member) => member.id) };
     name = "ECC notices";
     nameBasis = "publisher";
+    // Its discovered source is LICENSE; the label agrees with the publisher's name.
+    label = name;
   } else if (item.kind === "instruction") {
     kind = "rule";
     // Rules keep their directory as their namespace; the Kiro edition's steering is "kiro".
@@ -365,7 +368,7 @@ function projectItem(item, { revision, modes, mcpFacts, files, hookFacts }) {
   } else throw new Error(`${item.id}: kind ${item.kind} has no release 1.6 copy`);
   const projected = {
     id: item.id,
-    label: item.label,
+    label,
     ...(item.kind === "mcp" ? { description: mcpFacts[item.id].runtimePrerequisites } : item.description ? { description: item.description } : {}),
     ...(item.kind !== "mcp" && sourceFacts?.description?.state === "authored" ? { descriptionBasis: sourceFacts.description.basis } : {}),
     ...(item.kind === "hook" ? { descriptionBasis: "authored" } : {}),

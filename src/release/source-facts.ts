@@ -364,3 +364,53 @@ export {
   SOURCE_DESCRIPTION_MAX_BYTES,
   SOURCE_DESCRIPTION_MAX_DEPTH,
 } from "./source-description.js";
+
+/** A separator with no whitespace, a drive letter or a dot segment reads as a path. */
+export function isPathShapedName(value: string): boolean {
+  return (
+    value.includes("\\") ||
+    (/\//.test(value) && !/\s/.test(value)) ||
+    /^\.\.?$|^[a-zA-Z]:/.test(value)
+  );
+}
+
+const MARKDOWN_PROFILES = new Set<string>([
+  "agent-skills",
+  "claude-skill",
+  "claude-agent",
+  "claude-command",
+  "markdown",
+]);
+
+/**
+ * The first level-one ATX heading of a Markdown source, outside its frontmatter and
+ * fenced code; undefined for other profiles, undecodable bytes or no usable heading.
+ * A path-shaped heading (a separator and no whitespace, such as `/ecc-guide`) is not
+ * a usable name; prose such as `Dart/Flutter Hooks` is.
+ */
+export function firstHeading(profile: string, bytes: Uint8Array): string | undefined {
+  if (!MARKDOWN_PROFILES.has(profile)) return undefined;
+  let text: string;
+  try {
+    text = new TextDecoder("utf-8", { fatal: true }).decode(bytes).replace(/\r\n/g, "\n");
+  } catch {
+    return undefined;
+  }
+  if (text.startsWith("---\n")) {
+    const end = text.indexOf("\n---", 3);
+    if (end < 0) return undefined;
+    text = text.slice(end + 4);
+  }
+  let fence: string | undefined;
+  for (const line of text.split("\n")) {
+    const marker = /^ {0,3}(`{3,}|~{3,})/.exec(line)?.[1];
+    if (marker && (fence === undefined || marker.startsWith(fence))) {
+      fence = fence === undefined ? marker : undefined;
+      continue;
+    }
+    if (fence !== undefined) continue;
+    const heading = /^# +(.+?)(?: +#+)? *$/.exec(line)?.[1]?.trim();
+    if (heading) return heading.length <= 256 && !isPathShapedName(heading) ? heading : undefined;
+  }
+  return undefined;
+}
