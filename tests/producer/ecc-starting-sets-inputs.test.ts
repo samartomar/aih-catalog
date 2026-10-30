@@ -18,12 +18,12 @@ const releases = { [release.sha256]: release };
 const sets = release.sets ?? [];
 
 /**
- * Inputs a caller must type before install: required, not a host-held secret, no default.
+ * Inputs someone must supply before install: required with no default, secret or not.
  * Both the item's configuration and the environment inputs an MCP server introduces count.
  */
 const unfilledInputs = (item: CatalogItem) =>
   Object.entries({ ...item.inputs, ...(item.requirements?.inputs ?? {}) })
-    .filter(([, spec]) => spec.required && spec.sensitive !== true && spec.default === undefined)
+    .filter(([, spec]) => spec.required && spec.default === undefined)
     .map(([name]) => name)
     .sort();
 
@@ -66,13 +66,22 @@ const resolveWithGaps = (setIds: readonly string[]) => {
   return { count: selections.length, gaps, readerGaps };
 };
 
-// Required inputs with no value or default; ECC's own config names them, sets cannot fill them.
+// Required inputs with no value or default, including secrets; no set can supply them.
 const CALLER_CONFIGURED = {
+  "ecc.mcp.browser-use": ["BROWSER_USE_KEY"],
   "ecc.mcp.ecc-memory-vault": ["ECC_MEMORY_HARNESS"],
+  "ecc.mcp.github-local": ["GITHUB_PERSONAL_ACCESS_TOKEN"],
   "ecc.mcp.ito-compute": ["ITO_MCP_ENTRYPOINT"],
-  "ecc.mcp.jira": ["AIHQ_MCP_JIRA_ROOT", "JIRA_EMAIL", "JIRA_URL"],
+  "ecc.mcp.jira": ["AIHQ_MCP_JIRA_ROOT", "JIRA_API_TOKEN", "JIRA_EMAIL", "JIRA_URL"],
+  "ecc.mcp.memxus": ["MEMXUS_API_KEY"],
   "ecc.mcp.omega-memory": ["AIHQ_MCP_OMEGA_ROOT", "OMEGA_HOME"],
 } as const;
+const SECRETS = new Set([
+  "BROWSER_USE_KEY",
+  "GITHUB_PERSONAL_ACCESS_TOKEN",
+  "JIRA_API_TOKEN",
+  "MEMXUS_API_KEY",
+]);
 
 const PRE_TICKED = [
   "ecc.rules.common",
@@ -94,8 +103,8 @@ it.each([
   ["ecc.module.agents-core", 69],
   ["ecc.module.commands-core", 95],
   ["ecc.module.hooks-runtime", 0],
-  ["ecc.module.platform-configs", 17],
-  ["ecc.module.workflow-quality", 65],
+  ["ecc.module.platform-configs", 15],
+  ["ecc.module.workflow-quality", 63],
 ])("pre-ticked %s resolves to %i items that need no typed input", (setId, count) => {
   const { count: actual, gaps, readerGaps } = resolveWithGaps([setId]);
   expect(gaps, setId).toEqual([]);
@@ -107,7 +116,7 @@ it("the default ECC pick with TypeScript rules needs no typed input", () => {
   const { count, gaps, readerGaps } = resolveWithGaps([...PRE_TICKED, "ecc.rules.typescript"]);
   expect(gaps).toEqual([]);
   expect(readerGaps).toEqual([]);
-  expect(count).toBe(242);
+  expect(count).toBe(240);
 });
 
 it("lists every ECC profile", () => {
@@ -128,18 +137,29 @@ it("lists every ECC profile", () => {
 });
 
 it.each([
-  ["ecc.profile.minimal", 311],
-  ["ecc.profile.opencode", 159],
-  ["ecc.profile.core", 311],
-  ["ecc.profile.developer", 319],
-  ["ecc.profile.security", 330],
-  ["ecc.profile.research", 337],
-  ["ecc.profile.full", 472],
+  ["ecc.profile.minimal", 309],
+  ["ecc.profile.opencode", 157],
+  ["ecc.profile.core", 309],
+  ["ecc.profile.developer", 317],
+  ["ecc.profile.security", 328],
+  ["ecc.profile.research", 335],
+  ["ecc.profile.full", 470],
 ])("%s with TypeScript resolves to %i items that need no typed input", (profile, count) => {
   const { count: actual, gaps, readerGaps } = resolveWithGaps([profile]);
   expect(gaps, profile).toEqual([]);
   expect(readerGaps, profile).toEqual([]);
   expect(actual, profile).toBe(count);
+});
+
+it("no member of any ECC set has a required input without a default", () => {
+  expect(sets).toHaveLength(55);
+  const gaps = sets.flatMap((set) =>
+    (set.members ?? [])
+      .map((member) => release.items.find((item) => item.id === member.item.itemId))
+      .filter((item) => item !== undefined && unfilledInputs(item).length > 0)
+      .map((item) => `${set.id}: ${item?.id}`),
+  );
+  expect(gaps).toEqual([]);
 });
 
 it("names exactly the ECC items whose inputs no set can fill", () => {
@@ -168,6 +188,7 @@ it.each(
     expect(item.requirements?.inputs?.[name], `${itemId} ${name}`).toMatchObject({
       required: true,
       type: "string",
+      ...(SECRETS.has(name) ? { sensitive: true } : {}),
     });
   const picked = resolveSelections({
     releases,
