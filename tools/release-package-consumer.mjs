@@ -17,7 +17,10 @@ const same = (a, b) => assert.deepEqual(a, b);
 // Every declared release is classified here; an unclassified release refuses assembly.
 // Qualified: an ordinary release whose baseline slot release/baselines/<id>/ is free, unless
 // the accepted assembly contract names it unchanged. New release preparation requires a baseline.
-const exportsById = { anthropic: "./release-anthropic.json", "web-artifacts": "./release-web-artifacts.json" };
+// The authored executable-content companion is an ordinary release, with no prepared
+// baseline slot. Its assessment qualifies the delivered bytes, never native readiness.
+const exportsById = { anthropic: "./release-anthropic.json", "web-artifacts": "./release-web-artifacts.json",
+  "executable-content": "./release-executable-content.json" };
 // Carried byte for byte, never requalified: the frozen default, admitted by its recorded
 // digest; earlier releases whose prepared release content holds their baseline slot; and
 // the four documents the accepted assembly contract keeps unchanged.

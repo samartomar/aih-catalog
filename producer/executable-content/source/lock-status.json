@@ -1,0 +1,82 @@
+[
+  {
+    "workflow": "mcp-evaluator",
+    "python": "3.14.10",
+    "target": "linux-x64",
+    "exit": 0,
+    "lock": "mcp-evaluator-linux-x64.txt",
+    "proof": "resolution only; interpreter absent; no installation or native proof"
+  },
+  {
+    "workflow": "skill-authoring",
+    "python": "3.14.10",
+    "target": "linux-x64",
+    "exit": 0,
+    "lock": "skill-authoring-linux-x64.txt",
+    "proof": "resolution only; interpreter absent; no installation or native proof"
+  },
+  {
+    "workflow": "evalview",
+    "python": "3.14.10",
+    "target": "linux-x64",
+    "exit": 0,
+    "lock": "evalview-linux-x64.txt",
+    "proof": "resolution only; interpreter absent; no installation or native proof"
+  },
+  {
+    "workflow": "gif",
+    "python": "3.15.2",
+    "target": "linux-x64",
+    "exit": 0,
+    "lock": "gif-linux-x64.txt",
+    "proof": "resolution only; interpreter absent; no installation or native proof"
+  },
+  {
+    "workflow": "browser",
+    "python": "3.15.2",
+    "target": "linux-x64",
+    "exit": 0,
+    "lock": "browser-linux-x64.txt",
+    "proof": "resolution only; interpreter absent; no installation or native proof"
+  },
+  {
+    "workflow": "slides",
+    "python": "3.15.2",
+    "target": "linux-x64",
+    "exit": 0,
+    "lock": "slides-linux-x64.txt",
+    "proof": "resolution only; interpreter absent; no installation or native proof"
+  },
+  {
+    "workflow": "manim",
+    "python": "3.15.2",
+    "target": "linux-x64",
+    "exit": 1,
+    "lock": null,
+    "proof": "resolution only; interpreter absent; no installation or native proof"
+  },
+  {
+    "workflow": "videodb",
+    "python": "3.15.2",
+    "target": "linux-x64",
+    "exit": 0,
+    "lock": "videodb-linux-x64.txt",
+    "proof": "resolution only; interpreter absent; no installation or native proof"
+  },
+  {
+    "workflow": "skill-comply",
+    "python": "3.14.10",
+    "target": "linux-x64",
+    "exit": 0,
+    "lock": "skill-comply-linux-x64.txt",
+    "proof": "resolution only; interpreter absent; no installation or native proof"
+  },
+  {
+    "workflow": "observer",
+    "python": "3.14.10",
+    "target": "linux-x64",
+    "exit": 0,
+    "lock": "observer-linux-x64.txt",
+    "proof": "resolution only; interpreter absent; no installation or native proof"
+  }
+]

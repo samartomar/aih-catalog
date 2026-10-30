@@ -123,6 +123,14 @@ export function checkCandidateFiles(
           },
         ]
       : []),
+    ...(files.has("release/release-executable-content.json")
+      ? [
+          {
+            path: "release/release-executable-content.json",
+            export: "./release-executable-content.json" as const,
+          },
+        ]
+      : []),
     ...(files.has("release/release-anthropic.json")
       ? [{ path: "release/release-anthropic.json", export: "./release-anthropic.json" as const }]
       : []),

@@ -1,0 +1,7 @@
+# Exact resolution projection, NOT a hash-verified install lock. No automatic install.
+charset-normalizer==3.5.2
+imageio==2.38.1
+imageio-ffmpeg==0.6.0
+numpy==2.5.4
+pillow==13.0.0
+reportlab==5.1.0

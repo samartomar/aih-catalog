@@ -1,0 +1,1735 @@
+{
+  "inventoryCount": 113,
+  "assets": [
+    {
+      "path": "release/materials/aihq/client-hooks/aihq.hook.claude.protect-env/.claude/hooks/aihq-protect-env.mjs",
+      "sha256": "aa3311e7fe4a4ecec9a7bfa56697e1b3ad404faf2fd07e87ec7ac846dabf42e6",
+      "byteLength": 1241,
+      "workflow": "node-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution."
+    },
+    {
+      "path": "release/materials/aihq/native-fixtures/aihq.mcp.claude.graph-fixture/graph-server.mjs",
+      "sha256": "c8dbec936446424ad770202003946adb55f6bcf757c9fd0647c56cce6ee910d8",
+      "byteLength": 3463,
+      "workflow": "node-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution."
+    },
+    {
+      "path": "release/materials/aihq/native-fixtures/aihq.mcp.claude.graph-fixture/recorder.mjs",
+      "sha256": "300e2a0fcbfbc9161ed7e07b84f47a460a27d16373abcdda087683ae13eed346",
+      "byteLength": 19054,
+      "workflow": "node-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/agent-self-evaluation/scripts/evaluate.py",
+      "sha256": "5f21321971c23ffa845a8f25a99338705ff057981681c97cb79c653ce7e505d6",
+      "byteLength": 14975,
+      "workflow": "python-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Standard-library evaluator/gate/gacha; any optional external service remains caller-selected. No claim of semantic evaluation from heuristic output."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/ck/commands/forget.mjs",
+      "sha256": "af9995621bd68eb3d848a37f5d63b9f0d22a49665ba19c1afd00eeb912e3adfc",
+      "byteLength": 1304,
+      "workflow": "node-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/ck/commands/info.mjs",
+      "sha256": "f294480e80aafe155d789ab3e005891efd7aa22635f0392886c36457dd46ba75",
+      "byteLength": 650,
+      "workflow": "node-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/ck/commands/init.mjs",
+      "sha256": "3ab39c2610548da4252726b7b5212ff5375314b54cd0c2e0b71a41d515ef923d",
+      "byteLength": 6146,
+      "workflow": "node-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/ck/commands/list.mjs",
+      "sha256": "902d5ef9370d07217492d59968fbe904a7961741c601f8a4420787d98910c2a3",
+      "byteLength": 1092,
+      "workflow": "node-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/ck/commands/migrate.mjs",
+      "sha256": "7703062eb780c63785870b26290bc4fc386b42eb697e24d91fa87bcb2f13d6b7",
+      "byteLength": 7416,
+      "workflow": "node-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/ck/commands/resume.mjs",
+      "sha256": "773a706247bfeb45d7206ec363e695cb42262cccb14851e67d194ace760b309f",
+      "byteLength": 949,
+      "workflow": "node-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/ck/commands/save.mjs",
+      "sha256": "1d096ffd0ce5776ac69f01a8d80b2a158fa3b465d2b5faa33bd539887e63f32b",
+      "byteLength": 7574,
+      "workflow": "node-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/ck/commands/shared.mjs",
+      "sha256": "8da746463ae5e90700e29bdae1e738f54a7bd279cfb0ca6d90b292170a2e1abe",
+      "byteLength": 15267,
+      "workflow": "node-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/ck/hooks/session-start.mjs",
+      "sha256": "4ad0b843a0e1256e72d3b371e126ce1dbdf1baf45819fb3f55f614d1c386bf29",
+      "byteLength": 8835,
+      "workflow": "node-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/continuous-learning-v2/agents/observer-loop.sh",
+      "sha256": "a6d119252c8ff2eda7aa7b345c2254fd6bdaf14056f6b5bf54835a2738ff310d",
+      "byteLength": 19899,
+      "workflow": "observer",
+      "disposition": "preserved-upstream",
+      "requirements": "POSIX Bash process/pipe/flock/ps/kill/stat/date semantics require actual OS-package observations. Windows routes WSL-only until ported. Guardian activity heuristics do not prove safe idle detection."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/continuous-learning-v2/agents/session-guardian.sh",
+      "sha256": "ee6e4c0990f8d538cae1c85aa194e01e9ca2336e5d993ef68eb608b96cb0d82c",
+      "byteLength": 6392,
+      "workflow": "observer",
+      "disposition": "preserved-upstream",
+      "requirements": "POSIX Bash process/pipe/flock/ps/kill/stat/date semantics require actual OS-package observations. Windows routes WSL-only until ported. Guardian activity heuristics do not prove safe idle detection."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/continuous-learning-v2/agents/start-observer.sh",
+      "sha256": "1f9a22da11e23d3551b8f8d0951a656150a532b326818627d9914ffd484a86e6",
+      "byteLength": 8117,
+      "workflow": "observer",
+      "disposition": "preserved-upstream",
+      "requirements": "POSIX Bash process/pipe/flock/ps/kill/stat/date semantics require actual OS-package observations. Windows routes WSL-only until ported. Guardian activity heuristics do not prove safe idle detection."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/continuous-learning-v2/hooks/observe.sh",
+      "sha256": "90575005307d1df31166a2da239cf8c362608524f6aeaa849df3d0b4e3e35f79",
+      "byteLength": 28106,
+      "workflow": "observer",
+      "disposition": "preserved-upstream",
+      "requirements": "POSIX Bash process/pipe/flock/ps/kill/stat/date semantics require actual OS-package observations. Windows routes WSL-only until ported. Guardian activity heuristics do not prove safe idle detection."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/continuous-learning-v2/scripts/detect-project.sh",
+      "sha256": "43215ad15ce0c6585c13b1c45cbba6bf8df0dc459b663ddca77c0b86c459c283",
+      "byteLength": 11036,
+      "workflow": "observer",
+      "disposition": "preserved-upstream",
+      "requirements": "POSIX Bash process/pipe/flock/ps/kill/stat/date semantics require actual OS-package observations. Windows routes WSL-only until ported. Guardian activity heuristics do not prove safe idle detection."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/continuous-learning-v2/scripts/instinct-cli.py",
+      "sha256": "a2e90e34ee589827592248dbc801bee90f1d5db6d2330e2d5004e4694b8e06f9",
+      "byteLength": 91144,
+      "workflow": "observer",
+      "disposition": "preserved-upstream",
+      "requirements": "POSIX Bash process/pipe/flock/ps/kill/stat/date semantics require actual OS-package observations. Windows routes WSL-only until ported. Guardian activity heuristics do not prove safe idle detection."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/continuous-learning-v2/scripts/lib/homunculus-dir.sh",
+      "sha256": "99dfa99ae0f7c6e2e15ed5b5bf3c46e91a5f089f4060ba93d5da5e85e04fd308",
+      "byteLength": 1010,
+      "workflow": "observer",
+      "disposition": "preserved-upstream",
+      "requirements": "POSIX Bash process/pipe/flock/ps/kill/stat/date semantics require actual OS-package observations. Windows routes WSL-only until ported. Guardian activity heuristics do not prove safe idle detection."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/continuous-learning-v2/scripts/migrate-homunculus.sh",
+      "sha256": "34f121c143a676d330f06209618aae8cb08f8155298cb5fa70c893314bf9b303",
+      "byteLength": 2256,
+      "workflow": "observer",
+      "disposition": "preserved-upstream",
+      "requirements": "POSIX Bash process/pipe/flock/ps/kill/stat/date semantics require actual OS-package observations. Windows routes WSL-only until ported. Guardian activity heuristics do not prove safe idle detection."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/continuous-learning-v2/scripts/test_parse_instinct.py",
+      "sha256": "acf556e8a8023347b35988bb490927a4e9f65f2579b03f26cad610687656605b",
+      "byteLength": 51338,
+      "workflow": "observer",
+      "disposition": "preserved-upstream",
+      "requirements": "POSIX Bash process/pipe/flock/ps/kill/stat/date semantics require actual OS-package observations. Windows routes WSL-only until ported. Guardian activity heuristics do not prove safe idle detection."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/continuous-learning/evaluate-session.sh",
+      "sha256": "3e07e0b2916fbcdd7670648548d418ee87bdce0c6548c48e298965e5db387fcd",
+      "byteLength": 2391,
+      "workflow": "observer",
+      "disposition": "preserved-upstream",
+      "requirements": "POSIX Bash process/pipe/flock/ps/kill/stat/date semantics require actual OS-package observations. Windows routes WSL-only until ported. Guardian activity heuristics do not prove safe idle detection."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/council-multi-model/scripts/review-with-codex.js",
+      "sha256": "af1af9e76f89a321a7148077c5cae6ca62fc0d912329195c49c264359d3becdf",
+      "byteLength": 9479,
+      "workflow": "node-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/delivery-gate/hooks/quality-gate.py",
+      "sha256": "76aa0fe8c136be8a760ce74e614463ffb05fb16f1e165c5938daa86f516b87ef",
+      "byteLength": 7826,
+      "workflow": "python-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Standard-library evaluator/gate/gacha; any optional external service remains caller-selected. No claim of semantic evaluation from heuristic output."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/frontend-slides/scripts/export-pdf.sh",
+      "sha256": "d1a45b2516883dc761ecf2a5d838ec515974c8d7660753b5c4945a1825cbdc77",
+      "byteLength": 12280,
+      "workflow": "slides",
+      "disposition": "preserved-upstream",
+      "requirements": "PPTX extraction and ReportLab PDF are separate from browser HTML export. HTML export needs Node 26.12.1 and Playwright 1.64.1/browser. Font files and licences need exact identities."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/frontend-slides/scripts/extract-pptx.py",
+      "sha256": "4f5e7603c99b8b53e20c5b2a65abdf5edf9422b4c490dca9f2b872a752c17d2a",
+      "byteLength": 2917,
+      "workflow": "slides",
+      "disposition": "preserved-upstream",
+      "requirements": "PPTX extraction and ReportLab PDF are separate from browser HTML export. HTML export needs Node 26.12.1 and Playwright 1.64.1/browser. Font files and licences need exact identities."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/ios-icon-gen/scripts/generate_icons.swift",
+      "sha256": "41efd2b2dc30a744e65252d7715b36ae951c489262262b42d96e06d42fd3ca2e",
+      "byteLength": 8371,
+      "workflow": "icons",
+      "disposition": "preserved-upstream",
+      "requirements": "macOS only: Swift 6.4.1, AppKit/Foundation and exact SDK. iconify route also needs explicit backend/credentials; no native Linux fallback."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/ios-icon-gen/scripts/iconify_gen.sh",
+      "sha256": "5a0efeece4dfd4b60d345b5e2034ab152557793a4248ef6cba2f8fa4d6533c4a",
+      "byteLength": 7098,
+      "workflow": "icons",
+      "disposition": "preserved-upstream",
+      "requirements": "macOS only: Swift 6.4.1, AppKit/Foundation and exact SDK. iconify route also needs explicit backend/credentials; no native Linux fallback."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/ito-baskets/scripts/ito-baskets.js",
+      "sha256": "696d05df7600ce3babcc5887a997b7e799e331015384bd5d6a0b4fd6a2ea51ee",
+      "byteLength": 9956,
+      "workflow": "node-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/manim-video/assets/network_graph_scene.py",
+      "sha256": "5d8ef9a5c55b244610a910229d195b10a5bb0b7d7e2add584b9915be6aa8a306",
+      "byteLength": 2897,
+      "workflow": "manim",
+      "disposition": "preserved-upstream",
+      "requirements": "Cairo/Pango/LaTeX/fonts and FFmpeg 9.0.2 binary/codec closure unresolved; no host compilation."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/openclaw-persona-forge/gacha.py",
+      "sha256": "032aed98c1c93ced971ac223357b2d3a4162f7e6ca8ecd7eb3e35a121fe5d5bc",
+      "byteLength": 7969,
+      "workflow": "python-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Standard-library evaluator/gate/gacha; any optional external service remains caller-selected. No claim of semantic evaluation from heuristic output."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/openclaw-persona-forge/gacha.sh",
+      "sha256": "7f37efda4df83e547e37df7fb19d2ce34500cce7a6ab62e6983a2095b3761b67",
+      "byteLength": 211,
+      "workflow": "posix-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Bash/POSIX and actual installed utility capability/argv observations required; native Windows not qualified, WSL2 distinct. Never install or upgrade all host utilities."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/remotion-video-creation/rules/assets/charts-bar-chart.tsx",
+      "sha256": "6e5e219c596c8515336570a5bc89c233e32e695d5816dec88eb929e798eeea61",
+      "byteLength": 3429,
+      "workflow": "remotion",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; remotion and @remotion/google-fonts 4.0.539, React 19.3.1. Renderer/browser/font/FFmpeg 9.0.2 distributor closure unresolved. Do not silently use imageio bundled FFmpeg."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/remotion-video-creation/rules/assets/text-animations-typewriter.tsx",
+      "sha256": "92b5f47d6d18387a0aa008ce9dceefd30f673ae5879e16892bd4b4ea97f5dddb",
+      "byteLength": 2183,
+      "workflow": "remotion",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; remotion and @remotion/google-fonts 4.0.539, React 19.3.1. Renderer/browser/font/FFmpeg 9.0.2 distributor closure unresolved. Do not silently use imageio bundled FFmpeg."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/remotion-video-creation/rules/assets/text-animations-word-highlight.tsx",
+      "sha256": "5dbba688b875baaa62555c7a243f54739e81edbf34148c87048594a210c3ec2c",
+      "byteLength": 2387,
+      "workflow": "remotion",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; remotion and @remotion/google-fonts 4.0.539, React 19.3.1. Renderer/browser/font/FFmpeg 9.0.2 distributor closure unresolved. Do not silently use imageio bundled FFmpeg."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/rules-distill/scripts/scan-rules.sh",
+      "sha256": "0cfac69aff6c6ea37eeb914639625b4f6d3d3dacbcaef99c6e0ab4a7d376ed9d",
+      "byteLength": 1604,
+      "workflow": "posix-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Bash/POSIX and actual installed utility capability/argv observations required; native Windows not qualified, WSL2 distinct. Never install or upgrade all host utilities."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/rules-distill/scripts/scan-skills.sh",
+      "sha256": "de6a938e14ce44d45e37fff24442ff3276b3cf1446cd2025e565426fb33d5cb5",
+      "byteLength": 3893,
+      "workflow": "posix-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Bash/POSIX and actual installed utility capability/argv observations required; native Windows not qualified, WSL2 distinct. Never install or upgrade all host utilities."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/skill-comply/pyproject.toml",
+      "sha256": "df59c2204d2873c542deb60cecba3add4c9485e1701f4c586e4f7ef92b77655c",
+      "byteLength": 360,
+      "workflow": "skill-comply",
+      "disposition": "preserved-upstream",
+      "requirements": "pytest is optional test-only. Agent-running paths require explicit Claude client/session."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/skill-comply/scripts/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteLength": 0,
+      "workflow": "skill-comply",
+      "disposition": "preserved-upstream",
+      "requirements": "pytest is optional test-only. Agent-running paths require explicit Claude client/session."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/skill-comply/scripts/classifier.py",
+      "sha256": "f9847e0cb5475e81a0b8fd7fa70f802bf653c0867ea0c39b71de13c05763cbc9",
+      "byteLength": 2414,
+      "workflow": "skill-comply",
+      "disposition": "preserved-upstream",
+      "requirements": "pytest is optional test-only. Agent-running paths require explicit Claude client/session."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/skill-comply/scripts/grader.py",
+      "sha256": "01ba072b5a5535f98aa71bca30ccde493a501b86e2b95f65af73a74dd8dd1259",
+      "byteLength": 4404,
+      "workflow": "skill-comply",
+      "disposition": "preserved-upstream",
+      "requirements": "pytest is optional test-only. Agent-running paths require explicit Claude client/session."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/skill-comply/scripts/parser.py",
+      "sha256": "ccb2a27cccd3b4af41e618a7b64c8753b24a8298e6c77e80271fe4f71ca82629",
+      "byteLength": 2777,
+      "workflow": "skill-comply",
+      "disposition": "preserved-upstream",
+      "requirements": "pytest is optional test-only. Agent-running paths require explicit Claude client/session."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/skill-comply/scripts/report.py",
+      "sha256": "fc188fb8c64c5d429e0333e7277a6a3ba87ba7f8eaa33ee4de29673bd37e725f",
+      "byteLength": 6470,
+      "workflow": "skill-comply",
+      "disposition": "preserved-upstream",
+      "requirements": "pytest is optional test-only. Agent-running paths require explicit Claude client/session."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/skill-comply/scripts/run.py",
+      "sha256": "9bd9af2a98490d5dbbbb9de9c42be3c883d61a1cf8014c4604eb46380293e223",
+      "byteLength": 4294,
+      "workflow": "skill-comply",
+      "disposition": "preserved-upstream",
+      "requirements": "pytest is optional test-only. Agent-running paths require explicit Claude client/session."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/skill-comply/scripts/runner.py",
+      "sha256": "1901b9084756be518d86ed3f205b8f8f945b772af7b022700d70ad0e7a4eb59f",
+      "byteLength": 9114,
+      "workflow": "skill-comply",
+      "disposition": "preserved-upstream",
+      "requirements": "pytest is optional test-only. Agent-running paths require explicit Claude client/session."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/skill-comply/scripts/scenario_generator.py",
+      "sha256": "b900df39ea775494d716751b095beb0e01af5b2288caf5afd7207afe197f16f8",
+      "byteLength": 1835,
+      "workflow": "skill-comply",
+      "disposition": "preserved-upstream",
+      "requirements": "pytest is optional test-only. Agent-running paths require explicit Claude client/session."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/skill-comply/scripts/spec_generator.py",
+      "sha256": "3d22f61dd77c1e1589effe556f58155794e67b9b8f90867ae06f1e59b80756c4",
+      "byteLength": 2202,
+      "workflow": "skill-comply",
+      "disposition": "preserved-upstream",
+      "requirements": "pytest is optional test-only. Agent-running paths require explicit Claude client/session."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/skill-comply/scripts/utils.py",
+      "sha256": "7a5b1509ac0785f330314e0b59f57dd495ca83e8111738e30169ed49e85d0d22",
+      "byteLength": 411,
+      "workflow": "skill-comply",
+      "disposition": "preserved-upstream",
+      "requirements": "pytest is optional test-only. Agent-running paths require explicit Claude client/session."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/skill-comply/tests/test_grader.py",
+      "sha256": "311007f79f744190b22b3239503891e4900bdc3a822505fce7a881ea059ff1e5",
+      "byteLength": 8185,
+      "workflow": "skill-comply",
+      "disposition": "preserved-upstream",
+      "requirements": "pytest is optional test-only. Agent-running paths require explicit Claude client/session."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/skill-comply/tests/test_parser.py",
+      "sha256": "c56055fd0927d38debb564f48e2b5432a7daaf3ecf8ff7d020bd98af3acd924e",
+      "byteLength": 3140,
+      "workflow": "skill-comply",
+      "disposition": "preserved-upstream",
+      "requirements": "pytest is optional test-only. Agent-running paths require explicit Claude client/session."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/skill-comply/tests/test_runner.py",
+      "sha256": "a4b8009cfe9646b77f065c57aa3ac858dc054938c466d2960f43062e798c14f5",
+      "byteLength": 12265,
+      "workflow": "skill-comply",
+      "disposition": "preserved-upstream",
+      "requirements": "pytest is optional test-only. Agent-running paths require explicit Claude client/session."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/skill-stocktake/scripts/quick-diff.sh",
+      "sha256": "ebb95f8bb38e2cc1624d16b9f4eaa075b0f2aaff352cd1d1c8b6f04a7e75beca",
+      "byteLength": 4474,
+      "workflow": "posix-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Bash/POSIX and actual installed utility capability/argv observations required; native Windows not qualified, WSL2 distinct. Never install or upgrade all host utilities."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/skill-stocktake/scripts/save-results.sh",
+      "sha256": "250968532dc3bf1074f024a710d5d8aeec930e6798269703072f062fad1905bd",
+      "byteLength": 1952,
+      "workflow": "posix-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Bash/POSIX and actual installed utility capability/argv observations required; native Windows not qualified, WSL2 distinct. Never install or upgrade all host utilities."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/skill-stocktake/scripts/scan.sh",
+      "sha256": "366cbf75ec4ecb7bb1609e843ebb16917d42a81b983ad90cb69341f764456cb6",
+      "byteLength": 7303,
+      "workflow": "posix-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Bash/POSIX and actual installed utility capability/argv observations required; native Windows not qualified, WSL2 distinct. Never install or upgrade all host utilities."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/terminal-opener/scripts/open-terminal.js",
+      "sha256": "d7dceb3d0fd1bdb7f7061dc7a78f1b74df172b56c9d78df943b4c18353a4be9f",
+      "byteLength": 11931,
+      "workflow": "terminal",
+      "disposition": "preserved-upstream",
+      "requirements": "Explicit WezTerm stable 20240203-110809-5046fc22; platform terminal alternatives need observed OS package and argv. PowerShell (powershell.exe) and pwsh are separate. X11 and Wayland are separate; no automatic launch."
+    },
+    {
+      "path": "release/materials/github.com/affaan-m/ECC/5064474d4d762dc9640234a41617cccb79185cec/skills/videodb/scripts/ws_listener.py",
+      "sha256": "1b8867e19cca1509993a9136554e3330b4a0d7942bf1b01c3b9469bfe5da06cd",
+      "byteLength": 8422,
+      "workflow": "videodb",
+      "disposition": "preserved-upstream",
+      "requirements": "Service credentials, websocket and paid operations require explicit activation."
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/algorithmic-art/templates/generator_template.js",
+      "sha256": "9ee0f1da52ef8f7bbfde1917123654880890d43f2d388642d71eab6dd78f94c4",
+      "byteLength": 7826,
+      "workflow": "algorithmic-art",
+      "disposition": "preserved-upstream",
+      "requirements": "Browser p5.js template runtime; supplied template CDN version remains unchanged. Explicit browser/CDN network required; not a Node CLI or automatic installation."
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/mcp-builder/scripts/connections.py",
+      "sha256": "9403668a2041568772082a8b334122c1f88daf0541fb393af4522d0094a47a6e",
+      "byteLength": 4875,
+      "workflow": "mcp-evaluator",
+      "disposition": "preserved-upstream",
+      "requirements": "API credentials and explicit paid invocation are separate. Stub fixture makes no model request."
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/mcp-builder/scripts/evaluation.py",
+      "sha256": "49ed1d17cdce5da101b210197740713f49b935c29d4f339542a14b132658e6f7",
+      "byteLength": 12579,
+      "workflow": "mcp-evaluator",
+      "disposition": "preserved-upstream",
+      "requirements": "API credentials and explicit paid invocation are separate. Stub fixture makes no model request."
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/mcp-builder/scripts/requirements.txt",
+      "sha256": "d5d7558b2368ecea9dfeed7d1fbc71ee9e0750bebd1282faa527d528a344c3c7",
+      "byteLength": 29,
+      "workflow": "mcp-evaluator",
+      "disposition": "preserved-upstream",
+      "requirements": "API credentials and explicit paid invocation are separate. Stub fixture makes no model request."
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/skill-creator/eval-viewer/generate_review.py",
+      "sha256": "fc9d1b9243fe5ab6012ebd579bd76d0035de1b79fd3b969de114defab26478fb",
+      "byteLength": 16365,
+      "workflow": "skill-authoring",
+      "disposition": "preserved-upstream",
+      "requirements": "Claude CLI/session required only by run_eval/run_loop; description improvement needs API credentials. Validation and report generation are offline."
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/skill-creator/scripts/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteLength": 0,
+      "workflow": "skill-authoring",
+      "disposition": "preserved-upstream",
+      "requirements": "Claude CLI/session required only by run_eval/run_loop; description improvement needs API credentials. Validation and report generation are offline."
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/skill-creator/scripts/aggregate_benchmark.py",
+      "sha256": "123ef128ea5ccc01a4b1ac212ef5567f21e9c13d3d240609780beeb3200c49aa",
+      "byteLength": 14386,
+      "workflow": "skill-authoring",
+      "disposition": "preserved-upstream",
+      "requirements": "Claude CLI/session required only by run_eval/run_loop; description improvement needs API credentials. Validation and report generation are offline."
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/skill-creator/scripts/generate_report.py",
+      "sha256": "13df7118a3c50c83c4c3250a606d5f2b20b25a3d44cbc392b3d669ec75281453",
+      "byteLength": 12847,
+      "workflow": "skill-authoring",
+      "disposition": "preserved-upstream",
+      "requirements": "Claude CLI/session required only by run_eval/run_loop; description improvement needs API credentials. Validation and report generation are offline."
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/skill-creator/scripts/improve_description.py",
+      "sha256": "87d864570220b699fac52da309d2d6efdb060647bfebc74f768128e646accf80",
+      "byteLength": 11116,
+      "workflow": "skill-authoring",
+      "disposition": "preserved-upstream",
+      "requirements": "Claude CLI/session required only by run_eval/run_loop; description improvement needs API credentials. Validation and report generation are offline."
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/skill-creator/scripts/package_skill.py",
+      "sha256": "1a33059b0db1ef73375d46d513e5ea81369d2e8838c970597b0d52ddef8d1c0f",
+      "byteLength": 4234,
+      "workflow": "skill-authoring",
+      "disposition": "preserved-upstream",
+      "requirements": "Claude CLI/session required only by run_eval/run_loop; description improvement needs API credentials. Validation and report generation are offline."
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/skill-creator/scripts/quick_validate.py",
+      "sha256": "67cf5703402013936c8fb75ad6a1afecd8841d45cc5e606b634eb05825fde365",
+      "byteLength": 3972,
+      "workflow": "skill-authoring",
+      "disposition": "preserved-upstream",
+      "requirements": "Claude CLI/session required only by run_eval/run_loop; description improvement needs API credentials. Validation and report generation are offline."
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/skill-creator/scripts/run_eval.py",
+      "sha256": "43e3b8f80dbf69c343967ba77e268fae991d9fa3ed68b32a0ff02532cd48657f",
+      "byteLength": 11464,
+      "workflow": "skill-authoring",
+      "disposition": "preserved-upstream",
+      "requirements": "Claude CLI/session required only by run_eval/run_loop; description improvement needs API credentials. Validation and report generation are offline."
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/skill-creator/scripts/run_loop.py",
+      "sha256": "7bd6f674203168520517eec94c55f493c0d154339b061b4d7c0f0dad187d0f21",
+      "byteLength": 13605,
+      "workflow": "skill-authoring",
+      "disposition": "preserved-upstream",
+      "requirements": "Claude CLI/session required only by run_eval/run_loop; description improvement needs API credentials. Validation and report generation are offline."
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/skill-creator/scripts/utils.py",
+      "sha256": "3af8ae62c40c73ab712207436a0d9a981e845f25c5a7040229eb189cc8e45bb1",
+      "byteLength": 1661,
+      "workflow": "skill-authoring",
+      "disposition": "preserved-upstream",
+      "requirements": "Claude CLI/session required only by run_eval/run_loop; description improvement needs API credentials. Validation and report generation are offline."
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/slack-gif-creator/core/easing.py",
+      "sha256": "60bc943449802541f0f0881a874faa7ef408aaaf0b758fde756664ada7740452",
+      "byteLength": 6265,
+      "workflow": "gif",
+      "disposition": "preserved-upstream",
+      "requirements": "Pillow GIF fixture does not use FFmpeg; video conversion needs separately sourced FFmpeg 9.0.2 binary/codec distribution. imageio-ffmpeg bundled binary is not that candidate."
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/slack-gif-creator/core/frame_composer.py",
+      "sha256": "a127ea8f2a58893ea10a5c7b5cab4e2010af6515adc538676eb0cc14f5a03985",
+      "byteLength": 4548,
+      "workflow": "gif",
+      "disposition": "preserved-upstream",
+      "requirements": "Pillow GIF fixture does not use FFmpeg; video conversion needs separately sourced FFmpeg 9.0.2 binary/codec distribution. imageio-ffmpeg bundled binary is not that candidate."
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/slack-gif-creator/core/gif_builder.py",
+      "sha256": "b6f50d738c491ee0438a2e86e897f71cdab9792494ba4605f140befb0bddbf89",
+      "byteLength": 9847,
+      "workflow": "gif",
+      "disposition": "preserved-upstream",
+      "requirements": "Pillow GIF fixture does not use FFmpeg; video conversion needs separately sourced FFmpeg 9.0.2 binary/codec distribution. imageio-ffmpeg bundled binary is not that candidate."
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/slack-gif-creator/core/validators.py",
+      "sha256": "56bd19e3aae05f8387d78ec8185d6098b3dc909d1fa041211753da37212528a3",
+      "byteLength": 3785,
+      "workflow": "gif",
+      "disposition": "preserved-upstream",
+      "requirements": "Pillow GIF fixture does not use FFmpeg; video conversion needs separately sourced FFmpeg 9.0.2 binary/codec distribution. imageio-ffmpeg bundled binary is not that candidate."
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/slack-gif-creator/requirements.txt",
+      "sha256": "edc7108a0c6b56183566c71ee96830f6dc791e3b41952112d9cb56b33a6bd757",
+      "byteLength": 66,
+      "workflow": "gif",
+      "disposition": "preserved-upstream",
+      "requirements": "Pillow GIF fixture does not use FFmpeg; video conversion needs separately sourced FFmpeg 9.0.2 binary/codec distribution. imageio-ffmpeg bundled binary is not that candidate."
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/web-artifacts-builder/scripts/bundle-artifact.sh",
+      "sha256": "abf0e480bf6585b56fab8526a407dfb7dc740812bddd70c636e1e8f3df5f9618",
+      "byteLength": 1517,
+      "workflow": "artifact-legacy",
+      "disposition": "preserved-upstream",
+      "requirements": "Preserved upstream historical orchestration. Use separately delivered web-artifacts-builder-modern; never execute global pnpm install or floating Parcel path by default."
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/web-artifacts-builder/scripts/init-artifact.sh",
+      "sha256": "355e5dd4382aaaee91f01f1627eaeab30b2676ffa8d9b3ec328a1ae450ebccaa",
+      "byteLength": 9924,
+      "workflow": "artifact-legacy",
+      "disposition": "preserved-upstream",
+      "requirements": "Preserved upstream historical orchestration. Use separately delivered web-artifacts-builder-modern; never execute global pnpm install or floating Parcel path by default."
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/webapp-testing/examples/console_logging.py",
+      "sha256": "ea46877289acb82da7e7ce59d0bc37c8977cd57e2a006d0c88d7a1c625bf95da",
+      "byteLength": 1027,
+      "workflow": "browser",
+      "disposition": "preserved-upstream",
+      "requirements": "Playwright-managed Chromium build and OS libraries must be bound explicitly; Chrome for Testing 156.0.8078.47 is a separate explicit route. Windows arm64 Chrome for Testing blocked."
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/webapp-testing/examples/element_discovery.py",
+      "sha256": "d63c89604a22f8845d724e95dda45db49b1bf57c25ce0a83afbb7b8da3d402f0",
+      "byteLength": 1463,
+      "workflow": "browser",
+      "disposition": "preserved-upstream",
+      "requirements": "Playwright-managed Chromium build and OS libraries must be bound explicitly; Chrome for Testing 156.0.8078.47 is a separate explicit route. Windows arm64 Chrome for Testing blocked."
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/webapp-testing/examples/static_html_automation.py",
+      "sha256": "9d533aafb875ee3ab8b8ebf8f5b9003ac8d999da3d09b285cce252e623140064",
+      "byteLength": 953,
+      "workflow": "browser",
+      "disposition": "preserved-upstream",
+      "requirements": "Playwright-managed Chromium build and OS libraries must be bound explicitly; Chrome for Testing 156.0.8078.47 is a separate explicit route. Windows arm64 Chrome for Testing blocked."
+    },
+    {
+      "path": "release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/webapp-testing/scripts/with_server.py",
+      "sha256": "b0dcf4918935b795f4eda9821579b9902119235ff4447f687a30286e7d0925fd",
+      "byteLength": 3693,
+      "workflow": "browser",
+      "disposition": "preserved-upstream",
+      "requirements": "Playwright-managed Chromium build and OS libraries must be bound explicitly; Chrome for Testing 156.0.8078.47 is a separate explicit route. Windows arm64 Chrome for Testing blocked."
+    },
+    {
+      "path": "release/materials/github.com/mattpocock/skills/d81f3a183412e71a5b1e84ca21bc1a35eea03a60/skills/engineering/diagnosing-bugs/scripts/hitl-loop.template.sh",
+      "sha256": "35103539fc36873eea36074769ad454f9379d6fc8b2dc0e26ce987fd3bfe5503",
+      "byteLength": 1316,
+      "workflow": "posix-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Bash/POSIX and actual installed utility capability/argv observations required; native Windows not qualified, WSL2 distinct. Never install or upgrade all host utilities."
+    },
+    {
+      "path": "release/materials/github.com/mattpocock/skills/d81f3a183412e71a5b1e84ca21bc1a35eea03a60/skills/engineering/wizard/template.sh",
+      "sha256": "33cbe9dfb1d0e9185b60248a52aabed14bc64785a00cac695e302e739dd6c153",
+      "byteLength": 8567,
+      "workflow": "wizard",
+      "disposition": "preserved-upstream",
+      "requirements": "Bash and observed shell utility packages. gh 2.103.3 is optional only for selected GitHub operations; authentication/account actions remain explicit."
+    },
+    {
+      "path": "release/materials/github.com/obra/superpowers/5bf4e78011075bcfc0dc295f0724994cd123ee71/.hermes-plugin/__init__.py",
+      "sha256": "7fd93899e39371d56ba1e32660548673afa78f3a4a8bd306f93fbb418afa6f3c",
+      "byteLength": 3937,
+      "workflow": "client-plugins",
+      "disposition": "preserved-upstream",
+      "requirements": "Client-owned Python/Node/TypeScript or cmd hook protocol. Actual host runtime, client loading, approvals and event bindings remain separately qualified."
+    },
+    {
+      "path": "release/materials/github.com/obra/superpowers/5bf4e78011075bcfc0dc295f0724994cd123ee71/.opencode/plugins/superpowers.js",
+      "sha256": "c979fe5a9fd6fddc9bc9730b34b25989f9d53939eed7d594c4564f6e47495f26",
+      "byteLength": 17617,
+      "workflow": "client-plugins",
+      "disposition": "preserved-upstream",
+      "requirements": "Client-owned Python/Node/TypeScript or cmd hook protocol. Actual host runtime, client loading, approvals and event bindings remain separately qualified."
+    },
+    {
+      "path": "release/materials/github.com/obra/superpowers/5bf4e78011075bcfc0dc295f0724994cd123ee71/.pi/extensions/superpowers.ts",
+      "sha256": "39c27000c047f8a1399a76e032e4cd239d7bdb0be168a121f46a2ac719deaae0",
+      "byteLength": 4283,
+      "workflow": "client-plugins",
+      "disposition": "preserved-upstream",
+      "requirements": "Client-owned Python/Node/TypeScript or cmd hook protocol. Actual host runtime, client loading, approvals and event bindings remain separately qualified."
+    },
+    {
+      "path": "release/materials/github.com/obra/superpowers/5bf4e78011075bcfc0dc295f0724994cd123ee71/hooks/run-hook.cmd",
+      "sha256": "d3d9c6199678dab2858e60509dde5e7414f13c2a2b5e48a38b1d368b6e1d6abb",
+      "byteLength": 1460,
+      "workflow": "client-plugins",
+      "disposition": "preserved-upstream",
+      "requirements": "Client-owned Python/Node/TypeScript or cmd hook protocol. Actual host runtime, client loading, approvals and event bindings remain separately qualified."
+    },
+    {
+      "path": "release/materials/github.com/obra/superpowers/5bf4e78011075bcfc0dc295f0724994cd123ee71/hooks/session-start",
+      "sha256": "5e92229e49d7cff5e0355ab84b0bceb0d27d53c565b33210132ce6e413ee9665",
+      "byteLength": 2667,
+      "workflow": "posix-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Bash/POSIX and actual installed utility capability/argv observations required; native Windows not qualified, WSL2 distinct. Never install or upgrade all host utilities."
+    },
+    {
+      "path": "release/materials/github.com/obra/superpowers/5bf4e78011075bcfc0dc295f0724994cd123ee71/index.js",
+      "sha256": "f0132fd5339befeb99ba903b1619fd9530969e5b4a1ea8cecf0b0a7f0213a099",
+      "byteLength": 536,
+      "workflow": "node-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution."
+    },
+    {
+      "path": "release/materials/github.com/obra/superpowers/5bf4e78011075bcfc0dc295f0724994cd123ee71/package.json",
+      "sha256": "868afc1612a438852cc73a4bb27184a31a1b2837958f5b087aabadf6bb8fb21a",
+      "byteLength": 433,
+      "workflow": "node-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution."
+    },
+    {
+      "path": "release/materials/github.com/obra/superpowers/5bf4e78011075bcfc0dc295f0724994cd123ee71/scripts/package-codex-plugin.sh",
+      "sha256": "2541617b86519273428d12d18a5f7ec852ac39cfdec74622c01ce71a504bb80d",
+      "byteLength": 10338,
+      "workflow": "posix-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Bash/POSIX and actual installed utility capability/argv observations required; native Windows not qualified, WSL2 distinct. Never install or upgrade all host utilities."
+    },
+    {
+      "path": "release/materials/github.com/obra/superpowers/5bf4e78011075bcfc0dc295f0724994cd123ee71/scripts/sync-to-codex-plugin.sh",
+      "sha256": "d24c3a579f5d6759f08f8c1c9a7772caa6e937dcc124f1aae5fe0ffd1177ee24",
+      "byteLength": 15009,
+      "workflow": "posix-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Bash/POSIX and actual installed utility capability/argv observations required; native Windows not qualified, WSL2 distinct. Never install or upgrade all host utilities."
+    },
+    {
+      "path": "release/materials/github.com/obra/superpowers/5bf4e78011075bcfc0dc295f0724994cd123ee71/skills/brainstorming/scripts/helper.js",
+      "sha256": "43c6d69954a46ec34a2a262bcc62a9a7e83e839c739f199cb72646d397c686e3",
+      "byteLength": 5615,
+      "workflow": "visual-companion",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1 for helper/server; POSIX start/stop scripts require Bash and OS process tools. Explicit loopback/port and owned-process deadline; Windows wrapper unqualified."
+    },
+    {
+      "path": "release/materials/github.com/obra/superpowers/5bf4e78011075bcfc0dc295f0724994cd123ee71/skills/brainstorming/scripts/server.cjs",
+      "sha256": "2d2961ea8d11f56c5f4c3a1a68d22709efa5d7601a2246d8c880774e7e9e8412",
+      "byteLength": 25693,
+      "workflow": "visual-companion",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1 for helper/server; POSIX start/stop scripts require Bash and OS process tools. Explicit loopback/port and owned-process deadline; Windows wrapper unqualified."
+    },
+    {
+      "path": "release/materials/github.com/obra/superpowers/5bf4e78011075bcfc0dc295f0724994cd123ee71/skills/brainstorming/scripts/start-server.sh",
+      "sha256": "a4e5ae84275bcaacd2f84345afeabe59cf7b00ba080e123da7cc1fb226f12847",
+      "byteLength": 6908,
+      "workflow": "visual-companion",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1 for helper/server; POSIX start/stop scripts require Bash and OS process tools. Explicit loopback/port and owned-process deadline; Windows wrapper unqualified."
+    },
+    {
+      "path": "release/materials/github.com/obra/superpowers/5bf4e78011075bcfc0dc295f0724994cd123ee71/skills/brainstorming/scripts/stop-server.sh",
+      "sha256": "0b5ccbbd57f62d3ed88993f7940b5ee0e5c0fc9b21c550c623da4f6292e47daf",
+      "byteLength": 3263,
+      "workflow": "visual-companion",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1 for helper/server; POSIX start/stop scripts require Bash and OS process tools. Explicit loopback/port and owned-process deadline; Windows wrapper unqualified."
+    },
+    {
+      "path": "release/materials/github.com/obra/superpowers/5bf4e78011075bcfc0dc295f0724994cd123ee71/skills/executing-plans/scripts/task-done",
+      "sha256": "f704dc216e0602f95c601b9ee1113c9a55cc1c5f6e4d149dddfba0fd3ad1c314",
+      "byteLength": 1670,
+      "workflow": "posix-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Bash/POSIX and actual installed utility capability/argv observations required; native Windows not qualified, WSL2 distinct. Never install or upgrade all host utilities."
+    },
+    {
+      "path": "release/materials/github.com/obra/superpowers/5bf4e78011075bcfc0dc295f0724994cd123ee71/skills/executing-plans/scripts/task-start",
+      "sha256": "f833693c8fce3700fc9f841562d80f8015cd40f652c168a3405ac3e46947a1fe",
+      "byteLength": 963,
+      "workflow": "posix-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Bash/POSIX and actual installed utility capability/argv observations required; native Windows not qualified, WSL2 distinct. Never install or upgrade all host utilities."
+    },
+    {
+      "path": "release/materials/github.com/obra/superpowers/5bf4e78011075bcfc0dc295f0724994cd123ee71/skills/subagent-driven-development/scripts/review-package",
+      "sha256": "f9275175b2276b1d5fdb1bae0bedaadd2a950659b7c6f311ea37ff85e1861b1f",
+      "byteLength": 2029,
+      "workflow": "posix-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Bash/POSIX and actual installed utility capability/argv observations required; native Windows not qualified, WSL2 distinct. Never install or upgrade all host utilities."
+    },
+    {
+      "path": "release/materials/github.com/obra/superpowers/5bf4e78011075bcfc0dc295f0724994cd123ee71/skills/subagent-driven-development/scripts/sdd-workspace",
+      "sha256": "75ca46c756ba4209ca36e0d3d65567257ceb33bc7a6775b9dad946707cb3bd7b",
+      "byteLength": 3265,
+      "workflow": "posix-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Bash/POSIX and actual installed utility capability/argv observations required; native Windows not qualified, WSL2 distinct. Never install or upgrade all host utilities."
+    },
+    {
+      "path": "release/materials/github.com/obra/superpowers/5bf4e78011075bcfc0dc295f0724994cd123ee71/skills/subagent-driven-development/scripts/task-brief",
+      "sha256": "cc563538e09abf719b34ddf4b2fa7a65cf3b301729039dbfa923cb060f729146",
+      "byteLength": 1322,
+      "workflow": "posix-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Bash/POSIX and actual installed utility capability/argv observations required; native Windows not qualified, WSL2 distinct. Never install or upgrade all host utilities."
+    },
+    {
+      "path": "release/materials/github.com/obra/superpowers/5bf4e78011075bcfc0dc295f0724994cd123ee71/skills/systematic-debugging/condition-based-waiting-example.ts",
+      "sha256": "40ae5ebe497fdf310200e43fe986552546d0a22837c0d39e855db1cfd33eb88e",
+      "byteLength": 5054,
+      "workflow": "client-plugins",
+      "disposition": "preserved-upstream",
+      "requirements": "Client-owned Python/Node/TypeScript or cmd hook protocol. Actual host runtime, client loading, approvals and event bindings remain separately qualified."
+    },
+    {
+      "path": "release/materials/github.com/obra/superpowers/5bf4e78011075bcfc0dc295f0724994cd123ee71/skills/systematic-debugging/find-polluter.sh",
+      "sha256": "dd7b8f13c4cc2a24b33ff87b18da9248f3e1c80a085c3316224f69ff0fa5c43c",
+      "byteLength": 1986,
+      "workflow": "posix-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Bash/POSIX and actual installed utility capability/argv observations required; native Windows not qualified, WSL2 distinct. Never install or upgrade all host utilities."
+    },
+    {
+      "path": "release/materials/github.com/obra/superpowers/5bf4e78011075bcfc0dc295f0724994cd123ee71/skills/writing-skills/render-graphs.js",
+      "sha256": "c7f412cc629461c4d10287e668731874c0497707023e3e3f74a5355eb2cee196",
+      "byteLength": 4968,
+      "workflow": "graphviz",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1 and Graphviz 16.1 dot with exact native package; rendering may invoke graph descriptions. Native package/font closure pending."
+    },
+    {
+      "path": "release/materials/github.com/samartomar/aih-extensions/79f016c25c454937d67dcf49c3cf3070e0339832/hooks/git-guard.mjs",
+      "sha256": "45221ff594aa1126e8920118245dbfa8434505781bff2b51f32bc74c194edd87",
+      "byteLength": 1802,
+      "workflow": "node-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution."
+    },
+    {
+      "path": "release/materials/github.com/samartomar/aih-extensions/79f016c25c454937d67dcf49c3cf3070e0339832/hooks/lanes-card.mjs",
+      "sha256": "c0380c27c0c613f788ba74fe13eb0bbc604942fce6e4d406c7a783bffbddd209",
+      "byteLength": 427,
+      "workflow": "node-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution."
+    },
+    {
+      "path": "release/materials/github.com/samartomar/aih-extensions/79f016c25c454937d67dcf49c3cf3070e0339832/hooks/lib/git-context.mjs",
+      "sha256": "84685636feeb256c730bec291232cd43a29151f218f85e46e8ce6a9108ad3a81",
+      "byteLength": 3242,
+      "workflow": "node-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution."
+    },
+    {
+      "path": "release/materials/github.com/samartomar/aih-extensions/79f016c25c454937d67dcf49c3cf3070e0339832/hooks/lib/git-policy.mjs",
+      "sha256": "3fd71cf280325a043a49286c19690abd5654e3aedea4dbd7a4844e126845e1fd",
+      "byteLength": 8361,
+      "workflow": "node-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution."
+    },
+    {
+      "path": "release/materials/github.com/samartomar/aih-extensions/79f016c25c454937d67dcf49c3cf3070e0339832/hooks/lib/shell.mjs",
+      "sha256": "f1c55be104f5ca34fc06106562e7af7749097bf9272ab78a65a822ca54e57b21",
+      "byteLength": 9743,
+      "workflow": "node-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution."
+    },
+    {
+      "path": "release/materials/github.com/samartomar/aih-extensions/79f016c25c454937d67dcf49c3cf3070e0339832/hooks/skill-guard.mjs",
+      "sha256": "8e23104bfdf811244ed3a613a7267fd80ab82ddffcd400ce712737644c3016f6",
+      "byteLength": 984,
+      "workflow": "node-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution."
+    },
+    {
+      "path": "release/materials/github.com/samartomar/aih-extensions/79f016c25c454937d67dcf49c3cf3070e0339832/skills/idea-refine/scripts/idea-refine.sh",
+      "sha256": "f02a52408a4218047c032d221483abfbb48d11f090bb4915965c7419bf2e0e47",
+      "byteLength": 342,
+      "workflow": "posix-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Bash/POSIX and actual installed utility capability/argv observations required; native Windows not qualified, WSL2 distinct. Never install or upgrade all host utilities."
+    },
+    {
+      "path": "release/materials/github.com/samartomar/aih-extensions/79f016c25c454937d67dcf49c3cf3070e0339832/skills/install-commit-gate/commit-gate.mjs",
+      "sha256": "ed3ad3dec86f1b75a925c51a4154b4036d77440da3d28958a336073910251a36",
+      "byteLength": 9185,
+      "workflow": "node-utilities",
+      "disposition": "preserved-upstream",
+      "requirements": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution."
+    }
+  ],
+  "workflows": [
+    {
+      "id": "algorithmic-art",
+      "python": null,
+      "packages": {},
+      "node": null,
+      "requirements": "Browser p5.js template runtime; supplied template CDN version remains unchanged. Explicit browser/CDN network required; not a Node CLI or automatic installation.",
+      "artifactClosure": "unresolved",
+      "platforms": {
+        "linux-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "linux-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        }
+      },
+      "lock": null
+    },
+    {
+      "id": "mcp-evaluator",
+      "python": "3.14.10",
+      "packages": {
+        "mcp": "2.3.0",
+        "anthropic": "2.3.0",
+        "PyYAML": "6.0.3",
+        "certifi": "2026.10.23"
+      },
+      "node": null,
+      "requirements": "API credentials and explicit paid invocation are separate. Stub fixture makes no model request.",
+      "artifactClosure": "unresolved",
+      "platforms": {
+        "linux-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "linux-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        }
+      },
+      "lock": "locks/mcp-evaluator-linux-x64.txt",
+      "adaptation": "adaptations/mcp-builder-mcp2/provenance.json",
+      "entrypoint": "adaptations/mcp-builder-mcp2/catalog_mcp2_evaluation.py"
+    },
+    {
+      "id": "skill-authoring",
+      "python": "3.14.10",
+      "packages": {
+        "PyYAML": "6.0.3",
+        "anthropic": "2.3.0"
+      },
+      "node": null,
+      "requirements": "Claude CLI/session required only by run_eval/run_loop; description improvement needs API credentials. Validation and report generation are offline.",
+      "artifactClosure": "unresolved",
+      "platforms": {
+        "linux-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "linux-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        }
+      },
+      "lock": "locks/skill-authoring-linux-x64.txt"
+    },
+    {
+      "id": "evalview",
+      "python": "3.14.10",
+      "packages": {
+        "evalview": "0.8.1"
+      },
+      "node": null,
+      "requirements": "Optional separate backend; credentials/model invocation are never part of installation.",
+      "artifactClosure": "unresolved",
+      "platforms": {
+        "linux-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "linux-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        }
+      },
+      "lock": "locks/evalview-linux-x64.txt"
+    },
+    {
+      "id": "gif",
+      "python": "3.15.2",
+      "packages": {
+        "pillow": "13.0.0",
+        "imageio": "2.38.1",
+        "imageio-ffmpeg": "0.6.0",
+        "numpy": "2.5.4"
+      },
+      "node": null,
+      "requirements": "Pillow GIF fixture does not use FFmpeg; video conversion needs separately sourced FFmpeg 9.0.2 binary/codec distribution. imageio-ffmpeg bundled binary is not that candidate.",
+      "artifactClosure": "unresolved",
+      "platforms": {
+        "linux-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "linux-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        }
+      },
+      "lock": "locks/gif-linux-x64.txt"
+    },
+    {
+      "id": "browser",
+      "python": "3.15.2",
+      "packages": {
+        "playwright": "1.64.1"
+      },
+      "node": null,
+      "requirements": "Playwright-managed Chromium build and OS libraries must be bound explicitly; Chrome for Testing 156.0.8078.47 is a separate explicit route. Windows arm64 Chrome for Testing blocked.",
+      "artifactClosure": "unresolved",
+      "platforms": {
+        "linux-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "linux-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-arm64": {
+          "status": "blocked",
+          "reason": "No native Windows arm64 Chrome for Testing artifact sourced"
+        }
+      },
+      "lock": "locks/browser-linux-x64.txt"
+    },
+    {
+      "id": "slides",
+      "python": "3.15.2",
+      "packages": {
+        "python-pptx": "1.0.2",
+        "reportlab": "5.1.0",
+        "pillow": "13.0.0"
+      },
+      "node": "26.12.1",
+      "requirements": "PPTX extraction and ReportLab PDF are separate from browser HTML export. HTML export needs Node 26.12.1 and Playwright 1.64.1/browser. Font files and licences need exact identities.",
+      "artifactClosure": "unresolved",
+      "platforms": {
+        "linux-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "linux-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        }
+      },
+      "lock": "locks/slides-linux-x64.txt"
+    },
+    {
+      "id": "icons",
+      "python": null,
+      "packages": {},
+      "node": null,
+      "requirements": "macOS only: Swift 6.4.1, AppKit/Foundation and exact SDK. iconify route also needs explicit backend/credentials; no native Linux fallback.",
+      "artifactClosure": "unresolved",
+      "platforms": {
+        "linux-x64": {
+          "status": "blocked",
+          "reason": "macOS AppKit required"
+        },
+        "linux-arm64": {
+          "status": "blocked",
+          "reason": "macOS AppKit required"
+        },
+        "darwin-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-x64": {
+          "status": "blocked",
+          "reason": "macOS AppKit required"
+        },
+        "win32-arm64": {
+          "status": "blocked",
+          "reason": "macOS AppKit required"
+        }
+      },
+      "lock": null
+    },
+    {
+      "id": "remotion",
+      "python": null,
+      "packages": {},
+      "node": "26.12.1",
+      "requirements": "Node 26.12.1; remotion and @remotion/google-fonts 4.0.539, React 19.3.1. Renderer/browser/font/FFmpeg 9.0.2 distributor closure unresolved. Do not silently use imageio bundled FFmpeg.",
+      "artifactClosure": "unresolved",
+      "platforms": {
+        "linux-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "linux-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        }
+      },
+      "lock": null
+    },
+    {
+      "id": "manim",
+      "python": "3.15.2",
+      "packages": {
+        "manim": "0.22.0"
+      },
+      "node": null,
+      "requirements": "Cairo/Pango/LaTeX/fonts and FFmpeg 9.0.2 binary/codec closure unresolved; no host compilation.",
+      "artifactClosure": "unresolved",
+      "platforms": {
+        "linux-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "linux-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        }
+      },
+      "lock": null
+    },
+    {
+      "id": "videodb",
+      "python": "3.15.2",
+      "packages": {
+        "videodb": "0.5.1"
+      },
+      "node": null,
+      "requirements": "Service credentials, websocket and paid operations require explicit activation.",
+      "artifactClosure": "unresolved",
+      "platforms": {
+        "linux-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "linux-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        }
+      },
+      "lock": "locks/videodb-linux-x64.txt"
+    },
+    {
+      "id": "skill-comply",
+      "python": "3.14.10",
+      "packages": {
+        "PyYAML": "6.0.3",
+        "pytest": "9.1.1"
+      },
+      "node": null,
+      "requirements": "pytest is optional test-only. Agent-running paths require explicit Claude client/session.",
+      "artifactClosure": "unresolved",
+      "platforms": {
+        "linux-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "linux-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        }
+      },
+      "lock": "locks/skill-comply-linux-x64.txt"
+    },
+    {
+      "id": "artifact-legacy",
+      "python": null,
+      "packages": {},
+      "node": "26.12.1",
+      "requirements": "Preserved upstream historical orchestration. Use separately delivered web-artifacts-builder-modern; never execute global pnpm install or floating Parcel path by default.",
+      "artifactClosure": "unresolved",
+      "platforms": {
+        "linux-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "linux-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        }
+      },
+      "lock": null
+    },
+    {
+      "id": "visual-companion",
+      "python": null,
+      "packages": {},
+      "node": "26.12.1",
+      "requirements": "Node 26.12.1 for helper/server; POSIX start/stop scripts require Bash and OS process tools. Explicit loopback/port and owned-process deadline; Windows wrapper unqualified.",
+      "artifactClosure": "unresolved",
+      "platforms": {
+        "linux-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "linux-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        }
+      },
+      "lock": null
+    },
+    {
+      "id": "graphviz",
+      "python": null,
+      "packages": {},
+      "node": "26.12.1",
+      "requirements": "Node 26.12.1 and Graphviz 16.1 dot with exact native package; rendering may invoke graph descriptions. Native package/font closure pending.",
+      "artifactClosure": "unresolved",
+      "platforms": {
+        "linux-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "linux-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        }
+      },
+      "lock": null
+    },
+    {
+      "id": "terminal",
+      "python": null,
+      "packages": {},
+      "node": null,
+      "requirements": "Explicit WezTerm stable 20240203-110809-5046fc22; platform terminal alternatives need observed OS package and argv. PowerShell (powershell.exe) and pwsh are separate. X11 and Wayland are separate; no automatic launch.",
+      "artifactClosure": "unresolved",
+      "platforms": {
+        "linux-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "linux-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        }
+      },
+      "lock": null
+    },
+    {
+      "id": "wizard",
+      "python": null,
+      "packages": {},
+      "node": null,
+      "requirements": "Bash and observed shell utility packages. gh 2.103.3 is optional only for selected GitHub operations; authentication/account actions remain explicit.",
+      "artifactClosure": "unresolved",
+      "platforms": {
+        "linux-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "linux-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        }
+      },
+      "lock": null
+    },
+    {
+      "id": "observer",
+      "python": "3.14.10",
+      "packages": {
+        "PyYAML": "6.0.3"
+      },
+      "node": null,
+      "requirements": "POSIX Bash process/pipe/flock/ps/kill/stat/date semantics require actual OS-package observations. Windows routes WSL-only until ported. Guardian activity heuristics do not prove safe idle detection.",
+      "artifactClosure": "unresolved",
+      "platforms": {
+        "linux-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "linux-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-x64": {
+          "status": "blocked",
+          "reason": "Native Windows POSIX route requires separately identified WSL2"
+        },
+        "win32-arm64": {
+          "status": "blocked",
+          "reason": "Native Windows POSIX route requires separately identified WSL2"
+        }
+      },
+      "lock": "locks/observer-linux-x64.txt"
+    },
+    {
+      "id": "node-utilities",
+      "python": null,
+      "packages": {},
+      "node": "26.12.1",
+      "requirements": "Node 26.12.1; Git/client-specific integrations and network/account prerequisites are per asset. No client activation, hooks installation or guessed provider substitution.",
+      "artifactClosure": "unresolved",
+      "platforms": {
+        "linux-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "linux-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        }
+      },
+      "lock": null
+    },
+    {
+      "id": "python-utilities",
+      "python": "3.15.2",
+      "packages": {},
+      "node": null,
+      "requirements": "Standard-library evaluator/gate/gacha; any optional external service remains caller-selected. No claim of semantic evaluation from heuristic output.",
+      "artifactClosure": "unresolved",
+      "platforms": {
+        "linux-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "linux-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        }
+      },
+      "lock": null
+    },
+    {
+      "id": "posix-utilities",
+      "python": null,
+      "packages": {},
+      "node": null,
+      "requirements": "Bash/POSIX and actual installed utility capability/argv observations required; native Windows not qualified, WSL2 distinct. Never install or upgrade all host utilities.",
+      "artifactClosure": "unresolved",
+      "platforms": {
+        "linux-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "linux-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-x64": {
+          "status": "blocked",
+          "reason": "Native Windows POSIX route requires separately identified WSL2"
+        },
+        "win32-arm64": {
+          "status": "blocked",
+          "reason": "Native Windows POSIX route requires separately identified WSL2"
+        }
+      },
+      "lock": null
+    },
+    {
+      "id": "client-plugins",
+      "python": null,
+      "packages": {},
+      "node": "26.12.1",
+      "requirements": "Client-owned Python/Node/TypeScript or cmd hook protocol. Actual host runtime, client loading, approvals and event bindings remain separately qualified.",
+      "artifactClosure": "unresolved",
+      "platforms": {
+        "linux-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "linux-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "darwin-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-x64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        },
+        "win32-arm64": {
+          "status": "blocked",
+          "reason": "Exact interpreter/native artifacts, dependency closure and native proof required"
+        }
+      },
+      "lock": null
+    }
+  ],
+  "adaptations": {
+    "mcp-evaluator": {
+      "entrypoint": "adaptations/mcp-builder-mcp2/catalog_mcp2_evaluation.py",
+      "files": [
+        {
+          "path": "adaptations/mcp-builder-mcp2/catalog_mcp2_evaluation.py",
+          "sha256": "6b1587327fa5c3cce7b23ae3abaf250903ba198113a550525d6c772a76225efe",
+          "byteLength": 12792
+        },
+        {
+          "path": "adaptations/mcp-builder-mcp2/catalog_mcp2_connections.py",
+          "sha256": "3c7cd43e1bcf37e09b76fa4373d670e9eb00aff9cd3df755b0c4f13e9436032f",
+          "byteLength": 5464
+        },
+        {
+          "path": "adaptations/mcp-builder-mcp2/provenance.json",
+          "sha256": "c815d216890335827df760bc6b9431931ee01bdccd8540162ee3b2a3b168ee6a",
+          "byteLength": 2331
+        }
+      ]
+    }
+  }
+}

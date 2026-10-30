@@ -15,14 +15,14 @@ const fixture = JSON.parse(run(["--input-type=module", "--eval", readFileSync(ne
 const planPath = fixture.plan, candidate = join(out, "candidate"), tool = join(root, "tools/assemble-release-package.mjs");
 const args = (plan = planPath, destination = candidate) => [tool, "--runtime", runtime, "--plan", plan, "--out", destination];
 const first = JSON.parse(run(args())), receipt = JSON.parse(readFileSync(first.receipt));
-// Two ordinary views are qualified; every other declared release, including the frozen
+// Three ordinary views are qualified; every other declared release, including the frozen
 // default and the releases whose prepared content holds their baseline slot, is carried
 // unchanged, and the frozen default keeps its recorded bytes.
 const declared = JSON.parse(run(["--input-type=module", "--eval", 'import * as contracts from "@aihq/catalog/contracts"; console.log(JSON.stringify({ releases: contracts.releaseInventory.releases, frozen: contracts.FROZEN_DEFAULT_RELEASE_SHA256 }));'], runtime));
-assert.deepEqual(receipt.views.map(view => view.id).sort(), ["anthropic", "web-artifacts"]);
+assert.deepEqual(receipt.views.map(view => view.id).sort(), ["anthropic", "executable-content", "web-artifacts"]);
 assert.deepEqual([...receipt.views.map(view => view.export), ...receipt.unchangedExports].sort(), declared.releases.map(entry => entry.release).sort());
 assert(receipt.unchangedExports.includes("./release.json")); assert.deepEqual(receipt.frozenExports, [{ export: "./release.json", sha256: declared.frozen }]);
-assert.equal(receipt.installedReadback.releaseExports, declared.releases.length); assert.equal(receipt.installedReadback.qualifiedViews, 2);
+assert.equal(receipt.installedReadback.releaseExports, declared.releases.length); assert.equal(receipt.installedReadback.qualifiedViews, 3);
 assert.deepEqual(receipt.installedReadback.frozenExports, receipt.frozenExports); assert.equal(receipt.installedReadback.ownInstalledPublicReader, true);
 const frozenCandidate = readFileSync(join(candidate, "package/release/release.json"));
 assert.deepEqual(frozenCandidate, readFileSync(join(runtime, "node_modules/@aihq/catalog/release/release.json"))); assert.equal(createHash("sha256").update(frozenCandidate).digest("hex"), declared.frozen);
@@ -68,7 +68,8 @@ assert.throws(() => run([...args(changedPath), "--resume", "true"]), /Resume inp
 const flip = bytes => { const changed = Buffer.from(bytes); changed[0] ^= 1; return changed; };
 for (const [name, member, change, reason] of [["resume-tree-change", "package/package.json", bytes => Buffer.concat([bytes, Buffer.from("\n")]), "Package member size changed"],
   ["resume-frozen-default-change", "package/release/release.json", bytes => Buffer.concat([bytes, Buffer.from("\n")]), "Package member size changed"],
-  ["resume-frozen-default-same-size-change", "package/release/release.json", flip, "Package member changed: release/release.json"]]) {
+  ["resume-frozen-default-same-size-change", "package/release/release.json", flip, "Package member changed: release/release.json"],
+  ["resume-executable-content-same-size-change", "package/release/release-executable-content.json", flip, "Package member changed: release/release-executable-content.json"]]) {
   const path = join(candidate, member), saved = readFileSync(path);
   writeFileSync(path, change(saved));
   try {
@@ -102,6 +103,22 @@ for (const [name, member, change, reason] of [["runtime-frozen-default-change", 
     assert(readFileSync(join(destination, "qualification-0.log"), "utf8").includes(reason), name); refusals.push(name);
   } finally { writeFileSync(path, original); }
 }
+// A future ordinary export must receive an owning classification; it cannot silently
+// become carried or qualified. Rename only the installed declaration/export key, then
+// restore both inputs. Every worker starts in a fresh process, so imports are fresh.
+const runtimeManifestPath = join(installedCatalog, "package.json"), runtimeContractsPath = join(installedCatalog, "dist/release/contracts.js");
+const runtimeManifestBytes = readFileSync(runtimeManifestPath), runtimeContractsBytes = readFileSync(runtimeContractsPath);
+try {
+  const unknownManifest = JSON.parse(runtimeManifestBytes);
+  unknownManifest.exports["./release-unclassified.json"] = unknownManifest.exports["./release-executable-content.json"];
+  delete unknownManifest.exports["./release-executable-content.json"];
+  const unknownContracts = runtimeContractsBytes.toString().replaceAll("release-executable-content.json", "release-unclassified.json");
+  assert.notEqual(unknownContracts, runtimeContractsBytes.toString());
+  writeFileSync(runtimeManifestPath, JSON.stringify(unknownManifest)); writeFileSync(runtimeContractsPath, unknownContracts);
+  const destination = join(out, "unclassified-export-refusal");
+  assert.throws(() => run(args(planPath, destination))); assert.equal(existsSync(join(destination, "package")), false);
+  assert(readFileSync(join(destination, "qualification-0.log"), "utf8").includes("Unclassified release export: ./release-unclassified.json")); refusals.push("unclassified-release-export");
+} finally { writeFileSync(runtimeManifestPath, runtimeManifestBytes); writeFileSync(runtimeContractsPath, runtimeContractsBytes); }
 const sourceRefusal = join(out, "runtime-source-refusal");
 assert.throws(() => run([tool, "--runtime", root, "--plan", planPath, "--out", sourceRefusal]), /Selected runtime must be outside/);
 assert.equal(existsSync(sourceRefusal), false); refusals.push("runtime-inside-source");

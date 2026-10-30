@@ -22,7 +22,7 @@ const views = [], decoys = [];
 // Only the ordinary views are qualified; the frozen default and releases whose prepared
 // content holds their baseline slot are carried unchanged. `decoy` signs a different
 // content's inventory for substitution refusals and is never part of the plan.
-for (const id of ["anthropic", "web-artifacts", "decoy"]) {
+for (const id of ["anthropic", "web-artifacts", "executable-content", "decoy"]) {
   const exported = id === "decoy" ? "./release-extensions.json" : `./release-${id}.json`;
   const contentPath = fileURLToPath(import.meta.resolve(`@aihq/catalog/${exported.slice(2)}`));
   const content = readFileSync(contentPath), inventory = createContentInventory(content, { expectedSha256: hash(content) });
