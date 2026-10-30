@@ -318,25 +318,25 @@ and executable state comes from the pinned tree's file modes.
 
 | Sets | From | Shape |
 | --- | --- | --- |
-| `ecc.module.<id>`, 25 of 36 | `install-modules.json` | Members are the items under the module's paths, except the 19 MCP servers that need caller-typed input; `requires` are its dependencies; `targets` its targets; `offer` is `pre-ticked` for a default install, otherwise `listed`; `cost` and `stability` are upstream's own words, copied |
+| `ecc.module.<id>`, 25 of 36 | `install-modules.json` | Members are the items under the module's paths, except the 22 MCP servers that need a supplied input; `requires` are its dependencies; `targets` its targets; `offer` is `pre-ticked` for a default install, otherwise `listed`; `cost` and `stability` are upstream's own words, copied |
 | `ecc.rules.<directory>`, 22 | `rules/` | The rules of one directory |
 | `ecc.profile.<id>`, 7 | `install-profiles.json` | `includes` lists the profile's modules, in order |
 | `ecc.edition.kiro`, "ECC for Kiro" | The `.kiro/` skills and steering | Every Kiro-edition item, `listed`, with no targets, since the manifests name no Kiro module or target |
 
-A set or profile installs without typed input, so no set lists an item with a required
-input that has no default and is not a host-held secret. Nineteen MCP servers have one
-and remain independently selectable, asking for those inputs:
+A set or profile installs without supplied input, so no set lists an item with a
+required input that has no default, whether it is a secret or not. Twenty-two MCP servers
+have one and remain independently selectable, asking for those inputs:
 
 - the 15 npm-acquired servers, for their `npmCli` and `npmCache` paths: sets and
   profiles do not infer caller-owned absolute paths for the separately acquired npm CLI
   and isolated cache;
 - `ecc.mcp.ecc-memory-vault` (`ECC_MEMORY_HARNESS`), `ecc.mcp.ito-compute`
-  (`ITO_MCP_ENTRYPOINT`), `ecc.mcp.jira` (`AIHQ_MCP_JIRA_ROOT`, `JIRA_EMAIL`,
-  `JIRA_URL`) and `ecc.mcp.omega-memory` (`AIHQ_MCP_OMEGA_ROOT`, `OMEGA_HOME`), for
-  environment values only the user knows.
-
-A secret, such as a server's API key, is supplied by the host at install and never has a
-default, so a server whose only required inputs are secrets stays in its sets.
+  (`ITO_MCP_ENTRYPOINT`), `ecc.mcp.jira` (`AIHQ_MCP_JIRA_ROOT`, `JIRA_API_TOKEN`,
+  `JIRA_EMAIL`, `JIRA_URL`) and `ecc.mcp.omega-memory` (`AIHQ_MCP_OMEGA_ROOT`,
+  `OMEGA_HOME`), for environment values only the user knows;
+- `ecc.mcp.browser-use` (`BROWSER_USE_KEY`), `ecc.mcp.memxus` (`MEMXUS_API_KEY`) and
+  `ecc.mcp.github-local` (`GITHUB_PERSONAL_ACCESS_TOKEN`), for a secret. A secret never
+  has a default, and the item keeps it marked sensitive.
 
 `ecc.module.rules-core` always includes `ecc.rules.common`, with no choice made, and
 offers `rules/README.md` as an optional member that is off by default. Every profile
