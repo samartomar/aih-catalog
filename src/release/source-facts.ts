@@ -365,13 +365,9 @@ export {
   SOURCE_DESCRIPTION_MAX_DEPTH,
 } from "./source-description.js";
 
-/** A separator with no whitespace, a drive letter or a dot segment reads as a path. */
+/** The release reader's rule: a display name never holds a separator, dot segment or drive. */
 export function isPathShapedName(value: string): boolean {
-  return (
-    value.includes("\\") ||
-    (/\//.test(value) && !/\s/.test(value)) ||
-    /^\.\.?$|^[a-zA-Z]:/.test(value)
-  );
+  return /[\\/]|^\.\.?$|^[a-zA-Z]:/.test(value);
 }
 
 const MARKDOWN_PROFILES = new Set<string>([
@@ -385,8 +381,8 @@ const MARKDOWN_PROFILES = new Set<string>([
 /**
  * The first level-one ATX heading of a Markdown source, outside its frontmatter and
  * fenced code; undefined for other profiles, undecodable bytes or no usable heading.
- * A path-shaped heading (a separator and no whitespace, such as `/ecc-guide`) is not
- * a usable name; prose such as `Dart/Flutter Hooks` is.
+ * A path-shaped heading (any separator, such as `/ecc-guide` or `Dart/Flutter Hooks`)
+ * is not a usable name: the release reader refuses it as a display name.
  */
 export function firstHeading(profile: string, bytes: Uint8Array): string | undefined {
   if (!MARKDOWN_PROFILES.has(profile)) return undefined;

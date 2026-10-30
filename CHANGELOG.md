@@ -11,10 +11,17 @@
   or the file name without its folder (`commands/aside.md` becomes "Aside Command",
   `hooks/hooks.json` becomes `hooks.json`). The ECC and Superpowers declarations pin the
   regenerated `release-extensions.json`. In the ECC release 1.7.0 content `ecc.notices`
-  is labelled "ECC notices", as it is named. A test fails when any item in a shipped release has
-  a label or name equal to its id, containing its namespace prefix, path-shaped, with a
-  separator that is not the author's own text, or ending in a file extension when the
-  source offers a name or heading.
+  is labelled "ECC notices", as it is named. A name or heading holding a separator, which the
+  reader refuses as a display name, or a heading shared within one kind and namespace
+  (`pr`, `prp-pr`) falls through to the file name. Release 1.7.0 names follow the same
+  order and equal their labels: ECC copies take the producer's label with its basis
+  (`aside` becomes "Aside Command", `README` becomes "Visa Document Translator" and
+  "Rules"), Extensions commands are `ship.md` and `webperf.md`, and its hooks are named
+  by their script files. A test fails when any item in a shipped release has
+  a label or name equal to its id in any case, containing its namespace prefix,
+  path-shaped, other than the author's name or heading its source offers (unless the
+  publisher named it), neither its key nor one of its file names when the source offers
+  none, or a label and name that disagree.
 - Bring the prepared release 1.7.0 contents into line with the Catalog contract in one
   regeneration (samartomar/aih-catalog#136, #144, #145, #146, #134). Hooks: the reader
   refuses a hook naming both an interpreter and a program, a program not given its

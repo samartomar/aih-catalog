@@ -29,6 +29,7 @@ import {
 import { canonicalJson } from "./json.js";
 import { createContentInventory, readRelease, readReleaseContent } from "./reader.js";
 import { sha256Hex } from "./sha256.js";
+import type { SourceFacts } from "./source-facts.js";
 import { compileTransitionRelease, type TransitionItemDeclaration } from "./transition.js";
 
 const moduleRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -275,6 +276,30 @@ function pinnedModes(root: string): (sourceId: string, sourcePath: string) => bo
 }
 
 /** Projects every committed release 1.2 item to the release 1.6 shape, one per tool copy. */
+/**
+ * The display name the shipped release-1.2 item already carries as its label, which the
+ * producer derives in the Catalog order (authored name, first heading, file name), and
+ * the basis that produced it.
+ */
+function shippedDisplayName(
+  release: CatalogRelease,
+  itemId: string,
+): { name: string; basis: "authored" | "first-heading" | "file-name" } {
+  const item = release.items.find((candidate) => candidate.id === itemId);
+  if (!item) throw new Error(`${itemId} is not in the shipped release`);
+  const facts = (item.metadata as { sourceFacts?: SourceFacts } | undefined)?.sourceFacts;
+  if (!facts) throw new Error(`${itemId} carries no source facts`);
+  const basis =
+    facts.name.state === "authored" && facts.name.value === item.label
+      ? facts.name.basis === "first-heading"
+        ? "first-heading"
+        : "authored"
+      : item.label === facts.identifier.split("/").at(-1)
+        ? "file-name"
+        : "first-heading";
+  return { name: item.label, basis };
+}
+
 function projectCopies(release12: CatalogRelease, root: string): Projected16 {
   const executableOf = pinnedModes(root);
   const items = release12.items.map((item) => {
@@ -671,12 +696,13 @@ export function buildExtensions17(
   for (const family of ["agent", "command"] as const) {
     for (const name of nativeBases(family)) {
       const claudeId = `extensions.${family}.${name}`;
+      const display = shippedDisplayName(release12.release, claudeId);
       declarations.push({
         id: claudeId,
         kind: family,
         role: "choosable",
-        name,
-        nameBasis: "authored",
+        name: display.name,
+        nameBasis: display.basis,
         descriptionBasis: "authored",
         copies: toolCopies(`${family}.${name}`),
         ...derivation(`${family}s/${name}.md`),
@@ -724,8 +750,11 @@ export function buildExtensions17(
       id: `extensions.hook.${hook.name}`,
       kind: "hook",
       role: "choosable",
-      name: hook.name,
-      nameBasis: "authored",
+      // Neither the script nor the shared hooks.json authors a name or heading; the
+      // item is named by its script's file name, and its label agrees.
+      label: `${hook.name}.mjs`,
+      name: `${hook.name}.mjs`,
+      nameBasis: "file-name",
       descriptionBasis: "authored",
       copies: [copyRef(claudeId), copyRef(sourceId)],
       withoutMaterials: ["hooks/hooks.json"],

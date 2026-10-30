@@ -44,7 +44,13 @@ import {
 import { canonicalJson, deepFreeze } from "./json.js";
 import { readRelease, readReleaseContent } from "./reader.js";
 import { checkRecipeAgreement } from "./recipe-agreement.js";
-import { extractSourceFacts, firstHeading, type SourceDiscovery } from "./source-facts.js";
+import {
+  extractSourceFacts,
+  firstHeading,
+  isPathShapedName,
+  type SourceDiscovery,
+  type SourceFacts,
+} from "./source-facts.js";
 import { isSpdxLicenseId } from "./spdx.js";
 
 export {
@@ -745,6 +751,33 @@ export function compileProducerDeclaration(request: {
           "Declared skill is absent from the source's explicit plugin roster.",
         );
     }
+    // A heading names an item only when no other item of the same kind in the same id
+    // namespace has it too; a shared heading falls through to the file name. Facts and
+    // headings are read once here; an unreadable discovery is diagnosed in the loop.
+    const discovered = new Map<string, { facts: SourceFacts; heading?: string }>();
+    const headingUses = new Map<string, number>();
+    const headingKey = (item: ProducerItem, heading: string) =>
+      `${item.kind}\u0000${item.id.slice(0, item.id.lastIndexOf("."))}\u0000${heading.toLowerCase()}`;
+    for (const item of declaration.items) {
+      if (!item.sourceDiscovery) continue;
+      const tree = trees.get(item.source) as SourceTree;
+      try {
+        const bytes = readPresent(tree, item.sourceDiscovery.path);
+        const facts = extractSourceFacts({ ...item.sourceDiscovery, bytes, revision: tree.commit });
+        const authored = facts.name.state === "authored" && !isPathShapedName(facts.name.value);
+        const heading = authored ? undefined : firstHeading(item.sourceDiscovery.profile, bytes);
+        discovered.set(item.id, { facts, ...(heading === undefined ? {} : { heading }) });
+        if (heading !== undefined && item.name === undefined) {
+          const key = headingKey(item, heading);
+          headingUses.set(key, (headingUses.get(key) ?? 0) + 1);
+        }
+      } catch (error) {
+        // An absent file or an unreadable discovery is refused with its own path
+        // diagnostic in the item loop below; anything else is a real fault.
+        if (error instanceof ProducerRefusal || error instanceof TypeError) continue;
+        throw error;
+      }
+    }
     for (const [index, item] of declaration.items.entries()) {
       generationPath = `/declaration/items/${index}/${"recipePath" in item ? "recipePath" : "skillPath"}`;
       const source = declaration.sources.find(
@@ -775,11 +808,12 @@ export function compileProducerDeclaration(request: {
           "Source discovery must refer to the exact delivered source-relative material path.",
         );
       const sourceFacts = item.sourceDiscovery
-        ? extractSourceFacts({
+        ? (discovered.get(item.id)?.facts ??
+          extractSourceFacts({
             ...item.sourceDiscovery,
             bytes: readPresent(tree, item.sourceDiscovery.path),
             revision: tree.commit,
-          })
+          }))
         : undefined;
       const output =
         "recipePath" in donorItem
@@ -833,15 +867,21 @@ export function compileProducerDeclaration(request: {
           : identifierBasis === "key"
             ? sourceFacts.identifier
             : (sourceFacts.identifier.split("/").pop() ?? sourceFacts.identifier);
+      // An authored name the reader would refuse as path-shaped is not usable.
+      const authoredName =
+        sourceFacts?.name.state === "authored" && !isPathShapedName(sourceFacts.name.value)
+          ? sourceFacts.name
+          : undefined;
+      const ownHeading = authoredName === undefined ? discovered.get(item.id)?.heading : undefined;
       const heading =
-        item.sourceDiscovery && sourceFacts?.name.state !== "authored"
-          ? firstHeading(item.sourceDiscovery.profile, readPresent(tree, item.sourceDiscovery.path))
+        ownHeading !== undefined && (headingUses.get(headingKey(item, ownHeading)) ?? 0) < 2
+          ? ownHeading
           : undefined;
       const nameBasis: NameBasis =
         item.name !== undefined
           ? (item.nameBasis ?? "publisher")
-          : sourceFacts?.name.state === "authored"
-            ? sourceFacts.name.basis
+          : authoredName !== undefined
+            ? authoredName.basis
             : heading !== undefined
               ? "first-heading"
               : sourceFacts
@@ -850,8 +890,8 @@ export function compileProducerDeclaration(request: {
                   "publisher";
       const displayName =
         item.name ??
-        (sourceFacts?.name.state === "authored"
-          ? sourceFacts.name.value
+        (authoredName !== undefined
+          ? authoredName.value
           : nameBasis === "first-heading"
             ? (heading as string)
             : nameBasis === "key"
