@@ -209,8 +209,10 @@ await case_("rules/common is always included with no choice made, and rules keep
   assert.deepEqual(ruleIds(plain), rulesIn("common"));
   assert.deepEqual(set("ecc.module.rules-core").includes.map((ref) => ref.setId), ["ecc.rules.common"]);
   const style = item("ecc.rule.typescript.coding-style");
-  assert.equal(`${style.name} (${style.payload.namespace})`, "coding-style.md (typescript)");
-  assert.equal(style.nameBasis, "file-name");
+  assert.equal(`${style.name} (${style.payload.namespace})`, "TypeScript and JavaScript Coding Style (typescript)");
+  assert.equal(style.nameBasis, "first-heading");
+  // Commands sharing the heading "Create Pull Request" each carry their key.
+  assert.deepEqual(["ecc.command.pr", "ecc.command.prp-pr"].map((id) => item(id).name), ["Create Pull Request (pr)", "Create Pull Request (prp-pr)"]);
   assert.deepEqual(style.payload.applyTo, ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]);
   assert.equal(item("ecc.rule.common.coding-style").payload.namespace, "common");
 });

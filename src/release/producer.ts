@@ -751,9 +751,10 @@ export function compileProducerDeclaration(request: {
           "Declared skill is absent from the source's explicit plugin roster.",
         );
     }
-    // A heading names an item only when no other item of the same kind in the same id
-    // namespace has it too; a shared heading falls through to the file name. Facts and
-    // headings are read once here; an unreadable discovery is diagnosed in the loop.
+    // A heading names an item alone only when no other item of the same kind in the
+    // same id namespace has it too; items sharing a heading each add their key in
+    // parentheses. Facts and headings are read once here; an unreadable discovery is
+    // diagnosed in the loop.
     const discovered = new Map<string, { facts: SourceFacts; heading?: string }>();
     const headingUses = new Map<string, number>();
     const headingKey = (item: ProducerItem, heading: string) =>
@@ -874,9 +875,9 @@ export function compileProducerDeclaration(request: {
           : undefined;
       const ownHeading = authoredName === undefined ? discovered.get(item.id)?.heading : undefined;
       const heading =
-        ownHeading !== undefined && (headingUses.get(headingKey(item, ownHeading)) ?? 0) < 2
+        ownHeading === undefined || (headingUses.get(headingKey(item, ownHeading)) ?? 0) < 2
           ? ownHeading
-          : undefined;
+          : `${ownHeading} (${item.id.slice(item.id.lastIndexOf(".") + 1)})`;
       const nameBasis: NameBasis =
         item.name !== undefined
           ? (item.nameBasis ?? "publisher")

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Name items by their readable heading rather than their file name. A heading's leading
+  slash-command token gives way to its title (`/learn - Extract Reusable Patterns`
+  becomes "Extract Reusable Patterns", a bare `/ecc-guide` becomes "ecc-guide"), a slash
+  between words reads as "and" ("TypeScript and JavaScript Patterns"), and items of one
+  kind and namespace sharing a heading each add their key ("Create Pull Request (pr)",
+  "Create Pull Request (prp-pr)"). The names record `first-heading` as their basis and
+  equal their labels. A test fails when a name is a file name while its source has a
+  heading.
 - No shipped item is displayed by its id. ECC's 24 hook items take the upstream hook's
   own id from the pinned `hooks/hooks.json` (`session:start`), and
   `superpowers.notices` becomes "Superpowers licenses and upstream notices". The

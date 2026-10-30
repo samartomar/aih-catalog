@@ -324,7 +324,7 @@ function projectItem(item, { revision, modes, mcpFacts, files, hookFacts }) {
   let payload;
   let requirements = { inputs: {} };
   // The shipped item's label is the producer's display name in the Catalog order: a
-  // usable author name, else a usable heading no sibling shares, else the file name
+  // usable author name, else the first heading made readable, else the file name
   // without its folder. The copy keeps that name and records which level produced it.
   const sourceFile = sourceFacts?.identifier.split("/").at(-1);
   let name = sourceFacts ? item.label : primary.sourcePath.split("/").at(-1);
@@ -335,8 +335,10 @@ function projectItem(item, { revision, modes, mcpFacts, files, hookFacts }) {
       : item.label === sourceFile
         ? "file-name"
         : "first-heading";
+  // A heading other items of the same kind share carries the item's key in parentheses.
+  const heading = nameBasis === "first-heading" ? firstHeading(sourceFacts.profile, files.get(sourceFacts.provenance.path)) : undefined;
   assert(
-    nameBasis !== "first-heading" || firstHeading(sourceFacts.profile, files.get(sourceFacts.provenance.path)) === item.label,
+    nameBasis !== "first-heading" || [heading, `${heading} (${item.id.split(".").at(-1)})`].includes(item.label),
     `${item.id}: label ${item.label} is not its source's name, heading or file name`,
   );
   let label = item.label;

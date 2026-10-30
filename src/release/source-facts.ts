@@ -379,10 +379,24 @@ const MARKDOWN_PROFILES = new Set<string>([
 ]);
 
 /**
+ * A heading restated as a display name the release reader accepts, keeping the
+ * author's words: a leading slash-command token gives way to the title after it
+ * (`/learn - Extract Reusable Patterns` is `Extract Reusable Patterns`; a bare
+ * `/ecc-guide` is `ecc-guide`), and a slash between words reads as "and"
+ * (`Dart/Flutter Hooks` is `Dart and Flutter Hooks`). Undefined when the result is
+ * still path-shaped, empty or longer than a name may be.
+ */
+export function headingName(heading: string): string | undefined {
+  const command = /^\/([\w.-]+)(?:\s*(?:-|:|\u2013|\u2014)\s*(.*))?$/u.exec(heading);
+  const title = command ? command[2]?.trim() || command[1] : heading;
+  const name = (title as string).replace(/(?<=[\p{L}\p{N}])\s*\/\s*(?=[\p{L}\p{N}])/gu, " and ");
+  return name.length > 0 && name.length <= 256 && !isPathShapedName(name) ? name : undefined;
+}
+
+/**
  * The first level-one ATX heading of a Markdown source, outside its frontmatter and
- * fenced code; undefined for other profiles, undecodable bytes or no usable heading.
- * A path-shaped heading (any separator, such as `/ecc-guide` or `Dart/Flutter Hooks`)
- * is not a usable name: the release reader refuses it as a display name.
+ * fenced code, restated by headingName; undefined for other profiles, undecodable
+ * bytes or no usable heading.
  */
 export function firstHeading(profile: string, bytes: Uint8Array): string | undefined {
   if (!MARKDOWN_PROFILES.has(profile)) return undefined;
@@ -406,7 +420,7 @@ export function firstHeading(profile: string, bytes: Uint8Array): string | undef
     }
     if (fence !== undefined) continue;
     const heading = /^# +(.+?)(?: +#+)? *$/.exec(line)?.[1]?.trim();
-    if (heading) return heading.length <= 256 && !isPathShapedName(heading) ? heading : undefined;
+    if (heading) return headingName(heading);
   }
   return undefined;
 }
