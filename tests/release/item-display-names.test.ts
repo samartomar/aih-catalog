@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   extractSourceFacts,
+  fileNameStem,
   firstHeading,
   headingName,
   isPathShapedName,
@@ -136,8 +137,9 @@ const namespaceOf = (item: Item) => item.id.slice(0, item.id.lastIndexOf("."));
  * an author's name or a heading, the name is that offer unless the publisher named the
  * item. Items of the same kind and namespace sharing a heading each add their key in
  * parentheses. A source with a written heading never names its item by a file name.
- * Without an offer the name is the key or the source's file name, and a file extension
- * needs a known source to prove that. Label and name agree wherever both exist.
+ * Without an offer the name is the key or the source's file name without its extension;
+ * no name the publisher did not set ends in a file extension. Label and name agree
+ * wherever both exist.
  */
 const badNames = (path: string) => {
   const items = readItems(path);
@@ -160,11 +162,12 @@ const badNames = (path: string) => {
         ? offer?.heading
         : `${offer.heading} (${item.id.slice(item.id.lastIndexOf(".") + 1)})`;
     const offered = [offer?.authored ?? heading].filter((v): v is string => v !== undefined);
-    // The file-name level names one of the item's own delivered files.
+    // The file-name level names one of the item's own delivered files, without its
+    // folder or extension.
     const fileNames = new Set(
       [sourcePathOf(item), ...(item.materials ?? []).map((m) => m.sourcePath ?? m.path)]
         .filter((p): p is string => typeof p === "string" && !p.startsWith("release/items/"))
-        .map((p) => p.split("/").at(-1)),
+        .map(fileNameStem),
     );
     const publisher = item.nameBasis === "publisher";
     const problems = (["label", "name"] as const).flatMap((field) => {
@@ -180,19 +183,22 @@ const badNames = (path: string) => {
               ? "is path-shaped"
               : publisher
                 ? undefined
-                : offer?.written !== undefined && fileNames.has(value)
-                  ? `is a file name while its source has the heading ${JSON.stringify(offer.written)}`
-                  : offered.length
-                    ? offered.includes(value)
-                      ? undefined
-                      : `is not the name its source offers, ${JSON.stringify(offered[0])}`
-                    : offer !== undefined &&
-                        !fileNames.has(value) &&
-                        value !== offer.key &&
-                        item.nameBasis !== "key"
-                      ? "is neither its source's key nor one of its file names"
-                      : offer === undefined && FILE_EXTENSION.test(value)
-                        ? "ends in a file extension and its source is unknown"
+                : FILE_EXTENSION.test(value)
+                  ? "ends in a file extension"
+                  : offer?.written !== undefined &&
+                      offer.authored === undefined &&
+                      !offered.includes(value) &&
+                      fileNames.has(value)
+                    ? `is a file name while its source has the heading ${JSON.stringify(offer.written)}`
+                    : offered.length
+                      ? offered.includes(value)
+                        ? undefined
+                        : `is not the name its source offers, ${JSON.stringify(offered[0])}`
+                      : offer !== undefined &&
+                          !fileNames.has(value) &&
+                          value !== offer.key &&
+                          item.nameBasis !== "key"
+                        ? "is neither its source's key nor one of its file names"
                         : undefined;
       return problem ? [`${item.id} ${field}=${JSON.stringify(value)} ${problem}`] : [];
     });
@@ -226,5 +232,14 @@ describe("shipped item display names", () => {
     ["a\\b", undefined],
   ])("reads the heading %j as the name %j", (heading, name) => {
     expect(headingName(heading)).toBe(name);
+  });
+
+  it.each([
+    ["commands/feature-dev.md", "feature-dev"],
+    ["hooks/hooks.json", "hooks"],
+    ["LICENSE", "LICENSE"],
+    [".gitignore", ".gitignore"],
+  ])("names the file %j by %j at the file-name level", (path, name) => {
+    expect(fileNameStem(path)).toBe(name);
   });
 });

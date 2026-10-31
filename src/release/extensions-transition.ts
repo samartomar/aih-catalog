@@ -29,7 +29,7 @@ import {
 import { canonicalJson } from "./json.js";
 import { createContentInventory, readRelease, readReleaseContent } from "./reader.js";
 import { sha256Hex } from "./sha256.js";
-import type { SourceFacts } from "./source-facts.js";
+import { fileNameStem, type SourceFacts } from "./source-facts.js";
 import { compileTransitionRelease, type TransitionItemDeclaration } from "./transition.js";
 
 const moduleRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -294,7 +294,7 @@ function shippedDisplayName(
       ? facts.name.basis === "first-heading"
         ? "first-heading"
         : "authored"
-      : item.label === facts.identifier.split("/").at(-1)
+      : item.label === fileNameStem(facts.identifier)
         ? "file-name"
         : "first-heading";
   return { name: item.label, basis };
@@ -751,9 +751,10 @@ export function buildExtensions17(
       kind: "hook",
       role: "choosable",
       // Neither the script nor the shared hooks.json authors a name or heading; the
-      // item is named by its script's file name, and its label agrees.
-      label: `${hook.name}.mjs`,
-      name: `${hook.name}.mjs`,
+      // item is named by its script's file name without the extension, and its label
+      // agrees.
+      label: hook.name,
+      name: hook.name,
       nameBasis: "file-name",
       descriptionBasis: "authored",
       copies: [copyRef(claudeId), copyRef(sourceId)],

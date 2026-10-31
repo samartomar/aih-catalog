@@ -565,7 +565,7 @@ delivered source materials. When present, compilation derives `label`, `descript
 `metadata.discovery` and `metadata.sourceFacts` from those exact supplied bytes. The
 `label` is the author's name, else the first level-one Markdown heading outside
 frontmatter and fenced code, else the registration key or the file name without its
-folder; the declared `label` applies only without discovery. A heading is made
+folder or extension (`commands/feature-dev.md` is "feature-dev"); the declared `label` applies only without discovery. A heading is made
 readable before it applies: a leading slash-command token gives way to its title
 (`/learn - Extract Reusable Patterns` is "Extract Reusable Patterns"; a bare
 `/ecc-guide` is "ecc-guide") and a slash between words reads as "and"

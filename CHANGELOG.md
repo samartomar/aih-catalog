@@ -8,8 +8,13 @@
   between words reads as "and" ("TypeScript and JavaScript Patterns"), and items of one
   kind and namespace sharing a heading each add their key ("Create Pull Request (pr)",
   "Create Pull Request (prp-pr)"). The names record `first-heading` as their basis and
-  equal their labels. A test fails when a name is a file name while its source has a
-  heading.
+  equal their labels. A name taken from the file name drops its extension as well as
+  its folder: ECC's feature-dev, gan-build, gan-design, hookify, hookify-configure,
+  hookify-help, hookify-list and review-pr commands, Extensions' ship and webperf
+  commands, git-guard, lanes-card and skill-guard hooks and hook sources (`hooks`), and
+  Superpowers' claude-bootstrap runtime source (`hooks`). A test fails when a name is a
+  file name while its source has a heading, or when any name the publisher did not set
+  ends in a file extension.
 - No shipped item is displayed by its id. ECC's 24 hook items take the upstream hook's
   own id from the pinned `hooks/hooks.json` (`session:start`), and
   `superpowers.notices` becomes "Superpowers licenses and upstream notices". The

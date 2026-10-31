@@ -359,7 +359,7 @@ describe("producer 3.2.0 acceptance recovery", () => {
     expect(compiled.status).toBe("ok");
     if (compiled.status !== "ok") return;
     const review = compiled.value.release.items.find((item) => item.id === "notes.review");
-    expect(review?.name).toBe("REFERENCE.md");
+    expect(review?.name).toBe("REFERENCE");
     expect(review?.nameBasis).toBe("file-name");
   });
 

@@ -370,6 +370,15 @@ export function isPathShapedName(value: string): boolean {
   return /[\\/]|^\.\.?$|^[a-zA-Z]:/.test(value);
 }
 
+/**
+ * The file-name level of a display name: the path's last segment without its folder or
+ * its extension (`commands/feature-dev.md` is `feature-dev`). A name that is only an
+ * extension, such as `.gitignore`, keeps it.
+ */
+export function fileNameStem(path: string): string {
+  return (path.split("/").pop() ?? path).replace(/(?<=.)\.[A-Za-z][A-Za-z0-9]{0,4}$/, "");
+}
+
 const MARKDOWN_PROFILES = new Set<string>([
   "agent-skills",
   "claude-skill",

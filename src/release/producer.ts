@@ -46,6 +46,7 @@ import { readRelease, readReleaseContent } from "./reader.js";
 import { checkRecipeAgreement } from "./recipe-agreement.js";
 import {
   extractSourceFacts,
+  fileNameStem,
   firstHeading,
   isPathShapedName,
   type SourceDiscovery,
@@ -858,7 +859,7 @@ export function compileProducerDeclaration(request: {
         );
       // The published display name and the label follow one ordered fallback and
       // record its basis: the publisher's declared name, the author's name, the first
-      // heading, the key or the file name (its basename), then the publisher's label
+      // heading, the key or the file name (no folder, no extension), then the publisher's label
       // for an item without source discovery. A path is never a name.
       const identifierBasis: NameBasis =
         item.sourceDiscovery?.key !== undefined ? "key" : "file-name";
@@ -867,7 +868,7 @@ export function compileProducerDeclaration(request: {
           ? undefined
           : identifierBasis === "key"
             ? sourceFacts.identifier
-            : (sourceFacts.identifier.split("/").pop() ?? sourceFacts.identifier);
+            : fileNameStem(sourceFacts.identifier);
       // An authored name the reader would refuse as path-shaped is not usable.
       const authoredName =
         sourceFacts?.name.state === "authored" && !isPathShapedName(sourceFacts.name.value)
