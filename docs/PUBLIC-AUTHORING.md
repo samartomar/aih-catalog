@@ -565,10 +565,14 @@ delivered source materials. When present, compilation derives `label`, `descript
 `metadata.discovery` and `metadata.sourceFacts` from those exact supplied bytes. The
 `label` is the author's name, else the first level-one Markdown heading outside
 frontmatter and fenced code, else the registration key or the file name without its
-folder; the declared `label` applies only without discovery. A name or heading the
-reader would refuse as path-shaped (any `/` or `\`, such as `/ecc-guide` or
-`Dart/Flutter Hooks`) is skipped, and so is a heading another item of the same kind
-and id namespace shares; a label is never a path. `description` can be empty;
+folder or extension (`commands/feature-dev.md` is "feature-dev"); the declared `label` applies only without discovery. A heading is made
+readable before it applies: a leading slash-command token gives way to its title
+(`/learn - Extract Reusable Patterns` is "Extract Reusable Patterns"; a bare
+`/ecc-guide` is "ecc-guide") and a slash between words reads as "and"
+(`Dart/Flutter Hooks` is "Dart and Flutter Hooks"). Items of the same kind and id
+namespace that share a heading each add their key in parentheses ("Create Pull
+Request (pr)"). An author's name the reader would refuse as path-shaped is skipped;
+a label is never a path. `description` can be empty;
 missing description remains empty with an explicit field state. Profile errors remain
 visible on the affected item and do not claim conformance or freeze the entire family.
 An item without this optional field retains its existing authored overlay behavior.

@@ -26,7 +26,7 @@ import { canonicalJson } from "../dist/release/json.js";
 import { compileTransitionRelease, mcpEditsSha256 } from "../dist/release/producer.js";
 import { createContentInventory, readRelease, readReleaseContent } from "../dist/release/reader.js";
 import { sha256Hex } from "../dist/release/sha256.js";
-import { firstHeading } from "../dist/release/source-facts.js";
+import { fileNameStem, firstHeading } from "../dist/release/source-facts.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const encoder = new TextEncoder();
@@ -286,7 +286,7 @@ const sourcePathOf = (packagePath, revision) =>
  * One shipped release-ecc.json item restated as a release 1.6 copy: typed payload,
  * captured materials with item-relative paths and executable state, behaviour file
  * and both identities. Display names follow the Catalog order: a usable authored name,
- * else the first usable heading, else the file name without its folder.
+ * else the first usable heading, else the file name without its folder or extension.
  */
 function projectItem(item, { revision, modes, mcpFacts, files, hookFacts }) {
   const recipe = json(item.recipe.path);
@@ -324,21 +324,25 @@ function projectItem(item, { revision, modes, mcpFacts, files, hookFacts }) {
   let payload;
   let requirements = { inputs: {} };
   // The shipped item's label is the producer's display name in the Catalog order: a
-  // usable author name, else a usable heading no sibling shares, else the file name
-  // without its folder. The copy keeps that name and records which level produced it.
-  const sourceFile = sourceFacts?.identifier.split("/").at(-1);
-  let name = sourceFacts ? item.label : primary.sourcePath.split("/").at(-1);
+  // usable author name, else the first heading made readable, else the file name
+  // without its folder or extension. The copy keeps that name and records which level
+  // produced it.
+  const sourceFile = sourceFacts && fileNameStem(sourceFacts.identifier);
+  let name = sourceFacts ? item.label : fileNameStem(primary.sourcePath);
+  // A heading other items of the same kind share carries the item's key in parentheses.
+  // The heading is tried before the file name: a bare `/word` heading reads as the
+  // file name's stem and is still named by the heading.
+  const heading = sourceFacts && firstHeading(sourceFacts.profile, files.get(sourceFacts.provenance.path));
   let nameBasis = !sourceFacts
     ? "file-name"
     : sourceFacts.name?.state === "authored" && sourceFacts.name.value === item.label
       ? sourceFacts.name.basis
-      : item.label === sourceFile
-        ? "file-name"
-        : "first-heading";
-  assert(
-    nameBasis !== "first-heading" || firstHeading(sourceFacts.profile, files.get(sourceFacts.provenance.path)) === item.label,
-    `${item.id}: label ${item.label} is not its source's name, heading or file name`,
-  );
+      : heading !== undefined && [heading, `${heading} (${item.id.split(".").at(-1)})`].includes(item.label)
+        ? "first-heading"
+        : item.label === sourceFile
+          ? "file-name"
+          : undefined;
+  assert(nameBasis, `${item.id}: label ${item.label} is not its source's name, heading or file name`);
   let label = item.label;
   if (item.kind === "skill") {
     const dirName = primary.sourcePath.split("/").at(-2);

@@ -48475,8 +48475,8 @@
             },
             "manifest": {
               "path": "release/release-extensions.json",
-              "sha256": "cc2520d16ccfaee16ad8b19ef36270beda787f1df3576485b4a979a6b7b32100",
-              "byteLength": 7794838
+              "sha256": "059ef6377690e46882a231187b9616c2f469f78e9cf3ec769a3d68c0f6b1a68e",
+              "byteLength": 7794772
             }
           }
         }
