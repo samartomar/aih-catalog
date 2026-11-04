@@ -1,7 +1,12 @@
 /**
- * `@aihq/catalog/contracts` (new model): format identities, kinds, published limits and
- * refusal codes. Pure data; importing it performs no host work.
+ * `@aihq/catalog/contracts`: format identities, the five published schemas and their ten
+ * fixtures, the nine shipped tool profiles, kinds, published limits and refusal codes. Pure
+ * data; importing it performs no host work.
  */
+import { fixtureTexts } from "./internal/fixtures.js";
+import { deepFreeze } from "./internal/json.js";
+import { profileTexts } from "./internal/profiles.generated.js";
+import { schemaDocuments } from "./internal/schemas.js";
 
 export const formats = {
   sourceLink: "urn:aihq:catalog:source-link:0.1.0",
@@ -10,6 +15,27 @@ export const formats = {
   recipe: "urn:aihq:catalog:recipe:0.1.0",
   qualification: "urn:aihq:catalog:qualification:0.1.0",
 } as const;
+
+/**
+ * One JSON Schema (draft 2020-12) per format, keyed by format name; `$id` is the format's URN.
+ * A schema describes shape; the format's reader is the authority and also checks digests,
+ * ordering and cross-references a schema cannot express.
+ */
+export const schemas = deepFreeze(schemaDocuments);
+export type SchemaName = keyof typeof schemaDocuments;
+
+/**
+ * One valid and one invalid document per schema (`<name>-valid`, `<name>-invalid`), as exact
+ * text: the valid one reads `ok` with its reader and conforms; the invalid one reads `invalid`
+ * and does not. The recipe fixtures are `recipe.json` documents; read them with any
+ * Agent Plugins `plugin.json`. The source-link fixtures are `parseSourceLink` results.
+ */
+export const fixtures: Readonly<Record<`${SchemaName}-${"valid" | "invalid"}`, string>> =
+  Object.freeze(fixtureTexts);
+
+/** The nine shipped tool profiles, by id, as exact document text for `readToolProfile`. */
+export const toolProfiles = Object.freeze(profileTexts);
+export type ToolProfileId = keyof typeof profileTexts;
 
 /** Every item kind the content format names. */
 export const kinds = ["skill", "agent", "rule", "hook", "mcp", "document", "ai-setup"] as const;

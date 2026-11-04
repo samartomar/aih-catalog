@@ -6,13 +6,17 @@
     "claude",
     "codex"
   ],
-  "description": "Catalog migration workspace; retained V2 donor implementation.",
+  "description": "Catalog source-to-plan library and its candidate data.",
   "languages": [
     "TypeScript/Node.js"
   ],
   "packageManager": "npm",
   "entrypoints": [
-    "dist/cli.js"
+    "dist/catalog/source.js",
+    "dist/catalog/node.js",
+    "dist/catalog/producer.js",
+    "dist/catalog/reader.js",
+    "dist/catalog/contracts.js"
   ],
   "commands": {
     "typecheck": "npm run typecheck",
@@ -22,11 +26,9 @@
     "repoInit": "npm run repo:init",
     "repoDoctor": "npm run repo:doctor"
   },
-  "publication": "blocked-during-migration",
+  "publication": "refused",
   "transition": {
     "documentation": "docs/TRANSITION.md",
-    "status": "migration-donors",
-    "publicReaderImplemented": false,
-    "executableRecipesImplemented": false
+    "status": "cut-over"
   }
 }

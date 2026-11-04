@@ -6,9 +6,18 @@
  * exact bytes one run saw on one cell and the run's result; Catalog runs nothing. Pure data.
  */
 import { formats, type Problem } from "../contracts.js";
-import { FRAMEWORK_ID, ID_SEGMENT, INPUT_NAME, SHA256 } from "./model.js";
+import {
+  DATE,
+  EXACT_VERSION,
+  FRAMEWORK_ID,
+  ID_SEGMENT,
+  INPUT_NAME,
+  RANGE,
+  SHA256,
+  TOOL_NAME,
+  WHEEL,
+} from "./model.js";
 import { isSafeRelativePath } from "./paths.js";
-import { EXACT_VERSION } from "./source-link.js";
 
 /** The six platform cells. */
 export const CELLS = [
@@ -152,13 +161,6 @@ const isCount = (value: unknown): value is number =>
   Number.isSafeInteger(value) && (value as number) >= 0;
 const isSeconds = (value: unknown): value is number =>
   Number.isSafeInteger(value) && (value as number) > 0 && (value as number) <= 86_400;
-/** A version range as the upstream states it (`>=3.11,<3.15`); never empty or a wildcard. */
-const RANGE = /^(?:(?:>=|<=|==|~=|!=|>|<)\s*[0-9][0-9A-Za-z.+-]*\s*,?\s*)+$/;
-const DATE = /^\d{4}-\d{2}-\d{2}$/;
-const TOOL_NAME = /^[A-Za-z0-9_.-]{1,128}$/;
-/** A wheel file name: binary-only closures hold wheels and nothing built from source. */
-const WHEEL = /^[A-Za-z0-9_.+-]+\.whl$/;
-
 class Problems {
   readonly list: Problem[] = [];
   add(path: string, message: string): void {

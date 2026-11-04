@@ -1,0 +1,261 @@
+{
+  "baseline": {
+    "byKind": {
+      "agent": 72,
+      "command": 96,
+      "document": 5,
+      "hook": 28,
+      "mcp-server": 37,
+      "rule": 147,
+      "skill": 392
+    },
+    "dispositions": {
+      "bundle": 1,
+      "dropped": 21,
+      "edition": 65,
+      "mapped": 687,
+      "notice": 3
+    },
+    "families": [
+      "ecc",
+      "extensions",
+      "project-basics",
+      "superpowers"
+    ],
+    "items": 777,
+    "release": "urn:aihq:catalog:release:1.7.0"
+  },
+  "earlier": {
+    "disposed": 99,
+    "other": [
+      {
+        "disposition": "dropped",
+        "earlier": {
+          "file": "release/release-1.1.json",
+          "id": "aihq.hook.claude.protect-env",
+          "kind": "hook",
+          "paths": [
+            "aihq.hook.claude.protect-env/.claude/hooks/aihq-protect-env.mjs"
+          ],
+          "release": "urn:aihq:catalog:release:1.1.0"
+        },
+        "note": "an opt-in Claude Code hook Catalog authored. Claude keeps hooks in its shared, list-valued settings file, which a plan cannot own as one entry, so the hook would be unavailable on its only client; no framework carries it",
+        "reason": "no-edition-place"
+      },
+      {
+        "disposition": "dropped",
+        "earlier": {
+          "file": "release/release-native-bundles.json",
+          "id": "aihq.native-bundle.claude.graph-fixture",
+          "kind": "native-verification-bundle",
+          "paths": [
+            "aihq.native-bundle.claude.graph-fixture/aihq.catalog.claude.graph-fixture.v1.json",
+            "aihq.native-bundle.claude.graph-fixture/expected-CLAUDE.md",
+            "aihq.native-bundle.claude.graph-fixture/expected-mcp.json"
+          ],
+          "release": "urn:aihq:catalog:release:1.0.0"
+        },
+        "note": "a test-scope verification bundle for the old installer's native checks, not content; native loading is validated outside the package",
+        "reason": "test-fixture"
+      },
+      {
+        "disposition": "dropped",
+        "earlier": {
+          "file": "release/release-native-fixture.json",
+          "id": "aihq.mcp.claude.graph-fixture",
+          "kind": "mcp-server",
+          "paths": [
+            "aihq.mcp.claude.graph-fixture/graph-server.mjs",
+            "aihq.mcp.claude.graph-fixture/graph.json",
+            "aihq.mcp.claude.graph-fixture/recorder.mjs"
+          ],
+          "release": "urn:aihq:catalog:release:1.0.0"
+        },
+        "note": "a test-scope MCP server and recorder for the old installer's native checks, not content",
+        "reason": "test-fixture"
+      }
+    ],
+    "sections": {
+      "remaining": 96
+    },
+    "superseded": [
+      {
+        "by": "release/release-ecc.content.json",
+        "file": "release/release-ecc.json",
+        "release": "urn:aihq:catalog:release:1.2.0"
+      },
+      {
+        "by": "release/release-extensions.content.json",
+        "file": "release/release-extensions.json",
+        "release": "urn:aihq:catalog:release:1.2.0"
+      },
+      {
+        "by": "release/release-superpowers.content.json",
+        "file": "release/release-superpowers.json",
+        "release": "urn:aihq:catalog:release:1.2.0"
+      },
+      {
+        "by": "release/release-project-basics.content.json",
+        "file": "release/release-default.content.json",
+        "note": "the closing default release, with no items of its own",
+        "release": "urn:aihq:catalog:release:1.7.0"
+      }
+    ]
+  },
+  "frameworks": {
+    "anthropic": {
+      "contentSha256": "ee65a89620b88316dcc44464c769e17fc09d3ed6b6bd6d794df7c197db2fde51",
+      "items": 18,
+      "section": "remaining"
+    },
+    "cbm": {
+      "contentSha256": "01e95791e54dea6d7718a927757446347f0d3b3d33d07c58cc739d5b21b23e17",
+      "items": 2,
+      "section": "aiSetup"
+    },
+    "crg": {
+      "contentSha256": "adb7e2417065e7d21ebf130eca7cee8915e9f6f3e2077278dc4de0e2e32b93d5",
+      "items": 9,
+      "section": "aiSetup"
+    },
+    "ecc": {
+      "contentSha256": "20687b586603968979554bfdf1bfea83720d00f5d59de1596946b73a54b1247c",
+      "items": 645,
+      "section": "maintained"
+    },
+    "egm": {
+      "contentSha256": "519b46cb325e0c4af7bc27ee080c7aad3a09b3f3b6a8bc404c16f9f083e9ce00",
+      "items": 16,
+      "section": "remaining"
+    },
+    "extensions": {
+      "contentSha256": "096b4192bcd5af09bacdf0348cc8866f321a722746db1fb45476f786803eb8c1",
+      "items": 65,
+      "section": "maintained"
+    },
+    "gstack": {
+      "contentSha256": "db753caf02ffc6901c584e08c8ae14dfc4a90a6bf4e3b06ee93d0b66d1d2d063",
+      "items": 62,
+      "section": "remaining"
+    },
+    "guide": {
+      "contentSha256": "cae82b6d44445b2338e6fbe02f6f65c02901f27b73f886c81f5c6a0d5e535505",
+      "items": 2,
+      "section": "remaining"
+    },
+    "project-basics": {
+      "contentSha256": "5bced590c7239b93a833edb75699b73562700280af2bb4eb91fe323b4084ccb7",
+      "items": 3,
+      "section": "maintained"
+    },
+    "pstack": {
+      "contentSha256": "e8c6d7db102c58ea25d20896ae78ec39e994961af032284318f20cd5a2fc3620",
+      "items": 60,
+      "section": "remaining"
+    },
+    "serena": {
+      "contentSha256": "b7169de5ffb80b6fdaa3a025a5f51badd56014fd355a0c99654743fab795df90",
+      "items": 2,
+      "section": "aiSetup"
+    },
+    "superpowers": {
+      "contentSha256": "ab782b1ca543dae846e6999e7916c6a5a17a3843fa6e630b18cae709014808fb",
+      "items": 17,
+      "section": "maintained"
+    },
+    "web-artifacts": {
+      "contentSha256": "69a5f917cf922d44fb38192ca162920be5d41c0f7ab36114f2580f4028213462",
+      "items": 1,
+      "section": "remaining"
+    }
+  },
+  "limits": {
+    "deferred": [
+      "All data is a candidate: every scan key is new and unscanned, and none is admitted until it passes the data-commit gate against matching trusted scans.",
+      "Recipes are drafts in the section reports; each is published once it names the admitted data commit.",
+      "Extensions declares no per-client routes yet, so it has no base recipe and is planned through items only.",
+      "gstack: 54 items name 349 files no placed bundle provides",
+      "pstack: 10 items name 58 files no placed bundle provides",
+      "21 baseline items are dropped with their reasons; 1 upstream item cannot be represented (anthropic.skill.claude-api).",
+      "13 items are fetched from their pinned upstream at install time instead of shipped (licence), and are not scanned.",
+      "Path references are reported strictly: an item that names a source file outside its own files is `incomplete` unless a placed bundle or the project-scope sibling layout provides it."
+    ],
+    "native": [
+      "Fixture and test results prove planning behaviour only; native loading of the planned layouts by each client is not validated by this package.",
+      "Plugin presence checks are `none` on every client until a reliable check is evidenced, so an installed plugin is never reported as confirmed.",
+      "AI setup qualifications are the recorded runs' results: cbm.ai-setup.codebase-memory-mcp on linux-x64 qualified; crg.ai-setup.code-review-graph on linux-x64, serena.ai-setup.serena on linux-x64 blocked; every other cell unknown or without a record.",
+      "The code-review-graph, codebase-memory-mcp and Serena trio has no combination qualification, so its recipe plans `incomplete` on every cell.",
+      "Profile facts are as checked on the dates each profile's `checkedWith` records; some places and field names rest on vendor documentation rather than a live check."
+    ]
+  },
+  "qualifications": [
+    {
+      "aiSetup": "cbm.ai-setup.codebase-memory-mcp",
+      "cell": "darwin-arm64",
+      "sha256": "4be378ce56af26aca9ec8b0116ec5b0747ba235b994e65ab83eba7aa61bddfa6",
+      "status": "unknown"
+    },
+    {
+      "aiSetup": "cbm.ai-setup.codebase-memory-mcp",
+      "cell": "darwin-x64",
+      "sha256": "020a74e221dd95ddfa2a86501eec25f504dedfdae53007a23ea1c5e63bc5d36b",
+      "status": "unknown"
+    },
+    {
+      "aiSetup": "cbm.ai-setup.codebase-memory-mcp",
+      "cell": "linux-arm64",
+      "sha256": "f5f4b86dd768af8904a98b7e7a9233f26dbc3b313604ff66f34dd3cf30f1a4d5",
+      "status": "unknown"
+    },
+    {
+      "aiSetup": "cbm.ai-setup.codebase-memory-mcp",
+      "cell": "linux-x64",
+      "sha256": "94e0caacd4ca3b1a9eda854c79ad485806140d614cd54058f82e4d18782f3916",
+      "status": "qualified"
+    },
+    {
+      "aiSetup": "cbm.ai-setup.codebase-memory-mcp",
+      "cell": "windows-arm64",
+      "sha256": "1c1bafc9857674e890b0a78d879eeb69e22c4237268563b0e790efde35090abf",
+      "status": "unknown"
+    },
+    {
+      "aiSetup": "cbm.ai-setup.codebase-memory-mcp",
+      "cell": "windows-x64",
+      "sha256": "9e1fa0113c55143e98a11347bf2481f6954ffe38008fbed2a295fee70ebdcfdd",
+      "status": "unknown"
+    },
+    {
+      "aiSetup": "crg.ai-setup.code-review-graph",
+      "cell": "linux-x64",
+      "sha256": "7e4a2e5cbea1ccc3b0a399739a1f9a3e81d87fca37e22ce036ece13ab148e3ac",
+      "status": "blocked"
+    },
+    {
+      "aiSetup": "serena.ai-setup.serena",
+      "cell": "linux-x64",
+      "sha256": "8e9113b6ba319e27f7b05651a35b3b91d4b1a1963a3fb29746b37735643d4b81",
+      "status": "blocked"
+    }
+  ],
+  "sections": {
+    "aiSetup": {
+      "path": "port-report/ai-setup.json",
+      "sha256": "62c65b570af7d78b3977b6a9b90ad90311fe5b3862f084c98978291816d73a3b"
+    },
+    "maintained": {
+      "path": "port-report/maintained.json",
+      "sha256": "3773115364696f7c500c6553f714595a41e6e66661d69e5615ad3e77c1360866"
+    },
+    "remaining": {
+      "path": "port-report/remaining.json",
+      "sha256": "054ee5637ddcce6d1728d375e810fae7933c0e33de4a7f289820a79290545bba"
+    }
+  },
+  "totals": {
+    "draftRecipes": 10,
+    "frameworks": 13,
+    "items": 902,
+    "qualifications": 8
+  }
+}

@@ -270,3 +270,14 @@ export const SHA256 = /^[0-9a-f]{64}$/;
 /** A Git object id: SHA-1 (40 hex) or SHA-256 (64 hex). */
 export const OBJECT_ID = /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/;
 export const NPM_PACKAGE = /^(?:@[a-z0-9~-][a-z0-9._~-]*\/)?[a-z0-9~-][a-z0-9._~-]*$/;
+/** An exact semantic version (no leading zeroes, optional pre-release and build). */
+export const EXACT_VERSION =
+  /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
+/** A Scan key: Git tree id of the item folder, SHA-1 or SHA-256 object format. */
+export const SCAN_KEY = /^git-sha(?:1:[0-9a-f]{40}|256:[0-9a-f]{64})$/;
+/** A version range as the upstream states it (`>=3.11,<3.15`); never empty or a wildcard. */
+export const RANGE = /^(?:(?:>=|<=|==|~=|!=|>|<)\s*[0-9][0-9A-Za-z.+-]*\s*,?\s*)+$/;
+export const DATE = /^\d{4}-\d{2}-\d{2}$/;
+export const TOOL_NAME = /^[A-Za-z0-9_.-]{1,128}$/;
+/** A wheel file name: binary-only closures hold wheels and nothing built from source. */
+export const WHEEL = /^[A-Za-z0-9_.+-]+\.whl$/;

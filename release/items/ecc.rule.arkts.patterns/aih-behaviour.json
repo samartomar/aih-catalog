@@ -1,1 +1,0 @@
-{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"ecc.notices"}]},"executable":{"LICENSE":false,"arkts/patterns.md":false},"kind":"rule","payload":{"applyTo":["**/*.ets","**/*.ts"],"applyToBasis":"authored: frontmatter paths","namespace":"arkts"},"requirements":{"inputs":{}}}
