@@ -14,11 +14,19 @@ export const kinds = ["skill", "agent", "rule", "hook", "mcp", "document", "ai-s
 export type Kind = (typeof kinds)[number];
 
 /**
- * Kinds this implementation discovers, builds and plans today. Other kinds stay explicit:
- * discovery lists their files as `not-implemented` leftovers and planning reports them
- * `unavailable` with reason `not-implemented`.
+ * Kinds this implementation builds and plans. `findItems` discovers skills (and commands as
+ * user-only skills), agents, rules and Registry `server.json` MCP servers; hooks and
+ * documents are proposed by their author. `ai-setup` stays explicit: building it is
+ * `invalid` and planning reports it `unavailable` with reason `not-implemented`.
  */
-export const implementedKinds = ["skill", "rule"] as const satisfies readonly Kind[];
+export const implementedKinds = [
+  "skill",
+  "agent",
+  "rule",
+  "hook",
+  "mcp",
+  "document",
+] as const satisfies readonly Kind[];
 
 const MiB = 1024 * 1024;
 
@@ -86,6 +94,8 @@ export const leftOverReasons = [
   "unrepresentable-id",
   /** A `SKILL.md` at the source root or inside another skill's folder. */
   "ambiguous-skill",
+  /** A command whose name a skill of the same framework already has (the skill wins). */
+  "shadowed-by-skill",
   /** Any other file. */
   "unrecognised",
 ] as const;

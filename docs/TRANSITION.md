@@ -59,10 +59,18 @@ schemas and fixtures happen together in the package cutover, not slice by slice.
 The first implemented path plans an installation from your own folder:
 `readLocalSource` (or `parseSourceLink` and `fetchSource` for a local, Git or npm source),
 `findItems`, `buildContent`, `readContent`/`readToolProfile` and
-`planInstall` give a project-scope plan of skills and always-on rules for Claude Code,
-Kiro and Antigravity, and `renderStep` produces the bytes of each recorded render.
-Kinds, scopes and routes that are not implemented yet are reported as
-`not-implemented` leftovers or `unavailable` placements rather than claimed. Item scan
+`planInstall` give a project- or user-scope plan, and `renderStep` produces the bytes of
+each recorded render. The nine shipped profiles (Claude Code, Codex, Copilot, Kiro,
+Antigravity, OpenCode, Cursor, Kimi and dsh) place skills (with commands folded into
+user-only skills), agents, rules, hooks (from upstream editions only), MCP servers (from
+Registry `server.json`) and documents (where a profile describes a place). Placements
+shared by several clients become one step with all of their clients; user-scope skill
+folders are shared versions, linked where the profile documents links and copied
+elsewhere; rules in shared files and MCP entries are per-entry `merge` steps with conflict
+checks. Declared inputs are bound to typed destinations without values. Kinds, scopes and
+routes that are not implemented yet (bundles, upstream fetching, recipes, plugins and AI
+setup) are reported as `not-implemented` leftovers or `unavailable` placements rather than
+claimed, and a pair a profile does not describe is `unavailable` with its reason. Item scan
 keys come from Scan's `scanKeyOf` (`@aihq/scan/contracts`), installed from the exact
 `vendor/aihq-scan-0.1.0.tgz` archive (sha256
 `52f040b1e09dd4015d5c88b9b98b59d177626bf449f1e819448411552de59bcd`) as a development

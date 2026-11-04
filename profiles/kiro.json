@@ -1,4 +1,9 @@
 {
+  "agentFile": {
+    "format": "json",
+    "model": "drop",
+    "tools": {}
+  },
   "arguments": "substituted",
   "checkedWith": [
     {
@@ -12,16 +17,72 @@
       "version": "1.4.86"
     }
   ],
+  "editionPlaces": {
+    "agent": {
+      "project": ".kiro/agents/",
+      "user": ".kiro/agents/"
+    },
+    "hook": {
+      "project": ".kiro/hooks/",
+      "user": ".kiro/hooks/"
+    },
+    "rule": {
+      "project": ".kiro/steering/"
+    }
+  },
+  "foldDescription": true,
   "id": "kiro",
-  "name": "Kiro",
+  "inputReferences": {
+    "file": "unknown",
+    "mcp-argv": "unknown",
+    "mcp-env": "unknown",
+    "mcp-header": "unknown"
+  },
+  "links": {
+    "skill": "documented"
+  },
+  "mcpFile": {
+    "remote": {
+      "streamable-http": {
+        "headers": "headers",
+        "url": "url"
+      }
+    },
+    "stdio": {
+      "args": "args",
+      "command": "command",
+      "env": "env"
+    }
+  },
+  "name": "Kiro (CLI and IDE)",
   "places": {
+    "agent": {
+      "project": ".kiro/agents/<name>.json",
+      "user": ".kiro/agents/<name>.json"
+    },
+    "mcp": {
+      "project": {
+        "file": ".kiro/settings/mcp.json",
+        "format": "json",
+        "key": "/mcpServers/<name>"
+      },
+      "user": {
+        "file": ".kiro/settings/mcp.json",
+        "format": "json",
+        "key": "/mcpServers/<name>"
+      }
+    },
     "rule": {
       "project": {
-        "always": ".kiro/steering/<name>.md"
+        "always": ".kiro/steering/<name>.md",
+        "by-description": ".kiro/steering/<name>.md",
+        "on-request": ".kiro/steering/<name>.md",
+        "paths": ".kiro/steering/<name>.md"
       }
     },
     "skill": {
-      "project": ".kiro/skills/<name>/"
+      "project": ".kiro/skills/<name>/",
+      "user": ".kiro/skills/<name>/"
     }
   },
   "ruleScopes": {
@@ -29,6 +90,27 @@
       "frontmatter": {
         "inclusion": "always"
       }
+    },
+    "by-description": {
+      "describe": [
+        "name",
+        "description"
+      ],
+      "frontmatter": {
+        "inclusion": "auto"
+      }
+    },
+    "on-request": {
+      "frontmatter": {
+        "inclusion": "manual"
+      }
+    },
+    "paths": {
+      "form": "single-or-list",
+      "frontmatter": {
+        "inclusion": "fileMatch"
+      },
+      "globs": "fileMatchPattern"
     }
   },
   "schema": "urn:aihq:catalog:tool-profile:0.1.0",
@@ -48,7 +130,14 @@
         "id": "steering",
         "path": ".kiro/steering/<name>.md"
       }
+    ],
+    "user": [
+      {
+        "arguments": "kept",
+        "id": "prompt",
+        "path": ".kiro/prompts/<name>.md"
+      }
     ]
   },
-  "version": 1
+  "version": 2
 }

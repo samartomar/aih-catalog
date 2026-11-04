@@ -1,0 +1,101 @@
+{
+  "agentFile": {
+    "format": "toml",
+    "model": "drop",
+    "tools": "none"
+  },
+  "arguments": "chat-text",
+  "checkedWith": [
+    {
+      "app": "codex",
+      "date": "2026-11-02",
+      "version": "0.166.0"
+    }
+  ],
+  "hookEvents": {
+    "interrupt": "Interrupt",
+    "permission-request": "PermissionRequest",
+    "post-compact": "PostCompact",
+    "post-tool-use": "PostToolUse",
+    "pre-compact": "PreCompact",
+    "pre-tool-use": "PreToolUse",
+    "session-end": "SessionEnd",
+    "session-start": "SessionStart",
+    "stop": "Stop",
+    "subagent-start": "SubagentStart",
+    "subagent-stop": "SubagentStop",
+    "user-prompt-submit": "UserPromptSubmit"
+  },
+  "id": "codex",
+  "inputReferences": {
+    "file": "unknown",
+    "mcp-argv": "unknown",
+    "mcp-env": "unknown",
+    "mcp-header": "unknown"
+  },
+  "links": {
+    "skill": "documented"
+  },
+  "mcpFile": {
+    "remote": {
+      "streamable-http": {
+        "headers": "http_headers",
+        "url": "url"
+      }
+    },
+    "stdio": {
+      "args": "args",
+      "command": "command",
+      "env": "env"
+    }
+  },
+  "name": "Codex",
+  "places": {
+    "agent": {
+      "project": ".codex/agents/<name>.toml",
+      "user": ".codex/agents/<name>.toml"
+    },
+    "mcp": {
+      "project": {
+        "file": ".codex/config.toml",
+        "format": "toml",
+        "key": "mcp_servers.<name>"
+      },
+      "user": {
+        "file": ".codex/config.toml",
+        "format": "toml",
+        "key": "mcp_servers.<name>"
+      }
+    },
+    "rule": {
+      "project": {
+        "always": {
+          "file": "AGENTS.md",
+          "limitBytes": 32768,
+          "merge": "markdown"
+        }
+      }
+    },
+    "skill": {
+      "project": ".agents/skills/<name>/",
+      "user": ".agents/skills/<name>/"
+    }
+  },
+  "ruleScopes": {
+    "always": {
+      "frontmatter": {}
+    }
+  },
+  "schema": "urn:aihq:catalog:tool-profile:0.1.0",
+  "userOnly": {
+    "file": {
+      "path": "agents/openai.yaml",
+      "yaml": {
+        "policy": {
+          "allow_implicit_invocation": false
+        }
+      }
+    }
+  },
+  "version": 1
+}

@@ -4,6 +4,7 @@
  * sha256 over canonical JSON. Qualification references never enter either digest.
  */
 import { canonicalJson } from "./json.js";
+import { skillFile } from "./kinds.js";
 import type { Item, ItemFile } from "./model.js";
 import { basenameOf, compareCodeUnits, dirnameOf } from "./paths.js";
 import { sha256Hex } from "./sha256.js";
@@ -64,24 +65,21 @@ export function behaviourSha256(
 }
 
 /**
- * The folder an item installs as: a skill's files sit under the folder holding its
- * `SKILL.md`; a single-file item is that file's name.
+ * Item-relative install path of a file: a skill's files sit under the folder of its
+ * `SKILL.md` (a former command's single file installs as `SKILL.md`); a file of any
+ * other kind installs under its own name. Editions use the same rule over their files.
  */
-export function itemRoot(item: Pick<Item, "kind" | "files">): string | null {
-  if (item.kind === "skill") {
-    const skill = item.files
-      .filter((file) => basenameOf(file.sourcePath) === "SKILL.md" && !file.cli)
-      .sort(
-        (left, right) => left.sourcePath.split("/").length - right.sourcePath.split("/").length,
-      )[0];
-    return skill ? dirnameOf(skill.sourcePath) : null;
-  }
-  return null;
-}
-
-/** Item-relative install paths of its files, used for placement and the scan folder. */
-export function installRelative(item: Pick<Item, "kind" | "files">, file: ItemFile): string {
-  const root = itemRoot(item);
-  if (root === null) return basenameOf(file.sourcePath);
+export function installRelative(
+  item: { readonly kind: string; readonly files: readonly { sourcePath: string; cli?: string }[] },
+  file: { readonly sourcePath: string },
+): string {
+  if (item.kind !== "skill") return basenameOf(file.sourcePath);
+  const found = skillFile(item.files);
+  if (found === undefined) return basenameOf(file.sourcePath);
+  if (found.command)
+    return file === found.file || file.sourcePath === found.file.sourcePath
+      ? "SKILL.md"
+      : basenameOf(file.sourcePath);
+  const root = dirnameOf(found.file.sourcePath);
   return root === "" ? file.sourcePath : file.sourcePath.slice(root.length + 1);
 }

@@ -12,31 +12,28 @@ import {
   type Problem,
   type Refused,
 } from "./contracts.js";
-import {
-  decodeText,
-  type Frontmatter,
-  parseFrontmatter,
-  splitFrontmatter,
-  usesArguments,
-} from "./internal/frontmatter.js";
+import { decodeText } from "./internal/frontmatter.js";
 import { behaviourSha256, contentSha256, installRelative } from "./internal/identity.js";
-import { canonicalDocument, deepFreeze } from "./internal/json.js";
+import { canonicalDocument, canonicalJson, deepFreeze } from "./internal/json.js";
+import { readFields } from "./internal/kinds.js";
 import {
   type Content,
   type ContentSource,
+  type DiscoveredFile,
   type DiscoveredItem,
+  type Edition,
   type FetchedSource,
   FRAMEWORK_ID,
-  INSTALL_NAME,
+  INPUT_NAME,
+  type InputDeclaration,
   type Item,
   type ItemFile,
   NPM_PACKAGE,
   OBJECT_ID,
-  type RuleScope,
+  type Requirements,
   type SourceFile,
 } from "./internal/model.js";
 import {
-  basenameOf,
   compareCodeUnits,
   dirnameOf,
   isSafeRelativePath,
@@ -67,102 +64,8 @@ export type BuildContentResult =
   | Refused
   | Invalid;
 
-type Fields = { name: string; description: string } & Record<string, unknown>;
-
-const descriptionOk = (value: unknown): value is string =>
-  typeof value === "string" && value.length > 0 && value.length <= 1024;
-
-/** First Markdown heading, else first non-empty line, of a rule body. */
-function firstLine(body: string): string | undefined {
-  const lines = body.split(/\r?\n/).map((line) => line.trim());
-  const heading = lines.find((line) => /^#{1,6}\s+\S/.test(line));
-  if (heading) return heading.replace(/^#{1,6}\s+/, "").replace(/\s+#+\s*$/, "");
-  return lines.find((line) => line.length > 0);
-}
-
-function ruleScope(frontmatter: Frontmatter): RuleScope | { readonly error: string } {
-  const paths = frontmatter.paths ?? frontmatter.globs;
-  const list = typeof paths === "string" ? [paths] : paths;
-  const globs = (value: unknown): value is string[] =>
-    Array.isArray(value) &&
-    value.length > 0 &&
-    value.every((glob) => typeof glob === "string" && glob.length > 0);
-  if (frontmatter.inclusion !== undefined) {
-    if (frontmatter.inclusion === "always") return "always";
-    if (frontmatter.inclusion === "manual") return "on-request";
-    if (frontmatter.inclusion === "auto") return { byDescription: true };
-    if (frontmatter.inclusion === "fileMatch") {
-      const match = frontmatter.fileMatchPattern;
-      const patterns = typeof match === "string" ? [match] : match;
-      return globs(patterns)
-        ? { paths: patterns }
-        : { error: "a fileMatch rule needs fileMatchPattern globs" };
-    }
-    return { error: `unknown inclusion ${quote(String(frontmatter.inclusion))}` };
-  }
-  if (frontmatter.trigger !== undefined) {
-    if (frontmatter.trigger === "always_on") return "always";
-    if (frontmatter.trigger === "manual") return "on-request";
-    if (frontmatter.trigger === "model_decision") return { byDescription: true };
-    if (frontmatter.trigger === "glob")
-      return globs(list) ? { paths: list } : { error: "a glob rule needs globs" };
-    return { error: `unknown trigger ${quote(String(frontmatter.trigger))}` };
-  }
-  if (frontmatter.alwaysApply === true) return "always";
-  if (list !== undefined)
-    return globs(list) ? { paths: list } : { error: "paths must be a list of globs" };
-  return "always";
-}
-
-/** The file-owned fields of one item, read from its bytes. */
-function readFields(item: DiscoveredItem, bytesOf: (path: string) => Uint8Array): Fields | string {
-  if (item.kind === "skill") {
-    const skill = item.files.find((file) => basenameOf(file.sourcePath) === "SKILL.md");
-    if (skill === undefined) return "a skill needs a SKILL.md";
-    const text = decodeText(bytesOf(skill.sourcePath));
-    if (text === null) return `${skill.sourcePath} is not UTF-8 text`;
-    const split = splitFrontmatter(text);
-    if (split.yaml === null) return `${skill.sourcePath} has no frontmatter`;
-    const frontmatter = parseFrontmatter(split.yaml);
-    if (typeof frontmatter === "string") return `${skill.sourcePath}: ${frontmatter}`;
-    const folderName = basenameOf(dirnameOf(skill.sourcePath));
-    const name = frontmatter.name ?? folderName;
-    if (typeof name !== "string" || name.length > 64 || !INSTALL_NAME.test(name)) {
-      return `${skill.sourcePath}: the name ${quote(String(name))} is not at most 64 characters of a-z0-9- with single inner hyphens`;
-    }
-    if (!descriptionOk(frontmatter.description))
-      return `${skill.sourcePath}: description must be 1–1024 characters`;
-    const flag = frontmatter["disable-model-invocation"] ?? frontmatter.disableModelInvocation;
-    if (flag !== undefined && typeof flag !== "boolean")
-      return `${skill.sourcePath}: disable-model-invocation must be a boolean`;
-    return {
-      name,
-      description: frontmatter.description,
-      userOnly: flag === true,
-      arguments: usesArguments(split.body),
-    };
-  }
-  const rule = item.files[0];
-  if (rule === undefined || item.files.length !== 1) return "a rule is exactly one file";
-  const text = decodeText(bytesOf(rule.sourcePath));
-  if (text === null) return `${rule.sourcePath} is not UTF-8 text`;
-  const split = splitFrontmatter(text);
-  const frontmatter = parseFrontmatter(split.yaml);
-  if (typeof frontmatter === "string") return `${rule.sourcePath}: ${frontmatter}`;
-  const name = basenameOf(rule.sourcePath).replace(/\.md$/, "");
-  if (name.length > 64 || !INSTALL_NAME.test(name)) {
-    return `${rule.sourcePath}: the file name ${quote(name)} is not at most 64 characters of a-z0-9- with single inner hyphens`;
-  }
-  const description = frontmatter.description ?? firstLine(split.body);
-  if (!descriptionOk(description))
-    return `${rule.sourcePath}: needs a description, heading or first line of 1–1024 characters`;
-  const scope = ruleScope(frontmatter);
-  if (typeof scope === "object" && "error" in scope) return `${rule.sourcePath}: ${scope.error}`;
-  return { name, description, scope };
-}
-
 async function scanKeyFor(
-  item: Pick<Item, "kind" | "files">,
+  item: { readonly kind: string; readonly files: readonly ItemFile[] },
   bytesOf: (path: string) => Uint8Array,
 ) {
   const result = await scanKeyOf(
@@ -223,6 +126,176 @@ function indexFiles(files: readonly SourceFile[]): FileIndex {
     map.set(file.path, file.bytes);
   }
   return { bytesOf: (path) => map.get(path) as Uint8Array, has: (path) => map.has(path) };
+}
+
+const canonical = (value: unknown): string => (value === undefined ? "" : canonicalJson(value));
+
+/** Every file an item names: its own and its editions'. */
+function allFiles(item: DiscoveredItem): DiscoveredFile[] {
+  return [
+    ...(Array.isArray(item?.files) ? item.files : []),
+    ...Object.values(item?.editions ?? {}).flatMap((edition) =>
+      Array.isArray(edition?.files) ? edition.files : [],
+    ),
+  ];
+}
+
+/** A recorded item seen as discovery would propose it, with its authored fields. */
+function discovered(item: Item): DiscoveredItem {
+  const strip = (file: ItemFile): DiscoveredFile => {
+    const { bytes: _bytes, derivedFrom: _derived, ...rest } = file;
+    return rest;
+  };
+  return {
+    id: item.id,
+    kind: item.kind,
+    files: item.files.map(strip),
+    ...(item.userOnly === true ? { userOnly: true as const } : {}),
+    ...(item.editions
+      ? {
+          editions: Object.fromEntries(
+            Object.entries(item.editions).map(([cli, edition]) => [
+              cli,
+              { files: edition.files.map(strip) },
+            ]),
+          ),
+        }
+      : {}),
+    ...(item.requirements ? { requirements: item.requirements } : {}),
+    ...(item.dependencies ? { dependencies: item.dependencies } : {}),
+    ...(item.purpose !== undefined ? { purpose: item.purpose } : {}),
+  };
+}
+
+const textOf = (bytes: Uint8Array): string => decodeText(bytes) ?? "";
+
+/** Checks authored inputs against what the files declare and use. */
+function requirementsFor(
+  item: DiscoveredItem,
+  declared: Readonly<Record<string, InputDeclaration>>,
+  markers: readonly string[],
+  bytesOf: (path: string) => Uint8Array,
+): Requirements | undefined | string {
+  const authored = item.requirements;
+  const inputs = authored?.inputs ?? declared;
+  if (authored !== undefined) {
+    if (authored === null || typeof authored !== "object" || typeof authored.inputs !== "object")
+      return "requirements must be { inputs }";
+    for (const [name, declaration] of Object.entries(declared)) {
+      const entry = authored.inputs[name];
+      if (entry === undefined) return `requirements.inputs must cover the file's input ${name}`;
+      if (declaration.isSecret && entry.isSecret !== true)
+        return `the input ${name} is secret in the file`;
+    }
+  }
+  for (const marker of markers)
+    if (inputs[marker] === undefined) return `the marker {${marker}} names no declared input`;
+  for (const [name, entry] of Object.entries(inputs)) {
+    if (!INPUT_NAME.test(name)) return `the input name ${quote(name)} is not valid`;
+    if (
+      entry === null ||
+      typeof entry !== "object" ||
+      typeof entry.description !== "string" ||
+      entry.description.length === 0 ||
+      entry.description.length > 1024 ||
+      typeof entry.isRequired !== "boolean" ||
+      typeof entry.isSecret !== "boolean" ||
+      (entry.default !== undefined && typeof entry.default !== "string")
+    )
+      return `the input ${name} needs description, isRequired and isSecret`;
+    if (entry.isSecret && entry.default !== undefined)
+      return `the secret input ${name} carries a value`;
+    if (entry.placeholder !== undefined) {
+      const { sourcePath, marker } = entry.placeholder;
+      if (typeof marker !== "string" || marker.length < 3 || marker.length > 128)
+        return `the input ${name} needs a placeholder marker of 3–128 characters`;
+      if (!item.files.some((file) => file.sourcePath === sourcePath))
+        return `the placeholder of ${name} names no file of the item`;
+      if (!textOf(bytesOf(sourcePath)).includes(marker))
+        return `the placeholder of ${name} does not occur in ${sourcePath}`;
+    }
+  }
+  if (Object.keys(inputs).length === 0 && authored === undefined) return undefined;
+  return authored ?? { inputs };
+}
+
+/**
+ * Builds one item record from its proposed files and authored fields, or lists its problems.
+ * `compare` names the values the bytes own, which `checkContent` compares with the record.
+ */
+async function assemble(
+  item: DiscoveredItem,
+  index: FileIndex,
+): Promise<{ item: Item; compare: string[] } | Problem[]> {
+  const id = String(item?.id);
+  if (!(implementedKinds as readonly string[]).includes(item?.kind))
+    return [{ path: id, message: `building ${String(item?.kind)} items is not implemented yet` }];
+  const missing = allFiles(item).filter((file) => !index.has(file.sourcePath));
+  if (missing.length > 0)
+    return missing.map((file) => ({
+      path: `${id}/${file.sourcePath}`,
+      message: "the file was not supplied with its bytes",
+    }));
+  const read = readFields(item, index.bytesOf);
+  if (typeof read === "string") return [{ path: id, message: read }];
+  const record = (file: DiscoveredFile): ItemFile => ({
+    ...(file.cli === undefined ? {} : { cli: file.cli }),
+    sourceId: file.sourceId,
+    sourcePath: file.sourcePath,
+    sha256: file.sha256,
+    bytes: index.bytesOf(file.sourcePath).byteLength,
+    executable: file.executable,
+    role: file.role,
+  });
+  const itemFiles = item.files.map(record);
+  const scanKey = await scanKeyFor({ kind: item.kind, files: itemFiles }, index.bytesOf);
+  if (!scanKey.startsWith("git-")) return [{ path: id, message: scanKey }];
+  const fields: Record<string, unknown> = { ...read.fields };
+  if (item.userOnly !== undefined) {
+    if (item.userOnly !== true || item.kind !== "skill")
+      return [{ path: `${id}/userOnly`, message: "only a skill can be tightened to user-only" }];
+    fields.userOnly = true;
+  }
+  const requirements = requirementsFor(
+    item,
+    read.declared ?? {},
+    read.markers ?? [],
+    index.bytesOf,
+  );
+  if (typeof requirements === "string")
+    return [{ path: `${id}/requirements`, message: requirements }];
+  let editions: Record<string, Edition> | undefined;
+  if (item.editions !== undefined) {
+    editions = {};
+    for (const cli of Object.keys(item.editions).sort(compareCodeUnits)) {
+      const files = (item.editions[cli]?.files ?? []).map(record);
+      if (!FRAMEWORK_ID.test(cli) || files.length === 0)
+        return [
+          { path: `${id}/editions/${cli}`, message: "an edition names a client and its files" },
+        ];
+      const key = await scanKeyFor({ kind: item.kind, files }, index.bytesOf);
+      if (!key.startsWith("git-")) return [{ path: `${id}/editions/${cli}`, message: key }];
+      editions[cli] = { files, scanKey: key };
+    }
+  }
+  const base: Record<string, unknown> = {
+    kind: item.kind,
+    files: itemFiles,
+    ...fields,
+    ...(requirements ? { requirements } : {}),
+    ...(item.dependencies ? { dependencies: item.dependencies } : {}),
+    ...(editions ? { editions } : {}),
+  };
+  const built = {
+    id: item.id,
+    ...base,
+    contentSha256: contentSha256(itemFiles),
+    behaviourSha256: behaviourSha256(base as never, null),
+    scanKey,
+  } as Item;
+  const compare = [...Object.keys(read.fields), "scanKey", ...(editions ? ["editions"] : [])];
+  if (item.requirements === undefined) compare.push("requirements");
+  return { item: built, compare };
 }
 
 type Pin = Omit<ContentSource, "id" | "notices">;
@@ -313,58 +386,30 @@ export async function buildContent(
   const built: Item[] = [];
   const proposed: readonly DiscoveredItem[] = Array.isArray(items) ? items : [];
   for (const item of proposed) {
-    if (!(implementedKinds as readonly string[]).includes(item?.kind)) {
-      problems.push({
-        path: String(item?.id),
-        message: `building ${String(item?.kind)} items is not implemented yet`,
-      });
-      continue;
-    }
-    const missing = item.files.filter(
-      (file) => file.sourceId !== sourceId || !index.has(file.sourcePath),
-    );
-    if (missing.length > 0) {
-      for (const file of missing)
+    const wrongSource = allFiles(item).filter((file) => file.sourceId !== sourceId);
+    if (wrongSource.length > 0) {
+      for (const file of wrongSource)
         problems.push({
           path: `${item.id}/${file.sourcePath}`,
           message: "the file was not supplied with its bytes",
         });
       continue;
     }
-    const mismatched = item.files.find(
-      (file) => sha256Hex(index.bytesOf(file.sourcePath)) !== file.sha256,
+    const mismatched = allFiles(item).find(
+      (file) =>
+        index.has(file.sourcePath) && sha256Hex(index.bytesOf(file.sourcePath)) !== file.sha256,
     );
     if (mismatched)
       return refused(
         "source-mismatch",
         `the bytes of ${quote(mismatched.sourcePath)} differ from the item's sha256`,
       );
-    const fields = readFields(item, index.bytesOf);
-    if (typeof fields === "string") {
-      problems.push({ path: item.id, message: fields });
+    const result = await assemble(item, index);
+    if (Array.isArray(result)) {
+      problems.push(...result);
       continue;
     }
-    const itemFiles: ItemFile[] = item.files.map((file) => ({
-      sourceId: file.sourceId,
-      sourcePath: file.sourcePath,
-      sha256: file.sha256,
-      bytes: index.bytesOf(file.sourcePath).byteLength,
-      executable: file.executable,
-      role: file.role,
-    }));
-    const scanKey = await scanKeyFor({ kind: item.kind, files: itemFiles }, index.bytesOf);
-    if (!scanKey.startsWith("git-")) {
-      problems.push({ path: item.id, message: scanKey });
-      continue;
-    }
-    const base = { kind: item.kind, files: itemFiles, ...fields };
-    built.push({
-      id: item.id,
-      ...base,
-      contentSha256: contentSha256(itemFiles),
-      behaviourSha256: behaviourSha256(base, null),
-      scanKey,
-    } as Item);
+    built.push(result.item);
   }
   if (problems.length > 0) return { status: "invalid", problems };
   const contentSource: ContentSource = { id: sourceId, ...pinned, notices };
@@ -414,7 +459,9 @@ export async function checkContent(
       };
     }
     for (const item of content.items) {
-      const absent = item.files.filter((file) => !index.has(file.sourcePath));
+      const view = discovered(item);
+      const files = allFiles(view);
+      const absent = files.filter((file) => !index.has(file.sourcePath));
       if (absent.length > 0) {
         for (const file of absent)
           problems.push({
@@ -423,7 +470,11 @@ export async function checkContent(
           });
         continue;
       }
-      for (const file of item.files) {
+      const recordedFiles = [
+        ...item.files,
+        ...Object.values(item.editions ?? {}).flatMap((edition) => edition.files),
+      ];
+      for (const file of recordedFiles) {
         const bytes = index.bytesOf(file.sourcePath);
         if (sha256Hex(bytes) !== file.sha256)
           problems.push({
@@ -437,28 +488,26 @@ export async function checkContent(
           });
       }
       if (!(implementedKinds as readonly string[]).includes(item.kind)) continue;
-      const fields = readFields(item as unknown as DiscoveredItem, index.bytesOf);
-      if (typeof fields === "string") {
-        problems.push({ path: item.id, message: fields });
+      const result = await assemble(view, index);
+      if (Array.isArray(result)) {
+        problems.push(...result);
         continue;
       }
-      for (const [key, value] of Object.entries(fields)) {
+      for (const key of result.compare) {
         const recorded = item[key];
-        // userOnly may be tightened to true where the file does not set it (a former command), never weakened.
-        if (key === "userOnly" && recorded === true && value === false) continue;
-        if (JSON.stringify(recorded) !== JSON.stringify(value)) {
+        const value = result.item[key];
+        // userOnly may be tightened to true where the file does not set it, never weakened.
+        if (key === "userOnly" && recorded === true) continue;
+        if (canonical(recorded) !== canonical(value)) {
           problems.push({
             path: `${item.id}/${key}`,
-            message: "the recorded value differs from what the file says",
+            message:
+              key === "scanKey"
+                ? "the scan key differs from the files"
+                : "the recorded value differs from what the file says",
           });
         }
       }
-      const scanKey = await scanKeyFor(item, index.bytesOf);
-      if (item.scanKey !== scanKey)
-        problems.push({
-          path: `${item.id}/scanKey`,
-          message: "the scan key differs from the files",
-        });
     }
   }
   if (problems.length > 0) return { status: "invalid", problems };

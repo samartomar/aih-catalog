@@ -83,10 +83,25 @@ export const usesArguments = (body: string): boolean => body.includes(ARGUMENTS)
 export const rewordArguments = (body: string): string =>
   body.replaceAll(ARGUMENTS, REWORDED_ARGUMENTS);
 
+/** A one-line YAML value: plain where the core schema reads it back as the same string. */
 function scalar(value: unknown): string {
   if (typeof value === "boolean" || typeof value === "number") return String(value);
-  if (typeof value === "string" && /^[A-Za-z0-9_][A-Za-z0-9_./-]*$/.test(value)) {
-    if (!/^(?:true|false|null|yes|no|on|off|~|[-+]?[0-9].*)$/i.test(value)) return value;
+  if (
+    typeof value === "string" &&
+    value.length > 0 &&
+    !/[\r\n\t\0]/.test(value) &&
+    value.trim() === value &&
+    !/^(?:yes|no|on|off|y|n)$/i.test(value)
+  ) {
+    try {
+      const probe = parseDocument(`key: ${value}`, { schema: "core", strict: true });
+      if (probe.errors.length === 0 && probe.warnings.length === 0) {
+        const read = probe.toJS({ maxAliasCount: 0 }) as { key?: unknown } | null;
+        if (read?.key === value && Object.keys(read).length === 1) return value;
+      }
+    } catch {
+      // Not plain: an alias, tag or other construct; quote it.
+    }
   }
   return JSON.stringify(value);
 }

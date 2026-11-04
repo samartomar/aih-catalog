@@ -1,0 +1,97 @@
+{
+  "agentFile": {
+    "format": "claude-md",
+    "model": "keep",
+    "tools": "keep"
+  },
+  "arguments": "chat-text",
+  "checkedWith": [
+    {
+      "app": "cursor-agent",
+      "date": "2026-11-02",
+      "version": "2026.10.22"
+    },
+    {
+      "app": "cursor",
+      "date": "2026-11-02",
+      "version": "3.27.12"
+    }
+  ],
+  "hookEvents": {
+    "pre-tool-use": "preToolUse",
+    "session-start": "sessionStart"
+  },
+  "id": "cursor",
+  "inputReferences": {
+    "file": "unknown",
+    "mcp-argv": "unknown",
+    "mcp-env": "unknown",
+    "mcp-header": "unknown"
+  },
+  "links": {
+    "skill": "not-documented"
+  },
+  "mcpFile": {
+    "remote": {
+      "streamable-http": {
+        "headers": "headers",
+        "url": "url"
+      }
+    },
+    "stdio": {
+      "args": "args",
+      "command": "command",
+      "env": "env"
+    }
+  },
+  "name": "Cursor (CLI and IDE)",
+  "places": {
+    "agent": {
+      "project": ".claude/agents/<name>.md"
+    },
+    "mcp": {
+      "project": {
+        "file": ".cursor/mcp.json",
+        "format": "json",
+        "key": "/mcpServers/<name>"
+      }
+    },
+    "rule": {
+      "project": {
+        "always": ".cursor/rules/<name>.mdc",
+        "paths": ".cursor/rules/<name>.mdc"
+      }
+    },
+    "skill": {
+      "project": {
+        "otherwise": ".agents/skills/<name>/",
+        "reuse": [
+          ".agents/skills/<name>/",
+          ".claude/skills/<name>/"
+        ]
+      },
+      "user": ".cursor/skills/<name>/"
+    }
+  },
+  "ruleScopes": {
+    "always": {
+      "frontmatter": {
+        "alwaysApply": true
+      }
+    },
+    "paths": {
+      "form": "comma",
+      "frontmatter": {
+        "alwaysApply": false
+      },
+      "globs": "globs"
+    }
+  },
+  "schema": "urn:aihq:catalog:tool-profile:0.1.0",
+  "userOnly": {
+    "frontmatter": {
+      "disable-model-invocation": true
+    }
+  },
+  "version": 1
+}
