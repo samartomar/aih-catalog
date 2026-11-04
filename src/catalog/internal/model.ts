@@ -87,13 +87,15 @@ export interface Item {
   readonly arguments?: boolean;
   readonly scope?: RuleScope;
   readonly language?: string;
-  readonly requirements?: unknown;
+  readonly requirements?: Requirements;
   readonly dependencies?: readonly string[];
   readonly references?: readonly string[];
   readonly bundle?: string;
   readonly supersedes?: readonly string[];
   readonly fetch?: "upstream";
-  readonly editions?: Readonly<Record<string, unknown>>;
+  readonly editions?: Readonly<Record<string, Edition>>;
+  readonly agent?: AgentRecord;
+  readonly purpose?: string;
   readonly [field: string]: unknown;
 }
 
@@ -105,17 +107,61 @@ export interface Content {
   readonly bundles?: readonly unknown[];
 }
 
-/** An item as discovery proposes it, before `buildContent` reads its file-owned fields. */
+/** A file as discovery proposes it, before `buildContent` records its length. */
+export interface DiscoveredFile {
+  readonly sourceId: string;
+  readonly sourcePath: string;
+  readonly sha256: string;
+  readonly executable: boolean;
+  readonly role: "content" | "behaviour";
+  readonly cli?: string;
+}
+
+/** One declared input. A secret input never carries a value. */
+export interface InputDeclaration {
+  readonly description: string;
+  readonly isRequired: boolean;
+  readonly isSecret: boolean;
+  readonly default?: string;
+  /** A marker the installer replaces in one item file; the render keeps it. */
+  readonly placeholder?: { readonly sourcePath: string; readonly marker: string };
+}
+
+export interface Requirements {
+  readonly inputs: Readonly<Record<string, InputDeclaration>>;
+  readonly tools?: readonly unknown[];
+}
+
+/** An upstream-authored variant of an item for one client. */
+export interface Edition {
+  readonly files: readonly ItemFile[];
+  readonly scanKey: string;
+}
+
+/** A neutral agent record. `prompt` is the file whose body is the prompt. */
+export interface AgentRecord {
+  readonly prompt: string;
+  readonly tools?: readonly string[];
+  readonly model?: string;
+  readonly color?: string;
+  readonly background?: boolean;
+}
+
+/**
+ * An item as discovery proposes it, before `buildContent` reads its file-owned fields. The
+ * optional fields are authored (by Catalog, or by you for your own content), never read from
+ * files: a former command's `userOnly`, editions, requirements, dependencies and a
+ * document's purpose.
+ */
 export interface DiscoveredItem {
   readonly id: string;
   readonly kind: Kind;
-  readonly files: readonly {
-    readonly sourceId: string;
-    readonly sourcePath: string;
-    readonly sha256: string;
-    readonly executable: boolean;
-    readonly role: "content" | "behaviour";
-  }[];
+  readonly files: readonly DiscoveredFile[];
+  readonly userOnly?: true;
+  readonly editions?: Readonly<Record<string, { readonly files: readonly DiscoveredFile[] }>>;
+  readonly requirements?: Requirements;
+  readonly dependencies?: readonly string[];
+  readonly purpose?: string;
 }
 
 export interface LeftOver {
@@ -127,6 +173,7 @@ export interface LeftOver {
 
 export const ID_SEGMENT = /^[A-Za-z0-9][A-Za-z0-9_-]*$/;
 export const FRAMEWORK_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+export const INPUT_NAME = /^[A-Za-z_][A-Za-z0-9_-]*$/;
 export const INSTALL_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 export const SHA256 = /^[0-9a-f]{64}$/;
 /** A Git object id: SHA-1 (40 hex) or SHA-256 (64 hex). */

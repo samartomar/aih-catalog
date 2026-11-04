@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { planInstall, readContent, renderStep } from "../../src/catalog/reader.js";
-import { FRAMEWORK, folder, gitTree, ownContent, profile, sha, sortKeys, utf8 } from "./helpers.js";
+import {
+  FRAMEWORK,
+  folder,
+  gitTree,
+  ownContent,
+  profile,
+  sha,
+  sortKeys,
+  utf8,
+  writes,
+} from "./helpers.js";
 
 const LICENSE = "MIT Licence\n";
 const REVIEW =
@@ -30,7 +40,7 @@ describe("planning an installation from your own folder", () => {
     expect(plan).toEqual({
       status: "ok",
       data: null,
-      profiles: [{ id: "claude-code", version: 1 }],
+      profiles: [{ id: "claude-code", version: 2 }],
       plan: [
         {
           op: "write",
@@ -177,12 +187,12 @@ describe("one own folder for Claude, Kiro and Antigravity", () => {
     });
     if (result.status !== "ok") throw new Error(JSON.stringify(result));
     expect(result.profiles).toEqual([
-      { id: "antigravity", version: 1 },
-      { id: "claude-code", version: 1 },
-      { id: "kiro", version: 1 },
+      { id: "antigravity", version: 2 },
+      { id: "claude-code", version: 2 },
+      { id: "kiro", version: 2 },
     ]);
     expect(
-      result.plan.map((step) => [
+      writes(result.plan).map((step) => [
         step.op,
         step.root,
         step.path,
@@ -221,15 +231,19 @@ describe("one own folder for Claude, Kiro and Antigravity", () => {
         null,
       ],
       ["write", "project", `.claude/skills/ship/SKILL.md`, ship, ["claude-code"], "skill"],
-      ["write", "project", `.kiro/prompts/ship.md`, ship, ["kiro"], null],
-      ["write", "project", `.kiro/skills/review/SKILL.md`, review, ["kiro"], null],
+      // Kiro renders fold every description to one plain line, so they always render.
+      ["write", "project", `.kiro/prompts/ship.md`, ship, ["kiro"], "user-only-fallback"],
+      ["write", "project", `.kiro/skills/review/SKILL.md`, review, ["kiro"], "skill"],
       ["write", "project", `.kiro/skills/review/references/checklist.md`, review, ["kiro"], null],
       ["write", "project", `.kiro/steering/ship.md`, ship, ["kiro"], "user-only-fallback"],
       ["write", "project", `.kiro/steering/style.md`, style, ["kiro"], "rule"],
     ]);
     // Kiro never receives the user-only skill as a skill (Kiro CLI ignores the flag).
-    expect(result.plan.some((step) => step.path.startsWith(".kiro/skills/ship"))).toBe(false);
-    for (const step of result.plan) expect(step.scanned).toBe(step.render ? false : undefined);
+    expect(writes(result.plan).some((step) => step.path.startsWith(".kiro/skills/ship"))).toBe(
+      false,
+    );
+    for (const step of writes(result.plan))
+      expect(step.scanned).toBe(step.render ? false : undefined);
   });
 
   it("renders each recorded step to the client's bytes without touching the upstream body", async () => {
@@ -245,7 +259,7 @@ describe("one own folder for Claude, Kiro and Antigravity", () => {
       bytes: file.bytes as Uint8Array,
     }));
     const rendered = Object.fromEntries(
-      result.plan
+      writes(result.plan)
         .filter((step) => step.render !== undefined)
         .map((step) => {
           const output = renderStep(step, [built.content], profiles, files);
@@ -259,11 +273,12 @@ describe("one own folder for Claude, Kiro and Antigravity", () => {
       ".agents/skills/ship/SKILL.md":
         "---\nname: ship\ndescription: Ship the change.\ndisable-model-invocation: true\n---\n\nShip the text the user typed after the command now.\n",
       ".claude/skills/ship/SKILL.md": SHIP,
+      ".kiro/prompts/ship.md": SHIP,
       ".kiro/steering/ship.md":
         "---\nname: ship\ndescription: Ship the change.\ndisable-model-invocation: true\ninclusion: manual\n---\n\nShip the text the user typed after the command now.\n",
       ".kiro/steering/style.md": "---\ninclusion: always\n---\n# Style\n\nUse two spaces.\n",
     });
-    const prompt = result.plan.find((step) => step.path === ".kiro/prompts/ship.md");
+    const prompt = writes(result.plan).find((step) => step.path === ".kiro/prompts/ship.md");
     expect(prompt?.from).toEqual({
       item: ship,
       sourceId: FRAMEWORK,
@@ -296,7 +311,9 @@ describe("one own folder for Claude, Kiro and Antigravity", () => {
       names: { [review]: "team-review" },
     });
     if (renamed.status !== "ok") throw new Error(JSON.stringify(renamed));
-    expect(renamed.plan.map((step) => step.path)).toContain(".claude/skills/team-review/SKILL.md");
+    expect(writes(renamed.plan).map((step) => step.path)).toContain(
+      ".claude/skills/team-review/SKILL.md",
+    );
 
     const clash = planInstall(
       [ship, `${FRAMEWORK}.rule.ship`],

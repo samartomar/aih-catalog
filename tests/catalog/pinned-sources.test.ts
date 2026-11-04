@@ -9,7 +9,17 @@ import { fetchSource, readLocalSource } from "../../src/catalog/node.js";
 import { buildContent, checkContent } from "../../src/catalog/producer.js";
 import { planInstall, readContent } from "../../src/catalog/reader.js";
 import { findItems, parseSourceLink } from "../../src/catalog/source.js";
-import { folder, git, gitRepository, outDir, profile, sha, sortKeys, utf8 } from "./helpers.js";
+import {
+  folder,
+  git,
+  gitRepository,
+  outDir,
+  profile,
+  sha,
+  sortKeys,
+  utf8,
+  writes,
+} from "./helpers.js";
 import { integrity, manifest, registry, tar, tarball } from "./npm-fixture.js";
 
 const savedEnvironment = { ...process.env };
@@ -118,7 +128,7 @@ describe("fetching a pinned Git source", () => {
     });
     if (!("plan" in plan)) throw new Error(JSON.stringify(plan));
     expect(plan.status).toBe("ok");
-    expect(plan.plan.map((step) => [step.path, step.from])).toEqual([
+    expect(writes(plan.plan).map((step) => [step.path, step.from])).toEqual([
       [
         ".aihq/notices/pack/LICENSE",
         { sourceId: "pack", sourcePath: "LICENSE", sha256: sha(LICENSE) },
@@ -362,7 +372,9 @@ describe("fetching a pinned npm source", () => {
     });
     if (!("plan" in plan)) throw new Error(JSON.stringify(plan));
     expect(plan.status).toBe("ok");
-    expect(plan.plan.map((step) => [step.path, step.from.sourceId, step.from.sourcePath])).toEqual([
+    expect(
+      writes(plan.plan).map((step) => [step.path, step.from?.sourceId, step.from?.sourcePath]),
+    ).toEqual([
       [".aihq/notices/fixture/LICENSE", "fixture", "LICENSE"],
       [".kiro/steering/style.md", "fixture", "rules/style.md"],
     ]);

@@ -7,6 +7,7 @@ import { behaviourSha256, contentSha256, kindFieldNames } from "./identity.js";
 import {
   FRAMEWORK_ID,
   ID_SEGMENT,
+  INPUT_NAME,
   INSTALL_NAME,
   type Item,
   NPM_PACKAGE,
@@ -309,6 +310,11 @@ export function contentProblems(value: unknown): Problem[] {
       }
       if (item.kind === "rule") checkScope(item.scope, `${path}/scope`, problems);
       else if (item.scope !== undefined) problems.add(`${path}/scope`, "only rules have a scope");
+      checkKindFields(item, path, problems);
+      if (item.requirements !== undefined)
+        checkRequirements(item.requirements, `${path}/requirements`, problems);
+      if (item.editions !== undefined)
+        checkEditions(item.editions, `${path}/editions`, sourceIds, problems);
       for (const key of ["dependencies", "references", "supersedes"])
         checkIdList(item[key], `${path}/${key}`, problems);
       if (item.fetch !== undefined && item.fetch !== "upstream")
@@ -335,151 +341,112 @@ export function contentProblems(value: unknown): Problem[] {
   return problems.list;
 }
 
-const SCALAR = (value: unknown): boolean =>
-  typeof value === "boolean" || typeof value === "number" || isString(value, 256);
-const frontmatterOk = (value: unknown): boolean =>
-  isRecord(value) &&
-  Object.entries(value).every(
-    ([key, entry]) => /^[A-Za-z][A-Za-z0-9_-]*$/.test(key) && SCALAR(entry),
-  );
-
-function template(value: unknown, folder: boolean): boolean {
-  if (!isString(value, 512) || !value.includes("<name>")) return false;
-  if (folder !== value.endsWith("/")) return false;
-  const filled = value.replaceAll("<name>", "x");
-  return isSafeRelativePath(folder ? filled.slice(0, -1) : filled);
+/** The kind fields this implementation builds: present on their own kind, absent elsewhere. */
+function checkKindFields(item: Record_, path: string, problems: Problems): void {
+  const own = (kind: string, field: string) => {
+    if (item.kind !== kind && item[field] !== undefined)
+      problems.add(`${path}/${field}`, `only ${kind} items have ${field}`);
+    return item.kind === kind;
+  };
+  if (own("agent", "agent")) {
+    const agent = item.agent;
+    const ok =
+      isRecord(agent) &&
+      Object.keys(agent).every((key) =>
+        ["prompt", "tools", "model", "color", "background"].includes(key),
+      ) &&
+      isSafeRelativePath(agent.prompt) &&
+      (agent.tools === undefined ||
+        (Array.isArray(agent.tools) && agent.tools.every((tool) => isString(tool, 128)))) &&
+      (agent.model === undefined || isString(agent.model, 128)) &&
+      (agent.color === undefined || isString(agent.color, 128)) &&
+      (agent.background === undefined || typeof agent.background === "boolean");
+    if (!ok)
+      problems.add(
+        `${path}/agent`,
+        "an agent records { prompt, tools?, model?, color?, background? }",
+      );
+  }
+  if (own("mcp", "server")) {
+    const server = item.server;
+    if (!isRecord(server) || !isString(server.name, 256) || !isString(server.description, 1024))
+      problems.add(`${path}/server`, "an MCP item records its server name and description");
+  }
+  for (const field of ["event", "matcher", "handler"]) own("hook", field);
+  if (item.kind === "hook") {
+    if (!isString(item.event, 64) || !/^[a-z]+(?:-[a-z]+)*$/.test(item.event))
+      problems.add(`${path}/event`, "a hook records its neutral event");
+    if (!isRecord(item.handler) || !isString(item.handler.type, 64))
+      problems.add(`${path}/handler`, "a hook records its handler type");
+  }
+  if (own("document", "purpose") && !isString(item.purpose, 256))
+    problems.add(`${path}/purpose`, "a document records its purpose");
 }
 
-/** Shape problems of a tool profile; only the sections this implementation reads exist. */
-export function profileProblems(value: unknown): Problem[] {
-  const problems = new Problems();
-  if (!isRecord(value)) return [{ path: "", message: "a tool profile must be an object" }];
-  problems.keys(
-    value,
-    "",
-    [
-      "schema",
-      "id",
-      "name",
-      "version",
-      "checkedWith",
-      "places",
-      "userOnly",
-      "userOnlyFallback",
-      "arguments",
-      "ruleScopes",
-    ],
-    ["schema", "id", "name", "version", "checkedWith", "places", "userOnly", "arguments"],
-  );
-  if (value.schema !== formats.toolProfile)
-    problems.add("/schema", `schema must be ${formats.toolProfile}`);
-  if (!isString(value.id, 64) || !FRAMEWORK_ID.test(value.id))
-    problems.add("/id", "invalid profile id");
-  if (!isString(value.name, 200)) problems.add("/name", "name must be 1–200 characters");
-  if (!Number.isSafeInteger(value.version) || (value.version as number) < 1)
-    problems.add("/version", "version must be a positive integer");
+function checkRequirements(value: unknown, path: string, problems: Problems): void {
   if (
-    !Array.isArray(value.checkedWith) ||
-    !value.checkedWith.every(
-      (entry) =>
-        isRecord(entry) &&
-        Object.keys(entry).sort().join() === "app,date,version" &&
-        isString(entry.app, 64) &&
-        isString(entry.version, 64) &&
-        typeof entry.date === "string" &&
-        /^\d{4}-\d{2}-\d{2}$/.test(entry.date),
-    )
+    !isRecord(value) ||
+    !isRecord(value.inputs) ||
+    !Object.keys(value).every((key) => key === "inputs" || key === "tools")
   ) {
-    problems.add("/checkedWith", "checkedWith lists { app, version, date }");
+    problems.add(path, "requirements are { inputs, tools? }");
+    return;
   }
-  const places = value.places;
-  if (!isRecord(places)) problems.add("/places", "places must be an object");
-  else
-    for (const [kind, byScope] of Object.entries(places)) {
-      if (!kinds.includes(kind as never)) problems.add(`/places/${kind}`, "unknown kind");
-      if (!isRecord(byScope)) {
-        problems.add(`/places/${kind}`, "places map scope to a place");
-        continue;
-      }
-      for (const [scope, place] of Object.entries(byScope)) {
-        const path = `/places/${kind}/${scope}`;
-        if (scope !== "project" && scope !== "user")
-          problems.add(path, "scope must be project or user");
-        if (kind === "rule") {
-          if (
-            !isRecord(place) ||
-            !Object.entries(place).every(
-              ([key, entry]) => key === "always" && template(entry, false),
-            )
-          ) {
-            problems.add(
-              path,
-              "rule places map a scope name (always) to a file template with <name>",
-            );
-          }
-        } else if (!template(place, true))
-          problems.add(path, "a place is a folder template with <name> ending in /");
-      }
-    }
-  if (
-    value.userOnly !== "none" &&
-    !(
-      isRecord(value.userOnly) &&
-      Object.keys(value.userOnly).join() === "frontmatter" &&
-      frontmatterOk(value.userOnly.frontmatter)
-    )
-  ) {
-    problems.add("/userOnly", "userOnly is none or { frontmatter }");
+  for (const [name, input] of Object.entries(value.inputs)) {
+    const at = `${path}/inputs/${name}`;
+    const ok =
+      INPUT_NAME.test(name) &&
+      isRecord(input) &&
+      Object.keys(input).every((key) =>
+        ["description", "isRequired", "isSecret", "default", "placeholder"].includes(key),
+      ) &&
+      isString(input.description, 1024) &&
+      typeof input.isRequired === "boolean" &&
+      typeof input.isSecret === "boolean" &&
+      (input.default === undefined || typeof input.default === "string") &&
+      (input.placeholder === undefined ||
+        (isRecord(input.placeholder) &&
+          Object.keys(input.placeholder).sort().join() === "marker,sourcePath" &&
+          isSafeRelativePath(input.placeholder.sourcePath) &&
+          isString(input.placeholder.marker, 128)));
+    if (!ok)
+      problems.add(at, "an input is { description, isRequired, isSecret, default?, placeholder? }");
+    else if (input.isSecret === true && input.default !== undefined)
+      problems.add(`${at}/default`, "a secret input never carries a value");
   }
-  if (value.userOnlyFallback !== undefined) {
-    const fallback = value.userOnlyFallback;
-    if (!isRecord(fallback)) problems.add("/userOnlyFallback", "must be an object");
-    else
-      for (const [scope, entries] of Object.entries(fallback)) {
-        const path = `/userOnlyFallback/${scope}`;
-        if (scope !== "project" && scope !== "user")
-          problems.add(path, "scope must be project or user");
-        const ids = new Set<string>();
-        if (
-          !Array.isArray(entries) ||
-          entries.length === 0 ||
-          !entries.every((entry) => {
-            if (!isRecord(entry) || !isString(entry.id, 64) || ids.has(entry.id)) return false;
-            ids.add(entry.id);
-            const allowed = Object.keys(entry).every((key) =>
-              ["id", "path", "frontmatter", "arguments"].includes(key),
-            );
-            return (
-              allowed &&
-              template(entry.path, false) &&
-              (entry.frontmatter === undefined || frontmatterOk(entry.frontmatter)) &&
-              (entry.arguments === "kept" || entry.arguments === "reworded")
-            );
-          })
-        ) {
-          problems.add(
-            path,
-            "fallback entries are { id, path, frontmatter?, arguments: kept | reworded }",
-          );
-        }
-      }
+}
+
+function checkEditions(
+  value: unknown,
+  path: string,
+  sourceIds: Set<string>,
+  problems: Problems,
+): void {
+  if (!isRecord(value)) {
+    problems.add(path, "editions map client ids to { files, scanKey }");
+    return;
   }
-  if (value.arguments !== "substituted" && value.arguments !== "chat-text")
-    problems.add("/arguments", "arguments is substituted or chat-text");
-  if (value.ruleScopes !== undefined) {
-    const scopes = value.ruleScopes;
-    if (
-      !isRecord(scopes) ||
-      !Object.entries(scopes).every(
-        ([scope, entry]) =>
-          scope === "always" &&
-          isRecord(entry) &&
-          Object.keys(entry).join() === "frontmatter" &&
-          frontmatterOk(entry.frontmatter),
-      )
-    ) {
-      problems.add("/ruleScopes", "ruleScopes map a scope name (always) to { frontmatter }");
-    }
+  for (const [cli, edition] of Object.entries(value)) {
+    const at = `${path}/${cli}`;
+    const ok =
+      FRAMEWORK_ID.test(cli) &&
+      isRecord(edition) &&
+      Object.keys(edition).sort().join() === "files,scanKey" &&
+      typeof edition.scanKey === "string" &&
+      SCAN_KEY.test(edition.scanKey) &&
+      Array.isArray(edition.files) &&
+      edition.files.length > 0 &&
+      edition.files.every(
+        (file) =>
+          isRecord(file) &&
+          sourceIds.has(file.sourceId as string) &&
+          isSafeRelativePath(file.sourcePath) &&
+          typeof file.sha256 === "string" &&
+          SHA256.test(file.sha256) &&
+          Number.isSafeInteger(file.bytes) &&
+          typeof file.executable === "boolean" &&
+          (file.role === "content" || file.role === "behaviour"),
+      );
+    if (!ok) problems.add(at, "an edition is { files, scanKey } with recorded files");
   }
-  return problems.list;
 }

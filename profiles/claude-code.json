@@ -1,4 +1,9 @@
 {
+  "agentFile": {
+    "format": "claude-md",
+    "model": "keep",
+    "tools": "keep"
+  },
   "arguments": "substituted",
   "checkedWith": [
     {
@@ -7,21 +12,102 @@
       "version": "2.1.316"
     }
   ],
+  "hookEvents": {
+    "post-tool-use": "PostToolUse",
+    "pre-compact": "PreCompact",
+    "pre-tool-use": "PreToolUse",
+    "session-end": "SessionEnd",
+    "session-start": "SessionStart",
+    "stop": "Stop",
+    "subagent-start": "SubagentStart",
+    "subagent-stop": "SubagentStop",
+    "user-prompt-submit": "UserPromptSubmit"
+  },
   "id": "claude-code",
+  "inputReferences": {
+    "file": "unknown",
+    "mcp-argv": {
+      "syntax": "${<name>}"
+    },
+    "mcp-env": {
+      "syntax": "${<name>}"
+    },
+    "mcp-header": {
+      "syntax": "${<name>}"
+    }
+  },
+  "links": {
+    "skill": "documented"
+  },
+  "mcpFile": {
+    "remote": {
+      "sse": {
+        "headers": "headers",
+        "set": {
+          "type": "sse"
+        },
+        "url": "url"
+      },
+      "streamable-http": {
+        "headers": "headers",
+        "set": {
+          "type": "http"
+        },
+        "url": "url"
+      }
+    },
+    "stdio": {
+      "args": "args",
+      "command": "command",
+      "env": "env",
+      "set": {
+        "type": "stdio"
+      }
+    }
+  },
   "name": "Claude Code",
   "places": {
+    "agent": {
+      "project": ".claude/agents/<name>.md",
+      "user": ".claude/agents/<name>.md"
+    },
+    "mcp": {
+      "project": {
+        "file": ".mcp.json",
+        "format": "json",
+        "key": "/mcpServers/<name>"
+      },
+      "user": {
+        "file": ".claude.json",
+        "format": "json",
+        "key": "/mcpServers/<name>"
+      }
+    },
     "rule": {
       "project": {
-        "always": ".claude/rules/<name>.md"
+        "always": ".claude/rules/<name>.md",
+        "paths": ".claude/rules/<name>.md"
+      },
+      "user": {
+        "always": {
+          "file": ".claude/CLAUDE.md",
+          "merge": "markdown"
+        }
       }
     },
     "skill": {
-      "project": ".claude/skills/<name>/"
+      "project": ".claude/skills/<name>/",
+      "user": ".claude/skills/<name>/"
     }
   },
   "ruleScopes": {
     "always": {
       "frontmatter": {}
+    },
+    "paths": {
+      "form": "list",
+      "frontmatter": {},
+      "globs": "paths"
     }
   },
   "schema": "urn:aihq:catalog:tool-profile:0.1.0",
@@ -30,5 +116,5 @@
       "disable-model-invocation": true
     }
   },
-  "version": 1
+  "version": 2
 }

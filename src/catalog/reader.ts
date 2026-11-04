@@ -13,15 +13,10 @@ import { deepFreeze, JsonAdmissionError, readCanonicalDocument } from "./interna
 import type { Content, Item } from "./internal/model.js";
 import { quote, refused } from "./internal/paths.js";
 import { type PlanStep, planInstall as plan } from "./internal/plan.js";
-import {
-  changesBytes,
-  renderBytes,
-  renderEdit,
-  renderNames,
-  type ToolProfile,
-} from "./internal/render.js";
+import { profileProblems } from "./internal/profile.js";
+import { renderBytes, renderEdit, renderNames, type ToolProfile } from "./internal/render.js";
 import { sha256Hex } from "./internal/sha256.js";
-import { contentProblems, profileProblems } from "./internal/validate.js";
+import { contentProblems } from "./internal/validate.js";
 
 export type {
   Content,
@@ -32,11 +27,16 @@ export type {
   RuleScope,
 } from "./internal/model.js";
 export type {
+  Binding,
+  Clash,
+  LinkStep,
+  MergeStep,
   Plan,
   PlanOptions,
   PlanResult,
   PlanStep,
   Unavailable,
+  Warning,
   WriteStep,
 } from "./internal/plan.js";
 export type { ToolProfile } from "./internal/render.js";
@@ -109,7 +109,7 @@ export type Availability = {
   readonly reason?: string;
 };
 
-/** Whether an item can be placed for a profile at project scope, and how. */
+/** Whether an item can be placed for a profile at project scope, and how (edition or render). */
 export function availability(item: Item, profile: ToolProfile): Availability {
   const result = plan([item.id], [syntheticContent(item)], [profile], {
     scope: "project",
@@ -123,9 +123,8 @@ export function availability(item: Item, profile: ToolProfile): Availability {
     };
   }
   const blocked = result.unavailable[0];
-  return blocked
-    ? { available: false, how: "none", reason: blocked.reason }
-    : { available: true, how: "rendered" };
+  if (blocked) return { available: false, how: "none", reason: blocked.reason };
+  return { available: true, how: item.editions?.[profile.id] ? "edition" : "rendered" };
 }
 
 /** A one-item content around `item`, so availability reuses the planner's placement rules. */
@@ -171,9 +170,10 @@ export type RenderStepResult =
   | Invalid;
 
 /**
- * The bytes of one `write` step that has a `render`, from the supplied source file.
- * Refuses `source-mismatch` when the file's sha256 differs from the step's and
- * `profile-mismatch` when the supplied profile's version differs from the recorded one.
+ * The bytes of one `write` step that has a `render` (or the block of a Markdown `merge`), from
+ * the supplied source file. Refuses `source-mismatch` when the file's sha256 differs from the
+ * step's and `profile-mismatch` when the supplied profile's version differs from the recorded
+ * one. Declared input markers in the source survive the render unchanged.
  */
 export function renderStep(
   step: PlanStep,
@@ -185,79 +185,101 @@ export function renderStep(
     readonly bytes: Uint8Array;
   }[],
 ): RenderStepResult {
-  const render = step?.render;
-  const from = step?.from;
+  const render = step?.op === "write" || step?.op === "merge" ? step.render : undefined;
+  const from = step?.op === "write" || step?.op === "merge" ? step.from : undefined;
+  const itemId =
+    step?.op === "write" || step?.op === "merge" ? (from?.item ?? step.item) : undefined;
   if (
-    step?.op !== "write" ||
     render === undefined ||
-    from === undefined ||
-    typeof from.item !== "string"
+    typeof itemId !== "string" ||
+    (step.op === "merge" && from === undefined)
   ) {
     return {
       status: "invalid",
-      problems: [{ path: "step", message: "renderStep takes a write step with a render" }],
+      problems: [
+        { path: "step", message: "renderStep takes a write or Markdown merge step with a render" },
+      ],
     };
   }
-  if (!renderNames.includes(render.name)) {
+  if (!renderNames.includes(render.name))
     return {
       status: "invalid",
       problems: [{ path: "step/render/name", message: "unknown render" }],
     };
-  }
   const profile = profiles.find((candidate) => candidate.id === render.profile);
   if (profile === undefined)
     return refused("profile-mismatch", `no profile ${quote(render.profile)} was supplied`);
-  if (profile.version !== render.version) {
+  if (profile.version !== render.version)
     return refused(
       "profile-mismatch",
       `the step was planned with ${render.profile} version ${render.version}, not version ${profile.version}`,
     );
-  }
   const item = contents
     .flatMap((content) => content.items)
-    .find((candidate) => candidate.id === from.item);
+    .find((candidate) => candidate.id === itemId);
   if (item === undefined)
-    return refused("unknown-item", `the item ${quote(from.item)} is not in the supplied content`);
-  const record = item.files.find(
-    (file) => file.sourceId === from.sourceId && file.sourcePath === from.sourcePath,
-  );
-  if (record === undefined || record.sha256 !== from.sha256) {
-    return refused(
-      "source-mismatch",
-      `the content does not record ${quote(from.sourcePath)} with the step's sha256`,
+    return refused("unknown-item", `the item ${quote(itemId)} is not in the supplied content`);
+  let source: Uint8Array | undefined;
+  if (from !== undefined) {
+    const record = [
+      ...item.files,
+      ...Object.values(item.editions ?? {}).flatMap((edition) => edition.files),
+    ].find((file) => file.sourceId === from.sourceId && file.sourcePath === from.sourcePath);
+    if (record === undefined || record.sha256 !== from.sha256)
+      return refused(
+        "source-mismatch",
+        `the content does not record ${quote(from.sourcePath)} with the step's sha256`,
+      );
+    const supplied = files.find(
+      (file) =>
+        file.sourcePath === from.sourcePath &&
+        (file.sourceId === undefined || file.sourceId === from.sourceId),
     );
+    if (supplied === undefined || !(supplied.bytes instanceof Uint8Array))
+      return {
+        status: "invalid",
+        problems: [
+          { path: "files", message: `the source file ${from.sourcePath} was not supplied` },
+        ],
+      };
+    if (sha256Hex(supplied.bytes) !== from.sha256)
+      return refused(
+        "source-mismatch",
+        `the supplied ${quote(from.sourcePath)} differs from the bytes the plan recorded`,
+      );
+    source = supplied.bytes;
   }
-  const supplied = files.find(
-    (file) =>
-      file.sourcePath === from.sourcePath &&
-      (file.sourceId === undefined || file.sourceId === from.sourceId),
+  const scope = step.root;
+  const edit = renderEdit(
+    {
+      name: render.name,
+      installName: render.installName,
+      ...(render.entry ? { entry: render.entry } : {}),
+    },
+    item,
+    profile,
+    scope,
   );
-  if (supplied === undefined || !(supplied.bytes instanceof Uint8Array)) {
-    return {
-      status: "invalid",
-      problems: [{ path: "files", message: `the source file ${from.sourcePath} was not supplied` }],
-    };
-  }
-  if (sha256Hex(supplied.bytes) !== from.sha256) {
-    return refused(
-      "source-mismatch",
-      `the supplied ${quote(from.sourcePath)} differs from the bytes the plan recorded`,
-    );
-  }
-  const edit = renderEdit(render.name, render.entry, item, profile, step.root);
-  if ("reason" in edit || !changesBytes(edit)) {
-    return {
-      status: "invalid",
-      problems: [
-        {
-          path: "step/render",
-          message: "reason" in edit ? edit.reason : "the render changes nothing",
-        },
-      ],
-    };
-  }
-  const result = renderBytes(edit, supplied.bytes);
+  if ("reason" in edit)
+    return { status: "invalid", problems: [{ path: "step/render", message: edit.reason }] };
+  const result = renderBytes(edit, source);
   if ("reason" in result)
-    return { status: "invalid", problems: [{ path: from.sourcePath, message: result.reason }] };
+    return {
+      status: "invalid",
+      problems: [{ path: from?.sourcePath ?? "step", message: result.reason }],
+    };
+  const text = new TextDecoder().decode(result.bytes);
+  for (const input of Object.values(item.requirements?.inputs ?? {}))
+    if (
+      input.placeholder?.sourcePath === from?.sourcePath &&
+      input.placeholder &&
+      !text.includes(input.placeholder.marker)
+    )
+      return {
+        status: "invalid",
+        problems: [
+          { path: "step/render", message: "render guard: a declared input marker was lost" },
+        ],
+      };
   return { status: "ok", bytes: result.bytes, sha256: sha256Hex(result.bytes) };
 }

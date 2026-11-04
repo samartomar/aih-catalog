@@ -48,20 +48,12 @@ const NOTICE = /^(?:LICEN[CS]E|COPYING|NOTICE)(?:[-_.][A-Za-z0-9._-]*)?$/i;
 /** True for a licence or notice file; notices are never item files. */
 export const isNoticePath = (path: string): boolean => NOTICE.test(basenameOf(path));
 
-/** Paths of kinds that exist in the contract but are not discovered by this implementation. */
+/** Paths of kinds that exist in the contract but whose discovery here is not implemented. */
 function unimplementedKind(path: string): string | null {
   const first = path.split("/")[0];
-  if (first === "agents" && path.endsWith(".md")) return "agent";
-  if (first === "commands" && path.endsWith(".md")) return "command";
   if (first === "hooks" || basenameOf(path) === "hooks.json") return "hook";
   const name = basenameOf(path);
-  if (
-    name === ".mcp.json" ||
-    name === "mcp.json" ||
-    name === "server.json" ||
-    first === "mcp-configs"
-  )
-    return "mcp";
+  if (name === ".mcp.json" || name === "mcp.json" || first === "mcp-configs") return "mcp";
   return null;
 }
 
@@ -157,10 +149,16 @@ export function findItems(
   }
   const owned = new Map<string, string>();
   const items = new Map<string, DiscoveredItem>();
-  const add = (id: string, kind: "skill" | "rule", members: readonly SourceFile[]) => {
+  const add = (
+    id: string,
+    kind: "skill" | "rule" | "agent" | "mcp",
+    members: readonly SourceFile[],
+    userOnly?: true,
+  ) => {
     items.set(id, {
       id,
       kind,
+      ...(userOnly ? { userOnly } : {}),
       files: members
         .map((file) => ({
           sourceId,
@@ -191,20 +189,56 @@ export function findItems(
     for (const file of members) owned.set(file.path, id);
     add(id, "skill", members);
   }
+  const shadowed = new Set<string>();
   for (const file of candidates) {
     if (owned.has(file.path)) continue;
     const segments = file.path.split("/");
-    if (segments[0] !== "rules" || segments.length < 2 || !file.path.endsWith(".md")) continue;
     const last = segments.length - 1;
-    const path = idPath([...segments.slice(1, last), (segments[last] as string).slice(0, -3)]);
+    const stem = (segments[last] as string).replace(/\.md$/, "");
+    const single = (kind: "rule" | "agent" | "skill", userOnly?: true) => {
+      const path = idPath([...segments.slice(1, last), stem]);
+      if (path === null) {
+        owned.set(file.path, "unrepresentable-id");
+        return;
+      }
+      const id = `${framework}.${kind}.${path}`;
+      // A command and a skill with one name: the skill wins.
+      if (kind === "skill" && items.has(id)) {
+        shadowed.add(file.path);
+        return;
+      }
+      if (items.has(id)) duplicates.push(id);
+      owned.set(file.path, id);
+      add(id, kind, [file], userOnly);
+    };
+    if (segments.length < 2 || !file.path.endsWith(".md")) continue;
+    if (segments[0] === "rules") single("rule");
+    else if (segments[0] === "agents") single("agent");
+    else if (segments[0] === "commands") single("skill", true);
+  }
+  // MCP servers: each Registry server.json outside a skill folder.
+  for (const file of candidates) {
+    if (owned.has(file.path) || basenameOf(file.path) !== "server.json") continue;
+    const segments = dirnameOf(file.path)
+      .split("/")
+      .filter((segment) => segment !== "");
+    let path = idPath(segments[0] === "mcp" ? segments.slice(1) : segments);
+    if (segments.length === 0 && file.bytes instanceof Uint8Array) {
+      try {
+        const name = JSON.parse(new TextDecoder().decode(file.bytes))?.name;
+        if (typeof name === "string") path = idPath([name.slice(name.lastIndexOf("/") + 1)]);
+      } catch {
+        path = null;
+      }
+    }
     if (path === null) {
       owned.set(file.path, "unrepresentable-id");
       continue;
     }
-    const id = `${framework}.rule.${path}`;
+    const id = `${framework}.mcp.${path}`;
     if (items.has(id)) duplicates.push(id);
     owned.set(file.path, id);
-    add(id, "rule", [file]);
+    add(id, "mcp", [file]);
   }
   if (duplicates.length > 0) {
     return {
@@ -219,6 +253,8 @@ export function findItems(
     const owner = owned.get(file.path);
     if (owner === "unrepresentable-id")
       leftOver.push({ path: file.path, reason: "unrepresentable-id" });
+    else if (shadowed.has(file.path))
+      leftOver.push({ path: file.path, reason: "shadowed-by-skill" });
     else if (owner !== undefined) continue;
     else if (
       [...ambiguous].some((folder) =>

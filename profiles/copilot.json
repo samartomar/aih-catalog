@@ -1,0 +1,156 @@
+{
+  "agentFile": {
+    "fields": [
+      "name",
+      "description"
+    ],
+    "format": "md",
+    "model": "drop",
+    "tools": {}
+  },
+  "arguments": "chat-text",
+  "checkedWith": [
+    {
+      "app": "copilot-cli",
+      "date": "2026-11-02",
+      "version": "1.0.105"
+    },
+    {
+      "app": "vscode",
+      "date": "2026-11-02",
+      "version": "1.144.0"
+    },
+    {
+      "app": "copilot-chat",
+      "date": "2026-11-02",
+      "version": "0.72.0"
+    }
+  ],
+  "editionPlaces": {
+    "hook": {
+      "project": ".github/hooks/",
+      "user": ".copilot/hooks/"
+    }
+  },
+  "hookEvents": {
+    "post-tool-use": "postToolUse",
+    "pre-compact": "preCompact",
+    "pre-tool-use": "preToolUse",
+    "session-end": "sessionEnd",
+    "session-start": "sessionStart",
+    "stop": "agentStop",
+    "subagent-stop": "subagentStop",
+    "user-prompt-submit": "userPromptSubmitted"
+  },
+  "id": "copilot",
+  "inputReferences": {
+    "file": "unknown",
+    "mcp-argv": "unknown",
+    "mcp-env": "unknown",
+    "mcp-header": "unknown"
+  },
+  "links": {
+    "skill": "documented"
+  },
+  "mcpFile": {
+    "remote": {
+      "sse": {
+        "headers": "headers",
+        "set": {
+          "type": "sse"
+        },
+        "url": "url"
+      },
+      "streamable-http": {
+        "headers": "headers",
+        "set": {
+          "type": "http"
+        },
+        "url": "url"
+      }
+    },
+    "stdio": {
+      "args": "args",
+      "command": "command",
+      "env": "env",
+      "set": {
+        "type": "stdio"
+      }
+    }
+  },
+  "name": "GitHub Copilot (CLI and VS Code)",
+  "places": {
+    "agent": {
+      "project": {
+        "otherwise": ".github/agents/<name>.agent.md",
+        "reuse": [
+          ".claude/agents/<name>.md"
+        ]
+      },
+      "user": ".copilot/agents/<name>.agent.md"
+    },
+    "mcp": {
+      "project": {
+        "file": ".github/mcp.json",
+        "format": "json",
+        "key": "/mcpServers/<name>"
+      },
+      "user": {
+        "file": ".copilot/mcp-config.json",
+        "format": "json",
+        "key": "/mcpServers/<name>"
+      }
+    },
+    "rule": {
+      "project": {
+        "always": ".github/instructions/<name>.instructions.md",
+        "paths": ".github/instructions/<name>.instructions.md"
+      }
+    },
+    "skill": {
+      "project": {
+        "otherwise": ".github/skills/<name>/",
+        "reuse": [
+          ".agents/skills/<name>/",
+          ".claude/skills/<name>/"
+        ]
+      },
+      "user": ".copilot/skills/<name>/"
+    }
+  },
+  "ruleScopes": {
+    "always": {
+      "frontmatter": {
+        "applyTo": "**"
+      }
+    },
+    "paths": {
+      "form": "comma",
+      "frontmatter": {},
+      "globs": "applyTo"
+    }
+  },
+  "schema": "urn:aihq:catalog:tool-profile:0.1.0",
+  "skillFolderOverlap": {
+    "folders": [
+      ".agents/skills/",
+      ".claude/skills/"
+    ],
+    "merge": {
+      "entry": false,
+      "file": ".vscode/settings.json",
+      "format": "json",
+      "key": "/chat.agentSkillsLocations/.claude~1skills"
+    },
+    "warnings": [
+      "vscode-hides-claude-skills",
+      "copilot-ide-duplicate"
+    ]
+  },
+  "userOnly": {
+    "frontmatter": {
+      "disable-model-invocation": true
+    }
+  },
+  "version": 1
+}

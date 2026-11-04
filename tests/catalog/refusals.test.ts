@@ -7,7 +7,7 @@ import { readContentFile, readLocalSource } from "../../src/catalog/node.js";
 import { buildContent, checkContent } from "../../src/catalog/producer.js";
 import { availability, planInstall, readContent, renderStep } from "../../src/catalog/reader.js";
 import { findItems } from "../../src/catalog/source.js";
-import { FRAMEWORK, folder, ownContent, profile, sha } from "./helpers.js";
+import { FRAMEWORK, folder, ownContent, profile, sha, writes } from "./helpers.js";
 
 const SKILL = "---\nname: tidy\ndescription: Tidy the code.\n---\n\nTidy $ARGUMENTS.\n";
 const tidy = `${FRAMEWORK}.skill.tidy`;
@@ -90,11 +90,12 @@ describe("bad paths", () => {
       status: "invalid",
     });
     expect(
-      planInstall([tidy], [built.content], [claude], { scope: "user", data: null }),
-    ).toMatchObject({
-      status: "refused",
-      code: "not-implemented",
-    });
+      planInstall([tidy], [built.content], [claude], {
+        scope: "user",
+        data: null,
+        copy: "yes",
+      } as never),
+    ).toMatchObject({ status: "invalid", problems: [{ path: "options/copy" }] });
   });
 });
 
@@ -125,7 +126,7 @@ describe("changed bytes", () => {
       data: null,
     });
     if (plan.status !== "ok") throw new Error(JSON.stringify(plan));
-    const step = plan.plan.find((candidate) => candidate.render !== undefined);
+    const step = writes(plan.plan).find((candidate) => candidate.render !== undefined);
     if (step === undefined) throw new Error("expected a render step for the argument rewording");
     const original = [
       { sourcePath: "skills/tidy/SKILL.md", bytes: read.files[0]?.bytes as Uint8Array },
@@ -141,7 +142,12 @@ describe("changed bytes", () => {
       code: "source-mismatch",
     });
     expect(
-      renderStep(step, [built.content], [{ ...antigravity, version: 2 }], original),
+      renderStep(
+        step,
+        [built.content],
+        [{ ...antigravity, version: antigravity.version + 1 }],
+        original,
+      ),
     ).toMatchObject({
       status: "refused",
       code: "profile-mismatch",
@@ -212,14 +218,18 @@ describe("explicit leftovers and unimplemented kinds", () => {
     expect(read.skipped).toEqual([{ path: ".git", reason: "vcs-metadata" }]);
     const found = findItems(read.files, { framework: FRAMEWORK });
     if (found.status !== "ok") throw new Error(JSON.stringify(found));
-    expect(found.items.map((item) => item.id)).toEqual([tidy]);
-    expect(found.items[0]?.files.map((file) => file.sourcePath)).toEqual(["skills/tidy/SKILL.md"]);
+    expect(found.items.map((item) => item.id)).toEqual([
+      `${FRAMEWORK}.agent.helper`,
+      `${FRAMEWORK}.skill.go`,
+      tidy,
+    ]);
+    expect(
+      found.items.find((item) => item.id === tidy)?.files.map((file) => file.sourcePath),
+    ).toEqual(["skills/tidy/SKILL.md"]);
     expect(found.leftOver).toEqual([
       { path: ".mcp.json", reason: "not-implemented", kind: "mcp" },
       { path: "README.md", reason: "unrecognised" },
       { path: "SKILL.md", reason: "ambiguous-skill" },
-      { path: "agents/helper.md", reason: "not-implemented", kind: "agent" },
-      { path: "commands/go.md", reason: "not-implemented", kind: "command" },
       { path: "hooks/hooks.json", reason: "not-implemented", kind: "hook" },
       { path: "outside", reason: "link" },
       ...(process.platform === "win32" ? [] : [{ path: "pipe", reason: "special-file" as const }]),
@@ -242,7 +252,7 @@ describe("explicit leftovers and unimplemented kinds", () => {
     });
   });
 
-  it("reports scoped rules and a Kiro user-only skill with support files as not implemented", async () => {
+  it("places scoped rules and reports a Kiro user-only skill with support files as not implemented", async () => {
     const root = folder({
       "rules/python.md": '---\npaths:\n  - "**/*.py"\n---\n# Python\n',
       "skills/deploy/SKILL.md":
@@ -266,11 +276,7 @@ describe("explicit leftovers and unimplemented kinds", () => {
     });
     expect(result).toMatchObject({
       status: "incomplete",
-      unavailable: [
-        { item: python, cli: "claude-code", reason: "not-implemented" },
-        { item: python, cli: "kiro", reason: "not-implemented" },
-        { item: deploy, cli: "kiro", reason: "not-implemented" },
-      ],
+      unavailable: [{ item: deploy, cli: "kiro", reason: "not-implemented" }],
     });
     const item = built.content.items.find((candidate) => candidate.id === deploy);
     if (item === undefined) throw new Error("deploy missing");
@@ -320,7 +326,7 @@ describe("frontmatter the bytes cannot support", () => {
       data: null,
     });
     if (plan.status !== "ok") throw new Error(JSON.stringify(plan));
-    const step = plan.plan.find((candidate) => candidate.render !== undefined);
+    const step = writes(plan.plan).find((candidate) => candidate.render !== undefined);
     if (step === undefined) throw new Error("expected a render");
     const output = renderStep(
       step,

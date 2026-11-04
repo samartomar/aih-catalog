@@ -1,0 +1,94 @@
+{
+  "agentFile": {
+    "fields": [
+      "description"
+    ],
+    "format": "md",
+    "model": "drop",
+    "tools": "none"
+  },
+  "arguments": "chat-text",
+  "checkedWith": [
+    {
+      "app": "opencode",
+      "date": "2026-11-02",
+      "version": "1.19.5"
+    }
+  ],
+  "id": "opencode",
+  "inputReferences": {
+    "file": "unknown",
+    "mcp-argv": "unknown",
+    "mcp-env": "unknown",
+    "mcp-header": "unknown"
+  },
+  "links": {
+    "skill": "documented"
+  },
+  "mcpFile": {
+    "remote": {
+      "streamable-http": {
+        "headers": "headers",
+        "set": {
+          "type": "remote"
+        },
+        "url": "url"
+      }
+    },
+    "stdio": {
+      "argv": "command",
+      "env": "environment",
+      "set": {
+        "type": "local"
+      }
+    }
+  },
+  "name": "OpenCode",
+  "places": {
+    "agent": {
+      "project": ".opencode/agents/<name>.md"
+    },
+    "mcp": {
+      "project": {
+        "file": "opencode.json",
+        "format": "json",
+        "key": "/mcp/<name>"
+      }
+    },
+    "rule": {
+      "project": {
+        "always": {
+          "file": "AGENTS.md",
+          "merge": "markdown"
+        }
+      }
+    },
+    "skill": {
+      "project": {
+        "otherwise": ".agents/skills/<name>/",
+        "reuse": [
+          ".agents/skills/<name>/",
+          ".claude/skills/<name>/"
+        ]
+      },
+      "user": ".config/opencode/skills/<name>/"
+    }
+  },
+  "ruleScopes": {
+    "always": {
+      "frontmatter": {}
+    }
+  },
+  "schema": "urn:aihq:catalog:tool-profile:0.1.0",
+  "userOnly": "none",
+  "userOnlyFallback": {
+    "project": [
+      {
+        "arguments": "kept",
+        "id": "command",
+        "path": ".opencode/commands/<name>.md"
+      }
+    ]
+  },
+  "version": 1
+}

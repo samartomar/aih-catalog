@@ -15,7 +15,12 @@ import { dirname, join, resolve } from "node:path";
 import { afterEach } from "vitest";
 import { readLocalSource } from "../../src/catalog/node.js";
 import { buildContent } from "../../src/catalog/producer.js";
-import { readToolProfile, type ToolProfile } from "../../src/catalog/reader.js";
+import {
+  type PlanStep,
+  readToolProfile,
+  type ToolProfile,
+  type WriteStep,
+} from "../../src/catalog/reader.js";
 import { findItems } from "../../src/catalog/source.js";
 
 export const FRAMEWORK = "local-my-skills";
@@ -166,3 +171,7 @@ export async function ownContent(root: string) {
   if (built.status !== "ok") throw new Error(JSON.stringify(built));
   return { read, found, built };
 }
+
+/** The write steps of a plan (plans of skills and file rules hold only writes). */
+export const writes = (plan: readonly PlanStep[]): WriteStep[] =>
+  plan.filter((step): step is WriteStep => step.op === "write");
