@@ -298,7 +298,9 @@ function rows(plan: readonly PlanStep[]): string[] {
       : `(${(step.op !== "link" ? (step.items ?? []) : []).length} items)`;
     const clis = `[${step.clis.join(",")}]`;
     if (step.op === "link") return `link ${step.path} -> ${step.to} ${owner} ${clis}`;
-    const render = step.render ? ` ${step.render.name}@${step.render.profile}` : "";
+    const render = step.render
+      ? ` ${step.render.name}@${"profiles" in step.render ? step.render.profiles.map((entry) => entry.id).join("+") : step.render.profile}`
+      : "";
     if (step.op === "merge")
       return `merge ${step.file} ${step.key.replace(`${FRAMEWORK}.`, "")} ${owner} ${clis}${render}`;
     return `write ${step.path} ${owner} ${clis}${render}`;
@@ -396,8 +398,8 @@ describe("placing the mixed fixture for all nine clients at project scope", () =
       "rule.python kimi no-path-scope",
       "rule.python opencode no-path-scope",
     ]);
-    // A user-only skill needs a different marker per client in the one shared folder, so the
-    // plan reports the clash instead of picking one client's form.
+    // The shared folder takes one combined user-only render, but Kimi keeps $ARGUMENTS where
+    // the others reword it, so the plan reports the clash instead of picking one client's form.
     expect(result.clashes).toEqual([
       {
         root: "project",
@@ -540,6 +542,13 @@ describe("placing the mixed fixture for all nine clients at project scope", () =
     // A former command becomes a skill with its name, description and the client's user-only form.
     expect(rendered[".claude/skills/deploy/SKILL.md"]).toBe(
       "---\ndescription: Deploy the current branch.\ndisable-model-invocation: true\nname: deploy\n---\nDeploy $ARGUMENTS now.\n",
+    );
+    // Clients sharing .agents/skills take one render with every client's user-only marker.
+    expect(rendered[".agents/skills/deploy/SKILL.md"]).toBe(
+      "---\ndescription: Deploy the current branch.\ndisable-model-invocation: true\nname: deploy\n---\nDeploy the text the user typed after the command now.\n",
+    );
+    expect(rendered[".agents/skills/deploy/agents/openai.yaml"]).toBe(
+      "policy:\n  allow_implicit_invocation: false\n",
     );
     expect(rendered[".kiro/prompts/deploy.md"]).toBe(
       "---\ndescription: Deploy the current branch.\n---\nDeploy $ARGUMENTS now.\n",

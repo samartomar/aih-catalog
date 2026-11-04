@@ -4,6 +4,11 @@
  * the bytes. A Markdown render only sets frontmatter keys and rewords `$ARGUMENTS`;
  * the generated files (Codex `openai.yaml`, native agent files, rule blocks) keep the
  * upstream body or prompt byte for byte.
+ *
+ * A user-only skill whose folder several clients share takes one combined render
+ * (`shared-skill`, `shared-user-only-file`): the union of every sharing client's user-only
+ * markers, with `$ARGUMENTS` reworded only when every sharing profile agrees. Clients
+ * ignore markers that are not theirs, so the folder's bytes are the same for all of them.
  */
 import { parseDocument, stringify } from "yaml";
 import {
@@ -26,7 +31,9 @@ export type RenderName =
   | "user-only-fallback"
   | "rule"
   | "rule-block"
-  | "agent";
+  | "agent"
+  | "shared-skill"
+  | "shared-user-only-file";
 export const renderNames: readonly RenderName[] = [
   "skill",
   "user-only-file",
@@ -34,7 +41,11 @@ export const renderNames: readonly RenderName[] = [
   "rule",
   "rule-block",
   "agent",
+  "shared-skill",
+  "shared-user-only-file",
 ];
+/** The combined renders, made from several sharing clients' profiles at once. */
+export const sharedRenderNames: readonly RenderName[] = ["shared-skill", "shared-user-only-file"];
 
 /** What a render does, computed without file bytes. Equal edits give equal bytes. */
 export type Edit =
@@ -114,6 +125,7 @@ export function renderEdit(
   scope: Scope,
 ): Edit | { reason: string } {
   const { name, entry, installName } = request;
+  if (sharedRenderNames.includes(name)) return { reason: "a shared render takes several profiles" };
   if (name === "skill") {
     if (item.kind !== "skill" || entry !== undefined) return { reason: "skills only" };
     const set: Record<string, unknown> = skillKeys(item, profile, installName);
@@ -190,6 +202,65 @@ export function renderEdit(
       : { kind: "agent", format: file.format, fields };
   }
   return { reason: "unknown render" };
+}
+
+/**
+ * The edit of a render made from `profiles`: a shared render from every sharing client's
+ * profile, any other render from exactly one.
+ */
+export function editFor(
+  request: RenderRequest,
+  item: Item,
+  profiles: readonly ToolProfile[],
+  scope: Scope,
+): Edit | { reason: string } {
+  if (!sharedRenderNames.includes(request.name)) {
+    const [profile] = profiles;
+    return profiles.length === 1 && profile !== undefined
+      ? renderEdit(request, item, profile, scope)
+      : { reason: "the render takes one profile" };
+  }
+  if (item.kind !== "skill" || !item.userOnly) return { reason: "user-only skills only" };
+  if (profiles.length < 2) return { reason: "a shared render serves several clients" };
+  const markers = profiles.map((profile) => profile.userOnly);
+  if (markers.some((marker) => marker === "none"))
+    return { reason: "every sharing client marks user-only skills" };
+  if (request.name === "shared-user-only-file") {
+    const files = markers.flatMap((marker) =>
+      marker !== "none" && "file" in marker && marker.file.path === request.entry
+        ? [marker.file.yaml]
+        : [],
+    );
+    const [yaml] = files;
+    if (yaml === undefined) return { reason: "no sharing client marks user-only with this file" };
+    if (files.some((other) => canonicalJson(other) !== canonicalJson(yaml)))
+      return { reason: "the sharing clients' user-only files conflict" };
+    return { kind: "yaml", yaml };
+  }
+  if (request.entry !== undefined) return { reason: "the shared skill render has no entry" };
+  const [first, ...rest] = profiles.map((profile) =>
+    canonicalJson(skillKeys(item, profile, request.installName)),
+  );
+  if (rest.some((keys) => keys !== first))
+    return { reason: "the sharing clients name or describe the skill differently" };
+  const set: Record<string, unknown> = skillKeys(
+    item,
+    profiles[0] as ToolProfile,
+    request.installName,
+  );
+  for (const marker of markers)
+    if (marker !== "none" && "frontmatter" in marker)
+      for (const [key, value] of Object.entries(marker.frontmatter)) {
+        if (key in set && canonicalJson(set[key]) !== canonicalJson(value))
+          return { reason: `the sharing clients set ${key} differently` };
+        set[key] = value;
+      }
+  const rewords = profiles.map(
+    (profile) => item.arguments === true && profile.arguments === "chat-text",
+  );
+  if (rewords.some((reword) => reword !== rewords[0]))
+    return { reason: "the sharing clients disagree on rewording $ARGUMENTS" };
+  return { kind: "frontmatter", set, reword: rewords[0] === true };
 }
 
 /** True when the edit can change bytes; the planner copies files whose edit is empty. */

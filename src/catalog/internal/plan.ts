@@ -25,21 +25,37 @@ import { type Place, profileProblems, type Scope, type ToolProfile } from "./pro
 import {
   agentTools,
   changesBytes,
+  editFor,
   editKey,
   type RenderName,
-  renderEdit,
   scopeKeyOf,
 } from "./render.js";
 import { sha256Hex } from "./sha256.js";
 import { contentProblems } from "./validate.js";
 
-export interface PlanRender {
-  readonly name: RenderName;
-  readonly profile: string;
+export interface ProfileVersion {
+  readonly id: string;
   readonly version: number;
-  readonly installName: string;
-  readonly entry?: string;
 }
+
+/**
+ * The render a step records: one profile's, or a combined render that names every
+ * participating profile and version (a user-only skill in a folder several clients share).
+ */
+export type PlanRender =
+  | {
+      readonly name: RenderName;
+      readonly profile: string;
+      readonly version: number;
+      readonly installName: string;
+      readonly entry?: string;
+    }
+  | {
+      readonly name: RenderName;
+      readonly profiles: readonly ProfileVersion[];
+      readonly installName: string;
+      readonly entry?: string;
+    };
 
 /** Where a declared input is bound: exactly one destination form; never a value. */
 export interface Binding {
@@ -171,12 +187,19 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const union = (...lists: readonly (readonly string[])[]): string[] =>
   [...new Set(lists.flat())].sort(compareCodeUnits);
 
+interface OutputRender {
+  readonly name: RenderName;
+  readonly entry?: string;
+  /** For a combined render: every participating profile, sorted by id. */
+  readonly profiles?: readonly ProfileVersion[];
+}
+
 /** One file of a placement, relative to its unit. */
 interface Output {
   readonly rel: string;
   readonly from?: SourceRef;
   readonly executable: boolean;
-  readonly render?: { readonly name: RenderName; readonly entry?: string };
+  readonly render?: OutputRender;
   readonly edit?: string;
   readonly inputs?: readonly Binding[];
 }
@@ -242,12 +265,13 @@ function output(
   item: Item,
   file: ItemFile | undefined,
   rel: string,
-  profile: ToolProfile,
+  profile: ToolProfile | readonly ToolProfile[],
   scope: Scope,
   installName: string,
   render: { name: RenderName; entry?: string } | null,
   always = false,
 ): Output | Failure {
+  const profiles = Array.isArray(profile) ? profile : [profile as ToolProfile];
   const base = file
     ? {
         rel,
@@ -259,10 +283,13 @@ function output(
       }
     : { rel, executable: false };
   if (render === null) return base;
-  const edit = renderEdit({ ...render, installName }, item, profile, scope);
+  const edit = editFor({ ...render, installName }, item, profiles, scope);
   if ("reason" in edit) return { reason: "not-described", detail: edit.reason };
   if (!always && !changesBytes(edit)) return base;
-  return { ...base, render, edit: editKey(edit) };
+  const record: OutputRender = Array.isArray(profile)
+    ? { ...render, profiles: profiles.map(({ id, version }) => ({ id, version })) }
+    : render;
+  return { ...base, render: record, edit: editKey(edit) };
 }
 
 const isFailure = (value: unknown): value is Failure =>
@@ -395,42 +422,8 @@ function place(
       const target = resolvePlace(profile.places.skill?.[scope], installName);
       if (target === undefined)
         return { reason: "not-described", detail: `the client has no ${scope} skill place` };
-      const userOnlyFile =
-        item.userOnly && profile.userOnly !== "none" && "file" in profile.userOnly
-          ? profile.userOnly.file.path
-          : undefined;
-      const outputs: Output[] = [];
-      for (const file of own) {
-        const rel = installRelative(item, file);
-        if (rel === userOnlyFile) continue;
-        const made = output(
-          item,
-          file,
-          rel,
-          profile,
-          scope,
-          installName,
-          file === skill ? { name: "skill" } : null,
-        );
-        if (isFailure(made)) return made;
-        outputs.push(made);
-      }
-      if (userOnlyFile !== undefined) {
-        const upstream = own.find((file) => installRelative(item, file) === userOnlyFile);
-        const made = output(
-          item,
-          upstream,
-          userOnlyFile,
-          profile,
-          scope,
-          installName,
-          { name: "user-only-file" },
-          true,
-        );
-        if (isFailure(made)) return made;
-        outputs.push(made);
-      }
-      outputs.sort((left, right) => compareCodeUnits(left.rel, right.rel));
+      const outputs = skillOutputs(item, own, skill, profile, scope, installName);
+      if (isFailure(outputs)) return outputs;
       return [
         placed(
           {
@@ -566,6 +559,102 @@ function place(
   }
 }
 
+/**
+ * A rendered skill folder's outputs: its files with `SKILL.md` rendered, and the files the
+ * client marks a user-only skill with. Several profiles give the combined renders.
+ */
+function skillOutputs(
+  item: Item,
+  own: readonly ItemFile[],
+  skill: ItemFile,
+  profiles: ToolProfile | readonly ToolProfile[],
+  scope: Scope,
+  installName: string,
+): Output[] | Failure {
+  const shared = Array.isArray(profiles);
+  const list: readonly ToolProfile[] = shared ? profiles : [profiles as ToolProfile];
+  const generated = item.userOnly
+    ? union(
+        list.flatMap((profile) =>
+          profile.userOnly !== "none" && "file" in profile.userOnly
+            ? [profile.userOnly.file.path]
+            : [],
+        ),
+      )
+    : [];
+  const outputs: Output[] = [];
+  for (const file of own) {
+    const rel = installRelative(item, file);
+    if (generated.includes(rel)) continue;
+    const name: RenderName = shared ? "shared-skill" : "skill";
+    const made = output(
+      item,
+      file,
+      rel,
+      profiles,
+      scope,
+      installName,
+      file === skill ? { name } : null,
+    );
+    if (isFailure(made)) return made;
+    outputs.push(made);
+  }
+  for (const rel of generated) {
+    const upstream = own.find((file) => installRelative(item, file) === rel);
+    const render = shared
+      ? { name: "shared-user-only-file" as const, entry: rel }
+      : { name: "user-only-file" as const };
+    const made = output(item, upstream, rel, profiles, scope, installName, render, true);
+    if (isFailure(made)) return made;
+    outputs.push(made);
+  }
+  return outputs.sort((left, right) => compareCodeUnits(left.rel, right.rel));
+}
+
+/**
+ * One combined render for a user-only skill placed in one folder by several clients: the
+ * union of their user-only markers, so the folder is byte-identical for all of them. Undefined
+ * when they cannot share one (different items, an edition, different files, or a render that
+ * does not apply, such as disagreeing on rewording `$ARGUMENTS`); the folder then clashes.
+ */
+function combined(members: readonly Placed[], scope: Scope): Unit | undefined {
+  const first = members[0];
+  if (first === undefined || first.unit.shape !== "folder") return undefined;
+  const { item, installName } = first;
+  const profiles = [...new Map(members.map((member) => [member.profile.id, member.profile]))]
+    .sort(([left], [right]) => compareCodeUnits(left, right))
+    .map(([, profile]) => profile);
+  if (profiles.length < 2 || item.kind !== "skill" || !item.userOnly) return undefined;
+  if (
+    members.some(
+      (member) =>
+        member.item.id !== item.id ||
+        member.installName !== installName ||
+        member.unit.shape !== "folder" ||
+        item.editions?.[member.profile.id] !== undefined,
+    )
+  )
+    return undefined;
+  const ownOf = (profile: ToolProfile) =>
+    item.files.filter((file) => file.cli === undefined || file.cli === profile.id);
+  const own = ownOf(profiles[0] as ToolProfile);
+  for (const profile of profiles) {
+    const files = ownOf(profile);
+    if (files.length !== own.length || files.some((file, index) => file !== own[index]))
+      return undefined;
+  }
+  const skill = own.find((file) => installRelative(item, file) === "SKILL.md");
+  if (skill === undefined) return undefined;
+  const outputs = skillOutputs(item, own, skill, profiles, scope, installName);
+  if (isFailure(outputs)) return undefined;
+  return {
+    shape: "folder",
+    path: first.unit.path,
+    outputs,
+    linkable: profiles.every((profile) => profile.links.skill === "documented"),
+  };
+}
+
 function commonFolder(paths: readonly string[]): string {
   let folder = dirnameOf(paths[0] ?? "");
   while (folder !== "" && !paths.every((path) => isUnder(path, folder) && path !== folder))
@@ -601,13 +690,21 @@ function versionOf(placed: Placed, outputs: readonly Output[]): string {
   ).slice(0, 12);
 }
 
-function renderRecord(render: { name: RenderName; entry?: string }, placed: Placed): PlanRender {
+function renderRecord(render: OutputRender, placed: Placed): PlanRender {
+  const entry = render.entry === undefined ? {} : { entry: render.entry };
+  if (render.profiles !== undefined)
+    return {
+      name: render.name,
+      profiles: render.profiles,
+      installName: placed.installName,
+      ...entry,
+    };
   return {
     name: render.name,
     profile: placed.profile.id,
     version: placed.profile.version,
     installName: placed.installName,
-    ...(render.entry === undefined ? {} : { entry: render.entry }),
+    ...entry,
   };
 }
 
@@ -811,8 +908,25 @@ export function planInstall(
   const clisOf = (members: readonly Placed[]) => union(members.map((member) => member.profile.id));
   const itemsOf = (members: readonly Placed[]) => union(members.map((member) => member.item.id));
 
+  // A user-only skill in a folder several clients share takes one combined render.
+  const combinedAt = new Map<string, Unit>();
+  for (const members of group(
+    resolved.filter((entry) => entry.unit.shape === "folder"),
+    (entry) => (entry.unit as { path: string }).path,
+  )) {
+    const unit = combined(members, scope);
+    if (unit?.shape === "folder") combinedAt.set(unit.path, unit);
+  }
+
   // Folders and files: one placement per root and path.
-  const placementsAt = resolved.filter((entry) => entry.unit.shape !== "merge");
+  const placementsAt = resolved
+    .filter((entry) => entry.unit.shape !== "merge")
+    .map((entry): Placed => {
+      const unit = entry.unit.shape === "folder" ? combinedAt.get(entry.unit.path) : undefined;
+      if (unit === undefined) return entry;
+      const { representative: _representative, ...own } = entry;
+      return { ...own, unit };
+    });
   for (const members of group(placementsAt, (entry) => (entry.unit as { path: string }).path)) {
     const first = members[0] as Placed;
     const unit = first.unit as Exclude<Unit, { shape: "merge" }>;

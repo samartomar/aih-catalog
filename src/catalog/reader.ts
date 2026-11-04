@@ -14,7 +14,7 @@ import type { Content, Item } from "./internal/model.js";
 import { quote, refused } from "./internal/paths.js";
 import { type PlanStep, planInstall as plan } from "./internal/plan.js";
 import { profileProblems } from "./internal/profile.js";
-import { renderBytes, renderEdit, renderNames, type ToolProfile } from "./internal/render.js";
+import { editFor, renderBytes, renderNames, type ToolProfile } from "./internal/render.js";
 import { sha256Hex } from "./internal/sha256.js";
 import { contentProblems } from "./internal/validate.js";
 
@@ -172,8 +172,9 @@ export type RenderStepResult =
 /**
  * The bytes of one `write` step that has a `render` (or the block of a Markdown `merge`), from
  * the supplied source file. Refuses `source-mismatch` when the file's sha256 differs from the
- * step's and `profile-mismatch` when the supplied profile's version differs from the recorded
- * one. Declared input markers in the source survive the render unchanged.
+ * step's and `profile-mismatch` when a supplied profile's version differs from the recorded
+ * one. A combined render records every participating profile, and each must be supplied at its
+ * recorded version. Declared input markers in the source survive the render unchanged.
  */
 export function renderStep(
   step: PlanStep,
@@ -206,14 +207,32 @@ export function renderStep(
       status: "invalid",
       problems: [{ path: "step/render/name", message: "unknown render" }],
     };
-  const profile = profiles.find((candidate) => candidate.id === render.profile);
-  if (profile === undefined)
-    return refused("profile-mismatch", `no profile ${quote(render.profile)} was supplied`);
-  if (profile.version !== render.version)
-    return refused(
-      "profile-mismatch",
-      `the step was planned with ${render.profile} version ${render.version}, not version ${profile.version}`,
-    );
+  const recorded: readonly { readonly id: unknown; readonly version: unknown }[] | undefined =
+    "profiles" in render
+      ? Array.isArray(render.profiles)
+        ? render.profiles
+        : undefined
+      : [{ id: render.profile, version: render.version }];
+  if (
+    recorded === undefined ||
+    !recorded.every((entry) => typeof entry?.id === "string" && Number.isInteger(entry.version))
+  )
+    return {
+      status: "invalid",
+      problems: [{ path: "step/render", message: "the render names its profiles and versions" }],
+    };
+  const used: ToolProfile[] = [];
+  for (const { id, version } of recorded) {
+    const profile = profiles.find((candidate) => candidate.id === id);
+    if (profile === undefined)
+      return refused("profile-mismatch", `no profile ${quote(String(id))} was supplied`);
+    if (profile.version !== version)
+      return refused(
+        "profile-mismatch",
+        `the step was planned with ${id} version ${version}, not version ${profile.version}`,
+      );
+    used.push(profile);
+  }
   const item = contents
     .flatMap((content) => content.items)
     .find((candidate) => candidate.id === itemId);
@@ -250,14 +269,14 @@ export function renderStep(
     source = supplied.bytes;
   }
   const scope = step.root;
-  const edit = renderEdit(
+  const edit = editFor(
     {
       name: render.name,
       installName: render.installName,
       ...(render.entry ? { entry: render.entry } : {}),
     },
     item,
-    profile,
+    used,
     scope,
   );
   if ("reason" in edit)
