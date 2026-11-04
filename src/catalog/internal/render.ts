@@ -94,28 +94,23 @@ function skillKeys(
   return set;
 }
 
-/** The tool names an agent takes on this profile, or why it cannot be written. */
+/**
+ * The tool names an agent takes on this profile. Where the client's agent file has no tool
+ * list, or no evidenced native name for one of the agent's tools, the agent is written without
+ * a tool list and `unrestricted` says why: the planner warns that the restriction is lost.
+ */
 export function agentTools(
   item: Item,
   profile: ToolProfile,
-):
-  | { readonly tools?: readonly string[] }
-  | { readonly reason: "no-tool-names" | "no-tool-restriction"; readonly detail: string } {
+): { readonly tools?: readonly string[]; readonly unrestricted?: string } {
   const tools = item.agent?.tools;
   const policy = profile.agentFile?.tools;
   if (tools === undefined || tools.length === 0 || policy === "keep") return {};
   if (policy === "none" || policy === undefined)
-    return {
-      reason: "no-tool-restriction",
-      detail:
-        "the client's agent file has no tool list, so the agent's tool restriction would be lost",
-    };
+    return { unrestricted: "the client's agent file has no tool list" };
   const unknown = tools.filter((tool) => policy[tool] === undefined);
   if (unknown.length > 0)
-    return {
-      reason: "no-tool-names",
-      detail: `no evidenced native name for ${unknown.join(", ")}`,
-    };
+    return { unrestricted: `no evidenced native name for ${unknown.join(", ")}` };
   return { tools: tools.map((tool) => policy[tool] as string) };
 }
 
@@ -193,7 +188,6 @@ export function renderEdit(
         reword: false,
       };
     const tools = agentTools(item, profile);
-    if ("reason" in tools) return { reason: tools.detail };
     const fields: Record<string, string> = {};
     for (const field of file.format === "md"
       ? (file.fields ?? ["name", "description"])

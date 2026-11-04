@@ -165,6 +165,10 @@ values; a secret never has a value in content or a plan.
   `aih-duplicate-resolver` agent where clients take agents and writes `.aihq/duplicates.json`.
 - **References.** A plugin-namespaced name no placed item provides is a warning. A source file
   an item names that no placed bundle or sibling provides is blocking.
+- **Settings a client cannot carry.** An agent's tool list that a client's own agent file
+  cannot express (no tool field, or no evidenced native name for a tool) is dropped from that
+  client's file, never silently: the plan warns `agent-tools-unrestricted` with the agents.
+  MCP tool lists and timeouts a client cannot express warn the same way.
 - **Scope.** A route a client cannot honour at the chosen scope falls back to `local-plugin` or
   `items` with a warning; the scope never changes.
 - **AI setups.** A selected AI setup needs a platform `cell` and a supplied, matching

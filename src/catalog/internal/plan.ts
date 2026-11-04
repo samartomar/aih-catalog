@@ -287,8 +287,6 @@ export type UnavailableReason =
   | "no-hook-event"
   | "no-path-scope"
   | "no-rule-scope"
-  | "no-tool-names"
-  | "no-tool-restriction"
   | "unsupported-server"
   | "no-bundle-place"
   | "no-qualification"
@@ -742,9 +740,7 @@ function place(
       const prompt = own.find((file) => file.sourcePath === item.agent?.prompt);
       if (prompt === undefined)
         return { reason: "not-implemented", detail: "the agent has no prompt file" };
-      const tools = agentTools(item, profile);
       const made: Unit | Failure = (() => {
-        if ("reason" in tools) return tools;
         const entry = output(
           item,
           prompt,
@@ -2158,7 +2154,8 @@ export function planCore(input: CoreInput): PlanResult {
       for (const code of overlap.warnings) warnings.push({ code, cli: profile.id, items });
     }
 
-  // MCP settings a client cannot carry: tool lists it cannot restrict, timeouts no profile maps.
+  // Settings a client cannot carry: MCP tool lists it cannot restrict, timeouts no profile
+  // maps, and agent tool lists.
   const settingWarnings = new Map<string, Warning>();
   const warnAbout = (code: string, cli: string, item: string) => {
     const known = settingWarnings.get(`${code}\0${cli}`);
@@ -2177,6 +2174,17 @@ export function planCore(input: CoreInput): PlanResult {
     if (settings.startupSeconds !== undefined || settings.callSeconds !== undefined)
       warnAbout("mcp-timeouts-not-described", entry.profile.id, entry.item.id);
   }
+  // An agent whose tool restriction this client's own agent file cannot carry is placed with
+  // no tool list, never silently: a client reading another client's file keeps that file's.
+  for (const entry of resolved)
+    if (
+      entry.item.kind === "agent" &&
+      entry.unit.shape === "file" &&
+      entry.unit.output.render?.name === "agent" &&
+      (entry.representative ?? entry).profile.id === entry.profile.id &&
+      agentTools(entry.item, entry.profile).unrestricted !== undefined
+    )
+      warnAbout("agent-tools-unrestricted", entry.profile.id, entry.item.id);
   warnings.push(...settingWarnings.values());
 
   // Names the clients already provide: clashes, or an override's switch-off and warnings.
