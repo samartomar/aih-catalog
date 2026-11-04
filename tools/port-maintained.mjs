@@ -447,21 +447,9 @@ async function projectBasics() {
 
 const BASELINE = ["ecc", "extensions", "project-basics", "superpowers"];
 
+/** The measured baseline: the earlier release's items, as the committed report records them. */
 function baseline() {
   const committed = join(root, "port-report", "maintained.json");
-  const release = (family) => join(root, "release", `release-${family}.content.json`);
-  if (BASELINE.every((family) => existsSync(release(family))))
-    return BASELINE.flatMap((family) =>
-      JSON.parse(readFileSync(release(family), "utf8")).items.map((item) => ({
-        id: item.id,
-        kind: item.kind,
-        ...(item.variantOf ? { variantOf: item.variantOf.itemId } : {}),
-        paths: item.materials
-          .filter((material) => material.role === "content" && material.sourcePath && !/LICEN[CS]E$/.test(material.sourcePath))
-          .map((material) => material.sourcePath),
-      })),
-    );
-  // After the old release files are removed, the committed report carries the baseline.
   return JSON.parse(readFileSync(committed, "utf8")).dispositions.map((entry) => entry.baseline);
 }
 

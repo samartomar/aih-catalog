@@ -366,7 +366,7 @@ async function egm(work) {
 // ---------------------------------------------------------------------------------------------
 // Dispositions of these families' items in the earlier releases
 
-/** The earlier release documents that hold these families' items (outside the 777-item baseline). */
+/** The earlier release documents (since removed) that held these families' items, outside the 777-item baseline. */
 const RELEASES = {
   anthropic: "release-anthropic.json",
   "web-artifacts": "release-web-artifacts.json",
@@ -374,23 +374,9 @@ const RELEASES = {
   "project-context": "release.json",
 };
 
+/** The earlier release items, as the committed report records them. */
 function earlier() {
   const committed = join(root, "port-report", "remaining.json");
-  const path = (file) => join(root, "release", file);
-  if (Object.values(RELEASES).every((file) => existsSync(path(file))))
-    return Object.entries(RELEASES).flatMap(([family, file]) => {
-      const release = JSON.parse(readFileSync(path(file), "utf8"));
-      return release.items.map((item) => ({
-        family,
-        release: release.schema,
-        id: item.id,
-        kind: item.kind,
-        paths: item.materials
-          .map((material) => material.path.replace(/^release\/materials\/(?:github\.com\/[^/]+\/[^/]+\/[0-9a-f]{40}|local\/[^/]+\/[0-9a-f]{64}|aihq\/[^/]+)\//, ""))
-          .sort(),
-      }));
-    });
-  // After the old release files are removed, the committed report carries them.
   return JSON.parse(readFileSync(committed, "utf8")).dispositions.map((entry) => entry.earlier);
 }
 

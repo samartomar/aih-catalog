@@ -41,7 +41,7 @@ The package exports exactly five entry points. Nothing else can be imported.
 | --- | --- | --- |
 | `@aihq/catalog/source` | browser or Node | `parseSourceLink(text)`, `findItems(files, { framework })` |
 | `@aihq/catalog/node` | Node | `readLocalSource(path)`, `fetchSource(candidate, { outDir })`, `readContentFile(path)` |
-| `@aihq/catalog/producer` | browser or Node | `buildContent(source, files, items, { framework })`, `checkContent(content, files?, { scannedKeys? })` |
+| `@aihq/catalog/producer` | Node | `buildContent(source, files, items, { framework })`, `checkContent(content, files?, { scannedKeys? })` |
 | `@aihq/catalog/reader` | browser or Node | `readContent`, `readToolProfile`, `readRecipe`, `readQualification`, `listItems`, `getItem`, `derive`, `availability`, `planInstall`, `planRecipe`, `renderStep` |
 | `@aihq/catalog/contracts` | browser or Node | format identities, `schemas`, `fixtures`, `toolProfiles`, `kinds`, `limits`, refusal codes |
 
