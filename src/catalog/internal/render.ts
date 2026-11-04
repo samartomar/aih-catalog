@@ -391,7 +391,7 @@ function frontmatterBlock(set: Readonly<Record<string, unknown>>): string {
 const shown = (path: string, scope: Scope) => (scope === "user" ? `~/${path}` : path);
 
 /**
- * A launcher (D43): one line that tells the agent to read and follow the installed `SKILL.md`,
+ * A launcher: one line that tells the agent to read and follow the installed `SKILL.md`,
  * passing on the user's arguments where the fallback entry keeps them, with the entry's own
  * frontmatter (Kiro manual steering: `inclusion: manual`).
  */
@@ -423,7 +423,7 @@ const listed = (names: readonly string[]): string => {
 };
 
 /**
- * The bundle-root rule (D82): no client resolves a bundle's relative paths from the skill
+ * The bundle-root rule: no client resolves a bundle's relative paths from the skill
  * folder up to the bundle root, so an always-on rule names each placed bundle's root. A rule
  * file takes the profile's always-on frontmatter; a Markdown block (`frontmatter` undefined)
  * is the text alone.

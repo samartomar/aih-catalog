@@ -250,7 +250,7 @@ export interface Clash {
 
 /**
  * A source file an item names outside its own files that no placed bundle provides for these
- * clients, so the item would read a path that does not exist (11.5).
+ * clients, so the item would read a path that does not exist.
  */
 export interface Reference {
   readonly kind: "path";

@@ -623,6 +623,15 @@ export type CheckContentResult =
       readonly status: "ok";
       readonly problems: readonly [];
       readonly unscannedKeys?: readonly string[];
+      /**
+       * Paths items name outside their own files that their bundle does not provide (every
+       * one, for an item with no bundle): they resolve only through a plugin route.
+       */
+      readonly pathReferences?: readonly {
+        readonly item: string;
+        readonly sourcePath: string;
+        readonly path: string;
+      }[];
     }
   | Invalid;
 
@@ -741,14 +750,31 @@ export async function checkContent(
         });
     }
   if (problems.length > 0) return { status: "invalid", problems };
-  if (options.scannedKeys === undefined) return { status: "ok", problems: [] };
+  const bundleFiles = new Map(
+    (content.bundles ?? []).map((bundle) => [
+      bundle.id,
+      new Set(bundle.files.map((file) => file.sourcePath)),
+    ]),
+  );
+  const uncovered = content.items.flatMap((item) =>
+    (item.pathReferences ?? [])
+      .filter(
+        (reference) =>
+          item.bundle === undefined || !bundleFiles.get(item.bundle)?.has(reference.path),
+      )
+      .map((reference) => ({ item: item.id, ...reference })),
+  );
+  const paths = uncovered.length > 0 ? { pathReferences: uncovered } : {};
+  if (options.scannedKeys === undefined) return { status: "ok", problems: [], ...paths };
   const scanned = new Set(options.scannedKeys);
+  // A bundle item is fully scanned only when its own key and its bundle's key have a scan.
   const unscannedKeys = [
     ...new Set(
-      content.items.flatMap((item) =>
-        item.scanKey && !scanned.has(item.scanKey) ? [item.scanKey] : [],
-      ),
+      [
+        ...content.items.map((item) => item.scanKey),
+        ...(content.bundles ?? []).map((bundle) => bundle.scanKey),
+      ].flatMap((key) => (key && !scanned.has(key) ? [key] : [])),
     ),
   ].sort(compareCodeUnits);
-  return { status: "ok", problems: [], unscannedKeys };
+  return { status: "ok", problems: [], unscannedKeys, ...paths };
 }

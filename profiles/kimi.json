@@ -9,6 +9,9 @@
     "tools": {}
   },
   "arguments": "substituted",
+  "bundleWarnings": [
+    "kimi-lists-bundle-agents"
+  ],
   "checkedWith": [
     {
       "app": "kimi",
@@ -92,5 +95,5 @@
       "disableModelInvocation": true
     }
   },
-  "version": 2
+  "version": 3
 }

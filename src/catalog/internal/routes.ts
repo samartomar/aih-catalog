@@ -246,19 +246,49 @@ export function planRecipe(
     problems: [],
   };
   const itemsRoute = new Set<string>();
+  const used = new Map<string, Route>();
   for (const profile of sorted) {
     const asked: Route = recipe.routes[profile.id] ?? "items";
-    const used = routeFor(asked, profile, scope, recipe, content);
-    if (used !== asked)
+    const route = routeFor(asked, profile, scope, recipe, content);
+    used.set(profile.id, route);
+    if (route !== asked)
       lowered.warnings.push({
         code: fallbackCode(asked, profile, scope),
         cli: profile.id,
         items: plugged(recipe, content, profile.id),
         framework,
-        route: { from: asked, to: used },
+        route: { from: asked, to: route },
       });
-    if (used === "items") itemsRoute.add(profile.id);
-    else if (used === "setup") {
+  }
+  // A local plugin and another client's items in the same skills folder would load the same
+  // skills twice on this client: it keeps the shared items layout (with any bundle) instead.
+  for (const profile of sorted) {
+    if (used.get(profile.id) !== "local-plugin") continue;
+    const own = skillTemplate(profile, scope);
+    const skills = plugged(recipe, content, profile.id).filter(
+      (id) => selection.includes(id) && items.get(id)?.kind === "skill",
+    );
+    const shared = sorted.some(
+      (other) =>
+        other.id !== profile.id &&
+        used.get(other.id) === "items" &&
+        own !== undefined &&
+        skillTemplate(other, scope) === own,
+    );
+    if (skills.length === 0 || !shared) continue;
+    used.set(profile.id, "items");
+    lowered.warnings.push({
+      code: "local-plugin-overlap",
+      cli: profile.id,
+      items: plugged(recipe, content, profile.id),
+      framework,
+      route: { from: "local-plugin", to: "items" },
+    });
+  }
+  for (const profile of sorted) {
+    const route = used.get(profile.id) as Route;
+    if (route === "items") itemsRoute.add(profile.id);
+    else if (route === "setup") {
       const result = lowerSetup(recipe, content, profile.id, scope, pinned);
       if ("status" in result) return result;
       lowered.setups.push(result);
@@ -270,7 +300,7 @@ export function planRecipe(
           "content-mismatch",
           `the ${profile.id} plugin's source ${quote(entry.source)} is not read at ${entry.commit}`,
         );
-      if (used === "plugin") lowerPlugin(entry, source, content, profile, scope, lowered);
+      if (route === "plugin") lowerPlugin(entry, source, content, profile, scope, lowered);
       else lowerLocalPlugin(entry, content, profile, scope, lowered);
     }
   }
@@ -352,6 +382,12 @@ function routeFor(
   // A native plugin entry names no local marketplace, so a registration that needs one is out.
   const named = placeholders(place?.register ?? []).includes("marketplace");
   return place !== undefined && manifest && !named ? "local-plugin" : "items";
+}
+
+/** The client's own skill folder template at this scope (the fallback of a shared place). */
+function skillTemplate(profile: ToolProfile, scope: Scope): string | undefined {
+  const place = profile.places.skill?.[scope];
+  return place === undefined ? undefined : typeof place === "string" ? place : place.otherwise;
 }
 
 /** `scope-fallback` when the client has the route at another scope, else `route-unavailable`. */

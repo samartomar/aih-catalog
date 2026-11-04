@@ -78,8 +78,23 @@ writes), a `local-plugin` route copies the upstream plugin folder recorded in th
 registers it, and a `setup` route gives an approval-requiring `upstream-setup` step that
 Catalog never runs. A route a client cannot honour at the chosen scope warns and falls back
 to `local-plugin` or `items` without changing the scope. Plugin presence checks are `none`
-until a reliable check is evidenced. Kinds, scopes and routes that are not implemented yet
-(bundles, upstream fetching, combination recipes and AI setup) are reported as
+until a reliable check is evidenced. When a local plugin and another client's items would
+load the same skills from one folder, that client keeps the items layout and the plan warns.
+
+Runtime bundles keep upstream skills that read shared root files usable. Content can record a
+bundle (its root files chosen by the upstream's own runtime allowlist, with their own scan key),
+the bundle each item reads, and the source files an item names outside its own files. The plan
+copies a bundle's root files once beside each client's skill folders (Kiro keeps them in
+`.kiro/aih/<framework>/` and starts user-only skills through prompt and manual-steering
+launchers), reads agents from the bundle where the client's agent folder is the bundle's, and
+adds the generated `aih.rule.bundle-root` rule naming each root. A path no placed bundle
+provides is listed in `references` and the plan is `incomplete`. Tests use the exact upstream
+bytes of the Elephant-Goldfish Model at its pinned commit (`tests/fixtures/egm-403d8881`, with
+its Apache-2.0 licence); a plugin folder can be recorded as that runtime allowlist rather than
+the whole repository. Native loading of these layouts is not validated here.
+
+Kinds, scopes and routes that are not implemented yet
+(upstream fetching, combination recipes and AI setup) are reported as
 `not-implemented` leftovers, `unavailable` placements or `not-implemented` refusals rather
 than claimed, and a pair a profile does not describe is `unavailable` with its reason. Item scan
 keys come from Scan's `scanKeyOf` (`@aihq/scan/contracts`), installed from the exact
