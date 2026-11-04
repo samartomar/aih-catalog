@@ -6,7 +6,7 @@
  */
 import type { CutRequest } from "./model.js";
 import { quote } from "./paths.js";
-import { EXACT_VERSION } from "./source-link.js";
+import { EXACT_VERSION, npmSpec } from "./source-link.js";
 
 type Json = unknown;
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -88,13 +88,6 @@ function argument(
     : { type: "positional", value };
 }
 
-/** npm `name`, `name@version`, `@scope/name@version`. */
-function npmSpec(spec: string): { identifier: string; version?: string } {
-  const at = spec.lastIndexOf("@");
-  if (at <= 0) return { identifier: spec };
-  return { identifier: spec.slice(0, at), version: spec.slice(at + 1) };
-}
-
 function serverDocument(
   document: Json,
   segments: readonly string[],
@@ -161,8 +154,11 @@ function serverDocument(
   let identifier: string;
   let pinned: string | undefined;
   if (runner === "npm") {
+    // The same validated reading as a pasted npm source link: a name, then a version or range.
     const parsed = npmSpec(spec);
-    identifier = parsed.identifier;
+    if (!("kind" in parsed) || parsed.kind !== "npm")
+      return `${quote(name)} names an unusual package ${quote(spec)}`;
+    identifier = parsed.package;
     pinned = parsed.version;
   } else {
     const [base, version] = spec.split("==");
