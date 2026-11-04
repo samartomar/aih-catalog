@@ -21,7 +21,13 @@ import {
   quote,
   refused,
 } from "./paths.js";
-import { type Place, profileProblems, type Scope, type ToolProfile } from "./profile.js";
+import {
+  type Place,
+  type PluginVerify,
+  profileProblems,
+  type Scope,
+  type ToolProfile,
+} from "./profile.js";
 import {
   agentTools,
   changesBytes,
@@ -75,13 +81,38 @@ export interface SourceRef {
   readonly sha256: string;
 }
 
-export interface WriteStep {
+/**
+ * A generated file that is not made from an item file: the pinned local marketplace a plugin
+ * route writes for a client that pins only through one (Copilot CLI).
+ */
+export interface MarketplaceRender {
+  readonly name: "plugin-marketplace";
+  readonly profile: string;
+  readonly version: number;
+  readonly marketplace: string;
+  readonly plugin: string;
+  readonly repository: string;
+  readonly commit: string;
+}
+
+/** What a step lowered from a route records: its framework and, for a local plugin, the route. */
+export interface RouteMarks {
+  /** The indivisible framework a plugin, local-plugin or upstream-setup step belongs to. */
+  readonly framework?: string;
+  readonly route?: "local-plugin";
+  /** On the first step of a local-plugin route group: the ids of the items it contains. */
+  readonly contains?: readonly string[];
+  /** The scan key of the plugin folder at its pin. */
+  readonly scanKey?: string;
+}
+
+export interface WriteStep extends RouteMarks {
   readonly op: "write";
   readonly root: Scope;
   readonly path: string;
   readonly from?: SourceRef;
   readonly executable: boolean;
-  readonly render?: PlanRender;
+  readonly render?: PlanRender | MarketplaceRender;
   readonly scanned?: false;
   readonly item?: string;
   readonly items?: readonly string[];
@@ -99,7 +130,7 @@ export interface LinkStep {
   readonly clis: readonly string[];
 }
 
-export interface MergeStep {
+export interface MergeStep extends RouteMarks {
   readonly op: "merge";
   readonly root: Scope;
   readonly file: string;
@@ -117,7 +148,52 @@ export interface MergeStep {
   readonly inputs?: readonly Binding[];
 }
 
-export type PlanStep = WriteStep | LinkStep | MergeStep;
+/**
+ * A native plugin install at a pinned commit, run by the installer with the client's own
+ * commands (the profile's `plugins.install`). `marketplace` is a URL or repository, or the
+ * `{ root, path }` of a marketplace the plan writes itself; it is absent where the client
+ * pins a plugin by its spec alone. `verify` is the profile's presence check, or `none`.
+ */
+export interface PluginStep {
+  readonly op: "plugin";
+  readonly cli: string;
+  readonly framework: string;
+  readonly marketplace?: string | { readonly root: Scope; readonly path: string };
+  /** The name of a marketplace the plan writes itself, for the client's install command. */
+  readonly marketplaceName?: string;
+  readonly plugin: string;
+  readonly repository: string;
+  readonly commit: string;
+  readonly scanKey: string;
+  readonly verify: PluginVerify;
+}
+
+/** An upstream setup program: the installer clones, shows the exact command and runs it only after approval. */
+export interface SetupStep {
+  readonly op: "upstream-setup";
+  readonly cli: string;
+  readonly framework: string;
+  readonly root: Scope;
+  readonly repository: string;
+  readonly commit: string;
+  readonly into: string;
+  readonly command: readonly string[];
+  readonly needs: readonly string[];
+  readonly scanned: false;
+  readonly approval: "required";
+}
+
+/** Steps that place files or entries; each carries the clients it serves (`clis`). */
+export type PlacementStep = WriteStep | LinkStep | MergeStep;
+export type PlanStep = PlacementStep | PluginStep | SetupStep;
+
+export interface Missing {
+  readonly item?: string;
+  readonly framework?: string;
+  readonly cli?: string;
+  readonly reason: string;
+  readonly dependency?: string;
+}
 
 export type UnavailableReason =
   | "not-implemented"
@@ -153,23 +229,32 @@ export interface Warning {
   readonly code: string;
   readonly cli: string;
   readonly items: readonly string[];
+  readonly framework?: string;
+  /** For a route fallback: the route asked for and the route used. */
+  readonly route?: { readonly from: string; readonly to: string };
 }
 
 export interface Plan {
   readonly status: "ok" | "incomplete";
+  /** Only on a `planRecipe` plan. */
+  readonly recipe?: RecipeOrigin;
   readonly data: { readonly repository: string; readonly commit: string } | null;
   readonly profiles: readonly { readonly id: string; readonly version: number }[];
   readonly plan: readonly PlanStep[];
-  readonly missing: readonly {
-    readonly item: string;
-    readonly reason: string;
-    readonly dependency?: string;
-  }[];
+  readonly missing: readonly Missing[];
   readonly unavailable: readonly Unavailable[];
   readonly clashes: readonly Clash[];
   readonly duplicates: readonly never[];
   readonly references: readonly never[];
   readonly warnings: readonly Warning[];
+}
+
+/** A recipe plan's origin: the recipe id, the sha256 of its exact bytes, and where it was read. */
+export interface RecipeOrigin {
+  readonly id: string;
+  readonly sha256: string;
+  readonly repository: string;
+  readonly commit: string;
 }
 
 export type PlanResult = Plan | Invalid | Refused;
@@ -733,18 +818,12 @@ function writeOf(
 const MARKDOWN_OVERHEAD = (id: string) =>
   `<!-- aih:begin ${id} -->\n`.length + `<!-- aih:end ${id} -->\n`.length;
 
-function validate(
-  selection: readonly string[],
+/** Problems of the supplied contents and profiles, shared by both planners. */
+export function inputProblems(
   contents: readonly Content[],
   profiles: readonly ToolProfile[],
-  options: PlanOptions,
 ): Problem[] {
   const problems: Problem[] = [];
-  if (!Array.isArray(selection) || !selection.every((id) => typeof id === "string")) {
-    problems.push({ path: "selection", message: "the selection is a list of item ids" });
-  } else if (new Set(selection).size !== selection.length) {
-    problems.push({ path: "selection", message: "an item is selected twice" });
-  }
   if (!Array.isArray(contents)) problems.push({ path: "contents", message: "contents is a list" });
   else
     for (const [index, content] of contents.entries())
@@ -759,31 +838,30 @@ function validate(
     if (new Set(profiles.map((profile) => profile?.id)).size !== profiles.length)
       problems.push({ path: "profiles", message: "a profile is supplied twice" });
   }
-  if (!isRecord(options)) {
-    problems.push({ path: "options", message: "options is an object" });
-    return problems;
-  }
+  return problems;
+}
+
+/** True for `{ repository, commit }` with a non-empty repository and a 40-hex commit. */
+export const isDataPin = (data: unknown): data is { repository: string; commit: string } =>
+  isRecord(data) &&
+  Object.keys(data).sort().join() === "commit,repository" &&
+  typeof data.repository === "string" &&
+  data.repository.length > 0 &&
+  typeof data.commit === "string" &&
+  /^[0-9a-f]{40}$/.test(data.commit);
+
+/** Problems of the options both planners share: scope, copy and names. */
+export function sharedOptionProblems(
+  options: Record<string, unknown>,
+  allowed: readonly string[],
+  selected: (id: string) => boolean,
+): Problem[] {
+  const problems: Problem[] = [];
   for (const key of Object.keys(options))
-    if (!OPTION_KEYS.includes(key))
+    if (!allowed.includes(key))
       problems.push({ path: `options/${key}`, message: "unknown or not implemented option" });
   if (options.scope !== "project" && options.scope !== "user")
     problems.push({ path: "options/scope", message: "scope is project or user" });
-  const data = options.data;
-  if (
-    data !== null &&
-    !(
-      isRecord(data) &&
-      Object.keys(data).sort().join() === "commit,repository" &&
-      typeof data.repository === "string" &&
-      data.repository.length > 0 &&
-      typeof data.commit === "string" &&
-      /^[0-9a-f]{40}$/.test(data.commit)
-    )
-  )
-    problems.push({
-      path: "options/data",
-      message: "data is null or { repository, commit } with an exact commit",
-    });
   if (options.copy !== undefined && typeof options.copy !== "boolean")
     problems.push({ path: "options/copy", message: "copy is a boolean" });
   if (options.names !== undefined) {
@@ -791,7 +869,7 @@ function validate(
       problems.push({ path: "options/names", message: "names maps item ids to install names" });
     else
       for (const [id, name] of Object.entries(options.names)) {
-        if (!Array.isArray(selection) || !selection.includes(id))
+        if (!selected(id))
           problems.push({ path: `options/names/${id}`, message: "names an unselected item" });
         if (typeof name !== "string" || name.length > 64 || !INSTALL_NAME.test(name))
           problems.push({
@@ -803,6 +881,38 @@ function validate(
   return problems;
 }
 
+function validate(
+  selection: readonly string[],
+  contents: readonly Content[],
+  profiles: readonly ToolProfile[],
+  options: PlanOptions,
+): Problem[] {
+  const problems: Problem[] = [];
+  if (!Array.isArray(selection) || !selection.every((id) => typeof id === "string")) {
+    problems.push({ path: "selection", message: "the selection is a list of item ids" });
+  } else if (new Set(selection).size !== selection.length) {
+    problems.push({ path: "selection", message: "an item is selected twice" });
+  }
+  problems.push(...inputProblems(contents, profiles));
+  if (!isRecord(options)) {
+    problems.push({ path: "options", message: "options is an object" });
+    return problems;
+  }
+  problems.push(
+    ...sharedOptionProblems(
+      options as unknown as Record<string, unknown>,
+      OPTION_KEYS,
+      (id) => Array.isArray(selection) && selection.includes(id),
+    ),
+  );
+  if (options.data !== null && !isDataPin(options.data))
+    problems.push({
+      path: "options/data",
+      message: "data is null or { repository, commit } with an exact commit",
+    });
+  return problems;
+}
+
 export function planInstall(
   selection: readonly string[],
   contents: readonly Content[],
@@ -811,7 +921,49 @@ export function planInstall(
 ): PlanResult {
   const problems = validate(selection, contents, profiles, options);
   if (problems.length > 0) return { status: "invalid", problems };
-  const scope = options.scope;
+  return planCore({
+    selection,
+    contents,
+    profiles,
+    scope: options.scope,
+    data: options.data,
+    ...(options.copy !== undefined ? { copy: options.copy } : {}),
+    installName: (item) => options.names?.[item.id] ?? item.name,
+  });
+}
+
+/**
+ * Steps and reports lowered from recipe routes (plugins, local plugins, upstream setup), which
+ * join the item placements' deduplication, clash checks and ordering.
+ */
+export interface Extras {
+  readonly writes: readonly WriteStep[];
+  readonly merges: readonly MergeStep[];
+  readonly plugins: readonly PluginStep[];
+  readonly setups: readonly SetupStep[];
+  readonly warnings: readonly Warning[];
+  readonly missing: readonly Missing[];
+  /** Items a route places for a client outside the item placements (local-plugin contents). */
+  readonly served: readonly { readonly item: string; readonly cli: string }[];
+}
+
+export interface CoreInput {
+  /** The chosen item ids; their dependencies are checked against this list. */
+  readonly selection: readonly string[];
+  readonly contents: readonly Content[];
+  readonly profiles: readonly ToolProfile[];
+  readonly scope: Scope;
+  readonly data: { readonly repository: string; readonly commit: string } | null;
+  readonly copy?: boolean;
+  /** The install name of an item for a client, or undefined when the client does not take it. */
+  readonly installName: (item: Item, profile: ToolProfile) => string | undefined;
+  readonly extras?: Extras;
+}
+
+/** The planner shared by `planInstall` and `planRecipe`, over already-validated input. */
+export function planCore(input: CoreInput): PlanResult {
+  const { selection, contents, profiles, scope, extras } = input;
+  const options = { copy: input.copy, data: input.data };
 
   const byId = new Map<string, { content: Content; item: Item }>();
   for (const content of contents)
@@ -831,7 +983,7 @@ export function planInstall(
       );
 
   const chosen = [...selection].sort(compareCodeUnits);
-  const missing: { item: string; reason: string; dependency: string }[] = [];
+  const missing: Missing[] = [...(extras?.missing ?? [])];
   for (const id of chosen)
     for (const dependency of byId.get(id)?.item.dependencies ?? [])
       if (!selection.includes(dependency))
@@ -843,13 +995,9 @@ export function planInstall(
   for (const profile of sortedProfiles)
     for (const id of chosen) {
       const { item, content } = byId.get(id) as { item: Item; content: Content };
-      const result = place(
-        item,
-        content.framework.id,
-        profile,
-        scope,
-        options.names?.[id] ?? item.name,
-      );
+      const installName = input.installName(item, profile);
+      if (installName === undefined) continue;
+      const result = place(item, content.framework.id, profile, scope, installName);
       if (isFailure(result)) unavailable.push({ item: id, cli: profile.id, ...result });
       else placements.push(...result);
     }
@@ -887,13 +1035,14 @@ export function planInstall(
   }
 
   const clashes: Clash[] = [];
-  const warnings: Warning[] = [];
-  const writes: WriteStep[] = [];
+  const warnings: Warning[] = [...(extras?.warnings ?? [])];
+  const writes: WriteStep[] = [...(extras?.writes ?? [])];
   const links: LinkStep[] = [];
   const merges: MergeStep[] = [];
   const servedBy = new Map<string, string[]>();
   const serve = (id: string, clis: readonly string[]) =>
     servedBy.set(id, union(servedBy.get(id) ?? [], clis));
+  for (const { item, cli } of extras?.served ?? []) serve(item, [cli]);
   const group = <T>(entries: readonly T[], keyOf: (entry: T) => string) => {
     const groups = new Map<string, T[]>();
     for (const entry of entries)
@@ -1011,6 +1160,33 @@ export function planInstall(
       item: first.item.id,
       clis,
       ...(unit.inputs ? { inputs: unit.inputs } : {}),
+    });
+  }
+
+  // Route merges (local-plugin registration): identical entries merge, different ones clash.
+  const ownersOf = (step: WriteStep | MergeStep) =>
+    step.item ? [step.item] : [...(step.items ?? []), ...(step.contains ?? [])];
+  for (const members of group(
+    extras?.merges ?? [],
+    (step) => `${step.root}\0${step.file}\0${step.key}`,
+  )) {
+    const first = members[0] as MergeStep;
+    const identity = (step: MergeStep) => canonicalJson({ ...step, clis: [], contains: [] });
+    const taken = merges.filter(
+      (step) => step.root === first.root && step.file === first.file && step.key === first.key,
+    );
+    const clis = union(...members.map((step) => step.clis));
+    if (taken.length === 0 && members.every((step) => identity(step) === identity(first))) {
+      merges.push({ ...first, clis });
+      continue;
+    }
+    clashes.push({
+      root: first.root,
+      path: first.file,
+      key: first.key,
+      reason: "different-content",
+      items: union(...[...members, ...taken].map(ownersOf)),
+      clis: union(clis, ...taken.map((step) => step.clis)),
     });
   }
 
@@ -1186,6 +1362,14 @@ export function planInstall(
       (clash) => `${clash.key ?? ""}\0${clash.reason ?? ""}`,
     ),
   );
+  missing.sort(
+    (left, right) =>
+      compareCodeUnits(left.item ?? "", right.item ?? "") ||
+      compareCodeUnits(left.framework ?? "", right.framework ?? "") ||
+      compareCodeUnits(left.cli ?? "", right.cli ?? "") ||
+      compareCodeUnits(left.reason, right.reason) ||
+      compareCodeUnits(left.dependency ?? "", right.dependency ?? ""),
+  );
   unavailable.sort(
     (left, right) =>
       compareCodeUnits(left.item, right.item) || compareCodeUnits(left.cli, right.cli),
@@ -1195,6 +1379,37 @@ export function planInstall(
       compareCodeUnits(left.code, right.code) || compareCodeUnits(left.cli, right.cli),
   );
 
+  const plugins = [...(extras?.plugins ?? [])].sort(
+    (left, right) =>
+      compareCodeUnits(left.cli, right.cli) || compareCodeUnits(left.framework, right.framework),
+  );
+  const setups = [...(extras?.setups ?? [])].sort(
+    (left, right) =>
+      compareCodeUnits(left.cli, right.cli) || compareCodeUnits(left.framework, right.framework),
+  );
+  // The first step of each local-plugin route group, in final order, lists what it contains.
+  const placementSteps: (WriteStep | LinkStep | MergeStep)[] = [
+    ...finalWrites,
+    ...links,
+    ...merges,
+  ];
+  const contained = new Map<string, Set<string>>();
+  for (const step of [...(extras?.writes ?? []), ...(extras?.merges ?? [])])
+    if (step.route === "local-plugin" && step.framework !== undefined)
+      contained.set(
+        step.framework,
+        new Set([...(contained.get(step.framework) ?? []), ...(step.contains ?? [])]),
+      );
+  const marked = new Set<string>();
+  const ordered = placementSteps.map((step) => {
+    if (step.op === "link" || step.route !== "local-plugin" || step.framework === undefined)
+      return step;
+    const { contains: _contains, ...rest } = step;
+    if (marked.has(step.framework)) return rest;
+    marked.add(step.framework);
+    return { ...rest, contains: [...(contained.get(step.framework) ?? [])].sort(compareCodeUnits) };
+  });
+
   const blocked = missing.length > 0 || unavailable.length > 0 || clashes.length > 0;
   return {
     status: blocked ? "incomplete" : "ok",
@@ -1203,7 +1418,7 @@ export function planInstall(
         ? null
         : { repository: options.data.repository, commit: options.data.commit },
     profiles: sortedProfiles.map((profile) => ({ id: profile.id, version: profile.version })),
-    plan: [...finalWrites, ...links, ...merges],
+    plan: [...ordered, ...plugins, ...setups],
     missing,
     unavailable,
     clashes,

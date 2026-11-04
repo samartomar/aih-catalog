@@ -7,6 +7,7 @@ export const formats = {
   sourceLink: "urn:aihq:catalog:source-link:0.1.0",
   content: "urn:aihq:catalog:content:0.1.0",
   toolProfile: "urn:aihq:catalog:tool-profile:0.1.0",
+  recipe: "urn:aihq:catalog:recipe:0.1.0",
 } as const;
 
 /** Every item kind the content format names. */
@@ -50,6 +51,8 @@ export const limits = {
   documentDepth: 64,
   /** One tool profile document. */
   toolProfileBytes: 1 * MiB,
+  /** One recipe document (`recipe.json`), and the recipe plugin's `plugin.json`. */
+  recipeBytes: 1 * MiB,
 } as const;
 export type LimitName = keyof typeof limits;
 
@@ -79,6 +82,10 @@ export const refusalCodes = [
   "fetch-failed",
   /** The request needs behavior this implementation does not provide yet. */
   "not-implemented",
+  /** `planRecipe` was given a data identity other than the recipe's. */
+  "data-mismatch",
+  /** The supplied content is not the upstream pin the recipe names. */
+  "content-mismatch",
 ] as const;
 export type RefusalCode = (typeof refusalCodes)[number];
 

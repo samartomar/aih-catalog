@@ -99,12 +99,33 @@ export interface Item {
   readonly [field: string]: unknown;
 }
 
+/** One file of a recorded plugin folder, addressed from its source's root. */
+export interface PluginFile {
+  readonly sourcePath: string;
+  readonly sha256: string;
+  readonly bytes: number;
+  readonly executable: boolean;
+}
+
+/**
+ * An upstream plugin folder recorded at its source's pin: every regular file under `path`
+ * (`/` for the whole source) with its bytes' identity, and the folder's scan key. A `plugin`
+ * route checks it and a `local-plugin` route copies it as one unit.
+ */
+export interface PluginFolder {
+  readonly sourceId: string;
+  readonly path: string;
+  readonly files: readonly PluginFile[];
+  readonly scanKey: string;
+}
+
 export interface Content {
   readonly schema: string;
   readonly framework: { readonly id: string; readonly name: string };
   readonly sources: readonly ContentSource[];
   readonly items: readonly Item[];
   readonly bundles?: readonly unknown[];
+  readonly plugins?: readonly PluginFolder[];
 }
 
 /** A file as discovery proposes it, before `buildContent` records its length. */

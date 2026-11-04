@@ -17,7 +17,16 @@ import {
   type WriteStep,
 } from "../../src/catalog/reader.js";
 import { findItems } from "../../src/catalog/source.js";
-import { FRAMEWORK, folder, ownContent, profile, sha, type TreeEntry, writes } from "./helpers.js";
+import {
+  FRAMEWORK,
+  folder,
+  ownContent,
+  placements,
+  profile,
+  sha,
+  type TreeEntry,
+  writes,
+} from "./helpers.js";
 
 const id = (kind: string, path: string) => `${FRAMEWORK}.${kind}.${path}`;
 
@@ -292,7 +301,7 @@ const nine = () => NINE.map((cli) => profile(cli));
 const short = (value: string) => value.replace(`${FRAMEWORK}.`, "");
 /** One line per step: operation, place, owner, clients and render, for review against the spec. */
 function rows(plan: readonly PlanStep[]): string[] {
-  return plan.map((step) => {
+  return placements(plan).map((step) => {
     const owner = step.item
       ? short(step.item)
       : `(${(step.op !== "link" ? (step.items ?? []) : []).length} items)`;
@@ -415,7 +424,7 @@ describe("placing the mixed fixture for all nine clients at project scope", () =
       "vscode-hides-claude-skills copilot",
     ]);
     expect(result.status).toBe("incomplete");
-    for (const step of result.plan)
+    for (const step of placements(result.plan))
       if (step.op !== "link") expect(step.scanned).toBe(step.render ? false : undefined);
   });
 
@@ -500,7 +509,7 @@ describe("placing the mixed fixture for all nine clients at project scope", () =
     if (result.status === "invalid" || result.status === "refused")
       throw new Error(JSON.stringify(result));
     const rendered = Object.fromEntries(
-      result.plan.flatMap((step) => {
+      placements(result.plan).flatMap((step) => {
         if (step.op === "link" || step.render === undefined) return [];
         const output = renderStep(step, [content], profiles, bytesOf(read));
         if (output.status !== "ok") throw new Error(JSON.stringify(output));
@@ -830,7 +839,7 @@ describe("refusals, unsupported kinds and custom profiles", () => {
       { scope: "project", data: null },
     );
     if (result.status !== "ok") throw new Error(JSON.stringify(result));
-    for (const step of result.plan.filter(
+    for (const step of placements(result.plan).filter(
       (candidate) => candidate.op !== "link" && candidate.render,
     )) {
       const files = bytesOf(read).map((file) => ({

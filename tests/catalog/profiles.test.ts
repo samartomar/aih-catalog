@@ -47,6 +47,31 @@ describe("the nine shipped tool profiles", () => {
     }
   });
 
+  it("offers a native plugin route only where a commit pin holds, with no presence check claimed", () => {
+    const pins = Object.fromEntries(NINE.map((id) => [id, profile(id).plugins?.pin ?? "absent"]));
+    expect(pins).toEqual({
+      antigravity: "none",
+      "claude-code": "holds",
+      codex: "holds",
+      copilot: "holds",
+      cursor: "none",
+      dsh: "absent",
+      kimi: "drops-on-update",
+      kiro: "absent",
+      opencode: "holds",
+    });
+    expect(profile("kimi").plugins?.install).toBeUndefined();
+    expect(profile("copilot").plugins).toMatchObject({
+      pinForm: "local-marketplace",
+      marketplaceFolder: ".aihq/marketplaces/<framework>/",
+      warnings: ["cli-only-plugin"],
+    });
+    for (const id of NINE) expect(profile(id).plugins?.verify ?? "none", id).toBe("none");
+    const local = NINE.filter((id) => profile(id).localPlugins !== undefined);
+    expect(local).toEqual(["antigravity", "claude-code"]);
+    expect(Object.keys(profile("claude-code").localPlugins ?? {})).toEqual(["project"]);
+  });
+
   it("refuses a profile with an unknown section or a place outside the project", () => {
     const bytes = readFileSync(join(profilesFolder, "codex.json"));
     const value = JSON.parse(new TextDecoder().decode(bytes));

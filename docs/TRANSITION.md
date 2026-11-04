@@ -67,10 +67,21 @@ Registry `server.json`) and documents (where a profile describes a place). Place
 shared by several clients become one step with all of their clients; user-scope skill
 folders are shared versions, linked where the profile documents links and copied
 elsewhere; rules in shared files and MCP entries are per-entry `merge` steps with conflict
-checks. Declared inputs are bound to typed destinations without values. Kinds, scopes and
-routes that are not implemented yet (bundles, upstream fetching, recipes, plugins and AI
-setup) are reported as `not-implemented` leftovers or `unavailable` placements rather than
-claimed, and a pair a profile does not describe is `unavailable` with its reason. Item scan
+checks. Declared inputs are bound to typed destinations without values.
+
+Recipes are Git plugins: `readRecipe` reads their Agent Plugins `plugin.json` and canonical
+`recipe.json`, and `planRecipe` plans the recipe's members and choices through each client's
+route, recording the recipe's origin (id, sha256 of its exact bytes and the repository and
+commit it was read from) and refusing a data identity other than the recipe's. A `plugin`
+route gives a pinned native plugin step (Copilot's through a local marketplace the plan
+writes), a `local-plugin` route copies the upstream plugin folder recorded in the content and
+registers it, and a `setup` route gives an approval-requiring `upstream-setup` step that
+Catalog never runs. A route a client cannot honour at the chosen scope warns and falls back
+to `local-plugin` or `items` without changing the scope. Plugin presence checks are `none`
+until a reliable check is evidenced. Kinds, scopes and routes that are not implemented yet
+(bundles, upstream fetching, combination recipes and AI setup) are reported as
+`not-implemented` leftovers, `unavailable` placements or `not-implemented` refusals rather
+than claimed, and a pair a profile does not describe is `unavailable` with its reason. Item scan
 keys come from Scan's `scanKeyOf` (`@aihq/scan/contracts`), installed from the exact
 `vendor/aihq-scan-0.1.0.tgz` archive (sha256
 `52f040b1e09dd4015d5c88b9b98b59d177626bf449f1e819448411552de59bcd`) as a development

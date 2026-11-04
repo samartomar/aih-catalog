@@ -74,6 +74,21 @@
       "user": ".config/opencode/skills/<name>/"
     }
   },
+  "plugins": {
+    "install": [
+      [
+        "opencode",
+        "plugin",
+        "<plugin>@git+<repository>.git#<commit>"
+      ]
+    ],
+    "pin": "holds",
+    "pinForm": "spec",
+    "scopes": [
+      "project"
+    ],
+    "verify": "none"
+  },
   "ruleScopes": {
     "always": {
       "frontmatter": {}
@@ -90,5 +105,5 @@
       }
     ]
   },
-  "version": 1
+  "version": 2
 }

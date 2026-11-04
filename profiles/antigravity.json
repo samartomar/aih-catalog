@@ -37,6 +37,22 @@
   "links": {
     "skill": "not-documented"
   },
+  "localPlugins": {
+    "project": {
+      "folder": ".agents/plugins/<plugin>/",
+      "manifests": [
+        ".antigravity-plugin/plugin.json",
+        "plugin.json"
+      ]
+    },
+    "user": {
+      "folder": ".gemini/config/plugins/<plugin>/",
+      "manifests": [
+        ".antigravity-plugin/plugin.json",
+        "plugin.json"
+      ]
+    }
+  },
   "mcpFile": {
     "remote": {
       "streamable-http": {
@@ -75,6 +91,10 @@
       "user": ".gemini/config/skills/<name>/"
     }
   },
+  "plugins": {
+    "pin": "none",
+    "verify": "none"
+  },
   "ruleScopes": {
     "always": {
       "frontmatter": {
@@ -108,5 +128,5 @@
       "disable-model-invocation": true
     }
   },
-  "version": 2
+  "version": 3
 }
