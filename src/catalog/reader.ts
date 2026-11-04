@@ -126,14 +126,18 @@ export type ReadToolProfileResult =
   | UnsupportedVersion
   | Refused;
 
+/**
+ * Reads one document of `format` (its current URN; another version of the same format is
+ * `unsupported-version`) within its byte limit, then checks it with `problemsOf`.
+ */
 function readDocument(
   bytes: Uint8Array,
+  format: string,
   maxBytes: LimitName,
-  family: string,
-  current: string,
   problemsOf: (value: unknown) => readonly { path: string; message: string }[],
   spelling: "canonical" | "strict" = "strict",
 ): { status: "ok"; value: unknown } | Invalid | UnsupportedVersion | Refused {
+  const family = format.slice(0, format.lastIndexOf(":") + 1);
   let value: unknown;
   try {
     const bounds = { maxBytes: limits[maxBytes], maxDepth: limits.documentDepth };
@@ -157,7 +161,7 @@ function readDocument(
     };
   }
   const schema = (value as { schema?: unknown } | null)?.schema;
-  if (typeof schema === "string" && schema.startsWith(family) && schema !== current) {
+  if (typeof schema === "string" && schema.startsWith(family) && schema !== format) {
     return { status: "unsupported-version", schema };
   }
   const problems = problemsOf(value);
@@ -171,25 +175,13 @@ function readDocument(
  * record shape and record-derived digests checked.
  */
 export function readContent(bytes: Uint8Array): ReadContentResult {
-  const result = readDocument(
-    bytes,
-    "contentFileBytes",
-    "urn:aihq:catalog:content:",
-    formats.content,
-    contentProblems,
-  );
+  const result = readDocument(bytes, formats.content, "contentFileBytes", contentProblems);
   return result.status === "ok" ? { status: "ok", content: result.value as Content } : result;
 }
 
 /** Reads a tool profile document (pure data), strict JSON in any spelling, like content. */
 export function readToolProfile(bytes: Uint8Array): ReadToolProfileResult {
-  const result = readDocument(
-    bytes,
-    "toolProfileBytes",
-    "urn:aihq:catalog:tool-profile:",
-    formats.toolProfile,
-    profileProblems,
-  );
+  const result = readDocument(bytes, formats.toolProfile, "toolProfileBytes", profileProblems);
   return result.status === "ok" ? { status: "ok", profile: result.value as ToolProfile } : result;
 }
 
@@ -211,13 +203,7 @@ export type ReadRecipeResult =
  * the document, so `planRecipe` recomputes the origin hash itself.
  */
 export function readRecipe(pluginJsonBytes: Uint8Array, recipeBytes: Uint8Array): ReadRecipeResult {
-  const result = readDocument(
-    recipeBytes,
-    "recipeBytes",
-    "urn:aihq:catalog:recipe:",
-    formats.recipe,
-    recipeProblems,
-  );
+  const result = readDocument(recipeBytes, formats.recipe, "recipeBytes", recipeProblems);
   if (result.status !== "ok") return result;
   if (pluginJsonBytes instanceof Uint8Array && pluginJsonBytes.byteLength > limits.recipeBytes)
     return limitRefusal("recipeBytes", "plugin.json");
@@ -265,9 +251,8 @@ export type ReadQualificationResult =
 export function readQualification(bytes: Uint8Array): ReadQualificationResult {
   const result = readDocument(
     bytes,
-    "qualificationBytes",
-    "urn:aihq:catalog:qualification:",
     formats.qualification,
+    "qualificationBytes",
     qualificationProblems,
     // A qualification is named by the sha256 of its exact bytes, so only its canonical form.
     "canonical",
