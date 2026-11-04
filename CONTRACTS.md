@@ -98,6 +98,10 @@ listed in `unsupported` with its reason. A section the client lacks is left out,
 then reports the pair as `unavailable` (`not-described`), never invented. Any change to a
 profile's rendered output increases its `version`.
 
+Where the reader takes a client, it takes that client's tool profile. `listItems(content, { kind?, cli? })`
+keeps the contract's option name `cli`, and its value is a tool profile as `readToolProfile`
+returns it, not a client id.
+
 ### Recipe
 
 A recipe is a Git plugin: an Agent Plugins `plugin.json` (name, version, description, author,

@@ -301,18 +301,23 @@ function syntheticContent(item: Item): Content {
   };
 }
 
-/**
- * The items of a content document, optionally of one kind or placeable for one client: the
- * client is given by its tool profile.
- */
+/** The items of a content document, optionally of one kind or placeable for one client. */
 export function listItems(
   content: Content,
-  options: { readonly kind?: string; readonly profile?: ToolProfile } = {},
+  options: {
+    /** Only items of this kind. */
+    readonly kind?: string;
+    /**
+     * Only items placeable for one client. The option is named `cli`, as in the contract, but
+     * it takes that client's tool profile (as `readToolProfile` returns it), not a client id.
+     */
+    readonly cli?: ToolProfile;
+  } = {},
 ): Item[] {
   return content.items.filter(
     (item) =>
       (options.kind === undefined || item.kind === options.kind) &&
-      (options.profile === undefined || availability(item, options.profile).available),
+      (options.cli === undefined || availability(item, options.cli).available),
   );
 }
 
