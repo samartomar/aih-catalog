@@ -1494,15 +1494,19 @@ function referencesOf(
   );
 }
 
+/**
+ * Which `provides` lists an install name of each kind can shadow: a skill shares the command
+ * namespace. Kinds not listed are never checked against built-ins.
+ */
+const SHADOWS: Readonly<Record<string, readonly ("skill" | "command" | "agent")[]>> = {
+  skill: ["skill", "command"],
+  agent: ["agent"],
+};
+
 /** The name a client provides that an install name of this kind would shadow, if any. */
 function providedName(profile: ToolProfile, kind: string, name: string): string | undefined {
   const provided = profile.provides ?? {};
-  const names =
-    kind === "skill"
-      ? [...(provided.skill ?? []), ...(provided.command ?? [])]
-      : kind === "agent"
-        ? (provided.agent ?? [])
-        : [];
+  const names = (SHADOWS[kind] ?? []).flatMap((list) => provided[list] ?? []);
   const lower = name.toLowerCase();
   return names.find((entry) => entry.toLowerCase() === lower);
 }
@@ -1526,8 +1530,7 @@ function builtIns(
     );
   const clashes = new Map<string, { clash: Clash; items: Set<string>; clis: Set<string> }>();
   const placed = resolved.filter(
-    (entry) =>
-      entry.unit.shape !== "merge" && (entry.item.kind === "skill" || entry.item.kind === "agent"),
+    (entry) => entry.unit.shape !== "merge" && SHADOWS[entry.item.kind] !== undefined,
   );
   for (const entry of placed) {
     const builtIn = providedName(entry.profile, entry.item.kind, entry.installName);
