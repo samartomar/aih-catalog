@@ -649,10 +649,19 @@ describe("user scope: shared versions, links and copies", () => {
       "write .agents/skills/plain/SKILL.md skill.plain [codex,dsh]",
       "write .agents/skills/plain/references/notes.md skill.plain [codex,dsh]",
       "write .aihq/notices/local-my-skills/LICENSE (2 items) [claude-code,codex,copilot,dsh,kimi,kiro]",
-      `write .aihq/shared/local-my-skills/skill/plain/${kiroVersion}/SKILL.md skill.plain [kiro] skill@kiro`,
-      `write .aihq/shared/local-my-skills/skill/plain/${kiroVersion}/references/notes.md skill.plain [kiro]`,
-      `write .aihq/shared/local-my-skills/skill/plain/${version}/SKILL.md skill.plain [claude-code,copilot,kimi]`,
-      `write .aihq/shared/local-my-skills/skill/plain/${version}/references/notes.md skill.plain [claude-code,copilot,kimi]`,
+      // The two version folders sort by their keys, which follow the profile versions.
+      ...[
+        [
+          `write .aihq/shared/local-my-skills/skill/plain/${kiroVersion}/SKILL.md skill.plain [kiro] skill@kiro`,
+          `write .aihq/shared/local-my-skills/skill/plain/${kiroVersion}/references/notes.md skill.plain [kiro]`,
+        ],
+        [
+          `write .aihq/shared/local-my-skills/skill/plain/${version}/SKILL.md skill.plain [claude-code,copilot,kimi]`,
+          `write .aihq/shared/local-my-skills/skill/plain/${version}/references/notes.md skill.plain [claude-code,copilot,kimi]`,
+        ],
+      ]
+        .sort((left, right) => ((left[0] as string) < (right[0] as string) ? -1 : 1))
+        .flat(),
       `link .claude/skills/plain -> .aihq/shared/local-my-skills/skill/plain/${version} skill.plain [claude-code]`,
       `link .copilot/skills/plain -> .aihq/shared/local-my-skills/skill/plain/${version} skill.plain [copilot]`,
       `link .kimi-code/skills/plain -> .aihq/shared/local-my-skills/skill/plain/${version} skill.plain [kimi]`,

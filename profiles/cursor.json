@@ -17,6 +17,7 @@
       "version": "3.27.12"
     }
   ],
+  "disableBuiltIn": "not-documented",
   "hookEvents": {
     "pre-tool-use": "preToolUse",
     "session-start": "sessionStart"
@@ -77,6 +78,98 @@
     "pin": "none",
     "verify": "none"
   },
+  "provides": {
+    "agent": [
+      "browser",
+      "explore"
+    ],
+    "command": [
+      "about",
+      "add-dir",
+      "apply-worktree",
+      "ask",
+      "auto-review",
+      "bedrock",
+      "best-of-n",
+      "btw",
+      "changes",
+      "clear",
+      "command",
+      "commit",
+      "config",
+      "context",
+      "copy",
+      "copy-conversation-id",
+      "copy-request-id",
+      "cursor",
+      "debug",
+      "delete-worktree",
+      "exit",
+      "fast",
+      "feedback",
+      "fork",
+      "full-conversation",
+      "goal",
+      "help",
+      "jobs",
+      "line-numbers",
+      "load-workspace",
+      "logout",
+      "logs",
+      "max-mode",
+      "mcp",
+      "model",
+      "multi-model-review",
+      "open",
+      "plan",
+      "plugin",
+      "quit",
+      "rename",
+      "resume",
+      "rewind",
+      "rule",
+      "run-everything",
+      "sandbox",
+      "save-workspace",
+      "setup-terminal",
+      "shell",
+      "show-thinking",
+      "simplify",
+      "skills",
+      "status-indicators",
+      "summarize",
+      "sync-theme",
+      "team",
+      "update",
+      "usage",
+      "vim",
+      "worktree"
+    ],
+    "skill": [
+      "autopilot",
+      "canvas",
+      "create-hook",
+      "create-rule",
+      "create-skill",
+      "create-subagent",
+      "goal",
+      "loop",
+      "migrate-to-skills",
+      "new-repo",
+      "origin",
+      "rename-chat",
+      "review",
+      "review-bugbot",
+      "review-security",
+      "sdk",
+      "share",
+      "shell",
+      "split-to-prs",
+      "statusline",
+      "update-cli-config",
+      "update-cursor-settings"
+    ]
+  },
   "ruleScopes": {
     "always": {
       "frontmatter": {
@@ -97,5 +190,5 @@
       "disable-model-invocation": true
     }
   },
-  "version": 2
+  "version": 3
 }

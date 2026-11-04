@@ -230,6 +230,16 @@ export function planRecipe(
   for (const id of Object.keys(options.names ?? {}))
     if (!selection.includes(id))
       problems.push({ path: `options/names/${id}`, message: "names an unselected item" });
+  const offered = new Set([
+    ...recipe.members.map((member) => member.item),
+    ...options_.flatMap((option) => option.items.map((member) => member.item)),
+  ]);
+  for (const [index, override] of (recipe.overrides ?? []).entries())
+    if (!offered.has(override.item))
+      problems.push({
+        path: `recipe/overrides/${index}`,
+        message: "an override names an item the recipe installs",
+      });
   if (problems.length > 0) return { status: "invalid", problems };
 
   // Each client's route, lowered; a route the client cannot honour falls back.
@@ -337,6 +347,7 @@ export function planRecipe(
     ...(options.copy !== undefined ? { copy: options.copy } : {}),
     installName,
     extras,
+    overrides: (recipe.overrides ?? []).filter((override) => selection.includes(override.item)),
   });
   if (result.status !== "ok" && result.status !== "incomplete") return result;
   const { status, ...rest } = result;

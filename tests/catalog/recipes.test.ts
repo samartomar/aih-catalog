@@ -52,7 +52,7 @@ const RECIPE = {
   plugins: {},
   setup: {},
   clis: {},
-  members: [{ item: "pack.skill.review", preTicked: true }],
+  members: [{ item: "pack.skill.revise", preTicked: true }],
   options: [],
   namePrefix: {},
   overrides: [],
@@ -169,7 +169,7 @@ function planned(result: PlanResult): Plan & { recipe?: unknown } {
 
 const PACK_TREE = {
   LICENSE: "MIT\n",
-  "skills/review/SKILL.md": skill("review"),
+  "skills/revise/SKILL.md": skill("revise"),
   "skills/deploy/SKILL.md": skill("deploy"),
   "skills/checks/SKILL.md": skill("checks"),
   "skills/lint/SKILL.md": skill("lint"),
@@ -187,7 +187,7 @@ async function pack() {
     routes: { "claude-code": "items" },
     members: [
       { item: "pack.rule.style", preTicked: true },
-      { item: "pack.skill.review", preTicked: true },
+      { item: "pack.skill.revise", preTicked: true },
     ],
     options: [
       {
@@ -240,7 +240,7 @@ describe("planning a recipe on the items route", () => {
       ".aihq/notices/pack/LICENSE",
       ".claude/rules/style.md",
       ".claude/skills/lint/SKILL.md",
-      ".claude/skills/review/SKILL.md",
+      ".claude/skills/revise/SKILL.md",
     ]);
   });
 
@@ -301,7 +301,7 @@ describe("planning a recipe on the items route", () => {
         source: RECIPE_SOURCE,
       });
 
-    expect(plan(read.recipe, { extras: ["pack.skill.review"] })).toMatchObject({
+    expect(plan(read.recipe, { extras: ["pack.skill.revise"] })).toMatchObject({
       status: "invalid",
       problems: [{ path: "choices/extras" }],
     });
@@ -424,7 +424,7 @@ describe("planning a native plugin route", () => {
       framework: "sp",
       clis: ["copilot"],
       scanned: false,
-      render: { name: "plugin-marketplace", profile: "copilot", version: 2, plugin: "sp", commit },
+      render: { name: "plugin-marketplace", profile: "copilot", version: 3, plugin: "sp", commit },
     });
     // Kimi's pin is not held and OpenCode pins only in a project: both take the items route.
     expect(plan.warnings).toEqual([
@@ -855,7 +855,7 @@ describe("recipe prefixes and recorded plugin folders", () => {
       ".aihq/notices/pack/LICENSE",
       ".claude/rules/style.md",
       ".claude/skills/pk-lint/SKILL.md",
-      ".claude/skills/pk-review/SKILL.md",
+      ".claude/skills/pk-revise/SKILL.md",
     ]);
   });
 

@@ -243,7 +243,15 @@ export interface Clash {
   readonly root: string;
   readonly path: string;
   readonly key?: string;
-  readonly reason?: "different-content" | "nested-key" | "write-and-merge" | "under-link" | "limit";
+  readonly reason?:
+    | "different-content"
+    | "nested-key"
+    | "write-and-merge"
+    | "under-link"
+    | "limit"
+    | "built-in";
+  /** For a `built-in` clash: the name the client already provides that the item would shadow. */
+  readonly builtIn?: string;
   readonly items: readonly string[];
   readonly clis: readonly string[];
 }
@@ -1197,6 +1205,120 @@ function pathReferencesOf(
   );
 }
 
+/** The name a client provides that an install name of this kind would shadow, if any. */
+function providedName(profile: ToolProfile, kind: string, name: string): string | undefined {
+  const provided = profile.provides ?? {};
+  const names =
+    kind === "skill"
+      ? [...(provided.skill ?? []), ...(provided.command ?? [])]
+      : kind === "agent"
+        ? (provided.agent ?? [])
+        : [];
+  const lower = name.toLowerCase();
+  return names.find((entry) => entry.toLowerCase() === lower);
+}
+
+/**
+ * Built-in names: a placed skill or agent whose install name matches what its client provides
+ * is a `built-in` clash, unless a recipe override intends it. An override switches the built-in
+ * off the way the client documents (a same-named item replaces it, or a keyed setting entry),
+ * and otherwise warns that both will show or that switching it off is a manual step.
+ */
+function builtIns(
+  resolved: readonly Placed[],
+  scope: Scope,
+  overrides: readonly Override[],
+): { clashes: Clash[]; merges: MergeStep[]; warnings: Warning[] } {
+  const intended = (entry: Placed, builtIn: string) =>
+    overrides.some(
+      (override) =>
+        override.item === entry.item.id &&
+        override.replaces.toLowerCase() === builtIn.toLowerCase(),
+    );
+  const clashes = new Map<string, { clash: Clash; items: Set<string>; clis: Set<string> }>();
+  const placed = resolved.filter(
+    (entry) =>
+      entry.unit.shape !== "merge" && (entry.item.kind === "skill" || entry.item.kind === "agent"),
+  );
+  for (const entry of placed) {
+    const builtIn = providedName(entry.profile, entry.item.kind, entry.installName);
+    if (builtIn === undefined || intended(entry, builtIn)) continue;
+    const path = (entry.unit as { path: string }).path;
+    const key = `${path}\0${builtIn}`;
+    const known = clashes.get(key) ?? {
+      clash: { root: scope, path, reason: "built-in" as const, builtIn, items: [], clis: [] },
+      items: new Set<string>(),
+      clis: new Set<string>(),
+    };
+    known.items.add(entry.item.id);
+    known.clis.add(entry.profile.id);
+    clashes.set(key, known);
+  }
+  const warnings = new Map<string, { code: string; cli: string; items: Set<string> }>();
+  const warn = (code: string, cli: string, item: string) => {
+    const known = warnings.get(`${code}\0${cli}`) ?? { code, cli, items: new Set<string>() };
+    known.items.add(item);
+    warnings.set(`${code}\0${cli}`, known);
+  };
+  const settings = new Map<string, { step: MergeStep; items: Set<string>; clis: Set<string> }>();
+  for (const override of overrides)
+    for (const entry of placed) {
+      if (entry.item.id !== override.item) continue;
+      const builtIn = providedName(entry.profile, entry.item.kind, override.replaces);
+      if (builtIn === undefined) continue;
+      const cli = entry.profile.id;
+      const how = entry.profile.disableBuiltIn;
+      if (how === undefined || how === "not-documented") {
+        warn("built-in-both-show", cli, override.item);
+        continue;
+      }
+      for (const code of how.warnings ?? []) warn(code, cli, override.item);
+      if (entry.installName.toLowerCase() === builtIn.toLowerCase() && how.sameName === "replaces")
+        continue;
+      if (how.setting !== undefined && entry.item.kind === "skill") {
+        const step: MergeStep = {
+          op: "merge",
+          root: how.setting.root,
+          file: how.setting.file,
+          format: how.setting.format,
+          key: fill(how.setting.key, builtIn),
+          entry: how.setting.entry,
+          clis: [],
+        };
+        const key = `${step.root}\0${step.file}\0${step.key}`;
+        const known = settings.get(key) ?? {
+          step,
+          items: new Set<string>(),
+          clis: new Set<string>(),
+        };
+        known.items.add(override.item);
+        known.clis.add(cli);
+        settings.set(key, known);
+      } else if (how.manual !== undefined) warn("built-in-disable-manual", cli, override.item);
+      else warn("built-in-both-show", cli, override.item);
+    }
+  return {
+    clashes: [...clashes.values()].map(({ clash, items, clis }) => ({
+      ...clash,
+      items: sortedSet(items),
+      clis: sortedSet(clis),
+    })),
+    merges: [...settings.values()].map(({ step, items, clis }) => {
+      const owners = sortedSet(items);
+      return {
+        ...step,
+        ...(owners.length === 1 ? { item: owners[0] as string } : { items: owners }),
+        clis: sortedSet(clis),
+      };
+    }),
+    warnings: [...warnings.values()].map(({ code, cli, items }) => ({
+      code,
+      cli,
+      items: sortedSet(items),
+    })),
+  };
+}
+
 /** Problems of the supplied contents and profiles, shared by both planners. */
 export function inputProblems(
   contents: readonly Content[],
@@ -1337,6 +1459,13 @@ export interface CoreInput {
   /** The install name of an item for a client, or undefined when the client does not take it. */
   readonly installName: (item: Item, profile: ToolProfile) => string | undefined;
   readonly extras?: Extras;
+  /** A recipe's intended built-in replacements: `item` replaces the provided `replaces`. */
+  readonly overrides?: readonly Override[];
+}
+
+export interface Override {
+  readonly item: string;
+  readonly replaces: string;
 }
 
 /** The planner shared by `planInstall` and `planRecipe`, over already-validated input. */
@@ -1401,6 +1530,21 @@ export function planCore(input: CoreInput): PlanResult {
         ),
       )
       .find((other) => other !== undefined);
+    // A skill folder is read as it is: when this client's own render of it would differ (it
+    // rewords `$ARGUMENTS` where the other keeps it), it keeps its own bytes at the shared path,
+    // so the folder is a combined render or a clash, never the other client's bytes taken
+    // silently.
+    if (
+      shared &&
+      entry.item.kind === "skill" &&
+      entry.unit.shape === "folder" &&
+      shared.unit.shape === "folder" &&
+      canonicalJson(entry.unit.outputs) !== canonicalJson(shared.unit.outputs)
+    ) {
+      const { reuse: _reuse, failure: _failure, ...own } = entry;
+      resolved.push({ ...own, unit: { ...entry.unit, path: shared.unit.path } });
+      continue;
+    }
     if (shared) {
       const { launchers: _launchers, ...base } = shared;
       resolved.push({
@@ -1622,6 +1766,12 @@ export function planCore(input: CoreInput): PlanResult {
       });
       for (const code of overlap.warnings) warnings.push({ code, cli: profile.id, items });
     }
+
+  // Names the clients already provide: clashes, or an override's switch-off and warnings.
+  const shadowing = builtIns(resolved, scope, input.overrides ?? []);
+  clashes.push(...shadowing.clashes);
+  merges.push(...shadowing.merges);
+  warnings.push(...shadowing.warnings);
 
   // Notices covering a placed item, once each.
   for (const content of contents)

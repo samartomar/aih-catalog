@@ -21,6 +21,7 @@
       "version": "1.4.86"
     }
   ],
+  "disableBuiltIn": "not-documented",
   "editionPlaces": {
     "agent": {
       "project": ".kiro/agents/",
@@ -89,6 +90,59 @@
       "user": ".kiro/skills/<name>/"
     }
   },
+  "provides": {
+    "agent": [
+      "Bug Fix",
+      "Default",
+      "Guide",
+      "Help",
+      "Plan",
+      "Quick Spec",
+      "Spec",
+      "kiro_default",
+      "kiro_help",
+      "kiro_planner"
+    ],
+    "command": [
+      "agent",
+      "changelog",
+      "chat",
+      "checkpoint",
+      "clear",
+      "code",
+      "compact",
+      "context",
+      "copy",
+      "editor",
+      "effort",
+      "exit",
+      "feedback",
+      "fullscreen",
+      "goal",
+      "guide",
+      "help",
+      "hooks",
+      "knowledge",
+      "mcp",
+      "model",
+      "paste",
+      "plan",
+      "prompts",
+      "quit",
+      "reply",
+      "rewind",
+      "session-id",
+      "settings",
+      "spawn",
+      "spec",
+      "switch",
+      "theme",
+      "title",
+      "tools",
+      "transcript",
+      "usage"
+    ]
+  },
   "ruleScopes": {
     "always": {
       "frontmatter": {
@@ -143,5 +197,5 @@
       }
     ]
   },
-  "version": 3
+  "version": 4
 }

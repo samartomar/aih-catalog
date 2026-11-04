@@ -50,17 +50,17 @@ async function contentFrom(fetched: Awaited<ReturnType<typeof fetchSource>>, fra
 
 const LICENSE = "MIT Licence\n";
 const REVIEW =
-  "---\nname: review\ndescription: Review the current change.\n---\n\nReview carefully.\n";
+  "---\nname: revise\ndescription: Review the current change.\n---\n\nReview carefully.\n";
 const STYLE = "# Style\n\nUse two spaces.\n";
 
 describe("fetching a pinned Git source", () => {
   it("resolves a branch to its exact commit and keeps only the subfolder", async () => {
     const upstream = gitRepository(
-      { "pack/skills/review/SKILL.md": "old\n" },
+      { "pack/skills/revise/SKILL.md": "old\n" },
       {
         "README.md": "outside\n",
         "pack/LICENSE": LICENSE,
-        "pack/skills/review/SKILL.md": REVIEW,
+        "pack/skills/revise/SKILL.md": REVIEW,
         "pack/rules/style.md": STYLE,
         "pack/bin/run.sh": { text: "#!/bin/sh\n", executable: true },
       },
@@ -83,7 +83,7 @@ describe("fetching a pinned Git source", () => {
       { path: "LICENSE", mode: "100644", sha256: sha(LICENSE) },
       { path: "bin/run.sh", mode: "100755", sha256: sha("#!/bin/sh\n") },
       { path: "rules/style.md", mode: "100644", sha256: sha(STYLE) },
-      { path: "skills/review/SKILL.md", mode: "100644", sha256: sha(REVIEW) },
+      { path: "skills/revise/SKILL.md", mode: "100644", sha256: sha(REVIEW) },
     ]);
     expect(utf8(fetched.files[3]?.bytes as Uint8Array)).toBe(REVIEW);
   });
@@ -91,7 +91,7 @@ describe("fetching a pinned Git source", () => {
   it("plans the subfolder's items with its notice and the exact commit as source identity", async () => {
     const upstream = gitRepository({
       "pack/LICENSE": LICENSE,
-      "pack/skills/review/SKILL.md": REVIEW,
+      "pack/skills/revise/SKILL.md": REVIEW,
       "pack/rules/style.md": STYLE,
       "other/skills/elsewhere/SKILL.md": REVIEW,
     });
@@ -114,7 +114,7 @@ describe("fetching a pinned Git source", () => {
     ]);
     expect(built.content.items.map((item) => item.id)).toEqual([
       "pack.rule.style",
-      "pack.skill.review",
+      "pack.skill.revise",
     ]);
     const reread = readContent(built.bytes);
     if (reread.status !== "ok") throw new Error(JSON.stringify(reread));
@@ -122,7 +122,7 @@ describe("fetching a pinned Git source", () => {
       await checkContent(reread.content, fetched.status === "ok" ? fetched.files : []),
     ).toEqual({ status: "ok", problems: [] });
 
-    const plan = planInstall(["pack.skill.review"], [reread.content], [profile("claude-code")], {
+    const plan = planInstall(["pack.skill.revise"], [reread.content], [profile("claude-code")], {
       scope: "project",
       data: null,
     });
@@ -134,11 +134,11 @@ describe("fetching a pinned Git source", () => {
         { sourceId: "pack", sourcePath: "LICENSE", sha256: sha(LICENSE) },
       ],
       [
-        ".claude/skills/review/SKILL.md",
+        ".claude/skills/revise/SKILL.md",
         {
-          item: "pack.skill.review",
+          item: "pack.skill.revise",
           sourceId: "pack",
-          sourcePath: "skills/review/SKILL.md",
+          sourcePath: "skills/revise/SKILL.md",
           sha256: sha(REVIEW),
         },
       ],
@@ -146,7 +146,7 @@ describe("fetching a pinned Git source", () => {
   });
 
   it("pins pasted text naming the default branch, and never records a branch, tag or range", async () => {
-    const upstream = gitRepository({ "skills/review/SKILL.md": REVIEW });
+    const upstream = gitRepository({ "skills/revise/SKILL.md": REVIEW });
     const link = parseSourceLink(`git clone ${upstream.path}`);
     if (link.status !== "recognised") throw new Error(JSON.stringify(link));
     const fetched = await fetchSource(link.candidate, { outDir: outDir() });
@@ -200,7 +200,7 @@ describe("fetching a pinned Git source", () => {
     process.env.GIT_CONFIG_KEY_0 = "uploadpack.packObjectsHook";
     process.env.GIT_CONFIG_VALUE_0 = script;
     const upstream = gitRepository({
-      "skills/review/SKILL.md": REVIEW,
+      "skills/revise/SKILL.md": REVIEW,
       ".githooks/post-checkout": { text: `#!/bin/sh\ntouch '${marker}'\n`, executable: true },
       "install.sh": { text: `#!/bin/sh\ntouch '${marker}'\n`, executable: true },
       "package.json": JSON.stringify({ scripts: { postinstall: `touch '${marker}'` } }),
@@ -219,8 +219,8 @@ describe("fetching a pinned Git source", () => {
 
   it("lists links and submodules without following them", async () => {
     const upstream = gitRepository({
-      "skills/review/SKILL.md": REVIEW,
-      "skills/review/escape": { link: "/etc/passwd" },
+      "skills/revise/SKILL.md": REVIEW,
+      "skills/revise/escape": { link: "/etc/passwd" },
     });
     git(
       upstream.path,
@@ -237,22 +237,22 @@ describe("fetching a pinned Git source", () => {
     );
 
     if (fetched.status !== "ok") throw new Error(JSON.stringify(fetched));
-    expect(fetched.files.find((file) => file.path === "skills/review/escape")).toEqual({
-      path: "skills/review/escape",
+    expect(fetched.files.find((file) => file.path === "skills/revise/escape")).toEqual({
+      path: "skills/revise/escape",
       mode: "link",
     });
     expect(fetched.skipped).toEqual([{ path: "vendor/sub", reason: "submodule" }]);
     const found = findItems(fetched.files, { framework: "up" });
     expect(found).toMatchObject({
       status: "ok",
-      leftOver: [{ path: "skills/review/escape", reason: "link" }],
+      leftOver: [{ path: "skills/revise/escape", reason: "link" }],
     });
   });
 
   it("refuses a tree entry that escapes the source, before reading any file", async () => {
     for (const name of ["..", "a\\b", ".git"]) {
-      const upstream = gitRepository({ "skills/review/SKILL.md": REVIEW });
-      const blob = git(upstream.path, "rev-parse", "HEAD:skills/review/SKILL.md");
+      const upstream = gitRepository({ "skills/revise/SKILL.md": REVIEW });
+      const blob = git(upstream.path, "rev-parse", "HEAD:skills/revise/SKILL.md");
       const tree = execTree(upstream.path, [`100644 blob ${blob}\t${name}`]);
       const commit = git(upstream.path, "commit-tree", tree, "-m", "escape");
       git(upstream.path, "update-ref", "refs/heads/main", commit);
@@ -266,7 +266,7 @@ describe("fetching a pinned Git source", () => {
   });
 
   it("refuses a missing ref, a missing subpath and a subpath that is a file", async () => {
-    const upstream = gitRepository({ "pack/skills/review/SKILL.md": REVIEW, "README.md": "r\n" });
+    const upstream = gitRepository({ "pack/skills/revise/SKILL.md": REVIEW, "README.md": "r\n" });
     const fetch = (candidate: object) =>
       fetchSource({ kind: "git", repository: upstream.path, ...candidate }, { outDir: outDir() });
     expect(await fetch({ ref: "no-such-branch" })).toMatchObject({ code: "fetch-failed" });
@@ -281,8 +281,8 @@ describe("fetching a pinned Git source", () => {
 
   it("refuses a file over the source file limit without a partial result", async () => {
     const upstream = gitRepository({
-      "skills/review/SKILL.md": REVIEW,
-      "skills/review/big.bin": "\0".repeat(limits.sourceFileBytes + 1),
+      "skills/revise/SKILL.md": REVIEW,
+      "skills/revise/big.bin": "\0".repeat(limits.sourceFileBytes + 1),
     });
     const fetched = await fetchSource(
       { kind: "git", repository: upstream.path },
@@ -295,7 +295,7 @@ describe("fetching a pinned Git source", () => {
 
 describe("fetching a local candidate", () => {
   it("reads a pasted file URL like readLocalSource, recording no machine path", async () => {
-    const root = folder({ "skills/review/SKILL.md": REVIEW });
+    const root = folder({ "skills/revise/SKILL.md": REVIEW });
     const link = parseSourceLink(pathToFileURL(root).href);
     if (link.status !== "recognised") throw new Error(JSON.stringify(link));
     const fetched = await fetchSource(link.candidate, { outDir: outDir() });
@@ -320,7 +320,7 @@ describe("fetching a pinned npm source", () => {
       tarball([
         { path: "package.json", text: manifest(PACKAGE, number, scripts) },
         { path: "LICENSE", text: LICENSE },
-        { path: "skills/review/SKILL.md", text: review },
+        { path: "skills/revise/SKILL.md", text: review },
         { path: "rules/style.md", text: STYLE },
         {
           path: "bin/setup.js",
@@ -353,7 +353,7 @@ describe("fetching a pinned npm source", () => {
       ["bin/setup.js", "100755"],
       ["package.json", "100644"],
       ["rules/style.md", "100644"],
-      ["skills/review/SKILL.md", "100644"],
+      ["skills/revise/SKILL.md", "100644"],
     ]);
 
     const { built } = await contentFrom(fetched, "fixture");
@@ -410,10 +410,10 @@ describe("fetching a pinned npm source", () => {
     const fetched = await fetchServed(
       tarball([
         packageJson,
-        { path: "skills/review/SKILL.md", text: REVIEW },
-        { path: "skills/review/passwd", type: "2", link: "/etc/passwd" },
-        { path: "skills/review/hard", type: "1", link: "package/package.json" },
-        { path: "skills/review/pipe", type: "6" },
+        { path: "skills/revise/SKILL.md", text: REVIEW },
+        { path: "skills/revise/passwd", type: "2", link: "/etc/passwd" },
+        { path: "skills/revise/hard", type: "1", link: "package/package.json" },
+        { path: "skills/revise/pipe", type: "6" },
       ]),
     );
     if (fetched.status !== "ok") throw new Error(JSON.stringify(fetched));
@@ -422,9 +422,9 @@ describe("fetching a pinned npm source", () => {
       status: "ok",
       leftOver: [
         { path: "package.json", reason: "unrecognised" },
-        { path: "skills/review/hard", reason: "link" },
-        { path: "skills/review/passwd", reason: "link" },
-        { path: "skills/review/pipe", reason: "special-file" },
+        { path: "skills/revise/hard", reason: "link" },
+        { path: "skills/revise/passwd", reason: "link" },
+        { path: "skills/revise/pipe", reason: "special-file" },
       ],
     });
   });

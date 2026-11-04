@@ -14,7 +14,7 @@ import {
 
 const LICENSE = "MIT Licence\n";
 const REVIEW =
-  "---\nname: review\ndescription: Review the current change.\n---\n\nReview carefully.\n";
+  "---\nname: revise\ndescription: Review the current change.\n---\n\nReview carefully.\n";
 const CHECKLIST = "- tests\n";
 const STYLE = "# Style\n\nUse two spaces.\n";
 
@@ -22,25 +22,25 @@ describe("planning an installation from your own folder", () => {
   it("copies a skill, an always-on rule and its notice into Claude's project folders", async () => {
     const root = folder({
       LICENSE,
-      "skills/review/SKILL.md": REVIEW,
-      "skills/review/references/checklist.md": CHECKLIST,
+      "skills/revise/SKILL.md": REVIEW,
+      "skills/revise/references/checklist.md": CHECKLIST,
       "rules/style.md": STYLE,
     });
     const { built } = await ownContent(root);
 
     const plan = planInstall(
-      [`${FRAMEWORK}.skill.review`, `${FRAMEWORK}.rule.style`],
+      [`${FRAMEWORK}.skill.revise`, `${FRAMEWORK}.rule.style`],
       [built.content],
       [profile("claude-code")],
       { scope: "project", data: null },
     );
 
-    const review = `${FRAMEWORK}.skill.review`;
+    const review = `${FRAMEWORK}.skill.revise`;
     const style = `${FRAMEWORK}.rule.style`;
     expect(plan).toEqual({
       status: "ok",
       data: null,
-      profiles: [{ id: "claude-code", version: 3 }],
+      profiles: [{ id: "claude-code", version: 4 }],
       plan: [
         {
           op: "write",
@@ -68,11 +68,11 @@ describe("planning an installation from your own folder", () => {
         {
           op: "write",
           root: "project",
-          path: ".claude/skills/review/SKILL.md",
+          path: ".claude/skills/revise/SKILL.md",
           from: {
             item: review,
             sourceId: FRAMEWORK,
-            sourcePath: "skills/review/SKILL.md",
+            sourcePath: "skills/revise/SKILL.md",
             sha256: sha(REVIEW),
           },
           executable: false,
@@ -82,11 +82,11 @@ describe("planning an installation from your own folder", () => {
         {
           op: "write",
           root: "project",
-          path: ".claude/skills/review/references/checklist.md",
+          path: ".claude/skills/revise/references/checklist.md",
           from: {
             item: review,
             sourceId: FRAMEWORK,
-            sourcePath: "skills/review/references/checklist.md",
+            sourcePath: "skills/revise/references/checklist.md",
             sha256: sha(CHECKLIST),
           },
           executable: false,
@@ -109,12 +109,12 @@ const SHIP =
 
 const tree = {
   LICENSE,
-  "skills/review/SKILL.md": REVIEW,
-  "skills/review/references/checklist.md": CHECKLIST,
+  "skills/revise/SKILL.md": REVIEW,
+  "skills/revise/references/checklist.md": CHECKLIST,
   "skills/ship/SKILL.md": SHIP,
   "rules/style.md": STYLE,
 };
-const review = `${FRAMEWORK}.skill.review`;
+const review = `${FRAMEWORK}.skill.revise`;
 const ship = `${FRAMEWORK}.skill.ship`;
 const style = `${FRAMEWORK}.rule.style`;
 const threeClis = () => [profile("claude-code"), profile("kiro"), profile("antigravity")];
@@ -134,7 +134,7 @@ describe("one own folder for Claude, Kiro and Antigravity", () => {
     ]);
     expect(content.items.map((item) => [item.id, item.kind, item.name, item.description])).toEqual([
       [style, "rule", "style", "Style"],
-      [review, "skill", "review", "Review the current change."],
+      [review, "skill", "revise", "Review the current change."],
       [ship, "skill", "ship", "Ship the change."],
     ]);
     const byId = Object.fromEntries(content.items.map((item) => [item.id, item]));
@@ -144,7 +144,7 @@ describe("one own folder for Claude, Kiro and Antigravity", () => {
     expect(byId[review]?.files).toEqual([
       {
         sourceId: FRAMEWORK,
-        sourcePath: "skills/review/SKILL.md",
+        sourcePath: "skills/revise/SKILL.md",
         sha256: sha(REVIEW),
         bytes: Buffer.byteLength(REVIEW),
         executable: false,
@@ -152,7 +152,7 @@ describe("one own folder for Claude, Kiro and Antigravity", () => {
       },
       {
         sourceId: FRAMEWORK,
-        sourcePath: "skills/review/references/checklist.md",
+        sourcePath: "skills/revise/references/checklist.md",
         sha256: sha(CHECKLIST),
         bytes: Buffer.byteLength(CHECKLIST),
         executable: false,
@@ -160,7 +160,7 @@ describe("one own folder for Claude, Kiro and Antigravity", () => {
       },
     ]);
     // contentSha256 is sha256 over canonical JSON of the sorted { executable, sha256, sourcePath }.
-    const facts = `[{"executable":false,"sha256":"${sha(REVIEW)}","sourcePath":"skills/review/SKILL.md"},{"executable":false,"sha256":"${sha(CHECKLIST)}","sourcePath":"skills/review/references/checklist.md"}]`;
+    const facts = `[{"executable":false,"sha256":"${sha(REVIEW)}","sourcePath":"skills/revise/SKILL.md"},{"executable":false,"sha256":"${sha(CHECKLIST)}","sourcePath":"skills/revise/references/checklist.md"}]`;
     expect(byId[review]?.contentSha256).toBe(sha(facts));
     expect(utf8(built.bytes)).toBe(`${JSON.stringify(sortKeys(content), null, 2)}\n`);
     const reread = readContent(built.bytes);
@@ -187,9 +187,9 @@ describe("one own folder for Claude, Kiro and Antigravity", () => {
     });
     if (result.status !== "ok") throw new Error(JSON.stringify(result));
     expect(result.profiles).toEqual([
-      { id: "antigravity", version: 3 },
-      { id: "claude-code", version: 3 },
-      { id: "kiro", version: 3 },
+      { id: "antigravity", version: 4 },
+      { id: "claude-code", version: 4 },
+      { id: "kiro", version: 4 },
     ]);
     expect(
       writes(result.plan).map((step) => [
@@ -202,11 +202,11 @@ describe("one own folder for Claude, Kiro and Antigravity", () => {
       ]),
     ).toEqual([
       ["write", "project", `.agents/rules/style.md`, style, ["antigravity"], "rule"],
-      ["write", "project", `.agents/skills/review/SKILL.md`, review, ["antigravity"], null],
+      ["write", "project", `.agents/skills/revise/SKILL.md`, review, ["antigravity"], null],
       [
         "write",
         "project",
-        `.agents/skills/review/references/checklist.md`,
+        `.agents/skills/revise/references/checklist.md`,
         review,
         ["antigravity"],
         null,
@@ -221,11 +221,11 @@ describe("one own folder for Claude, Kiro and Antigravity", () => {
         null,
       ],
       ["write", "project", `.claude/rules/style.md`, style, ["claude-code"], null],
-      ["write", "project", `.claude/skills/review/SKILL.md`, review, ["claude-code"], null],
+      ["write", "project", `.claude/skills/revise/SKILL.md`, review, ["claude-code"], null],
       [
         "write",
         "project",
-        `.claude/skills/review/references/checklist.md`,
+        `.claude/skills/revise/references/checklist.md`,
         review,
         ["claude-code"],
         null,
@@ -233,8 +233,8 @@ describe("one own folder for Claude, Kiro and Antigravity", () => {
       ["write", "project", `.claude/skills/ship/SKILL.md`, ship, ["claude-code"], "skill"],
       // Kiro renders fold every description to one plain line, so they always render.
       ["write", "project", `.kiro/prompts/ship.md`, ship, ["kiro"], "user-only-fallback"],
-      ["write", "project", `.kiro/skills/review/SKILL.md`, review, ["kiro"], "skill"],
-      ["write", "project", `.kiro/skills/review/references/checklist.md`, review, ["kiro"], null],
+      ["write", "project", `.kiro/skills/revise/SKILL.md`, review, ["kiro"], "skill"],
+      ["write", "project", `.kiro/skills/revise/references/checklist.md`, review, ["kiro"], null],
       ["write", "project", `.kiro/steering/ship.md`, ship, ["kiro"], "user-only-fallback"],
       ["write", "project", `.kiro/steering/style.md`, style, ["kiro"], "rule"],
     ]);
