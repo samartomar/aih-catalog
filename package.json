@@ -190,6 +190,7 @@
     "test:cov": "vitest run --config vitest.transition.config.ts --coverage",
     "typecheck": "tsc --noEmit",
     "verify:workflow-action-pins": "node tools/verify-pinned-actions.mjs",
+    "port:maintained": "npm run build:dist && node tools/port-maintained.mjs",
     "produce:ecc": "npm run build:dist && node tools/produce-upstream-inputs.mjs ecc",
     "produce:superpowers": "npm run build:dist && node tools/produce-upstream-inputs.mjs superpowers",
     "produce:mattpocock": "npm run build:dist && node tools/produce-upstream-inputs.mjs mattpocock",

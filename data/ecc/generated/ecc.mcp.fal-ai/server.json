@@ -1,0 +1,29 @@
+{
+  "description": "AI image/video/audio generation via fal.ai models",
+  "name": "fal-ai",
+  "packages": [
+    {
+      "environmentVariables": [
+        {
+          "description": "FAL_KEY",
+          "isRequired": true,
+          "isSecret": true,
+          "name": "FAL_KEY"
+        }
+      ],
+      "identifier": "fal-ai-mcp-server",
+      "registryType": "npm",
+      "runtimeArguments": [
+        {
+          "type": "positional",
+          "value": "-y"
+        }
+      ],
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "version": "2.1.4"
+    }
+  ]
+}

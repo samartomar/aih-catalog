@@ -1,0 +1,31 @@
+{
+  "description": "Browser automation and testing via Playwright",
+  "name": "playwright",
+  "packages": [
+    {
+      "identifier": "@playwright/mcp",
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "--browser"
+        },
+        {
+          "type": "positional",
+          "value": "chrome"
+        }
+      ],
+      "registryType": "npm",
+      "runtimeArguments": [
+        {
+          "type": "positional",
+          "value": "-y"
+        }
+      ],
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "version": "0.0.83"
+    }
+  ]
+}

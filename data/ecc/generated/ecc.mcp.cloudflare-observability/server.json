@@ -1,0 +1,10 @@
+{
+  "description": "Cloudflare observability/logs",
+  "name": "cloudflare-observability",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://observability.mcp.cloudflare.com/mcp"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "description": "Cloudflare documentation search",
+  "name": "cloudflare-docs",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://docs.mcp.cloudflare.com/mcp"
+    }
+  ]
+}

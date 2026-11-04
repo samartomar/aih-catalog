@@ -1,0 +1,10 @@
+{
+  "description": "Cloudflare Workers bindings",
+  "name": "cloudflare-workers-bindings",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://bindings.mcp.cloudflare.com/mcp"
+    }
+  ]
+}

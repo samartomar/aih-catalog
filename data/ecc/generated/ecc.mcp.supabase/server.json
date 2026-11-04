@@ -1,0 +1,34 @@
+{
+  "description": "Supabase database operations",
+  "name": "supabase",
+  "packages": [
+    {
+      "identifier": "@supabase/mcp-server-supabase",
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "--project-ref={PROJECT_REF}",
+          "variables": {
+            "PROJECT_REF": {
+              "description": "PROJECT_REF",
+              "isRequired": true,
+              "isSecret": true
+            }
+          }
+        }
+      ],
+      "registryType": "npm",
+      "runtimeArguments": [
+        {
+          "type": "positional",
+          "value": "-y"
+        }
+      ],
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "version": "0.14.0"
+    }
+  ]
+}

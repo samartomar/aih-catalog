@@ -1,0 +1,29 @@
+{
+  "description": "Web scraping and crawling",
+  "name": "firecrawl",
+  "packages": [
+    {
+      "environmentVariables": [
+        {
+          "description": "FIRECRAWL_API_KEY",
+          "isRequired": true,
+          "isSecret": true,
+          "name": "FIRECRAWL_API_KEY"
+        }
+      ],
+      "identifier": "firecrawl-mcp",
+      "registryType": "npm",
+      "runtimeArguments": [
+        {
+          "type": "positional",
+          "value": "-y"
+        }
+      ],
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "version": "3.35.0"
+    }
+  ]
+}

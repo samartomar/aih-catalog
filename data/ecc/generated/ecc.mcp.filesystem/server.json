@@ -1,0 +1,34 @@
+{
+  "description": "Filesystem operations (set your path)",
+  "name": "filesystem",
+  "packages": [
+    {
+      "identifier": "@modelcontextprotocol/server-filesystem",
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "{FILESYSTEM_ROOT}",
+          "variables": {
+            "FILESYSTEM_ROOT": {
+              "description": "Replaces /path/to/your/projects",
+              "isRequired": true,
+              "isSecret": false
+            }
+          }
+        }
+      ],
+      "registryType": "npm",
+      "runtimeArguments": [
+        {
+          "type": "positional",
+          "value": "-y"
+        }
+      ],
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "version": "2.0.1"
+    }
+  ]
+}

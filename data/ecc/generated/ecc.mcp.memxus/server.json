@@ -1,0 +1,18 @@
+{
+  "description": "Universal persistent memory across Claude Code, Cursor, Gemini CLI and any AI tool — save context once, auto-recalled in every session. Note: review stored memories before use in production agents to avoid prompt-injection via memory-poisoning. Free at memxus.com",
+  "name": "memxus",
+  "remotes": [
+    {
+      "headers": [
+        {
+          "description": "The Authorization header: Bearer <MEMXUS_API_KEY>",
+          "isRequired": true,
+          "isSecret": true,
+          "name": "Authorization"
+        }
+      ],
+      "type": "streamable-http",
+      "url": "https://mcp.memxus.com/mcp"
+    }
+  ]
+}

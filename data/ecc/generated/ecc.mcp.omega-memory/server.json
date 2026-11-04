@@ -1,0 +1,21 @@
+{
+  "description": "Persistent agent memory with semantic search, multi-agent coordination, and knowledge graphs — run via uvx (richer than the basic memory store)",
+  "name": "omega-memory",
+  "packages": [
+    {
+      "identifier": "omega-memory",
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "serve"
+        }
+      ],
+      "registryType": "pypi",
+      "runtimeHint": "uvx",
+      "transport": {
+        "type": "stdio"
+      },
+      "version": "1.5.20"
+    }
+  ]
+}

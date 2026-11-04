@@ -1,0 +1,88 @@
+{
+  "framework": {
+    "id": "project-basics",
+    "name": "Project basics"
+  },
+  "items": [
+    {
+      "behaviourSha256": "ea2014905e90548e3ba77f838a3e66e023fee9c83fae2348d21a7e87646a977a",
+      "contentSha256": "c405e2f33c4e275cdde394030173047f3112031f234e664d5d7bf8ee35642b63",
+      "description": "AI Rule Router",
+      "files": [
+        {
+          "bytes": 3031,
+          "executable": false,
+          "role": "content",
+          "sha256": "86a39df1ba44633ab3400c29c7f9072d07367fd5f0a947c205217bd681d8fff6",
+          "sourceId": "project-basics",
+          "sourcePath": "RULE_ROUTER.md"
+        }
+      ],
+      "id": "project-basics.document.rule-router",
+      "kind": "document",
+      "name": "rule-router",
+      "pathReferences": [
+        {
+          "path": "rules/agent-behavior-core.md",
+          "sourcePath": "RULE_ROUTER.md"
+        }
+      ],
+      "purpose": "guide",
+      "scanKey": "git-sha1:dc568b521089c6519a42ee9b13b198330ced31c3"
+    },
+    {
+      "behaviourSha256": "0fe122551c1a4ee735c2073ef3aeb232dad8fdd782529216de9f210eeee69e35",
+      "contentSha256": "55e9df5cf41af2c2b2f62dabece3da03099028d52a3588e2674c7d3d877571a9",
+      "description": "Agent behavior core",
+      "files": [
+        {
+          "bytes": 2575,
+          "executable": false,
+          "role": "content",
+          "sha256": "fafb90e1ca6d104f39213e16056be528dcf73c7850365ef746413c98cbf12fbf",
+          "sourceId": "project-basics",
+          "sourcePath": "rules/agent-behavior-core.md"
+        }
+      ],
+      "id": "project-basics.rule.agent-behavior-core",
+      "kind": "rule",
+      "name": "agent-behavior-core",
+      "pathReferences": [
+        {
+          "path": "RULE_ROUTER.md",
+          "sourcePath": "rules/agent-behavior-core.md"
+        }
+      ],
+      "scanKey": "git-sha1:22a533c372bdcb2351fac3883ac39c77606211f4",
+      "scope": "always"
+    },
+    {
+      "behaviourSha256": "4c729b39f0a4daebcc0f073d2b031243666facdfa69efa3cc58677b192f83ee2",
+      "contentSha256": "bcbb956e59090e465148e2cc8c4181c4b44a59f3dcee93e604acd2ee9c6545bb",
+      "description": "Start here",
+      "files": [
+        {
+          "bytes": 2790,
+          "executable": false,
+          "role": "content",
+          "sha256": "f45c4c1c8fc9a90e6b6a4de4750812cd426c8e2b8bc7bd1972b97c125e17a085",
+          "sourceId": "project-basics",
+          "sourcePath": "shared-block.md"
+        }
+      ],
+      "id": "project-basics.rule.shared-block",
+      "kind": "rule",
+      "name": "shared-block",
+      "scanKey": "git-sha1:559594bb6689bf083efbd60247742bffc4a9b51c",
+      "scope": "always"
+    }
+  ],
+  "schema": "urn:aihq:catalog:content:0.1.0",
+  "sources": [
+    {
+      "id": "project-basics",
+      "kind": "authored",
+      "notices": []
+    }
+  ]
+}

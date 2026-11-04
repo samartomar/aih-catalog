@@ -1,0 +1,261 @@
+{
+  "ecc": {
+    "commit": "5064474d4d762dc9640234a41617cccb79185cec",
+    "entries": [
+      {
+        "blob": "ad84658905c1cf8114b5a08e5b6af72c7a5d8a5b",
+        "mode": "100644",
+        "path": ".kiro/agents/architect.json"
+      },
+      {
+        "blob": "32310c7c8fdb9411d6ed24ecd18cf5ca36628635",
+        "mode": "100644",
+        "path": ".kiro/agents/architect.md"
+      },
+      {
+        "blob": "fa67020f6aaf3b1d1c5697167a5462f95e95f497",
+        "mode": "100644",
+        "path": ".kiro/hooks/tdd-reminder.kiro.hook"
+      },
+      {
+        "blob": "cf4a2d2be1bd8036fb95adf25d9c1faa0bfd6834",
+        "mode": "100644",
+        "path": ".kiro/skills/api-design/SKILL.md"
+      },
+      {
+        "blob": "8452a19e597abac7634afb3b6f3a7754cb40d5b7",
+        "mode": "100644",
+        "path": ".kiro/steering/python-patterns.md"
+      },
+      {
+        "blob": "b832b6f642312312367c07688dc7426db40a82ed",
+        "mode": "100644",
+        "path": "LICENSE"
+      },
+      {
+        "blob": "d65bea41b09b14faeb02f1dba606ce9f16933a33",
+        "mode": "100644",
+        "path": "agents/architect.md"
+      },
+      {
+        "blob": "476b04b9d095f92dd77dcaa4cb561e0481d42a61",
+        "mode": "100644",
+        "path": "commands/gan-build.md"
+      },
+      {
+        "blob": "551f7a4b4732e95937af538cc97d92f7b5d76511",
+        "mode": "100644",
+        "path": "hooks/codex-hooks.json"
+      },
+      {
+        "blob": "62053904e01b62cf956f3e56fb31dae9bb0ff82f",
+        "mode": "100644",
+        "path": "hooks/hooks.json"
+      },
+      {
+        "blob": "0e885468015ac8cc6c5493bc221b42ba9b3bbd25",
+        "mode": "100644",
+        "path": "mcp-configs/mcp-servers.json"
+      },
+      {
+        "blob": "ba503f4c1c2758b58283274a6c2982ef2906fabd",
+        "mode": "100644",
+        "path": "skills/api-design/SKILL.md"
+      },
+      {
+        "blob": "16e216ebf4032274244ea7f221be2c249aa64bea",
+        "mode": "100644",
+        "path": "skills/team-builder/SKILL.md"
+      }
+    ],
+    "repository": "https://github.com/affaan-m/ECC"
+  },
+  "extensions": {
+    "commit": "2481164a51ea7f9e480d51ef52f3d5cf15b017fa",
+    "entries": [
+      {
+        "blob": "c9b56b81ea1b19a27181ac54e365cf3cdf99805f",
+        "mode": "100644",
+        "path": "LICENSE"
+      },
+      {
+        "blob": "c0c198f4a96d0fddb5b42f0999d090cf93ee6df1",
+        "mode": "100644",
+        "path": "NOTICE.md"
+      },
+      {
+        "blob": "efb1e4e51d12229e5d6792780f997467d4ea3697",
+        "mode": "100644",
+        "path": "agents/security-auditor.md"
+      },
+      {
+        "blob": "c573a9f0e6563ad4d91a8a82dfcf3775958d1a43",
+        "mode": "100644",
+        "path": "commands/ship.md"
+      },
+      {
+        "blob": "ed879d08d26c1a35af5e2b932ee350a59a48fc79",
+        "mode": "100644",
+        "path": "hooks/hooks.json"
+      },
+      {
+        "blob": "d67778ada6b9cda6227e9130da182c13e73c8b2e",
+        "mode": "100644",
+        "path": "licenses/addyosmani-agent-skills.LICENSE"
+      },
+      {
+        "blob": "f1dd2c09108dde1a5f56097cee8461b3ea834499",
+        "mode": "100644",
+        "path": "licenses/mattpocock-skills.LICENSE"
+      },
+      {
+        "blob": "c8c61e5f3d5a010a0d0ecb918bfaffe6c76fca78",
+        "mode": "100644",
+        "path": "references/accessibility-checklist.md"
+      },
+      {
+        "blob": "2924fd492d6380bf24749c540f14a5ecab5c0ce2",
+        "mode": "100644",
+        "path": "references/definition-of-done.md"
+      },
+      {
+        "blob": "ad40d7aa3fca5d2091fa45be234c14aee22c3588",
+        "mode": "100644",
+        "path": "references/observability-checklist.md"
+      },
+      {
+        "blob": "c364c54140431567267d335564c1cc2ccd88f612",
+        "mode": "100644",
+        "path": "references/orchestration-patterns.md"
+      },
+      {
+        "blob": "88b6f6a41be7561746c5580137a892583e5f0029",
+        "mode": "100644",
+        "path": "references/performance-checklist.md"
+      },
+      {
+        "blob": "fc5e29b92c183fa69e0952b61a99761dc48b4c0b",
+        "mode": "100644",
+        "path": "references/security-checklist.md"
+      },
+      {
+        "blob": "1691ed9e3242272b03068b1680bf0a671a170776",
+        "mode": "100644",
+        "path": "references/testing-patterns.md"
+      },
+      {
+        "blob": "fa1d8acbb5f992b55b41f081837891eeb2467112",
+        "mode": "100644",
+        "path": "skills/security-and-hardening/SKILL.md"
+      },
+      {
+        "blob": "5b1f887a9138416870f64ba2fe21602e4a59cfa7",
+        "mode": "100644",
+        "path": "skills/security-and-hardening/agents/openai.yaml"
+      },
+      {
+        "blob": "e5fba73c9fc029444d3c099d0a51538e90ed97c2",
+        "mode": "100644",
+        "path": "skills/security-and-hardening/references/hardening-patterns.md"
+      }
+    ],
+    "repository": "https://github.com/samartomar/aih-extensions"
+  },
+  "matt": {
+    "commit": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+    "entries": [
+      {
+        "blob": "f1dd2c09108dde1a5f56097cee8461b3ea834499",
+        "mode": "100644",
+        "path": "LICENSE"
+      },
+      {
+        "blob": "01eadaa34e7c9a63a67d6dc3cce1cc81b0e49985",
+        "mode": "100644",
+        "path": "skills/engineering/tdd/SKILL.md"
+      },
+      {
+        "blob": "651b838a7663e027b1b8884491e867f26bb9a021",
+        "mode": "100644",
+        "path": "skills/engineering/tdd/agents/openai.yaml"
+      },
+      {
+        "blob": "71cbfee674d93244ce81d1830b930ca9a69200bd",
+        "mode": "100644",
+        "path": "skills/engineering/tdd/mocking.md"
+      },
+      {
+        "blob": "7ab86479f925a1f9e8ba680af33cb3b12e015381",
+        "mode": "100644",
+        "path": "skills/engineering/tdd/tests.md"
+      }
+    ],
+    "repository": "https://github.com/mattpocock/skills"
+  },
+  "superpowers": {
+    "commit": "5bf4e78011075bcfc0dc295f0724994cd123ee71",
+    "entries": [
+      {
+        "blob": "abf0390320aa14406af7a520b9b0739fdda9bf08",
+        "mode": "100644",
+        "path": "LICENSE"
+      },
+      {
+        "blob": "67975137aafc8a097bdd1c2b51fea3989b8ad6c0",
+        "mode": "100644",
+        "path": "hooks/hooks.json"
+      },
+      {
+        "blob": "6d995da5c7d8d6c5a3cc63ddb701427f88ec2021",
+        "mode": "100644",
+        "path": "skills/requesting-code-review/SKILL.md"
+      },
+      {
+        "blob": "6d358b5d7d450c83cacbe450b7dbd4e673b694ad",
+        "mode": "100644",
+        "path": "skills/requesting-code-review/code-reviewer.md"
+      },
+      {
+        "blob": "f7bbf6a01b519807ec00baf5e98522bed33f8834",
+        "mode": "100644",
+        "path": "skills/subagent-driven-development/SKILL.md"
+      },
+      {
+        "blob": "5c8ecd61fba036263bf88d0af24d47125780efa0",
+        "mode": "100644",
+        "path": "skills/subagent-driven-development/implementer-prompt.md"
+      },
+      {
+        "blob": "d49c1825f01e79641ba37e5e942d1d2bbaad1a3c",
+        "mode": "100644",
+        "path": "skills/subagent-driven-development/re-review-prompt.md"
+      },
+      {
+        "blob": "fa7625f053dc852200ddd497662508ff1ae40bb1",
+        "mode": "100755",
+        "path": "skills/subagent-driven-development/scripts/review-package"
+      },
+      {
+        "blob": "ff6b9839a8bc09c84291000b1e0645567ef53415",
+        "mode": "100755",
+        "path": "skills/subagent-driven-development/scripts/sdd-workspace"
+      },
+      {
+        "blob": "b49fc546c85e1d6f6c8b523d6c887c55d98ed989",
+        "mode": "100755",
+        "path": "skills/subagent-driven-development/scripts/task-brief"
+      },
+      {
+        "blob": "5c619bc510440b7bf156e78c4dfc60f198963cf0",
+        "mode": "100644",
+        "path": "skills/subagent-driven-development/task-reviewer-prompt.md"
+      },
+      {
+        "blob": "1381dacb3516b94382dd6ec736ede21ee8ede2b3",
+        "mode": "100644",
+        "path": "skills/using-git-worktrees/SKILL.md"
+      }
+    ],
+    "repository": "https://github.com/obra/superpowers"
+  }
+}
