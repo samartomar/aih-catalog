@@ -68,3 +68,6 @@ release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08
 release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/skill-creator/scripts/improve_description.py whitespace=-blank-at-eol
 release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/skill-creator/scripts/quick_validate.py whitespace=-blank-at-eol
 release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08f079624/skills/webapp-testing/SKILL.md whitespace=-blank-at-eol
+
+# Vendored exact archives are byte-identified by sha256.
+vendor/** binary

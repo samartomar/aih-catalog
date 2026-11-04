@@ -1,0 +1,113 @@
+/** Shapes shared by the new Catalog entry points. */
+import type { Kind, LeftOverReason } from "../contracts.js";
+
+/** Git-style modes for regular files; links and special files are never read. */
+export type SourceFileMode = "100644" | "100755" | "link" | "special-file";
+
+/**
+ * One entry of a source as read from a folder, Git tree or unpacked package. Regular files
+ * carry their sha256 and, when read, their bytes; links and special files carry neither.
+ */
+export interface SourceFile {
+  readonly path: string;
+  readonly mode: SourceFileMode;
+  readonly sha256?: string;
+  readonly bytes?: Uint8Array;
+}
+
+export interface LocalSource {
+  readonly kind: "local";
+  readonly path: string;
+}
+
+export interface ItemFile {
+  readonly sourceId: string;
+  readonly sourcePath: string;
+  readonly sha256: string;
+  readonly bytes: number;
+  readonly executable: boolean;
+  readonly role: "content" | "behaviour";
+  readonly cli?: string;
+  readonly derivedFrom?: { readonly sourcePath: string; readonly pointer: string };
+}
+
+export interface Notice {
+  readonly sourcePath: string;
+  readonly sha256: string;
+  /** A folder of the source (no trailing slash), or `/` for all of it. */
+  readonly covers: string;
+}
+
+export interface ContentSource {
+  readonly id: string;
+  readonly kind: "git" | "npm" | "local" | "authored";
+  readonly repository?: string;
+  readonly commit?: string;
+  readonly package?: string;
+  readonly version?: string;
+  readonly subpath?: string;
+  readonly notices: readonly Notice[];
+  readonly noticesFor?: readonly string[];
+}
+
+export type RuleScope =
+  | "always"
+  | "on-request"
+  | { readonly paths: readonly string[] }
+  | { readonly byDescription: true };
+
+export interface Item {
+  readonly id: string;
+  readonly kind: Kind;
+  readonly name: string;
+  readonly description: string;
+  readonly files: readonly ItemFile[];
+  readonly contentSha256: string;
+  readonly behaviourSha256: string;
+  readonly scanKey?: string;
+  readonly userOnly?: boolean;
+  readonly arguments?: boolean;
+  readonly scope?: RuleScope;
+  readonly language?: string;
+  readonly requirements?: unknown;
+  readonly dependencies?: readonly string[];
+  readonly references?: readonly string[];
+  readonly bundle?: string;
+  readonly supersedes?: readonly string[];
+  readonly fetch?: "upstream";
+  readonly editions?: Readonly<Record<string, unknown>>;
+  readonly [field: string]: unknown;
+}
+
+export interface Content {
+  readonly schema: string;
+  readonly framework: { readonly id: string; readonly name: string };
+  readonly sources: readonly ContentSource[];
+  readonly items: readonly Item[];
+  readonly bundles?: readonly unknown[];
+}
+
+/** An item as discovery proposes it, before `buildContent` reads its file-owned fields. */
+export interface DiscoveredItem {
+  readonly id: string;
+  readonly kind: Kind;
+  readonly files: readonly {
+    readonly sourceId: string;
+    readonly sourcePath: string;
+    readonly sha256: string;
+    readonly executable: boolean;
+    readonly role: "content" | "behaviour";
+  }[];
+}
+
+export interface LeftOver {
+  readonly path: string;
+  readonly reason: LeftOverReason;
+  /** For `not-implemented`: the kind (or `command`) the path looks like. */
+  readonly kind?: string;
+}
+
+export const ID_SEGMENT = /^[A-Za-z0-9][A-Za-z0-9_-]*$/;
+export const FRAMEWORK_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+export const INSTALL_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+export const SHA256 = /^[0-9a-f]{64}$/;

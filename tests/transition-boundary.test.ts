@@ -4,7 +4,6 @@ import {
   chmodSync,
   copyFileSync,
   existsSync,
-  mkdirSync,
   mkdtempSync,
   readFileSync,
   rmSync,
@@ -45,36 +44,6 @@ function isolatedNpmEnvironment(): NodeJS.ProcessEnv {
   );
 }
 describe("Catalog migration boundary", () => {
-  it("refuses the configured publication lifecycle even without private metadata", () => {
-    const pkg = manifest();
-    expect(pkg.private).toBe(true);
-    const fixture = mkdtempSync(join(tmpdir(), "aih-catalog-publish-refusal-"));
-    try {
-      mkdirSync(join(fixture, "tools"));
-      copyFileSync(
-        resolve(root, "tools/refuse-publication.mjs"),
-        join(fixture, "tools/refuse-publication.mjs"),
-      );
-      writeFileSync(
-        join(fixture, "package.json"),
-        JSON.stringify({
-          name: pkg.name,
-          version: pkg.version,
-          private: false,
-          scripts: { prepublishOnly: pkg.scripts.prepublishOnly },
-        }),
-      );
-      const refusal = spawnSync(process.execPath, [npmCli(), "run", "prepublishOnly"], {
-        cwd: fixture,
-        encoding: "utf8",
-        env: isolatedNpmEnvironment(),
-      });
-      expect(refusal.status, refusal.stderr).toBe(1);
-      expect(refusal.stderr).toContain("publication is blocked");
-    } finally {
-      rmSync(fixture, { recursive: true, force: true });
-    }
-  });
   it("packs public release bytes and reads verified material in a disposable installed consumer", () => {
     const fixture = mkdtempSync(join(tmpdir(), "aih-catalog-packed-migration-"));
     const npm = npmCli();

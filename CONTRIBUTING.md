@@ -4,9 +4,33 @@ Start with [AGENTS.md](AGENTS.md) for issue ownership and repository boundaries.
 Accepted bugs/enhancements use the owning Catalog issue; link the PR and verified
 release outcome there. Keep private planning and reproductions out of public text.
 
+## Checks
+
+Use Node 26.12.1 or a later 26.x. Install dependencies with `npm ci --ignore-scripts` and
+run `npm run verify` before requesting review: it builds, typechecks, lints, runs the
+active tests once and checks workflow action pins. Keep changes scoped and add focused
+tests for changed behavior. Read [the transition](docs/TRANSITION.md) before changing
+which checks are active.
+
+The active tests (`npm test`, inventory in `vitest.transition.config.ts`) cover the new
+source-to-plan library under `tests/catalog` plus retained donor integrity checks:
+strict JSON reading, source-link parsing, redirect-safe pinned fetching, the publication
+refusal with the packed package read, and repository instructions. While working on one
+behavior, run only its file, for example
+`npx vitest run --config vitest.transition.config.ts tests/catalog/own-folder.test.ts`.
+New-model tests call the public functions of `src/catalog` against disposable folders and
+never mock internal modules.
+
+The rest of this guide describes checks of the donor release model that the rewrite
+replaces. They are not part of the active gate; `npm run verify:historical` and
+`npm run test:historical` still run them for migration investigation until the package
+cutover removes them. Publication is blocked during migration.
+
+## Donor release-model checks (historical)
+
 [Contract fixtures](docs/CONTRACT-FIXTURES.md) are exported data, tested by the
-active packed outside consumer. Run `npm run check:contract-fixtures` after a
-build to check deterministic regeneration. CI additionally runs
+historical packed outside consumer. Run `npm run check:contract-fixtures` after a
+build to check deterministic regeneration. `npm run verify:historical` additionally runs
 `npm run check:scan-fixtures` against the exact registry version in
 `tools/scan-fixture-pin.json`; before publication, registry 404 is recorded as
 unavailable. Network errors and a published incompatible package fail.
@@ -23,13 +47,10 @@ already contain the selected exact public Catalog/Scan/Core packages and v3 npm
 lock. [Full package preparation](docs/SCAN-BASELINE.md#assemble-the-complete-local-package)
 is maintainer tooling, not production execution or publication authority.
 
-Install dependencies with `npm ci --ignore-scripts` and run `npm run verify` before
-requesting review. The active checks cover the release reader, acquisition,
+The donor checks cover the release reader, acquisition,
 configuration, selection and packed material, the targeted candidate producer
 ([docs/PRODUCER.md](docs/PRODUCER.md)) and its whole-package check
-(`npm run check:release`), alongside retained donor producer checks. Read
-[the transition](docs/TRANSITION.md) when changing these checks. Keep changes scoped
-and add focused tests for changed behavior. Public authoring checks exercise the
+(`npm run check:release`), alongside donor producer checks. Public authoring checks exercise the
 declaration/compiler and checked-release resolver seams;
 `node tools/verify-authoring-consumer.mjs` runs one packed outside headless
 consumer with digest-qualified independent and maintained inventories plus
@@ -45,11 +66,11 @@ ECC release 1.7.0 content is built from the shipped ECC release and the pinned i
 manifests by `node tools/generate-ecc-release-17.mjs --check`, part of `npm run
 check:materials`; regenerate through that script. `node
 tools/verify-ecc-release-17-consumer.mjs [catalog.tgz]` runs its packed public-only
-consumer, part of `npm test`. See [ECC content](docs/ECC-CONTENT.md#release-170-content).
+consumer, part of `npm run test:historical`. See [ECC content](docs/ECC-CONTENT.md#release-170-content).
 
 ECC checks compile its separate v3 declarations, complete pinned-tree disposition
 and donor ledger with `node tools/generate-ecc-release.mjs --check`; regenerate
-through that owning script after reviewed data edits. The active packed public
+through that owning script after reviewed data edits. The packed public
 consumer tests all item configuration and one mixed-source resolution.
 `node tools/verify-ecc-consumer.mjs <core.tgz>` adds the reviewed generic Core
 Prepare/Apply proof. See [ECC content](docs/ECC-CONTENT.md) for prerequisites and limits.
@@ -75,7 +96,7 @@ See [Anthropic content](docs/ANTHROPIC-CONTENT.md) for rights and prerequisites.
 artifact, with each package's own public readers. See
 [package support and golden fixtures](docs/CONTRACT-FIXTURES.md).
 
-Release 1.7 checks: `npm run check:restructuring` (part of `npm run verify`) re-derives
+Release 1.7 checks: `npm run check:restructuring` (part of `npm run verify:historical`) re-derives
 `restructuring/expected-1.7.0.json` from the promoted dry run and compares every listed
 1.7.0 release with it; a framework's 1.7.0 release and index entry cannot ship until it
 passes ([the restructuring check](docs/RESTRUCTURING.md)).
@@ -163,8 +184,8 @@ outcome fails. [CONTRACTS.md](CONTRACTS.md#current-contract-codex-mcp-servers-th
 records the source-build boundary and custody limits. Identify the Core artifact by commit and SHA-256.
 
 Release generation renders the authored project context through the built release
-module, so run `npm run build:dist` before `npm test` or `npm run check:materials` on
-their own; `npm run verify` and `npm run generate:release` build first. `npm pack`
+module, so run `npm run build:dist` before `npm run test:historical` or `npm run check:materials` on
+their own; `npm run verify:historical` and `npm run generate:release` build first. `npm pack`
 builds through `prepack`; packing with `--ignore-scripts` skips it, so build first.
 
 Every PR needs exactly one `semver:none|patch|minor|major` label before merge. Labels are
