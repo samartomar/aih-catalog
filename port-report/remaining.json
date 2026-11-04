@@ -3895,10 +3895,6 @@
           "preTicked": true
         }
       ],
-      "namePrefix": {
-        "agent": "pstack-",
-        "skill": "pstack-"
-      },
       "routes": {}
     }
   },

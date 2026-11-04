@@ -603,7 +603,8 @@ function recipes(results) {
         framework: "pstack",
         content: pin("pstack"),
         routes: {},
-        namePrefix: { agent: "pstack-", skill: "pstack-" },
+        // No prefix: pstack's skills link their siblings by upstream folder name, and a prefix
+        // would move them apart. Clash detection reports any name it shares.
       },
       NAMES(results.pstack.built),
     ),
