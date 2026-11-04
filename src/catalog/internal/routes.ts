@@ -7,7 +7,6 @@
  * `local-plugin` where the profile has one, else `items`; the scope never changes.
  */
 import type { Problem } from "../contracts.js";
-import type { Qualification } from "./ai-setup.js";
 import { isRecord } from "./check.js";
 import { canonicalDocument } from "./json.js";
 import { type Content, type ContentSource, INSTALL_NAME, type Item, OBJECT_ID } from "./model.js";
@@ -24,7 +23,6 @@ import {
   planCore,
   type SetupStep,
   sharedOptionProblems,
-  toolOptions,
   type Warning,
   type WriteStep,
 } from "./plan.js";
@@ -38,8 +36,9 @@ import {
   recipeProblems,
 } from "./recipe.js";
 import { sha256Hex } from "./sha256.js";
+import { type ToolOptions, toolOptions } from "./tools.js";
 
-export interface RecipePlanOptions {
+export interface RecipePlanOptions extends ToolOptions {
   readonly scope: Scope;
   /** Where the recipe was read: its repository and exact commit. Required (origin). */
   readonly source: Pin;
@@ -47,10 +46,6 @@ export interface RecipePlanOptions {
   readonly data?: Pin;
   readonly copy?: boolean;
   readonly names?: Readonly<Record<string, string>>;
-  /** The platform cell the recipe's AI setups are planned for. */
-  readonly cell?: string;
-  readonly qualifications?: readonly Qualification[];
-  readonly upstreamInstallers?: readonly string[];
 }
 
 /** The user's picks per option group; an omitted group takes its pre-ticked items. */

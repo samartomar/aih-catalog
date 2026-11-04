@@ -8,13 +8,7 @@
  */
 import type { Invalid, Problem, Refused } from "../contracts.js";
 import { kinds } from "../contracts.js";
-import {
-  type AiSetupChange,
-  CELLS,
-  type Cell,
-  type Qualification,
-  qualificationProblems,
-} from "./ai-setup.js";
+import { type AiSetupChange, CELLS, type Cell, qualificationProblems } from "./ai-setup.js";
 import {
   AUTHORED_FRAMEWORK,
   aihContent,
@@ -59,6 +53,8 @@ import {
   planTools,
   type ToolCommandStep,
   type ToolLaunch,
+  type ToolOptions,
+  toolOptions,
   toolProblems,
   type UpstreamInstallerStep,
 } from "./tools.js";
@@ -412,17 +408,11 @@ export interface RecipeOrigin {
 
 export type PlanResult = Plan | Invalid | Refused;
 
-export interface PlanOptions {
+export interface PlanOptions extends ToolOptions {
   readonly scope: Scope;
   readonly data: { readonly repository: string; readonly commit: string } | null;
   readonly copy?: boolean;
   readonly names?: Readonly<Record<string, string>>;
-  /** The platform cell AI setups are planned for; required when one is selected. */
-  readonly cell?: string;
-  /** Qualification records read for this plan; only those the items reference count. */
-  readonly qualifications?: readonly Qualification[];
-  /** AI setup ids whose upstream installer the user chose instead (unmanaged). */
-  readonly upstreamInstallers?: readonly string[];
 }
 
 const OPTION_KEYS = [
@@ -1823,19 +1813,6 @@ export function planInstall(
   });
 }
 
-/** The AI setup options both planners pass through. */
-export const toolOptions = (options: {
-  readonly cell?: string;
-  readonly qualifications?: readonly Qualification[];
-  readonly upstreamInstallers?: readonly string[];
-}) => ({
-  ...(options.cell !== undefined ? { cell: options.cell } : {}),
-  ...(options.qualifications !== undefined ? { qualifications: options.qualifications } : {}),
-  ...(options.upstreamInstallers !== undefined
-    ? { upstreamInstallers: options.upstreamInstallers }
-    : {}),
-});
-
 /**
  * Steps and reports lowered from recipe routes (plugins, local plugins, upstream setup), which
  * join the item placements' deduplication, clash checks and ordering.
@@ -1856,7 +1833,7 @@ export interface Extras {
   readonly routed?: readonly { readonly item: string; readonly cli: string }[];
 }
 
-export interface CoreInput {
+export interface CoreInput extends ToolOptions {
   /** The chosen item ids; their dependencies are checked against this list. */
   readonly selection: readonly string[];
   readonly contents: readonly Content[];
@@ -1869,9 +1846,6 @@ export interface CoreInput {
   readonly extras?: Extras;
   /** A recipe's intended built-in replacements: `item` replaces the provided `replaces`. */
   readonly overrides?: readonly Override[];
-  readonly cell?: string;
-  readonly qualifications?: readonly Qualification[];
-  readonly upstreamInstallers?: readonly string[];
   /** A recipe's changes to each AI setup's standalone setup. */
   readonly aiSetupChanges?: Readonly<Record<string, AiSetupChange>>;
   /** A combination recipe's id and its qualification's sha256 for the cell. */
@@ -1914,11 +1888,7 @@ export function planCore(input: CoreInput): PlanResult {
   const toolInput = {
     selection: input.selection,
     byId,
-    ...(input.cell !== undefined ? { cell: input.cell } : {}),
-    ...(input.qualifications !== undefined ? { qualifications: input.qualifications } : {}),
-    ...(input.upstreamInstallers !== undefined
-      ? { upstreamInstallers: input.upstreamInstallers }
-      : {}),
+    ...toolOptions(input),
     ...(input.aiSetupChanges !== undefined ? { changes: input.aiSetupChanges } : {}),
     ...(input.combination !== undefined ? { combination: input.combination } : {}),
     clis: union(profiles.map((profile) => profile.id)),

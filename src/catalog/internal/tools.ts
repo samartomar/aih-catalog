@@ -99,12 +99,28 @@ export interface ToolPlan {
   readonly warnings: readonly Warning[];
 }
 
-export interface ToolInput {
+/** The AI setup options a caller gives both planners. */
+export interface ToolOptions {
+  /** The platform cell AI setups are planned for; required when one is selected. */
+  readonly cell?: string;
+  /** Qualification records read for this plan; only those the items reference count. */
+  readonly qualifications?: readonly Qualification[];
+  /** AI setup ids whose upstream installer the user chose instead (unmanaged). */
+  readonly upstreamInstallers?: readonly string[];
+}
+
+/** The tool options that are set, as a spread: absent options stay absent. */
+export const toolOptions = (options: ToolOptions): ToolOptions => ({
+  ...(options.cell !== undefined ? { cell: options.cell } : {}),
+  ...(options.qualifications !== undefined ? { qualifications: options.qualifications } : {}),
+  ...(options.upstreamInstallers !== undefined
+    ? { upstreamInstallers: options.upstreamInstallers }
+    : {}),
+});
+
+export interface ToolInput extends ToolOptions {
   readonly selection: readonly string[];
   readonly byId: ReadonlyMap<string, { readonly content: Content; readonly item: Item }>;
-  readonly cell?: string;
-  readonly qualifications?: readonly Qualification[];
-  readonly upstreamInstallers?: readonly string[];
   /** A recipe's changes per AI setup id. */
   readonly changes?: Readonly<Record<string, AiSetupChange>>;
   /** A combination recipe: its id and the sha256 of its qualification for the plan's cell. */
