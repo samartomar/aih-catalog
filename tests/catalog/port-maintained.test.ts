@@ -723,7 +723,7 @@ describe("the port report for these families", () => {
         item: `ecc.mcp.${name}`,
       });
     const github = data("ecc").items.find((item) => item.id === "ecc.mcp.github");
-    expect(github?.server?.packages?.[0]).toMatchObject({
+    expect((github?.server as { packages?: unknown[] } | undefined)?.packages?.[0]).toMatchObject({
       registryType: "npm",
       identifier: "@modelcontextprotocol/server-github",
       version: "2025.4.8",
