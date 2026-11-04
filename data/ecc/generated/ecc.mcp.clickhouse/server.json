@@ -1,0 +1,10 @@
+{
+  "description": "ClickHouse analytics queries",
+  "name": "clickhouse",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.clickhouse.cloud/mcp"
+    }
+  ]
+}

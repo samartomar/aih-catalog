@@ -1,0 +1,21 @@
+{
+  "description": "Magic UI components",
+  "name": "magic",
+  "packages": [
+    {
+      "identifier": "@magicuidesign/mcp",
+      "registryType": "npm",
+      "runtimeArguments": [
+        {
+          "type": "positional",
+          "value": "-y"
+        }
+      ],
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "version": "2.0.0"
+    }
+  ]
+}

@@ -12,6 +12,11 @@ export type SourceFileMode = "100644" | "100755" | "link" | "special-file";
  * carry their sha256 and, when read, their bytes; links and special files carry neither.
  */
 export interface SourceFile {
+  /**
+   * The content source the file belongs to, when a call reads several sources (extra and
+   * generated sources). Untagged files belong to the call's own (first) source.
+   */
+  readonly sourceId?: string;
   readonly path: string;
   readonly mode: SourceFileMode;
   readonly sha256?: string;
@@ -151,6 +156,20 @@ export interface Content {
   readonly plugins?: readonly PluginFolder[];
 }
 
+/**
+ * One entry of a shared upstream file (an MCP config or a hooks file) to cut out as its own
+ * item file. `pointer` is the JSON Pointer of the entry; `as` names the file it becomes.
+ * For an MCP entry whose package carries no exact version, `version` is the exact version
+ * Catalog pins (an authored fact recorded only in the generated `server.json`), and `inputs`
+ * names literal placeholder text the entry uses, as the input that replaces it.
+ */
+export interface CutRequest {
+  readonly pointer: string;
+  readonly as: "hook" | "mcp";
+  readonly version?: string;
+  readonly inputs?: Readonly<Record<string, string>>;
+}
+
 /** A file as discovery proposes it, before `buildContent` records its length. */
 export interface DiscoveredFile {
   readonly sourceId: string;
@@ -159,6 +178,10 @@ export interface DiscoveredFile {
   readonly executable: boolean;
   readonly role: "content" | "behaviour";
   readonly cli?: string;
+  /** Cut this entry out of the shared file `sourcePath` names (sha256 is that file's). */
+  readonly cut?: CutRequest;
+  /** For a generated file already cut out: where its entry came from (provenance only). */
+  readonly derivedFrom?: { readonly sourcePath: string; readonly pointer: string };
 }
 
 /** One declared input. A secret input never carries a value. */
@@ -210,6 +233,8 @@ export interface DiscoveredItem {
   readonly bundle?: string;
   /** Plugin-namespaced names the item's files mention, such as `ecc:security-reviewer`. */
   readonly references?: readonly string[];
+  /** `upstream` when Catalog may not ship copies: the plan fetches the files at the pin. */
+  readonly fetch?: "upstream";
 }
 
 export interface LeftOver {

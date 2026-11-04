@@ -23,6 +23,13 @@ behavior, run only its file, for example
 New-model tests call the public functions of `src/catalog` against disposable folders and
 never mock internal modules.
 
+Candidate data for the maintained frameworks (ECC, Superpowers, Extensions and
+project-basics) lives under `data/`, with the dispositions of their earlier release items
+in `port-report/maintained.json`. `npm run port:maintained` rebuilds them from the exact
+upstream pins with `fetchSource` (network, no hooks or lifecycle scripts); add `-- --check`
+to compare instead of writing. The active tests check the committed data without the
+network, using the pinned upstream files in `tests/fixtures/port-maintained`.
+
 The rest of this guide describes checks of the donor release model that the rewrite
 replaces. They are not part of the active gate; `npm run verify:historical` and
 `npm run test:historical` still run them for migration investigation until the package

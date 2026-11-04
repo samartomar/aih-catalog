@@ -1,0 +1,18 @@
+{
+  "description": "AI browser agent for web tasks",
+  "name": "browser-use",
+  "remotes": [
+    {
+      "headers": [
+        {
+          "description": "The x-browser-use-api-key header: <BROWSER_USE_KEY>",
+          "isRequired": true,
+          "isSecret": true,
+          "name": "x-browser-use-api-key"
+        }
+      ],
+      "type": "streamable-http",
+      "url": "https://api.browser-use.com/mcp"
+    }
+  ]
+}

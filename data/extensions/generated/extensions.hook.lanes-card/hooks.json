@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/lanes-card.mjs\"",
+            "timeout": 10,
+            "type": "command"
+          }
+        ],
+        "matcher": "startup|clear|compact"
+      }
+    ]
+  }
+}

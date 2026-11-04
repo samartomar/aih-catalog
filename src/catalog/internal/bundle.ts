@@ -83,7 +83,7 @@ const join = (folder: string, path: string): string => (folder === "" ? path : `
  */
 export function pathReferences(
   itemFiles: readonly { readonly sourcePath: string }[],
-  exists: (path: string) => boolean,
+  exists: (path: string, file: { readonly sourcePath: string }) => boolean,
   bytesOf: (path: string) => Uint8Array,
 ): PathReference[] {
   const own = new Set(itemFiles.map((file) => file.sourcePath));
@@ -102,9 +102,9 @@ export function pathReferences(
         target = normalise(join(folder, mention));
       else {
         const local = normalise(join(folder, mention));
-        target = local !== null && exists(local) ? local : normalise(mention);
+        target = local !== null && exists(local, file) ? local : normalise(mention);
       }
-      if (target === null || target === "" || own.has(target) || !exists(target)) continue;
+      if (target === null || target === "" || own.has(target) || !exists(target, file)) continue;
       found.set(`${file.sourcePath}\0${target}`, { sourcePath: file.sourcePath, path: target });
     }
   }

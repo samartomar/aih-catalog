@@ -107,6 +107,21 @@ are listed as `name` references, a warning; missing files remain blocking `path`
 A client that reads another client's skill folder clashes instead of taking bytes its own
 render would change.
 
+The maintained frameworks are ported through the same producer as candidate data:
+`data/ecc`, `data/superpowers`, `data/extensions` and `data/project-basics` each hold a
+canonical `content.json`, the entries Catalog cut out of shared upstream files
+(`generated/`, the authored source `<framework>-generated`) and Catalog's own authored files
+(`authored/<source>/`). `buildContent` takes further sources (another pin, or authored
+files), cuts hook groups and MCP config entries into one-entry `hooks.json` and Registry
+`server.json` files with exact package versions, reads Kiro hook files and a rule's language
+folder, and keeps an upstream-only fetch policy. Notices of a further source go to their own
+folder, and a path reference to another chosen item's file resolves when project-scope copies
+keep the upstream relative position. `port-report/maintained.json` gives each of the earlier
+release's 777 items one disposition (mapped, an edition, a notice, the references bundle, or
+dropped with its reason). The data is a candidate: it is not accepted until every new scan key
+passes the data-commit gate, and Extensions has no base recipe until its package declares its
+routes.
+
 Kinds, scopes and routes that are not implemented yet
 (upstream fetching, combination recipes and AI setup) are reported as
 `not-implemented` leftovers, `unavailable` placements or `not-implemented` refusals rather

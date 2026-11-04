@@ -1,0 +1,10 @@
+{
+  "description": "Vercel deployments and projects",
+  "name": "vercel",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.vercel.com"
+    }
+  ]
+}
