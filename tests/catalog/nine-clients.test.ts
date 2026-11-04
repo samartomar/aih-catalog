@@ -728,6 +728,8 @@ describe("user scope: shared versions, links and copies", () => {
     expect(rows(result.plan)).toEqual([
       "write .aihq/notices/local-my-skills/LICENSE (1 items) [kiro]",
       "write .kiro/prompts/deploy.md skill.deploy [kiro] user-only-fallback@kiro",
+      // Kiro's global steering (~/.kiro/steering) gives the IDE its manual steering too.
+      "write .kiro/steering/deploy.md skill.deploy [kiro] user-only-fallback@kiro",
     ]);
     expect(result.unavailable).toMatchObject([
       { item: id("skill", "deploy"), cli: "opencode", reason: "no-user-only" },

@@ -204,8 +204,16 @@
         "arguments": "kept",
         "id": "prompt",
         "path": ".kiro/prompts/<name>.md"
+      },
+      {
+        "arguments": "reworded",
+        "frontmatter": {
+          "inclusion": "manual"
+        },
+        "id": "steering",
+        "path": ".kiro/steering/<name>.md"
       }
     ]
   },
-  "version": 6
+  "version": 7
 }
