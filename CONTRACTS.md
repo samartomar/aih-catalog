@@ -119,11 +119,24 @@ pin (`content-mismatch`).
 
 A qualification records one run: its `subject` (an AI setup version on a platform cell, or a
 combination recipe on a cell), what it `observed` (the artifact's file or URL, sha256 and
-bytes, archive members, the hash-locked binary-only wheel closure and the interpreter, or for
+bytes, archive members, the hash-locked wheel closure and the interpreter, or for
 a combination the member qualifications) and its `result` (`qualified`, `blocked` with a
 reason, or `unknown`, plus the sha256 of the run's own record and the date). A closure holds
-wheels only. Records are referenced by sha256 from the AI setup item; adding one changes no
-item digest.
+wheels only. A dependency built from source when a prebuilt package is unavailable carries
+optional `build` provenance: `source` (archive file, HTTPS URL, sha256 and bytes), the exact
+build `interpreter`, pinned and hashed build-dependency wheels in `dependencies`, observed
+non-Python `tools` (name, version and executable sha256), and `isolated: true`. Empty `tools`
+means no non-Python tool was used. Source archives cannot appear directly in the runtime
+closure, and build dependencies cannot carry another nested build.
+
+The wheel's own sha256 always identifies the resulting artifact that actually ran. Callers
+must supply or acquire those exact wheel bytes, including source-built wheels retained by the
+qualification runner; the source URL is provenance, not a claim that PyPI hosts the resulting
+wheel. Plans preserve this provenance without executing a build or promising reproducibility
+on another interpreter or host. Installed compatible Python is tried first; the qualification's
+interpreter is the fallback after a real failure. Records are referenced by sha256 from the AI
+setup item; adding one changes no item digest. Synthetic examples establish format behavior
+only, never a real qualification.
 
 ## Plans
 

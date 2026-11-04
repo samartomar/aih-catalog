@@ -149,6 +149,28 @@ const PYTHON = {
   sha256: h("e"),
   bytes: 30,
 };
+const BUILT_WHEEL = {
+  ...WHEEL,
+  build: {
+    source: {
+      file: "kit_graph-1.2.3.tar.gz",
+      url: "https://files.pythonhosted.org/packages/example/kit_graph-1.2.3.tar.gz",
+      sha256: h("b"),
+      bytes: 500,
+    },
+    interpreter: PYTHON,
+    dependencies: [
+      {
+        name: "setuptools",
+        version: "84.2.1",
+        file: "setuptools-84.2.1-py3-none-any.whl",
+        sha256: h("c"),
+      },
+    ],
+    tools: [{ name: "gcc", version: "13.3.0", sha256: h("d") }],
+    isolated: true,
+  },
+};
 
 /** A supplied qualification record for the kit tool on one cell. */
 function kitQualification(
@@ -200,7 +222,36 @@ describe("readQualification", () => {
     expect(read).toEqual({ status: "ok", qualification: record, sha256: sha(canonical(record)) });
   });
 
-  it("never records a source build in a binary-only closure", () => {
+  it("reads the exact inputs of an isolated source-built wheel", () => {
+    const record = kitQualification({ closure: [BUILT_WHEEL] });
+    expect(readQualification(bytes(record))).toEqual({
+      status: "ok",
+      qualification: record,
+      sha256: sha(canonical(record)),
+    });
+  });
+
+  it("rejects incomplete, unpinned or non-isolated source-build evidence", () => {
+    const { source: _source, ...missingSource } = BUILT_WHEEL.build;
+    for (const build of [
+      missingSource,
+      { ...BUILT_WHEEL.build, isolated: false },
+      {
+        ...BUILT_WHEEL.build,
+        source: { ...BUILT_WHEEL.build.source, url: "file:///tmp/source.tar.gz" },
+      },
+      { ...BUILT_WHEEL.build, dependencies: [{ ...WHEEL, version: ">=1.0" }] },
+      { ...BUILT_WHEEL.build, interpreter: null },
+      { ...BUILT_WHEEL.build, tools: [{ name: "gcc", version: "13.3.0", sha256: "unknown" }] },
+      { ...BUILT_WHEEL.build, hook: "install" },
+    ]) {
+      expect(
+        readQualification(bytes(kitQualification({ closure: [{ ...WHEEL, build }] }))),
+      ).toMatchObject({ status: "invalid" });
+    }
+  });
+
+  it("never puts a source archive directly in the runtime wheel closure", () => {
     const sdist = { ...WHEEL, name: "pyyaml", version: "6.0.2", file: "pyyaml-6.0.2.tar.gz" };
     for (const status of ["qualified", "blocked"] as const) {
       const read = readQualification(bytes(kitQualification({ status, closure: [WHEEL, sdist] })));
@@ -250,6 +301,25 @@ const accepting = (...records: unknown[]) =>
 const INTO = ".aihq/ai-setup/kit-graph/1.2.3/linux-x64/";
 
 describe("planning an AI setup on its own", () => {
+  it("preserves source-built wheel custody and provenance in the acquisition plan", async () => {
+    const record = kitQualification({ closure: [BUILT_WHEEL] });
+    const content = await accepting(record);
+    const plan = planned(
+      planInstall(["kit.ai-setup.kit-graph"], [content], [profile("codex")], {
+        scope: "project",
+        data: null,
+        cell: "linux-x64",
+        qualifications: [record as Qualification],
+      }),
+    );
+    expect(plan.status).toBe("ok");
+    expect(plan.plan[0]).toMatchObject({
+      op: "acquire",
+      closure: [BUILT_WHEEL],
+      interpreter: { prefer: "installed", range: ">=3.10", fallback: PYTHON },
+    });
+  });
+
   it("acquires the qualified artifact, starts its server from there and applies its settings", async () => {
     const record = kitQualification();
     const content = await accepting(record);

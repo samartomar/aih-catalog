@@ -14,9 +14,12 @@ import {
   NAMESPACED_NAME,
   NPM_PACKAGE,
   OBJECT_ID,
+  PYTHON_PACKAGE_VERSION,
   RANGE,
   SCAN_KEY,
   SHA256,
+  SOURCE_ARCHIVE,
+  SOURCE_HTTPS_URL,
   TOOL_NAME,
   WHEEL,
 } from "./model.js";
@@ -720,6 +723,31 @@ const recipe: Schema = {
   },
 };
 
+const wheelArtifact = {
+  name: text(256),
+  version: pattern(PYTHON_PACKAGE_VERSION, 128),
+  file: pattern(WHEEL),
+  sha256: ref("sha256"),
+};
+const qualificationInterpreter = record({
+  version: ref("exactVersion"),
+  file: pattern("^[^/\\\\]+$", 512),
+  sha256: ref("sha256"),
+  bytes: count,
+});
+const wheelBuild = record({
+  source: record({
+    file: pattern(SOURCE_ARCHIVE, 512),
+    url: pattern(SOURCE_HTTPS_URL, 2048),
+    sha256: ref("sha256"),
+    bytes: count,
+  }),
+  interpreter: qualificationInterpreter,
+  dependencies: list(record(wheelArtifact), 1),
+  tools: list(record({ name: text(256), version: text(256), sha256: ref("sha256") })),
+  isolated: constant(true),
+});
+
 const qualification: Schema = {
   $schema: DRAFT,
   $id: "urn:aihq:catalog:qualification:0.1.0",
@@ -757,25 +785,9 @@ const qualification: Schema = {
           members: list(ref("member"), 1),
           closure: oneOf(
             { type: "null" },
-            list(
-              record({
-                name: text(256),
-                version: text(128),
-                file: pattern(WHEEL),
-                sha256: ref("sha256"),
-              }),
-              1,
-            ),
+            list(record({ ...wheelArtifact, build: wheelBuild }, Object.keys(wheelArtifact)), 1),
           ),
-          interpreter: oneOf(
-            { type: "null" },
-            record({
-              version: ref("exactVersion"),
-              file: text(512),
-              sha256: ref("sha256"),
-              bytes: count,
-            }),
-          ),
+          interpreter: oneOf({ type: "null" }, qualificationInterpreter),
         },
         ["artifact", "closure", "interpreter"],
       ),

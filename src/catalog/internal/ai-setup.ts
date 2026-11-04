@@ -13,8 +13,11 @@ import {
   FRAMEWORK_ID,
   ID_SEGMENT,
   INPUT_NAME,
+  PYTHON_PACKAGE_VERSION,
   RANGE,
   SHA256,
+  SOURCE_ARCHIVE,
+  SOURCE_HTTPS_URL,
   TOOL_NAME,
   WHEEL,
 } from "./model.js";
@@ -112,12 +115,36 @@ export interface Interpreter {
   readonly bytes: number;
 }
 
-/** One wheel of a hash-locked, binary-only closure. */
-export interface Wheel {
+/** An exact wheel artifact, with no execution implied. */
+export interface WheelArtifact {
   readonly name: string;
   readonly version: string;
   readonly file: string;
   readonly sha256: string;
+}
+
+/** Inputs actually used to build a wheel when a prebuilt dependency was unavailable. */
+export interface WheelBuild {
+  readonly source: {
+    readonly file: string;
+    readonly url: string;
+    readonly sha256: string;
+    readonly bytes: number;
+  };
+  readonly interpreter: Interpreter;
+  readonly dependencies: readonly WheelArtifact[];
+  /** Non-Python build tools, identified by their executable bytes. Empty for a pure build. */
+  readonly tools: readonly {
+    readonly name: string;
+    readonly version: string;
+    readonly sha256: string;
+  }[];
+  readonly isolated: true;
+}
+
+/** One installed wheel of a hash-locked closure; a source-built wheel retains its inputs. */
+export interface Wheel extends WheelArtifact {
+  readonly build?: WheelBuild;
 }
 
 export interface QualificationResult {
@@ -433,6 +460,102 @@ export function mcpSettingProblems(value: Record_, path: string): Problem[] {
   return problems.list;
 }
 
+function checkInterpreter(value: unknown, path: string, problems: Problems): void {
+  const ok =
+    isRecord(value) &&
+    Object.keys(value).sort().join() === "bytes,file,sha256,version" &&
+    typeof value.version === "string" &&
+    EXACT_VERSION.test(value.version) &&
+    isString(value.file, 512) &&
+    !/[/\\]/.test(value.file) &&
+    isSha(value.sha256) &&
+    isCount(value.bytes);
+  problems.check(ok, path, "an interpreter is { version, file, sha256, bytes }");
+}
+
+function checkWheel(value: unknown, path: string, problems: Problems, allowBuild: boolean): void {
+  if (!isRecord(value)) {
+    problems.add(path, "a wheel is { name, version, file, sha256, build? }");
+    return;
+  }
+  problems.keys(
+    value,
+    path,
+    ["name", "version", "file", "sha256", ...(allowBuild ? ["build"] : [])],
+    ["name", "version", "file", "sha256"],
+  );
+  problems.check(isString(value.name, 256), `${path}/name`, "a package name");
+  problems.check(
+    isString(value.version, 128) && PYTHON_PACKAGE_VERSION.test(value.version),
+    `${path}/version`,
+    "an exact package version",
+  );
+  problems.check(isSha(value.sha256), `${path}/sha256`, "the wheel's sha256");
+  problems.check(
+    typeof value.file === "string" && WHEEL.test(value.file),
+    `${path}/file`,
+    "a closure holds wheels only; source archives belong in build provenance",
+  );
+  if (allowBuild && value.build !== undefined) checkBuild(value.build, `${path}/build`, problems);
+}
+
+function checkBuild(value: unknown, path: string, problems: Problems): void {
+  if (!isRecord(value)) {
+    problems.add(path, "a build records its isolated source, interpreter, dependencies and tools");
+    return;
+  }
+  const keys = ["source", "interpreter", "dependencies", "tools", "isolated"];
+  problems.keys(value, path, keys, keys);
+  problems.check(value.isolated === true, `${path}/isolated`, "a source build must be isolated");
+  const source = value.source;
+  if (!isRecord(source)) problems.add(`${path}/source`, "the exact source archive");
+  else {
+    const keys = ["file", "url", "sha256", "bytes"];
+    problems.keys(source, `${path}/source`, keys, keys);
+    problems.check(
+      isString(source.file, 512) && SOURCE_ARCHIVE.test(source.file),
+      `${path}/source/file`,
+      "a source archive's file name",
+    );
+    let https = false;
+    if (isString(source.url, 2048) && SOURCE_HTTPS_URL.test(source.url)) {
+      try {
+        const url = new URL(source.url);
+        https = url.protocol === "https:" && !url.username && !url.password && !url.hash;
+      } catch {
+        /* an invalid URL remains false */
+      }
+    }
+    problems.check(https, `${path}/source/url`, "an https URL without credentials or fragment");
+    problems.check(isSha(source.sha256), `${path}/source/sha256`, "the source archive's sha256");
+    problems.check(
+      isCount(source.bytes),
+      `${path}/source/bytes`,
+      "the source archive's byte count",
+    );
+  }
+  checkInterpreter(value.interpreter, `${path}/interpreter`, problems);
+  if (!Array.isArray(value.dependencies) || value.dependencies.length === 0)
+    problems.add(`${path}/dependencies`, "the exact build-dependency wheels");
+  else
+    value.dependencies.forEach((wheel, at) => {
+      checkWheel(wheel, `${path}/dependencies/${at}`, problems, false);
+    });
+  if (!Array.isArray(value.tools))
+    problems.add(`${path}/tools`, "the observed non-Python build tools");
+  else
+    value.tools.forEach((tool, at) => {
+      const where = `${path}/tools/${at}`;
+      const ok =
+        isRecord(tool) &&
+        Object.keys(tool).sort().join() === "name,sha256,version" &&
+        isString(tool.name, 256) &&
+        isString(tool.version, 256) &&
+        isSha(tool.sha256);
+      problems.check(ok, where, "a build tool is { name, version, sha256 }");
+    });
+}
+
 /** Shape problems of a qualification document; empty when well formed. */
 export function qualificationProblems(value: unknown): Problem[] {
   const problems = new Problems();
@@ -563,35 +686,11 @@ export function qualificationProblems(value: unknown): Problem[] {
       problems.add("/observed/closure", "null, or the hash-locked wheels");
     else
       closure.forEach((wheel, at) => {
-        const where = `/observed/closure/${at}`;
-        const ok =
-          isRecord(wheel) &&
-          Object.keys(wheel).sort().join() === "file,name,sha256,version" &&
-          isString(wheel.name, 256) &&
-          isString(wheel.version, 128) &&
-          isSha(wheel.sha256);
-        problems.check(ok, where, "a wheel is { name, version, file, sha256 }");
-        // A source build is never part of a binary-only closure, whatever the status.
-        if (ok)
-          problems.check(
-            typeof wheel.file === "string" && WHEEL.test(wheel.file),
-            `${where}/file`,
-            "a closure holds wheels only; a source distribution is never binary-only",
-          );
+        checkWheel(wheel, `/observed/closure/${at}`, problems, true);
       });
   }
   const interpreter = observed.interpreter;
-  if (interpreter !== null) {
-    const ok =
-      isRecord(interpreter) &&
-      Object.keys(interpreter).sort().join() === "bytes,file,sha256,version" &&
-      typeof interpreter.version === "string" &&
-      EXACT_VERSION.test(interpreter.version) &&
-      isString(interpreter.file, 512) &&
-      isSha(interpreter.sha256) &&
-      isCount(interpreter.bytes);
-    problems.check(ok, "/observed/interpreter", "null, or { version, file, sha256, bytes }");
-  }
+  if (interpreter !== null) checkInterpreter(interpreter, "/observed/interpreter", problems);
   if (status === "qualified" && closure !== null)
     problems.check(
       interpreter !== null,

@@ -126,25 +126,51 @@ const recipe = {
   },
 };
 
-/** A qualified native archive on one cell: the artifact and its members as the run saw them. */
+const exampleInterpreter = {
+  version: "3.14.10",
+  file: "cpython-3.14.10-x86_64-unknown-linux-gnu.tar.gz",
+  sha256: "a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90",
+  bytes: 38_000_000,
+};
+
+/** Synthetic format example: a wheel closure with one isolated source-built dependency. */
 const qualification = {
   schema: "urn:aihq:catalog:qualification:0.1.0",
   subject: { aiSetup: "example.ai-setup.example-tool", version: "1.4.0", cell: "linux-x64" },
   observed: {
     artifact: {
-      file: "example-tool-linux-x64.tar.gz",
+      file: "example_tool-1.4.0-py3-none-any.whl",
       sha256: "3f7d1c2a9b8e4f6051d2c3b4a5968778695a4b3c2d1e0f9a8b7c6d5e4f3a2b1c",
       bytes: 4_194_304,
     },
-    members: [
+    closure: [
       {
-        path: "example-tool",
+        name: "example-dependency",
+        version: "2.0.0",
+        file: "example_dependency-2.0.0-py3-none-any.whl",
         sha256: "a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90",
-        executable: true,
+        build: {
+          source: {
+            file: "example_dependency-2.0.0.tar.gz",
+            url: "https://example.org/releases/example_dependency-2.0.0.tar.gz",
+            sha256: "3f7d1c2a9b8e4f6051d2c3b4a5968778695a4b3c2d1e0f9a8b7c6d5e4f3a2b1c",
+            bytes: 80_000,
+          },
+          interpreter: exampleInterpreter,
+          dependencies: [
+            {
+              name: "setuptools",
+              version: "84.2.1",
+              file: "setuptools-84.2.1-py3-none-any.whl",
+              sha256: "0f1e2d3c4b5a69788796a5b4c3d2e1f00f1e2d3c4b5a69788796a5b4c3d2e1f0",
+            },
+          ],
+          tools: [],
+          isolated: true,
+        },
       },
     ],
-    closure: null,
-    interpreter: null,
+    interpreter: exampleInterpreter,
   },
   result: {
     status: "qualified",
@@ -174,7 +200,7 @@ export const fixtureTexts = {
     items: [rule, { ...skill, name: "Review Notes" }],
   }),
   "qualification-valid": canonicalDocument(qualification),
-  /** A closure is binary-only: a source distribution is never recorded, whatever the status. */
+  /** Source archives describe build inputs; they cannot replace installed closure wheels. */
   "qualification-invalid": canonicalDocument({
     ...qualification,
     observed: {
@@ -188,7 +214,7 @@ export const fixtureTexts = {
           name: "example-dependency",
           version: "2.0.0",
           file: "example_dependency-2.0.0.tar.gz",
-          sha256: qualification.observed.members[0]?.sha256,
+          sha256: exampleInterpreter.sha256,
         },
       ],
       interpreter: null,

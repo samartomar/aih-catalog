@@ -93,6 +93,31 @@ describe("@aihq/catalog/contracts publishes exactly five schemas and ten fixture
     );
     expect(result).toEqual(fixture);
   });
+
+  it("qualification schema and reader reject unpinned or non-isolated build provenance", () => {
+    const valid = JSON.parse(fixtures["qualification-valid"]);
+    const build = valid.observed.closure[0].build;
+    const { source: _source, ...missingSource } = build;
+    for (const bad of [
+      missingSource,
+      { ...build, isolated: false },
+      { ...build, source: { ...build.source, file: "../source.tar.gz" } },
+      { ...build, source: { ...build.source, sha256: "unknown" } },
+      { ...build, source: { ...build.source, url: "HTTPS://example.org/source.tar.gz" } },
+      { ...build, source: { ...build.source, url: "https://@example.org/source.tar.gz" } },
+      { ...build, source: { ...build.source, url: " https://example.org/source.tar.gz" } },
+      { ...build, dependencies: [{ ...build.dependencies[0], version: ">=84" }] },
+      { ...build, dependencies: [{ ...build.dependencies[0], build }] },
+    ]) {
+      const document = {
+        ...valid,
+        observed: { ...valid.observed, closure: [{ ...valid.observed.closure[0], build: bad }] },
+      };
+      expect(conforms("qualification", document)).not.toEqual([]);
+      const text = `${JSON.stringify(sortKeys(document), null, 2)}\n`;
+      expect(readQualification(utf8(text)).status).toBe("invalid");
+    }
+  });
 });
 
 describe("the shipped tool profiles", () => {

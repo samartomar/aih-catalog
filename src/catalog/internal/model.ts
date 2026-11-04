@@ -285,5 +285,11 @@ export const SCAN_KEY = /^git-sha(?:1:[0-9a-f]{40}|256:[0-9a-f]{64})$/;
 export const RANGE = /^(?:(?:>=|<=|==|~=|!=|>|<)\s*[0-9][0-9A-Za-z.+-]*\s*,?\s*)+$/;
 export const DATE = /^\d{4}-\d{2}-\d{2}$/;
 export const TOOL_NAME = /^[A-Za-z0-9_.-]{1,128}$/;
-/** A wheel file name: binary-only closures hold wheels and nothing built from source. */
+/** A runtime closure holds wheel outputs, including explicitly recorded source builds. */
 export const WHEEL = /^[A-Za-z0-9_.+-]+\.whl$/;
+export const SOURCE_ARCHIVE = /^[A-Za-z0-9][A-Za-z0-9._+-]*\.(?:tar\.gz|tar\.bz2|tar\.xz|zip)$/;
+/** Canonical HTTPS spelling, without credentials, whitespace or a fragment. */
+export const SOURCE_HTTPS_URL = /^https:\/\/[^/@?#\s]+(?:[/?][^#\s]*)?$/;
+/** An exact normalized Python package version (PEP 440), never a requirement range. */
+export const PYTHON_PACKAGE_VERSION =
+  /^(?:[0-9]+!)?[0-9]+(?:\.[0-9]+)*(?:(?:a|b|rc)[0-9]+)?(?:\.post[0-9]+)?(?:\.dev[0-9]+)?(?:\+[a-z0-9]+(?:[._-][a-z0-9]+)*)?$/;

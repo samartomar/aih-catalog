@@ -37,7 +37,7 @@ export interface AcquireStep {
   readonly executable: string;
   /** The sha256 of the qualification every acquired byte is checked against. */
   readonly qualification: string;
-  /** A Python tool's hash-locked, binary-only closure, installed into a dedicated environment. */
+  /** A Python tool's hash-locked wheel closure, including recorded source-build provenance. */
   readonly closure?: readonly Wheel[];
   /**
    * A Python tool's interpreter: an installed one inside `range` first; the qualification's
