@@ -486,8 +486,11 @@ describe("a second subpath of the same pin as one client's edition", () => {
       scanKey: `git-sha1:${gitTree({ "SKILL.md": CLAUDE_BETA })}`,
     });
     expect(beta?.scanKey).toBe(`git-sha1:${gitTree({ "SKILL.md": BETA })}`);
-    // The item's own file names no other file; the edition's mention is the edition's concern.
-    expect(beta?.pathReferences).toBeUndefined();
+    // The item's own file names no other file; the edition's file names the copy's docs, so
+    // that reference belongs to the client that takes the edition.
+    expect(beta?.pathReferences).toEqual([
+      { cli: "claude-code", sourcePath: "skills/beta/SKILL.md", path: "docs/claude.md" },
+    ]);
     const files = [
       ...own.files,
       ...copy.files.map((file) => ({ ...file, sourceId: "kit-claude" })),
@@ -514,6 +517,17 @@ describe("a second subpath of the same pin as one client's edition", () => {
       sourceId: "kit",
       sha256: sha(BETA),
     });
+    // Only the client that takes the edition misses the docs its edition reads.
+    expect(plan.status).toBe("incomplete");
+    expect(plan.references).toEqual([
+      {
+        kind: "path",
+        item: "kit.skill.beta",
+        file: "skills/beta/SKILL.md",
+        path: "docs/claude.md",
+        clis: ["claude-code"],
+      },
+    ]);
   });
 });
 

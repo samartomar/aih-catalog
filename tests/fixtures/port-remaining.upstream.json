@@ -188,6 +188,11 @@
         "path": "agents/comment-sicko.md"
       },
       {
+        "blob": "bf154e6464a6cca96a9627bbe10a628092e8c09e",
+        "mode": "100644",
+        "path": "docs/harness/claude-code.md"
+      },
+      {
         "blob": "0daa7c5279bf83accac731de9c0d639d0f772de8",
         "mode": "100644",
         "path": "skills/arena/SKILL.md"

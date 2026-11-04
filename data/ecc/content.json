@@ -780,6 +780,16 @@
         {
           "path": "scripts/codemaps/generate.ts",
           "sourcePath": "agents/doc-updater.md"
+        },
+        {
+          "cli": "kiro",
+          "path": "scripts/codemaps/generate.ts",
+          "sourcePath": ".kiro/agents/doc-updater.json"
+        },
+        {
+          "cli": "kiro",
+          "path": "scripts/codemaps/generate.ts",
+          "sourcePath": ".kiro/agents/doc-updater.md"
         }
       ],
       "scanKey": "git-sha1:9db7ff305e703d5fb7ef5fbd3c72d6f248bc14d2"
@@ -3149,6 +3159,11 @@
         {
           "path": "scripts/hooks/posttooluse-dispatcher.js",
           "sourcePath": "ecc.hook.post-dispatcher-async/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/posttooluse-dispatcher.js",
+          "sourcePath": "ecc.hook.post-dispatcher-async/hooks.json"
         }
       ],
       "scanKey": "git-sha1:9d3a0899e824becfd85de7c6598f6701e79d1374"
@@ -3200,6 +3215,11 @@
       "name": "post-dispatcher-sync",
       "pathReferences": [
         {
+          "path": "scripts/hooks/posttooluse-dispatcher.js",
+          "sourcePath": "ecc.hook.post-dispatcher-sync/hooks.json"
+        },
+        {
+          "cli": "claude-code",
           "path": "scripts/hooks/posttooluse-dispatcher.js",
           "sourcePath": "ecc.hook.post-dispatcher-sync/hooks.json"
         }
@@ -3263,6 +3283,21 @@
         {
           "path": "scripts/hooks/run-with-flags.js",
           "sourcePath": "ecc.hook.post-mcp-health-check/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/mcp-health-check.js",
+          "sourcePath": "ecc.hook.post-mcp-health-check/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/plugin-hook-bootstrap.js",
+          "sourcePath": "ecc.hook.post-mcp-health-check/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/run-with-flags.js",
+          "sourcePath": "ecc.hook.post-mcp-health-check/hooks.json"
         }
       ],
       "scanKey": "git-sha1:9cea352422e51b3f9169e81536f01edf0256ebbd"
@@ -3324,6 +3359,21 @@
         {
           "path": "scripts/hooks/skill-run-tracker.js",
           "sourcePath": "ecc.hook.post-skill-track/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/plugin-hook-bootstrap.js",
+          "sourcePath": "ecc.hook.post-skill-track/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/run-with-flags.js",
+          "sourcePath": "ecc.hook.post-skill-track/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/skill-run-tracker.js",
+          "sourcePath": "ecc.hook.post-skill-track/hooks.json"
         }
       ],
       "scanKey": "git-sha1:ec8cebb455a0c66a8557f26a43fde9dcb101cb0f"
@@ -3379,6 +3429,16 @@
           "sourcePath": "ecc.hook.pre-bash-dispatcher/hooks.json"
         },
         {
+          "path": "scripts/hooks/pre-bash-dispatcher.js",
+          "sourcePath": "ecc.hook.pre-bash-dispatcher/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/plugin-hook-bootstrap.js",
+          "sourcePath": "ecc.hook.pre-bash-dispatcher/hooks.json"
+        },
+        {
+          "cli": "claude-code",
           "path": "scripts/hooks/pre-bash-dispatcher.js",
           "sourcePath": "ecc.hook.pre-bash-dispatcher/hooks.json"
         }
@@ -3442,6 +3502,21 @@
         {
           "path": "scripts/hooks/run-with-flags.js",
           "sourcePath": "ecc.hook.pre-compact/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/plugin-hook-bootstrap.js",
+          "sourcePath": "ecc.hook.pre-compact/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/pre-compact.js",
+          "sourcePath": "ecc.hook.pre-compact/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/run-with-flags.js",
+          "sourcePath": "ecc.hook.pre-compact/hooks.json"
         }
       ],
       "scanKey": "git-sha1:c271b147067c81aeee96446d9b3e73e5f67cab2a"
@@ -3501,6 +3576,21 @@
           "sourcePath": "ecc.hook.pre-config-protection/hooks.json"
         },
         {
+          "path": "scripts/hooks/run-with-flags.js",
+          "sourcePath": "ecc.hook.pre-config-protection/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/config-protection.js",
+          "sourcePath": "ecc.hook.pre-config-protection/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/plugin-hook-bootstrap.js",
+          "sourcePath": "ecc.hook.pre-config-protection/hooks.json"
+        },
+        {
+          "cli": "claude-code",
           "path": "scripts/hooks/run-with-flags.js",
           "sourcePath": "ecc.hook.pre-config-protection/hooks.json"
         }
@@ -3564,6 +3654,21 @@
         {
           "path": "scripts/hooks/run-with-flags.js",
           "sourcePath": "ecc.hook.pre-edit-write-gateguard-fact-force/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/gateguard-fact-force.js",
+          "sourcePath": "ecc.hook.pre-edit-write-gateguard-fact-force/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/plugin-hook-bootstrap.js",
+          "sourcePath": "ecc.hook.pre-edit-write-gateguard-fact-force/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/run-with-flags.js",
+          "sourcePath": "ecc.hook.pre-edit-write-gateguard-fact-force/hooks.json"
         }
       ],
       "scanKey": "git-sha1:3ebdcf6c85ab2cba9bfd83ba4217a76fefd32be1"
@@ -3623,6 +3728,21 @@
           "sourcePath": "ecc.hook.pre-edit-write-suggest-compact/hooks.json"
         },
         {
+          "path": "scripts/hooks/suggest-compact.js",
+          "sourcePath": "ecc.hook.pre-edit-write-suggest-compact/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/plugin-hook-bootstrap.js",
+          "sourcePath": "ecc.hook.pre-edit-write-suggest-compact/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/run-with-flags.js",
+          "sourcePath": "ecc.hook.pre-edit-write-suggest-compact/hooks.json"
+        },
+        {
+          "cli": "claude-code",
           "path": "scripts/hooks/suggest-compact.js",
           "sourcePath": "ecc.hook.pre-edit-write-suggest-compact/hooks.json"
         }
@@ -3686,6 +3806,21 @@
         {
           "path": "scripts/hooks/run-with-flags.js",
           "sourcePath": "ecc.hook.pre-governance-capture/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/governance-capture.js",
+          "sourcePath": "ecc.hook.pre-governance-capture/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/plugin-hook-bootstrap.js",
+          "sourcePath": "ecc.hook.pre-governance-capture/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/run-with-flags.js",
+          "sourcePath": "ecc.hook.pre-governance-capture/hooks.json"
         }
       ],
       "scanKey": "git-sha1:259b121a60f46891fdbfa379b0684eabf8954d52"
@@ -3745,6 +3880,21 @@
           "sourcePath": "ecc.hook.pre-mcp-health-check/hooks.json"
         },
         {
+          "path": "scripts/hooks/run-with-flags.js",
+          "sourcePath": "ecc.hook.pre-mcp-health-check/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/mcp-health-check.js",
+          "sourcePath": "ecc.hook.pre-mcp-health-check/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/plugin-hook-bootstrap.js",
+          "sourcePath": "ecc.hook.pre-mcp-health-check/hooks.json"
+        },
+        {
+          "cli": "claude-code",
           "path": "scripts/hooks/run-with-flags.js",
           "sourcePath": "ecc.hook.pre-mcp-health-check/hooks.json"
         }
@@ -3808,6 +3958,21 @@
         {
           "path": "scripts/hooks/run-with-flags.js",
           "sourcePath": "ecc.hook.pre-observe-continuous-learning/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/observe-runner.js",
+          "sourcePath": "ecc.hook.pre-observe-continuous-learning/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/plugin-hook-bootstrap.js",
+          "sourcePath": "ecc.hook.pre-observe-continuous-learning/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/run-with-flags.js",
+          "sourcePath": "ecc.hook.pre-observe-continuous-learning/hooks.json"
         }
       ],
       "scanKey": "git-sha1:7d96460e24ad18447399c00e693ed3b1fcd387f7"
@@ -3869,6 +4034,21 @@
         {
           "path": "scripts/hooks/run-with-flags.js",
           "sourcePath": "ecc.hook.pre-powershell-gateguard-fact-force/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/gateguard-fact-force.js",
+          "sourcePath": "ecc.hook.pre-powershell-gateguard-fact-force/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/plugin-hook-bootstrap.js",
+          "sourcePath": "ecc.hook.pre-powershell-gateguard-fact-force/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/run-with-flags.js",
+          "sourcePath": "ecc.hook.pre-powershell-gateguard-fact-force/hooks.json"
         }
       ],
       "scanKey": "git-sha1:bad183743549b2915ee5b1acf77b46e0ccaa4d28"
@@ -3928,6 +4108,21 @@
           "sourcePath": "ecc.hook.pre-write-doc-file-warning/hooks.json"
         },
         {
+          "path": "scripts/hooks/run-with-flags.js",
+          "sourcePath": "ecc.hook.pre-write-doc-file-warning/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/doc-file-warning.js",
+          "sourcePath": "ecc.hook.pre-write-doc-file-warning/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/plugin-hook-bootstrap.js",
+          "sourcePath": "ecc.hook.pre-write-doc-file-warning/hooks.json"
+        },
+        {
+          "cli": "claude-code",
           "path": "scripts/hooks/run-with-flags.js",
           "sourcePath": "ecc.hook.pre-write-doc-file-warning/hooks.json"
         }
@@ -4138,6 +4333,11 @@
         {
           "path": "scripts/hooks/session-end-marker.js",
           "sourcePath": "ecc.hook.session-end-marker/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/session-end-marker.js",
+          "sourcePath": "ecc.hook.session-end-marker/hooks.json"
         }
       ],
       "scanKey": "git-sha1:5ff0f59d1712154ac8474528ca2b6b09da90e96c"
@@ -4212,6 +4412,26 @@
         {
           "path": "scripts/hooks/session-start-bootstrap.js",
           "sourcePath": "ecc.hook.session-start/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/plugin-hook-bootstrap.js",
+          "sourcePath": "ecc.hook.session-start/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/session-start-bootstrap.js",
+          "sourcePath": "ecc.hook.session-start/hooks.json"
+        },
+        {
+          "cli": "codex",
+          "path": "scripts/hooks/plugin-hook-bootstrap.js",
+          "sourcePath": "ecc.hook.session-start/codex/hooks.json"
+        },
+        {
+          "cli": "codex",
+          "path": "scripts/hooks/session-start-bootstrap.js",
+          "sourcePath": "ecc.hook.session-start/codex/hooks.json"
         }
       ],
       "scanKey": "git-sha1:cf7a5bf61a4405e58e5e36db883d7c8d43a9cb6e"
@@ -4271,6 +4491,21 @@
           "sourcePath": "ecc.hook.session-start-plan-canvas-sessions/hooks.json"
         },
         {
+          "path": "scripts/hooks/run-with-flags.js",
+          "sourcePath": "ecc.hook.session-start-plan-canvas-sessions/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/plan-canvas-sessions.js",
+          "sourcePath": "ecc.hook.session-start-plan-canvas-sessions/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/plugin-hook-bootstrap.js",
+          "sourcePath": "ecc.hook.session-start-plan-canvas-sessions/hooks.json"
+        },
+        {
+          "cli": "claude-code",
           "path": "scripts/hooks/run-with-flags.js",
           "sourcePath": "ecc.hook.session-start-plan-canvas-sessions/hooks.json"
         }
@@ -4364,6 +4599,11 @@
         {
           "path": "scripts/hooks/check-console-log.js",
           "sourcePath": "ecc.hook.stop-check-console-log/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/check-console-log.js",
+          "sourcePath": "ecc.hook.stop-check-console-log/hooks.json"
         }
       ],
       "scanKey": "git-sha1:959b58fc661a2fa7c768d0dc8e33c1afee1f7169"
@@ -4415,6 +4655,11 @@
       "name": "stop-cost-tracker",
       "pathReferences": [
         {
+          "path": "scripts/hooks/cost-tracker.js",
+          "sourcePath": "ecc.hook.stop-cost-tracker/hooks.json"
+        },
+        {
+          "cli": "claude-code",
           "path": "scripts/hooks/cost-tracker.js",
           "sourcePath": "ecc.hook.stop-cost-tracker/hooks.json"
         }
@@ -4470,6 +4715,11 @@
         {
           "path": "scripts/hooks/desktop-notify.js",
           "sourcePath": "ecc.hook.stop-desktop-notify/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/desktop-notify.js",
+          "sourcePath": "ecc.hook.stop-desktop-notify/hooks.json"
         }
       ],
       "scanKey": "git-sha1:005ca685aaf836b255dbd8d0dd7f6ecf72db61a8"
@@ -4521,6 +4771,11 @@
       "name": "stop-evaluate-session",
       "pathReferences": [
         {
+          "path": "scripts/hooks/evaluate-session.js",
+          "sourcePath": "ecc.hook.stop-evaluate-session/hooks.json"
+        },
+        {
+          "cli": "claude-code",
           "path": "scripts/hooks/evaluate-session.js",
           "sourcePath": "ecc.hook.stop-evaluate-session/hooks.json"
         }
@@ -4576,6 +4831,11 @@
         {
           "path": "scripts/hooks/stop-format-typecheck.js",
           "sourcePath": "ecc.hook.stop-format-typecheck/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/stop-format-typecheck.js",
+          "sourcePath": "ecc.hook.stop-format-typecheck/hooks.json"
         }
       ],
       "scanKey": "git-sha1:6cf82bf8e4960c627c092be8782fef324f1ab812"
@@ -4629,6 +4889,11 @@
         {
           "path": "scripts/hooks/plan-canvas-pending.js",
           "sourcePath": "ecc.hook.stop-plan-canvas-pending/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "scripts/hooks/plan-canvas-pending.js",
+          "sourcePath": "ecc.hook.stop-plan-canvas-pending/hooks.json"
         }
       ],
       "scanKey": "git-sha1:378841f95d2e46f7ab44507f617a6d805e5bc84d"
@@ -4680,6 +4945,11 @@
       "name": "stop-session-end",
       "pathReferences": [
         {
+          "path": "scripts/hooks/session-end.js",
+          "sourcePath": "ecc.hook.stop-session-end/hooks.json"
+        },
+        {
+          "cli": "claude-code",
           "path": "scripts/hooks/session-end.js",
           "sourcePath": "ecc.hook.stop-session-end/hooks.json"
         }
@@ -11707,6 +11977,11 @@
         {
           "path": "scripts/claw.js",
           "sourcePath": "skills/autonomous-loops/SKILL.md"
+        },
+        {
+          "cli": "kiro",
+          "path": "scripts/claw.js",
+          "sourcePath": ".kiro/skills/autonomous-loops/SKILL.md"
         }
       ],
       "scanKey": "git-sha1:86f3d34f60fae0b1d12353b3605a2de99e21f7f7",
@@ -18366,6 +18641,11 @@
         {
           "path": "tests/conftest.py",
           "sourcePath": "skills/python-testing/SKILL.md"
+        },
+        {
+          "cli": "kiro",
+          "path": "tests/conftest.py",
+          "sourcePath": ".kiro/skills/python-testing/SKILL.md"
         }
       ],
       "scanKey": "git-sha1:230ac65eff21a3d61da4aa3613f2ced435a73ee0",
@@ -18678,6 +18958,26 @@
         {
           "path": "skills/react-testing/SKILL.md",
           "sourcePath": "skills/react-patterns/SKILL.md"
+        },
+        {
+          "cli": "kiro",
+          "path": ".kiro/skills/frontend-patterns/SKILL.md",
+          "sourcePath": ".kiro/skills/react-patterns/SKILL.md"
+        },
+        {
+          "cli": "kiro",
+          "path": ".kiro/skills/react-testing/SKILL.md",
+          "sourcePath": ".kiro/skills/react-patterns/SKILL.md"
+        },
+        {
+          "cli": "kiro",
+          "path": "rules/react/hooks.md",
+          "sourcePath": ".kiro/skills/react-patterns/SKILL.md"
+        },
+        {
+          "cli": "kiro",
+          "path": "skills/accessibility/SKILL.md",
+          "sourcePath": ".kiro/skills/react-patterns/SKILL.md"
         }
       ],
       "scanKey": "git-sha1:eda27679d5af43c3d76ce4653851a46b7d2aee21",
@@ -18837,6 +19137,31 @@
         {
           "path": "skills/tdd-workflow/SKILL.md",
           "sourcePath": "skills/react-testing/SKILL.md"
+        },
+        {
+          "cli": "kiro",
+          "path": ".kiro/skills/e2e-testing/SKILL.md",
+          "sourcePath": ".kiro/skills/react-testing/SKILL.md"
+        },
+        {
+          "cli": "kiro",
+          "path": ".kiro/skills/react-patterns/SKILL.md",
+          "sourcePath": ".kiro/skills/react-testing/SKILL.md"
+        },
+        {
+          "cli": "kiro",
+          "path": ".kiro/skills/tdd-workflow/SKILL.md",
+          "sourcePath": ".kiro/skills/react-testing/SKILL.md"
+        },
+        {
+          "cli": "kiro",
+          "path": "rules/react/testing.md",
+          "sourcePath": ".kiro/skills/react-testing/SKILL.md"
+        },
+        {
+          "cli": "kiro",
+          "path": "skills/accessibility/SKILL.md",
+          "sourcePath": ".kiro/skills/react-testing/SKILL.md"
         }
       ],
       "scanKey": "git-sha1:36ad005d734fe78115e1969a4e8c2ff973b0a96c",
@@ -20390,6 +20715,11 @@
         {
           "path": "hooks/hooks.json",
           "sourcePath": "skills/strategic-compact/SKILL.md"
+        },
+        {
+          "cli": "kiro",
+          "path": "hooks/hooks.json",
+          "sourcePath": ".kiro/skills/strategic-compact/SKILL.md"
         }
       ],
       "scanKey": "git-sha1:9d39ec30bbace4969deef3d2d7d6270d9d3b316b",

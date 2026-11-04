@@ -203,6 +203,11 @@
         {
           "path": "hooks/git-guard.mjs",
           "sourcePath": "extensions.hook.git-guard/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "hooks/git-guard.mjs",
+          "sourcePath": "extensions.hook.git-guard/hooks.json"
         }
       ],
       "scanKey": "git-sha1:29b7a0f497afb50755d422fefe61c717dc5a0c44"
@@ -256,6 +261,11 @@
         {
           "path": "hooks/lanes-card.mjs",
           "sourcePath": "extensions.hook.lanes-card/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "hooks/lanes-card.mjs",
+          "sourcePath": "extensions.hook.lanes-card/hooks.json"
         }
       ],
       "scanKey": "git-sha1:2dff03c1d2ecf0f59ad86d3066425ab81ca825c4"
@@ -307,6 +317,11 @@
       "name": "skill-guard",
       "pathReferences": [
         {
+          "path": "hooks/skill-guard.mjs",
+          "sourcePath": "extensions.hook.skill-guard/hooks.json"
+        },
+        {
+          "cli": "claude-code",
           "path": "hooks/skill-guard.mjs",
           "sourcePath": "extensions.hook.skill-guard/hooks.json"
         }

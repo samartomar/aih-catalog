@@ -27,8 +27,12 @@ export interface Bundle {
   readonly scanKey: string;
 }
 
-/** One file an item names outside its own files: `path` from the source root. */
+/**
+ * One file an item names outside its own files: `path` from the source root. `cli` marks a
+ * mention in that client's edition files, which only that client places.
+ */
 export interface PathReference {
+  readonly cli?: string;
   readonly sourcePath: string;
   readonly path: string;
 }
@@ -99,15 +103,15 @@ const PROGRAM =
  * an existing regular file of the source count, so prose and paths in the user's own project
  * are not taken for references.
  */
-export function pathReferences(
-  itemFiles: readonly { readonly sourcePath: string }[],
-  exists: (path: string, file: { readonly sourcePath: string }) => boolean,
-  bytesOf: (path: string) => Uint8Array,
+export function pathReferences<File extends { readonly sourcePath: string }>(
+  itemFiles: readonly File[],
+  exists: (path: string, file: File) => boolean,
+  bytesOf: (file: File) => Uint8Array,
 ): PathReference[] {
   const own = new Set(itemFiles.map((file) => file.sourcePath));
   const found = new Map<string, PathReference>();
   for (const file of itemFiles) {
-    const text = decodeText(bytesOf(file.sourcePath));
+    const text = decodeText(bytesOf(file));
     if (text === null) continue;
     const folder = dirnameOf(file.sourcePath);
     const program = PROGRAM.test(file.sourcePath);

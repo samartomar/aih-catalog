@@ -542,12 +542,14 @@ function checkPathReferences(value: unknown, path: string, problems: Problems): 
     !value.every(
       (entry) =>
         isRecord(entry) &&
-        Object.keys(entry).sort().join() === "path,sourcePath" &&
+        ["path,sourcePath", "cli,path,sourcePath"].includes(Object.keys(entry).sort().join()) &&
+        (entry.cli === undefined ||
+          (typeof entry.cli === "string" && FRAMEWORK_ID.test(entry.cli))) &&
         isSafeRelativePath(entry.sourcePath) &&
         isSafeRelativePath(entry.path),
     )
   )
-    problems.add(path, "pathReferences lists { sourcePath, path } entries");
+    problems.add(path, "pathReferences lists { cli?, sourcePath, path } entries");
 }
 
 /** The kind fields this implementation builds: present on their own kind, absent elsewhere. */

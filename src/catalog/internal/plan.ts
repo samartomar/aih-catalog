@@ -1352,8 +1352,15 @@ function referencesOf(
   // version folder resolves `..` inside the shared folder, never beside its siblings.
   const linked = (cli: string, path: string) =>
     links.some((link) => link.clis.includes(cli) && path.startsWith(`${link.path}/`));
-  const resolvedInPlace = (item: Item, cli: string, sourcePath: string, path: string) => {
-    const file = item.files.find((candidate) => candidate.sourcePath === sourcePath);
+  const resolvedInPlace = (
+    item: Item,
+    cli: string,
+    edition: string | undefined,
+    sourcePath: string,
+    path: string,
+  ) => {
+    const own = edition === undefined ? item.files : (item.editions?.[edition]?.files ?? []);
+    const file = own.find((candidate) => candidate.sourcePath === sourcePath);
     if (file === undefined || file.derivedFrom !== undefined) return false;
     const files = installed.get(cli);
     const sources = (files?.get(`${file.sourceId}\0${sourcePath}`) ?? []).filter(
@@ -1375,9 +1382,13 @@ function referencesOf(
     for (const cli of placedFor.get(id) ?? []) {
       const placed =
         item.bundle === undefined ? undefined : bundles.roots.get(cli)?.get(item.bundle);
+      // A client that takes its edition places the edition's files, so only their mentions
+      // count there; every other client places the item's own files.
+      const edition = item.editions?.[cli] !== undefined ? cli : undefined;
       for (const reference of item.pathReferences ?? []) {
+        if (reference.cli !== edition) continue;
         if (placed?.bundle.files.some((file) => file.sourcePath === reference.path)) continue;
-        if (resolvedInPlace(item, cli, reference.sourcePath, reference.path)) continue;
+        if (resolvedInPlace(item, cli, edition, reference.sourcePath, reference.path)) continue;
         const reported = {
           kind: "path" as const,
           item: id,

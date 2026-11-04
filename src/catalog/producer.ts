@@ -421,14 +421,19 @@ async function assemble(
     if (bundle === undefined) return [{ path: `${id}/bundle`, message: "names no bundle" }];
   }
   // A mention resolves in the file's own source; a cut-out's in the source it was cut from.
-  const references = pathReferences(
-    itemFiles,
-    (path, file) => {
-      const recorded = file as ItemFile;
-      return files.has(recorded.derivedFrom ? primary : recorded.sourceId, path);
-    },
-    index.bytesOf,
-  );
+  // An edition's files are read the same way, and their mentions belong to its client.
+  const referencesIn = (recorded: readonly ItemFile[]) =>
+    pathReferences(
+      recorded,
+      (path, file) => files.has(file.derivedFrom ? primary : file.sourceId, path),
+      (file) => index.bytesIn(file.sourceId, file.sourcePath),
+    );
+  const references = [
+    ...referencesIn(itemFiles),
+    ...Object.entries(editions ?? {}).flatMap(([cli, edition]) =>
+      referencesIn(edition.files).map((reference) => ({ cli, ...reference })),
+    ),
+  ];
   const named = namespacedReferences(item, index.bytesOf);
   if (typeof named === "string") return [{ path: `${id}/references`, message: named }];
   const base: Record<string, unknown> = {

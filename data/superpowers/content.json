@@ -53,6 +53,11 @@
         {
           "path": "hooks/run-hook.cmd",
           "sourcePath": "superpowers.hook.session-start/hooks.json"
+        },
+        {
+          "cli": "claude-code",
+          "path": "hooks/run-hook.cmd",
+          "sourcePath": "superpowers.hook.session-start/hooks.json"
         }
       ],
       "scanKey": "git-sha1:19bb6a64e2fb629022fbc7f5afb77b343e1e323b"

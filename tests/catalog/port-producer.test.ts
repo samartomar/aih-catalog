@@ -109,9 +109,15 @@ describe("cutting entries out of a shared upstream hooks file", () => {
       matcher: "Bash",
       handler: { type: "command" },
     });
-    // The script the entry runs lives at the upstream plugin root: a path reference.
+    // The script the entry runs lives at the upstream plugin root: a path reference, of the
+    // item's files and of the Claude edition's, which Claude places instead.
     expect(item?.pathReferences).toEqual([
       { sourcePath: "up.hook.pre-bash-guard/hooks.json", path: "scripts/guard.js" },
+      {
+        cli: "claude-code",
+        sourcePath: "up.hook.pre-bash-guard/hooks.json",
+        path: "scripts/guard.js",
+      },
     ]);
     // Content identity addresses the entry by its upstream location (path#pointer).
     const facts = [
