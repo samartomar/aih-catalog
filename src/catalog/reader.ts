@@ -42,6 +42,7 @@ import {
   bundleRootBytes,
   editFor,
   launcherBytes,
+  namedBundles,
   renderBytes,
   renderNames,
   type ToolProfile,
@@ -581,28 +582,12 @@ function bundleRootStep(
     if (always === undefined) return badRender("the profile has no always-on rule form");
     frontmatter = always.frontmatter;
   }
-  const named = [];
-  for (const entry of render.bundles) {
-    const found = contents
-      .map((content) => ({
-        content,
-        bundle: content.bundles?.find((bundle) => bundle.id === entry?.bundle),
-      }))
-      .find((candidate) => candidate.bundle !== undefined);
-    if (found?.bundle === undefined || typeof entry.root !== "string")
-      return refused(
-        "unknown-item",
-        `the bundle ${quote(String(entry?.bundle))} is not in the supplied content`,
-      );
-    named.push({
-      framework: found.content.framework.name,
-      layout: found.bundle.layout,
-      root: entry.root,
-      folders: [
-        ...new Set(found.bundle.files.map((file) => file.sourcePath.split("/")[0] as string)),
-      ].sort(),
-    });
-  }
+  const named = namedBundles(render.bundles, contents);
+  if (!Array.isArray(named))
+    return refused(
+      "unknown-item",
+      `the bundle ${quote(named.unknown)} is not in the supplied content`,
+    );
   return ok(bundleRootBytes(named, scope, frontmatter));
 }
 

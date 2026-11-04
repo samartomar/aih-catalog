@@ -20,7 +20,7 @@ import {
 } from "./frontmatter.js";
 import { canonicalDocument, canonicalJson } from "./json.js";
 import { skillFile } from "./kinds.js";
-import type { Item } from "./model.js";
+import type { Content, Item } from "./model.js";
 import type { RuleScopeKey, Scope, ToolProfile, UserOnlyFallbackEntry } from "./profile.js";
 
 export type { ToolProfile } from "./profile.js";
@@ -413,6 +413,36 @@ export interface NamedBundle {
   readonly layout: string;
   readonly root: string;
   readonly folders: readonly string[];
+}
+
+/**
+ * The bundles a bundle-root render names, looked up in the supplied content: each one's
+ * framework name, skill layout and root folders. Undefined when a bundle is not supplied.
+ */
+export function namedBundles(
+  entries: readonly { readonly bundle: string; readonly root: string }[],
+  contents: readonly Content[],
+): NamedBundle[] | { readonly unknown: string } {
+  const named: NamedBundle[] = [];
+  for (const entry of entries) {
+    const found = contents
+      .map((content) => ({
+        content,
+        bundle: content.bundles?.find((bundle) => bundle.id === entry?.bundle),
+      }))
+      .find((candidate) => candidate.bundle !== undefined);
+    if (found?.bundle === undefined || typeof entry.root !== "string")
+      return { unknown: String(entry?.bundle) };
+    named.push({
+      framework: found.content.framework.name,
+      layout: found.bundle.layout,
+      root: entry.root,
+      folders: [
+        ...new Set(found.bundle.files.map((file) => file.sourcePath.split("/")[0] as string)),
+      ].sort(),
+    });
+  }
+  return named;
 }
 
 const listed = (names: readonly string[]): string => {

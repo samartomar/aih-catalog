@@ -44,9 +44,11 @@ import {
 } from "./profile.js";
 import {
   agentTools,
+  bundleRootBytes,
   changesBytes,
   editFor,
   editKey,
+  namedBundles,
   type RenderName,
   scopeKeyOf,
 } from "./render.js";
@@ -2297,29 +2299,35 @@ export function planCore(input: CoreInput): PlanResult {
         clis: union(...members.map((step) => step.clis)),
       });
   }
-  for (const members of group(
-    mergeUnits.filter((entry) => (entry.unit as { limitBytes?: number }).limitBytes !== undefined),
-    (entry) => `${(entry.unit as { file: string }).file}\0${entry.profile.id}`,
-  )) {
-    const first = members[0] as Placed;
-    const unit = first.unit as Extract<Unit, { shape: "merge" }>;
+  // A client that reads only part of a shared file (Codex: 32 KiB of AGENTS.md) clashes when
+  // the blocks its plan merges there pass that: its rule blocks and the bundle-root block.
+  for (const profile of sortedProfiles) {
+    const target = profile.places.rule?.[scope]?.always;
+    if (typeof target !== "object" || target.limitBytes === undefined) continue;
     const blocks = mergeUnits.filter(
       (entry) =>
-        entry.profile.id === first.profile.id &&
-        (entry.unit as { file: string }).file === unit.file,
+        entry.profile.id === profile.id && (entry.unit as { file: string }).file === target.file,
     );
-    const total = blocks.reduce(
+    const bundleRoot = bundles.merges.find(
+      (step) => step.file === target.file && step.clis.includes(profile.id),
+    );
+    let total = blocks.reduce(
       (sum, entry) =>
         sum + ((entry.unit as { bytes?: number }).bytes ?? 0) + MARKDOWN_OVERHEAD(entry.item.id),
       0,
     );
-    if (total > (unit.limitBytes as number))
+    if (bundleRoot?.render?.name === "bundle-root") {
+      const named = namedBundles((bundleRoot.render as BundleRootRender).bundles, input.contents);
+      if (Array.isArray(named))
+        total += bundleRootBytes(named, scope).byteLength + MARKDOWN_OVERHEAD(BUNDLE_ROOT_RULE);
+    }
+    if (total > target.limitBytes)
       clashes.push({
         root: scope,
-        path: unit.file,
+        path: target.file,
         reason: "limit",
-        items: itemsOf(blocks),
-        clis: [first.profile.id],
+        items: union(itemsOf(blocks), bundleRoot ? [BUNDLE_ROOT_RULE] : []),
+        clis: [profile.id],
       });
   }
   // Never write through a planned link.

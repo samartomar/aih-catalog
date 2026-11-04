@@ -677,6 +677,56 @@ describe("bundles from two frameworks", () => {
     ]);
   });
 
+  it("counts the bundle-root block toward Codex's 32 KiB AGENTS.md limit", async () => {
+    const overhead = (id: string) =>
+      `<!-- aih:begin ${id} -->\n`.length + `<!-- aih:end ${id} -->\n`.length;
+    // The rule's own block fills AGENTS.md to within a few bytes of the limit.
+    const ruleBytes = 32 * 1024 - overhead("gamma.rule.big") - 8;
+    const heading = "# Big\n\n";
+    const root = folder(
+      {
+        "skills/start/SKILL.md":
+          "---\nname: gamma-start\ndescription: Start gamma.\n---\n\nRead `../../docs/guide.md` first.\n",
+        "docs/guide.md": "Gamma guide.\n",
+        "rules/big.md": `${heading}${"x".repeat(ruleBytes - heading.length - 1)}\n`,
+      },
+      "gamma",
+    );
+    const read = readLocalSource(root);
+    if (read.status !== "ok") throw new Error(JSON.stringify(read));
+    const found = findItems(read.files, { framework: "gamma" });
+    if (found.status !== "ok") throw new Error(JSON.stringify(found));
+    const built = await buildContent(
+      read.source,
+      read.files,
+      found.items.map((item) =>
+        item.kind === "skill" ? { ...item, bundle: "gamma.runtime" } : item,
+      ),
+      {
+        framework: "gamma",
+        bundles: [{ id: "gamma.runtime", layout: "skills/<name>/", include: ["docs/*.md"] }],
+      },
+    );
+    if (built.status !== "ok") throw new Error(JSON.stringify(built));
+    const plan = (selection: string[]) =>
+      planInstall(selection, [built.content], [profile("codex")], {
+        scope: "project",
+        data: null,
+      }) as Plan;
+    expect(plan(["gamma.rule.big"])).toMatchObject({ status: "ok", clashes: [] });
+    const both = plan(["gamma.skill.start", "gamma.rule.big"]);
+    expect(both.status).toBe("incomplete");
+    expect(both.clashes).toEqual([
+      {
+        root: "project",
+        path: "AGENTS.md",
+        reason: "limit",
+        items: ["aih.rule.bundle-root", "gamma.rule.big"],
+        clis: ["codex"],
+      },
+    ]);
+  });
+
   it("starts a user-only bundle skill on OpenCode through a command launcher", async () => {
     const { content } = await egmContent();
     const opencode = profile("opencode");
