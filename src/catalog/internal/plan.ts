@@ -689,35 +689,11 @@ function place(
             reason: "no-user-only",
             detail: `the client can neither flag nor fall back for a user-only skill at ${scope} scope`,
           };
-        // A skill with support files cannot move into a prompt or command file without losing
-        // them, so it keeps its folder, as a bundle skill does: where the client loads
-        // every skill folder it is given (Kiro), under the client's own root for such folders,
-        // which it does not scan; else at its skill place. Its fallbacks become launchers.
-        if (own.length > 1) {
-          const fixed = profile.bundleRoot?.[scope];
-          const target =
-            fixed !== undefined
-              ? {
-                  path: fill(
-                    `${fixed.replaceAll("<framework>", framework)}skills/<name>/`,
-                    installName,
-                  ),
-                }
-              : resolvePlace(profile.places.skill?.[scope], installName);
-          if (target === undefined)
-            return { reason: "not-described", detail: `the client has no ${scope} skill place` };
-          const outputs = skillOutputs(item, own, skill, profile, scope, installName);
-          if (isFailure(outputs)) return outputs;
-          return [
-            {
-              ...placed(
-                { shape: "folder", path: folderPath(target.path), outputs, linkable: false },
-                "reuse" in target ? target.reuse?.map(folderPath) : undefined,
-              ),
-              launchers: fallback,
-            },
-          ];
-        }
+        if (own.length > 1)
+          return {
+            reason: "not-implemented",
+            detail: "a user-only fallback for a skill with support files is not implemented yet",
+          };
         const units: Placed[] = [];
         for (const entry of fallback) {
           const made = output(item, skill, "", profile, scope, installName, {

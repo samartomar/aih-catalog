@@ -88,8 +88,9 @@ bundle's and both keys of every recorded plugin folder, since one scan never cov
 
 A profile describes one client: `places` for each kind and scope (`project`, `user`), with
 `<name>` templates; how user-only skills are flagged (`userOnly`, or a fallback such as a
-prompt file; a skill with support files or a bundle keeps its folder, under the client's
-`bundleRoot` where it has one, and its fallback files become one-line launchers); how arguments are passed; the agent file format; rule scopes; hook events; the
+prompt file; a skill with a bundle keeps its folder, under the client's `bundleRoot` where it
+has one, and its fallback files become one-line launchers; skills without a bundle are
+unchanged); how arguments are passed; the agent file format; rule scopes; hook events; the
 MCP entry fields and tool restrictions; native input-reference syntax per surface; plugin
 installs and their pin behaviour; local-plugin folders and registration; bundle roots; the
 built-ins the client already provides and how one is switched off; and `checkedWith`, the
