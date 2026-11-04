@@ -1863,6 +1863,289 @@ export interface Override {
 }
 
 /** The planner shared by `planInstall` and `planRecipe`, over already-validated input. */
+/**
+ * Settings a client cannot carry, one warning per code and client: MCP tool lists it cannot
+ * restrict, timeouts no profile maps, and agent tool lists its own agent file cannot hold.
+ */
+function settingWarnings(
+  resolved: readonly Placed[],
+  launches: ReadonlyMap<string, ToolLaunch>,
+): Warning[] {
+  const found = new Map<string, Warning>();
+  const warnAbout = (code: string, cli: string, item: string) => {
+    const known = found.get(`${code}\0${cli}`);
+    found.set(`${code}\0${cli}`, {
+      code,
+      cli,
+      items: union(known?.items ?? [], [item]),
+    });
+  };
+  for (const entry of resolved) {
+    if (entry.item.kind !== "mcp") continue;
+    const settings = serverSettings(entry.item, launches.get(entry.item.id));
+    const lists = settings.enabledTools !== undefined || settings.disabledTools !== undefined;
+    if (lists && !restricts(settings, entry.profile.mcpFile))
+      warnAbout("mcp-tools-unrestricted", entry.profile.id, entry.item.id);
+    if (settings.startupSeconds !== undefined || settings.callSeconds !== undefined)
+      warnAbout("mcp-timeouts-not-described", entry.profile.id, entry.item.id);
+  }
+  // An agent whose tool restriction this client's own agent file cannot carry is placed with
+  // no tool list, never silently: a client reading another client's file keeps that file's.
+  for (const entry of resolved)
+    if (
+      entry.item.kind === "agent" &&
+      entry.unit.shape === "file" &&
+      entry.unit.output.render?.name === "agent" &&
+      (entry.representative ?? entry).profile.id === entry.profile.id &&
+      agentTools(entry.item, entry.profile).unrestricted !== undefined
+    )
+      warnAbout("agent-tools-unrestricted", entry.profile.id, entry.item.id);
+  return [...found.values()];
+}
+
+/** Entries grouped by key, in first-seen order. */
+function group<T>(entries: readonly T[], keyOf: (entry: T) => string): T[][] {
+  const groups = new Map<string, T[]>();
+  for (const entry of entries)
+    groups.set(keyOf(entry), [...(groups.get(keyOf(entry)) ?? []), entry]);
+  return [...groups.values()];
+}
+/** A shared placement's bytes come from its first client; reused ones keep their source. */
+const representative = (members: readonly Placed[]): Placed => {
+  const first = members[0] as Placed;
+  return first.representative ?? first;
+};
+const clisOf = (members: readonly Placed[]) => union(members.map((member) => member.profile.id));
+const itemsOf = (members: readonly Placed[]) => union(members.map((member) => member.item.id));
+
+/**
+ * Folders and files, one placement per root and path: a user-only skill several clients share
+ * takes one combined render, equal placements merge their clients, others clash, and at user
+ * scope a linkable folder goes to its shared version folder and is linked.
+ */
+function placeFolders(
+  resolved: readonly Placed[],
+  scope: Scope,
+  copy: boolean,
+): {
+  writes: WriteStep[];
+  links: LinkStep[];
+  clashes: Clash[];
+  warnings: Warning[];
+  served: { item: string; cli: string }[];
+} {
+  const writes: WriteStep[] = [];
+  const links: LinkStep[] = [];
+  const clashes: Clash[] = [];
+  const warnings: Warning[] = [];
+  const served: { item: string; cli: string }[] = [];
+  // A user-only skill in a folder several clients share takes one combined render.
+  const combinedAt = new Map<string, Unit>();
+  for (const members of group(
+    resolved.filter((entry) => entry.unit.shape === "folder"),
+    (entry) => (entry.unit as { path: string }).path,
+  )) {
+    const unit = combined(members, scope);
+    if (unit?.shape === "folder") combinedAt.set(unit.path, unit);
+  }
+
+  // Folders and files: one placement per root and path.
+  const placementsAt = resolved
+    .filter((entry) => entry.unit.shape !== "merge")
+    .map((entry): Placed => {
+      const unit = entry.unit.shape === "folder" ? combinedAt.get(entry.unit.path) : undefined;
+      if (unit === undefined) return entry;
+      const { representative: _representative, ...own } = entry;
+      return { ...own, unit };
+    });
+  // At user scope a linked folder resolves `..` inside its shared version folder, never beside
+  // its siblings, so skills whose relative paths reach another placed skill are copied in place.
+  const inPlace = scope === "user" ? siblingReferences(placementsAt) : new Map();
+  const copiedFor = new Map<string, Set<string>>();
+  for (const members of group(placementsAt, (entry) => (entry.unit as { path: string }).path)) {
+    const first = members[0] as Placed;
+    const clis = clisOf(members);
+    // A file only one client uses (`cli`, such as Codex's agents/openai.yaml) is that client's
+    // own in a folder others share: the folder is compared without such files, and each is
+    // written for the clients whose placement holds it.
+    const split = members.map((member) => clientFiles(member));
+    const unit = (split[0] as { common: Unit }).common as Exclude<Unit, { shape: "merge" }>;
+    const own = new Map<string, { output: Output; placed: Placed; clis: string[] }>();
+    for (const [index, member] of members.entries())
+      for (const output of split[index]?.own ?? []) {
+        const known = own.get(output.rel);
+        if (known !== undefined && canonicalJson(known.output) === canonicalJson(output))
+          known.clis.push(member.profile.id);
+        else own.set(output.rel, { output, placed: member, clis: [member.profile.id] });
+      }
+    const ownDiffer = split.some((parts) =>
+      parts.own.some(
+        (output) => canonicalJson(own.get(output.rel)?.output) !== canonicalJson(output),
+      ),
+    );
+    if (
+      ownDiffer ||
+      !members.every(
+        (member, index) =>
+          signature((split[index] as { common: Unit }).common) === signature(unit) &&
+          member.item.id === first.item.id,
+      )
+    ) {
+      clashes.push({
+        root: scope,
+        path: unit.path,
+        reason: "different-content",
+        items: itemsOf(members),
+        clis,
+      });
+      continue;
+    }
+    const rep = representative(members);
+    for (const member of members) served.push({ item: member.item.id, cli: member.profile.id });
+    if (unit.shape === "file") {
+      writes.push(writeOf(scope, unit.path, unit.output, rep, clis));
+      continue;
+    }
+    const linkable =
+      scope === "user" &&
+      !copy &&
+      unit.linkable &&
+      members.every((member) => member.profile.links.skill === "documented");
+    const keep = members.filter((member) => inPlace.get(member.item.id)?.has(member.profile.id));
+    if (linkable)
+      for (const member of keep)
+        copiedFor.set(
+          member.profile.id,
+          new Set([...(copiedFor.get(member.profile.id) ?? []), member.item.id]),
+        );
+    const link = linkable && keep.length === 0;
+    const owned = [...own.values()].sort((left, right) =>
+      compareCodeUnits(left.output.rel, right.output.rel),
+    );
+    if (!link) {
+      for (const entry of unit.outputs)
+        writes.push(writeOf(scope, `${unit.path}/${entry.rel}`, entry, rep, clis));
+      for (const entry of owned)
+        writes.push(
+          writeOf(
+            scope,
+            `${unit.path}/${entry.output.rel}`,
+            entry.output,
+            entry.placed,
+            entry.clis,
+          ),
+        );
+      continue;
+    }
+    const all = [...unit.outputs, ...owned.map((entry) => entry.output)];
+    const shared = `.aihq/shared/${rep.framework}/${rep.item.kind}/${rep.item.name}/${versionOf(rep, all)}`;
+    for (const entry of unit.outputs)
+      writes.push(writeOf("user", `${shared}/${entry.rel}`, entry, rep, clis));
+    for (const entry of owned)
+      writes.push(
+        writeOf("user", `${shared}/${entry.output.rel}`, entry.output, entry.placed, entry.clis),
+      );
+    links.push({ op: "link", root: "user", path: unit.path, to: shared, item: rep.item.id, clis });
+  }
+
+  for (const [cli, items] of copiedFor)
+    warnings.push({ code: "copied-for-references", cli, items: sortedSet(items) });
+  return { writes, links, clashes, warnings, served };
+}
+
+/** The notices covering each placed item, one write per notice, owned by the items it covers. */
+function noticeWrites(
+  contents: readonly Content[],
+  chosen: readonly string[],
+  byId: ReadonlyMap<string, { content: Content; item: Item }>,
+  servedBy: ReadonlyMap<string, string[]>,
+  scope: Scope,
+): WriteStep[] {
+  const notices: WriteStep[] = [];
+  for (const content of contents)
+    for (const source of content.sources)
+      for (const notice of source.notices) {
+        const covered = chosen.filter((id) => {
+          if (!servedBy.has(id)) return false;
+          const { item, content: owner } = byId.get(id) as { item: Item; content: Content };
+          if (owner !== content) return false;
+          if (source.noticesFor?.includes(id)) return true;
+          // A file cut out of a shared upstream file (D65) carries that file's notices: cut-outs
+          // come only from the content's first source.
+          return item.files.some(
+            (file) =>
+              (file.sourceId === source.id && isUnder(file.sourcePath, notice.covers)) ||
+              (file.derivedFrom !== undefined &&
+                source.id === content.sources[0]?.id &&
+                isUnder(file.derivedFrom.sourcePath, notice.covers)),
+          );
+        });
+        if (covered.length === 0) continue;
+        notices.push({
+          op: "write",
+          root: scope,
+          // A further source's notices sit in a folder of its own, so two sources' LICENSE
+          // files never share one path.
+          path:
+            source.id === content.framework.id
+              ? `.aihq/notices/${content.framework.id}/${notice.sourcePath}`
+              : `.aihq/notices/${content.framework.id}/${source.id}/${notice.sourcePath}`,
+          from: { sourceId: source.id, sourcePath: notice.sourcePath, sha256: notice.sha256 },
+          executable: false,
+          items: covered,
+          clis: union(...covered.map((id) => servedBy.get(id) ?? [])),
+        });
+      }
+  return notices;
+}
+
+/**
+ * A client that reads only part of a shared file (Codex: 32 KiB of AGENTS.md) clashes when the
+ * blocks its plan merges there pass that: its rule blocks and the bundle-root block.
+ */
+function limitClashes(
+  profiles: readonly ToolProfile[],
+  mergeUnits: readonly Placed[],
+  bundleMerges: readonly MergeStep[],
+  contents: readonly Content[],
+  scope: Scope,
+): Clash[] {
+  const found: Clash[] = [];
+  for (const profile of profiles) {
+    const target = profile.places.rule?.[scope]?.always;
+    if (typeof target !== "object" || target.limitBytes === undefined) continue;
+    const blocks = mergeUnits.filter(
+      (entry) =>
+        entry.profile.id === profile.id && (entry.unit as { file: string }).file === target.file,
+    );
+    const bundleRoot = bundleMerges.find(
+      (step) => step.file === target.file && step.clis.includes(profile.id),
+    );
+    let total = blocks.reduce(
+      (sum, entry) =>
+        sum + ((entry.unit as { bytes?: number }).bytes ?? 0) + MARKDOWN_OVERHEAD(entry.item.id),
+      0,
+    );
+    if (bundleRoot?.render?.name === "bundle-root") {
+      const named = namedBundles((bundleRoot.render as BundleRootRender).bundles, contents);
+      if (Array.isArray(named))
+        total += bundleRootBytes(named, scope).byteLength + MARKDOWN_OVERHEAD(BUNDLE_ROOT_RULE);
+    }
+    if (total > target.limitBytes)
+      found.push({
+        root: scope,
+        path: target.file,
+        reason: "limit",
+        items: union(
+          union(blocks.map((entry) => entry.item.id)),
+          bundleRoot ? [BUNDLE_ROOT_RULE] : [],
+        ),
+        clis: [profile.id],
+      });
+  }
+  return found;
+}
+
 export function planCore(input: CoreInput): PlanResult {
   const { contents, profiles, scope, extras } = input;
   const options = { copy: input.copy, data: input.data };
@@ -2038,131 +2321,13 @@ export function planCore(input: CoreInput): PlanResult {
     const profile = sortedProfiles.find((candidate) => candidate.id === cli) as ToolProfile;
     for (const code of profile.bundleWarnings ?? []) warnings.push({ code, cli, items });
   }
-  const group = <T>(entries: readonly T[], keyOf: (entry: T) => string) => {
-    const groups = new Map<string, T[]>();
-    for (const entry of entries)
-      groups.set(keyOf(entry), [...(groups.get(keyOf(entry)) ?? []), entry]);
-    return [...groups.values()];
-  };
-  /** A shared placement's bytes come from its first client; reused ones keep their source. */
-  const representative = (members: readonly Placed[]): Placed => {
-    const first = members[0] as Placed;
-    return first.representative ?? first;
-  };
-  const clisOf = (members: readonly Placed[]) => union(members.map((member) => member.profile.id));
-  const itemsOf = (members: readonly Placed[]) => union(members.map((member) => member.item.id));
 
-  // A user-only skill in a folder several clients share takes one combined render.
-  const combinedAt = new Map<string, Unit>();
-  for (const members of group(
-    resolved.filter((entry) => entry.unit.shape === "folder"),
-    (entry) => (entry.unit as { path: string }).path,
-  )) {
-    const unit = combined(members, scope);
-    if (unit?.shape === "folder") combinedAt.set(unit.path, unit);
-  }
-
-  // Folders and files: one placement per root and path.
-  const placementsAt = resolved
-    .filter((entry) => entry.unit.shape !== "merge")
-    .map((entry): Placed => {
-      const unit = entry.unit.shape === "folder" ? combinedAt.get(entry.unit.path) : undefined;
-      if (unit === undefined) return entry;
-      const { representative: _representative, ...own } = entry;
-      return { ...own, unit };
-    });
-  // At user scope a linked folder resolves `..` inside its shared version folder, never beside
-  // its siblings, so skills whose relative paths reach another placed skill are copied in place.
-  const inPlace = scope === "user" ? siblingReferences(placementsAt) : new Map();
-  const copiedFor = new Map<string, Set<string>>();
-  for (const members of group(placementsAt, (entry) => (entry.unit as { path: string }).path)) {
-    const first = members[0] as Placed;
-    const clis = clisOf(members);
-    // A file only one client uses (`cli`, such as Codex's agents/openai.yaml) is that client's
-    // own in a folder others share: the folder is compared without such files, and each is
-    // written for the clients whose placement holds it.
-    const split = members.map((member) => clientFiles(member));
-    const unit = (split[0] as { common: Unit }).common as Exclude<Unit, { shape: "merge" }>;
-    const own = new Map<string, { output: Output; placed: Placed; clis: string[] }>();
-    for (const [index, member] of members.entries())
-      for (const output of split[index]?.own ?? []) {
-        const known = own.get(output.rel);
-        if (known !== undefined && canonicalJson(known.output) === canonicalJson(output))
-          known.clis.push(member.profile.id);
-        else own.set(output.rel, { output, placed: member, clis: [member.profile.id] });
-      }
-    const ownDiffer = split.some((parts) =>
-      parts.own.some(
-        (output) => canonicalJson(own.get(output.rel)?.output) !== canonicalJson(output),
-      ),
-    );
-    if (
-      ownDiffer ||
-      !members.every(
-        (member, index) =>
-          signature((split[index] as { common: Unit }).common) === signature(unit) &&
-          member.item.id === first.item.id,
-      )
-    ) {
-      clashes.push({
-        root: scope,
-        path: unit.path,
-        reason: "different-content",
-        items: itemsOf(members),
-        clis,
-      });
-      continue;
-    }
-    const rep = representative(members);
-    for (const member of members) serve(member.item.id, [member.profile.id]);
-    if (unit.shape === "file") {
-      writes.push(writeOf(scope, unit.path, unit.output, rep, clis));
-      continue;
-    }
-    const linkable =
-      scope === "user" &&
-      options.copy !== true &&
-      unit.linkable &&
-      members.every((member) => member.profile.links.skill === "documented");
-    const keep = members.filter((member) => inPlace.get(member.item.id)?.has(member.profile.id));
-    if (linkable)
-      for (const member of keep)
-        copiedFor.set(
-          member.profile.id,
-          new Set([...(copiedFor.get(member.profile.id) ?? []), member.item.id]),
-        );
-    const link = linkable && keep.length === 0;
-    const owned = [...own.values()].sort((left, right) =>
-      compareCodeUnits(left.output.rel, right.output.rel),
-    );
-    if (!link) {
-      for (const entry of unit.outputs)
-        writes.push(writeOf(scope, `${unit.path}/${entry.rel}`, entry, rep, clis));
-      for (const entry of owned)
-        writes.push(
-          writeOf(
-            scope,
-            `${unit.path}/${entry.output.rel}`,
-            entry.output,
-            entry.placed,
-            entry.clis,
-          ),
-        );
-      continue;
-    }
-    const all = [...unit.outputs, ...owned.map((entry) => entry.output)];
-    const shared = `.aihq/shared/${rep.framework}/${rep.item.kind}/${rep.item.name}/${versionOf(rep, all)}`;
-    for (const entry of unit.outputs)
-      writes.push(writeOf("user", `${shared}/${entry.rel}`, entry, rep, clis));
-    for (const entry of owned)
-      writes.push(
-        writeOf("user", `${shared}/${entry.output.rel}`, entry.output, entry.placed, entry.clis),
-      );
-    links.push({ op: "link", root: "user", path: unit.path, to: shared, item: rep.item.id, clis });
-  }
-
-  for (const [cli, items] of copiedFor)
-    warnings.push({ code: "copied-for-references", cli, items: sortedSet(items) });
+  const folders = placeFolders(resolved, scope, options.copy === true);
+  writes.push(...folders.writes);
+  links.push(...folders.links);
+  clashes.push(...folders.clashes);
+  warnings.push(...folders.warnings);
+  for (const { item, cli } of folders.served) serve(item, [cli]);
 
   // Merge entries: one per file and key.
   const mergeUnits = resolved.filter((entry) => entry.unit.shape === "merge");
@@ -2273,38 +2438,7 @@ export function planCore(input: CoreInput): PlanResult {
       for (const code of overlap.warnings) warnings.push({ code, cli: profile.id, items });
     }
 
-  // Settings a client cannot carry: MCP tool lists it cannot restrict, timeouts no profile
-  // maps, and agent tool lists.
-  const settingWarnings = new Map<string, Warning>();
-  const warnAbout = (code: string, cli: string, item: string) => {
-    const known = settingWarnings.get(`${code}\0${cli}`);
-    settingWarnings.set(`${code}\0${cli}`, {
-      code,
-      cli,
-      items: union(known?.items ?? [], [item]),
-    });
-  };
-  for (const entry of resolved) {
-    if (entry.item.kind !== "mcp") continue;
-    const settings = serverSettings(entry.item, tools.launches.get(entry.item.id));
-    const lists = settings.enabledTools !== undefined || settings.disabledTools !== undefined;
-    if (lists && !restricts(settings, entry.profile.mcpFile))
-      warnAbout("mcp-tools-unrestricted", entry.profile.id, entry.item.id);
-    if (settings.startupSeconds !== undefined || settings.callSeconds !== undefined)
-      warnAbout("mcp-timeouts-not-described", entry.profile.id, entry.item.id);
-  }
-  // An agent whose tool restriction this client's own agent file cannot carry is placed with
-  // no tool list, never silently: a client reading another client's file keeps that file's.
-  for (const entry of resolved)
-    if (
-      entry.item.kind === "agent" &&
-      entry.unit.shape === "file" &&
-      entry.unit.output.render?.name === "agent" &&
-      (entry.representative ?? entry).profile.id === entry.profile.id &&
-      agentTools(entry.item, entry.profile).unrestricted !== undefined
-    )
-      warnAbout("agent-tools-unrestricted", entry.profile.id, entry.item.id);
-  warnings.push(...settingWarnings.values());
+  warnings.push(...settingWarnings(resolved, tools.launches));
 
   // Names the clients already provide: clashes, or an override's switch-off and warnings.
   const shadowing = builtIns(resolved, scope, input.overrides ?? []);
@@ -2351,40 +2485,7 @@ export function planCore(input: CoreInput): PlanResult {
   warnings.push(...helperWarnings);
 
   // Notices covering a placed item, once each.
-  for (const content of contents)
-    for (const source of content.sources)
-      for (const notice of source.notices) {
-        const covered = chosen.filter((id) => {
-          if (!servedBy.has(id)) return false;
-          const { item, content: owner } = byId.get(id) as { item: Item; content: Content };
-          if (owner !== content) return false;
-          if (source.noticesFor?.includes(id)) return true;
-          // A file cut out of a shared upstream file (D65) carries that file's notices: cut-outs
-          // come only from the content's first source.
-          return item.files.some(
-            (file) =>
-              (file.sourceId === source.id && isUnder(file.sourcePath, notice.covers)) ||
-              (file.derivedFrom !== undefined &&
-                source.id === content.sources[0]?.id &&
-                isUnder(file.derivedFrom.sourcePath, notice.covers)),
-          );
-        });
-        if (covered.length === 0) continue;
-        writes.push({
-          op: "write",
-          root: scope,
-          // A further source's notices sit in a folder of its own, so two sources' LICENSE
-          // files never share one path.
-          path:
-            source.id === content.framework.id
-              ? `.aihq/notices/${content.framework.id}/${notice.sourcePath}`
-              : `.aihq/notices/${content.framework.id}/${source.id}/${notice.sourcePath}`,
-          from: { sourceId: source.id, sourcePath: notice.sourcePath, sha256: notice.sha256 },
-          executable: false,
-          items: covered,
-          clis: union(...covered.map((id) => servedBy.get(id) ?? [])),
-        });
-      }
+  writes.push(...noticeWrites(contents, chosen, byId, servedBy, scope));
 
   // Identical writes (a shared version used by several folders) merge; others clash.
   const finalWrites: WriteStep[] = [];
@@ -2432,37 +2533,7 @@ export function planCore(input: CoreInput): PlanResult {
         clis: union(...members.map((step) => step.clis)),
       });
   }
-  // A client that reads only part of a shared file (Codex: 32 KiB of AGENTS.md) clashes when
-  // the blocks its plan merges there pass that: its rule blocks and the bundle-root block.
-  for (const profile of sortedProfiles) {
-    const target = profile.places.rule?.[scope]?.always;
-    if (typeof target !== "object" || target.limitBytes === undefined) continue;
-    const blocks = mergeUnits.filter(
-      (entry) =>
-        entry.profile.id === profile.id && (entry.unit as { file: string }).file === target.file,
-    );
-    const bundleRoot = bundles.merges.find(
-      (step) => step.file === target.file && step.clis.includes(profile.id),
-    );
-    let total = blocks.reduce(
-      (sum, entry) =>
-        sum + ((entry.unit as { bytes?: number }).bytes ?? 0) + MARKDOWN_OVERHEAD(entry.item.id),
-      0,
-    );
-    if (bundleRoot?.render?.name === "bundle-root") {
-      const named = namedBundles((bundleRoot.render as BundleRootRender).bundles, input.contents);
-      if (Array.isArray(named))
-        total += bundleRootBytes(named, scope).byteLength + MARKDOWN_OVERHEAD(BUNDLE_ROOT_RULE);
-    }
-    if (total > target.limitBytes)
-      clashes.push({
-        root: scope,
-        path: target.file,
-        reason: "limit",
-        items: union(itemsOf(blocks), bundleRoot ? [BUNDLE_ROOT_RULE] : []),
-        clis: [profile.id],
-      });
-  }
+  clashes.push(...limitClashes(sortedProfiles, mergeUnits, bundles.merges, input.contents, scope));
   // Never write through a planned link.
   for (const link of links)
     for (const step of finalWrites)
