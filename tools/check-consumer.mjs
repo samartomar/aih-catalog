@@ -307,4 +307,3 @@ function printTable(results) {
   }
   process.stdout.write(`${lines.join("\n")}\n`);
 }
-
