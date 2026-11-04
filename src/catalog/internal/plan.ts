@@ -11,7 +11,7 @@ import { implementedKinds } from "../contracts.js";
 import { installRelative } from "./identity.js";
 import { canonicalJson } from "./json.js";
 import { lowerServer } from "./mcp.js";
-import { type Content, INSTALL_NAME, type Item, type ItemFile } from "./model.js";
+import { type Bundle, type Content, INSTALL_NAME, type Item, type ItemFile } from "./model.js";
 import {
   basenameOf,
   compareCodeUnits,
@@ -27,6 +27,7 @@ import {
   profileProblems,
   type Scope,
   type ToolProfile,
+  type UserOnlyFallbackEntry,
 } from "./profile.js";
 import {
   agentTools,
@@ -55,6 +56,8 @@ export type PlanRender =
       readonly version: number;
       readonly installName: string;
       readonly entry?: string;
+      /** For a launcher: the installed `SKILL.md` it starts, from the step's root. */
+      readonly target?: string;
     }
   | {
       readonly name: RenderName;
@@ -95,6 +98,23 @@ export interface MarketplaceRender {
   readonly commit: string;
 }
 
+/**
+ * The generated always-on rule that names where each placed bundle's root is
+ * (`aih.rule.bundle-root`). A rule file records its profile for the frontmatter; a block in a
+ * shared Markdown file is the same text for every client that shares the file.
+ */
+export interface BundleRootRender {
+  readonly name: "bundle-root";
+  readonly profile?: string;
+  readonly version?: number;
+  /** Each placed bundle and its root folder (with a trailing slash, or "" for the plan root). */
+  readonly bundles: readonly { readonly bundle: string; readonly root: string }[];
+}
+
+/** The id and install name of the generated bundle-root rule. */
+export const BUNDLE_ROOT_RULE = "aih.rule.bundle-root";
+const BUNDLE_ROOT_NAME = "aih-bundle-root";
+
 /** What a step lowered from a route records: its framework and, for a local plugin, the route. */
 export interface RouteMarks {
   /** The indivisible framework a plugin, local-plugin or upstream-setup step belongs to. */
@@ -112,7 +132,9 @@ export interface WriteStep extends RouteMarks {
   readonly path: string;
   readonly from?: SourceRef;
   readonly executable: boolean;
-  readonly render?: PlanRender | MarketplaceRender;
+  readonly render?: PlanRender | MarketplaceRender | BundleRootRender;
+  /** A runtime bundle's root file: the bundle's id. */
+  readonly bundle?: string;
   readonly scanned?: false;
   readonly item?: string;
   readonly items?: readonly string[];
@@ -140,7 +162,7 @@ export interface MergeStep extends RouteMarks {
   /** The structured entry (json, toml); a Markdown block takes its text from `from`. */
   readonly entry?: unknown;
   readonly from?: SourceRef;
-  readonly render?: PlanRender;
+  readonly render?: PlanRender | BundleRootRender;
   readonly scanned?: false;
   readonly item?: string;
   readonly items?: readonly string[];
@@ -207,7 +229,8 @@ export type UnavailableReason =
   | "no-rule-scope"
   | "no-tool-names"
   | "no-tool-restriction"
-  | "unsupported-server";
+  | "unsupported-server"
+  | "no-bundle-place";
 
 export interface Unavailable {
   readonly item: string;
@@ -222,6 +245,20 @@ export interface Clash {
   readonly key?: string;
   readonly reason?: "different-content" | "nested-key" | "write-and-merge" | "under-link" | "limit";
   readonly items: readonly string[];
+  readonly clis: readonly string[];
+}
+
+/**
+ * A source file an item names outside its own files that no placed bundle provides for these
+ * clients, so the item would read a path that does not exist (11.5).
+ */
+export interface Reference {
+  readonly kind: "path";
+  readonly item: string;
+  /** The item file that names the path. */
+  readonly file: string;
+  /** The path from the source root. */
+  readonly path: string;
   readonly clis: readonly string[];
 }
 
@@ -245,7 +282,7 @@ export interface Plan {
   readonly unavailable: readonly Unavailable[];
   readonly clashes: readonly Clash[];
   readonly duplicates: readonly never[];
-  readonly references: readonly never[];
+  readonly references: readonly Reference[];
   readonly warnings: readonly Warning[];
 }
 
@@ -322,6 +359,10 @@ interface Placed {
   readonly failure?: Failure;
   /** For a shared copy: the placement whose bytes it takes. */
   readonly representative?: Placed;
+  /** The runtime bundle the item reads. */
+  readonly bundle?: Bundle;
+  /** For a user-only bundle skill on a client with no flag: the launchers that start it. */
+  readonly launchers?: readonly UserOnlyFallbackEntry[];
 }
 
 type Failure = { readonly reason: UnavailableReason; readonly detail: string };
@@ -394,11 +435,16 @@ const folderPath = (path: string) => (path.endsWith("/") ? path.slice(0, -1) : p
 /** The placements of one item for one client, or why it cannot be placed. */
 function place(
   item: Item,
-  framework: string,
+  content: Content,
   profile: ToolProfile,
   scope: Scope,
   installName: string,
 ): Placed[] | Failure {
+  const framework = content.framework.id;
+  const bundle =
+    item.bundle === undefined
+      ? undefined
+      : content.bundles?.find((candidate) => candidate.id === item.bundle);
   const placed = (unit: Unit, reuse?: readonly string[]): Placed => ({
     unit,
     item,
@@ -406,6 +452,7 @@ function place(
     installName,
     profile,
     ...(reuse ? { reuse } : {}),
+    ...(bundle ? { bundle } : {}),
   });
   if (!(implementedKinds as readonly string[]).includes(item.kind))
     return {
@@ -414,11 +461,8 @@ function place(
     };
   const unsupported = profile.unsupported?.[item.kind];
   if (unsupported !== undefined) return { reason: "unsupported-kind", detail: unsupported };
-  if (item.fetch === "upstream" || item.bundle !== undefined)
-    return {
-      reason: "not-implemented",
-      detail: "upstream fetching and bundles are not implemented yet",
-    };
+  if (item.fetch === "upstream")
+    return { reason: "not-implemented", detail: "upstream fetching is not implemented yet" };
   const edition = item.editions?.[profile.id];
   const own = item.files.filter((file) => file.cli === undefined || file.cli === profile.id);
 
@@ -481,6 +525,45 @@ function place(
       const skill = own.find((file) => installRelative(item, file) === "SKILL.md");
       if (skill === undefined)
         return { reason: "not-implemented", detail: "the skill has no SKILL.md" };
+      // A bundle skill keeps its folder in the bundle layout (never linked, so its relative
+      // paths stay put); where the client has no user-only flag, launchers start it.
+      if (bundle !== undefined) {
+        const fixed = profile.bundleRoot?.[scope];
+        const target =
+          fixed !== undefined
+            ? {
+                path: fill(
+                  `${fixed.replaceAll("<framework>", framework)}${bundle.layout}`,
+                  installName,
+                ),
+              }
+            : resolvePlace(profile.places.skill?.[scope], installName);
+        if (target === undefined)
+          return { reason: "not-described", detail: `the client has no ${scope} skill place` };
+        const launchers =
+          item.userOnly && profile.userOnly === "none"
+            ? profile.userOnlyFallback?.[scope]
+            : undefined;
+        if (item.userOnly && profile.userOnly === "none" && launchers === undefined)
+          return {
+            reason: "no-user-only",
+            detail: `the client can neither flag nor launch a user-only skill at ${scope} scope`,
+          };
+        const outputs = skillOutputs(item, own, skill, profile, scope, installName);
+        if (isFailure(outputs)) return outputs;
+        const unit: Unit = {
+          shape: "folder",
+          path: folderPath(target.path),
+          outputs,
+          linkable: false,
+        };
+        return [
+          {
+            ...placed(unit, "reuse" in target ? target.reuse?.map(folderPath) : undefined),
+            ...(launchers ? { launchers } : {}),
+          },
+        ];
+      }
       if (item.userOnly && profile.userOnly === "none") {
         const fallback = profile.userOnlyFallback?.[scope];
         if (fallback === undefined)
@@ -818,6 +901,302 @@ function writeOf(
 const MARKDOWN_OVERHEAD = (id: string) =>
   `<!-- aih:begin ${id} -->\n`.length + `<!-- aih:end ${id} -->\n`.length;
 
+interface PlacedBundle {
+  readonly bundle: Bundle;
+  readonly root: string;
+  readonly items: Set<string>;
+}
+
+interface BundlePlacement {
+  /** The placements left after bundle checks (agents read from the bundle are dropped). */
+  readonly kept: Placed[];
+  readonly unavailable: Unavailable[];
+  readonly ruleUnavailable: Unavailable[];
+  /** Agents a client reads from the bundle's own files rather than from a placement. */
+  readonly served: { readonly item: string; readonly cli: string }[];
+  readonly writes: WriteStep[];
+  readonly merges: MergeStep[];
+  /** Per client: each placed bundle and its root. */
+  readonly roots: ReadonlyMap<string, ReadonlyMap<string, PlacedBundle>>;
+  /** Per client with a placed bundle: the items placed with it. */
+  readonly byCli: ReadonlyMap<string, string[]>;
+}
+
+/** The bundle root of a skill folder: the folder with the filled layout taken off its end. */
+function rootOf(path: string, layout: string, name: string): string | undefined {
+  const suffix = folderPath(fill(layout, name));
+  if (path === suffix) return "";
+  return path.endsWith(`/${suffix}`) ? path.slice(0, path.length - suffix.length) : undefined;
+}
+
+/** A client's bundle root when no bundle skill fixes it: its own bundle root or skill place. */
+function templateRoot(
+  profile: ToolProfile,
+  bundle: Bundle,
+  framework: string,
+  scope: Scope,
+): string | undefined {
+  const fixed = profile.bundleRoot?.[scope];
+  if (fixed !== undefined) return fixed.replaceAll("<framework>", framework);
+  const place = profile.places.skill?.[scope];
+  if (place === undefined) return undefined;
+  const template = typeof place === "string" ? place : place.otherwise;
+  return rootOf(folderPath(fill(template, "x")), bundle.layout, "x");
+}
+
+const sortedSet = (values: Iterable<string>) => [...new Set(values)].sort(compareCodeUnits);
+
+/**
+ * Places each client's runtime bundles: the root files once per root at their upstream paths,
+ * copied as one unit at both scopes, the launchers of user-only bundle skills, and the
+ * bundle-root rule in each client's always-on rule place.
+ */
+function placeBundles(
+  resolved: readonly Placed[],
+  profiles: readonly ToolProfile[],
+  scope: Scope,
+): BundlePlacement {
+  const roots = new Map<string, Map<string, PlacedBundle>>();
+  const rootsOf = (cli: string) => {
+    const known = roots.get(cli) ?? new Map<string, PlacedBundle>();
+    roots.set(cli, known);
+    return known;
+  };
+  const unavailable: Unavailable[] = [];
+  const dropped = new Set<Placed>();
+  const fail = (entry: Placed, detail: string) => {
+    unavailable.push({
+      item: entry.item.id,
+      cli: entry.profile.id,
+      reason: "no-bundle-place",
+      detail,
+    });
+    dropped.add(entry);
+  };
+  const isSkillFolder = (entry: Placed) =>
+    entry.item.kind === "skill" && entry.unit.shape === "folder";
+  for (const entry of resolved) {
+    const bundle = entry.bundle;
+    if (bundle === undefined || !isSkillFolder(entry)) continue;
+    const root = rootOf((entry.unit as { path: string }).path, bundle.layout, entry.installName);
+    const known = rootsOf(entry.profile.id).get(bundle.id);
+    if (root === undefined) fail(entry, "the skill folder does not end in the bundle layout");
+    else if (known !== undefined && known.root !== root)
+      fail(entry, "the client would place the bundle at two roots");
+    else if (known !== undefined) known.items.add(entry.item.id);
+    else
+      rootsOf(entry.profile.id).set(bundle.id, { bundle, root, items: new Set([entry.item.id]) });
+  }
+  const served: { item: string; cli: string }[] = [];
+  for (const entry of resolved) {
+    const bundle = entry.bundle;
+    if (bundle === undefined || isSkillFolder(entry) || dropped.has(entry)) continue;
+    let known = rootsOf(entry.profile.id).get(bundle.id);
+    if (known === undefined) {
+      const root = templateRoot(entry.profile, bundle, entry.framework, scope);
+      if (root === undefined) {
+        fail(entry, `the client has no ${scope} place for the bundle's root`);
+        continue;
+      }
+      known = { bundle, root, items: new Set() };
+      rootsOf(entry.profile.id).set(bundle.id, known);
+    }
+    known.items.add(entry.item.id);
+    const prompt = entry.item.agent?.prompt;
+    if (
+      entry.item.kind === "agent" &&
+      entry.unit.shape === "file" &&
+      prompt !== undefined &&
+      bundle.files.some((file) => file.sourcePath === prompt) &&
+      dirnameOf(entry.unit.path) === folderPath(`${known.root}${dirnameOf(prompt)}`)
+    ) {
+      served.push({ item: entry.item.id, cli: entry.profile.id });
+      dropped.add(entry);
+    }
+  }
+
+  const writes: WriteStep[] = [];
+  const groups = new Map<string, { placed: PlacedBundle; items: Set<string>; clis: Set<string> }>();
+  const byCli = new Map<string, string[]>();
+  for (const [cli, map] of roots) {
+    if (map.size === 0) continue;
+    byCli.set(cli, sortedSet([...map.values()].flatMap((placed) => [...placed.items])));
+    for (const placed of map.values()) {
+      const key = `${placed.root}\0${placed.bundle.id}`;
+      const group = groups.get(key) ?? {
+        placed,
+        items: new Set<string>(),
+        clis: new Set<string>(),
+      };
+      for (const item of placed.items) group.items.add(item);
+      group.clis.add(cli);
+      groups.set(key, group);
+    }
+  }
+  for (const { placed, items, clis } of groups.values())
+    for (const file of placed.bundle.files)
+      writes.push({
+        op: "write",
+        root: scope,
+        path: `${placed.root}${file.sourcePath}`,
+        from: {
+          sourceId: placed.bundle.sourceId,
+          sourcePath: file.sourcePath,
+          sha256: file.sha256,
+        },
+        executable: file.executable,
+        bundle: placed.bundle.id,
+        items: sortedSet(items),
+        clis: sortedSet(clis),
+      });
+
+  // Launchers: one line naming the installed SKILL.md, in each fallback place.
+  const kept = resolved.filter((entry) => !dropped.has(entry));
+  for (const entry of kept) {
+    if (entry.launchers === undefined || entry.unit.shape !== "folder") continue;
+    for (const fallback of entry.launchers)
+      writes.push({
+        op: "write",
+        root: scope,
+        path: fill(fallback.path, entry.installName),
+        executable: false,
+        render: {
+          name: "launcher",
+          profile: entry.profile.id,
+          version: entry.profile.version,
+          installName: entry.installName,
+          entry: fallback.id,
+          target: `${entry.unit.path}/SKILL.md`,
+        },
+        scanned: false,
+        item: entry.item.id,
+        clis: [entry.profile.id],
+      });
+  }
+
+  // The bundle-root rule, in each client's always-on rule place.
+  const ruleUnavailable: Unavailable[] = [];
+  const blocks = new Map<
+    string,
+    {
+      bundles: Map<string, { bundle: string; root: string }>;
+      items: Set<string>;
+      clis: Set<string>;
+    }
+  >();
+  for (const profile of profiles) {
+    const map = roots.get(profile.id);
+    if (map === undefined || map.size === 0) continue;
+    const listed = [...map.values()]
+      .map((placed) => ({ bundle: placed.bundle.id, root: placed.root }))
+      .sort((left, right) => compareCodeUnits(left.bundle, right.bundle));
+    const items = byCli.get(profile.id) ?? [];
+    const target = profile.places.rule?.[scope]?.always;
+    if (
+      target === undefined ||
+      (typeof target === "string" && profile.ruleScopes?.always === undefined)
+    ) {
+      ruleUnavailable.push({
+        item: BUNDLE_ROOT_RULE,
+        cli: profile.id,
+        reason: "not-described",
+        detail: `the client has no ${scope} always-on rule place to name the bundle root`,
+      });
+      continue;
+    }
+    if (typeof target === "string") {
+      writes.push({
+        op: "write",
+        root: scope,
+        path: fill(target, BUNDLE_ROOT_NAME),
+        executable: false,
+        render: {
+          name: "bundle-root",
+          profile: profile.id,
+          version: profile.version,
+          bundles: listed,
+        },
+        scanned: false,
+        items,
+        clis: [profile.id],
+      });
+      continue;
+    }
+    const block = blocks.get(target.file) ?? {
+      bundles: new Map(),
+      items: new Set(),
+      clis: new Set(),
+    };
+    for (const entry of listed) block.bundles.set(`${entry.bundle}\0${entry.root}`, entry);
+    for (const item of items) block.items.add(item);
+    block.clis.add(profile.id);
+    blocks.set(target.file, block);
+  }
+  const merges: MergeStep[] = [...blocks].map(([file, block]) => ({
+    op: "merge",
+    root: scope,
+    file,
+    format: "markdown",
+    key: BUNDLE_ROOT_RULE,
+    render: {
+      name: "bundle-root",
+      bundles: [...block.bundles.values()].sort(
+        (left, right) =>
+          compareCodeUnits(left.bundle, right.bundle) || compareCodeUnits(left.root, right.root),
+      ),
+    },
+    scanned: false,
+    items: sortedSet(block.items),
+    clis: sortedSet(block.clis),
+  }));
+  return { kept, unavailable, ruleUnavailable, served, writes, merges, roots, byCli };
+}
+
+/**
+ * Path references no placed bundle provides: for each client an item is placed for, every
+ * source file the item names outside its own files that is not one of its bundle's root files
+ * at that client's bundle root. A plugin route places the whole plugin, so it is not checked.
+ */
+function pathReferencesOf(
+  chosen: readonly string[],
+  byId: ReadonlyMap<string, { content: Content; item: Item }>,
+  kept: readonly Placed[],
+  bundles: BundlePlacement,
+): Reference[] {
+  const placedFor = new Map<string, Set<string>>();
+  const add = (item: string, cli: string) =>
+    placedFor.set(item, new Set([...(placedFor.get(item) ?? []), cli]));
+  for (const entry of kept) add(entry.item.id, entry.profile.id);
+  for (const { item, cli } of bundles.served) add(item, cli);
+  const found = new Map<string, Reference & { clis: string[] }>();
+  for (const id of chosen) {
+    const item = byId.get(id)?.item as Item;
+    for (const cli of placedFor.get(id) ?? []) {
+      const placed =
+        item.bundle === undefined ? undefined : bundles.roots.get(cli)?.get(item.bundle);
+      for (const reference of item.pathReferences ?? []) {
+        if (placed?.bundle.files.some((file) => file.sourcePath === reference.path)) continue;
+        const key = `${id}\0${reference.sourcePath}\0${reference.path}`;
+        const entry = found.get(key) ?? {
+          kind: "path" as const,
+          item: id,
+          file: reference.sourcePath,
+          path: reference.path,
+          clis: [],
+        };
+        entry.clis = sortedSet([...entry.clis, cli]);
+        found.set(key, entry);
+      }
+    }
+  }
+  return [...found.values()].sort(
+    (left, right) =>
+      compareCodeUnits(left.item, right.item) ||
+      compareCodeUnits(left.file, right.file) ||
+      compareCodeUnits(left.path, right.path),
+  );
+}
+
 /** Problems of the supplied contents and profiles, shared by both planners. */
 export function inputProblems(
   contents: readonly Content[],
@@ -997,14 +1376,14 @@ export function planCore(input: CoreInput): PlanResult {
       const { item, content } = byId.get(id) as { item: Item; content: Content };
       const installName = input.installName(item, profile);
       if (installName === undefined) continue;
-      const result = place(item, content.framework.id, profile, scope, installName);
+      const result = place(item, content, profile, scope, installName);
       if (isFailure(result)) unavailable.push({ item: id, cli: profile.id, ...result });
       else placements.push(...result);
     }
 
   // A client that shares another client's place takes it when that place is planned for
   // the same item, as a copy of that placement; otherwise its own place.
-  const resolved: Placed[] = [];
+  let resolved: Placed[] = [];
   const fixed = placements.filter((entry) => entry.reuse === undefined);
   for (const entry of placements) {
     if (entry.reuse === undefined) {
@@ -1023,7 +1402,13 @@ export function planCore(input: CoreInput): PlanResult {
       )
       .find((other) => other !== undefined);
     if (shared) {
-      resolved.push({ ...shared, profile: entry.profile, representative: shared });
+      const { launchers: _launchers, ...base } = shared;
+      resolved.push({
+        ...base,
+        profile: entry.profile,
+        representative: shared,
+        ...(entry.launchers ? { launchers: entry.launchers } : {}),
+      });
       continue;
     }
     if (entry.failure) {
@@ -1034,6 +1419,12 @@ export function planCore(input: CoreInput): PlanResult {
     resolved.push(own);
   }
 
+  // Runtime bundles: each client's bundle root is the parent of its bundle skill folders (or the
+  // profile's own bundle root); agents whose folder is the bundle's are read from the bundle.
+  const bundles = placeBundles(resolved, profiles, scope);
+  for (const failure of bundles.unavailable) unavailable.push(failure);
+  resolved = bundles.kept;
+
   const clashes: Clash[] = [];
   const warnings: Warning[] = [...(extras?.warnings ?? [])];
   const writes: WriteStep[] = [...(extras?.writes ?? [])];
@@ -1043,6 +1434,14 @@ export function planCore(input: CoreInput): PlanResult {
   const serve = (id: string, clis: readonly string[]) =>
     servedBy.set(id, union(servedBy.get(id) ?? [], clis));
   for (const { item, cli } of extras?.served ?? []) serve(item, [cli]);
+  for (const { item, cli } of bundles.served) serve(item, [cli]);
+  writes.push(...bundles.writes);
+  merges.push(...bundles.merges);
+  for (const failure of bundles.ruleUnavailable) unavailable.push(failure);
+  for (const [cli, items] of bundles.byCli) {
+    const profile = sortedProfiles.find((candidate) => candidate.id === cli) as ToolProfile;
+    for (const code of profile.bundleWarnings ?? []) warnings.push({ code, cli, items });
+  }
   const group = <T>(entries: readonly T[], keyOf: (entry: T) => string) => {
     const groups = new Map<string, T[]>();
     for (const entry of entries)
@@ -1410,7 +1809,9 @@ export function planCore(input: CoreInput): PlanResult {
     return { ...rest, contains: [...(contained.get(step.framework) ?? [])].sort(compareCodeUnits) };
   });
 
-  const blocked = missing.length > 0 || unavailable.length > 0 || clashes.length > 0;
+  const references = pathReferencesOf(chosen, byId, resolved, bundles);
+  const blocked =
+    missing.length > 0 || unavailable.length > 0 || clashes.length > 0 || references.length > 0;
   return {
     status: blocked ? "incomplete" : "ok",
     data:
@@ -1423,7 +1824,7 @@ export function planCore(input: CoreInput): PlanResult {
     unavailable,
     clashes,
     duplicates: [],
-    references: [],
+    references,
     warnings,
   };
 }

@@ -14,7 +14,9 @@ import { readJson } from "./internal/kinds.js";
 import type { Content, Item } from "./internal/model.js";
 import { quote, refused } from "./internal/paths.js";
 import {
+  type BundleRootRender,
   type MarketplaceRender,
+  type PlanRender,
   type PlanStep,
   planInstall as plan,
   type WriteStep,
@@ -26,7 +28,14 @@ import {
   type Recipe,
   recipeProblems,
 } from "./internal/recipe.js";
-import { editFor, renderBytes, renderNames, type ToolProfile } from "./internal/render.js";
+import {
+  bundleRootBytes,
+  editFor,
+  launcherBytes,
+  renderBytes,
+  renderNames,
+  type ToolProfile,
+} from "./internal/render.js";
 import { marketplaceBytes, planRecipe as recipePlan } from "./internal/routes.js";
 import { sha256Hex } from "./internal/sha256.js";
 import { contentProblems } from "./internal/validate.js";
@@ -286,9 +295,13 @@ export function renderStep(
       return { status: "invalid", problems: [{ path: "step/render", message: bytes.reason }] };
     return { status: "ok", bytes, sha256: sha256Hex(bytes) };
   }
+  if ((step?.op === "write" || step?.op === "merge") && step.render?.name === "bundle-root")
+    return bundleRootStep(step.render as BundleRootRender, step.root, contents, profiles);
+  if (step?.op === "write" && step.render?.name === "launcher")
+    return launcherStep(step, step.render as PlanRender, contents, profiles);
   const render =
     step?.op === "write" || step?.op === "merge"
-      ? (step.render as Exclude<WriteStep["render"], MarketplaceRender>)
+      ? (step.render as Exclude<WriteStep["render"], MarketplaceRender | BundleRootRender>)
       : undefined;
   const from = step?.op === "write" || step?.op === "merge" ? step.from : undefined;
   const itemId =
@@ -404,4 +417,96 @@ export function renderStep(
         ],
       };
   return { status: "ok", bytes: result.bytes, sha256: sha256Hex(result.bytes) };
+}
+
+const ok = (bytes: Uint8Array): RenderStepResult => ({
+  status: "ok",
+  bytes,
+  sha256: sha256Hex(bytes),
+});
+const badRender = (message: string): Invalid => ({
+  status: "invalid",
+  problems: [{ path: "step/render", message }],
+});
+
+function profileAt(
+  profiles: readonly ToolProfile[],
+  id: unknown,
+  version: unknown,
+): ToolProfile | Refused {
+  const profile = profiles.find((candidate) => candidate.id === id);
+  if (profile === undefined)
+    return refused("profile-mismatch", `no profile ${quote(String(id))} was supplied`);
+  if (profile.version !== version)
+    return refused(
+      "profile-mismatch",
+      `the step was planned with ${String(id)} version ${String(version)}, not version ${profile.version}`,
+    );
+  return profile;
+}
+
+/** The bundle-root rule's bytes, naming each recorded bundle's root from the supplied content. */
+function bundleRootStep(
+  render: BundleRootRender,
+  scope: "project" | "user",
+  contents: readonly Content[],
+  profiles: readonly ToolProfile[],
+): RenderStepResult {
+  if (!Array.isArray(render.bundles) || render.bundles.length === 0)
+    return badRender("the bundle-root render names its bundles");
+  let frontmatter: Readonly<Record<string, unknown>> | undefined;
+  if (render.profile !== undefined) {
+    const profile = profileAt(profiles, render.profile, render.version);
+    if ("status" in profile) return profile;
+    const always = profile.ruleScopes?.always;
+    if (always === undefined) return badRender("the profile has no always-on rule form");
+    frontmatter = always.frontmatter;
+  }
+  const named = [];
+  for (const entry of render.bundles) {
+    const found = contents
+      .map((content) => ({
+        content,
+        bundle: content.bundles?.find((bundle) => bundle.id === entry?.bundle),
+      }))
+      .find((candidate) => candidate.bundle !== undefined);
+    if (found?.bundle === undefined || typeof entry.root !== "string")
+      return refused(
+        "unknown-item",
+        `the bundle ${quote(String(entry?.bundle))} is not in the supplied content`,
+      );
+    named.push({
+      framework: found.content.framework.name,
+      layout: found.bundle.layout,
+      root: entry.root,
+      folders: [
+        ...new Set(found.bundle.files.map((file) => file.sourcePath.split("/")[0] as string)),
+      ].sort(),
+    });
+  }
+  return ok(bundleRootBytes(named, scope, frontmatter));
+}
+
+/** A launcher's bytes: the recorded fallback entry of the profile, naming the recorded target. */
+function launcherStep(
+  step: WriteStep,
+  render: PlanRender,
+  contents: readonly Content[],
+  profiles: readonly ToolProfile[],
+): RenderStepResult {
+  if (!("profile" in render) || typeof render.target !== "string")
+    return badRender("a launcher names its profile and target");
+  const profile = profileAt(profiles, render.profile, render.version);
+  if ("status" in profile) return profile;
+  const item = contents.flatMap((content) => content.items).find((entry) => entry.id === step.item);
+  if (item === undefined || item.kind !== "skill" || item.bundle === undefined)
+    return refused(
+      "unknown-item",
+      `the bundle skill ${quote(String(step.item))} is not in the supplied content`,
+    );
+  const entry = profile.userOnlyFallback?.[step.root]?.find(
+    (candidate) => candidate.id === render.entry,
+  );
+  if (entry === undefined) return badRender("the profile has no such launcher place");
+  return ok(launcherBytes(render.target, entry, step.root));
 }

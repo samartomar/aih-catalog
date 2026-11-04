@@ -5,6 +5,10 @@
     "tools": {}
   },
   "arguments": "substituted",
+  "bundleRoot": {
+    "project": ".kiro/aih/<framework>/",
+    "user": ".kiro/aih/<framework>/"
+  },
   "checkedWith": [
     {
       "app": "kiro-cli",
@@ -139,5 +143,5 @@
       }
     ]
   },
-  "version": 2
+  "version": 3
 }

@@ -12,6 +12,13 @@ import {
   type Problem,
   type Refused,
 } from "./contracts.js";
+import {
+  BUNDLE_LAYOUT,
+  type Bundle,
+  isIncludePattern,
+  matchesInclude,
+  pathReferences,
+} from "./internal/bundle.js";
 import { decodeText } from "./internal/frontmatter.js";
 import { behaviourSha256, contentSha256, installRelative } from "./internal/identity.js";
 import { canonicalDocument, canonicalJson, deepFreeze } from "./internal/json.js";
@@ -24,6 +31,7 @@ import {
   type Edition,
   type FetchedSource,
   FRAMEWORK_ID,
+  ID_SEGMENT,
   INPUT_NAME,
   type InputDeclaration,
   type Item,
@@ -165,6 +173,7 @@ function discovered(item: Item): DiscoveredItem {
     ...(item.requirements ? { requirements: item.requirements } : {}),
     ...(item.dependencies ? { dependencies: item.dependencies } : {}),
     ...(item.purpose !== undefined ? { purpose: item.purpose } : {}),
+    ...(item.bundle !== undefined ? { bundle: item.bundle } : {}),
   };
 }
 
@@ -227,6 +236,7 @@ function requirementsFor(
 async function assemble(
   item: DiscoveredItem,
   index: FileIndex,
+  bundles: ReadonlyMap<string, Bundle>,
 ): Promise<{ item: Item; compare: string[] } | Problem[]> {
   const id = String(item?.id);
   if (!(implementedKinds as readonly string[]).includes(item?.kind))
@@ -279,6 +289,12 @@ async function assemble(
       editions[cli] = { files, scanKey: key };
     }
   }
+  let bundle: Bundle | undefined;
+  if (item.bundle !== undefined) {
+    bundle = bundles.get(item.bundle);
+    if (bundle === undefined) return [{ path: `${id}/bundle`, message: "names no bundle" }];
+  }
+  const references = pathReferences(itemFiles, index.has, index.bytesOf);
   const base: Record<string, unknown> = {
     kind: item.kind,
     files: itemFiles,
@@ -290,30 +306,70 @@ async function assemble(
   const built = {
     id: item.id,
     ...base,
+    ...(bundle ? { bundle: bundle.id } : {}),
+    ...(references.length > 0 ? { pathReferences: references } : {}),
     contentSha256: contentSha256(itemFiles),
-    behaviourSha256: behaviourSha256(base as never, null),
+    behaviourSha256: behaviourSha256(base as never, bundle ? bundle.files : null),
     scanKey,
   } as Item;
-  const compare = [...Object.keys(read.fields), "scanKey", ...(editions ? ["editions"] : [])];
+  const compare = [
+    ...Object.keys(read.fields),
+    "scanKey",
+    "pathReferences",
+    ...(editions ? ["editions"] : []),
+  ];
   if (item.requirements === undefined) compare.push("requirements");
   return { item: built, compare };
 }
 
+/** A plugin folder to record: a folder (`/` for the whole source), optionally an allowlist. */
+export type PluginRequest =
+  | string
+  | { readonly path: string; readonly include?: readonly string[] };
+
+/** A runtime bundle to record: its id, skill layout and the allowlist of its root files. */
+export interface BundleRequest {
+  readonly id: string;
+  readonly layout: string;
+  readonly include: readonly string[];
+}
+
+const fileRecord = (file: SourceFile, index: FileIndex) => ({
+  sourcePath: file.path,
+  sha256: file.sha256 as string,
+  bytes: index.bytesOf(file.path).byteLength,
+  executable: file.mode === "100755",
+});
+
+const sortedPatterns = (include: readonly string[]) => [...include].sort(compareCodeUnits);
+
 /**
- * Records one plugin folder of the source: every regular file under it, and its scan key over
- * folder-relative paths. A link or special file inside the folder is a problem: a copied
- * plugin would silently lose it.
+ * Records one plugin folder of the source: every regular file under it (or, with `include`,
+ * those the upstream's runtime allowlist names), and its scan key over folder-relative paths.
+ * A link or special file among them is a problem: a copied plugin would silently lose it.
  */
 async function pluginFolder(
-  folder: string,
+  request: PluginRequest,
   sourceId: string,
   files: readonly SourceFile[],
   index: FileIndex,
 ): Promise<PluginFolder | Problem[]> {
-  const at = `plugins/${folder}`;
+  const folder = typeof request === "string" ? request : request?.path;
+  const include = typeof request === "string" ? undefined : request?.include;
+  const at = `plugins/${String(folder)}`;
   if (folder !== "/" && !isSafeRelativePath(folder))
     return [{ path: at, message: "a plugin folder is / or a safe folder of the source" }];
-  const inside = (path: string) => folder === "/" || path.startsWith(`${folder}/`);
+  if (
+    include !== undefined &&
+    (!Array.isArray(include) ||
+      include.length === 0 ||
+      !include.every(isIncludePattern) ||
+      new Set(include).size !== include.length)
+  )
+    return [{ path: `${at}/include`, message: "include lists distinct path patterns" }];
+  const inside = (path: string) =>
+    (folder === "/" || path.startsWith(`${folder}/`)) &&
+    (include === undefined || include.some((pattern) => matchesInclude(pattern, path)));
   const entries = (Array.isArray(files) ? files : []).filter((file) => inside(file.path));
   const odd = entries.find((file) => file.mode !== "100644" && file.mode !== "100755");
   if (odd)
@@ -335,12 +391,62 @@ async function pluginFolder(
   return {
     sourceId,
     path: folder,
-    files: sorted.map((file) => ({
-      sourcePath: file.path,
-      sha256: file.sha256 as string,
-      bytes: index.bytesOf(file.path).byteLength,
-      executable: file.mode === "100755",
+    ...(include !== undefined ? { include: sortedPatterns(include) } : {}),
+    files: sorted.map((file) => fileRecord(file, index)),
+    scanKey: key.scanKey,
+  };
+}
+
+/**
+ * Records one runtime bundle: the regular files of the source its allowlist names, at their
+ * upstream paths, and their scan key as one folder rooted at the source root.
+ */
+async function bundleRecord(
+  request: BundleRequest,
+  sourceId: string,
+  files: readonly SourceFile[],
+  index: FileIndex,
+): Promise<Bundle | Problem[]> {
+  const at = `bundles/${String(request?.id)}`;
+  if (
+    typeof request?.id !== "string" ||
+    request.id.length > 512 ||
+    !request.id.split(".").every((segment) => ID_SEGMENT.test(segment))
+  )
+    return [{ path: at, message: "a bundle needs an id of dot-separated segments" }];
+  if (typeof request.layout !== "string" || !BUNDLE_LAYOUT.test(request.layout))
+    return [{ path: `${at}/layout`, message: "layout is a folder path ending in <name>/" }];
+  const include = request.include;
+  if (
+    !Array.isArray(include) ||
+    include.length === 0 ||
+    !include.every(isIncludePattern) ||
+    new Set(include).size !== include.length
+  )
+    return [{ path: `${at}/include`, message: "include lists distinct path patterns" }];
+  const entries = (Array.isArray(files) ? files : []).filter((file) =>
+    include.some((pattern) => matchesInclude(pattern, file.path)),
+  );
+  const odd = entries.find((file) => file.mode !== "100644" && file.mode !== "100755");
+  if (odd) return [{ path: `${at}/${odd.path}`, message: "a bundle holds a link or special file" }];
+  if (entries.length === 0) return [{ path: at, message: "the bundle names no files" }];
+  const absent = entries.find((file) => !index.has(file.path));
+  if (absent)
+    return [{ path: `${at}/${absent.path}`, message: "the file was not supplied with its bytes" }];
+  const sorted = [...entries].sort((left, right) => compareCodeUnits(left.path, right.path));
+  const key = await scanKeyOf(
+    sorted.map((file) => ({
+      path: file.path,
+      mode: file.mode as "100644" | "100755",
+      bytes: index.bytesOf(file.path),
     })),
+  );
+  if (key.status !== "ok") return [{ path: at, message: `scan key: ${key.reason}` }];
+  return {
+    id: request.id,
+    sourceId,
+    layout: request.layout,
+    files: sorted.map((file) => fileRecord(file, index)),
     scanKey: key.scanKey,
   };
 }
@@ -393,8 +499,13 @@ export async function buildContent(
   options: {
     readonly framework: string | { readonly id: string; readonly name: string };
     readonly sourceId?: string;
-    /** Folders of the source (`/` for all of it) to record as upstream plugin folders. */
-    readonly plugins?: readonly string[];
+    /**
+     * Folders of the source (`/` for all of it) to record as upstream plugin folders, each
+     * optionally narrowed to the upstream's runtime allowlist with `include`.
+     */
+    readonly plugins?: readonly PluginRequest[];
+    /** Runtime bundles the items read (`bundle` on a discovered item names one). */
+    readonly bundles?: readonly BundleRequest[];
   },
 ): Promise<BuildContentResult> {
   const framework =
@@ -432,6 +543,17 @@ export async function buildContent(
       };
     })
     .sort((left, right) => compareCodeUnits(left.sourcePath, right.sourcePath));
+  const bundles = new Map<string, Bundle>();
+  const requested = options.bundles ?? [];
+  if (!Array.isArray(requested)) problems.push({ path: "bundles", message: "bundles is a list" });
+  else
+    for (const request of requested) {
+      const result = await bundleRecord(request, sourceId, files, index);
+      if (Array.isArray(result)) problems.push(...result);
+      else if (bundles.has(result.id))
+        problems.push({ path: `bundles/${result.id}`, message: "the bundle id is used twice" });
+      else bundles.set(result.id, result);
+    }
   const built: Item[] = [];
   const proposed: readonly DiscoveredItem[] = Array.isArray(items) ? items : [];
   for (const item of proposed) {
@@ -453,7 +575,7 @@ export async function buildContent(
         "source-mismatch",
         `the bytes of ${quote(mismatched.sourcePath)} differ from the item's sha256`,
       );
-    const result = await assemble(item, index);
+    const result = await assemble(item, index, bundles);
     if (Array.isArray(result)) {
       problems.push(...result);
       continue;
@@ -462,10 +584,14 @@ export async function buildContent(
   }
   const plugins: PluginFolder[] = [];
   const folders = options.plugins ?? [];
-  if (!Array.isArray(folders) || new Set(folders).size !== folders.length)
+  const folderOf = (request: PluginRequest) =>
+    typeof request === "string" ? request : String(request?.path);
+  if (!Array.isArray(folders) || new Set(folders.map(folderOf)).size !== folders.length)
     problems.push({ path: "plugins", message: "plugins lists distinct folders" });
   else
-    for (const folder of [...folders].sort(compareCodeUnits)) {
+    for (const folder of [...folders].sort((left, right) =>
+      compareCodeUnits(folderOf(left), folderOf(right)),
+    )) {
       const result = await pluginFolder(folder, sourceId, files, index);
       if (Array.isArray(result)) problems.push(...result);
       else plugins.push(result);
@@ -477,6 +603,11 @@ export async function buildContent(
     framework: { id: framework.id, name: framework.name },
     sources: [contentSource],
     items: built.sort((left, right) => compareCodeUnits(left.id, right.id)),
+    ...(bundles.size > 0
+      ? {
+          bundles: [...bundles.values()].sort((left, right) => compareCodeUnits(left.id, right.id)),
+        }
+      : {}),
     ...(plugins.length > 0 ? { plugins } : {}),
   };
   const shape = contentProblems(content);
@@ -548,7 +679,11 @@ export async function checkContent(
           });
       }
       if (!(implementedKinds as readonly string[]).includes(item.kind)) continue;
-      const result = await assemble(view, index);
+      const result = await assemble(
+        view,
+        index,
+        new Map((content.bundles ?? []).map((bundle) => [bundle.id, bundle])),
+      );
       if (Array.isArray(result)) {
         problems.push(...result);
         continue;
@@ -571,9 +706,33 @@ export async function checkContent(
     }
   }
   if (problems.length === 0 && files !== undefined)
+    for (const [at, bundle] of (content.bundles ?? []).entries()) {
+      const index = indexFiles(files);
+      const result = await bundleRecord(
+        {
+          id: bundle.id,
+          layout: bundle.layout,
+          include: bundle.files.map((file) => file.sourcePath),
+        },
+        bundle.sourceId,
+        files,
+        index,
+      );
+      if (Array.isArray(result) || canonicalJson(result) !== canonicalJson(bundle))
+        problems.push({
+          path: `bundles/${at}`,
+          message: "the recorded bundle differs from the files",
+        });
+    }
+  if (problems.length === 0 && files !== undefined)
     for (const [at, plugin] of (content.plugins ?? []).entries()) {
       const index = indexFiles(files);
-      const result = await pluginFolder(plugin.path, plugin.sourceId, files, index);
+      const result = await pluginFolder(
+        plugin.include ? { path: plugin.path, include: plugin.include } : plugin.path,
+        plugin.sourceId,
+        files,
+        index,
+      );
       if (Array.isArray(result)) problems.push(...result);
       else if (canonicalJson(result) !== canonicalJson(plugin))
         problems.push({

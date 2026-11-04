@@ -21,7 +21,7 @@ import {
 import { canonicalDocument, canonicalJson } from "./json.js";
 import { skillFile } from "./kinds.js";
 import type { Item } from "./model.js";
-import type { RuleScopeKey, Scope, ToolProfile } from "./profile.js";
+import type { RuleScopeKey, Scope, ToolProfile, UserOnlyFallbackEntry } from "./profile.js";
 
 export type { ToolProfile } from "./profile.js";
 
@@ -33,7 +33,8 @@ export type RenderName =
   | "rule-block"
   | "agent"
   | "shared-skill"
-  | "shared-user-only-file";
+  | "shared-user-only-file"
+  | "launcher";
 export const renderNames: readonly RenderName[] = [
   "skill",
   "user-only-file",
@@ -43,6 +44,7 @@ export const renderNames: readonly RenderName[] = [
   "agent",
   "shared-skill",
   "shared-user-only-file",
+  "launcher",
 ];
 /** The combined renders, made from several sharing clients' profiles at once. */
 export const sharedRenderNames: readonly RenderName[] = ["shared-skill", "shared-user-only-file"];
@@ -373,4 +375,76 @@ export function renderBytes(
   const output = `---\n${yaml}---\n${body}`;
   if (splitFrontmatter(output).body !== body) return { reason: "render guard: the prompt changed" };
   return encode(output);
+}
+
+/** Frontmatter lines for a generated Markdown file; empty when no key is set. */
+function frontmatterBlock(set: Readonly<Record<string, unknown>>): string {
+  const entries = Object.entries(set);
+  if (entries.length === 0) return "";
+  const yaml = entries
+    .map(([key, value]) => stringify({ [key]: value }, { lineWidth: 0 }))
+    .join("");
+  return `---\n${yaml}---\n`;
+}
+
+/** A path from the plan root as the text of an installed file names it (`~/` at user scope). */
+const shown = (path: string, scope: Scope) => (scope === "user" ? `~/${path}` : path);
+
+/**
+ * A launcher (D43): one line that tells the agent to read and follow the installed `SKILL.md`,
+ * passing on the user's arguments where the fallback entry keeps them, with the entry's own
+ * frontmatter (Kiro manual steering: `inclusion: manual`).
+ */
+export function launcherBytes(
+  target: string,
+  entry: UserOnlyFallbackEntry,
+  scope: Scope,
+): Uint8Array {
+  const line =
+    entry.arguments === "kept"
+      ? `Read and follow \`${shown(target, scope)}\`. The user's argument: $ARGUMENTS\n`
+      : `Read and follow \`${shown(target, scope)}\`.\n`;
+  return new TextEncoder().encode(`${frontmatterBlock(entry.frontmatter ?? {})}${line}`);
+}
+
+/** One placed bundle, as the bundle-root rule names it. */
+export interface NamedBundle {
+  readonly framework: string;
+  readonly layout: string;
+  readonly root: string;
+  readonly folders: readonly string[];
+}
+
+const listed = (names: readonly string[]): string => {
+  const quoted = names.map((name) => `\`${name}\``);
+  return quoted.length <= 1
+    ? (quoted[0] ?? "")
+    : `${quoted.slice(0, -1).join(", ")} and ${quoted[quoted.length - 1]}`;
+};
+
+/**
+ * The bundle-root rule (D82): no client resolves a bundle's relative paths from the skill
+ * folder up to the bundle root, so an always-on rule names each placed bundle's root. A rule
+ * file takes the profile's always-on frontmatter; a Markdown block (`frontmatter` undefined)
+ * is the text alone.
+ */
+export function bundleRootBytes(
+  bundles: readonly NamedBundle[],
+  scope: Scope,
+  frontmatter?: Readonly<Record<string, unknown>>,
+): Uint8Array {
+  const lines = bundles.map((bundle) => {
+    const root = bundle.root === "" ? "the project root" : `\`${shown(bundle.root, scope)}\``;
+    const skills = `${shown(bundle.root, scope)}${bundle.layout.replace(/<name>\/$/, "")}`;
+    return `- ${bundle.framework}: its skills in \`${skills}\` and its agents read ${listed(bundle.folders.map((folder) => `${folder}/`))} relative to ${root}.`;
+  });
+  const text = [
+    "# Bundle roots",
+    "",
+    "Some installed skills read shared files from a bundle root. Resolve those paths against the root named here.",
+    "",
+    ...lines,
+    "",
+  ].join("\n");
+  return new TextEncoder().encode(`${frontmatterBlock(frontmatter ?? {})}${text}`);
 }
