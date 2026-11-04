@@ -12787,14 +12787,6 @@
         {
           "path": "hooks/hooks.json",
           "sourcePath": "skills/continuous-learning-v2/SKILL.md"
-        },
-        {
-          "path": "tests/hooks/observer-loop-archive.test.js",
-          "sourcePath": "skills/continuous-learning-v2/agents/observer-loop.sh"
-        },
-        {
-          "path": "hooks/hooks.json",
-          "sourcePath": "skills/continuous-learning-v2/hooks/observe.sh"
         }
       ],
       "scanKey": "git-sha1:aeff297ce06f142ac06c35314f2f83f1584ddc62",
@@ -20092,10 +20084,6 @@
         {
           "path": "rules/common/testing.md",
           "sourcePath": "skills/skill-comply/fixtures/tdd_spec.yaml"
-        },
-        {
-          "path": "rules/common/testing.md",
-          "sourcePath": "skills/skill-comply/tests/test_grader.py"
         }
       ],
       "scanKey": "git-sha1:45ae983414e72707ec9f2c9e9e319473d530bffc",

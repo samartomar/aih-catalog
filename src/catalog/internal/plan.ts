@@ -211,8 +211,28 @@ export interface SetupStep {
   readonly approval: "required";
 }
 
+/**
+ * A file of an upstream-only item (`fetch: "upstream"`), which Catalog may not ship: the
+ * installer fetches it from the pinned content source `source` and checks its sha256. The
+ * first phase of a plan; never scanned for now.
+ */
+export interface FetchStep {
+  readonly op: "fetch";
+  readonly root: Scope;
+  readonly path: string;
+  /** The content source id; its recorded pin is the exact identity. */
+  readonly source: string;
+  readonly sourcePath: string;
+  readonly sha256: string;
+  readonly executable: boolean;
+  readonly item?: string;
+  readonly items?: readonly string[];
+  readonly clis: readonly string[];
+  readonly scanned: false;
+}
+
 /** Steps that place files or entries; each carries the clients it serves (`clis`). */
-export type PlacementStep = WriteStep | LinkStep | MergeStep;
+export type PlacementStep = FetchStep | WriteStep | LinkStep | MergeStep;
 export type PlanStep = PlacementStep | PluginStep | SetupStep;
 
 export interface Missing {
@@ -511,8 +531,6 @@ function place(
     };
   const unsupported = profile.unsupported?.[item.kind];
   if (unsupported !== undefined) return { reason: "unsupported-kind", detail: unsupported };
-  if (item.fetch === "upstream")
-    return { reason: "not-implemented", detail: "upstream fetching is not implemented yet" };
   const edition = item.editions?.[profile.id];
   const own = item.files.filter((file) => file.cli === undefined || file.cli === profile.id);
 
@@ -2200,9 +2218,39 @@ export function planCore(input: CoreInput): PlanResult {
     (left, right) =>
       compareCodeUnits(left.cli, right.cli) || compareCodeUnits(left.framework, right.framework),
   );
+  // An upstream-only item's copied files (and notices that cover only such items) are fetched
+  // from the pinned source instead of written; a rendered file stays a write of the fetched bytes.
+  const upstreamOnly = (id: string) => byId.get(id)?.item.fetch === "upstream";
+  const fetches: FetchStep[] = [];
+  const shippedWrites = finalWrites.filter((step) => {
+    const owners = step.item ? [step.item] : (step.items ?? []);
+    if (
+      step.from === undefined ||
+      step.render !== undefined ||
+      step.bundle !== undefined ||
+      step.framework !== undefined ||
+      owners.length === 0 ||
+      !owners.every(upstreamOnly)
+    )
+      return true;
+    fetches.push({
+      op: "fetch",
+      root: step.root,
+      path: step.path,
+      source: step.from.sourceId,
+      sourcePath: step.from.sourcePath,
+      sha256: step.from.sha256,
+      executable: step.executable,
+      ...(step.item ? { item: step.item } : { items: owners }),
+      clis: step.clis,
+      scanned: false,
+    });
+    return false;
+  });
   // The first step of each local-plugin route group, in final order, lists what it contains.
-  const placementSteps: (WriteStep | LinkStep | MergeStep)[] = [
-    ...finalWrites,
+  const placementSteps: (FetchStep | WriteStep | LinkStep | MergeStep)[] = [
+    ...fetches,
+    ...shippedWrites,
     ...links,
     ...merges,
   ];
@@ -2215,7 +2263,12 @@ export function planCore(input: CoreInput): PlanResult {
       );
   const marked = new Set<string>();
   const ordered = placementSteps.map((step) => {
-    if (step.op === "link" || step.route !== "local-plugin" || step.framework === undefined)
+    if (
+      step.op === "link" ||
+      step.op === "fetch" ||
+      step.route !== "local-plugin" ||
+      step.framework === undefined
+    )
       return step;
     const { contains: _contains, ...rest } = step;
     if (marked.has(step.framework)) return rest;

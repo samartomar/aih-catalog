@@ -357,7 +357,7 @@ function checkPlugins(value: unknown, sourceIds: ReadonlySet<string>, problems: 
     problems.keys(
       plugin,
       path,
-      ["sourceId", "path", "include", "files", "scanKey"],
+      ["sourceId", "path", "include", "plugin", "files", "scanKey"],
       ["sourceId", "path", "files", "scanKey"],
     );
     const include = plugin.include;
@@ -376,7 +376,16 @@ function checkPlugins(value: unknown, sourceIds: ReadonlySet<string>, problems: 
     const folder = plugin.path;
     if (folder !== "/" && !isSafeRelativePath(folder))
       problems.add(`${path}/path`, "path must be / or a folder");
-    const key = `${String(plugin.sourceId)}\0${String(folder)}`;
+    if (
+      plugin.plugin !== undefined &&
+      !(
+        typeof plugin.plugin === "string" &&
+        plugin.plugin.length <= 64 &&
+        INSTALL_NAME.test(plugin.plugin)
+      )
+    )
+      problems.add(`${path}/plugin`, "a kebab-case plugin name");
+    const key = `${String(plugin.sourceId)}\0${String(folder)}\0${String(plugin.plugin ?? "")}`;
     if (seen.has(key)) problems.add(path, "the plugin folder is recorded twice");
     seen.add(key);
     if (typeof plugin.scanKey !== "string" || !SCAN_KEY.test(plugin.scanKey))
