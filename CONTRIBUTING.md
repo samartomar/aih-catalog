@@ -13,9 +13,11 @@ tests for changed behavior. Read [the transition](docs/TRANSITION.md) before cha
 which checks are active.
 
 The active tests (`npm test`, inventory in `vitest.transition.config.ts`) cover the new
-source-to-plan library under `tests/catalog` plus retained donor integrity checks:
-strict JSON reading, source-link parsing, redirect-safe pinned fetching, the publication
-refusal with the packed package read, and repository instructions. While working on one
+source-to-plan library under `tests/catalog`, including source-link parsing and pinned Git
+and npm fetching, plus retained donor integrity checks: strict JSON reading, the
+publication refusal with the packed package read, and repository instructions. The
+fetching tests need `git` and `npm` on `PATH`; they use only disposable local repositories
+and a local registry, never the network. While working on one
 behavior, run only its file, for example
 `npx vitest run --config vitest.transition.config.ts tests/catalog/own-folder.test.ts`.
 New-model tests call the public functions of `src/catalog` against disposable folders and

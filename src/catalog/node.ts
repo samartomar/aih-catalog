@@ -13,13 +13,23 @@ import {
   readSync,
   type Stats,
 } from "node:fs";
+import { homedir } from "node:os";
 import { join } from "node:path";
-import { limits, type Refused } from "./contracts.js";
-import type { LocalSource, SourceFile } from "./internal/model.js";
+import { type Invalid, limits, type Refused } from "./contracts.js";
+import { acquireGit, acquireNpm, type Skipped } from "./internal/acquire.js";
+import type { GitSource, LocalSource, NpmSource, SourceFile } from "./internal/model.js";
 import { compareCodeUnits, limitRefusal, quote, refused } from "./internal/paths.js";
+import type { SourceCandidate } from "./internal/source-link.js";
 import { type ReadContentResult, readContent } from "./reader.js";
 
-export type { LocalSource, SourceFile } from "./internal/model.js";
+export type { Skipped } from "./internal/acquire.js";
+export type {
+  FetchedSource,
+  GitSource,
+  LocalSource,
+  NpmSource,
+  SourceFile,
+} from "./internal/model.js";
 
 export type ReadLocalSourceResult =
   | {
@@ -166,4 +176,50 @@ export function readContentFile(path: string): ReadContentResult | Refused {
   if (bytes === "changed")
     return refused("source-mismatch", `the content file ${quote(path)} changed while it was read`);
   return readContent(new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength));
+}
+
+export type FetchSourceResult =
+  | {
+      readonly status: "ok";
+      readonly source: LocalSource | GitSource | NpmSource;
+      readonly files: readonly SourceFile[];
+      /** Entries deliberately not read: VCS metadata and Git submodules. */
+      readonly skipped: readonly Skipped[];
+      /** For npm: the tarball's sha512 integrity, checked against what npm verified. */
+      readonly integrity?: string;
+    }
+  | Refused
+  | Invalid;
+
+/**
+ * Reads the source a `parseSourceLink` candidate names. A local folder is read with
+ * `readLocalSource` (a leading `~` is the home folder). A Git candidate is fetched at its
+ * ref (a branch or tag is pinned to the commit it names now; no ref means the default
+ * branch) without hooks, checkout or user configuration; with a `subpath` only that folder
+ * is the source. An npm candidate is resolved to one exact version and its tarball unpacked
+ * as files only, with lifecycle scripts disabled. Working files go in a new folder inside
+ * `outDir`; `registry` overrides the npm registry. Every source limit applies.
+ */
+export async function fetchSource(
+  candidate: SourceCandidate,
+  options: { readonly outDir: string; readonly registry?: string },
+): Promise<FetchSourceResult> {
+  switch (candidate?.kind) {
+    case "local": {
+      const path = candidate.path;
+      if (typeof path !== "string") return refused("not-found", "no local path was given");
+      const expanded =
+        path === "~" ? homedir() : /^~[\\/]/.test(path) ? join(homedir(), path.slice(2)) : path;
+      return readLocalSource(expanded);
+    }
+    case "git":
+      return acquireGit(candidate, options?.outDir);
+    case "npm":
+      return acquireNpm(candidate, options?.outDir, options?.registry);
+    default:
+      return {
+        status: "invalid",
+        problems: [{ path: "candidate", message: "the candidate kind must be local, git or npm" }],
+      };
+  }
 }

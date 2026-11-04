@@ -24,6 +24,14 @@ import {
 } from "./internal/paths.js";
 
 export type { DiscoveredItem, LeftOver, Notice, SourceFile } from "./internal/model.js";
+export {
+  type GitCandidate,
+  type LocalCandidate,
+  type NpmCandidate,
+  type ParseSourceLinkResult,
+  parseSourceLink,
+  type SourceCandidate,
+} from "./internal/source-link.js";
 
 export type FindItemsResult =
   | {
