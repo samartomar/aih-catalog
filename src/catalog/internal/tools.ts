@@ -256,7 +256,7 @@ function standalone(
 
 /**
  * The result of the latest run among records that are not qualified (latest `result.date`,
- * then the lowest sha256, as D95 chooses among qualified ones), as the unavailable reason.
+ * then the lowest sha256, as the choice among qualified ones goes), as the unavailable reason.
  */
 function notQualified(
   records: readonly { readonly sha256: string; readonly record: Qualification }[],

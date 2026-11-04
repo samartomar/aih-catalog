@@ -544,7 +544,7 @@ async function pluginFolder(
   );
   if (key.status !== "ok") return [{ path: at, message: `scan key: ${key.reason}` }];
   // A native plugin install clones the whole folder, not the allowlist, so an allowlisted
-  // record also keys every file under the folder: the key a `plugin` step names (D72).
+  // record also keys every file under the folder: the key a `plugin` step names.
   let folderScanKey: string | undefined;
   if (include !== undefined) {
     const whole = (Array.isArray(files) ? files : [])
@@ -1163,7 +1163,7 @@ export async function checkContent(
               ],
         ),
         ...(content.bundles ?? []).map((bundle) => bundle.scanKey),
-        // A recorded plugin folder is installed by a plugin or local-plugin route (D72).
+        // A recorded plugin folder is installed by a plugin or local-plugin route.
         ...(content.plugins ?? []).flatMap((plugin) => [plugin.scanKey, plugin.folderScanKey]),
       ].flatMap((key) => (key && !scanned.has(key) ? [key] : [])),
     ),

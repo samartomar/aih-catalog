@@ -690,7 +690,7 @@ function place(
             detail: `the client can neither flag nor fall back for a user-only skill at ${scope} scope`,
           };
         // A skill with support files cannot move into a prompt or command file without losing
-        // them, so it keeps its folder, as a bundle skill does (D43): where the client loads
+        // them, so it keeps its folder, as a bundle skill does: where the client loads
         // every skill folder it is given (Kiro), under the client's own root for such folders,
         // which it does not scan; else at its skill place. Its fallbacks become launchers.
         if (own.length > 1) {
@@ -1851,7 +1851,7 @@ export interface CoreInput extends ToolOptions {
   /** A combination recipe's id and its qualification's sha256 for the cell. */
   readonly combination?: { readonly recipe: string; readonly sha256?: string };
   /**
-   * Pairs a recipe does not force (D20, D114): on clients the upstream does not install on,
+   * Pairs a recipe does not force: on clients the upstream does not install on,
    * items the recipe chose (not the user) that are unavailable are listed without blocking.
    */
   readonly notForced?: { readonly clis: readonly string[]; readonly items: readonly string[] };
@@ -2070,7 +2070,7 @@ function noticeWrites(
           const { item, content: owner } = byId.get(id) as { item: Item; content: Content };
           if (owner !== content) return false;
           if (source.noticesFor?.includes(id)) return true;
-          // A file cut out of a shared upstream file (D65) carries that file's notices: cut-outs
+          // A file cut out of a shared upstream file carries that file's notices: cut-outs
           // come only from the content's first source.
           return item.files.some(
             (file) =>
