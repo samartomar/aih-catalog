@@ -4,6 +4,7 @@ import {
   chmodSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   rmSync,
   symlinkSync,
@@ -92,6 +93,68 @@ export function gitTree(files: Readonly<Record<string, string>>): string {
   git("add", "--all");
   return git("write-tree");
 }
+
+const gitEnvironment = (): NodeJS.ProcessEnv => {
+  const env: NodeJS.ProcessEnv = {};
+  for (const [key, value] of Object.entries(process.env))
+    if (!key.startsWith("GIT_")) env[key] = value;
+  return { ...env, GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: "/dev/null" };
+};
+
+/** Runs git in `cwd` with no hooks and no user or system configuration. */
+export function git(cwd: string, ...args: string[]): string {
+  return execFileSync(
+    "git",
+    [
+      "-c",
+      "core.hooksPath=/dev/null",
+      "-c",
+      "user.name=Fixture",
+      "-c",
+      "user.email=fixture@example.invalid",
+      "-c",
+      "commit.gpgsign=false",
+      "-c",
+      "tag.gpgsign=false",
+      ...args,
+    ],
+    { cwd, encoding: "utf8", env: gitEnvironment() },
+  ).trim();
+}
+
+/**
+ * A disposable Git repository on branch `main` with one commit per tree, in order; each
+ * tree replaces the whole work tree. Returns the folder and every commit id.
+ */
+export function gitRepository(...trees: Readonly<Record<string, TreeEntry>>[]): {
+  readonly path: string;
+  readonly commits: readonly string[];
+} {
+  const path = folder({}, "upstream");
+  git(path, "init", "--quiet", "--initial-branch=main");
+  const commits: string[] = [];
+  for (const [index, tree] of trees.entries()) {
+    for (const name of readdirSync(path))
+      if (name !== ".git") rmSync(join(path, name), { recursive: true, force: true });
+    for (const [file, entry] of Object.entries(tree)) {
+      const target = join(path, file);
+      mkdirSync(dirname(target), { recursive: true });
+      if (typeof entry === "string") writeFileSync(target, entry);
+      else if ("link" in entry) symlinkSync(entry.link, target);
+      else {
+        writeFileSync(target, entry.text);
+        chmodSync(target, entry.executable ? 0o755 : 0o644);
+      }
+    }
+    git(path, "add", "--all");
+    git(path, "commit", "--quiet", "--allow-empty", "-m", `commit ${index + 1}`);
+    commits.push(git(path, "rev-parse", "HEAD"));
+  }
+  return { path, commits };
+}
+
+/** A fresh, empty folder for `fetchSource` to work in; removed after each test. */
+export const outDir = (): string => folder({}, "out");
 
 /** Reads, discovers and builds one own folder through the public functions. */
 export async function ownContent(root: string) {

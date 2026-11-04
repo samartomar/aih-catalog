@@ -25,11 +25,13 @@ import {
   type Content,
   type ContentSource,
   type DiscoveredItem,
+  type FetchedSource,
   FRAMEWORK_ID,
   INSTALL_NAME,
   type Item,
   type ItemFile,
-  type LocalSource,
+  NPM_PACKAGE,
+  OBJECT_ID,
   type RuleScope,
   type SourceFile,
 } from "./internal/model.js";
@@ -43,6 +45,7 @@ import {
   refused,
 } from "./internal/paths.js";
 import { sha256Hex } from "./internal/sha256.js";
+import { EXACT_VERSION } from "./internal/source-link.js";
 import { contentProblems } from "./internal/validate.js";
 import { isNoticePath } from "./source.js";
 
@@ -222,14 +225,49 @@ function indexFiles(files: readonly SourceFile[]): FileIndex {
   return { bytesOf: (path) => map.get(path) as Uint8Array, has: (path) => map.has(path) };
 }
 
+type Pin = Omit<ContentSource, "id" | "notices">;
+
 /**
- * Builds one framework content document from a local source, its files and the items
+ * The exact identity a content source records. A Git source needs its commit id and an npm
+ * source its exact version: a branch, tag or range is never recorded. A local source records
+ * no machine path.
+ */
+function sourcePin(source: FetchedSource): Pin | string {
+  switch (source?.kind) {
+    case "local":
+      return { kind: "local" };
+    case "git": {
+      const { repository, commit, subpath } = source;
+      if (typeof repository !== "string" || repository.length === 0 || repository.length > 2048)
+        return "a git source needs its repository";
+      if (typeof commit !== "string" || !OBJECT_ID.test(commit))
+        return "a git source needs the exact commit id it was read at, not a branch or tag";
+      if (subpath !== undefined && !isSafeRelativePath(subpath)) return "the subpath is not safe";
+      return subpath === undefined
+        ? { kind: "git", repository, commit }
+        : { kind: "git", repository, commit, subpath };
+    }
+    case "npm": {
+      const { package: name, version } = source;
+      if (typeof name !== "string" || !NPM_PACKAGE.test(name))
+        return "an npm source needs its package name";
+      if (typeof version !== "string" || !EXACT_VERSION.test(version))
+        return "an npm source needs the exact version it was read at, not a range or tag";
+      return { kind: "npm", package: name, version };
+    }
+    default:
+      return "the source must be local, git or npm";
+  }
+}
+
+/**
+ * Builds one framework content document from a local, Git or npm source, its files and the items
  * `findItems` proposed. Every item file and notice must be supplied with bytes matching its
  * sha256; a changed byte is `refused` (`source-mismatch`). File-owned fields that the bytes
  * cannot support (no name, no description, malformed frontmatter) are `invalid`.
  */
 export async function buildContent(
-  source: LocalSource,
+  source: FetchedSource,
   files: readonly SourceFile[],
   items: readonly DiscoveredItem[],
   options: {
@@ -252,12 +290,9 @@ export async function buildContent(
       problems: [{ path: "framework", message: "a framework id (and optional name) is required" }],
     };
   }
-  if (source?.kind !== "local") {
-    return refused(
-      "not-implemented",
-      "building content from git or npm sources is not implemented yet",
-    );
-  }
+  const pinned = sourcePin(source);
+  if (typeof pinned === "string")
+    return { status: "invalid", problems: [{ path: "source", message: pinned }] };
   const sourceId = options.sourceId ?? framework.id;
   const index = indexFiles(files);
   if (index.problem) return index.problem;
@@ -332,7 +367,7 @@ export async function buildContent(
     } as Item);
   }
   if (problems.length > 0) return { status: "invalid", problems };
-  const contentSource: ContentSource = { id: sourceId, kind: "local", notices };
+  const contentSource: ContentSource = { id: sourceId, ...pinned, notices };
   const content: Content = {
     schema: formats.content,
     framework: { id: framework.id, name: framework.name },

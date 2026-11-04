@@ -20,6 +20,24 @@ export interface LocalSource {
   readonly path: string;
 }
 
+/** A Git source at one exact commit; with a `subpath`, only that folder is the source. */
+export interface GitSource {
+  readonly kind: "git";
+  readonly repository: string;
+  readonly commit: string;
+  readonly subpath?: string;
+}
+
+/** An npm source at one exact version. */
+export interface NpmSource {
+  readonly kind: "npm";
+  readonly package: string;
+  readonly version: string;
+}
+
+/** What `readLocalSource` and `fetchSource` read files from. */
+export type FetchedSource = LocalSource | GitSource | NpmSource;
+
 export interface ItemFile {
   readonly sourceId: string;
   readonly sourcePath: string;
@@ -111,3 +129,6 @@ export const ID_SEGMENT = /^[A-Za-z0-9][A-Za-z0-9_-]*$/;
 export const FRAMEWORK_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 export const INSTALL_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 export const SHA256 = /^[0-9a-f]{64}$/;
+/** A Git object id: SHA-1 (40 hex) or SHA-256 (64 hex). */
+export const OBJECT_ID = /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/;
+export const NPM_PACKAGE = /^(?:@[a-z0-9~-][a-z0-9._~-]*\/)?[a-z0-9~-][a-z0-9._~-]*$/;

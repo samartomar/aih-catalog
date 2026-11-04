@@ -4,6 +4,7 @@
  */
 
 export const formats = {
+  sourceLink: "urn:aihq:catalog:source-link:0.1.0",
   content: "urn:aihq:catalog:content:0.1.0",
   toolProfile: "urn:aihq:catalog:tool-profile:0.1.0",
 } as const;
@@ -66,6 +67,8 @@ export const refusalCodes = [
   "link",
   /** The local path could not be read. */
   "unreadable",
+  /** A Git repository or npm package could not be fetched at the requested ref or version. */
+  "fetch-failed",
   /** The request needs behavior this implementation does not provide yet. */
   "not-implemented",
 ] as const;

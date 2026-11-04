@@ -4,8 +4,17 @@
  */
 import { formats, kinds, type Problem } from "../contracts.js";
 import { behaviourSha256, contentSha256, kindFieldNames } from "./identity.js";
-import { FRAMEWORK_ID, ID_SEGMENT, INSTALL_NAME, type Item, SHA256 } from "./model.js";
+import {
+  FRAMEWORK_ID,
+  ID_SEGMENT,
+  INSTALL_NAME,
+  type Item,
+  NPM_PACKAGE,
+  OBJECT_ID,
+  SHA256,
+} from "./model.js";
 import { isSafeRelativePath } from "./paths.js";
+import { EXACT_VERSION } from "./source-link.js";
 
 type Record_ = Record<string, unknown>;
 const isRecord = (value: unknown): value is Record_ =>
@@ -136,6 +145,26 @@ export function contentProblems(value: unknown): Problem[] {
           problems.add(`${path}/${key}`, "must be a string");
       if (source.subpath !== undefined && !isSafeRelativePath(source.subpath))
         problems.add(`${path}/subpath`, "unsafe subpath");
+      // Pinned identity: a Git source records its commit id, an npm source its exact version.
+      const absent = (keys: readonly string[]) => {
+        for (const key of keys)
+          if (source[key] !== undefined)
+            problems.add(`${path}/${key}`, `a ${String(source.kind)} source has no ${key}`);
+      };
+      if (source.kind === "git") {
+        if (!isString(source.repository, 2048))
+          problems.add(`${path}/repository`, "a git source needs its repository");
+        if (typeof source.commit !== "string" || !OBJECT_ID.test(source.commit))
+          problems.add(`${path}/commit`, "a git source needs an exact commit id");
+        absent(["package", "version"]);
+      } else if (source.kind === "npm") {
+        if (typeof source.package !== "string" || !NPM_PACKAGE.test(source.package))
+          problems.add(`${path}/package`, "an npm source needs its package name");
+        if (typeof source.version !== "string" || !EXACT_VERSION.test(source.version))
+          problems.add(`${path}/version`, "an npm source needs an exact version");
+        absent(["repository", "commit", "subpath"]);
+      } else if (source.kind === "local")
+        absent(["repository", "commit", "package", "version", "subpath"]);
       checkIdList(source.noticesFor, `${path}/noticesFor`, problems);
       if (!Array.isArray(source.notices)) problems.add(`${path}/notices`, "notices must be a list");
       else
