@@ -494,6 +494,35 @@ describe("EGM's base recipe at project scope", () => {
     expect(routed.status).toBe("incomplete");
     expect(routed.unavailable.map((entry) => entry.cli)).toEqual(AGENT_IDS.map(() => "dsh"));
   });
+
+  it("still blocks on a persona the user picks in a recipe group, where the recipe gives dsh no route", async () => {
+    const { content } = await egmContent();
+    const grouped = {
+      ...egmRecipe({ codex: "items" }),
+      members: SKILL_IDS.map((item) => ({ item, preTicked: true })),
+      options: [
+        {
+          id: "personas",
+          pick: "several",
+          items: AGENT_IDS.map((item) => ({ item, preTicked: true })),
+        },
+      ],
+    } as unknown as Recipe;
+    const plan = (choices: Record<string, string[]>) =>
+      planRecipe(grouped, [content], [profile("codex"), profile("dsh")], choices, {
+        scope: "project",
+        source: RECIPE_SOURCE,
+      }) as Plan;
+    // Left alone, the group's pre-ticked personas are the recipe's choice: listed, not forced.
+    const alone = plan({});
+    expect(alone.status).toBe("ok");
+    expect(alone.unavailable.map((entry) => entry.item)).toEqual(AGENT_IDS);
+    // Picked by the user, the same persona is forced: unavailable on dsh, the plan is incomplete.
+    const persona = AGENT_IDS[0] as string;
+    const picked = plan({ personas: [persona] });
+    expect(picked.status).toBe("incomplete");
+    expect(picked.unavailable).toEqual([expect.objectContaining({ item: persona, cli: "dsh" })]);
+  });
 });
 
 describe("EGM with its bundle removed", () => {
