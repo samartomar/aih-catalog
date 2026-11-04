@@ -501,7 +501,7 @@ const RESOLVER = "aih.agent.duplicate-resolver";
       JSON.stringify(chosen.unavailable),
     );
   });
-  shared.d113 = { renamed, mixed };
+  shared.resolverCase = { renamed, mixed };
   journeys.push(j.finish());
 }
 
@@ -1163,7 +1163,7 @@ const regression = (id, title, basis) => journey(id, title, basis);
 {
   const r = regression("resolver-warning", "Resolver-unavailable warning versus an explicitly selected unsupported agent", "candidate-data");
   await r.check("the helper's absence on dsh warns and does not block; a chosen agent does", () => {
-    const { renamed } = shared.d113;
+    const { renamed } = shared.resolverCase;
     assert.equal(renamed.status, "ok");
     assert.ok(renamed.warnings.some((warning) => warning.code === "duplicate-resolver-unavailable" && warning.cli === "dsh"));
     assert.ok(!renamed.unavailable.some((entry) => entry.item === RESOLVER));
