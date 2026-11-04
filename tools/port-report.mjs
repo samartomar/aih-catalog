@@ -1,9 +1,15 @@
 #!/usr/bin/env node
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { canonical, check, portTool, root, sha256 as sha256Of } from "./lib/port.mjs";
+import { canonical, portTool, root, sha256 as sha256Of } from "./lib/port.mjs";
 
-const { fail } = portTool("port-report");
+for (const arg of process.argv.slice(2))
+  if (arg !== "--check") {
+    console.error(`port-report: unexpected argument ${arg}`);
+    process.exit(2);
+  }
+const check = process.argv.includes("--check");
+const { fail } = portTool("port-report", { check });
 const read = (path) => readFileSync(join(root, path));
 const json = (path) => JSON.parse(read(path).toString("utf8"));
 const sha256 = (path) => sha256Of(read(path));

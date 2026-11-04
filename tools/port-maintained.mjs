@@ -20,7 +20,6 @@ import { buildContent, checkContent } from "../dist/catalog/producer.js";
 import { findItems } from "../dist/catalog/source.js";
 import {
   canonical,
-  check,
   discoveredFile,
   encoder,
   fileMap,
@@ -35,6 +34,7 @@ for (const arg of process.argv.slice(2))
     console.error(`port-maintained: unexpected argument ${arg}`);
     process.exit(2);
   }
+const check = process.argv.includes("--check");
 
 /** The exact upstream pins. Extensions and Matt's skills are the pins aih-extensions declares. */
 const PINS = {
@@ -231,7 +231,7 @@ const NOT_PORTED = [
 const UPSTREAM_ONLY_LICENCE =
   "the skill declares Apache-2.0 but the repository supplies only its MIT LICENSE, so Catalog does not ship a copy";
 
-const { out, fail, writeOrCompare, removeStale } = portTool("port-maintained");
+const { out, fail, writeOrCompare, removeStale } = portTool("port-maintained", { check });
 
 async function fetchPinned(name, work) {
   const pin = PINS[name];

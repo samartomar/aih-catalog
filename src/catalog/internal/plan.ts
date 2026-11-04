@@ -6,7 +6,7 @@
  * Nothing is claimed that a profile does not describe. Identical inputs give byte-identical
  * plans.
  */
-import type { Invalid, Problem, Refused } from "../contracts.js";
+import type { Invalid, Kind, Problem, Refused } from "../contracts.js";
 import { kinds } from "../contracts.js";
 import { type AiSetupChange, CELLS, type Cell, qualificationProblems } from "./ai-setup.js";
 import {
@@ -32,6 +32,7 @@ import {
 import {
   type Place,
   type PluginVerify,
+  type ProvidedKind,
   profileProblems,
   type Scope,
   type ToolProfile,
@@ -1474,13 +1475,13 @@ function referencesOf(
  * Which `provides` lists an install name of each kind can shadow: a skill shares the command
  * namespace. Kinds not listed are never checked against built-ins.
  */
-const SHADOWS: Readonly<Record<string, readonly ("skill" | "command" | "agent")[]>> = {
+const SHADOWS: Readonly<Partial<Record<Kind, readonly ProvidedKind[]>>> = {
   skill: ["skill", "command"],
   agent: ["agent"],
 };
 
 /** The name a client provides that an install name of this kind would shadow, if any. */
-function providedName(profile: ToolProfile, kind: string, name: string): string | undefined {
+function providedName(profile: ToolProfile, kind: Kind, name: string): string | undefined {
   const provided = profile.provides ?? {};
   const names = (SHADOWS[kind] ?? []).flatMap((list) => provided[list] ?? []);
   const lower = name.toLowerCase();

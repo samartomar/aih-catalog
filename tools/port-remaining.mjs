@@ -22,7 +22,6 @@ import { buildContent, checkContent } from "../dist/catalog/producer.js";
 import { findItems } from "../dist/catalog/source.js";
 import {
   canonical,
-  check,
   discoveredFile,
   encoder,
   fileMap,
@@ -37,6 +36,7 @@ for (const arg of process.argv.slice(2))
     console.error(`port-remaining: unexpected argument ${arg}`);
     process.exit(2);
   }
+const check = process.argv.includes("--check");
 
 /** The exact upstream pins. */
 const PINS = {
@@ -66,7 +66,7 @@ const PINS = {
   },
 };
 
-const { out, fail, writeOrCompare } = portTool("port-remaining");
+const { out, fail, writeOrCompare } = portTool("port-remaining", { check });
 
 async function fetchPinned(name, work, subpath) {
   const pin = PINS[name];

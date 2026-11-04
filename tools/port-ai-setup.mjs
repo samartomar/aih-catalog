@@ -17,22 +17,14 @@ import { join } from "node:path";
 import { buildContent, checkContent } from "../dist/catalog/producer.js";
 import { readQualification } from "../dist/catalog/reader.js";
 import { findItems } from "../dist/catalog/source.js";
-import {
-  canonical,
-  check,
-  discoveredFile,
-  encoder,
-  portTool,
-  root,
-  sha256,
-  shaOf,
-} from "./lib/port.mjs";
+import { canonical, discoveredFile, encoder, portTool, root, sha256, shaOf } from "./lib/port.mjs";
 
 for (const arg of process.argv.slice(2))
   if (arg !== "--check") {
     console.error(`port-ai-setup: unexpected argument ${arg}`);
     process.exit(2);
   }
+const check = process.argv.includes("--check");
 
 /** Each upstream's release tag and the commit it names. */
 const PINS = {
@@ -61,7 +53,7 @@ const ALL_CELLS = [
   "windows-x64",
 ];
 const QUALIFICATION = "urn:aihq:catalog:qualification:0.1.0";
-const { out, fail, writeOrCompare } = portTool("port-ai-setup");
+const { out, fail, writeOrCompare } = portTool("port-ai-setup", { check });
 
 // --- Reading the pinned files --------------------------------------------------------------
 

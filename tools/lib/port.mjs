@@ -1,5 +1,5 @@
 /**
- * What the port tools share: the repository root, the --check switch, writing or comparing
+ * What the port tools share: the repository root, writing (or with --check comparing)
  * outputs, the canonical document form (the library's own, from dist), sha256, and the small
  * readers over fetched files. Each tool names itself for its messages.
  */
@@ -9,15 +9,15 @@ import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { canonicalDocument } from "../../dist/catalog/internal/json.js";
 
+/** The canonical bytes' text of a document: sorted keys, two-space indent, final LF. */
+export { canonicalDocument as canonical };
+
 export const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
-export const check = process.argv.includes("--check");
 export const encoder = new TextEncoder();
 
-/** The canonical bytes' text of a document: sorted keys, two-space indent, final LF. */
-export const canonical = (value) => canonicalDocument(value);
 export const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 /** The sha256 of a document's canonical form: its identity. */
-export const shaOf = (value) => sha256(encoder.encode(canonical(value)));
+export const shaOf = (value) => sha256(encoder.encode(canonicalDocument(value)));
 
 export const fileMap = (files) =>
   new Map(files.filter((file) => file.bytes).map((file) => [file.path, file]));
@@ -42,8 +42,11 @@ export function listFiles(folder) {
     .map((entry) => relative(root, join(entry.parentPath, entry.name)));
 }
 
-/** One tool's failure, outputs and result line. */
-export function portTool(name) {
+/**
+ * One tool's failure, outputs and result line. With `check`, outputs are compared with the
+ * committed files instead of written.
+ */
+export function portTool(name, { check }) {
   const out = { written: [], drift: [] };
   const fail = (message) => {
     console.error(`${name}: ${message}`);
