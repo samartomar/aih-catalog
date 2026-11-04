@@ -60,6 +60,7 @@ export type {
   Clash,
   Duplicate,
   DuplicatesRender,
+  FetchStep,
   LinkStep,
   MarketplaceRender,
   MergeStep,

@@ -16,6 +16,7 @@ import { afterEach } from "vitest";
 import { readLocalSource } from "../../src/catalog/node.js";
 import { buildContent } from "../../src/catalog/producer.js";
 import {
+  type FetchStep,
   type PlacementStep,
   type PlanStep,
   readToolProfile,
@@ -177,9 +178,13 @@ export async function ownContent(root: string) {
 export const writes = (plan: readonly PlanStep[]): WriteStep[] =>
   plan.filter((step): step is WriteStep => step.op === "write");
 
-/** The placement steps (write, link, merge) of a plan, in plan order. */
-export const placements = (plan: readonly PlanStep[]): PlacementStep[] =>
+/** The placement steps (write, link, merge) of a plan, in plan order; fetches are apart. */
+export const placements = (plan: readonly PlanStep[]): Exclude<PlacementStep, FetchStep>[] =>
   plan.filter(
-    (step): step is PlacementStep =>
+    (step): step is Exclude<PlacementStep, FetchStep> =>
       step.op === "write" || step.op === "link" || step.op === "merge",
   );
+
+/** The fetch steps of a plan (an upstream-only item's files), in plan order. */
+export const fetches = (plan: readonly PlanStep[]): FetchStep[] =>
+  plan.filter((step): step is FetchStep => step.op === "fetch");

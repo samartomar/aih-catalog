@@ -39,15 +39,23 @@ export const BUNDLE_LAYOUT = /^(?:[a-z0-9][a-z0-9_-]*\/)*<name>\/$/;
 const segmentPattern = (pattern: string): RegExp =>
   new RegExp(`^${pattern.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replaceAll("*", "[^/]*")}$`);
 
-/** A pattern is a relative path whose segments may use `*` inside one segment (no `**`). */
+/**
+ * A pattern is a relative path whose segments may use `*` inside one segment (no `**`), or a
+ * folder ending in `/`, which takes every file below it.
+ */
 export const isIncludePattern = (pattern: unknown): pattern is string =>
   typeof pattern === "string" &&
   pattern.length <= 512 &&
   !pattern.includes("**") &&
-  isSafeRelativePath(pattern.replaceAll("*", "x"));
+  !(pattern.endsWith("/") && pattern.includes("*")) &&
+  isSafeRelativePath(pattern.replace(/\/$/, "").replaceAll("*", "x"));
 
-/** True when `path` matches the pattern: same depth, and each segment matches its own. */
+/**
+ * True when `path` matches the pattern: below a folder pattern, or at the same depth with each
+ * segment matching its own.
+ */
 export function matchesInclude(pattern: string, path: string): boolean {
+  if (pattern.endsWith("/")) return path.startsWith(pattern);
   const want = pattern.split("/");
   const have = path.split("/");
   return (
@@ -75,11 +83,21 @@ function normalise(path: string): string | null {
 const join = (folder: string, path: string): string => (folder === "" ? path : `${folder}/${path}`);
 
 /**
+ * Program source. A bare path in a program's text (most often a comment, or a path the program
+ * resolves against its working directory, the user's project) is not one the agent follows, so
+ * only explicit relative forms count there. Instructions and configuration (Markdown, text,
+ * JSON, YAML, a hook entry's command) keep bare paths.
+ */
+const PROGRAM =
+  /\.(?:[cm]?[jt]sx?|py|sh|bash|zsh|fish|ps1|psm1|bat|cmd|rb|go|rs|java|kts?|swift|c|cc|cpp|cxx|h|hpp|cs|php|lua|pl|r)$/i;
+
+/**
  * The source files an item's text files name outside the item's own files. A mention is a
  * relative path in the text: `${CLAUDE_PLUGIN_ROOT}/…` from the source root, `./` or `../`
- * from the file's folder, and a bare `a/b` from the file's folder when that file exists, else
- * from the source root. Only mentions that name an existing regular file of the source count,
- * so prose and paths in the user's own project are not taken for references.
+ * from the file's folder, and, outside program source, a bare `a/b` from the file's folder when
+ * that file exists, else from the source root. Only mentions that name
+ * an existing regular file of the source count, so prose and paths in the user's own project
+ * are not taken for references.
  */
 export function pathReferences(
   itemFiles: readonly { readonly sourcePath: string }[],
@@ -92,10 +110,13 @@ export function pathReferences(
     const text = decodeText(bytesOf(file.sourcePath));
     if (text === null) continue;
     const folder = dirnameOf(file.sourcePath);
+    const program = PROGRAM.test(file.sourcePath);
     for (const match of text.matchAll(MENTION)) {
       const pluginRoot = match[1] !== undefined;
       const mention = match[2] as string;
       if (!pluginRoot && !mention.includes("/")) continue;
+      const explicit = pluginRoot || mention.startsWith("./") || mention.startsWith("../");
+      if (!explicit && program) continue;
       let target: string | null;
       if (pluginRoot) target = normalise(mention);
       else if (mention.startsWith("./") || mention.startsWith("../"))

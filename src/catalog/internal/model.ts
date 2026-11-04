@@ -140,9 +140,15 @@ export interface PluginFolder {
   readonly path: string;
   /**
    * The upstream's runtime allowlist, when only part of the folder is the plugin: sorted
-   * patterns over source paths, `*` within one segment. Absent means every file under `path`.
+   * patterns over source paths, `*` within one segment, and a pattern ending in `/` takes every
+   * file below that folder. Absent means every file under `path`.
    */
   readonly include?: readonly string[];
+  /**
+   * The upstream plugin this record's allowlist describes, when several plugins of one
+   * marketplace share the folder; a recipe's plugin entry then matches it by name.
+   */
+  readonly plugin?: string;
   readonly files: readonly PluginFile[];
   readonly scanKey: string;
 }

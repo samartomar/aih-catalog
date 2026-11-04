@@ -78,3 +78,5 @@ tests/fixtures/egm-403d8881/** -text
 tests/fixtures/port-maintained/** -text
 # Candidate Catalog data: canonical content, generated cut-outs and authored files, byte for byte.
 data/** -text
+# Exact pinned upstream bytes of the remaining-families port; blob ids checked in its test.
+tests/fixtures/port-remaining/** -text -whitespace

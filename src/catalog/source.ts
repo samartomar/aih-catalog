@@ -43,7 +43,8 @@ export type FindItemsResult =
   | Refused
   | Invalid;
 
-const NOTICE = /^(?:LICEN[CS]E|COPYING|NOTICE)(?:[-_.][A-Za-z0-9._-]*)?$/i;
+const NOTICE =
+  /^(?:LICEN[CS]E|COPYING|NOTICE|THIRD[-_]?PARTY[-_]?NOTICES?)(?:[-_.][A-Za-z0-9._-]*)?$/i;
 
 /** A REUSE-style folder of licence texts: `licenses/` or `LICENSES/`. */
 const LICENCE_FOLDER = /^LICEN[CS]ES$/i;
@@ -54,8 +55,9 @@ const inLicenceFolder = (path: string): boolean => {
 };
 
 /**
- * True for a licence or notice file: a `LICENSE`, `COPYING` or `NOTICE` file, or any file in a
- * `licenses/` folder (third-party licence texts). Notices are never item files.
+ * True for a licence or notice file: a `LICENSE`, `COPYING`, `NOTICE` or `THIRD_PARTY_NOTICES`
+ * file, or any file in a `licenses/` folder (third-party licence texts). Notices are never item
+ * files.
  */
 export const isNoticePath = (path: string): boolean =>
   NOTICE.test(basenameOf(path)) || inLicenceFolder(path);

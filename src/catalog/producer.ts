@@ -34,6 +34,7 @@ import {
   FRAMEWORK_ID,
   ID_SEGMENT,
   INPUT_NAME,
+  INSTALL_NAME,
   type InputDeclaration,
   type Item,
   type ItemFile,
@@ -70,13 +71,13 @@ export type BuildContentResult =
 
 async function scanKeyFor(
   item: { readonly kind: string; readonly files: readonly ItemFile[] },
-  bytesOf: (path: string) => Uint8Array,
+  bytesIn: (sourceId: string, path: string) => Uint8Array,
 ) {
   const result = await scanKeyOf(
     item.files.map((file) => ({
       path: installRelative(item, file),
       mode: file.executable ? ("100755" as const) : ("100644" as const),
-      bytes: bytesOf(file.sourcePath),
+      bytes: bytesIn(file.sourceId, file.sourcePath),
     })),
   );
   return result.status === "ok" ? result.scanKey : `scan key: ${result.reason}`;
@@ -150,13 +151,17 @@ function indexFiles(files: readonly SourceFile[], primary: string): FileIndex {
 
 /**
  * Reads an item's files by path: each path resolves in the source the item's file names, so
- * one item may hold files from several sources (an upstream file beside a generated one).
+ * one item may hold files from several sources (an upstream file beside a generated one). A
+ * path both the item and an edition use (a second copy of the upstream) reads the item's own.
  */
 function itemReader(item: DiscoveredItem, index: FileIndex) {
   const sources = new Map<string, string>();
-  for (const file of allFiles(item)) sources.set(file.sourcePath, file.sourceId);
+  for (const file of [...allFiles(item)].reverse()) sources.set(file.sourcePath, file.sourceId);
+  for (const file of [...(Array.isArray(item?.files) ? item.files : [])].reverse())
+    sources.set(file.sourcePath, file.sourceId);
   return {
     bytesOf: (path: string) => index.bytesOf(sources.get(path) ?? "", path),
+    bytesIn: (sourceId: string, path: string) => index.bytesOf(sourceId, path),
     has: (path: string) => sources.has(path) && index.has(sources.get(path) as string, path),
   };
 }
@@ -315,7 +320,7 @@ async function assemble(
     sourceId: file.sourceId,
     sourcePath: file.sourcePath,
     sha256: file.sha256,
-    bytes: index.bytesOf(file.sourcePath).byteLength,
+    bytes: index.bytesIn(file.sourceId, file.sourcePath).byteLength,
     executable: file.executable,
     role: file.role,
     ...(file.derivedFrom
@@ -328,7 +333,7 @@ async function assemble(
       : {}),
   });
   const itemFiles = item.files.map(record);
-  const scanKey = await scanKeyFor({ kind: item.kind, files: itemFiles }, index.bytesOf);
+  const scanKey = await scanKeyFor({ kind: item.kind, files: itemFiles }, index.bytesIn);
   if (!scanKey.startsWith("git-")) return [{ path: id, message: scanKey }];
   if (item.fetch !== undefined && item.fetch !== "upstream")
     return [{ path: `${id}/fetch`, message: "fetch must be upstream" }];
@@ -355,7 +360,7 @@ async function assemble(
         return [
           { path: `${id}/editions/${cli}`, message: "an edition names a client and its files" },
         ];
-      const key = await scanKeyFor({ kind: item.kind, files }, index.bytesOf);
+      const key = await scanKeyFor({ kind: item.kind, files }, index.bytesIn);
       if (!key.startsWith("git-")) return [{ path: `${id}/editions/${cli}`, message: key }];
       editions[cli] = { files, scanKey: key };
     }
@@ -409,7 +414,12 @@ async function assemble(
 /** A plugin folder to record: a folder (`/` for the whole source), optionally an allowlist. */
 export type PluginRequest =
   | string
-  | { readonly path: string; readonly include?: readonly string[] };
+  | {
+      readonly path: string;
+      readonly include?: readonly string[];
+      /** The upstream plugin the allowlist describes, when several share the folder. */
+      readonly plugin?: string;
+    };
 
 /** A runtime bundle to record: its id, skill layout and the allowlist of its root files. */
 export interface BundleRequest {
@@ -440,7 +450,13 @@ async function pluginFolder(
 ): Promise<PluginFolder | Problem[]> {
   const folder = typeof request === "string" ? request : request?.path;
   const include = typeof request === "string" ? undefined : request?.include;
-  const at = `plugins/${String(folder)}`;
+  const plugin = typeof request === "string" ? undefined : request?.plugin;
+  const at = `plugins/${String(folder)}${plugin === undefined ? "" : `#${String(plugin)}`}`;
+  if (
+    plugin !== undefined &&
+    (typeof plugin !== "string" || plugin.length > 64 || !INSTALL_NAME.test(plugin))
+  )
+    return [{ path: at, message: "a plugin name is kebab-case" }];
   if (folder !== "/" && !isSafeRelativePath(folder))
     return [{ path: at, message: "a plugin folder is / or a safe folder of the source" }];
   if (
@@ -476,6 +492,7 @@ async function pluginFolder(
     sourceId,
     path: folder,
     ...(include !== undefined ? { include: sortedPatterns(include) } : {}),
+    ...(plugin !== undefined ? { plugin } : {}),
     files: sorted.map((file) => fileRecord(file, sourceId, index)),
     scanKey: key.scanKey,
   };
@@ -848,11 +865,13 @@ export async function buildContent(
   const folders = options.plugins ?? [];
   const folderOf = (request: PluginRequest) =>
     typeof request === "string" ? request : String(request?.path);
-  if (!Array.isArray(folders) || new Set(folders.map(folderOf)).size !== folders.length)
+  const keyOf = (request: PluginRequest) =>
+    `${folderOf(request)}\0${typeof request === "string" ? "" : (request?.plugin ?? "")}`;
+  if (!Array.isArray(folders) || new Set(folders.map(keyOf)).size !== folders.length)
     problems.push({ path: "plugins", message: "plugins lists distinct folders" });
   else
     for (const folder of [...folders].sort((left, right) =>
-      compareCodeUnits(folderOf(left), folderOf(right)),
+      compareCodeUnits(keyOf(left), keyOf(right)),
     )) {
       const result = await pluginFolder(folder, sourceId, files, index);
       if (Array.isArray(result)) problems.push(...result);
@@ -1010,7 +1029,13 @@ export async function checkContent(
     for (const [at, plugin] of (content.plugins ?? []).entries()) {
       const index = indexFiles(files, primary);
       const result = await pluginFolder(
-        plugin.include ? { path: plugin.path, include: plugin.include } : plugin.path,
+        plugin.include || plugin.plugin
+          ? {
+              path: plugin.path,
+              ...(plugin.include ? { include: plugin.include } : {}),
+              ...(plugin.plugin ? { plugin: plugin.plugin } : {}),
+            }
+          : plugin.path,
         plugin.sourceId,
         ofSource(plugin.sourceId),
         index,
@@ -1044,7 +1069,8 @@ export async function checkContent(
   const unscannedKeys = [
     ...new Set(
       [
-        ...content.items.map((item) => item.scanKey),
+        // Upstream-only items are not scanned for now, so the gate leaves their keys out.
+        ...content.items.flatMap((item) => (item.fetch === "upstream" ? [] : [item.scanKey])),
         ...(content.bundles ?? []).map((bundle) => bundle.scanKey),
       ].flatMap((key) => (key && !scanned.has(key) ? [key] : [])),
     ),

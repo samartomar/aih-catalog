@@ -28,7 +28,9 @@ project-basics) lives under `data/`, with the dispositions of their earlier rele
 in `port-report/maintained.json`. `npm run port:maintained` rebuilds them from the exact
 upstream pins with `fetchSource` (network, no hooks or lifecycle scripts); add `-- --check`
 to compare instead of writing. The active tests check the committed data without the
-network, using the pinned upstream files in `tests/fixtures/port-maintained`.
+network, using the pinned upstream files in `tests/fixtures/port-maintained`. The remaining
+families (Anthropic, web-artifacts, guide, pstack, gstack and EGM) work the same way with
+`npm run port:remaining`, `port-report/remaining.json` and `tests/fixtures/port-remaining`.
 
 The rest of this guide describes checks of the donor release model that the rewrite
 replaces. They are not part of the active gate; `npm run verify:historical` and

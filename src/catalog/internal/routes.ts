@@ -97,13 +97,35 @@ export function marketplaceBytes(render: MarketplaceRender): Uint8Array | { reas
   );
 }
 
-/** The items whose files all lie inside a recorded plugin folder. */
-function containedIn(content: Content, sourceId: string, path: string): string[] {
+/**
+ * The plugin folder record a recipe's plugin entry names: same source and folder, and the same
+ * plugin where the record names the one plugin its allowlist describes.
+ */
+function recordOf(entry: RecipePlugin | undefined, content: Content) {
+  if (entry === undefined) return undefined;
+  return content.plugins?.find(
+    (candidate) =>
+      candidate.sourceId === entry.source &&
+      candidate.path === entry.path &&
+      (candidate.plugin === undefined || candidate.plugin === entry.plugin),
+  );
+}
+
+/** The items whose files are all files of the plugin folder record the entry names. */
+function containedIn(content: Content, entry: RecipePlugin | undefined): string[] {
+  const record = recordOf(entry, content);
+  if (record === undefined) return [];
+  const recorded = new Set(record.files.map((file) => file.sourcePath));
   return content.items
     .filter(
       (item) =>
         item.files.length > 0 &&
-        item.files.every((file) => file.sourceId === sourceId && isUnder(file.sourcePath, path)),
+        item.files.every(
+          (file) =>
+            file.sourceId === record.sourceId &&
+            isUnder(file.sourcePath, record.path) &&
+            recorded.has(file.sourcePath),
+        ),
     )
     .map((item) => item.id)
     .sort(compareCodeUnits);
@@ -390,9 +412,7 @@ function routeFor(
   if (asked === "local-plugin") return place === undefined ? "items" : "local-plugin";
   // A native plugin falls back to a local plugin only when it can be copied whole here.
   const entry = recipe.plugins?.[profile.id];
-  const folder = content.plugins?.find(
-    (candidate) => candidate.sourceId === entry?.source && candidate.path === entry?.path,
-  );
+  const folder = recordOf(entry, content);
   const manifest = place?.manifests.some((path) =>
     folder?.files.some((file) => file.sourcePath === join(folder.path, path)),
   );
@@ -421,19 +441,12 @@ function fallbackCode(asked: Route, profile: ToolProfile, scope: Scope): string 
 
 /** The items of the plugin a client's recipe entry names, for warnings about it. */
 function plugged(recipe: Recipe, content: Content, cli: string): string[] {
-  const entry = recipe.plugins?.[cli];
-  return entry ? containedIn(content, entry.source, entry.path) : [];
+  return containedIn(content, recipe.plugins?.[cli]);
 }
 
 const join = (folder: string, path: string) => (folder === "/" ? path : `${folder}/${path}`);
 const relative = (folder: string, path: string) =>
   folder === "/" ? path : path.slice(folder.length + 1);
-
-function recordOf(entry: RecipePlugin, content: Content) {
-  return content.plugins?.find(
-    (candidate) => candidate.sourceId === entry.source && candidate.path === entry.path,
-  );
-}
 
 function lowerPlugin(
   entry: RecipePlugin,
@@ -487,7 +500,7 @@ function lowerPlugin(
     marketplace = { root: scope, path };
     marketplaceName = render.marketplace;
   }
-  const items = containedIn(content, entry.source, entry.path);
+  const items = containedIn(content, entry);
   for (const code of install.warnings ?? []) lowered.warnings.push({ code, cli, items, framework });
   for (const item of items) lowered.routed.push({ item, cli });
   lowered.plugins.push({
@@ -540,7 +553,7 @@ function lowerLocalPlugin(
     });
     return;
   }
-  const contains = containedIn(content, entry.source, entry.path);
+  const contains = containedIn(content, entry);
   const marks = { framework, route: "local-plugin" as const, contains };
   for (const file of folder.files)
     lowered.writes.push({
