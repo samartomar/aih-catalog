@@ -91,6 +91,13 @@ setup item, with the status its recorded run gave; it never needs a package rele
 commit upstream bytes whose licence forbids redistribution: record their identity and mark
 the item `fetch: "upstream"`.
 
+An MCP package the upstream leaves unpinned gets an exact version, and its entry in
+`port-report/maintained.json` records where that version came from in `pinBasis`:
+`previous-release-review` (the version the previous Catalog release reviewed for the same
+package), `registry-latest` (the npm registry's latest on `pinCheckedOn`, where no reviewed
+version exists; `pinNote` says why), or `upstream` (the upstream names it). `pinnedVersion` is
+the version.
+
 ## Commits and pull requests
 
 Keep commits focused, with conventional messages. Every pull request carries exactly one

@@ -57,18 +57,18 @@ const PINS = {
 };
 
 /**
- * Exact versions Catalog pins for ECC MCP packages the upstream config leaves unpinned.
- * They are the versions the previous Catalog release reviewed for the same upstream package.
- * A server the upstream starts some other way, or whose package has no reviewed pin, is not
- * cut out; `MCP_DROPPED` gives the reason.
+ * Exact versions Catalog pins for ECC MCP packages the upstream config leaves unpinned, by where
+ * each came from. The port report records the basis per item (`pinBasis`).
+ *
+ * - `previous-release-review`: the version the previous Catalog release reviewed for the same
+ *   upstream package.
+ * - `registry-latest`: the upstream names no version and the previous release reviewed none for
+ *   this package, so the pin is the npm registry's latest exact version on `checkedOn`.
+ *
+ * An entry that already names an exact version keeps it (`upstream`). A server the upstream
+ * starts some other way is not cut out; `MCP_DROPPED` gives the reason.
  */
-const MCP_VERSIONS = {
-  // The latest exact version on the npm registry on 2026-11-04, for entries the donor
-  // release had no reviewed pin for (Catalog's authored pin; the upstream names no version).
-  browserbase: "2.4.3",
-  github: "2025.4.8",
-  railway: "0.1.12",
-  "token-optimizer": "2.17.0",
+const MCP_REVIEWED_VERSIONS = {
   codescene: "1.5.13",
   confluence: "1.3.3",
   context7: "4.4.4",
@@ -84,6 +84,47 @@ const MCP_VERSIONS = {
   squish: "1.9.0",
   supabase: "0.14.0",
 };
+const MCP_REGISTRY_LATEST = {
+  checkedOn: "2026-11-04",
+  versions: {
+    browserbase: "2.4.3",
+    github: "2025.4.8",
+    railway: "0.1.12",
+    "token-optimizer": "2.17.0",
+  },
+  // Why the previous release's review does not carry over, where it reviewed something nearby.
+  notes: {
+    browserbase:
+      "the previous release reviewed @browserbasehq/mcp 3.0.0, a different package from the upstream's @browserbasehq/mcp-server-browserbase",
+    github:
+      "the previous release replaced the upstream package with the hosted GitHub server and reviewed no package version",
+    railway:
+      "the previous release reviewed @railway/cli 5.71.0, a different package from the upstream's @railway/mcp-server",
+    "token-optimizer": "the previous release kept the upstream entry unpinned",
+  },
+};
+const MCP_VERSIONS = { ...MCP_REVIEWED_VERSIONS, ...MCP_REGISTRY_LATEST.versions };
+for (const name of Object.keys(MCP_REGISTRY_LATEST.versions))
+  if (name in MCP_REVIEWED_VERSIONS) throw new Error(`MCP ${name} has two pin bases`);
+
+/** Where a cut-out MCP server's exact package version came from, for the port report. */
+function mcpPin(name, server) {
+  const version = server.packages?.[0]?.version;
+  if (version === undefined) return {};
+  if (MCP_VERSIONS[name] !== undefined && MCP_VERSIONS[name] !== version)
+    fail(`MCP ${name} is pinned at ${MCP_VERSIONS[name]} but its server has ${version}`);
+  if (name in MCP_REGISTRY_LATEST.versions)
+    return {
+      pinBasis: "registry-latest",
+      pinnedVersion: version,
+      pinCheckedOn: MCP_REGISTRY_LATEST.checkedOn,
+      pinNote: MCP_REGISTRY_LATEST.notes[name],
+    };
+  if (name in MCP_REVIEWED_VERSIONS)
+    return { pinBasis: "previous-release-review", pinnedVersion: version };
+  return { pinBasis: "upstream", pinnedVersion: version };
+}
+
 const MCP_INPUTS = { filesystem: { "/path/to/your/projects": "FILESYSTEM_ROOT" } };
 const LOCAL_BINARY =
   "the upstream entry starts a program already on the user's PATH and names no package that provides it, so a Registry server.json, which describes a server by its published package, cannot say what to install";
@@ -637,6 +678,7 @@ function dispositions(results, items) {
       else
         result = mapped(entry, `ecc.mcp.${path}`, {
           note: "cut out of mcp-configs/mcp-servers.json as its own server.json",
+          ...mcpPin(path, byId.get(`ecc.mcp.${path}`)?.server ?? {}),
         });
     } else if (family === "extensions" && kind === "matt") {
       const source = entry.paths.find((sourcePath) => sourcePath.endsWith("/SKILL.md"));

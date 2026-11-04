@@ -729,4 +729,60 @@ describe("the port report for these families", () => {
       version: "2025.4.8",
     });
   });
+
+  it("records, per MCP item, where its exact version came from", () => {
+    const entries = REPORT.dispositions as Array<Record<string, unknown> & { item?: string }>;
+    const pins = Object.fromEntries(
+      entries
+        .filter((entry) => entry.item?.startsWith("ecc.mcp.") && entry.disposition === "mapped")
+        .map((entry) => [
+          entry.item,
+          {
+            pinBasis: entry.pinBasis,
+            pinnedVersion: entry.pinnedVersion,
+            pinCheckedOn: entry.pinCheckedOn,
+          },
+        ]),
+    );
+    // The upstream names no version: the npm registry's latest on the day it was pinned.
+    for (const [name, version] of [
+      ["browserbase", "2.4.3"],
+      ["github", "2025.4.8"],
+      ["railway", "0.1.12"],
+      ["token-optimizer", "2.17.0"],
+    ])
+      expect(pins[`ecc.mcp.${name}`], name).toEqual({
+        pinBasis: "registry-latest",
+        pinnedVersion: version,
+        pinCheckedOn: "2026-11-04",
+      });
+    for (const name of ["browserbase", "github", "railway", "token-optimizer"])
+      expect(entries.find((entry) => entry.item === `ecc.mcp.${name}`)?.pinNote, name).toMatch(
+        /previous release/,
+      );
+    // The version the previous Catalog release reviewed for the same package.
+    expect(pins["ecc.mcp.context7"]).toEqual({
+      pinBasis: "previous-release-review",
+      pinnedVersion: "4.4.4",
+      pinCheckedOn: undefined,
+    });
+    // The upstream's own exact version.
+    expect(pins["ecc.mcp.jira"]).toEqual({
+      pinBasis: "upstream",
+      pinnedVersion: "0.21.0",
+      pinCheckedOn: undefined,
+    });
+    // A remote server has no package to pin.
+    expect(pins["ecc.mcp.vercel"]).toEqual({
+      pinBasis: undefined,
+      pinnedVersion: undefined,
+      pinCheckedOn: undefined,
+    });
+    // Every packaged MCP item says where its version came from.
+    for (const item of data("ecc").items.filter((entry) => entry.kind === "mcp")) {
+      const packages = (item.server as { packages?: Array<{ version: string }> }).packages ?? [];
+      if (packages.length > 0)
+        expect(pins[item.id]?.pinnedVersion, item.id).toBe(packages[0]?.version);
+    }
+  });
 });

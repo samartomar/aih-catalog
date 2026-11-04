@@ -2496,7 +2496,11 @@
       },
       "disposition": "mapped",
       "item": "ecc.mcp.browserbase",
-      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json"
+      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json",
+      "pinBasis": "registry-latest",
+      "pinCheckedOn": "2026-11-04",
+      "pinNote": "the previous release reviewed @browserbasehq/mcp 3.0.0, a different package from the upstream's @browserbasehq/mcp-server-browserbase",
+      "pinnedVersion": "2.4.3"
     },
     {
       "baseline": {
@@ -2568,7 +2572,9 @@
       },
       "disposition": "mapped",
       "item": "ecc.mcp.codescene",
-      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json"
+      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json",
+      "pinBasis": "previous-release-review",
+      "pinnedVersion": "1.5.13"
     },
     {
       "baseline": {
@@ -2580,7 +2586,9 @@
       },
       "disposition": "mapped",
       "item": "ecc.mcp.confluence",
-      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json"
+      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json",
+      "pinBasis": "previous-release-review",
+      "pinnedVersion": "1.3.3"
     },
     {
       "baseline": {
@@ -2592,7 +2600,9 @@
       },
       "disposition": "mapped",
       "item": "ecc.mcp.context7",
-      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json"
+      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json",
+      "pinBasis": "previous-release-review",
+      "pinnedVersion": "4.4.4"
     },
     {
       "baseline": {
@@ -2640,7 +2650,9 @@
       },
       "disposition": "mapped",
       "item": "ecc.mcp.exa-web-search",
-      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json"
+      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json",
+      "pinBasis": "previous-release-review",
+      "pinnedVersion": "3.4.2"
     },
     {
       "baseline": {
@@ -2652,7 +2664,9 @@
       },
       "disposition": "mapped",
       "item": "ecc.mcp.fal-ai",
-      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json"
+      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json",
+      "pinBasis": "previous-release-review",
+      "pinnedVersion": "2.1.4"
     },
     {
       "baseline": {
@@ -2664,7 +2678,9 @@
       },
       "disposition": "mapped",
       "item": "ecc.mcp.filesystem",
-      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json"
+      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json",
+      "pinBasis": "previous-release-review",
+      "pinnedVersion": "2.0.1"
     },
     {
       "baseline": {
@@ -2676,7 +2692,9 @@
       },
       "disposition": "mapped",
       "item": "ecc.mcp.firecrawl",
-      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json"
+      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json",
+      "pinBasis": "previous-release-review",
+      "pinnedVersion": "3.35.0"
     },
     {
       "baseline": {
@@ -2688,7 +2706,11 @@
       },
       "disposition": "mapped",
       "item": "ecc.mcp.github",
-      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json"
+      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json",
+      "pinBasis": "registry-latest",
+      "pinCheckedOn": "2026-11-04",
+      "pinNote": "the previous release replaced the upstream package with the hosted GitHub server and reviewed no package version",
+      "pinnedVersion": "2025.4.8"
     },
     {
       "baseline": {
@@ -2725,7 +2747,9 @@
       },
       "disposition": "mapped",
       "item": "ecc.mcp.jira",
-      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json"
+      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json",
+      "pinBasis": "upstream",
+      "pinnedVersion": "0.21.0"
     },
     {
       "baseline": {
@@ -2761,7 +2785,9 @@
       },
       "disposition": "mapped",
       "item": "ecc.mcp.magic",
-      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json"
+      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json",
+      "pinBasis": "previous-release-review",
+      "pinnedVersion": "2.0.0"
     },
     {
       "baseline": {
@@ -2773,7 +2799,9 @@
       },
       "disposition": "mapped",
       "item": "ecc.mcp.memory",
-      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json"
+      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json",
+      "pinBasis": "previous-release-review",
+      "pinnedVersion": "2.0.0"
     },
     {
       "baseline": {
@@ -2809,7 +2837,9 @@
       },
       "disposition": "mapped",
       "item": "ecc.mcp.omega-memory",
-      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json"
+      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json",
+      "pinBasis": "previous-release-review",
+      "pinnedVersion": "1.5.20"
     },
     {
       "baseline": {
@@ -2833,7 +2863,9 @@
       },
       "disposition": "mapped",
       "item": "ecc.mcp.playwright",
-      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json"
+      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json",
+      "pinBasis": "previous-release-review",
+      "pinnedVersion": "0.0.83"
     },
     {
       "baseline": {
@@ -2845,7 +2877,11 @@
       },
       "disposition": "mapped",
       "item": "ecc.mcp.railway",
-      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json"
+      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json",
+      "pinBasis": "registry-latest",
+      "pinCheckedOn": "2026-11-04",
+      "pinNote": "the previous release reviewed @railway/cli 5.71.0, a different package from the upstream's @railway/mcp-server",
+      "pinnedVersion": "0.1.12"
     },
     {
       "baseline": {
@@ -2870,7 +2906,9 @@
       },
       "disposition": "mapped",
       "item": "ecc.mcp.sequential-thinking",
-      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json"
+      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json",
+      "pinBasis": "previous-release-review",
+      "pinnedVersion": "2.0.0"
     },
     {
       "baseline": {
@@ -2882,7 +2920,9 @@
       },
       "disposition": "mapped",
       "item": "ecc.mcp.squish",
-      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json"
+      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json",
+      "pinBasis": "previous-release-review",
+      "pinnedVersion": "1.9.0"
     },
     {
       "baseline": {
@@ -2894,7 +2934,9 @@
       },
       "disposition": "mapped",
       "item": "ecc.mcp.supabase",
-      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json"
+      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json",
+      "pinBasis": "previous-release-review",
+      "pinnedVersion": "0.14.0"
     },
     {
       "baseline": {
@@ -2906,7 +2948,11 @@
       },
       "disposition": "mapped",
       "item": "ecc.mcp.token-optimizer",
-      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json"
+      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json",
+      "pinBasis": "registry-latest",
+      "pinCheckedOn": "2026-11-04",
+      "pinNote": "the previous release kept the upstream entry unpinned",
+      "pinnedVersion": "2.17.0"
     },
     {
       "baseline": {

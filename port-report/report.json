@@ -251,7 +251,7 @@
     },
     "maintained": {
       "path": "port-report/maintained.json",
-      "sha256": "4cd6f1c3c5b9d65fdd72ab979a127afce3fee3c7b0d549e8ce1318ab62a59bdb"
+      "sha256": "a57ae61c8bf7382b0e511a3b57e11cfb17dc8c348cd9073ae74388262198d1e6"
     },
     "remaining": {
       "path": "port-report/remaining.json",
