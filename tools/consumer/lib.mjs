@@ -54,9 +54,15 @@ export function journey(id, title, basis) {
     async open(name, reason, body) {
       try {
         await body();
-        record.checks.push({ name, status: "failed", detail: `recorded as open, but it now passes: update the record (${reason})` });
+        record.checks.push({
+          name,
+          status: "failed",
+          detail: `recorded as open, but it now passes: update the record (${reason})`,
+        });
       } catch (error) {
-        const detail = String(error?.message ?? error).replace(/\s+/g, " ").slice(0, 600);
+        const detail = String(error?.message ?? error)
+          .replace(/\s+/g, " ")
+          .slice(0, 600);
         record.checks.push({ name, status: "open", reason, detail });
       }
     },
@@ -120,7 +126,10 @@ export function context({ inputs, prepared }) {
   };
   const data = { repository: "https://github.com/samartomar/aih-catalog", commit };
   /** Recipes are written by the consumer here: none is published yet. */
-  const recipeSource = { repository: "https://example.invalid/consumer-recipes", commit: "e".repeat(40) };
+  const recipeSource = {
+    repository: "https://example.invalid/consumer-recipes",
+    commit: "e".repeat(40),
+  };
   const plugin = {
     name: "consumer-recipe",
     version: "0.1.0",

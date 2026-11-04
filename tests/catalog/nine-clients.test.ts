@@ -935,12 +935,9 @@ describe("refusals, unsupported kinds and custom profiles", () => {
       how: "none",
       reason: "unsupported-kind",
     });
-    expect(listItems(content, { profile: profile("dsh") }).map((entry) => short(entry.id))).toEqual([
-      "rule.always",
-      "skill.deploy",
-      "skill.folded",
-      "skill.plain",
-    ]);
+    expect(listItems(content, { profile: profile("dsh") }).map((entry) => short(entry.id))).toEqual(
+      ["rule.always", "skill.deploy", "skill.folded", "skill.plain"],
+    );
   });
 
   it("binds a declared file placeholder through the render and refuses a render that would lose it", async () => {

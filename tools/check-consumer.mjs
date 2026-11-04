@@ -42,7 +42,9 @@ function fail(message) {
   throw new Failure(message);
 }
 process.on("uncaughtException", (error) => {
-  process.stderr.write(`check:consumer: ${error instanceof Failure ? error.message : error.stack}\n`);
+  process.stderr.write(
+    `check:consumer: ${error instanceof Failure ? error.message : error.stack}\n`,
+  );
   process.exit(2);
 });
 
@@ -225,10 +227,15 @@ try {
       JSON.stringify(recorded.inputs) === JSON.stringify(results.inputs);
     if (comparable) {
       const digests = (entries) =>
-        Object.fromEntries(entries.filter((entry) => entry.plans).map((entry) => [entry.id, entry.plans]));
+        Object.fromEntries(
+          entries.filter((entry) => entry.plans).map((entry) => [entry.id, entry.plans]),
+        );
       const was = JSON.stringify(digests(recorded.journeys));
       const now = JSON.stringify(digests(results.journeys));
-      const check = { name: "plan digests equal the recorded results", status: was === now ? "passed" : "failed" };
+      const check = {
+        name: "plan digests equal the recorded results",
+        status: was === now ? "passed" : "failed",
+      };
       if (check.status === "failed") check.detail = `recorded ${was}, now ${now}`;
       results.regressions.push({
         id: "replay",
