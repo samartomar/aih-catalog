@@ -18,6 +18,7 @@ import { findItems } from "../../src/catalog/source.js";
 import {
   folder,
   gitRepository,
+  gitTree,
   outDir,
   placements,
   profile,
@@ -460,6 +461,11 @@ describe("mixing frameworks", () => {
     expect(aihContent.content.items.map((item) => [item.id, item.name])).toEqual([
       [RESOLVER, "aih-duplicate-resolver"],
     ]);
+    // Git's own tree hash of the agent file at its install path.
+    const [agent] = aihContent.files;
+    expect(aihContent.content.items[0]?.scanKey).toBe(
+      `git-sha1:${gitTree({ "duplicate-resolver.md": utf8(agent?.bytes as Uint8Array) })}`,
+    );
   });
 
   it("adds nothing for one framework, and an unsupported agent the user chose still blocks", async () => {

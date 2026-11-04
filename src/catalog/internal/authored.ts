@@ -3,8 +3,9 @@
  * plan can place it without the caller supplying it: the duplicate-resolver agent a plan that
  * mixes frameworks adds where its clients support agents. The record is the one `buildContent`
  * gives over these bytes (a test holds them equal), so the installer copies or renders it like
- * any other item, taking the bytes from `files`.
+ * any other item, taking the bytes from `files`. Its scan key is computed from those bytes.
  */
+import { scanKeyOf } from "@aihq/scan/contracts";
 import { formats } from "../contracts.js";
 import { behaviourSha256, contentSha256 } from "./identity.js";
 import { deepFreeze } from "./json.js";
@@ -44,6 +45,11 @@ const resolverBase = {
   files: [file],
   agent: { prompt: RESOLVER_PATH },
 };
+// The scan key comes from the bytes, as buildContent computes it, so editing the text can never
+// leave a stale key behind. A realm without WebCrypto gets no key rather than a wrong one.
+const key = await scanKeyOf([
+  { path: RESOLVER_PATH.slice(RESOLVER_PATH.lastIndexOf("/") + 1), mode: "100644", bytes },
+]);
 const resolver: Item = {
   id: DUPLICATE_RESOLVER,
   ...resolverBase,
@@ -52,7 +58,7 @@ const resolver: Item = {
     "Resolves overlap after AI frameworks are mixed. Reads the duplicates report, finds items that share a name, content or purpose, asks the user which to keep, and only then switches the others off.",
   contentSha256: contentSha256([file]),
   behaviourSha256: behaviourSha256(resolverBase, null),
-  scanKey: "git-sha1:9ef59a84018bbcb9f130cd794aaf629076d3ba3c",
+  ...(key.status === "ok" ? { scanKey: key.scanKey } : {}),
 };
 
 /** Catalog's own content and the bytes of its files, for placing and rendering. */
