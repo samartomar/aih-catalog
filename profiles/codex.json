@@ -81,6 +81,39 @@
       "user": ".agents/skills/<name>/"
     }
   },
+  "plugins": {
+    "install": [
+      [
+        "codex",
+        "plugin",
+        "marketplace",
+        "add",
+        "<marketplace>",
+        "--ref",
+        "<commit>"
+      ],
+      [
+        "codex",
+        "plugin",
+        "add",
+        "<plugin>@<marketplace-name>"
+      ]
+    ],
+    "pin": "holds",
+    "pinForm": "marketplace",
+    "remove": [
+      [
+        "codex",
+        "plugin",
+        "remove",
+        "<plugin>"
+      ]
+    ],
+    "scopes": [
+      "user"
+    ],
+    "verify": "none"
+  },
   "ruleScopes": {
     "always": {
       "frontmatter": {}
@@ -97,5 +130,5 @@
       }
     }
   },
-  "version": 1
+  "version": 2
 }

@@ -73,6 +73,10 @@
       "user": ".cursor/skills/<name>/"
     }
   },
+  "plugins": {
+    "pin": "none",
+    "verify": "none"
+  },
   "ruleScopes": {
     "always": {
       "frontmatter": {
@@ -93,5 +97,5 @@
       "disable-model-invocation": true
     }
   },
-  "version": 1
+  "version": 2
 }

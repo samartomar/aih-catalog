@@ -66,6 +66,48 @@ export type InputReference = "none" | "unknown" | { readonly syntax: string };
 export const INPUT_SURFACES = ["file", "mcp-argv", "mcp-env", "mcp-header"] as const;
 export type InputSurface = (typeof INPUT_SURFACES)[number];
 
+/** A reliable presence check for an installed plugin (argv and expected readback), or none. */
+export type PluginVerify = "none" | { readonly argv: readonly string[]; readonly expect: string };
+
+/**
+ * How the client installs a native plugin at a pinned commit. `pin` says whether that commit
+ * survives the client's own update; only `holds` with an unattended `install` gives a `plugin`
+ * route. `pinForm` is how the pin is written: through the marketplace the step names
+ * (`marketplace`), through a local marketplace the plan writes at `marketplaceFolder`
+ * (`local-marketplace`), or in the plugin spec itself (`spec`). `install` and `remove` are
+ * argv templates for the installer (`<plugin>`, `<marketplace>`, `<marketplace-name>`,
+ * `<repository>`, `<commit>`, `<scope>`); Catalog runs none of them.
+ */
+export interface PluginInstall {
+  readonly pin: "holds" | "drops-on-update" | "none";
+  readonly scopes?: readonly Scope[];
+  readonly pinForm?: "marketplace" | "local-marketplace" | "spec";
+  readonly marketplaceFolder?: string;
+  readonly install?: readonly (readonly string[])[];
+  readonly remove?: readonly (readonly string[])[];
+  readonly verify: PluginVerify;
+  /** Warning codes every plugin route on this client carries (Copilot: `cli-only-plugin`). */
+  readonly warnings?: readonly string[];
+}
+
+/**
+ * Where the client loads a plugin from a folder at one scope: the folder (`<framework>`,
+ * `<plugin>`), the manifest files the copied plugin must hold (any one of them), the
+ * structured entries that register it (`<marketplace>`, `<plugin>`, `<folder>`), and the
+ * warnings the route carries.
+ */
+export interface LocalPluginPlace {
+  readonly folder: string;
+  readonly manifests: readonly string[];
+  readonly register?: readonly {
+    readonly file: string;
+    readonly format: "json";
+    readonly key: string;
+    readonly entry: unknown;
+  }[];
+  readonly warnings?: readonly string[];
+}
+
 export interface ToolProfile {
   readonly schema: string;
   readonly id: string;
@@ -127,6 +169,8 @@ export interface ToolProfile {
   readonly hookEvents?: Readonly<Record<string, string>>;
   readonly mcpFile?: McpFields;
   readonly inputReferences: Readonly<Record<InputSurface, InputReference>>;
+  readonly plugins?: PluginInstall;
+  readonly localPlugins?: Readonly<Partial<Record<Scope, LocalPluginPlace>>>;
   /** Copilot: when both shared skill folders are planned, VS Code is told to read one. */
   readonly skillFolderOverlap?: {
     readonly folders: readonly string[];
@@ -195,8 +239,132 @@ const TOP = [
   "hookEvents",
   "mcpFile",
   "inputReferences",
+  "plugins",
+  "localPlugins",
   "skillFolderOverlap",
 ];
+
+const PLACEHOLDERS = ["<framework>", "<plugin>", "<marketplace>", "<folder>"];
+/** A safe relative template; placeholders count as one segment each. */
+function routeTemplate(value: unknown, folder: boolean): boolean {
+  if (!isString(value)) return false;
+  if (folder !== value.endsWith("/")) return false;
+  let filled = folder ? value.slice(0, -1) : value;
+  for (const placeholder of PLACEHOLDERS) filled = filled.replaceAll(placeholder, "x");
+  return !filled.includes("<") && isSafeRelativePath(filled);
+}
+const argvList = (value: unknown): boolean =>
+  Array.isArray(value) &&
+  value.length > 0 &&
+  value.every(
+    (argv) => Array.isArray(argv) && argv.length > 0 && argv.every((entry) => isString(entry, 512)),
+  );
+const warningList = (value: unknown): boolean =>
+  value === undefined ||
+  (Array.isArray(value) && value.every((code) => isString(code, 64) && /^[a-z0-9-]+$/.test(code)));
+
+function checkPlugins(value: unknown, problems: Problems): void {
+  if (!isRecord(value)) {
+    problems.add("/plugins", "must be an object");
+    return;
+  }
+  problems.keys(
+    value,
+    "/plugins",
+    ["pin", "scopes", "pinForm", "marketplaceFolder", "install", "remove", "verify", "warnings"],
+    ["pin", "verify"],
+  );
+  problems.check(
+    ["holds", "drops-on-update", "none"].includes(value.pin as string),
+    "/plugins/pin",
+    "holds, drops-on-update or none",
+  );
+  if (value.scopes !== undefined)
+    problems.check(
+      Array.isArray(value.scopes) &&
+        value.scopes.length > 0 &&
+        value.scopes.every((scope) => scope === "project" || scope === "user") &&
+        new Set(value.scopes).size === value.scopes.length,
+      "/plugins/scopes",
+      "a list of project and user",
+    );
+  if (value.pinForm !== undefined)
+    problems.check(
+      ["marketplace", "local-marketplace", "spec"].includes(value.pinForm as string),
+      "/plugins/pinForm",
+      "marketplace, local-marketplace or spec",
+    );
+  problems.check(
+    (value.pinForm === "local-marketplace") === (value.marketplaceFolder !== undefined),
+    "/plugins/marketplaceFolder",
+    "a local-marketplace pin names its folder, and only it",
+  );
+  if (value.marketplaceFolder !== undefined)
+    problems.check(
+      routeTemplate(value.marketplaceFolder, true),
+      "/plugins/marketplaceFolder",
+      "a safe folder template ending in /",
+    );
+  for (const key of ["install", "remove"])
+    if (value[key] !== undefined)
+      problems.check(argvList(value[key]), `/plugins/${key}`, "a list of argv templates");
+  if (value.pin === "holds")
+    problems.check(
+      value.scopes !== undefined && value.pinForm !== undefined && value.install !== undefined,
+      "/plugins",
+      "a holding pin names its scopes, pin form and install",
+    );
+  const verify = value.verify;
+  problems.check(
+    verify === "none" ||
+      (isRecord(verify) &&
+        Object.keys(verify).sort().join() === "argv,expect" &&
+        argvList([verify.argv]) &&
+        isString(verify.expect, 512)),
+    "/plugins/verify",
+    "none or { argv, expect }",
+  );
+  problems.check(warningList(value.warnings), "/plugins/warnings", "a list of warning codes");
+}
+
+function checkLocalPlugins(value: unknown, problems: Problems): void {
+  byScope(value, "/localPlugins", problems, (entry, path) => {
+    if (!isRecord(entry)) {
+      problems.add(path, "a local-plugin place is { folder, manifests, register?, warnings? }");
+      return;
+    }
+    problems.keys(
+      entry,
+      path,
+      ["folder", "manifests", "register", "warnings"],
+      ["folder", "manifests"],
+    );
+    problems.check(routeTemplate(entry.folder, true), `${path}/folder`, "a safe folder template");
+    problems.check(
+      Array.isArray(entry.manifests) &&
+        entry.manifests.length > 0 &&
+        entry.manifests.every((manifest) => isSafeRelativePath(manifest)),
+      `${path}/manifests`,
+      "the manifest paths a copied plugin holds",
+    );
+    if (entry.register !== undefined)
+      problems.check(
+        Array.isArray(entry.register) &&
+          entry.register.every(
+            (merge) =>
+              isRecord(merge) &&
+              Object.keys(merge).sort().join() === "entry,file,format,key" &&
+              routeTemplate(merge.file, false) &&
+              merge.format === "json" &&
+              isString(merge.key) &&
+              merge.key.startsWith("/"),
+          ),
+        `${path}/register`,
+        "register lists { file, format: json, key, entry }",
+      );
+    problems.check(warningList(entry.warnings), `${path}/warnings`, "a list of warning codes");
+  });
+}
 
 function checkPlace(place: unknown, folder: boolean, path: string, problems: Problems): void {
   if (typeof place === "string") {
@@ -540,6 +708,8 @@ export function profileProblems(value: unknown): Problem[] {
         "none, unknown or { syntax } with <name>",
       );
   }
+  if (value.plugins !== undefined) checkPlugins(value.plugins, problems);
+  if (value.localPlugins !== undefined) checkLocalPlugins(value.localPlugins, problems);
   if (value.skillFolderOverlap !== undefined) {
     const overlap = value.skillFolderOverlap;
     const ok =

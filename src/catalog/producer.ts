@@ -30,6 +30,7 @@ import {
   type ItemFile,
   NPM_PACKAGE,
   OBJECT_ID,
+  type PluginFolder,
   type Requirements,
   type SourceFile,
 } from "./internal/model.js";
@@ -298,6 +299,52 @@ async function assemble(
   return { item: built, compare };
 }
 
+/**
+ * Records one plugin folder of the source: every regular file under it, and its scan key over
+ * folder-relative paths. A link or special file inside the folder is a problem: a copied
+ * plugin would silently lose it.
+ */
+async function pluginFolder(
+  folder: string,
+  sourceId: string,
+  files: readonly SourceFile[],
+  index: FileIndex,
+): Promise<PluginFolder | Problem[]> {
+  const at = `plugins/${folder}`;
+  if (folder !== "/" && !isSafeRelativePath(folder))
+    return [{ path: at, message: "a plugin folder is / or a safe folder of the source" }];
+  const inside = (path: string) => folder === "/" || path.startsWith(`${folder}/`);
+  const entries = (Array.isArray(files) ? files : []).filter((file) => inside(file.path));
+  const odd = entries.find((file) => file.mode !== "100644" && file.mode !== "100755");
+  if (odd)
+    return [{ path: `${at}/${odd.path}`, message: "a plugin folder holds a link or special file" }];
+  if (entries.length === 0) return [{ path: at, message: "the plugin folder holds no files" }];
+  const absent = entries.find((file) => !index.has(file.path));
+  if (absent)
+    return [{ path: `${at}/${absent.path}`, message: "the file was not supplied with its bytes" }];
+  const sorted = [...entries].sort((left, right) => compareCodeUnits(left.path, right.path));
+  const relative = (path: string) => (folder === "/" ? path : path.slice(folder.length + 1));
+  const key = await scanKeyOf(
+    sorted.map((file) => ({
+      path: relative(file.path),
+      mode: file.mode as "100644" | "100755",
+      bytes: index.bytesOf(file.path),
+    })),
+  );
+  if (key.status !== "ok") return [{ path: at, message: `scan key: ${key.reason}` }];
+  return {
+    sourceId,
+    path: folder,
+    files: sorted.map((file) => ({
+      sourcePath: file.path,
+      sha256: file.sha256 as string,
+      bytes: index.bytesOf(file.path).byteLength,
+      executable: file.mode === "100755",
+    })),
+    scanKey: key.scanKey,
+  };
+}
+
 type Pin = Omit<ContentSource, "id" | "notices">;
 
 /**
@@ -346,6 +393,8 @@ export async function buildContent(
   options: {
     readonly framework: string | { readonly id: string; readonly name: string };
     readonly sourceId?: string;
+    /** Folders of the source (`/` for all of it) to record as upstream plugin folders. */
+    readonly plugins?: readonly string[];
   },
 ): Promise<BuildContentResult> {
   const framework =
@@ -411,6 +460,16 @@ export async function buildContent(
     }
     built.push(result.item);
   }
+  const plugins: PluginFolder[] = [];
+  const folders = options.plugins ?? [];
+  if (!Array.isArray(folders) || new Set(folders).size !== folders.length)
+    problems.push({ path: "plugins", message: "plugins lists distinct folders" });
+  else
+    for (const folder of [...folders].sort(compareCodeUnits)) {
+      const result = await pluginFolder(folder, sourceId, files, index);
+      if (Array.isArray(result)) problems.push(...result);
+      else plugins.push(result);
+    }
   if (problems.length > 0) return { status: "invalid", problems };
   const contentSource: ContentSource = { id: sourceId, ...pinned, notices };
   const content: Content = {
@@ -418,6 +477,7 @@ export async function buildContent(
     framework: { id: framework.id, name: framework.name },
     sources: [contentSource],
     items: built.sort((left, right) => compareCodeUnits(left.id, right.id)),
+    ...(plugins.length > 0 ? { plugins } : {}),
   };
   const shape = contentProblems(content);
   if (shape.length > 0) return { status: "invalid", problems: shape };
@@ -510,6 +570,17 @@ export async function checkContent(
       }
     }
   }
+  if (problems.length === 0 && files !== undefined)
+    for (const [at, plugin] of (content.plugins ?? []).entries()) {
+      const index = indexFiles(files);
+      const result = await pluginFolder(plugin.path, plugin.sourceId, files, index);
+      if (Array.isArray(result)) problems.push(...result);
+      else if (canonicalJson(result) !== canonicalJson(plugin))
+        problems.push({
+          path: `plugins/${at}`,
+          message: "the recorded plugin folder differs from the files",
+        });
+    }
   if (problems.length > 0) return { status: "invalid", problems };
   if (options.scannedKeys === undefined) return { status: "ok", problems: [] };
   const scanned = new Set(options.scannedKeys);

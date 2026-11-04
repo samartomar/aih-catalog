@@ -118,6 +118,41 @@
       "user": ".copilot/skills/<name>/"
     }
   },
+  "plugins": {
+    "install": [
+      [
+        "copilot",
+        "plugin",
+        "marketplace",
+        "add",
+        "<marketplace>"
+      ],
+      [
+        "copilot",
+        "plugin",
+        "install",
+        "<plugin>@<marketplace-name>"
+      ]
+    ],
+    "marketplaceFolder": ".aihq/marketplaces/<framework>/",
+    "pin": "holds",
+    "pinForm": "local-marketplace",
+    "remove": [
+      [
+        "copilot",
+        "plugin",
+        "uninstall",
+        "<plugin>"
+      ]
+    ],
+    "scopes": [
+      "user"
+    ],
+    "verify": "none",
+    "warnings": [
+      "cli-only-plugin"
+    ]
+  },
   "ruleScopes": {
     "always": {
       "frontmatter": {
@@ -152,5 +187,5 @@
       "disable-model-invocation": true
     }
   },
-  "version": 1
+  "version": 2
 }

@@ -39,6 +39,37 @@
   "links": {
     "skill": "documented"
   },
+  "localPlugins": {
+    "project": {
+      "folder": ".aihq/plugins/<framework>/",
+      "manifests": [
+        ".claude-plugin/marketplace.json"
+      ],
+      "register": [
+        {
+          "entry": {
+            "source": {
+              "path": "./<folder>",
+              "source": "directory"
+            }
+          },
+          "file": ".claude/settings.json",
+          "format": "json",
+          "key": "/extraKnownMarketplaces/<marketplace>"
+        },
+        {
+          "entry": true,
+          "file": ".claude/settings.json",
+          "format": "json",
+          "key": "/enabledPlugins/<plugin>@<marketplace>"
+        }
+      ],
+      "warnings": [
+        "claude-known-marketplaces",
+        "claude-start-at-root"
+      ]
+    }
+  },
   "mcpFile": {
     "remote": {
       "sse": {
@@ -100,6 +131,42 @@
       "user": ".claude/skills/<name>/"
     }
   },
+  "plugins": {
+    "install": [
+      [
+        "claude",
+        "plugin",
+        "marketplace",
+        "add",
+        "<marketplace>",
+        "--scope",
+        "<scope>"
+      ],
+      [
+        "claude",
+        "plugin",
+        "install",
+        "<plugin>@<marketplace-name>",
+        "--scope",
+        "<scope>"
+      ]
+    ],
+    "pin": "holds",
+    "pinForm": "marketplace",
+    "remove": [
+      [
+        "claude",
+        "plugin",
+        "uninstall",
+        "<plugin>"
+      ]
+    ],
+    "scopes": [
+      "project",
+      "user"
+    ],
+    "verify": "none"
+  },
   "ruleScopes": {
     "always": {
       "frontmatter": {}
@@ -116,5 +183,5 @@
       "disable-model-invocation": true
     }
   },
-  "version": 2
+  "version": 3
 }

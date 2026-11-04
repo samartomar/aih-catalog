@@ -10,11 +10,24 @@ import {
   type UnsupportedVersion,
 } from "./contracts.js";
 import { deepFreeze, JsonAdmissionError, readCanonicalDocument } from "./internal/json.js";
+import { readJson } from "./internal/kinds.js";
 import type { Content, Item } from "./internal/model.js";
 import { quote, refused } from "./internal/paths.js";
-import { type PlanStep, planInstall as plan } from "./internal/plan.js";
+import {
+  type MarketplaceRender,
+  type PlanStep,
+  planInstall as plan,
+  type WriteStep,
+} from "./internal/plan.js";
 import { profileProblems } from "./internal/profile.js";
+import {
+  type PluginMetadata,
+  pluginMetadataProblems,
+  type Recipe,
+  recipeProblems,
+} from "./internal/recipe.js";
 import { editFor, renderBytes, renderNames, type ToolProfile } from "./internal/render.js";
+import { marketplaceBytes, planRecipe as recipePlan } from "./internal/routes.js";
 import { sha256Hex } from "./internal/sha256.js";
 import { contentProblems } from "./internal/validate.js";
 
@@ -30,15 +43,30 @@ export type {
   Binding,
   Clash,
   LinkStep,
+  MarketplaceRender,
   MergeStep,
+  Missing,
+  PlacementStep,
   Plan,
   PlanOptions,
   PlanResult,
   PlanStep,
+  PluginStep,
+  RecipeOrigin,
+  SetupStep,
   Unavailable,
   Warning,
   WriteStep,
 } from "./internal/plan.js";
+export type {
+  PluginMetadata,
+  Recipe,
+  RecipeMember,
+  RecipeOption,
+  RecipePlugin,
+  RecipeSetup,
+  Route,
+} from "./internal/recipe.js";
 export type { ToolProfile } from "./internal/render.js";
 
 export type ReadContentResult =
@@ -103,6 +131,57 @@ export function readToolProfile(bytes: Uint8Array): ReadToolProfileResult {
   return result.status === "ok" ? { status: "ok", profile: result.value as ToolProfile } : result;
 }
 
+export type ReadRecipeResult =
+  | {
+      readonly status: "ok";
+      readonly recipe: Recipe;
+      readonly plugin: PluginMetadata;
+      /** The sha256 of the exact `recipe.json` bytes, which a recipe plan records as origin. */
+      readonly sha256: string;
+    }
+  | Invalid
+  | UnsupportedVersion;
+
+/**
+ * Reads a recipe plugin: its Agent Plugins `plugin.json` (strict JSON, unique keys) and its
+ * `recipe.json` (canonical JSON, like every Catalog document). Because the recipe is canonical,
+ * its sha256 is a function of the document, so `planRecipe` recomputes the origin hash itself.
+ */
+export function readRecipe(pluginJsonBytes: Uint8Array, recipeBytes: Uint8Array): ReadRecipeResult {
+  const result = readDocument(
+    recipeBytes,
+    limits.recipeBytes,
+    "urn:aihq:catalog:recipe:",
+    formats.recipe,
+    recipeProblems,
+  );
+  if (result.status !== "ok") return result;
+  if (!(pluginJsonBytes instanceof Uint8Array) || pluginJsonBytes.byteLength > limits.recipeBytes)
+    return {
+      status: "invalid",
+      problems: [{ path: "plugin.json", message: "plugin.json is missing or too large" }],
+    };
+  const plugin = readJson(pluginJsonBytes);
+  if (
+    plugin !== null &&
+    typeof plugin === "object" &&
+    "error" in plugin &&
+    Object.keys(plugin).length === 1
+  )
+    return {
+      status: "invalid",
+      problems: [{ path: "plugin.json", message: String((plugin as { error: string }).error) }],
+    };
+  const problems = pluginMetadataProblems(plugin);
+  if (problems.length > 0) return { status: "invalid", problems };
+  return {
+    status: "ok",
+    recipe: result.value as Recipe,
+    plugin: deepFreeze(plugin) as PluginMetadata,
+    sha256: sha256Hex(recipeBytes),
+  };
+}
+
 export type Availability = {
   readonly available: boolean;
   readonly how: "edition" | "rendered" | "none";
@@ -164,6 +243,14 @@ export function getItem(
 /** `planInstall(selection, contents, profiles, { scope, data, copy?, names?})`. */
 export const planInstall = plan;
 
+export type { RecipeChoices, RecipePlanOptions } from "./internal/routes.js";
+/**
+ * `planRecipe(recipe, contents, profiles, choices, { scope, source, data?, copy?, names? })`:
+ * the recipe's members and choices through each client's route, recording the recipe's
+ * origin (`id`, the sha256 of its canonical bytes, and `source`) and its data identity.
+ */
+export const planRecipe = recipePlan;
+
 export type RenderStepResult =
   | { readonly status: "ok"; readonly bytes: Uint8Array; readonly sha256: string }
   | Refused
@@ -186,7 +273,23 @@ export function renderStep(
     readonly bytes: Uint8Array;
   }[],
 ): RenderStepResult {
-  const render = step?.op === "write" || step?.op === "merge" ? step.render : undefined;
+  if (step?.op === "write" && step.render?.name === "plugin-marketplace") {
+    const render = step.render;
+    const profile = profiles.find((candidate) => candidate.id === render.profile);
+    if (profile === undefined || profile.version !== render.version)
+      return refused(
+        "profile-mismatch",
+        `the step was planned with ${render.profile} version ${render.version}`,
+      );
+    const bytes = marketplaceBytes(render);
+    if ("reason" in bytes)
+      return { status: "invalid", problems: [{ path: "step/render", message: bytes.reason }] };
+    return { status: "ok", bytes, sha256: sha256Hex(bytes) };
+  }
+  const render =
+    step?.op === "write" || step?.op === "merge"
+      ? (step.render as Exclude<WriteStep["render"], MarketplaceRender>)
+      : undefined;
   const from = step?.op === "write" || step?.op === "merge" ? step.from : undefined;
   const itemId =
     step?.op === "write" || step?.op === "merge" ? (from?.item ?? step.item) : undefined;
@@ -268,7 +371,7 @@ export function renderStep(
       );
     source = supplied.bytes;
   }
-  const scope = step.root;
+  const scope = (step as WriteStep).root;
   const edit = editFor(
     {
       name: render.name,

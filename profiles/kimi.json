@@ -74,6 +74,13 @@
       "user": ".kimi-code/skills/<name>/"
     }
   },
+  "plugins": {
+    "pin": "drops-on-update",
+    "scopes": [
+      "user"
+    ],
+    "verify": "none"
+  },
   "ruleScopes": {
     "always": {
       "frontmatter": {}
@@ -85,5 +92,5 @@
       "disableModelInvocation": true
     }
   },
-  "version": 1
+  "version": 2
 }

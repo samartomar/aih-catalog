@@ -9,7 +9,16 @@ import {
   type ToolProfile,
   type WriteStep,
 } from "../../src/catalog/reader.js";
-import { FRAMEWORK, folder, ownContent, profile, sha, sortKeys, utf8 } from "./helpers.js";
+import {
+  FRAMEWORK,
+  folder,
+  ownContent,
+  placements,
+  profile,
+  sha,
+  sortKeys,
+  utf8,
+} from "./helpers.js";
 
 // An ECC-style command (a user-only skill by convention) and a skill flagged user-only.
 const PLAN = "---\ndescription: Plan the next change.\n---\nWrite a plan for the change.\n";
@@ -38,7 +47,7 @@ const ids = (render: NonNullable<WriteStep["render"]>) =>
   "profiles" in render ? render.profiles.map((entry) => entry.id).join("+") : render.profile;
 
 function rows(plan: readonly PlanStep[]): string[] {
-  return plan.map((step) => {
+  return placements(plan).map((step) => {
     if (step.op === "link")
       return `link ${step.path} -> ${step.to} ${short(step.item)} [${step.clis.join(",")}]`;
     const owner = step.item ? short(step.item) : `(${(step.items ?? []).length} items)`;
@@ -111,10 +120,10 @@ describe("a user-only skill in a folder several clients share", () => {
     expect(step(result, ".agents/skills/plan/SKILL.md").render).toEqual({
       name: "shared-skill",
       profiles: [
-        { id: "codex", version: 1 },
-        { id: "cursor", version: 1 },
+        { id: "codex", version: 2 },
+        { id: "cursor", version: 2 },
         { id: "dsh", version: 1 },
-        { id: "kimi", version: 1 },
+        { id: "kimi", version: 2 },
       ],
       installName: "plan",
     });
@@ -216,8 +225,8 @@ describe("a user-only skill in a folder several clients share", () => {
     // The version key covers the combined render record, and so every participating profile.
     const item = built.items.find((candidate) => candidate.id === id("plan"));
     const profiles = [
-      { id: "codex", version: 1 },
-      { id: "kimi", version: 1 },
+      { id: "codex", version: 2 },
+      { id: "kimi", version: 2 },
     ];
     const facts = {
       behaviourSha256: item?.behaviourSha256,

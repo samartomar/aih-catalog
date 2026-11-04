@@ -16,6 +16,7 @@ import { afterEach } from "vitest";
 import { readLocalSource } from "../../src/catalog/node.js";
 import { buildContent } from "../../src/catalog/producer.js";
 import {
+  type PlacementStep,
   type PlanStep,
   readToolProfile,
   type ToolProfile,
@@ -175,3 +176,10 @@ export async function ownContent(root: string) {
 /** The write steps of a plan (plans of skills and file rules hold only writes). */
 export const writes = (plan: readonly PlanStep[]): WriteStep[] =>
   plan.filter((step): step is WriteStep => step.op === "write");
+
+/** The placement steps (write, link, merge) of a plan, in plan order. */
+export const placements = (plan: readonly PlanStep[]): PlacementStep[] =>
+  plan.filter(
+    (step): step is PlacementStep =>
+      step.op === "write" || step.op === "link" || step.op === "merge",
+  );

@@ -94,7 +94,7 @@ export function contentProblems(value: unknown): Problem[] {
   problems.keys(
     value,
     "",
-    ["schema", "framework", "sources", "items", "bundles"],
+    ["schema", "framework", "sources", "items", "bundles", "plugins"],
     ["schema", "framework", "sources", "items"],
   );
   if (value.schema !== formats.content)
@@ -199,6 +199,7 @@ export function contentProblems(value: unknown): Problem[] {
         } else bundles.set(bundle.id, bundle.files);
       });
   }
+  if (value.plugins !== undefined) checkPlugins(value.plugins, sourceIds, problems);
   const itemIds = new Set<string>();
   if (!Array.isArray(value.items)) problems.add("/items", "items must be a list");
   else
@@ -339,6 +340,71 @@ export function contentProblems(value: unknown): Problem[] {
       }
     });
   return problems.list;
+}
+
+/** Recorded plugin folders: one per source folder, every file under it, sorted, with a scan key. */
+function checkPlugins(value: unknown, sourceIds: ReadonlySet<string>, problems: Problems): void {
+  if (!Array.isArray(value)) {
+    problems.add("/plugins", "plugins must be a list");
+    return;
+  }
+  const seen = new Set<string>();
+  value.forEach((plugin, index) => {
+    const path = `/plugins/${index}`;
+    if (!isRecord(plugin)) {
+      problems.add(path, "a plugin folder must be an object");
+      return;
+    }
+    problems.keys(
+      plugin,
+      path,
+      ["sourceId", "path", "files", "scanKey"],
+      ["sourceId", "path", "files", "scanKey"],
+    );
+    if (!sourceIds.has(plugin.sourceId as string))
+      problems.add(`${path}/sourceId`, "names no source");
+    const folder = plugin.path;
+    if (folder !== "/" && !isSafeRelativePath(folder))
+      problems.add(`${path}/path`, "path must be / or a folder");
+    const key = `${String(plugin.sourceId)}\0${String(folder)}`;
+    if (seen.has(key)) problems.add(path, "the plugin folder is recorded twice");
+    seen.add(key);
+    if (typeof plugin.scanKey !== "string" || !SCAN_KEY.test(plugin.scanKey))
+      problems.add(`${path}/scanKey`, "invalid scan key");
+    const files = plugin.files;
+    if (!Array.isArray(files) || files.length === 0) {
+      problems.add(`${path}/files`, "a plugin folder lists its files");
+      return;
+    }
+    let previous = "";
+    files.forEach((file, at) => {
+      const filePath = `${path}/files/${at}`;
+      if (!isRecord(file)) {
+        problems.add(filePath, "a plugin file must be an object");
+        return;
+      }
+      problems.keys(
+        file,
+        filePath,
+        ["sourcePath", "sha256", "bytes", "executable"],
+        ["sourcePath", "sha256", "bytes", "executable"],
+      );
+      const sourcePath = file.sourcePath;
+      if (
+        !isSafeRelativePath(sourcePath) ||
+        (folder !== "/" && !String(sourcePath).startsWith(`${String(folder)}/`))
+      )
+        problems.add(`${filePath}/sourcePath`, "must be a safe path inside the plugin folder");
+      else if (sourcePath <= previous)
+        problems.add(`${filePath}/sourcePath`, "files are sorted and unique");
+      else previous = sourcePath;
+      if (typeof file.sha256 !== "string" || !SHA256.test(file.sha256))
+        problems.add(`${filePath}/sha256`, "invalid sha256");
+      if (!Number.isSafeInteger(file.bytes) || (file.bytes as number) < 0)
+        problems.add(`${filePath}/bytes`, "a byte count");
+      if (typeof file.executable !== "boolean") problems.add(`${filePath}/executable`, "a boolean");
+    });
+  });
 }
 
 /** The kind fields this implementation builds: present on their own kind, absent elsewhere. */
