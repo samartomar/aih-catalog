@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import type { DiscoveredItem } from "../../src/catalog/internal/model.js";
 import { fetchSource } from "../../src/catalog/node.js";
 import { buildContent, checkContent } from "../../src/catalog/producer.js";
 import {
@@ -14,6 +13,7 @@ import {
   renderStep,
   type WriteStep,
 } from "../../src/catalog/reader.js";
+import type { DiscoveredItem } from "../../src/catalog/source.js";
 import { findItems } from "../../src/catalog/source.js";
 import {
   gitRepository,

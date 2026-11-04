@@ -8,9 +8,9 @@ import { execFileSync } from "node:child_process";
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
-import type { DiscoveredItem } from "../../src/catalog/internal/model.js";
 import { readLocalSource } from "../../src/catalog/node.js";
 import { buildContent } from "../../src/catalog/producer.js";
+import type { DiscoveredItem } from "../../src/catalog/source.js";
 import { findItems } from "../../src/catalog/source.js";
 import { sortKeys } from "./helpers.js";
 

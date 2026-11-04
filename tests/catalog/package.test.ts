@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { basename, isAbsolute, join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import * as contracts from "../../src/catalog/contracts.js";
@@ -208,5 +208,15 @@ describe("nothing of the old model remains", () => {
         name,
       ).toEqual([]);
     }
+  });
+});
+
+describe("tests reach the library through its entry points", () => {
+  it("import nothing from src/catalog/internal", () => {
+    const dir = join(root, "tests", "catalog");
+    for (const name of readdirSync(dir).filter((file) => file.endsWith(".ts")))
+      expect(readFileSync(join(dir, name), "utf8"), name).not.toMatch(
+        /from "\.\.\/\.\.\/src\/catalog\/internal\//,
+      );
   });
 });
