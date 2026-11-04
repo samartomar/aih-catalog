@@ -40,6 +40,25 @@ behaviour, run only its file, for example `npx vitest run tests/catalog/own-fold
 
 Write tests first, one behaviour at a time, against the public entry points.
 
+### The packed public consumer
+
+`npm run check:consumer` builds and packs this checkout with `npm pack`, installs the exact
+tarball and the vendored Scan tarball offline into a disposable consumer outside the
+repository, and replays the fifteen acceptance journeys and the consumer regressions there
+through the five exports only (`tools/check-consumer.mjs`, scenarios in `tools/consumer/`).
+Its inputs come through the package's own `fetchSource` from this repository's Git history at
+the packed commit, so commit first. The journeys run under Node's permission model with no
+child process, worker or network, and the browser-safe entry points are loaded without any
+Node built-in. It takes a few seconds and CI runs it after `npm run verify`.
+
+Each row is `passed`, `failed`, `open` (a recorded gap against the journey's expected
+result, with its reason) or `pending` (proof the replay cannot give, such as a real
+qualification), and names its basis: a fixture, the committed candidate data or, with
+`-- --network`, the real upstream bytes at their pins. `-- --write` records the results for a
+clean checkout in [validation/packed-consumer.json](validation/packed-consumer.json),
+identified by source commit and tarball sha256. None of these results shows native client
+support, a real qualification or accepted production data.
+
 ## Formats, schemas and profiles
 
 A format change updates its reader, its schema in `src/catalog/internal/schemas.ts`, its two
