@@ -17,8 +17,12 @@ and `git diff --check`.
 `vendor/aihq-scan-0.1.0.tgz` (sha256
 `52f040b1e09dd4015d5c88b9b98b59d177626bf449f1e819448411552de59bcd`): the development
 dependency of the same name points at the tarball, npm prefers it inside this repository, and
-the lockfile records its integrity. Never replace the tarball without updating its sha256 in
-the package test and here. Only `@aihq/scan/contracts` may be imported.
+the lockfile records its integrity. The sha256 is written in three places: here, in
+[README.md](README.md#install) and as `SCAN_SHA256` in `tests/catalog/package.test.ts`, which
+checks the tarball against it and fails when either document quotes another value. Replacing
+the tarball means updating all three (and `npm install` for the lockfile);
+`validation/packed-consumer.json` records the tarball's sha256 itself. Only
+`@aihq/scan/contracts` may be imported.
 
 ## Tests
 

@@ -106,6 +106,9 @@ describe("the package exposes exactly the five entry points", () => {
     expect(manifest.devDependencies["@aihq/scan"]).toBe(`file:${SCAN_TARBALL}`);
     const tarball = readFileSync(join(root, SCAN_TARBALL));
     expect(createHash("sha256").update(tarball).digest("hex")).toBe(SCAN_SHA256);
+    // The documents that quote it quote this value, and no other sha256 of the tarball.
+    for (const name of ["README.md", "CONTRIBUTING.md"])
+      expect(readFileSync(join(root, name), "utf8"), name).toContain(SCAN_SHA256);
     const lock = JSON.parse(readFileSync(join(root, "package-lock.json"), "utf8"));
     const locked = lock.packages["node_modules/@aihq/scan"];
     expect(locked.version).toBe("0.1.0");
