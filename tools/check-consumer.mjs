@@ -36,17 +36,22 @@ import { tmpdir } from "node:os";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+/** Stops the run; inside the main block the disposable folder is still removed first. */
+class Failure extends Error {}
+function fail(message) {
+  throw new Failure(message);
+}
+process.on("uncaughtException", (error) => {
+  process.stderr.write(`check:consumer: ${error instanceof Failure ? error.message : error.stack}\n`);
+  process.exit(2);
+});
+
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const args = new Set(process.argv.slice(2));
 for (const arg of args)
   if (!["--write", "--network", "--keep"].includes(arg)) fail(`unknown option ${arg}`);
 const RESULTS = "validation/packed-consumer.json";
 const SCAN_TARBALL = "vendor/aihq-scan-0.1.0.tgz";
-
-function fail(message) {
-  process.stderr.write(`check:consumer: ${message}\n`);
-  process.exit(2);
-}
 
 if (Number(process.versions.node.split(".")[0]) !== 26)
   fail(`Node 26 is required (running ${process.versions.node})`);
