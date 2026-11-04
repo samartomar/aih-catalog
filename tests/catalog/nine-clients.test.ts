@@ -662,6 +662,8 @@ describe("user scope: shared versions, links and copies", () => {
       ]
         .sort((left, right) => ((left[0] as string) < (right[0] as string) ? -1 : 1))
         .flat(),
+      // Kiro reads global steering from ~/.kiro/steering/.
+      "write .kiro/steering/always.md rule.always [kiro] rule@kiro",
       `link .claude/skills/plain -> .aihq/shared/local-my-skills/skill/plain/${version} skill.plain [claude-code]`,
       `link .copilot/skills/plain -> .aihq/shared/local-my-skills/skill/plain/${version} skill.plain [copilot]`,
       `link .kimi-code/skills/plain -> .aihq/shared/local-my-skills/skill/plain/${version} skill.plain [kimi]`,
@@ -675,7 +677,6 @@ describe("user scope: shared versions, links and copies", () => {
       "rule.always codex not-described",
       "rule.always copilot not-described",
       "rule.always dsh not-described",
-      "rule.always kiro not-described",
     ]);
     for (const step of result.plan) if (step.op === "write") expect(step.root).toBe("user");
 

@@ -20,7 +20,8 @@ does not authorize publication, and a green check never does.
 
 - A reviewed, independently authorized release path that replaces the publication guard. There
   is no readiness toggle.
-- The packed tarball validated in an outside consumer through its five exports.
+- The packed tarball validated in an outside consumer through its five exports
+  (`npm run check:consumer`), with no failed or open journey left for that tarball.
 - `@aihq/scan@0.1.0` available from the registry, so the package's exact dependency resolves
   without the vendored tarball.
 - An immutable version and the exact tarball identity recorded with the release.

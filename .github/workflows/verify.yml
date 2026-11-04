@@ -26,5 +26,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: Build, embedded profiles, typecheck, lint, tests (including the packed file list) and action pins
         run: npm run verify
+      - name: Packed public-consumer journeys (the exact npm pack tarball, offline, in a disposable consumer)
+        run: npm run check:consumer
       - run: npm audit --audit-level=high
       - run: git diff --check

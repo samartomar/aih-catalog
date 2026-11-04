@@ -44,8 +44,14 @@ reconciles the three section reports with the committed data and lists the known
 
 ## Still open
 
-- **Packed consumer validation.** The fifteen acceptance journeys run against the exact
-  packed tarball in a disposable outside consumer, importing only the public exports.
+- **Packed consumer validation.** `npm run check:consumer` replays the fifteen acceptance
+  journeys and the consumer regressions against the exact packed tarball in a disposable
+  outside consumer, importing only the public exports;
+  [the recorded results](../validation/packed-consumer.json) name the tarball's sha256 and
+  source commit. Two expected results are still open there: Superpowers taken whole at user
+  scope stays incomplete while Kiro's linked skills cannot reach their sibling files, and the
+  tool trio plans no Serena context files. Journey 12's qualified branch is pending real
+  qualifications.
 - **Native use.** Planned layouts are not yet checked in the real clients, and plugin presence
   checks stay `none` until a reliable check exists.
 - **Qualifications.** Only codebase-memory-mcp on linux-x64 is qualified. code-review-graph and

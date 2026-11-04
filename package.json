@@ -63,6 +63,7 @@
     "port:remaining": "npm run build:dist && node tools/port-remaining.mjs",
     "port:ai-setup": "npm run build:dist && node tools/port-ai-setup.mjs",
     "port:report": "node tools/port-report.mjs",
+    "check:consumer": "node tools/check-consumer.mjs",
     "repo:doctor": "node tools/repo-ai-tools.mjs doctor-codex",
     "repo:init": "node tools/repo-ai-tools.mjs setup-codex",
     "prepack": "npm run build:dist",
