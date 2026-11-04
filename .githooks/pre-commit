@@ -1,5 +1,5 @@
 #!/bin/sh
 set -eu
 
-echo "[aih-catalog] pre-commit: migration verification"
+echo "[aih-catalog] pre-commit: verification"
 npm run verify

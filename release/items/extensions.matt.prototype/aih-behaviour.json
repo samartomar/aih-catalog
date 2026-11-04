@@ -1,1 +1,0 @@
-{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"extensions.notices"}]},"executable":{"LICENSE":false,"LOGIC.md":false,"SKILL.md":false,"UI.md":false,"agents/openai.yaml":false},"kind":"skill","payload":{"dirName":"prototype","invocation":"model-allowed","invocationBasis":"frontmatter: disable-model-invocation absent"},"requirements":{"inputs":{}}}

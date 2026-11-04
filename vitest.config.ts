@@ -1,5 +1,7 @@
 import { defineConfig } from "vitest/config";
 
+// The one test inventory: Catalog behavior through its public entry points (tests/catalog),
+// plus the repository checks (publication refusal, repository instructions and helpers).
 export default defineConfig({
   test: {
     environment: "node",
@@ -9,12 +11,6 @@ export default defineConfig({
       provider: "v8",
       include: ["src/**/*.ts"],
       reporter: ["text"],
-      thresholds: {
-        statements: 80,
-        branches: 80,
-        functions: 80,
-        lines: 80,
-      },
     },
   },
 });

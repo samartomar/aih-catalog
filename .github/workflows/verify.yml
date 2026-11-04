@@ -24,7 +24,7 @@ jobs:
           node-version: "26.12.1"
           cache: npm
       - run: npm ci --ignore-scripts
-      - name: Build, typecheck, lint, active tests and action pins
+      - name: Build, embedded profiles, typecheck, lint, tests (including the packed file list) and action pins
         run: npm run verify
       - run: npm audit --audit-level=high
       - run: git diff --check

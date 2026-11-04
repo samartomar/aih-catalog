@@ -1,1 +1,0 @@
-{"dependencies":{"conflicts":[],"optional":[],"requires":[{"itemId":"extensions.notices"},{"itemId":"extensions.references"}]},"executable":{"LICENSE":false,"agents/security-auditor.md":false},"kind":"agent","payload":{"files":["asset-1","license"]},"requirements":{"inputs":{}}}
