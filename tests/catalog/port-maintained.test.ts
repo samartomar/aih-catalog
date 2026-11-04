@@ -436,6 +436,21 @@ describe("representative plans of the ported frameworks", () => {
     expect(plan.status).toBe("ok");
   });
 
+  it("plans the contract's own example, ECC's plan command on Codex at user scope, as ok", () => {
+    // Its file names `agents/planner.md` only as where that agent lives for manual installs.
+    const plan = planned(
+      planInstall(["ecc.skill.plan"], [data("ecc")], [profile("codex")], {
+        scope: "user",
+        data: null,
+        names: { "ecc.skill.plan": "ecc-plan" },
+      }),
+    );
+    expect(plan).toMatchObject({ status: "ok", references: [], unavailable: [], clashes: [] });
+    expect(plan.plan.find((step) => step.op === "link")).toMatchObject({
+      path: ".agents/skills/ecc-plan",
+    });
+  });
+
   const superpowersRecipe = (routes: Record<string, string>, kiro: string[]) => {
     const superpowers = data("superpowers");
     const entry = {
@@ -489,22 +504,28 @@ describe("representative plans of the ported frameworks", () => {
       ),
     ).toMatchObject({ root: "user", item: "superpowers.rule.session-bootstrap", clis: ["kiro"] });
     expect(plan.unavailable).toEqual([]);
-    // What still blocks: sibling-skill paths, which resolve in place only where skills are
-    // copied side by side (project scope); at user scope Kiro's skills are links into version
-    // folders, so a relative path leaves the linked folder.
-    expect(
-      plan.references
-        .filter((reference) => reference.kind === "path")
-        .map((reference) => `${reference.item} ${reference.path} ${reference.clis.join(",")}`),
-    ).toEqual([
-      "superpowers.skill.executing-plans skills/requesting-code-review/code-reviewer.md kiro",
-      "superpowers.skill.executing-plans skills/subagent-driven-development/scripts/review-package kiro",
-      "superpowers.skill.executing-plans skills/subagent-driven-development/scripts/sdd-workspace kiro",
-      "superpowers.skill.subagent-driven-development skills/requesting-code-review/code-reviewer.md kiro",
-      "superpowers.skill.writing-skills skills/using-superpowers/references/codex-tools.md kiro",
-      "superpowers.skill.writing-skills skills/using-superpowers/references/gemini-tools.md kiro",
-    ]);
-    expect(plan.status).toBe("incomplete");
+    // Sibling-skill paths resolve only between copies side by side: at user scope a linked
+    // folder resolves `..` inside its version folder, so the skills they join are copied in
+    // place on Kiro, with a warning, and every other skill stays linked.
+    expect(plan.references.filter((reference) => reference.kind === "path")).toEqual([]);
+    const copied = plan.warnings.find((warning) => warning.code === "copied-for-references");
+    expect(copied).toEqual({
+      code: "copied-for-references",
+      cli: "kiro",
+      items: [
+        "superpowers.skill.executing-plans",
+        "superpowers.skill.requesting-code-review",
+        "superpowers.skill.subagent-driven-development",
+        "superpowers.skill.using-superpowers",
+        "superpowers.skill.writing-skills",
+      ],
+    });
+    for (const item of copied?.items ?? [])
+      expect(
+        plan.plan.some((step) => step.op === "link" && step.item === item),
+        item,
+      ).toBe(false);
+    expect(plan.status).toBe("ok");
   });
 
   it("resolves sibling skill files in place at user scope too when the skills are copied", () => {
@@ -646,12 +667,12 @@ describe("the port report for these families", () => {
       if (entry.disposition === "mapped")
         expect(ids.has(entry.item as string), entry.baseline.id).toBe(true);
     expect(REPORT.counts).toMatchObject({
-      mapped: 687,
+      mapped: 691,
       edition: 43,
       steering: 22,
       notice: 3,
       bundle: 1,
-      dropped: 21,
+      dropped: 17,
     });
   });
 
@@ -689,15 +710,79 @@ describe("the port report for these families", () => {
         .filter((entry) => entry.reason === "mcp-not-representable")
         .map((entry) => entry.baseline.id),
     ).toEqual([
-      "ecc.mcp.browserbase",
       "ecc.mcp.ecc-memory-vault",
       "ecc.mcp.evalview",
-      "ecc.mcp.github",
       "ecc.mcp.ito-compute",
       "ecc.mcp.longhand",
       "ecc.mcp.nexus",
-      "ecc.mcp.railway",
-      "ecc.mcp.token-optimizer",
     ]);
+    // Each npm entry becomes its own server.json, at the exact version Catalog pins.
+    for (const name of ["github", "browserbase", "railway", "token-optimizer"])
+      expect(of(`ecc.mcp.${name}`), name).toMatchObject({
+        disposition: "mapped",
+        item: `ecc.mcp.${name}`,
+      });
+    const github = data("ecc").items.find((item) => item.id === "ecc.mcp.github");
+    expect((github?.server as { packages?: unknown[] } | undefined)?.packages?.[0]).toMatchObject({
+      registryType: "npm",
+      identifier: "@modelcontextprotocol/server-github",
+      version: "2025.4.8",
+    });
+  });
+
+  it("records, per MCP item, where its exact version came from", () => {
+    const entries = REPORT.dispositions as Array<Record<string, unknown> & { item?: string }>;
+    const pins = Object.fromEntries(
+      entries
+        .filter((entry) => entry.item?.startsWith("ecc.mcp.") && entry.disposition === "mapped")
+        .map((entry) => [
+          entry.item,
+          {
+            pinBasis: entry.pinBasis,
+            pinnedVersion: entry.pinnedVersion,
+            pinCheckedOn: entry.pinCheckedOn,
+          },
+        ]),
+    );
+    // The upstream names no version: the npm registry's latest on the day it was pinned.
+    for (const [name, version] of [
+      ["browserbase", "2.4.3"],
+      ["github", "2025.4.8"],
+      ["railway", "0.1.12"],
+      ["token-optimizer", "2.17.0"],
+    ])
+      expect(pins[`ecc.mcp.${name}`], name).toEqual({
+        pinBasis: "registry-latest",
+        pinnedVersion: version,
+        pinCheckedOn: "2026-11-04",
+      });
+    for (const name of ["browserbase", "github", "railway", "token-optimizer"])
+      expect(entries.find((entry) => entry.item === `ecc.mcp.${name}`)?.pinNote, name).toMatch(
+        /previous release/,
+      );
+    // The version the previous Catalog release reviewed for the same package.
+    expect(pins["ecc.mcp.context7"]).toEqual({
+      pinBasis: "previous-release-review",
+      pinnedVersion: "4.4.4",
+      pinCheckedOn: undefined,
+    });
+    // The upstream's own exact version.
+    expect(pins["ecc.mcp.jira"]).toEqual({
+      pinBasis: "upstream",
+      pinnedVersion: "0.21.0",
+      pinCheckedOn: undefined,
+    });
+    // A remote server has no package to pin.
+    expect(pins["ecc.mcp.vercel"]).toEqual({
+      pinBasis: undefined,
+      pinnedVersion: undefined,
+      pinCheckedOn: undefined,
+    });
+    // Every packaged MCP item says where its version came from.
+    for (const item of data("ecc").items.filter((entry) => entry.kind === "mcp")) {
+      const packages = (item.server as { packages?: Array<{ version: string }> }).packages ?? [];
+      if (packages.length > 0)
+        expect(pins[item.id]?.pinnedVersion, item.id).toBe(packages[0]?.version);
+    }
   });
 });

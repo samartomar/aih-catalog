@@ -18,6 +18,7 @@ import {
   deepFreeze,
   JsonAdmissionError,
   readCanonicalDocument,
+  readStrictDocument,
 } from "./internal/json.js";
 import { readJson } from "./internal/kinds.js";
 import type { Content, Item } from "./internal/model.js";
@@ -42,6 +43,7 @@ import {
   bundleRootBytes,
   editFor,
   launcherBytes,
+  namedBundles,
   renderBytes,
   renderNames,
   type ToolProfile,
@@ -124,19 +126,25 @@ export type ReadToolProfileResult =
   | UnsupportedVersion
   | Refused;
 
+/**
+ * Reads one document of `format` (its current URN; another version of the same format is
+ * `unsupported-version`) within its byte limit, then checks it with `problemsOf`.
+ */
 function readDocument(
   bytes: Uint8Array,
+  format: string,
   maxBytes: LimitName,
-  family: string,
-  current: string,
   problemsOf: (value: unknown) => readonly { path: string; message: string }[],
+  spelling: "canonical" | "strict" = "strict",
 ): { status: "ok"; value: unknown } | Invalid | UnsupportedVersion | Refused {
+  const family = format.slice(0, format.lastIndexOf(":") + 1);
   let value: unknown;
   try {
-    value = readCanonicalDocument(bytes, {
-      maxBytes: limits[maxBytes],
-      maxDepth: limits.documentDepth,
-    });
+    const bounds = { maxBytes: limits[maxBytes], maxDepth: limits.documentDepth };
+    value =
+      spelling === "canonical"
+        ? readCanonicalDocument(bytes, bounds)
+        : readStrictDocument(bytes, bounds);
   } catch (error) {
     const reason = error instanceof JsonAdmissionError ? error.reason : "malformed-json";
     // Going over a published limit is a refusal naming the limit, never an invalid document.
@@ -144,11 +152,16 @@ function readDocument(
     if (reason === "depth-limit") return limitRefusal("documentDepth", "the document's nesting");
     return {
       status: "invalid",
-      problems: [{ path: "", message: `the document is not canonical JSON (${reason})` }],
+      problems: [
+        {
+          path: "",
+          message: `the document is not ${spelling === "canonical" ? "canonical" : "strict"} JSON (${reason})`,
+        },
+      ],
     };
   }
   const schema = (value as { schema?: unknown } | null)?.schema;
-  if (typeof schema === "string" && schema.startsWith(family) && schema !== current) {
+  if (typeof schema === "string" && schema.startsWith(family) && schema !== format) {
     return { status: "unsupported-version", schema };
   }
   const problems = problemsOf(value);
@@ -157,29 +170,18 @@ function readDocument(
 }
 
 /**
- * Reads a content document: canonical JSON (sorted keys, two-space indent, final LF) within
- * the content-file limit, with its record shape and record-derived digests checked.
+ * Reads a content document: strict JSON in any spelling (your own content need not be
+ * canonical; `buildContent` writes the canonical form) within the content-file limit, with its
+ * record shape and record-derived digests checked.
  */
 export function readContent(bytes: Uint8Array): ReadContentResult {
-  const result = readDocument(
-    bytes,
-    "contentFileBytes",
-    "urn:aihq:catalog:content:",
-    formats.content,
-    contentProblems,
-  );
+  const result = readDocument(bytes, formats.content, "contentFileBytes", contentProblems);
   return result.status === "ok" ? { status: "ok", content: result.value as Content } : result;
 }
 
-/** Reads a tool profile document (pure data) in the same canonical form. */
+/** Reads a tool profile document (pure data), strict JSON in any spelling, like content. */
 export function readToolProfile(bytes: Uint8Array): ReadToolProfileResult {
-  const result = readDocument(
-    bytes,
-    "toolProfileBytes",
-    "urn:aihq:catalog:tool-profile:",
-    formats.toolProfile,
-    profileProblems,
-  );
+  const result = readDocument(bytes, formats.toolProfile, "toolProfileBytes", profileProblems);
   return result.status === "ok" ? { status: "ok", profile: result.value as ToolProfile } : result;
 }
 
@@ -188,7 +190,7 @@ export type ReadRecipeResult =
       readonly status: "ok";
       readonly recipe: Recipe;
       readonly plugin: PluginMetadata;
-      /** The sha256 of the exact `recipe.json` bytes, which a recipe plan records as origin. */
+      /** The sha256 of the recipe's canonical form, which a recipe plan records as origin. */
       readonly sha256: string;
     }
   | Invalid
@@ -196,18 +198,12 @@ export type ReadRecipeResult =
   | Refused;
 
 /**
- * Reads a recipe plugin: its Agent Plugins `plugin.json` (strict JSON, unique keys) and its
- * `recipe.json` (canonical JSON, like every Catalog document). Because the recipe is canonical,
- * its sha256 is a function of the document, so `planRecipe` recomputes the origin hash itself.
+ * Reads a recipe plugin: its Agent Plugins `plugin.json` and its `recipe.json`, both strict
+ * JSON in any spelling. The recipe's identity is the sha256 of its canonical form, a function of
+ * the document, so `planRecipe` recomputes the origin hash itself.
  */
 export function readRecipe(pluginJsonBytes: Uint8Array, recipeBytes: Uint8Array): ReadRecipeResult {
-  const result = readDocument(
-    recipeBytes,
-    "recipeBytes",
-    "urn:aihq:catalog:recipe:",
-    formats.recipe,
-    recipeProblems,
-  );
+  const result = readDocument(recipeBytes, formats.recipe, "recipeBytes", recipeProblems);
   if (result.status !== "ok") return result;
   if (pluginJsonBytes instanceof Uint8Array && pluginJsonBytes.byteLength > limits.recipeBytes)
     return limitRefusal("recipeBytes", "plugin.json");
@@ -233,7 +229,7 @@ export function readRecipe(pluginJsonBytes: Uint8Array, recipeBytes: Uint8Array)
     status: "ok",
     recipe: result.value as Recipe,
     plugin: deepFreeze(plugin) as PluginMetadata,
-    sha256: sha256Hex(recipeBytes),
+    sha256: sha256Hex(new TextEncoder().encode(canonicalDocument(result.value))),
   };
 }
 
@@ -255,10 +251,11 @@ export type ReadQualificationResult =
 export function readQualification(bytes: Uint8Array): ReadQualificationResult {
   const result = readDocument(
     bytes,
-    "qualificationBytes",
-    "urn:aihq:catalog:qualification:",
     formats.qualification,
+    "qualificationBytes",
     qualificationProblems,
+    // A qualification is named by the sha256 of its exact bytes, so only its canonical form.
+    "canonical",
   );
   if (result.status !== "ok") return result;
   return {
@@ -304,10 +301,18 @@ function syntheticContent(item: Item): Content {
   };
 }
 
-/** The items of a content document, optionally of one kind or placeable for one profile. */
+/** The items of a content document, optionally of one kind or placeable for one client. */
 export function listItems(
   content: Content,
-  options: { readonly kind?: string; readonly cli?: ToolProfile } = {},
+  options: {
+    /** Only items of this kind. */
+    readonly kind?: string;
+    /**
+     * Only items placeable for one client. The option is named `cli`, as in the contract, but
+     * it takes that client's tool profile (as `readToolProfile` returns it), not a client id.
+     */
+    readonly cli?: ToolProfile;
+  } = {},
 ): Item[] {
   return content.items.filter(
     (item) =>
@@ -581,28 +586,12 @@ function bundleRootStep(
     if (always === undefined) return badRender("the profile has no always-on rule form");
     frontmatter = always.frontmatter;
   }
-  const named = [];
-  for (const entry of render.bundles) {
-    const found = contents
-      .map((content) => ({
-        content,
-        bundle: content.bundles?.find((bundle) => bundle.id === entry?.bundle),
-      }))
-      .find((candidate) => candidate.bundle !== undefined);
-    if (found?.bundle === undefined || typeof entry.root !== "string")
-      return refused(
-        "unknown-item",
-        `the bundle ${quote(String(entry?.bundle))} is not in the supplied content`,
-      );
-    named.push({
-      framework: found.content.framework.name,
-      layout: found.bundle.layout,
-      root: entry.root,
-      folders: [
-        ...new Set(found.bundle.files.map((file) => file.sourcePath.split("/")[0] as string)),
-      ].sort(),
-    });
-  }
+  const named = namedBundles(render.bundles, contents);
+  if (!Array.isArray(named))
+    return refused(
+      "unknown-item",
+      `the bundle ${quote(named.unknown)} is not in the supplied content`,
+    );
   return ok(bundleRootBytes(named, scope, frontmatter));
 }
 

@@ -5,6 +5,7 @@
  * listed in `unsupported` with the reason, never invented.
  */
 import { formats, kinds, type Problem } from "../contracts.js";
+import { isRecord, isText, Problems, TEXT_LIMITS } from "./check.js";
 import type { Frontmatter } from "./frontmatter.js";
 import { FRAMEWORK_ID } from "./model.js";
 import { isSafeRelativePath } from "./paths.js";
@@ -225,11 +226,8 @@ export interface ToolProfile {
   readonly disableBuiltIn?: DisableBuiltIn;
 }
 
-type Record_ = Record<string, unknown>;
-const isRecord = (value: unknown): value is Record_ =>
-  value !== null && typeof value === "object" && !Array.isArray(value);
-const isString = (value: unknown, max = 512): value is string =>
-  typeof value === "string" && value.length > 0 && value.length <= max;
+const isString = (value: unknown, max: number = TEXT_LIMITS.profile): value is string =>
+  isText(value, max);
 const SCALAR = (value: unknown): boolean =>
   typeof value === "boolean" || typeof value === "number" || isString(value, 256);
 const KEY = /^[A-Za-z][A-Za-z0-9_.-]*$/;
@@ -243,22 +241,6 @@ function template(value: unknown, folder: boolean, name = true): boolean {
   if (folder !== value.endsWith("/")) return false;
   const filled = value.replaceAll("<name>", "x");
   return isSafeRelativePath(folder ? filled.slice(0, -1) : filled);
-}
-
-class Problems {
-  readonly list: Problem[] = [];
-  add(path: string, message: string): void {
-    this.list.push({ path, message });
-  }
-  keys(value: Record_, path: string, allowed: readonly string[], required: readonly string[] = []) {
-    for (const key of Object.keys(value))
-      if (!allowed.includes(key)) this.add(`${path}/${key}`, "unknown field");
-    for (const key of required)
-      if (value[key] === undefined) this.add(`${path}/${key}`, "required field is missing");
-  }
-  check(ok: boolean, path: string, message: string): void {
-    if (!ok) this.add(path, message);
-  }
 }
 
 const TOP = [

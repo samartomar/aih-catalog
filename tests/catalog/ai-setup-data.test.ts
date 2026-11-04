@@ -59,6 +59,7 @@ describe("the committed qualifications", () => {
       "cbm.ai-setup.codebase-memory-mcp windows-arm64 unknown",
       "cbm.ai-setup.codebase-memory-mcp windows-x64 unknown",
       "crg.ai-setup.code-review-graph linux-x64 blocked",
+      "crg.ai-setup.code-review-graph linux-x64 blocked",
       "serena.ai-setup.serena linux-x64 blocked",
     ]);
     expect(REPORT.combinationQualifications).toEqual([]);
@@ -106,6 +107,10 @@ describe("the trio on Linux x64", () => {
       ["crg.ai-setup.code-review-graph", "not-qualified", "blocked"],
       ["serena.ai-setup.serena", "not-qualified", "blocked"],
     ]);
+    // code-review-graph's reason is its latest run's (CPython 3.15.2), not the older 3.14.10 one.
+    expect(
+      result.unavailable.find((entry) => entry.item === "crg.ai-setup.code-review-graph")?.detail,
+    ).toMatch(/^no binary-only closure on CPython 3\.15\.2/);
   });
 
   it("acquires codebase-memory-mcp from its qualified record and applies its settings with readbacks", () => {

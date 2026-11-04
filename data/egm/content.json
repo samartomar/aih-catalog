@@ -1196,6 +1196,7 @@
           "sourcePath": "skills/egm-review/assets/icon.svg"
         }
       ],
+      "folderScanKey": "git-sha1:1b923b12bb559dc7809ff4374b1eec50d9f5cc8e",
       "include": [
         ".agents/plugins/marketplace.json",
         ".claude-plugin/agents/*.md",
@@ -1244,6 +1245,11 @@
           "covers": "/",
           "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
           "sourcePath": "LICENSE"
+        },
+        {
+          "covers": "distributions/claude",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+          "sourcePath": "distributions/claude/LICENSE"
         }
       ],
       "repository": "https://github.com/google/elephant-goldfish-model"

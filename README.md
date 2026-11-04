@@ -96,7 +96,7 @@ exact commit or version and reads it with Git hooks, checkout and lifecycle scri
 
 Maintained frameworks are Catalog data, read from this repository's `data/` folder at a
 pinned commit with `fetchSource` and checked against every recorded sha256. A recipe is a
-separate Git plugin: its `plugin.json` plus a canonical `recipe.json` naming its routes,
+separate Git plugin: its `plugin.json` plus a `recipe.json` naming its routes,
 members, choice groups and the data commit it was written against. `readRecipe` reads it, and
 `planRecipe` plans it through each client's route and records the recipe's exact origin.
 

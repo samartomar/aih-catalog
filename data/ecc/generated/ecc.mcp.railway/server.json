@@ -1,0 +1,21 @@
+{
+  "description": "Railway deployments",
+  "name": "railway",
+  "packages": [
+    {
+      "identifier": "@railway/mcp-server",
+      "registryType": "npm",
+      "runtimeArguments": [
+        {
+          "type": "positional",
+          "value": "-y"
+        }
+      ],
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "version": "0.1.12"
+    }
+  ]
+}

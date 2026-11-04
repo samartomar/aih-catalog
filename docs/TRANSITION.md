@@ -34,7 +34,7 @@ reconciles the three section reports with the committed data and lists the known
 
 | Earlier check | Now |
 | --- | --- |
-| Strict JSON, canonical bytes, bounded input, frozen results | Adapted: every format is admitted only as canonical bytes within published limits (`tests/catalog/refusals.test.ts`). |
+| Strict JSON, canonical bytes, bounded input, frozen results | Adapted: every format is admitted as strict JSON within published limits (qualifications only as canonical bytes), and identified by its canonical form (`tests/catalog/refusals.test.ts`). |
 | Safe relative paths, link and special-file refusal, sha256 and changed-byte refusal | Adapted into `readLocalSource`, `fetchSource`, `checkContent` and `renderStep`. |
 | Source-link parsing and hookless pinned fetching | Adapted into `parseSourceLink` and `fetchSource`, tested with local Git repositories and a local npm registry. |
 | Package identity, packed contents and publication refusal | Kept: `tests/catalog/package.test.ts` and `tests/publication-guard.test.ts`. |
@@ -48,10 +48,8 @@ reconciles the three section reports with the committed data and lists the known
   journeys and the consumer regressions against the exact packed tarball in a disposable
   outside consumer, importing only the public exports;
   [the recorded results](../validation/packed-consumer.json) name the tarball's sha256 and
-  source commit. Two expected results are still open there: Superpowers taken whole at user
-  scope stays incomplete while Kiro's linked skills cannot reach their sibling files, and the
-  tool trio plans no Serena context files. Journey 12's qualified branch is pending real
-  qualifications.
+  source commit. One expected result is still open there: the tool trio plans no Serena
+  context files. Journey 12's qualified branch is pending real qualifications.
 - **Native use.** Planned layouts are not yet checked in the real clients, and plugin presence
   checks stay `none` until a reliable check exists.
 - **Qualifications.** Only codebase-memory-mcp on linux-x64 is qualified. code-review-graph and

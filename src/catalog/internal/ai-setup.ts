@@ -6,6 +6,7 @@
  * exact bytes one run saw on one cell and the run's result; Catalog runs nothing. Pure data.
  */
 import { formats, type Problem } from "../contracts.js";
+import { isRecord, isText, Problems, type Record_, TEXT_LIMITS } from "./check.js";
 import {
   DATE,
   EXACT_VERSION,
@@ -148,11 +149,8 @@ export interface Qualification {
   readonly result: QualificationResult;
 }
 
-type Record_ = Record<string, unknown>;
-const isRecord = (value: unknown): value is Record_ =>
-  value !== null && typeof value === "object" && !Array.isArray(value);
-const isString = (value: unknown, max = 4096): value is string =>
-  typeof value === "string" && value.length > 0 && value.length <= max;
+const isString = (value: unknown, max: number = TEXT_LIMITS.document): value is string =>
+  isText(value, max);
 const isArgv = (value: unknown): value is string[] =>
   Array.isArray(value) && value.every((entry) => typeof entry === "string" && entry.length <= 4096);
 const isSha = (value: unknown): value is string => typeof value === "string" && SHA256.test(value);
@@ -161,21 +159,6 @@ const isCount = (value: unknown): value is number =>
   Number.isSafeInteger(value) && (value as number) >= 0;
 const isSeconds = (value: unknown): value is number =>
   Number.isSafeInteger(value) && (value as number) > 0 && (value as number) <= 86_400;
-class Problems {
-  readonly list: Problem[] = [];
-  add(path: string, message: string): void {
-    if (!this.list.some((problem) => problem.path === path)) this.list.push({ path, message });
-  }
-  check(ok: boolean, path: string, message: string): void {
-    if (!ok) this.add(path, message);
-  }
-  keys(value: Record_, path: string, allowed: readonly string[], required: readonly string[]) {
-    for (const key of Object.keys(value))
-      if (!allowed.includes(key)) this.add(`${path}/${key}`, "unknown field");
-    for (const key of required)
-      if (value[key] === undefined) this.add(`${path}/${key}`, "required field is missing");
-  }
-}
 
 function checkMembers(value: unknown, path: string, problems: Problems): void {
   if (!Array.isArray(value) || value.length === 0) {

@@ -98,6 +98,13 @@
       "version": "2.3.9"
     },
     {
+      "aiSetup": "crg.ai-setup.code-review-graph",
+      "cell": "linux-x64",
+      "sha256": "3231792df571912e5edc5584d6ea1c991bed4b6b09637346169d994dfd40d970",
+      "status": "blocked",
+      "version": "2.3.9"
+    },
+    {
       "aiSetup": "serena.ai-setup.serena",
       "cell": "linux-x64",
       "sha256": "8e9113b6ba319e27f7b05651a35b3b91d4b1a1963a3fb29746b37735643d4b81",

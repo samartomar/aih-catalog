@@ -18,14 +18,19 @@ const lines = [
   "",
   "/** The shipped tool profiles, by id, as the exact text of their committed documents. */",
   "export const profileTexts = {",
-  ...ids.map((id) => `  ${key(id)}: ${JSON.stringify(readFileSync(join(root, "profiles", `${id}.json`), "utf8"))},`),
+  ...ids.map(
+    (id) =>
+      `  ${key(id)}: ${JSON.stringify(readFileSync(join(root, "profiles", `${id}.json`), "utf8"))},`,
+  ),
   "} as const;",
   "",
 ];
 const text = lines.join("\n");
 if (process.argv.includes("--check")) {
   if (!existsSync(target) || readFileSync(target, "utf8") !== text) {
-    console.error("generate-profiles: src/catalog/internal/profiles.generated.ts is out of date; run npm run generate:profiles");
+    console.error(
+      "generate-profiles: src/catalog/internal/profiles.generated.ts is out of date; run npm run generate:profiles",
+    );
     process.exit(1);
   }
   console.log(`generate-profiles: ${ids.length} profiles match`);

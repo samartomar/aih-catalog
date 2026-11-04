@@ -15,7 +15,7 @@ import {
   readRecipe,
 } from "../../src/catalog/reader.js";
 import type { SourceFile } from "../../src/catalog/source.js";
-import { egmContent } from "./egm.js";
+import { EGM_UPSTREAM, egmContent } from "./egm.js";
 import { fetches, placements, profile, sha, sortKeys } from "./helpers.js";
 
 const repositoryRoot = resolve(import.meta.dirname, "../..");
@@ -244,7 +244,28 @@ describe("the ported candidate data", () => {
 
   it("records EGM exactly as its pinned runtime fixture builds it", async () => {
     const { content } = await egmContent();
-    expect(data("egm")).toEqual(content);
+    const recorded = data("egm");
+    // The fixture holds the runtime files only. What the real data adds is the whole upstream
+    // tree: the plugin folder's own key, which is the commit's root tree, and the notice of the
+    // upstream's generated distributions/ copy, which covers no item.
+    const [plugin] = recorded.plugins ?? [];
+    expect(plugin?.folderScanKey).toBe(`git-sha1:${EGM_UPSTREAM.tree}`);
+    const [source] = recorded.sources;
+    expect(source?.notices.map((notice) => notice.sourcePath)).toContain(
+      "distributions/claude/LICENSE",
+    );
+    const trimmed = {
+      ...recorded,
+      sources: recorded.sources.map((each) => ({
+        ...each,
+        notices: each.notices.filter((notice) => !notice.sourcePath.startsWith("distributions/")),
+      })),
+      plugins: (recorded.plugins ?? []).map(({ folderScanKey: _, ...rest }) => rest),
+    };
+    expect(trimmed).toEqual({
+      ...content,
+      plugins: (content.plugins ?? []).map(({ folderScanKey: _, ...rest }) => rest),
+    });
   });
 
   it("records the upstream-only skills without shipping their bytes, and their Claude copies as editions", () => {
@@ -293,7 +314,8 @@ describe("representative plans of the remaining families", () => {
         plugin: "example-skills",
         marketplace: PINS.anthropic[0],
         commit: PINS.anthropic[1],
-        scanKey: record?.scanKey,
+        // Claude clones the whole marketplace folder, not the plugin's skill list.
+        scanKey: record?.folderScanKey,
       }),
     ]);
     const writes = pathsOf(result.plan, "write");
@@ -372,7 +394,7 @@ describe("representative plans of the remaining families", () => {
     expect(paths.map((reference) => reference.item)).not.toContain("gstack.skill.guard");
   });
 
-  it("gives pstack its Claude copy as Claude's edition, prefixed, with the namespaced name a warning", () => {
+  it("gives pstack its Claude copy as Claude's edition, unprefixed, with the namespaced name a warning", () => {
     const result = planned(
       planRecipe(
         draft("pstack-base"),
@@ -384,10 +406,10 @@ describe("representative plans of the remaining families", () => {
     );
     const arena = (path: string) =>
       placements(result.plan).find((step) => step.op === "write" && step.path === path);
-    expect(arena(".claude/skills/pstack-arena/SKILL.md")).toMatchObject({
+    expect(arena(".claude/skills/arena/SKILL.md")).toMatchObject({
       from: { sourceId: "pstack-claude", sourcePath: "skills/arena/SKILL.md" },
     });
-    expect(arena(".agents/skills/pstack-arena/SKILL.md")).toMatchObject({
+    expect(arena(".agents/skills/arena/SKILL.md")).toMatchObject({
       from: { sourceId: "pstack", sourcePath: "skills/arena/SKILL.md" },
     });
     expect(result.references.filter((reference) => reference.kind === "name")).toEqual([
@@ -397,15 +419,23 @@ describe("representative plans of the remaining families", () => {
         means: "pstack.skill.poteto-mode",
       }),
     ]);
-    // The prefix moves siblings away from the relative links pstack's skills use between them.
-    expect(result.status).toBe("incomplete");
-    expect(result.references).toContainEqual(
-      expect.objectContaining({
-        kind: "path",
-        item: "pstack.skill.principle-attack-the-premise",
-        path: "skills/principle-build-the-lever/SKILL.md",
-      }),
-    );
+    // Without a prefix the skills keep their upstream names, so the relative links between
+    // sibling skills resolve where they are copied side by side.
+    expect(
+      result.references.filter(
+        (reference) =>
+          reference.kind === "path" &&
+          reference.item.startsWith("pstack.skill.") &&
+          reference.path.startsWith("skills/"),
+      ),
+    ).toEqual([]);
+    // What is left is an agent's prose naming a skill's path ("a file whose path ends in"),
+    // which no folder layout of Codex's agent file can satisfy.
+    expect(
+      result.references.filter(
+        (reference) => reference.kind === "path" && reference.path.startsWith("skills/"),
+      ),
+    ).toEqual([expect.objectContaining({ item: "pstack.agent.poteto-agent", clis: ["codex"] })]);
   });
 
   it("keeps EGM's real runtime bundle whole for Claude, Codex and Antigravity", () => {

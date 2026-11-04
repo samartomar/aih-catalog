@@ -61,7 +61,7 @@ describe("the complete port report", () => {
     });
     const counts = Object.values(report.baseline.dispositions as Record<string, number>);
     expect(counts.reduce((total, count) => total + count, 0)).toBe(777);
-    expect(report.baseline.dispositions.dropped).toBe(21);
+    expect(report.baseline.dispositions.dropped).toBe(17);
   });
 
   it("maps every disposition to an item that is in the committed data", () => {

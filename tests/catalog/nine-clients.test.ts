@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import type { DiscoveredItem } from "../../src/catalog/internal/model.js";
 import { readLocalSource } from "../../src/catalog/node.js";
 import { buildContent, checkContent } from "../../src/catalog/producer.js";
 import {
@@ -16,6 +15,7 @@ import {
   type ToolProfile,
   type WriteStep,
 } from "../../src/catalog/reader.js";
+import type { DiscoveredItem } from "../../src/catalog/source.js";
 import { findItems } from "../../src/catalog/source.js";
 import {
   FRAMEWORK,
@@ -331,6 +331,7 @@ describe("placing the mixed fixture for all nine clients at project scope", () =
     if (result.status === "invalid" || result.status === "refused")
       throw new Error(JSON.stringify(result));
     expect(rows(result.plan)).toEqual([
+      "write .agents/agents/helper.md agent.helper [antigravity,kimi] agent@antigravity",
       "write .agents/agents/reviewer.md agent.reviewer [antigravity,kimi] agent@antigravity",
       "write .agents/rules/always.md rule.always [antigravity] rule@antigravity",
       "write .agents/rules/python.md rule.python [antigravity] rule@antigravity",
@@ -346,12 +347,14 @@ describe("placing the mixed fixture for all nine clients at project scope", () =
       "write .claude/skills/folded/SKILL.md skill.folded [claude-code]",
       "write .claude/skills/plain/SKILL.md skill.plain [claude-code]",
       "write .claude/skills/plain/references/notes.md skill.plain [claude-code]",
+      "write .codex/agents/helper.toml agent.helper [codex] agent@codex",
       "write .codex/agents/reviewer.toml agent.reviewer [codex] agent@codex",
       "write .cursor/rules/always.mdc rule.always [cursor] rule@cursor",
       "write .cursor/rules/python.mdc rule.python [cursor] rule@cursor",
       "write .github/hooks/guard.json hook.guard [copilot]",
       "write .github/instructions/always.instructions.md rule.always [copilot] rule@copilot",
       "write .github/instructions/python.instructions.md rule.python [copilot] rule@copilot",
+      "write .kiro/agents/helper.json agent.helper [kiro] agent@kiro",
       "write .kiro/agents/reviewer.json agent.reviewer [kiro]",
       "write .kiro/hooks/guard.kiro.hook hook.guard [kiro]",
       "write .kiro/prompts/deploy.md skill.deploy [kiro] user-only-fallback@kiro",
@@ -361,6 +364,7 @@ describe("placing the mixed fixture for all nine clients at project scope", () =
       "write .kiro/steering/always.md rule.always [kiro] rule@kiro",
       "write .kiro/steering/deploy.md skill.deploy [kiro] user-only-fallback@kiro",
       "write .kiro/steering/python.md rule.python [kiro] rule@kiro",
+      "write .opencode/agents/helper.md agent.helper [opencode] agent@opencode",
       "write .opencode/agents/reviewer.md agent.reviewer [opencode] agent@opencode",
       "write .opencode/commands/deploy.md skill.deploy [opencode] user-only-fallback@opencode",
       "merge .agents/mcp_config.json /mcpServers/docs mcp.docs [antigravity]",
@@ -385,12 +389,7 @@ describe("placing the mixed fixture for all nine clients at project scope", () =
     expect(
       result.unavailable.map((entry) => `${short(entry.item ?? "")} ${entry.cli} ${entry.reason}`),
     ).toEqual([
-      "agent.helper antigravity no-tool-names",
-      "agent.helper codex no-tool-restriction",
       "agent.helper dsh unsupported-kind",
-      "agent.helper kimi no-tool-names",
-      "agent.helper kiro no-tool-names",
-      "agent.helper opencode no-tool-restriction",
       "agent.reviewer dsh unsupported-kind",
       ...NINE.map((cli) => `document.guide ${cli} not-described`),
       "hook.guard antigravity no-edition",
@@ -419,9 +418,20 @@ describe("placing the mixed fixture for all nine clients at project scope", () =
       },
     ]);
     // Copilot shares .agents/skills, and VS Code is told not to read .claude/skills too.
-    expect(result.warnings.map((warning) => `${warning.code} ${warning.cli}`)).toEqual([
-      "copilot-ide-duplicate copilot",
-      "vscode-hides-claude-skills copilot",
+    // The helper's tool list (Read, Grep) is kept where the client reads Claude's agent file and
+    // dropped, with a warning, where the client's own agent file cannot carry it.
+    expect(
+      result.warnings.map(
+        (warning) => `${warning.code} ${warning.cli} ${(warning.items ?? []).map(short).join(",")}`,
+      ),
+    ).toEqual([
+      "agent-tools-unrestricted antigravity agent.helper",
+      "agent-tools-unrestricted codex agent.helper",
+      "agent-tools-unrestricted kimi agent.helper",
+      "agent-tools-unrestricted kiro agent.helper",
+      "agent-tools-unrestricted opencode agent.helper",
+      "copilot-ide-duplicate copilot skill.deploy,skill.folded,skill.plain",
+      "vscode-hides-claude-skills copilot skill.deploy,skill.folded,skill.plain",
     ]);
     expect(result.status).toBe("incomplete");
     for (const step of placements(result.plan))
@@ -493,6 +503,7 @@ describe("placing the mixed fixture for all nine clients at project scope", () =
     const result = planInstall(
       [
         id("agent", "reviewer"),
+        id("agent", "helper"),
         id("rule", "always"),
         id("rule", "python"),
         id("skill", "folded"),
@@ -525,6 +536,13 @@ describe("placing the mixed fixture for all nine clients at project scope", () =
     );
     expect(rendered[".opencode/agents/reviewer.md"]).toBe(
       `---\ndescription: Reviews a change.\n---\n${BODY}`,
+    );
+    // An agent's tool list is dropped where the client's own file cannot carry it.
+    expect(rendered[".codex/agents/helper.toml"]).toBe(
+      'name = "helper"\ndescription = "Answers questions."\ndeveloper_instructions = "Help.\\n"\n',
+    );
+    expect(rendered[".agents/agents/helper.md"]).toBe(
+      "---\nname: helper\ndescription: Answers questions.\n---\nHelp.\n",
     );
     expect(rendered[".claude/rules/python.md"]).toBe(
       '---\npaths: ["**/*.py"]\n---\n# Python\n\nUse types.\n',
@@ -728,6 +746,8 @@ describe("user scope: shared versions, links and copies", () => {
     expect(rows(result.plan)).toEqual([
       "write .aihq/notices/local-my-skills/LICENSE (1 items) [kiro]",
       "write .kiro/prompts/deploy.md skill.deploy [kiro] user-only-fallback@kiro",
+      // Kiro's global steering (~/.kiro/steering) gives the IDE its manual steering too.
+      "write .kiro/steering/deploy.md skill.deploy [kiro] user-only-fallback@kiro",
     ]);
     expect(result.unavailable).toMatchObject([
       { item: id("skill", "deploy"), cli: "opencode", reason: "no-user-only" },

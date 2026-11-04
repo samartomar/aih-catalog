@@ -17,6 +17,8 @@ import {
 import { findItems } from "../../src/catalog/source.js";
 import { FRAMEWORK, folder, ownContent, profile, sha, writes } from "./helpers.js";
 
+const planSteps = (result: ReturnType<typeof planInstall>) =>
+  result.status === "ok" || result.status === "incomplete" ? result.plan : [];
 const SKILL = "---\nname: tidy\ndescription: Tidy the code.\n---\n\nTidy $ARGUMENTS.\n";
 const tidy = `${FRAMEWORK}.skill.tidy`;
 
@@ -214,7 +216,30 @@ describe("changed bytes", () => {
     ).toContain(`${tidy}/skills/tidy/SKILL.md`);
   });
 
-  it("reads content back only in its canonical, digest-consistent form", async () => {
+  it("reads own content and own profiles in any strict JSON spelling, never with duplicate keys", async () => {
+    const root = folder({ "skills/tidy/SKILL.md": SKILL });
+    const { built } = await ownContent(root);
+    const compact = new TextEncoder().encode(JSON.stringify(built.content));
+    expect(readContent(compact)).toEqual({ status: "ok", content: built.content });
+    const twice = new TextEncoder().encode(
+      `{"schema":"x",${JSON.stringify(built.content).slice(1)}`,
+    );
+    expect(readContent(twice)).toMatchObject({ status: "invalid" });
+    const nested = JSON.stringify(built.content).replace(
+      '"framework":{',
+      '"framework":{"name":"Other",',
+    );
+    expect(readContent(new TextEncoder().encode(nested))).toMatchObject({ status: "invalid" });
+    const withBom = new Uint8Array([0xef, 0xbb, 0xbf, ...compact]);
+    expect(readContent(withBom)).toMatchObject({ status: "invalid" });
+    const own = profile("codex");
+    expect(readToolProfile(new TextEncoder().encode(JSON.stringify(own)))).toEqual({
+      status: "ok",
+      profile: own,
+    });
+  });
+
+  it("reads content back only in its digest-consistent form", async () => {
     const root = folder({ "skills/tidy/SKILL.md": SKILL });
     const { built } = await ownContent(root);
     const path = join(root, "..", "content.json");
@@ -226,9 +251,6 @@ describe("changed bytes", () => {
     ).toMatchObject({
       status: "invalid",
       problems: [{ path: "/items/0/behaviourSha256" }],
-    });
-    expect(readContent(new TextEncoder().encode(text.replace("\n  ", "\n ")))).toMatchObject({
-      status: "invalid",
     });
     expect(
       readContent(
@@ -295,7 +317,7 @@ describe("explicit leftovers and unimplemented kinds", () => {
     });
   });
 
-  it("places scoped rules and reports a Kiro user-only skill with support files as not implemented", async () => {
+  it("places scoped rules and launches a Kiro user-only skill with support files from its own folder", async () => {
     const root = folder({
       "rules/python.md": '---\npaths:\n  - "**/*.py"\n---\n# Python\n',
       "skills/deploy/SKILL.md":
@@ -317,21 +339,36 @@ describe("explicit leftovers and unimplemented kinds", () => {
       scope: "project",
       data: null,
     });
-    expect(result).toMatchObject({
-      status: "incomplete",
-      unavailable: [{ item: deploy, cli: "kiro", reason: "not-implemented" }],
+    // A user-only skill with support files keeps its folder where Kiro does not load skills
+    // (as a bundle skill does), and its prompt file and manual steering launch it.
+    expect(result).toMatchObject({ status: "ok", unavailable: [] });
+    const paths = writes(planSteps(result)).map((step) => step.path);
+    expect(paths).toContain(`.kiro/aih/${FRAMEWORK}/skills/deploy/SKILL.md`);
+    expect(paths).toContain(`.kiro/aih/${FRAMEWORK}/skills/deploy/script.sh`);
+    expect(paths).not.toContain(".kiro/skills/deploy/SKILL.md");
+    const launcher = writes(planSteps(result)).find(
+      (step) => step.path === ".kiro/prompts/deploy.md",
+    );
+    expect(launcher).toMatchObject({
+      render: { name: "launcher", target: `.kiro/aih/${FRAMEWORK}/skills/deploy/SKILL.md` },
     });
+    expect(paths).toContain(".kiro/steering/deploy.md");
     const item = built.content.items.find((candidate) => candidate.id === deploy);
     if (item === undefined) throw new Error("deploy missing");
     expect(availability(item, profile("claude-code"))).toEqual({
       available: true,
       how: "rendered",
     });
-    expect(availability(item, kiro)).toEqual({
-      available: false,
-      how: "none",
-      reason: "not-implemented",
+    expect(availability(item, kiro)).toEqual({ available: true, how: "rendered" });
+    // OpenCode keeps the folder in its skill place and launches it from a command.
+    const opencode = planInstall([deploy], [built.content], [profile("opencode")], {
+      scope: "project",
+      data: null,
     });
+    expect(opencode).toMatchObject({ status: "ok" });
+    expect(
+      writes(planSteps(opencode)).find((step) => step.path === ".opencode/commands/deploy.md"),
+    ).toMatchObject({ render: { name: "launcher", target: ".agents/skills/deploy/SKILL.md" } });
   });
 });
 

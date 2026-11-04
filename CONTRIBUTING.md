@@ -17,8 +17,12 @@ and `git diff --check`.
 `vendor/aihq-scan-0.1.0.tgz` (sha256
 `52f040b1e09dd4015d5c88b9b98b59d177626bf449f1e819448411552de59bcd`): the development
 dependency of the same name points at the tarball, npm prefers it inside this repository, and
-the lockfile records its integrity. Never replace the tarball without updating its sha256 in
-the package test and here. Only `@aihq/scan/contracts` may be imported.
+the lockfile records its integrity. The sha256 is written in three places: here, in
+[README.md](README.md#install) and as `SCAN_SHA256` in `tests/catalog/package.test.ts`, which
+checks the tarball against it and fails when either document quotes another value. Replacing
+the tarball means updating all three (and `npm install` for the lockfile);
+`validation/packed-consumer.json` records the tarball's sha256 itself. Only
+`@aihq/scan/contracts` may be imported.
 
 ## Tests
 
@@ -53,7 +57,8 @@ Node built-in. It takes a few seconds and CI runs it after `npm run verify`.
 
 Each row is `passed`, `failed`, `open` (a recorded gap against the journey's expected
 result, with its reason) or `pending` (proof the replay cannot give, such as a real
-qualification), and names its basis: a fixture, the committed candidate data or, with
+qualification), and so is each of its checks except `pending`: an open check is never
+recorded as passed, and names its basis: a fixture, the committed candidate data or, with
 `-- --network`, the real upstream bytes at their pins. `-- --write` records the results for a
 clean checkout in [validation/packed-consumer.json](validation/packed-consumer.json),
 identified by source commit and tarball sha256. None of these results shows native client
@@ -85,6 +90,13 @@ it. A new qualification is a new `data/qualifications/<sha256>.json` referenced 
 setup item, with the status its recorded run gave; it never needs a package release. Never
 commit upstream bytes whose licence forbids redistribution: record their identity and mark
 the item `fetch: "upstream"`.
+
+An MCP package the upstream leaves unpinned gets an exact version, and its entry in
+`port-report/maintained.json` records where that version came from in `pinBasis`:
+`previous-release-review` (the version the previous Catalog release reviewed for the same
+package), `registry-latest` (the npm registry's latest on `pinCheckedOn`, where no reviewed
+version exists; `pinNote` says why), or `upstream` (the upstream names it). `pinnedVersion` is
+the version.
 
 ## Commits and pull requests
 

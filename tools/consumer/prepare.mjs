@@ -117,7 +117,17 @@ try {
   const git = (...argv) =>
     execFileSync(
       "git",
-      ["-c", "core.hooksPath=/dev/null", "-c", "user.name=Consumer", "-c", "user.email=consumer@example.invalid", "-c", "commit.gpgsign=false", ...argv],
+      [
+        "-c",
+        "core.hooksPath=/dev/null",
+        "-c",
+        "user.name=Consumer",
+        "-c",
+        "user.email=consumer@example.invalid",
+        "-c",
+        "commit.gpgsign=false",
+        ...argv,
+      ],
       {
         cwd: repo,
         encoding: "utf8",
@@ -133,15 +143,24 @@ try {
   try {
     git("init", "--quiet", "--initial-branch=main");
     cpSync(join(inputs, "data", "cbm"), join(repo, "data", "cbm"), { recursive: true });
-    cpSync(join(inputs, "data", "qualifications"), join(repo, "data", "qualifications"), { recursive: true });
+    cpSync(join(inputs, "data", "qualifications"), join(repo, "data", "qualifications"), {
+      recursive: true,
+    });
     git("add", "--all");
     git("commit", "--quiet", "-m", "data at the packed commit");
     const before = git("rev-parse", "HEAD");
     const folder = join(repo, "data", "qualifications");
     const unknown = readdirSync(folder)
       .map((name) => JSON.parse(readFileSync(join(folder, name), "utf8")))
-      .find((record) => record.subject.aiSetup === "cbm.ai-setup.codebase-memory-mcp" && record.subject.cell === "darwin-arm64");
-    const added = canonical({ ...unknown, result: { status: "qualified", run: "5".repeat(64), date: "2026-11-04" } });
+      .find(
+        (record) =>
+          record.subject.aiSetup === "cbm.ai-setup.codebase-memory-mcp" &&
+          record.subject.cell === "darwin-arm64",
+      );
+    const added = canonical({
+      ...unknown,
+      result: { status: "qualified", run: "5".repeat(64), date: "2026-11-04" },
+    });
     const addedSha = sha(added);
     writeFileSync(join(folder, `${addedSha}.json`), added);
     const contentPath = join(repo, "data", "cbm", "content.json");
@@ -152,17 +171,27 @@ try {
     git("add", "--all");
     git("commit", "--quiet", "-m", "add a qualification");
     const after = git("rev-parse", "HEAD");
-    for (const [name, ref] of [["before", before], ["after", after]]) {
+    for (const [name, ref] of [
+      ["before", before],
+      ["after", after],
+    ]) {
       const outDir = mkdtempSync(join(tmpdir(), "aih-catalog-fetch-"));
       try {
-        const result = await fetchSource({ kind: "git", repository: repo, ref, subpath: "data" }, { outDir });
-        if (result.status !== "ok") throw new Error(`journey 14 ${name}: ${JSON.stringify(result)}`);
-        materialise(join(inputs, "journey14", name), result.files);
+        const result = await fetchSource(
+          { kind: "git", repository: repo, ref, subpath: "data" },
+          { outDir },
+        );
+        if (result.status !== "ok")
+          throw new Error(`journey 14 ${name}: ${JSON.stringify(result)}`);
+        materialise(join(inputs, "data-commits", name), result.files);
       } finally {
         rmSync(outDir, { recursive: true, force: true });
       }
     }
-    identity.journey14 = { before: { commit: before }, after: { commit: after, qualification: addedSha } };
+    identity.dataCommits = {
+      before: { commit: before },
+      after: { commit: after, qualification: addedSha },
+    };
   } finally {
     rmSync(repo, { recursive: true, force: true });
   }

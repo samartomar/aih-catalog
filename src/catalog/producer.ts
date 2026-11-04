@@ -4,14 +4,7 @@
  * file-derived field; Scan's `scanKeyOf` gives each item's scan key.
  */
 import { scanKeyOf } from "@aihq/scan/contracts";
-import {
-  formats,
-  type Invalid,
-  implementedKinds,
-  limits,
-  type Problem,
-  type Refused,
-} from "./contracts.js";
+import { formats, type Invalid, kinds, limits, type Problem, type Refused } from "./contracts.js";
 import { aiSetupProblems, MCP_SETTINGS, mcpSettingProblems } from "./internal/ai-setup.js";
 import {
   BUNDLE_LAYOUT,
@@ -344,8 +337,8 @@ async function assemble(
   primary: string,
 ): Promise<{ item: Item; compare: string[] } | Problem[]> {
   const id = String(item?.id);
-  if (!(implementedKinds as readonly string[]).includes(item?.kind))
-    return [{ path: id, message: `building ${String(item?.kind)} items is not implemented yet` }];
+  if (!(kinds as readonly string[]).includes(item?.kind))
+    return [{ path: id, message: `${String(item?.kind)} is not an item kind` }];
   const missing = allFiles(item).filter((file) => !files.has(file.sourceId, file.sourcePath));
   if (missing.length > 0)
     return missing.map((file) => ({
@@ -428,14 +421,19 @@ async function assemble(
     if (bundle === undefined) return [{ path: `${id}/bundle`, message: "names no bundle" }];
   }
   // A mention resolves in the file's own source; a cut-out's in the source it was cut from.
-  const references = pathReferences(
-    itemFiles,
-    (path, file) => {
-      const recorded = file as ItemFile;
-      return files.has(recorded.derivedFrom ? primary : recorded.sourceId, path);
-    },
-    index.bytesOf,
-  );
+  // An edition's files are read the same way, and their mentions belong to its client.
+  const referencesIn = (recorded: readonly ItemFile[]) =>
+    pathReferences(
+      recorded,
+      (path, file) => files.has(file.derivedFrom ? primary : file.sourceId, path),
+      (file) => index.bytesIn(file.sourceId, file.sourcePath),
+    );
+  const references = [
+    ...referencesIn(itemFiles),
+    ...Object.entries(editions ?? {}).flatMap(([cli, edition]) =>
+      referencesIn(edition.files).map((reference) => ({ cli, ...reference })),
+    ),
+  ];
   const named = namespacedReferences(item, index.bytesOf);
   if (typeof named === "string") return [{ path: `${id}/references`, message: named }];
   const base: Record<string, unknown> = {
@@ -545,6 +543,33 @@ async function pluginFolder(
     })),
   );
   if (key.status !== "ok") return [{ path: at, message: `scan key: ${key.reason}` }];
+  // A native plugin install clones the whole folder, not the allowlist, so an allowlisted
+  // record also keys every file under the folder: the key a `plugin` step names (D72).
+  let folderScanKey: string | undefined;
+  if (include !== undefined) {
+    const whole = (Array.isArray(files) ? files : [])
+      .filter((file) => folder === "/" || file.path.startsWith(`${folder}/`))
+      .sort((left, right) => compareCodeUnits(left.path, right.path));
+    const other = whole.find((file) => file.mode !== "100644" && file.mode !== "100755");
+    if (other)
+      return [
+        { path: `${at}/${other.path}`, message: "a plugin folder holds a link or special file" },
+      ];
+    const missing = whole.find((file) => !index.has(sourceId, file.path));
+    if (missing)
+      return [
+        { path: `${at}/${missing.path}`, message: "the file was not supplied with its bytes" },
+      ];
+    const wholeKey = await scanKeyOf(
+      whole.map((file) => ({
+        path: relative(file.path),
+        mode: file.mode as "100644" | "100755",
+        bytes: index.bytesOf(sourceId, file.path),
+      })),
+    );
+    if (wholeKey.status !== "ok") return [{ path: at, message: `scan key: ${wholeKey.reason}` }];
+    folderScanKey = wholeKey.scanKey;
+  }
   return {
     sourceId,
     path: folder,
@@ -552,6 +577,7 @@ async function pluginFolder(
     ...(plugin !== undefined ? { plugin } : {}),
     files: sorted.map((file) => fileRecord(file, sourceId, index)),
     scanKey: key.scanKey,
+    ...(folderScanKey !== undefined ? { folderScanKey } : {}),
   };
 }
 
@@ -1035,7 +1061,7 @@ export async function checkContent(
             message: "bytes differs from the file length",
           });
       }
-      if (!(implementedKinds as readonly string[]).includes(item.kind)) continue;
+      if (!(kinds as readonly string[]).includes(item.kind)) continue;
       const result = await assemble(
         view,
         index,
@@ -1137,6 +1163,8 @@ export async function checkContent(
               ],
         ),
         ...(content.bundles ?? []).map((bundle) => bundle.scanKey),
+        // A recorded plugin folder is installed by a plugin or local-plugin route (D72).
+        ...(content.plugins ?? []).flatMap((plugin) => [plugin.scanKey, plugin.folderScanKey]),
       ].flatMap((key) => (key && !scanned.has(key) ? [key] : [])),
     ),
   ].sort(compareCodeUnits);

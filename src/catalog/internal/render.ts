@@ -11,6 +11,7 @@
  * ignore markers that are not theirs, so the folder's bytes are the same for all of them.
  */
 import { parseDocument, stringify } from "yaml";
+import { isRecord } from "./check.js";
 import {
   applyEdit,
   decodeText,
@@ -20,7 +21,7 @@ import {
 } from "./frontmatter.js";
 import { canonicalDocument, canonicalJson } from "./json.js";
 import { skillFile } from "./kinds.js";
-import type { Item } from "./model.js";
+import type { Content, Item } from "./model.js";
 import type { RuleScopeKey, Scope, ToolProfile, UserOnlyFallbackEntry } from "./profile.js";
 
 export type { ToolProfile } from "./profile.js";
@@ -94,28 +95,23 @@ function skillKeys(
   return set;
 }
 
-/** The tool names an agent takes on this profile, or why it cannot be written. */
+/**
+ * The tool names an agent takes on this profile. Where the client's agent file has no tool
+ * list, or no evidenced native name for one of the agent's tools, the agent is written without
+ * a tool list and `unrestricted` says why: the planner warns that the restriction is lost.
+ */
 export function agentTools(
   item: Item,
   profile: ToolProfile,
-):
-  | { readonly tools?: readonly string[] }
-  | { readonly reason: "no-tool-names" | "no-tool-restriction"; readonly detail: string } {
+): { readonly tools?: readonly string[]; readonly unrestricted?: string } {
   const tools = item.agent?.tools;
   const policy = profile.agentFile?.tools;
   if (tools === undefined || tools.length === 0 || policy === "keep") return {};
   if (policy === "none" || policy === undefined)
-    return {
-      reason: "no-tool-restriction",
-      detail:
-        "the client's agent file has no tool list, so the agent's tool restriction would be lost",
-    };
+    return { unrestricted: "the client's agent file has no tool list" };
   const unknown = tools.filter((tool) => policy[tool] === undefined);
   if (unknown.length > 0)
-    return {
-      reason: "no-tool-names",
-      detail: `no evidenced native name for ${unknown.join(", ")}`,
-    };
+    return { unrestricted: `no evidenced native name for ${unknown.join(", ")}` };
   return { tools: tools.map((tool) => policy[tool] as string) };
 }
 
@@ -193,7 +189,6 @@ export function renderEdit(
         reword: false,
       };
     const tools = agentTools(item, profile);
-    if ("reason" in tools) return { reason: tools.detail };
     const fields: Record<string, string> = {};
     for (const field of file.format === "md"
       ? (file.fields ?? ["name", "description"])
@@ -293,10 +288,6 @@ export function tomlString(text: string): string {
     else out += char;
   }
   return `${out}"`;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
 function merged(base: unknown, add: Readonly<Record<string, unknown>>): Record<string, unknown> {
@@ -413,6 +404,36 @@ export interface NamedBundle {
   readonly layout: string;
   readonly root: string;
   readonly folders: readonly string[];
+}
+
+/**
+ * The bundles a bundle-root render names, looked up in the supplied content: each one's
+ * framework name, skill layout and root folders. Undefined when a bundle is not supplied.
+ */
+export function namedBundles(
+  entries: readonly { readonly bundle: string; readonly root: string }[],
+  contents: readonly Content[],
+): NamedBundle[] | { readonly unknown: string } {
+  const named: NamedBundle[] = [];
+  for (const entry of entries) {
+    const found = contents
+      .map((content) => ({
+        content,
+        bundle: content.bundles?.find((bundle) => bundle.id === entry?.bundle),
+      }))
+      .find((candidate) => candidate.bundle !== undefined);
+    if (found?.bundle === undefined || typeof entry.root !== "string")
+      return { unknown: String(entry?.bundle) };
+    named.push({
+      framework: found.content.framework.name,
+      layout: found.bundle.layout,
+      root: entry.root,
+      folders: [
+        ...new Set(found.bundle.files.map((file) => file.sourcePath.split("/")[0] as string)),
+      ].sort(),
+    });
+  }
+  return named;
 }
 
 const listed = (names: readonly string[]): string => {

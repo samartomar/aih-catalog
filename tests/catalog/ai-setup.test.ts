@@ -392,6 +392,39 @@ describe("which qualification an AI setup uses", () => {
     }
   });
 
+  it("reports the latest of several unqualified runs, whatever order they are supplied in", async () => {
+    const older = kitQualification({
+      status: "blocked",
+      reason: "no interpreter download for 3.14.10",
+      date: "2026-10-27",
+      run: h("1"),
+    });
+    const newer = kitQualification({
+      status: "blocked",
+      reason: "pyyaml has no wheel for 3.15",
+      date: "2026-11-04",
+      run: h("2"),
+    });
+    const unknown = kitQualification({ status: "unknown", date: "2026-11-05", run: h("3") });
+    for (const records of [
+      [older, newer],
+      [newer, older],
+    ]) {
+      const plan = await toolPlan(records);
+      expect(plan.unavailable).toEqual([
+        expect.objectContaining({
+          item: "kit.ai-setup.kit-graph",
+          cause: "blocked",
+          detail: "pyyaml has no wheel for 3.15",
+        }),
+      ]);
+    }
+    const latest = await toolPlan([older, newer, unknown]);
+    expect(latest.unavailable).toEqual([
+      expect.objectContaining({ item: "kit.ai-setup.kit-graph", cause: "unknown" }),
+    ]);
+  });
+
   it("ignores a qualified record the item does not accept, and a record for no artifact's cell", async () => {
     const record = kitQualification();
     const unreferenced = await toolPlan([], [record]);

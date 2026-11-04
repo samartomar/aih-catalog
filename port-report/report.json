@@ -11,9 +11,9 @@
     },
     "dispositions": {
       "bundle": 1,
-      "dropped": 21,
+      "dropped": 17,
       "edition": 65,
-      "mapped": 687,
+      "mapped": 691,
       "notice": 3
     },
     "families": [
@@ -104,7 +104,7 @@
   },
   "frameworks": {
     "anthropic": {
-      "contentSha256": "ee65a89620b88316dcc44464c769e17fc09d3ed6b6bd6d794df7c197db2fde51",
+      "contentSha256": "5ac6dab17882ef4eac64689131d938a595587ec3bf0e6a8d214ce2964c0b75a8",
       "items": 18,
       "section": "remaining"
     },
@@ -114,27 +114,27 @@
       "section": "aiSetup"
     },
     "crg": {
-      "contentSha256": "adb7e2417065e7d21ebf130eca7cee8915e9f6f3e2077278dc4de0e2e32b93d5",
+      "contentSha256": "2dec9adeef6338af376cb31abcdb4738d64cdb276e80e46012fe909d3090fec9",
       "items": 9,
       "section": "aiSetup"
     },
     "ecc": {
-      "contentSha256": "20687b586603968979554bfdf1bfea83720d00f5d59de1596946b73a54b1247c",
-      "items": 645,
+      "contentSha256": "923950adc658aac5205d99084bc7fb34f0bd6b55d6409004a8bdd5fff37e06a0",
+      "items": 649,
       "section": "maintained"
     },
     "egm": {
-      "contentSha256": "519b46cb325e0c4af7bc27ee080c7aad3a09b3f3b6a8bc404c16f9f083e9ce00",
+      "contentSha256": "0a577515792a5815c7f6350fd53bb057f50cf5c535d6d5d0942eb67b26d965bd",
       "items": 16,
       "section": "remaining"
     },
     "extensions": {
-      "contentSha256": "096b4192bcd5af09bacdf0348cc8866f321a722746db1fb45476f786803eb8c1",
+      "contentSha256": "83f1acc34873452635c1e8ac9fda44292341f835750b8ccc7f6eee145eeb8b44",
       "items": 65,
       "section": "maintained"
     },
     "gstack": {
-      "contentSha256": "db753caf02ffc6901c584e08c8ae14dfc4a90a6bf4e3b06ee93d0b66d1d2d063",
+      "contentSha256": "3c8677e648308443672b708a59ca18f6168e45a1dbc0719acfb993bf1dee25fe",
       "items": 62,
       "section": "remaining"
     },
@@ -149,7 +149,7 @@
       "section": "maintained"
     },
     "pstack": {
-      "contentSha256": "e8c6d7db102c58ea25d20896ae78ec39e994961af032284318f20cd5a2fc3620",
+      "contentSha256": "89ef89b836bf50648b744788239b1133f7e9f02f4d684b55fd85186f67aeb33a",
       "items": 60,
       "section": "remaining"
     },
@@ -159,7 +159,7 @@
       "section": "aiSetup"
     },
     "superpowers": {
-      "contentSha256": "ab782b1ca543dae846e6999e7916c6a5a17a3843fa6e630b18cae709014808fb",
+      "contentSha256": "66434875f03236f882eb6610cebc156f691aea6c8e0b95001855a7223e203591",
       "items": 17,
       "section": "maintained"
     },
@@ -174,16 +174,16 @@
       "All data is a candidate: every scan key is new and unscanned, and none is admitted until it passes the data-commit gate against matching trusted scans.",
       "Recipes are drafts in the section reports; each is published once it names the admitted data commit.",
       "Extensions declares no per-client routes yet, so it has no base recipe and is planned through items only.",
-      "gstack: 54 items name 349 files no placed bundle provides",
-      "pstack: 10 items name 58 files no placed bundle provides",
-      "21 baseline items are dropped with their reasons; 1 upstream item cannot be represented (anthropic.skill.claude-api).",
+      "gstack: 54 items name 253 files no placed bundle provides",
+      "pstack: 30 items name 138 files no placed bundle provides",
+      "17 baseline items are dropped with their reasons; 1 upstream item cannot be represented (anthropic.skill.claude-api).",
       "13 items are fetched from their pinned upstream at install time instead of shipped (licence), and are not scanned.",
       "Path references are reported strictly: an item that names a source file outside its own files is `incomplete` unless a placed bundle or the project-scope sibling layout provides it."
     ],
     "native": [
       "Fixture and test results prove planning behaviour only; native loading of the planned layouts by each client is not validated by this package.",
       "Plugin presence checks are `none` on every client until a reliable check is evidenced, so an installed plugin is never reported as confirmed.",
-      "AI setup qualifications are the recorded runs' results: cbm.ai-setup.codebase-memory-mcp on linux-x64 qualified; crg.ai-setup.code-review-graph on linux-x64, serena.ai-setup.serena on linux-x64 blocked; every other cell unknown or without a record.",
+      "AI setup qualifications are the recorded runs' results: cbm.ai-setup.codebase-memory-mcp on linux-x64 qualified; crg.ai-setup.code-review-graph on linux-x64, crg.ai-setup.code-review-graph on linux-x64, serena.ai-setup.serena on linux-x64 blocked; every other cell unknown or without a record.",
       "The code-review-graph, codebase-memory-mcp and Serena trio has no combination qualification, so its recipe plans `incomplete` on every cell.",
       "Profile facts are as checked on the dates each profile's `checkedWith` records; some places and field names rest on vendor documentation rather than a live check."
     ]
@@ -232,6 +232,12 @@
       "status": "blocked"
     },
     {
+      "aiSetup": "crg.ai-setup.code-review-graph",
+      "cell": "linux-x64",
+      "sha256": "3231792df571912e5edc5584d6ea1c991bed4b6b09637346169d994dfd40d970",
+      "status": "blocked"
+    },
+    {
       "aiSetup": "serena.ai-setup.serena",
       "cell": "linux-x64",
       "sha256": "8e9113b6ba319e27f7b05651a35b3b91d4b1a1963a3fb29746b37735643d4b81",
@@ -241,21 +247,21 @@
   "sections": {
     "aiSetup": {
       "path": "port-report/ai-setup.json",
-      "sha256": "62c65b570af7d78b3977b6a9b90ad90311fe5b3862f084c98978291816d73a3b"
+      "sha256": "bbf14f2c9074a55bad380136c38aede5b39efbf9d881031534d3288fe2f5e737"
     },
     "maintained": {
       "path": "port-report/maintained.json",
-      "sha256": "3773115364696f7c500c6553f714595a41e6e66661d69e5615ad3e77c1360866"
+      "sha256": "a57ae61c8bf7382b0e511a3b57e11cfb17dc8c348cd9073ae74388262198d1e6"
     },
     "remaining": {
       "path": "port-report/remaining.json",
-      "sha256": "054ee5637ddcce6d1728d375e810fae7933c0e33de4a7f289820a79290545bba"
+      "sha256": "9369a9bcb00756eb18021ccf15d9026ead596eeaafec7e8e0e7901f435daeefe"
     }
   },
   "totals": {
     "draftRecipes": 10,
     "frameworks": 13,
-    "items": 902,
-    "qualifications": 8
+    "items": 906,
+    "qualifications": 9
   }
 }

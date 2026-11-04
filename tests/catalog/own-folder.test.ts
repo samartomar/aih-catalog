@@ -189,7 +189,7 @@ describe("one own folder for Claude, Kiro and Antigravity", () => {
     expect(result.profiles).toEqual([
       { id: "antigravity", version: 4 },
       { id: "claude-code", version: 4 },
-      { id: "kiro", version: 6 },
+      { id: "kiro", version: 7 },
     ]);
     expect(
       writes(result.plan).map((step) => [

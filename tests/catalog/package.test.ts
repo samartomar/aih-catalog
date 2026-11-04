@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { basename, isAbsolute, join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import * as contracts from "../../src/catalog/contracts.js";
@@ -32,7 +32,59 @@ function npmCli(): string {
   throw new Error("unable to resolve a local npm-cli.js");
 }
 
+/**
+ * Every runtime export, per entry point: the contract's functions and data plus the additions
+ * CONTRACTS.md lists under "Exports beyond the contract".
+ */
+const RUNTIME_EXPORTS = {
+  contracts: [
+    "fixtures",
+    "formats",
+    "kinds",
+    "leftOverReasons",
+    "limits",
+    "refusalCodes",
+    "schemas",
+    "toolProfiles",
+  ],
+  node: ["fetchSource", "readContentFile", "readLocalSource"],
+  producer: ["buildContent", "checkContent"],
+  reader: [
+    "aihContent",
+    "availability",
+    "derive",
+    "getItem",
+    "listItems",
+    "planInstall",
+    "planRecipe",
+    "readContent",
+    "readQualification",
+    "readRecipe",
+    "readToolProfile",
+    "renderStep",
+  ],
+  source: ["findItems", "isNoticePath", "noticeCovers", "parseSourceLink"],
+};
+
 describe("the package exposes exactly the five entry points", () => {
+  it("exports exactly the listed runtime names from each entry point", () => {
+    const modules = { contracts, node, producer, reader, source };
+    for (const [name, module] of Object.entries(modules))
+      expect(Object.keys(module).sort(), name).toEqual(
+        RUNTIME_EXPORTS[name as keyof typeof RUNTIME_EXPORTS],
+      );
+    const listed = readFileSync(join(root, "CONTRACTS.md"), "utf8");
+    for (const name of [
+      "isNoticePath",
+      "noticeCovers",
+      "aihContent",
+      "toolProfiles",
+      "leftOverReasons",
+      "documentDepth",
+    ])
+      expect(listed, name).toContain(`\`${name}\``);
+  });
+
   it("exports only /source, /node, /producer, /reader and /contracts from dist/catalog", () => {
     expect(Object.keys(manifest.exports).sort()).toEqual(ENTRY_POINTS.map((name) => `./${name}`));
     for (const name of ENTRY_POINTS)
@@ -54,6 +106,9 @@ describe("the package exposes exactly the five entry points", () => {
     expect(manifest.devDependencies["@aihq/scan"]).toBe(`file:${SCAN_TARBALL}`);
     const tarball = readFileSync(join(root, SCAN_TARBALL));
     expect(createHash("sha256").update(tarball).digest("hex")).toBe(SCAN_SHA256);
+    // The documents that quote it quote this value, and no other sha256 of the tarball.
+    for (const name of ["README.md", "CONTRIBUTING.md"])
+      expect(readFileSync(join(root, name), "utf8"), name).toContain(SCAN_SHA256);
     const lock = JSON.parse(readFileSync(join(root, "package-lock.json"), "utf8"));
     const locked = lock.packages["node_modules/@aihq/scan"];
     expect(locked.version).toBe("0.1.0");
@@ -61,6 +116,16 @@ describe("the package exposes exactly the five entry points", () => {
     expect(locked.integrity).toBe(
       `sha512-${createHash("sha512").update(tarball).digest("base64")}`,
     );
+  });
+
+  it("pins every runtime dependency to the exact version the lockfile installs", () => {
+    // Rendered bytes depend on the YAML serializer, so plans stay byte-deterministic only
+    // while every consumer gets the same version.
+    const lock = JSON.parse(readFileSync(join(root, "package-lock.json"), "utf8"));
+    for (const [name, spec] of Object.entries(manifest.dependencies as Record<string, string>)) {
+      expect(spec, name).toMatch(/^\d+\.\d+\.\d+$/);
+      expect(lock.packages[`node_modules/${name}`]?.version, name).toBe(spec);
+    }
   });
 
   it("packs the built entry points and nothing else", () => {
@@ -146,5 +211,15 @@ describe("nothing of the old model remains", () => {
         name,
       ).toEqual([]);
     }
+  });
+});
+
+describe("tests reach the library through its entry points", () => {
+  it("import nothing from src/catalog/internal", () => {
+    const dir = join(root, "tests", "catalog");
+    for (const name of readdirSync(dir).filter((file) => file.endsWith(".ts")))
+      expect(readFileSync(join(dir, name), "utf8"), name).not.toMatch(
+        /from "\.\.\/\.\.\/src\/catalog\/internal\//,
+      );
   });
 });

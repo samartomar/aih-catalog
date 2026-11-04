@@ -249,7 +249,8 @@ describe("aih-supported repository AI bootstrap", () => {
     };
     // Publication is a separately authorized effect; bootstrap exposes no publication route.
     expect(packageJson.private).toBe(true);
-    expect(packageJson.publishConfig).toEqual({ access: "public" });
+    // A private package carries no publication settings at all.
+    expect(packageJson.publishConfig).toBeUndefined();
     expect(packageJson.scripts).not.toHaveProperty("publish");
     expect(packageJson.scripts["repo:init"]).toBe("node tools/repo-ai-tools.mjs setup-codex");
     expect(packageJson.scripts["repo:doctor"]).toBe("node tools/repo-ai-tools.mjs doctor-codex");

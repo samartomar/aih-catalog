@@ -38,12 +38,12 @@ export function journey(id, title, basis) {
     async check(name, body) {
       try {
         await body();
-        record.checks.push({ name, ok: true });
+        record.checks.push({ name, status: "passed" });
       } catch (error) {
         const detail = String(error?.message ?? error)
           .replace(/\s+/g, " ")
           .slice(0, 900);
-        record.checks.push({ name, ok: false, detail });
+        record.checks.push({ name, status: "failed", detail });
       }
     },
     /**
@@ -54,11 +54,16 @@ export function journey(id, title, basis) {
     async open(name, reason, body) {
       try {
         await body();
-        record.checks.push({ name, ok: false, detail: `recorded as open, but it now passes: update the record (${reason})` });
+        record.checks.push({
+          name,
+          status: "failed",
+          detail: `recorded as open, but it now passes: update the record (${reason})`,
+        });
       } catch (error) {
-        const detail = String(error?.message ?? error).replace(/\s+/g, " ").slice(0, 600);
-        record.checks.push({ name, ok: true, open: true, reason, detail });
-        record.open = true;
+        const detail = String(error?.message ?? error)
+          .replace(/\s+/g, " ")
+          .slice(0, 600);
+        record.checks.push({ name, status: "open", reason, detail });
       }
     },
     pending(text) {
@@ -73,10 +78,9 @@ export function journey(id, title, basis) {
       record.plans[name] = sha(encoder.encode(JSON.stringify(plan)));
     },
     finish() {
-      if (record.checks.some((check) => !check.ok)) record.outcome = "failed";
-      else if (record.open) record.outcome = "open";
+      if (record.checks.some((check) => check.status === "failed")) record.outcome = "failed";
+      else if (record.checks.some((check) => check.status === "open")) record.outcome = "open";
       else if (record.pending.length > 0) record.outcome = "pending";
-      delete record.open;
       if (record.notes.length === 0) delete record.notes;
       return record;
     },
@@ -122,7 +126,10 @@ export function context({ inputs, prepared }) {
   };
   const data = { repository: "https://github.com/samartomar/aih-catalog", commit };
   /** Recipes are written by the consumer here: none is published yet. */
-  const recipeSource = { repository: "https://example.invalid/consumer-recipes", commit: "e".repeat(40) };
+  const recipeSource = {
+    repository: "https://example.invalid/consumer-recipes",
+    commit: "e".repeat(40),
+  };
   const plugin = {
     name: "consumer-recipe",
     version: "0.1.0",

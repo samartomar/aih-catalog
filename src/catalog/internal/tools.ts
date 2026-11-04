@@ -99,12 +99,28 @@ export interface ToolPlan {
   readonly warnings: readonly Warning[];
 }
 
-export interface ToolInput {
+/** The AI setup options a caller gives both planners. */
+export interface ToolOptions {
+  /** The platform cell AI setups are planned for; required when one is selected. */
+  readonly cell?: string;
+  /** Qualification records read for this plan; only those the items reference count. */
+  readonly qualifications?: readonly Qualification[];
+  /** AI setup ids whose upstream installer the user chose instead (unmanaged). */
+  readonly upstreamInstallers?: readonly string[];
+}
+
+/** The tool options that are set, as a spread: absent options stay absent. */
+export const toolOptions = (options: ToolOptions): ToolOptions => ({
+  ...(options.cell !== undefined ? { cell: options.cell } : {}),
+  ...(options.qualifications !== undefined ? { qualifications: options.qualifications } : {}),
+  ...(options.upstreamInstallers !== undefined
+    ? { upstreamInstallers: options.upstreamInstallers }
+    : {}),
+});
+
+export interface ToolInput extends ToolOptions {
   readonly selection: readonly string[];
   readonly byId: ReadonlyMap<string, { readonly content: Content; readonly item: Item }>;
-  readonly cell?: string;
-  readonly qualifications?: readonly Qualification[];
-  readonly upstreamInstallers?: readonly string[];
   /** A recipe's changes per AI setup id. */
   readonly changes?: Readonly<Record<string, AiSetupChange>>;
   /** A combination recipe: its id and the sha256 of its qualification for the plan's cell. */
@@ -235,19 +251,22 @@ function standalone(
     );
   const best = qualified[0];
   if (best !== undefined) return { sha256: best.sha256, record: best.record };
-  return notQualified(
-    matching.map((entry) => entry.record),
-    cell,
-  );
+  return notQualified(matching, cell);
 }
 
-/** The latest result of records that are not qualified, as the unavailable reason. */
-function notQualified(records: readonly Qualification[], cell: string): Omit<Unavailable, "item"> {
-  const latest = [...records].sort((left, right) =>
-    compareCodeUnits(right.result.date, left.result.date),
-  )[0] as Qualification;
-  const blocked = records.find((record) => record.result.status === "blocked");
-  const shown = blocked ?? latest;
+/**
+ * The result of the latest run among records that are not qualified (latest `result.date`,
+ * then the lowest sha256, as D95 chooses among qualified ones), as the unavailable reason.
+ */
+function notQualified(
+  records: readonly { readonly sha256: string; readonly record: Qualification }[],
+  cell: string,
+): Omit<Unavailable, "item"> {
+  const shown = [...records].sort(
+    (left, right) =>
+      compareCodeUnits(right.record.result.date, left.record.result.date) ||
+      compareCodeUnits(left.sha256, right.sha256),
+  )[0]?.record as Qualification;
   return {
     cell: cell as Cell,
     reason: "not-qualified",
@@ -334,7 +353,10 @@ export function planTools(input: ToolInput): ToolPlan {
         detail: `no qualification of the combination on ${cell} was supplied`,
       });
     else if (record.result.status !== "qualified") {
-      plan.unavailable.push({ recipe: combination.recipe, ...notQualified([record], cell) });
+      plan.unavailable.push({
+        recipe: combination.recipe,
+        ...notQualified([{ sha256: combination.sha256 ?? "", record }], cell),
+      });
     } else if ("qualifications" in record.observed) {
       const map = new Map<string, string>();
       for (const sha256 of record.observed.qualifications) {
@@ -413,7 +435,7 @@ export function planTools(input: ToolInput): ToolPlan {
           fit === "ok"
             ? record.result.status === "qualified"
               ? { sha256: listed, record }
-              : notQualified([record], cell)
+              : notQualified([{ sha256: listed, record }], cell)
             : fit === "other"
               ? {
                   cell: cell as Cell,

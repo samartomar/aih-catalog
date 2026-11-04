@@ -18,9 +18,6 @@
     "mcp",
     "install-plan"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
   "license": "Apache-2.0",
   "type": "module",
   "exports": {
@@ -62,7 +59,7 @@
     "port:maintained": "npm run build:dist && node tools/port-maintained.mjs",
     "port:remaining": "npm run build:dist && node tools/port-remaining.mjs",
     "port:ai-setup": "npm run build:dist && node tools/port-ai-setup.mjs",
-    "port:report": "node tools/port-report.mjs",
+    "port:report": "npm run build:dist && node tools/port-report.mjs",
     "check:consumer": "node tools/check-consumer.mjs",
     "repo:doctor": "node tools/repo-ai-tools.mjs doctor-codex",
     "repo:init": "node tools/repo-ai-tools.mjs setup-codex",
@@ -71,7 +68,7 @@
   },
   "dependencies": {
     "@aihq/scan": "0.1.0",
-    "yaml": "^2.8.3"
+    "yaml": "2.9.1"
   },
   "devDependencies": {
     "@aihq/scan": "file:vendor/aihq-scan-0.1.0.tgz",

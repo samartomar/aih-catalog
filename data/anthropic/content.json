@@ -2874,6 +2874,7 @@
           "sourcePath": "skills/academy-guide/SKILL.md"
         }
       ],
+      "folderScanKey": "git-sha1:60cb5b056141a1b24cfa2e1b1c2540bfb162850a",
       "include": [
         ".claude-plugin/marketplace.json",
         "skills/academy-guide/"
@@ -3312,6 +3313,7 @@
           "sourcePath": "skills/claude-api/typescript/managed-agents/README.md"
         }
       ],
+      "folderScanKey": "git-sha1:60cb5b056141a1b24cfa2e1b1c2540bfb162850a",
       "include": [
         ".claude-plugin/marketplace.json",
         "skills/claude-api/"
@@ -3342,6 +3344,7 @@
           "sourcePath": "skills/discernment-nudge/SKILL.md"
         }
       ],
+      "folderScanKey": "git-sha1:60cb5b056141a1b24cfa2e1b1c2540bfb162850a",
       "include": [
         ".claude-plugin/marketplace.json",
         "skills/discernment-nudge/"
@@ -4452,6 +4455,7 @@
           "sourcePath": "skills/xlsx/scripts/recalc.py"
         }
       ],
+      "folderScanKey": "git-sha1:60cb5b056141a1b24cfa2e1b1c2540bfb162850a",
       "include": [
         ".claude-plugin/marketplace.json",
         "skills/docx/",
@@ -5415,6 +5419,7 @@
           "sourcePath": "skills/webapp-testing/scripts/with_server.py"
         }
       ],
+      "folderScanKey": "git-sha1:60cb5b056141a1b24cfa2e1b1c2540bfb162850a",
       "include": [
         ".claude-plugin/marketplace.json",
         "skills/algorithmic-art/",

@@ -7,7 +7,7 @@
  * `local-plugin` where the profile has one, else `items`; the scope never changes.
  */
 import type { Problem } from "../contracts.js";
-import type { Qualification } from "./ai-setup.js";
+import { isRecord } from "./check.js";
 import { canonicalDocument } from "./json.js";
 import { type Content, type ContentSource, INSTALL_NAME, type Item, OBJECT_ID } from "./model.js";
 import { compareCodeUnits, isUnder, quote, refused } from "./paths.js";
@@ -23,7 +23,6 @@ import {
   planCore,
   type SetupStep,
   sharedOptionProblems,
-  toolOptions,
   type Warning,
   type WriteStep,
 } from "./plan.js";
@@ -37,8 +36,9 @@ import {
   recipeProblems,
 } from "./recipe.js";
 import { sha256Hex } from "./sha256.js";
+import { type ToolOptions, toolOptions } from "./tools.js";
 
-export interface RecipePlanOptions {
+export interface RecipePlanOptions extends ToolOptions {
   readonly scope: Scope;
   /** Where the recipe was read: its repository and exact commit. Required (origin). */
   readonly source: Pin;
@@ -46,10 +46,6 @@ export interface RecipePlanOptions {
   readonly data?: Pin;
   readonly copy?: boolean;
   readonly names?: Readonly<Record<string, string>>;
-  /** The platform cell the recipe's AI setups are planned for. */
-  readonly cell?: string;
-  readonly qualifications?: readonly Qualification[];
-  readonly upstreamInstallers?: readonly string[];
 }
 
 /** The user's picks per option group; an omitted group takes its pre-ticked items. */
@@ -65,8 +61,6 @@ const OPTION_KEYS = [
   "qualifications",
   "upstreamInstallers",
 ];
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  value !== null && typeof value === "object" && !Array.isArray(value);
 const fill = (template: string, values: Readonly<Record<string, string>>): string =>
   Object.entries(values).reduce(
     (text, [key, value]) => text.replaceAll(`<${key}>`, value),
@@ -399,6 +393,18 @@ export function planRecipe(
     extras,
     overrides: (recipe.overrides ?? []).filter((override) => selection.includes(override.item)),
     ...toolOptions(options),
+    // On a client the recipe gives no route, the upstream does not install: what the recipe
+    // chose there (members and the pre-ticked items of groups the user left alone) is offered,
+    // not forced. The user's own picks still block.
+    notForced: {
+      clis: profiles.map((profile) => profile.id).filter((cli) => !(cli in recipe.routes)),
+      items: [
+        ...recipe.members.map((member) => member.item),
+        ...options_.flatMap((option) =>
+          choices[option.id] === undefined ? ticked(option.items) : [],
+        ),
+      ],
+    },
     ...(recipe.aiSetup !== undefined ? { aiSetupChanges: recipe.aiSetup } : {}),
     ...(recipe.kind === "combination"
       ? {
@@ -546,7 +552,7 @@ function lowerPlugin(
     plugin: entry.plugin,
     repository: source.repository as string,
     commit: entry.commit,
-    scanKey: folder.scanKey,
+    scanKey: folder.folderScanKey ?? folder.scanKey,
     verify: install.verify,
   });
 }

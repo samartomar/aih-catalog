@@ -7,20 +7,15 @@
  * plans.
  */
 import type { Invalid, Problem, Refused } from "../contracts.js";
-import { implementedKinds } from "../contracts.js";
-import {
-  type AiSetupChange,
-  CELLS,
-  type Cell,
-  type Qualification,
-  qualificationProblems,
-} from "./ai-setup.js";
+import { kinds } from "../contracts.js";
+import { type AiSetupChange, CELLS, type Cell, qualificationProblems } from "./ai-setup.js";
 import {
   AUTHORED_FRAMEWORK,
   aihContent,
   DUPLICATE_RESOLVER,
   DUPLICATES_REPORT,
 } from "./authored.js";
+import { isRecord } from "./check.js";
 import { installRelative } from "./identity.js";
 import { canonicalJson } from "./json.js";
 import { applySettings, lowerServer, lowerTool, restricts, serverSettings } from "./mcp.js";
@@ -44,9 +39,11 @@ import {
 } from "./profile.js";
 import {
   agentTools,
+  bundleRootBytes,
   changesBytes,
   editFor,
   editKey,
+  namedBundles,
   type RenderName,
   scopeKeyOf,
 } from "./render.js";
@@ -56,6 +53,8 @@ import {
   planTools,
   type ToolCommandStep,
   type ToolLaunch,
+  type ToolOptions,
+  toolOptions,
   toolProblems,
   type UpstreamInstallerStep,
 } from "./tools.js";
@@ -285,8 +284,6 @@ export type UnavailableReason =
   | "no-hook-event"
   | "no-path-scope"
   | "no-rule-scope"
-  | "no-tool-names"
-  | "no-tool-restriction"
   | "unsupported-server"
   | "no-bundle-place"
   | "no-qualification"
@@ -411,17 +408,11 @@ export interface RecipeOrigin {
 
 export type PlanResult = Plan | Invalid | Refused;
 
-export interface PlanOptions {
+export interface PlanOptions extends ToolOptions {
   readonly scope: Scope;
   readonly data: { readonly repository: string; readonly commit: string } | null;
   readonly copy?: boolean;
   readonly names?: Readonly<Record<string, string>>;
-  /** The platform cell AI setups are planned for; required when one is selected. */
-  readonly cell?: string;
-  /** Qualification records read for this plan; only those the items reference count. */
-  readonly qualifications?: readonly Qualification[];
-  /** AI setup ids whose upstream installer the user chose instead (unmanaged). */
-  readonly upstreamInstallers?: readonly string[];
 }
 
 const OPTION_KEYS = [
@@ -433,8 +424,6 @@ const OPTION_KEYS = [
   "qualifications",
   "upstreamInstallers",
 ];
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  value !== null && typeof value === "object" && !Array.isArray(value);
 const union = (...lists: readonly (readonly string[])[]): string[] =>
   [...new Set(lists.flat())].sort(compareCodeUnits);
 
@@ -585,7 +574,7 @@ function place(
     ...(reuse ? { reuse } : {}),
     ...(bundle ? { bundle } : {}),
   });
-  if (!(implementedKinds as readonly string[]).includes(item.kind))
+  if (!(kinds as readonly string[]).includes(item.kind))
     return {
       reason: "not-implemented",
       detail: `planning ${item.kind} items is not implemented yet`,
@@ -700,11 +689,35 @@ function place(
             reason: "no-user-only",
             detail: `the client can neither flag nor fall back for a user-only skill at ${scope} scope`,
           };
-        if (own.length > 1)
-          return {
-            reason: "not-implemented",
-            detail: "a user-only fallback for a skill with support files is not implemented yet",
-          };
+        // A skill with support files cannot move into a prompt or command file without losing
+        // them, so it keeps its folder, as a bundle skill does (D43): where the client loads
+        // every skill folder it is given (Kiro), under the client's own root for such folders,
+        // which it does not scan; else at its skill place. Its fallbacks become launchers.
+        if (own.length > 1) {
+          const fixed = profile.bundleRoot?.[scope];
+          const target =
+            fixed !== undefined
+              ? {
+                  path: fill(
+                    `${fixed.replaceAll("<framework>", framework)}skills/<name>/`,
+                    installName,
+                  ),
+                }
+              : resolvePlace(profile.places.skill?.[scope], installName);
+          if (target === undefined)
+            return { reason: "not-described", detail: `the client has no ${scope} skill place` };
+          const outputs = skillOutputs(item, own, skill, profile, scope, installName);
+          if (isFailure(outputs)) return outputs;
+          return [
+            {
+              ...placed(
+                { shape: "folder", path: folderPath(target.path), outputs, linkable: false },
+                "reuse" in target ? target.reuse?.map(folderPath) : undefined,
+              ),
+              launchers: fallback,
+            },
+          ];
+        }
         const units: Placed[] = [];
         for (const entry of fallback) {
           const made = output(item, skill, "", profile, scope, installName, {
@@ -740,9 +753,7 @@ function place(
       const prompt = own.find((file) => file.sourcePath === item.agent?.prompt);
       if (prompt === undefined)
         return { reason: "not-implemented", detail: "the agent has no prompt file" };
-      const tools = agentTools(item, profile);
       const made: Unit | Failure = (() => {
-        if ("reason" in tools) return tools;
         const entry = output(
           item,
           prompt,
@@ -941,14 +952,10 @@ function combined(members: readonly Placed[], scope: Scope): Unit | undefined {
     )
   )
     return undefined;
-  const ownOf = (profile: ToolProfile) =>
-    item.files.filter((file) => file.cli === undefined || file.cli === profile.id);
-  const own = ownOf(profiles[0] as ToolProfile);
-  for (const profile of profiles) {
-    const files = ownOf(profile);
-    if (files.length !== own.length || files.some((file, index) => file !== own[index]))
-      return undefined;
-  }
+  // The folder holds every sharing client's files; a file only one client uses (`cli`) is
+  // credited to that client when the folder is written.
+  const ids = profiles.map((profile) => profile.id);
+  const own = item.files.filter((file) => file.cli === undefined || ids.includes(file.cli));
   const skill = own.find((file) => installRelative(item, file) === "SKILL.md");
   if (skill === undefined) return undefined;
   const outputs = skillOutputs(item, own, skill, profiles, scope, installName);
@@ -966,6 +973,28 @@ function commonFolder(paths: readonly string[]): string {
   while (folder !== "" && !paths.every((path) => isUnder(path, folder) && path !== folder))
     folder = dirnameOf(folder);
   return folder;
+}
+
+/**
+ * A placement's folder split into what every client shares and the outputs of files only this
+ * client uses (`cli`). Other units are shared whole.
+ */
+function clientFiles(placed: Placed): { common: Unit; own: Output[] } {
+  const unit = placed.unit;
+  if (unit.shape !== "folder") return { common: unit, own: [] };
+  const cliOf = (output: Output) =>
+    output.from === undefined
+      ? undefined
+      : placed.item.files.find(
+          (file) =>
+            file.cli !== undefined &&
+            file.sourceId === output.from?.sourceId &&
+            file.sourcePath === output.from?.sourcePath,
+        )?.cli;
+  return {
+    common: { ...unit, outputs: unit.outputs.filter((output) => cliOf(output) === undefined) },
+    own: unit.outputs.filter((output) => cliOf(output) === placed.profile.id),
+  };
 }
 
 /** Everything that decides a unit's bytes, without its clients or their link support. */
@@ -1296,6 +1325,42 @@ function placeBundles(
  * every plugin-namespaced name it mentions. A plugin route places the whole plugin, so its
  * items are never checked.
  */
+/**
+ * Skill folders whose relative path references reach a file of another placed skill folder of
+ * the same client, in the same relative position as upstream: per item, the clients for which
+ * that holds. Both skills must then be copied in place for the path to resolve.
+ */
+function siblingReferences(placed: readonly Placed[]): Map<string, Set<string>> {
+  const marks = new Map<string, Set<string>>();
+  const mark = (item: string, cli: string) =>
+    marks.set(item, new Set([...(marks.get(item) ?? []), cli]));
+  const folders = placed.filter((entry) => entry.unit.shape === "folder");
+  const installedAt = (entry: Placed, sourcePath: string) => {
+    const unit = entry.unit as Extract<Unit, { shape: "folder" }>;
+    const output = unit.outputs.find((candidate) => candidate.from?.sourcePath === sourcePath);
+    return output === undefined ? undefined : `${unit.path.replace(/\/$/, "")}/${output.rel}`;
+  };
+  for (const entry of folders) {
+    const cli = entry.profile.id;
+    const edition = entry.item.editions?.[cli] !== undefined ? cli : undefined;
+    for (const reference of entry.item.pathReferences ?? []) {
+      if (reference.cli !== edition) continue;
+      const from = installedAt(entry, reference.sourcePath);
+      if (from === undefined) continue;
+      for (const other of folders) {
+        if (other.profile.id !== cli || other.item.id === entry.item.id) continue;
+        const to = installedAt(other, reference.path);
+        if (to === undefined) continue;
+        const relative = relativePath(dirnameOf(reference.sourcePath), reference.path);
+        if (joinPath(dirnameOf(from), relative) !== to) continue;
+        mark(entry.item.id, cli);
+        mark(other.item.id, cli);
+      }
+    }
+  }
+  return marks;
+}
+
 /** The relative path from folder `from` to `to` (both from one root, `""` is the root). */
 function relativePath(from: string, to: string): string {
   const base = from === "" ? [] : from.split("/");
@@ -1354,8 +1419,15 @@ function referencesOf(
   // version folder resolves `..` inside the shared folder, never beside its siblings.
   const linked = (cli: string, path: string) =>
     links.some((link) => link.clis.includes(cli) && path.startsWith(`${link.path}/`));
-  const resolvedInPlace = (item: Item, cli: string, sourcePath: string, path: string) => {
-    const file = item.files.find((candidate) => candidate.sourcePath === sourcePath);
+  const resolvedInPlace = (
+    item: Item,
+    cli: string,
+    edition: string | undefined,
+    sourcePath: string,
+    path: string,
+  ) => {
+    const own = edition === undefined ? item.files : (item.editions?.[edition]?.files ?? []);
+    const file = own.find((candidate) => candidate.sourcePath === sourcePath);
     if (file === undefined || file.derivedFrom !== undefined) return false;
     const files = installed.get(cli);
     const sources = (files?.get(`${file.sourceId}\0${sourcePath}`) ?? []).filter(
@@ -1377,9 +1449,13 @@ function referencesOf(
     for (const cli of placedFor.get(id) ?? []) {
       const placed =
         item.bundle === undefined ? undefined : bundles.roots.get(cli)?.get(item.bundle);
+      // A client that takes its edition places the edition's files, so only their mentions
+      // count there; every other client places the item's own files.
+      const edition = item.editions?.[cli] !== undefined ? cli : undefined;
       for (const reference of item.pathReferences ?? []) {
+        if (reference.cli !== edition) continue;
         if (placed?.bundle.files.some((file) => file.sourcePath === reference.path)) continue;
-        if (resolvedInPlace(item, cli, reference.sourcePath, reference.path)) continue;
+        if (resolvedInPlace(item, cli, edition, reference.sourcePath, reference.path)) continue;
         const reported = {
           kind: "path" as const,
           item: id,
@@ -1418,15 +1494,19 @@ function referencesOf(
   );
 }
 
+/**
+ * Which `provides` lists an install name of each kind can shadow: a skill shares the command
+ * namespace. Kinds not listed are never checked against built-ins.
+ */
+const SHADOWS: Readonly<Record<string, readonly ("skill" | "command" | "agent")[]>> = {
+  skill: ["skill", "command"],
+  agent: ["agent"],
+};
+
 /** The name a client provides that an install name of this kind would shadow, if any. */
 function providedName(profile: ToolProfile, kind: string, name: string): string | undefined {
   const provided = profile.provides ?? {};
-  const names =
-    kind === "skill"
-      ? [...(provided.skill ?? []), ...(provided.command ?? [])]
-      : kind === "agent"
-        ? (provided.agent ?? [])
-        : [];
+  const names = (SHADOWS[kind] ?? []).flatMap((list) => provided[list] ?? []);
   const lower = name.toLowerCase();
   return names.find((entry) => entry.toLowerCase() === lower);
 }
@@ -1450,8 +1530,7 @@ function builtIns(
     );
   const clashes = new Map<string, { clash: Clash; items: Set<string>; clis: Set<string> }>();
   const placed = resolved.filter(
-    (entry) =>
-      entry.unit.shape !== "merge" && (entry.item.kind === "skill" || entry.item.kind === "agent"),
+    (entry) => entry.unit.shape !== "merge" && SHADOWS[entry.item.kind] !== undefined,
   );
   for (const entry of placed) {
     const builtIn = providedName(entry.profile, entry.item.kind, entry.installName);
@@ -1734,19 +1813,6 @@ export function planInstall(
   });
 }
 
-/** The AI setup options both planners pass through. */
-export const toolOptions = (options: {
-  readonly cell?: string;
-  readonly qualifications?: readonly Qualification[];
-  readonly upstreamInstallers?: readonly string[];
-}) => ({
-  ...(options.cell !== undefined ? { cell: options.cell } : {}),
-  ...(options.qualifications !== undefined ? { qualifications: options.qualifications } : {}),
-  ...(options.upstreamInstallers !== undefined
-    ? { upstreamInstallers: options.upstreamInstallers }
-    : {}),
-});
-
 /**
  * Steps and reports lowered from recipe routes (plugins, local plugins, upstream setup), which
  * join the item placements' deduplication, clash checks and ordering.
@@ -1767,7 +1833,7 @@ export interface Extras {
   readonly routed?: readonly { readonly item: string; readonly cli: string }[];
 }
 
-export interface CoreInput {
+export interface CoreInput extends ToolOptions {
   /** The chosen item ids; their dependencies are checked against this list. */
   readonly selection: readonly string[];
   readonly contents: readonly Content[];
@@ -1780,13 +1846,15 @@ export interface CoreInput {
   readonly extras?: Extras;
   /** A recipe's intended built-in replacements: `item` replaces the provided `replaces`. */
   readonly overrides?: readonly Override[];
-  readonly cell?: string;
-  readonly qualifications?: readonly Qualification[];
-  readonly upstreamInstallers?: readonly string[];
   /** A recipe's changes to each AI setup's standalone setup. */
   readonly aiSetupChanges?: Readonly<Record<string, AiSetupChange>>;
   /** A combination recipe's id and its qualification's sha256 for the cell. */
   readonly combination?: { readonly recipe: string; readonly sha256?: string };
+  /**
+   * Pairs a recipe does not force (D20, D114): on clients the upstream does not install on,
+   * items the recipe chose (not the user) that are unavailable are listed without blocking.
+   */
+  readonly notForced?: { readonly clis: readonly string[]; readonly items: readonly string[] };
 }
 
 export interface Override {
@@ -1795,6 +1863,289 @@ export interface Override {
 }
 
 /** The planner shared by `planInstall` and `planRecipe`, over already-validated input. */
+/**
+ * Settings a client cannot carry, one warning per code and client: MCP tool lists it cannot
+ * restrict, timeouts no profile maps, and agent tool lists its own agent file cannot hold.
+ */
+function settingWarnings(
+  resolved: readonly Placed[],
+  launches: ReadonlyMap<string, ToolLaunch>,
+): Warning[] {
+  const found = new Map<string, Warning>();
+  const warnAbout = (code: string, cli: string, item: string) => {
+    const known = found.get(`${code}\0${cli}`);
+    found.set(`${code}\0${cli}`, {
+      code,
+      cli,
+      items: union(known?.items ?? [], [item]),
+    });
+  };
+  for (const entry of resolved) {
+    if (entry.item.kind !== "mcp") continue;
+    const settings = serverSettings(entry.item, launches.get(entry.item.id));
+    const lists = settings.enabledTools !== undefined || settings.disabledTools !== undefined;
+    if (lists && !restricts(settings, entry.profile.mcpFile))
+      warnAbout("mcp-tools-unrestricted", entry.profile.id, entry.item.id);
+    if (settings.startupSeconds !== undefined || settings.callSeconds !== undefined)
+      warnAbout("mcp-timeouts-not-described", entry.profile.id, entry.item.id);
+  }
+  // An agent whose tool restriction this client's own agent file cannot carry is placed with
+  // no tool list, never silently: a client reading another client's file keeps that file's.
+  for (const entry of resolved)
+    if (
+      entry.item.kind === "agent" &&
+      entry.unit.shape === "file" &&
+      entry.unit.output.render?.name === "agent" &&
+      (entry.representative ?? entry).profile.id === entry.profile.id &&
+      agentTools(entry.item, entry.profile).unrestricted !== undefined
+    )
+      warnAbout("agent-tools-unrestricted", entry.profile.id, entry.item.id);
+  return [...found.values()];
+}
+
+/** Entries grouped by key, in first-seen order. */
+function group<T>(entries: readonly T[], keyOf: (entry: T) => string): T[][] {
+  const groups = new Map<string, T[]>();
+  for (const entry of entries)
+    groups.set(keyOf(entry), [...(groups.get(keyOf(entry)) ?? []), entry]);
+  return [...groups.values()];
+}
+/** A shared placement's bytes come from its first client; reused ones keep their source. */
+const representative = (members: readonly Placed[]): Placed => {
+  const first = members[0] as Placed;
+  return first.representative ?? first;
+};
+const clisOf = (members: readonly Placed[]) => union(members.map((member) => member.profile.id));
+const itemsOf = (members: readonly Placed[]) => union(members.map((member) => member.item.id));
+
+/**
+ * Folders and files, one placement per root and path: a user-only skill several clients share
+ * takes one combined render, equal placements merge their clients, others clash, and at user
+ * scope a linkable folder goes to its shared version folder and is linked.
+ */
+function placeFolders(
+  resolved: readonly Placed[],
+  scope: Scope,
+  copy: boolean,
+): {
+  writes: WriteStep[];
+  links: LinkStep[];
+  clashes: Clash[];
+  warnings: Warning[];
+  served: { item: string; cli: string }[];
+} {
+  const writes: WriteStep[] = [];
+  const links: LinkStep[] = [];
+  const clashes: Clash[] = [];
+  const warnings: Warning[] = [];
+  const served: { item: string; cli: string }[] = [];
+  // A user-only skill in a folder several clients share takes one combined render.
+  const combinedAt = new Map<string, Unit>();
+  for (const members of group(
+    resolved.filter((entry) => entry.unit.shape === "folder"),
+    (entry) => (entry.unit as { path: string }).path,
+  )) {
+    const unit = combined(members, scope);
+    if (unit?.shape === "folder") combinedAt.set(unit.path, unit);
+  }
+
+  // Folders and files: one placement per root and path.
+  const placementsAt = resolved
+    .filter((entry) => entry.unit.shape !== "merge")
+    .map((entry): Placed => {
+      const unit = entry.unit.shape === "folder" ? combinedAt.get(entry.unit.path) : undefined;
+      if (unit === undefined) return entry;
+      const { representative: _representative, ...own } = entry;
+      return { ...own, unit };
+    });
+  // At user scope a linked folder resolves `..` inside its shared version folder, never beside
+  // its siblings, so skills whose relative paths reach another placed skill are copied in place.
+  const inPlace = scope === "user" ? siblingReferences(placementsAt) : new Map();
+  const copiedFor = new Map<string, Set<string>>();
+  for (const members of group(placementsAt, (entry) => (entry.unit as { path: string }).path)) {
+    const first = members[0] as Placed;
+    const clis = clisOf(members);
+    // A file only one client uses (`cli`, such as Codex's agents/openai.yaml) is that client's
+    // own in a folder others share: the folder is compared without such files, and each is
+    // written for the clients whose placement holds it.
+    const split = members.map((member) => clientFiles(member));
+    const unit = (split[0] as { common: Unit }).common as Exclude<Unit, { shape: "merge" }>;
+    const own = new Map<string, { output: Output; placed: Placed; clis: string[] }>();
+    for (const [index, member] of members.entries())
+      for (const output of split[index]?.own ?? []) {
+        const known = own.get(output.rel);
+        if (known !== undefined && canonicalJson(known.output) === canonicalJson(output))
+          known.clis.push(member.profile.id);
+        else own.set(output.rel, { output, placed: member, clis: [member.profile.id] });
+      }
+    const ownDiffer = split.some((parts) =>
+      parts.own.some(
+        (output) => canonicalJson(own.get(output.rel)?.output) !== canonicalJson(output),
+      ),
+    );
+    if (
+      ownDiffer ||
+      !members.every(
+        (member, index) =>
+          signature((split[index] as { common: Unit }).common) === signature(unit) &&
+          member.item.id === first.item.id,
+      )
+    ) {
+      clashes.push({
+        root: scope,
+        path: unit.path,
+        reason: "different-content",
+        items: itemsOf(members),
+        clis,
+      });
+      continue;
+    }
+    const rep = representative(members);
+    for (const member of members) served.push({ item: member.item.id, cli: member.profile.id });
+    if (unit.shape === "file") {
+      writes.push(writeOf(scope, unit.path, unit.output, rep, clis));
+      continue;
+    }
+    const linkable =
+      scope === "user" &&
+      !copy &&
+      unit.linkable &&
+      members.every((member) => member.profile.links.skill === "documented");
+    const keep = members.filter((member) => inPlace.get(member.item.id)?.has(member.profile.id));
+    if (linkable)
+      for (const member of keep)
+        copiedFor.set(
+          member.profile.id,
+          new Set([...(copiedFor.get(member.profile.id) ?? []), member.item.id]),
+        );
+    const link = linkable && keep.length === 0;
+    const owned = [...own.values()].sort((left, right) =>
+      compareCodeUnits(left.output.rel, right.output.rel),
+    );
+    if (!link) {
+      for (const entry of unit.outputs)
+        writes.push(writeOf(scope, `${unit.path}/${entry.rel}`, entry, rep, clis));
+      for (const entry of owned)
+        writes.push(
+          writeOf(
+            scope,
+            `${unit.path}/${entry.output.rel}`,
+            entry.output,
+            entry.placed,
+            entry.clis,
+          ),
+        );
+      continue;
+    }
+    const all = [...unit.outputs, ...owned.map((entry) => entry.output)];
+    const shared = `.aihq/shared/${rep.framework}/${rep.item.kind}/${rep.item.name}/${versionOf(rep, all)}`;
+    for (const entry of unit.outputs)
+      writes.push(writeOf("user", `${shared}/${entry.rel}`, entry, rep, clis));
+    for (const entry of owned)
+      writes.push(
+        writeOf("user", `${shared}/${entry.output.rel}`, entry.output, entry.placed, entry.clis),
+      );
+    links.push({ op: "link", root: "user", path: unit.path, to: shared, item: rep.item.id, clis });
+  }
+
+  for (const [cli, items] of copiedFor)
+    warnings.push({ code: "copied-for-references", cli, items: sortedSet(items) });
+  return { writes, links, clashes, warnings, served };
+}
+
+/** The notices covering each placed item, one write per notice, owned by the items it covers. */
+function noticeWrites(
+  contents: readonly Content[],
+  chosen: readonly string[],
+  byId: ReadonlyMap<string, { content: Content; item: Item }>,
+  servedBy: ReadonlyMap<string, string[]>,
+  scope: Scope,
+): WriteStep[] {
+  const notices: WriteStep[] = [];
+  for (const content of contents)
+    for (const source of content.sources)
+      for (const notice of source.notices) {
+        const covered = chosen.filter((id) => {
+          if (!servedBy.has(id)) return false;
+          const { item, content: owner } = byId.get(id) as { item: Item; content: Content };
+          if (owner !== content) return false;
+          if (source.noticesFor?.includes(id)) return true;
+          // A file cut out of a shared upstream file (D65) carries that file's notices: cut-outs
+          // come only from the content's first source.
+          return item.files.some(
+            (file) =>
+              (file.sourceId === source.id && isUnder(file.sourcePath, notice.covers)) ||
+              (file.derivedFrom !== undefined &&
+                source.id === content.sources[0]?.id &&
+                isUnder(file.derivedFrom.sourcePath, notice.covers)),
+          );
+        });
+        if (covered.length === 0) continue;
+        notices.push({
+          op: "write",
+          root: scope,
+          // A further source's notices sit in a folder of its own, so two sources' LICENSE
+          // files never share one path.
+          path:
+            source.id === content.framework.id
+              ? `.aihq/notices/${content.framework.id}/${notice.sourcePath}`
+              : `.aihq/notices/${content.framework.id}/${source.id}/${notice.sourcePath}`,
+          from: { sourceId: source.id, sourcePath: notice.sourcePath, sha256: notice.sha256 },
+          executable: false,
+          items: covered,
+          clis: union(...covered.map((id) => servedBy.get(id) ?? [])),
+        });
+      }
+  return notices;
+}
+
+/**
+ * A client that reads only part of a shared file (Codex: 32 KiB of AGENTS.md) clashes when the
+ * blocks its plan merges there pass that: its rule blocks and the bundle-root block.
+ */
+function limitClashes(
+  profiles: readonly ToolProfile[],
+  mergeUnits: readonly Placed[],
+  bundleMerges: readonly MergeStep[],
+  contents: readonly Content[],
+  scope: Scope,
+): Clash[] {
+  const found: Clash[] = [];
+  for (const profile of profiles) {
+    const target = profile.places.rule?.[scope]?.always;
+    if (typeof target !== "object" || target.limitBytes === undefined) continue;
+    const blocks = mergeUnits.filter(
+      (entry) =>
+        entry.profile.id === profile.id && (entry.unit as { file: string }).file === target.file,
+    );
+    const bundleRoot = bundleMerges.find(
+      (step) => step.file === target.file && step.clis.includes(profile.id),
+    );
+    let total = blocks.reduce(
+      (sum, entry) =>
+        sum + ((entry.unit as { bytes?: number }).bytes ?? 0) + MARKDOWN_OVERHEAD(entry.item.id),
+      0,
+    );
+    if (bundleRoot?.render?.name === "bundle-root") {
+      const named = namedBundles((bundleRoot.render as BundleRootRender).bundles, contents);
+      if (Array.isArray(named))
+        total += bundleRootBytes(named, scope).byteLength + MARKDOWN_OVERHEAD(BUNDLE_ROOT_RULE);
+    }
+    if (total > target.limitBytes)
+      found.push({
+        root: scope,
+        path: target.file,
+        reason: "limit",
+        items: union(
+          union(blocks.map((entry) => entry.item.id)),
+          bundleRoot ? [BUNDLE_ROOT_RULE] : [],
+        ),
+        clis: [profile.id],
+      });
+  }
+  return found;
+}
+
 export function planCore(input: CoreInput): PlanResult {
   const { contents, profiles, scope, extras } = input;
   const options = { copy: input.copy, data: input.data };
@@ -1820,11 +2171,7 @@ export function planCore(input: CoreInput): PlanResult {
   const toolInput = {
     selection: input.selection,
     byId,
-    ...(input.cell !== undefined ? { cell: input.cell } : {}),
-    ...(input.qualifications !== undefined ? { qualifications: input.qualifications } : {}),
-    ...(input.upstreamInstallers !== undefined
-      ? { upstreamInstallers: input.upstreamInstallers }
-      : {}),
+    ...toolOptions(input),
     ...(input.aiSetupChanges !== undefined ? { changes: input.aiSetupChanges } : {}),
     ...(input.combination !== undefined ? { combination: input.combination } : {}),
     clis: union(profiles.map((profile) => profile.id)),
@@ -1974,78 +2321,13 @@ export function planCore(input: CoreInput): PlanResult {
     const profile = sortedProfiles.find((candidate) => candidate.id === cli) as ToolProfile;
     for (const code of profile.bundleWarnings ?? []) warnings.push({ code, cli, items });
   }
-  const group = <T>(entries: readonly T[], keyOf: (entry: T) => string) => {
-    const groups = new Map<string, T[]>();
-    for (const entry of entries)
-      groups.set(keyOf(entry), [...(groups.get(keyOf(entry)) ?? []), entry]);
-    return [...groups.values()];
-  };
-  /** A shared placement's bytes come from its first client; reused ones keep their source. */
-  const representative = (members: readonly Placed[]): Placed => {
-    const first = members[0] as Placed;
-    return first.representative ?? first;
-  };
-  const clisOf = (members: readonly Placed[]) => union(members.map((member) => member.profile.id));
-  const itemsOf = (members: readonly Placed[]) => union(members.map((member) => member.item.id));
 
-  // A user-only skill in a folder several clients share takes one combined render.
-  const combinedAt = new Map<string, Unit>();
-  for (const members of group(
-    resolved.filter((entry) => entry.unit.shape === "folder"),
-    (entry) => (entry.unit as { path: string }).path,
-  )) {
-    const unit = combined(members, scope);
-    if (unit?.shape === "folder") combinedAt.set(unit.path, unit);
-  }
-
-  // Folders and files: one placement per root and path.
-  const placementsAt = resolved
-    .filter((entry) => entry.unit.shape !== "merge")
-    .map((entry): Placed => {
-      const unit = entry.unit.shape === "folder" ? combinedAt.get(entry.unit.path) : undefined;
-      if (unit === undefined) return entry;
-      const { representative: _representative, ...own } = entry;
-      return { ...own, unit };
-    });
-  for (const members of group(placementsAt, (entry) => (entry.unit as { path: string }).path)) {
-    const first = members[0] as Placed;
-    const unit = first.unit as Exclude<Unit, { shape: "merge" }>;
-    const clis = clisOf(members);
-    if (
-      !members.every(
-        (member) => signature(member.unit) === signature(unit) && member.item.id === first.item.id,
-      )
-    ) {
-      clashes.push({
-        root: scope,
-        path: unit.path,
-        reason: "different-content",
-        items: itemsOf(members),
-        clis,
-      });
-      continue;
-    }
-    const rep = representative(members);
-    for (const member of members) serve(member.item.id, [member.profile.id]);
-    if (unit.shape === "file") {
-      writes.push(writeOf(scope, unit.path, unit.output, rep, clis));
-      continue;
-    }
-    const link =
-      scope === "user" &&
-      options.copy !== true &&
-      unit.linkable &&
-      members.every((member) => member.profile.links.skill === "documented");
-    if (!link) {
-      for (const entry of unit.outputs)
-        writes.push(writeOf(scope, `${unit.path}/${entry.rel}`, entry, rep, clis));
-      continue;
-    }
-    const shared = `.aihq/shared/${rep.framework}/${rep.item.kind}/${rep.item.name}/${versionOf(rep, unit.outputs)}`;
-    for (const entry of unit.outputs)
-      writes.push(writeOf("user", `${shared}/${entry.rel}`, entry, rep, clis));
-    links.push({ op: "link", root: "user", path: unit.path, to: shared, item: rep.item.id, clis });
-  }
+  const folders = placeFolders(resolved, scope, options.copy === true);
+  writes.push(...folders.writes);
+  links.push(...folders.links);
+  clashes.push(...folders.clashes);
+  warnings.push(...folders.warnings);
+  for (const { item, cli } of folders.served) serve(item, [cli]);
 
   // Merge entries: one per file and key.
   const mergeUnits = resolved.filter((entry) => entry.unit.shape === "merge");
@@ -2156,26 +2438,7 @@ export function planCore(input: CoreInput): PlanResult {
       for (const code of overlap.warnings) warnings.push({ code, cli: profile.id, items });
     }
 
-  // MCP settings a client cannot carry: tool lists it cannot restrict, timeouts no profile maps.
-  const settingWarnings = new Map<string, Warning>();
-  const warnAbout = (code: string, cli: string, item: string) => {
-    const known = settingWarnings.get(`${code}\0${cli}`);
-    settingWarnings.set(`${code}\0${cli}`, {
-      code,
-      cli,
-      items: union(known?.items ?? [], [item]),
-    });
-  };
-  for (const entry of resolved) {
-    if (entry.item.kind !== "mcp") continue;
-    const settings = serverSettings(entry.item, tools.launches.get(entry.item.id));
-    const lists = settings.enabledTools !== undefined || settings.disabledTools !== undefined;
-    if (lists && !restricts(settings, entry.profile.mcpFile))
-      warnAbout("mcp-tools-unrestricted", entry.profile.id, entry.item.id);
-    if (settings.startupSeconds !== undefined || settings.callSeconds !== undefined)
-      warnAbout("mcp-timeouts-not-described", entry.profile.id, entry.item.id);
-  }
-  warnings.push(...settingWarnings.values());
+  warnings.push(...settingWarnings(resolved, tools.launches));
 
   // Names the clients already provide: clashes, or an override's switch-off and warnings.
   const shadowing = builtIns(resolved, scope, input.overrides ?? []);
@@ -2222,34 +2485,7 @@ export function planCore(input: CoreInput): PlanResult {
   warnings.push(...helperWarnings);
 
   // Notices covering a placed item, once each.
-  for (const content of contents)
-    for (const source of content.sources)
-      for (const notice of source.notices) {
-        const covered = chosen.filter((id) => {
-          if (!servedBy.has(id)) return false;
-          const { item, content: owner } = byId.get(id) as { item: Item; content: Content };
-          if (owner !== content) return false;
-          if (source.noticesFor?.includes(id)) return true;
-          return item.files.some(
-            (file) => file.sourceId === source.id && isUnder(file.sourcePath, notice.covers),
-          );
-        });
-        if (covered.length === 0) continue;
-        writes.push({
-          op: "write",
-          root: scope,
-          // A further source's notices sit in a folder of its own, so two sources' LICENSE
-          // files never share one path.
-          path:
-            source.id === content.framework.id
-              ? `.aihq/notices/${content.framework.id}/${notice.sourcePath}`
-              : `.aihq/notices/${content.framework.id}/${source.id}/${notice.sourcePath}`,
-          from: { sourceId: source.id, sourcePath: notice.sourcePath, sha256: notice.sha256 },
-          executable: false,
-          items: covered,
-          clis: union(...covered.map((id) => servedBy.get(id) ?? [])),
-        });
-      }
+  writes.push(...noticeWrites(contents, chosen, byId, servedBy, scope));
 
   // Identical writes (a shared version used by several folders) merge; others clash.
   const finalWrites: WriteStep[] = [];
@@ -2297,31 +2533,7 @@ export function planCore(input: CoreInput): PlanResult {
         clis: union(...members.map((step) => step.clis)),
       });
   }
-  for (const members of group(
-    mergeUnits.filter((entry) => (entry.unit as { limitBytes?: number }).limitBytes !== undefined),
-    (entry) => `${(entry.unit as { file: string }).file}\0${entry.profile.id}`,
-  )) {
-    const first = members[0] as Placed;
-    const unit = first.unit as Extract<Unit, { shape: "merge" }>;
-    const blocks = mergeUnits.filter(
-      (entry) =>
-        entry.profile.id === first.profile.id &&
-        (entry.unit as { file: string }).file === unit.file,
-    );
-    const total = blocks.reduce(
-      (sum, entry) =>
-        sum + ((entry.unit as { bytes?: number }).bytes ?? 0) + MARKDOWN_OVERHEAD(entry.item.id),
-      0,
-    );
-    if (total > (unit.limitBytes as number))
-      clashes.push({
-        root: scope,
-        path: unit.file,
-        reason: "limit",
-        items: itemsOf(blocks),
-        clis: [first.profile.id],
-      });
-  }
+  clashes.push(...limitClashes(sortedProfiles, mergeUnits, bundles.merges, input.contents, scope));
   // Never write through a planned link.
   for (const link of links)
     for (const step of finalWrites)
@@ -2462,9 +2674,18 @@ export function planCore(input: CoreInput): PlanResult {
   });
 
   const references = referencesOf(chosen, byId, resolved, bundles, links);
+  const notForced = input.notForced;
+  const forced = unavailable.filter(
+    (entry) =>
+      notForced === undefined ||
+      entry.cli === undefined ||
+      entry.item === undefined ||
+      !notForced.clis.includes(entry.cli) ||
+      !notForced.items.includes(entry.item),
+  );
   const blocked =
     missing.length > 0 ||
-    unavailable.length > 0 ||
+    forced.length > 0 ||
     clashes.length > 0 ||
     references.some((reference) => reference.kind === "path");
   return {

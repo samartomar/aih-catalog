@@ -1,13 +1,13 @@
 {
   "candidate": {
     "package": "@aihq/catalog@0.1.0",
-    "sourceCommit": "3bd2b1d17e818a1fbc8e3b208964152fa79023d1",
+    "sourceCommit": "acab13930ede781ea076c766ba73b710419339ef",
     "sourceClean": true,
     "file": "aihq-catalog-0.1.0.tgz",
-    "sha256": "05cce153d1e347e2baff3e893751c9fffc15f5b9ba1cc970952d28b5666151ac",
-    "integrity": "sha512-9d6oAguDhhnf+shBtwPhiGHRhb4nzcVpk3EsnGojdMSPKQfHyaFUJIhX0UO743Smg2Wc3wMKxMOPQ7rSN2YUAQ==",
-    "bytes": 159712,
-    "entries": 64
+    "sha256": "696a87df8b41e736c9115c333302ac62f2280c6a5ccbfdddf0fb9e653d9dbba7",
+    "integrity": "sha512-boIs2H0AVPSFJ95M0bVYE+RSTl1ay7ntHmsfJYbdoHcFwlRTHGumMLV5kfgNSuDPqKj7VsU5xYU1K+lvhEea/A==",
+    "bytes": 165116,
+    "entries": 66
   },
   "scan": {
     "package": "@aihq/scan@0.1.0",
@@ -20,26 +20,26 @@
   "inputs": {
     "data": {
       "kind": "git",
-      "commit": "3bd2b1d17e818a1fbc8e3b208964152fa79023d1",
+      "commit": "acab13930ede781ea076c766ba73b710419339ef",
       "subpath": "data",
-      "files": 95,
-      "sha256": "81a9260800c68b4336cac3bad1e06503e110e9c7bb6f8472aee82715c91abfa7",
+      "files": 100,
+      "sha256": "b1ddef7926899ef5af4570da2a5b2fa80484fca4439bfcad1fe57aadf739ad32",
       "skipped": 0
     },
     "port-report": {
       "kind": "git",
-      "commit": "3bd2b1d17e818a1fbc8e3b208964152fa79023d1",
+      "commit": "acab13930ede781ea076c766ba73b710419339ef",
       "subpath": "port-report",
       "files": 4,
-      "sha256": "ea3a5df55daa5aa3c9f014df6a1ef455a96ebe529ed101b2f95c6fd1ab9f73e2",
+      "sha256": "cbfa5a5ced60cb53ee08b8d5d9e5cc4235ceaeddd852ede0a32be78a88d0fc90",
       "skipped": 0
     },
     "tests/fixtures": {
       "kind": "git",
-      "commit": "3bd2b1d17e818a1fbc8e3b208964152fa79023d1",
+      "commit": "acab13930ede781ea076c766ba73b710419339ef",
       "subpath": "tests/fixtures",
-      "files": 168,
-      "sha256": "fd168550f9e6e7dfc335c76534b2295ac01bbb0cc2c28c08f7643100fb9b4708",
+      "files": 169,
+      "sha256": "e6881a0497f82fbc9830092389aa1f78931256e6c21d4e568048ae6b5f637259",
       "skipped": 0
     },
     "upstream": {
@@ -60,12 +60,12 @@
         "skipped": 0
       }
     },
-    "journey14": {
+    "dataCommits": {
       "before": {
-        "commit": "4a9c3adb2fb8454fbfc6a57e665d9897cb07a61e"
+        "commit": "3263c33c5d96470a2ec23f2b28260f5cb63e3ea7"
       },
       "after": {
-        "commit": "4f3a01de941e8fb72acedd3de624ccaf61c7bea6",
+        "commit": "0ea88f445f4a6fec93142979ee367aef6b729f9d",
         "qualification": "8d8b278142b3001fe193a6825713485d0cc0cb4ff15966d56abca021ecbb4712"
       }
     }
@@ -88,75 +88,72 @@
       "checks": [
         {
           "name": "readLocalSource reads the folder as a local source",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "findItems gives the two skills and the rule, and lists every leftover",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "buildContent records the items",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "planInstall for claude-code, kiro and antigravity is ok",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "every path is the profile's project place, and there are only copies",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "the same input gives the same plan, byte for byte",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "nothing ran: no lifecycle script, hook or executable left a mark",
-          "ok": true
+          "status": "passed"
         }
       ],
       "pending": [],
       "plans": {
-        "own-folder": "77321cc0ee51fd63a9aa69778e4ea7d6c36e357c2173110f6f7213f94d504af3"
+        "own-folder": "d9f00083c360e216bce0f149cabb89d15f0e83a6faf61595d9062df5a9dfb646"
       }
     },
     {
       "id": 2,
       "title": "Superpowers whole: plugins on Claude, Codex, Copilot; items on Kiro; ok",
       "basis": "candidate-data",
-      "outcome": "open",
+      "outcome": "passed",
       "checks": [
         {
           "name": "plugin steps for Claude, Codex and Copilot, pinned to the recorded commit",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "Kiro gets items: skills linked, the session-bootstrap rule in global steering",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "the recipe origin is the recipe's own bytes and source",
-          "ok": true
+          "status": "passed"
         },
         {
-          "name": "status is ok with the default links",
-          "ok": true,
-          "open": true,
-          "reason": "at user scope Kiro's skills are links into shared version folders, so Superpowers' ../sibling paths (code-reviewer.md, sdd-workspace, review-package, the tool references) leave the linked folder; journey 2 expects ok while user-scope skills are linked wherever the client documents links: a decision is needed (copy mutually referencing skills in place, or accept incomplete)",
-          "detail": "incomplete: {\"missing\":[],\"unavailable\":[],\"clashes\":[],\"references\":[\"superpowers.skill.executing-plans -> skills/requesting-code-review/code-reviewer.md [kiro]\",\"superpowers.skill.executing-plans -> skills/subagent-driven-development/scripts/review-package [kiro]\",\"superpowers.skill.executing-plans -> skills/subagent-driven-development/scripts/sdd-workspace [kiro]\",\"superpowers.skill.subagent-driven-development -> skills/requesting-code-review/code-reviewer.md [kiro]\",\"superpowers.skill.writing-skills -> skills/using-superpowers/references/codex-tools.md [kiro]\",\"superpowers.skill.writing-sk"
+          "name": "status is ok with the default links: skills joined by sibling paths are copied in place on Kiro, with a warning",
+          "status": "passed"
         },
         {
           "name": "with copies at user scope (copy: true) Kiro's sibling skill paths resolve and the plan is ok",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "upstream: each plugin step's scan key is the pinned plugin folder's",
-          "ok": true
+          "status": "passed"
         }
       ],
       "pending": [],
       "plans": {
-        "superpowers-user": "585d86e3bb0e898432a5099905c290b27996b63aeeff239703354a314057eb32"
+        "superpowers-user": "ce375d09fc93b4a761b19c20d71ea5d580bdd31112c9a1d6ede0d43e1a298063"
       }
     },
     {
@@ -167,39 +164,39 @@
       "checks": [
         {
           "name": "33 agent editions, two files each, copied as they are",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "22 steering editions and 13 hook editions",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "chosen skills install with the ecc- prefix",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "commands become prompt files plus manual steering",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "notices are written once",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "references list the ecc: names",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "planning ECC twice gives the same plan, byte for byte",
-          "ok": true
+          "status": "passed"
         }
       ],
       "pending": [],
       "notes": [
-        "Status incomplete (the journey states no status): 121 path references, 35 unavailable item/client pairs, 0 clashes."
+        "Status incomplete (the journey states no status): 78 path references, 0 unavailable item/client pairs, 0 clashes."
       ],
       "plans": {
-        "ecc-kiro": "cc579ca57a2a7ffac8ad91be5c582b1d7ee157bfeee8f2251ddd9779ed4cc58e"
+        "ecc-kiro": "2dc5400fa9d51525f36e158b6256b3741502682e31a6925e6f15b51c2726a1a8"
       }
     },
     {
@@ -210,11 +207,11 @@
       "checks": [
         {
           "name": "exactly one upstream-setup step with the exact command and needs",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "status is ok: approval does not make a plan incomplete",
-          "ok": true
+          "status": "passed"
         }
       ],
       "pending": []
@@ -227,29 +224,30 @@
       "checks": [
         {
           "name": "the folder link is .agents/skills/ecc-plan, into the shared version folder",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "openai.yaml sits inside the version folder",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "openai.yaml sets allow_implicit_invocation: false",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "$ARGUMENTS is reworded (ECC gan-build, pinned fixture bytes)",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "upstream: ECC plan's SKILL.md renders from the real pinned bytes",
-          "ok": true
+          "status": "passed"
+        },
+        {
+          "name": "status is ok, as the contract's example plan for this command is",
+          "status": "passed"
         }
       ],
-      "pending": [],
-      "notes": [
-        "Status incomplete: [\"agents/planner.md\"] (the contract's example plan for this command is ok; the upstream file names agents/planner.md as an optional manual-install agent, which the path-reference check counts as blocking)."
-      ]
+      "pending": []
     },
     {
       "id": 6,
@@ -259,19 +257,19 @@
       "checks": [
         {
           "name": "duplicates name tdd and teach across the two frameworks, with no winner",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "the resolver is placed on Claude and Codex, and .aihq/duplicates.json is written",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "on dsh the missing helper only warns: the renamed mix is ok",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "an unsupported agent the user selects on dsh still makes the plan incomplete",
-          "ok": true
+          "status": "passed"
         }
       ],
       "pending": []
@@ -284,11 +282,11 @@
       "checks": [
         {
           "name": "a bare plan skill on Claude is a built-in clash and the plan is incomplete",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "Extensions' code-review with a recipe override is not reported on Claude",
-          "ok": true
+          "status": "passed"
         }
       ],
       "pending": [],
@@ -304,15 +302,15 @@
       "checks": [
         {
           "name": "a plugin route at a scope the client does not list warns and falls back",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "Superpowers on Cursor, Antigravity and Kimi plans items, never a plugin step",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "Copilot: the pinned local marketplace write, a plugin step naming it, cli-only-plugin",
-          "ok": true
+          "status": "passed"
         }
       ],
       "pending": []
@@ -325,27 +323,27 @@
       "checks": [
         {
           "name": "local paths and file URLs",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "HTTPS, SSH and owner/repo Git repositories",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "tree, blob and GitLab links keep ref and subpath (pstack keeps its subpath)",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "npm names, exact versions, ranges and npx",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "installer commands name their source",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "anything else is unrecognised with a reason, never a guess; over the limit is refused",
-          "ok": true
+          "status": "passed"
         }
       ],
       "pending": []
@@ -358,15 +356,15 @@
       "checks": [
         {
           "name": "777 dispositions, one per baseline item, each mapped or dropped with a reason",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "every mapped item and edition exists in the committed data",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "the combined report reconciles the same 777 baseline items and their kinds",
-          "ok": true
+          "status": "passed"
         }
       ],
       "pending": []
@@ -379,39 +377,39 @@
       "checks": [
         {
           "name": "Claude gets the local plugin in .aihq/plugins/egm/ and a settings merge",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "the adapters' ${CLAUDE_PLUGIN_ROOT} paths resolve inside the copied plugin",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "Codex and Antigravity get .agents/skills/egm-*/ with agents, resources and docs beside them",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "all 7 skills are user-only, and the bundle-root rule is at each client's always-on place",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "references are empty and the status is ok",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "with dsh added: the same .agents layout, the rule in AGENTS.md, personas unavailable",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "the fixture-built EGM content equals the committed data, and without its bundle the plan is incomplete with the paths listed",
-          "ok": true
+          "status": "passed"
         }
       ],
       "pending": [],
       "notes": [
-        "With dsh the plan is incomplete; the journey states no status for that variant (completeness does not force clients the upstream does not install on, while a selected agent a client cannot take blocks)."
+        "With dsh the plan is ok; the journey states no status for that variant (completeness does not force clients the upstream does not install on, while a selected agent a client cannot take blocks)."
       ],
       "plans": {
-        "egm-project": "fc80ceb4b85f36db6059bf884c08a5d25b0fae4eb4338895ef00e8d7ce1edd21"
+        "egm-project": "b1a5998073a50bbed07099f2a67241c4118d22e37597494343d1c7deec997ca1"
       }
     },
     {
@@ -422,32 +420,31 @@
       "checks": [
         {
           "name": "real data: incomplete, with not-qualified and the recorded reasons",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "real data: codebase-memory-mcp is acquired under ~/.aihq/ai-setup/ naming its qualification",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "CBM's tool-command steps carry readbacks",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "MCP config for each chosen client with the trio's tool lists, and no installer",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "fixture qualifications for every member and the trio read ok and plan",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "fixture qualifications: three acquire steps, each naming its qualification, and ok",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "Serena's context files are in the plan",
-          "ok": true,
-          "open": true,
+          "status": "open",
           "reason": "the Serena AI setup declares no settings files: it launches with Serena's built-in contexts per client (claude-code, codex, copilot-cli, antigravity, else ide); no Catalog context file has been authored, so authored context files (or accepting the built-in contexts) are needed",
           "detail": "Serena's AI setup declares no context files: it starts with its built-in contexts per client"
         }
@@ -456,7 +453,7 @@
         "The real ok branch: no qualified code-review-graph 2.3.9 or Serena 2.1.0 record for linux-x64 and no trio combination record exist, so the trio cannot plan ok on real data."
       ],
       "plans": {
-        "trio-linux-x64": "6ed6e5258b8357d38d51f0d3aeea503a56491cd1158c2fd1667b0210af1fec15"
+        "trio-linux-x64": "accc304ae943b0deb7ff5aeddc0944768177b019b0a8656451eb607a42d7f972"
       }
     },
     {
@@ -467,35 +464,35 @@
       "checks": [
         {
           "name": "item, edition and bundle scan keys equal git write-tree of the same folders",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "and equal @aihq/scan/contracts scanKeyOf over the install-relative files",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "candidate data: ECC keys agree with scanKeyOf for every item wholly in the pinned fixture",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "candidate data: each ECC MCP cut-out is its own server.json with derivedFrom",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "an MCP package without an exact version is invalid",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "checkContent lists the keys with no matching scan",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "a render step shows scanned: false",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "upstream: checkContent re-derives all of ECC from the real pinned bytes, keys included",
-          "ok": true
+          "status": "passed"
         }
       ],
       "pending": []
@@ -508,15 +505,15 @@
       "checks": [
         {
           "name": "the same installed package plans both data commits",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "before: darwin-arm64 is not qualified; after the new data commit it plans ok",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "item digests do not change when a qualification is added",
-          "ok": true
+          "status": "passed"
         }
       ],
       "pending": [],
@@ -532,23 +529,23 @@
       "checks": [
         {
           "name": "package.json exports exactly /source, /node, /producer, /reader and /contracts",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "the root, package.json and every earlier export are not importable",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "none of the removed functions or formats is exported",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "/contracts gives exactly five schemas and ten fixtures; valid ones read ok, invalid ones invalid",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "the nine tool profiles ship in /contracts and every committed document conforms to its schema",
-          "ok": true
+          "status": "passed"
         }
       ],
       "pending": []
@@ -561,23 +558,23 @@
       "checks": [
         {
           "name": "@aihq/catalog/source links and evaluates with no Node built-in",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "@aihq/catalog/reader links and evaluates with no Node built-in",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "@aihq/catalog/contracts links and evaluates with no Node built-in",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "parsing, reading and planning run in that realm",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "/node and /producer are the Node-only entry points",
-          "ok": true
+          "status": "passed"
         }
       ],
       "pending": []
@@ -592,7 +589,7 @@
       "checks": [
         {
           "name": "the helper's absence on dsh warns and does not block; a chosen agent does",
-          "ok": true
+          "status": "passed"
         }
       ],
       "pending": []
@@ -605,15 +602,15 @@
       "checks": [
         {
           "name": "explicitly skipping an optional item leaves the plan ok",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "a retained choice missing its required dependency is incomplete",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "a retained choice missing its supporting files (EGM without its bundle) is incomplete",
-          "ok": true
+          "status": "passed"
         }
       ],
       "pending": []
@@ -626,7 +623,7 @@
       "checks": [
         {
           "name": "/contracts publishes no artifact cap, and acquire steps carry the recorded byte count",
-          "ok": true
+          "status": "passed"
         }
       ],
       "pending": []
@@ -639,11 +636,11 @@
       "checks": [
         {
           "name": "every format names its URN, and the former names are not read",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "qualifications are named by the sha256 of their bytes, and readers recompute it",
-          "ok": true
+          "status": "passed"
         }
       ],
       "pending": []
@@ -656,7 +653,7 @@
       "checks": [
         {
           "name": "a placement shared by several clients lists every one it serves",
-          "ok": true
+          "status": "passed"
         }
       ],
       "pending": []
@@ -669,7 +666,7 @@
       "checks": [
         {
           "name": "every plugin step and every profile's plugin section says verify: none",
-          "ok": true
+          "status": "passed"
         }
       ],
       "pending": []
@@ -682,7 +679,7 @@
       "checks": [
         {
           "name": "local-plugin steps carry route and framework; only the first in plan order lists contains",
-          "ok": true
+          "status": "passed"
         }
       ],
       "pending": []
@@ -695,7 +692,7 @@
       "checks": [
         {
           "name": "MCP inputs bind at typed destinations, and the plan and renders carry no secret value",
-          "ok": true
+          "status": "passed"
         }
       ],
       "pending": []
@@ -708,19 +705,19 @@
       "checks": [
         {
           "name": "renderStep refuses a source whose bytes differ, and a profile at another version",
-          "ok": true
+          "status": "passed"
         },
         {
           "name": "a recipe plan refuses a different data identity",
-          "ok": true
+          "status": "passed"
         },
         {
-          "name": "a content document that is not canonical, or over the limit, is refused or invalid; nothing throws",
-          "ok": true
+          "name": "a content document with duplicate keys or a byte-order mark, or over the limit, is refused or invalid; nothing throws",
+          "status": "passed"
         },
         {
           "name": "unsafe paths and links in a local source are refused or listed, never followed",
-          "ok": true
+          "status": "passed"
         }
       ],
       "pending": []

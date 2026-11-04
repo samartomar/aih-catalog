@@ -39,7 +39,14 @@ export const SCAN_FOLDER = {
 
 /** The folders whose Git tree hashes journey 13 compares, as install-relative file sets. */
 export const SCAN_TREES = {
-  item: { "SKILL.md": "skills/audit/SKILL.md", "steps.md": "skills/audit/steps.md", "run.sh": "skills/audit/run.sh" },
-  edition: { "SKILL.md": "claude/skills/audit/SKILL.md", "steps.md": "claude/skills/audit/steps.md" },
+  item: {
+    "SKILL.md": "skills/audit/SKILL.md",
+    "steps.md": "skills/audit/steps.md",
+    "run.sh": "skills/audit/run.sh",
+  },
+  edition: {
+    "SKILL.md": "claude/skills/audit/SKILL.md",
+    "steps.md": "claude/skills/audit/steps.md",
+  },
   bundle: { "agents/auditor.md": "agents/auditor.md" },
 };

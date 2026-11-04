@@ -105,6 +105,59 @@ describe("EGM content with its runtime bundle", () => {
     for (const dev of ["TESTING.md", "scripts/pack_plugin.py", "skills/egm-review/TEST.md"])
       expect(expected).not.toContain(dev);
     expect(plugin?.scanKey).toBe(`git-sha1:${fixtureTree(expected)}`);
+    // A native plugin install clones the whole folder, so the record also keys every file in it.
+    const all = read.files.map((file) => file.path).sort();
+    expect(plugin?.folderScanKey).toBe(`git-sha1:${fixtureTree(all)}`);
+  });
+
+  it("names the whole folder's key on a plugin step and the allowlist's key on local-plugin copies", async () => {
+    const { content } = await egmContent();
+    const [record] = content.plugins ?? [];
+    const result = planRecipe(
+      egmRecipe({ "claude-code": "plugin", codex: "plugin" }),
+      [content],
+      [profile("claude-code"), profile("codex")],
+      {},
+      { scope: "user", source: RECIPE_SOURCE },
+    ) as Plan;
+    const steps = result.plan.filter((step) => step.op === "plugin");
+    expect(steps.map((step) => [step.cli, step.scanKey])).toEqual([
+      ["claude-code", record?.folderScanKey],
+      ["codex", record?.folderScanKey],
+    ]);
+    const local = planRecipe(
+      egmRecipe(BASE_ROUTES),
+      [content],
+      [profile("claude-code")],
+      {},
+      { scope: "project", source: RECIPE_SOURCE },
+    ) as Plan;
+    const keys = new Set(
+      local.plan.flatMap((step) =>
+        step.op === "write" && "route" in step && step.route === "local-plugin"
+          ? [step.scanKey]
+          : [],
+      ),
+    );
+    expect([...keys]).toEqual([record?.scanKey]);
+  });
+
+  it("lists both plugin keys among the unscanned keys until each has a scan", async () => {
+    const { read, content } = await egmContent();
+    const [record] = content.plugins ?? [];
+    const others = [
+      ...content.items.map((item) => item.scanKey as string),
+      ...(content.bundles ?? []).map((bundle) => bundle.scanKey),
+    ];
+    const checked = await checkContent(content, read.files, { scannedKeys: others });
+    expect(checked).toMatchObject({
+      status: "ok",
+      unscannedKeys: [record?.scanKey, record?.folderScanKey].sort(),
+    });
+    const all = await checkContent(content, read.files, {
+      scannedKeys: [...others, record?.scanKey as string, record?.folderScanKey as string],
+    });
+    expect(all).toMatchObject({ status: "ok", unscannedKeys: [] });
   });
 
   it("checks against the files: a changed bundle file is invalid, and covered paths are not reported", async () => {
@@ -394,7 +447,9 @@ describe("EGM's base recipe at project scope", () => {
       {},
       { scope: "project", source: RECIPE_SOURCE },
     ) as Plan;
-    expect(result.status).toBe("incomplete");
+    // The upstream does not install on dsh and the recipe, not the user, chose the personas,
+    // so their unavailability there is listed without making the plan incomplete.
+    expect(result.status).toBe("ok");
     expect(result.unavailable).toEqual(
       AGENT_IDS.map((item) => ({
         item,
@@ -419,6 +474,25 @@ describe("EGM's base recipe at project scope", () => {
       file: "AGENTS.md",
       clis: ["codex", "dsh"],
     });
+  });
+
+  it("still blocks on dsh's personas where the user, not the recipe, chose them", async () => {
+    const { content } = await egmContent();
+    const picked = planInstall(ALL, [content], [profile("codex"), profile("dsh")], {
+      scope: "project",
+      data: null,
+    }) as Plan;
+    expect(picked.status).toBe("incomplete");
+    // A client the recipe routes is forced: its unavailable pairs block there.
+    const routed = planRecipe(
+      egmRecipe({ ...BASE_ROUTES, dsh: "items" }),
+      [content],
+      [profile("codex"), profile("dsh")],
+      {},
+      { scope: "project", source: RECIPE_SOURCE },
+    ) as Plan;
+    expect(routed.status).toBe("incomplete");
+    expect(routed.unavailable.map((entry) => entry.cli)).toEqual(AGENT_IDS.map(() => "dsh"));
   });
 });
 
@@ -558,7 +632,13 @@ describe("EGM's user-only skills, personas and scopes", () => {
 
   it("lists the bundle's own scan key until it has a scan", async () => {
     const { read, content } = await egmContent();
-    const itemKeys = content.items.map((item) => item.scanKey as string);
+    const itemKeys = [
+      ...content.items.map((item) => item.scanKey as string),
+      ...(content.plugins ?? []).flatMap((plugin) => [
+        plugin.scanKey,
+        plugin.folderScanKey as string,
+      ]),
+    ];
     const checked = await checkContent(content, read.files, { scannedKeys: itemKeys });
     expect(checked).toMatchObject({
       status: "ok",
@@ -613,6 +693,56 @@ describe("bundles from two frameworks", () => {
         path: ".agents/docs/guide.md",
         reason: "different-content",
         items: ["alpha.skill.start", "beta.skill.start"],
+        clis: ["codex"],
+      },
+    ]);
+  });
+
+  it("counts the bundle-root block toward Codex's 32 KiB AGENTS.md limit", async () => {
+    const overhead = (id: string) =>
+      `<!-- aih:begin ${id} -->\n`.length + `<!-- aih:end ${id} -->\n`.length;
+    // The rule's own block fills AGENTS.md to within a few bytes of the limit.
+    const ruleBytes = 32 * 1024 - overhead("gamma.rule.big") - 8;
+    const heading = "# Big\n\n";
+    const root = folder(
+      {
+        "skills/start/SKILL.md":
+          "---\nname: gamma-start\ndescription: Start gamma.\n---\n\nRead `../../docs/guide.md` first.\n",
+        "docs/guide.md": "Gamma guide.\n",
+        "rules/big.md": `${heading}${"x".repeat(ruleBytes - heading.length - 1)}\n`,
+      },
+      "gamma",
+    );
+    const read = readLocalSource(root);
+    if (read.status !== "ok") throw new Error(JSON.stringify(read));
+    const found = findItems(read.files, { framework: "gamma" });
+    if (found.status !== "ok") throw new Error(JSON.stringify(found));
+    const built = await buildContent(
+      read.source,
+      read.files,
+      found.items.map((item) =>
+        item.kind === "skill" ? { ...item, bundle: "gamma.runtime" } : item,
+      ),
+      {
+        framework: "gamma",
+        bundles: [{ id: "gamma.runtime", layout: "skills/<name>/", include: ["docs/*.md"] }],
+      },
+    );
+    if (built.status !== "ok") throw new Error(JSON.stringify(built));
+    const plan = (selection: string[]) =>
+      planInstall(selection, [built.content], [profile("codex")], {
+        scope: "project",
+        data: null,
+      }) as Plan;
+    expect(plan(["gamma.rule.big"])).toMatchObject({ status: "ok", clashes: [] });
+    const both = plan(["gamma.skill.start", "gamma.rule.big"]);
+    expect(both.status).toBe("incomplete");
+    expect(both.clashes).toEqual([
+      {
+        root: "project",
+        path: "AGENTS.md",
+        reason: "limit",
+        items: ["aih.rule.bundle-root", "gamma.rule.big"],
         clis: ["codex"],
       },
     ]);

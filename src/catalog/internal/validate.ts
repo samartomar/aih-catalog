@@ -5,6 +5,7 @@
 import { formats, kinds, type Problem } from "../contracts.js";
 import { aiSetupProblems, MCP_SETTINGS, mcpSettingProblems } from "./ai-setup.js";
 import { BUNDLE_LAYOUT, isIncludePattern, matchesInclude } from "./bundle.js";
+import { isRecord, isText, Problems, type Record_, TEXT_LIMITS } from "./check.js";
 import { behaviourSha256, contentSha256, kindFieldNames } from "./identity.js";
 import {
   FRAMEWORK_ID,
@@ -21,29 +22,8 @@ import {
 import { isSafeRelativePath } from "./paths.js";
 import { EXACT_VERSION } from "./source-link.js";
 
-type Record_ = Record<string, unknown>;
-const isRecord = (value: unknown): value is Record_ =>
-  value !== null && typeof value === "object" && !Array.isArray(value);
-const isString = (value: unknown, max = 4096): value is string =>
-  typeof value === "string" && value.length > 0 && value.length <= max;
-
-class Problems {
-  readonly list: Problem[] = [];
-  add(path: string, message: string): void {
-    this.list.push({ path, message });
-  }
-  keys(
-    value: Record_,
-    path: string,
-    allowed: readonly string[],
-    required: readonly string[],
-  ): void {
-    for (const key of Object.keys(value))
-      if (!allowed.includes(key)) this.add(`${path}/${key}`, "unknown field");
-    for (const key of required)
-      if (value[key] === undefined) this.add(`${path}/${key}`, "required field is missing");
-  }
-}
+const isString = (value: unknown, max: number = TEXT_LIMITS.document): value is string =>
+  isText(value, max);
 
 const SOURCE_KINDS = ["git", "npm", "local", "authored"];
 const ITEM_FIELDS = [
@@ -360,7 +340,7 @@ function checkPlugins(value: unknown, sourceIds: ReadonlySet<string>, problems: 
     problems.keys(
       plugin,
       path,
-      ["sourceId", "path", "include", "plugin", "files", "scanKey"],
+      ["sourceId", "path", "include", "plugin", "files", "scanKey", "folderScanKey"],
       ["sourceId", "path", "files", "scanKey"],
     );
     const include = plugin.include;
@@ -393,6 +373,19 @@ function checkPlugins(value: unknown, sourceIds: ReadonlySet<string>, problems: 
     seen.add(key);
     if (typeof plugin.scanKey !== "string" || !SCAN_KEY.test(plugin.scanKey))
       problems.add(`${path}/scanKey`, "invalid scan key");
+    // The whole folder's key belongs to an allowlisted record only: without `include` the
+    // record already is the whole folder.
+    if (
+      plugin.folderScanKey !== undefined &&
+      !(
+        include !== undefined &&
+        typeof plugin.folderScanKey === "string" &&
+        SCAN_KEY.test(plugin.folderScanKey)
+      )
+    )
+      problems.add(`${path}/folderScanKey`, "the whole folder's scan key of an allowlisted record");
+    if (include !== undefined && plugin.folderScanKey === undefined)
+      problems.add(`${path}/folderScanKey`, "an allowlisted record keys its whole folder too");
     const files = plugin.files;
     if (!Array.isArray(files) || files.length === 0) {
       problems.add(`${path}/files`, "a plugin folder lists its files");
@@ -529,12 +522,14 @@ function checkPathReferences(value: unknown, path: string, problems: Problems): 
     !value.every(
       (entry) =>
         isRecord(entry) &&
-        Object.keys(entry).sort().join() === "path,sourcePath" &&
+        ["path,sourcePath", "cli,path,sourcePath"].includes(Object.keys(entry).sort().join()) &&
+        (entry.cli === undefined ||
+          (typeof entry.cli === "string" && FRAMEWORK_ID.test(entry.cli))) &&
         isSafeRelativePath(entry.sourcePath) &&
         isSafeRelativePath(entry.path),
     )
   )
-    problems.add(path, "pathReferences lists { sourcePath, path } entries");
+    problems.add(path, "pathReferences lists { cli?, sourcePath, path } entries");
 }
 
 /** The kind fields this implementation builds: present on their own kind, absent elsewhere. */

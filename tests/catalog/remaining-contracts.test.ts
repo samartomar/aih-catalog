@@ -349,7 +349,11 @@ describe("several plugins published from one root", () => {
     );
     if (plan.status !== "ok") throw new Error(JSON.stringify(plan));
     const step = plan.plan.find((candidate) => candidate.op === "plugin");
-    expect(step).toMatchObject({ plugin: "kit-b", scanKey: content.plugins?.[1]?.scanKey });
+    // The client clones the whole folder at the pin, so the step names that folder's key.
+    const record = content.plugins?.[1];
+    expect(record?.folderScanKey).toBeDefined();
+    expect(record?.folderScanKey).not.toBe(record?.scanKey);
+    expect(step).toMatchObject({ plugin: "kit-b", scanKey: record?.folderScanKey });
     expect(plan.warnings).toEqual([
       { code: "cli-only-plugin", cli: "copilot", items: ["kit.skill.beta"], framework: "kit" },
     ]);
@@ -482,8 +486,11 @@ describe("a second subpath of the same pin as one client's edition", () => {
       scanKey: `git-sha1:${gitTree({ "SKILL.md": CLAUDE_BETA })}`,
     });
     expect(beta?.scanKey).toBe(`git-sha1:${gitTree({ "SKILL.md": BETA })}`);
-    // The item's own file names no other file; the edition's mention is the edition's concern.
-    expect(beta?.pathReferences).toBeUndefined();
+    // The item's own file names no other file; the edition's file names the copy's docs, so
+    // that reference belongs to the client that takes the edition.
+    expect(beta?.pathReferences).toEqual([
+      { cli: "claude-code", sourcePath: "skills/beta/SKILL.md", path: "docs/claude.md" },
+    ]);
     const files = [
       ...own.files,
       ...copy.files.map((file) => ({ ...file, sourceId: "kit-claude" })),
@@ -510,11 +517,22 @@ describe("a second subpath of the same pin as one client's edition", () => {
       sourceId: "kit",
       sha256: sha(BETA),
     });
+    // Only the client that takes the edition misses the docs its edition reads.
+    expect(plan.status).toBe("incomplete");
+    expect(plan.references).toEqual([
+      {
+        kind: "path",
+        item: "kit.skill.beta",
+        file: "skills/beta/SKILL.md",
+        path: "docs/claude.md",
+        clis: ["claude-code"],
+      },
+    ]);
   });
 });
 
 describe("path references", () => {
-  it("take bare root paths from instructions, not from program source, and explicit relative paths from any file", async () => {
+  it("take no bare path from program source or Markdown prose, and explicit relative paths from any file", async () => {
     const own = upstream(
       folder({
         "skills/alpha/SKILL.md":
@@ -531,8 +549,183 @@ describe("path references", () => {
     const built = await buildContent(own.source, own.files, found.items, { framework: "kit" });
     if (built.status !== "ok") throw new Error(JSON.stringify(built));
     expect(built.content.items[0]?.pathReferences).toEqual([
-      { sourcePath: "skills/alpha/SKILL.md", path: "docs/guide.md" },
       { sourcePath: "skills/alpha/run.py", path: "shared/util.py" },
     ]);
+  });
+
+  it("take a bare path in Markdown only as a link target or a code span, never in prose or as a file's location", async () => {
+    const own = upstream(
+      folder({
+        "skills/alpha/SKILL.md": [
+          "---",
+          "name: alpha",
+          "description: Alpha.",
+          "---",
+          "Docs live under docs/prose.md in the upstream repository.",
+          "",
+          "First read [the guide](docs/linked.md).",
+          "",
+          "Then follow `docs/followed.md` step by step.",
+          "",
+          "For manual installs, the source file lives at:",
+          "`docs/located.md`",
+          "",
+          "Explicit paths always count: `../../docs/explicit.md` and ./notes.md.",
+          "",
+        ].join("\n"),
+        "skills/alpha/notes.md": "Notes\n",
+        "docs/prose.md": "x\n",
+        "docs/linked.md": "x\n",
+        "docs/followed.md": "x\n",
+        "docs/located.md": "x\n",
+        "docs/explicit.md": "x\n",
+        "hooks/hooks.json": '{"command": "node scripts/run.js"}\n',
+        "scripts/run.js": "x\n",
+      }),
+    );
+    const found = findItems(own.files, { framework: "kit" });
+    if (found.status !== "ok") throw new Error("find");
+    const built = await buildContent(own.source, own.files, found.items, { framework: "kit" });
+    if (built.status !== "ok") throw new Error(JSON.stringify(built));
+    expect(built.content.items[0]?.pathReferences).toEqual([
+      { sourcePath: "skills/alpha/SKILL.md", path: "docs/explicit.md" },
+      { sourcePath: "skills/alpha/SKILL.md", path: "docs/followed.md" },
+      { sourcePath: "skills/alpha/SKILL.md", path: "docs/linked.md" },
+    ]);
+  });
+});
+
+describe("sibling skills at user scope", () => {
+  async function siblings() {
+    const own = upstream(
+      folder({
+        "skills/alpha/SKILL.md":
+          "---\nname: alpha\ndescription: Alpha.\n---\nFirst read ../beta/ref.md before you start.\n",
+        "skills/beta/SKILL.md": "---\nname: beta\ndescription: Beta.\n---\nBeta.\n",
+        "skills/beta/ref.md": "Reference\n",
+        "skills/gamma/SKILL.md": "---\nname: gamma\ndescription: Gamma.\n---\nGamma.\n",
+      }),
+    );
+    const found = findItems(own.files, { framework: "kit" });
+    if (found.status !== "ok") throw new Error("find");
+    const built = await buildContent(own.source, own.files, found.items, { framework: "kit" });
+    if (built.status !== "ok") throw new Error(JSON.stringify(built));
+    return built.content;
+  }
+
+  it("copies skills in place, with a warning, where a link would break their relative paths", async () => {
+    const content = await siblings();
+    const plan = planned(
+      planInstall(
+        ["kit.skill.alpha", "kit.skill.beta", "kit.skill.gamma"],
+        [content],
+        [profile("kiro")],
+        { scope: "user", data: null },
+      ),
+    );
+    expect(plan).toMatchObject({ status: "ok", references: [], clashes: [] });
+    const paths = plan.plan.flatMap((step) =>
+      step.op === "write" || step.op === "link" ? [`${step.op} ${step.path}`] : [],
+    );
+    expect(paths).toContain("write .kiro/skills/alpha/SKILL.md");
+    expect(paths).toContain("write .kiro/skills/beta/ref.md");
+    // A skill no sibling path depends on keeps its link into the shared version folder.
+    expect(paths).toContain("link .kiro/skills/gamma");
+    expect(paths.filter((path) => path.startsWith("link "))).toEqual(["link .kiro/skills/gamma"]);
+    expect(plan.warnings).toEqual([
+      { code: "copied-for-references", cli: "kiro", items: ["kit.skill.alpha", "kit.skill.beta"] },
+    ]);
+  });
+
+  it("still links, and reports the path, when the referenced skill is not chosen", async () => {
+    const content = await siblings();
+    const plan = planned(
+      planInstall(["kit.skill.alpha"], [content], [profile("kiro")], {
+        scope: "user",
+        data: null,
+      }),
+    );
+    expect(plan.status).toBe("incomplete");
+    expect(plan.warnings).toEqual([]);
+    expect(plan.plan.some((step) => step.op === "link" && step.path === ".kiro/skills/alpha")).toBe(
+      true,
+    );
+  });
+});
+
+describe("a file only one client uses", () => {
+  async function tagged(userOnly: boolean) {
+    const own = upstream(
+      folder({
+        "skills/alpha/SKILL.md": `---\nname: alpha\ndescription: Alpha.\n${userOnly ? "disable-model-invocation: true\n" : ""}---\nAlpha.\n`,
+        "skills/alpha/agents/openai.yaml": "interface:\n  display_name: Alpha\n",
+      }),
+    );
+    const found = findItems(own.files, { framework: "kit" });
+    if (found.status !== "ok") throw new Error("find");
+    const items = found.items.map((item) => ({
+      ...item,
+      files: item.files.map((file) =>
+        file.sourcePath.endsWith("agents/openai.yaml") ? { ...file, cli: "codex" } : file,
+      ),
+    }));
+    const built = await buildContent(own.source, own.files, items, { framework: "kit" });
+    if (built.status !== "ok") throw new Error(JSON.stringify(built));
+    return built.content;
+  }
+
+  it("is placed for that client only, in a folder other clients share", async () => {
+    const content = await tagged(false);
+    const plan = planned(
+      planInstall(["kit.skill.alpha"], [content], [profile("codex"), profile("antigravity")], {
+        scope: "project",
+        data: null,
+      }),
+    );
+    expect(plan).toMatchObject({ status: "ok", clashes: [] });
+    const at = (path: string) =>
+      plan.plan.find((step) => step.op === "write" && step.path === path) as
+        | { clis: string[] }
+        | undefined;
+    expect(at(".agents/skills/alpha/SKILL.md")?.clis).toEqual(["antigravity", "codex"]);
+    expect(at(".agents/skills/alpha/agents/openai.yaml")?.clis).toEqual(["codex"]);
+  });
+});
+
+describe("a client's own file in a shared user-only folder", () => {
+  it("joins the combined render and is written for its client", async () => {
+    const own = upstream(
+      folder({
+        "skills/alpha/SKILL.md":
+          "---\nname: alpha\ndescription: Alpha.\ndisable-model-invocation: true\n---\nAlpha.\n",
+        "skills/alpha/agents/openai.yaml": "interface:\n  display_name: Alpha\n",
+      }),
+    );
+    const found = findItems(own.files, { framework: "kit" });
+    if (found.status !== "ok") throw new Error("find");
+    const items = found.items.map((item) => ({
+      ...item,
+      files: item.files.map((file) =>
+        file.sourcePath.endsWith("agents/openai.yaml") ? { ...file, cli: "codex" } : file,
+      ),
+    }));
+    const built = await buildContent(own.source, own.files, items, { framework: "kit" });
+    if (built.status !== "ok") throw new Error(JSON.stringify(built));
+    const plan = planned(
+      planInstall(["kit.skill.alpha"], [built.content], [profile("codex"), profile("dsh")], {
+        scope: "project",
+        data: null,
+      }),
+    );
+    expect(plan).toMatchObject({ status: "ok", clashes: [] });
+    const at = (path: string) =>
+      plan.plan.find((step) => step.op === "write" && step.path === path) as
+        | { clis: string[]; render?: { name: string } }
+        | undefined;
+    expect(at(".agents/skills/alpha/SKILL.md")).toMatchObject({
+      clis: ["codex", "dsh"],
+      render: { name: "shared-skill" },
+    });
+    expect(at(".agents/skills/alpha/agents/openai.yaml")?.clis).toEqual(["codex"]);
   });
 });

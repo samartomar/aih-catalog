@@ -41,21 +41,6 @@ export type ToolProfileId = keyof typeof profileTexts;
 export const kinds = ["skill", "agent", "rule", "hook", "mcp", "document", "ai-setup"] as const;
 export type Kind = (typeof kinds)[number];
 
-/**
- * Kinds this implementation builds and plans. `findItems` discovers skills (and commands as
- * user-only skills), agents, rules and Registry `server.json` MCP servers; hooks, documents
- * and AI setups are proposed by their author.
- */
-export const implementedKinds = [
-  "skill",
-  "agent",
-  "rule",
-  "hook",
-  "mcp",
-  "document",
-  "ai-setup",
-] as const satisfies readonly Kind[];
-
 const MiB = 1024 * 1024;
 
 /** Published limits. Exceeding one is `refused` with code `limit` and the limit's name. */

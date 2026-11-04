@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import type { DiscoveredItem } from "../../src/catalog/internal/model.js";
 import { fetchSource, readLocalSource } from "../../src/catalog/node.js";
 import { buildContent, checkContent } from "../../src/catalog/producer.js";
 import {
@@ -14,10 +13,12 @@ import {
   renderStep,
   type WriteStep,
 } from "../../src/catalog/reader.js";
+import type { DiscoveredItem } from "../../src/catalog/source.js";
 import { findItems } from "../../src/catalog/source.js";
 import {
   folder,
   gitRepository,
+  gitTree,
   outDir,
   placements,
   profile,
@@ -460,6 +461,11 @@ describe("mixing frameworks", () => {
     expect(aihContent.content.items.map((item) => [item.id, item.name])).toEqual([
       [RESOLVER, "aih-duplicate-resolver"],
     ]);
+    // Git's own tree hash of the agent file at its install path.
+    const [agent] = aihContent.files;
+    expect(aihContent.content.items[0]?.scanKey).toBe(
+      `git-sha1:${gitTree({ "duplicate-resolver.md": utf8(agent?.bytes as Uint8Array) })}`,
+    );
   });
 
   it("adds nothing for one framework, and an unsupported agent the user chose still blocks", async () => {

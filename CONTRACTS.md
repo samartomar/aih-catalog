@@ -4,9 +4,8 @@ This document describes what `@aihq/catalog` 0.1.0 reads, records and returns. T
 `/contracts` entry point publishes one JSON Schema (draft 2020-12) per format as `schemas`,
 one valid and one invalid document per schema as `fixtures`, and the nine shipped tool
 profiles as `toolProfiles`. A schema describes shape. The format's reader is the authority:
-it also recomputes digests, checks ordering and uniqueness, resolves references between
-fields and requires canonical bytes, so a document can conform to its schema and still read
-`invalid`.
+it also recomputes digests, checks ordering and uniqueness and resolves references between
+fields, so a document can conform to its schema and still read `invalid`.
 
 ## Formats
 
@@ -14,17 +13,21 @@ Every document names its format in `schema` with a URN of the form
 `urn:aihq:catalog:<name>:0.1.0`. A reader returns `unsupported-version` for another version of
 its own format and `invalid` for anything else. There are no aliases for earlier names.
 
-| Format | `schema` | Reader | Canonical bytes |
+| Format | `schema` | Reader | Accepted bytes |
 | --- | --- | --- | --- |
-| Source-link result | `urn:aihq:catalog:source-link:0.1.0` | returned by `parseSourceLink` | no |
-| Content | `urn:aihq:catalog:content:0.1.0` | `readContent`, `readContentFile` | yes |
-| Tool profile | `urn:aihq:catalog:tool-profile:0.1.0` | `readToolProfile` | yes |
-| Recipe | `urn:aihq:catalog:recipe:0.1.0` | `readRecipe(pluginJson, recipeJson)` | yes |
-| Qualification | `urn:aihq:catalog:qualification:0.1.0` | `readQualification` | yes |
+| Source-link result | `urn:aihq:catalog:source-link:0.1.0` | returned by `parseSourceLink` | not read |
+| Content | `urn:aihq:catalog:content:0.1.0` | `readContent`, `readContentFile` | strict JSON |
+| Tool profile | `urn:aihq:catalog:tool-profile:0.1.0` | `readToolProfile` | strict JSON |
+| Recipe | `urn:aihq:catalog:recipe:0.1.0` | `readRecipe(pluginJson, recipeJson)` | strict JSON |
+| Qualification | `urn:aihq:catalog:qualification:0.1.0` | `readQualification` | canonical only |
 
-Canonical bytes are JSON with keys sorted by code unit, two-space indentation and exactly
-one final line feed. A document's identity is the sha256 of those bytes. Plans are results,
-not a stored format.
+Strict JSON is UTF-8 JSON text without a byte-order mark or duplicate keys, with well-formed
+NFC strings and safe integers, in any spelling, so you can write your own content, profiles
+and recipes by hand. Canonical bytes are JSON with keys sorted by code unit, two-space
+indentation and exactly one final line feed; Catalog writes every document it generates in
+that form. A document's identity is the sha256 of its canonical form, whatever spelling it
+was read from. A qualification is named by the sha256 of its exact bytes, so it is read only
+in canonical form. Plans are results, not a stored format.
 
 ### Source-link result
 
@@ -62,26 +65,31 @@ and `plugins`.
   `bundle` (the runtime bundle the item reads), `pathReferences` (source files the item's text
   names outside its own files), `fetch: "upstream"` (the files may not be redistributed, so a
   plan fetches them from the pinned source) and `supersedes`.
-- **Files** are `{ sourceId, sourcePath, sha256, bytes, executable, role }`, with `cli` on an
-  edition-only file and `derivedFrom { sourcePath, pointer }` on an entry Catalog cut out of a
+- **Files** are `{ sourceId, sourcePath, sha256, bytes, executable, role }`, with `cli` on a
+  file only one client uses (Codex's `agents/openai.yaml`, placed for Codex alone even in a
+  folder other clients share) and `derivedFrom { sourcePath, pointer }` on an entry Catalog cut out of a
   shared upstream file (one hook group or one MCP server becomes its own file).
 - **Bundles** are root files a framework's items read at run time, chosen by the upstream's
   runtime allowlist: `{ id, sourceId, layout, files, scanKey }`.
 - **Plugins** record an upstream plugin folder at the source's pin, so a plugin route can be
   checked and a local-plugin route copied as one unit: `{ sourceId, path, include?, plugin?,
-  files, scanKey }`. `include` is the upstream's runtime allowlist when only part of the
-  folder ships.
+  files, scanKey, folderScanKey? }`. `include` is the upstream's runtime allowlist when only
+  part of the folder ships: `scanKey` then keys the allowlisted files a local-plugin route
+  copies, and `folderScanKey` keys every file under `path`, which is what a client's own
+  plugin install clones and so the key a `plugin` step names.
 
 Content written with `buildContent` is recorded from the bytes, and `checkContent` rebuilds
 every recorded fact from the files and reports any difference. Given `scannedKeys`, it also
-lists the scan keys that have no matching scan: every item's, every edition's and every
-bundle's, since one scan never covers another (upstream-only items are left out for now).
+lists the scan keys that have no matching scan: every item's, every edition's, every
+bundle's and both keys of every recorded plugin folder, since one scan never covers another
+(upstream-only items are left out for now).
 
 ### Tool profile
 
 A profile describes one client: `places` for each kind and scope (`project`, `user`), with
 `<name>` templates; how user-only skills are flagged (`userOnly`, or a fallback such as a
-prompt file); how arguments are passed; the agent file format; rule scopes; hook events; the
+prompt file; a skill with support files or a bundle keeps its folder, under the client's
+`bundleRoot` where it has one, and its fallback files become one-line launchers); how arguments are passed; the agent file format; rule scopes; hook events; the
 MCP entry fields and tool restrictions; native input-reference syntax per surface; plugin
 installs and their pin behaviour; local-plugin folders and registration; bundle roots; the
 built-ins the client already provides and how one is switched off; and `checkedWith`, the
@@ -90,10 +98,14 @@ listed in `unsupported` with its reason. A section the client lacks is left out,
 then reports the pair as `unavailable` (`not-described`), never invented. Any change to a
 profile's rendered output increases its `version`.
 
+Where the reader takes a client, it takes that client's tool profile. `listItems(content, { kind?, cli? })`
+keeps the contract's option name `cli`, and its value is a tool profile as `readToolProfile`
+returns it, not a client id.
+
 ### Recipe
 
 A recipe is a Git plugin: an Agent Plugins `plugin.json` (name, version, description, author,
-licence, keywords) beside a canonical `recipe.json`. A recipe is a `base` or `add-on` for one
+licence, keywords) beside a `recipe.json`. A recipe is a `base` or `add-on` for one
 framework (an add-on lists the recipes it `requires`) or a `combination` of frameworks. It
 records the upstream `content` pin, a `route` per client (clients it does not name use
 `items`), the `plugins` and `setup` programs those routes need, the kinds each items route
@@ -120,7 +132,7 @@ profiles, choices, options)` return a plan:
 | Field | Holds |
 | --- | --- |
 | `status` | `ok`, or `incomplete` when anything the choices require is missing, unavailable, clashing or unresolved |
-| `recipe` | a recipe plan's origin: id, sha256 of its canonical bytes, repository and commit |
+| `recipe` | a recipe plan's origin: id, sha256 of its canonical form, repository and commit |
 | `data` | the Catalog data commit the plan used, or `null` for your own content only |
 | `profiles` | the id and version of each profile used |
 | `plan` | the ordered steps |
@@ -136,7 +148,7 @@ choice still uses.
 | `fetch` | fetches one upstream file at the recorded pin and checks its sha256 |
 | `acquire` | acquires a qualified AI setup artifact (and its interpreter or closure) at user scope |
 | `write` | writes a file: a copy of the recorded source file, or the bytes `renderStep` gives for its `render` |
-| `link` | links a client folder to a shared user-scope version folder |
+| `link` | links a client folder to a shared user-scope version folder; skills whose relative paths reach a sibling skill are copied in place instead, with a `copied-for-references` warning, since a linked folder resolves `..` inside its version folder |
 | `merge` | sets one keyed entry in a structured file (JSON, TOML or a Markdown block), keeping the rest |
 | `plugin` | installs a native plugin at the recorded commit with the client's own commands |
 | `upstream-setup` | runs an upstream setup program, only after the user approves it |
@@ -151,7 +163,10 @@ values; a secret never has a value in content or a plan.
 
 - **Completeness.** A missing dependency, an unavailable selected item, a clash or a blocking
   path reference makes the plan `incomplete`. Explicitly skipping an optional recipe item does
-  not.
+  not. A recipe forces only the clients it gives a route: on another client (one the upstream
+  does not install on) an item the recipe chose, rather than the user, is listed as
+  `unavailable` without blocking. An item the user picked always blocks where it is
+  unavailable.
 - **Built-ins.** A placed name that a client already provides is a `built-in` clash unless a
   recipe override, a prefix, a caller-chosen name or leaving the item out resolves it.
 - **Clashes.** Two different placements at one path or key are a clash; the plan drops the
@@ -161,7 +176,15 @@ values; a secret never has a value in content or a plan.
   identity are listed as facts, with no winner chosen. The plan places Catalog's authored
   `aih-duplicate-resolver` agent where clients take agents and writes `.aihq/duplicates.json`.
 - **References.** A plugin-namespaced name no placed item provides is a warning. A source file
-  an item names that no placed bundle or sibling provides is blocking.
+  an item names that no placed bundle or sibling provides is blocking. A name counts as a path
+  when it is explicit (`./`, `../`, `${CLAUDE_PLUGIN_ROOT}/`) or, bare, in configuration text;
+  in Markdown a bare path counts only as a link target or a code span that does not merely say
+  where a file lives, and never in program source. An edition's files are checked for the
+  client that takes the edition.
+- **Settings a client cannot carry.** An agent's tool list that a client's own agent file
+  cannot express (no tool field, or no evidenced native name for a tool) is dropped from that
+  client's file, never silently: the plan warns `agent-tools-unrestricted` with the agents.
+  MCP tool lists and timeouts a client cannot express warn the same way.
 - **Scope.** A route a client cannot honour at the chosen scope falls back to `local-plugin` or
   `items` with a warning; the scope never changes.
 - **AI setups.** A selected AI setup needs a platform `cell` and a supplied, matching
@@ -182,6 +205,19 @@ limit's name, never a partial result.
 | `refusalQuoteCharacters` | 128 |
 | `documentDepth` | 64 |
 | `toolProfileBytes`, `recipeBytes`, `qualificationBytes` | 1 MiB each |
+
+## Exports beyond the contract
+
+Each entry point exports the functions and data above, plus these additions:
+
+| Entry point | Export | What it is |
+| --- | --- | --- |
+| `/source` | `isNoticePath`, `noticeCovers` | Whether a source path is a licence or notice file, and the folder it covers |
+| `/reader` | `aihContent` | Catalog's own authored content (source `aih`): the duplicate resolver agent a mixing plan adds |
+| `/contracts` | `formats` | The five format URNs, by format name |
+| `/contracts` | `toolProfiles` | The nine shipped tool profiles, as exact document text for `readToolProfile` |
+| `/contracts` | `leftOverReasons` | The reasons `findItems` gives a file it leaves over |
+| `/contracts` | `limits.documentDepth`, `limits.toolProfileBytes`, `limits.recipeBytes`, `limits.qualificationBytes` | Limits on the formats Catalog reads, beside the source and content limits |
 
 ## What Catalog does not do
 

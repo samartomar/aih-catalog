@@ -80,6 +80,11 @@
         {
           "path": "skills/poteto-mode/SKILL.md",
           "sourcePath": "agents/poteto-agent.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/poteto-mode/SKILL.md",
+          "sourcePath": "agents/poteto-agent.md"
         }
       ],
       "scanKey": "git-sha1:e62071963a9cf7f245bf3eaf886155d0cbdc14ba"
@@ -169,6 +174,16 @@
         {
           "path": "skills/arena/SKILL.md",
           "sourcePath": "skills/architect/references/rationale-template.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "docs/harness/claude-code.md",
+          "sourcePath": "skills/architect/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/arena/SKILL.md",
+          "sourcePath": "skills/architect/references/rationale-template.md"
         }
       ],
       "scanKey": "git-sha1:29891f4b7ff7e4824d0742b15cf920bd428e12e8",
@@ -207,6 +222,13 @@
       "id": "pstack.skill.arena",
       "kind": "skill",
       "name": "arena",
+      "pathReferences": [
+        {
+          "cli": "claude-code",
+          "path": "docs/harness/claude-code.md",
+          "sourcePath": "skills/arena/SKILL.md"
+        }
+      ],
       "scanKey": "git-sha1:276eb958ee333a81105a66ef3f417b72ddf88126",
       "userOnly": true
     },
@@ -243,6 +265,13 @@
       "id": "pstack.skill.automate-me",
       "kind": "skill",
       "name": "automate-me",
+      "pathReferences": [
+        {
+          "cli": "claude-code",
+          "path": "docs/harness/claude-code.md",
+          "sourcePath": "skills/automate-me/SKILL.md"
+        }
+      ],
       "scanKey": "git-sha1:7d67c5679fbfc6b18cb582f1915be5a98f8e0d5f",
       "userOnly": true
     },
@@ -427,6 +456,16 @@
         {
           "path": "skills/statechart/SKILL.md",
           "sourcePath": "skills/create-formal-verification-skill/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "docs/harness/claude-code.md",
+          "sourcePath": "skills/create-formal-verification-skill/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/statechart/SKILL.md",
+          "sourcePath": "skills/create-formal-verification-skill/SKILL.md"
         }
       ],
       "scanKey": "git-sha1:091f2a26d46f7bed511d0532a1329532a45899e0",
@@ -513,6 +552,13 @@
       "id": "pstack.skill.create-verification-skill",
       "kind": "skill",
       "name": "create-verification-skill",
+      "pathReferences": [
+        {
+          "cli": "claude-code",
+          "path": "docs/harness/claude-code.md",
+          "sourcePath": "skills/create-verification-skill/SKILL.md"
+        }
+      ],
       "scanKey": "git-sha1:5aa2dae2726d09d219397fbbedc1e9500a239d28",
       "userOnly": true
     },
@@ -549,6 +595,13 @@
       "id": "pstack.skill.figure-it-out",
       "kind": "skill",
       "name": "figure-it-out",
+      "pathReferences": [
+        {
+          "cli": "claude-code",
+          "path": "docs/harness/claude-code.md",
+          "sourcePath": "skills/figure-it-out/SKILL.md"
+        }
+      ],
       "scanKey": "git-sha1:7ba3256093e27828e829cf8f0ac63f476b32bf1e",
       "userOnly": true
     },
@@ -617,6 +670,13 @@
       "id": "pstack.skill.how",
       "kind": "skill",
       "name": "how",
+      "pathReferences": [
+        {
+          "cli": "claude-code",
+          "path": "docs/harness/claude-code.md",
+          "sourcePath": "skills/how/SKILL.md"
+        }
+      ],
       "scanKey": "git-sha1:3fd1c05ec675e7225d51e19e8ec80b92217adfbf",
       "userOnly": true
     },
@@ -689,6 +749,13 @@
       "id": "pstack.skill.interrogate",
       "kind": "skill",
       "name": "interrogate",
+      "pathReferences": [
+        {
+          "cli": "claude-code",
+          "path": "docs/harness/claude-code.md",
+          "sourcePath": "skills/interrogate/SKILL.md"
+        }
+      ],
       "scanKey": "git-sha1:3a49e73a4ffd56f682288dd145be9345bfec7434",
       "userOnly": true
     },
@@ -727,6 +794,11 @@
       "name": "ketchup",
       "pathReferences": [
         {
+          "path": "skills/bro/SKILL.md",
+          "sourcePath": "skills/ketchup/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
           "path": "skills/bro/SKILL.md",
           "sourcePath": "skills/ketchup/SKILL.md"
         }
@@ -771,6 +843,11 @@
         {
           "path": "skills/ketchup/SKILL.md",
           "sourcePath": "skills/ketchup-video/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/ketchup/SKILL.md",
+          "sourcePath": "skills/ketchup-video/SKILL.md"
         }
       ],
       "scanKey": "git-sha1:73f013af52a35306c4bb5b484dae72bf1c8f9edd",
@@ -809,6 +886,13 @@
       "id": "pstack.skill.maintain-formal-verification-skill",
       "kind": "skill",
       "name": "maintain-formal-verification-skill",
+      "pathReferences": [
+        {
+          "cli": "claude-code",
+          "path": "docs/harness/claude-code.md",
+          "sourcePath": "skills/maintain-formal-verification-skill/SKILL.md"
+        }
+      ],
       "scanKey": "git-sha1:0b843c90b8b04a639dbd86fec9795610374715f2",
       "userOnly": true
     },
@@ -845,6 +929,13 @@
       "id": "pstack.skill.maintain-verification-skill",
       "kind": "skill",
       "name": "maintain-verification-skill",
+      "pathReferences": [
+        {
+          "cli": "claude-code",
+          "path": "docs/harness/claude-code.md",
+          "sourcePath": "skills/maintain-verification-skill/SKILL.md"
+        }
+      ],
       "scanKey": "git-sha1:b6ce4dcdc378492f9acd55a4e56ae111204b4f11",
       "userOnly": true
     },
@@ -881,6 +972,13 @@
       "id": "pstack.skill.make-bot-ui",
       "kind": "skill",
       "name": "make-bot-ui",
+      "pathReferences": [
+        {
+          "cli": "claude-code",
+          "path": "docs/harness/claude-code.md",
+          "sourcePath": "skills/make-bot-ui/SKILL.md"
+        }
+      ],
       "scanKey": "git-sha1:1645159d827f9adea7a9270082368eb1599927b8",
       "userOnly": true
     },
@@ -917,6 +1015,13 @@
       "id": "pstack.skill.no-comments",
       "kind": "skill",
       "name": "no-comments",
+      "pathReferences": [
+        {
+          "cli": "claude-code",
+          "path": "docs/harness/claude-code.md",
+          "sourcePath": "skills/no-comments/SKILL.md"
+        }
+      ],
       "scanKey": "git-sha1:3a09487f06a3fcf9e313d397a29f5d2efde9283f",
       "userOnly": true
     },
@@ -1155,6 +1260,221 @@
           "sourcePath": "skills/poteto-help/SKILL.md"
         },
         {
+          "path": "skills/why/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "README.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "docs/guide/01-setup.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "docs/guide/02-poteto-mode.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "docs/guide/06-verify-and-ship.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "docs/guide/07-overnight.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "docs/guide/08-principles.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "docs/guide/09-make-it-yours.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "docs/guide/10-recipes-and-pitfalls.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "docs/harness/claude-code.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/architect/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/arena/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/automate-me/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/benchmark-checklist/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/blast-radius/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/bro/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/correct/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/create-formal-verification-skill/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/create-verification-skill/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/figure-it-out/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/how/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/in-your-own-words/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/interrogate/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/ketchup-video/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/ketchup/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/maintain-formal-verification-skill/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/maintain-verification-skill/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/make-bot-ui/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/no-comments/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/poteto-mode/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/poteto-mode/playbooks/multi-phase-plan.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/recall/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/reflect/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/setup-pstack/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/sharpen/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/show-me-your-work/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/statechart/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/swarm/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/tdd/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/teach/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/technical-writing/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/typescript-best-practices/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/unslop/SKILL.md",
+          "sourcePath": "skills/poteto-help/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
           "path": "skills/why/SKILL.md",
           "sourcePath": "skills/poteto-help/SKILL.md"
         }
@@ -1873,6 +2193,13 @@
       "id": "pstack.skill.poteto-mode",
       "kind": "skill",
       "name": "poteto-mode",
+      "pathReferences": [
+        {
+          "cli": "claude-code",
+          "path": "docs/harness/claude-code.md",
+          "sourcePath": "skills/poteto-mode/SKILL.md"
+        }
+      ],
       "scanKey": "git-sha1:432d3d07ede504b492a3711443f5a0a602a8b811",
       "userOnly": true
     },
@@ -1923,6 +2250,26 @@
           "sourcePath": "skills/principle-attack-the-premise/SKILL.md"
         },
         {
+          "path": "skills/principle-redesign-from-first-principles/SKILL.md",
+          "sourcePath": "skills/principle-attack-the-premise/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/principle-build-the-lever/SKILL.md",
+          "sourcePath": "skills/principle-attack-the-premise/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/principle-fix-root-causes/SKILL.md",
+          "sourcePath": "skills/principle-attack-the-premise/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/principle-laziness-protocol/SKILL.md",
+          "sourcePath": "skills/principle-attack-the-premise/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
           "path": "skills/principle-redesign-from-first-principles/SKILL.md",
           "sourcePath": "skills/principle-attack-the-premise/SKILL.md"
         }
@@ -2009,6 +2356,21 @@
           "sourcePath": "skills/principle-build-the-lever/SKILL.md"
         },
         {
+          "path": "skills/principle-prove-it-works/SKILL.md",
+          "sourcePath": "skills/principle-build-the-lever/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/principle-encode-lessons-in-structure/SKILL.md",
+          "sourcePath": "skills/principle-build-the-lever/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/principle-laziness-protocol/SKILL.md",
+          "sourcePath": "skills/principle-build-the-lever/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
           "path": "skills/principle-prove-it-works/SKILL.md",
           "sourcePath": "skills/principle-build-the-lever/SKILL.md"
         }
@@ -2163,6 +2525,16 @@
           "sourcePath": "skills/principle-explain-the-number/SKILL.md"
         },
         {
+          "path": "skills/principle-prove-it-works/SKILL.md",
+          "sourcePath": "skills/principle-explain-the-number/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/benchmark-checklist/SKILL.md",
+          "sourcePath": "skills/principle-explain-the-number/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
           "path": "skills/principle-prove-it-works/SKILL.md",
           "sourcePath": "skills/principle-explain-the-number/SKILL.md"
         }
@@ -2423,6 +2795,11 @@
         {
           "path": "skills/principle-guard-the-context-window/SKILL.md",
           "sourcePath": "skills/principle-minimize-reader-load/SKILL.md"
+        },
+        {
+          "cli": "claude-code",
+          "path": "skills/principle-guard-the-context-window/SKILL.md",
+          "sourcePath": "skills/principle-minimize-reader-load/SKILL.md"
         }
       ],
       "scanKey": "git-sha1:f64929f93ffd334f36699b83f53ee7155c4a2063",
@@ -2569,6 +2946,13 @@
       "id": "pstack.skill.principle-prove-it-works",
       "kind": "skill",
       "name": "principle-prove-it-works",
+      "pathReferences": [
+        {
+          "cli": "claude-code",
+          "path": "docs/harness/claude-code.md",
+          "sourcePath": "skills/principle-prove-it-works/SKILL.md"
+        }
+      ],
       "scanKey": "git-sha1:41e2142b6479db1dfdb9c2a3b856a895af61089d",
       "userOnly": true
     },
@@ -2821,6 +3205,13 @@
       "id": "pstack.skill.recall",
       "kind": "skill",
       "name": "recall",
+      "pathReferences": [
+        {
+          "cli": "claude-code",
+          "path": "docs/harness/claude-code.md",
+          "sourcePath": "skills/recall/SKILL.md"
+        }
+      ],
       "scanKey": "git-sha1:4dd0f8b495008fc106b2314401f91bc9cf96ed7f",
       "userOnly": true
     },
@@ -2921,6 +3312,13 @@
       "id": "pstack.skill.reflect",
       "kind": "skill",
       "name": "reflect",
+      "pathReferences": [
+        {
+          "cli": "claude-code",
+          "path": "docs/harness/claude-code.md",
+          "sourcePath": "skills/reflect/SKILL.md"
+        }
+      ],
       "scanKey": "git-sha1:fbc98c056509e9ee3dfceebbc0acfa4591491cc2",
       "userOnly": true
     },
@@ -2957,6 +3355,13 @@
       "id": "pstack.skill.setup-pstack",
       "kind": "skill",
       "name": "setup-pstack",
+      "pathReferences": [
+        {
+          "cli": "claude-code",
+          "path": "docs/harness/claude-code.md",
+          "sourcePath": "skills/setup-pstack/SKILL.md"
+        }
+      ],
       "scanKey": "git-sha1:800811ddcb1d1d1831bfd853cfad14429a3d6842",
       "userOnly": false
     },
@@ -3061,6 +3466,13 @@
       "id": "pstack.skill.show-me-your-work",
       "kind": "skill",
       "name": "show-me-your-work",
+      "pathReferences": [
+        {
+          "cli": "claude-code",
+          "path": "docs/harness/claude-code.md",
+          "sourcePath": "skills/show-me-your-work/SKILL.md"
+        }
+      ],
       "scanKey": "git-sha1:118c0642360ab53de52b3f8dd044102567dbcaa9",
       "userOnly": true
     },
@@ -9629,6 +10041,13 @@
       "id": "pstack.skill.swarm",
       "kind": "skill",
       "name": "swarm",
+      "pathReferences": [
+        {
+          "cli": "claude-code",
+          "path": "docs/harness/claude-code.md",
+          "sourcePath": "skills/swarm/SKILL.md"
+        }
+      ],
       "scanKey": "git-sha1:4a1abb26cce3450f9b14056109f974edaeff4ec1",
       "userOnly": true
     },
@@ -9701,6 +10120,13 @@
       "id": "pstack.skill.teach",
       "kind": "skill",
       "name": "teach",
+      "pathReferences": [
+        {
+          "cli": "claude-code",
+          "path": "docs/harness/claude-code.md",
+          "sourcePath": "skills/teach/SKILL.md"
+        }
+      ],
       "scanKey": "git-sha1:3ee517292dae0476dc516f9f3805c08fb943c6ff",
       "userOnly": true
     },
@@ -9737,6 +10163,13 @@
       "id": "pstack.skill.technical-writing",
       "kind": "skill",
       "name": "technical-writing",
+      "pathReferences": [
+        {
+          "cli": "claude-code",
+          "path": "docs/harness/claude-code.md",
+          "sourcePath": "skills/technical-writing/SKILL.md"
+        }
+      ],
       "scanKey": "git-sha1:f35560fd015d95ae92eb3c7414d3a48065299dfa",
       "userOnly": true
     },
@@ -10053,6 +10486,13 @@
       "id": "pstack.skill.why",
       "kind": "skill",
       "name": "why",
+      "pathReferences": [
+        {
+          "cli": "claude-code",
+          "path": "docs/harness/claude-code.md",
+          "sourcePath": "skills/why/SKILL.md"
+        }
+      ],
       "scanKey": "git-sha1:ba549f92c3a8dc1506b21674e8794eb980019bf3",
       "userOnly": true
     }

@@ -6,6 +6,7 @@
  */
 import { formats, kinds, type Problem } from "../contracts.js";
 import { type AiSetupChange, aiSetupChangeProblems, CELLS } from "./ai-setup.js";
+import { isRecord, isText, Problems, type Record_, TEXT_LIMITS } from "./check.js";
 import { FRAMEWORK_ID, INSTALL_NAME, OBJECT_ID, SHA256 } from "./model.js";
 import { isSafeRelativePath } from "./paths.js";
 
@@ -99,34 +100,14 @@ export interface PluginMetadata {
   readonly extensions?: unknown;
 }
 
-type Record_ = Record<string, unknown>;
-const isRecord = (value: unknown): value is Record_ =>
-  value !== null && typeof value === "object" && !Array.isArray(value);
-const isString = (value: unknown, max = 2048): value is string =>
-  typeof value === "string" && value.length > 0 && value.length <= max;
+const isString = (value: unknown, max: number = TEXT_LIMITS.recipe): value is string =>
+  isText(value, max);
 const isId = (value: unknown): value is string => isString(value, 128) && FRAMEWORK_ID.test(value);
 const isItemId = (value: unknown): value is string => isString(value, 512);
 const isStringList = (value: unknown, max = 4096): value is string[] =>
   Array.isArray(value) && value.every((entry) => isString(entry, max));
 export const isFolder = (value: unknown): value is string =>
   value === "/" || isSafeRelativePath(value);
-
-class Problems {
-  readonly list: Problem[] = [];
-  /** One problem per path: a missing required field is not also reported as malformed. */
-  add(path: string, message: string): void {
-    if (!this.list.some((problem) => problem.path === path)) this.list.push({ path, message });
-  }
-  check(ok: boolean, path: string, message: string): void {
-    if (!ok) this.add(path, message);
-  }
-  keys(value: Record_, path: string, allowed: readonly string[], required: readonly string[]) {
-    for (const key of Object.keys(value))
-      if (!allowed.includes(key)) this.add(`${path}/${key}`, "unknown field");
-    for (const key of required)
-      if (value[key] === undefined) this.add(`${path}/${key}`, "required field is missing");
-  }
-}
 
 function checkPin(value: unknown, path: string, problems: Problems, commit = OBJECT_ID): void {
   if (!isRecord(value)) {

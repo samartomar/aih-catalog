@@ -3,7 +3,6 @@ import { join, resolve } from "node:path";
 import Ajv2020 from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
 import { fixtures, formats, schemas, toolProfiles } from "../../src/catalog/contracts.js";
-import { canonicalDocument } from "../../src/catalog/internal/json.js";
 import {
   readContent,
   readQualification,
@@ -11,6 +10,7 @@ import {
   readToolProfile,
 } from "../../src/catalog/reader.js";
 import { parseSourceLink } from "../../src/catalog/source.js";
+import { sortKeys } from "./helpers.js";
 
 const root = resolve(import.meta.dirname, "../..");
 const utf8 = (text: string) => new TextEncoder().encode(text);
@@ -154,7 +154,10 @@ describe("the schemas describe every committed document", () => {
       const recipe = { schema: formats.recipe, ...draft, data };
       const id = (draft as { id: string }).id;
       expect(conforms("recipe", recipe), id).toEqual([]);
-      expect(readRecipe(PLUGIN_JSON, utf8(canonicalDocument(recipe))).status, id).toBe("ok");
+      expect(
+        readRecipe(PLUGIN_JSON, utf8(`${JSON.stringify(sortKeys(recipe), null, 2)}\n`)).status,
+        id,
+      ).toBe("ok");
     }
   });
 });

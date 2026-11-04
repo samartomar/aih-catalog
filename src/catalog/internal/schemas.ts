@@ -313,6 +313,7 @@ const content: Schema = {
         plugin: pattern(INSTALL_NAME, 64),
         files: list(ref("recordedFile"), 1),
         scanKey: ref("scanKey"),
+        folderScanKey: ref("scanKey"),
       },
       ["sourceId", "path", "files", "scanKey"],
     ),
@@ -360,7 +361,13 @@ const content: Schema = {
             uniqueItems: true,
           },
           bundle: text(512),
-          pathReferences: list(record({ sourcePath: ref("path"), path: ref("path") }), 1),
+          pathReferences: list(
+            record({ cli: ref("frameworkId"), sourcePath: ref("path"), path: ref("path") }, [
+              "sourcePath",
+              "path",
+            ]),
+            1,
+          ),
           supersedes: list(text(512)),
           fetch: constant("upstream"),
           editions: map(ref("edition"), ref("frameworkId")),

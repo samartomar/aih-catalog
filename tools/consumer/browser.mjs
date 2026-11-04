@@ -11,7 +11,11 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import vm from "node:vm";
 import { journey } from "./lib.mjs";
 
-const j = journey("browser", "Browser-safe /source, /reader and /contracts import no Node built-in and run without Node globals", "fixture");
+const j = journey(
+  "browser",
+  "Browser-safe /source, /reader and /contracts import no Node built-in and run without Node globals",
+  "fixture",
+);
 const modules = new Map();
 const builtins = new Set();
 
@@ -53,13 +57,19 @@ function resolveBrowser(specifier) {
   return pathToFileURL(path).href;
 }
 const nodeBuiltins = new Set((await import("node:module")).builtinModules);
-const isBuiltin = (specifier) => nodeBuiltins.has(specifier.split("/")[0]) || nodeBuiltins.has(specifier);
+const isBuiltin = (specifier) =>
+  nodeBuiltins.has(specifier.split("/")[0]) || nodeBuiltins.has(specifier);
 const shortName = (url) => url.replace(/^.*node_modules\//, "");
 
 const hidden = ["process", "Buffer", "require", "global", "setImmediate", "clearImmediate"];
 async function withoutNodeGlobals(body) {
   const saved = hidden.map((name) => [name, Object.getOwnPropertyDescriptor(globalThis, name)]);
-  for (const name of hidden) Object.defineProperty(globalThis, name, { value: undefined, configurable: true, writable: true });
+  for (const name of hidden)
+    Object.defineProperty(globalThis, name, {
+      value: undefined,
+      configurable: true,
+      writable: true,
+    });
   try {
     return await body();
   } finally {
@@ -90,15 +100,23 @@ await j.check("parsing, reading and planning run in that realm", async () => {
     const encode = (text) => new TextEncoder().encode(text);
     if (parseSourceLink("owner/repo").status !== "recognised") throw new Error("parseSourceLink");
     const skill = encode("---\nname: revise\ndescription: Review.\n---\n\nReview.\n");
-    const found = findItems([{ path: "skills/revise/SKILL.md", mode: "100644", sha256: "0".repeat(64), bytes: skill }], { framework: "web" });
+    const found = findItems(
+      [{ path: "skills/revise/SKILL.md", mode: "100644", sha256: "0".repeat(64), bytes: skill }],
+      { framework: "web" },
+    );
     if (found.status === "refused") throw new Error(`findItems ${JSON.stringify(found)}`);
     const content = readContent(encode(fixtures["content-valid"]));
-    if (content.status !== "ok") throw new Error(`readContent ${JSON.stringify(content).slice(0, 300)}`);
+    if (content.status !== "ok")
+      throw new Error(`readContent ${JSON.stringify(content).slice(0, 300)}`);
     const profile = readToolProfile(encode(toolProfiles["claude-code"]));
     if (profile.status !== "ok") throw new Error("readToolProfile");
     const item = content.content.items[0];
-    const plan = planInstall([item.id], [content.content], [profile.profile], { scope: "project", data: null });
-    if (plan.status !== "ok" && plan.status !== "incomplete") throw new Error(`planInstall ${JSON.stringify(plan).slice(0, 300)}`);
+    const plan = planInstall([item.id], [content.content], [profile.profile], {
+      scope: "project",
+      data: null,
+    });
+    if (plan.status !== "ok" && plan.status !== "incomplete")
+      throw new Error(`planInstall ${JSON.stringify(plan).slice(0, 300)}`);
     const rendered = plan.plan.find((step) => step.render !== undefined);
     if (rendered) {
       const result = renderStep(rendered, [content.content], [profile.profile], []);
