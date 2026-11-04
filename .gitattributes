@@ -71,3 +71,6 @@ release/materials/github.com/anthropics/skills/34040c9c568585f6929bedeaad110ad08
 
 # Vendored exact archives are byte-identified by sha256.
 vendor/** binary
+
+# Exact pinned EGM upstream bytes for tests; their git blob ids are checked against the upstream tree.
+tests/fixtures/egm-403d8881/** -text

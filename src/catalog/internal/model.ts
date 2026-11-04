@@ -1,5 +1,8 @@
 /** Shapes shared by the new Catalog entry points. */
 import type { Kind, LeftOverReason } from "../contracts.js";
+import type { Bundle, PathReference } from "./bundle.js";
+
+export type { Bundle, BundleFile, PathReference } from "./bundle.js";
 
 /** Git-style modes for regular files; links and special files are never read. */
 export type SourceFileMode = "100644" | "100755" | "link" | "special-file";
@@ -91,6 +94,8 @@ export interface Item {
   readonly dependencies?: readonly string[];
   readonly references?: readonly string[];
   readonly bundle?: string;
+  /** Source files the item's text names outside its own files (read from the files). */
+  readonly pathReferences?: readonly PathReference[];
   readonly supersedes?: readonly string[];
   readonly fetch?: "upstream";
   readonly editions?: Readonly<Record<string, Edition>>;
@@ -115,6 +120,11 @@ export interface PluginFile {
 export interface PluginFolder {
   readonly sourceId: string;
   readonly path: string;
+  /**
+   * The upstream's runtime allowlist, when only part of the folder is the plugin: sorted
+   * patterns over source paths, `*` within one segment. Absent means every file under `path`.
+   */
+  readonly include?: readonly string[];
   readonly files: readonly PluginFile[];
   readonly scanKey: string;
 }
@@ -124,7 +134,7 @@ export interface Content {
   readonly framework: { readonly id: string; readonly name: string };
   readonly sources: readonly ContentSource[];
   readonly items: readonly Item[];
-  readonly bundles?: readonly unknown[];
+  readonly bundles?: readonly Bundle[];
   readonly plugins?: readonly PluginFolder[];
 }
 
@@ -183,6 +193,8 @@ export interface DiscoveredItem {
   readonly requirements?: Requirements;
   readonly dependencies?: readonly string[];
   readonly purpose?: string;
+  /** The id of the content's bundle the item reads at run time. */
+  readonly bundle?: string;
 }
 
 export interface LeftOver {

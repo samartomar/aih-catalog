@@ -171,6 +171,14 @@ export interface ToolProfile {
   readonly inputReferences: Readonly<Record<InputSurface, InputReference>>;
   readonly plugins?: PluginInstall;
   readonly localPlugins?: Readonly<Partial<Record<Scope, LocalPluginPlace>>>;
+  /**
+   * Where a runtime bundle's root goes when it is not the parent of the client's skills folder
+   * (`<framework>`): Kiro, which auto-loads every `.kiro/skills` folder and ignores the user-only
+   * flag, keeps bundles in `.kiro/aih/<framework>/`, started only through launchers.
+   */
+  readonly bundleRoot?: Readonly<Partial<Record<Scope, string>>>;
+  /** Warning codes a plan carries when it places a bundle for this client. */
+  readonly bundleWarnings?: readonly string[];
   /** Copilot: when both shared skill folders are planned, VS Code is told to read one. */
   readonly skillFolderOverlap?: {
     readonly folders: readonly string[];
@@ -241,6 +249,8 @@ const TOP = [
   "inputReferences",
   "plugins",
   "localPlugins",
+  "bundleRoot",
+  "bundleWarnings",
   "skillFolderOverlap",
 ];
 
@@ -710,6 +720,21 @@ export function profileProblems(value: unknown): Problem[] {
   }
   if (value.plugins !== undefined) checkPlugins(value.plugins, problems);
   if (value.localPlugins !== undefined) checkLocalPlugins(value.localPlugins, problems);
+  if (value.bundleRoot !== undefined)
+    byScope(value.bundleRoot, "/bundleRoot", problems, (entry, path) =>
+      problems.check(
+        routeTemplate(entry, true) && String(entry).includes("<framework>"),
+        path,
+        "a folder template with <framework>",
+      ),
+    );
+  if (value.bundleWarnings !== undefined)
+    problems.check(
+      Array.isArray(value.bundleWarnings) &&
+        value.bundleWarnings.every((warning) => isString(warning, 64)),
+      "/bundleWarnings",
+      "a list of warning codes",
+    );
   if (value.skillFolderOverlap !== undefined) {
     const overlap = value.skillFolderOverlap;
     const ok =

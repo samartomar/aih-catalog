@@ -3,6 +3,7 @@
  * check shape and recompute the digests that depend only on the record.
  */
 import { formats, kinds, type Problem } from "../contracts.js";
+import { BUNDLE_LAYOUT, isIncludePattern, matchesInclude } from "./bundle.js";
 import { behaviourSha256, contentSha256, kindFieldNames } from "./identity.js";
 import {
   FRAMEWORK_ID,
@@ -59,6 +60,7 @@ const ITEM_FIELDS = [
   "dependencies",
   "references",
   "bundle",
+  "pathReferences",
   "supersedes",
   "fetch",
   "editions",
@@ -190,15 +192,7 @@ export function contentProblems(value: unknown): Problem[] {
         });
     });
   const bundles = new Map<string, unknown[]>();
-  if (value.bundles !== undefined) {
-    if (!Array.isArray(value.bundles)) problems.add("/bundles", "bundles must be a list");
-    else
-      value.bundles.forEach((bundle, index) => {
-        if (!isRecord(bundle) || !isString(bundle.id, 512) || !Array.isArray(bundle.files)) {
-          problems.add(`/bundles/${index}`, "a bundle needs an id and files");
-        } else bundles.set(bundle.id, bundle.files);
-      });
-  }
+  if (value.bundles !== undefined) checkBundles(value.bundles, sourceIds, bundles, problems);
   if (value.plugins !== undefined) checkPlugins(value.plugins, sourceIds, problems);
   const itemIds = new Set<string>();
   if (!Array.isArray(value.items)) problems.add("/items", "items must be a list");
@@ -328,6 +322,8 @@ export function contentProblems(value: unknown): Problem[] {
       }
       if (item.bundle !== undefined && !bundles.has(item.bundle as string))
         problems.add(`${path}/bundle`, "names no bundle");
+      if (item.pathReferences !== undefined)
+        checkPathReferences(item.pathReferences, `${path}/pathReferences`, problems);
       if (filesOk) {
         const record = item as unknown as Item;
         if (item.contentSha256 !== contentSha256(record.files))
@@ -358,9 +354,20 @@ function checkPlugins(value: unknown, sourceIds: ReadonlySet<string>, problems: 
     problems.keys(
       plugin,
       path,
-      ["sourceId", "path", "files", "scanKey"],
+      ["sourceId", "path", "include", "files", "scanKey"],
       ["sourceId", "path", "files", "scanKey"],
     );
+    const include = plugin.include;
+    if (
+      include !== undefined &&
+      !(
+        Array.isArray(include) &&
+        include.length > 0 &&
+        include.every(isIncludePattern) &&
+        include.every((entry, at) => at === 0 || (include[at - 1] as string) < entry)
+      )
+    )
+      problems.add(`${path}/include`, "include is a sorted list of distinct path patterns");
     if (!sourceIds.has(plugin.sourceId as string))
       problems.add(`${path}/sourceId`, "names no source");
     const folder = plugin.path;
@@ -395,6 +402,11 @@ function checkPlugins(value: unknown, sourceIds: ReadonlySet<string>, problems: 
         (folder !== "/" && !String(sourcePath).startsWith(`${String(folder)}/`))
       )
         problems.add(`${filePath}/sourcePath`, "must be a safe path inside the plugin folder");
+      else if (
+        Array.isArray(include) &&
+        !include.some((pattern) => matchesInclude(String(pattern), sourcePath as string))
+      )
+        problems.add(`${filePath}/sourcePath`, "matches no include pattern");
       else if (sourcePath <= previous)
         problems.add(`${filePath}/sourcePath`, "files are sorted and unique");
       else previous = sourcePath;
@@ -405,6 +417,87 @@ function checkPlugins(value: unknown, sourceIds: ReadonlySet<string>, problems: 
       if (typeof file.executable !== "boolean") problems.add(`${filePath}/executable`, "a boolean");
     });
   });
+}
+
+/** Runtime bundles: an id, its source, a skill layout, sorted root files and a scan key. */
+function checkBundles(
+  value: unknown,
+  sourceIds: ReadonlySet<string>,
+  bundles: Map<string, unknown[]>,
+  problems: Problems,
+): void {
+  if (!Array.isArray(value)) {
+    problems.add("/bundles", "bundles must be a list");
+    return;
+  }
+  value.forEach((bundle, index) => {
+    const path = `/bundles/${index}`;
+    if (!isRecord(bundle)) {
+      problems.add(path, "a bundle must be an object");
+      return;
+    }
+    problems.keys(
+      bundle,
+      path,
+      ["id", "sourceId", "layout", "files", "scanKey"],
+      ["id", "sourceId", "layout", "files", "scanKey"],
+    );
+    const id = bundle.id;
+    if (!isString(id, 512) || !id.split(".").every((segment) => ID_SEGMENT.test(segment)))
+      problems.add(`${path}/id`, "invalid bundle id");
+    else if (bundles.has(id)) problems.add(`${path}/id`, "duplicate bundle id");
+    if (!sourceIds.has(bundle.sourceId as string))
+      problems.add(`${path}/sourceId`, "names no source");
+    if (typeof bundle.layout !== "string" || !BUNDLE_LAYOUT.test(bundle.layout))
+      problems.add(`${path}/layout`, "layout is a folder path ending in <name>/");
+    if (typeof bundle.scanKey !== "string" || !SCAN_KEY.test(bundle.scanKey))
+      problems.add(`${path}/scanKey`, "invalid scan key");
+    const files = bundle.files;
+    if (!Array.isArray(files) || files.length === 0) {
+      problems.add(`${path}/files`, "a bundle lists its root files");
+      return;
+    }
+    if (typeof id === "string") bundles.set(id, files);
+    let previous = "";
+    files.forEach((file, at) => {
+      const filePath = `${path}/files/${at}`;
+      if (!isRecord(file)) {
+        problems.add(filePath, "a bundle file must be an object");
+        return;
+      }
+      problems.keys(
+        file,
+        filePath,
+        ["sourcePath", "sha256", "bytes", "executable"],
+        ["sourcePath", "sha256", "bytes", "executable"],
+      );
+      const sourcePath = file.sourcePath;
+      if (!isSafeRelativePath(sourcePath)) problems.add(`${filePath}/sourcePath`, "unsafe path");
+      else if (sourcePath <= previous)
+        problems.add(`${filePath}/sourcePath`, "files are sorted and unique");
+      else previous = sourcePath;
+      if (typeof file.sha256 !== "string" || !SHA256.test(file.sha256))
+        problems.add(`${filePath}/sha256`, "invalid sha256");
+      if (!Number.isSafeInteger(file.bytes) || (file.bytes as number) < 0)
+        problems.add(`${filePath}/bytes`, "a byte count");
+      if (typeof file.executable !== "boolean") problems.add(`${filePath}/executable`, "a boolean");
+    });
+  });
+}
+
+function checkPathReferences(value: unknown, path: string, problems: Problems): void {
+  if (
+    !Array.isArray(value) ||
+    value.length === 0 ||
+    !value.every(
+      (entry) =>
+        isRecord(entry) &&
+        Object.keys(entry).sort().join() === "path,sourcePath" &&
+        isSafeRelativePath(entry.sourcePath) &&
+        isSafeRelativePath(entry.path),
+    )
+  )
+    problems.add(path, "pathReferences lists { sourcePath, path } entries");
 }
 
 /** The kind fields this implementation builds: present on their own kind, absent elsewhere. */
