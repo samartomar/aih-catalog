@@ -240,21 +240,28 @@ function superpowersRecipe(routes, extra = {}) {
     });
     assert.deepEqual(plan.data, data);
   });
-  await j.open(
-    "status is ok with the default links",
-    "at user scope Kiro's skills are links into shared version folders, so Superpowers' ../sibling paths (code-reviewer.md, sdd-workspace, review-package, the tool references) leave the linked folder; journey 2 expects ok while user-scope skills are linked wherever the client documents links: a decision is needed (copy mutually referencing skills in place, or accept incomplete)",
+  await j.check(
+    "status is ok with the default links: skills joined by sibling paths are copied in place on Kiro, with a warning",
     () => {
       assert.equal(
         plan.status,
         "ok",
-        `incomplete: ${JSON.stringify({
+        JSON.stringify({
           missing: plan.missing,
           unavailable: plan.unavailable,
           clashes: plan.clashes,
-          references: plan.references
-            .filter((reference) => reference.kind === "path")
-            .map((reference) => `${reference.item} -> ${reference.path} [${reference.clis}]`),
-        })}`,
+          references: plan.references,
+        }).slice(0, 600),
+      );
+      const copied = plan.warnings.find((warning) => warning.code === "copied-for-references");
+      assert.equal(copied?.cli, "kiro");
+      for (const item of copied.items)
+        assert.ok(
+          !plan.plan.some((step) => step.op === "link" && step.item === item),
+          `${item} linked`,
+        );
+      assert.ok(
+        plan.plan.some((step) => step.op === "link" && step.path === ".kiro/skills/brainstorming"),
       );
     },
   );
@@ -579,8 +586,10 @@ const RESOLVER = "aih.agent.duplicate-resolver";
       assert.deepEqual(JSON.parse(utf8(report.bytes)), { duplicates: mixed.duplicates });
     },
   );
+  // The dsh claim is planned without Claude: pstack's Claude edition reads its harness docs,
+  // which no route places, so Claude would be incomplete for a reason of its own.
   const renamed = planned(
-    planInstall(mix, contents, P("claude-code", "codex", "dsh"), {
+    planInstall(mix, contents, P("codex", "dsh"), {
       scope: "project",
       data,
       names: { "pstack.skill.tdd": "pstack-tdd", "pstack.skill.teach": "pstack-teach" },
@@ -1080,7 +1089,25 @@ const RESOLVER = "aih.agent.duplicate-resolver";
     async () => {
       const fixture = files("tests/fixtures/egm-403d8881");
       const rebuilt = await egmContent(fixture, true);
-      assert.equal(sha(rebuilt.bytes), sha(readFileSync(join(inputs, "data/egm/content.json"))));
+      // The fixture holds the runtime files only; the committed data adds what the whole upstream
+      // tree gives: the plugin folder's own key (the commit's root tree) and the notice of the
+      // upstream's distributions/ copy, which covers no item.
+      const committed = readContent(readFileSync(join(inputs, "data/egm/content.json"))).content;
+      const trimmed = (content, notices) => ({
+        ...content,
+        sources: content.sources.map((source) => ({
+          ...source,
+          notices: source.notices.filter(
+            (notice) => notices || !notice.sourcePath.startsWith("distributions/"),
+          ),
+        })),
+        plugins: (content.plugins ?? []).map(({ folderScanKey: _key, ...rest }) => rest),
+      });
+      same(trimmed(rebuilt.content, true), trimmed(committed, false));
+      assert.equal(
+        committed.plugins[0].folderScanKey,
+        "git-sha1:1b923b12bb559dc7809ff4374b1eec50d9f5cc8e",
+      );
       const bare = await egmContent(fixture, false);
       const without = planned(
         planRecipe(
@@ -2162,11 +2189,16 @@ const regression = (id, title, basis) => journey(id, title, basis);
     assert.equal(result.code, "data-mismatch");
   });
   await r.check(
-    "a content document that is not canonical, or over the limit, is refused or invalid; nothing throws",
+    "a content document with duplicate keys or a byte-order mark, or over the limit, is refused or invalid; nothing throws",
     () => {
       const bytes = readFileSync(join(inputs, "data/egm/content.json"));
-      const pretty = encoder.encode(JSON.stringify(JSON.parse(utf8(bytes))));
-      assert.ok(["invalid", "refused"].includes(readContent(pretty).status));
+      const compact = JSON.stringify(JSON.parse(utf8(bytes)));
+      // Any strict JSON spelling reads; a repeated key or a byte-order mark never does.
+      assert.equal(readContent(encoder.encode(compact)).status, "ok");
+      const twice = encoder.encode(`{"schema":"x",${compact.slice(1)}`);
+      assert.ok(["invalid", "refused"].includes(readContent(twice).status));
+      const marked = new Uint8Array([0xef, 0xbb, 0xbf, ...encoder.encode(compact)]);
+      assert.ok(["invalid", "refused"].includes(readContent(marked).status));
       assert.equal(
         readContent(new Uint8Array(contracts.limits.contentFileBytes + 1)).status,
         "refused",
