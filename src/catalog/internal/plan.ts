@@ -1294,6 +1294,42 @@ function placeBundles(
  * every plugin-namespaced name it mentions. A plugin route places the whole plugin, so its
  * items are never checked.
  */
+/**
+ * Skill folders whose relative path references reach a file of another placed skill folder of
+ * the same client, in the same relative position as upstream: per item, the clients for which
+ * that holds. Both skills must then be copied in place for the path to resolve.
+ */
+function siblingReferences(placed: readonly Placed[]): Map<string, Set<string>> {
+  const marks = new Map<string, Set<string>>();
+  const mark = (item: string, cli: string) =>
+    marks.set(item, new Set([...(marks.get(item) ?? []), cli]));
+  const folders = placed.filter((entry) => entry.unit.shape === "folder");
+  const installedAt = (entry: Placed, sourcePath: string) => {
+    const unit = entry.unit as Extract<Unit, { shape: "folder" }>;
+    const output = unit.outputs.find((candidate) => candidate.from?.sourcePath === sourcePath);
+    return output === undefined ? undefined : `${unit.path.replace(/\/$/, "")}/${output.rel}`;
+  };
+  for (const entry of folders) {
+    const cli = entry.profile.id;
+    const edition = entry.item.editions?.[cli] !== undefined ? cli : undefined;
+    for (const reference of entry.item.pathReferences ?? []) {
+      if (reference.cli !== edition) continue;
+      const from = installedAt(entry, reference.sourcePath);
+      if (from === undefined) continue;
+      for (const other of folders) {
+        if (other.profile.id !== cli || other.item.id === entry.item.id) continue;
+        const to = installedAt(other, reference.path);
+        if (to === undefined) continue;
+        const relative = relativePath(dirnameOf(reference.sourcePath), reference.path);
+        if (joinPath(dirnameOf(from), relative) !== to) continue;
+        mark(entry.item.id, cli);
+        mark(other.item.id, cli);
+      }
+    }
+  }
+  return marks;
+}
+
 /** The relative path from folder `from` to `to` (both from one root, `""` is the root). */
 function relativePath(from: string, to: string): string {
   const base = from === "" ? [] : from.split("/");
@@ -2021,6 +2057,10 @@ export function planCore(input: CoreInput): PlanResult {
       const { representative: _representative, ...own } = entry;
       return { ...own, unit };
     });
+  // At user scope a linked folder resolves `..` inside its shared version folder, never beside
+  // its siblings, so skills whose relative paths reach another placed skill are copied in place.
+  const inPlace = scope === "user" ? siblingReferences(placementsAt) : new Map();
+  const copiedFor = new Map<string, Set<string>>();
   for (const members of group(placementsAt, (entry) => (entry.unit as { path: string }).path)) {
     const first = members[0] as Placed;
     const unit = first.unit as Exclude<Unit, { shape: "merge" }>;
@@ -2045,11 +2085,19 @@ export function planCore(input: CoreInput): PlanResult {
       writes.push(writeOf(scope, unit.path, unit.output, rep, clis));
       continue;
     }
-    const link =
+    const linkable =
       scope === "user" &&
       options.copy !== true &&
       unit.linkable &&
       members.every((member) => member.profile.links.skill === "documented");
+    const keep = members.filter((member) => inPlace.get(member.item.id)?.has(member.profile.id));
+    if (linkable)
+      for (const member of keep)
+        copiedFor.set(
+          member.profile.id,
+          new Set([...(copiedFor.get(member.profile.id) ?? []), member.item.id]),
+        );
+    const link = linkable && keep.length === 0;
     if (!link) {
       for (const entry of unit.outputs)
         writes.push(writeOf(scope, `${unit.path}/${entry.rel}`, entry, rep, clis));
@@ -2060,6 +2108,9 @@ export function planCore(input: CoreInput): PlanResult {
       writes.push(writeOf("user", `${shared}/${entry.rel}`, entry, rep, clis));
     links.push({ op: "link", root: "user", path: unit.path, to: shared, item: rep.item.id, clis });
   }
+
+  for (const [cli, items] of copiedFor)
+    warnings.push({ code: "copied-for-references", cli, items: sortedSet(items) });
 
   // Merge entries: one per file and key.
   const mergeUnits = resolved.filter((entry) => entry.unit.shape === "merge");

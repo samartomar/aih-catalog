@@ -142,7 +142,7 @@ choice still uses.
 | `fetch` | fetches one upstream file at the recorded pin and checks its sha256 |
 | `acquire` | acquires a qualified AI setup artifact (and its interpreter or closure) at user scope |
 | `write` | writes a file: a copy of the recorded source file, or the bytes `renderStep` gives for its `render` |
-| `link` | links a client folder to a shared user-scope version folder |
+| `link` | links a client folder to a shared user-scope version folder; skills whose relative paths reach a sibling skill are copied in place instead, with a `copied-for-references` warning, since a linked folder resolves `..` inside its version folder |
 | `merge` | sets one keyed entry in a structured file (JSON, TOML or a Markdown block), keeping the rest |
 | `plugin` | installs a native plugin at the recorded commit with the client's own commands |
 | `upstream-setup` | runs an upstream setup program, only after the user approves it |

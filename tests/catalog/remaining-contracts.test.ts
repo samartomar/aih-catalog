@@ -594,3 +594,61 @@ describe("path references", () => {
     ]);
   });
 });
+
+describe("sibling skills at user scope", () => {
+  async function siblings() {
+    const own = upstream(
+      folder({
+        "skills/alpha/SKILL.md":
+          "---\nname: alpha\ndescription: Alpha.\n---\nFirst read ../beta/ref.md before you start.\n",
+        "skills/beta/SKILL.md": "---\nname: beta\ndescription: Beta.\n---\nBeta.\n",
+        "skills/beta/ref.md": "Reference\n",
+        "skills/gamma/SKILL.md": "---\nname: gamma\ndescription: Gamma.\n---\nGamma.\n",
+      }),
+    );
+    const found = findItems(own.files, { framework: "kit" });
+    if (found.status !== "ok") throw new Error("find");
+    const built = await buildContent(own.source, own.files, found.items, { framework: "kit" });
+    if (built.status !== "ok") throw new Error(JSON.stringify(built));
+    return built.content;
+  }
+
+  it("copies skills in place, with a warning, where a link would break their relative paths", async () => {
+    const content = await siblings();
+    const plan = planned(
+      planInstall(
+        ["kit.skill.alpha", "kit.skill.beta", "kit.skill.gamma"],
+        [content],
+        [profile("kiro")],
+        { scope: "user", data: null },
+      ),
+    );
+    expect(plan).toMatchObject({ status: "ok", references: [], clashes: [] });
+    const paths = plan.plan.flatMap((step) =>
+      step.op === "write" || step.op === "link" ? [`${step.op} ${step.path}`] : [],
+    );
+    expect(paths).toContain("write .kiro/skills/alpha/SKILL.md");
+    expect(paths).toContain("write .kiro/skills/beta/ref.md");
+    // A skill no sibling path depends on keeps its link into the shared version folder.
+    expect(paths).toContain("link .kiro/skills/gamma");
+    expect(paths.filter((path) => path.startsWith("link "))).toEqual(["link .kiro/skills/gamma"]);
+    expect(plan.warnings).toEqual([
+      { code: "copied-for-references", cli: "kiro", items: ["kit.skill.alpha", "kit.skill.beta"] },
+    ]);
+  });
+
+  it("still links, and reports the path, when the referenced skill is not chosen", async () => {
+    const content = await siblings();
+    const plan = planned(
+      planInstall(["kit.skill.alpha"], [content], [profile("kiro")], {
+        scope: "user",
+        data: null,
+      }),
+    );
+    expect(plan.status).toBe("incomplete");
+    expect(plan.warnings).toEqual([]);
+    expect(plan.plan.some((step) => step.op === "link" && step.path === ".kiro/skills/alpha")).toBe(
+      true,
+    );
+  });
+});

@@ -504,22 +504,28 @@ describe("representative plans of the ported frameworks", () => {
       ),
     ).toMatchObject({ root: "user", item: "superpowers.rule.session-bootstrap", clis: ["kiro"] });
     expect(plan.unavailable).toEqual([]);
-    // What still blocks: sibling-skill paths, which resolve in place only where skills are
-    // copied side by side (project scope); at user scope Kiro's skills are links into version
-    // folders, so a relative path leaves the linked folder.
-    expect(
-      plan.references
-        .filter((reference) => reference.kind === "path")
-        .map((reference) => `${reference.item} ${reference.path} ${reference.clis.join(",")}`),
-    ).toEqual([
-      "superpowers.skill.executing-plans skills/requesting-code-review/code-reviewer.md kiro",
-      "superpowers.skill.executing-plans skills/subagent-driven-development/scripts/review-package kiro",
-      "superpowers.skill.executing-plans skills/subagent-driven-development/scripts/sdd-workspace kiro",
-      "superpowers.skill.subagent-driven-development skills/requesting-code-review/code-reviewer.md kiro",
-      "superpowers.skill.writing-skills skills/using-superpowers/references/codex-tools.md kiro",
-      "superpowers.skill.writing-skills skills/using-superpowers/references/gemini-tools.md kiro",
-    ]);
-    expect(plan.status).toBe("incomplete");
+    // Sibling-skill paths resolve only between copies side by side: at user scope a linked
+    // folder resolves `..` inside its version folder, so the skills they join are copied in
+    // place on Kiro, with a warning, and every other skill stays linked.
+    expect(plan.references.filter((reference) => reference.kind === "path")).toEqual([]);
+    const copied = plan.warnings.find((warning) => warning.code === "copied-for-references");
+    expect(copied).toEqual({
+      code: "copied-for-references",
+      cli: "kiro",
+      items: [
+        "superpowers.skill.executing-plans",
+        "superpowers.skill.requesting-code-review",
+        "superpowers.skill.subagent-driven-development",
+        "superpowers.skill.using-superpowers",
+        "superpowers.skill.writing-skills",
+      ],
+    });
+    for (const item of copied?.items ?? [])
+      expect(
+        plan.plan.some((step) => step.op === "link" && step.item === item),
+        item,
+      ).toBe(false);
+    expect(plan.status).toBe("ok");
   });
 
   it("resolves sibling skill files in place at user scope too when the skills are copied", () => {
