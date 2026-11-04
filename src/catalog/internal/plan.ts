@@ -952,14 +952,10 @@ function combined(members: readonly Placed[], scope: Scope): Unit | undefined {
     )
   )
     return undefined;
-  const ownOf = (profile: ToolProfile) =>
-    item.files.filter((file) => file.cli === undefined || file.cli === profile.id);
-  const own = ownOf(profiles[0] as ToolProfile);
-  for (const profile of profiles) {
-    const files = ownOf(profile);
-    if (files.length !== own.length || files.some((file, index) => file !== own[index]))
-      return undefined;
-  }
+  // The folder holds every sharing client's files; a file only one client uses (`cli`) is
+  // credited to that client when the folder is written.
+  const ids = profiles.map((profile) => profile.id);
+  const own = item.files.filter((file) => file.cli === undefined || ids.includes(file.cli));
   const skill = own.find((file) => installRelative(item, file) === "SKILL.md");
   if (skill === undefined) return undefined;
   const outputs = skillOutputs(item, own, skill, profiles, scope, installName);
@@ -986,17 +982,18 @@ function commonFolder(paths: readonly string[]): string {
 function clientFiles(placed: Placed): { common: Unit; own: Output[] } {
   const unit = placed.unit;
   if (unit.shape !== "folder") return { common: unit, own: [] };
-  const tagged = (output: Output) =>
-    output.from !== undefined &&
-    placed.item.files.some(
-      (file) =>
-        file.cli !== undefined &&
-        file.sourceId === output.from?.sourceId &&
-        file.sourcePath === output.from?.sourcePath,
-    );
+  const cliOf = (output: Output) =>
+    output.from === undefined
+      ? undefined
+      : placed.item.files.find(
+          (file) =>
+            file.cli !== undefined &&
+            file.sourceId === output.from?.sourceId &&
+            file.sourcePath === output.from?.sourcePath,
+        )?.cli;
   return {
-    common: { ...unit, outputs: unit.outputs.filter((output) => !tagged(output)) },
-    own: unit.outputs.filter(tagged),
+    common: { ...unit, outputs: unit.outputs.filter((output) => cliOf(output) === undefined) },
+    own: unit.outputs.filter((output) => cliOf(output) === placed.profile.id),
   };
 }
 

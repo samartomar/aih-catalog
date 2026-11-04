@@ -691,3 +691,41 @@ describe("a file only one client uses", () => {
     expect(at(".agents/skills/alpha/agents/openai.yaml")?.clis).toEqual(["codex"]);
   });
 });
+
+describe("a client's own file in a shared user-only folder", () => {
+  it("joins the combined render and is written for its client", async () => {
+    const own = upstream(
+      folder({
+        "skills/alpha/SKILL.md":
+          "---\nname: alpha\ndescription: Alpha.\ndisable-model-invocation: true\n---\nAlpha.\n",
+        "skills/alpha/agents/openai.yaml": "interface:\n  display_name: Alpha\n",
+      }),
+    );
+    const found = findItems(own.files, { framework: "kit" });
+    if (found.status !== "ok") throw new Error("find");
+    const items = found.items.map((item) => ({
+      ...item,
+      files: item.files.map((file) =>
+        file.sourcePath.endsWith("agents/openai.yaml") ? { ...file, cli: "codex" } : file,
+      ),
+    }));
+    const built = await buildContent(own.source, own.files, items, { framework: "kit" });
+    if (built.status !== "ok") throw new Error(JSON.stringify(built));
+    const plan = planned(
+      planInstall(["kit.skill.alpha"], [built.content], [profile("codex"), profile("dsh")], {
+        scope: "project",
+        data: null,
+      }),
+    );
+    expect(plan).toMatchObject({ status: "ok", clashes: [] });
+    const at = (path: string) =>
+      plan.plan.find((step) => step.op === "write" && step.path === path) as
+        | { clis: string[]; render?: { name: string } }
+        | undefined;
+    expect(at(".agents/skills/alpha/SKILL.md")).toMatchObject({
+      clis: ["codex", "dsh"],
+      render: { name: "shared-skill" },
+    });
+    expect(at(".agents/skills/alpha/agents/openai.yaml")?.clis).toEqual(["codex"]);
+  });
+});
