@@ -5,7 +5,10 @@
  */
 import { formats, limits, type Refused } from "../contracts.js";
 import { deepFreeze } from "./json.js";
-import { NPM_PACKAGE } from "./model.js";
+import { EXACT_VERSION, NPM_PACKAGE } from "./model.js";
+
+export { EXACT_VERSION };
+
 import { isSafeRelativePath, limitRefusal, quote } from "./paths.js";
 
 /** A local folder, as written (a leading `~` is expanded only when it is read). */
@@ -45,9 +48,6 @@ export type ParseSourceLinkResult =
     }
   | ({ readonly schema: typeof formats.sourceLink } & Refused);
 
-/** An exact semantic version (no leading zeroes, optional pre-release and build). */
-export const EXACT_VERSION =
-  /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
 const NPM_NAME = NPM_PACKAGE;
 const NPM_SPECIFIER = /^[0-9A-Za-z.^~<>=|*+_-]+$/;
 const OWNER = /^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$/;

@@ -11,6 +11,7 @@ import {
 } from "./contracts.js";
 import { type Qualification, qualificationProblems } from "./internal/ai-setup.js";
 import { AUTHORED_FRAMEWORK, aihContent } from "./internal/authored.js";
+import { installRelative } from "./internal/identity.js";
 import {
   canonicalDocument,
   deepFreeze,
@@ -19,7 +20,7 @@ import {
 } from "./internal/json.js";
 import { readJson } from "./internal/kinds.js";
 import type { Content, Item } from "./internal/model.js";
-import { quote, refused } from "./internal/paths.js";
+import { compareCodeUnits, quote, refused } from "./internal/paths.js";
 import {
   type BundleRootRender,
   type DuplicatesRender,
@@ -310,6 +311,29 @@ export function getItem(
   return item
     ? { status: "ok", item }
     : refused("unknown-item", `the item ${quote(String(id))} is not in this content`);
+}
+
+/** What a reader derives from an item's own files instead of storing it. */
+export interface Derived {
+  /** The content sources the item's files come from, sorted. */
+  readonly sourceIds: readonly string[];
+  /** Each file's path inside the installed item (a skill's files under its folder), sorted. */
+  readonly packagePath: readonly string[];
+  /** The bytes of the item's files together. */
+  readonly size: number;
+}
+
+/**
+ * `derive(item, content)`: the facts an item no longer stores, from its own files. Editions
+ * and bundles are separate units and are not counted. A plain value over content already read.
+ */
+export function derive(item: Item, _content: Content): Derived {
+  const sorted = (values: Iterable<string>) => [...new Set(values)].sort(compareCodeUnits);
+  return {
+    sourceIds: sorted(item.files.map((file) => file.sourceId)),
+    packagePath: sorted(item.files.map((file) => installRelative(item, file))),
+    size: item.files.reduce((total, file) => total + file.bytes, 0),
+  };
 }
 
 /** `planInstall(selection, contents, profiles, { scope, data, copy?, names?})`. */

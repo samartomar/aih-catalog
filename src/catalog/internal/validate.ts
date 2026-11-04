@@ -15,6 +15,7 @@ import {
   NAMESPACED_NAME,
   NPM_PACKAGE,
   OBJECT_ID,
+  SCAN_KEY,
   SHA256,
 } from "./model.js";
 import { isSafeRelativePath } from "./paths.js";
@@ -69,7 +70,6 @@ const ITEM_FIELDS = [
   "cli",
   ...new Set(kinds.flatMap((kind) => kindFieldNames(kind))),
 ];
-const SCAN_KEY = /^git-sha(?:1:[0-9a-f]{40}|256:[0-9a-f]{64})$/;
 
 function checkScope(scope: unknown, path: string, problems: Problems): void {
   if (scope === "always" || scope === "on-request") return;
