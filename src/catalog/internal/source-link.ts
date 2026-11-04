@@ -268,7 +268,12 @@ function command(tokens: readonly string[]): Parsed {
     const url = positional[0];
     if (url === undefined || positional.length > 2)
       return no("git clone names no single repository");
-    const parsed = single(url, false);
+    // Git clones a local path or file URL as a repository, so here it names a Git source.
+    const local = localPath(url);
+    const parsed: Parsed =
+      local !== null && isCandidate(local) && local.kind === "local"
+        ? { kind: "git", repository: url.startsWith("file:") ? url : local.path }
+        : single(url, false);
     if (!isCandidate(parsed) || parsed.kind !== "git")
       return no(`git clone names ${quote(url)}, which is not a Git link`);
     if (ref === undefined) return parsed;

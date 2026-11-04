@@ -102,6 +102,15 @@ describe("parseSourceLink", () => {
       kind: "git",
       repository: "https://github.com/owner/repo",
     });
+    expect(candidate("git clone /srv/repos/tools")).toEqual({
+      kind: "git",
+      repository: "/srv/repos/tools",
+    });
+    expect(candidate("git clone -b main file:///srv/repos/tools.git")).toEqual({
+      kind: "git",
+      repository: "file:///srv/repos/tools.git",
+      ref: "main",
+    });
     expect(candidate("git clone --depth 1 -b v1.0 https://github.com/owner/repo.git")).toEqual({
       kind: "git",
       repository: "https://github.com/owner/repo",

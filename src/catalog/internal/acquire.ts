@@ -374,7 +374,8 @@ export async function acquireNpm(
       "--prefer-online",
       ...(registry === undefined ? [] : ["--registry", registry]),
     ],
-    { cwd: work, env, maxBytes: 1024 * 1024 },
+    // npm's report lists every packed entry, so it is allowed room for a full-size source.
+    { cwd: work, env, maxBytes: 64 * 1024 * 1024 },
   );
   if (packed === "not-started") return refused("fetch-failed", "npm could not be started");
   if (packed === "too-large" || packed.code !== 0) {

@@ -1,12 +1,16 @@
+import { randomBytes } from "node:crypto";
 import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
+import { gzipSync } from "node:zlib";
 import { afterEach, describe, expect, it } from "vitest";
 import { limits } from "../../src/catalog/contracts.js";
-import { fetchSource } from "../../src/catalog/node.js";
+import { fetchSource, readLocalSource } from "../../src/catalog/node.js";
 import { buildContent, checkContent } from "../../src/catalog/producer.js";
 import { planInstall, readContent } from "../../src/catalog/reader.js";
-import { findItems } from "../../src/catalog/source.js";
+import { findItems, parseSourceLink } from "../../src/catalog/source.js";
 import { folder, git, gitRepository, outDir, profile, sha, sortKeys, utf8 } from "./helpers.js";
+import { integrity, manifest, registry, tar, tarball } from "./npm-fixture.js";
 
 const savedEnvironment = { ...process.env };
 afterEach(() => {
@@ -131,12 +135,11 @@ describe("fetching a pinned Git source", () => {
     ]);
   });
 
-  it("never records a branch, tag or range as a source identity", async () => {
+  it("pins pasted text naming the default branch, and never records a branch, tag or range", async () => {
     const upstream = gitRepository({ "skills/review/SKILL.md": REVIEW });
-    const fetched = await fetchSource(
-      { kind: "git", repository: upstream.path },
-      { outDir: outDir() },
-    );
+    const link = parseSourceLink(`git clone ${upstream.path}`);
+    if (link.status !== "recognised") throw new Error(JSON.stringify(link));
+    const fetched = await fetchSource(link.candidate, { outDir: outDir() });
     const { built, found } = await contentFrom(fetched, "up");
     expect(built.content.sources[0]).toMatchObject({ commit: upstream.commits[0] });
     if (fetched.status !== "ok") throw new Error("unreachable");
@@ -277,6 +280,213 @@ describe("fetching a pinned Git source", () => {
     );
     expect(fetched).toMatchObject({ status: "refused", code: "limit", limit: "sourceFileBytes" });
     expect("files" in fetched).toBe(false);
+  });
+});
+
+describe("fetching a local candidate", () => {
+  it("reads a pasted file URL like readLocalSource, recording no machine path", async () => {
+    const root = folder({ "skills/review/SKILL.md": REVIEW });
+    const link = parseSourceLink(pathToFileURL(root).href);
+    if (link.status !== "recognised") throw new Error(JSON.stringify(link));
+    const fetched = await fetchSource(link.candidate, { outDir: outDir() });
+    expect(fetched).toEqual(readLocalSource(root));
+    const { built } = await contentFrom(fetched, "mine");
+    expect(built.content.sources).toEqual([{ id: "mine", kind: "local", notices: [] }]);
+  });
+});
+
+const PACKAGE = "@fixture/skills";
+
+describe("fetching a pinned npm source", () => {
+  it("resolves a range to one exact version and plans it without running package scripts", async () => {
+    const { marker } = tripwire();
+    const scripts = Object.fromEntries(
+      ["preinstall", "install", "postinstall", "prepack", "prepare", "postpack"].map((name) => [
+        name,
+        `touch '${marker}'`,
+      ]),
+    );
+    const version = (number: string, review = REVIEW) =>
+      tarball([
+        { path: "package.json", text: manifest(PACKAGE, number, scripts) },
+        { path: "LICENSE", text: LICENSE },
+        { path: "skills/review/SKILL.md", text: review },
+        { path: "rules/style.md", text: STYLE },
+        {
+          path: "bin/setup.js",
+          text: `require("fs").writeFileSync('${marker}', "")\n`,
+          mode: 0o755,
+        },
+      ]);
+    const served = await registry({
+      [PACKAGE]: {
+        latest: "2.0.0",
+        versions: {
+          "1.0.0": version("1.0.0"),
+          "1.2.0": version("1.2.0"),
+          "2.0.0": version("2.0.0"),
+        },
+      },
+    });
+
+    const link = parseSourceLink(`npx -y ${PACKAGE}@^1`);
+    if (link.status !== "recognised") throw new Error(JSON.stringify(link));
+    expect(link.candidate).toEqual({ kind: "npm", package: PACKAGE, range: "^1" });
+    const fetched = await fetchSource(link.candidate, { outDir: outDir(), registry: served.url });
+
+    if (fetched.status !== "ok") throw new Error(JSON.stringify(fetched));
+    expect(fetched.source).toEqual({ kind: "npm", package: PACKAGE, version: "1.2.0" });
+    expect(fetched.integrity).toBe(integrity(version("1.2.0")));
+    expect(existsSync(marker)).toBe(false);
+    expect(fetched.files.map(({ path, mode }) => [path, mode])).toEqual([
+      ["LICENSE", "100644"],
+      ["bin/setup.js", "100755"],
+      ["package.json", "100644"],
+      ["rules/style.md", "100644"],
+      ["skills/review/SKILL.md", "100644"],
+    ]);
+
+    const { built } = await contentFrom(fetched, "fixture");
+    expect(built.content.sources).toEqual([
+      {
+        id: "fixture",
+        kind: "npm",
+        package: PACKAGE,
+        version: "1.2.0",
+        notices: [{ sourcePath: "LICENSE", sha256: sha(LICENSE), covers: "/" }],
+      },
+    ]);
+    const plan = planInstall(["fixture.rule.style"], [built.content], [profile("kiro")], {
+      scope: "project",
+      data: null,
+    });
+    if (!("plan" in plan)) throw new Error(JSON.stringify(plan));
+    expect(plan.status).toBe("ok");
+    expect(plan.plan.map((step) => [step.path, step.from.sourceId, step.from.sourcePath])).toEqual([
+      [".aihq/notices/fixture/LICENSE", "fixture", "LICENSE"],
+      [".kiro/steering/style.md", "fixture", "rules/style.md"],
+    ]);
+    expect(existsSync(marker)).toBe(false);
+  });
+
+  /** Serves `bytes` as PACKAGE@1.0.0 and fetches that exact version. */
+  async function fetchServed(bytes: Buffer) {
+    const served = await registry({ [PACKAGE]: { latest: "1.0.0", versions: { "1.0.0": bytes } } });
+    return fetchSource(
+      { kind: "npm", package: PACKAGE, version: "1.0.0" },
+      { outDir: outDir(), registry: served.url },
+    );
+  }
+  const packageJson = { path: "package.json", text: manifest(PACKAGE, "1.0.0") };
+
+  it("refuses absolute and parent-traversing tarball entries", async () => {
+    for (const path of ["package/../../escape", "/etc/escape", "package/a/../../../escape"]) {
+      const bytes = gzipSync(
+        tar([
+          { path: "package/package.json", text: manifest(PACKAGE, "1.0.0") },
+          { path, text: "x" },
+        ]),
+      );
+      expect(await fetchServed(bytes), path).toMatchObject({
+        status: "refused",
+        code: "path-escape",
+      });
+    }
+  });
+
+  it("lists links and special files without following them", async () => {
+    const fetched = await fetchServed(
+      tarball([
+        packageJson,
+        { path: "skills/review/SKILL.md", text: REVIEW },
+        { path: "skills/review/passwd", type: "2", link: "/etc/passwd" },
+        { path: "skills/review/hard", type: "1", link: "package/package.json" },
+        { path: "skills/review/pipe", type: "6" },
+      ]),
+    );
+    if (fetched.status !== "ok") throw new Error(JSON.stringify(fetched));
+    const found = findItems(fetched.files, { framework: "fixture" });
+    expect(found).toMatchObject({
+      status: "ok",
+      leftOver: [
+        { path: "package.json", reason: "unrecognised" },
+        { path: "skills/review/hard", reason: "link" },
+        { path: "skills/review/passwd", reason: "link" },
+        { path: "skills/review/pipe", reason: "special-file" },
+      ],
+    });
+  });
+
+  it("holds the unpacked package to the source limits", async () => {
+    // A repeated random block: compressible, but under npm's own decompression-ratio guard.
+    const block = randomBytes(20_000);
+    const filled = (size: number) => {
+      const bytes = new Uint8Array(size);
+      for (let at = 0; at < size; at += block.byteLength)
+        bytes.set(block.subarray(0, size - at), at);
+      return bytes;
+    };
+    const big = await fetchServed(
+      tarball([packageJson, { path: "big.bin", bytes: filled(limits.sourceFileBytes + 1) }]),
+    );
+    expect(big).toMatchObject({ status: "refused", code: "limit", limit: "sourceFileBytes" });
+    const many = await fetchServed(
+      tarball([
+        packageJson,
+        ...Array.from({ length: limits.sourceFiles }, (_, index) => ({ path: `f/${index}` })),
+      ]),
+    );
+    expect(many).toMatchObject({ status: "refused", code: "limit", limit: "sourceFiles" });
+    const chunk = filled(limits.sourceFileBytes);
+    const bomb = await fetchServed(
+      gzipSync(
+        tar([
+          { path: "package/package.json", text: manifest(PACKAGE, "1.0.0") },
+          ...Array.from(
+            { length: limits.sourceBytes / limits.sourceFileBytes + 1 },
+            (_, index) => ({
+              path: `package/part-${index}`,
+              bytes: chunk,
+            }),
+          ),
+        ]),
+        { level: 1 },
+      ),
+    );
+    expect(bomb).toMatchObject({ status: "refused", code: "limit", limit: "sourceBytes" });
+    expect("files" in bomb).toBe(false);
+  }, 60_000);
+
+  it("refuses a tarball whose package.json names another package or version", async () => {
+    const fetched = await fetchServed(
+      tarball([{ path: "package.json", text: manifest(PACKAGE, "9.9.9") }]),
+    );
+    expect(fetched).toMatchObject({ status: "refused", code: "source-mismatch" });
+  });
+
+  it("refuses a version the registry does not have and never runs npm for unusable specs", async () => {
+    const served = await registry({
+      [PACKAGE]: { latest: "1.0.0", versions: { "1.0.0": tarball([packageJson]) } },
+    });
+    expect(
+      await fetchSource(
+        { kind: "npm", package: PACKAGE, version: "3.0.0" },
+        { outDir: outDir(), registry: served.url },
+      ),
+    ).toMatchObject({ status: "refused", code: "fetch-failed" });
+    const before = served.requests.length;
+    for (const candidate of [
+      { kind: "npm", package: "../escape" },
+      { kind: "npm", package: "file:../x" },
+      { kind: "npm", package: PACKAGE, range: "file:../x" },
+      { kind: "npm", package: PACKAGE, version: "latest" },
+    ]) {
+      expect(
+        await fetchSource(candidate as never, { outDir: outDir(), registry: served.url }),
+        JSON.stringify(candidate),
+      ).toMatchObject({ status: "invalid" });
+    }
+    expect(served.requests.length).toBe(before);
   });
 });
 

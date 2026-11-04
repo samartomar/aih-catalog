@@ -57,7 +57,8 @@ switching them to the new entry points, removing the donor model and shipping th
 schemas and fixtures happen together in the package cutover, not slice by slice.
 
 The first implemented path plans an installation from your own folder:
-`readLocalSource`, `findItems`, `buildContent`, `readContent`/`readToolProfile` and
+`readLocalSource` (or `parseSourceLink` and `fetchSource` for a local, Git or npm source),
+`findItems`, `buildContent`, `readContent`/`readToolProfile` and
 `planInstall` give a project-scope plan of skills and always-on rules for Claude Code,
 Kiro and Antigravity, and `renderStep` produces the bytes of each recorded render.
 Kinds, scopes and routes that are not implemented yet are reported as
@@ -73,7 +74,7 @@ dependency until the cutover decides how the package depends on Scan.
 | --- | --- |
 | Strict JSON, canonical bytes, bounded input, immutable results | **Adapted.** The canonical JSON and portable SHA-256 helpers were copied into `src/catalog/internal`, so the new modules import nothing from the donor tree; the donor copies leave with the donor model. Content documents and tool profiles are admitted only as canonical bytes within published limits and are frozen. The donor strict-JSON/frontmatter test stays active until the donor parser is removed. |
 | Canonical root-relative paths, traversal/symlink refusal, file hashes and missing/changed-byte refusal | **Adapted** into the new path: unsafe entry paths are refused (`path-escape`), links and special files are listed and never followed, every byte is checked against its sha256 (`source-mismatch`), and limit breaches refuse the whole read. Covered by `tests/catalog`. |
-| Source-link parsing, exact source identities/pins and fetched-byte verification without hooks | **Retained** as active donor checks (`parse-source-link`, `upstream-fetch`, producer `fetch` and `git-fixture`) until pinned Git and npm acquisition joins the new path. |
+| Source-link parsing, exact source identities/pins and fetched-byte verification without hooks | **Adapted** into the new path: `parseSourceLink` reads text as data only and keeps subpaths; `fetchSource` pins a Git branch or tag to its commit and an npm range to one exact version, reads Git objects without hooks, checkout or user configuration and unpacks npm tarballs in memory with lifecycle scripts disabled; content records only exact commits and versions. Covered by `tests/catalog` with a local Git subfolder fixture and a local npm registry. The donor `parse-source-link`, `upstream-fetch`, producer `fetch` and `git-fixture` tests are historical only. |
 | Package identity, license, publication refusal, packed bytes and disposable installed read | **Retained** (`tests/transition-boundary.test.ts`): the publication lifecycle still refuses and the packed donor package still reads. The new entry points are checked through packed bytes in the dedicated consumer validation after the cutover. |
 | Repository instructions and self-hosting boundary | **Retained** (`tests/self-hosting`, `tests/bootstrap`). |
 | Workflow action pins, dependency audit, whitespace | **Retained** in `npm run verify` and CI. |
