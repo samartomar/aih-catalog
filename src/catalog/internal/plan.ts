@@ -8,6 +8,12 @@
  */
 import type { Invalid, Problem, Refused } from "../contracts.js";
 import { implementedKinds } from "../contracts.js";
+import {
+  AUTHORED_FRAMEWORK,
+  aihContent,
+  DUPLICATE_RESOLVER,
+  DUPLICATES_REPORT,
+} from "./authored.js";
 import { installRelative } from "./identity.js";
 import { canonicalJson } from "./json.js";
 import { lowerServer } from "./mcp.js";
@@ -132,7 +138,7 @@ export interface WriteStep extends RouteMarks {
   readonly path: string;
   readonly from?: SourceRef;
   readonly executable: boolean;
-  readonly render?: PlanRender | MarketplaceRender | BundleRootRender;
+  readonly render?: PlanRender | MarketplaceRender | BundleRootRender | DuplicatesRender;
   /** A runtime bundle's root file: the bundle's id. */
   readonly bundle?: string;
   readonly scanned?: false;
@@ -289,9 +295,32 @@ export interface Plan {
   readonly missing: readonly Missing[];
   readonly unavailable: readonly Unavailable[];
   readonly clashes: readonly Clash[];
-  readonly duplicates: readonly never[];
+  readonly duplicates: readonly Duplicate[];
   readonly references: readonly Reference[];
   readonly warnings: readonly Warning[];
+}
+
+/**
+ * A fact about mixed frameworks: items sharing one install name across frameworks, or items
+ * with the same `contentSha256` under different ids. Catalog never picks a winner.
+ */
+export interface Duplicate {
+  readonly by: "name" | "content";
+  readonly kind: string;
+  /** For `name`: the install name the items share. */
+  readonly name?: string;
+  /** For `content`: the shared content identity. */
+  readonly contentSha256?: string;
+  readonly items: readonly string[];
+  readonly frameworks: readonly string[];
+  /** The clients the items are planned for. */
+  readonly clis: readonly string[];
+}
+
+/** The duplicates report a mixed plan writes for the resolver agent; its bytes are canonical JSON. */
+export interface DuplicatesRender {
+  readonly name: "duplicates-report";
+  readonly duplicates: readonly Duplicate[];
 }
 
 /** A recipe plan's origin: the recipe id, the sha256 of its exact bytes, and where it was read. */
@@ -1319,6 +1348,68 @@ function builtIns(
   };
 }
 
+/** Same install names across frameworks and same content under different ids, sorted. */
+function duplicatesOf(
+  planned: readonly { item: Item; framework: string; cli: string; name: string }[],
+): Duplicate[] {
+  const groups = new Map<
+    string,
+    {
+      base: Omit<Duplicate, "items" | "frameworks" | "clis">;
+      items: Set<string>;
+      frameworks: Set<string>;
+      clis: Set<string>;
+    }
+  >();
+  const add = (
+    key: string,
+    base: Omit<Duplicate, "items" | "frameworks" | "clis">,
+    entry: (typeof planned)[number],
+  ) => {
+    const group = groups.get(key) ?? {
+      base,
+      items: new Set(),
+      frameworks: new Set(),
+      clis: new Set(),
+    };
+    group.items.add(entry.item.id);
+    group.frameworks.add(entry.framework);
+    group.clis.add(entry.cli);
+    groups.set(key, group);
+  };
+  for (const entry of planned) {
+    add(
+      `name\0${entry.item.kind}\0${entry.name}`,
+      { by: "name", kind: entry.item.kind, name: entry.name },
+      entry,
+    );
+    add(
+      `content\0${entry.item.contentSha256}`,
+      { by: "content", kind: entry.item.kind, contentSha256: entry.item.contentSha256 },
+      entry,
+    );
+  }
+  return [...groups.values()]
+    .filter(({ base, items, frameworks }) =>
+      base.by === "name" ? frameworks.size >= 2 : items.size >= 2,
+    )
+    .map(({ base, items, frameworks, clis }) => ({
+      ...base,
+      items: sortedSet(items),
+      frameworks: sortedSet(frameworks),
+      clis: sortedSet(clis),
+    }))
+    .sort(
+      (left, right) =>
+        compareCodeUnits(left.by, right.by) ||
+        compareCodeUnits(left.kind, right.kind) ||
+        compareCodeUnits(
+          left.name ?? left.contentSha256 ?? "",
+          right.name ?? right.contentSha256 ?? "",
+        ),
+    );
+}
+
 /** Problems of the supplied contents and profiles, shared by both planners. */
 export function inputProblems(
   contents: readonly Content[],
@@ -1446,6 +1537,11 @@ export interface Extras {
   readonly missing: readonly Missing[];
   /** Items a route places for a client outside the item placements (local-plugin contents). */
   readonly served: readonly { readonly item: string; readonly cli: string }[];
+  /**
+   * Items a plugin or upstream setup installs for a client: never placed as items, still
+   * recorded for duplicate checks.
+   */
+  readonly routed?: readonly { readonly item: string; readonly cli: string }[];
 }
 
 export interface CoreInput {
@@ -1510,6 +1606,34 @@ export function planCore(input: CoreInput): PlanResult {
       else placements.push(...result);
     }
 
+  // A plan that mixes frameworks adds Catalog's duplicate resolver on every client that can
+  // take an agent; where it cannot be placed the plan only warns.
+  const frameworkOf = (id: string) => byId.get(id)?.content.framework.id;
+  const mixedFrameworks = new Set(
+    [...selection, ...(extras?.routed ?? []).map((entry) => entry.item)]
+      .map(frameworkOf)
+      .filter((id): id is string => id !== undefined && id !== AUTHORED_FRAMEWORK),
+  );
+  const mixes = mixedFrameworks.size >= 2;
+  const helperWarnings: Warning[] = [];
+  if (mixes) {
+    const authored = aihContent.content;
+    const resolver = authored.items[0] as Item;
+    if (!byId.has(resolver.id)) byId.set(resolver.id, { content: authored, item: resolver });
+    const { item, content } = byId.get(DUPLICATE_RESOLVER) as { item: Item; content: Content };
+    if (!selection.includes(DUPLICATE_RESOLVER))
+      for (const profile of sortedProfiles) {
+        const result = place(item, content, profile, scope, item.name);
+        if (isFailure(result))
+          helperWarnings.push({
+            code: "duplicate-resolver-unavailable",
+            cli: profile.id,
+            items: [DUPLICATE_RESOLVER],
+          });
+        else placements.push(...result);
+      }
+  }
+
   // A client that shares another client's place takes it when that place is planned for
   // the same item, as a copy of that placement; otherwise its own place.
   let resolved: Placed[] = [];
@@ -1556,7 +1680,13 @@ export function planCore(input: CoreInput): PlanResult {
       continue;
     }
     if (entry.failure) {
-      unavailable.push({ item: entry.item.id, cli: entry.profile.id, ...entry.failure });
+      if (entry.item.id === DUPLICATE_RESOLVER)
+        helperWarnings.push({
+          code: "duplicate-resolver-unavailable",
+          cli: entry.profile.id,
+          items: [DUPLICATE_RESOLVER],
+        });
+      else unavailable.push({ item: entry.item.id, cli: entry.profile.id, ...entry.failure });
       continue;
     }
     const { reuse: _reuse, ...own } = entry;
@@ -1773,6 +1903,44 @@ export function planCore(input: CoreInput): PlanResult {
   merges.push(...shadowing.merges);
   warnings.push(...shadowing.warnings);
 
+  // Duplicates across frameworks: facts for the user and the resolver, never a winner.
+  const duplicates: Duplicate[] = [];
+  if (mixes) {
+    const planned: { item: Item; framework: string; cli: string; name: string }[] = [];
+    const record = (id: string, cli: string, name?: string) => {
+      const found = byId.get(id);
+      if (found === undefined || found.content.framework.id === AUTHORED_FRAMEWORK) return;
+      planned.push({
+        item: found.item,
+        framework: found.content.framework.id,
+        cli,
+        name: name ?? found.item.name,
+      });
+    };
+    for (const entry of resolved) record(entry.item.id, entry.profile.id, entry.installName);
+    for (const { item, cli } of [
+      ...bundles.served,
+      ...(extras?.served ?? []),
+      ...(extras?.routed ?? []),
+    ]) {
+      const profile = sortedProfiles.find((candidate) => candidate.id === cli) as ToolProfile;
+      const found = byId.get(item);
+      record(item, cli, found ? input.installName(found.item, profile) : undefined);
+    }
+    duplicates.push(...duplicatesOf(planned));
+    writes.push({
+      op: "write",
+      root: scope,
+      path: DUPLICATES_REPORT,
+      executable: false,
+      render: { name: "duplicates-report", duplicates },
+      scanned: false,
+      item: DUPLICATE_RESOLVER,
+      clis: sortedProfiles.map((profile) => profile.id),
+    });
+  }
+  warnings.push(...helperWarnings);
+
   // Notices covering a placed item, once each.
   for (const content of contents)
     for (const source of content.sources)
@@ -1973,7 +2141,7 @@ export function planCore(input: CoreInput): PlanResult {
     missing,
     unavailable,
     clashes,
-    duplicates: [],
+    duplicates,
     references,
     warnings,
   };

@@ -3,6 +3,7 @@ import type { DiscoveredItem } from "../../src/catalog/internal/model.js";
 import { fetchSource, readLocalSource } from "../../src/catalog/node.js";
 import { buildContent } from "../../src/catalog/producer.js";
 import {
+  aihContent,
   type Content,
   type Plan,
   type PlanResult,
@@ -10,6 +11,8 @@ import {
   planRecipe,
   readContent,
   readRecipe,
+  renderStep,
+  type WriteStep,
 } from "../../src/catalog/reader.js";
 import { findItems } from "../../src/catalog/source.js";
 import {
@@ -21,6 +24,7 @@ import {
   sha,
   sortKeys,
   type TreeEntry,
+  utf8,
   writes,
 } from "./helpers.js";
 
@@ -124,7 +128,11 @@ const DATA = { repository: "https://example.invalid/catalog-data", commit: "b".r
 const SOURCE = { repository: "https://example.invalid/recipes", commit: "c".repeat(40) };
 
 /** A framework read from a pinned local Git repository, as a recipe requires. */
-async function pinned(id: string, tree: Readonly<Record<string, TreeEntry>>) {
+async function pinned(
+  id: string,
+  tree: Readonly<Record<string, TreeEntry>>,
+  plugins?: readonly string[],
+) {
   const upstream = gitRepository(tree);
   const fetched = await fetchSource(
     { kind: "git", repository: upstream.path, ref: "main" },
@@ -133,7 +141,10 @@ async function pinned(id: string, tree: Readonly<Record<string, TreeEntry>>) {
   if (fetched.status !== "ok") throw new Error(JSON.stringify(fetched));
   const found = findItems(fetched.files, { framework: id });
   if (found.status !== "ok") throw new Error(JSON.stringify(found));
-  const built = await buildContent(fetched.source, fetched.files, found.items, { framework: id });
+  const built = await buildContent(fetched.source, fetched.files, found.items, {
+    framework: id,
+    ...(plugins ? { plugins } : {}),
+  });
   if (built.status !== "ok") throw new Error(JSON.stringify(built));
   return {
     content: built.content,
@@ -281,5 +292,264 @@ describe("a client that reads another client's folder", () => {
       path: ".claude/skills/plain/SKILL.md",
       clis: ["claude-code", "copilot"],
     });
+  });
+});
+
+const ALPHA = {
+  LICENSE: "MIT\n",
+  "skills/tdd/SKILL.md": skill("tdd", "Red, then green, alpha style."),
+  "skills/teach/SKILL.md": skill("teach", "Teach one idea at a time."),
+  "agents/helper.md": "---\nname: helper\ndescription: Helps.\n---\nHelp the user.\n",
+};
+const BETA = {
+  "skills/tdd/SKILL.md": skill("tdd", "Tests first, beta style."),
+  "skills/teach/SKILL.md": skill("teach", "Teach one idea at a time."),
+};
+const RESOLVER = "aih.agent.duplicate-resolver";
+
+async function mixed() {
+  const alpha = await framework("alpha", ALPHA);
+  const beta = await framework("beta", BETA);
+  return { alpha, beta, contents: [alpha.content, beta.content] };
+}
+const BOTH = ["alpha.skill.tdd", "alpha.skill.teach", "beta.skill.tdd", "beta.skill.teach"];
+
+describe("mixing frameworks", () => {
+  it("lists same-name and same-content duplicates as facts and picks no winner", async () => {
+    const { contents } = await mixed();
+    const result = planned(
+      planInstall(BOTH, contents, [profile("claude-code")], { scope: "project", data: null }),
+    );
+
+    expect(result.duplicates).toEqual([
+      {
+        by: "content",
+        kind: "skill",
+        contentSha256: contents[0]?.items.find((item) => item.id === "alpha.skill.teach")
+          ?.contentSha256,
+        items: ["alpha.skill.teach", "beta.skill.teach"],
+        frameworks: ["alpha", "beta"],
+        clis: ["claude-code"],
+      },
+      {
+        by: "name",
+        kind: "skill",
+        name: "tdd",
+        items: ["alpha.skill.tdd", "beta.skill.tdd"],
+        frameworks: ["alpha", "beta"],
+        clis: ["claude-code"],
+      },
+      {
+        by: "name",
+        kind: "skill",
+        name: "teach",
+        items: ["alpha.skill.teach", "beta.skill.teach"],
+        frameworks: ["alpha", "beta"],
+        clis: ["claude-code"],
+      },
+    ]);
+    // The same place from two frameworks is a clash for both: neither wins.
+    expect(result.clashes.map((clash) => [clash.path, clash.items])).toEqual([
+      [".claude/skills/tdd", ["alpha.skill.tdd", "beta.skill.tdd"]],
+      [".claude/skills/teach", ["alpha.skill.teach", "beta.skill.teach"]],
+    ]);
+    expect(writes(result.plan).some((step) => step.path.startsWith(".claude/skills/t"))).toBe(
+      false,
+    );
+  });
+
+  it("keeps every renamed duplicate, copies upstream bodies unchanged and still reports content overlap", async () => {
+    const { contents } = await mixed();
+    const result = planned(
+      planInstall(BOTH, contents, [profile("claude-code")], {
+        scope: "project",
+        data: null,
+        names: { "beta.skill.tdd": "beta-tdd", "beta.skill.teach": "beta-teach" },
+      }),
+    );
+
+    expect(result.status).toBe("ok");
+    expect(result.clashes).toEqual([]);
+    expect(result.duplicates.map((entry) => [entry.by, entry.items])).toEqual([
+      ["content", ["alpha.skill.teach", "beta.skill.teach"]],
+    ]);
+    const skills = writes(result.plan).filter((step) => step.path.startsWith(".claude/skills/"));
+    expect(skills.map((step) => step.path)).toEqual([
+      ".claude/skills/beta-tdd/SKILL.md",
+      ".claude/skills/beta-teach/SKILL.md",
+      ".claude/skills/tdd/SKILL.md",
+      ".claude/skills/teach/SKILL.md",
+    ]);
+    // Only the renamed copies get a name render; no body is rewritten.
+    expect(skills.map((step) => step.render?.name ?? "copy")).toEqual([
+      "skill",
+      "skill",
+      "copy",
+      "copy",
+    ]);
+  });
+
+  it("adds the duplicate resolver and its report where agents are supported, and only warns elsewhere", async () => {
+    const { contents } = await mixed();
+    const result = planned(
+      planInstall(BOTH, contents, [profile("claude-code"), profile("codex"), profile("dsh")], {
+        scope: "project",
+        data: null,
+        names: { "beta.skill.tdd": "beta-tdd", "beta.skill.teach": "beta-teach" },
+      }),
+    );
+
+    expect(result.status).toBe("ok");
+    expect(result.unavailable).toEqual([]);
+    expect(result.warnings).toEqual([
+      { code: "duplicate-resolver-unavailable", cli: "dsh", items: [RESOLVER] },
+    ]);
+    const resolver = writes(result.plan).filter((step) => step.item === RESOLVER);
+    expect(resolver.map((step) => [step.path, step.clis, step.render?.name ?? "copy"])).toEqual([
+      [".aihq/duplicates.json", ["claude-code", "codex", "dsh"], "duplicates-report"],
+      [".claude/agents/aih-duplicate-resolver.md", ["claude-code"], "copy"],
+      [".codex/agents/aih-duplicate-resolver.toml", ["codex"], "agent"],
+    ]);
+    expect(resolver[1]?.from).toMatchObject({
+      sourceId: "aih",
+      sourcePath: "agents/duplicate-resolver.md",
+    });
+  });
+
+  it("renders the report and the resolver from the library's own authored content", async () => {
+    const { contents } = await mixed();
+    const clients = [profile("claude-code"), profile("codex")];
+    const result = planned(
+      planInstall(BOTH, contents, clients, {
+        scope: "project",
+        data: null,
+        names: { "beta.skill.tdd": "beta-tdd", "beta.skill.teach": "beta-teach" },
+      }),
+    );
+    const step = (path: string) =>
+      writes(result.plan).find((candidate) => candidate.path === path) as WriteStep;
+
+    const report = renderStep(step(".aihq/duplicates.json"), contents, clients, []);
+    if (report.status !== "ok") throw new Error(JSON.stringify(report));
+    expect(JSON.parse(utf8(report.bytes))).toEqual({ duplicates: result.duplicates });
+
+    const toml = renderStep(
+      step(".codex/agents/aih-duplicate-resolver.toml"),
+      contents,
+      clients,
+      [],
+    );
+    if (toml.status !== "ok") throw new Error(JSON.stringify(toml));
+    expect(utf8(toml.bytes)).toContain('name = "aih-duplicate-resolver"');
+    expect(utf8(toml.bytes)).toContain(".aihq/duplicates.json");
+  });
+
+  it("records the authored resolver exactly as the producer would build it from its bytes", async () => {
+    const read = readLocalSource(
+      folder(
+        Object.fromEntries(aihContent.files.map((file) => [file.sourcePath, utf8(file.bytes)])),
+        "aih",
+      ),
+    );
+    if (read.status !== "ok") throw new Error(JSON.stringify(read));
+    const found = findItems(read.files, { framework: "aih" });
+    if (found.status !== "ok") throw new Error(JSON.stringify(found));
+    const built = await buildContent(read.source, read.files, found.items, { framework: "aih" });
+    if (built.status !== "ok") throw new Error(JSON.stringify(built));
+    expect(aihContent.content.items).toEqual(built.content.items);
+    expect(aihContent.content.items.map((item) => [item.id, item.name])).toEqual([
+      [RESOLVER, "aih-duplicate-resolver"],
+    ]);
+  });
+
+  it("adds nothing for one framework, and an unsupported agent the user chose still blocks", async () => {
+    const { contents } = await mixed();
+    const one = planned(
+      planInstall(["alpha.skill.tdd"], contents, [profile("claude-code")], {
+        scope: "project",
+        data: null,
+      }),
+    );
+    expect(one.duplicates).toEqual([]);
+    expect(one.plan.some((step) => "item" in step && step.item === RESOLVER)).toBe(false);
+
+    const chosen = planned(
+      planInstall(["alpha.agent.helper", "beta.skill.tdd"], contents, [profile("dsh")], {
+        scope: "project",
+        data: null,
+      }),
+    );
+    expect(chosen.status).toBe("incomplete");
+    expect(chosen.unavailable).toEqual([
+      expect.objectContaining({
+        item: "alpha.agent.helper",
+        cli: "dsh",
+        reason: "unsupported-kind",
+      }),
+    ]);
+    expect(chosen.warnings).toEqual([
+      { code: "duplicate-resolver-unavailable", cli: "dsh", items: [RESOLVER] },
+    ]);
+  });
+});
+
+describe("items a route installs without placing them", () => {
+  it("still count for duplicates: a native plugin's skills against another framework's", async () => {
+    const sp = await pinned(
+      "sp",
+      {
+        ".claude-plugin/plugin.json": '{"name":"sp"}\n',
+        "skills/tdd/SKILL.md": skill("tdd", "Superpowered tests first."),
+      },
+      ["/"],
+    );
+    const beta = await framework("beta", BETA);
+    const read = recipe({
+      schema: "urn:aihq:catalog:recipe:0.1.0",
+      id: "sp-base",
+      kind: "base",
+      framework: "sp",
+      content: sp.pin,
+      routes: { "claude-code": "plugin" },
+      plugins: {
+        "claude-code": {
+          source: "sp",
+          path: "/",
+          plugin: "sp",
+          commit: sp.pin.commit,
+          marketplace: "https://example.invalid/sp-marketplace",
+        },
+      },
+      members: [
+        { item: "sp.skill.tdd", preTicked: true },
+        { item: "beta.skill.tdd", preTicked: true },
+      ],
+      data: DATA,
+    });
+    const plan = planned(
+      planRecipe(
+        read,
+        [sp.content, beta.content],
+        [profile("claude-code"), profile("codex")],
+        {},
+        { scope: "project", source: SOURCE },
+      ),
+    );
+
+    // Claude gets sp's tdd only through its plugin, and beta's not at all (its route is the
+    // plugin); Claude is still listed, because the plugin installs a same-named skill.
+    expect(plan.plan.filter((step) => step.op === "plugin").map((step) => step.cli)).toEqual([
+      "claude-code",
+    ]);
+    expect(plan.duplicates).toEqual([
+      {
+        by: "name",
+        kind: "skill",
+        name: "tdd",
+        items: ["beta.skill.tdd", "sp.skill.tdd"],
+        frameworks: ["beta", "sp"],
+        clis: ["claude-code", "codex"],
+      },
+    ]);
   });
 });

@@ -44,7 +44,11 @@ const TREE = {
 const id = (path: string) => `${FRAMEWORK}.skill.${path}`;
 const short = (value: string) => value.replace(`${FRAMEWORK}.`, "");
 const ids = (render: NonNullable<WriteStep["render"]>) =>
-  "profiles" in render ? render.profiles.map((entry) => entry.id).join("+") : render.profile;
+  "profiles" in render
+    ? render.profiles.map((entry) => entry.id).join("+")
+    : "profile" in render
+      ? render.profile
+      : "";
 
 function rows(plan: readonly PlanStep[]): string[] {
   return placements(plan).map((step) => {

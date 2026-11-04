@@ -117,6 +117,7 @@ interface Lowered {
   readonly warnings: Warning[];
   readonly missing: Missing[];
   readonly served: { item: string; cli: string }[];
+  readonly routed: { item: string; cli: string }[];
   readonly problems: Problem[];
 }
 
@@ -253,6 +254,7 @@ export function planRecipe(
     warnings: [],
     missing: [],
     served: [],
+    routed: [],
     problems: [],
   };
   const itemsRoute = new Set<string>();
@@ -302,6 +304,10 @@ export function planRecipe(
       const result = lowerSetup(recipe, content, profile.id, scope, pinned);
       if ("status" in result) return result;
       lowered.setups.push(result);
+      // The setup builds the framework's items itself; they are still recorded for duplicates.
+      for (const id of selection)
+        if (content.items.some((item) => item.id === id))
+          lowered.routed.push({ item: id, cli: profile.id });
     } else {
       const entry = recipe.plugins?.[profile.id] as RecipePlugin;
       const source = content.sources.find((candidate) => candidate.id === entry.source);
@@ -483,6 +489,7 @@ function lowerPlugin(
   }
   const items = containedIn(content, entry.source, entry.path);
   for (const code of install.warnings ?? []) lowered.warnings.push({ code, cli, items, framework });
+  for (const item of items) lowered.routed.push({ item, cli });
   lowered.plugins.push({
     op: "plugin",
     cli,

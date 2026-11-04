@@ -308,7 +308,7 @@ function rows(plan: readonly PlanStep[]): string[] {
     const clis = `[${step.clis.join(",")}]`;
     if (step.op === "link") return `link ${step.path} -> ${step.to} ${owner} ${clis}`;
     const render = step.render
-      ? ` ${step.render.name}@${"profiles" in step.render ? step.render.profiles.map((entry) => entry.id).join("+") : step.render.profile}`
+      ? ` ${step.render.name}@${"profiles" in step.render ? step.render.profiles.map((entry) => entry.id).join("+") : "profile" in step.render ? step.render.profile : ""}`
       : "";
     if (step.op === "merge")
       return `merge ${step.file} ${step.key.replace(`${FRAMEWORK}.`, "")} ${owner} ${clis}${render}`;
