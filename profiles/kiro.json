@@ -32,7 +32,8 @@
       "user": ".kiro/hooks/"
     },
     "rule": {
-      "project": ".kiro/steering/"
+      "project": ".kiro/steering/",
+      "user": ".kiro/steering/"
     }
   },
   "foldDescription": true,
@@ -82,6 +83,12 @@
     },
     "rule": {
       "project": {
+        "always": ".kiro/steering/<name>.md",
+        "by-description": ".kiro/steering/<name>.md",
+        "on-request": ".kiro/steering/<name>.md",
+        "paths": ".kiro/steering/<name>.md"
+      },
+      "user": {
         "always": ".kiro/steering/<name>.md",
         "by-description": ".kiro/steering/<name>.md",
         "on-request": ".kiro/steering/<name>.md",
@@ -200,5 +207,5 @@
       }
     ]
   },
-  "version": 5
+  "version": 6
 }

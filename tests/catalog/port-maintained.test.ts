@@ -482,13 +482,27 @@ describe("representative plans of the ported frameworks", () => {
       plan.plan.some((step) => step.op === "link" && step.path === ".kiro/skills/brainstorming"),
     ).toBe(true);
     expect(plan.references.some((reference) => reference.kind === "name")).toBe(true);
-    // Kiro documents no user-scope rule place, so the session-bootstrap rule cannot land there.
-    expect(plan.unavailable).toEqual([
-      expect.objectContaining({
-        item: "superpowers.rule.session-bootstrap",
-        cli: "kiro",
-        reason: "not-described",
-      }),
+    // Kiro reads global steering from ~/.kiro/steering/, so the session-bootstrap rule lands there.
+    expect(
+      placements(plan.plan).find(
+        (step) => step.op === "write" && step.path === ".kiro/steering/session-bootstrap.md",
+      ),
+    ).toMatchObject({ root: "user", item: "superpowers.rule.session-bootstrap", clis: ["kiro"] });
+    expect(plan.unavailable).toEqual([]);
+    // What still blocks: sibling-skill paths, which resolve in place only where skills are
+    // copied side by side (project scope); at user scope Kiro's skills are links into version
+    // folders, so a relative path leaves the linked folder.
+    expect(
+      plan.references
+        .filter((reference) => reference.kind === "path")
+        .map((reference) => `${reference.item} ${reference.path} ${reference.clis.join(",")}`),
+    ).toEqual([
+      "superpowers.skill.executing-plans skills/requesting-code-review/code-reviewer.md kiro",
+      "superpowers.skill.executing-plans skills/subagent-driven-development/scripts/review-package kiro",
+      "superpowers.skill.executing-plans skills/subagent-driven-development/scripts/sdd-workspace kiro",
+      "superpowers.skill.subagent-driven-development skills/requesting-code-review/code-reviewer.md kiro",
+      "superpowers.skill.writing-skills skills/using-superpowers/references/codex-tools.md kiro",
+      "superpowers.skill.writing-skills skills/using-superpowers/references/gemini-tools.md kiro",
     ]);
     expect(plan.status).toBe("incomplete");
   });
