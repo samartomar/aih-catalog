@@ -1,0 +1,54 @@
+{
+  "arguments": "substituted",
+  "checkedWith": [
+    {
+      "app": "kiro-cli",
+      "date": "2026-11-02",
+      "version": "2.37.1"
+    },
+    {
+      "app": "kiro-ide",
+      "date": "2026-11-02",
+      "version": "1.4.86"
+    }
+  ],
+  "id": "kiro",
+  "name": "Kiro",
+  "places": {
+    "rule": {
+      "project": {
+        "always": ".kiro/steering/<name>.md"
+      }
+    },
+    "skill": {
+      "project": ".kiro/skills/<name>/"
+    }
+  },
+  "ruleScopes": {
+    "always": {
+      "frontmatter": {
+        "inclusion": "always"
+      }
+    }
+  },
+  "schema": "urn:aihq:catalog:tool-profile:0.1.0",
+  "userOnly": "none",
+  "userOnlyFallback": {
+    "project": [
+      {
+        "arguments": "kept",
+        "id": "prompt",
+        "path": ".kiro/prompts/<name>.md"
+      },
+      {
+        "arguments": "reworded",
+        "frontmatter": {
+          "inclusion": "manual"
+        },
+        "id": "steering",
+        "path": ".kiro/steering/<name>.md"
+      }
+    ]
+  },
+  "version": 1
+}

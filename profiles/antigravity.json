@@ -1,0 +1,41 @@
+{
+  "arguments": "chat-text",
+  "checkedWith": [
+    {
+      "app": "agy",
+      "date": "2026-11-02",
+      "version": "1.4.12"
+    },
+    {
+      "app": "antigravity-app",
+      "date": "2026-11-02",
+      "version": "2.28.2"
+    }
+  ],
+  "id": "antigravity",
+  "name": "Antigravity",
+  "places": {
+    "rule": {
+      "project": {
+        "always": ".agents/rules/<name>.md"
+      }
+    },
+    "skill": {
+      "project": ".agents/skills/<name>/"
+    }
+  },
+  "ruleScopes": {
+    "always": {
+      "frontmatter": {
+        "trigger": "always_on"
+      }
+    }
+  },
+  "schema": "urn:aihq:catalog:tool-profile:0.1.0",
+  "userOnly": {
+    "frontmatter": {
+      "disable-model-invocation": true
+    }
+  },
+  "version": 1
+}
