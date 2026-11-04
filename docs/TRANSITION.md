@@ -122,8 +122,19 @@ dropped with its reason). The data is a candidate: it is not accepted until ever
 passes the data-commit gate, and Extensions has no base recipe until its package declares its
 routes.
 
+The remaining families are ported the same way: `data/anthropic`, `data/web-artifacts`,
+`data/guide`, `data/pstack`, `data/gstack` and `data/egm`, with `port-report/remaining.json`
+giving their earlier release items (outside the 777-item baseline) one disposition each and
+draft base recipes that the admitted data commit completes. An item Catalog may not ship
+(`fetch: "upstream"`, such as Anthropic's document skills) is planned as `fetch` steps from its
+pinned source, the first phase of a plan, unscanned and left out of the unscanned keys; a
+rendered file of it stays a write. Several plugins of one marketplace that share a folder are
+recorded as one allowlisted plugin folder each, named by plugin, and an include pattern ending in
+`/` takes every file below that folder. A `THIRD_PARTY_NOTICES` file is a notice. A bare path in
+program source no longer counts as a path reference; explicit relative paths still do.
+
 Kinds, scopes and routes that are not implemented yet
-(upstream fetching, combination recipes and AI setup) are reported as
+(combination recipes and AI setup) are reported as
 `not-implemented` leftovers, `unavailable` placements or `not-implemented` refusals rather
 than claimed, and a pair a profile does not describe is `unavailable` with its reason. Item scan
 keys come from Scan's `scanKeyOf` (`@aihq/scan/contracts`), installed from the exact

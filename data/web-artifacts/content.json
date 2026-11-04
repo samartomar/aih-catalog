@@ -1,0 +1,139 @@
+{
+  "framework": {
+    "id": "web-artifacts",
+    "name": "Web artifacts"
+  },
+  "items": [
+    {
+      "arguments": false,
+      "behaviourSha256": "a782da9bf69dc17f8a0292571970bcf0fa9407c98771ebfd16070935b053de33",
+      "contentSha256": "2cc3ad23d9e943e64ebfa389dbfa3f9243bb9d1a16e0489b496738413b016b40",
+      "description": "Build a standalone styled React HTML artifact using a locked project-local Vite pipeline.",
+      "files": [
+        {
+          "bytes": 3328,
+          "executable": false,
+          "role": "content",
+          "sha256": "e58b0102940a2ce6de8532d4974fc7a9b44e034624b907a3ddfd8a5e5c5c31f8",
+          "sourceId": "web-artifacts",
+          "sourcePath": "skills/web-artifacts-builder/SKILL.md"
+        },
+        {
+          "bytes": 1635,
+          "executable": false,
+          "role": "content",
+          "sha256": "a4dd347a9cbbb8164ffc1c94eec1dda571e383ad7c43fe8e481a6486341d6429",
+          "sourceId": "web-artifacts",
+          "sourcePath": "skills/web-artifacts-builder/artifact.mjs"
+        },
+        {
+          "bytes": 2456,
+          "executable": false,
+          "role": "content",
+          "sha256": "9240707fe8d607a690281f6796268621319c3716ea34946abad5136e875951b1",
+          "sourceId": "web-artifacts",
+          "sourcePath": "skills/web-artifacts-builder/template/build.mjs"
+        },
+        {
+          "bytes": 705,
+          "executable": false,
+          "role": "content",
+          "sha256": "d3eed8d953234a0b23e3015159483f01427eecd025282df46ff9437eabc05a45",
+          "sourceId": "web-artifacts",
+          "sourcePath": "skills/web-artifacts-builder/template/components.package.json"
+        },
+        {
+          "bytes": 41895,
+          "executable": false,
+          "role": "content",
+          "sha256": "3a3e9a028dcceb241cc1f0f5c7365c6125876d26185a0f1c3a4b758e5524424d",
+          "sourceId": "web-artifacts",
+          "sourcePath": "skills/web-artifacts-builder/template/components.pnpm-lock.yaml"
+        },
+        {
+          "bytes": 264,
+          "executable": false,
+          "role": "content",
+          "sha256": "0479209422e5dc5d08dc55586a2ddd39ea99cedb91393980324d7842bf254165",
+          "sourceId": "web-artifacts",
+          "sourcePath": "skills/web-artifacts-builder/template/index.html"
+        },
+        {
+          "bytes": 550,
+          "executable": false,
+          "role": "content",
+          "sha256": "4669723da0d61798a9b69b6519457c414cf0568ff3035e13cb5c14764dd802b2",
+          "sourceId": "web-artifacts",
+          "sourcePath": "skills/web-artifacts-builder/template/package.json"
+        },
+        {
+          "bytes": 40512,
+          "executable": false,
+          "role": "content",
+          "sha256": "5209f37988c14d245956c92348c91151dae5ceaa8e6e622d2b6109a79655a225",
+          "sourceId": "web-artifacts",
+          "sourcePath": "skills/web-artifacts-builder/template/pnpm-lock.yaml"
+        },
+        {
+          "bytes": 105,
+          "executable": false,
+          "role": "content",
+          "sha256": "f004ebc02641e010049acafbc3feca3562e149c978b3a540960069df13584445",
+          "sourceId": "web-artifacts",
+          "sourcePath": "skills/web-artifacts-builder/template/pnpm-workspace.yaml"
+        },
+        {
+          "bytes": 555,
+          "executable": false,
+          "role": "content",
+          "sha256": "b14f43770b99181573962628f91c282d96687b6b2c2bf152ca1438bbb4103c7b",
+          "sourceId": "web-artifacts",
+          "sourcePath": "skills/web-artifacts-builder/template/src/main.tsx"
+        },
+        {
+          "bytes": 50,
+          "executable": false,
+          "role": "content",
+          "sha256": "0288e3d6f9a42264cf8cc5797d7878f61e06faf2e14403e925ef5ffaf475035a",
+          "sourceId": "web-artifacts",
+          "sourcePath": "skills/web-artifacts-builder/template/src/style.css"
+        },
+        {
+          "bytes": 38,
+          "executable": false,
+          "role": "content",
+          "sha256": "65996936fbb042915f7b74a200fcdde7e410f32a669b1ab9597cfaa4b0faddb5",
+          "sourceId": "web-artifacts",
+          "sourcePath": "skills/web-artifacts-builder/template/src/vite-env.d.ts"
+        },
+        {
+          "bytes": 243,
+          "executable": false,
+          "role": "content",
+          "sha256": "c904f7667b845b93bf5e2a5ffb4c7e5f1c4cfbab768e0f6f53ed6682a84e4d50",
+          "sourceId": "web-artifacts",
+          "sourcePath": "skills/web-artifacts-builder/template/tsconfig.json"
+        }
+      ],
+      "id": "web-artifacts.skill.web-artifacts-builder",
+      "kind": "skill",
+      "name": "web-artifacts-builder-modern",
+      "scanKey": "git-sha1:a095b4b444f896e135592dad0bc816b22ff9d664",
+      "userOnly": false
+    }
+  ],
+  "schema": "urn:aihq:catalog:content:0.1.0",
+  "sources": [
+    {
+      "id": "web-artifacts",
+      "kind": "authored",
+      "notices": [
+        {
+          "covers": "skills/web-artifacts-builder",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+          "sourcePath": "skills/web-artifacts-builder/LICENSE.txt"
+        }
+      ]
+    }
+  ]
+}

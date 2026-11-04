@@ -1,0 +1,3915 @@
+{
+  "added": [
+    {
+      "fetch": "upstream",
+      "item": "anthropic.skill.doc-coauthoring",
+      "kind": "skill"
+    },
+    {
+      "fetch": "upstream",
+      "item": "anthropic.skill.docx",
+      "kind": "skill"
+    },
+    {
+      "fetch": "upstream",
+      "item": "anthropic.skill.pdf",
+      "kind": "skill"
+    },
+    {
+      "fetch": "upstream",
+      "item": "anthropic.skill.pptx",
+      "kind": "skill"
+    },
+    {
+      "fetch": "upstream",
+      "item": "anthropic.skill.xlsx",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.agent.comment-sicko",
+      "kind": "agent"
+    },
+    {
+      "item": "pstack.agent.poteto-agent",
+      "kind": "agent"
+    },
+    {
+      "item": "pstack.skill.architect",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.arena",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.automate-me",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.benchmark-checklist",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.blast-radius",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.bro",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.correct",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.create-formal-verification-skill",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.create-verification-skill",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.figure-it-out",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.how",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.in-your-own-words",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.interrogate",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.ketchup",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.ketchup-video",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.maintain-formal-verification-skill",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.maintain-verification-skill",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.make-bot-ui",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.no-comments",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.poteto-help",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.poteto-mode",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.principle-attack-the-premise",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.principle-boundary-discipline",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.principle-build-the-lever",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.principle-encode-lessons-in-structure",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.principle-exhaust-the-design-space",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.principle-experience-first",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.principle-explain-the-number",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.principle-fix-root-causes",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.principle-foundational-thinking",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.principle-guard-the-context-window",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.principle-laziness-protocol",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.principle-make-operations-idempotent",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.principle-migrate-callers-then-delete-legacy-apis",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.principle-minimize-reader-load",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.principle-model-the-domain",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.principle-never-block-on-the-human",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.principle-outcome-oriented-execution",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.principle-prove-it-works",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.principle-redesign-from-first-principles",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.principle-separate-before-serializing-shared-state",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.principle-sequence-verifiable-units",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.principle-subtract-before-you-add",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.principle-test-behavior-not-implementation",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.principle-type-system-discipline",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.recall",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.reflect",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.setup-pstack",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.sharpen",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.show-me-your-work",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.statechart",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.swarm",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.tdd",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.teach",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.technical-writing",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.typescript-best-practices",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.unslop",
+      "kind": "skill"
+    },
+    {
+      "item": "pstack.skill.why",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.autoplan",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.benchmark",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.benchmark-models",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.browse",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.canary",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.captain",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.careful",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.codex",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.context-restore",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.context-save",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.cso",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.design-consultation",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.design-html",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.design-motion",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.design-review",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.design-shotgun",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.deslop-shared-libs",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.devex-review",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.diagram",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.document-generate",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.document-release",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.eval-plan",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.freeze",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.gstack-upgrade",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.guard",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.health",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.investigate",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.ios-clean",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.ios-design-review",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.ios-fix",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.ios-qa",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.ios-sync",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.land-and-deploy",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.landing-report",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.learn",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.make-pdf",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.modernize",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.office-hours",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.open-gstack-browser",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.pair-agent",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.plan-ceo-review",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.plan-design-review",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.plan-devex-review",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.plan-eng-review",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.plan-tune",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.qa",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.qa-only",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.retro",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.review",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.scrape",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.setup-browser-cookies",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.setup-deploy",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.setup-gbrain",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.ship",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.skillify",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.spec",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.sync-gbrain",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.test-audit",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.ubicloud",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.unfreeze",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.verify",
+      "kind": "skill"
+    },
+    {
+      "item": "gstack.skill.write-skill",
+      "kind": "skill"
+    },
+    {
+      "item": "egm.agent.bootstrap_orchestrator",
+      "kind": "agent"
+    },
+    {
+      "item": "egm.agent.codebase_details",
+      "kind": "agent"
+    },
+    {
+      "item": "egm.agent.comprehension",
+      "kind": "agent"
+    },
+    {
+      "item": "egm.agent.design_critic",
+      "kind": "agent"
+    },
+    {
+      "item": "egm.agent.implementation_readiness",
+      "kind": "agent"
+    },
+    {
+      "item": "egm.agent.structural",
+      "kind": "agent"
+    },
+    {
+      "item": "egm.agent.style",
+      "kind": "agent"
+    },
+    {
+      "item": "egm.agent.synthesizer",
+      "kind": "agent"
+    },
+    {
+      "item": "egm.agent.zoom_out",
+      "kind": "agent"
+    },
+    {
+      "item": "egm.skill.egm-bootstrap",
+      "kind": "skill"
+    },
+    {
+      "item": "egm.skill.egm-brainstorm",
+      "kind": "skill"
+    },
+    {
+      "item": "egm.skill.egm-draft",
+      "kind": "skill"
+    },
+    {
+      "item": "egm.skill.egm-drift-report",
+      "kind": "skill"
+    },
+    {
+      "item": "egm.skill.egm-resolve",
+      "kind": "skill"
+    },
+    {
+      "item": "egm.skill.egm-review",
+      "kind": "skill"
+    },
+    {
+      "item": "egm.skill.egm-review-loop",
+      "kind": "skill"
+    }
+  ],
+  "baseline": {
+    "earlier": {
+      "anthropic": {
+        "file": "release/release-anthropic.json",
+        "items": 46
+      },
+      "guide": {
+        "file": "release/release-guide.json",
+        "items": 1
+      },
+      "project-context": {
+        "file": "release/release.json",
+        "items": 46
+      },
+      "web-artifacts": {
+        "file": "release/release-web-artifacts.json",
+        "items": 3
+      }
+    },
+    "measured": "urn:aihq:catalog:release:1.7.0",
+    "relation": "none of these families' items is in the measured 777-item baseline (ECC, Superpowers, Extensions and project-basics, all disposed in port-report/maintained.json). Their earlier items live in older release documents, disposed below; pstack, gstack and EGM are new families with no earlier items"
+  },
+  "contentItems": {
+    "anthropic": 18,
+    "egm": 16,
+    "gstack": 62,
+    "guide": 2,
+    "pstack": 60,
+    "web-artifacts": 1
+  },
+  "counts": {
+    "contentItems": 159,
+    "dropped": 22,
+    "earlierItems": 96,
+    "mapped": 69,
+    "newItems": 143,
+    "notice": 3,
+    "split": 2,
+    "upstreamOnly": 5
+  },
+  "dispositions": [
+    {
+      "disposition": "dropped",
+      "earlier": {
+        "family": "project-context",
+        "id": "aihq.client.antigravity",
+        "kind": "client-adapter",
+        "paths": [
+          "ai-coding/adapters/antigravity.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "note": "a per-client adapter or entry pointer; where each kind of content goes in each client is now the tool profiles' job, and the closing default release retired it with no successor",
+      "reason": "per-client-wiring"
+    },
+    {
+      "disposition": "dropped",
+      "earlier": {
+        "family": "project-context",
+        "id": "aihq.client.claude",
+        "kind": "client-adapter",
+        "paths": [
+          "ai-coding/adapters/claude.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "note": "a per-client adapter or entry pointer; where each kind of content goes in each client is now the tool profiles' job, and the closing default release retired it with no successor",
+      "reason": "per-client-wiring"
+    },
+    {
+      "disposition": "dropped",
+      "earlier": {
+        "family": "project-context",
+        "id": "aihq.client.codex",
+        "kind": "client-adapter",
+        "paths": [
+          "ai-coding/adapters/codex.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "note": "a per-client adapter or entry pointer; where each kind of content goes in each client is now the tool profiles' job, and the closing default release retired it with no successor",
+      "reason": "per-client-wiring"
+    },
+    {
+      "disposition": "dropped",
+      "earlier": {
+        "family": "project-context",
+        "id": "aihq.client.copilot",
+        "kind": "client-adapter",
+        "paths": [
+          "ai-coding/adapters/copilot.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "note": "a per-client adapter or entry pointer; where each kind of content goes in each client is now the tool profiles' job, and the closing default release retired it with no successor",
+      "reason": "per-client-wiring"
+    },
+    {
+      "disposition": "dropped",
+      "earlier": {
+        "family": "project-context",
+        "id": "aihq.client.cursor",
+        "kind": "client-adapter",
+        "paths": [
+          "ai-coding/adapters/cursor.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "note": "a per-client adapter or entry pointer; where each kind of content goes in each client is now the tool profiles' job, and the closing default release retired it with no successor",
+      "reason": "per-client-wiring"
+    },
+    {
+      "disposition": "dropped",
+      "earlier": {
+        "family": "project-context",
+        "id": "aihq.client.gemini",
+        "kind": "client-adapter",
+        "paths": [
+          "ai-coding/adapters/gemini.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "note": "a per-client adapter or entry pointer; where each kind of content goes in each client is now the tool profiles' job, and the closing default release retired it with no successor",
+      "reason": "per-client-wiring"
+    },
+    {
+      "disposition": "dropped",
+      "earlier": {
+        "family": "project-context",
+        "id": "aihq.client.kimi",
+        "kind": "client-adapter",
+        "paths": [
+          "ai-coding/adapters/kimi.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "note": "a per-client adapter or entry pointer; where each kind of content goes in each client is now the tool profiles' job, and the closing default release retired it with no successor",
+      "reason": "per-client-wiring"
+    },
+    {
+      "disposition": "dropped",
+      "earlier": {
+        "family": "project-context",
+        "id": "aihq.client.kiro",
+        "kind": "client-adapter",
+        "paths": [
+          "ai-coding/adapters/kiro.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "note": "a per-client adapter or entry pointer; where each kind of content goes in each client is now the tool profiles' job, and the closing default release retired it with no successor",
+      "reason": "per-client-wiring"
+    },
+    {
+      "disposition": "dropped",
+      "earlier": {
+        "family": "project-context",
+        "id": "aihq.client.opencode",
+        "kind": "client-adapter",
+        "paths": [
+          "ai-coding/adapters/opencode.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "note": "a per-client adapter or entry pointer; where each kind of content goes in each client is now the tool profiles' job, and the closing default release retired it with no successor",
+      "reason": "per-client-wiring"
+    },
+    {
+      "disposition": "dropped",
+      "earlier": {
+        "family": "project-context",
+        "id": "aihq.client.windsurf",
+        "kind": "client-adapter",
+        "paths": [
+          "ai-coding/adapters/windsurf.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "note": "a per-client adapter or entry pointer; where each kind of content goes in each client is now the tool profiles' job, and the closing default release retired it with no successor",
+      "reason": "per-client-wiring"
+    },
+    {
+      "disposition": "dropped",
+      "earlier": {
+        "family": "project-context",
+        "id": "aihq.client.zed",
+        "kind": "client-adapter",
+        "paths": [
+          "ai-coding/adapters/zed.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "note": "a per-client adapter or entry pointer; where each kind of content goes in each client is now the tool profiles' job, and the closing default release retired it with no successor",
+      "reason": "per-client-wiring"
+    },
+    {
+      "disposition": "split",
+      "earlier": {
+        "family": "guide",
+        "id": "aihq.guide",
+        "kind": "agent",
+        "paths": [
+          "LICENSE",
+          "docs/guide-evidence.md",
+          "guide/MANUAL.md",
+          "guide/compass.svg",
+          "guide/generated/claude/aih-guide.md",
+          "guide/generated/kimi/aih-guide.md",
+          "guide/generated/opencode/aih-guide.md",
+          "guide/manifest.json",
+          "guide/metadata.json",
+          "guide/source.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "items": [
+        "guide.agent.aih-guide",
+        "guide.document.manual"
+      ],
+      "note": "the reference agent profiles are one agent item with Kimi and OpenCode editions; the offline manual is a document. The build inputs (source.md, manifest.json, metadata.json, compass.svg) and the evidence page are not items"
+    },
+    {
+      "disposition": "split",
+      "earlier": {
+        "family": "project-context",
+        "id": "aihq.project-context",
+        "kind": "project-context",
+        "paths": [
+          "ai-coding/RULE_ROUTER.md",
+          "ai-coding/adapters/_shared-canonical-block.md",
+          "ai-coding/rules/agent-behavior-core.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "items": [
+        "project-basics.document.rule-router",
+        "project-basics.rule.agent-behavior-core",
+        "project-basics.rule.shared-block"
+      ],
+      "note": "already split into the three Project basics items by the closing default release; those items are the maintained port's (port-report/maintained.json)"
+    },
+    {
+      "disposition": "dropped",
+      "earlier": {
+        "family": "project-context",
+        "id": "aihq.project-context-pointer.agents-md",
+        "kind": "client-entry-pointer",
+        "paths": [],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "note": "a per-client adapter or entry pointer; where each kind of content goes in each client is now the tool profiles' job, and the closing default release retired it with no successor",
+      "reason": "per-client-wiring"
+    },
+    {
+      "disposition": "dropped",
+      "earlier": {
+        "family": "project-context",
+        "id": "aihq.project-context-pointer.claude-md",
+        "kind": "client-entry-pointer",
+        "paths": [],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "note": "a per-client adapter or entry pointer; where each kind of content goes in each client is now the tool profiles' job, and the closing default release retired it with no successor",
+      "reason": "per-client-wiring"
+    },
+    {
+      "disposition": "dropped",
+      "earlier": {
+        "family": "project-context",
+        "id": "aihq.project-context-pointer.copilot-instructions",
+        "kind": "client-entry-pointer",
+        "paths": [],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "note": "a per-client adapter or entry pointer; where each kind of content goes in each client is now the tool profiles' job, and the closing default release retired it with no successor",
+      "reason": "per-client-wiring"
+    },
+    {
+      "disposition": "dropped",
+      "earlier": {
+        "family": "project-context",
+        "id": "aihq.project-context-pointer.cursor-rules",
+        "kind": "client-entry-pointer",
+        "paths": [
+          "pointers/.cursor/rules/00-canon.mdc"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "note": "a per-client adapter or entry pointer; where each kind of content goes in each client is now the tool profiles' job, and the closing default release retired it with no successor",
+      "reason": "per-client-wiring"
+    },
+    {
+      "disposition": "dropped",
+      "earlier": {
+        "family": "project-context",
+        "id": "aihq.project-context-pointer.gemini-md",
+        "kind": "client-entry-pointer",
+        "paths": [],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "note": "a per-client adapter or entry pointer; where each kind of content goes in each client is now the tool profiles' job, and the closing default release retired it with no successor",
+      "reason": "per-client-wiring"
+    },
+    {
+      "disposition": "dropped",
+      "earlier": {
+        "family": "project-context",
+        "id": "aihq.project-context-pointer.kiro-steering",
+        "kind": "client-entry-pointer",
+        "paths": [
+          "pointers/.kiro/steering/00-canon.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "note": "a per-client adapter or entry pointer; where each kind of content goes in each client is now the tool profiles' job, and the closing default release retired it with no successor",
+      "reason": "per-client-wiring"
+    },
+    {
+      "disposition": "dropped",
+      "earlier": {
+        "family": "project-context",
+        "id": "aihq.project-context-pointer.windsurfrules",
+        "kind": "client-entry-pointer",
+        "paths": [],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "note": "a per-client adapter or entry pointer; where each kind of content goes in each client is now the tool profiles' job, and the closing default release retired it with no successor",
+      "reason": "per-client-wiring"
+    },
+    {
+      "disposition": "notice",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.copilot.notice.shadcn",
+        "kind": "notice",
+        "paths": [
+          "LICENSE.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "note": "the shadcn licence is the notice-only source shadcn-notice, copied with anthropic.skill.web-artifacts-builder"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.copilot.skill.academy-guide",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/academy-guide/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.academy-guide",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.copilot.skill.algorithmic-art",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/algorithmic-art/LICENSE.txt",
+          "skills/algorithmic-art/SKILL.md",
+          "skills/algorithmic-art/templates/generator_template.js",
+          "skills/algorithmic-art/templates/viewer.html"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.algorithmic-art",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.copilot.skill.brand-guidelines",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/brand-guidelines/LICENSE.txt",
+          "skills/brand-guidelines/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.brand-guidelines",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.copilot.skill.canvas-design",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/canvas-design/LICENSE.txt",
+          "skills/canvas-design/SKILL.md",
+          "skills/canvas-design/canvas-fonts/ArsenalSC-OFL.txt",
+          "skills/canvas-design/canvas-fonts/ArsenalSC-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/BigShoulders-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/BigShoulders-OFL.txt",
+          "skills/canvas-design/canvas-fonts/BigShoulders-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/Boldonse-OFL.txt",
+          "skills/canvas-design/canvas-fonts/Boldonse-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/BricolageGrotesque-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/BricolageGrotesque-OFL.txt",
+          "skills/canvas-design/canvas-fonts/BricolageGrotesque-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/CrimsonPro-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/CrimsonPro-Italic.ttf",
+          "skills/canvas-design/canvas-fonts/CrimsonPro-OFL.txt",
+          "skills/canvas-design/canvas-fonts/CrimsonPro-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/DMMono-OFL.txt",
+          "skills/canvas-design/canvas-fonts/DMMono-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/EricaOne-OFL.txt",
+          "skills/canvas-design/canvas-fonts/EricaOne-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/GeistMono-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/GeistMono-OFL.txt",
+          "skills/canvas-design/canvas-fonts/GeistMono-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/Gloock-OFL.txt",
+          "skills/canvas-design/canvas-fonts/Gloock-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/IBMPlexMono-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/IBMPlexMono-OFL.txt",
+          "skills/canvas-design/canvas-fonts/IBMPlexMono-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/IBMPlexSerif-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/IBMPlexSerif-BoldItalic.ttf",
+          "skills/canvas-design/canvas-fonts/IBMPlexSerif-Italic.ttf",
+          "skills/canvas-design/canvas-fonts/IBMPlexSerif-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/InstrumentSans-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/InstrumentSans-BoldItalic.ttf",
+          "skills/canvas-design/canvas-fonts/InstrumentSans-Italic.ttf",
+          "skills/canvas-design/canvas-fonts/InstrumentSans-OFL.txt",
+          "skills/canvas-design/canvas-fonts/InstrumentSans-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/InstrumentSerif-Italic.ttf",
+          "skills/canvas-design/canvas-fonts/InstrumentSerif-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/Italiana-OFL.txt",
+          "skills/canvas-design/canvas-fonts/Italiana-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/JetBrainsMono-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/JetBrainsMono-OFL.txt",
+          "skills/canvas-design/canvas-fonts/JetBrainsMono-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/Jura-Light.ttf",
+          "skills/canvas-design/canvas-fonts/Jura-Medium.ttf",
+          "skills/canvas-design/canvas-fonts/Jura-OFL.txt",
+          "skills/canvas-design/canvas-fonts/LibreBaskerville-OFL.txt",
+          "skills/canvas-design/canvas-fonts/LibreBaskerville-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/Lora-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/Lora-BoldItalic.ttf",
+          "skills/canvas-design/canvas-fonts/Lora-Italic.ttf",
+          "skills/canvas-design/canvas-fonts/Lora-OFL.txt",
+          "skills/canvas-design/canvas-fonts/Lora-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/NationalPark-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/NationalPark-OFL.txt",
+          "skills/canvas-design/canvas-fonts/NationalPark-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/NothingYouCouldDo-OFL.txt",
+          "skills/canvas-design/canvas-fonts/NothingYouCouldDo-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/Outfit-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/Outfit-OFL.txt",
+          "skills/canvas-design/canvas-fonts/Outfit-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/PixelifySans-Medium.ttf",
+          "skills/canvas-design/canvas-fonts/PixelifySans-OFL.txt",
+          "skills/canvas-design/canvas-fonts/PoiretOne-OFL.txt",
+          "skills/canvas-design/canvas-fonts/PoiretOne-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/RedHatMono-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/RedHatMono-OFL.txt",
+          "skills/canvas-design/canvas-fonts/RedHatMono-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/Silkscreen-OFL.txt",
+          "skills/canvas-design/canvas-fonts/Silkscreen-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/SmoochSans-Medium.ttf",
+          "skills/canvas-design/canvas-fonts/SmoochSans-OFL.txt",
+          "skills/canvas-design/canvas-fonts/Tektur-Medium.ttf",
+          "skills/canvas-design/canvas-fonts/Tektur-OFL.txt",
+          "skills/canvas-design/canvas-fonts/Tektur-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/WorkSans-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/WorkSans-BoldItalic.ttf",
+          "skills/canvas-design/canvas-fonts/WorkSans-Italic.ttf",
+          "skills/canvas-design/canvas-fonts/WorkSans-OFL.txt",
+          "skills/canvas-design/canvas-fonts/WorkSans-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/YoungSerif-OFL.txt",
+          "skills/canvas-design/canvas-fonts/YoungSerif-Regular.ttf"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.canvas-design",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "dropped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.copilot.skill.claude-api",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/claude-api/LICENSE.txt",
+          "skills/claude-api/SKILL.md",
+          "skills/claude-api/csharp/claude-api/README.md",
+          "skills/claude-api/csharp/claude-api/batches.md",
+          "skills/claude-api/csharp/claude-api/files-api.md",
+          "skills/claude-api/csharp/claude-api/streaming.md",
+          "skills/claude-api/csharp/claude-api/tool-use.md",
+          "skills/claude-api/curl/examples.md",
+          "skills/claude-api/curl/managed-agents.md",
+          "skills/claude-api/go/claude-api/README.md",
+          "skills/claude-api/go/claude-api/files-api.md",
+          "skills/claude-api/go/claude-api/streaming.md",
+          "skills/claude-api/go/claude-api/tool-use.md",
+          "skills/claude-api/go/managed-agents/README.md",
+          "skills/claude-api/java/claude-api/README.md",
+          "skills/claude-api/java/claude-api/files-api.md",
+          "skills/claude-api/java/claude-api/streaming.md",
+          "skills/claude-api/java/claude-api/tool-use.md",
+          "skills/claude-api/java/managed-agents/README.md",
+          "skills/claude-api/php/claude-api/README.md",
+          "skills/claude-api/php/claude-api/batches.md",
+          "skills/claude-api/php/claude-api/files-api.md",
+          "skills/claude-api/php/claude-api/streaming.md",
+          "skills/claude-api/php/claude-api/tool-use.md",
+          "skills/claude-api/php/managed-agents/README.md",
+          "skills/claude-api/python/claude-api/README.md",
+          "skills/claude-api/python/claude-api/batches.md",
+          "skills/claude-api/python/claude-api/files-api.md",
+          "skills/claude-api/python/claude-api/sdk-upgrade.md",
+          "skills/claude-api/python/claude-api/streaming.md",
+          "skills/claude-api/python/claude-api/tool-use.md",
+          "skills/claude-api/python/managed-agents/README.md",
+          "skills/claude-api/ruby/claude-api/README.md",
+          "skills/claude-api/ruby/claude-api/streaming.md",
+          "skills/claude-api/ruby/claude-api/tool-use.md",
+          "skills/claude-api/ruby/managed-agents/README.md",
+          "skills/claude-api/shared/admin-api.md",
+          "skills/claude-api/shared/agent-design.md",
+          "skills/claude-api/shared/anthropic-cli.md",
+          "skills/claude-api/shared/claude-platform-on-aws.md",
+          "skills/claude-api/shared/cost-optimization.md",
+          "skills/claude-api/shared/error-codes.md",
+          "skills/claude-api/shared/live-sources.md",
+          "skills/claude-api/shared/managed-agents-api-reference.md",
+          "skills/claude-api/shared/managed-agents-client-patterns.md",
+          "skills/claude-api/shared/managed-agents-core.md",
+          "skills/claude-api/shared/managed-agents-environments.md",
+          "skills/claude-api/shared/managed-agents-events.md",
+          "skills/claude-api/shared/managed-agents-memory.md",
+          "skills/claude-api/shared/managed-agents-multiagent.md",
+          "skills/claude-api/shared/managed-agents-onboarding.md",
+          "skills/claude-api/shared/managed-agents-outcomes.md",
+          "skills/claude-api/shared/managed-agents-overview.md",
+          "skills/claude-api/shared/managed-agents-scheduled-deployments.md",
+          "skills/claude-api/shared/managed-agents-self-hosted-sandboxes.md",
+          "skills/claude-api/shared/managed-agents-tools.md",
+          "skills/claude-api/shared/managed-agents-webhooks.md",
+          "skills/claude-api/shared/model-migration.md",
+          "skills/claude-api/shared/models.md",
+          "skills/claude-api/shared/platform-availability.md",
+          "skills/claude-api/shared/prompt-audit.md",
+          "skills/claude-api/shared/prompt-caching.md",
+          "skills/claude-api/shared/token-counting.md",
+          "skills/claude-api/shared/tool-use-concepts.md",
+          "skills/claude-api/typescript/claude-api/README.md",
+          "skills/claude-api/typescript/claude-api/batches.md",
+          "skills/claude-api/typescript/claude-api/files-api.md",
+          "skills/claude-api/typescript/claude-api/streaming.md",
+          "skills/claude-api/typescript/claude-api/tool-use.md",
+          "skills/claude-api/typescript/managed-agents/README.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "note": "its upstream description is longer than the 1024 characters an item may carry (the Agent Skills limit), and Catalog does not edit upstream files",
+      "reason": "unrepresentable-description"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.copilot.skill.discernment-nudge",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/discernment-nudge/LICENSE.txt",
+          "skills/discernment-nudge/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.discernment-nudge",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.copilot.skill.frontend-design",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/frontend-design/LICENSE.txt",
+          "skills/frontend-design/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.frontend-design",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.copilot.skill.internal-comms",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/internal-comms/LICENSE.txt",
+          "skills/internal-comms/SKILL.md",
+          "skills/internal-comms/examples/3p-updates.md",
+          "skills/internal-comms/examples/company-newsletter.md",
+          "skills/internal-comms/examples/faq-answers.md",
+          "skills/internal-comms/examples/general-comms.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.internal-comms",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.copilot.skill.mcp-builder",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/mcp-builder/LICENSE.txt",
+          "skills/mcp-builder/SKILL.md",
+          "skills/mcp-builder/reference/evaluation.md",
+          "skills/mcp-builder/reference/mcp_best_practices.md",
+          "skills/mcp-builder/reference/node_mcp_server.md",
+          "skills/mcp-builder/reference/python_mcp_server.md",
+          "skills/mcp-builder/scripts/connections.py",
+          "skills/mcp-builder/scripts/evaluation.py",
+          "skills/mcp-builder/scripts/example_evaluation.xml",
+          "skills/mcp-builder/scripts/requirements.txt"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.mcp-builder",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.copilot.skill.skill-creator",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/skill-creator/LICENSE.txt",
+          "skills/skill-creator/SKILL.md",
+          "skills/skill-creator/agents/analyzer.md",
+          "skills/skill-creator/agents/comparator.md",
+          "skills/skill-creator/agents/grader.md",
+          "skills/skill-creator/assets/eval_review.html",
+          "skills/skill-creator/eval-viewer/generate_review.py",
+          "skills/skill-creator/eval-viewer/viewer.html",
+          "skills/skill-creator/references/schemas.md",
+          "skills/skill-creator/scripts/__init__.py",
+          "skills/skill-creator/scripts/aggregate_benchmark.py",
+          "skills/skill-creator/scripts/generate_report.py",
+          "skills/skill-creator/scripts/improve_description.py",
+          "skills/skill-creator/scripts/package_skill.py",
+          "skills/skill-creator/scripts/quick_validate.py",
+          "skills/skill-creator/scripts/run_eval.py",
+          "skills/skill-creator/scripts/run_loop.py",
+          "skills/skill-creator/scripts/utils.py"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.skill-creator",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.copilot.skill.slack-gif-creator",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/slack-gif-creator/LICENSE.txt",
+          "skills/slack-gif-creator/SKILL.md",
+          "skills/slack-gif-creator/core/easing.py",
+          "skills/slack-gif-creator/core/frame_composer.py",
+          "skills/slack-gif-creator/core/gif_builder.py",
+          "skills/slack-gif-creator/core/validators.py",
+          "skills/slack-gif-creator/requirements.txt"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.slack-gif-creator",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.copilot.skill.theme-factory",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/theme-factory/LICENSE.txt",
+          "skills/theme-factory/SKILL.md",
+          "skills/theme-factory/theme-showcase.pdf",
+          "skills/theme-factory/themes/arctic-frost.md",
+          "skills/theme-factory/themes/botanical-garden.md",
+          "skills/theme-factory/themes/desert-rose.md",
+          "skills/theme-factory/themes/forest-canopy.md",
+          "skills/theme-factory/themes/golden-hour.md",
+          "skills/theme-factory/themes/midnight-galaxy.md",
+          "skills/theme-factory/themes/modern-minimalist.md",
+          "skills/theme-factory/themes/ocean-depths.md",
+          "skills/theme-factory/themes/sunset-boulevard.md",
+          "skills/theme-factory/themes/tech-innovation.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.theme-factory",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.copilot.skill.web-artifacts-builder",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/web-artifacts-builder/LICENSE.txt",
+          "skills/web-artifacts-builder/SKILL.md",
+          "skills/web-artifacts-builder/scripts/bundle-artifact.sh",
+          "skills/web-artifacts-builder/scripts/init-artifact.sh",
+          "skills/web-artifacts-builder/scripts/shadcn-components.tar.gz"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.web-artifacts-builder",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.copilot.skill.webapp-testing",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/webapp-testing/LICENSE.txt",
+          "skills/webapp-testing/SKILL.md",
+          "skills/webapp-testing/examples/console_logging.py",
+          "skills/webapp-testing/examples/element_discovery.py",
+          "skills/webapp-testing/examples/static_html_automation.py",
+          "skills/webapp-testing/scripts/with_server.py"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.webapp-testing",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "notice",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.kiro.notice.shadcn",
+        "kind": "notice",
+        "paths": [
+          "LICENSE.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "note": "the shadcn licence is the notice-only source shadcn-notice, copied with anthropic.skill.web-artifacts-builder"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.kiro.skill.academy-guide",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/academy-guide/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.academy-guide",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.kiro.skill.algorithmic-art",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/algorithmic-art/LICENSE.txt",
+          "skills/algorithmic-art/SKILL.md",
+          "skills/algorithmic-art/templates/generator_template.js",
+          "skills/algorithmic-art/templates/viewer.html"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.algorithmic-art",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.kiro.skill.brand-guidelines",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/brand-guidelines/LICENSE.txt",
+          "skills/brand-guidelines/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.brand-guidelines",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.kiro.skill.canvas-design",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/canvas-design/LICENSE.txt",
+          "skills/canvas-design/SKILL.md",
+          "skills/canvas-design/canvas-fonts/ArsenalSC-OFL.txt",
+          "skills/canvas-design/canvas-fonts/ArsenalSC-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/BigShoulders-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/BigShoulders-OFL.txt",
+          "skills/canvas-design/canvas-fonts/BigShoulders-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/Boldonse-OFL.txt",
+          "skills/canvas-design/canvas-fonts/Boldonse-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/BricolageGrotesque-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/BricolageGrotesque-OFL.txt",
+          "skills/canvas-design/canvas-fonts/BricolageGrotesque-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/CrimsonPro-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/CrimsonPro-Italic.ttf",
+          "skills/canvas-design/canvas-fonts/CrimsonPro-OFL.txt",
+          "skills/canvas-design/canvas-fonts/CrimsonPro-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/DMMono-OFL.txt",
+          "skills/canvas-design/canvas-fonts/DMMono-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/EricaOne-OFL.txt",
+          "skills/canvas-design/canvas-fonts/EricaOne-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/GeistMono-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/GeistMono-OFL.txt",
+          "skills/canvas-design/canvas-fonts/GeistMono-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/Gloock-OFL.txt",
+          "skills/canvas-design/canvas-fonts/Gloock-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/IBMPlexMono-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/IBMPlexMono-OFL.txt",
+          "skills/canvas-design/canvas-fonts/IBMPlexMono-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/IBMPlexSerif-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/IBMPlexSerif-BoldItalic.ttf",
+          "skills/canvas-design/canvas-fonts/IBMPlexSerif-Italic.ttf",
+          "skills/canvas-design/canvas-fonts/IBMPlexSerif-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/InstrumentSans-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/InstrumentSans-BoldItalic.ttf",
+          "skills/canvas-design/canvas-fonts/InstrumentSans-Italic.ttf",
+          "skills/canvas-design/canvas-fonts/InstrumentSans-OFL.txt",
+          "skills/canvas-design/canvas-fonts/InstrumentSans-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/InstrumentSerif-Italic.ttf",
+          "skills/canvas-design/canvas-fonts/InstrumentSerif-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/Italiana-OFL.txt",
+          "skills/canvas-design/canvas-fonts/Italiana-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/JetBrainsMono-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/JetBrainsMono-OFL.txt",
+          "skills/canvas-design/canvas-fonts/JetBrainsMono-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/Jura-Light.ttf",
+          "skills/canvas-design/canvas-fonts/Jura-Medium.ttf",
+          "skills/canvas-design/canvas-fonts/Jura-OFL.txt",
+          "skills/canvas-design/canvas-fonts/LibreBaskerville-OFL.txt",
+          "skills/canvas-design/canvas-fonts/LibreBaskerville-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/Lora-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/Lora-BoldItalic.ttf",
+          "skills/canvas-design/canvas-fonts/Lora-Italic.ttf",
+          "skills/canvas-design/canvas-fonts/Lora-OFL.txt",
+          "skills/canvas-design/canvas-fonts/Lora-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/NationalPark-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/NationalPark-OFL.txt",
+          "skills/canvas-design/canvas-fonts/NationalPark-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/NothingYouCouldDo-OFL.txt",
+          "skills/canvas-design/canvas-fonts/NothingYouCouldDo-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/Outfit-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/Outfit-OFL.txt",
+          "skills/canvas-design/canvas-fonts/Outfit-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/PixelifySans-Medium.ttf",
+          "skills/canvas-design/canvas-fonts/PixelifySans-OFL.txt",
+          "skills/canvas-design/canvas-fonts/PoiretOne-OFL.txt",
+          "skills/canvas-design/canvas-fonts/PoiretOne-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/RedHatMono-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/RedHatMono-OFL.txt",
+          "skills/canvas-design/canvas-fonts/RedHatMono-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/Silkscreen-OFL.txt",
+          "skills/canvas-design/canvas-fonts/Silkscreen-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/SmoochSans-Medium.ttf",
+          "skills/canvas-design/canvas-fonts/SmoochSans-OFL.txt",
+          "skills/canvas-design/canvas-fonts/Tektur-Medium.ttf",
+          "skills/canvas-design/canvas-fonts/Tektur-OFL.txt",
+          "skills/canvas-design/canvas-fonts/Tektur-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/WorkSans-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/WorkSans-BoldItalic.ttf",
+          "skills/canvas-design/canvas-fonts/WorkSans-Italic.ttf",
+          "skills/canvas-design/canvas-fonts/WorkSans-OFL.txt",
+          "skills/canvas-design/canvas-fonts/WorkSans-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/YoungSerif-OFL.txt",
+          "skills/canvas-design/canvas-fonts/YoungSerif-Regular.ttf"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.canvas-design",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "dropped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.kiro.skill.claude-api",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/claude-api/LICENSE.txt",
+          "skills/claude-api/SKILL.md",
+          "skills/claude-api/csharp/claude-api/README.md",
+          "skills/claude-api/csharp/claude-api/batches.md",
+          "skills/claude-api/csharp/claude-api/files-api.md",
+          "skills/claude-api/csharp/claude-api/streaming.md",
+          "skills/claude-api/csharp/claude-api/tool-use.md",
+          "skills/claude-api/curl/examples.md",
+          "skills/claude-api/curl/managed-agents.md",
+          "skills/claude-api/go/claude-api/README.md",
+          "skills/claude-api/go/claude-api/files-api.md",
+          "skills/claude-api/go/claude-api/streaming.md",
+          "skills/claude-api/go/claude-api/tool-use.md",
+          "skills/claude-api/go/managed-agents/README.md",
+          "skills/claude-api/java/claude-api/README.md",
+          "skills/claude-api/java/claude-api/files-api.md",
+          "skills/claude-api/java/claude-api/streaming.md",
+          "skills/claude-api/java/claude-api/tool-use.md",
+          "skills/claude-api/java/managed-agents/README.md",
+          "skills/claude-api/php/claude-api/README.md",
+          "skills/claude-api/php/claude-api/batches.md",
+          "skills/claude-api/php/claude-api/files-api.md",
+          "skills/claude-api/php/claude-api/streaming.md",
+          "skills/claude-api/php/claude-api/tool-use.md",
+          "skills/claude-api/php/managed-agents/README.md",
+          "skills/claude-api/python/claude-api/README.md",
+          "skills/claude-api/python/claude-api/batches.md",
+          "skills/claude-api/python/claude-api/files-api.md",
+          "skills/claude-api/python/claude-api/sdk-upgrade.md",
+          "skills/claude-api/python/claude-api/streaming.md",
+          "skills/claude-api/python/claude-api/tool-use.md",
+          "skills/claude-api/python/managed-agents/README.md",
+          "skills/claude-api/ruby/claude-api/README.md",
+          "skills/claude-api/ruby/claude-api/streaming.md",
+          "skills/claude-api/ruby/claude-api/tool-use.md",
+          "skills/claude-api/ruby/managed-agents/README.md",
+          "skills/claude-api/shared/admin-api.md",
+          "skills/claude-api/shared/agent-design.md",
+          "skills/claude-api/shared/anthropic-cli.md",
+          "skills/claude-api/shared/claude-platform-on-aws.md",
+          "skills/claude-api/shared/cost-optimization.md",
+          "skills/claude-api/shared/error-codes.md",
+          "skills/claude-api/shared/live-sources.md",
+          "skills/claude-api/shared/managed-agents-api-reference.md",
+          "skills/claude-api/shared/managed-agents-client-patterns.md",
+          "skills/claude-api/shared/managed-agents-core.md",
+          "skills/claude-api/shared/managed-agents-environments.md",
+          "skills/claude-api/shared/managed-agents-events.md",
+          "skills/claude-api/shared/managed-agents-memory.md",
+          "skills/claude-api/shared/managed-agents-multiagent.md",
+          "skills/claude-api/shared/managed-agents-onboarding.md",
+          "skills/claude-api/shared/managed-agents-outcomes.md",
+          "skills/claude-api/shared/managed-agents-overview.md",
+          "skills/claude-api/shared/managed-agents-scheduled-deployments.md",
+          "skills/claude-api/shared/managed-agents-self-hosted-sandboxes.md",
+          "skills/claude-api/shared/managed-agents-tools.md",
+          "skills/claude-api/shared/managed-agents-webhooks.md",
+          "skills/claude-api/shared/model-migration.md",
+          "skills/claude-api/shared/models.md",
+          "skills/claude-api/shared/platform-availability.md",
+          "skills/claude-api/shared/prompt-audit.md",
+          "skills/claude-api/shared/prompt-caching.md",
+          "skills/claude-api/shared/token-counting.md",
+          "skills/claude-api/shared/tool-use-concepts.md",
+          "skills/claude-api/typescript/claude-api/README.md",
+          "skills/claude-api/typescript/claude-api/batches.md",
+          "skills/claude-api/typescript/claude-api/files-api.md",
+          "skills/claude-api/typescript/claude-api/streaming.md",
+          "skills/claude-api/typescript/claude-api/tool-use.md",
+          "skills/claude-api/typescript/managed-agents/README.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "note": "its upstream description is longer than the 1024 characters an item may carry (the Agent Skills limit), and Catalog does not edit upstream files",
+      "reason": "unrepresentable-description"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.kiro.skill.discernment-nudge",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/discernment-nudge/LICENSE.txt",
+          "skills/discernment-nudge/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.discernment-nudge",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.kiro.skill.frontend-design",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/frontend-design/LICENSE.txt",
+          "skills/frontend-design/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.frontend-design",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.kiro.skill.internal-comms",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/internal-comms/LICENSE.txt",
+          "skills/internal-comms/SKILL.md",
+          "skills/internal-comms/examples/3p-updates.md",
+          "skills/internal-comms/examples/company-newsletter.md",
+          "skills/internal-comms/examples/faq-answers.md",
+          "skills/internal-comms/examples/general-comms.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.internal-comms",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.kiro.skill.mcp-builder",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/mcp-builder/LICENSE.txt",
+          "skills/mcp-builder/SKILL.md",
+          "skills/mcp-builder/reference/evaluation.md",
+          "skills/mcp-builder/reference/mcp_best_practices.md",
+          "skills/mcp-builder/reference/node_mcp_server.md",
+          "skills/mcp-builder/reference/python_mcp_server.md",
+          "skills/mcp-builder/scripts/connections.py",
+          "skills/mcp-builder/scripts/evaluation.py",
+          "skills/mcp-builder/scripts/example_evaluation.xml",
+          "skills/mcp-builder/scripts/requirements.txt"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.mcp-builder",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.kiro.skill.skill-creator",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/skill-creator/LICENSE.txt",
+          "skills/skill-creator/SKILL.md",
+          "skills/skill-creator/agents/analyzer.md",
+          "skills/skill-creator/agents/comparator.md",
+          "skills/skill-creator/agents/grader.md",
+          "skills/skill-creator/assets/eval_review.html",
+          "skills/skill-creator/eval-viewer/generate_review.py",
+          "skills/skill-creator/eval-viewer/viewer.html",
+          "skills/skill-creator/references/schemas.md",
+          "skills/skill-creator/scripts/__init__.py",
+          "skills/skill-creator/scripts/aggregate_benchmark.py",
+          "skills/skill-creator/scripts/generate_report.py",
+          "skills/skill-creator/scripts/improve_description.py",
+          "skills/skill-creator/scripts/package_skill.py",
+          "skills/skill-creator/scripts/quick_validate.py",
+          "skills/skill-creator/scripts/run_eval.py",
+          "skills/skill-creator/scripts/run_loop.py",
+          "skills/skill-creator/scripts/utils.py"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.skill-creator",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.kiro.skill.slack-gif-creator",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/slack-gif-creator/LICENSE.txt",
+          "skills/slack-gif-creator/SKILL.md",
+          "skills/slack-gif-creator/core/easing.py",
+          "skills/slack-gif-creator/core/frame_composer.py",
+          "skills/slack-gif-creator/core/gif_builder.py",
+          "skills/slack-gif-creator/core/validators.py",
+          "skills/slack-gif-creator/requirements.txt"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.slack-gif-creator",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.kiro.skill.theme-factory",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/theme-factory/LICENSE.txt",
+          "skills/theme-factory/SKILL.md",
+          "skills/theme-factory/theme-showcase.pdf",
+          "skills/theme-factory/themes/arctic-frost.md",
+          "skills/theme-factory/themes/botanical-garden.md",
+          "skills/theme-factory/themes/desert-rose.md",
+          "skills/theme-factory/themes/forest-canopy.md",
+          "skills/theme-factory/themes/golden-hour.md",
+          "skills/theme-factory/themes/midnight-galaxy.md",
+          "skills/theme-factory/themes/modern-minimalist.md",
+          "skills/theme-factory/themes/ocean-depths.md",
+          "skills/theme-factory/themes/sunset-boulevard.md",
+          "skills/theme-factory/themes/tech-innovation.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.theme-factory",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.kiro.skill.web-artifacts-builder",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/web-artifacts-builder/LICENSE.txt",
+          "skills/web-artifacts-builder/SKILL.md",
+          "skills/web-artifacts-builder/scripts/bundle-artifact.sh",
+          "skills/web-artifacts-builder/scripts/init-artifact.sh",
+          "skills/web-artifacts-builder/scripts/shadcn-components.tar.gz"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.web-artifacts-builder",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.kiro.skill.webapp-testing",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/webapp-testing/LICENSE.txt",
+          "skills/webapp-testing/SKILL.md",
+          "skills/webapp-testing/examples/console_logging.py",
+          "skills/webapp-testing/examples/element_discovery.py",
+          "skills/webapp-testing/examples/static_html_automation.py",
+          "skills/webapp-testing/scripts/with_server.py"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.webapp-testing",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "notice",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.notice.shadcn",
+        "kind": "notice",
+        "paths": [
+          "LICENSE.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "note": "the shadcn licence is the notice-only source shadcn-notice, copied with anthropic.skill.web-artifacts-builder"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.skill.academy-guide",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/academy-guide/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.academy-guide"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.skill.algorithmic-art",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/algorithmic-art/LICENSE.txt",
+          "skills/algorithmic-art/SKILL.md",
+          "skills/algorithmic-art/templates/generator_template.js",
+          "skills/algorithmic-art/templates/viewer.html"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.algorithmic-art"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.skill.brand-guidelines",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/brand-guidelines/LICENSE.txt",
+          "skills/brand-guidelines/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.brand-guidelines"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.skill.canvas-design",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/canvas-design/LICENSE.txt",
+          "skills/canvas-design/SKILL.md",
+          "skills/canvas-design/canvas-fonts/ArsenalSC-OFL.txt",
+          "skills/canvas-design/canvas-fonts/ArsenalSC-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/BigShoulders-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/BigShoulders-OFL.txt",
+          "skills/canvas-design/canvas-fonts/BigShoulders-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/Boldonse-OFL.txt",
+          "skills/canvas-design/canvas-fonts/Boldonse-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/BricolageGrotesque-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/BricolageGrotesque-OFL.txt",
+          "skills/canvas-design/canvas-fonts/BricolageGrotesque-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/CrimsonPro-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/CrimsonPro-Italic.ttf",
+          "skills/canvas-design/canvas-fonts/CrimsonPro-OFL.txt",
+          "skills/canvas-design/canvas-fonts/CrimsonPro-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/DMMono-OFL.txt",
+          "skills/canvas-design/canvas-fonts/DMMono-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/EricaOne-OFL.txt",
+          "skills/canvas-design/canvas-fonts/EricaOne-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/GeistMono-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/GeistMono-OFL.txt",
+          "skills/canvas-design/canvas-fonts/GeistMono-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/Gloock-OFL.txt",
+          "skills/canvas-design/canvas-fonts/Gloock-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/IBMPlexMono-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/IBMPlexMono-OFL.txt",
+          "skills/canvas-design/canvas-fonts/IBMPlexMono-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/IBMPlexSerif-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/IBMPlexSerif-BoldItalic.ttf",
+          "skills/canvas-design/canvas-fonts/IBMPlexSerif-Italic.ttf",
+          "skills/canvas-design/canvas-fonts/IBMPlexSerif-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/InstrumentSans-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/InstrumentSans-BoldItalic.ttf",
+          "skills/canvas-design/canvas-fonts/InstrumentSans-Italic.ttf",
+          "skills/canvas-design/canvas-fonts/InstrumentSans-OFL.txt",
+          "skills/canvas-design/canvas-fonts/InstrumentSans-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/InstrumentSerif-Italic.ttf",
+          "skills/canvas-design/canvas-fonts/InstrumentSerif-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/Italiana-OFL.txt",
+          "skills/canvas-design/canvas-fonts/Italiana-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/JetBrainsMono-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/JetBrainsMono-OFL.txt",
+          "skills/canvas-design/canvas-fonts/JetBrainsMono-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/Jura-Light.ttf",
+          "skills/canvas-design/canvas-fonts/Jura-Medium.ttf",
+          "skills/canvas-design/canvas-fonts/Jura-OFL.txt",
+          "skills/canvas-design/canvas-fonts/LibreBaskerville-OFL.txt",
+          "skills/canvas-design/canvas-fonts/LibreBaskerville-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/Lora-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/Lora-BoldItalic.ttf",
+          "skills/canvas-design/canvas-fonts/Lora-Italic.ttf",
+          "skills/canvas-design/canvas-fonts/Lora-OFL.txt",
+          "skills/canvas-design/canvas-fonts/Lora-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/NationalPark-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/NationalPark-OFL.txt",
+          "skills/canvas-design/canvas-fonts/NationalPark-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/NothingYouCouldDo-OFL.txt",
+          "skills/canvas-design/canvas-fonts/NothingYouCouldDo-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/Outfit-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/Outfit-OFL.txt",
+          "skills/canvas-design/canvas-fonts/Outfit-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/PixelifySans-Medium.ttf",
+          "skills/canvas-design/canvas-fonts/PixelifySans-OFL.txt",
+          "skills/canvas-design/canvas-fonts/PoiretOne-OFL.txt",
+          "skills/canvas-design/canvas-fonts/PoiretOne-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/RedHatMono-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/RedHatMono-OFL.txt",
+          "skills/canvas-design/canvas-fonts/RedHatMono-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/Silkscreen-OFL.txt",
+          "skills/canvas-design/canvas-fonts/Silkscreen-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/SmoochSans-Medium.ttf",
+          "skills/canvas-design/canvas-fonts/SmoochSans-OFL.txt",
+          "skills/canvas-design/canvas-fonts/Tektur-Medium.ttf",
+          "skills/canvas-design/canvas-fonts/Tektur-OFL.txt",
+          "skills/canvas-design/canvas-fonts/Tektur-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/WorkSans-Bold.ttf",
+          "skills/canvas-design/canvas-fonts/WorkSans-BoldItalic.ttf",
+          "skills/canvas-design/canvas-fonts/WorkSans-Italic.ttf",
+          "skills/canvas-design/canvas-fonts/WorkSans-OFL.txt",
+          "skills/canvas-design/canvas-fonts/WorkSans-Regular.ttf",
+          "skills/canvas-design/canvas-fonts/YoungSerif-OFL.txt",
+          "skills/canvas-design/canvas-fonts/YoungSerif-Regular.ttf"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.canvas-design"
+    },
+    {
+      "disposition": "dropped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.skill.claude-api",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/claude-api/LICENSE.txt",
+          "skills/claude-api/SKILL.md",
+          "skills/claude-api/csharp/claude-api/README.md",
+          "skills/claude-api/csharp/claude-api/batches.md",
+          "skills/claude-api/csharp/claude-api/files-api.md",
+          "skills/claude-api/csharp/claude-api/streaming.md",
+          "skills/claude-api/csharp/claude-api/tool-use.md",
+          "skills/claude-api/curl/examples.md",
+          "skills/claude-api/curl/managed-agents.md",
+          "skills/claude-api/go/claude-api/README.md",
+          "skills/claude-api/go/claude-api/files-api.md",
+          "skills/claude-api/go/claude-api/streaming.md",
+          "skills/claude-api/go/claude-api/tool-use.md",
+          "skills/claude-api/go/managed-agents/README.md",
+          "skills/claude-api/java/claude-api/README.md",
+          "skills/claude-api/java/claude-api/files-api.md",
+          "skills/claude-api/java/claude-api/streaming.md",
+          "skills/claude-api/java/claude-api/tool-use.md",
+          "skills/claude-api/java/managed-agents/README.md",
+          "skills/claude-api/php/claude-api/README.md",
+          "skills/claude-api/php/claude-api/batches.md",
+          "skills/claude-api/php/claude-api/files-api.md",
+          "skills/claude-api/php/claude-api/streaming.md",
+          "skills/claude-api/php/claude-api/tool-use.md",
+          "skills/claude-api/php/managed-agents/README.md",
+          "skills/claude-api/python/claude-api/README.md",
+          "skills/claude-api/python/claude-api/batches.md",
+          "skills/claude-api/python/claude-api/files-api.md",
+          "skills/claude-api/python/claude-api/sdk-upgrade.md",
+          "skills/claude-api/python/claude-api/streaming.md",
+          "skills/claude-api/python/claude-api/tool-use.md",
+          "skills/claude-api/python/managed-agents/README.md",
+          "skills/claude-api/ruby/claude-api/README.md",
+          "skills/claude-api/ruby/claude-api/streaming.md",
+          "skills/claude-api/ruby/claude-api/tool-use.md",
+          "skills/claude-api/ruby/managed-agents/README.md",
+          "skills/claude-api/shared/admin-api.md",
+          "skills/claude-api/shared/agent-design.md",
+          "skills/claude-api/shared/anthropic-cli.md",
+          "skills/claude-api/shared/claude-platform-on-aws.md",
+          "skills/claude-api/shared/cost-optimization.md",
+          "skills/claude-api/shared/error-codes.md",
+          "skills/claude-api/shared/live-sources.md",
+          "skills/claude-api/shared/managed-agents-api-reference.md",
+          "skills/claude-api/shared/managed-agents-client-patterns.md",
+          "skills/claude-api/shared/managed-agents-core.md",
+          "skills/claude-api/shared/managed-agents-environments.md",
+          "skills/claude-api/shared/managed-agents-events.md",
+          "skills/claude-api/shared/managed-agents-memory.md",
+          "skills/claude-api/shared/managed-agents-multiagent.md",
+          "skills/claude-api/shared/managed-agents-onboarding.md",
+          "skills/claude-api/shared/managed-agents-outcomes.md",
+          "skills/claude-api/shared/managed-agents-overview.md",
+          "skills/claude-api/shared/managed-agents-scheduled-deployments.md",
+          "skills/claude-api/shared/managed-agents-self-hosted-sandboxes.md",
+          "skills/claude-api/shared/managed-agents-tools.md",
+          "skills/claude-api/shared/managed-agents-webhooks.md",
+          "skills/claude-api/shared/model-migration.md",
+          "skills/claude-api/shared/models.md",
+          "skills/claude-api/shared/platform-availability.md",
+          "skills/claude-api/shared/prompt-audit.md",
+          "skills/claude-api/shared/prompt-caching.md",
+          "skills/claude-api/shared/token-counting.md",
+          "skills/claude-api/shared/tool-use-concepts.md",
+          "skills/claude-api/typescript/claude-api/README.md",
+          "skills/claude-api/typescript/claude-api/batches.md",
+          "skills/claude-api/typescript/claude-api/files-api.md",
+          "skills/claude-api/typescript/claude-api/streaming.md",
+          "skills/claude-api/typescript/claude-api/tool-use.md",
+          "skills/claude-api/typescript/managed-agents/README.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "note": "its upstream description is longer than the 1024 characters an item may carry (the Agent Skills limit), and Catalog does not edit upstream files",
+      "reason": "unrepresentable-description"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.skill.discernment-nudge",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/discernment-nudge/LICENSE.txt",
+          "skills/discernment-nudge/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.discernment-nudge"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.skill.frontend-design",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/frontend-design/LICENSE.txt",
+          "skills/frontend-design/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.frontend-design"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.skill.internal-comms",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/internal-comms/LICENSE.txt",
+          "skills/internal-comms/SKILL.md",
+          "skills/internal-comms/examples/3p-updates.md",
+          "skills/internal-comms/examples/company-newsletter.md",
+          "skills/internal-comms/examples/faq-answers.md",
+          "skills/internal-comms/examples/general-comms.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.internal-comms"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.skill.mcp-builder",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/mcp-builder/LICENSE.txt",
+          "skills/mcp-builder/SKILL.md",
+          "skills/mcp-builder/reference/evaluation.md",
+          "skills/mcp-builder/reference/mcp_best_practices.md",
+          "skills/mcp-builder/reference/node_mcp_server.md",
+          "skills/mcp-builder/reference/python_mcp_server.md",
+          "skills/mcp-builder/scripts/connections.py",
+          "skills/mcp-builder/scripts/evaluation.py",
+          "skills/mcp-builder/scripts/example_evaluation.xml",
+          "skills/mcp-builder/scripts/requirements.txt"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.mcp-builder"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.skill.skill-creator",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/skill-creator/LICENSE.txt",
+          "skills/skill-creator/SKILL.md",
+          "skills/skill-creator/agents/analyzer.md",
+          "skills/skill-creator/agents/comparator.md",
+          "skills/skill-creator/agents/grader.md",
+          "skills/skill-creator/assets/eval_review.html",
+          "skills/skill-creator/eval-viewer/generate_review.py",
+          "skills/skill-creator/eval-viewer/viewer.html",
+          "skills/skill-creator/references/schemas.md",
+          "skills/skill-creator/scripts/__init__.py",
+          "skills/skill-creator/scripts/aggregate_benchmark.py",
+          "skills/skill-creator/scripts/generate_report.py",
+          "skills/skill-creator/scripts/improve_description.py",
+          "skills/skill-creator/scripts/package_skill.py",
+          "skills/skill-creator/scripts/quick_validate.py",
+          "skills/skill-creator/scripts/run_eval.py",
+          "skills/skill-creator/scripts/run_loop.py",
+          "skills/skill-creator/scripts/utils.py"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.skill-creator"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.skill.slack-gif-creator",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/slack-gif-creator/LICENSE.txt",
+          "skills/slack-gif-creator/SKILL.md",
+          "skills/slack-gif-creator/core/easing.py",
+          "skills/slack-gif-creator/core/frame_composer.py",
+          "skills/slack-gif-creator/core/gif_builder.py",
+          "skills/slack-gif-creator/core/validators.py",
+          "skills/slack-gif-creator/requirements.txt"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.slack-gif-creator"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.skill.theme-factory",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/theme-factory/LICENSE.txt",
+          "skills/theme-factory/SKILL.md",
+          "skills/theme-factory/theme-showcase.pdf",
+          "skills/theme-factory/themes/arctic-frost.md",
+          "skills/theme-factory/themes/botanical-garden.md",
+          "skills/theme-factory/themes/desert-rose.md",
+          "skills/theme-factory/themes/forest-canopy.md",
+          "skills/theme-factory/themes/golden-hour.md",
+          "skills/theme-factory/themes/midnight-galaxy.md",
+          "skills/theme-factory/themes/modern-minimalist.md",
+          "skills/theme-factory/themes/ocean-depths.md",
+          "skills/theme-factory/themes/sunset-boulevard.md",
+          "skills/theme-factory/themes/tech-innovation.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.theme-factory"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.skill.web-artifacts-builder",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/web-artifacts-builder/LICENSE.txt",
+          "skills/web-artifacts-builder/SKILL.md",
+          "skills/web-artifacts-builder/scripts/bundle-artifact.sh",
+          "skills/web-artifacts-builder/scripts/init-artifact.sh",
+          "skills/web-artifacts-builder/scripts/shadcn-components.tar.gz"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.web-artifacts-builder"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.skill.webapp-testing",
+        "kind": "skill",
+        "paths": [
+          "THIRD_PARTY_NOTICES.md",
+          "skills/academy-guide/LICENSE.txt",
+          "skills/webapp-testing/LICENSE.txt",
+          "skills/webapp-testing/SKILL.md",
+          "skills/webapp-testing/examples/console_logging.py",
+          "skills/webapp-testing/examples/element_discovery.py",
+          "skills/webapp-testing/examples/static_html_automation.py",
+          "skills/webapp-testing/scripts/with_server.py"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "item": "anthropic.skill.webapp-testing"
+    },
+    {
+      "disposition": "dropped",
+      "earlier": {
+        "family": "anthropic",
+        "id": "anthropic.template.local-web-testing",
+        "kind": "template",
+        "paths": [
+          "skills/academy-guide/LICENSE.txt",
+          "skills/webapp-testing/LICENSE.txt"
+        ],
+        "release": "urn:aihq:catalog:release:1.0.0"
+      },
+      "note": "a Catalog-made starting choice; a recipe's members and options say what is chosen together",
+      "reason": "set-becomes-recipe"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "web-artifacts",
+        "id": "catalog.copilot.skill.web-artifacts-builder",
+        "kind": "skill",
+        "paths": [
+          "LICENSE.txt",
+          "SKILL.md",
+          "artifact.mjs",
+          "template/build.mjs",
+          "template/components.package.json",
+          "template/components.pnpm-lock.yaml",
+          "template/index.html",
+          "template/package.json",
+          "template/pnpm-lock.yaml",
+          "template/pnpm-workspace.yaml",
+          "template/src/main.tsx",
+          "template/src/style.css",
+          "template/src/vite-env.d.ts",
+          "template/tsconfig.json"
+        ],
+        "release": "urn:aihq:catalog:release:1.3.0"
+      },
+      "item": "web-artifacts.skill.web-artifacts-builder",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "web-artifacts",
+        "id": "catalog.kiro.skill.web-artifacts-builder",
+        "kind": "skill",
+        "paths": [
+          "LICENSE.txt",
+          "SKILL.md",
+          "artifact.mjs",
+          "template/build.mjs",
+          "template/components.package.json",
+          "template/components.pnpm-lock.yaml",
+          "template/index.html",
+          "template/package.json",
+          "template/pnpm-lock.yaml",
+          "template/pnpm-workspace.yaml",
+          "template/src/main.tsx",
+          "template/src/style.css",
+          "template/src/vite-env.d.ts",
+          "template/tsconfig.json"
+        ],
+        "release": "urn:aihq:catalog:release:1.3.0"
+      },
+      "item": "web-artifacts.skill.web-artifacts-builder",
+      "note": "a per-client copy of the same upstream skill; one item now serves every client, rendered from its tool profile"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "web-artifacts",
+        "id": "catalog.skill.web-artifacts-builder",
+        "kind": "skill",
+        "paths": [
+          "LICENSE.txt",
+          "SKILL.md",
+          "artifact.mjs",
+          "template/build.mjs",
+          "template/components.package.json",
+          "template/components.pnpm-lock.yaml",
+          "template/index.html",
+          "template/package.json",
+          "template/pnpm-lock.yaml",
+          "template/pnpm-workspace.yaml",
+          "template/src/main.tsx",
+          "template/src/style.css",
+          "template/src/vite-env.d.ts",
+          "template/tsconfig.json"
+        ],
+        "release": "urn:aihq:catalog:release:1.3.0"
+      },
+      "item": "web-artifacts.skill.web-artifacts-builder"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.ask-matt",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/engineering/ask-matt/PHASE-BOUNDARIES.md",
+          "skills/engineering/ask-matt/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.engineering.ask-matt",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.code-review",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/engineering/code-review/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.engineering.code-review",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.codebase-design",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/engineering/codebase-design/DEEPENING.md",
+          "skills/engineering/codebase-design/DESIGN-IT-TWICE.md",
+          "skills/engineering/codebase-design/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.engineering.codebase-design",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.diagnosing-bugs",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/engineering/diagnosing-bugs/SKILL.md",
+          "skills/engineering/diagnosing-bugs/scripts/hitl-loop.template.sh"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.engineering.diagnosing-bugs",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.domain-modeling",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/engineering/domain-modeling/ADR-FORMAT.md",
+          "skills/engineering/domain-modeling/GLOSSARY-FORMAT.md",
+          "skills/engineering/domain-modeling/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.engineering.domain-modeling",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.grill-me",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/productivity/grill-me/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.productivity.grill-me",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.grill-with-docs",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/engineering/grill-with-docs/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.engineering.grill-with-docs",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.grilling",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/productivity/grilling/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.productivity.grilling",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.handoff",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/productivity/handoff/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.productivity.handoff",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.implement",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/engineering/implement/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.engineering.implement",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.implement-spec",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/engineering/implement-spec/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.engineering.implement-spec",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.improve-codebase-architecture",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/engineering/improve-codebase-architecture/HTML-REPORT.md",
+          "skills/engineering/improve-codebase-architecture/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.engineering.improve-codebase-architecture",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.pr",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/engineering/pr/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.engineering.pr",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.prototype",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/engineering/prototype/LOGIC.md",
+          "skills/engineering/prototype/SKILL.md",
+          "skills/engineering/prototype/UI.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.engineering.prototype",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.research",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/engineering/research/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.engineering.research",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.retro",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/engineering/retro/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.engineering.retro",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.setup-matt-pocock-skills",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/engineering/setup-matt-pocock-skills/SKILL.md",
+          "skills/engineering/setup-matt-pocock-skills/domain.md",
+          "skills/engineering/setup-matt-pocock-skills/issue-tracker-github.md",
+          "skills/engineering/setup-matt-pocock-skills/issue-tracker-gitlab.md",
+          "skills/engineering/setup-matt-pocock-skills/issue-tracker-local.md",
+          "skills/engineering/setup-matt-pocock-skills/triage-labels.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.engineering.setup-matt-pocock-skills",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.tdd",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/engineering/tdd/SKILL.md",
+          "skills/engineering/tdd/mocking.md",
+          "skills/engineering/tdd/tests.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.engineering.tdd",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.teach",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/productivity/teach/LEARNING-RECORD-FORMAT.md",
+          "skills/productivity/teach/MISSION-FORMAT.md",
+          "skills/productivity/teach/RESOURCES-FORMAT.md",
+          "skills/productivity/teach/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.productivity.teach",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.to-questionnaire",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/productivity/to-questionnaire/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.productivity.to-questionnaire",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.to-spec",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/engineering/to-spec/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.engineering.to-spec",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.to-tickets",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/engineering/to-tickets/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.engineering.to-tickets",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.triage",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/engineering/triage/AGENT-BRIEF.md",
+          "skills/engineering/triage/OUT-OF-SCOPE.md",
+          "skills/engineering/triage/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.engineering.triage",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.wait-what",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/productivity/wait-what/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.productivity.wait-what",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.wayfinder",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/engineering/wayfinder/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.engineering.wayfinder",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.wizard",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/engineering/wizard/SKILL.md",
+          "skills/engineering/wizard/template.sh"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.engineering.wizard",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    },
+    {
+      "disposition": "mapped",
+      "earlier": {
+        "family": "project-context",
+        "id": "mattpocock.writing-for-agents",
+        "kind": "skill",
+        "paths": [
+          "LICENSE",
+          "skills/productivity/writing-for-agents/SKILL-MECHANICS.md",
+          "skills/productivity/writing-for-agents/SKILL.md"
+        ],
+        "release": "urn:aihq:catalog:release:1.4.0"
+      },
+      "item": "extensions.skill.productivity.writing-for-agents",
+      "note": "Matt Pocock's skills ship once, through AIH Extensions (the maintained port)"
+    }
+  ],
+  "families": [
+    "anthropic",
+    "web-artifacts",
+    "guide",
+    "pstack",
+    "gstack",
+    "egm"
+  ],
+  "notPorted": [
+    {
+      "family": "anthropic",
+      "paths": [
+        "template/"
+      ],
+      "reason": "the upstream's skeleton for writing a new skill (template-skill); no marketplace plugin ships it"
+    },
+    {
+      "family": "anthropic",
+      "paths": [
+        "README.md",
+        "spec/"
+      ],
+      "reason": "documentation and the Agent Skills specification text; not items"
+    },
+    {
+      "family": "guide",
+      "paths": [
+        "guide/source.md",
+        "guide/manifest.json",
+        "guide/metadata.json",
+        "guide/compass.svg"
+      ],
+      "reason": "the guide's build inputs and its generation record; the generated agent files and the manual are the items"
+    },
+    {
+      "family": "pstack",
+      "paths": [
+        "automations/"
+      ],
+      "reason": "Cursor background automations (their own skills, prompts and templates) that only Cursor's automation runner reads"
+    },
+    {
+      "family": "pstack",
+      "paths": [
+        "README.md",
+        "docs/",
+        "assets/",
+        "plugin.json",
+        ".cursor-plugin/",
+        ".claude-plugin/"
+      ],
+      "reason": "pstack's guide, images and plugin manifests; pstack reaches every client through items, with the Claude copy as Claude's edition"
+    },
+    {
+      "family": "gstack",
+      "paths": [
+        "SKILL.md",
+        "SKILL.md.tmpl"
+      ],
+      "reason": "the root gstack router skill is the whole repository installed as one folder by gstack's own setup; it cannot be an item folder"
+    },
+    {
+      "family": "gstack",
+      "paths": [
+        "browser-skills/",
+        "capy/",
+        "openclaw/"
+      ],
+      "reason": "skills for gstack's browser runtime and for hosts Catalog does not profile (Capy, OpenClaw)"
+    },
+    {
+      "family": "gstack",
+      "paths": [
+        "bin/",
+        "browse/",
+        "design/",
+        "extension/",
+        "hosts/",
+        "lib/",
+        "scripts/",
+        "setup",
+        "setup.ps1",
+        "test/",
+        "docs/"
+      ],
+      "reason": "gstack's tools, browser, build scripts, setup and tests: its own setup builds them and writes each client's SKILL.md from .tmpl. On items routes (Kimi, dsh) the committed SKILL.md files are placed, and the paths they name are listed as path references"
+    },
+    {
+      "family": "egm",
+      "paths": [
+        "distributions/"
+      ],
+      "reason": "a generated byte copy of the Claude runtime, not a second set of items"
+    },
+    {
+      "family": "egm",
+      "paths": [
+        "site/",
+        "tests/",
+        "scripts/",
+        ".github/",
+        "docs/designs/",
+        "skills/*/TEST.md",
+        "skills/*/test_scenarios.yaml"
+      ],
+      "reason": "development files outside the upstream's runtime allowlist (scripts/pack_plugin.py)"
+    }
+  ],
+  "pathReferences": {
+    "anthropic": {
+      "items": 0,
+      "references": 0
+    },
+    "egm": {
+      "items": 0,
+      "references": 0
+    },
+    "gstack": {
+      "items": 54,
+      "references": 349
+    },
+    "guide": {
+      "items": 0,
+      "references": 0
+    },
+    "pstack": {
+      "items": 10,
+      "references": 58
+    },
+    "web-artifacts": {
+      "items": 0,
+      "references": 0
+    }
+  },
+  "pins": {
+    "anthropic": {
+      "commit": "34040c9c568585f6929bedeaad110ad08f079624",
+      "repository": "https://github.com/anthropics/skills"
+    },
+    "egm": {
+      "commit": "403d8881d62022490637d740657b33f01e321ea8",
+      "repository": "https://github.com/google/elephant-goldfish-model"
+    },
+    "gstack": {
+      "commit": "1ea86923a86129d1f32828b36acfe6f91f17c8e6",
+      "repository": "https://github.com/garrytan/gstack"
+    },
+    "guide": {
+      "commit": "2481164a51ea7f9e480d51ef52f3d5cf15b017fa",
+      "repository": "https://github.com/samartomar/aih-extensions"
+    },
+    "pstack": {
+      "commit": "ae5650febf4320793844c12c4adaa937f417f8da",
+      "repository": "https://github.com/cursor/plugins"
+    },
+    "shadcn": {
+      "commit": "f3d14c48cbad1b6a3b3c9c81db9f198a4188f712",
+      "repository": "https://github.com/shadcn-ui/ui"
+    }
+  },
+  "recipes": {
+    "anthropic-academy-guide": {
+      "content": {
+        "commit": "34040c9c568585f6929bedeaad110ad08f079624",
+        "repository": "https://github.com/anthropics/skills"
+      },
+      "framework": "anthropic",
+      "id": "anthropic-academy-guide",
+      "kind": "add-on",
+      "members": [
+        {
+          "item": "anthropic.skill.academy-guide",
+          "preTicked": true
+        }
+      ],
+      "plugins": {
+        "claude-code": {
+          "commit": "34040c9c568585f6929bedeaad110ad08f079624",
+          "marketplace": "https://github.com/anthropics/skills",
+          "path": "/",
+          "plugin": "academy-guide",
+          "source": "anthropic"
+        }
+      },
+      "requires": [
+        "anthropic-base"
+      ],
+      "routes": {
+        "claude-code": "plugin"
+      }
+    },
+    "anthropic-base": {
+      "content": {
+        "commit": "34040c9c568585f6929bedeaad110ad08f079624",
+        "repository": "https://github.com/anthropics/skills"
+      },
+      "framework": "anthropic",
+      "id": "anthropic-base",
+      "kind": "base",
+      "members": [
+        {
+          "item": "anthropic.skill.algorithmic-art",
+          "preTicked": true
+        },
+        {
+          "item": "anthropic.skill.brand-guidelines",
+          "preTicked": true
+        },
+        {
+          "item": "anthropic.skill.canvas-design",
+          "preTicked": true
+        },
+        {
+          "item": "anthropic.skill.doc-coauthoring",
+          "preTicked": true
+        },
+        {
+          "item": "anthropic.skill.frontend-design",
+          "preTicked": true
+        },
+        {
+          "item": "anthropic.skill.internal-comms",
+          "preTicked": true
+        },
+        {
+          "item": "anthropic.skill.mcp-builder",
+          "preTicked": true
+        },
+        {
+          "item": "anthropic.skill.slack-gif-creator",
+          "preTicked": true
+        },
+        {
+          "item": "anthropic.skill.theme-factory",
+          "preTicked": true
+        },
+        {
+          "item": "anthropic.skill.web-artifacts-builder",
+          "preTicked": true
+        },
+        {
+          "item": "anthropic.skill.webapp-testing",
+          "preTicked": true
+        }
+      ],
+      "options": [
+        {
+          "id": "optional",
+          "items": [
+            {
+              "item": "anthropic.skill.skill-creator",
+              "preTicked": false
+            }
+          ],
+          "pick": "several"
+        }
+      ],
+      "plugins": {
+        "claude-code": {
+          "commit": "34040c9c568585f6929bedeaad110ad08f079624",
+          "marketplace": "https://github.com/anthropics/skills",
+          "path": "/",
+          "plugin": "example-skills",
+          "source": "anthropic"
+        }
+      },
+      "routes": {
+        "claude-code": "plugin"
+      }
+    },
+    "anthropic-claude-api": {
+      "content": {
+        "commit": "34040c9c568585f6929bedeaad110ad08f079624",
+        "repository": "https://github.com/anthropics/skills"
+      },
+      "framework": "anthropic",
+      "id": "anthropic-claude-api",
+      "kind": "add-on",
+      "members": [],
+      "plugins": {
+        "claude-code": {
+          "commit": "34040c9c568585f6929bedeaad110ad08f079624",
+          "marketplace": "https://github.com/anthropics/skills",
+          "path": "/",
+          "plugin": "claude-api",
+          "source": "anthropic"
+        }
+      },
+      "requires": [
+        "anthropic-base"
+      ],
+      "routes": {
+        "claude-code": "plugin"
+      }
+    },
+    "anthropic-discernment-nudge": {
+      "content": {
+        "commit": "34040c9c568585f6929bedeaad110ad08f079624",
+        "repository": "https://github.com/anthropics/skills"
+      },
+      "framework": "anthropic",
+      "id": "anthropic-discernment-nudge",
+      "kind": "add-on",
+      "members": [
+        {
+          "item": "anthropic.skill.discernment-nudge",
+          "preTicked": true
+        }
+      ],
+      "plugins": {
+        "claude-code": {
+          "commit": "34040c9c568585f6929bedeaad110ad08f079624",
+          "marketplace": "https://github.com/anthropics/skills",
+          "path": "/",
+          "plugin": "discernment-nudge",
+          "source": "anthropic"
+        }
+      },
+      "requires": [
+        "anthropic-base"
+      ],
+      "routes": {
+        "claude-code": "plugin"
+      }
+    },
+    "anthropic-document-skills": {
+      "content": {
+        "commit": "34040c9c568585f6929bedeaad110ad08f079624",
+        "repository": "https://github.com/anthropics/skills"
+      },
+      "framework": "anthropic",
+      "id": "anthropic-document-skills",
+      "kind": "add-on",
+      "members": [
+        {
+          "item": "anthropic.skill.xlsx",
+          "preTicked": true
+        },
+        {
+          "item": "anthropic.skill.docx",
+          "preTicked": true
+        },
+        {
+          "item": "anthropic.skill.pptx",
+          "preTicked": true
+        },
+        {
+          "item": "anthropic.skill.pdf",
+          "preTicked": true
+        }
+      ],
+      "plugins": {
+        "claude-code": {
+          "commit": "34040c9c568585f6929bedeaad110ad08f079624",
+          "marketplace": "https://github.com/anthropics/skills",
+          "path": "/",
+          "plugin": "document-skills",
+          "source": "anthropic"
+        }
+      },
+      "requires": [
+        "anthropic-base"
+      ],
+      "routes": {
+        "claude-code": "plugin"
+      }
+    },
+    "egm-base": {
+      "content": {
+        "commit": "403d8881d62022490637d740657b33f01e321ea8",
+        "repository": "https://github.com/google/elephant-goldfish-model"
+      },
+      "framework": "egm",
+      "id": "egm-base",
+      "kind": "base",
+      "members": [
+        {
+          "item": "egm.agent.bootstrap_orchestrator",
+          "preTicked": true
+        },
+        {
+          "item": "egm.agent.codebase_details",
+          "preTicked": true
+        },
+        {
+          "item": "egm.agent.comprehension",
+          "preTicked": true
+        },
+        {
+          "item": "egm.agent.design_critic",
+          "preTicked": true
+        },
+        {
+          "item": "egm.agent.implementation_readiness",
+          "preTicked": true
+        },
+        {
+          "item": "egm.agent.structural",
+          "preTicked": true
+        },
+        {
+          "item": "egm.agent.style",
+          "preTicked": true
+        },
+        {
+          "item": "egm.agent.synthesizer",
+          "preTicked": true
+        },
+        {
+          "item": "egm.agent.zoom_out",
+          "preTicked": true
+        },
+        {
+          "item": "egm.skill.egm-bootstrap",
+          "preTicked": true
+        },
+        {
+          "item": "egm.skill.egm-brainstorm",
+          "preTicked": true
+        },
+        {
+          "item": "egm.skill.egm-draft",
+          "preTicked": true
+        },
+        {
+          "item": "egm.skill.egm-drift-report",
+          "preTicked": true
+        },
+        {
+          "item": "egm.skill.egm-resolve",
+          "preTicked": true
+        },
+        {
+          "item": "egm.skill.egm-review",
+          "preTicked": true
+        },
+        {
+          "item": "egm.skill.egm-review-loop",
+          "preTicked": true
+        }
+      ],
+      "plugins": {
+        "antigravity": {
+          "commit": "403d8881d62022490637d740657b33f01e321ea8",
+          "path": "/",
+          "plugin": "egm",
+          "source": "egm"
+        },
+        "claude-code": {
+          "commit": "403d8881d62022490637d740657b33f01e321ea8",
+          "marketplace": "egm",
+          "path": "/",
+          "plugin": "egm",
+          "source": "egm"
+        },
+        "codex": {
+          "commit": "403d8881d62022490637d740657b33f01e321ea8",
+          "marketplace": "https://github.com/google/elephant-goldfish-model",
+          "path": "/",
+          "plugin": "egm",
+          "source": "egm"
+        }
+      },
+      "routes": {
+        "antigravity": "local-plugin",
+        "claude-code": "local-plugin",
+        "codex": "plugin"
+      }
+    },
+    "gstack-base": {
+      "content": {
+        "commit": "1ea86923a86129d1f32828b36acfe6f91f17c8e6",
+        "repository": "https://github.com/garrytan/gstack"
+      },
+      "framework": "gstack",
+      "id": "gstack-base",
+      "kind": "base",
+      "members": [
+        {
+          "item": "gstack.skill.autoplan",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.benchmark",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.benchmark-models",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.browse",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.canary",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.captain",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.careful",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.codex",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.context-restore",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.context-save",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.cso",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.design-consultation",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.design-html",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.design-motion",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.design-review",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.design-shotgun",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.deslop-shared-libs",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.devex-review",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.diagram",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.document-generate",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.document-release",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.eval-plan",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.freeze",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.gstack-upgrade",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.guard",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.health",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.investigate",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.ios-clean",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.ios-design-review",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.ios-fix",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.ios-qa",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.ios-sync",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.land-and-deploy",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.landing-report",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.learn",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.make-pdf",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.modernize",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.office-hours",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.open-gstack-browser",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.pair-agent",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.plan-ceo-review",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.plan-design-review",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.plan-devex-review",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.plan-eng-review",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.plan-tune",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.qa",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.qa-only",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.retro",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.review",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.scrape",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.setup-browser-cookies",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.setup-deploy",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.setup-gbrain",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.ship",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.skillify",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.spec",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.sync-gbrain",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.test-audit",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.ubicloud",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.unfreeze",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.verify",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.write-skill",
+          "preTicked": true
+        }
+      ],
+      "namePrefix": {
+        "antigravity": "gstack-",
+        "claude-code": "",
+        "codex": "gstack-",
+        "copilot": "gstack-",
+        "cursor": "gstack-",
+        "dsh": "gstack-",
+        "kimi": "gstack-",
+        "kiro": "gstack-",
+        "opencode": "gstack-"
+      },
+      "routes": {
+        "antigravity": "setup",
+        "claude-code": "setup",
+        "codex": "setup",
+        "copilot": "setup",
+        "cursor": "setup",
+        "dsh": "items",
+        "kimi": "items",
+        "kiro": "setup",
+        "opencode": "setup"
+      },
+      "setup": {
+        "antigravity": {
+          "command": [
+            "./setup",
+            "--host",
+            "agy"
+          ],
+          "commit": "1ea86923a86129d1f32828b36acfe6f91f17c8e6",
+          "into": ".aihq/setup/gstack",
+          "needs": [
+            "bun>=1.4.2"
+          ],
+          "repository": "https://github.com/garrytan/gstack"
+        },
+        "claude-code": {
+          "command": [
+            "./setup",
+            "--host",
+            "claude"
+          ],
+          "commit": "1ea86923a86129d1f32828b36acfe6f91f17c8e6",
+          "into": ".claude/skills/gstack",
+          "needs": [
+            "bun>=1.4.2"
+          ],
+          "repository": "https://github.com/garrytan/gstack"
+        },
+        "codex": {
+          "command": [
+            "./setup",
+            "--host",
+            "codex"
+          ],
+          "commit": "1ea86923a86129d1f32828b36acfe6f91f17c8e6",
+          "into": ".aihq/setup/gstack",
+          "needs": [
+            "bun>=1.4.2"
+          ],
+          "repository": "https://github.com/garrytan/gstack"
+        },
+        "copilot": {
+          "command": [
+            "./setup",
+            "--host",
+            "copilot"
+          ],
+          "commit": "1ea86923a86129d1f32828b36acfe6f91f17c8e6",
+          "into": ".aihq/setup/gstack",
+          "needs": [
+            "bun>=1.4.2"
+          ],
+          "repository": "https://github.com/garrytan/gstack"
+        },
+        "cursor": {
+          "command": [
+            "./setup",
+            "--host",
+            "cursor"
+          ],
+          "commit": "1ea86923a86129d1f32828b36acfe6f91f17c8e6",
+          "into": ".aihq/setup/gstack",
+          "needs": [
+            "bun>=1.4.2"
+          ],
+          "repository": "https://github.com/garrytan/gstack"
+        },
+        "kiro": {
+          "command": [
+            "./setup",
+            "--host",
+            "kiro"
+          ],
+          "commit": "1ea86923a86129d1f32828b36acfe6f91f17c8e6",
+          "into": ".aihq/setup/gstack",
+          "needs": [
+            "bun>=1.4.2"
+          ],
+          "repository": "https://github.com/garrytan/gstack"
+        },
+        "opencode": {
+          "command": [
+            "./setup",
+            "--host",
+            "opencode"
+          ],
+          "commit": "1ea86923a86129d1f32828b36acfe6f91f17c8e6",
+          "into": ".aihq/setup/gstack",
+          "needs": [
+            "bun>=1.4.2"
+          ],
+          "repository": "https://github.com/garrytan/gstack"
+        }
+      }
+    },
+    "guide-base": {
+      "content": {
+        "commit": "2481164a51ea7f9e480d51ef52f3d5cf15b017fa",
+        "repository": "https://github.com/samartomar/aih-extensions"
+      },
+      "framework": "guide",
+      "id": "guide-base",
+      "kind": "base",
+      "members": [
+        {
+          "item": "guide.agent.aih-guide",
+          "preTicked": true
+        }
+      ],
+      "options": [
+        {
+          "id": "optional",
+          "items": [
+            {
+              "item": "guide.document.manual",
+              "preTicked": false
+            }
+          ],
+          "pick": "several"
+        }
+      ],
+      "routes": {}
+    },
+    "pstack-base": {
+      "content": {
+        "commit": "ae5650febf4320793844c12c4adaa937f417f8da",
+        "repository": "https://github.com/cursor/plugins"
+      },
+      "framework": "pstack",
+      "id": "pstack-base",
+      "kind": "base",
+      "members": [
+        {
+          "item": "pstack.agent.comment-sicko",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.agent.poteto-agent",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.architect",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.arena",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.automate-me",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.benchmark-checklist",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.blast-radius",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.bro",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.correct",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.create-formal-verification-skill",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.create-verification-skill",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.figure-it-out",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.how",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.in-your-own-words",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.interrogate",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.ketchup",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.ketchup-video",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.maintain-formal-verification-skill",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.maintain-verification-skill",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.make-bot-ui",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.no-comments",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.poteto-help",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.poteto-mode",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.principle-attack-the-premise",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.principle-boundary-discipline",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.principle-build-the-lever",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.principle-encode-lessons-in-structure",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.principle-exhaust-the-design-space",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.principle-experience-first",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.principle-explain-the-number",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.principle-fix-root-causes",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.principle-foundational-thinking",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.principle-guard-the-context-window",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.principle-laziness-protocol",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.principle-make-operations-idempotent",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.principle-migrate-callers-then-delete-legacy-apis",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.principle-minimize-reader-load",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.principle-model-the-domain",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.principle-never-block-on-the-human",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.principle-outcome-oriented-execution",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.principle-prove-it-works",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.principle-redesign-from-first-principles",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.principle-separate-before-serializing-shared-state",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.principle-sequence-verifiable-units",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.principle-subtract-before-you-add",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.principle-test-behavior-not-implementation",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.principle-type-system-discipline",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.recall",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.reflect",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.setup-pstack",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.sharpen",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.show-me-your-work",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.statechart",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.swarm",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.tdd",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.teach",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.technical-writing",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.typescript-best-practices",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.unslop",
+          "preTicked": true
+        },
+        {
+          "item": "pstack.skill.why",
+          "preTicked": true
+        }
+      ],
+      "namePrefix": {
+        "agent": "pstack-",
+        "skill": "pstack-"
+      },
+      "routes": {}
+    }
+  },
+  "unrepresentable": {
+    "anthropic.skill.claude-api": "its upstream description is longer than the 1024 characters an item may carry (the Agent Skills limit), and Catalog does not edit upstream files"
+  },
+  "upstreamOnlyReasons": {
+    "anthropic.skill.doc-coauthoring": "the skill carries no licence, so Catalog records its files and sha256 and the plan fetches them from the pinned upstream",
+    "anthropic.skill.docx": "the skill's own LICENSE.txt reserves all rights, so Catalog records its files and sha256 and the plan fetches them from the pinned upstream",
+    "anthropic.skill.pdf": "the skill's own LICENSE.txt reserves all rights, so Catalog records its files and sha256 and the plan fetches them from the pinned upstream",
+    "anthropic.skill.pptx": "the skill's own LICENSE.txt reserves all rights, so Catalog records its files and sha256 and the plan fetches them from the pinned upstream",
+    "anthropic.skill.xlsx": "the skill's own LICENSE.txt reserves all rights, so Catalog records its files and sha256 and the plan fetches them from the pinned upstream"
+  }
+}

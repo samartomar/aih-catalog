@@ -1,0 +1,3 @@
+# Installation never runs dependency lifecycle scripts.
+ignoreScripts: true
+strictPeerDependencies: true
