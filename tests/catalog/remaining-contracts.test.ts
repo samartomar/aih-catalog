@@ -216,7 +216,9 @@ describe("an item's own client edition", () => {
     if (built.status !== "ok") throw new Error(JSON.stringify(built));
     const [gamma] = built.content.items;
     const editionKey = gamma?.editions?.["claude-code"]?.scanKey;
-    expect(editionKey).toBe(`git-sha1:${gitTree({ "SKILL.md": "---\nname: gamma\ndescription: Gamma.\n---\nClaude body\n" })}`);
+    expect(editionKey).toBe(
+      `git-sha1:${gitTree({ "SKILL.md": "---\nname: gamma\ndescription: Gamma.\n---\nClaude body\n" })}`,
+    );
     expect(editionKey).not.toBe(gamma?.scanKey);
     const none = await checkContent(built.content, own.files, { scannedKeys: [] });
     if (none.status !== "ok") throw new Error(JSON.stringify(none));
