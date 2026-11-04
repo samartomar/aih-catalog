@@ -452,9 +452,11 @@ describe("EGM with its bundle removed", () => {
     const expected = content.items.flatMap((item) =>
       (item.pathReferences ?? []).map((reference) => `${item.id} ${reference.path}`),
     );
-    expect(result.references.map((entry) => `${entry.item} ${entry.path}`).sort()).toEqual(
-      expected.sort(),
-    );
+    expect(
+      result.references
+        .map((entry) => `${entry.item} ${entry.kind === "path" ? entry.path : entry.name}`)
+        .sort(),
+    ).toEqual(expected.sort());
     for (const entry of result.references) expect(entry.clis).not.toContain("claude-code");
     const steps = placements(result.plan);
     expect(steps.filter((step) => step.op === "write" && step.bundle !== undefined)).toEqual([]);

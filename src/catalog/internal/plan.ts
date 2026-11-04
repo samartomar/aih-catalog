@@ -8,6 +8,12 @@
  */
 import type { Invalid, Problem, Refused } from "../contracts.js";
 import { implementedKinds } from "../contracts.js";
+import {
+  AUTHORED_FRAMEWORK,
+  aihContent,
+  DUPLICATE_RESOLVER,
+  DUPLICATES_REPORT,
+} from "./authored.js";
 import { installRelative } from "./identity.js";
 import { canonicalJson } from "./json.js";
 import { lowerServer } from "./mcp.js";
@@ -132,7 +138,7 @@ export interface WriteStep extends RouteMarks {
   readonly path: string;
   readonly from?: SourceRef;
   readonly executable: boolean;
-  readonly render?: PlanRender | MarketplaceRender | BundleRootRender;
+  readonly render?: PlanRender | MarketplaceRender | BundleRootRender | DuplicatesRender;
   /** A runtime bundle's root file: the bundle's id. */
   readonly bundle?: string;
   readonly scanned?: false;
@@ -243,24 +249,45 @@ export interface Clash {
   readonly root: string;
   readonly path: string;
   readonly key?: string;
-  readonly reason?: "different-content" | "nested-key" | "write-and-merge" | "under-link" | "limit";
+  readonly reason?:
+    | "different-content"
+    | "nested-key"
+    | "write-and-merge"
+    | "under-link"
+    | "limit"
+    | "built-in";
+  /** For a `built-in` clash: the name the client already provides that the item would shadow. */
+  readonly builtIn?: string;
   readonly items: readonly string[];
   readonly clis: readonly string[];
 }
 
 /**
- * A source file an item names outside its own files that no placed bundle provides for these
- * clients, so the item would read a path that does not exist.
+ * What an item's text names that its route does not provide. A `path` reference is a source
+ * file outside the item's own files that no placed bundle provides for these clients, so the
+ * item would read a path that does not exist: it blocks the plan. A `name` reference is a
+ * plugin-namespaced name (`ecc:security-reviewer`) that only the upstream's plugin provides: a
+ * warning, with the chosen item it most likely means. Catalog never edits the text.
  */
-export interface Reference {
-  readonly kind: "path";
-  readonly item: string;
-  /** The item file that names the path. */
-  readonly file: string;
-  /** The path from the source root. */
-  readonly path: string;
-  readonly clis: readonly string[];
-}
+export type Reference =
+  | {
+      readonly kind: "path";
+      readonly item: string;
+      /** The item file that names the path. */
+      readonly file: string;
+      /** The path from the source root. */
+      readonly path: string;
+      readonly clis: readonly string[];
+    }
+  | {
+      readonly kind: "name";
+      readonly item: string;
+      readonly file: string;
+      readonly name: string;
+      /** The chosen item of the same framework with that name, when exactly one is. */
+      readonly means?: string;
+      readonly clis: readonly string[];
+    };
 
 export interface Warning {
   readonly code: string;
@@ -281,9 +308,32 @@ export interface Plan {
   readonly missing: readonly Missing[];
   readonly unavailable: readonly Unavailable[];
   readonly clashes: readonly Clash[];
-  readonly duplicates: readonly never[];
+  readonly duplicates: readonly Duplicate[];
   readonly references: readonly Reference[];
   readonly warnings: readonly Warning[];
+}
+
+/**
+ * A fact about mixed frameworks: items sharing one install name across frameworks, or items
+ * with the same `contentSha256` under different ids. Catalog never picks a winner.
+ */
+export interface Duplicate {
+  readonly by: "name" | "content";
+  readonly kind: string;
+  /** For `name`: the install name the items share. */
+  readonly name?: string;
+  /** For `content`: the shared content identity. */
+  readonly contentSha256?: string;
+  readonly items: readonly string[];
+  readonly frameworks: readonly string[];
+  /** The clients the items are planned for. */
+  readonly clis: readonly string[];
+}
+
+/** The duplicates report a mixed plan writes for the resolver agent; its bytes are canonical JSON. */
+export interface DuplicatesRender {
+  readonly name: "duplicates-report";
+  readonly duplicates: readonly Duplicate[];
 }
 
 /** A recipe plan's origin: the recipe id, the sha256 of its exact bytes, and where it was read. */
@@ -1153,11 +1203,12 @@ function placeBundles(
 }
 
 /**
- * Path references no placed bundle provides: for each client an item is placed for, every
- * source file the item names outside its own files that is not one of its bundle's root files
- * at that client's bundle root. A plugin route places the whole plugin, so it is not checked.
+ * References for each client an item is placed for: every source file the item names outside
+ * its own files that is not one of its bundle's root files at that client's bundle root, and
+ * every plugin-namespaced name it mentions. A plugin route places the whole plugin, so its
+ * items are never checked.
  */
-function pathReferencesOf(
+function referencesOf(
   chosen: readonly string[],
   byId: ReadonlyMap<string, { content: Content; item: Item }>,
   kept: readonly Placed[],
@@ -1168,33 +1219,230 @@ function pathReferencesOf(
     placedFor.set(item, new Set([...(placedFor.get(item) ?? []), cli]));
   for (const entry of kept) add(entry.item.id, entry.profile.id);
   for (const { item, cli } of bundles.served) add(item, cli);
-  const found = new Map<string, Reference & { clis: string[] }>();
+  const found = new Map<string, Reference>();
+  const note = (key: string, reference: Reference, cli: string) => {
+    const known = found.get(key) ?? reference;
+    found.set(key, { ...known, clis: sortedSet([...known.clis, cli]) });
+  };
   for (const id of chosen) {
-    const item = byId.get(id)?.item as Item;
+    const { item, content } = byId.get(id) as { content: Content; item: Item };
     for (const cli of placedFor.get(id) ?? []) {
       const placed =
         item.bundle === undefined ? undefined : bundles.roots.get(cli)?.get(item.bundle);
       for (const reference of item.pathReferences ?? []) {
         if (placed?.bundle.files.some((file) => file.sourcePath === reference.path)) continue;
-        const key = `${id}\0${reference.sourcePath}\0${reference.path}`;
-        const entry = found.get(key) ?? {
+        const reported = {
           kind: "path" as const,
           item: id,
           file: reference.sourcePath,
           path: reference.path,
           clis: [],
         };
-        entry.clis = sortedSet([...entry.clis, cli]);
-        found.set(key, entry);
+        note(`path\0${id}\0${reference.sourcePath}\0${reference.path}`, reported, cli);
+      }
+      for (const reference of item.references ?? []) {
+        const bare = reference.name.slice(reference.name.indexOf(":") + 1);
+        const candidates = chosen.filter((other) => {
+          const entry = byId.get(other);
+          return entry?.content === content && entry.item.name === bare;
+        });
+        const reported = {
+          kind: "name" as const,
+          item: id,
+          file: reference.sourcePath,
+          name: reference.name,
+          ...(candidates.length === 1 ? { means: candidates[0] as string } : {}),
+          clis: [],
+        };
+        note(`name\0${id}\0${reference.sourcePath}\0${reference.name}`, reported, cli);
       }
     }
   }
+  const detail = (reference: Reference) =>
+    reference.kind === "path" ? reference.path : reference.name;
   return [...found.values()].sort(
     (left, right) =>
       compareCodeUnits(left.item, right.item) ||
+      compareCodeUnits(left.kind, right.kind) ||
       compareCodeUnits(left.file, right.file) ||
-      compareCodeUnits(left.path, right.path),
+      compareCodeUnits(detail(left), detail(right)),
   );
+}
+
+/** The name a client provides that an install name of this kind would shadow, if any. */
+function providedName(profile: ToolProfile, kind: string, name: string): string | undefined {
+  const provided = profile.provides ?? {};
+  const names =
+    kind === "skill"
+      ? [...(provided.skill ?? []), ...(provided.command ?? [])]
+      : kind === "agent"
+        ? (provided.agent ?? [])
+        : [];
+  const lower = name.toLowerCase();
+  return names.find((entry) => entry.toLowerCase() === lower);
+}
+
+/**
+ * Built-in names: a placed skill or agent whose install name matches what its client provides
+ * is a `built-in` clash, unless a recipe override intends it. An override switches the built-in
+ * off the way the client documents (a same-named item replaces it, or a keyed setting entry),
+ * and otherwise warns that both will show or that switching it off is a manual step.
+ */
+function builtIns(
+  resolved: readonly Placed[],
+  scope: Scope,
+  overrides: readonly Override[],
+): { clashes: Clash[]; merges: MergeStep[]; warnings: Warning[] } {
+  const intended = (entry: Placed, builtIn: string) =>
+    overrides.some(
+      (override) =>
+        override.item === entry.item.id &&
+        override.replaces.toLowerCase() === builtIn.toLowerCase(),
+    );
+  const clashes = new Map<string, { clash: Clash; items: Set<string>; clis: Set<string> }>();
+  const placed = resolved.filter(
+    (entry) =>
+      entry.unit.shape !== "merge" && (entry.item.kind === "skill" || entry.item.kind === "agent"),
+  );
+  for (const entry of placed) {
+    const builtIn = providedName(entry.profile, entry.item.kind, entry.installName);
+    if (builtIn === undefined || intended(entry, builtIn)) continue;
+    const path = (entry.unit as { path: string }).path;
+    const key = `${path}\0${builtIn}`;
+    const known = clashes.get(key) ?? {
+      clash: { root: scope, path, reason: "built-in" as const, builtIn, items: [], clis: [] },
+      items: new Set<string>(),
+      clis: new Set<string>(),
+    };
+    known.items.add(entry.item.id);
+    known.clis.add(entry.profile.id);
+    clashes.set(key, known);
+  }
+  const warnings = new Map<string, { code: string; cli: string; items: Set<string> }>();
+  const warn = (code: string, cli: string, item: string) => {
+    const known = warnings.get(`${code}\0${cli}`) ?? { code, cli, items: new Set<string>() };
+    known.items.add(item);
+    warnings.set(`${code}\0${cli}`, known);
+  };
+  const settings = new Map<string, { step: MergeStep; items: Set<string>; clis: Set<string> }>();
+  for (const override of overrides)
+    for (const entry of placed) {
+      if (entry.item.id !== override.item) continue;
+      const builtIn = providedName(entry.profile, entry.item.kind, override.replaces);
+      if (builtIn === undefined) continue;
+      const cli = entry.profile.id;
+      const how = entry.profile.disableBuiltIn;
+      if (how === undefined || how === "not-documented") {
+        warn("built-in-both-show", cli, override.item);
+        continue;
+      }
+      for (const code of how.warnings ?? []) warn(code, cli, override.item);
+      if (entry.installName.toLowerCase() === builtIn.toLowerCase() && how.sameName === "replaces")
+        continue;
+      if (how.setting !== undefined && entry.item.kind === "skill") {
+        const step: MergeStep = {
+          op: "merge",
+          root: how.setting.root,
+          file: how.setting.file,
+          format: how.setting.format,
+          key: fill(how.setting.key, builtIn),
+          entry: how.setting.entry,
+          clis: [],
+        };
+        const key = `${step.root}\0${step.file}\0${step.key}`;
+        const known = settings.get(key) ?? {
+          step,
+          items: new Set<string>(),
+          clis: new Set<string>(),
+        };
+        known.items.add(override.item);
+        known.clis.add(cli);
+        settings.set(key, known);
+      } else if (how.manual !== undefined) warn("built-in-disable-manual", cli, override.item);
+      else warn("built-in-both-show", cli, override.item);
+    }
+  return {
+    clashes: [...clashes.values()].map(({ clash, items, clis }) => ({
+      ...clash,
+      items: sortedSet(items),
+      clis: sortedSet(clis),
+    })),
+    merges: [...settings.values()].map(({ step, items, clis }) => {
+      const owners = sortedSet(items);
+      return {
+        ...step,
+        ...(owners.length === 1 ? { item: owners[0] as string } : { items: owners }),
+        clis: sortedSet(clis),
+      };
+    }),
+    warnings: [...warnings.values()].map(({ code, cli, items }) => ({
+      code,
+      cli,
+      items: sortedSet(items),
+    })),
+  };
+}
+
+/** Same install names across frameworks and same content under different ids, sorted. */
+function duplicatesOf(
+  planned: readonly { item: Item; framework: string; cli: string; name: string }[],
+): Duplicate[] {
+  const groups = new Map<
+    string,
+    {
+      base: Omit<Duplicate, "items" | "frameworks" | "clis">;
+      items: Set<string>;
+      frameworks: Set<string>;
+      clis: Set<string>;
+    }
+  >();
+  const add = (
+    key: string,
+    base: Omit<Duplicate, "items" | "frameworks" | "clis">,
+    entry: (typeof planned)[number],
+  ) => {
+    const group = groups.get(key) ?? {
+      base,
+      items: new Set(),
+      frameworks: new Set(),
+      clis: new Set(),
+    };
+    group.items.add(entry.item.id);
+    group.frameworks.add(entry.framework);
+    group.clis.add(entry.cli);
+    groups.set(key, group);
+  };
+  for (const entry of planned) {
+    add(
+      `name\0${entry.item.kind}\0${entry.name}`,
+      { by: "name", kind: entry.item.kind, name: entry.name },
+      entry,
+    );
+    add(
+      `content\0${entry.item.contentSha256}`,
+      { by: "content", kind: entry.item.kind, contentSha256: entry.item.contentSha256 },
+      entry,
+    );
+  }
+  return [...groups.values()]
+    .filter(({ base, items, frameworks }) =>
+      base.by === "name" ? frameworks.size >= 2 : items.size >= 2,
+    )
+    .map(({ base, items, frameworks, clis }) => ({
+      ...base,
+      items: sortedSet(items),
+      frameworks: sortedSet(frameworks),
+      clis: sortedSet(clis),
+    }))
+    .sort(
+      (left, right) =>
+        compareCodeUnits(left.by, right.by) ||
+        compareCodeUnits(left.kind, right.kind) ||
+        compareCodeUnits(
+          left.name ?? left.contentSha256 ?? "",
+          right.name ?? right.contentSha256 ?? "",
+        ),
+    );
 }
 
 /** Problems of the supplied contents and profiles, shared by both planners. */
@@ -1324,6 +1572,11 @@ export interface Extras {
   readonly missing: readonly Missing[];
   /** Items a route places for a client outside the item placements (local-plugin contents). */
   readonly served: readonly { readonly item: string; readonly cli: string }[];
+  /**
+   * Items a plugin or upstream setup installs for a client: never placed as items, still
+   * recorded for duplicate checks.
+   */
+  readonly routed?: readonly { readonly item: string; readonly cli: string }[];
 }
 
 export interface CoreInput {
@@ -1337,6 +1590,13 @@ export interface CoreInput {
   /** The install name of an item for a client, or undefined when the client does not take it. */
   readonly installName: (item: Item, profile: ToolProfile) => string | undefined;
   readonly extras?: Extras;
+  /** A recipe's intended built-in replacements: `item` replaces the provided `replaces`. */
+  readonly overrides?: readonly Override[];
+}
+
+export interface Override {
+  readonly item: string;
+  readonly replaces: string;
 }
 
 /** The planner shared by `planInstall` and `planRecipe`, over already-validated input. */
@@ -1381,6 +1641,34 @@ export function planCore(input: CoreInput): PlanResult {
       else placements.push(...result);
     }
 
+  // A plan that mixes frameworks adds Catalog's duplicate resolver on every client that can
+  // take an agent; where it cannot be placed the plan only warns.
+  const frameworkOf = (id: string) => byId.get(id)?.content.framework.id;
+  const mixedFrameworks = new Set(
+    [...selection, ...(extras?.routed ?? []).map((entry) => entry.item)]
+      .map(frameworkOf)
+      .filter((id): id is string => id !== undefined && id !== AUTHORED_FRAMEWORK),
+  );
+  const mixes = mixedFrameworks.size >= 2;
+  const helperWarnings: Warning[] = [];
+  if (mixes) {
+    const authored = aihContent.content;
+    const resolver = authored.items[0] as Item;
+    if (!byId.has(resolver.id)) byId.set(resolver.id, { content: authored, item: resolver });
+    const { item, content } = byId.get(DUPLICATE_RESOLVER) as { item: Item; content: Content };
+    if (!selection.includes(DUPLICATE_RESOLVER))
+      for (const profile of sortedProfiles) {
+        const result = place(item, content, profile, scope, item.name);
+        if (isFailure(result))
+          helperWarnings.push({
+            code: "duplicate-resolver-unavailable",
+            cli: profile.id,
+            items: [DUPLICATE_RESOLVER],
+          });
+        else placements.push(...result);
+      }
+  }
+
   // A client that shares another client's place takes it when that place is planned for
   // the same item, as a copy of that placement; otherwise its own place.
   let resolved: Placed[] = [];
@@ -1401,6 +1689,21 @@ export function planCore(input: CoreInput): PlanResult {
         ),
       )
       .find((other) => other !== undefined);
+    // A skill folder is read as it is: when this client's own render of it would differ (it
+    // rewords `$ARGUMENTS` where the other keeps it), it keeps its own bytes at the shared path,
+    // so the folder is a combined render or a clash, never the other client's bytes taken
+    // silently.
+    if (
+      shared &&
+      entry.item.kind === "skill" &&
+      entry.unit.shape === "folder" &&
+      shared.unit.shape === "folder" &&
+      canonicalJson(entry.unit.outputs) !== canonicalJson(shared.unit.outputs)
+    ) {
+      const { reuse: _reuse, failure: _failure, ...own } = entry;
+      resolved.push({ ...own, unit: { ...entry.unit, path: shared.unit.path } });
+      continue;
+    }
     if (shared) {
       const { launchers: _launchers, ...base } = shared;
       resolved.push({
@@ -1412,7 +1715,13 @@ export function planCore(input: CoreInput): PlanResult {
       continue;
     }
     if (entry.failure) {
-      unavailable.push({ item: entry.item.id, cli: entry.profile.id, ...entry.failure });
+      if (entry.item.id === DUPLICATE_RESOLVER)
+        helperWarnings.push({
+          code: "duplicate-resolver-unavailable",
+          cli: entry.profile.id,
+          items: [DUPLICATE_RESOLVER],
+        });
+      else unavailable.push({ item: entry.item.id, cli: entry.profile.id, ...entry.failure });
       continue;
     }
     const { reuse: _reuse, ...own } = entry;
@@ -1623,6 +1932,50 @@ export function planCore(input: CoreInput): PlanResult {
       for (const code of overlap.warnings) warnings.push({ code, cli: profile.id, items });
     }
 
+  // Names the clients already provide: clashes, or an override's switch-off and warnings.
+  const shadowing = builtIns(resolved, scope, input.overrides ?? []);
+  clashes.push(...shadowing.clashes);
+  merges.push(...shadowing.merges);
+  warnings.push(...shadowing.warnings);
+
+  // Duplicates across frameworks: facts for the user and the resolver, never a winner.
+  const duplicates: Duplicate[] = [];
+  if (mixes) {
+    const planned: { item: Item; framework: string; cli: string; name: string }[] = [];
+    const record = (id: string, cli: string, name?: string) => {
+      const found = byId.get(id);
+      if (found === undefined || found.content.framework.id === AUTHORED_FRAMEWORK) return;
+      planned.push({
+        item: found.item,
+        framework: found.content.framework.id,
+        cli,
+        name: name ?? found.item.name,
+      });
+    };
+    for (const entry of resolved) record(entry.item.id, entry.profile.id, entry.installName);
+    for (const { item, cli } of [
+      ...bundles.served,
+      ...(extras?.served ?? []),
+      ...(extras?.routed ?? []),
+    ]) {
+      const profile = sortedProfiles.find((candidate) => candidate.id === cli) as ToolProfile;
+      const found = byId.get(item);
+      record(item, cli, found ? input.installName(found.item, profile) : undefined);
+    }
+    duplicates.push(...duplicatesOf(planned));
+    writes.push({
+      op: "write",
+      root: scope,
+      path: DUPLICATES_REPORT,
+      executable: false,
+      render: { name: "duplicates-report", duplicates },
+      scanned: false,
+      item: DUPLICATE_RESOLVER,
+      clis: sortedProfiles.map((profile) => profile.id),
+    });
+  }
+  warnings.push(...helperWarnings);
+
   // Notices covering a placed item, once each.
   for (const content of contents)
     for (const source of content.sources)
@@ -1809,9 +2162,12 @@ export function planCore(input: CoreInput): PlanResult {
     return { ...rest, contains: [...(contained.get(step.framework) ?? [])].sort(compareCodeUnits) };
   });
 
-  const references = pathReferencesOf(chosen, byId, resolved, bundles);
+  const references = referencesOf(chosen, byId, resolved, bundles);
   const blocked =
-    missing.length > 0 || unavailable.length > 0 || clashes.length > 0 || references.length > 0;
+    missing.length > 0 ||
+    unavailable.length > 0 ||
+    clashes.length > 0 ||
+    references.some((reference) => reference.kind === "path");
   return {
     status: blocked ? "incomplete" : "ok",
     data:
@@ -1823,7 +2179,7 @@ export function planCore(input: CoreInput): PlanResult {
     missing,
     unavailable,
     clashes,
-    duplicates: [],
+    duplicates,
     references,
     warnings,
   };

@@ -19,6 +19,9 @@
       "version": "2.4.1"
     }
   ],
+  "disableBuiltIn": {
+    "manual": "builtin_product_skills = false switches every bundled skill off; an agent replaces a built-in agent with override: true"
+  },
   "hookEvents": {
     "pre-tool-use": "PreToolUse",
     "session-start": "SessionStart"
@@ -84,6 +87,25 @@
     ],
     "verify": "none"
   },
+  "provides": {
+    "agent": [
+      "agent",
+      "coder",
+      "explore",
+      "plan"
+    ],
+    "skill": [
+      "check-kimi-code-docs",
+      "custom-theme",
+      "import-from-cc-codex",
+      "mcp-config",
+      "sub-skill",
+      "sub-skill.consolidate",
+      "sub-skill.review",
+      "update-config",
+      "write-goal"
+    ]
+  },
   "ruleScopes": {
     "always": {
       "frontmatter": {}
@@ -95,5 +117,5 @@
       "disableModelInvocation": true
     }
   },
-  "version": 3
+  "version": 4
 }

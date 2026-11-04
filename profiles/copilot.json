@@ -26,6 +26,7 @@
       "version": "0.72.0"
     }
   ],
+  "disableBuiltIn": "not-documented",
   "editionPlaces": {
     "hook": {
       "project": ".github/hooks/",
@@ -153,6 +154,100 @@
       "cli-only-plugin"
     ]
   },
+  "provides": {
+    "agent": [
+      "Agent",
+      "Ask",
+      "Plan",
+      "code-review",
+      "explore",
+      "general-purpose",
+      "research",
+      "rubber-duck",
+      "security-review",
+      "task"
+    ],
+    "command": [
+      "add-dir",
+      "agent",
+      "ahp",
+      "allow-all",
+      "app",
+      "ask",
+      "autopilot",
+      "changelog",
+      "chronicle",
+      "clear",
+      "collect-debug-logs",
+      "compact",
+      "computer",
+      "context",
+      "copy",
+      "create-skill",
+      "cwd",
+      "delegate",
+      "diagnose",
+      "diff",
+      "env",
+      "environments",
+      "exit",
+      "experimental",
+      "feedback",
+      "fleet",
+      "fork",
+      "help",
+      "ide",
+      "init",
+      "instructions",
+      "keep-alive",
+      "limits",
+      "list-dirs",
+      "login",
+      "logout",
+      "lsp",
+      "mcp",
+      "memory",
+      "model",
+      "move",
+      "new",
+      "permissions",
+      "plan",
+      "plugin",
+      "pr",
+      "refine",
+      "remote",
+      "rename",
+      "research",
+      "reset-allowed-tools",
+      "restart",
+      "resume",
+      "review",
+      "sandbox",
+      "search",
+      "security-review",
+      "session",
+      "settings",
+      "share",
+      "skills",
+      "statusline",
+      "subagents",
+      "tasks",
+      "terminal-setup",
+      "theme",
+      "undo",
+      "update",
+      "usage",
+      "user",
+      "version",
+      "vim",
+      "voice",
+      "worktree"
+    ],
+    "skill": [
+      "customize-cloud-agent",
+      "github-pr-media"
+    ]
+  },
   "ruleScopes": {
     "always": {
       "frontmatter": {
@@ -187,5 +282,5 @@
       "disable-model-invocation": true
     }
   },
-  "version": 2
+  "version": 3
 }

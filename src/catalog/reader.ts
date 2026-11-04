@@ -9,12 +9,19 @@ import {
   type Refused,
   type UnsupportedVersion,
 } from "./contracts.js";
-import { deepFreeze, JsonAdmissionError, readCanonicalDocument } from "./internal/json.js";
+import { AUTHORED_FRAMEWORK, aihContent } from "./internal/authored.js";
+import {
+  canonicalDocument,
+  deepFreeze,
+  JsonAdmissionError,
+  readCanonicalDocument,
+} from "./internal/json.js";
 import { readJson } from "./internal/kinds.js";
 import type { Content, Item } from "./internal/model.js";
 import { quote, refused } from "./internal/paths.js";
 import {
   type BundleRootRender,
+  type DuplicatesRender,
   type MarketplaceRender,
   type PlanRender,
   type PlanStep,
@@ -51,6 +58,8 @@ export type {
 export type {
   Binding,
   Clash,
+  Duplicate,
+  DuplicatesRender,
   LinkStep,
   MarketplaceRender,
   MergeStep,
@@ -77,6 +86,13 @@ export type {
   Route,
 } from "./internal/recipe.js";
 export type { ToolProfile } from "./internal/render.js";
+
+/**
+ * Catalog's own authored content (framework and source `aih`): the duplicate-resolver agent a
+ * plan that mixes frameworks adds. Plans place it without the caller supplying it; `files`
+ * gives the bytes an installer copies for a step whose `from.sourceId` is `aih`.
+ */
+export { aihContent };
 
 export type ReadContentResult =
   | { readonly status: "ok"; readonly content: Content }
@@ -274,14 +290,30 @@ export type RenderStepResult =
  */
 export function renderStep(
   step: PlanStep,
-  contents: readonly Content[],
+  suppliedContents: readonly Content[],
   profiles: readonly ToolProfile[],
-  files: readonly {
+  suppliedFiles: readonly {
     readonly sourceId?: string;
     readonly sourcePath: string;
     readonly bytes: Uint8Array;
   }[],
 ): RenderStepResult {
+  // Catalog's own authored items render from the library's bytes; nothing need be supplied.
+  const authored =
+    Array.isArray(suppliedContents) &&
+    suppliedContents.some((content) => content?.framework?.id === AUTHORED_FRAMEWORK);
+  const contents: readonly Content[] = authored
+    ? suppliedContents
+    : [...(Array.isArray(suppliedContents) ? suppliedContents : []), aihContent.content];
+  const files = [
+    ...(Array.isArray(suppliedFiles) ? suppliedFiles : []),
+    ...aihContent.files.map((file) => ({ ...file, bytes: file.bytes })),
+  ];
+  if (step?.op === "write" && step.render?.name === "duplicates-report") {
+    const duplicates = (step.render as DuplicatesRender).duplicates;
+    if (!Array.isArray(duplicates)) return badRender("the report lists its duplicates");
+    return ok(new TextEncoder().encode(canonicalDocument({ duplicates })));
+  }
   if (step?.op === "write" && step.render?.name === "plugin-marketplace") {
     const render = step.render;
     const profile = profiles.find((candidate) => candidate.id === render.profile);
@@ -301,7 +333,10 @@ export function renderStep(
     return launcherStep(step, step.render as PlanRender, contents, profiles);
   const render =
     step?.op === "write" || step?.op === "merge"
-      ? (step.render as Exclude<WriteStep["render"], MarketplaceRender | BundleRootRender>)
+      ? (step.render as Exclude<
+          WriteStep["render"],
+          MarketplaceRender | BundleRootRender | DuplicatesRender
+        >)
       : undefined;
   const from = step?.op === "write" || step?.op === "merge" ? step.from : undefined;
   const itemId =

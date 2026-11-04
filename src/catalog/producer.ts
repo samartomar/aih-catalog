@@ -36,6 +36,7 @@ import {
   type InputDeclaration,
   type Item,
   type ItemFile,
+  NAMESPACED_NAME,
   NPM_PACKAGE,
   OBJECT_ID,
   type PluginFolder,
@@ -174,7 +175,41 @@ function discovered(item: Item): DiscoveredItem {
     ...(item.dependencies ? { dependencies: item.dependencies } : {}),
     ...(item.purpose !== undefined ? { purpose: item.purpose } : {}),
     ...(item.bundle !== undefined ? { bundle: item.bundle } : {}),
+    ...(item.references
+      ? { references: [...new Set(item.references.map((reference) => reference.name))] }
+      : {}),
   };
+}
+
+const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * The item files that mention each authored namespaced name, as a whole token. A name no file
+ * mentions is a problem: the authored fact would contradict the bytes.
+ */
+function namespacedReferences(
+  item: DiscoveredItem,
+  bytesOf: (path: string) => Uint8Array,
+): { name: string; sourcePath: string }[] | string | undefined {
+  const names = item.references;
+  if (names === undefined) return undefined;
+  if (
+    !Array.isArray(names) ||
+    !names.every((name) => typeof name === "string" && NAMESPACED_NAME.test(name)) ||
+    new Set(names).size !== names.length
+  )
+    return "references lists distinct <namespace>:<name> names";
+  const found: { name: string; sourcePath: string }[] = [];
+  for (const name of [...names].sort(compareCodeUnits)) {
+    const token = new RegExp(`(?<![A-Za-z0-9_:-])${escapeRegExp(name)}(?![A-Za-z0-9_-])`);
+    const files = item.files
+      .filter((file) => token.test(textOf(bytesOf(file.sourcePath))))
+      .map((file) => file.sourcePath)
+      .sort(compareCodeUnits);
+    if (files.length === 0) return `no file of the item mentions ${name}`;
+    for (const sourcePath of files) found.push({ name, sourcePath });
+  }
+  return found;
 }
 
 const textOf = (bytes: Uint8Array): string => decodeText(bytes) ?? "";
@@ -295,6 +330,8 @@ async function assemble(
     if (bundle === undefined) return [{ path: `${id}/bundle`, message: "names no bundle" }];
   }
   const references = pathReferences(itemFiles, index.has, index.bytesOf);
+  const named = namespacedReferences(item, index.bytesOf);
+  if (typeof named === "string") return [{ path: `${id}/references`, message: named }];
   const base: Record<string, unknown> = {
     kind: item.kind,
     files: itemFiles,
@@ -308,6 +345,7 @@ async function assemble(
     ...base,
     ...(bundle ? { bundle: bundle.id } : {}),
     ...(references.length > 0 ? { pathReferences: references } : {}),
+    ...(named ? { references: named } : {}),
     contentSha256: contentSha256(itemFiles),
     behaviourSha256: behaviourSha256(base as never, bundle ? bundle.files : null),
     scanKey,
@@ -316,6 +354,7 @@ async function assemble(
     ...Object.keys(read.fields),
     "scanKey",
     "pathReferences",
+    "references",
     ...(editions ? ["editions"] : []),
   ];
   if (item.requirements === undefined) compare.push("requirements");

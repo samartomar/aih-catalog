@@ -21,6 +21,7 @@
       "version": "2.28.2"
     }
   ],
+  "disableBuiltIn": "not-documented",
   "hookEvents": {
     "post-tool-use": "PostToolUse",
     "pre-tool-use": "PreToolUse",
@@ -95,6 +96,74 @@
     "pin": "none",
     "verify": "none"
   },
+  "provides": {
+    "agent": [
+      "browser",
+      "default",
+      "research",
+      "self"
+    ],
+    "command": [
+      "add-dir",
+      "agents",
+      "artifact",
+      "branch",
+      "browser",
+      "btw",
+      "changelog",
+      "clear",
+      "codesearch",
+      "compact",
+      "config",
+      "context",
+      "copy",
+      "credits",
+      "cs",
+      "diff",
+      "effort",
+      "exit",
+      "feedback",
+      "fork",
+      "goal",
+      "grill-me",
+      "help",
+      "hooks",
+      "keybindings",
+      "learn",
+      "logout",
+      "mcp",
+      "model",
+      "new",
+      "open",
+      "permissions",
+      "plan",
+      "plugin",
+      "quit",
+      "quota",
+      "record",
+      "remote-control",
+      "rename",
+      "resume",
+      "rewind",
+      "schedule",
+      "settings",
+      "skills",
+      "statusline",
+      "switch",
+      "tasks",
+      "title",
+      "undo",
+      "usage",
+      "voice"
+    ],
+    "skill": [
+      "agy-customizations",
+      "antigravity-guide",
+      "automation",
+      "migrate-workflows",
+      "run-workflow"
+    ]
+  },
   "ruleScopes": {
     "always": {
       "frontmatter": {
@@ -128,5 +197,5 @@
       "disable-model-invocation": true
     }
   },
-  "version": 3
+  "version": 4
 }

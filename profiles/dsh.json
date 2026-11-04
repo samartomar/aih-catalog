@@ -7,6 +7,7 @@
       "version": "0.2.1-rc.5"
     }
   ],
+  "disableBuiltIn": "not-documented",
   "id": "dsh",
   "inputReferences": {
     "file": "unknown",
@@ -32,6 +33,20 @@
       "user": ".agents/skills/<name>/"
     }
   },
+  "provides": {
+    "agent": [
+      "cordis",
+      "minimal",
+      "ptc",
+      "standard"
+    ],
+    "command": [
+      "compact",
+      "feedback",
+      "goal",
+      "plan"
+    ]
+  },
   "ruleScopes": {
     "always": {
       "frontmatter": {}
@@ -48,5 +63,5 @@
       "disable-model-invocation": true
     }
   },
-  "version": 1
+  "version": 2
 }

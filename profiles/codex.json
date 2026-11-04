@@ -12,6 +12,9 @@
       "version": "0.166.0"
     }
   ],
+  "disableBuiltIn": {
+    "manual": "[[skills.config]] with enabled = false, keyed by the SKILL.md path or the qualified plugin:skill name; a bare name is ignored"
+  },
   "hookEvents": {
     "interrupt": "Interrupt",
     "permission-request": "PermissionRequest",
@@ -114,6 +117,16 @@
     ],
     "verify": "none"
   },
+  "provides": {
+    "skill": [
+      "imagegen",
+      "openai-docs",
+      "plugin-creator",
+      "review-agent",
+      "skill-creator",
+      "skill-installer"
+    ]
+  },
   "ruleScopes": {
     "always": {
       "frontmatter": {}
@@ -130,5 +143,5 @@
       }
     }
   },
-  "version": 2
+  "version": 3
 }

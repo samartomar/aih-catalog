@@ -108,6 +108,31 @@ export interface LocalPluginPlace {
   readonly warnings?: readonly string[];
 }
 
+/** Kinds a client's built-ins are listed under; commands share the skill namespace. */
+export const PROVIDED_KINDS = ["skill", "command", "agent"] as const;
+export type ProvidedKind = (typeof PROVIDED_KINDS)[number];
+
+/**
+ * How a client switches off a built-in that a recipe override replaces: `sameName` when a
+ * placed item of the built-in's name replaces it, a keyed `setting` entry (`<name>` is the
+ * built-in) that turns a provided skill off, a `manual` mechanism a plan cannot own as one
+ * entry, and the warnings every override on the client carries.
+ */
+export type DisableBuiltIn =
+  | "not-documented"
+  | {
+      readonly sameName?: "replaces";
+      readonly setting?: {
+        readonly root: Scope;
+        readonly file: string;
+        readonly format: "json";
+        readonly key: string;
+        readonly entry: unknown;
+      };
+      readonly manual?: string;
+      readonly warnings?: readonly string[];
+    };
+
 export interface ToolProfile {
   readonly schema: string;
   readonly id: string;
@@ -190,6 +215,9 @@ export interface ToolProfile {
     };
     readonly warnings: readonly string[];
   };
+  /** What the client already supplies, by name: built-in skills, commands and agents. */
+  readonly provides?: Readonly<Partial<Record<ProvidedKind, readonly string[]>>>;
+  readonly disableBuiltIn?: DisableBuiltIn;
 }
 
 type Record_ = Record<string, unknown>;
@@ -252,6 +280,8 @@ const TOP = [
   "bundleRoot",
   "bundleWarnings",
   "skillFolderOverlap",
+  "provides",
+  "disableBuiltIn",
 ];
 
 const PLACEHOLDERS = ["<framework>", "<plugin>", "<marketplace>", "<folder>"];
@@ -757,7 +787,61 @@ export function profileProblems(value: unknown): Problem[] {
       "{ folders: [2], merge: { file, format, key, entry }, warnings }",
     );
   }
+  if (value.provides !== undefined) checkProvides(value.provides, problems);
+  if (value.disableBuiltIn !== undefined) checkDisableBuiltIn(value.disableBuiltIn, problems);
   return problems.list;
+}
+
+function checkProvides(value: unknown, problems: Problems): void {
+  if (!isRecord(value)) {
+    problems.add("/provides", "provides maps skill, command and agent to names");
+    return;
+  }
+  problems.keys(value, "/provides", PROVIDED_KINDS);
+  for (const [kind, names] of Object.entries(value))
+    problems.check(
+      Array.isArray(names) &&
+        names.length > 0 &&
+        names.every((name) => isString(name, 128)) &&
+        new Set(names).size === names.length,
+      `/provides/${kind}`,
+      "a list of distinct built-in names",
+    );
+}
+
+function checkDisableBuiltIn(value: unknown, problems: Problems): void {
+  if (value === "not-documented") return;
+  if (!isRecord(value)) {
+    problems.add(
+      "/disableBuiltIn",
+      "not-documented or { sameName?, setting?, manual?, warnings? }",
+    );
+    return;
+  }
+  problems.keys(value, "/disableBuiltIn", ["sameName", "setting", "manual", "warnings"]);
+  if (value.sameName !== undefined)
+    problems.check(value.sameName === "replaces", "/disableBuiltIn/sameName", "only replaces");
+  const setting = value.setting;
+  if (setting !== undefined)
+    problems.check(
+      isRecord(setting) &&
+        Object.keys(setting).sort().join() === "entry,file,format,key,root" &&
+        (setting.root === "project" || setting.root === "user") &&
+        template(setting.file, false, false) &&
+        setting.format === "json" &&
+        isString(setting.key) &&
+        setting.key.startsWith("/") &&
+        setting.key.includes("<name>"),
+      "/disableBuiltIn/setting",
+      "{ root, file, format: json, key with <name>, entry }",
+    );
+  if (value.manual !== undefined)
+    problems.check(isString(value.manual, 512), "/disableBuiltIn/manual", "a description");
+  problems.check(
+    warningList(value.warnings),
+    "/disableBuiltIn/warnings",
+    "a list of warning codes",
+  );
 }
 
 function checkMcpFields(value: unknown, problems: Problems): void {
