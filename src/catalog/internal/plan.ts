@@ -7,7 +7,7 @@
  * plans.
  */
 import type { Invalid, Problem, Refused } from "../contracts.js";
-import { implementedKinds } from "../contracts.js";
+import { kinds } from "../contracts.js";
 import {
   type AiSetupChange,
   CELLS,
@@ -585,7 +585,7 @@ function place(
     ...(reuse ? { reuse } : {}),
     ...(bundle ? { bundle } : {}),
   });
-  if (!(implementedKinds as readonly string[]).includes(item.kind))
+  if (!(kinds as readonly string[]).includes(item.kind))
     return {
       reason: "not-implemented",
       detail: `planning ${item.kind} items is not implemented yet`,

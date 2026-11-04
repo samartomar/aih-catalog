@@ -4,14 +4,7 @@
  * file-derived field; Scan's `scanKeyOf` gives each item's scan key.
  */
 import { scanKeyOf } from "@aihq/scan/contracts";
-import {
-  formats,
-  type Invalid,
-  implementedKinds,
-  limits,
-  type Problem,
-  type Refused,
-} from "./contracts.js";
+import { formats, type Invalid, kinds, limits, type Problem, type Refused } from "./contracts.js";
 import { aiSetupProblems, MCP_SETTINGS, mcpSettingProblems } from "./internal/ai-setup.js";
 import {
   BUNDLE_LAYOUT,
@@ -344,8 +337,8 @@ async function assemble(
   primary: string,
 ): Promise<{ item: Item; compare: string[] } | Problem[]> {
   const id = String(item?.id);
-  if (!(implementedKinds as readonly string[]).includes(item?.kind))
-    return [{ path: id, message: `building ${String(item?.kind)} items is not implemented yet` }];
+  if (!(kinds as readonly string[]).includes(item?.kind))
+    return [{ path: id, message: `${String(item?.kind)} is not an item kind` }];
   const missing = allFiles(item).filter((file) => !files.has(file.sourceId, file.sourcePath));
   if (missing.length > 0)
     return missing.map((file) => ({
@@ -1063,7 +1056,7 @@ export async function checkContent(
             message: "bytes differs from the file length",
           });
       }
-      if (!(implementedKinds as readonly string[]).includes(item.kind)) continue;
+      if (!(kinds as readonly string[]).includes(item.kind)) continue;
       const result = await assemble(
         view,
         index,

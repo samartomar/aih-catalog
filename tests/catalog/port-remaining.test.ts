@@ -258,9 +258,7 @@ describe("the ported candidate data", () => {
       ...recorded,
       sources: recorded.sources.map((each) => ({
         ...each,
-        notices: each.notices.filter(
-          (notice) => !notice.sourcePath.startsWith("distributions/"),
-        ),
+        notices: each.notices.filter((notice) => !notice.sourcePath.startsWith("distributions/")),
       })),
       plugins: (recorded.plugins ?? []).map(({ folderScanKey: _, ...rest }) => rest),
     };

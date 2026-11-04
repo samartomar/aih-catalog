@@ -186,6 +186,19 @@ limit's name, never a partial result.
 | `documentDepth` | 64 |
 | `toolProfileBytes`, `recipeBytes`, `qualificationBytes` | 1 MiB each |
 
+## Exports beyond the contract
+
+Each entry point exports the functions and data above, plus these additions:
+
+| Entry point | Export | What it is |
+| --- | --- | --- |
+| `/source` | `isNoticePath`, `noticeCovers` | Whether a source path is a licence or notice file, and the folder it covers |
+| `/reader` | `aihContent` | Catalog's own authored content (source `aih`): the duplicate resolver agent a mixing plan adds |
+| `/contracts` | `formats` | The five format URNs, by format name |
+| `/contracts` | `toolProfiles` | The nine shipped tool profiles, as exact document text for `readToolProfile` |
+| `/contracts` | `leftOverReasons` | The reasons `findItems` gives a file it leaves over |
+| `/contracts` | `limits.documentDepth`, `limits.toolProfileBytes`, `limits.recipeBytes`, `limits.qualificationBytes` | Limits on the formats Catalog reads, beside the source and content limits |
+
 ## What Catalog does not do
 
 Catalog does not install, remove or update anything, resolve real root folders, ask for

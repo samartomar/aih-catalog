@@ -337,7 +337,10 @@ export function planTools(input: ToolInput): ToolPlan {
         detail: `no qualification of the combination on ${cell} was supplied`,
       });
     else if (record.result.status !== "qualified") {
-      plan.unavailable.push({ recipe: combination.recipe, ...notQualified([{ sha256: combination.sha256 ?? "", record }], cell) });
+      plan.unavailable.push({
+        recipe: combination.recipe,
+        ...notQualified([{ sha256: combination.sha256 ?? "", record }], cell),
+      });
     } else if ("qualifications" in record.observed) {
       const map = new Map<string, string>();
       for (const sha256 of record.observed.qualifications) {

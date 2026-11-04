@@ -32,7 +32,59 @@ function npmCli(): string {
   throw new Error("unable to resolve a local npm-cli.js");
 }
 
+/**
+ * Every runtime export, per entry point: the contract's functions and data plus the additions
+ * CONTRACTS.md lists under "Exports beyond the contract".
+ */
+const RUNTIME_EXPORTS = {
+  contracts: [
+    "fixtures",
+    "formats",
+    "kinds",
+    "leftOverReasons",
+    "limits",
+    "refusalCodes",
+    "schemas",
+    "toolProfiles",
+  ],
+  node: ["fetchSource", "readContentFile", "readLocalSource"],
+  producer: ["buildContent", "checkContent"],
+  reader: [
+    "aihContent",
+    "availability",
+    "derive",
+    "getItem",
+    "listItems",
+    "planInstall",
+    "planRecipe",
+    "readContent",
+    "readQualification",
+    "readRecipe",
+    "readToolProfile",
+    "renderStep",
+  ],
+  source: ["findItems", "isNoticePath", "noticeCovers", "parseSourceLink"],
+};
+
 describe("the package exposes exactly the five entry points", () => {
+  it("exports exactly the listed runtime names from each entry point", () => {
+    const modules = { contracts, node, producer, reader, source };
+    for (const [name, module] of Object.entries(modules))
+      expect(Object.keys(module).sort(), name).toEqual(
+        RUNTIME_EXPORTS[name as keyof typeof RUNTIME_EXPORTS],
+      );
+    const listed = readFileSync(join(root, "CONTRACTS.md"), "utf8");
+    for (const name of [
+      "isNoticePath",
+      "noticeCovers",
+      "aihContent",
+      "toolProfiles",
+      "leftOverReasons",
+      "documentDepth",
+    ])
+      expect(listed, name).toContain(`\`${name}\``);
+  });
+
   it("exports only /source, /node, /producer, /reader and /contracts from dist/catalog", () => {
     expect(Object.keys(manifest.exports).sort()).toEqual(ENTRY_POINTS.map((name) => `./${name}`));
     for (const name of ENTRY_POINTS)
