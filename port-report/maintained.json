@@ -108,10 +108,10 @@
   },
   "counts": {
     "bundle": 1,
-    "contentItems": 730,
-    "dropped": 21,
+    "contentItems": 734,
+    "dropped": 17,
     "edition": 43,
-    "mapped": 687,
+    "mapped": 691,
     "newItems": 21,
     "notice": 3,
     "steering": 22
@@ -2494,9 +2494,9 @@
           "mcp-configs/mcp-servers.json"
         ]
       },
-      "disposition": "dropped",
-      "note": "no reviewed exact version for the package the upstream entry names; a maintainer can add one: the reviewed pin was for a different package (@browserbasehq/mcp)",
-      "reason": "mcp-not-representable"
+      "disposition": "mapped",
+      "item": "ecc.mcp.browserbase",
+      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json"
     },
     {
       "baseline": {
@@ -2615,7 +2615,7 @@
         ]
       },
       "disposition": "dropped",
-      "note": "the upstream entry starts a locally installed program, which a Registry server.json cannot describe",
+      "note": "the upstream entry starts a program already on the user's PATH and names no package that provides it, so a Registry server.json, which describes a server by its published package, cannot say what to install",
       "reason": "mcp-not-representable"
     },
     {
@@ -2627,7 +2627,7 @@
         ]
       },
       "disposition": "dropped",
-      "note": "the upstream entry runs python3 -m evalview, with no Registry package runner or version",
+      "note": "the upstream entry runs a Python module with python3 -m from whatever environment the user has, not a package through a runner; a Registry form would mean Catalog asserting which PyPI package and version provide the module and replacing the runner",
       "reason": "mcp-not-representable"
     },
     {
@@ -2686,9 +2686,9 @@
           "mcp-configs/mcp-servers.json"
         ]
       },
-      "disposition": "dropped",
-      "note": "no reviewed exact version for the package the upstream entry names; a maintainer can add one: @modelcontextprotocol/server-github",
-      "reason": "mcp-not-representable"
+      "disposition": "mapped",
+      "item": "ecc.mcp.github",
+      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json"
     },
     {
       "baseline": {
@@ -2712,7 +2712,7 @@
         ]
       },
       "disposition": "dropped",
-      "note": "the upstream entry starts a locally installed program, which a Registry server.json cannot describe (an absolute path to an unpublished build)",
+      "note": "the upstream entry starts a program already on the user's PATH and names no package that provides it, so a Registry server.json, which describes a server by its published package, cannot say what to install (an absolute path to an unpublished build)",
       "reason": "mcp-not-representable"
     },
     {
@@ -2748,7 +2748,7 @@
         ]
       },
       "disposition": "dropped",
-      "note": "the upstream entry starts a locally installed program, which a Registry server.json cannot describe",
+      "note": "the upstream entry starts a program already on the user's PATH and names no package that provides it, so a Registry server.json, which describes a server by its published package, cannot say what to install",
       "reason": "mcp-not-representable"
     },
     {
@@ -2796,7 +2796,7 @@
         ]
       },
       "disposition": "dropped",
-      "note": "the upstream entry starts a locally installed program, which a Registry server.json cannot describe",
+      "note": "the upstream entry starts a program already on the user's PATH and names no package that provides it, so a Registry server.json, which describes a server by its published package, cannot say what to install",
       "reason": "mcp-not-representable"
     },
     {
@@ -2843,9 +2843,9 @@
           "mcp-configs/mcp-servers.json"
         ]
       },
-      "disposition": "dropped",
-      "note": "no reviewed exact version for the package the upstream entry names; a maintainer can add one: the reviewed pin was for a different package (@railway/cli)",
-      "reason": "mcp-not-representable"
+      "disposition": "mapped",
+      "item": "ecc.mcp.railway",
+      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json"
     },
     {
       "baseline": {
@@ -2904,9 +2904,9 @@
           "mcp-configs/mcp-servers.json"
         ]
       },
-      "disposition": "dropped",
-      "note": "no reviewed exact version for the package the upstream entry names; a maintainer can add one: token-optimizer-mcp",
-      "reason": "mcp-not-representable"
+      "disposition": "mapped",
+      "item": "ecc.mcp.token-optimizer",
+      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json"
     },
     {
       "baseline": {

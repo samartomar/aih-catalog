@@ -667,12 +667,12 @@ describe("the port report for these families", () => {
       if (entry.disposition === "mapped")
         expect(ids.has(entry.item as string), entry.baseline.id).toBe(true);
     expect(REPORT.counts).toMatchObject({
-      mapped: 687,
+      mapped: 691,
       edition: 43,
       steering: 22,
       notice: 3,
       bundle: 1,
-      dropped: 21,
+      dropped: 17,
     });
   });
 
@@ -710,15 +710,23 @@ describe("the port report for these families", () => {
         .filter((entry) => entry.reason === "mcp-not-representable")
         .map((entry) => entry.baseline.id),
     ).toEqual([
-      "ecc.mcp.browserbase",
       "ecc.mcp.ecc-memory-vault",
       "ecc.mcp.evalview",
-      "ecc.mcp.github",
       "ecc.mcp.ito-compute",
       "ecc.mcp.longhand",
       "ecc.mcp.nexus",
-      "ecc.mcp.railway",
-      "ecc.mcp.token-optimizer",
     ]);
+    // Each npm entry becomes its own server.json, at the exact version Catalog pins.
+    for (const name of ["github", "browserbase", "railway", "token-optimizer"])
+      expect(of(`ecc.mcp.${name}`), name).toMatchObject({
+        disposition: "mapped",
+        item: `ecc.mcp.${name}`,
+      });
+    const github = data("ecc").items.find((item) => item.id === "ecc.mcp.github");
+    expect(github?.server?.packages?.[0]).toMatchObject({
+      registryType: "npm",
+      identifier: "@modelcontextprotocol/server-github",
+      version: "2025.4.8",
+    });
   });
 });

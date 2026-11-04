@@ -49,6 +49,12 @@ const PINS = {
  * cut out; `MCP_DROPPED` gives the reason.
  */
 const MCP_VERSIONS = {
+  // The latest exact version on the npm registry on 2026-11-04, for entries the donor
+  // release had no reviewed pin for (Catalog's authored pin; the upstream names no version).
+  browserbase: "2.4.3",
+  github: "2025.4.8",
+  railway: "0.1.12",
+  "token-optimizer": "2.17.0",
   codescene: "1.5.13",
   confluence: "1.3.3",
   context7: "4.4.4",
@@ -65,16 +71,11 @@ const MCP_VERSIONS = {
   supabase: "0.14.0",
 };
 const MCP_INPUTS = { filesystem: { "/path/to/your/projects": "FILESYSTEM_ROOT" } };
-const NO_VERSION =
-  "no reviewed exact version for the package the upstream entry names; a maintainer can add one";
 const LOCAL_BINARY =
-  "the upstream entry starts a locally installed program, which a Registry server.json cannot describe";
+  "the upstream entry starts a program already on the user's PATH and names no package that provides it, so a Registry server.json, which describes a server by its published package, cannot say what to install";
 const MCP_DROPPED = {
-  github: `${NO_VERSION}: @modelcontextprotocol/server-github`,
-  browserbase: `${NO_VERSION}: the reviewed pin was for a different package (@browserbasehq/mcp)`,
-  railway: `${NO_VERSION}: the reviewed pin was for a different package (@railway/cli)`,
-  "token-optimizer": `${NO_VERSION}: token-optimizer-mcp`,
-  evalview: "the upstream entry runs python3 -m evalview, with no Registry package runner or version",
+  evalview:
+    "the upstream entry runs a Python module with python3 -m from whatever environment the user has, not a package through a runner; a Registry form would mean Catalog asserting which PyPI package and version provide the module and replacing the runner",
   nexus: LOCAL_BINARY,
   "ecc-memory-vault": LOCAL_BINARY,
   longhand: LOCAL_BINARY,
