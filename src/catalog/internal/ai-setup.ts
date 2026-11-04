@@ -405,7 +405,7 @@ export function aiSetupChangeProblems(value: unknown, path: string): Problem[] {
   return problems.list;
 }
 
-/** The MCP setting fields an `mcp` item and a recipe change share (D55). */
+/** The MCP setting fields an `mcp` item and a recipe change share. */
 export const MCP_SETTINGS = [
   "enabledTools",
   "disabledTools",

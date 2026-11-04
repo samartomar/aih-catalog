@@ -182,11 +182,17 @@ function check(
     !sameMembers(record, distribution)
   )
     return "artifact-mismatch";
-  if (setup.runtime?.python !== undefined && record.observed.closure === null) return "no-closure";
+  // A qualified Python tool is installable only from the closure that passed.
+  if (
+    setup.runtime?.python !== undefined &&
+    record.observed.closure === null &&
+    record.result.status === "qualified"
+  )
+    return "no-closure";
   return "ok";
 }
 
-/** D95: among matching qualified records, the latest date, then the lowest sha256. */
+/** Among matching qualified records, the latest date, then the lowest sha256. */
 function standalone(
   item: Item,
   setup: AiSetup,

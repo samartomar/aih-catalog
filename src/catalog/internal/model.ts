@@ -172,6 +172,8 @@ export interface Content {
 export interface CutRequest {
   readonly pointer: string;
   readonly as: "hook" | "mcp";
+  /** For an MCP entry that has no description of its own: the description Catalog authors. */
+  readonly description?: string;
   readonly version?: string;
   readonly inputs?: Readonly<Record<string, string>>;
 }
@@ -245,7 +247,7 @@ export interface DiscoveredItem {
   readonly name?: string;
   readonly description?: string;
   readonly aiSetup?: unknown;
-  /** An MCP item's authored settings (D55): tool lists, timeouts and non-secret env. */
+  /** An MCP item's authored settings: tool lists, timeouts and non-secret env. */
   readonly enabledTools?: readonly string[];
   readonly disabledTools?: readonly string[];
   readonly startupSeconds?: number;

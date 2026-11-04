@@ -82,6 +82,7 @@ export type {
   PlanStep,
   PluginStep,
   RecipeOrigin,
+  RootPath,
   SetupStep,
   Unavailable,
   Warning,
@@ -97,6 +98,11 @@ export type {
   Route,
 } from "./internal/recipe.js";
 export type { ToolProfile } from "./internal/render.js";
+export type {
+  AcquireStep,
+  ToolCommandStep,
+  UpstreamInstallerStep,
+} from "./internal/tools.js";
 
 /**
  * Catalog's own authored content (framework and source `aih`): the duplicate-resolver agent a

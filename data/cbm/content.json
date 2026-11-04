@@ -1,0 +1,366 @@
+{
+  "framework": {
+    "id": "cbm",
+    "name": "codebase-memory-mcp"
+  },
+  "items": [
+    {
+      "aiSetup": {
+        "distributions": [
+          {
+            "bytes": 49875423,
+            "cells": [
+              "darwin-arm64"
+            ],
+            "file": "codebase-memory-mcp-darwin-arm64.tar.gz",
+            "kind": "native-archive",
+            "members": [
+              {
+                "executable": false,
+                "path": "LICENSE",
+                "sha256": "1f58f9911dc5e3bcb96de28bb28e7b6bb7eb323952d29569c5d7214a152146bb"
+              },
+              {
+                "executable": false,
+                "path": "THIRD_PARTY_NOTICES.md",
+                "sha256": "85ba0e25610a3d1a71df75c46425141644b416f290de5c8d985ae5d2d02092e4"
+              },
+              {
+                "executable": true,
+                "path": "codebase-memory-mcp",
+                "sha256": "a36cfa1f5d10d8c4762501d63feef082711aae4704b9e8f9066db52779a8601e"
+              },
+              {
+                "executable": true,
+                "path": "install.sh",
+                "sha256": "13049c7cc51bc508d68b8ecb8a9fd9574ecb7c6f2c9dd5a19bf7d4c187321145"
+              }
+            ],
+            "sha256": "9bfcbe38414b47969a3e1d1c1999f5357409387c86fa3d24221b5458267660d2",
+            "url": "https://github.com/DeusData/codebase-memory-mcp/releases/download/v0.12.1/codebase-memory-mcp-darwin-arm64.tar.gz"
+          },
+          {
+            "bytes": 50555159,
+            "cells": [
+              "darwin-x64"
+            ],
+            "file": "codebase-memory-mcp-darwin-amd64.tar.gz",
+            "kind": "native-archive",
+            "members": [
+              {
+                "executable": false,
+                "path": "LICENSE",
+                "sha256": "1f58f9911dc5e3bcb96de28bb28e7b6bb7eb323952d29569c5d7214a152146bb"
+              },
+              {
+                "executable": false,
+                "path": "THIRD_PARTY_NOTICES.md",
+                "sha256": "85ba0e25610a3d1a71df75c46425141644b416f290de5c8d985ae5d2d02092e4"
+              },
+              {
+                "executable": true,
+                "path": "codebase-memory-mcp",
+                "sha256": "f3ba4d7dd462be868eff85f0dccb7375405f58084da800826065df2312b028ab"
+              },
+              {
+                "executable": true,
+                "path": "install.sh",
+                "sha256": "13049c7cc51bc508d68b8ecb8a9fd9574ecb7c6f2c9dd5a19bf7d4c187321145"
+              }
+            ],
+            "sha256": "ca6e64397a8ae80cec898a8205a6aa16750ac798acc05a0c3ed983837944a581",
+            "url": "https://github.com/DeusData/codebase-memory-mcp/releases/download/v0.12.1/codebase-memory-mcp-darwin-amd64.tar.gz"
+          },
+          {
+            "bytes": 48466763,
+            "cells": [
+              "linux-arm64"
+            ],
+            "file": "codebase-memory-mcp-linux-arm64-portable.tar.gz",
+            "kind": "native-archive",
+            "members": [
+              {
+                "executable": false,
+                "path": "LICENSE",
+                "sha256": "1f58f9911dc5e3bcb96de28bb28e7b6bb7eb323952d29569c5d7214a152146bb"
+              },
+              {
+                "executable": false,
+                "path": "THIRD_PARTY_NOTICES.md",
+                "sha256": "85ba0e25610a3d1a71df75c46425141644b416f290de5c8d985ae5d2d02092e4"
+              },
+              {
+                "executable": true,
+                "path": "codebase-memory-mcp",
+                "sha256": "6a64e20e2ca8dc15b4a412e981e5aea60804ed3e952d693ab491c93ccd36ed45"
+              },
+              {
+                "executable": true,
+                "path": "install.sh",
+                "sha256": "13049c7cc51bc508d68b8ecb8a9fd9574ecb7c6f2c9dd5a19bf7d4c187321145"
+              }
+            ],
+            "sha256": "ed0f1f548cd79b121c401c2e9f7841c189a001af26d3768368088c24f6a53533",
+            "url": "https://github.com/DeusData/codebase-memory-mcp/releases/download/v0.12.1/codebase-memory-mcp-linux-arm64-portable.tar.gz"
+          },
+          {
+            "bytes": 48920994,
+            "cells": [
+              "linux-x64"
+            ],
+            "file": "codebase-memory-mcp-linux-amd64-portable.tar.gz",
+            "kind": "native-archive",
+            "members": [
+              {
+                "executable": false,
+                "path": "LICENSE",
+                "sha256": "1f58f9911dc5e3bcb96de28bb28e7b6bb7eb323952d29569c5d7214a152146bb"
+              },
+              {
+                "executable": false,
+                "path": "THIRD_PARTY_NOTICES.md",
+                "sha256": "85ba0e25610a3d1a71df75c46425141644b416f290de5c8d985ae5d2d02092e4"
+              },
+              {
+                "executable": true,
+                "path": "codebase-memory-mcp",
+                "sha256": "77745491f0a9c346d6da23eed4d92b5feaa31a27a883c9faa4fa9f47c8183705"
+              },
+              {
+                "executable": true,
+                "path": "install.sh",
+                "sha256": "13049c7cc51bc508d68b8ecb8a9fd9574ecb7c6f2c9dd5a19bf7d4c187321145"
+              }
+            ],
+            "sha256": "8c3d0341064301e78ecc84cf7348d4e2c6562a0f57448243ea560aaa34de36c1",
+            "url": "https://github.com/DeusData/codebase-memory-mcp/releases/download/v0.12.1/codebase-memory-mcp-linux-amd64-portable.tar.gz"
+          },
+          {
+            "bytes": 47934918,
+            "cells": [
+              "windows-arm64"
+            ],
+            "file": "codebase-memory-mcp-windows-arm64.zip",
+            "kind": "native-archive",
+            "members": [
+              {
+                "executable": false,
+                "path": "LICENSE",
+                "sha256": "1f58f9911dc5e3bcb96de28bb28e7b6bb7eb323952d29569c5d7214a152146bb"
+              },
+              {
+                "executable": false,
+                "path": "THIRD_PARTY_NOTICES.md",
+                "sha256": "3beaf2bc23fed38ae8e926a5bdff1a5d4ea20aa34972bf9a5aa6a8d890a9347c"
+              },
+              {
+                "executable": true,
+                "path": "codebase-memory-mcp.exe",
+                "sha256": "b19816bb88ef3145a0f4b81856665c67a684cc038e06ae696e76960277c67b41"
+              },
+              {
+                "executable": false,
+                "path": "install.ps1",
+                "sha256": "edc5e194702e21b01d38648a25d44d783022bba992b5fb62b08528e2c71ca370"
+              }
+            ],
+            "sha256": "934ab6bd67a76c6ebd9e110d87b7090ffd629919bedaeddabe5a19175038b063",
+            "url": "https://github.com/DeusData/codebase-memory-mcp/releases/download/v0.12.1/codebase-memory-mcp-windows-arm64.zip"
+          },
+          {
+            "bytes": 48508123,
+            "cells": [
+              "windows-x64"
+            ],
+            "file": "codebase-memory-mcp-windows-amd64.zip",
+            "kind": "native-archive",
+            "members": [
+              {
+                "executable": false,
+                "path": "LICENSE",
+                "sha256": "1f58f9911dc5e3bcb96de28bb28e7b6bb7eb323952d29569c5d7214a152146bb"
+              },
+              {
+                "executable": false,
+                "path": "THIRD_PARTY_NOTICES.md",
+                "sha256": "3beaf2bc23fed38ae8e926a5bdff1a5d4ea20aa34972bf9a5aa6a8d890a9347c"
+              },
+              {
+                "executable": true,
+                "path": "codebase-memory-mcp.exe",
+                "sha256": "39f6a789cd858d7428561ac5afaefb9a47b018dcba0ad6fa41ae71a45e0ed656"
+              },
+              {
+                "executable": false,
+                "path": "install.ps1",
+                "sha256": "edc5e194702e21b01d38648a25d44d783022bba992b5fb62b08528e2c71ca370"
+              }
+            ],
+            "sha256": "4e4e0f16b45233af5c757a1fcbe3c3b16e9056375b1fbe2ce020b6de75dedcc0",
+            "url": "https://github.com/DeusData/codebase-memory-mcp/releases/download/v0.12.1/codebase-memory-mcp-windows-amd64.zip"
+          }
+        ],
+        "doNotRun": [
+          [
+            "codebase-memory-mcp",
+            "install"
+          ],
+          [
+            "codebase-memory-mcp",
+            "uninstall"
+          ],
+          [
+            "install.sh"
+          ],
+          [
+            "install.ps1"
+          ]
+        ],
+        "executable": "codebase-memory-mcp",
+        "launch": {
+          "args": [
+            "--ui=false"
+          ]
+        },
+        "mcpItem": "cbm.mcp.codebase-memory-mcp",
+        "qualifications": [
+          "020a74e221dd95ddfa2a86501eec25f504dedfdae53007a23ea1c5e63bc5d36b",
+          "1c1bafc9857674e890b0a78d879eeb69e22c4237268563b0e790efde35090abf",
+          "4be378ce56af26aca9ec8b0116ec5b0747ba235b994e65ab83eba7aa61bddfa6",
+          "94e0caacd4ca3b1a9eda854c79ad485806140d614cd54058f82e4d18782f3916",
+          "9e1fa0113c55143e98a11347bf2481f6954ffe38008fbed2a295fee70ebdcfdd",
+          "f5f4b86dd768af8904a98b7e7a9233f26dbc3b313604ff66f34dd3cf30f1a4d5"
+        ],
+        "settings": {
+          "commands": [
+            {
+              "argv": [
+                "config",
+                "set",
+                "watcher_enabled",
+                "false"
+              ],
+              "readback": {
+                "argv": [
+                  "config",
+                  "get",
+                  "watcher_enabled"
+                ],
+                "expected": "false"
+              }
+            },
+            {
+              "argv": [
+                "config",
+                "set",
+                "auto_watch",
+                "false"
+              ],
+              "readback": {
+                "argv": [
+                  "config",
+                  "get",
+                  "auto_watch"
+                ],
+                "expected": "false"
+              }
+            },
+            {
+              "argv": [
+                "config",
+                "set",
+                "auto_index",
+                "false"
+              ],
+              "readback": {
+                "argv": [
+                  "config",
+                  "get",
+                  "auto_index"
+                ],
+                "expected": "false"
+              }
+            }
+          ],
+          "files": []
+        },
+        "version": "0.12.1"
+      },
+      "behaviourSha256": "69897d9075d42b6a06f19709a2cb5066aefbe60938f72a64a00bcd5f37e3fce0",
+      "contentSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "description": "codebase-memory-mcp 0.12.1: a native codebase knowledge graph with architecture and decision records, served over MCP.",
+      "files": [],
+      "id": "cbm.ai-setup.codebase-memory-mcp",
+      "kind": "ai-setup",
+      "name": "codebase-memory-mcp"
+    },
+    {
+      "behaviourSha256": "5cef1f94f0dd08d32220d08b9579aa02e53fb20ac0826972f5e29064c3f2fba1",
+      "callSeconds": 600,
+      "contentSha256": "30b2edc8de28e6266d4c31d809155fdf94a52b5213616e4b6bafa0cb36345b5b",
+      "dependencies": [
+        "cbm.ai-setup.codebase-memory-mcp"
+      ],
+      "description": "Codebase knowledge graph for AI agents — 162 languages, sub-ms queries, 99% fewer tokens.",
+      "env": {
+        "CBM_DIAGNOSTICS": "false"
+      },
+      "files": [
+        {
+          "bytes": 898,
+          "executable": false,
+          "role": "content",
+          "sha256": "32421f96a7f282e077512aa3c84f7254cfbae6207b387dce875d24ea00a7794a",
+          "sourceId": "cbm",
+          "sourcePath": "server.json"
+        }
+      ],
+      "id": "cbm.mcp.codebase-memory-mcp",
+      "kind": "mcp",
+      "name": "codebase-memory-mcp",
+      "scanKey": "git-sha1:3ac428156faa9fab79eaced65f9e468b97b660e1",
+      "server": {
+        "description": "Codebase knowledge graph for AI agents — 162 languages, sub-ms queries, 99% fewer tokens.",
+        "name": "io.github.DeusData/codebase-memory-mcp",
+        "packages": [
+          {
+            "identifier": "codebase-memory-mcp",
+            "registryType": "npm",
+            "runtimeHint": "npx",
+            "transport": {
+              "type": "stdio"
+            },
+            "version": "0.12.0"
+          },
+          {
+            "identifier": "codebase-memory-mcp",
+            "registryType": "pypi",
+            "runtimeHint": "uvx",
+            "transport": {
+              "type": "stdio"
+            },
+            "version": "0.12.0"
+          }
+        ],
+        "version": "0.12.0"
+      },
+      "startupSeconds": 45
+    }
+  ],
+  "schema": "urn:aihq:catalog:content:0.1.0",
+  "sources": [
+    {
+      "commit": "a7158ac2f48ca646b4527341b76f930f2aeff87e",
+      "id": "cbm",
+      "kind": "git",
+      "notices": [
+        {
+          "covers": "/",
+          "sha256": "1f58f9911dc5e3bcb96de28bb28e7b6bb7eb323952d29569c5d7214a152146bb",
+          "sourcePath": "LICENSE"
+        }
+      ],
+      "repository": "https://github.com/DeusData/codebase-memory-mcp"
+    }
+  ]
+}
