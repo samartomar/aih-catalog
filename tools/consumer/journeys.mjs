@@ -531,9 +531,9 @@ const draft = (id) =>
     await j.check("upstream: ECC plan's SKILL.md renders from the real pinned bytes", () => {
       assert.ok(render(plan, `${link.to}/SKILL.md`, upstreamPlan).length > 0);
     });
-  j.note(
-    `Status ${plan.status}: ${JSON.stringify(plan.references.filter((reference) => reference.kind === "path").map((reference) => reference.path))} (the contract's example plan for this command is ok; the upstream file names agents/planner.md as an optional manual-install agent, which the path-reference check counts as blocking).`,
-  );
+  await j.check("status is ok, as the contract's example plan for this command is", () => {
+    assert.equal(plan.status, "ok", JSON.stringify(plan.references).slice(0, 400));
+  });
   journeys.push(j.finish());
 }
 
