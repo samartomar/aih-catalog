@@ -1103,7 +1103,10 @@ const RESOLVER = "aih.agent.duplicate-resolver";
         })),
         plugins: (content.plugins ?? []).map(({ folderScanKey: _key, ...rest }) => rest),
       });
-      same(trimmed(rebuilt.content, true), trimmed(committed, false));
+      assert.equal(
+        utf8(canonical(trimmed(rebuilt.content, true))),
+        utf8(canonical(trimmed(committed, false))),
+      );
       assert.equal(
         committed.plugins[0].folderScanKey,
         "git-sha1:1b923b12bb559dc7809ff4374b1eec50d9f5cc8e",
