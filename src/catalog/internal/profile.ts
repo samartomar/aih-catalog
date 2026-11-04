@@ -108,7 +108,7 @@ export interface LocalPluginPlace {
   readonly warnings?: readonly string[];
 }
 
-/** Kinds a client's built-ins are listed under; commands share the skill namespace (D17). */
+/** Kinds a client's built-ins are listed under; commands share the skill namespace. */
 export const PROVIDED_KINDS = ["skill", "command", "agent"] as const;
 export type ProvidedKind = (typeof PROVIDED_KINDS)[number];
 
