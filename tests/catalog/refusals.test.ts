@@ -17,6 +17,8 @@ import {
 import { findItems } from "../../src/catalog/source.js";
 import { FRAMEWORK, folder, ownContent, profile, sha, writes } from "./helpers.js";
 
+const planSteps = (result: ReturnType<typeof planInstall>) =>
+  result.status === "ok" || result.status === "incomplete" ? result.plan : [];
 const SKILL = "---\nname: tidy\ndescription: Tidy the code.\n---\n\nTidy $ARGUMENTS.\n";
 const tidy = `${FRAMEWORK}.skill.tidy`;
 
@@ -315,7 +317,7 @@ describe("explicit leftovers and unimplemented kinds", () => {
     });
   });
 
-  it("places scoped rules and reports a Kiro user-only skill with support files as not implemented", async () => {
+  it("places scoped rules and launches a Kiro user-only skill with support files from its own folder", async () => {
     const root = folder({
       "rules/python.md": '---\npaths:\n  - "**/*.py"\n---\n# Python\n',
       "skills/deploy/SKILL.md":
@@ -337,21 +339,36 @@ describe("explicit leftovers and unimplemented kinds", () => {
       scope: "project",
       data: null,
     });
-    expect(result).toMatchObject({
-      status: "incomplete",
-      unavailable: [{ item: deploy, cli: "kiro", reason: "not-implemented" }],
+    // A user-only skill with support files keeps its folder where Kiro does not load skills
+    // (as a bundle skill does), and its prompt file and manual steering launch it.
+    expect(result).toMatchObject({ status: "ok", unavailable: [] });
+    const paths = writes(planSteps(result)).map((step) => step.path);
+    expect(paths).toContain(`.kiro/aih/${FRAMEWORK}/skills/deploy/SKILL.md`);
+    expect(paths).toContain(`.kiro/aih/${FRAMEWORK}/skills/deploy/script.sh`);
+    expect(paths).not.toContain(".kiro/skills/deploy/SKILL.md");
+    const launcher = writes(planSteps(result)).find(
+      (step) => step.path === ".kiro/prompts/deploy.md",
+    );
+    expect(launcher).toMatchObject({
+      render: { name: "launcher", target: `.kiro/aih/${FRAMEWORK}/skills/deploy/SKILL.md` },
     });
+    expect(paths).toContain(".kiro/steering/deploy.md");
     const item = built.content.items.find((candidate) => candidate.id === deploy);
     if (item === undefined) throw new Error("deploy missing");
     expect(availability(item, profile("claude-code"))).toEqual({
       available: true,
       how: "rendered",
     });
-    expect(availability(item, kiro)).toEqual({
-      available: false,
-      how: "none",
-      reason: "not-implemented",
+    expect(availability(item, kiro)).toEqual({ available: true, how: "rendered" });
+    // OpenCode keeps the folder in its skill place and launches it from a command.
+    const opencode = planInstall([deploy], [built.content], [profile("opencode")], {
+      scope: "project",
+      data: null,
     });
+    expect(opencode).toMatchObject({ status: "ok" });
+    expect(
+      writes(planSteps(opencode)).find((step) => step.path === ".opencode/commands/deploy.md"),
+    ).toMatchObject({ render: { name: "launcher", target: ".agents/skills/deploy/SKILL.md" } });
   });
 });
 

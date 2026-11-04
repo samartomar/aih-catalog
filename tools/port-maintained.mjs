@@ -398,7 +398,13 @@ async function extensions(work) {
     files: [hookCut(pointer)],
     editions: { "claude-code": { files: [hookCut(pointer)] } },
   }));
-  const proposed = [...found.items, ...mattFound.items.filter((item) => !mattDropped.has(item.id)), ...hookItems];
+  // A skill's agents/openai.yaml is Codex's own file (its interface and invocation policy), so
+  // it is placed for Codex only: other clients take the skill without it.
+  const codexFile = (item) => ({
+    ...item,
+    files: item.files.map((file) => (item.kind === "skill" && /(?:^|\/)agents\/openai\.yaml$/.test(file.sourcePath) ? { ...file, cli: "codex" } : file)),
+  });
+  const proposed = [...found.items, ...mattFound.items.filter((item) => !mattDropped.has(item.id)), ...hookItems].map(codexFile);
   const sources = [{ id: "matt", source: { kind: "git", ...PINS.matt }, files: matt.files }];
   const options = { framework: { id: "extensions", name: "AIH Extensions" }, sources };
   // The checklists in references/ are read by skills at ../../references/: a runtime bundle.

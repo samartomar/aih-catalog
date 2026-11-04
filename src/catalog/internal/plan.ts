@@ -700,11 +700,35 @@ function place(
             reason: "no-user-only",
             detail: `the client can neither flag nor fall back for a user-only skill at ${scope} scope`,
           };
-        if (own.length > 1)
-          return {
-            reason: "not-implemented",
-            detail: "a user-only fallback for a skill with support files is not implemented yet",
-          };
+        // A skill with support files cannot move into a prompt or command file without losing
+        // them, so it keeps its folder, as a bundle skill does (D43): where the client loads
+        // every skill folder it is given (Kiro), under the client's own root for such folders,
+        // which it does not scan; else at its skill place. Its fallbacks become launchers.
+        if (own.length > 1) {
+          const fixed = profile.bundleRoot?.[scope];
+          const target =
+            fixed !== undefined
+              ? {
+                  path: fill(
+                    `${fixed.replaceAll("<framework>", framework)}skills/<name>/`,
+                    installName,
+                  ),
+                }
+              : resolvePlace(profile.places.skill?.[scope], installName);
+          if (target === undefined)
+            return { reason: "not-described", detail: `the client has no ${scope} skill place` };
+          const outputs = skillOutputs(item, own, skill, profile, scope, installName);
+          if (isFailure(outputs)) return outputs;
+          return [
+            {
+              ...placed(
+                { shape: "folder", path: folderPath(target.path), outputs, linkable: false },
+                "reuse" in target ? target.reuse?.map(folderPath) : undefined,
+              ),
+              launchers: fallback,
+            },
+          ];
+        }
         const units: Placed[] = [];
         for (const entry of fallback) {
           const made = output(item, skill, "", profile, scope, installName, {
@@ -964,6 +988,27 @@ function commonFolder(paths: readonly string[]): string {
   while (folder !== "" && !paths.every((path) => isUnder(path, folder) && path !== folder))
     folder = dirnameOf(folder);
   return folder;
+}
+
+/**
+ * A placement's folder split into what every client shares and the outputs of files only this
+ * client uses (`cli`). Other units are shared whole.
+ */
+function clientFiles(placed: Placed): { common: Unit; own: Output[] } {
+  const unit = placed.unit;
+  if (unit.shape !== "folder") return { common: unit, own: [] };
+  const tagged = (output: Output) =>
+    output.from !== undefined &&
+    placed.item.files.some(
+      (file) =>
+        file.cli !== undefined &&
+        file.sourceId === output.from?.sourceId &&
+        file.sourcePath === output.from?.sourcePath,
+    );
+  return {
+    common: { ...unit, outputs: unit.outputs.filter((output) => !tagged(output)) },
+    own: unit.outputs.filter(tagged),
+  };
 }
 
 /** Everything that decides a unit's bytes, without its clients or their link support. */
@@ -2063,11 +2108,31 @@ export function planCore(input: CoreInput): PlanResult {
   const copiedFor = new Map<string, Set<string>>();
   for (const members of group(placementsAt, (entry) => (entry.unit as { path: string }).path)) {
     const first = members[0] as Placed;
-    const unit = first.unit as Exclude<Unit, { shape: "merge" }>;
     const clis = clisOf(members);
+    // A file only one client uses (`cli`, such as Codex's agents/openai.yaml) is that client's
+    // own in a folder others share: the folder is compared without such files, and each is
+    // written for the clients whose placement holds it.
+    const split = members.map((member) => clientFiles(member));
+    const unit = (split[0] as { common: Unit }).common as Exclude<Unit, { shape: "merge" }>;
+    const own = new Map<string, { output: Output; placed: Placed; clis: string[] }>();
+    for (const [index, member] of members.entries())
+      for (const output of split[index]?.own ?? []) {
+        const known = own.get(output.rel);
+        if (known !== undefined && canonicalJson(known.output) === canonicalJson(output))
+          known.clis.push(member.profile.id);
+        else own.set(output.rel, { output, placed: member, clis: [member.profile.id] });
+      }
+    const ownDiffer = split.some((parts) =>
+      parts.own.some(
+        (output) => canonicalJson(own.get(output.rel)?.output) !== canonicalJson(output),
+      ),
+    );
     if (
+      ownDiffer ||
       !members.every(
-        (member) => signature(member.unit) === signature(unit) && member.item.id === first.item.id,
+        (member, index) =>
+          signature((split[index] as { common: Unit }).common) === signature(unit) &&
+          member.item.id === first.item.id,
       )
     ) {
       clashes.push({
@@ -2098,14 +2163,32 @@ export function planCore(input: CoreInput): PlanResult {
           new Set([...(copiedFor.get(member.profile.id) ?? []), member.item.id]),
         );
     const link = linkable && keep.length === 0;
+    const owned = [...own.values()].sort((left, right) =>
+      compareCodeUnits(left.output.rel, right.output.rel),
+    );
     if (!link) {
       for (const entry of unit.outputs)
         writes.push(writeOf(scope, `${unit.path}/${entry.rel}`, entry, rep, clis));
+      for (const entry of owned)
+        writes.push(
+          writeOf(
+            scope,
+            `${unit.path}/${entry.output.rel}`,
+            entry.output,
+            entry.placed,
+            entry.clis,
+          ),
+        );
       continue;
     }
-    const shared = `.aihq/shared/${rep.framework}/${rep.item.kind}/${rep.item.name}/${versionOf(rep, unit.outputs)}`;
+    const all = [...unit.outputs, ...owned.map((entry) => entry.output)];
+    const shared = `.aihq/shared/${rep.framework}/${rep.item.kind}/${rep.item.name}/${versionOf(rep, all)}`;
     for (const entry of unit.outputs)
       writes.push(writeOf("user", `${shared}/${entry.rel}`, entry, rep, clis));
+    for (const entry of owned)
+      writes.push(
+        writeOf("user", `${shared}/${entry.output.rel}`, entry.output, entry.placed, entry.clis),
+      );
     links.push({ op: "link", root: "user", path: unit.path, to: shared, item: rep.item.id, clis });
   }
 

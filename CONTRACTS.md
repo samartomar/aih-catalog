@@ -65,8 +65,9 @@ and `plugins`.
   `bundle` (the runtime bundle the item reads), `pathReferences` (source files the item's text
   names outside its own files), `fetch: "upstream"` (the files may not be redistributed, so a
   plan fetches them from the pinned source) and `supersedes`.
-- **Files** are `{ sourceId, sourcePath, sha256, bytes, executable, role }`, with `cli` on an
-  edition-only file and `derivedFrom { sourcePath, pointer }` on an entry Catalog cut out of a
+- **Files** are `{ sourceId, sourcePath, sha256, bytes, executable, role }`, with `cli` on a
+  file only one client uses (Codex's `agents/openai.yaml`, placed for Codex alone even in a
+  folder other clients share) and `derivedFrom { sourcePath, pointer }` on an entry Catalog cut out of a
   shared upstream file (one hook group or one MCP server becomes its own file).
 - **Bundles** are root files a framework's items read at run time, chosen by the upstream's
   runtime allowlist: `{ id, sourceId, layout, files, scanKey }`.
@@ -87,7 +88,8 @@ bundle's and both keys of every recorded plugin folder, since one scan never cov
 
 A profile describes one client: `places` for each kind and scope (`project`, `user`), with
 `<name>` templates; how user-only skills are flagged (`userOnly`, or a fallback such as a
-prompt file); how arguments are passed; the agent file format; rule scopes; hook events; the
+prompt file; a skill with support files or a bundle keeps its folder, under the client's
+`bundleRoot` where it has one, and its fallback files become one-line launchers); how arguments are passed; the agent file format; rule scopes; hook events; the
 MCP entry fields and tool restrictions; native input-reference syntax per surface; plugin
 installs and their pin behaviour; local-plugin folders and registration; bundle roots; the
 built-ins the client already provides and how one is switched off; and `checkedWith`, the

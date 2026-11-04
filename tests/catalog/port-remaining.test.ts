@@ -435,9 +435,7 @@ describe("representative plans of the remaining families", () => {
       result.references.filter(
         (reference) => reference.kind === "path" && reference.path.startsWith("skills/"),
       ),
-    ).toEqual([
-      expect.objectContaining({ item: "pstack.agent.poteto-agent", clis: ["codex"] }),
-    ]);
+    ).toEqual([expect.objectContaining({ item: "pstack.agent.poteto-agent", clis: ["codex"] })]);
   });
 
   it("keeps EGM's real runtime bundle whole for Claude, Codex and Antigravity", () => {
