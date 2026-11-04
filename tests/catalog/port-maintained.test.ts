@@ -436,6 +436,21 @@ describe("representative plans of the ported frameworks", () => {
     expect(plan.status).toBe("ok");
   });
 
+  it("plans the contract's own example, ECC's plan command on Codex at user scope, as ok", () => {
+    // Its file names `agents/planner.md` only as where that agent lives for manual installs.
+    const plan = planned(
+      planInstall(["ecc.skill.plan"], [data("ecc")], [profile("codex")], {
+        scope: "user",
+        data: null,
+        names: { "ecc.skill.plan": "ecc-plan" },
+      }),
+    );
+    expect(plan).toMatchObject({ status: "ok", references: [], unavailable: [], clashes: [] });
+    expect(plan.plan.find((step) => step.op === "link")).toMatchObject({
+      path: ".agents/skills/ecc-plan",
+    });
+  });
+
   const superpowersRecipe = (routes: Record<string, string>, kiro: string[]) => {
     const superpowers = data("superpowers");
     const entry = {

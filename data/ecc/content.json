@@ -778,18 +778,9 @@
       "name": "doc-updater",
       "pathReferences": [
         {
-          "path": "scripts/codemaps/generate.ts",
-          "sourcePath": "agents/doc-updater.md"
-        },
-        {
           "cli": "kiro",
           "path": "scripts/codemaps/generate.ts",
           "sourcePath": ".kiro/agents/doc-updater.json"
-        },
-        {
-          "cli": "kiro",
-          "path": "scripts/codemaps/generate.ts",
-          "sourcePath": ".kiro/agents/doc-updater.md"
         }
       ],
       "scanKey": "git-sha1:9db7ff305e703d5fb7ef5fbd3c72d6f248bc14d2"
@@ -1277,15 +1268,7 @@
       "name": "harness-optimizer",
       "pathReferences": [
         {
-          "path": "scripts/harness-audit.js",
-          "sourcePath": "agents/harness-optimizer.md"
-        },
-        {
           "path": "skills/eval-harness/SKILL.md",
-          "sourcePath": "agents/harness-optimizer.md"
-        },
-        {
-          "path": "tests/run-all.js",
           "sourcePath": "agents/harness-optimizer.md"
         }
       ],
@@ -11973,17 +11956,6 @@
       "id": "ecc.skill.autonomous-loops",
       "kind": "skill",
       "name": "autonomous-loops",
-      "pathReferences": [
-        {
-          "path": "scripts/claw.js",
-          "sourcePath": "skills/autonomous-loops/SKILL.md"
-        },
-        {
-          "cli": "kiro",
-          "path": "scripts/claw.js",
-          "sourcePath": ".kiro/skills/autonomous-loops/SKILL.md"
-        }
-      ],
       "scanKey": "git-sha1:86f3d34f60fae0b1d12353b3605a2de99e21f7f7",
       "userOnly": false
     },
@@ -13198,12 +13170,6 @@
       "id": "ecc.skill.council-multi-model",
       "kind": "skill",
       "name": "council-multi-model",
-      "pathReferences": [
-        {
-          "path": "tests/scripts/council-multi-model.test.js",
-          "sourcePath": "skills/council-multi-model/SKILL.md"
-        }
-      ],
       "scanKey": "git-sha1:065ae8348aad27b1fc332807a8778b2abc5ee7ef",
       "userOnly": false
     },
@@ -13834,12 +13800,6 @@
       "id": "ecc.skill.django-tdd",
       "kind": "skill",
       "name": "django-tdd",
-      "pathReferences": [
-        {
-          "path": "tests/conftest.py",
-          "sourcePath": "skills/django-tdd/SKILL.md"
-        }
-      ],
       "scanKey": "git-sha1:e98966e762d0f4b00a7ed4514175e72a2d13b184",
       "userOnly": false
     },
@@ -13882,16 +13842,6 @@
       "id": "ecc.skill.dmux-workflows",
       "kind": "skill",
       "name": "dmux-workflows",
-      "pathReferences": [
-        {
-          "path": "scripts/lib/tmux-worktree-orchestrator.js",
-          "sourcePath": "skills/dmux-workflows/SKILL.md"
-        },
-        {
-          "path": "scripts/orchestrate-worktrees.js",
-          "sourcePath": "skills/dmux-workflows/SKILL.md"
-        }
-      ],
       "scanKey": "git-sha1:e445fc186d9c4dcaec2a5893f206271f57e1628e",
       "userOnly": false
     },
@@ -13931,10 +13881,6 @@
       "pathReferences": [
         {
           "path": "docker/plugin-setup/compose.yaml",
-          "sourcePath": "skills/docker-patterns/SKILL.md"
-        },
-        {
-          "path": "docker/plugin-setup/interactive-plan.js",
           "sourcePath": "skills/docker-patterns/SKILL.md"
         }
       ],
@@ -14066,18 +14012,6 @@
         {
           "path": "hooks/hooks.json",
           "sourcePath": "skills/ecc-guide/SKILL.md"
-        },
-        {
-          "path": "scripts/ci/catalog.js",
-          "sourcePath": "skills/ecc-guide/SKILL.md"
-        },
-        {
-          "path": "scripts/install-apply.js",
-          "sourcePath": "skills/ecc-guide/SKILL.md"
-        },
-        {
-          "path": "scripts/install-plan.js",
-          "sourcePath": "skills/ecc-guide/SKILL.md"
         }
       ],
       "scanKey": "git-sha1:792d5782a7a0ab0c1fb3ce720b8df52f88a46eaf",
@@ -14207,12 +14141,6 @@
       "id": "ecc.skill.epic-claim",
       "kind": "skill",
       "name": "epic-claim",
-      "pathReferences": [
-        {
-          "path": "scripts/github-coordination.js",
-          "sourcePath": "commands/epic-claim.md"
-        }
-      ],
       "scanKey": "git-sha1:61c4c524680abef3776da2a91adeec3d014ebb34",
       "userOnly": true
     },
@@ -14234,12 +14162,6 @@
       "id": "ecc.skill.epic-decompose",
       "kind": "skill",
       "name": "epic-decompose",
-      "pathReferences": [
-        {
-          "path": "scripts/github-coordination.js",
-          "sourcePath": "commands/epic-decompose.md"
-        }
-      ],
       "scanKey": "git-sha1:2095719ac1968c55d1f5135d6b8d37b6e3a890f7",
       "userOnly": true
     },
@@ -14261,12 +14183,6 @@
       "id": "ecc.skill.epic-publish",
       "kind": "skill",
       "name": "epic-publish",
-      "pathReferences": [
-        {
-          "path": "scripts/github-coordination.js",
-          "sourcePath": "commands/epic-publish.md"
-        }
-      ],
       "scanKey": "git-sha1:70777271678dc770249b40b08f042b79de77aee8",
       "userOnly": true
     },
@@ -14288,12 +14204,6 @@
       "id": "ecc.skill.epic-review",
       "kind": "skill",
       "name": "epic-review",
-      "pathReferences": [
-        {
-          "path": "scripts/github-coordination.js",
-          "sourcePath": "commands/epic-review.md"
-        }
-      ],
       "scanKey": "git-sha1:ba80c1d6740fa1cfad1058922665360488d45be4",
       "userOnly": true
     },
@@ -14315,12 +14225,6 @@
       "id": "ecc.skill.epic-sync",
       "kind": "skill",
       "name": "epic-sync",
-      "pathReferences": [
-        {
-          "path": "scripts/github-coordination.js",
-          "sourcePath": "commands/epic-sync.md"
-        }
-      ],
       "scanKey": "git-sha1:ac408931fb3bb2f91c292ee68ed10b262f1b9329",
       "userOnly": true
     },
@@ -14342,12 +14246,6 @@
       "id": "ecc.skill.epic-unblock",
       "kind": "skill",
       "name": "epic-unblock",
-      "pathReferences": [
-        {
-          "path": "scripts/github-coordination.js",
-          "sourcePath": "commands/epic-unblock.md"
-        }
-      ],
       "scanKey": "git-sha1:661fb2bf0208c88e9ffdb7d2f8212a5f1a6f646e",
       "userOnly": true
     },
@@ -14369,12 +14267,6 @@
       "id": "ecc.skill.epic-validate",
       "kind": "skill",
       "name": "epic-validate",
-      "pathReferences": [
-        {
-          "path": "scripts/github-coordination.js",
-          "sourcePath": "commands/epic-validate.md"
-        }
-      ],
       "scanKey": "git-sha1:c82be75f88c7904940ccb33aeee4ca8135f9f69e",
       "userOnly": true
     },
@@ -14543,12 +14435,6 @@
       "id": "ecc.skill.fastapi-patterns",
       "kind": "skill",
       "name": "fastapi-patterns",
-      "pathReferences": [
-        {
-          "path": "tests/conftest.py",
-          "sourcePath": "skills/fastapi-patterns/SKILL.md"
-        }
-      ],
       "scanKey": "git-sha1:8faabd50202978adc10e348d8a15af94b1a242b1",
       "userOnly": false
     },
@@ -15097,18 +14983,6 @@
         {
           "path": "scripts/release.sh",
           "sourcePath": "skills/github-ops/references/ecc-release-checklist.md"
-        },
-        {
-          "path": "tests/ci/release-packed-artifact-workflow.test.js",
-          "sourcePath": "skills/github-ops/references/ecc-release-checklist.md"
-        },
-        {
-          "path": "tests/plugin-manifest.test.js",
-          "sourcePath": "skills/github-ops/references/ecc-release-checklist.md"
-        },
-        {
-          "path": "tests/scripts/build-opencode.test.js",
-          "sourcePath": "skills/github-ops/references/ecc-release-checklist.md"
         }
       ],
       "scanKey": "git-sha1:580af8a965ec7a33ec33197041950f7f9c196129",
@@ -15342,16 +15216,6 @@
       "id": "ecc.skill.harness-audit",
       "kind": "skill",
       "name": "harness-audit",
-      "pathReferences": [
-        {
-          "path": "hooks/hooks.json",
-          "sourcePath": "commands/harness-audit.md"
-        },
-        {
-          "path": "scripts/harness-audit.js",
-          "sourcePath": "commands/harness-audit.md"
-        }
-      ],
       "scanKey": "git-sha1:6595b9e91512babb33797001e621ca48df0f97b0",
       "userOnly": true
     },
@@ -17225,12 +17089,6 @@
       "id": "ecc.skill.multi-workflow",
       "kind": "skill",
       "name": "multi-workflow",
-      "pathReferences": [
-        {
-          "path": "scripts/orchestrate-worktrees.js",
-          "sourcePath": "commands/multi-workflow.md"
-        }
-      ],
       "scanKey": "git-sha1:a7128f2469c7458ba2013fe25137c351d393ae99",
       "userOnly": true
     },
@@ -17935,12 +17793,6 @@
       "id": "ecc.skill.plan",
       "kind": "skill",
       "name": "plan",
-      "pathReferences": [
-        {
-          "path": "agents/planner.md",
-          "sourcePath": "commands/plan.md"
-        }
-      ],
       "scanKey": "git-sha1:de1e0a0544283aa03d893dd4003d56925e5b768f",
       "userOnly": true
     },
@@ -18637,17 +18489,6 @@
       "id": "ecc.skill.python-testing",
       "kind": "skill",
       "name": "python-testing",
-      "pathReferences": [
-        {
-          "path": "tests/conftest.py",
-          "sourcePath": "skills/python-testing/SKILL.md"
-        },
-        {
-          "cli": "kiro",
-          "path": "tests/conftest.py",
-          "sourcePath": ".kiro/skills/python-testing/SKILL.md"
-        }
-      ],
       "scanKey": "git-sha1:230ac65eff21a3d61da4aa3613f2ced435a73ee0",
       "userOnly": false
     },
@@ -18968,16 +18809,6 @@
           "cli": "kiro",
           "path": ".kiro/skills/react-testing/SKILL.md",
           "sourcePath": ".kiro/skills/react-patterns/SKILL.md"
-        },
-        {
-          "cli": "kiro",
-          "path": "rules/react/hooks.md",
-          "sourcePath": ".kiro/skills/react-patterns/SKILL.md"
-        },
-        {
-          "cli": "kiro",
-          "path": "skills/accessibility/SKILL.md",
-          "sourcePath": ".kiro/skills/react-patterns/SKILL.md"
         }
       ],
       "scanKey": "git-sha1:eda27679d5af43c3d76ce4653851a46b7d2aee21",
@@ -19151,16 +18982,6 @@
         {
           "cli": "kiro",
           "path": ".kiro/skills/tdd-workflow/SKILL.md",
-          "sourcePath": ".kiro/skills/react-testing/SKILL.md"
-        },
-        {
-          "cli": "kiro",
-          "path": "rules/react/testing.md",
-          "sourcePath": ".kiro/skills/react-testing/SKILL.md"
-        },
-        {
-          "cli": "kiro",
-          "path": "skills/accessibility/SKILL.md",
           "sourcePath": ".kiro/skills/react-testing/SKILL.md"
         }
       ],
@@ -19681,16 +19502,6 @@
       "id": "ecc.skill.rules-distill",
       "kind": "skill",
       "name": "rules-distill",
-      "pathReferences": [
-        {
-          "path": "rules/common/coding-style.md",
-          "sourcePath": "skills/rules-distill/SKILL.md"
-        },
-        {
-          "path": "rules/common/security.md",
-          "sourcePath": "skills/rules-distill/SKILL.md"
-        }
-      ],
       "scanKey": "git-sha1:2f202b59e901599215bdedb0d2b426bad45655e3",
       "userOnly": false
     },
@@ -20218,12 +20029,6 @@
       "id": "ecc.skill.setup-pm",
       "kind": "skill",
       "name": "setup-pm",
-      "pathReferences": [
-        {
-          "path": "scripts/setup-package-manager.js",
-          "sourcePath": "commands/setup-pm.md"
-        }
-      ],
       "scanKey": "git-sha1:5cebe84b959d2541c7d5ea684aa86afc3614b797",
       "userOnly": true
     },
@@ -20922,12 +20727,6 @@
       "id": "ecc.skill.tdd-workflow",
       "kind": "skill",
       "name": "tdd-workflow",
-      "pathReferences": [
-        {
-          "path": "scripts/setup-package-manager.js",
-          "sourcePath": "skills/tdd-workflow/SKILL.md"
-        }
-      ],
       "scanKey": "git-sha1:04e9af68ba477034d3218a91faa1e796cf8116cc",
       "userOnly": false
     },
@@ -21242,10 +21041,6 @@
       "pathReferences": [
         {
           "path": "mcp-configs/mcp-servers.json",
-          "sourcePath": "skills/unified-memory/SKILL.md"
-        },
-        {
-          "path": "scripts/ecc.js",
           "sourcePath": "skills/unified-memory/SKILL.md"
         }
       ],

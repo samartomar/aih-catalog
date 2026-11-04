@@ -119,7 +119,7 @@
       "section": "aiSetup"
     },
     "ecc": {
-      "contentSha256": "e422025475d186cd88ff4227bc7a9c0a4b7b0cff56bc14b0d1f81fa899532bb6",
+      "contentSha256": "a74daffc2cdff297c8cb79b70ae18d6ddde47429facd5219741ab818def3d181",
       "items": 645,
       "section": "maintained"
     },
@@ -134,7 +134,7 @@
       "section": "maintained"
     },
     "gstack": {
-      "contentSha256": "db753caf02ffc6901c584e08c8ae14dfc4a90a6bf4e3b06ee93d0b66d1d2d063",
+      "contentSha256": "3c8677e648308443672b708a59ca18f6168e45a1dbc0719acfb993bf1dee25fe",
       "items": 62,
       "section": "remaining"
     },
@@ -174,7 +174,7 @@
       "All data is a candidate: every scan key is new and unscanned, and none is admitted until it passes the data-commit gate against matching trusted scans.",
       "Recipes are drafts in the section reports; each is published once it names the admitted data commit.",
       "Extensions declares no per-client routes yet, so it has no base recipe and is planned through items only.",
-      "gstack: 54 items name 349 files no placed bundle provides",
+      "gstack: 54 items name 253 files no placed bundle provides",
       "pstack: 30 items name 138 files no placed bundle provides",
       "21 baseline items are dropped with their reasons; 1 upstream item cannot be represented (anthropic.skill.claude-api).",
       "13 items are fetched from their pinned upstream at install time instead of shipped (licence), and are not scanned.",
@@ -255,7 +255,7 @@
     },
     "remaining": {
       "path": "port-report/remaining.json",
-      "sha256": "30685b3c37bb42e961577c69a767ec0415e010c5c59c57a17749e265e7520912"
+      "sha256": "0eee8f590f4bb78c00232834ff475da8b9d7dee5b3d076d69e516226ef2d7f29"
     }
   },
   "totals": {

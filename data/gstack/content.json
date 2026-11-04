@@ -224,10 +224,6 @@
       "name": "autoplan",
       "pathReferences": [
         {
-          "path": "bin/gstack-upgrade",
-          "sourcePath": "autoplan/DRIVER.md"
-        },
-        {
           "path": "capy/skill/gstack/captain.md",
           "sourcePath": "autoplan/DRIVER.md"
         },
@@ -254,14 +250,6 @@
         {
           "path": "bin/gstack-question-preference",
           "sourcePath": "autoplan/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
-          "sourcePath": "autoplan/sections/preamble.md"
-        },
-        {
-          "path": "docs/unattended.md",
-          "sourcePath": "autoplan/sections/unattended.md"
         },
         {
           "path": "docs/unattended.md",
@@ -3084,10 +3072,6 @@
         {
           "path": "bin/gstack-question-preference",
           "sourcePath": "canary/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
-          "sourcePath": "canary/sections/preamble.md"
         }
       ],
       "scanKey": "git-sha1:32cc83d12409a4aa943bc915f388554791287ac3",
@@ -3241,10 +3225,6 @@
           "sourcePath": "captain/SKILL.md"
         },
         {
-          "path": "docs/ship-policy.md",
-          "sourcePath": "captain/SKILL.md"
-        },
-        {
           "path": "capy/skill/gstack/captain.md",
           "sourcePath": "captain/SKILL.md.tmpl"
         },
@@ -3263,14 +3243,6 @@
         {
           "path": "bin/gstack-question-preference",
           "sourcePath": "captain/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
-          "sourcePath": "captain/sections/preamble.md"
-        },
-        {
-          "path": "docs/captain.md",
-          "sourcePath": "captain/templates/AGENTS.md"
         },
         {
           "path": "capy/skill/gstack/captain.md",
@@ -3302,43 +3274,7 @@
         },
         {
           "path": "docs/captain.md",
-          "sourcePath": "captain/templates/DIGEST.md"
-        },
-        {
-          "path": "docs/ship-policy.md",
-          "sourcePath": "captain/templates/READY.md"
-        },
-        {
-          "path": "autoplan/DRIVER.md",
           "sourcePath": "captain/templates/brief.md"
-        },
-        {
-          "path": "docs/captain.md",
-          "sourcePath": "captain/templates/brief.md"
-        },
-        {
-          "path": "docs/captain.md",
-          "sourcePath": "captain/templates/merge-ask.md"
-        },
-        {
-          "path": "docs/ship-policy.md",
-          "sourcePath": "captain/templates/merge-train-peer.md"
-        },
-        {
-          "path": "scripts/ubicloud/ubi-runner.sh",
-          "sourcePath": "captain/templates/merge-train-peer.md"
-        },
-        {
-          "path": "docs/captain.md",
-          "sourcePath": "captain/templates/report.md"
-        },
-        {
-          "path": "docs/ship-policy.md",
-          "sourcePath": "captain/templates/slot-call.md"
-        },
-        {
-          "path": "lib/changelog-check.ts",
-          "sourcePath": "captain/templates/slot-call.md"
         }
       ],
       "scanKey": "git-sha1:666e7a06f6829b4972479063f93ed9c237bd7b52",
@@ -3489,10 +3425,6 @@
       "name": "codex",
       "pathReferences": [
         {
-          "path": "bin/gstack-paths",
-          "sourcePath": "codex/SKILL.md"
-        },
-        {
           "path": "docs/troubleshooting.md",
           "sourcePath": "codex/SKILL.md"
         },
@@ -3514,10 +3446,6 @@
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "codex/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "codex/sections/preamble.md"
         }
       ],
@@ -3590,10 +3518,6 @@
         {
           "path": "bin/gstack-question-preference",
           "sourcePath": "context-restore/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
-          "sourcePath": "context-restore/sections/preamble.md"
         }
       ],
       "scanKey": "git-sha1:cbcdbf519cd88646d143b14b4d43e20c26628043",
@@ -3640,10 +3564,6 @@
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "context-save/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "context-save/sections/preamble.md"
         }
       ],
@@ -3797,19 +3717,11 @@
           "sourcePath": "design-consultation/SKILL.md"
         },
         {
-          "path": "docs/state-root.md",
-          "sourcePath": "design-consultation/SKILL.md"
-        },
-        {
           "path": "bin/gstack-question-log",
           "sourcePath": "design-consultation/sections/preamble.md"
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "design-consultation/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "design-consultation/sections/preamble.md"
         }
       ],
@@ -3936,10 +3848,6 @@
           "sourcePath": "design-html/SKILL.md"
         },
         {
-          "path": "docs/state-root.md",
-          "sourcePath": "design-html/SKILL.md"
-        },
-        {
           "path": "lib/design-catalog.ts",
           "sourcePath": "design-html/SKILL.md"
         },
@@ -3957,10 +3865,6 @@
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "design-html/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "design-html/sections/preamble.md"
         }
       ],
@@ -4069,10 +3973,6 @@
         {
           "path": "bin/gstack-question-preference",
           "sourcePath": "design-motion/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
-          "sourcePath": "design-motion/sections/preamble.md"
         }
       ],
       "scanKey": "git-sha1:f92ce611b61ff23aa045be4fff58d0e46c786530",
@@ -4178,10 +4078,6 @@
           "sourcePath": "design-review/SKILL.md"
         },
         {
-          "path": "docs/state-root.md",
-          "sourcePath": "design-review/SKILL.md"
-        },
-        {
           "path": "scripts/resolvers/sections.ts",
           "sourcePath": "design-review/sections/manifest.json"
         },
@@ -4191,10 +4087,6 @@
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "design-review/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "design-review/sections/preamble.md"
         }
       ],
@@ -4265,10 +4157,6 @@
           "sourcePath": "design-shotgun/SKILL.md"
         },
         {
-          "path": "docs/state-root.md",
-          "sourcePath": "design-shotgun/SKILL.md"
-        },
-        {
           "path": "docs/designs/v2_PLAN.md",
           "sourcePath": "design-shotgun/sections/manifest.json"
         },
@@ -4278,10 +4166,6 @@
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "design-shotgun/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "design-shotgun/sections/preamble.md"
         }
       ],
@@ -4362,10 +4246,6 @@
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "devex-review/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "devex-review/sections/preamble.md"
         }
       ],
@@ -4452,10 +4332,6 @@
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "document-generate/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "document-generate/sections/preamble.md"
         }
       ],
@@ -4546,10 +4422,6 @@
           "sourcePath": "document-release/sections/preamble.md"
         },
         {
-          "path": "scripts/resolvers/preamble-hoist.ts",
-          "sourcePath": "document-release/sections/preamble.md"
-        },
-        {
           "path": "review/TODOS-format.md",
           "sourcePath": "document-release/sections/release-body.md"
         },
@@ -4626,10 +4498,6 @@
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "eval-plan/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "eval-plan/sections/preamble.md"
         }
       ],
@@ -4837,27 +4705,7 @@
       "name": "gstack-upgrade",
       "pathReferences": [
         {
-          "path": "bin/gstack-bun-version.sh",
-          "sourcePath": "gstack-upgrade/SKILL.md"
-        },
-        {
-          "path": "bin/gstack-config",
-          "sourcePath": "gstack-upgrade/SKILL.md"
-        },
-        {
           "path": "bin/gstack-ff-update",
-          "sourcePath": "gstack-upgrade/SKILL.md"
-        },
-        {
-          "path": "bin/gstack-update-channel.sh",
-          "sourcePath": "gstack-upgrade/SKILL.md"
-        },
-        {
-          "path": "docs/releases.md",
-          "sourcePath": "gstack-upgrade/SKILL.md"
-        },
-        {
-          "path": "docs/troubleshooting.md",
           "sourcePath": "gstack-upgrade/SKILL.md"
         },
         {
@@ -4958,10 +4806,6 @@
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "health/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "health/sections/preamble.md"
         }
       ],
@@ -5108,10 +4952,6 @@
       "name": "investigate",
       "pathReferences": [
         {
-          "path": "scripts/ship-measure.ts",
-          "sourcePath": "investigate/sections/flake.md"
-        },
-        {
           "path": "test/helpers/periodic-exclude-data.ts",
           "sourcePath": "investigate/sections/flake.md"
         },
@@ -5122,10 +4962,6 @@
         {
           "path": "test/helpers/periodic-exclude-data.ts",
           "sourcePath": "investigate/sections/flake.md.tmpl"
-        },
-        {
-          "path": "scripts/ship-measure.ts",
-          "sourcePath": "investigate/sections/polluter.md"
         },
         {
           "path": "scripts/ship-measure.ts",
@@ -5137,10 +4973,6 @@
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "investigate/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "investigate/sections/preamble.md"
         }
       ],
@@ -5189,10 +5021,6 @@
         {
           "path": "bin/gstack-question-preference",
           "sourcePath": "ios-clean/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
-          "sourcePath": "ios-clean/sections/preamble.md"
         }
       ],
       "scanKey": "git-sha1:a50b5627ecea789eecc8847f185f5aff4e2ab5e9",
@@ -5240,10 +5068,6 @@
         {
           "path": "bin/gstack-question-preference",
           "sourcePath": "ios-design-review/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
-          "sourcePath": "ios-design-review/sections/preamble.md"
         }
       ],
       "scanKey": "git-sha1:6099bfaeb6eb3f92409546d282cc2458259f61bc",
@@ -5290,10 +5114,6 @@
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "ios-fix/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "ios-fix/sections/preamble.md"
         }
       ],
@@ -5670,10 +5490,6 @@
         {
           "path": "bin/gstack-question-preference",
           "sourcePath": "ios-qa/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
-          "sourcePath": "ios-qa/sections/preamble.md"
         }
       ],
       "scanKey": "git-sha1:dc029cda4177a14f44716dbf379e5149645dc22e",
@@ -5720,10 +5536,6 @@
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "ios-sync/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "ios-sync/sections/preamble.md"
         }
       ],
@@ -5854,14 +5666,6 @@
           "sourcePath": "land-and-deploy/sections/preamble.md"
         },
         {
-          "path": "scripts/resolvers/preamble-hoist.ts",
-          "sourcePath": "land-and-deploy/sections/preamble.md"
-        },
-        {
-          "path": "agents-digest/gstack-AGENTS.md",
-          "sourcePath": "land-and-deploy/sections/readiness-gate.md"
-        },
-        {
           "path": "agents-digest/gstack-AGENTS.md",
           "sourcePath": "land-and-deploy/sections/readiness-gate.md.tmpl"
         }
@@ -5927,10 +5731,6 @@
         {
           "path": "bin/gstack-question-preference",
           "sourcePath": "landing-report/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
-          "sourcePath": "landing-report/sections/preamble.md"
         }
       ],
       "scanKey": "git-sha1:39932d610c19c2881eeaed790e171a7fab42ec57",
@@ -5977,10 +5777,6 @@
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "learn/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "learn/sections/preamble.md"
         }
       ],
@@ -6468,10 +6264,6 @@
         {
           "path": "bin/gstack-question-preference",
           "sourcePath": "modernize/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
-          "sourcePath": "modernize/sections/preamble.md"
         }
       ],
       "scanKey": "git-sha1:1bf3ffc64124d8d30e1b7992f7b9492c4cb35d46",
@@ -6611,10 +6403,6 @@
         {
           "path": "bin/gstack-question-preference",
           "sourcePath": "office-hours/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
-          "sourcePath": "office-hours/sections/preamble.md"
         }
       ],
       "scanKey": "git-sha1:ca2083351451afcf99dd42ef4018d2de5e5a0c8a",
@@ -6690,10 +6478,6 @@
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "pair-agent/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "pair-agent/sections/preamble.md"
         }
       ],
@@ -6810,10 +6594,6 @@
         {
           "path": "bin/gstack-question-preference",
           "sourcePath": "plan-ceo-review/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
-          "sourcePath": "plan-ceo-review/sections/preamble.md"
         }
       ],
       "scanKey": "git-sha1:6b77b79c56c2c3d069c1ae1524880896c6055830",
@@ -6899,10 +6679,6 @@
           "sourcePath": "plan-design-review/SKILL.md"
         },
         {
-          "path": "docs/state-root.md",
-          "sourcePath": "plan-design-review/SKILL.md"
-        },
-        {
           "path": "bin/gstack-autoplan",
           "sourcePath": "plan-design-review/sections/checklist.md"
         },
@@ -6920,10 +6696,6 @@
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "plan-design-review/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "plan-design-review/sections/preamble.md"
         }
       ],
@@ -7036,10 +6808,6 @@
         {
           "path": "bin/gstack-question-preference",
           "sourcePath": "plan-devex-review/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
-          "sourcePath": "plan-devex-review/sections/preamble.md"
         }
       ],
       "scanKey": "git-sha1:7c7aa0bcfa71667592c75e6e0c4f656a0a0487e7",
@@ -7143,10 +6911,6 @@
         {
           "path": "bin/gstack-question-preference",
           "sourcePath": "plan-eng-review/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
-          "sourcePath": "plan-eng-review/sections/preamble.md"
         }
       ],
       "scanKey": "git-sha1:61bfd0227b5cdb75fe96063364a55ca36a0636de",
@@ -7196,10 +6960,6 @@
           "sourcePath": "plan-tune/SKILL.md"
         },
         {
-          "path": "ship/SKILL.md.tmpl",
-          "sourcePath": "plan-tune/SKILL.md"
-        },
-        {
           "path": "docs/designs/PLAN_TUNING_V0.md",
           "sourcePath": "plan-tune/SKILL.md.tmpl"
         },
@@ -7217,10 +6977,6 @@
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "plan-tune/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "plan-tune/sections/preamble.md"
         }
       ],
@@ -7421,10 +7177,6 @@
         {
           "path": "bin/gstack-question-preference",
           "sourcePath": "qa/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
-          "sourcePath": "qa/sections/preamble.md"
         }
       ],
       "scanKey": "git-sha1:8eb5533aab62cd6fee538bafe1b6a6b01fffdb5c",
@@ -7512,10 +7264,6 @@
         {
           "path": "bin/gstack-question-preference",
           "sourcePath": "qa-only/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
-          "sourcePath": "qa-only/sections/preamble.md"
         }
       ],
       "scanKey": "git-sha1:fe5719d60d01f6da3b586f789e3c03055261c91e",
@@ -7581,15 +7329,7 @@
       "name": "retro",
       "pathReferences": [
         {
-          "path": "bin/gstack-global-discover.ts",
-          "sourcePath": "retro/SKILL.md"
-        },
-        {
           "path": "bin/gstack-retro-metrics",
-          "sourcePath": "retro/SKILL.md"
-        },
-        {
-          "path": "docs/recommended-harness.md",
           "sourcePath": "retro/SKILL.md"
         },
         {
@@ -7610,10 +7350,6 @@
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "retro/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "retro/sections/preamble.md"
         }
       ],
@@ -7848,20 +7584,12 @@
       "name": "review",
       "pathReferences": [
         {
-          "path": "docs/review-policy.md",
-          "sourcePath": "review/SKILL.md"
-        },
-        {
           "path": "qa/sections/exploratory.md",
           "sourcePath": "review/SKILL.md"
         },
         {
           "path": "docs/review-policy.md",
           "sourcePath": "review/SKILL.md.tmpl"
-        },
-        {
-          "path": "docs/review-policy.md",
-          "sourcePath": "review/checklist.md"
         },
         {
           "path": "lib/design-catalog.ts",
@@ -7876,10 +7604,6 @@
           "sourcePath": "review/gate-integrity.md"
         },
         {
-          "path": "browse/bin/remote-slug",
-          "sourcePath": "review/greptile-triage.md"
-        },
-        {
           "path": "docs/designs/v2_PLAN.md",
           "sourcePath": "review/sections/manifest.json"
         },
@@ -7889,10 +7613,6 @@
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "review/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "review/sections/preamble.md"
         },
         {
@@ -8031,10 +7751,6 @@
         {
           "path": "bin/gstack-question-preference",
           "sourcePath": "setup-deploy/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
-          "sourcePath": "setup-deploy/sections/preamble.md"
         }
       ],
       "scanKey": "git-sha1:d53a8a88385748363df9785f9643359844c04291",
@@ -8156,18 +7872,6 @@
       "name": "setup-gbrain",
       "pathReferences": [
         {
-          "path": "bin/gstack-gbrain-sync.ts",
-          "sourcePath": "setup-gbrain/memory.md"
-        },
-        {
-          "path": "bin/gstack-memory-ingest.ts",
-          "sourcePath": "setup-gbrain/memory.md"
-        },
-        {
-          "path": "lib/transcript-consent.ts",
-          "sourcePath": "setup-gbrain/memory.md"
-        },
-        {
           "path": "docs/designs/v2_PLAN.md",
           "sourcePath": "setup-gbrain/sections/manifest.json"
         },
@@ -8177,10 +7881,6 @@
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "setup-gbrain/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "setup-gbrain/sections/preamble.md"
         }
       ],
@@ -8515,26 +8215,6 @@
           "sourcePath": "ship/SKILL.md"
         },
         {
-          "path": "docs/review-policy.md",
-          "sourcePath": "ship/SKILL.md"
-        },
-        {
-          "path": "docs/ship-budget.md",
-          "sourcePath": "ship/SKILL.md"
-        },
-        {
-          "path": "docs/ship-policy.md",
-          "sourcePath": "ship/SKILL.md"
-        },
-        {
-          "path": "docs/troubleshooting.md",
-          "sourcePath": "ship/SKILL.md"
-        },
-        {
-          "path": "docs/unattended.md",
-          "sourcePath": "ship/SKILL.md"
-        },
-        {
           "path": "scripts/gen-agents-digest.ts",
           "sourcePath": "ship/SKILL.md"
         },
@@ -8564,23 +8244,11 @@
         },
         {
           "path": "bin/gstack-decision-search",
-          "sourcePath": "ship/sections/apple-release.md"
-        },
-        {
-          "path": "bin/gstack-decision-search",
           "sourcePath": "ship/sections/apple-release.md.tmpl"
         },
         {
           "path": "docs/ship-policy.md",
-          "sourcePath": "ship/sections/changelog.md"
-        },
-        {
-          "path": "docs/ship-policy.md",
           "sourcePath": "ship/sections/changelog.md.tmpl"
-        },
-        {
-          "path": "docs/unattended.md",
-          "sourcePath": "ship/sections/handoff.md"
         },
         {
           "path": "docs/unattended.md",
@@ -8592,10 +8260,6 @@
         },
         {
           "path": "docs/troubleshooting.md",
-          "sourcePath": "ship/sections/pr-body.md"
-        },
-        {
-          "path": "docs/troubleshooting.md",
           "sourcePath": "ship/sections/pr-body.md.tmpl"
         },
         {
@@ -8604,10 +8268,6 @@
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "ship/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "ship/sections/preamble.md"
         },
         {
@@ -8687,10 +8347,6 @@
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "skillify/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "skillify/sections/preamble.md"
         }
       ],
@@ -8779,10 +8435,6 @@
         {
           "path": "bin/gstack-question-preference",
           "sourcePath": "spec/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
-          "sourcePath": "spec/sections/preamble.md"
         }
       ],
       "scanKey": "git-sha1:dd3b63bb030ce36e85fccef3182d57d99e70e9d7",
@@ -8825,10 +8477,6 @@
       "pathReferences": [
         {
           "path": "setup-gbrain/memory.md",
-          "sourcePath": "sync-gbrain/SKILL.md"
-        },
-        {
-          "path": "setup-gbrain/memory.md",
           "sourcePath": "sync-gbrain/SKILL.md.tmpl"
         },
         {
@@ -8837,10 +8485,6 @@
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "sync-gbrain/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "sync-gbrain/sections/preamble.md"
         }
       ],
@@ -8888,10 +8532,6 @@
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "test-audit/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "test-audit/sections/preamble.md"
         }
       ],
@@ -8947,10 +8587,6 @@
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "ubicloud/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "ubicloud/sections/preamble.md"
         }
       ],
@@ -9060,27 +8696,11 @@
       "pathReferences": [
         {
           "path": "test/parity-suite.test.ts",
-          "sourcePath": "write-skill/SKILL.md"
-        },
-        {
-          "path": "test/skill-bin-drift.test.ts",
-          "sourcePath": "write-skill/SKILL.md"
-        },
-        {
-          "path": "test/parity-suite.test.ts",
           "sourcePath": "write-skill/SKILL.md.tmpl"
         },
         {
           "path": "test/skill-bin-drift.test.ts",
           "sourcePath": "write-skill/SKILL.md.tmpl"
-        },
-        {
-          "path": "docs/designs/SKILL_EVAL_CONTRACT.md",
-          "sourcePath": "write-skill/references/diet.md"
-        },
-        {
-          "path": "scripts/skill-bin-drift.ts",
-          "sourcePath": "write-skill/references/diet.md"
         },
         {
           "path": "bin/gstack-question-log",
@@ -9088,10 +8708,6 @@
         },
         {
           "path": "bin/gstack-question-preference",
-          "sourcePath": "write-skill/sections/preamble.md"
-        },
-        {
-          "path": "scripts/resolvers/preamble-hoist.ts",
           "sourcePath": "write-skill/sections/preamble.md"
         }
       ],

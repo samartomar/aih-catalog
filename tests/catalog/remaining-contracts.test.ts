@@ -532,7 +532,7 @@ describe("a second subpath of the same pin as one client's edition", () => {
 });
 
 describe("path references", () => {
-  it("take bare root paths from instructions, not from program source, and explicit relative paths from any file", async () => {
+  it("take no bare path from program source or Markdown prose, and explicit relative paths from any file", async () => {
     const own = upstream(
       folder({
         "skills/alpha/SKILL.md":
@@ -549,8 +549,48 @@ describe("path references", () => {
     const built = await buildContent(own.source, own.files, found.items, { framework: "kit" });
     if (built.status !== "ok") throw new Error(JSON.stringify(built));
     expect(built.content.items[0]?.pathReferences).toEqual([
-      { sourcePath: "skills/alpha/SKILL.md", path: "docs/guide.md" },
       { sourcePath: "skills/alpha/run.py", path: "shared/util.py" },
+    ]);
+  });
+
+  it("take a bare path in Markdown only as a link target or a code span, never in prose or as a file's location", async () => {
+    const own = upstream(
+      folder({
+        "skills/alpha/SKILL.md": [
+          "---",
+          "name: alpha",
+          "description: Alpha.",
+          "---",
+          "Docs live under docs/prose.md in the upstream repository.",
+          "",
+          "First read [the guide](docs/linked.md).",
+          "",
+          "Then follow `docs/followed.md` step by step.",
+          "",
+          "For manual installs, the source file lives at:",
+          "`docs/located.md`",
+          "",
+          "Explicit paths always count: `../../docs/explicit.md` and ./notes.md.",
+          "",
+        ].join("\n"),
+        "skills/alpha/notes.md": "Notes\n",
+        "docs/prose.md": "x\n",
+        "docs/linked.md": "x\n",
+        "docs/followed.md": "x\n",
+        "docs/located.md": "x\n",
+        "docs/explicit.md": "x\n",
+        "hooks/hooks.json": '{"command": "node scripts/run.js"}\n',
+        "scripts/run.js": "x\n",
+      }),
+    );
+    const found = findItems(own.files, { framework: "kit" });
+    if (found.status !== "ok") throw new Error("find");
+    const built = await buildContent(own.source, own.files, found.items, { framework: "kit" });
+    if (built.status !== "ok") throw new Error(JSON.stringify(built));
+    expect(built.content.items[0]?.pathReferences).toEqual([
+      { sourcePath: "skills/alpha/SKILL.md", path: "docs/explicit.md" },
+      { sourcePath: "skills/alpha/SKILL.md", path: "docs/followed.md" },
+      { sourcePath: "skills/alpha/SKILL.md", path: "docs/linked.md" },
     ]);
   });
 });

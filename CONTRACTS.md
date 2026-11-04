@@ -170,7 +170,11 @@ values; a secret never has a value in content or a plan.
   identity are listed as facts, with no winner chosen. The plan places Catalog's authored
   `aih-duplicate-resolver` agent where clients take agents and writes `.aihq/duplicates.json`.
 - **References.** A plugin-namespaced name no placed item provides is a warning. A source file
-  an item names that no placed bundle or sibling provides is blocking.
+  an item names that no placed bundle or sibling provides is blocking. A name counts as a path
+  when it is explicit (`./`, `../`, `${CLAUDE_PLUGIN_ROOT}/`) or, bare, in configuration text;
+  in Markdown a bare path counts only as a link target or a code span that does not merely say
+  where a file lives, and never in program source. An edition's files are checked for the
+  client that takes the edition.
 - **Settings a client cannot carry.** An agent's tool list that a client's own agent file
   cannot express (no tool field, or no evidenced native name for a tool) is dropped from that
   client's file, never silently: the plan warns `agent-tools-unrestricted` with the agents.

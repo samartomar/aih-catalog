@@ -95,11 +95,55 @@ const join = (folder: string, path: string): string => (folder === "" ? path : `
 const PROGRAM =
   /\.(?:[cm]?[jt]sx?|py|sh|bash|zsh|fish|ps1|psm1|bat|cmd|rb|go|rs|java|kts?|swift|c|cc|cpp|cxx|h|hpp|cs|php|lua|pl|r)$/i;
 
+/** Markdown instructions, where a bare path counts only with evidence that it is a path. */
+const MARKDOWN = /\.(?:md|mdc|markdown)$/i;
+
+/**
+ * Words that only say where a file lives (for a manual install, say), rather than telling the
+ * agent to open it: a code span in such a sentence is not used as a path.
+ */
+const LOCATION = /\b(?:lives|live|located|resides|reside|can be found|is kept|are kept)\b/i;
+
+/** The sentence around `start`..`end`: back to a sentence end or blank line, and forward. */
+function sentenceAround(text: string, start: number, end: number): string {
+  const before = text.slice(0, start);
+  const from = Math.max(
+    before.lastIndexOf("\n\n"),
+    before.lastIndexOf(". "),
+    before.lastIndexOf(".\n"),
+    before.lastIndexOf("? "),
+    before.lastIndexOf("! "),
+  );
+  const after = text.slice(end);
+  const stops = ["\n\n", ". ", ".\n", "? ", "! "]
+    .map((stop) => after.indexOf(stop))
+    .filter((at) => at >= 0);
+  const to = stops.length > 0 ? end + Math.min(...stops) : text.length;
+  return text.slice(from < 0 ? 0 : from, to);
+}
+
+/**
+ * Whether a bare mention in Markdown is used as a path: a link target (`[text](a/b.md)` or a
+ * reference definition), or a whole code span, unless its sentence only says where the file
+ * lives. A path in running prose, or named only as a file's location, is not one the agent is
+ * told to open.
+ */
+function usedAsPath(text: string, start: number, end: number): boolean {
+  const before = text.slice(Math.max(0, start - 2), start);
+  if (before === "](" || text.slice(Math.max(0, start - 3), start) === "](<") return true;
+  const line = text.slice(text.lastIndexOf("\n", start - 1) + 1, start);
+  if (/^\s*\[[^\]]+\]:\s*<?$/.test(line)) return true;
+  if (text[start - 1] === "`" && text[end] === "`")
+    return !LOCATION.test(sentenceAround(text, start - 1, end + 1).replaceAll(/`[^`]*`/g, ""));
+  return false;
+}
+
 /**
  * The source files an item's text files name outside the item's own files. A mention is a
  * relative path in the text: `${CLAUDE_PLUGIN_ROOT}/…` from the source root, `./` or `../`
  * from the file's folder, and, outside program source, a bare `a/b` from the file's folder when
- * that file exists, else from the source root. Only mentions that name
+ * that file exists, else from the source root. In Markdown a bare path counts only where the
+ * text uses it as a path (`usedAsPath`). Only mentions that name
  * an existing regular file of the source count, so prose and paths in the user's own project
  * are not taken for references.
  */
@@ -115,12 +159,15 @@ export function pathReferences<File extends { readonly sourcePath: string }>(
     if (text === null) continue;
     const folder = dirnameOf(file.sourcePath);
     const program = PROGRAM.test(file.sourcePath);
+    const markdown = MARKDOWN.test(file.sourcePath);
     for (const match of text.matchAll(MENTION)) {
       const pluginRoot = match[1] !== undefined;
       const mention = match[2] as string;
       if (!pluginRoot && !mention.includes("/")) continue;
       const explicit = pluginRoot || mention.startsWith("./") || mention.startsWith("../");
       if (!explicit && program) continue;
+      const start = (match.index ?? 0) + (match[1]?.length ?? 0);
+      if (!explicit && markdown && !usedAsPath(text, start, start + mention.length)) continue;
       let target: string | null;
       if (pluginRoot) target = normalise(mention);
       else if (mention.startsWith("./") || mention.startsWith("../"))
