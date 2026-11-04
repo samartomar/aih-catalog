@@ -646,6 +646,7 @@ describe("the port report for these families", () => {
     edition?: string;
     reason?: string;
     bundle?: string;
+    note?: string;
   }[];
 
   it("gives each of the 777 measured baseline items exactly one disposition", () => {
