@@ -1323,7 +1323,7 @@ function referencesOf(
   byId: ReadonlyMap<string, { content: Content; item: Item }>,
   kept: readonly Placed[],
   bundles: BundlePlacement,
-  scope: Scope,
+  links: readonly LinkStep[],
 ): Reference[] {
   const placedFor = new Map<string, Set<string>>();
   const add = (item: string, cli: string) =>
@@ -1350,15 +1350,20 @@ function referencesOf(
     for (const [path, output] of outputs)
       if (output.from) at(entry.profile.id, output.from.sourceId, output.from.sourcePath, path);
   }
-  // Only project-scope copies keep the upstream layout on disk: a user-scope folder may be a
-  // link into a shared version folder, where `..` resolves elsewhere.
+  // Only copies keep the upstream layout on disk: a folder that is a link into a shared
+  // version folder resolves `..` inside the shared folder, never beside its siblings.
+  const linked = (cli: string, path: string) =>
+    links.some((link) => link.clis.includes(cli) && path.startsWith(`${link.path}/`));
   const resolvedInPlace = (item: Item, cli: string, sourcePath: string, path: string) => {
-    if (scope !== "project") return false;
     const file = item.files.find((candidate) => candidate.sourcePath === sourcePath);
     if (file === undefined || file.derivedFrom !== undefined) return false;
     const files = installed.get(cli);
-    const sources = files?.get(`${file.sourceId}\0${sourcePath}`) ?? [];
-    const targets = new Set(files?.get(`${file.sourceId}\0${path}`) ?? []);
+    const sources = (files?.get(`${file.sourceId}\0${sourcePath}`) ?? []).filter(
+      (source) => !linked(cli, source),
+    );
+    const targets = new Set(
+      (files?.get(`${file.sourceId}\0${path}`) ?? []).filter((target) => !linked(cli, target)),
+    );
     const relative = relativePath(dirnameOf(sourcePath), path);
     return sources.some((source) => targets.has(joinPath(dirnameOf(source), relative)));
   };
@@ -2456,7 +2461,7 @@ export function planCore(input: CoreInput): PlanResult {
     return { ...rest, contains: [...(contained.get(step.framework) ?? [])].sort(compareCodeUnits) };
   });
 
-  const references = referencesOf(chosen, byId, resolved, bundles, scope);
+  const references = referencesOf(chosen, byId, resolved, bundles, links);
   const blocked =
     missing.length > 0 ||
     unavailable.length > 0 ||

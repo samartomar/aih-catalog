@@ -507,6 +507,23 @@ describe("representative plans of the ported frameworks", () => {
     expect(plan.status).toBe("incomplete");
   });
 
+  it("resolves sibling skill files in place at user scope too when the skills are copied", () => {
+    const items = superpowersRecipe({ kiro: "items" }, ["skill", "rule"]);
+    const plan = planned(
+      planRecipe(
+        items,
+        [data("superpowers")],
+        [profile("kiro")],
+        {},
+        { scope: "user", source: SOURCE, copy: true },
+      ),
+    );
+    expect(plan.plan.some((step) => step.op === "link")).toBe(false);
+    expect(writesAt(plan.plan)).toContain(".kiro/skills/requesting-code-review/code-reviewer.md");
+    expect(plan.references.filter((reference) => reference.kind === "path")).toEqual([]);
+    expect(plan.status).toBe("ok");
+  });
+
   it("plans Superpowers on Kiro at project scope with sibling skill files resolved in place", () => {
     const items = superpowersRecipe({ kiro: "items" }, ["skill", "rule"]);
     const plan = planned(
