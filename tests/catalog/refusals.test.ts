@@ -2,10 +2,18 @@ import { execFileSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { limits } from "../../src/catalog/contracts.js";
+import { fixtures, limits } from "../../src/catalog/contracts.js";
 import { readContentFile, readLocalSource } from "../../src/catalog/node.js";
 import { buildContent, checkContent } from "../../src/catalog/producer.js";
-import { availability, planInstall, readContent, renderStep } from "../../src/catalog/reader.js";
+import {
+  availability,
+  planInstall,
+  readContent,
+  readQualification,
+  readRecipe,
+  readToolProfile,
+  renderStep,
+} from "../../src/catalog/reader.js";
 import { findItems } from "../../src/catalog/source.js";
 import { FRAMEWORK, folder, ownContent, profile, sha, writes } from "./helpers.js";
 
@@ -56,6 +64,41 @@ describe("bad paths", () => {
       status: "refused",
       code: "limit",
       limit: "sourceFileBytes",
+    });
+  });
+
+  it("refuses a document over its byte or depth limit, naming the limit", () => {
+    const over = (limit: number) => new Uint8Array(limit + 1).fill(0x20);
+    expect(readContent(over(limits.contentFileBytes))).toMatchObject({
+      status: "refused",
+      code: "limit",
+      limit: "contentFileBytes",
+    });
+    expect(readToolProfile(over(limits.toolProfileBytes))).toMatchObject({
+      status: "refused",
+      limit: "toolProfileBytes",
+    });
+    expect(readQualification(over(limits.qualificationBytes))).toMatchObject({
+      status: "refused",
+      limit: "qualificationBytes",
+    });
+    const plugin = new TextEncoder().encode("{}");
+    expect(readRecipe(plugin, over(limits.recipeBytes))).toMatchObject({
+      status: "refused",
+      limit: "recipeBytes",
+    });
+    const recipe = new TextEncoder().encode(fixtures["recipe-valid"]);
+    expect(readRecipe(over(limits.recipeBytes), recipe)).toMatchObject({
+      status: "refused",
+      limit: "recipeBytes",
+    });
+    const deep = new TextEncoder().encode(
+      `${"[".repeat(limits.documentDepth + 1)}${"]".repeat(limits.documentDepth + 1)}\n`,
+    );
+    expect(readContent(deep)).toMatchObject({
+      status: "refused",
+      code: "limit",
+      limit: "documentDepth",
     });
   });
 

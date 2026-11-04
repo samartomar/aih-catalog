@@ -5,6 +5,7 @@
 import {
   formats,
   type Invalid,
+  type LimitName,
   limits,
   type Refused,
   type UnsupportedVersion,
@@ -20,7 +21,7 @@ import {
 } from "./internal/json.js";
 import { readJson } from "./internal/kinds.js";
 import type { Content, Item } from "./internal/model.js";
-import { compareCodeUnits, quote, refused } from "./internal/paths.js";
+import { compareCodeUnits, limitRefusal, quote, refused } from "./internal/paths.js";
 import {
   type BundleRootRender,
   type DuplicatesRender,
@@ -115,24 +116,32 @@ export { aihContent };
 export type ReadContentResult =
   | { readonly status: "ok"; readonly content: Content }
   | Invalid
-  | UnsupportedVersion;
+  | UnsupportedVersion
+  | Refused;
 export type ReadToolProfileResult =
   | { readonly status: "ok"; readonly profile: ToolProfile }
   | Invalid
-  | UnsupportedVersion;
+  | UnsupportedVersion
+  | Refused;
 
 function readDocument(
   bytes: Uint8Array,
-  maxBytes: number,
+  maxBytes: LimitName,
   family: string,
   current: string,
   problemsOf: (value: unknown) => readonly { path: string; message: string }[],
-): { status: "ok"; value: unknown } | Invalid | UnsupportedVersion {
+): { status: "ok"; value: unknown } | Invalid | UnsupportedVersion | Refused {
   let value: unknown;
   try {
-    value = readCanonicalDocument(bytes, { maxBytes, maxDepth: limits.documentDepth });
+    value = readCanonicalDocument(bytes, {
+      maxBytes: limits[maxBytes],
+      maxDepth: limits.documentDepth,
+    });
   } catch (error) {
     const reason = error instanceof JsonAdmissionError ? error.reason : "malformed-json";
+    // Going over a published limit is a refusal naming the limit, never an invalid document.
+    if (reason === "byte-limit") return limitRefusal(maxBytes, "the document");
+    if (reason === "depth-limit") return limitRefusal("documentDepth", "the document's nesting");
     return {
       status: "invalid",
       problems: [{ path: "", message: `the document is not canonical JSON (${reason})` }],
@@ -154,7 +163,7 @@ function readDocument(
 export function readContent(bytes: Uint8Array): ReadContentResult {
   const result = readDocument(
     bytes,
-    limits.contentFileBytes,
+    "contentFileBytes",
     "urn:aihq:catalog:content:",
     formats.content,
     contentProblems,
@@ -166,7 +175,7 @@ export function readContent(bytes: Uint8Array): ReadContentResult {
 export function readToolProfile(bytes: Uint8Array): ReadToolProfileResult {
   const result = readDocument(
     bytes,
-    limits.toolProfileBytes,
+    "toolProfileBytes",
     "urn:aihq:catalog:tool-profile:",
     formats.toolProfile,
     profileProblems,
@@ -183,7 +192,8 @@ export type ReadRecipeResult =
       readonly sha256: string;
     }
   | Invalid
-  | UnsupportedVersion;
+  | UnsupportedVersion
+  | Refused;
 
 /**
  * Reads a recipe plugin: its Agent Plugins `plugin.json` (strict JSON, unique keys) and its
@@ -193,16 +203,18 @@ export type ReadRecipeResult =
 export function readRecipe(pluginJsonBytes: Uint8Array, recipeBytes: Uint8Array): ReadRecipeResult {
   const result = readDocument(
     recipeBytes,
-    limits.recipeBytes,
+    "recipeBytes",
     "urn:aihq:catalog:recipe:",
     formats.recipe,
     recipeProblems,
   );
   if (result.status !== "ok") return result;
-  if (!(pluginJsonBytes instanceof Uint8Array) || pluginJsonBytes.byteLength > limits.recipeBytes)
+  if (pluginJsonBytes instanceof Uint8Array && pluginJsonBytes.byteLength > limits.recipeBytes)
+    return limitRefusal("recipeBytes", "plugin.json");
+  if (!(pluginJsonBytes instanceof Uint8Array))
     return {
       status: "invalid",
-      problems: [{ path: "plugin.json", message: "plugin.json is missing or too large" }],
+      problems: [{ path: "plugin.json", message: "plugin.json is missing" }],
     };
   const plugin = readJson(pluginJsonBytes);
   if (
@@ -233,7 +245,8 @@ export type ReadQualificationResult =
       readonly sha256: string;
     }
   | Invalid
-  | UnsupportedVersion;
+  | UnsupportedVersion
+  | Refused;
 
 /**
  * Reads a qualification: canonical JSON, so its sha256 is a function of the document and a
@@ -242,7 +255,7 @@ export type ReadQualificationResult =
 export function readQualification(bytes: Uint8Array): ReadQualificationResult {
   const result = readDocument(
     bytes,
-    limits.qualificationBytes,
+    "qualificationBytes",
     "urn:aihq:catalog:qualification:",
     formats.qualification,
     qualificationProblems,
