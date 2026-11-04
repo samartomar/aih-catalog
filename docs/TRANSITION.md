@@ -46,23 +46,50 @@ published registry versions. A future implementation must replace these guards
 through review once the completion criteria below have real evidence; there is
 no readiness toggle.
 
+## Source-to-plan rewrite
+
+Catalog is being rewritten as a small library that reads a source, identifies its items,
+checks them and returns a deterministic installation plan. The new modules live in
+`src/catalog`, with one file per future entry point (`source`, `node`, `producer`,
+`reader`, `contracts`) and shared internals under `src/catalog/internal`. Tool profiles
+are data files in `profiles/`. The package `exports` still point at the donor modules;
+switching them to the new entry points, removing the donor model and shipping the
+schemas and fixtures happen together in the package cutover, not slice by slice.
+
+The first implemented path plans an installation from your own folder:
+`readLocalSource`, `findItems`, `buildContent`, `readContent`/`readToolProfile` and
+`planInstall` give a project-scope plan of skills and always-on rules for Claude Code,
+Kiro and Antigravity, and `renderStep` produces the bytes of each recorded render.
+Kinds, scopes and routes that are not implemented yet are reported as
+`not-implemented` leftovers or `unavailable` placements rather than claimed. Item scan
+keys come from Scan's `scanKeyOf` (`@aihq/scan/contracts`), installed from the exact
+`vendor/aihq-scan-0.1.0.tgz` archive (sha256
+`52f040b1e09dd4015d5c88b9b98b59d177626bf449f1e819448411552de59bcd`) as a development
+dependency until the cutover decides how the package depends on Scan.
+
 ## Keep, adapt and retire
 
-| Existing capability or check | Disposition |
+| Inherited capability or check | Disposition |
 | --- | --- |
-| Strict JSON, canonical bytes, bounded input, immutable results | Keep integrity checks; adapt the new envelope in its feature work. |
-| Canonical root-relative paths, traversal/symlink refusal, file hashes and missing/changed-byte refusal | Keep donor material checks; replace profile-dependent closure envelopes in generic material feature work. |
-| Exact source identities/pins, fetched-byte verification, producer provenance, preservation of unrelated records | Adapted into `src/producer` for the release format ([migration evidence](PRODUCER-MIGRATION.md)); the donor fixture tests stay as historical checks. |
-| Index/collection/presentation/category/runtime-descriptor generation | Check deterministic donor bytes and metadata; these legacy formats are not the new release contract. |
-| Package identity, license, exclusion of secrets/private tool state, packed bytes and disposable installed content read | Keep focused migration checks; they do not certify pending public entry points. |
-| Core/profile lock checkouts, qualification-reader/receipt chains, signed heads, cold external-admin proof and sibling promotion matrices | Retire as mandatory CI/release conditions. Retain source and historical tests for deliberate extraction or retirement during feature migration. |
-| Full-suite replay plus duplicate coverage/build/generation passes | Replace with one reviewed donor suite and one compile. Optional coverage is scoped to that suite; no blanket legacy coverage threshold gates the transition. |
-| Old tag publishing and manual signing/attestation workflows | Remove. Publication stays blocked until the new public handoff is implemented and checked. |
+| Strict JSON, canonical bytes, bounded input, immutable results | **Adapted.** The canonical JSON and portable SHA-256 helpers were copied into `src/catalog/internal`, so the new modules import nothing from the donor tree; the donor copies leave with the donor model. Content documents and tool profiles are admitted only as canonical bytes within published limits and are frozen. The donor strict-JSON/frontmatter test stays active until the donor parser is removed. |
+| Canonical root-relative paths, traversal/symlink refusal, file hashes and missing/changed-byte refusal | **Adapted** into the new path: unsafe entry paths are refused (`path-escape`), links and special files are listed and never followed, every byte is checked against its sha256 (`source-mismatch`), and limit breaches refuse the whole read. Covered by `tests/catalog`. |
+| Source-link parsing, exact source identities/pins and fetched-byte verification without hooks | **Retained** as active donor checks (`parse-source-link`, `upstream-fetch`, producer `fetch` and `git-fixture`) until pinned Git and npm acquisition joins the new path. |
+| Package identity, license, publication refusal, packed bytes and disposable installed read | **Retained** (`tests/transition-boundary.test.ts`): the publication lifecycle still refuses and the packed donor package still reads. The new entry points are checked through packed bytes in the dedicated consumer validation after the cutover. |
+| Repository instructions and self-hosting boundary | **Retained** (`tests/self-hosting`, `tests/bootstrap`). |
+| Workflow action pins, dependency audit, whitespace | **Retained** in `npm run verify` and CI. |
+| Release, release-content, inventory, sets, index, producer-declaration, package-support and baseline formats; their generation checks (`check:materials`), restructuring, baseline schemas, contract fixtures, SPDX data and pinned Scan fixtures; and every donor packed-consumer suite | **Retired from the active gate.** These test the release model the rewrite replaces. They stay runnable through `npm run verify:historical` and `npm run test:historical` until the cutover deletes them. |
+| Index/collection/presentation/category/runtime-descriptor generation | **Retired from the active gate** (historical); these legacy formats are not part of the new contract. |
+| Core/profile lock checkouts, qualification-reader/receipt chains, signed heads, cold external-admin proof and sibling promotion matrices | **Retired** (already not mandatory); historical only. |
+| Full-suite replay and blanket coverage thresholds | **Retired.** One focused active suite and one compile; optional coverage is scoped to that suite. |
+| Old tag publishing and manual signing/attestation workflows | **Removed.** Publication stays blocked until the new public handoff is implemented and checked. |
 
-`vitest.transition.config.ts` is the explicit active test inventory. It retains
-content, collections, categories, presentation, runtime-descriptor, source-closure,
-strict-JSON, deterministic-generation, fetch/producer and helper-isolation checks.
-Legacy envelopes are test fixtures, not required greenfield contracts.
+`vitest.transition.config.ts` is the explicit active test inventory: `tests/catalog/**`
+plus the retained donor integrity checks named above. `vitest.config.ts` (through
+`npm run test:historical`) runs every test, including the retired donor suites. Neither
+the historical tests nor `verify:historical` is a gate; donor failures there are
+recorded, not fixed, unless a retained check depends on them.
+
+### Donor release model (historical)
 
 The new `src/release` module adapts the donor's canonical admission, path/hash
 and source-closure checks to a portable envelope. Release generation extracts
@@ -99,21 +126,16 @@ native conversation entry.
 
 ## Active verification
 
-Run `npm ci --ignore-scripts`, then `npm run verify`. Verification typechecks and
-lints once, compiles without rewriting committed defaults, checks the carried release
-(including the offline whole-package `check:release`) and retained generated material, runs the active tests once, and checks action pins.
-Verification also re-derives the release 1.7 restructuring expectation and compares
-every listed 1.7.0 release with it (`npm run check:restructuring`), and the whole-package
-check verifies the frozen default `release.json` bytes against their recorded digest.
-The read-only CI definition selects Node 26.12.1, audits dependencies and checks whitespace, with one
-20-minute job. The Node adapter declares `>=26.12.1 <27`; portable entries also
-run in a browser.
+Run `npm ci --ignore-scripts`, then `npm run verify`. Verification compiles once,
+typechecks and lints, runs the active tests once and checks action pins. CI selects
+Node 26.12.1, runs `npm run verify`, audits dependencies and checks whitespace, with one
+20-minute job. The Node adapter declares `>=26.12.1 <27`; portable entries also run in a
+browser. Product commands never run against this source checkout.
 
-The package test packs actual bytes into a task-owned temporary directory,
-installs that exact tarball with lifecycle scripts disabled, checks identity and
-license/content byte equality, and reads the new release and material. It also checks that the
-configured publication lifecycle refuses independently of private metadata.
-Product commands never run against this source checkout.
+`npm run verify:historical` runs the retired donor checks (`check:materials`,
+`check:restructuring`, `check:baseline-schemas`, `check:contract-fixtures`,
+`check:spdx-data`, `check:scan-fixtures`) and `npm run test:historical` for migration
+investigation.
 
 ## Completion before publication can resume
 

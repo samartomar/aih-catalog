@@ -1,30 +1,25 @@
 import { defineConfig } from "vitest/config";
 
-// Reviewed donor checks plus the release contract tests under tests/release and the
-// targeted producer tests under tests/producer.
+// The active test inventory during the source-to-plan rewrite (see docs/TRANSITION.md).
+// New-model behavior lives under tests/catalog. The other entries are retained integrity
+// checks over donor code that later slices adapt: strict JSON and frontmatter reading,
+// source-link parsing, redirect-safe pinned fetching without hooks, the publication
+// refusal with the packed package read, and repository instructions. Every other donor
+// suite tests retired release-model formats and runs only in `npm run test:historical`.
 export default defineConfig({
   test: {
     environment: "node",
     fileParallelism: false,
     include: [
+      "tests/catalog/**/*.test.ts",
       "tests/bootstrap/repo-ai-tools.test.ts",
       "tests/self-hosting/self-hosting.test.ts",
-      "tests/transition-boundary.test.ts",
+      "tests/publication-guard.test.ts",
       "tests/supported/strict-json-reader.test.ts",
-      "tests/supported/catalog-content-reader.test.ts",
-      "tests/supported/catalog-index-generator.test.ts",
-      "tests/supported/catalog-source-closure.test.ts",
-      "tests/supported/catalog-collections.test.ts",
-      "tests/supported/catalog-categories.test.ts",
-      "tests/supported/catalog-presentation.test.ts",
-      "tests/supported/catalog-runtime-descriptors.test.ts",
-      "tests/supported/catalog-read-refusals.test.ts",
-      "tests/supported/locale-independent-generation.test.ts",
       "tests/supported/upstream-fetch.test.ts",
-      "tests/supported/upstream-producers.test.ts",
-      "tests/supported/production-generators.test.ts",
-      "tests/release/**/*.test.ts",
-      "tests/producer/**/*.test.ts",
+      "tests/release/parse-source-link.test.ts",
+      "tests/producer/fetch.test.ts",
+      "tests/producer/git-fixture.test.ts",
     ],
   },
 });
