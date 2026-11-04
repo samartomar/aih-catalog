@@ -11,6 +11,7 @@
  * ignore markers that are not theirs, so the folder's bytes are the same for all of them.
  */
 import { parseDocument, stringify } from "yaml";
+import { isRecord } from "./check.js";
 import {
   applyEdit,
   decodeText,
@@ -287,10 +288,6 @@ export function tomlString(text: string): string {
     else out += char;
   }
   return `${out}"`;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
 function merged(base: unknown, add: Readonly<Record<string, unknown>>): Record<string, unknown> {

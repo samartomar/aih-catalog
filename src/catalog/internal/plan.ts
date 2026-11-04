@@ -21,6 +21,7 @@ import {
   DUPLICATE_RESOLVER,
   DUPLICATES_REPORT,
 } from "./authored.js";
+import { isRecord } from "./check.js";
 import { installRelative } from "./identity.js";
 import { canonicalJson } from "./json.js";
 import { applySettings, lowerServer, lowerTool, restricts, serverSettings } from "./mcp.js";
@@ -433,8 +434,6 @@ const OPTION_KEYS = [
   "qualifications",
   "upstreamInstallers",
 ];
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  value !== null && typeof value === "object" && !Array.isArray(value);
 const union = (...lists: readonly (readonly string[])[]): string[] =>
   [...new Set(lists.flat())].sort(compareCodeUnits);
 

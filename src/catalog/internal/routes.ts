@@ -8,6 +8,7 @@
  */
 import type { Problem } from "../contracts.js";
 import type { Qualification } from "./ai-setup.js";
+import { isRecord } from "./check.js";
 import { canonicalDocument } from "./json.js";
 import { type Content, type ContentSource, INSTALL_NAME, type Item, OBJECT_ID } from "./model.js";
 import { compareCodeUnits, isUnder, quote, refused } from "./paths.js";
@@ -65,8 +66,6 @@ const OPTION_KEYS = [
   "qualifications",
   "upstreamInstallers",
 ];
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  value !== null && typeof value === "object" && !Array.isArray(value);
 const fill = (template: string, values: Readonly<Record<string, string>>): string =>
   Object.entries(values).reduce(
     (text, [key, value]) => text.replaceAll(`<${key}>`, value),

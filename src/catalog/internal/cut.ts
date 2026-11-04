@@ -4,13 +4,13 @@
  * client MCP config (`mcpServers.<name>`) becomes a Registry `server.json`. The result is plain
  * data that `buildContent` writes as canonical JSON in the framework's generated source.
  */
+
+import { isRecord } from "./check.js";
 import type { CutRequest } from "./model.js";
 import { quote } from "./paths.js";
 import { EXACT_VERSION, npmSpec } from "./source-link.js";
 
 type Json = unknown;
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  value !== null && typeof value === "object" && !Array.isArray(value);
 
 /** RFC 6901 JSON Pointer segments, or null for a malformed pointer. */
 export function pointerSegments(pointer: string): string[] | null {

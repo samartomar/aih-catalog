@@ -5,6 +5,7 @@
 import { formats, kinds, type Problem } from "../contracts.js";
 import { aiSetupProblems, MCP_SETTINGS, mcpSettingProblems } from "./ai-setup.js";
 import { BUNDLE_LAYOUT, isIncludePattern, matchesInclude } from "./bundle.js";
+import { isRecord, isText, Problems, type Record_, TEXT_LIMITS } from "./check.js";
 import { behaviourSha256, contentSha256, kindFieldNames } from "./identity.js";
 import {
   FRAMEWORK_ID,
@@ -21,29 +22,8 @@ import {
 import { isSafeRelativePath } from "./paths.js";
 import { EXACT_VERSION } from "./source-link.js";
 
-type Record_ = Record<string, unknown>;
-const isRecord = (value: unknown): value is Record_ =>
-  value !== null && typeof value === "object" && !Array.isArray(value);
-const isString = (value: unknown, max = 4096): value is string =>
-  typeof value === "string" && value.length > 0 && value.length <= max;
-
-class Problems {
-  readonly list: Problem[] = [];
-  add(path: string, message: string): void {
-    this.list.push({ path, message });
-  }
-  keys(
-    value: Record_,
-    path: string,
-    allowed: readonly string[],
-    required: readonly string[],
-  ): void {
-    for (const key of Object.keys(value))
-      if (!allowed.includes(key)) this.add(`${path}/${key}`, "unknown field");
-    for (const key of required)
-      if (value[key] === undefined) this.add(`${path}/${key}`, "required field is missing");
-  }
-}
+const isString = (value: unknown, max: number = TEXT_LIMITS.document): value is string =>
+  isText(value, max);
 
 const SOURCE_KINDS = ["git", "npm", "local", "authored"];
 const ITEM_FIELDS = [
