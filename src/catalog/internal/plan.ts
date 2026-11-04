@@ -2245,8 +2245,14 @@ export function planCore(input: CoreInput): PlanResult {
           const { item, content: owner } = byId.get(id) as { item: Item; content: Content };
           if (owner !== content) return false;
           if (source.noticesFor?.includes(id)) return true;
+          // A file cut out of a shared upstream file (D65) carries that file's notices: cut-outs
+          // come only from the content's first source.
           return item.files.some(
-            (file) => file.sourceId === source.id && isUnder(file.sourcePath, notice.covers),
+            (file) =>
+              (file.sourceId === source.id && isUnder(file.sourcePath, notice.covers)) ||
+              (file.derivedFrom !== undefined &&
+                source.id === content.sources[0]?.id &&
+                isUnder(file.derivedFrom.sourcePath, notice.covers)),
           );
         });
         if (covered.length === 0) continue;

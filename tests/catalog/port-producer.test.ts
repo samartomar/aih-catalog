@@ -326,6 +326,48 @@ describe("cutting MCP servers out of a shared client config", () => {
     const binary = await build({ nexus: {} });
     expect(JSON.stringify(binary)).toContain("no Registry package form");
   });
+
+  it("plans the upstream notice that covers the shared file a server was cut from", async () => {
+    const root = folder({
+      LICENSE: "MIT\n",
+      "mcp-configs/mcp-servers.json": JSON.stringify(MCP, null, 2),
+      "other/NOTICE": "Only other/.\n",
+    });
+    const { files, source } = upstream(root);
+    const built = await buildContent(
+      source,
+      files,
+      [
+        {
+          id: "up.mcp.jira",
+          kind: "mcp" as const,
+          files: [
+            {
+              sourceId: "up",
+              sourcePath: "mcp-configs/mcp-servers.json",
+              sha256: fileOf(files, "mcp-configs/mcp-servers.json"),
+              executable: false,
+              role: "content" as const,
+              cut: { pointer: "/mcpServers/jira", as: "mcp" as const },
+            },
+          ],
+        },
+      ],
+      { framework: "up" },
+    );
+    if (built.status !== "ok") throw new Error(JSON.stringify(built));
+    const plan = planned(
+      planInstall(["up.mcp.jira"], [built.content], [profile("claude-code")], {
+        scope: "project",
+        data: null,
+      }),
+    );
+    expect(
+      plan.plan.flatMap((step) =>
+        step.op === "write" ? [[step.path, step.from?.sourcePath, step.items]] : [],
+      ),
+    ).toEqual([[".aihq/notices/up/LICENSE", "LICENSE", ["up.mcp.jira"]]]);
+  });
 });
 
 describe("content from several sources", () => {
