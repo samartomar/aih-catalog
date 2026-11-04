@@ -3,6 +3,7 @@
  * check shape and recompute the digests that depend only on the record.
  */
 import { formats, kinds, type Problem } from "../contracts.js";
+import { aiSetupProblems, MCP_SETTINGS, mcpSettingProblems } from "./ai-setup.js";
 import { BUNDLE_LAYOUT, isIncludePattern, matchesInclude } from "./bundle.js";
 import { behaviourSha256, contentSha256, kindFieldNames } from "./identity.js";
 import {
@@ -235,7 +236,9 @@ export function contentProblems(value: unknown): Problem[] {
       }
       if (!isString(item.description, 1024))
         problems.add(`${path}/description`, "description must be 1–1024 characters");
-      let filesOk = Array.isArray(item.files) && item.files.length > 0;
+      // An AI setup records artifacts; it lists files only for settings it writes.
+      let filesOk =
+        Array.isArray(item.files) && (item.files.length > 0 || item.kind === "ai-setup");
       if (!filesOk) problems.add(`${path}/files`, "an item needs at least one file");
       else
         (item.files as unknown[]).forEach((file, at) => {
@@ -574,6 +577,19 @@ function checkKindFields(item: Record_, path: string, problems: Problems): void 
   }
   if (own("document", "purpose") && !isString(item.purpose, 256))
     problems.add(`${path}/purpose`, "a document records its purpose");
+  if (own("ai-setup", "aiSetup"))
+    for (const problem of aiSetupProblems(
+      item.aiSetup,
+      `${path}/aiSetup`,
+      Array.isArray(item.files)
+        ? item.files.map((file) => (isRecord(file) ? String(file.sourcePath) : ""))
+        : [],
+    ))
+      problems.add(problem.path, problem.message);
+  const settings = MCP_SETTINGS.filter((key) => own("mcp", key) && item[key] !== undefined);
+  if (settings.length > 0)
+    for (const problem of mcpSettingProblems(item, path))
+      problems.add(problem.path, problem.message);
 }
 
 function checkRequirements(value: unknown, path: string, problems: Problems): void {

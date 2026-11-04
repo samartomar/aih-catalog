@@ -12,6 +12,7 @@ import {
   type Problem,
   type Refused,
 } from "./contracts.js";
+import { aiSetupProblems, MCP_SETTINGS, mcpSettingProblems } from "./internal/ai-setup.js";
 import {
   BUNDLE_LAYOUT,
   type Bundle,
@@ -207,7 +208,46 @@ function discovered(item: Item): DiscoveredItem {
       ? { references: [...new Set(item.references.map((reference) => reference.name))] }
       : {}),
     ...(item.fetch === "upstream" ? { fetch: "upstream" as const } : {}),
+    ...(item.kind === "ai-setup"
+      ? { name: item.name, description: item.description, aiSetup: item.aiSetup }
+      : {}),
+    ...Object.fromEntries(
+      MCP_SETTINGS.filter((key) => item[key] !== undefined).map((key) => [key, item[key]]),
+    ),
   };
+}
+
+/** An AI setup's authored fields: its install name, description and record. */
+function readAiSetup(
+  item: DiscoveredItem,
+): { fields: Record<string, unknown>; declared?: undefined; markers?: undefined } | Problem[] {
+  const id = String(item.id);
+  const problems: Problem[] = [];
+  if (typeof item.name !== "string" || item.name.length > 64 || !INSTALL_NAME.test(item.name))
+    problems.push({ path: `${id}/name`, message: "an AI setup names its install name" });
+  if (
+    typeof item.description !== "string" ||
+    item.description.length === 0 ||
+    item.description.length > 1024
+  )
+    problems.push({
+      path: `${id}/description`,
+      message: "an AI setup has a 1–1024 character description",
+    });
+  try {
+    canonicalJson(item.aiSetup ?? null);
+  } catch {
+    return [{ path: `${id}/aiSetup`, message: "aiSetup must be plain JSON data" }];
+  }
+  problems.push(
+    ...aiSetupProblems(
+      item.aiSetup,
+      `${id}/aiSetup`,
+      item.files.map((file) => file.sourcePath),
+    ),
+  );
+  if (problems.length > 0) return problems;
+  return { fields: { name: item.name, description: item.description, aiSetup: item.aiSetup } };
 }
 
 const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -313,8 +353,9 @@ async function assemble(
       message: "the file was not supplied with its bytes",
     }));
   const index = itemReader(item, files);
-  const read = readFields(item, index.bytesOf);
+  const read = item.kind === "ai-setup" ? readAiSetup(item) : readFields(item, index.bytesOf);
   if (typeof read === "string") return [{ path: id, message: read }];
+  if (Array.isArray(read)) return read;
   const record = (file: DiscoveredFile): ItemFile => ({
     ...(file.cli === undefined ? {} : { cli: file.cli }),
     sourceId: file.sourceId,
@@ -333,11 +374,27 @@ async function assemble(
       : {}),
   });
   const itemFiles = item.files.map(record);
-  const scanKey = await scanKeyFor({ kind: item.kind, files: itemFiles }, index.bytesIn);
-  if (!scanKey.startsWith("git-")) return [{ path: id, message: scanKey }];
+  // An AI setup records artifacts, not source files: it has a scan key only for files it writes.
+  const scanKey =
+    item.kind === "ai-setup" && itemFiles.length === 0
+      ? undefined
+      : await scanKeyFor({ kind: item.kind, files: itemFiles }, index.bytesIn);
+  if (scanKey !== undefined && !scanKey.startsWith("git-")) return [{ path: id, message: scanKey }];
   if (item.fetch !== undefined && item.fetch !== "upstream")
     return [{ path: `${id}/fetch`, message: "fetch must be upstream" }];
   const fields: Record<string, unknown> = { ...read.fields };
+  const settings = MCP_SETTINGS.filter((key) => item[key] !== undefined);
+  if (settings.length > 0) {
+    if (item.kind !== "mcp")
+      return [{ path: `${id}/${settings[0]}`, message: "only an MCP item has MCP settings" }];
+    const problems = mcpSettingProblems(item as never, id);
+    if (problems.length > 0) return problems;
+    const declared = Object.keys({ ...read.declared, ...item.requirements?.inputs });
+    const secret = Object.keys(item.env ?? {}).find((name) => declared.includes(name));
+    if (secret !== undefined)
+      return [{ path: `${id}/env/${secret}`, message: "env never holds a declared input" }];
+    for (const key of settings) fields[key] = item[key];
+  }
   if (item.userOnly !== undefined) {
     if (item.userOnly !== true || item.kind !== "skill")
       return [{ path: `${id}/userOnly`, message: "only a skill can be tightened to user-only" }];
@@ -398,7 +455,7 @@ async function assemble(
     ...(item.fetch === "upstream" ? { fetch: "upstream" } : {}),
     contentSha256: contentSha256(itemFiles),
     behaviourSha256: behaviourSha256(base as never, bundle ? bundle.files : null),
-    scanKey,
+    ...(scanKey !== undefined ? { scanKey } : {}),
   } as Item;
   const compare = [
     ...Object.keys(read.fields),

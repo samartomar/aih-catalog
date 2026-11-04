@@ -9,6 +9,7 @@ import {
   type Refused,
   type UnsupportedVersion,
 } from "./contracts.js";
+import { type Qualification, qualificationProblems } from "./internal/ai-setup.js";
 import { AUTHORED_FRAMEWORK, aihContent } from "./internal/authored.js";
 import {
   canonicalDocument,
@@ -47,6 +48,15 @@ import { marketplaceBytes, planRecipe as recipePlan } from "./internal/routes.js
 import { sha256Hex } from "./internal/sha256.js";
 import { contentProblems } from "./internal/validate.js";
 
+export type {
+  AiSetup,
+  AiSetupChange,
+  Cell,
+  Distribution,
+  Qualification,
+  SettingsCommand,
+  SettingsFile,
+} from "./internal/ai-setup.js";
 export type {
   Content,
   ContentSource,
@@ -205,6 +215,36 @@ export function readRecipe(pluginJsonBytes: Uint8Array, recipeBytes: Uint8Array)
     recipe: result.value as Recipe,
     plugin: deepFreeze(plugin) as PluginMetadata,
     sha256: sha256Hex(recipeBytes),
+  };
+}
+
+export type ReadQualificationResult =
+  | {
+      readonly status: "ok";
+      readonly qualification: Qualification;
+      /** The sha256 of the exact bytes: the identity items and recipes reference. */
+      readonly sha256: string;
+    }
+  | Invalid
+  | UnsupportedVersion;
+
+/**
+ * Reads a qualification: canonical JSON, so its sha256 is a function of the document and a
+ * planner recomputes it from the record it is given.
+ */
+export function readQualification(bytes: Uint8Array): ReadQualificationResult {
+  const result = readDocument(
+    bytes,
+    limits.qualificationBytes,
+    "urn:aihq:catalog:qualification:",
+    formats.qualification,
+    qualificationProblems,
+  );
+  if (result.status !== "ok") return result;
+  return {
+    status: "ok",
+    qualification: result.value as Qualification,
+    sha256: sha256Hex(bytes),
   };
 }
 

@@ -7,6 +7,7 @@
  * `local-plugin` where the profile has one, else `items`; the scope never changes.
  */
 import type { Problem } from "../contracts.js";
+import type { Qualification } from "./ai-setup.js";
 import { canonicalDocument } from "./json.js";
 import { type Content, type ContentSource, INSTALL_NAME, type Item, OBJECT_ID } from "./model.js";
 import { compareCodeUnits, isUnder, quote, refused } from "./paths.js";
@@ -22,6 +23,7 @@ import {
   planCore,
   type SetupStep,
   sharedOptionProblems,
+  toolOptions,
   type Warning,
   type WriteStep,
 } from "./plan.js";
@@ -44,12 +46,25 @@ export interface RecipePlanOptions {
   readonly data?: Pin;
   readonly copy?: boolean;
   readonly names?: Readonly<Record<string, string>>;
+  /** The platform cell the recipe's AI setups are planned for. */
+  readonly cell?: string;
+  readonly qualifications?: readonly Qualification[];
+  readonly upstreamInstallers?: readonly string[];
 }
 
 /** The user's picks per option group; an omitted group takes its pre-ticked items. */
 export type RecipeChoices = Readonly<Record<string, readonly string[]>>;
 
-const OPTION_KEYS = ["scope", "source", "data", "copy", "names"];
+const OPTION_KEYS = [
+  "scope",
+  "source",
+  "data",
+  "copy",
+  "names",
+  "cell",
+  "qualifications",
+  "upstreamInstallers",
+];
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
 const fill = (template: string, values: Readonly<Record<string, string>>): string =>
@@ -178,14 +193,10 @@ export function planRecipe(
   if (problems.length > 0) return { status: "invalid", problems };
 
   if (
-    recipe.kind === "combination" ||
-    Object.keys(recipe.aiSetup ?? {}).length > 0 ||
-    recipe.qualifications !== undefined
+    recipe.kind === "combination" &&
+    Object.values(recipe.routes).some((route) => route !== "items")
   )
-    return refused(
-      "not-implemented",
-      "combination recipes and AI setup changes are not implemented yet",
-    );
+    return refused("not-implemented", "a combination recipe plans the items route only");
   if (
     options.data !== undefined &&
     (options.data.repository !== recipe.data.repository ||
@@ -195,23 +206,34 @@ export function planRecipe(
       "data-mismatch",
       `the recipe was written against data commit ${recipe.data.commit}, not ${options.data.commit}`,
     );
-  const framework = recipe.framework as string;
-  const pin = recipe.content as Pin;
-  const content = contents.find((candidate) => candidate.framework.id === framework);
-  if (content === undefined)
-    return refused(
-      "content-mismatch",
-      `no content for the framework ${quote(framework)} was supplied`,
-    );
+  // Every framework's content must be read at the recipe's pin for it.
+  const pins: [string, Pin][] =
+    recipe.kind === "combination"
+      ? Object.entries(recipe.content as Readonly<Record<string, Pin>>)
+      : [[recipe.framework as string, recipe.content as Pin]];
+  for (const [id, pin] of pins) {
+    const found = contents.find((candidate) => candidate.framework.id === id);
+    if (found === undefined)
+      return refused("content-mismatch", `no content for the framework ${quote(id)} was supplied`);
+    if (
+      !found.sources.some(
+        (source) =>
+          source.kind === "git" &&
+          source.repository === pin.repository &&
+          source.commit === pin.commit,
+      )
+    )
+      return refused(
+        "content-mismatch",
+        `the ${id} content is not read at the recipe's pin ${pin.commit}`,
+      );
+  }
+  const framework = (pins[0] as [string, Pin])[0];
+  const content = contents.find((candidate) => candidate.framework.id === framework) as Content;
   const pinned = (repository: string, commit: string) =>
     content.sources.find(
       (source) =>
         source.kind === "git" && source.repository === repository && source.commit === commit,
-    );
-  if (pinned(pin.repository, pin.commit) === undefined)
-    return refused(
-      "content-mismatch",
-      `the ${framework} content is not read at the recipe's pin ${pin.commit}`,
     );
 
   // The selection: every member, plus each option group's picks (or its pre-ticked items).
@@ -376,6 +398,18 @@ export function planRecipe(
     installName,
     extras,
     overrides: (recipe.overrides ?? []).filter((override) => selection.includes(override.item)),
+    ...toolOptions(options),
+    ...(recipe.aiSetup !== undefined ? { aiSetupChanges: recipe.aiSetup } : {}),
+    ...(recipe.kind === "combination"
+      ? {
+          combination: {
+            recipe: recipe.id,
+            ...(options.cell !== undefined && recipe.qualifications?.[options.cell] !== undefined
+              ? { sha256: recipe.qualifications[options.cell] as string }
+              : {}),
+          },
+        }
+      : {}),
   });
   if (result.status !== "ok" && result.status !== "incomplete") return result;
   const { status, ...rest } = result;

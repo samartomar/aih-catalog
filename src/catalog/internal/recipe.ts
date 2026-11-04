@@ -5,6 +5,7 @@
  * and the Catalog data commit it was written against. Pure data; shape checks only.
  */
 import { formats, kinds, type Problem } from "../contracts.js";
+import { type AiSetupChange, aiSetupChangeProblems, CELLS } from "./ai-setup.js";
 import { FRAMEWORK_ID, INSTALL_NAME, OBJECT_ID, SHA256 } from "./model.js";
 import { isSafeRelativePath } from "./paths.js";
 
@@ -77,7 +78,8 @@ export interface Recipe {
   readonly namePrefix?: Readonly<Record<string, string>>;
   readonly overrides?: readonly { readonly item: string; readonly replaces: string }[];
   readonly requires?: readonly string[];
-  readonly aiSetup?: Readonly<Record<string, unknown>>;
+  /** Per AI setup id: only what this recipe changes from the tool's standalone setup. */
+  readonly aiSetup?: Readonly<Record<string, AiSetupChange>>;
   readonly qualifications?: Readonly<Record<string, string>>;
   readonly data: Pin;
 }
@@ -401,17 +403,23 @@ export function recipeProblems(value: unknown): Problem[] {
       "/overrides",
       "overrides lists { item, replaces }",
     );
-  if (value.aiSetup !== undefined)
-    problems.check(
-      isRecord(value.aiSetup) && Object.values(value.aiSetup).every(isRecord),
-      "/aiSetup",
-      "aiSetup maps AI setup ids to their changes",
-    );
+  if (value.aiSetup !== undefined) {
+    if (!isRecord(value.aiSetup)) problems.add("/aiSetup", "aiSetup maps AI setup ids to changes");
+    else
+      for (const [id, change] of Object.entries(value.aiSetup)) {
+        problems.check(isItemId(id), `/aiSetup/${id}`, "an AI setup id");
+        for (const problem of aiSetupChangeProblems(change, `/aiSetup/${id}`))
+          problems.add(problem.path, problem.message);
+      }
+  }
   if (value.qualifications !== undefined)
     problems.check(
       isRecord(value.qualifications) &&
-        Object.values(value.qualifications).every(
-          (entry) => typeof entry === "string" && SHA256.test(entry),
+        Object.entries(value.qualifications).every(
+          ([cell, entry]) =>
+            (CELLS as readonly string[]).includes(cell) &&
+            typeof entry === "string" &&
+            SHA256.test(entry),
         ),
       "/qualifications",
       "qualifications maps cells to qualification sha256",

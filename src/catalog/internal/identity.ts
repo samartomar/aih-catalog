@@ -51,6 +51,11 @@ export function behaviourSha256(
   const fields: Record<string, unknown> = {};
   for (const name of kindFieldNames(item.kind))
     if (item[name] !== undefined) fields[name] = item[name];
+  // Qualification references never enter item identity: a new qualification changes no digest.
+  if (item.kind === "ai-setup" && fields.aiSetup !== null && typeof fields.aiSetup === "object") {
+    const { qualifications: _qualifications, ...rest } = fields.aiSetup as Record<string, unknown>;
+    fields.aiSetup = rest;
+  }
   return sha256OfText(
     canonicalJson({
       bundle: bundleFiles,

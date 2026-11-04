@@ -50,6 +50,10 @@
       "args": "args",
       "command": "command",
       "env": "env"
+    },
+    "tools": {
+      "disabled": "disabled_tools",
+      "enabled": "enabled_tools"
     }
   },
   "name": "Codex",
@@ -143,5 +147,5 @@
       }
     }
   },
-  "version": 3
+  "version": 4
 }

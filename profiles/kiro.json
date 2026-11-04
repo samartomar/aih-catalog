@@ -57,6 +57,9 @@
       "args": "args",
       "command": "command",
       "env": "env"
+    },
+    "tools": {
+      "disabled": "disabledTools"
     }
   },
   "name": "Kiro (CLI and IDE)",
@@ -197,5 +200,5 @@
       }
     ]
   },
-  "version": 4
+  "version": 5
 }
