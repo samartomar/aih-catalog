@@ -9,6 +9,13 @@
 import type { Invalid, Problem, Refused } from "../contracts.js";
 import { implementedKinds } from "../contracts.js";
 import {
+  type AiSetupChange,
+  CELLS,
+  type Cell,
+  type Qualification,
+  qualificationProblems,
+} from "./ai-setup.js";
+import {
   AUTHORED_FRAMEWORK,
   aihContent,
   DUPLICATE_RESOLVER,
@@ -16,7 +23,7 @@ import {
 } from "./authored.js";
 import { installRelative } from "./identity.js";
 import { canonicalJson } from "./json.js";
-import { lowerServer } from "./mcp.js";
+import { applySettings, lowerServer, lowerTool, restricts, serverSettings } from "./mcp.js";
 import { type Bundle, type Content, INSTALL_NAME, type Item, type ItemFile } from "./model.js";
 import {
   basenameOf,
@@ -44,6 +51,14 @@ import {
   scopeKeyOf,
 } from "./render.js";
 import { sha256Hex } from "./sha256.js";
+import {
+  type AcquireStep,
+  planTools,
+  type ToolCommandStep,
+  type ToolLaunch,
+  toolProblems,
+  type UpstreamInstallerStep,
+} from "./tools.js";
 import { contentProblems } from "./validate.js";
 
 export interface ProfileVersion {
@@ -158,6 +173,16 @@ export interface LinkStep {
   readonly clis: readonly string[];
 }
 
+/**
+ * A value in a merge entry that names a path under a plan root (an acquired executable): the
+ * entry holds the path from that root, and the installer writes it as an absolute path.
+ */
+export interface RootPath {
+  readonly pointer: string;
+  readonly root: "user";
+  readonly path: string;
+}
+
 export interface MergeStep extends RouteMarks {
   readonly op: "merge";
   readonly root: Scope;
@@ -174,6 +199,7 @@ export interface MergeStep extends RouteMarks {
   readonly items?: readonly string[];
   readonly clis: readonly string[];
   readonly inputs?: readonly Binding[];
+  readonly rootPaths?: readonly RootPath[];
 }
 
 /**
@@ -233,7 +259,13 @@ export interface FetchStep {
 
 /** Steps that place files or entries; each carries the clients it serves (`clis`). */
 export type PlacementStep = FetchStep | WriteStep | LinkStep | MergeStep;
-export type PlanStep = PlacementStep | PluginStep | SetupStep;
+export type PlanStep =
+  | PlacementStep
+  | AcquireStep
+  | PluginStep
+  | SetupStep
+  | UpstreamInstallerStep
+  | ToolCommandStep;
 
 export interface Missing {
   readonly item?: string;
@@ -256,12 +288,22 @@ export type UnavailableReason =
   | "no-tool-names"
   | "no-tool-restriction"
   | "unsupported-server"
-  | "no-bundle-place";
+  | "no-bundle-place"
+  | "no-qualification"
+  | "not-qualified";
 
+/**
+ * What cannot be placed: an item for one client, or an AI setup (or a combination recipe) on
+ * the plan's platform cell, with no qualification or none `qualified` (`cause` says why).
+ */
 export interface Unavailable {
-  readonly item: string;
-  readonly cli: string;
+  readonly item?: string;
+  readonly recipe?: string;
+  readonly cli?: string;
+  readonly cell?: Cell;
   readonly reason: UnavailableReason;
+  /** For `not-qualified`: `artifact-mismatch`, `blocked`, `unknown` or `no-closure`. */
+  readonly cause?: string;
   readonly detail: string;
 }
 
@@ -311,7 +353,10 @@ export type Reference =
 
 export interface Warning {
   readonly code: string;
-  readonly cli: string;
+  /** The client the warning is about; absent for an AI setup warning. */
+  readonly cli?: string;
+  /** The AI setup an `unmanaged` or `licence-notice` warning is about. */
+  readonly aiSetup?: string;
   readonly items: readonly string[];
   readonly framework?: string;
   /** For a route fallback: the route asked for and the route used. */
@@ -371,9 +416,23 @@ export interface PlanOptions {
   readonly data: { readonly repository: string; readonly commit: string } | null;
   readonly copy?: boolean;
   readonly names?: Readonly<Record<string, string>>;
+  /** The platform cell AI setups are planned for; required when one is selected. */
+  readonly cell?: string;
+  /** Qualification records read for this plan; only those the items reference count. */
+  readonly qualifications?: readonly Qualification[];
+  /** AI setup ids whose upstream installer the user chose instead (unmanaged). */
+  readonly upstreamInstallers?: readonly string[];
 }
 
-const OPTION_KEYS = ["scope", "data", "copy", "names"];
+const OPTION_KEYS = [
+  "scope",
+  "data",
+  "copy",
+  "names",
+  "cell",
+  "qualifications",
+  "upstreamInstallers",
+];
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
 const union = (...lists: readonly (readonly string[])[]): string[] =>
@@ -412,6 +471,7 @@ type Unit =
       readonly entry?: unknown;
       readonly output?: Output;
       readonly inputs?: readonly Binding[];
+      readonly rootPaths?: readonly RootPath[];
       readonly limitBytes?: number;
       readonly bytes?: number;
     };
@@ -509,6 +569,7 @@ function place(
   profile: ToolProfile,
   scope: Scope,
   installName: string,
+  launch?: ToolLaunch,
 ): Placed[] | Failure {
   const framework = content.framework.id;
   const bundle =
@@ -753,16 +814,25 @@ function place(
         return { reason: "not-described", detail: `the client has no ${scope} MCP place` };
       if (edition !== undefined)
         return { reason: "not-implemented", detail: "MCP editions are not implemented yet" };
-      const lowered = lowerServer(item, profile.mcpFile);
+      if (launch !== undefined && launch.path === undefined)
+        return { reason: "no-qualification", detail: "its AI setup has no artifact for the cell" };
+      const lowered =
+        launch === undefined
+          ? lowerServer(item, profile.mcpFile)
+          : lowerTool(item, launch, profile.mcpFile, profile.id);
       if ("reason" in lowered) return { reason: "unsupported-server", detail: lowered.reason };
+      const settings = applySettings(lowered.entry, serverSettings(item, launch), profile.mcpFile);
+      if ("reason" in settings) return { reason: "unsupported-server", detail: settings.reason };
+      const rootPaths = (lowered as { rootPaths?: readonly RootPath[] }).rootPaths ?? [];
       return [
         placed({
           shape: "merge",
           file: target.file,
           format: target.format,
           key: fill(target.key, installName),
-          entry: lowered.entry,
+          entry: settings.entry,
           ...(lowered.inputs.length > 0 ? { inputs: lowered.inputs } : {}),
+          ...(rootPaths.length > 0 ? { rootPaths } : {}),
         }),
       ];
     }
@@ -1565,6 +1635,31 @@ export function sharedOptionProblems(
     problems.push({ path: "options/scope", message: "scope is project or user" });
   if (options.copy !== undefined && typeof options.copy !== "boolean")
     problems.push({ path: "options/copy", message: "copy is a boolean" });
+  if (options.cell !== undefined && !(CELLS as readonly unknown[]).includes(options.cell))
+    problems.push({ path: "options/cell", message: `cell is one of ${CELLS.join(", ")}` });
+  if (options.qualifications !== undefined) {
+    if (!Array.isArray(options.qualifications))
+      problems.push({ path: "options/qualifications", message: "a list of qualification records" });
+    else
+      for (const [index, record] of options.qualifications.entries())
+        for (const problem of qualificationProblems(record))
+          problems.push({
+            path: `options/qualifications/${index}${problem.path}`,
+            message: problem.message,
+          });
+  }
+  if (
+    options.upstreamInstallers !== undefined &&
+    !(
+      Array.isArray(options.upstreamInstallers) &&
+      options.upstreamInstallers.every((id) => typeof id === "string") &&
+      new Set(options.upstreamInstallers).size === options.upstreamInstallers.length
+    )
+  )
+    problems.push({
+      path: "options/upstreamInstallers",
+      message: "a list of distinct AI setup ids",
+    });
   if (options.names !== undefined) {
     if (!isRecord(options.names))
       problems.push({ path: "options/names", message: "names maps item ids to install names" });
@@ -1630,8 +1725,22 @@ export function planInstall(
     data: options.data,
     ...(options.copy !== undefined ? { copy: options.copy } : {}),
     installName: (item) => options.names?.[item.id] ?? item.name,
+    ...toolOptions(options),
   });
 }
+
+/** The AI setup options both planners pass through. */
+export const toolOptions = (options: {
+  readonly cell?: string;
+  readonly qualifications?: readonly Qualification[];
+  readonly upstreamInstallers?: readonly string[];
+}) => ({
+  ...(options.cell !== undefined ? { cell: options.cell } : {}),
+  ...(options.qualifications !== undefined ? { qualifications: options.qualifications } : {}),
+  ...(options.upstreamInstallers !== undefined
+    ? { upstreamInstallers: options.upstreamInstallers }
+    : {}),
+});
 
 /**
  * Steps and reports lowered from recipe routes (plugins, local plugins, upstream setup), which
@@ -1666,6 +1775,13 @@ export interface CoreInput {
   readonly extras?: Extras;
   /** A recipe's intended built-in replacements: `item` replaces the provided `replaces`. */
   readonly overrides?: readonly Override[];
+  readonly cell?: string;
+  readonly qualifications?: readonly Qualification[];
+  readonly upstreamInstallers?: readonly string[];
+  /** A recipe's changes to each AI setup's standalone setup. */
+  readonly aiSetupChanges?: Readonly<Record<string, AiSetupChange>>;
+  /** A combination recipe's id and its qualification's sha256 for the cell. */
+  readonly combination?: { readonly recipe: string; readonly sha256?: string };
 }
 
 export interface Override {
@@ -1675,7 +1791,7 @@ export interface Override {
 
 /** The planner shared by `planInstall` and `planRecipe`, over already-validated input. */
 export function planCore(input: CoreInput): PlanResult {
-  const { selection, contents, profiles, scope, extras } = input;
+  const { contents, profiles, scope, extras } = input;
   const options = { copy: input.copy, data: input.data };
 
   const byId = new Map<string, { content: Content; item: Item }>();
@@ -1688,11 +1804,35 @@ export function planCore(input: CoreInput): PlanResult {
         };
       byId.set(item.id, { content, item });
     }
-  for (const id of selection)
+  for (const id of input.selection)
     if (!byId.has(id))
       return refused(
         "unknown-item",
         `the selected item ${quote(id)} is not in the supplied content`,
+      );
+
+  // AI setups: their qualification on the cell, acquisition, settings and implied MCP items.
+  const toolInput = {
+    selection: input.selection,
+    byId,
+    ...(input.cell !== undefined ? { cell: input.cell } : {}),
+    ...(input.qualifications !== undefined ? { qualifications: input.qualifications } : {}),
+    ...(input.upstreamInstallers !== undefined
+      ? { upstreamInstallers: input.upstreamInstallers }
+      : {}),
+    ...(input.aiSetupChanges !== undefined ? { changes: input.aiSetupChanges } : {}),
+    ...(input.combination !== undefined ? { combination: input.combination } : {}),
+    clis: union(profiles.map((profile) => profile.id)),
+  };
+  const toolIssues = toolProblems(toolInput);
+  if (toolIssues.length > 0) return { status: "invalid", problems: toolIssues };
+  const tools = planTools(toolInput);
+  const selection = union(input.selection, tools.implied);
+  for (const id of selection)
+    if (!byId.has(id))
+      return refused(
+        "unknown-item",
+        `the AI setup's MCP item ${quote(id)} is not in the supplied content`,
       );
 
   const chosen = [...selection].sort(compareCodeUnits);
@@ -1708,18 +1848,22 @@ export function planCore(input: CoreInput): PlanResult {
   for (const profile of sortedProfiles)
     for (const id of chosen) {
       const { item, content } = byId.get(id) as { item: Item; content: Content };
+      // An AI setup is planned once per cell (acquire), never placed per client.
+      if (item.kind === "ai-setup") continue;
       const installName = input.installName(item, profile);
       if (installName === undefined) continue;
-      const result = place(item, content, profile, scope, installName);
+      const result = place(item, content, profile, scope, installName, tools.launches.get(id));
       if (isFailure(result)) unavailable.push({ item: id, cli: profile.id, ...result });
       else placements.push(...result);
     }
+  unavailable.push(...tools.unavailable);
 
   // A plan that mixes frameworks adds Catalog's duplicate resolver on every client that can
   // take an agent; where it cannot be placed the plan only warns.
   const frameworkOf = (id: string) => byId.get(id)?.content.framework.id;
   const mixedFrameworks = new Set(
     [...selection, ...(extras?.routed ?? []).map((entry) => entry.item)]
+      .filter((id) => !tools.exempt.has(id))
       .map(frameworkOf)
       .filter((id): id is string => id !== undefined && id !== AUTHORED_FRAMEWORK),
   );
@@ -1809,8 +1953,8 @@ export function planCore(input: CoreInput): PlanResult {
   resolved = bundles.kept;
 
   const clashes: Clash[] = [];
-  const warnings: Warning[] = [...(extras?.warnings ?? [])];
-  const writes: WriteStep[] = [...(extras?.writes ?? [])];
+  const warnings: Warning[] = [...(extras?.warnings ?? []), ...tools.warnings];
+  const writes: WriteStep[] = [...(extras?.writes ?? []), ...tools.writes];
   const links: LinkStep[] = [];
   const merges: MergeStep[] = [];
   const servedBy = new Map<string, string[]>();
@@ -1942,6 +2086,7 @@ export function planCore(input: CoreInput): PlanResult {
       item: first.item.id,
       clis,
       ...(unit.inputs ? { inputs: unit.inputs } : {}),
+      ...(unit.rootPaths ? { rootPaths: unit.rootPaths } : {}),
     });
   }
 
@@ -2005,6 +2150,27 @@ export function planCore(input: CoreInput): PlanResult {
       });
       for (const code of overlap.warnings) warnings.push({ code, cli: profile.id, items });
     }
+
+  // MCP settings a client cannot carry: tool lists it cannot restrict, timeouts no profile maps.
+  const settingWarnings = new Map<string, Warning>();
+  const warnAbout = (code: string, cli: string, item: string) => {
+    const known = settingWarnings.get(`${code}\0${cli}`);
+    settingWarnings.set(`${code}\0${cli}`, {
+      code,
+      cli,
+      items: union(known?.items ?? [], [item]),
+    });
+  };
+  for (const entry of resolved) {
+    if (entry.item.kind !== "mcp") continue;
+    const settings = serverSettings(entry.item, tools.launches.get(entry.item.id));
+    const lists = settings.enabledTools !== undefined || settings.disabledTools !== undefined;
+    if (lists && !restricts(settings, entry.profile.mcpFile))
+      warnAbout("mcp-tools-unrestricted", entry.profile.id, entry.item.id);
+    if (settings.startupSeconds !== undefined || settings.callSeconds !== undefined)
+      warnAbout("mcp-timeouts-not-described", entry.profile.id, entry.item.id);
+  }
+  warnings.push(...settingWarnings.values());
 
   // Names the clients already provide: clashes, or an override's switch-off and warnings.
   const shadowing = builtIns(resolved, scope, input.overrides ?? []);
@@ -2203,11 +2369,15 @@ export function planCore(input: CoreInput): PlanResult {
   );
   unavailable.sort(
     (left, right) =>
-      compareCodeUnits(left.item, right.item) || compareCodeUnits(left.cli, right.cli),
+      compareCodeUnits(left.item ?? left.recipe ?? "", right.item ?? right.recipe ?? "") ||
+      compareCodeUnits(left.cli ?? "", right.cli ?? "") ||
+      compareCodeUnits(left.cell ?? "", right.cell ?? ""),
   );
   warnings.sort(
     (left, right) =>
-      compareCodeUnits(left.code, right.code) || compareCodeUnits(left.cli, right.cli),
+      compareCodeUnits(left.code, right.code) ||
+      compareCodeUnits(left.cli ?? "", right.cli ?? "") ||
+      compareCodeUnits(left.aiSetup ?? "", right.aiSetup ?? ""),
   );
 
   const plugins = [...(extras?.plugins ?? [])].sort(
@@ -2247,9 +2417,18 @@ export function planCore(input: CoreInput): PlanResult {
     });
     return false;
   });
+  // Phase 1 holds fetches and acquisitions, by root then path.
+  const firstPhase: (FetchStep | AcquireStep)[] = [...fetches, ...tools.acquires].sort(
+    (left, right) =>
+      compareCodeUnits(left.root, right.root) ||
+      compareCodeUnits(
+        left.op === "fetch" ? left.path : left.into,
+        right.op === "fetch" ? right.path : right.into,
+      ),
+  );
   // The first step of each local-plugin route group, in final order, lists what it contains.
-  const placementSteps: (FetchStep | WriteStep | LinkStep | MergeStep)[] = [
-    ...fetches,
+  const placementSteps: (FetchStep | AcquireStep | WriteStep | LinkStep | MergeStep)[] = [
+    ...firstPhase,
     ...shippedWrites,
     ...links,
     ...merges,
@@ -2266,6 +2445,7 @@ export function planCore(input: CoreInput): PlanResult {
     if (
       step.op === "link" ||
       step.op === "fetch" ||
+      step.op === "acquire" ||
       step.route !== "local-plugin" ||
       step.framework === undefined
     )
@@ -2289,7 +2469,20 @@ export function planCore(input: CoreInput): PlanResult {
         ? null
         : { repository: options.data.repository, commit: options.data.commit },
     profiles: sortedProfiles.map((profile) => ({ id: profile.id, version: profile.version })),
-    plan: [...ordered, ...plugins, ...setups],
+    plan: [
+      ...ordered,
+      ...plugins,
+      ...setups,
+      ...[...tools.installers].sort((left, right) => compareCodeUnits(left.aiSetup, right.aiSetup)),
+      // Settings commands keep their declared order within each AI setup.
+      ...tools.commands
+        .map((step, index) => ({ step, index }))
+        .sort(
+          (left, right) =>
+            compareCodeUnits(left.step.aiSetup, right.step.aiSetup) || left.index - right.index,
+        )
+        .map(({ step }) => step),
+    ],
     missing,
     unavailable,
     clashes,

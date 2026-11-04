@@ -47,6 +47,11 @@ export interface McpFields {
     readonly env?: string;
     readonly set?: Readonly<Record<string, string>>;
   };
+  /**
+   * The entry fields that restrict a server's tools: an allow list (`enabled`) and a deny list
+   * (`disabled`). Absent where the client documents neither.
+   */
+  readonly tools?: { readonly enabled?: string; readonly disabled?: string };
   readonly remote?: Readonly<
     Partial<
       Record<
@@ -849,8 +854,18 @@ function checkMcpFields(value: unknown, problems: Problems): void {
     problems.add("/mcpFile", "must be an object");
     return;
   }
-  problems.keys(value, "/mcpFile", ["stdio", "remote"]);
+  problems.keys(value, "/mcpFile", ["stdio", "remote", "tools"]);
   const field = (entry: unknown) => entry === undefined || (isString(entry, 64) && KEY.test(entry));
+  if (value.tools !== undefined)
+    problems.check(
+      isRecord(value.tools) &&
+        Object.keys(value.tools).length > 0 &&
+        Object.keys(value.tools).every((key) => key === "enabled" || key === "disabled") &&
+        field(value.tools.enabled) &&
+        field(value.tools.disabled),
+      "/mcpFile/tools",
+      "tools names the entry's allow-list (enabled) and deny-list (disabled) fields",
+    );
   const set = (entry: unknown) =>
     entry === undefined ||
     (isRecord(entry) && Object.values(entry).every((item) => isString(item, 64)));

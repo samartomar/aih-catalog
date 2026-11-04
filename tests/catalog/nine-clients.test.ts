@@ -383,7 +383,7 @@ describe("placing the mixed fixture for all nine clients at project scope", () =
       "merge opencode.json /mcp/weather mcp.weather [opencode]",
     ]);
     expect(
-      result.unavailable.map((entry) => `${short(entry.item)} ${entry.cli} ${entry.reason}`),
+      result.unavailable.map((entry) => `${short(entry.item ?? "")} ${entry.cli} ${entry.reason}`),
     ).toEqual([
       "agent.helper antigravity no-tool-names",
       "agent.helper codex no-tool-restriction",
@@ -670,7 +670,7 @@ describe("user scope: shared versions, links and copies", () => {
       "merge .claude/CLAUDE.md rule.always rule.always [claude-code] rule-block@claude-code",
     ]);
     expect(
-      result.unavailable.map((entry) => `${short(entry.item)} ${entry.cli} ${entry.reason}`),
+      result.unavailable.map((entry) => `${short(entry.item ?? "")} ${entry.cli} ${entry.reason}`),
     ).toEqual([
       "rule.always codex not-described",
       "rule.always copilot not-described",

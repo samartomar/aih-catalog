@@ -105,8 +105,9 @@ function serverDocument(
   const name = segments[1] as string;
   const entry = resolve(document, segments);
   if (!isRecord(entry)) return `${quote(name)} is not an MCP server entry`;
-  const description = entry.description;
-  if (typeof description !== "string" || description.length === 0)
+  // An entry without its own description takes the authored one; the entry's own always wins.
+  const description = entry.description ?? request.description;
+  if (typeof description !== "string" || description.length === 0 || description.length > 1024)
     return `${quote(name)} has no description`;
   const inputs = request.inputs ?? {};
   if (!isRecord(inputs) || !Object.values(inputs).every((value) => typeof value === "string"))

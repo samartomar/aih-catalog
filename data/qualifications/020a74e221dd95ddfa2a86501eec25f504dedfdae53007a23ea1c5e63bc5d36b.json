@@ -1,0 +1,45 @@
+{
+  "observed": {
+    "artifact": {
+      "bytes": 50555159,
+      "file": "codebase-memory-mcp-darwin-amd64.tar.gz",
+      "sha256": "ca6e64397a8ae80cec898a8205a6aa16750ac798acc05a0c3ed983837944a581"
+    },
+    "closure": null,
+    "interpreter": null,
+    "members": [
+      {
+        "executable": false,
+        "path": "LICENSE",
+        "sha256": "1f58f9911dc5e3bcb96de28bb28e7b6bb7eb323952d29569c5d7214a152146bb"
+      },
+      {
+        "executable": false,
+        "path": "THIRD_PARTY_NOTICES.md",
+        "sha256": "85ba0e25610a3d1a71df75c46425141644b416f290de5c8d985ae5d2d02092e4"
+      },
+      {
+        "executable": true,
+        "path": "codebase-memory-mcp",
+        "sha256": "f3ba4d7dd462be868eff85f0dccb7375405f58084da800826065df2312b028ab"
+      },
+      {
+        "executable": true,
+        "path": "install.sh",
+        "sha256": "13049c7cc51bc508d68b8ecb8a9fd9574ecb7c6f2c9dd5a19bf7d4c187321145"
+      }
+    ]
+  },
+  "result": {
+    "date": "2026-10-27",
+    "reason": "artifact and members verified against the release digests; not run natively on this cell",
+    "run": "29cafd8ab5b9f0fd320d504b57a75932fd96a05a14371feaa67e200988bb070a",
+    "status": "unknown"
+  },
+  "schema": "urn:aihq:catalog:qualification:0.1.0",
+  "subject": {
+    "aiSetup": "cbm.ai-setup.codebase-memory-mcp",
+    "cell": "darwin-x64",
+    "version": "0.12.1"
+  }
+}

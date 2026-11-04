@@ -8,6 +8,7 @@ export const formats = {
   content: "urn:aihq:catalog:content:0.1.0",
   toolProfile: "urn:aihq:catalog:tool-profile:0.1.0",
   recipe: "urn:aihq:catalog:recipe:0.1.0",
+  qualification: "urn:aihq:catalog:qualification:0.1.0",
 } as const;
 
 /** Every item kind the content format names. */
@@ -16,9 +17,8 @@ export type Kind = (typeof kinds)[number];
 
 /**
  * Kinds this implementation builds and plans. `findItems` discovers skills (and commands as
- * user-only skills), agents, rules and Registry `server.json` MCP servers; hooks and
- * documents are proposed by their author. `ai-setup` stays explicit: building it is
- * `invalid` and planning reports it `unavailable` with reason `not-implemented`.
+ * user-only skills), agents, rules and Registry `server.json` MCP servers; hooks, documents
+ * and AI setups are proposed by their author.
  */
 export const implementedKinds = [
   "skill",
@@ -27,6 +27,7 @@ export const implementedKinds = [
   "hook",
   "mcp",
   "document",
+  "ai-setup",
 ] as const satisfies readonly Kind[];
 
 const MiB = 1024 * 1024;
@@ -53,6 +54,8 @@ export const limits = {
   toolProfileBytes: 1 * MiB,
   /** One recipe document (`recipe.json`), and the recipe plugin's `plugin.json`. */
   recipeBytes: 1 * MiB,
+  /** One qualification document. */
+  qualificationBytes: 1 * MiB,
 } as const;
 export type LimitName = keyof typeof limits;
 

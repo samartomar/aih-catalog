@@ -77,6 +77,9 @@
       "set": {
         "type": "stdio"
       }
+    },
+    "tools": {
+      "enabled": "tools"
     }
   },
   "name": "GitHub Copilot (CLI and VS Code)",
@@ -282,5 +285,5 @@
       "disable-model-invocation": true
     }
   },
-  "version": 3
+  "version": 4
 }

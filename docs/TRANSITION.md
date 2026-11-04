@@ -133,8 +133,22 @@ recorded as one allowlisted plugin folder each, named by plugin, and an include 
 `/` takes every file below that folder. A `THIRD_PARTY_NOTICES` file is a notice. A bare path in
 program source no longer counts as a path reference; explicit relative paths still do.
 
-Kinds, scopes and routes that are not implemented yet
-(combination recipes and AI setup) are reported as
+AI setups are framework content too: `data/crg`, `data/cbm` and `data/serena` hold
+code-review-graph, codebase-memory-mcp and Serena as `ai-setup` items (artifact per platform
+cell, runtime range, launch arguments, settings commands with readbacks, the upstream installers
+a plan never offers) beside their MCP items, and `data/qualifications/<sha256>.json` holds each
+qualification as its recorded run gave it. `npm run port:ai-setup` rebuilds them from the
+upstream release tags (a hookless partial Git fetch of the named files), and
+`port-report/ai-setup.json` drafts the trio combination recipe. A plan for a selected AI setup
+needs a platform `cell`; it acquires the artifact of the latest matching `qualified` record
+(a combination uses exactly the member records its own qualification lists) at user scope,
+tries an installed interpreter in range before the qualified one, starts the MCP server from
+the acquired executable and adds approval-requiring `tool-command` steps. Without a matching
+`qualified` record the AI setup or combination is `unavailable` (`no-qualification`, or
+`not-qualified` with its cause), and the plan is `incomplete`. Only codebase-memory-mcp on
+linux-x64 is qualified today; a fixture's synthetic qualification proves planning only.
+
+Kinds, scopes and routes that are not implemented yet are reported as
 `not-implemented` leftovers, `unavailable` placements or `not-implemented` refusals rather
 than claimed, and a pair a profile does not describe is `unavailable` with its reason. Item scan
 keys come from Scan's `scanKeyOf` (`@aihq/scan/contracts`), installed from the exact

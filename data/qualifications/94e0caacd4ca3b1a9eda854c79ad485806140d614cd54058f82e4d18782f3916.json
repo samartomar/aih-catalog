@@ -1,0 +1,44 @@
+{
+  "observed": {
+    "artifact": {
+      "bytes": 48920994,
+      "file": "codebase-memory-mcp-linux-amd64-portable.tar.gz",
+      "sha256": "8c3d0341064301e78ecc84cf7348d4e2c6562a0f57448243ea560aaa34de36c1"
+    },
+    "closure": null,
+    "interpreter": null,
+    "members": [
+      {
+        "executable": false,
+        "path": "LICENSE",
+        "sha256": "1f58f9911dc5e3bcb96de28bb28e7b6bb7eb323952d29569c5d7214a152146bb"
+      },
+      {
+        "executable": false,
+        "path": "THIRD_PARTY_NOTICES.md",
+        "sha256": "85ba0e25610a3d1a71df75c46425141644b416f290de5c8d985ae5d2d02092e4"
+      },
+      {
+        "executable": true,
+        "path": "codebase-memory-mcp",
+        "sha256": "77745491f0a9c346d6da23eed4d92b5feaa31a27a883c9faa4fa9f47c8183705"
+      },
+      {
+        "executable": true,
+        "path": "install.sh",
+        "sha256": "13049c7cc51bc508d68b8ecb8a9fd9574ecb7c6f2c9dd5a19bf7d4c187321145"
+      }
+    ]
+  },
+  "result": {
+    "date": "2026-10-27",
+    "run": "a5db607fe7e748e044eeac9afd50b4b324d8c2fd2646c04c07315b6a7fc8a049",
+    "status": "qualified"
+  },
+  "schema": "urn:aihq:catalog:qualification:0.1.0",
+  "subject": {
+    "aiSetup": "cbm.ai-setup.codebase-memory-mcp",
+    "cell": "linux-x64",
+    "version": "0.12.1"
+  }
+}

@@ -172,6 +172,8 @@ export interface Content {
 export interface CutRequest {
   readonly pointer: string;
   readonly as: "hook" | "mcp";
+  /** For an MCP entry that has no description of its own: the description Catalog authors. */
+  readonly description?: string;
   readonly version?: string;
   readonly inputs?: Readonly<Record<string, string>>;
 }
@@ -241,6 +243,16 @@ export interface DiscoveredItem {
   readonly references?: readonly string[];
   /** `upstream` when Catalog may not ship copies: the plan fetches the files at the pin. */
   readonly fetch?: "upstream";
+  /** An AI setup's authored install name, description and record (`ai-setup` items only). */
+  readonly name?: string;
+  readonly description?: string;
+  readonly aiSetup?: unknown;
+  /** An MCP item's authored settings: tool lists, timeouts and non-secret env. */
+  readonly enabledTools?: readonly string[];
+  readonly disabledTools?: readonly string[];
+  readonly startupSeconds?: number;
+  readonly callSeconds?: number;
+  readonly env?: Readonly<Record<string, string>>;
 }
 
 export interface LeftOver {

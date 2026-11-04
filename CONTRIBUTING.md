@@ -31,6 +31,10 @@ to compare instead of writing. The active tests check the committed data without
 network, using the pinned upstream files in `tests/fixtures/port-maintained`. The remaining
 families (Anthropic, web-artifacts, guide, pstack, gstack and EGM) work the same way with
 `npm run port:remaining`, `port-report/remaining.json` and `tests/fixtures/port-remaining`.
+The AI setups and their qualifications use `npm run port:ai-setup` and
+`port-report/ai-setup.json`; a new qualification is a new `data/qualifications/<sha256>.json`
+file referenced by its item, never a library version change, and its status is the one the
+recorded run gave.
 
 The rest of this guide describes checks of the donor release model that the rewrite
 replaces. They are not part of the active gate; `npm run verify:historical` and
