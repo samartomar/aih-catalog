@@ -1,26 +1,22 @@
 # Versioning
 
-Catalog uses Semantic Versioning for public package bytes and interfaces. Every
-merged PR carries exactly one of:
+Catalog uses Semantic Versioning for its package: code, the five formats and their schemas,
+the tool profiles and the published limits. Every merged pull request carries exactly one of:
 
-- `semver:none` — repository docs, tests, CI or tooling needing no public package bytes;
-- `semver:patch` — a compatible defect or security correction;
-- `semver:minor` — an additive public capability;
-- `semver:major` — an incompatible public interface or format change.
+- `semver:none`: repository docs, tests, CI, tooling or `data/` changes that need no package bytes;
+- `semver:patch`: a compatible defect or security correction;
+- `semver:minor`: an additive public capability;
+- `semver:major`: an incompatible interface or format change.
 
-Related changes accumulate in a coherent train; `semver:none` cannot start or bump
-a package cut. Bundled content changes require a new Catalog package version.
-An immediate hotfix is reserved for installed-user harm needing prompt correction.
+Data under `data/` is versioned by Git commit, not by the package: recipes and plans record
+the data commit they use. A change to a tool profile's rendered output increases that
+profile's own `version`, and plans record the profile versions they used.
 
-## Release formats
+## Formats
 
-Each release format version is fixed once shipped. An additive item field arrives as
-a new minor format with its own schema export; earlier formats, schema exports and
-documents keep their meaning. A reader refuses a format it does not support as a
-whole rather than ignoring fields it does not know.
+Each format names itself in `schema` as `urn:aihq:catalog:<name>:0.1.0`. A reader accepts
+only the versions it implements and returns `unsupported-version` for another version of its
+own format; it never ignores fields it does not know. A format change publishes its new
+schema and fixtures together with the reader that reads it.
 
-The checkout is a migration workspace, not a publishable greenfield package.
-This setup does not reserve a future version or add compatibility commitments for
-retired V2 interfaces. Publication is blocked until
-[the transition completion criteria](docs/TRANSITION.md#completion-before-publication-can-resume)
-are implemented and verified; [RELEASING.md](RELEASING.md) owns publication policy.
+The package stays at 0.1.0 until its first release ([RELEASING.md](RELEASING.md)).

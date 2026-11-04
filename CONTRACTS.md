@@ -1,176 +1,191 @@
-# Historical Catalog donor contracts
+# Catalog contracts
 
-This inventory describes retained 0.3.0 donor code, not the target interface.
-[The transition](docs/TRANSITION.md) owns direction and active checks. The old
-source-line/Core-lock inventory tests are historical; the new release schema and
-public reader contract are not implemented.
+This document describes what `@aihq/catalog` 0.1.0 reads, records and returns. The
+`/contracts` entry point publishes one JSON Schema (draft 2020-12) per format as `schemas`,
+one valid and one invalid document per schema as `fixtures`, and the nine shipped tool
+profiles as `toolProfiles`. A schema describes shape. The format's reader is the authority:
+it also recomputes digests, checks ordering and uniqueness, resolves references between
+fields and requires canonical bytes, so a document can conform to its schema and still read
+`invalid`.
 
-Line references are into this repository at the commit that carries this file.
-Refusal names are the exact strings a reader returns or throws.
+## Formats
 
-## Current contract: release item `clientId`
+Every document names its format in `schema` with a URN of the form
+`urn:aihq:catalog:<name>:0.1.0`. A reader returns `unsupported-version` for another version of
+its own format and `invalid` for anything else. There are no aliases for earlier names.
 
-Unlike the historical inventory below, this section is current.
-
-| Aspect | Contract |
-| --- | --- |
-| Format | the item field `clientId`, a string matching `^[a-z][a-z0-9-]{0,63}$` (Core's client-id form) |
-| Defined at | release format `urn:aihq:catalog:release:1.4.0`, `schemas/release/1.4.0.json` (`@aihq/catalog/schemas/release/1.4.0.json`) |
-| Required / refused | required on items of kind `client-adapter`; refused on every other kind. Earlier formats (1.0 to 1.3) do not define it, so it is an unknown field there |
-| Reader | `readRelease` checks form only (`missing-field`, `invalid-client-id`, `unexpected-client-id`); it never checks membership, so it keeps reading a release that names a client Core adds later |
-| Known set | Catalog's renderer and, for 1.4 releases, the whole-package integrity check (`client-adapter-ids`, run by `npm run check:release`) require the value to be one of Core's native client ids (`CORE_NATIVE_CLIENT_IDS` in `src/release/client-ids.ts`) |
-| Identity | item IDs are unchanged (`aihq.client.<id>`); the field is part of the item record and therefore of `itemSha256` |
-| Compatibility | `@aihq/catalog/release.json` is a 1.4 document. A reader that supports only 1.0 to 1.3 refuses it as a whole (`SCHEMA_UNSUPPORTED`) and never reads a subset of its items; this package's reader reads 1.0 to 1.4. Documents and schema exports in earlier formats are unchanged |
-
-`clientId` names the client an adapter item targets. It does not imply the client is
-installed, connected or admitted, and it grants no installation, execution or effect
-authority.
-
-## Current contract: no `text.block` in a Codex `config.toml`
-
-Catalog content does not manage a Codex `config.toml` with a recipe `text.block`. Core
-places a new block at the end of its target file. Codex CLI 0.162.1 was observed
-rewriting the user `config.toml` when it recorded a trusted project, inserting the new
-`[projects."<path>"]` table before the file's trailing comment lines. When a managed
-block's `END` marker is the last line, the client's table therefore lands inside the block.
-Core then reports the block changed although the person changed nothing, and applying the
-block again replaces its content and drops the client's setting.
-
-The whole-package integrity check `codex-config-blocks` (run by `npm run check:release`
-for every release format) refuses a recipe `text.block` whose last two target segments can
-be `.codex` and `config.toml`, compared case-insensitively under any root. This covers the
-default user location and a project's `.codex/config.toml`. A literal segment can only be
-itself; an input slot is refused unless its declared `enum` rules the name out
-(`src/release/client-config-targets.ts`). A Codex home outside a `.codex` directory (a
-custom `CODEX_HOME`) is not recognised. Codex configuration uses structured TOML
-`config.entries` instead; see the next section.
-
-To recover a file whose marked block captured a client-written table, move the table (or
-tables) from inside the block to below its `END` marker, keeping them, then check the file
-state again. Do not apply the block over a captured table.
-`node tools/verify-codex-config-drift.mjs <core.tgz>` checks this against a Core artifact: it
-applies a block, simulates the client's insertion inside it, and checks file state after
-the drift and after the recovery.
-
-## Current contract: Codex MCP servers through structured TOML entries
-
-| Aspect | Contract |
-| --- | --- |
-| Items | `ecc.codex.mcp.<key>` in `@aihq/catalog/release-ecc.json` (release format 1.0.0, recipe schema `urn:aihq:core:recipe:1.0.0`): 32 of the 35 offered servers that `ecc.claude.mcp.<key>` registers in a project `.mcp.json` |
-| Effects | user scope only. One `config.entries` operation, `format: "toml"`, on `userHome` `.codex/config.toml` sets one key per entry under `[mcp_servers.<key>]`; the pinned `mcp-configs/mcp-servers.json` and LICENSE are written under `userHome` `.aihq/ecc/source/<item>/` with SHA-256 checks. No `text.block`, so `codex-config-blocks` still refuses any block there |
-| Keys | only documented Codex keys: `command`, `args`, `env_vars`, `env.<NAME>`, `url`, `bearer_token_env_var`, `http_headers.<header>`, `env_http_headers.<header>`. An exact `${NAME}` (or `${NAME:-}`) environment value becomes an `env_vars` name; `Authorization: Bearer ${NAME}` becomes `bearer_token_env_var`; another exact header reference becomes `env_http_headers`. Credential values stay in the host environment |
-| Untranslated | `ito-compute`, `supabase` and `filesystem` put a `${...}` reference in an argument, where Codex documents no expansion; they stay Claude-only and `inventory.codexMcpExclusions` in `producer/ecc` records each reason. Any other shape the translation does not cover is refused rather than approximated (`src/release/codex-mcp-entries.ts`) |
-| Generation | `tools/author-ecc-codex-mcp.mjs` writes the declarations, recipes and facts from the Claude items' offered servers; `tools/generate-ecc-release.mjs` checks every Codex recipe against the translation and its Claude sibling, and that each offered server has exactly one of a Codex item or an exclusion |
-| Dependencies | none. A dependency resolves in its dependent's scope and `ecc.notices` is project scope, so each Codex item delivers LICENSE itself |
-| Identity | existing item IDs are unchanged. The new recipes are part of the shared ECC source inventory, so every ECC item's `itemSha256` changes |
-
-**Core requirement.** The recipes need a Core whose TOML `config.entries` accept array values and
-quoted table names; Codex writes `[projects."<path>"]` when it records a trusted project. An earlier
-Core fails closed instead of misreading the file: an owned array is `unsupported-toml-value` and a
-file with a quoted table header is `unsupported-toml-table`. The managed table and key names are
-bare, so they do not require quoted-entry ownership root 1.3.0. Builds containing Core #69 use
-ownership root 1.4.0 while created-table custody is needed; an earlier Core refuses that root.
-
-**Limits.** Each managed value is owned exactly. Unrelated tables, keys and comments are only read,
-so a client edit elsewhere in the file leaves the entries at `match`. Core still refuses a file it
-cannot scan: a multi-line inline table or one with a trailing comma (TOML 1.1), array tables
-(`[[x]]`), dotted keys, duplicate tables or keys, and an existing managed value that is an inline
-table. `checkFileState` reports drift for the whole `config.toml` target with the operations that
-manage it, not for the individual key.
-
-**Removal build boundary.** Core builds before [samartomar/aih-core#69](https://github.com/samartomar/aih-core/issues/69)
-delete managed statements but retain emptied `[mcp_servers.<key>]` headers, including nested
-`[mcp_servers.<key>.env_http_headers]` headers. Builds containing its implementation
-([Core PR #70](https://github.com/samartomar/aih-core/pull/70), merge commit
-`faa19b50b9f6c528053c2cdab71b92c99beb01f4`) record tables they create during setup and remove
-their headers when the last managed key is removed and no keys or comments remain. Tables that
-predate setup, tables with person/client-added content, and tables created by older builds without
-that custody record keep their headers. This is a source-build boundary, not a published package
-semver guarantee; identify local artifacts by source commit and SHA-256. Older empty server
-headers may need manual cleanup: a server table with neither `command` nor `url` is not usable.
-Only the default user location `~/.codex/config.toml` is targeted, not a custom `CODEX_HOME`.
-This fixture proof does not execute a native Codex client.
-
-`node tools/verify-codex-mcp-config.mjs --expect-removal=clean <core.tgz> [catalog.tgz]` checks this against a Core
-artifact with the packed Catalog in a fixture home. It uses a realistic `config.toml` with comments,
-top-level keys, quoted project tables, a user-owned `[mcp_servers.other]` and a profile. It checks
-that setup keeps every original byte, that a simulated client table and an unrelated key edit leave
-the managed entries at `match`, that repeat setup changes no bytes, that a managed edit is drift
-and is restored, and removal restores the exact original bytes plus the simulated client edits.
-Use `--expect-removal=empty-managed-table-headers-remain` for a build before Core #69 that supports
-these recipes. The expectation is required and a different outcome fails the proof; both modes
-compare all caller-owned bytes. This fresh fixture does not test custody inherited from older builds.
-
-## Current contract: resolver diagnostic references
-
-| Aspect | Contract |
-| --- | --- |
-| Entry | `resolveSelections` in `@aihq/catalog/reader`; fields typed on `Diagnostic` in `@aihq/catalog/contracts` (`src/release/contracts.ts`) |
-| `RELEASE_UNAVAILABLE`, `ITEM_UNAVAILABLE` | `reference`: the exact unresolved `{releaseSha256,itemId,scope,itemSha256?}`. `itemSha256` is copied from the dependency declaration when declared, never inferred; request entries and declarations without a digest omit it. `declaredBy`: the root or dependent item whose declaration at `path` names it; absent for an unavailable request entry (`/roots/<n>`, `/skips/<n>`, `/remove/<n>`) |
-| `ITEM_CONFLICT` | `path` is the conflict declaration (`/releases/<digest>/items/<index>/dependencies/conflicts/<n>`), previously `/roots`. `declaredBy` is the selected item declaring the conflict and `reference` the selected item it names |
-| Counts and order | One diagnostic per walked required path, so identical diagnostics can repeat; order is deterministic. Unavailable request entries are reported before walking the available roots. Codes and the final validator's wrapped `INPUT_INVALID` at `/roots` retain their meaning |
-| Partial required paths | An unavailable-reference refusal after a completed bounded walk also returns `partial:{status:"partial",inclusions}`: sorted, deduplicated paths through available roots and reachable required items, including branches away from missing references. Unavailable roots are omitted. Malformed requests, unchecked handles and path-bound overflow return no partial data |
-| Set refusals | `sets[]` entries report at `/sets/<n>`. `REFERENCE_AMBIGUOUS` with `reason` `set-digest-mismatch` or `member-pin-mismatch`; `SET_UNAVAILABLE`; `SET_CYCLE`; `SET_LIMIT_EXCEEDED` with `set-depth-exceeded` or `set-members-exceeded`; `INPUT_INVALID` with `set-selection-invalid`, `set-option-unknown`, `set-member-unknown`, `set-member-repeated` or `hook-member-required`. `REQUIRED_EXCLUDED` (`reason` `required-excluded`, `reference` the excluded item, `declaredBy` the requiring item when there is one) replaces `REQUIRED_ITEM_SKIPPED` in a request with sets. Set refusals return no partial data |
-| Selection origins | Every selection carries `origins[]`: `chosen`, `in-set` `{set:{framework,setId,setSha256},options?}` naming the chosen set, and `required-by` `{requiredBy:{framework,itemId}}`. Exception: `requiredBy.framework` is omitted when the requiring release publishes no framework identity (releases before 1.6, or 1.6 without `framework`) |
-| Refusal and execution | Status remains `refused`, with diagnostics and `removalImpact`, never executable selections or `value`. Partial paths are informational; included items may still have missing requirements, conflicts or invalid configuration. Only successful resolution provides a validated composition |
-
-`src/release/resolve.ts` owns the behaviour; `docs/PUBLIC-AUTHORING.md` documents it for consumers.
-
-## Content published to consumers
-
-| Contract | Defined at | Format | Version | Byte cap | Unknown format / version | Other refusals | Reached as |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Catalog index v1 | `src/content/catalog-content-v1.ts:34`, `src/content/catalog-content-v1.ts:35` | `aih-catalog-index` | `1` | 64 MiB (`src/content/catalog-content-v1.ts:40`) | `readCatalogContentV1Result` → `unknown-format` / `unknown-version`, each with `observed` | closed list `CATALOG_CONTENT_REFUSALS_V1` (`src/content/catalog-content-v1.ts:285`) | `@aihq/catalog/catalog-index.json` |
-| Catalog collections v1 | `src/content/catalog-collections-v1.ts:35`, `src/content/catalog-collections-v1.ts:36` | `aih-catalog-collections` | `1` | 1 MiB (`src/content/catalog-collections-v1.ts:41`) | `readCatalogCollectionsV1Result` → `unknown-format` / `unknown-version` | `CATALOG_COLLECTIONS_REFUSALS_V1` (`src/content/catalog-collections-v1.ts:107`), including `index-mismatch` and, only when the consumer supplies `knownOwners`, `unknown-owner` | `@aihq/catalog/catalog-collections.json` |
-| Catalog presentation v1 | `src/content/catalog-presentation-v1.ts:35`, `src/content/catalog-presentation-v1.ts:36` | `aih-catalog-presentation` | `1` | 8 MiB (`src/content/catalog-presentation-v1.ts:41`); 4096 characters per value (`src/content/catalog-presentation-v1.ts:42`) | `readCatalogPresentationV1Result` → `unknown-format` / `unknown-version` | `CATALOG_PRESENTATION_REFUSALS_V1` (`src/content/catalog-presentation-v1.ts:130`) | `@aihq/catalog/catalog-presentation.json` |
-| Catalog qualification sidecar v1 | `src/content/catalog-qualification-v1.ts:48`, `src/content/catalog-qualification-v1.ts:49` | `aih-catalog-qualification` | `1` | 8 MiB (`src/content/catalog-qualification-v1.ts:58`); signed head 16 MiB (`src/content/catalog-qualification-v1.ts:59`); 512 entries (`src/content/catalog-qualification-v1.ts:60`) | `readCatalogQualificationV1Result` → `unknown-format` / `unknown-version` | `CATALOG_QUALIFICATION_REFUSALS_V1` (`src/content/catalog-qualification-v1.ts:228`); per-entry and signature states are verdicts, not refusals | `@aihq/catalog/catalog-qualification.json`, `@aihq/catalog/signed-catalog.json` |
-| Catalog curated categories v1 | `src/content/catalog-categories-v1.ts:29`, `src/content/catalog-categories-v1.ts:30` | `aih-catalog-categories` | `1` | 4 MiB (`src/content/catalog-categories-v1.ts:35`); 32 taxonomy ids (`src/content/catalog-categories-v1.ts:36`) | `readCatalogCategoriesV1Result` → `unknown-format` / `unknown-version` | `CATALOG_CATEGORIES_REFUSALS_V1` (`src/content/catalog-categories-v1.ts:96`) | `@aihq/catalog/catalog-categories.json` |
-| Catalog source closure v1 | `src/content/catalog-source-closure-v1.ts:39`, `src/content/catalog-source-closure-v1.ts:40` | `aih-catalog-source-closure` | `1` | 16 MiB per file (`src/content/catalog-source-closure-v1.ts:43`) | result type only; the closure reads its inputs through the index and collections readers | `CatalogSourceClosureRefusalV1` (`src/content/catalog-source-closure-v1.ts:61`), including `profile-unknown-version` | `readCatalogSourceClosureV1` over `defaults/sources/**` |
-| Catalog runtime descriptors v1 | `src/content/catalog-runtime-descriptors-v1.ts:42`, `src/content/catalog-runtime-descriptors-v1.ts:43` | `aih-catalog-runtime-descriptors` | `1` | 1 MiB (`src/content/catalog-runtime-descriptors-v1.ts:48`); 12 MiB per descriptor (`src/content/catalog-runtime-descriptors-v1.ts:50`); 64 descriptors (`src/content/catalog-runtime-descriptors-v1.ts:51`) | `readCatalogRuntimeDescriptorsV1Result` → `unknown-format` / `unknown-version` | `CATALOG_RUNTIME_DESCRIPTORS_REFUSALS_V1` (`src/content/catalog-runtime-descriptors-v1.ts:148`), including `index-mismatch`, `unsupported-descriptor` and `source-not-in-index`; per-descriptor byte states are verdicts, not refusals | `@aihq/catalog/catalog-runtime-descriptors.json`; the descriptor bytes under `defaults/runtime-descriptors/**` |
-| Catalog authoring bundle v1 | `src/content/catalog-authoring-bundle-v1.ts` | `aih-catalog-authoring-bundle` | `1` | 24 MiB | `readCatalogAuthoringBundleV1Result` → `unknown-format` / `unknown-version` | malformed and non-canonical documents are refused | `@aihq/catalog/catalog-authoring-bundle.json` |
-| Catalog framework descriptors v1 | `src/content/catalog-framework-v1.ts` | `aih-catalog-framework-descriptor` | `1` | 16 MiB | `readCatalogFrameworkDescriptorV1Result` → `unknown-format` / `unknown-version` | malformed, non-canonical, or framework-mismatched documents are refused | `@aihq/catalog/catalog-framework-ecc.json`, `@aihq/catalog/catalog-framework-superpowers.json` |
-| Catalog framework plugin identities v1 | `src/content/catalog-framework-v1.ts` | `aih-catalog-framework-plugins` | `1` | 1 MiB | `readCatalogFrameworkPluginsV1Result` → `unknown-format` / `unknown-version` | malformed and non-canonical documents are refused | `@aihq/catalog/catalog-framework-plugins.json` |
-| Core qualification, scanner evidence, and public baseline carriers v1 | `src/content/catalog-core-materials-v1.ts` | `aih-catalog-core-qualification`, `aih-catalog-scanner-evidence`, `aih-catalog-public-baseline` | `1` | 16 MiB each | the corresponding `read…V1Result` reader → `unknown-format` / `unknown-version` | malformed and non-canonical documents are refused | the three matching package JSON subpaths |
-
-Every `…Result` reader returns `{ state: "read", … }` or
-`{ state: "refused", reason, observed? }`. `observed` is present only for
-`unknown-format` and `unknown-version`: the declared value as JSON text, at most
-128 characters (`src/content/refusal-v1.ts:13`). The original
-`undefined`-returning readers are thin wrappers over the same checks.
-
-## Mirrored from Core
-
-| Contract | Catalog's mirror | Core's definition | Lock |
+| Format | `schema` | Reader | Canonical bytes |
 | --- | --- | --- | --- |
-| Native client ids (`nativeClientIds`, the `clientId` set of release format 1.4) | `src/release/client-ids.ts` (`CORE_NATIVE_CLIENT_IDS`) | `nativeClientIds` in `@aihq/core/harness` | `tools/verify-core-consumer.mjs <core.tgz>` compares the mirror with the real Core package and fails on any difference |
-| Assessment profile v1 (`aih-first-party-qualification-profile`, `version: 1`) | `src/content/catalog-source-closure-v1.ts:52`, `src/content/catalog-source-closure-v1.ts:53` | `ASSESSMENT_MATERIAL_FORMAT_V1` and the profile schema's `version: z.literal(1)` in `src/org-policy/assessment-material-binding-v1.ts` of `samartomar/ai-harness` at `2b3212f22e9f7006455b75f29377be3add58fac7` | `tools/verify-core-v2-lock.mjs:29`: every mode fails `profile-mirror-drift` when the mirror differs; `--profile-core-root <Core checkout at that commit>` fails `core-profile-drift` when Core declares otherwise |
-| ECC runtime descriptor v1 (`version: "ecc-runtime-descriptor/v1"`) | the one supported format, `src/content/catalog-runtime-descriptors-v1.ts:55` | `EccRuntimeDescriptorV1Schema`'s `version` literal in `src/ecc/runtime-descriptor.ts` of `samartomar/ai-harness` at `8a111b8458d301b7db0197cd420d6b7556b74b17` | none: Catalog relays Core's sealed bytes unchanged and checks only this literal and the source revision; Core validates the schema, seal, custody and expiry. A new Core descriptor version is `unsupported-descriptor` here until Catalog adds it |
-| Governance decision schema v2 | vendored `tests/contracts/core/aih-governance-decision-v2.schema.json` | `schemas/aih-governance-decision-v2.schema.json` at `c31741602b3dbd5f228dafe00591e5679c782878`, sha256 `7fdf101568cd7caa28516d0be37704c0dfd51198bc54d41d65829abbe77547cc` | `tools/verify-core-v2-lock.mjs:18`; drift fails `vendored-lock-drift` or `core-schema-digest` |
-| Qualification receipt schema v2 | vendored `tests/contracts/core/aih-supported-qualification-receipt-v2.schema.json` | `schemas/aih-supported-qualification-receipt-v2.schema.json` at the same commit, sha256 `eb02f082e0adb11be1e2d67694fbe90666d7fff3725195b4c0ed9ce07b43f50c` | `tools/verify-core-v2-lock.mjs:20` |
+| Source-link result | `urn:aihq:catalog:source-link:0.1.0` | returned by `parseSourceLink` | no |
+| Content | `urn:aihq:catalog:content:0.1.0` | `readContent`, `readContentFile` | yes |
+| Tool profile | `urn:aihq:catalog:tool-profile:0.1.0` | `readToolProfile` | yes |
+| Recipe | `urn:aihq:catalog:recipe:0.1.0` | `readRecipe(pluginJson, recipeJson)` | yes |
+| Qualification | `urn:aihq:catalog:qualification:0.1.0` | `readQualification` | yes |
 
-Catalog's Core lock pins Core commit `c31741602b3dbd5f228dafe00591e5679c782878`
-(`tools/verify-core-v2-lock.mjs:11`), `@aihq/core` `0.5.0` with package manifest
-sha256 `8dc114f1564af7330e4376aad716a8622766c28e97c2b3fc74ae87da0a2cc185`, a
-receipt cap of 5970 bytes (`tools/verify-core-v2-lock.mjs:21`) and a canonical
-source cap of 4096 bytes (`tools/verify-core-v2-lock.mjs:22`). The same values
-are `STRICT_V2_CORE_LOCK` (`src/supported/signed-catalog-v2.ts:26`). With
-`--core-root` it requires a clean Core checkout at exactly that commit
-(`core-commit`, `core-dirty`). The pin is a commit, so Core moving forward is
-invisible to it until the pin moves.
+Canonical bytes are JSON with keys sorted by code unit, two-space indentation and exactly
+one final line feed. A document's identity is the sha256 of those bytes. Plans are results,
+not a stored format.
 
-## Signed catalog and qualification receipts
+### Source-link result
 
-| Contract | Defined at | Identity | Byte cap | Unknown version |
-| --- | --- | --- | --- | --- |
-| Signed Catalog V2 head | `src/supported/signed-catalog-v2.ts:600` | `protocol: "CatalogHeadV2"`, `schemaVersion: "2"`, `effectVersion: "2"` | head 8 MiB (`src/supported/signed-catalog-v2.ts:15`), signed payload 24 MiB (`src/supported/signed-catalog-v2.ts:16`) | `verifySignedCatalogV2` throws `unsupported-version` (`src/supported/signed-catalog-v2.ts:889`); `inspectSignedCatalogV2` returns `{ kind: "unsupported-version", record }` naming the offending values (`src/supported/signed-catalog-v2.ts:896`) |
-| Qualification receipt v2 | `src/supported/signed-catalog-v2.ts:981` | `format: "aih-supported-qualification-receipt"`, `version: 2`, `organizationAdmission: "not-authoritative"` | 5970 bytes (`src/supported/signed-catalog-v2.ts:22`) | parser throws `qualification-receipt` |
-| Qualification receipt set v1 | `src/supported/signed-catalog-v2.ts:1098` | `format: "aih-supported-qualification-receipt-set"`, `version: 1` | 256 KiB (`src/supported/signed-catalog-v2.ts:24`), 512 entries (`src/supported/signed-catalog-v2.ts:23`) | parser throws `qualification-receipt-set` |
+`parseSourceLink(text)` reads pasted text as data and never fetches or runs it. A
+`recognised` result carries one candidate: `{ kind: "local", path }`, `{ kind: "git",
+repository, ref?, subpath? }` or `{ kind: "npm", package, version? | range? }`. Text that names
+no source is `unrecognised` with a reason; text over the published limit is `refused`.
+`fetchSource` turns a candidate into a source at an exact commit or version.
 
-Core owns the receipt schema and reads receipts with its own parser; Catalog's
-emitted bytes are held to Core's schema through the lock above. A receipt change
-is a major version (`VERSIONING.md`).
+### Content
 
-## What none of these grant
+One framework's content: `framework {id, name}`, `sources`, `items`, and optionally `bundles`
+and `plugins`.
 
-No format here is organization admission, installation, execution or effect
-authority. `organizationAdmission` is `"not-authoritative"` wherever it appears.
+- **Sources** are `git` (repository and exact commit, optional subpath), `npm` (package and
+  exact version), `local` (no machine path is recorded) or `authored` (files Catalog or you
+  wrote). Each source lists its `notices` (licence and notice files, with the folder each
+  covers) and may restrict them to some items with `noticesFor`.
+- **Items** have an `id` of the form `<framework>.<kind>.<path>`, an install `name`
+  (kebab-case, at most 64 characters), a `description` (at most 1024 characters), `files`,
+  `contentSha256` (over file paths, sha256 and executable bits) and `behaviourSha256` (over
+  the files plus the kind's fields, requirements, dependencies, editions and bundle files).
+  Items with files carry a `scanKey`: the Git tree id of the item folder, as Scan's
+  `scanKeyOf` computes it.
+- **Kind fields.** A skill records `userOnly` and `arguments`; a rule its `scope` (`always`,
+  `on-request`, `{ paths }` or `{ byDescription: true }`) and optional `language`; an agent its
+  `agent` record (`prompt` file, optional `tools`, `model`, `color`, `background`); a hook its
+  neutral `event`, optional `matcher` and `handler`; an MCP item its Registry `server`
+  (`server.json`) and optional settings (`enabledTools`, `disabledTools`, `startupSeconds`,
+  `callSeconds`, non-secret `env`); a document its `purpose`; an AI setup its `aiSetup` record.
+- **Optional item facts.** `editions` (per client: the upstream's own files and their scan
+  key), `requirements.inputs` (each declared input's description, whether it is required or
+  secret, an optional non-secret default and an optional placeholder marker), `dependencies`,
+  `references` (plugin-namespaced names such as `ecc:plan` and the files that mention them),
+  `bundle` (the runtime bundle the item reads), `pathReferences` (source files the item's text
+  names outside its own files), `fetch: "upstream"` (the files may not be redistributed, so a
+  plan fetches them from the pinned source) and `supersedes`.
+- **Files** are `{ sourceId, sourcePath, sha256, bytes, executable, role }`, with `cli` on an
+  edition-only file and `derivedFrom { sourcePath, pointer }` on an entry Catalog cut out of a
+  shared upstream file (one hook group or one MCP server becomes its own file).
+- **Bundles** are root files a framework's items read at run time, chosen by the upstream's
+  runtime allowlist: `{ id, sourceId, layout, files, scanKey }`.
+- **Plugins** record an upstream plugin folder at the source's pin, so a plugin route can be
+  checked and a local-plugin route copied as one unit: `{ sourceId, path, include?, plugin?,
+  files, scanKey }`. `include` is the upstream's runtime allowlist when only part of the
+  folder ships.
+
+Content written with `buildContent` is recorded from the bytes, and `checkContent` rebuilds
+every recorded fact from the files and reports any difference. Given `scannedKeys`, it also
+lists the scan keys that have no matching scan.
+
+### Tool profile
+
+A profile describes one client: `places` for each kind and scope (`project`, `user`), with
+`<name>` templates; how user-only skills are flagged (`userOnly`, or a fallback such as a
+prompt file); how arguments are passed; the agent file format; rule scopes; hook events; the
+MCP entry fields and tool restrictions; native input-reference syntax per surface; plugin
+installs and their pin behaviour; local-plugin folders and registration; bundle roots; the
+built-ins the client already provides and how one is switched off; and `checkedWith`, the
+client versions and dates the facts were checked against. A kind the client cannot take is
+listed in `unsupported` with its reason. A section the client lacks is left out, and a plan
+then reports the pair as `unavailable` (`not-described`), never invented. Any change to a
+profile's rendered output increases its `version`.
+
+### Recipe
+
+A recipe is a Git plugin: an Agent Plugins `plugin.json` (name, version, description, author,
+licence, keywords) beside a canonical `recipe.json`. A recipe is a `base` or `add-on` for one
+framework (an add-on lists the recipes it `requires`) or a `combination` of frameworks. It
+records the upstream `content` pin, a `route` per client (clients it does not name use
+`items`), the `plugins` and `setup` programs those routes need, the kinds each items route
+installs (`clis`), `members` and choice `options`, `namePrefix`, built-in `overrides`, AI setup
+changes, combination `qualifications` per cell, and the Catalog `data` commit it was written
+against. `planRecipe` refuses any other data commit (`data-mismatch`) and content at any other
+pin (`content-mismatch`).
+
+### Qualification
+
+A qualification records one run: its `subject` (an AI setup version on a platform cell, or a
+combination recipe on a cell), what it `observed` (the artifact's file or URL, sha256 and
+bytes, archive members, the hash-locked binary-only wheel closure and the interpreter, or for
+a combination the member qualifications) and its `result` (`qualified`, `blocked` with a
+reason, or `unknown`, plus the sha256 of the run's own record and the date). A closure holds
+wheels only. Records are referenced by sha256 from the AI setup item; adding one changes no
+item digest.
+
+## Plans
+
+`planInstall(selection, contents, profiles, options)` and `planRecipe(recipe, contents,
+profiles, choices, options)` return a plan:
+
+| Field | Holds |
+| --- | --- |
+| `status` | `ok`, or `incomplete` when anything the choices require is missing, unavailable, clashing or unresolved |
+| `recipe` | a recipe plan's origin: id, sha256 of its canonical bytes, repository and commit |
+| `data` | the Catalog data commit the plan used, or `null` for your own content only |
+| `profiles` | the id and version of each profile used |
+| `plan` | the ordered steps |
+| `missing`, `unavailable` | what could not be placed, with reasons |
+| `clashes`, `duplicates`, `references`, `warnings` | what the checks found |
+
+Steps never name an absolute path. Each names a root (`project` or `user`), its items or
+framework and the clients it serves, so an installer can keep shared files that another
+choice still uses.
+
+| Step | What the installer does |
+| --- | --- |
+| `fetch` | fetches one upstream file at the recorded pin and checks its sha256 |
+| `acquire` | acquires a qualified AI setup artifact (and its interpreter or closure) at user scope |
+| `write` | writes a file: a copy of the recorded source file, or the bytes `renderStep` gives for its `render` |
+| `link` | links a client folder to a shared user-scope version folder |
+| `merge` | sets one keyed entry in a structured file (JSON, TOML or a Markdown block), keeping the rest |
+| `plugin` | installs a native plugin at the recorded commit with the client's own commands |
+| `upstream-setup` | runs an upstream setup program, only after the user approves it |
+| `tool-command` | runs an AI setup's settings command after approval, then its readback |
+| `upstream-installer` | runs an upstream installer the user explicitly chose instead of a managed setup |
+
+Steps that place unscanned bytes say `scanned: false`. Declared inputs are bound to typed
+destinations (a file placeholder, an MCP argument, environment variable or header) without
+values; a secret never has a value in content or a plan.
+
+### Checks
+
+- **Completeness.** A missing dependency, an unavailable selected item, a clash or a blocking
+  path reference makes the plan `incomplete`. Explicitly skipping an optional recipe item does
+  not.
+- **Built-ins.** A placed name that a client already provides is a `built-in` clash unless a
+  recipe override, a prefix, a caller-chosen name or leaving the item out resolves it.
+- **Clashes.** Two different placements at one path or key are a clash; the plan drops the
+  conflicting steps and lists them. A merge into a nested key, a write over a merged file or
+  a placement under a link, and a file over a client's size limit, are clashes too.
+- **Duplicates.** When a plan mixes frameworks, items sharing an install name or a content
+  identity are listed as facts, with no winner chosen. The plan places Catalog's authored
+  `aih-duplicate-resolver` agent where clients take agents and writes `.aihq/duplicates.json`.
+- **References.** A plugin-namespaced name no placed item provides is a warning. A source file
+  an item names that no placed bundle or sibling provides is blocking.
+- **Scope.** A route a client cannot honour at the chosen scope falls back to `local-plugin` or
+  `items` with a warning; the scope never changes.
+- **AI setups.** A selected AI setup needs a platform `cell` and a supplied, matching
+  `qualified` record; otherwise it is `unavailable` (`no-qualification` or `not-qualified` with
+  the cause).
+
+## Limits
+
+Published in `/contracts` as `limits`. Exceeding one gives `refused` with code `limit` and the
+limit's name, never a partial result.
+
+| Limit | Value |
+| --- | --- |
+| `sourceLinkCharacters` | 2,048 |
+| `contentFileBytes` | 64 MiB |
+| `sourceFileBytes` | 16 MiB |
+| `sourceBytes`, `sourceFiles`, `sourceEntries` | 256 MiB, 65,536 files, 100,000 entries |
+| `refusalQuoteCharacters` | 128 |
+| `documentDepth` | 64 |
+| `toolProfileBytes`, `recipeBytes`, `qualificationBytes` | 1 MiB each |
+
+## What Catalog does not do
+
+Catalog does not install, remove or update anything, resolve real root folders, ask for
+approval, run setup programs, hooks or lifecycle scripts, or decide what a user should choose.
+It does not scan content: it records scan keys, and Scan computes and stores the scans. A
+fixture or test result shows that a plan is right, not that a client loads it or that an AI
+setup is qualified.
