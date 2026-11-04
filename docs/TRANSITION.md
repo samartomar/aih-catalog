@@ -93,6 +93,20 @@ bytes of the Elephant-Goldfish Model at its pinned commit (`tests/fixtures/egm-4
 its Apache-2.0 licence); a plugin folder can be recorded as that runtime allowlist rather than
 the whole repository. Native loading of these layouts is not validated here.
 
+Mixing frameworks never produces a silent winner. Profiles list what each client already
+provides (built-in skills, commands and agents, from the dated client checks) and how a
+built-in is switched off; a placed name that matches is a `built-in` clash until a recipe
+override, a prefix, a caller name or leaving the item out resolves it. An override uses the
+client's documented switch-off (a same-named item, or Claude's `skillOverrides` entry) and
+otherwise warns. A plan whose items come from two or more frameworks lists `duplicates` as
+facts (one install name across frameworks, or one content identity under different ids,
+including items a plugin or upstream setup installs), places Catalog's authored
+`aih-duplicate-resolver` agent where its clients take agents (warning elsewhere, such as dsh)
+and writes `.aihq/duplicates.json` for it. Authored plugin-namespaced names an item mentions
+are listed as `name` references, a warning; missing files remain blocking `path` references.
+A client that reads another client's skill folder clashes instead of taking bytes its own
+render would change.
+
 Kinds, scopes and routes that are not implemented yet
 (upstream fetching, combination recipes and AI setup) are reported as
 `not-implemented` leftovers, `unavailable` placements or `not-implemented` refusals rather

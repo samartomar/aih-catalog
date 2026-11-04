@@ -624,3 +624,45 @@ describe("references an items route leaves unresolved", () => {
     expect(both.references[0]).not.toHaveProperty("means");
   });
 });
+
+describe("the resolver on every shipped client", () => {
+  it("is placed and renders wherever the client takes agents, at both scopes", async () => {
+    const { contents } = await mixed();
+    const ids = [
+      "antigravity",
+      "claude-code",
+      "codex",
+      "copilot",
+      "cursor",
+      "dsh",
+      "kimi",
+      "kiro",
+      "opencode",
+    ];
+    const clients = ids.map(profile);
+    const placedOn: Record<string, string[]> = {};
+    for (const scope of ["project", "user"] as const) {
+      const result = planned(
+        planInstall(["alpha.skill.tdd", "beta.skill.teach"], contents, clients, {
+          scope,
+          data: null,
+        }),
+      );
+      const steps = writes(result.plan).filter(
+        (step) => step.item === RESOLVER && step.path !== ".aihq/duplicates.json",
+      );
+      for (const step of steps) {
+        const rendered = renderStep(step, contents, clients, []);
+        if (step.render) expect(rendered.status, step.path).toBe("ok");
+      }
+      placedOn[scope] = [...new Set(steps.flatMap((step) => step.clis))].sort();
+      const warned = result.warnings
+        .filter((warning) => warning.code === "duplicate-resolver-unavailable")
+        .map((warning) => warning.cli);
+      expect([...placedOn[scope], ...warned].sort()).toEqual(ids);
+      expect(result.unavailable).toEqual([]);
+    }
+    expect(placedOn.project).toEqual(ids.filter((id) => id !== "dsh"));
+    expect(placedOn.user).toEqual(["claude-code", "codex", "copilot", "kiro"]);
+  });
+});
