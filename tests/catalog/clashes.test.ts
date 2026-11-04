@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { DiscoveredItem } from "../../src/catalog/internal/model.js";
 import { fetchSource, readLocalSource } from "../../src/catalog/node.js";
-import { buildContent } from "../../src/catalog/producer.js";
+import { buildContent, checkContent } from "../../src/catalog/producer.js";
 import {
   aihContent,
   type Content,
@@ -551,5 +551,76 @@ describe("items a route installs without placing them", () => {
         clis: ["claude-code", "codex"],
       },
     ]);
+  });
+});
+
+describe("references an items route leaves unresolved", () => {
+  const TREE = {
+    "skills/tdd/SKILL.md": skill("tdd", "Ask alpha:helper to review, then read `docs/guide.md`."),
+    "skills/plain/SKILL.md": skill("plain", "Hand off to alpha:helper when done."),
+    "agents/helper.md": "---\nname: helper\ndescription: Helps.\n---\nHelp the user.\n",
+    "docs/guide.md": "# Guide\n",
+  };
+  const authored = {
+    "alpha.skill.tdd": { references: ["alpha:helper"] },
+    "alpha.skill.plain": { references: ["alpha:helper"] },
+  };
+
+  it("records which files mention an authored plugin name, and refuses a name no file mentions", async () => {
+    const alpha = await framework("alpha", TREE, authored);
+    expect(alpha.content.items.find((item) => item.id === "alpha.skill.tdd")?.references).toEqual([
+      { name: "alpha:helper", sourcePath: "skills/tdd/SKILL.md" },
+    ]);
+    await expect(
+      framework("alpha", TREE, { "alpha.skill.tdd": { references: ["alpha:missing"] } }),
+    ).rejects.toThrow(/no file of the item mentions alpha:missing/);
+    // checkContent reads the mentions from the bytes again.
+    expect(await checkContent(alpha.content, alpha.files)).toMatchObject({ status: "ok" });
+    const tampered = {
+      ...alpha.content,
+      items: alpha.content.items.map((item) =>
+        item.id === "alpha.skill.tdd"
+          ? { ...item, references: [{ name: "alpha:helper", sourcePath: "docs/guide.md" }] }
+          : item,
+      ),
+    };
+    expect(await checkContent(tampered, alpha.files)).toMatchObject({ status: "invalid" });
+  });
+
+  it("warns about plugin names and blocks only on missing files", async () => {
+    const alpha = await framework("alpha", TREE, authored);
+    const clients = [profile("claude-code")];
+    const names = planned(
+      planInstall(["alpha.agent.helper", "alpha.skill.plain"], [alpha.content], clients, {
+        scope: "project",
+        data: null,
+      }),
+    );
+    // A namespaced name is a warning: the plan stays ok and the upstream text is not edited.
+    expect(names.status).toBe("ok");
+    expect(names.references).toEqual([
+      {
+        kind: "name",
+        item: "alpha.skill.plain",
+        file: "skills/plain/SKILL.md",
+        name: "alpha:helper",
+        means: "alpha.agent.helper",
+        clis: ["claude-code"],
+      },
+    ]);
+    expect(
+      writes(names.plan).find((step) => step.path === ".claude/skills/plain/SKILL.md")?.render,
+    ).toBeUndefined();
+
+    const both = planned(
+      planInstall(["alpha.skill.tdd"], [alpha.content], clients, { scope: "project", data: null }),
+    );
+    expect(both.status).toBe("incomplete");
+    expect(both.references.map((reference) => [reference.kind, reference.item])).toEqual([
+      ["name", "alpha.skill.tdd"],
+      ["path", "alpha.skill.tdd"],
+    ]);
+    // Without the agent chosen, nothing installed is the likely meaning.
+    expect(both.references[0]).not.toHaveProperty("means");
   });
 });

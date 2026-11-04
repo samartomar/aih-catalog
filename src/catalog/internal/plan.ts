@@ -263,18 +263,31 @@ export interface Clash {
 }
 
 /**
- * A source file an item names outside its own files that no placed bundle provides for these
- * clients, so the item would read a path that does not exist.
+ * What an item's text names that its route does not provide. A `path` reference is a source
+ * file outside the item's own files that no placed bundle provides for these clients, so the
+ * item would read a path that does not exist: it blocks the plan. A `name` reference is a
+ * plugin-namespaced name (`ecc:security-reviewer`) that only the upstream's plugin provides: a
+ * warning, with the chosen item it most likely means. Catalog never edits the text.
  */
-export interface Reference {
-  readonly kind: "path";
-  readonly item: string;
-  /** The item file that names the path. */
-  readonly file: string;
-  /** The path from the source root. */
-  readonly path: string;
-  readonly clis: readonly string[];
-}
+export type Reference =
+  | {
+      readonly kind: "path";
+      readonly item: string;
+      /** The item file that names the path. */
+      readonly file: string;
+      /** The path from the source root. */
+      readonly path: string;
+      readonly clis: readonly string[];
+    }
+  | {
+      readonly kind: "name";
+      readonly item: string;
+      readonly file: string;
+      readonly name: string;
+      /** The chosen item of the same framework with that name, when exactly one is. */
+      readonly means?: string;
+      readonly clis: readonly string[];
+    };
 
 export interface Warning {
   readonly code: string;
@@ -1190,11 +1203,12 @@ function placeBundles(
 }
 
 /**
- * Path references no placed bundle provides: for each client an item is placed for, every
- * source file the item names outside its own files that is not one of its bundle's root files
- * at that client's bundle root. A plugin route places the whole plugin, so it is not checked.
+ * References for each client an item is placed for: every source file the item names outside
+ * its own files that is not one of its bundle's root files at that client's bundle root, and
+ * every plugin-namespaced name it mentions. A plugin route places the whole plugin, so its
+ * items are never checked.
  */
-function pathReferencesOf(
+function referencesOf(
   chosen: readonly string[],
   byId: ReadonlyMap<string, { content: Content; item: Item }>,
   kept: readonly Placed[],
@@ -1205,32 +1219,53 @@ function pathReferencesOf(
     placedFor.set(item, new Set([...(placedFor.get(item) ?? []), cli]));
   for (const entry of kept) add(entry.item.id, entry.profile.id);
   for (const { item, cli } of bundles.served) add(item, cli);
-  const found = new Map<string, Reference & { clis: string[] }>();
+  const found = new Map<string, Reference>();
+  const note = (key: string, reference: Reference, cli: string) => {
+    const known = found.get(key) ?? reference;
+    found.set(key, { ...known, clis: sortedSet([...known.clis, cli]) });
+  };
   for (const id of chosen) {
-    const item = byId.get(id)?.item as Item;
+    const { item, content } = byId.get(id) as { content: Content; item: Item };
     for (const cli of placedFor.get(id) ?? []) {
       const placed =
         item.bundle === undefined ? undefined : bundles.roots.get(cli)?.get(item.bundle);
       for (const reference of item.pathReferences ?? []) {
         if (placed?.bundle.files.some((file) => file.sourcePath === reference.path)) continue;
-        const key = `${id}\0${reference.sourcePath}\0${reference.path}`;
-        const entry = found.get(key) ?? {
+        const reported = {
           kind: "path" as const,
           item: id,
           file: reference.sourcePath,
           path: reference.path,
           clis: [],
         };
-        entry.clis = sortedSet([...entry.clis, cli]);
-        found.set(key, entry);
+        note(`path\0${id}\0${reference.sourcePath}\0${reference.path}`, reported, cli);
+      }
+      for (const reference of item.references ?? []) {
+        const bare = reference.name.slice(reference.name.indexOf(":") + 1);
+        const candidates = chosen.filter((other) => {
+          const entry = byId.get(other);
+          return entry?.content === content && entry.item.name === bare;
+        });
+        const reported = {
+          kind: "name" as const,
+          item: id,
+          file: reference.sourcePath,
+          name: reference.name,
+          ...(candidates.length === 1 ? { means: candidates[0] as string } : {}),
+          clis: [],
+        };
+        note(`name\0${id}\0${reference.sourcePath}\0${reference.name}`, reported, cli);
       }
     }
   }
+  const detail = (reference: Reference) =>
+    reference.kind === "path" ? reference.path : reference.name;
   return [...found.values()].sort(
     (left, right) =>
       compareCodeUnits(left.item, right.item) ||
+      compareCodeUnits(left.kind, right.kind) ||
       compareCodeUnits(left.file, right.file) ||
-      compareCodeUnits(left.path, right.path),
+      compareCodeUnits(detail(left), detail(right)),
   );
 }
 
@@ -2127,9 +2162,12 @@ export function planCore(input: CoreInput): PlanResult {
     return { ...rest, contains: [...(contained.get(step.framework) ?? [])].sort(compareCodeUnits) };
   });
 
-  const references = pathReferencesOf(chosen, byId, resolved, bundles);
+  const references = referencesOf(chosen, byId, resolved, bundles);
   const blocked =
-    missing.length > 0 || unavailable.length > 0 || clashes.length > 0 || references.length > 0;
+    missing.length > 0 ||
+    unavailable.length > 0 ||
+    clashes.length > 0 ||
+    references.some((reference) => reference.kind === "path");
   return {
     status: blocked ? "incomplete" : "ok",
     data:

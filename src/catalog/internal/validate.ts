@@ -11,6 +11,7 @@ import {
   INPUT_NAME,
   INSTALL_NAME,
   type Item,
+  NAMESPACED_NAME,
   NPM_PACKAGE,
   OBJECT_ID,
   SHA256,
@@ -310,7 +311,9 @@ export function contentProblems(value: unknown): Problem[] {
         checkRequirements(item.requirements, `${path}/requirements`, problems);
       if (item.editions !== undefined)
         checkEditions(item.editions, `${path}/editions`, sourceIds, problems);
-      for (const key of ["dependencies", "references", "supersedes"])
+      if (item.references !== undefined)
+        checkNamespacedReferences(item.references, `${path}/references`, problems);
+      for (const key of ["dependencies", "supersedes"])
         checkIdList(item[key], `${path}/${key}`, problems);
       if (item.fetch !== undefined && item.fetch !== "upstream")
         problems.add(`${path}/fetch`, "fetch must be upstream");
@@ -483,6 +486,28 @@ function checkBundles(
       if (typeof file.executable !== "boolean") problems.add(`${filePath}/executable`, "a boolean");
     });
   });
+}
+
+function checkNamespacedReferences(value: unknown, path: string, problems: Problems): void {
+  const seen = new Set<string>();
+  const ok =
+    Array.isArray(value) &&
+    value.length > 0 &&
+    value.every((entry) => {
+      if (
+        !isRecord(entry) ||
+        Object.keys(entry).sort().join() !== "name,sourcePath" ||
+        typeof entry.name !== "string" ||
+        !NAMESPACED_NAME.test(entry.name) ||
+        !isSafeRelativePath(entry.sourcePath)
+      )
+        return false;
+      const key = `${entry.name}\0${String(entry.sourcePath)}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  if (!ok) problems.add(path, "references lists distinct { name, sourcePath } entries");
 }
 
 function checkPathReferences(value: unknown, path: string, problems: Problems): void {

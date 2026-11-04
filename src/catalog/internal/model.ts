@@ -92,7 +92,8 @@ export interface Item {
   readonly language?: string;
   readonly requirements?: Requirements;
   readonly dependencies?: readonly string[];
-  readonly references?: readonly string[];
+  /** Plugin-namespaced names the item's files mention (authored names, files read from bytes). */
+  readonly references?: readonly NamespacedReference[];
   readonly bundle?: string;
   /** Source files the item's text names outside its own files (read from the files). */
   readonly pathReferences?: readonly PathReference[];
@@ -103,6 +104,18 @@ export interface Item {
   readonly purpose?: string;
   readonly [field: string]: unknown;
 }
+
+/**
+ * A name such as `ecc:security-reviewer` that the upstream's plugin would provide, and one item
+ * file that mentions it. The names are authored; which files mention them is read from bytes.
+ */
+export interface NamespacedReference {
+  readonly name: string;
+  readonly sourcePath: string;
+}
+
+/** `<namespace>:<name>`, as a plugin namespaces its skills and agents. */
+export const NAMESPACED_NAME = /^[a-z0-9][a-z0-9_-]*:[A-Za-z0-9][A-Za-z0-9_.-]*$/;
 
 /** One file of a recorded plugin folder, addressed from its source's root. */
 export interface PluginFile {
@@ -195,6 +208,8 @@ export interface DiscoveredItem {
   readonly purpose?: string;
   /** The id of the content's bundle the item reads at run time. */
   readonly bundle?: string;
+  /** Plugin-namespaced names the item's files mention, such as `ecc:security-reviewer`. */
+  readonly references?: readonly string[];
 }
 
 export interface LeftOver {
