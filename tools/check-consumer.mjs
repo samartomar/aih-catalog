@@ -228,13 +228,13 @@ try {
         Object.fromEntries(entries.filter((entry) => entry.plans).map((entry) => [entry.id, entry.plans]));
       const was = JSON.stringify(digests(recorded.journeys));
       const now = JSON.stringify(digests(results.journeys));
-      const check = { name: "plan digests equal the recorded results", ok: was === now };
-      if (!check.ok) check.detail = `recorded ${was}, now ${now}`;
+      const check = { name: "plan digests equal the recorded results", status: was === now ? "passed" : "failed" };
+      if (check.status === "failed") check.detail = `recorded ${was}, now ${now}`;
       results.regressions.push({
         id: "replay",
         title: "A rerun of the recorded candidate gives byte-identical plans",
         basis: "candidate-data",
-        outcome: check.ok ? "passed" : "failed",
+        outcome: check.status,
         checks: [check],
         pending: [],
       });
@@ -301,12 +301,12 @@ function printTable(results) {
     "",
   ];
   for (const entry of [...results.journeys, ...results.regressions]) {
-    const failedChecks = entry.checks.filter((check) => !check.ok);
+    const failedChecks = entry.checks.filter((check) => check.status === "failed");
     lines.push(
       `${String(entry.id).padEnd(24)} ${entry.outcome.padEnd(8)} ${entry.basis.padEnd(15)} ${entry.title}`,
     );
     for (const check of failedChecks) lines.push(`    x ${check.name}: ${check.detail ?? ""}`);
-    for (const check of entry.checks.filter((item) => item.open))
+    for (const check of entry.checks.filter((item) => item.status === "open"))
       lines.push(`    ! open: ${check.name}: ${check.reason}`);
     for (const pending of entry.pending ?? []) lines.push(`    ~ pending: ${pending}`);
   }

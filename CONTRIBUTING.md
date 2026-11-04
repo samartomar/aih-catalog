@@ -53,7 +53,8 @@ Node built-in. It takes a few seconds and CI runs it after `npm run verify`.
 
 Each row is `passed`, `failed`, `open` (a recorded gap against the journey's expected
 result, with its reason) or `pending` (proof the replay cannot give, such as a real
-qualification), and names its basis: a fixture, the committed candidate data or, with
+qualification), and so is each of its checks except `pending`: an open check is never
+recorded as passed, and names its basis: a fixture, the committed candidate data or, with
 `-- --network`, the real upstream bytes at their pins. `-- --write` records the results for a
 clean checkout in [validation/packed-consumer.json](validation/packed-consumer.json),
 identified by source commit and tarball sha256. None of these results shows native client

@@ -1212,7 +1212,7 @@ const regression = (id, title, basis) => journey(id, title, basis);
     assert.equal(plan({ users: ["kit.skill.user", "kit.skill.helper"] }).status, "ok");
   });
   await r.check("a retained choice missing its supporting files (EGM without its bundle) is incomplete", () => {
-    assert.ok(journeys.find((entry) => entry.id === 11).checks.at(-1).ok);
+    assert.ok(journeys.find((entry) => entry.id === 11).checks.at(-1).status === "passed");
   });
   regressions.push(r.finish());
 }
