@@ -63,6 +63,16 @@ describe("the package exposes exactly the five entry points", () => {
     );
   });
 
+  it("pins every runtime dependency to the exact version the lockfile installs", () => {
+    // Rendered bytes depend on the YAML serializer, so plans stay byte-deterministic only
+    // while every consumer gets the same version.
+    const lock = JSON.parse(readFileSync(join(root, "package-lock.json"), "utf8"));
+    for (const [name, spec] of Object.entries(manifest.dependencies as Record<string, string>)) {
+      expect(spec, name).toMatch(/^\d+\.\d+\.\d+$/);
+      expect(lock.packages[`node_modules/${name}`]?.version, name).toBe(spec);
+    }
+  });
+
   it("packs the built entry points and nothing else", () => {
     for (const name of ENTRY_POINTS)
       expect(existsSync(join(root, "dist", "catalog", `${name}.js`)), "run npm run build").toBe(
