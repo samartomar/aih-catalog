@@ -546,7 +546,7 @@ function lowerPlugin(
     plugin: entry.plugin,
     repository: source.repository as string,
     commit: entry.commit,
-    scanKey: folder.scanKey,
+    scanKey: folder.folderScanKey ?? folder.scanKey,
     verify: install.verify,
   });
 }

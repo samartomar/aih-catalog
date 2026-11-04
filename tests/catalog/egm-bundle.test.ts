@@ -105,6 +105,59 @@ describe("EGM content with its runtime bundle", () => {
     for (const dev of ["TESTING.md", "scripts/pack_plugin.py", "skills/egm-review/TEST.md"])
       expect(expected).not.toContain(dev);
     expect(plugin?.scanKey).toBe(`git-sha1:${fixtureTree(expected)}`);
+    // A native plugin install clones the whole folder, so the record also keys every file in it.
+    const all = read.files.map((file) => file.path).sort();
+    expect(plugin?.folderScanKey).toBe(`git-sha1:${fixtureTree(all)}`);
+  });
+
+  it("names the whole folder's key on a plugin step and the allowlist's key on local-plugin copies", async () => {
+    const { content } = await egmContent();
+    const [record] = content.plugins ?? [];
+    const result = planRecipe(
+      egmRecipe({ "claude-code": "plugin", codex: "plugin" }),
+      [content],
+      [profile("claude-code"), profile("codex")],
+      {},
+      { scope: "user", source: RECIPE_SOURCE },
+    ) as Plan;
+    const steps = result.plan.filter((step) => step.op === "plugin");
+    expect(steps.map((step) => [step.cli, step.scanKey])).toEqual([
+      ["claude-code", record?.folderScanKey],
+      ["codex", record?.folderScanKey],
+    ]);
+    const local = planRecipe(
+      egmRecipe(BASE_ROUTES),
+      [content],
+      [profile("claude-code")],
+      {},
+      { scope: "project", source: RECIPE_SOURCE },
+    ) as Plan;
+    const keys = new Set(
+      local.plan.flatMap((step) =>
+        step.op === "write" && "route" in step && step.route === "local-plugin"
+          ? [step.scanKey]
+          : [],
+      ),
+    );
+    expect([...keys]).toEqual([record?.scanKey]);
+  });
+
+  it("lists both plugin keys among the unscanned keys until each has a scan", async () => {
+    const { read, content } = await egmContent();
+    const [record] = content.plugins ?? [];
+    const others = [
+      ...content.items.map((item) => item.scanKey as string),
+      ...(content.bundles ?? []).map((bundle) => bundle.scanKey),
+    ];
+    const checked = await checkContent(content, read.files, { scannedKeys: others });
+    expect(checked).toMatchObject({
+      status: "ok",
+      unscannedKeys: [record?.scanKey, record?.folderScanKey].sort(),
+    });
+    const all = await checkContent(content, read.files, {
+      scannedKeys: [...others, record?.scanKey as string, record?.folderScanKey as string],
+    });
+    expect(all).toMatchObject({ status: "ok", unscannedKeys: [] });
   });
 
   it("checks against the files: a changed bundle file is invalid, and covered paths are not reported", async () => {
@@ -558,7 +611,13 @@ describe("EGM's user-only skills, personas and scopes", () => {
 
   it("lists the bundle's own scan key until it has a scan", async () => {
     const { read, content } = await egmContent();
-    const itemKeys = content.items.map((item) => item.scanKey as string);
+    const itemKeys = [
+      ...content.items.map((item) => item.scanKey as string),
+      ...(content.plugins ?? []).flatMap((plugin) => [
+        plugin.scanKey,
+        plugin.folderScanKey as string,
+      ]),
+    ];
     const checked = await checkContent(content, read.files, { scannedKeys: itemKeys });
     expect(checked).toMatchObject({
       status: "ok",

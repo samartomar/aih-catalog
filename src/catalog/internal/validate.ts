@@ -360,7 +360,7 @@ function checkPlugins(value: unknown, sourceIds: ReadonlySet<string>, problems: 
     problems.keys(
       plugin,
       path,
-      ["sourceId", "path", "include", "plugin", "files", "scanKey"],
+      ["sourceId", "path", "include", "plugin", "files", "scanKey", "folderScanKey"],
       ["sourceId", "path", "files", "scanKey"],
     );
     const include = plugin.include;
@@ -393,6 +393,19 @@ function checkPlugins(value: unknown, sourceIds: ReadonlySet<string>, problems: 
     seen.add(key);
     if (typeof plugin.scanKey !== "string" || !SCAN_KEY.test(plugin.scanKey))
       problems.add(`${path}/scanKey`, "invalid scan key");
+    // The whole folder's key belongs to an allowlisted record only: without `include` the
+    // record already is the whole folder.
+    if (
+      plugin.folderScanKey !== undefined &&
+      !(
+        include !== undefined &&
+        typeof plugin.folderScanKey === "string" &&
+        SCAN_KEY.test(plugin.folderScanKey)
+      )
+    )
+      problems.add(`${path}/folderScanKey`, "the whole folder's scan key of an allowlisted record");
+    if (include !== undefined && plugin.folderScanKey === undefined)
+      problems.add(`${path}/folderScanKey`, "an allowlisted record keys its whole folder too");
     const files = plugin.files;
     if (!Array.isArray(files) || files.length === 0) {
       problems.add(`${path}/files`, "a plugin folder lists its files");

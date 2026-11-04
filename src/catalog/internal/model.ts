@@ -150,7 +150,13 @@ export interface PluginFolder {
    */
   readonly plugin?: string;
   readonly files: readonly PluginFile[];
+  /** The key of the recorded files: what a `local-plugin` route copies. */
   readonly scanKey: string;
+  /**
+   * With `include`: the key of every file under `path`, which is what a native plugin install
+   * clones at the pin and so what a `plugin` step names. Absent when the record is the folder.
+   */
+  readonly folderScanKey?: string;
 }
 
 export interface Content {

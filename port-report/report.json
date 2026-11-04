@@ -104,7 +104,7 @@
   },
   "frameworks": {
     "anthropic": {
-      "contentSha256": "ee65a89620b88316dcc44464c769e17fc09d3ed6b6bd6d794df7c197db2fde51",
+      "contentSha256": "5ac6dab17882ef4eac64689131d938a595587ec3bf0e6a8d214ce2964c0b75a8",
       "items": 18,
       "section": "remaining"
     },
@@ -124,7 +124,7 @@
       "section": "maintained"
     },
     "egm": {
-      "contentSha256": "519b46cb325e0c4af7bc27ee080c7aad3a09b3f3b6a8bc404c16f9f083e9ce00",
+      "contentSha256": "0a577515792a5815c7f6350fd53bb057f50cf5c535d6d5d0942eb67b26d965bd",
       "items": 16,
       "section": "remaining"
     },

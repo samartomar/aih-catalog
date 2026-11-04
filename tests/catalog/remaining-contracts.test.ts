@@ -349,7 +349,11 @@ describe("several plugins published from one root", () => {
     );
     if (plan.status !== "ok") throw new Error(JSON.stringify(plan));
     const step = plan.plan.find((candidate) => candidate.op === "plugin");
-    expect(step).toMatchObject({ plugin: "kit-b", scanKey: content.plugins?.[1]?.scanKey });
+    // The client clones the whole folder at the pin, so the step names that folder's key.
+    const record = content.plugins?.[1];
+    expect(record?.folderScanKey).toBeDefined();
+    expect(record?.folderScanKey).not.toBe(record?.scanKey);
+    expect(step).toMatchObject({ plugin: "kit-b", scanKey: record?.folderScanKey });
     expect(plan.warnings).toEqual([
       { code: "cli-only-plugin", cli: "copilot", items: ["kit.skill.beta"], framework: "kit" },
     ]);

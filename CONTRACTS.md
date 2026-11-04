@@ -69,13 +69,16 @@ and `plugins`.
   runtime allowlist: `{ id, sourceId, layout, files, scanKey }`.
 - **Plugins** record an upstream plugin folder at the source's pin, so a plugin route can be
   checked and a local-plugin route copied as one unit: `{ sourceId, path, include?, plugin?,
-  files, scanKey }`. `include` is the upstream's runtime allowlist when only part of the
-  folder ships.
+  files, scanKey, folderScanKey? }`. `include` is the upstream's runtime allowlist when only
+  part of the folder ships: `scanKey` then keys the allowlisted files a local-plugin route
+  copies, and `folderScanKey` keys every file under `path`, which is what a client's own
+  plugin install clones and so the key a `plugin` step names.
 
 Content written with `buildContent` is recorded from the bytes, and `checkContent` rebuilds
 every recorded fact from the files and reports any difference. Given `scannedKeys`, it also
-lists the scan keys that have no matching scan: every item's, every edition's and every
-bundle's, since one scan never covers another (upstream-only items are left out for now).
+lists the scan keys that have no matching scan: every item's, every edition's, every
+bundle's and both keys of every recorded plugin folder, since one scan never covers another
+(upstream-only items are left out for now).
 
 ### Tool profile
 

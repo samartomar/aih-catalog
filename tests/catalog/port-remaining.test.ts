@@ -15,7 +15,7 @@ import {
   readRecipe,
 } from "../../src/catalog/reader.js";
 import type { SourceFile } from "../../src/catalog/source.js";
-import { egmContent } from "./egm.js";
+import { EGM_UPSTREAM, egmContent } from "./egm.js";
 import { fetches, placements, profile, sha, sortKeys } from "./helpers.js";
 
 const repositoryRoot = resolve(import.meta.dirname, "../..");
@@ -244,7 +244,30 @@ describe("the ported candidate data", () => {
 
   it("records EGM exactly as its pinned runtime fixture builds it", async () => {
     const { content } = await egmContent();
-    expect(data("egm")).toEqual(content);
+    const recorded = data("egm");
+    // The fixture holds the runtime files only. What the real data adds is the whole upstream
+    // tree: the plugin folder's own key, which is the commit's root tree, and the notice of the
+    // upstream's generated distributions/ copy, which covers no item.
+    const [plugin] = recorded.plugins ?? [];
+    expect(plugin?.folderScanKey).toBe(`git-sha1:${EGM_UPSTREAM.tree}`);
+    const [source] = recorded.sources;
+    expect(source?.notices.map((notice) => notice.sourcePath)).toContain(
+      "distributions/claude/LICENSE",
+    );
+    const trimmed = {
+      ...recorded,
+      sources: recorded.sources.map((each) => ({
+        ...each,
+        notices: each.notices.filter(
+          (notice) => !notice.sourcePath.startsWith("distributions/"),
+        ),
+      })),
+      plugins: (recorded.plugins ?? []).map(({ folderScanKey: _, ...rest }) => rest),
+    };
+    expect(trimmed).toEqual({
+      ...content,
+      plugins: (content.plugins ?? []).map(({ folderScanKey: _, ...rest }) => rest),
+    });
   });
 
   it("records the upstream-only skills without shipping their bytes, and their Claude copies as editions", () => {
@@ -293,7 +316,8 @@ describe("representative plans of the remaining families", () => {
         plugin: "example-skills",
         marketplace: PINS.anthropic[0],
         commit: PINS.anthropic[1],
-        scanKey: record?.scanKey,
+        // Claude clones the whole marketplace folder, not the plugin's skill list.
+        scanKey: record?.folderScanKey,
       }),
     ]);
     const writes = pathsOf(result.plan, "write");

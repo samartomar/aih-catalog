@@ -313,6 +313,7 @@ const content: Schema = {
         plugin: pattern(INSTALL_NAME, 64),
         files: list(ref("recordedFile"), 1),
         scanKey: ref("scanKey"),
+        folderScanKey: ref("scanKey"),
       },
       ["sourceId", "path", "files", "scanKey"],
     ),
