@@ -1,7 +1,7 @@
 {
   "candidate": {
     "package": "@aihq/catalog@0.1.0",
-    "sourceCommit": "4839cb323335b11154a2f776a97746b38301b9a7",
+    "sourceCommit": "6034c582723d483314c5d2b09f7a608a6479ba81",
     "sourceClean": true,
     "file": "aihq-catalog-0.1.0.tgz",
     "sha256": "e6a861b11e7390a78800a878e9e512d95341bdb34164dc17a5fa2d1c230b8f17",
@@ -20,7 +20,7 @@
   "inputs": {
     "data": {
       "kind": "git",
-      "commit": "4839cb323335b11154a2f776a97746b38301b9a7",
+      "commit": "6034c582723d483314c5d2b09f7a608a6479ba81",
       "subpath": "data",
       "files": 100,
       "sha256": "b1ddef7926899ef5af4570da2a5b2fa80484fca4439bfcad1fe57aadf739ad32",
@@ -28,7 +28,7 @@
     },
     "port-report": {
       "kind": "git",
-      "commit": "4839cb323335b11154a2f776a97746b38301b9a7",
+      "commit": "6034c582723d483314c5d2b09f7a608a6479ba81",
       "subpath": "port-report",
       "files": 4,
       "sha256": "905b8f6f10146b203840a07a976ee7fef1148b74ed3ced9c9d3365cb73dae0eb",
@@ -36,7 +36,7 @@
     },
     "tests/fixtures": {
       "kind": "git",
-      "commit": "4839cb323335b11154a2f776a97746b38301b9a7",
+      "commit": "6034c582723d483314c5d2b09f7a608a6479ba81",
       "subpath": "tests/fixtures",
       "files": 169,
       "sha256": "e6881a0497f82fbc9830092389aa1f78931256e6c21d4e568048ae6b5f637259",
@@ -153,7 +153,7 @@
       ],
       "pending": [],
       "plans": {
-        "superpowers-user": "51be5c8985df23938dd27f18b68cfb3281d22b1d3816014ca9166a53453ff574"
+        "superpowers-user": "ecc9c1ce2a8bf27992a82c8b8de1faacbdc6742bcdef6a8bbb8c16d3bb760abb"
       }
     },
     {
@@ -196,7 +196,7 @@
         "Status incomplete (the journey states no status): 78 path references, 0 unavailable item/client pairs, 0 clashes."
       ],
       "plans": {
-        "ecc-kiro": "c60447a1d51f924ce1b3174d0b6d2dc8b310982b6feed8a3e9d221fa2456ff21"
+        "ecc-kiro": "ba0348b6cd0f2934843090d92bc9f063a74fa61df5c1d7ceee80fe15e32d0562"
       }
     },
     {
@@ -241,12 +241,13 @@
         {
           "name": "upstream: ECC plan's SKILL.md renders from the real pinned bytes",
           "status": "passed"
+        },
+        {
+          "name": "status is ok, as the contract's example plan for this command is",
+          "status": "passed"
         }
       ],
-      "pending": [],
-      "notes": [
-        "Status ok: [] (the contract's example plan for this command is ok; the upstream file names agents/planner.md as an optional manual-install agent, which the path-reference check counts as blocking)."
-      ]
+      "pending": []
     },
     {
       "id": 6,
@@ -408,7 +409,7 @@
         "With dsh the plan is ok; the journey states no status for that variant (completeness does not force clients the upstream does not install on, while a selected agent a client cannot take blocks)."
       ],
       "plans": {
-        "egm-project": "e116527d5b412ac8ef151a2ab9c6d3b2a58d46ca0c242f1211eec4e11128e89f"
+        "egm-project": "faf7e50f46faf7b64c266a487b925854e7535247610077aa752f70eea43d7347"
       }
     },
     {
@@ -452,7 +453,7 @@
         "The real ok branch: no qualified code-review-graph 2.3.9 or Serena 2.1.0 record for linux-x64 and no trio combination record exist, so the trio cannot plan ok on real data."
       ],
       "plans": {
-        "trio-linux-x64": "864e19c404801c99f8ecd624e3c9c3e8780311dd354e134d3fbd0649c8e6ee8b"
+        "trio-linux-x64": "bf5dd7917482f05a1906763e56b5b63347e1647c2f636a73b5eac9df6f0ab0de"
       }
     },
     {
