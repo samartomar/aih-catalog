@@ -57,18 +57,14 @@ const PINS = {
 };
 
 /**
- * Exact versions Catalog pins for ECC MCP packages the upstream config leaves unpinned, by where
- * each came from. The port report records the basis per item (`pinBasis`).
- *
- * - `previous-release-review`: the version the previous Catalog release reviewed for the same
- *   upstream package.
- * - `registry-latest`: the upstream names no version and the previous release reviewed none for
- *   this package, so the pin is the npm registry's latest exact version on `checkedOn`.
- *
- * An entry that already names an exact version keeps it (`upstream`). A server the upstream
- * starts some other way is not cut out; `MCP_DROPPED` gives the reason.
+ * Exact versions Catalog pins for ECC MCP packages the upstream config leaves unpinned: the
+ * versions the previous Catalog release reviewed for the same upstream package. The port report
+ * records the basis per item (`pinBasis`): `previous-release-review` for these, `upstream` for
+ * an entry that already names an exact version. A server the upstream starts some other way, or
+ * whose package npm marks deprecated, is not cut out; `MCP_DROPPED` and `MCP_DEPRECATED` give
+ * the reason.
  */
-const MCP_REVIEWED_VERSIONS = {
+const MCP_VERSIONS = {
   codescene: "1.5.13",
   confluence: "1.3.3",
   context7: "4.4.4",
@@ -84,28 +80,35 @@ const MCP_REVIEWED_VERSIONS = {
   squish: "1.9.0",
   supabase: "0.14.0",
 };
-const MCP_REGISTRY_LATEST = {
-  checkedOn: "2026-11-04",
-  versions: {
-    browserbase: "2.4.3",
-    github: "2025.4.8",
-    railway: "0.1.12",
-    "token-optimizer": "2.17.0",
+
+/**
+ * Upstream entries whose npm package the registry marks deprecated (checked 2026-11-04), with
+ * the registry's message. Catalog does not put a replacement package or a hosted server in the
+ * entry's place: that would be a Catalog-made variant, not the upstream entry.
+ */
+const MCP_DEPRECATED = {
+  browserbase: {
+    package: "@browserbasehq/mcp-server-browserbase",
+    message: "This package has moved to @browserbasehq/mcp",
   },
-  // Why the previous release's review does not carry over, where it reviewed something nearby.
-  notes: {
-    browserbase:
-      "the previous release reviewed @browserbasehq/mcp 3.0.0, a different package from the upstream's @browserbasehq/mcp-server-browserbase",
-    github:
-      "the previous release replaced the upstream package with the hosted GitHub server and reviewed no package version",
-    railway:
-      "the previous release reviewed @railway/cli 5.71.0, a different package from the upstream's @railway/mcp-server",
-    "token-optimizer": "the previous release kept the upstream entry unpinned",
+  github: {
+    package: "@modelcontextprotocol/server-github",
+    message:
+      "Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.",
+  },
+  railway: {
+    package: "@railway/mcp-server",
+    message:
+      "Deprecated: Railway MCP is now bundled into the Railway CLI. Use 'railway mcp'. See https://docs.railway.com/cli/mcp.",
+  },
+  "token-optimizer": {
+    package: "token-optimizer-mcp",
+    message:
+      "Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.",
   },
 };
-const MCP_VERSIONS = { ...MCP_REVIEWED_VERSIONS, ...MCP_REGISTRY_LATEST.versions };
-for (const name of Object.keys(MCP_REGISTRY_LATEST.versions))
-  if (name in MCP_REVIEWED_VERSIONS) throw new Error(`MCP ${name} has two pin bases`);
+const deprecatedReason = (name) =>
+  `the upstream entry runs the npm package ${MCP_DEPRECATED[name].package}, which the npm registry marks deprecated (checked 2026-11-04: "${MCP_DEPRECATED[name].message}"); Catalog does not substitute another package or a hosted server for it`;
 
 /** Where a cut-out MCP server's exact package version came from, for the port report. */
 function mcpPin(name, server) {
@@ -113,16 +116,10 @@ function mcpPin(name, server) {
   if (version === undefined) return {};
   if (MCP_VERSIONS[name] !== undefined && MCP_VERSIONS[name] !== version)
     fail(`MCP ${name} is pinned at ${MCP_VERSIONS[name]} but its server has ${version}`);
-  if (name in MCP_REGISTRY_LATEST.versions)
-    return {
-      pinBasis: "registry-latest",
-      pinnedVersion: version,
-      pinCheckedOn: MCP_REGISTRY_LATEST.checkedOn,
-      pinNote: MCP_REGISTRY_LATEST.notes[name],
-    };
-  if (name in MCP_REVIEWED_VERSIONS)
-    return { pinBasis: "previous-release-review", pinnedVersion: version };
-  return { pinBasis: "upstream", pinnedVersion: version };
+  return {
+    pinBasis: name in MCP_VERSIONS ? "previous-release-review" : "upstream",
+    pinnedVersion: version,
+  };
 }
 
 const MCP_INPUTS = { filesystem: { "/path/to/your/projects": "FILESYSTEM_ROOT" } };
@@ -426,9 +423,17 @@ async function ecc(work) {
   const mcpFile = kiro("mcp-configs/mcp-servers.json");
   const servers = JSON.parse(textOf(mcpFile)).mcpServers;
   const mcpDropped = new Map();
+  const mcpDeprecated = new Map();
   for (const name of Object.keys(servers)) {
     if (MCP_DROPPED[name]) {
       mcpDropped.set(name, MCP_DROPPED[name]);
+      continue;
+    }
+    if (MCP_DEPRECATED[name]) {
+      const args = servers[name].args ?? [];
+      if (!args.includes(MCP_DEPRECATED[name].package))
+        fail(`MCP ${name} no longer runs ${MCP_DEPRECATED[name].package}`);
+      mcpDeprecated.set(name, deprecatedReason(name));
       continue;
     }
     const extra = {
@@ -441,14 +446,14 @@ async function ecc(work) {
       files: [cut(mcpFile, `/mcpServers/${name}`, "mcp", extra)],
     });
   }
-  for (const name of [...Object.keys(MCP_DROPPED)])
+  for (const name of [...Object.keys(MCP_DROPPED), ...Object.keys(MCP_DEPRECATED)])
     if (!(name in servers)) fail(`MCP ${name} is not upstream`);
 
   items = withReferences([...byId.values()], new Map([["ecc", byPath]]), "ecc");
   const built = await build({ kind: "git", ...PINS.ecc }, files, items, {
     framework: { id: "ecc", name: "ECC" },
   });
-  return { built, found, dropped, mcpDropped, files, extraFiles: [] };
+  return { built, found, dropped, mcpDropped, mcpDeprecated, files, extraFiles: [] };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -675,6 +680,8 @@ function dispositions(results, items) {
         );
       else if (results.ecc.mcpDropped.has(path))
         result = dropped(entry, "mcp-not-representable", results.ecc.mcpDropped.get(path));
+      else if (results.ecc.mcpDeprecated.has(path))
+        result = dropped(entry, "mcp-package-deprecated", results.ecc.mcpDeprecated.get(path));
       else
         result = mapped(entry, `ecc.mcp.${path}`, {
           note: "cut out of mcp-configs/mcp-servers.json as its own server.json",

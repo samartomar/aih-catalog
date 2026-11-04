@@ -108,10 +108,10 @@
   },
   "counts": {
     "bundle": 1,
-    "contentItems": 734,
-    "dropped": 17,
+    "contentItems": 730,
+    "dropped": 21,
     "edition": 43,
-    "mapped": 691,
+    "mapped": 687,
     "newItems": 21,
     "notice": 3,
     "steering": 22
@@ -2494,13 +2494,9 @@
           "mcp-configs/mcp-servers.json"
         ]
       },
-      "disposition": "mapped",
-      "item": "ecc.mcp.browserbase",
-      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json",
-      "pinBasis": "registry-latest",
-      "pinCheckedOn": "2026-11-04",
-      "pinNote": "the previous release reviewed @browserbasehq/mcp 3.0.0, a different package from the upstream's @browserbasehq/mcp-server-browserbase",
-      "pinnedVersion": "2.4.3"
+      "disposition": "dropped",
+      "note": "the upstream entry runs the npm package @browserbasehq/mcp-server-browserbase, which the npm registry marks deprecated (checked 2026-11-04: \"This package has moved to @browserbasehq/mcp\"); Catalog does not substitute another package or a hosted server for it",
+      "reason": "mcp-package-deprecated"
     },
     {
       "baseline": {
@@ -2704,13 +2700,9 @@
           "mcp-configs/mcp-servers.json"
         ]
       },
-      "disposition": "mapped",
-      "item": "ecc.mcp.github",
-      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json",
-      "pinBasis": "registry-latest",
-      "pinCheckedOn": "2026-11-04",
-      "pinNote": "the previous release replaced the upstream package with the hosted GitHub server and reviewed no package version",
-      "pinnedVersion": "2025.4.8"
+      "disposition": "dropped",
+      "note": "the upstream entry runs the npm package @modelcontextprotocol/server-github, which the npm registry marks deprecated (checked 2026-11-04: \"Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.\"); Catalog does not substitute another package or a hosted server for it",
+      "reason": "mcp-package-deprecated"
     },
     {
       "baseline": {
@@ -2875,13 +2867,9 @@
           "mcp-configs/mcp-servers.json"
         ]
       },
-      "disposition": "mapped",
-      "item": "ecc.mcp.railway",
-      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json",
-      "pinBasis": "registry-latest",
-      "pinCheckedOn": "2026-11-04",
-      "pinNote": "the previous release reviewed @railway/cli 5.71.0, a different package from the upstream's @railway/mcp-server",
-      "pinnedVersion": "0.1.12"
+      "disposition": "dropped",
+      "note": "the upstream entry runs the npm package @railway/mcp-server, which the npm registry marks deprecated (checked 2026-11-04: \"Deprecated: Railway MCP is now bundled into the Railway CLI. Use 'railway mcp'. See https://docs.railway.com/cli/mcp.\"); Catalog does not substitute another package or a hosted server for it",
+      "reason": "mcp-package-deprecated"
     },
     {
       "baseline": {
@@ -2946,13 +2934,9 @@
           "mcp-configs/mcp-servers.json"
         ]
       },
-      "disposition": "mapped",
-      "item": "ecc.mcp.token-optimizer",
-      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json",
-      "pinBasis": "registry-latest",
-      "pinCheckedOn": "2026-11-04",
-      "pinNote": "the previous release kept the upstream entry unpinned",
-      "pinnedVersion": "2.17.0"
+      "disposition": "dropped",
+      "note": "the upstream entry runs the npm package token-optimizer-mcp, which the npm registry marks deprecated (checked 2026-11-04: \"Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.\"); Catalog does not substitute another package or a hosted server for it",
+      "reason": "mcp-package-deprecated"
     },
     {
       "baseline": {

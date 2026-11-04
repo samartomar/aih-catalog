@@ -57,10 +57,11 @@ Node built-in. It takes a few seconds and CI runs it after `npm run verify`.
 
 Each row is `passed`, `failed`, `open` (a recorded gap against the journey's expected
 result, with its reason) or `pending` (proof the replay cannot give, such as a real
-qualification), and so is each of its checks except `pending`: an open check is never
-recorded as passed, and names its basis: a fixture, the committed candidate data or, with
-`-- --network`, the real upstream bytes at their pins. `-- --write` records the results for a
-clean checkout in [validation/packed-consumer.json](validation/packed-consumer.json),
+qualification). Each check has one of the same statuses except `pending`. An open check gives
+its reason and is never recorded as passed. Every row names its basis: a fixture, the
+committed candidate data or, with `-- --network`, the real upstream bytes at their pins.
+`-- --write` records the results for a clean checkout in
+[validation/packed-consumer.json](validation/packed-consumer.json),
 identified by source commit and tarball sha256. None of these results shows native client
 support, a real qualification or accepted production data.
 
@@ -91,12 +92,12 @@ setup item, with the status its recorded run gave; it never needs a package rele
 commit upstream bytes whose licence forbids redistribution: record their identity and mark
 the item `fetch: "upstream"`.
 
-An MCP package the upstream leaves unpinned gets an exact version, and its entry in
-`port-report/maintained.json` records where that version came from in `pinBasis`:
-`previous-release-review` (the version the previous Catalog release reviewed for the same
-package), `registry-latest` (the npm registry's latest on `pinCheckedOn`, where no reviewed
-version exists; `pinNote` says why), or `upstream` (the upstream names it). `pinnedVersion` is
-the version.
+An MCP package the upstream leaves unpinned gets the exact version the previous Catalog
+release reviewed for the same package. Its entry in `port-report/maintained.json` records
+that in `pinBasis` (`previous-release-review`, or `upstream` where the upstream names the
+version) and the version in `pinnedVersion`. An entry whose package npm marks deprecated is
+dropped (`mcp-package-deprecated`) with the registry's message; no other package or hosted
+server takes its place.
 
 ## Commits and pull requests
 

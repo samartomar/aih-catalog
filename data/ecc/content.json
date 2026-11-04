@@ -5068,67 +5068,6 @@
       }
     },
     {
-      "behaviourSha256": "abdc8aefb1beaaf139b96a247f2df5fde7cdfca16ce1c3226f010873b2fdd8a2",
-      "contentSha256": "c8a86b30e321c2959db2c57c7ee91524a6bc520c87239949f50479de3e6dc64f",
-      "description": "Cloud browser sessions via Browserbase",
-      "files": [
-        {
-          "bytes": 637,
-          "derivedFrom": {
-            "pointer": "/mcpServers/browserbase",
-            "sourcePath": "mcp-configs/mcp-servers.json"
-          },
-          "executable": false,
-          "role": "content",
-          "sha256": "dfd3eb276050be2589e3d1a5b7af0e694d887d84d2cdc8acb4c91026fa8d356a",
-          "sourceId": "ecc-generated",
-          "sourcePath": "ecc.mcp.browserbase/server.json"
-        }
-      ],
-      "id": "ecc.mcp.browserbase",
-      "kind": "mcp",
-      "name": "browserbase",
-      "requirements": {
-        "inputs": {
-          "BROWSERBASE_API_KEY": {
-            "description": "BROWSERBASE_API_KEY",
-            "isRequired": true,
-            "isSecret": true
-          }
-        }
-      },
-      "scanKey": "git-sha1:d209851fb1e78224c5161651b51cd52df760c23d",
-      "server": {
-        "description": "Cloud browser sessions via Browserbase",
-        "name": "browserbase",
-        "packages": [
-          {
-            "environmentVariables": [
-              {
-                "description": "BROWSERBASE_API_KEY",
-                "isRequired": true,
-                "isSecret": true,
-                "name": "BROWSERBASE_API_KEY"
-              }
-            ],
-            "identifier": "@browserbasehq/mcp-server-browserbase",
-            "registryType": "npm",
-            "runtimeArguments": [
-              {
-                "type": "positional",
-                "value": "-y"
-              }
-            ],
-            "runtimeHint": "npx",
-            "transport": {
-              "type": "stdio"
-            },
-            "version": "2.4.3"
-          }
-        ]
-      }
-    },
-    {
       "behaviourSha256": "dd21193e7b8bccfc13f37b762a2516470c0968800b164964bbe83c300d575617",
       "contentSha256": "9aae8d7632f4eb9799c2798a0faaaf5fea39182cecddbb724fa25167b96046c0",
       "description": "ClickHouse analytics queries",
@@ -5770,67 +5709,6 @@
       }
     },
     {
-      "behaviourSha256": "4d1fafb55d78da49b3533813bfed243a291da2784f8672e2fd87b8f4b1bbd3a0",
-      "contentSha256": "85c543d2280b77a092c850086bbeb61e8aee73dd4618b5993d60bb3a0d6efbf4",
-      "description": "GitHub operations - PRs, issues, repos",
-      "files": [
-        {
-          "bytes": 651,
-          "derivedFrom": {
-            "pointer": "/mcpServers/github",
-            "sourcePath": "mcp-configs/mcp-servers.json"
-          },
-          "executable": false,
-          "role": "content",
-          "sha256": "9f14bac2620a06a62bee7e751bedf5ef73c2c51e19024ae2c8d680dd60055b6f",
-          "sourceId": "ecc-generated",
-          "sourcePath": "ecc.mcp.github/server.json"
-        }
-      ],
-      "id": "ecc.mcp.github",
-      "kind": "mcp",
-      "name": "github",
-      "requirements": {
-        "inputs": {
-          "GITHUB_PERSONAL_ACCESS_TOKEN": {
-            "description": "GITHUB_PERSONAL_ACCESS_TOKEN",
-            "isRequired": true,
-            "isSecret": true
-          }
-        }
-      },
-      "scanKey": "git-sha1:c0691093f5207f3a0b4ca8158f5d972c1338d6de",
-      "server": {
-        "description": "GitHub operations - PRs, issues, repos",
-        "name": "github",
-        "packages": [
-          {
-            "environmentVariables": [
-              {
-                "description": "GITHUB_PERSONAL_ACCESS_TOKEN",
-                "isRequired": true,
-                "isSecret": true,
-                "name": "GITHUB_PERSONAL_ACCESS_TOKEN"
-              }
-            ],
-            "identifier": "@modelcontextprotocol/server-github",
-            "registryType": "npm",
-            "runtimeArguments": [
-              {
-                "type": "positional",
-                "value": "-y"
-              }
-            ],
-            "runtimeHint": "npx",
-            "transport": {
-              "type": "stdio"
-            },
-            "version": "2025.4.8"
-          }
-        ]
-      }
-    },
-    {
       "behaviourSha256": "5eaba543eb2cb364117aa56a2bd890cebe875b0cf8b6ca5aeacefe84d1435c43",
       "contentSha256": "35ede92f8bf6a59d03088c83aa0809a89b6c1ede19e771313464cbabd9b28a34",
       "description": "Jira issue tracking — search, create, update, comment, transition issues",
@@ -6210,50 +6088,6 @@
       }
     },
     {
-      "behaviourSha256": "393013967c8832c9153caff2ebd96b51dbd24447efd3026fa6258fddf87e8955",
-      "contentSha256": "640c7aa6e9ed2d844c4a853fb21302c630914ce6390c23b36968e975574d8dc1",
-      "description": "Railway deployments",
-      "files": [
-        {
-          "bytes": 390,
-          "derivedFrom": {
-            "pointer": "/mcpServers/railway",
-            "sourcePath": "mcp-configs/mcp-servers.json"
-          },
-          "executable": false,
-          "role": "content",
-          "sha256": "329b9bc58052ed6691a28e65e6f369daf9767273cef8b0488730ab81b38a9e8e",
-          "sourceId": "ecc-generated",
-          "sourcePath": "ecc.mcp.railway/server.json"
-        }
-      ],
-      "id": "ecc.mcp.railway",
-      "kind": "mcp",
-      "name": "railway",
-      "scanKey": "git-sha1:1e70f6a08749402331eb1fd06ec410356a15308a",
-      "server": {
-        "description": "Railway deployments",
-        "name": "railway",
-        "packages": [
-          {
-            "identifier": "@railway/mcp-server",
-            "registryType": "npm",
-            "runtimeArguments": [
-              {
-                "type": "positional",
-                "value": "-y"
-              }
-            ],
-            "runtimeHint": "npx",
-            "transport": {
-              "type": "stdio"
-            },
-            "version": "0.1.12"
-          }
-        ]
-      }
-    },
-    {
       "behaviourSha256": "0b449ed85a93259843709ee9353db08565cdf241c413e657613f8bc3ffab5103",
       "contentSha256": "b99b217f25af5fa863db996cfd406ae0df06a4f3f2e2ba3cc3872ac458b8622e",
       "description": "Chain-of-thought reasoning",
@@ -6403,50 +6237,6 @@
               "type": "stdio"
             },
             "version": "0.14.0"
-          }
-        ]
-      }
-    },
-    {
-      "behaviourSha256": "dcf60b9305900e8599b1a90e41498f156753596601d91a78a941a0be39a67440",
-      "contentSha256": "4b2a582d03f07edce1a3c065c38d7dc54d0e0aec93e6fd02a6a491a31139fc78",
-      "description": "Token optimization for 95%+ context reduction via content deduplication and compression",
-      "files": [
-        {
-          "bytes": 466,
-          "derivedFrom": {
-            "pointer": "/mcpServers/token-optimizer",
-            "sourcePath": "mcp-configs/mcp-servers.json"
-          },
-          "executable": false,
-          "role": "content",
-          "sha256": "2486e6d94e15855c81205c79b87b4649a9e444a0d794d992a9a4c67de93e9f14",
-          "sourceId": "ecc-generated",
-          "sourcePath": "ecc.mcp.token-optimizer/server.json"
-        }
-      ],
-      "id": "ecc.mcp.token-optimizer",
-      "kind": "mcp",
-      "name": "token-optimizer",
-      "scanKey": "git-sha1:f82f154eff0309c0f2cdcb548db960ebb1ededcd",
-      "server": {
-        "description": "Token optimization for 95%+ context reduction via content deduplication and compression",
-        "name": "token-optimizer",
-        "packages": [
-          {
-            "identifier": "token-optimizer-mcp",
-            "registryType": "npm",
-            "runtimeArguments": [
-              {
-                "type": "positional",
-                "value": "-y"
-              }
-            ],
-            "runtimeHint": "npx",
-            "transport": {
-              "type": "stdio"
-            },
-            "version": "2.17.0"
           }
         ]
       }

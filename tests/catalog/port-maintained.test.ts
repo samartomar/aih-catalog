@@ -667,12 +667,12 @@ describe("the port report for these families", () => {
       if (entry.disposition === "mapped")
         expect(ids.has(entry.item as string), entry.baseline.id).toBe(true);
     expect(REPORT.counts).toMatchObject({
-      mapped: 691,
+      mapped: 687,
       edition: 43,
       steering: 22,
       notice: 3,
       bundle: 1,
-      dropped: 17,
+      dropped: 21,
     });
   });
 
@@ -716,18 +716,27 @@ describe("the port report for these families", () => {
       "ecc.mcp.longhand",
       "ecc.mcp.nexus",
     ]);
-    // Each npm entry becomes its own server.json, at the exact version Catalog pins.
-    for (const name of ["github", "browserbase", "railway", "token-optimizer"])
-      expect(of(`ecc.mcp.${name}`), name).toMatchObject({
-        disposition: "mapped",
-        item: `ecc.mcp.${name}`,
-      });
-    const github = data("ecc").items.find((item) => item.id === "ecc.mcp.github");
-    expect((github?.server as { packages?: unknown[] } | undefined)?.packages?.[0]).toMatchObject({
-      registryType: "npm",
-      identifier: "@modelcontextprotocol/server-github",
-      version: "2025.4.8",
-    });
+    // An entry whose upstream package npm marks deprecated is not represented, and no
+    // replacement package is put in its place.
+    const deprecated = entries.filter((entry) => entry.reason === "mcp-package-deprecated");
+    expect(deprecated.map((entry) => entry.baseline.id)).toEqual([
+      "ecc.mcp.browserbase",
+      "ecc.mcp.github",
+      "ecc.mcp.railway",
+      "ecc.mcp.token-optimizer",
+    ]);
+    expect(of("ecc.mcp.github")?.note).toMatch(
+      /@modelcontextprotocol\/server-github.*Package no longer supported/,
+    );
+    expect(of("ecc.mcp.token-optimizer")?.note).toMatch(
+      /token-optimizer-mcp.*Package no longer supported/,
+    );
+    expect(of("ecc.mcp.browserbase")?.note).toMatch(/moved to @browserbasehq\/mcp/);
+    expect(of("ecc.mcp.railway")?.note).toMatch(/bundled into the Railway CLI/);
+    for (const entry of deprecated) expect(entry.item, entry.baseline.id).toBeUndefined();
+    const ids = new Set(data("ecc").items.map((item) => item.id));
+    for (const name of ["browserbase", "github", "railway", "token-optimizer"])
+      expect(ids.has(`ecc.mcp.${name}`), name).toBe(false);
   });
 
   it("records, per MCP item, where its exact version came from", () => {
@@ -740,43 +749,23 @@ describe("the port report for these families", () => {
           {
             pinBasis: entry.pinBasis,
             pinnedVersion: entry.pinnedVersion,
-            pinCheckedOn: entry.pinCheckedOn,
           },
         ]),
     );
-    // The upstream names no version: the npm registry's latest on the day it was pinned.
-    for (const [name, version] of [
-      ["browserbase", "2.4.3"],
-      ["github", "2025.4.8"],
-      ["railway", "0.1.12"],
-      ["token-optimizer", "2.17.0"],
-    ])
-      expect(pins[`ecc.mcp.${name}`], name).toEqual({
-        pinBasis: "registry-latest",
-        pinnedVersion: version,
-        pinCheckedOn: "2026-11-04",
-      });
-    for (const name of ["browserbase", "github", "railway", "token-optimizer"])
-      expect(entries.find((entry) => entry.item === `ecc.mcp.${name}`)?.pinNote, name).toMatch(
-        /previous release/,
-      );
     // The version the previous Catalog release reviewed for the same package.
     expect(pins["ecc.mcp.context7"]).toEqual({
       pinBasis: "previous-release-review",
       pinnedVersion: "4.4.4",
-      pinCheckedOn: undefined,
     });
     // The upstream's own exact version.
     expect(pins["ecc.mcp.jira"]).toEqual({
       pinBasis: "upstream",
       pinnedVersion: "0.21.0",
-      pinCheckedOn: undefined,
     });
     // A remote server has no package to pin.
     expect(pins["ecc.mcp.vercel"]).toEqual({
       pinBasis: undefined,
       pinnedVersion: undefined,
-      pinCheckedOn: undefined,
     });
     // Every packaged MCP item says where its version came from.
     for (const item of data("ecc").items.filter((entry) => entry.kind === "mcp")) {

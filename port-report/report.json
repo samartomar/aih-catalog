@@ -11,9 +11,9 @@
     },
     "dispositions": {
       "bundle": 1,
-      "dropped": 17,
+      "dropped": 21,
       "edition": 65,
-      "mapped": 691,
+      "mapped": 687,
       "notice": 3
     },
     "families": [
@@ -119,8 +119,8 @@
       "section": "aiSetup"
     },
     "ecc": {
-      "contentSha256": "923950adc658aac5205d99084bc7fb34f0bd6b55d6409004a8bdd5fff37e06a0",
-      "items": 649,
+      "contentSha256": "a74daffc2cdff297c8cb79b70ae18d6ddde47429facd5219741ab818def3d181",
+      "items": 645,
       "section": "maintained"
     },
     "egm": {
@@ -176,7 +176,7 @@
       "Extensions declares no per-client routes yet, so it has no base recipe and is planned through items only.",
       "gstack: 54 items name 253 files no placed bundle provides",
       "pstack: 30 items name 138 files no placed bundle provides",
-      "17 baseline items are dropped with their reasons; 1 upstream item cannot be represented (anthropic.skill.claude-api).",
+      "21 baseline items are dropped with their reasons; 1 upstream item cannot be represented (anthropic.skill.claude-api).",
       "13 items are fetched from their pinned upstream at install time instead of shipped (licence), and are not scanned.",
       "Path references are reported strictly: an item that names a source file outside its own files is `incomplete` unless a placed bundle or the project-scope sibling layout provides it."
     ],
@@ -251,7 +251,7 @@
     },
     "maintained": {
       "path": "port-report/maintained.json",
-      "sha256": "a57ae61c8bf7382b0e511a3b57e11cfb17dc8c348cd9073ae74388262198d1e6"
+      "sha256": "fac758d9985ad6e3444c32d67fc9c506485d9ad6c458442f7160e900b05d7915"
     },
     "remaining": {
       "path": "port-report/remaining.json",
@@ -261,7 +261,7 @@
   "totals": {
     "draftRecipes": 10,
     "frameworks": 13,
-    "items": 906,
+    "items": 902,
     "qualifications": 9
   }
 }
