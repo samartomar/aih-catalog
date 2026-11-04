@@ -1208,17 +1208,72 @@ function placeBundles(
  * every plugin-namespaced name it mentions. A plugin route places the whole plugin, so its
  * items are never checked.
  */
+/** The relative path from folder `from` to `to` (both from one root, `""` is the root). */
+function relativePath(from: string, to: string): string {
+  const base = from === "" ? [] : from.split("/");
+  const target = to.split("/");
+  let common = 0;
+  while (common < base.length && common < target.length - 1 && base[common] === target[common])
+    common += 1;
+  return [...base.slice(common).map(() => ".."), ...target.slice(common)].join("/");
+}
+
+/** `folder` joined with a relative path, `..` and `.` resolved; `""` when it climbs out. */
+function joinPath(folder: string, path: string): string {
+  const out = folder === "" ? [] : folder.split("/");
+  for (const segment of path.split("/")) {
+    if (segment === "..") {
+      if (out.length === 0) return "";
+      out.pop();
+    } else if (segment !== "." && segment !== "") out.push(segment);
+  }
+  return out.join("/");
+}
+
 function referencesOf(
   chosen: readonly string[],
   byId: ReadonlyMap<string, { content: Content; item: Item }>,
   kept: readonly Placed[],
   bundles: BundlePlacement,
+  scope: Scope,
 ): Reference[] {
   const placedFor = new Map<string, Set<string>>();
   const add = (item: string, cli: string) =>
     placedFor.set(item, new Set([...(placedFor.get(item) ?? []), cli]));
   for (const entry of kept) add(entry.item.id, entry.profile.id);
   for (const { item, cli } of bundles.served) add(item, cli);
+  // Where each client's placements put each source file, so a reference to another chosen
+  // item's file counts as resolved when both land in the same relative position as upstream.
+  const installed = new Map<string, Map<string, string[]>>();
+  const at = (cli: string, sourceId: string, sourcePath: string, path: string) => {
+    const files = installed.get(cli) ?? new Map<string, string[]>();
+    installed.set(cli, files);
+    const key = `${sourceId}\0${sourcePath}`;
+    files.set(key, [...(files.get(key) ?? []), path]);
+  };
+  for (const entry of kept) {
+    const unit = entry.unit;
+    const outputs: [string, Output][] =
+      unit.shape === "folder"
+        ? unit.outputs.map((output) => [`${unit.path.replace(/\/$/, "")}/${output.rel}`, output])
+        : unit.shape === "file"
+          ? [[unit.path, unit.output]]
+          : [];
+    for (const [path, output] of outputs)
+      if (output.from) at(entry.profile.id, output.from.sourceId, output.from.sourcePath, path);
+  }
+  // Only project-scope copies keep the upstream layout on disk: a user-scope folder may be a
+  // link into a shared version folder, where `..` resolves elsewhere.
+  const resolvedInPlace = (item: Item, cli: string, sourcePath: string, path: string) => {
+    if (scope !== "project") return false;
+    const file = item.files.find((candidate) => candidate.sourcePath === sourcePath);
+    if (file === undefined || file.derivedFrom !== undefined) return false;
+    const files = installed.get(cli);
+    const sources = files?.get(`${file.sourceId}\0${sourcePath}`) ?? [];
+    const targets = new Set(files?.get(`${file.sourceId}\0${path}`) ?? []);
+    const relative = relativePath(dirnameOf(sourcePath), path);
+    return sources.some((source) => targets.has(joinPath(dirnameOf(source), relative)));
+  };
   const found = new Map<string, Reference>();
   const note = (key: string, reference: Reference, cli: string) => {
     const known = found.get(key) ?? reference;
@@ -1231,6 +1286,7 @@ function referencesOf(
         item.bundle === undefined ? undefined : bundles.roots.get(cli)?.get(item.bundle);
       for (const reference of item.pathReferences ?? []) {
         if (placed?.bundle.files.some((file) => file.sourcePath === reference.path)) continue;
+        if (resolvedInPlace(item, cli, reference.sourcePath, reference.path)) continue;
         const reported = {
           kind: "path" as const,
           item: id,
@@ -1993,7 +2049,12 @@ export function planCore(input: CoreInput): PlanResult {
         writes.push({
           op: "write",
           root: scope,
-          path: `.aihq/notices/${content.framework.id}/${notice.sourcePath}`,
+          // A further source's notices sit in a folder of its own, so two sources' LICENSE
+          // files never share one path.
+          path:
+            source.id === content.framework.id
+              ? `.aihq/notices/${content.framework.id}/${notice.sourcePath}`
+              : `.aihq/notices/${content.framework.id}/${source.id}/${notice.sourcePath}`,
           from: { sourceId: source.id, sourcePath: notice.sourcePath, sha256: notice.sha256 },
           executable: false,
           items: covered,
@@ -2162,7 +2223,7 @@ export function planCore(input: CoreInput): PlanResult {
     return { ...rest, contains: [...(contained.get(step.framework) ?? [])].sort(compareCodeUnits) };
   });
 
-  const references = referencesOf(chosen, byId, resolved, bundles);
+  const references = referencesOf(chosen, byId, resolved, bundles, scope);
   const blocked =
     missing.length > 0 ||
     unavailable.length > 0 ||

@@ -19,10 +19,11 @@ import {
   matchesInclude,
   pathReferences,
 } from "./internal/bundle.js";
+import { cutDocument, cutFileName } from "./internal/cut.js";
 import { decodeText } from "./internal/frontmatter.js";
 import { behaviourSha256, contentSha256, installRelative } from "./internal/identity.js";
 import { canonicalDocument, canonicalJson, deepFreeze } from "./internal/json.js";
-import { readFields } from "./internal/kinds.js";
+import { readFields, readJson } from "./internal/kinds.js";
 import {
   type Content,
   type ContentSource,
@@ -45,7 +46,6 @@ import {
 } from "./internal/model.js";
 import {
   compareCodeUnits,
-  dirnameOf,
   isSafeRelativePath,
   limitRefusal,
   quote,
@@ -54,7 +54,7 @@ import {
 import { sha256Hex } from "./internal/sha256.js";
 import { EXACT_VERSION } from "./internal/source-link.js";
 import { contentProblems } from "./internal/validate.js";
-import { isNoticePath } from "./source.js";
+import { isNoticePath, noticeCovers } from "./source.js";
 
 export type BuildContentResult =
   | {
@@ -63,13 +63,7 @@ export type BuildContentResult =
       /** Canonical bytes of the content document, as committed and read by `readContent`. */
       readonly bytes: Uint8Array;
       /** Files cut out of shared upstream files; none for skills and rules. */
-      readonly generated: readonly {
-        readonly itemId: string;
-        readonly path: string;
-        readonly bytes: Uint8Array;
-        readonly sha256: string;
-        readonly executable: boolean;
-      }[];
+      readonly generated: readonly GeneratedFile[];
     }
   | Refused
   | Invalid;
@@ -89,17 +83,27 @@ async function scanKeyFor(
 }
 
 type FileIndex = {
-  readonly bytesOf: (path: string) => Uint8Array;
-  readonly has: (path: string) => boolean;
+  readonly bytesOf: (sourceId: string, path: string) => Uint8Array;
+  readonly has: (sourceId: string, path: string) => boolean;
+  /** Adds a file Catalog generated (a cut-out) to the index. */
+  readonly add: (sourceId: string, path: string, bytes: Uint8Array) => void;
   readonly problem?: Refused | Invalid;
 };
 
-/** Indexes supplied files by path, checking safe paths, limits and bytes against sha256. */
-function indexFiles(files: readonly SourceFile[]): FileIndex {
+const keyOf = (sourceId: string, path: string) => `${sourceId}\u0000${path}`;
+/** The source a supplied file belongs to: its tag, else the call's own source. */
+const sourceOf = (file: SourceFile, primary: string) => file.sourceId ?? primary;
+
+/**
+ * Indexes supplied files by source and path, checking safe paths, limits and bytes against
+ * sha256. Untagged files belong to `primary`, the call's own source.
+ */
+function indexFiles(files: readonly SourceFile[], primary: string): FileIndex {
   const map = new Map<string, Uint8Array>();
   const fail = (problem: Refused | Invalid): FileIndex => ({
     bytesOf: () => new Uint8Array(),
     has: () => false,
+    add: () => undefined,
     problem,
   });
   if (!Array.isArray(files))
@@ -133,9 +137,28 @@ function indexFiles(files: readonly SourceFile[]): FileIndex {
         ),
       );
     }
-    map.set(file.path, file.bytes);
+    map.set(keyOf(sourceOf(file, primary), file.path), file.bytes);
   }
-  return { bytesOf: (path) => map.get(path) as Uint8Array, has: (path) => map.has(path) };
+  return {
+    bytesOf: (sourceId, path) => map.get(keyOf(sourceId, path)) as Uint8Array,
+    has: (sourceId, path) => map.has(keyOf(sourceId, path)),
+    add: (sourceId, path, bytes) => {
+      map.set(keyOf(sourceId, path), bytes);
+    },
+  };
+}
+
+/**
+ * Reads an item's files by path: each path resolves in the source the item's file names, so
+ * one item may hold files from several sources (an upstream file beside a generated one).
+ */
+function itemReader(item: DiscoveredItem, index: FileIndex) {
+  const sources = new Map<string, string>();
+  for (const file of allFiles(item)) sources.set(file.sourcePath, file.sourceId);
+  return {
+    bytesOf: (path: string) => index.bytesOf(sources.get(path) ?? "", path),
+    has: (path: string) => sources.has(path) && index.has(sources.get(path) as string, path),
+  };
 }
 
 const canonical = (value: unknown): string => (value === undefined ? "" : canonicalJson(value));
@@ -153,7 +176,7 @@ function allFiles(item: DiscoveredItem): DiscoveredFile[] {
 /** A recorded item seen as discovery would propose it, with its authored fields. */
 function discovered(item: Item): DiscoveredItem {
   const strip = (file: ItemFile): DiscoveredFile => {
-    const { bytes: _bytes, derivedFrom: _derived, ...rest } = file;
+    const { bytes: _bytes, ...rest } = file;
     return rest;
   };
   return {
@@ -178,6 +201,7 @@ function discovered(item: Item): DiscoveredItem {
     ...(item.references
       ? { references: [...new Set(item.references.map((reference) => reference.name))] }
       : {}),
+    ...(item.fetch === "upstream" ? { fetch: "upstream" as const } : {}),
   };
 }
 
@@ -270,18 +294,20 @@ function requirementsFor(
  */
 async function assemble(
   item: DiscoveredItem,
-  index: FileIndex,
+  files: FileIndex,
   bundles: ReadonlyMap<string, Bundle>,
+  primary: string,
 ): Promise<{ item: Item; compare: string[] } | Problem[]> {
   const id = String(item?.id);
   if (!(implementedKinds as readonly string[]).includes(item?.kind))
     return [{ path: id, message: `building ${String(item?.kind)} items is not implemented yet` }];
-  const missing = allFiles(item).filter((file) => !index.has(file.sourcePath));
+  const missing = allFiles(item).filter((file) => !files.has(file.sourceId, file.sourcePath));
   if (missing.length > 0)
     return missing.map((file) => ({
       path: `${id}/${file.sourcePath}`,
       message: "the file was not supplied with its bytes",
     }));
+  const index = itemReader(item, files);
   const read = readFields(item, index.bytesOf);
   if (typeof read === "string") return [{ path: id, message: read }];
   const record = (file: DiscoveredFile): ItemFile => ({
@@ -292,10 +318,20 @@ async function assemble(
     bytes: index.bytesOf(file.sourcePath).byteLength,
     executable: file.executable,
     role: file.role,
+    ...(file.derivedFrom
+      ? {
+          derivedFrom: {
+            sourcePath: file.derivedFrom.sourcePath,
+            pointer: file.derivedFrom.pointer,
+          },
+        }
+      : {}),
   });
   const itemFiles = item.files.map(record);
   const scanKey = await scanKeyFor({ kind: item.kind, files: itemFiles }, index.bytesOf);
   if (!scanKey.startsWith("git-")) return [{ path: id, message: scanKey }];
+  if (item.fetch !== undefined && item.fetch !== "upstream")
+    return [{ path: `${id}/fetch`, message: "fetch must be upstream" }];
   const fields: Record<string, unknown> = { ...read.fields };
   if (item.userOnly !== undefined) {
     if (item.userOnly !== true || item.kind !== "skill")
@@ -329,7 +365,15 @@ async function assemble(
     bundle = bundles.get(item.bundle);
     if (bundle === undefined) return [{ path: `${id}/bundle`, message: "names no bundle" }];
   }
-  const references = pathReferences(itemFiles, index.has, index.bytesOf);
+  // A mention resolves in the file's own source; a cut-out's in the source it was cut from.
+  const references = pathReferences(
+    itemFiles,
+    (path, file) => {
+      const recorded = file as ItemFile;
+      return files.has(recorded.derivedFrom ? primary : recorded.sourceId, path);
+    },
+    index.bytesOf,
+  );
   const named = namespacedReferences(item, index.bytesOf);
   if (typeof named === "string") return [{ path: `${id}/references`, message: named }];
   const base: Record<string, unknown> = {
@@ -346,6 +390,7 @@ async function assemble(
     ...(bundle ? { bundle: bundle.id } : {}),
     ...(references.length > 0 ? { pathReferences: references } : {}),
     ...(named ? { references: named } : {}),
+    ...(item.fetch === "upstream" ? { fetch: "upstream" } : {}),
     contentSha256: contentSha256(itemFiles),
     behaviourSha256: behaviourSha256(base as never, bundle ? bundle.files : null),
     scanKey,
@@ -373,10 +418,10 @@ export interface BundleRequest {
   readonly include: readonly string[];
 }
 
-const fileRecord = (file: SourceFile, index: FileIndex) => ({
+const fileRecord = (file: SourceFile, sourceId: string, index: FileIndex) => ({
   sourcePath: file.path,
   sha256: file.sha256 as string,
-  bytes: index.bytesOf(file.path).byteLength,
+  bytes: index.bytesOf(sourceId, file.path).byteLength,
   executable: file.mode === "100755",
 });
 
@@ -414,7 +459,7 @@ async function pluginFolder(
   if (odd)
     return [{ path: `${at}/${odd.path}`, message: "a plugin folder holds a link or special file" }];
   if (entries.length === 0) return [{ path: at, message: "the plugin folder holds no files" }];
-  const absent = entries.find((file) => !index.has(file.path));
+  const absent = entries.find((file) => !index.has(sourceId, file.path));
   if (absent)
     return [{ path: `${at}/${absent.path}`, message: "the file was not supplied with its bytes" }];
   const sorted = [...entries].sort((left, right) => compareCodeUnits(left.path, right.path));
@@ -423,7 +468,7 @@ async function pluginFolder(
     sorted.map((file) => ({
       path: relative(file.path),
       mode: file.mode as "100644" | "100755",
-      bytes: index.bytesOf(file.path),
+      bytes: index.bytesOf(sourceId, file.path),
     })),
   );
   if (key.status !== "ok") return [{ path: at, message: `scan key: ${key.reason}` }];
@@ -431,7 +476,7 @@ async function pluginFolder(
     sourceId,
     path: folder,
     ...(include !== undefined ? { include: sortedPatterns(include) } : {}),
-    files: sorted.map((file) => fileRecord(file, index)),
+    files: sorted.map((file) => fileRecord(file, sourceId, index)),
     scanKey: key.scanKey,
   };
 }
@@ -469,7 +514,7 @@ async function bundleRecord(
   const odd = entries.find((file) => file.mode !== "100644" && file.mode !== "100755");
   if (odd) return [{ path: `${at}/${odd.path}`, message: "a bundle holds a link or special file" }];
   if (entries.length === 0) return [{ path: at, message: "the bundle names no files" }];
-  const absent = entries.find((file) => !index.has(file.path));
+  const absent = entries.find((file) => !index.has(sourceId, file.path));
   if (absent)
     return [{ path: `${at}/${absent.path}`, message: "the file was not supplied with its bytes" }];
   const sorted = [...entries].sort((left, right) => compareCodeUnits(left.path, right.path));
@@ -477,7 +522,7 @@ async function bundleRecord(
     sorted.map((file) => ({
       path: file.path,
       mode: file.mode as "100644" | "100755",
-      bytes: index.bytesOf(file.path),
+      bytes: index.bytesOf(sourceId, file.path),
     })),
   );
   if (key.status !== "ok") return [{ path: at, message: `scan key: ${key.reason}` }];
@@ -485,7 +530,7 @@ async function bundleRecord(
     id: request.id,
     sourceId,
     layout: request.layout,
-    files: sorted.map((file) => fileRecord(file, index)),
+    files: sorted.map((file) => fileRecord(file, sourceId, index)),
     scanKey: key.scanKey,
   };
 }
@@ -497,10 +542,12 @@ type Pin = Omit<ContentSource, "id" | "notices">;
  * source its exact version: a branch, tag or range is never recorded. A local source records
  * no machine path.
  */
-function sourcePin(source: FetchedSource): Pin | string {
+function sourcePin(source: FetchedSource | { readonly kind: "authored" }): Pin | string {
   switch (source?.kind) {
     case "local":
       return { kind: "local" };
+    case "authored":
+      return { kind: "authored" };
     case "git": {
       const { repository, commit, subpath } = source;
       if (typeof repository !== "string" || repository.length === 0 || repository.length > 2048)
@@ -521,8 +568,136 @@ function sourcePin(source: FetchedSource): Pin | string {
       return { kind: "npm", package: name, version };
     }
     default:
-      return "the source must be local, git or npm";
+      return "the source must be local, git, npm or authored";
   }
+}
+
+/** A further source an item's files may name: another pin, or Catalog's own authored files. */
+export interface ExtraSource {
+  readonly id: string;
+  readonly source: FetchedSource | { readonly kind: "authored" };
+  /** The source's files, with their bytes; their paths are relative to that source. */
+  readonly files: readonly SourceFile[];
+  /** For a notice-only source: the items its notices cover. */
+  readonly noticesFor?: readonly string[];
+}
+
+/** One file Catalog cut out of a shared upstream file, for `data/<framework>/generated/`. */
+export interface GeneratedFile {
+  readonly itemId: string;
+  readonly path: string;
+  readonly bytes: Uint8Array;
+  readonly sha256: string;
+  readonly executable: boolean;
+}
+
+/** The notices among one source's regular files, each covering its folder. */
+function noticesOf(
+  files: readonly SourceFile[],
+  sourceId: string,
+  index: FileIndex,
+  problems: Problem[],
+) {
+  return files
+    .filter((file) => (file.mode === "100644" || file.mode === "100755") && isNoticePath(file.path))
+    .map((file) => {
+      if (!index.has(sourceId, file.path))
+        problems.push({ path: file.path, message: "the notice was not supplied with its bytes" });
+      return {
+        sourcePath: file.path,
+        sha256: file.sha256 as string,
+        covers: noticeCovers(file.path),
+      };
+    })
+    .sort((left, right) => compareCodeUnits(left.sourcePath, right.sourcePath));
+}
+
+/**
+ * Replaces every cut request among an item's files (and its editions' files) with the file
+ * Catalog generates for it in `<framework>-generated`, recording where the entry came from.
+ */
+function cutItem(
+  item: DiscoveredItem,
+  primary: string,
+  generatedId: string,
+  index: FileIndex,
+  out: GeneratedFile[],
+): DiscoveredItem | Problem[] {
+  const problems: Problem[] = [];
+  const parsed = new Map<string, unknown>();
+  // The same entry cut again (for an edition that is the upstream entry itself) shares a file.
+  const done = new Map<string, DiscoveredFile>();
+  const cut = (file: DiscoveredFile, cli?: string): DiscoveredFile => {
+    const request = file.cut;
+    if (request === undefined) return file;
+    const same = canonicalJson({
+      cut: request,
+      path: file.sourcePath,
+      role: file.role,
+      cli: file.cli ?? null,
+    });
+    const earlier = done.get(same);
+    if (earlier) return earlier;
+    const at = `${String(item.id)}/${cli ? `editions/${cli}/` : ""}${file.sourcePath}`;
+    if (file.sourceId !== primary) {
+      problems.push({ path: at, message: "a cut-out comes from the content's own source" });
+      return file;
+    }
+    if (!index.has(primary, file.sourcePath)) {
+      problems.push({ path: at, message: "the file was not supplied with its bytes" });
+      return file;
+    }
+    const bytes = index.bytesOf(primary, file.sourcePath);
+    if (sha256Hex(bytes) !== file.sha256) {
+      problems.push({ path: at, message: "the shared file's bytes differ from its sha256" });
+      return file;
+    }
+    if (!parsed.has(file.sourcePath)) parsed.set(file.sourcePath, readJson(bytes));
+    const document = parsed.get(file.sourcePath);
+    if (document !== null && typeof document === "object" && "error" in (document as object)) {
+      problems.push({ path: at, message: String((document as { error: string }).error) });
+      return file;
+    }
+    const value = cutDocument(document, request);
+    if (typeof value === "string") {
+      problems.push({ path: `${at}#${String(request?.pointer)}`, message: value });
+      return file;
+    }
+    const generated = new TextEncoder().encode(canonicalDocument(value));
+    const path = `${item.id}/${cli ? `${cli}/` : ""}${cutFileName(request.as)}`;
+    if (index.has(generatedId, path)) {
+      problems.push({ path: at, message: "two cut-outs of the item would share one file" });
+      return file;
+    }
+    index.add(generatedId, path, generated);
+    const sha256 = sha256Hex(generated);
+    out.push({ itemId: item.id, path, bytes: generated, sha256, executable: false });
+    const made: DiscoveredFile = {
+      sourceId: generatedId,
+      sourcePath: path,
+      sha256,
+      executable: false,
+      role: file.role,
+      ...(file.cli === undefined ? {} : { cli: file.cli }),
+      derivedFrom: { sourcePath: file.sourcePath, pointer: request.pointer },
+    };
+    done.set(same, made);
+    return made;
+  };
+  const hasCut = allFiles(item).some((file) => file?.cut !== undefined);
+  if (!hasCut) return item;
+  const files = (Array.isArray(item.files) ? item.files : []).map((file) => cut(file));
+  const editions =
+    item.editions === undefined
+      ? undefined
+      : Object.fromEntries(
+          Object.entries(item.editions).map(([cli, edition]) => [
+            cli,
+            { files: (edition?.files ?? []).map((file) => cut(file, cli)) },
+          ]),
+        );
+  if (problems.length > 0) return problems;
+  return { ...item, files, ...(editions ? { editions } : {}) };
 }
 
 /**
@@ -530,9 +705,14 @@ function sourcePin(source: FetchedSource): Pin | string {
  * `findItems` proposed. Every item file and notice must be supplied with bytes matching its
  * sha256; a changed byte is `refused` (`source-mismatch`). File-owned fields that the bytes
  * cannot support (no name, no description, malformed frontmatter) are `invalid`.
+ *
+ * Items may also name files of `sources` (further pins, or Catalog's authored files), and may
+ * ask for an entry of a shared upstream file to be cut out (`cut` on a file): Catalog writes it
+ * as its own canonical file in the authored source `<framework>-generated`, returned in
+ * `generated` for committing under `data/<framework>/generated/`.
  */
 export async function buildContent(
-  source: FetchedSource,
+  source: FetchedSource | { readonly kind: "authored" },
   files: readonly SourceFile[],
   items: readonly DiscoveredItem[],
   options: {
@@ -545,6 +725,8 @@ export async function buildContent(
     readonly plugins?: readonly PluginRequest[];
     /** Runtime bundles the items read (`bundle` on a discovered item names one). */
     readonly bundles?: readonly BundleRequest[];
+    /** Further sources the items' files name. */
+    readonly sources?: readonly ExtraSource[];
   },
 ): Promise<BuildContentResult> {
   const framework =
@@ -566,22 +748,55 @@ export async function buildContent(
   if (typeof pinned === "string")
     return { status: "invalid", problems: [{ path: "source", message: pinned }] };
   const sourceId = options.sourceId ?? framework.id;
-  const index = indexFiles(files);
+  const generatedId = `${framework.id}-generated`;
+  const extras = options.sources ?? [];
+  if (!Array.isArray(extras) || !Array.isArray(files))
+    return {
+      status: "invalid",
+      problems: [{ path: "sources", message: "files and sources are lists" }],
+    };
+  const extraPins: ContentSource[] = [];
+  const seenIds = new Set([sourceId, generatedId]);
+  for (const [at, extra] of extras.entries()) {
+    const where = `sources/${at}`;
+    if (typeof extra?.id !== "string" || !FRAMEWORK_ID.test(extra.id) || seenIds.has(extra.id))
+      return {
+        status: "invalid",
+        problems: [{ path: `${where}/id`, message: "a further source needs its own source id" }],
+      };
+    seenIds.add(extra.id);
+    if (!Array.isArray(extra.files))
+      return {
+        status: "invalid",
+        problems: [{ path: `${where}/files`, message: "files is a list" }],
+      };
+    const pin = sourcePin(extra.source);
+    if (typeof pin === "string")
+      return { status: "invalid", problems: [{ path: `${where}/source`, message: pin }] };
+    extraPins.push({
+      id: extra.id,
+      ...pin,
+      notices: [],
+      ...(extra.noticesFor ? { noticesFor: [...extra.noticesFor].sort(compareCodeUnits) } : {}),
+    });
+  }
+  const tagged: SourceFile[] = [
+    ...files.map((file) => ({ ...file, sourceId: sourceId })),
+    ...extras.flatMap((extra) =>
+      extra.files.map((file: SourceFile) => ({ ...file, sourceId: extra.id })),
+    ),
+  ];
+  const index = indexFiles(tagged, sourceId);
   if (index.problem) return index.problem;
   const problems: Problem[] = [];
-  const notices = files
-    .filter((file) => (file.mode === "100644" || file.mode === "100755") && isNoticePath(file.path))
-    .map((file) => {
-      if (!index.has(file.path))
-        problems.push({ path: file.path, message: "the notice was not supplied with its bytes" });
-      const folder = dirnameOf(file.path);
-      return {
-        sourcePath: file.path,
-        sha256: file.sha256 as string,
-        covers: folder === "" ? "/" : folder,
-      };
-    })
-    .sort((left, right) => compareCodeUnits(left.sourcePath, right.sourcePath));
+  const notices = noticesOf(files, sourceId, index, problems);
+  const sources: ContentSource[] = [
+    { id: sourceId, ...pinned, notices },
+    ...extraPins.map((pin, at) => ({
+      ...pin,
+      notices: noticesOf((extras[at] as ExtraSource).files, pin.id, index, problems),
+    })),
+  ];
   const bundles = new Map<string, Bundle>();
   const requested = options.bundles ?? [];
   if (!Array.isArray(requested)) problems.push({ path: "bundles", message: "bundles is a list" });
@@ -593,10 +808,17 @@ export async function buildContent(
         problems.push({ path: `bundles/${result.id}`, message: "the bundle id is used twice" });
       else bundles.set(result.id, result);
     }
+  const generated: GeneratedFile[] = [];
   const built: Item[] = [];
   const proposed: readonly DiscoveredItem[] = Array.isArray(items) ? items : [];
-  for (const item of proposed) {
-    const wrongSource = allFiles(item).filter((file) => file.sourceId !== sourceId);
+  const known = new Set(seenIds);
+  for (const proposal of proposed) {
+    const item = cutItem(proposal, sourceId, generatedId, index, generated);
+    if (Array.isArray(item)) {
+      problems.push(...item);
+      continue;
+    }
+    const wrongSource = allFiles(item).filter((file) => !known.has(file.sourceId));
     if (wrongSource.length > 0) {
       for (const file of wrongSource)
         problems.push({
@@ -607,14 +829,15 @@ export async function buildContent(
     }
     const mismatched = allFiles(item).find(
       (file) =>
-        index.has(file.sourcePath) && sha256Hex(index.bytesOf(file.sourcePath)) !== file.sha256,
+        index.has(file.sourceId, file.sourcePath) &&
+        sha256Hex(index.bytesOf(file.sourceId, file.sourcePath)) !== file.sha256,
     );
     if (mismatched)
       return refused(
         "source-mismatch",
         `the bytes of ${quote(mismatched.sourcePath)} differ from the item's sha256`,
       );
-    const result = await assemble(item, index, bundles);
+    const result = await assemble(item, index, bundles, sourceId);
     if (Array.isArray(result)) {
       problems.push(...result);
       continue;
@@ -636,11 +859,11 @@ export async function buildContent(
       else plugins.push(result);
     }
   if (problems.length > 0) return { status: "invalid", problems };
-  const contentSource: ContentSource = { id: sourceId, ...pinned, notices };
+  if (generated.length > 0) sources.push({ id: generatedId, kind: "authored", notices: [] });
   const content: Content = {
     schema: formats.content,
     framework: { id: framework.id, name: framework.name },
-    sources: [contentSource],
+    sources,
     items: built.sort((left, right) => compareCodeUnits(left.id, right.id)),
     ...(bundles.size > 0
       ? {
@@ -654,7 +877,12 @@ export async function buildContent(
   const bytes = new TextEncoder().encode(canonicalDocument(content));
   if (bytes.byteLength > limits.contentFileBytes)
     return limitRefusal("contentFileBytes", "the content document");
-  return { status: "ok", content: deepFreeze(content), bytes, generated: [] };
+  return {
+    status: "ok",
+    content: deepFreeze(content),
+    bytes,
+    generated: generated.sort((left, right) => compareCodeUnits(left.path, right.path)),
+  };
 }
 
 export type CheckContentResult =
@@ -677,7 +905,9 @@ export type CheckContentResult =
 /**
  * Checks a content record. Without files it checks shape and record-derived digests only;
  * with files it also checks every item file's bytes, length, file-owned fields and scan key.
- * With `scannedKeys` it lists the item scan keys that have no matching scan.
+ * Files of a source other than the content's first are tagged with their `sourceId` (the
+ * committed generated and authored copies, for example). With `scannedKeys` it lists the
+ * item scan keys that have no matching scan.
  */
 export async function checkContent(
   content: Content,
@@ -685,8 +915,11 @@ export async function checkContent(
   options: { readonly scannedKeys?: readonly string[] } = {},
 ): Promise<CheckContentResult> {
   const problems: Problem[] = [...contentProblems(content)];
+  const primary = content?.sources?.[0]?.id ?? "";
+  const ofSource = (sourceId: string) =>
+    (files ?? []).filter((file) => sourceOf(file, primary) === sourceId);
   if (problems.length === 0 && files !== undefined) {
-    const index = indexFiles(files);
+    const index = indexFiles(files, primary);
     if (index.problem) {
       const problem = index.problem;
       return {
@@ -699,8 +932,8 @@ export async function checkContent(
     }
     for (const item of content.items) {
       const view = discovered(item);
-      const files = allFiles(view);
-      const absent = files.filter((file) => !index.has(file.sourcePath));
+      const named = allFiles(view);
+      const absent = named.filter((file) => !index.has(file.sourceId, file.sourcePath));
       if (absent.length > 0) {
         for (const file of absent)
           problems.push({
@@ -714,7 +947,7 @@ export async function checkContent(
         ...Object.values(item.editions ?? {}).flatMap((edition) => edition.files),
       ];
       for (const file of recordedFiles) {
-        const bytes = index.bytesOf(file.sourcePath);
+        const bytes = index.bytesOf(file.sourceId, file.sourcePath);
         if (sha256Hex(bytes) !== file.sha256)
           problems.push({
             path: `${item.id}/${file.sourcePath}`,
@@ -731,6 +964,7 @@ export async function checkContent(
         view,
         index,
         new Map((content.bundles ?? []).map((bundle) => [bundle.id, bundle])),
+        primary,
       );
       if (Array.isArray(result)) {
         problems.push(...result);
@@ -755,7 +989,7 @@ export async function checkContent(
   }
   if (problems.length === 0 && files !== undefined)
     for (const [at, bundle] of (content.bundles ?? []).entries()) {
-      const index = indexFiles(files);
+      const index = indexFiles(files, primary);
       const result = await bundleRecord(
         {
           id: bundle.id,
@@ -763,7 +997,7 @@ export async function checkContent(
           include: bundle.files.map((file) => file.sourcePath),
         },
         bundle.sourceId,
-        files,
+        ofSource(bundle.sourceId),
         index,
       );
       if (Array.isArray(result) || canonicalJson(result) !== canonicalJson(bundle))
@@ -774,11 +1008,11 @@ export async function checkContent(
     }
   if (problems.length === 0 && files !== undefined)
     for (const [at, plugin] of (content.plugins ?? []).entries()) {
-      const index = indexFiles(files);
+      const index = indexFiles(files, primary);
       const result = await pluginFolder(
         plugin.include ? { path: plugin.path, include: plugin.include } : plugin.path,
         plugin.sourceId,
-        files,
+        ofSource(plugin.sourceId),
         index,
       );
       if (Array.isArray(result)) problems.push(...result);

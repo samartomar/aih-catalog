@@ -45,8 +45,29 @@ export type FindItemsResult =
 
 const NOTICE = /^(?:LICEN[CS]E|COPYING|NOTICE)(?:[-_.][A-Za-z0-9._-]*)?$/i;
 
-/** True for a licence or notice file; notices are never item files. */
-export const isNoticePath = (path: string): boolean => NOTICE.test(basenameOf(path));
+/** A REUSE-style folder of licence texts: `licenses/` or `LICENSES/`. */
+const LICENCE_FOLDER = /^LICEN[CS]ES$/i;
+
+const inLicenceFolder = (path: string): boolean => {
+  const parent = dirnameOf(path);
+  return parent !== "" && LICENCE_FOLDER.test(basenameOf(parent));
+};
+
+/**
+ * True for a licence or notice file: a `LICENSE`, `COPYING` or `NOTICE` file, or any file in a
+ * `licenses/` folder (third-party licence texts). Notices are never item files.
+ */
+export const isNoticePath = (path: string): boolean =>
+  NOTICE.test(basenameOf(path)) || inLicenceFolder(path);
+
+/**
+ * The folder a notice covers: its own folder, or for a file in a `licenses/` folder the folder
+ * holding that one (such texts apply to the content beside it). `/` is the whole source.
+ */
+export function noticeCovers(path: string): string {
+  const folder = inLicenceFolder(path) ? dirnameOf(dirnameOf(path)) : dirnameOf(path);
+  return folder === "" ? "/" : folder;
+}
 
 /** Paths of kinds that exist in the contract but whose discovery here is not implemented. */
 function unimplementedKind(path: string): string | null {
@@ -124,11 +145,10 @@ export function findItems(
   const notices: Notice[] = [];
   const candidates = regular.filter((file) => {
     if (!isNoticePath(file.path)) return true;
-    const folder = dirnameOf(file.path);
     notices.push({
       sourcePath: file.path,
       sha256: file.sha256 as string,
-      covers: folder === "" ? "/" : folder,
+      covers: noticeCovers(file.path),
     });
     return false;
   });

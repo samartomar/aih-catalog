@@ -112,6 +112,17 @@ function ruleScope(frontmatter: Frontmatter): RuleScope | { readonly error: stri
   return "always";
 }
 
+/**
+ * The language folder a rule sits in: `rules/python/testing.md` gives `python`. Rules in
+ * `rules/common/` (or directly in `rules/`) are language-neutral and record none.
+ */
+function languageOf(path: string): string | undefined {
+  const [kind, folder, ...rest] = path.split("/");
+  if (kind !== "rules" || folder === undefined || rest.length === 0 || folder === "common")
+    return undefined;
+  return /^[a-z0-9][a-z0-9_-]*$/.test(folder) ? folder : undefined;
+}
+
 /** The skill's `SKILL.md`, or for a former command its single Markdown file. */
 export function skillFile(files: readonly { sourcePath: string; cli?: string }[]) {
   const general = files.filter((file) => file.cli === undefined);
@@ -162,7 +173,8 @@ function readRule(item: DiscoveredItem, bytesOf: BytesOf): Read | string {
     return `${rule.sourcePath}: needs a description, heading or first line of 1–1024 characters`;
   const scope = ruleScope(read.frontmatter);
   if (typeof scope === "object" && "error" in scope) return `${rule.sourcePath}: ${scope.error}`;
-  return { fields: { name, description, scope } };
+  const language = languageOf(rule.sourcePath);
+  return { fields: { name, description, scope, ...(language ? { language } : {}) } };
 }
 
 /** An agent is one Markdown file in Claude's format: frontmatter fields, the body is the prompt. */
@@ -209,7 +221,9 @@ const kebab = (event: string) => event.replace(/([a-z0-9])([A-Z])/g, "$1-$2").to
 function readHook(item: DiscoveredItem, bytesOf: BytesOf): Read | string {
   const general = item.files.filter((file) => file.cli === undefined);
   const file = general.find((candidate) => basenameOf(candidate.sourcePath) === "hooks.json");
-  if (file === undefined) return "a hook needs its one-entry hooks.json";
+  const kiro = general.find((candidate) => candidate.sourcePath.endsWith(".kiro.hook"));
+  if (file === undefined && kiro !== undefined) return readKiroHook(item, kiro.sourcePath, bytesOf);
+  if (file === undefined) return "a hook needs its one-entry hooks.json, or a Kiro hook file";
   const value = readJson(bytesOf(file.sourcePath));
   if (isError(value)) return `${file.sourcePath}: ${value.error}`;
   const hooks = (value as { hooks?: unknown })?.hooks;
@@ -234,6 +248,46 @@ function readHook(item: DiscoveredItem, bytesOf: BytesOf): Read | string {
     handler: { type: handler.type },
   };
   if (matcher !== undefined) fields.matcher = matcher;
+  return { fields };
+}
+
+/**
+ * A Kiro hook file (`*.kiro.hook`): JSON with `when` (the event and its file patterns) and
+ * `then` (what runs). Kiro is the only client that reads it, so it is placed only as Kiro's
+ * edition; its event names are Kiro's own.
+ */
+function readKiroHook(item: DiscoveredItem, path: string, bytesOf: BytesOf): Read | string {
+  const value = readJson(bytesOf(path));
+  if (isError(value)) return `${path}: ${value.error}`;
+  const record = value as Record<string, unknown>;
+  const when = record?.when as Record<string, unknown> | undefined;
+  const then = record?.then as Record<string, unknown> | undefined;
+  if (typeof when?.type !== "string" || !/^[a-z][A-Za-z]*$/.test(when.type))
+    return `${path}: a Kiro hook needs when.type`;
+  if (typeof then?.type !== "string") return `${path}: a Kiro hook needs then.type`;
+  const name = item.id.slice(item.id.lastIndexOf(".") + 1);
+  if (!nameOk(name)) return badName(path, name);
+  const description =
+    typeof record.description === "string" && descriptionOk(record.description)
+      ? record.description
+      : `${when.type} hook`;
+  const patterns = when.patterns ?? when.toolTypes;
+  if (
+    patterns !== undefined &&
+    !(Array.isArray(patterns) && patterns.every((entry) => typeof entry === "string"))
+  )
+    return `${path}: when.patterns must be a list of text`;
+  const fields: Fields = {
+    name,
+    description,
+    event: kebab(when.type),
+    handler: { type: then.type },
+  };
+  if (Array.isArray(patterns) && patterns.length > 0) {
+    const matcher = (patterns as string[]).join("|");
+    if (matcher.length > 256) return `${path}: the patterns are too long`;
+    fields.matcher = matcher;
+  }
   return { fields };
 }
 
@@ -310,6 +364,19 @@ function readMcp(item: DiscoveredItem, bytesOf: BytesOf): Read | string {
           (argument.value === undefined || typeof argument.value === "string"));
       if (!ok) return `${where}/${index}: an argument is positional with a value, or named`;
       if (typeof argument.value === "string") markers.push(...markersIn(argument.value));
+      const variables = (entry as { variables?: unknown }).variables;
+      if (variables !== undefined) {
+        if (variables === null || typeof variables !== "object" || Array.isArray(variables))
+          return `${where}/${index}/variables must be an object`;
+        const problem = declare(
+          Object.entries(variables).map(([name, declaration]) => ({
+            ...(declaration as Record<string, unknown>),
+            name,
+          })),
+          `${where}/${index}/variables`,
+        );
+        if (problem) return problem;
+      }
     }
     return undefined;
   };
