@@ -114,7 +114,7 @@
       "section": "aiSetup"
     },
     "crg": {
-      "contentSha256": "adb7e2417065e7d21ebf130eca7cee8915e9f6f3e2077278dc4de0e2e32b93d5",
+      "contentSha256": "2dec9adeef6338af376cb31abcdb4738d64cdb276e80e46012fe909d3090fec9",
       "items": 9,
       "section": "aiSetup"
     },
@@ -183,7 +183,7 @@
     "native": [
       "Fixture and test results prove planning behaviour only; native loading of the planned layouts by each client is not validated by this package.",
       "Plugin presence checks are `none` on every client until a reliable check is evidenced, so an installed plugin is never reported as confirmed.",
-      "AI setup qualifications are the recorded runs' results: cbm.ai-setup.codebase-memory-mcp on linux-x64 qualified; crg.ai-setup.code-review-graph on linux-x64, serena.ai-setup.serena on linux-x64 blocked; every other cell unknown or without a record.",
+      "AI setup qualifications are the recorded runs' results: cbm.ai-setup.codebase-memory-mcp on linux-x64 qualified; crg.ai-setup.code-review-graph on linux-x64, crg.ai-setup.code-review-graph on linux-x64, serena.ai-setup.serena on linux-x64 blocked; every other cell unknown or without a record.",
       "The code-review-graph, codebase-memory-mcp and Serena trio has no combination qualification, so its recipe plans `incomplete` on every cell.",
       "Profile facts are as checked on the dates each profile's `checkedWith` records; some places and field names rest on vendor documentation rather than a live check."
     ]
@@ -232,6 +232,12 @@
       "status": "blocked"
     },
     {
+      "aiSetup": "crg.ai-setup.code-review-graph",
+      "cell": "linux-x64",
+      "sha256": "3231792df571912e5edc5584d6ea1c991bed4b6b09637346169d994dfd40d970",
+      "status": "blocked"
+    },
+    {
       "aiSetup": "serena.ai-setup.serena",
       "cell": "linux-x64",
       "sha256": "8e9113b6ba319e27f7b05651a35b3b91d4b1a1963a3fb29746b37735643d4b81",
@@ -241,7 +247,7 @@
   "sections": {
     "aiSetup": {
       "path": "port-report/ai-setup.json",
-      "sha256": "62c65b570af7d78b3977b6a9b90ad90311fe5b3862f084c98978291816d73a3b"
+      "sha256": "bbf14f2c9074a55bad380136c38aede5b39efbf9d881031534d3288fe2f5e737"
     },
     "maintained": {
       "path": "port-report/maintained.json",
@@ -256,6 +262,6 @@
     "draftRecipes": 10,
     "frameworks": 13,
     "items": 902,
-    "qualifications": 8
+    "qualifications": 9
   }
 }

@@ -264,6 +264,23 @@ const QUALIFICATIONS = [
     run: "f012bb893739f98c06d9cdfd6d409072bea9cb6c95019ea86d375d7bfd3177b7",
     date: "2026-10-27",
   }),
+  // code-review-graph rerun on the latest CPython in its range: the interpreter was acquired and
+  // verified, but two of the closure's packages publish no wheel for it, so nothing ran.
+  record("crg.ai-setup.code-review-graph", "2.3.9", "linux-x64", {
+    artifact: artifactOf(CRG_WHEEL),
+    closure: null,
+    interpreter: {
+      version: "3.15.2",
+      file: "cpython-3.15.2+20261026-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz",
+      sha256: "7b03163a980c607ba8194709d4a4086735a7a9c488cc475b098157306927b36b",
+      bytes: 38129918,
+    },
+  }, {
+    status: "blocked",
+    reason: "no binary-only closure on CPython 3.15.2, the latest release in >=3.10: pyyaml 6.0.3 and tree-sitter 0.26.0, the latest of each on PyPI on 2026-11-04, publish no cp315 or abi3 Linux x86_64 wheel, only source distributions; a source build is not accepted, so nothing ran natively",
+    run: "f4c3647cd168bccfd05775a57e8cd0f1c0ca765a334a5596d91871bb06daeb7f",
+    date: "2026-11-04",
+  }),
   // Serena: no binary-only closure exists, so nothing ran.
   record("serena.ai-setup.serena", "2.1.0", "linux-x64", { artifact: artifactOf(SERENA_WHEEL), closure: null, interpreter: null }, {
     status: "blocked",
