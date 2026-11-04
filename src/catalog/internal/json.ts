@@ -94,50 +94,6 @@ export function assertStrictValues(root: unknown): void {
   }
 }
 
-/**
- * Admits exactly canonical bytes plus one LF, within the byte and depth bounds.
- * Duplicate keys, whitespace, key order, number spelling and escapes all fail
- * the canonical round trip rather than being repaired.
- */
-export function readCanonicalBytes(
-  bytes: Uint8Array,
-  limits: { readonly maxBytes: number; readonly maxDepth: number },
-): Json {
-  if (!(bytes instanceof Uint8Array) || bytes.byteLength === 0) {
-    throw new JsonAdmissionError("malformed-bytes");
-  }
-  if (bytes.byteLength > limits.maxBytes) throw new JsonAdmissionError("byte-limit");
-  if (bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
-    throw new JsonAdmissionError("non-canonical-bytes");
-  }
-  let text: string;
-  try {
-    text = fatalUtf8.decode(bytes);
-  } catch {
-    throw new JsonAdmissionError("malformed-utf8");
-  }
-  if (!text.endsWith("\n") || text.endsWith("\n\n")) {
-    throw new JsonAdmissionError("non-canonical-bytes");
-  }
-  const body = text.slice(0, -1);
-  if (textDepth(body) > limits.maxDepth) throw new JsonAdmissionError("depth-limit");
-  let value: unknown;
-  try {
-    value = JSON.parse(body);
-  } catch {
-    throw new JsonAdmissionError("malformed-json");
-  }
-  let rendered: string;
-  try {
-    rendered = canonicalJson(value);
-  } catch {
-    throw new JsonAdmissionError("non-canonical-bytes");
-  }
-  if (rendered !== body) throw new JsonAdmissionError("non-canonical-bytes");
-  assertStrictValues(value);
-  return value as Json;
-}
-
 /** Deep-freezes a JSON value iteratively. */
 export function deepFreeze<T>(value: T): T {
   const pending: unknown[] = [value];
@@ -209,5 +165,70 @@ export function readCanonicalDocument(
   }
   if (rendered !== text) throw new JsonAdmissionError("non-canonical-bytes");
   assertStrictValues(value);
+  return value as Json;
+}
+
+/** Throws `duplicate-key` when any object in the (already parsed) JSON text repeats a key. */
+function assertUniqueKeys(text: string): void {
+  const frames: { readonly object: boolean; readonly keys: Set<string>; expectKey: boolean }[] = [];
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text.charCodeAt(index);
+    if (char === 0x7b) frames.push({ object: true, keys: new Set(), expectKey: true });
+    else if (char === 0x5b) frames.push({ object: false, keys: new Set(), expectKey: false });
+    else if (char === 0x7d || char === 0x5d) frames.pop();
+    else if (char === 0x2c) {
+      const top = frames[frames.length - 1];
+      if (top?.object) top.expectKey = true;
+    } else if (char === 0x22) {
+      const start = index;
+      for (index += 1; text.charCodeAt(index) !== 0x22; index += 1)
+        if (text.charCodeAt(index) === 0x5c) index += 1;
+      const top = frames[frames.length - 1];
+      if (top?.object && top.expectKey) {
+        const key = JSON.parse(text.slice(start, index + 1)) as string;
+        if (top.keys.has(key)) throw new JsonAdmissionError("duplicate-key");
+        top.keys.add(key);
+        top.expectKey = false;
+      }
+    }
+  }
+}
+
+/**
+ * Admits a document its author wrote in any strict JSON spelling (RFC 8259 text, UTF-8 without
+ * a byte-order mark, no duplicate keys, well-formed NFC strings, safe integers), within the
+ * byte and depth bounds. Its identity is the sha256 of its canonical form, never of the bytes.
+ */
+export function readStrictDocument(
+  bytes: Uint8Array,
+  limits: { readonly maxBytes: number; readonly maxDepth: number },
+): Json {
+  if (!(bytes instanceof Uint8Array) || bytes.byteLength === 0) {
+    throw new JsonAdmissionError("malformed-bytes");
+  }
+  if (bytes.byteLength > limits.maxBytes) throw new JsonAdmissionError("byte-limit");
+  if (bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
+    throw new JsonAdmissionError("byte-order-mark");
+  }
+  let text: string;
+  try {
+    text = fatalUtf8.decode(bytes);
+  } catch {
+    throw new JsonAdmissionError("malformed-utf8");
+  }
+  if (textDepth(text) > limits.maxDepth) throw new JsonAdmissionError("depth-limit");
+  let value: unknown;
+  try {
+    value = JSON.parse(text);
+  } catch {
+    throw new JsonAdmissionError("malformed-json");
+  }
+  assertUniqueKeys(text);
+  assertStrictValues(value);
+  try {
+    canonicalDocument(value);
+  } catch {
+    throw new JsonAdmissionError("malformed-json");
+  }
   return value as Json;
 }

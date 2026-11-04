@@ -214,7 +214,30 @@ describe("changed bytes", () => {
     ).toContain(`${tidy}/skills/tidy/SKILL.md`);
   });
 
-  it("reads content back only in its canonical, digest-consistent form", async () => {
+  it("reads own content and own profiles in any strict JSON spelling, never with duplicate keys", async () => {
+    const root = folder({ "skills/tidy/SKILL.md": SKILL });
+    const { built } = await ownContent(root);
+    const compact = new TextEncoder().encode(JSON.stringify(built.content));
+    expect(readContent(compact)).toEqual({ status: "ok", content: built.content });
+    const twice = new TextEncoder().encode(
+      `{"schema":"x",${JSON.stringify(built.content).slice(1)}`,
+    );
+    expect(readContent(twice)).toMatchObject({ status: "invalid" });
+    const nested = JSON.stringify(built.content).replace(
+      '"framework":{',
+      '"framework":{"name":"Other",',
+    );
+    expect(readContent(new TextEncoder().encode(nested))).toMatchObject({ status: "invalid" });
+    const withBom = new Uint8Array([0xef, 0xbb, 0xbf, ...compact]);
+    expect(readContent(withBom)).toMatchObject({ status: "invalid" });
+    const own = profile("codex");
+    expect(readToolProfile(new TextEncoder().encode(JSON.stringify(own)))).toEqual({
+      status: "ok",
+      profile: own,
+    });
+  });
+
+  it("reads content back only in its digest-consistent form", async () => {
     const root = folder({ "skills/tidy/SKILL.md": SKILL });
     const { built } = await ownContent(root);
     const path = join(root, "..", "content.json");
@@ -226,9 +249,6 @@ describe("changed bytes", () => {
     ).toMatchObject({
       status: "invalid",
       problems: [{ path: "/items/0/behaviourSha256" }],
-    });
-    expect(readContent(new TextEncoder().encode(text.replace("\n  ", "\n ")))).toMatchObject({
-      status: "invalid",
     });
     expect(
       readContent(

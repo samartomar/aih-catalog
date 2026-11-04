@@ -4,9 +4,8 @@ This document describes what `@aihq/catalog` 0.1.0 reads, records and returns. T
 `/contracts` entry point publishes one JSON Schema (draft 2020-12) per format as `schemas`,
 one valid and one invalid document per schema as `fixtures`, and the nine shipped tool
 profiles as `toolProfiles`. A schema describes shape. The format's reader is the authority:
-it also recomputes digests, checks ordering and uniqueness, resolves references between
-fields and requires canonical bytes, so a document can conform to its schema and still read
-`invalid`.
+it also recomputes digests, checks ordering and uniqueness and resolves references between
+fields, so a document can conform to its schema and still read `invalid`.
 
 ## Formats
 
@@ -14,17 +13,21 @@ Every document names its format in `schema` with a URN of the form
 `urn:aihq:catalog:<name>:0.1.0`. A reader returns `unsupported-version` for another version of
 its own format and `invalid` for anything else. There are no aliases for earlier names.
 
-| Format | `schema` | Reader | Canonical bytes |
+| Format | `schema` | Reader | Accepted bytes |
 | --- | --- | --- | --- |
-| Source-link result | `urn:aihq:catalog:source-link:0.1.0` | returned by `parseSourceLink` | no |
-| Content | `urn:aihq:catalog:content:0.1.0` | `readContent`, `readContentFile` | yes |
-| Tool profile | `urn:aihq:catalog:tool-profile:0.1.0` | `readToolProfile` | yes |
-| Recipe | `urn:aihq:catalog:recipe:0.1.0` | `readRecipe(pluginJson, recipeJson)` | yes |
-| Qualification | `urn:aihq:catalog:qualification:0.1.0` | `readQualification` | yes |
+| Source-link result | `urn:aihq:catalog:source-link:0.1.0` | returned by `parseSourceLink` | not read |
+| Content | `urn:aihq:catalog:content:0.1.0` | `readContent`, `readContentFile` | strict JSON |
+| Tool profile | `urn:aihq:catalog:tool-profile:0.1.0` | `readToolProfile` | strict JSON |
+| Recipe | `urn:aihq:catalog:recipe:0.1.0` | `readRecipe(pluginJson, recipeJson)` | strict JSON |
+| Qualification | `urn:aihq:catalog:qualification:0.1.0` | `readQualification` | canonical only |
 
-Canonical bytes are JSON with keys sorted by code unit, two-space indentation and exactly
-one final line feed. A document's identity is the sha256 of those bytes. Plans are results,
-not a stored format.
+Strict JSON is UTF-8 JSON text without a byte-order mark or duplicate keys, with well-formed
+NFC strings and safe integers, in any spelling, so you can write your own content, profiles
+and recipes by hand. Canonical bytes are JSON with keys sorted by code unit, two-space
+indentation and exactly one final line feed; Catalog writes every document it generates in
+that form. A document's identity is the sha256 of its canonical form, whatever spelling it
+was read from. A qualification is named by the sha256 of its exact bytes, so it is read only
+in canonical form. Plans are results, not a stored format.
 
 ### Source-link result
 
@@ -96,7 +99,7 @@ profile's rendered output increases its `version`.
 ### Recipe
 
 A recipe is a Git plugin: an Agent Plugins `plugin.json` (name, version, description, author,
-licence, keywords) beside a canonical `recipe.json`. A recipe is a `base` or `add-on` for one
+licence, keywords) beside a `recipe.json`. A recipe is a `base` or `add-on` for one
 framework (an add-on lists the recipes it `requires`) or a `combination` of frameworks. It
 records the upstream `content` pin, a `route` per client (clients it does not name use
 `items`), the `plugins` and `setup` programs those routes need, the kinds each items route
@@ -123,7 +126,7 @@ profiles, choices, options)` return a plan:
 | Field | Holds |
 | --- | --- |
 | `status` | `ok`, or `incomplete` when anything the choices require is missing, unavailable, clashing or unresolved |
-| `recipe` | a recipe plan's origin: id, sha256 of its canonical bytes, repository and commit |
+| `recipe` | a recipe plan's origin: id, sha256 of its canonical form, repository and commit |
 | `data` | the Catalog data commit the plan used, or `null` for your own content only |
 | `profiles` | the id and version of each profile used |
 | `plan` | the ordered steps |

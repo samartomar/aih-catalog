@@ -70,9 +70,23 @@ describe("reading a recipe", () => {
     if (read.status === "ok") expect(Object.isFrozen(read.recipe)).toBe(true);
   });
 
-  it("rejects a recipe that is not canonical, from another format version, or malformed", () => {
+  it("reads a recipe its author wrote in any strict JSON spelling, identified by its canonical form", () => {
+    const written = encode(RECIPE, false);
+    const read = readRecipe(encode(PLUGIN, false), written);
+    expect(read).toEqual({
+      status: "ok",
+      recipe: RECIPE,
+      plugin: PLUGIN,
+      sha256: sha(encode(RECIPE)),
+    });
+    const duplicate = new TextEncoder().encode(`{"id":"x",${JSON.stringify(RECIPE).slice(1)}`);
+    expect(readRecipe(encode(PLUGIN), duplicate)).toMatchObject({ status: "invalid" });
+    const trailing = new TextEncoder().encode(`${JSON.stringify(RECIPE)} // note\n`);
+    expect(readRecipe(encode(PLUGIN), trailing)).toMatchObject({ status: "invalid" });
+  });
+
+  it("rejects a recipe from another format version, or malformed", () => {
     const plugin = encode(PLUGIN);
-    expect(readRecipe(plugin, encode(RECIPE, false))).toMatchObject({ status: "invalid" });
     expect(
       readRecipe(plugin, encode({ ...RECIPE, schema: "urn:aihq:catalog:recipe:0.2.0" })),
     ).toEqual({ status: "unsupported-version", schema: "urn:aihq:catalog:recipe:0.2.0" });

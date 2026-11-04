@@ -34,7 +34,7 @@ reconciles the three section reports with the committed data and lists the known
 
 | Earlier check | Now |
 | --- | --- |
-| Strict JSON, canonical bytes, bounded input, frozen results | Adapted: every format is admitted only as canonical bytes within published limits (`tests/catalog/refusals.test.ts`). |
+| Strict JSON, canonical bytes, bounded input, frozen results | Adapted: every format is admitted as strict JSON within published limits (qualifications only as canonical bytes), and identified by its canonical form (`tests/catalog/refusals.test.ts`). |
 | Safe relative paths, link and special-file refusal, sha256 and changed-byte refusal | Adapted into `readLocalSource`, `fetchSource`, `checkContent` and `renderStep`. |
 | Source-link parsing and hookless pinned fetching | Adapted into `parseSourceLink` and `fetchSource`, tested with local Git repositories and a local npm registry. |
 | Package identity, packed contents and publication refusal | Kept: `tests/catalog/package.test.ts` and `tests/publication-guard.test.ts`. |
