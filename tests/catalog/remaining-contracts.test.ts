@@ -183,6 +183,52 @@ describe("an upstream-only item", () => {
   });
 });
 
+describe("an item's own client edition", () => {
+  it("is listed by its own scan key until it has a scan, apart from the item's", async () => {
+    const own = upstream(
+      folder({
+        "skills/gamma/SKILL.md": "---\nname: gamma\ndescription: Gamma.\n---\nBody\n",
+        "claude/skills/gamma/SKILL.md": "---\nname: gamma\ndescription: Gamma.\n---\nClaude body\n",
+      }),
+    );
+    const found = findItems(own.files, { framework: "kit" });
+    if (found.status !== "ok") throw new Error("find");
+    const edition = own.files.find((file) => file.path === "claude/skills/gamma/SKILL.md");
+    const items = found.items
+      .filter((item) => item.id === "kit.skill.gamma")
+      .map((item) => ({
+        ...item,
+        editions: {
+          "claude-code": {
+            files: [
+              {
+                sourceId: "kit",
+                sourcePath: "claude/skills/gamma/SKILL.md",
+                sha256: edition?.sha256 as string,
+                executable: false,
+                role: "content" as const,
+              },
+            ],
+          },
+        },
+      }));
+    const built = await buildContent(own.source, own.files, items, { framework: "kit" });
+    if (built.status !== "ok") throw new Error(JSON.stringify(built));
+    const [gamma] = built.content.items;
+    const editionKey = gamma?.editions?.["claude-code"]?.scanKey;
+    expect(editionKey).toBe(`git-sha1:${gitTree({ "SKILL.md": "---\nname: gamma\ndescription: Gamma.\n---\nClaude body\n" })}`);
+    expect(editionKey).not.toBe(gamma?.scanKey);
+    const none = await checkContent(built.content, own.files, { scannedKeys: [] });
+    if (none.status !== "ok") throw new Error(JSON.stringify(none));
+    expect(none.unscannedKeys).toEqual([gamma?.scanKey, editionKey].sort());
+    const itemOnly = await checkContent(built.content, own.files, {
+      scannedKeys: [gamma?.scanKey as string],
+    });
+    if (itemOnly.status !== "ok") throw new Error(JSON.stringify(itemOnly));
+    expect(itemOnly.unscannedKeys).toEqual([editionKey]);
+  });
+});
+
 const encode = (value: unknown) =>
   new TextEncoder().encode(`${JSON.stringify(sortKeys(value), null, 2)}\n`);
 const RECIPE_PLUGIN = {

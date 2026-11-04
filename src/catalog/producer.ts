@@ -1122,12 +1122,20 @@ export async function checkContent(
   const paths = uncovered.length > 0 ? { pathReferences: uncovered } : {};
   if (options.scannedKeys === undefined) return { status: "ok", problems: [], ...paths };
   const scanned = new Set(options.scannedKeys);
-  // A bundle item is fully scanned only when its own key and its bundle's key have a scan.
+  // Every item, edition and bundle has its own key: an item's scan covers neither its bundle
+  // nor another edition.
   const unscannedKeys = [
     ...new Set(
       [
         // Upstream-only items are not scanned for now, so the gate leaves their keys out.
-        ...content.items.flatMap((item) => (item.fetch === "upstream" ? [] : [item.scanKey])),
+        ...content.items.flatMap((item) =>
+          item.fetch === "upstream"
+            ? []
+            : [
+                item.scanKey,
+                ...Object.values(item.editions ?? {}).map((edition) => edition.scanKey),
+              ],
+        ),
         ...(content.bundles ?? []).map((bundle) => bundle.scanKey),
       ].flatMap((key) => (key && !scanned.has(key) ? [key] : [])),
     ),

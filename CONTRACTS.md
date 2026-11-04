@@ -74,7 +74,8 @@ and `plugins`.
 
 Content written with `buildContent` is recorded from the bytes, and `checkContent` rebuilds
 every recorded fact from the files and reports any difference. Given `scannedKeys`, it also
-lists the scan keys that have no matching scan.
+lists the scan keys that have no matching scan: every item's, every edition's and every
+bundle's, since one scan never covers another (upstream-only items are left out for now).
 
 ### Tool profile
 
