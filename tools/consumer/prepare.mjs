@@ -157,12 +157,12 @@ try {
       try {
         const result = await fetchSource({ kind: "git", repository: repo, ref, subpath: "data" }, { outDir });
         if (result.status !== "ok") throw new Error(`journey 14 ${name}: ${JSON.stringify(result)}`);
-        materialise(join(inputs, "journey14", name), result.files);
+        materialise(join(inputs, "data-commits", name), result.files);
       } finally {
         rmSync(outDir, { recursive: true, force: true });
       }
     }
-    identity.journey14 = { before: { commit: before }, after: { commit: after, qualification: addedSha } };
+    identity.dataCommits = { before: { commit: before }, after: { commit: after, qualification: addedSha } };
   } finally {
     rmSync(repo, { recursive: true, force: true });
   }

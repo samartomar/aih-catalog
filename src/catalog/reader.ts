@@ -301,15 +301,18 @@ function syntheticContent(item: Item): Content {
   };
 }
 
-/** The items of a content document, optionally of one kind or placeable for one profile. */
+/**
+ * The items of a content document, optionally of one kind or placeable for one client: the
+ * client is given by its tool profile.
+ */
 export function listItems(
   content: Content,
-  options: { readonly kind?: string; readonly cli?: ToolProfile } = {},
+  options: { readonly kind?: string; readonly profile?: ToolProfile } = {},
 ): Item[] {
   return content.items.filter(
     (item) =>
       (options.kind === undefined || item.kind === options.kind) &&
-      (options.cli === undefined || availability(item, options.cli).available),
+      (options.profile === undefined || availability(item, options.profile).available),
   );
 }
 

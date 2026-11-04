@@ -935,7 +935,7 @@ describe("refusals, unsupported kinds and custom profiles", () => {
       how: "none",
       reason: "unsupported-kind",
     });
-    expect(listItems(content, { cli: profile("dsh") }).map((entry) => short(entry.id))).toEqual([
+    expect(listItems(content, { profile: profile("dsh") }).map((entry) => short(entry.id))).toEqual([
       "rule.always",
       "skill.deploy",
       "skill.folded",

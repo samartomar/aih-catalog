@@ -1052,7 +1052,7 @@ function commonFolder(paths, kind) {
 // ---------------------------------------------------------------------------------------------
 {
   const j = journey(14, "Data without a release: a new qualification in a new data commit changes the plan", "fixture");
-  const commits = prepared.identity.journey14;
+  const commits = prepared.identity.dataCommits;
   await j.check("the same installed package plans both data commits", () => {
     const pkg = JSON.parse(readFileSync(join(process.cwd(), "node_modules/@aihq/catalog/package.json"), "utf8"));
     assert.equal(pkg.version, "0.1.0");
@@ -1072,8 +1072,8 @@ function commonFolder(paths, kind) {
     );
   };
   await j.check("before: darwin-arm64 is not qualified; after the new data commit it plans ok", () => {
-    const before = planAt("journey14/before", commits.before.commit);
-    const after = planAt("journey14/after", commits.after.commit);
+    const before = planAt("data-commits/before", commits.before.commit);
+    const after = planAt("data-commits/after", commits.after.commit);
     assert.equal(before.status, "incomplete");
     assert.equal(before.unavailable[0]?.reason, "not-qualified");
     assert.equal(after.status, "ok", JSON.stringify(after.unavailable));
@@ -1081,8 +1081,8 @@ function commonFolder(paths, kind) {
     assert.deepEqual(after.data.commit, commits.after.commit);
   });
   await j.check("item digests do not change when a qualification is added", () => {
-    const one = readContent(readFileSync(join(inputs, "journey14/before/cbm/content.json"))).content.items;
-    const two = readContent(readFileSync(join(inputs, "journey14/after/cbm/content.json"))).content.items;
+    const one = readContent(readFileSync(join(inputs, "data-commits/before/cbm/content.json"))).content.items;
+    const two = readContent(readFileSync(join(inputs, "data-commits/after/cbm/content.json"))).content.items;
     same(one.map((item) => [item.id, item.contentSha256, item.behaviourSha256]), two.map((item) => [item.id, item.contentSha256, item.behaviourSha256]));
   });
   j.note("The added qualification is a fixture record made for this journey; the real darwin-arm64 record stays unknown.");
