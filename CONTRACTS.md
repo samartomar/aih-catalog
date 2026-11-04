@@ -154,7 +154,10 @@ values; a secret never has a value in content or a plan.
 
 - **Completeness.** A missing dependency, an unavailable selected item, a clash or a blocking
   path reference makes the plan `incomplete`. Explicitly skipping an optional recipe item does
-  not.
+  not. A recipe forces only the clients it gives a route: on another client (one the upstream
+  does not install on) an item the recipe chose, rather than the user, is listed as
+  `unavailable` without blocking. An item the user picked always blocks where it is
+  unavailable.
 - **Built-ins.** A placed name that a client already provides is a `built-in` clash unless a
   recipe override, a prefix, a caller-chosen name or leaving the item out resolves it.
 - **Clashes.** Two different placements at one path or key are a clash; the plan drops the

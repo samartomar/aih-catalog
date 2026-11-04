@@ -447,7 +447,9 @@ describe("EGM's base recipe at project scope", () => {
       {},
       { scope: "project", source: RECIPE_SOURCE },
     ) as Plan;
-    expect(result.status).toBe("incomplete");
+    // The upstream does not install on dsh and the recipe, not the user, chose the personas,
+    // so their unavailability there is listed without making the plan incomplete.
+    expect(result.status).toBe("ok");
     expect(result.unavailable).toEqual(
       AGENT_IDS.map((item) => ({
         item,
@@ -472,6 +474,25 @@ describe("EGM's base recipe at project scope", () => {
       file: "AGENTS.md",
       clis: ["codex", "dsh"],
     });
+  });
+
+  it("still blocks on dsh's personas where the user, not the recipe, chose them", async () => {
+    const { content } = await egmContent();
+    const picked = planInstall(ALL, [content], [profile("codex"), profile("dsh")], {
+      scope: "project",
+      data: null,
+    }) as Plan;
+    expect(picked.status).toBe("incomplete");
+    // A client the recipe routes is forced: its unavailable pairs block there.
+    const routed = planRecipe(
+      egmRecipe({ ...BASE_ROUTES, dsh: "items" }),
+      [content],
+      [profile("codex"), profile("dsh")],
+      {},
+      { scope: "project", source: RECIPE_SOURCE },
+    ) as Plan;
+    expect(routed.status).toBe("incomplete");
+    expect(routed.unavailable.map((entry) => entry.cli)).toEqual(AGENT_IDS.map(() => "dsh"));
   });
 });
 

@@ -1785,6 +1785,11 @@ export interface CoreInput {
   readonly aiSetupChanges?: Readonly<Record<string, AiSetupChange>>;
   /** A combination recipe's id and its qualification's sha256 for the cell. */
   readonly combination?: { readonly recipe: string; readonly sha256?: string };
+  /**
+   * Pairs a recipe does not force (D20, D114): on clients the upstream does not install on,
+   * items the recipe chose (not the user) that are unavailable are listed without blocking.
+   */
+  readonly notForced?: { readonly clis: readonly string[]; readonly items: readonly string[] };
 }
 
 export interface Override {
@@ -2478,9 +2483,18 @@ export function planCore(input: CoreInput): PlanResult {
   });
 
   const references = referencesOf(chosen, byId, resolved, bundles, links);
+  const notForced = input.notForced;
+  const forced = unavailable.filter(
+    (entry) =>
+      notForced === undefined ||
+      entry.cli === undefined ||
+      entry.item === undefined ||
+      !notForced.clis.includes(entry.cli) ||
+      !notForced.items.includes(entry.item),
+  );
   const blocked =
     missing.length > 0 ||
-    unavailable.length > 0 ||
+    forced.length > 0 ||
     clashes.length > 0 ||
     references.some((reference) => reference.kind === "path");
   return {

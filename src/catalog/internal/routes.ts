@@ -399,6 +399,18 @@ export function planRecipe(
     extras,
     overrides: (recipe.overrides ?? []).filter((override) => selection.includes(override.item)),
     ...toolOptions(options),
+    // On a client the recipe gives no route, the upstream does not install: what the recipe
+    // chose there (members and the pre-ticked items of groups the user left alone) is offered,
+    // not forced. The user's own picks still block.
+    notForced: {
+      clis: profiles.map((profile) => profile.id).filter((cli) => !(cli in recipe.routes)),
+      items: [
+        ...recipe.members.map((member) => member.item),
+        ...options_.flatMap((option) =>
+          choices[option.id] === undefined ? ticked(option.items) : [],
+        ),
+      ],
+    },
     ...(recipe.aiSetup !== undefined ? { aiSetupChanges: recipe.aiSetup } : {}),
     ...(recipe.kind === "combination"
       ? {
