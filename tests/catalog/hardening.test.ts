@@ -987,3 +987,69 @@ describe("input markers named like object keys", () => {
     }
   });
 });
+
+/** A file that reads as an agent where it sits in agents/, and as plain text elsewhere. */
+const PERSONA = "---\nname: guide\ndescription: Guides.\n---\n\nGuide.\n";
+
+describe("what a bundle may place under a client's folder", () => {
+  it("places only agents/, resources/, docs/ and references/ under a client's bundle root", async () => {
+    for (const file of ["scripts/run.sh", "commands/x.md", "README.md", "skills2/x.md"]) {
+      const content = await bundled(
+        "alpha",
+        {
+          "skills/start/SKILL.md": startSkill("alpha", "guide.md"),
+          "docs/guide.md": GUIDE,
+          [file]: GUIDE,
+        },
+        ["docs/", file],
+      );
+      for (const [cli, scope] of [
+        ["claude-code", "project"],
+        ["codex", "user"],
+      ] as const) {
+        const plan = planInstall(["alpha.skill.start"], [content], [profile(cli)], {
+          scope,
+          data: null,
+        }) as Plan;
+        expect(plan.unavailable, `${cli} ${file}`).toContainEqual(
+          expect.objectContaining({ item: "alpha.skill.start", cli, reason: "no-bundle-place" }),
+        );
+      }
+    }
+    for (const folder of ["agents", "resources", "docs", "references"]) {
+      const content = await bundled(
+        "alpha",
+        {
+          "skills/start/SKILL.md": startSkill("alpha", "guide.md"),
+          [`${folder}/notes/guide.md`]: PERSONA,
+        },
+        [`${folder}/`],
+      );
+      const plan = planInstall(["alpha.skill.start"], [content], [profile("claude-code")], {
+        scope: "project",
+        data: null,
+      }) as Plan;
+      expect(
+        plan.plan.some(
+          (step) => "path" in step && step.path === `.claude/${folder}/notes/guide.md`,
+        ),
+        folder,
+      ).toBe(true);
+    }
+  });
+
+  it("keeps Catalog's own bundle folders as they are", async () => {
+    const content = await bundled(
+      "alpha",
+      { "skills/start/SKILL.md": startSkill("alpha", "guide.md"), "scripts/run.md": GUIDE },
+      ["scripts/"],
+    );
+    const plan = planInstall(["alpha.skill.start"], [content], [profile("kiro")], {
+      scope: "project",
+      data: null,
+    }) as Plan;
+    expect(
+      plan.plan.some((step) => "path" in step && step.path === ".kiro/aih/alpha/scripts/run.md"),
+    ).toBe(true);
+  });
+});

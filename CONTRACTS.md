@@ -233,7 +233,9 @@ values; a secret never has a value in content or a plan.
   `unavailable` (`unsupported-server`) or the content is `invalid`.
 - **Bundles.** A bundle's root is a folder of a client's own (the parent of a client's skills
   folder, or its `bundleRoot`), never the project or home root or a shared folder such as
-  `.config/` or `.github/`. A bundle file never lands on a file or folder any shipped client
+  `.config/` or `.github/`. Under a client's folder a bundle places files only below `agents/`,
+  `resources/`, `docs/` or `references/` (Catalog's own folders, such as Kiro's `bundleRoot`,
+  take any layout). A bundle file never lands on a file or folder any shipped client
   reads as configuration, at either scope (its MCP file, `configFiles`, settings, shared
   rule file, a `hooks` folder, `.github/workflows/` or a `.git` folder). Otherwise the
   bundle's items are `unavailable` there (`no-bundle-place`).

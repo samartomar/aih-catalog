@@ -1184,6 +1184,37 @@ function shippedProfiles(): readonly ToolProfile[] {
   return shipped;
 }
 
+/**
+ * The top-level folders a bundle may place under a client's own folder: Markdown the skills
+ * read, which no client loads by itself. A file directly in the root, or in any other folder,
+ * is never placed there.
+ */
+const READING_FOLDERS = ["agents/", "resources/", "docs/", "references/"];
+const inReadingFolder = (sourcePath: string): boolean =>
+  READING_FOLDERS.some(
+    (folder) => sourcePath.startsWith(folder) && sourcePath.length > folder.length,
+  );
+
+/**
+ * Whether a bundle root is a folder Catalog owns rather than a client's: under `.aihq/`, or
+ * the client's own `bundleRoot` for this framework (Kiro's `.kiro/aih/<framework>/`).
+ */
+function isCatalogRoot(
+  root: string,
+  profile: ToolProfile,
+  scope: Scope,
+  bundle: Bundle,
+  resolved: readonly Placed[],
+): boolean {
+  if (root.startsWith(".aihq/")) return true;
+  const fixed = profile.bundleRoot?.[scope];
+  if (fixed === undefined) return false;
+  const frameworks = new Set(
+    resolved.filter((entry) => entry.bundle?.id === bundle.id).map((entry) => entry.framework),
+  );
+  return [...frameworks].some((framework) => fixed.replaceAll("<framework>", framework) === root);
+}
+
 /** Folders shared by every kind of client or user data: never a bundle root. */
 const SHARED_ROOTS = new Set(["", ".config/", ".github/", ".local/", ".local/share/"]);
 
@@ -1301,15 +1332,29 @@ function placeBundles(
     }
   }
 
-  // A bundle file never lands on a file or folder a planned client reads as configuration: the
-  // bundle is not placed for that client.
+  // Under a client's own folder a bundle places only inert reading folders; and no bundle file
+  // lands on a file or folder a client reads as configuration. Otherwise the bundle is not
+  // placed for that client.
   const surfaces = configSurfaces(profiles);
   let blocked = served;
   for (const [cli, map] of roots)
     for (const [id, placed] of map) {
-      const hit = placed.bundle.files
-        .map((file) => `${placed.root}${file.sourcePath}`)
-        .find((path) => onConfigSurface(path, surfaces));
+      const profile = profiles.find((candidate) => candidate.id === cli) as ToolProfile;
+      const owned = isCatalogRoot(placed.root, profile, scope, placed.bundle, resolved);
+      let hit: string | undefined;
+      let reason = "would land on the client's configuration";
+      for (const file of placed.bundle.files) {
+        const path = `${placed.root}${file.sourcePath}`;
+        if (!owned && !inReadingFolder(file.sourcePath)) {
+          hit = path;
+          reason = `is outside the folders a bundle places in a client's folder (${READING_FOLDERS.join(", ")})`;
+          break;
+        }
+        if (onConfigSurface(path, surfaces)) {
+          hit = path;
+          break;
+        }
+      }
       if (hit === undefined) continue;
       map.delete(id);
       blocked = blocked.filter((entry) => entry.cli !== cli || !placed.items.has(entry.item));
@@ -1319,7 +1364,7 @@ function placeBundles(
             item: entry.item.id,
             cli,
             reason: "no-bundle-place",
-            detail: `the bundle file ${quote(hit)} would land on the client's configuration`,
+            detail: `the bundle file ${quote(hit)} ${reason}`,
           });
           dropped.add(entry);
         }
