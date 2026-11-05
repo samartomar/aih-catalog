@@ -132,3 +132,70 @@ describe("portable paths", () => {
     ]);
   });
 });
+
+describe("bundle files on client configuration", () => {
+  const surfaces = [
+    { cli: "claude-code", scope: "project", file: "settings.json" },
+    { cli: "claude-code", scope: "project", file: "settings.local.json" },
+    { cli: "claude-code", scope: "project", file: "hooks/start.sh" },
+    { cli: "claude-code", scope: "user", file: "CLAUDE.md" },
+  ] as const;
+
+  it("refuses a bundle whose file would land on a client's configuration", async () => {
+    for (const { cli, scope, file } of surfaces) {
+      const content = await bundled(
+        "alpha",
+        {
+          "skills/start/SKILL.md": startSkill("alpha", "guide.md"),
+          "docs/guide.md": "x\n",
+          [file]: "{}\n",
+        },
+        ["docs/", file],
+      );
+      const plan = planInstall(["alpha.skill.start"], [content], [profile(cli)], {
+        scope,
+        data: null,
+      }) as Plan;
+      expect(plan.status, file).toBe("incomplete");
+      expect(plan.unavailable, file).toMatchObject([
+        { item: "alpha.skill.start", cli, reason: "no-bundle-place" },
+      ]);
+      const paths = plan.plan.flatMap((step) => ("path" in step ? [step.path] : []));
+      expect(
+        paths.some((path) => path.endsWith(file)),
+        file,
+      ).toBe(false);
+    }
+  });
+
+  it("refuses a bundle file on another planned client's shared rule file", async () => {
+    const content = await bundled(
+      "alpha",
+      {
+        "skills/start/SKILL.md": startSkill("alpha", "guide.md"),
+        "docs/guide.md": "x\n",
+        "AGENTS.md": "# x\n",
+      },
+      ["docs/", "AGENTS.md"],
+    );
+    const plan = planInstall(
+      ["alpha.skill.start"],
+      [content],
+      [profile("codex"), profile("kimi")],
+      {
+        scope: "user",
+        data: null,
+      },
+    ) as Plan;
+    expect(plan.unavailable).toContainEqual(
+      expect.objectContaining({
+        item: "alpha.skill.start",
+        cli: "codex",
+        reason: "no-bundle-place",
+      }),
+    );
+    expect(plan.plan.some((step) => step.op === "write" && step.path === ".agents/AGENTS.md")).toBe(
+      false,
+    );
+  });
+});

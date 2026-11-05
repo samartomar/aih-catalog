@@ -1127,6 +1127,44 @@ function templateRoot(
 const sortedSet = (values: Iterable<string>) => [...new Set(values)].sort(compareCodeUnits);
 
 /**
+ * The files and folders the planned clients read as configuration at this scope, by clash key:
+ * MCP files, local-plugin and built-in switch-off settings, shared rule files, the VS Code
+ * folder-overlap setting and hook edition folders (folders end in `/`).
+ */
+function configSurfaces(profiles: readonly ToolProfile[], scope: Scope): Set<string> {
+  const found = new Set<string>();
+  const add = (path: string | undefined) => {
+    if (path !== undefined) found.add(clashKey(path));
+  };
+  for (const profile of profiles) {
+    add(profile.places.mcp?.[scope]?.file);
+    for (const entry of profile.localPlugins?.[scope]?.register ?? []) add(entry.file);
+    const disable = profile.disableBuiltIn;
+    if (typeof disable === "object" && disable.setting?.root === scope) add(disable.setting.file);
+    for (const place of Object.values(profile.places.rule?.[scope] ?? {}))
+      if (typeof place === "object") add(place.file);
+    if (scope === "project") add(profile.skillFolderOverlap?.merge.file);
+    const hooks = profile.editionPlaces?.hook?.[scope];
+    if (hooks !== undefined) add(hooks.endsWith("/") ? hooks : `${hooks}/`);
+  }
+  return found;
+}
+
+/**
+ * Whether a planned path is configuration a client runs or loads: a listed surface or a file
+ * below a listed folder, any `settings*.json` file, or anything in a `hooks` folder.
+ */
+function onConfigSurface(path: string, surfaces: ReadonlySet<string>): boolean {
+  const key = clashKey(path);
+  if (surfaces.has(key)) return true;
+  for (const surface of surfaces) if (surface.endsWith("/") && key.startsWith(surface)) return true;
+  const segments = key.split("/");
+  return (
+    /^settings[^/]*\.json$/.test(segments.at(-1) ?? "") || segments.slice(0, -1).includes("hooks")
+  );
+}
+
+/**
  * Places each client's runtime bundles: the root files once per root at their upstream paths,
  * copied as one unit at both scopes, the launchers of user-only bundle skills, and the
  * bundle-root rule in each client's always-on rule place.
@@ -1194,6 +1232,31 @@ function placeBundles(
       dropped.add(entry);
     }
   }
+
+  // A bundle file never lands on a file or folder a planned client reads as configuration: the
+  // bundle is not placed for that client.
+  const surfaces = configSurfaces(profiles, scope);
+  let blocked = served;
+  for (const [cli, map] of roots)
+    for (const [id, placed] of map) {
+      const hit = placed.bundle.files
+        .map((file) => `${placed.root}${file.sourcePath}`)
+        .find((path) => onConfigSurface(path, surfaces));
+      if (hit === undefined) continue;
+      map.delete(id);
+      blocked = blocked.filter((entry) => entry.cli !== cli || !placed.items.has(entry.item));
+      for (const entry of resolved)
+        if (entry.profile.id === cli && entry.bundle?.id === id) {
+          unavailable.push({
+            item: entry.item.id,
+            cli,
+            reason: "no-bundle-place",
+            detail: `the bundle file ${quote(hit)} would land on the client's configuration`,
+          });
+          dropped.add(entry);
+        }
+    }
+  served.splice(0, served.length, ...blocked);
 
   const writes: WriteStep[] = [];
   const groups = new Map<string, { placed: PlacedBundle; items: Set<string>; clis: Set<string> }>();
