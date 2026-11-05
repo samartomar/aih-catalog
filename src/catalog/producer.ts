@@ -13,6 +13,7 @@ import {
   matchesInclude,
   pathReferences,
 } from "./internal/bundle.js";
+import { ownValue } from "./internal/check.js";
 import { cutDocument, cutFileName } from "./internal/cut.js";
 import { decodeText } from "./internal/frontmatter.js";
 import { behaviourSha256, contentSha256, installRelative } from "./internal/identity.js";
@@ -293,14 +294,15 @@ function requirementsFor(
     if (authored === null || typeof authored !== "object" || typeof authored.inputs !== "object")
       return "requirements must be { inputs }";
     for (const [name, declaration] of Object.entries(declared)) {
-      const entry = authored.inputs[name];
+      const entry = ownValue(authored.inputs, name);
       if (entry === undefined) return `requirements.inputs must cover the file's input ${name}`;
       if (declaration.isSecret && entry.isSecret !== true)
         return `the input ${name} is secret in the file`;
     }
   }
   for (const marker of markers)
-    if (inputs[marker] === undefined) return `the marker {${marker}} names no declared input`;
+    if (ownValue(inputs, marker) === undefined)
+      return `the marker {${marker}} names no declared input`;
   for (const [name, entry] of Object.entries(inputs)) {
     if (!INPUT_NAME.test(name)) return `the input name ${quote(name)} is not valid`;
     if (

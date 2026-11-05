@@ -298,7 +298,7 @@ export function planRecipe(
   const itemsRoute = new Set<string>();
   const used = new Map<string, Route>();
   for (const profile of sorted) {
-    const asked: Route = recipe.routes[profile.id] ?? "items";
+    const asked: Route = ownValue(recipe.routes, profile.id) ?? "items";
     const route = routeFor(asked, profile, scope, recipe, content);
     used.set(profile.id, route);
     if (route !== asked)
@@ -411,8 +411,9 @@ export function planRecipe(
       ? {
           combination: {
             recipe: recipe.id,
-            ...(options.cell !== undefined && recipe.qualifications?.[options.cell] !== undefined
-              ? { sha256: recipe.qualifications[options.cell] as string }
+            ...(options.cell !== undefined &&
+            ownValue(recipe.qualifications, options.cell) !== undefined
+              ? { sha256: ownValue(recipe.qualifications, options.cell) as string }
               : {}),
           },
         }

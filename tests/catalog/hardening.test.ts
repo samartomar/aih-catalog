@@ -930,3 +930,16 @@ describe("bundle roots and other clients' configuration", () => {
     }
   });
 });
+
+describe("input markers named like object keys", () => {
+  it("refuses a marker that names no declared input, even an inherited object key", async () => {
+    for (const marker of ["constructor", "toString", "hasOwnProperty"]) {
+      const built = await buildServer(
+        serverJson((server) => {
+          server.packages[0].packageArguments = [{ type: "positional", value: `{${marker}}` }];
+        }),
+      );
+      expect(built, marker).toMatchObject({ status: "invalid" });
+    }
+  });
+});
