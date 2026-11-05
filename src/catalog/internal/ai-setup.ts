@@ -276,24 +276,26 @@ const programName = (program: string) =>
 const words = (argv: readonly string[]) => argv.filter((token) => !token.startsWith("-"));
 
 /**
- * True when `[executable, ...argv]` starts with one of the upstream installers the record lists
- * under `doNotRun`: a plan never runs those, whether as the server launch or as a setting.
+ * True when `[executable, ...argv]` runs one of the upstream installers the record lists under
+ * `doNotRun`: the same program with the installer's subcommand words anywhere among its
+ * non-flag words. A plan never runs those, whether as the server launch or as a setting.
  */
 export function startsInstaller(
   executable: string,
   argv: readonly string[],
   doNotRun: readonly (readonly string[])[],
 ): boolean {
-  const run = [executable, ...words(argv)];
+  const run = words(argv);
   return doNotRun.some((entry) => {
-    const installer = [entry[0] as string, ...words(entry.slice(1))];
-    return (
-      entry.length > 0 &&
-      installer.length <= run.length &&
-      installer.every((part, index) =>
-        index === 0 ? programName(part) === programName(run[0] as string) : part === run[index],
-      )
-    );
+    if (entry.length === 0 || programName(entry[0] as string) !== programName(executable))
+      return false;
+    // The installer's subcommand words, found together anywhere among the run's non-flag
+    // words: flags and their values may sit before or between them.
+    const subcommand = words(entry.slice(1));
+    if (subcommand.length === 0) return true;
+    for (let start = 0; start + subcommand.length <= run.length; start++)
+      if (subcommand.every((part, index) => run[start + index] === part)) return true;
+    return false;
   });
 }
 
