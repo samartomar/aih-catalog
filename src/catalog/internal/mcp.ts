@@ -9,6 +9,7 @@ import { inputMarkers } from "./kinds.js";
 import type { Item } from "./model.js";
 import type { Binding, RootPath } from "./plan.js";
 import type { McpFields } from "./profile.js";
+import { isRegistry, packageProblem, type Registry, RUNNERS } from "./server.js";
 import type { ToolLaunch } from "./tools.js";
 
 interface Argument {
@@ -32,12 +33,6 @@ interface Remote {
   readonly headers?: readonly { readonly name: string }[];
 }
 
-/** The package runners the Registry names for npm and PyPI packages, with their pin form. */
-const RUNNERS: Readonly<Record<string, { command: string; spec: (pkg: Package) => string }>> = {
-  npm: { command: "npx", spec: (pkg) => `${pkg.identifier}@${pkg.version}` },
-  pypi: { command: "uvx", spec: (pkg) => `${pkg.identifier}==${pkg.version}` },
-};
-
 const pointer = (...segments: string[]) =>
   segments.map((segment) => `/${segment.replaceAll("~", "~0").replaceAll("/", "~1")}`).join("");
 
@@ -58,14 +53,27 @@ export function lowerServer(
   const bind = (input: string, at: Binding["at"]): Binding => ({ item: item.id, input, at });
   const pkg = server.packages?.find(
     (candidate) =>
-      RUNNERS[candidate.registryType] && (candidate.transport?.type ?? "stdio") === "stdio",
+      isRegistry(candidate.registryType) && (candidate.transport?.type ?? "stdio") === "stdio",
   );
   if (pkg !== undefined) {
     const stdio = fields.stdio;
     if (stdio === undefined) return { reason: "the client describes no local (stdio) server form" };
-    const runner = RUNNERS[pkg.registryType] as (typeof RUNNERS)[string];
-    const command = pkg.runtimeHint ?? runner.command;
-    const args = [...argv(pkg.runtimeArguments), runner.spec(pkg), ...argv(pkg.packageArguments)];
+    const problem = packageProblem(pkg);
+    if (problem) return { reason: problem };
+    const runner = RUNNERS[pkg.registryType as Registry];
+    // Only the registry's own runner, with only the flags it needs, ever starts a package.
+    if (pkg.runtimeHint !== undefined && pkg.runtimeHint !== runner.command)
+      return { reason: `a ${pkg.registryType} package starts only through ${runner.command}` };
+    const flags = argv(pkg.runtimeArguments);
+    const flag = flags.find((value) => !runner.flags.includes(value));
+    if (flag !== undefined)
+      return { reason: `${runner.command} takes no runner argument ${JSON.stringify(flag)}` };
+    const command = runner.command;
+    const args = [
+      ...flags,
+      runner.spec(pkg.identifier, pkg.version),
+      ...argv(pkg.packageArguments),
+    ];
     const entry: Record<string, unknown> = { ...(stdio.set ?? {}) };
     if (stdio.argv !== undefined) entry[stdio.argv] = [command, ...args];
     else {

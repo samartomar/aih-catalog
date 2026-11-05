@@ -20,6 +20,7 @@ import {
   SHA256,
 } from "./model.js";
 import { isSafeRelativePath } from "./paths.js";
+import { serverProblem } from "./server.js";
 import { EXACT_VERSION } from "./source-link.js";
 
 const isString = (value: unknown, max: number = TEXT_LIMITS.document): value is string =>
@@ -562,6 +563,10 @@ function checkKindFields(item: Record_, path: string, problems: Problems): void 
     const server = item.server;
     if (!isRecord(server) || !isString(server.name, 256) || !isString(server.description, 1024))
       problems.add(`${path}/server`, "an MCP item records its server name and description");
+    else {
+      const problem = serverProblem(server);
+      if (problem) problems.add(`${path}/server${problem.path}`, problem.message);
+    }
   }
   for (const field of ["event", "matcher", "handler"]) own("hook", field);
   if (item.kind === "hook") {

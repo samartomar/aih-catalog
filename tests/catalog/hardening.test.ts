@@ -199,3 +199,156 @@ describe("bundle files on client configuration", () => {
     );
   });
 });
+
+/** A Registry server.json as test data: fields are changed freely, valid or not. */
+type Fields = Record<string, unknown>;
+type ServerJson = { packages: [Fields, ...Fields[]]; [key: string]: unknown };
+
+/** A Registry server.json with one npm stdio package, changed by `patch`. */
+const serverJson = (patch: (server: ServerJson) => void = () => {}) => {
+  const server: ServerJson = {
+    name: "io.example/weather",
+    description: "Weather lookups.",
+    packages: [
+      {
+        registryType: "npm",
+        identifier: "@example/weather-mcp",
+        version: "1.2.3",
+        runtimeHint: "npx",
+        runtimeArguments: [{ type: "positional", value: "-y" }],
+        transport: { type: "stdio" },
+      },
+    ],
+  };
+  patch(server);
+  return `${JSON.stringify(server, null, 2)}\n`;
+};
+
+/** Builds one MCP item from `text`: the build result. */
+async function buildServer(text: string) {
+  const read = readLocalSource(folder({ "mcp/weather/server.json": text }));
+  if (read.status !== "ok") throw new Error(JSON.stringify(read));
+  const found = findItems(read.files, { framework: FRAMEWORK });
+  if (found.status !== "ok") throw new Error(JSON.stringify(found));
+  return buildContent(read.source, read.files, found.items, { framework: FRAMEWORK });
+}
+
+const WEATHER = `${FRAMEWORK}.mcp.weather`;
+const planServer = (content: Content, cli = "claude-code") =>
+  planInstall([WEATHER], [content], [profile(cli)], { scope: "project", data: null }) as Plan;
+
+describe("MCP launch fields", () => {
+  it("launches an npm package through npx with only its yes flag", async () => {
+    const built = await buildServer(serverJson());
+    if (built.status !== "ok") throw new Error(JSON.stringify(built));
+    const plan = planServer(built.content);
+    expect(plan.status).toBe("ok");
+    expect(plan.plan).toContainEqual(
+      expect.objectContaining({
+        op: "merge",
+        file: ".mcp.json",
+        entry: expect.objectContaining({
+          command: "npx",
+          args: ["-y", "@example/weather-mcp@1.2.3"],
+        }),
+      }),
+    );
+  });
+
+  it("refuses a package runner or runner argument outside the allowlist", async () => {
+    const cases = {
+      hint: serverJson((server) => {
+        server.packages[0].runtimeHint = "node";
+      }),
+      flag: serverJson((server) => {
+        server.packages[0].runtimeArguments = [
+          { type: "named", name: "--node-options", value: "--require=./x.js" },
+        ];
+      }),
+      call: serverJson((server) => {
+        server.packages[0].runtimeArguments = [{ type: "positional", value: "-c" }];
+      }),
+      pypi: serverJson((server) => {
+        Object.assign(server.packages[0], {
+          registryType: "pypi",
+          identifier: "weather-mcp",
+          runtimeHint: "uvx",
+          runtimeArguments: [{ type: "named", name: "--with", value: "other" }],
+        });
+      }),
+      pypiHint: serverJson((server) => {
+        Object.assign(server.packages[0], {
+          registryType: "pypi",
+          identifier: "weather-mcp",
+          runtimeHint: "npx",
+          runtimeArguments: [],
+        });
+      }),
+      inherited: serverJson((server) => {
+        server.packages[0].registryType = "constructor";
+      }),
+    };
+    for (const [name, text] of Object.entries(cases)) {
+      const built = await buildServer(text);
+      if (built.status !== "ok") throw new Error(`${name}: ${JSON.stringify(built)}`);
+      const plan = planServer(built.content);
+      expect(plan.status, name).toBe("incomplete");
+      expect(plan.unavailable, name).toMatchObject([
+        { item: WEATHER, cli: "claude-code", reason: "unsupported-server" },
+      ]);
+    }
+  });
+
+  it("refuses a package identifier outside its registry's name grammar", async () => {
+    for (const [registryType, identifier] of [
+      ["npm", "-e"],
+      ["npm", "--yes"],
+      ["npm", "Weather MCP"],
+      ["npm", "@scope/../x"],
+      ["pypi", "-c"],
+      ["pypi", "weather mcp"],
+      ["pypi", "weather_mcp ; rm"],
+    ]) {
+      const built = await buildServer(
+        serverJson((server) => {
+          Object.assign(server.packages[0], { registryType, identifier, runtimeArguments: [] });
+          delete server.packages[0].runtimeHint;
+        }),
+      );
+      expect(built, identifier).toMatchObject({ status: "invalid" });
+    }
+  });
+
+  it("checks a recorded server's packages again when content is read", async () => {
+    const built = await buildServer(serverJson());
+    if (built.status !== "ok") throw new Error(JSON.stringify(built));
+    const edits: ((server: ServerJson) => void)[] = [
+      (server) => {
+        server.packages[0].version = "^1.2.0";
+      },
+      (server) => {
+        server.packages[0].identifier = "-e";
+      },
+      (server) => {
+        (server as Record<string, unknown>).packages = "npx";
+      },
+      (server) => {
+        server.remotes = [{ type: "websocket", url: "https://x.example/mcp" }];
+      },
+    ];
+    for (const edit of edits) {
+      const content = structuredClone(built.content) as unknown as {
+        items: [{ server: ServerJson }];
+      };
+      edit(content.items[0].server);
+      const plan = planServer(content as unknown as Content) as unknown as {
+        status: string;
+        problems: { path: string }[];
+      };
+      expect(plan.status).toBe("invalid");
+      expect(plan.problems.map((problem) => problem.path)).toContainEqual(
+        expect.stringMatching(/\/server(?:\/|$)/),
+      );
+    }
+  });
+});

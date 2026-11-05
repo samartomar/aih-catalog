@@ -19,7 +19,7 @@ import {
   type RuleScope,
 } from "./model.js";
 import { basenameOf, dirnameOf, quote } from "./paths.js";
-import { EXACT_VERSION } from "./source-link.js";
+import { packageProblem } from "./server.js";
 
 export type Fields = { name: string; description: string } & Record<string, unknown>;
 /** Fields plus the inputs the files declare (MCP) and the markers they use. */
@@ -391,12 +391,8 @@ function readMcp(item: DiscoveredItem, bytesOf: BytesOf): Read | string {
     for (const [index, entry] of packages.entries()) {
       const where = `${at}/packages/${index}`;
       const pkg = entry as Record<string, unknown>;
-      if (typeof pkg?.registryType !== "string" || typeof pkg.identifier !== "string")
-        return `${where}: a package needs registryType and identifier`;
-      if (typeof pkg.version !== "string" || !EXACT_VERSION.test(pkg.version))
-        return `${where}: a package needs an exact version, not a range, latest or none`;
-      if (/@(?:latest|[\^~><=*])|@$/.test(pkg.identifier) || pkg.identifier.includes("@latest"))
-        return `${where}: the identifier carries a mutable version`;
+      const problem = packageProblem(pkg);
+      if (problem) return `${where}: ${problem}`;
       for (const problem of [
         declare(pkg.environmentVariables, `${where}/environmentVariables`),
         argumentsOf(pkg.runtimeArguments, `${where}/runtimeArguments`),
