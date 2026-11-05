@@ -687,11 +687,13 @@ function registryProblem(registry: unknown): string | null {
 const NPM_CONFIG_BYTES = 1024 * 1024;
 /**
  * Whether npm's option parser reads a boolean setting's text as false: `false`, `null` or any
- * number equal to zero (`0`, `0.0`, `00`). Any case of `false` and `null` counts.
+ * number equal to zero (`0`, `0.0`, `00`), or nothing at all after `=`. Any case of `false`
+ * and `null` counts.
  */
 const readsAsFalse = (value: string): boolean => {
   const text = value.trim().toLowerCase();
-  return text === "false" || text === "null" || (text !== "" && Number(text) === 0);
+  // An empty value after `=` reads as false too; a bare key with no `=` is true.
+  return text === "false" || text === "null" || text === "" || Number(text) === 0;
 };
 
 /** npm settings that replace its trusted certificates or route it through a proxy. */
