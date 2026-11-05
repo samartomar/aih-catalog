@@ -196,6 +196,12 @@ describe("the repository's npm configuration", () => {
     for (const name of withScripts) expect(manifest.allowScripts[name], name).toBe(false);
   });
 
+  it("refuses an install by an npm too old to honour strict-allow-scripts", () => {
+    // An older npm ignores the unknown setting silently; engine-strict makes it stop instead.
+    expect(npmrc()["engine-strict"]).toBe("true");
+    expect(manifest.engines.npm).toBe(">=11.20.0");
+  });
+
   it("keeps the package's own lifecycle scripts, so packing builds first", () => {
     // ignore-scripts would also skip prepack (a tarball without dist) and prepublishOnly.
     expect(npmrc()["ignore-scripts"]).toBeUndefined();

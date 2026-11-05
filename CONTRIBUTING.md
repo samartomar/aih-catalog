@@ -16,7 +16,9 @@ Dependency install scripts never run. `--ignore-scripts` on every documented ins
 them, and the repository's `.npmrc` sets `strict-allow-scripts=true`, so an install without
 the flag (npm 11.20, bundled with Node 26.12.1) fails on any dependency install script that
 `allowScripts` in `package.json` does not list. Every locked package with an install script
-is listed there as denied (`false`), and a test keeps that list equal to the lockfile's. The
+is listed there as denied (`false`), and a test keeps that list equal to the lockfile's. An
+older npm would ignore that setting, so `engines.npm` requires 11.20 and `.npmrc` sets
+`engine-strict=true`: such an install stops instead. The
 package's own lifecycle scripts do run: `prepack` builds `dist/catalog` before `npm pack`, and
 `prepublishOnly` refuses publication. A project-wide `ignore-scripts=true` would silently skip
 both, so it is not used.
