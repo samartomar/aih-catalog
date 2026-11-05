@@ -64,6 +64,7 @@ const KIT_SETUP = {
       {
         argv: ["config", "set", "watch", "false"],
         readback: { argv: ["config", "get", "watch"], expected: "false" },
+        restore: { argv: ["config", "set", "watch", "<prior>"] },
       },
     ],
     files: [],
@@ -137,6 +138,21 @@ describe("an AI setup item", () => {
     ]);
     expect(added.item.contentSha256).toBe(item.item.contentSha256);
     expect(added.item.behaviourSha256).toBe(item.item.behaviourSha256);
+  });
+
+  it("requires each settings command to restore the earlier value through <prior> exactly once", async () => {
+    const [command] = KIT_SETUP.settings.commands;
+    const { restore: _restore, ...unrestored } = command as (typeof KIT_SETUP.settings.commands)[0];
+    for (const bad of [
+      unrestored,
+      { ...command, restore: { argv: ["config", "set", "watch", "false"] } },
+      { ...command, restore: { argv: ["config", "set", "<prior>", "<prior>"] } },
+      { ...command, restore: { argv: ["config", "set", "watch=<prior>"] } },
+    ])
+      await expect(
+        kitContent({ ...KIT_SETUP, settings: { ...KIT_SETUP.settings, commands: [bad] } }),
+        JSON.stringify(bad),
+      ).rejects.toThrow("restore: { argv } }, with <prior> once in restore");
   });
 });
 
@@ -405,6 +421,7 @@ describe("planning an AI setup on its own", () => {
       executable: { root: "user", path: `${INTO}bin/kit-graph` },
       argv: ["config", "set", "watch", "false"],
       readback: { argv: ["config", "get", "watch"], expected: "false" },
+      restore: { argv: ["config", "set", "watch", "<prior>"] },
       approval: "required",
     });
     expect(JSON.stringify(plan)).not.toContain('kit-graph","install');

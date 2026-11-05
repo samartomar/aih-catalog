@@ -53,7 +53,11 @@ export interface AcquireStep {
   readonly scanned: false;
 }
 
-/** A settings command, run only after the user approves; its readback must match. */
+/**
+ * A settings command, run only after the user approves; its readback must match. The installer
+ * reads `readback.argv` first and keeps the output as the prior value, which removal passes to
+ * `restore` in place of `<prior>`.
+ */
 export interface ToolCommandStep {
   readonly op: "tool-command";
   readonly aiSetup: string;
@@ -61,6 +65,7 @@ export interface ToolCommandStep {
   readonly executable: { readonly root: "user"; readonly path: string };
   readonly argv: readonly string[];
   readonly readback: { readonly argv: readonly string[]; readonly expected: string };
+  readonly restore: { readonly argv: readonly string[] };
   readonly approval: "required";
 }
 
@@ -496,6 +501,7 @@ export function planTools(input: ToolInput): ToolPlan {
         executable: { root: "user", path },
         argv: command.argv,
         readback: command.readback,
+        restore: command.restore,
         approval: "required",
       });
     for (const file of settings.files) {

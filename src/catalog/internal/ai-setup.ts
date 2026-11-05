@@ -56,11 +56,19 @@ export interface Distribution {
   readonly integrity?: string;
 }
 
-/** A settings command: argv after the tool's executable, and the readback that checks it. */
+/**
+ * A settings command: argv after the tool's executable, the readback that checks it, and how
+ * removal puts the earlier value back. The installer runs the readback before the command and
+ * keeps its output as the prior value; `restore` is argv with `<prior>` standing for it once.
+ */
 export interface SettingsCommand {
   readonly argv: readonly string[];
   readonly readback: { readonly argv: readonly string[]; readonly expected: string };
+  readonly restore: { readonly argv: readonly string[] };
 }
+
+/** The placeholder a settings command's `restore` argv takes for the value read before it ran. */
+export const PRIOR = "<prior>";
 
 /** An item file written as a setting, where the tool has no command for it. */
 export interface SettingsFile {
@@ -225,15 +233,24 @@ function checkSettings(value: unknown, path: string, problems: Problems, files?:
       const where = `${path}/commands/${at}`;
       const ok =
         isRecord(command) &&
-        Object.keys(command).sort().join() === "argv,readback" &&
+        Object.keys(command).sort().join() === "argv,readback,restore" &&
         isArgv(command.argv) &&
         command.argv.length > 0 &&
         isRecord(command.readback) &&
         Object.keys(command.readback).sort().join() === "argv,expected" &&
         isArgv(command.readback.argv) &&
         command.readback.argv.length > 0 &&
-        typeof command.readback.expected === "string";
-      problems.check(ok, where, "a command is { argv, readback: { argv, expected } }");
+        typeof command.readback.expected === "string" &&
+        isRecord(command.restore) &&
+        Object.keys(command.restore).sort().join() === "argv" &&
+        isArgv(command.restore.argv) &&
+        command.restore.argv.filter((arg) => arg === PRIOR).length === 1 &&
+        command.restore.argv.every((arg) => arg === PRIOR || !arg.includes(PRIOR));
+      problems.check(
+        ok,
+        where,
+        "a command is { argv, readback: { argv, expected }, restore: { argv } }, with <prior> once in restore",
+      );
     });
   if (!Array.isArray(value.files)) problems.add(`${path}/files`, "a list of settings files");
   else

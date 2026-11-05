@@ -834,6 +834,7 @@ const SERENA_ARGS = (context) => [
 const settingsOff = (key) => ({
   argv: ["config", "set", key, "false"],
   readback: { argv: ["config", "get", key], expected: "false" },
+  restore: { argv: ["config", "set", key, "<prior>"] },
 });
 
 async function crg(work) {

@@ -107,6 +107,7 @@ const shared = {
       record({
         argv: { ...argv, minItems: 1 },
         readback: record({ argv: { ...argv, minItems: 1 }, expected: { type: "string" } }),
+        restore: record({ argv: { ...argv, minItems: 1, contains: constant("<prior>") } }),
       }),
     ),
     files: list(

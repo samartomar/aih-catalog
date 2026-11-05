@@ -248,6 +248,14 @@
                   "watcher_enabled"
                 ],
                 "expected": "false"
+              },
+              "restore": {
+                "argv": [
+                  "config",
+                  "set",
+                  "watcher_enabled",
+                  "<prior>"
+                ]
               }
             },
             {
@@ -264,6 +272,14 @@
                   "auto_watch"
                 ],
                 "expected": "false"
+              },
+              "restore": {
+                "argv": [
+                  "config",
+                  "set",
+                  "auto_watch",
+                  "<prior>"
+                ]
               }
             },
             {
@@ -280,6 +296,14 @@
                   "auto_index"
                 ],
                 "expected": "false"
+              },
+              "restore": {
+                "argv": [
+                  "config",
+                  "set",
+                  "auto_index",
+                  "<prior>"
+                ]
               }
             }
           ],
@@ -287,7 +311,7 @@
         },
         "version": "0.12.1"
       },
-      "behaviourSha256": "69897d9075d42b6a06f19709a2cb5066aefbe60938f72a64a00bcd5f37e3fce0",
+      "behaviourSha256": "f7f9000b4bffdd2d2aad5e6a504496f6f34631b3c7a372091c00649a33667d74",
       "contentSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
       "description": "codebase-memory-mcp 0.12.1: a native codebase knowledge graph with architecture and decision records, served over MCP.",
       "files": [],

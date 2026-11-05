@@ -143,7 +143,7 @@ describe("the trio on Linux x64", () => {
     ).toEqual([]);
   });
 
-  it("acquires codebase-memory-mcp from its qualified record and applies its settings with readbacks", () => {
+  it("acquires codebase-memory-mcp from its qualified record and applies its settings with readbacks and restores", () => {
     const result = plan();
     const cbm = qualifications.find(
       (entry) =>
@@ -173,6 +173,16 @@ describe("the trio on Linux x64", () => {
       ["config", "set", "watcher_enabled", "false", "false"],
       ["config", "set", "auto_watch", "false", "false"],
       ["config", "set", "auto_index", "false", "false"],
+    ]);
+    // Removal sets each key back to the value its readback showed before the command ran.
+    expect(
+      result.plan
+        .filter((step) => step.op === "tool-command")
+        .map((step) => (step as { restore: { argv: readonly string[] } }).restore.argv),
+    ).toEqual([
+      ["config", "set", "watcher_enabled", "<prior>"],
+      ["config", "set", "auto_watch", "<prior>"],
+      ["config", "set", "auto_index", "<prior>"],
     ]);
   });
 

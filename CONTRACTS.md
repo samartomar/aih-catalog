@@ -168,7 +168,7 @@ choice still uses.
 | `merge` | sets one keyed entry in a structured file (JSON, TOML or a Markdown block), keeping the rest |
 | `plugin` | installs a native plugin at the recorded commit with the client's own commands |
 | `upstream-setup` | runs an upstream setup program, only after the user approves it |
-| `tool-command` | runs an AI setup's settings command after approval, then its readback |
+| `tool-command` | runs an AI setup's settings command after approval, then its readback. The installer runs the readback first and keeps its output as the prior value; removal runs `restore` with that value in place of `<prior>` and checks the readback shows it again |
 | `upstream-installer` | runs an upstream installer the user explicitly chose instead of a managed setup |
 
 Steps that place unscanned bytes say `scanned: false`. Declared inputs are bound to typed
