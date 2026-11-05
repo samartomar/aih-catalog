@@ -20,6 +20,7 @@ import {
   SHA256,
 } from "./model.js";
 import { isSafeRelativePath } from "./paths.js";
+import { isRepositoryAddress } from "./repository.js";
 import { serverProblem } from "./server.js";
 import { EXACT_VERSION } from "./source-link.js";
 
@@ -138,8 +139,8 @@ export function contentProblems(value: unknown): Problem[] {
             problems.add(`${path}/${key}`, `a ${String(source.kind)} source has no ${key}`);
       };
       if (source.kind === "git") {
-        if (!isString(source.repository, 2048))
-          problems.add(`${path}/repository`, "a git source needs its repository");
+        if (!isRepositoryAddress(source.repository))
+          problems.add(`${path}/repository`, "a git source needs its https repository address");
         if (typeof source.commit !== "string" || !OBJECT_ID.test(source.commit))
           problems.add(`${path}/commit`, "a git source needs an exact commit id");
         absent(["package", "version"]);

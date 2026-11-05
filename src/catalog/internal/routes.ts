@@ -563,6 +563,10 @@ function lowerPlugin(
     marketplace = { root: scope, path };
     marketplaceName = render.marketplace;
   }
+  // The pin holds only where the install names the commit or the plan writes the marketplace.
+  const pinned =
+    install.pinForm === "local-marketplace" ||
+    (install.install ?? []).some((argv) => argv.some((arg) => arg.includes("<commit>")));
   const items = containedIn(content, entry);
   for (const code of install.warnings ?? []) lowered.warnings.push({ code, cli, items, framework });
   for (const item of items) lowered.routed.push({ item, cli });
@@ -577,6 +581,7 @@ function lowerPlugin(
     commit: entry.commit,
     scanKey: folder.folderScanKey ?? folder.scanKey,
     verify: install.verify,
+    ...(pinned ? {} : { pin: "unverified" as const }),
   });
 }
 

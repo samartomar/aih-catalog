@@ -42,7 +42,8 @@ no source is `unrecognised` with a reason; text over the published limit is `ref
 One framework's content: `framework {id, name}`, `sources`, `items`, and optionally `bundles`
 and `plugins`.
 
-- **Sources** are `git` (repository and exact commit, optional subpath), `npm` (package and
+- **Sources** are `git` (an https repository address such as `https://<host>/<owner>/<repo>`,
+  with no credentials, query or fragment; exact commit; optional subpath), `npm` (package and
   exact version), `local` (no machine path is recorded) or `authored` (files Catalog or you
   wrote). Each source lists its `notices` (licence and notice files, with the folder each
   covers) and may restrict them to some items with `noticesFor`.
@@ -115,7 +116,9 @@ that installs `<plugin>@<marketplace-name>`, such as Claude Code or Codex, also 
 items route installs (`clis`), `members` and choice `options`, `namePrefix`, built-in `overrides`, AI setup
 changes, combination `qualifications` per cell, and the Catalog `data` commit it was written
 against. `planRecipe` refuses any other data commit (`data-mismatch`) and content at any other
-pin (`content-mismatch`).
+pin (`content-mismatch`). Every pin (content, setup and data) names an https repository
+address, as a Git source does. A `plugin` route's `marketplace` is an https URL or
+`owner/repo`; a `local-plugin` route's is the kebab-case name its copied folder declares.
 
 ### Qualification
 
@@ -166,7 +169,7 @@ choice still uses.
 | `write` | writes a file: a copy of the recorded source file, or the bytes `renderStep` gives for its `render` |
 | `link` | links a client folder to a shared user-scope version folder; skills whose relative paths reach a sibling skill are copied in place instead, with a `copied-for-references` warning, since a linked folder resolves `..` inside its version folder |
 | `merge` | sets one keyed entry in a structured file (JSON, TOML or a Markdown block), keeping the rest |
-| `plugin` | installs a native plugin at the recorded commit with the client's own commands |
+| `plugin` | installs a native plugin at the recorded commit with the client's own commands; `pin: "unverified"` where the client adds the marketplace unpinned, so nothing checks the installed commit |
 | `upstream-setup` | runs an upstream setup program, only after the user approves it |
 | `tool-command` | runs an AI setup's settings command after approval, then its readback. The installer runs the readback first and keeps its output as the prior value; removal runs `restore` with that value in place of `<prior>` and checks the readback shows it again |
 | `upstream-installer` | runs an upstream installer the user explicitly chose instead of a managed setup |
@@ -186,7 +189,7 @@ values; a secret never has a value in content or a plan.
 - **Built-ins.** A placed name that a client already provides is a `built-in` clash unless a
   recipe override, a prefix, a caller-chosen name or leaving the item out resolves it.
 - **Clashes.** Two different placements at one path or key are a clash; the plan drops the
-  conflicting steps and lists them. A merge into a nested key, a write over a merged file or
+  conflicting steps and lists them. Paths that differ only in case or Unicode form are one path. A merge into a nested key, a write over a merged file or
   a placement under a link, and a file over a client's size limit, are clashes too.
 - **Duplicates.** When a plan mixes frameworks, items sharing an install name or a content
   identity are listed as facts, with no winner chosen. The plan places Catalog's authored

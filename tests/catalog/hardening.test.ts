@@ -6,6 +6,7 @@ import {
   type Plan,
   type PlanStep,
   planInstall,
+  readRecipe,
   renderStep,
 } from "../../src/catalog/reader.js";
 import { findItems } from "../../src/catalog/source.js";
@@ -541,5 +542,130 @@ describe("the library's own framework", () => {
     expect(renderStep(step, [await ownSkill("aih")], [profile("codex")], files).status).not.toBe(
       "ok",
     );
+  });
+});
+
+describe("repository addresses", () => {
+  const COMMIT = "a".repeat(40);
+  const PLUGIN = {
+    name: "pack-base",
+    version: "1.0.0",
+    description: "The whole pack.",
+    author: { name: "Pack authors" },
+    license: "MIT",
+    keywords: ["recipe"],
+  };
+  const recipe = (change: Record<string, unknown>) => ({
+    schema: "urn:aihq:catalog:recipe:0.1.0",
+    id: "pack-base",
+    kind: "base",
+    framework: "pack",
+    content: { repository: "https://example.invalid/team/pack", commit: COMMIT },
+    routes: { "claude-code": "plugin" },
+    plugins: {
+      "claude-code": {
+        source: "pack",
+        path: "/",
+        plugin: "pack",
+        commit: COMMIT,
+        marketplace: "https://example.invalid/team/pack-marketplace",
+        marketplaceName: "pack-dev",
+      },
+    },
+    setup: {},
+    clis: {},
+    members: [],
+    options: [],
+    namePrefix: {},
+    overrides: [],
+    requires: [],
+    aiSetup: {},
+    data: { repository: "https://example.invalid/team/catalog-data", commit: "b".repeat(40) },
+    ...change,
+  });
+  const encode = (value: unknown) => new TextEncoder().encode(`${JSON.stringify(value)}\n`);
+  const BAD = [
+    "-uhttps://example.invalid/team/pack",
+    "ext::sh -c touch",
+    "file:///srv/repos/pack",
+    "/srv/repos/pack",
+    "git@example.invalid:team/pack.git",
+    "http://example.invalid/team/pack",
+    "https://user:secret@example.invalid/team/pack",
+    "https://example.invalid/team/pack?ref=x",
+    "https://example.invalid/team/pack#x",
+    "https://example.invalid/team/pack x",
+    "https://example.invalid/-team/pack",
+  ];
+
+  it("reads a recipe whose pins and marketplace are ordinary https repositories", () => {
+    expect(readRecipe(encode(PLUGIN), encode(recipe({})))).toMatchObject({ status: "ok" });
+  });
+
+  it("refuses a recipe pin, data pin or marketplace that is not an https repository", () => {
+    for (const address of BAD) {
+      const pins = [
+        { content: { repository: address, commit: COMMIT } },
+        { data: { repository: address, commit: "b".repeat(40) } },
+      ];
+      for (const change of pins)
+        expect(readRecipe(encode(PLUGIN), encode(recipe(change))), address).toMatchObject({
+          status: "invalid",
+        });
+    }
+    for (const marketplace of ["-x", "--option=value", "file:///srv/m", "ext::sh", "a b"]) {
+      const change = {
+        plugins: {
+          "claude-code": { ...recipe({}).plugins["claude-code"], marketplace },
+        },
+      };
+      expect(readRecipe(encode(PLUGIN), encode(recipe(change))), marketplace).toMatchObject({
+        status: "invalid",
+      });
+    }
+  });
+
+  it("accepts an owner/repo marketplace", () => {
+    const change = {
+      plugins: {
+        "claude-code": { ...recipe({}).plugins["claude-code"], marketplace: "team/pack" },
+      },
+    };
+    expect(readRecipe(encode(PLUGIN), encode(recipe(change)))).toMatchObject({ status: "ok" });
+  });
+
+  it("refuses a plan data pin that is not an https repository", async () => {
+    const read = readLocalSource(folder({ "skills/tidy/SKILL.md": SKILL }));
+    if (read.status !== "ok") throw new Error(JSON.stringify(read));
+    const found = findItems(read.files, { framework: FRAMEWORK });
+    if (found.status !== "ok") throw new Error(JSON.stringify(found));
+    const built = await buildContent(read.source, read.files, found.items, {
+      framework: FRAMEWORK,
+    });
+    if (built.status !== "ok") throw new Error(JSON.stringify(built));
+    for (const repository of BAD)
+      expect(
+        planInstall([`${FRAMEWORK}.skill.tidy`], [built.content], [profile("codex")], {
+          scope: "project",
+          data: { repository, commit: "b".repeat(40) },
+        }),
+        repository,
+      ).toMatchObject({ status: "invalid" });
+  });
+
+  it("refuses content whose git source is not an https repository", async () => {
+    const read = readLocalSource(folder({ "skills/tidy/SKILL.md": SKILL }));
+    if (read.status !== "ok") throw new Error(JSON.stringify(read));
+    const found = findItems(read.files, { framework: FRAMEWORK });
+    if (found.status !== "ok") throw new Error(JSON.stringify(found));
+    for (const repository of BAD) {
+      const built = await buildContent(
+        { kind: "git", repository, commit: "c".repeat(40) },
+        read.files,
+        found.items,
+        { framework: FRAMEWORK },
+      );
+      expect(built, repository).toMatchObject({ status: "invalid" });
+    }
   });
 });

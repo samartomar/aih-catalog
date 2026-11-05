@@ -348,7 +348,10 @@ const egmRecipe = (routes: Record<string, string>): Recipe =>
     routes,
     plugins: Object.fromEntries(
       Object.entries({
-        "claude-code": { marketplace: "egm" },
+        // A native install adds the upstream marketplace; a local plugin registers its name.
+        "claude-code": {
+          marketplace: routes["claude-code"] === "plugin" ? EGM_UPSTREAM.repository : "egm",
+        },
         codex: { marketplace: EGM_UPSTREAM.repository },
         antigravity: {},
       })

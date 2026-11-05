@@ -56,6 +56,7 @@ import {
   type RenderName,
   scopeKeyOf,
 } from "./render.js";
+import { isRepositoryAddress } from "./repository.js";
 import { sha256Hex } from "./sha256.js";
 import {
   type AcquireStep,
@@ -228,6 +229,11 @@ export interface PluginStep {
   readonly commit: string;
   readonly scanKey: string;
   readonly verify: PluginVerify;
+  /**
+   * `unverified` where the client installs from a marketplace it adds unpinned, so nothing
+   * checks that the installed plugin is the one at `commit`.
+   */
+  readonly pin?: "unverified";
 }
 
 /** An upstream setup program: the installer clones, shows the exact command and runs it only after approval. */
@@ -1823,8 +1829,7 @@ export function inputProblems(
 export const isDataPin = (data: unknown): data is { repository: string; commit: string } =>
   isRecord(data) &&
   Object.keys(data).sort().join() === "commit,repository" &&
-  typeof data.repository === "string" &&
-  data.repository.length > 0 &&
+  isRepositoryAddress(data.repository) &&
   typeof data.commit === "string" &&
   /^[0-9a-f]{40}$/.test(data.commit);
 

@@ -188,3 +188,18 @@ export const placements = (plan: readonly PlanStep[]): Exclude<PlacementStep, Fe
 /** The fetch steps of a plan (an upstream-only item's files), in plan order. */
 export const fetches = (plan: readonly PlanStep[]): FetchStep[] =>
   plan.filter((step): step is FetchStep => step.op === "fetch");
+
+/**
+ * The https address a fixture repository is recorded under. Tests fetch from a disposable
+ * local repository, but content and recipes record only https repository addresses.
+ */
+export const publishedAddress = (path: string): string =>
+  `https://example.invalid/fixtures/${sha(path).slice(0, 16)}`;
+
+/** A fetched source as published: a Git source's local path becomes its https address. */
+export const published = <Source extends { readonly kind: string; readonly repository?: string }>(
+  source: Source,
+): Source =>
+  source.kind === "git" && source.repository !== undefined
+    ? { ...source, repository: publishedAddress(source.repository) }
+    : source;

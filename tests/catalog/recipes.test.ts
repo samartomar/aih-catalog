@@ -21,6 +21,8 @@ import {
   outDir,
   placements,
   profile,
+  published,
+  publishedAddress,
   sha,
   sortKeys,
   type TreeEntry,
@@ -153,7 +155,7 @@ async function pinnedContent(
     ...found.items.map((item) => ({ ...item, ...build.authored?.[item.id] })),
     ...hooks,
   ];
-  const built = await buildContent(fetched.source, fetched.files, items, {
+  const built = await buildContent(published(fetched.source), fetched.files, items, {
     framework,
     ...(build.plugins ? { plugins: build.plugins } : {}),
   });
@@ -162,7 +164,7 @@ async function pinnedContent(
   if (reread.status !== "ok") throw new Error(JSON.stringify(reread));
   return {
     content: reread.content as Content,
-    repository: upstream.path,
+    repository: publishedAddress(upstream.path),
     commit: upstream.commits[0] as string,
     files: fetched.files,
   };
@@ -421,7 +423,14 @@ describe("planning a native plugin route", () => {
       verify: "none",
     };
     expect(plan.plan.filter((step) => step.op === "plugin")).toEqual([
-      { ...common, cli: "claude-code", marketplace: MARKETPLACE, marketplaceName: "sp-dev" },
+      // Claude adds the marketplace unpinned, so its step says the pin cannot be checked.
+      {
+        ...common,
+        cli: "claude-code",
+        marketplace: MARKETPLACE,
+        marketplaceName: "sp-dev",
+        pin: "unverified",
+      },
       { ...common, cli: "codex", marketplace: repository, marketplaceName: "sp-dev" },
       {
         ...common,
