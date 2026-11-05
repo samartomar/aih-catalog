@@ -440,7 +440,16 @@ describe("MCP literals and remotes", () => {
   });
 
   it("refuses a remote server that is not https, unless it is on this machine", async () => {
-    for (const url of ["http://weather.example/mcp", "ftp://weather.example/mcp"]) {
+    for (const url of [
+      "http://weather.example/mcp",
+      "ftp://weather.example/mcp",
+      // Spellings URL parsers read differently, and credentials.
+      String.raw`https://weather.example\@evil.example/mcp`,
+      String.raw`https:\\evil.example/mcp`,
+      "https://weather.example/%2e%2e/mcp/../x",
+      "https://WEATHER.example/mcp",
+      "https://user@weather.example/mcp",
+    ]) {
       const plan = planServer(await serverContent(remoteJson(url)));
       expect(plan.unavailable, url).toMatchObject([
         { item: WEATHER, cli: "claude-code", reason: "unsupported-server" },

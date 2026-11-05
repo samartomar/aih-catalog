@@ -231,12 +231,17 @@ const LOOPBACK = /^(?:localhost|127(?:\.\d{1,3}){3}|\[::1\])$/i;
  * machine. Input markers stand for one path or host segment while it is checked.
  */
 export function remoteUrlProblem(url: string): string | undefined {
+  if (url.includes("\\")) return "the remote URL holds a backslash";
+  const input = url.replaceAll(/\{[A-Za-z_][A-Za-z0-9_-]*\}/g, "x");
   let parsed: URL;
   try {
-    parsed = new URL(url.replaceAll(/\{[A-Za-z_][A-Za-z0-9_-]*\}/g, "x"));
+    parsed = new URL(input);
   } catch {
     return "the remote URL is not a URL";
   }
+  // The URL as written is the URL every parser reads: nothing is resolved or rewritten.
+  if (parsed.href !== input && parsed.href !== `${input}/`)
+    return "the remote URL is not in its plain, normalised form";
   if (parsed.username !== "" || parsed.password !== "") return "the remote URL carries credentials";
   if (parsed.protocol === "https:") return undefined;
   if (parsed.protocol === "http:" && LOOPBACK.test(parsed.hostname)) return undefined;
