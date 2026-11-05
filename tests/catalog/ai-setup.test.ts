@@ -1041,7 +1041,7 @@ describe("a new qualification in a data commit", () => {
     expect(item(after)?.contentSha256).toBe(item(before)?.contentSha256);
     expect(item(after)?.behaviourSha256).toBe(item(before)?.behaviourSha256);
     const pkg = JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8"));
-    expect(pkg.version).toBe("0.1.0");
+    expect(pkg.version).toBe("0.0.0-dev.1");
   });
 });
 

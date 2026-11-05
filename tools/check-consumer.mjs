@@ -53,7 +53,7 @@ const args = new Set(process.argv.slice(2));
 for (const arg of args)
   if (!["--write", "--network", "--keep"].includes(arg)) fail(`unknown option ${arg}`);
 const RESULTS = "validation/packed-consumer.json";
-const SCAN_TARBALL = "vendor/aihq-scan-0.1.0.tgz";
+const SCAN_TARBALL = "vendor/aihq-scan-0.0.0-dev.1.tgz";
 
 if (Number(process.versions.node.split(".")[0]) !== 26)
   fail(`Node 26 is required (running ${process.versions.node})`);
@@ -202,7 +202,7 @@ try {
       bytes: tarballBytes.length,
       entries: packed.entryCount,
     },
-    scan: { package: "@aihq/scan@0.1.0", sha256: sha256(scanBytes) },
+    scan: { package: "@aihq/scan@0.0.0-dev.1", sha256: sha256(scanBytes) },
     runtime: { node: process.versions.node, npm: run(process.execPath, [npm, "--version"]).trim() },
     inputs: prepared.identity,
     network: args.has("--network"),

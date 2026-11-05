@@ -8,10 +8,11 @@ the user for any step that needs approval.
 It knows nine clients through its tool profiles: Claude Code, Codex, GitHub Copilot, Kiro,
 Antigravity, OpenCode, Cursor, Kimi and dsh.
 
-**Status.** Version 0.1.0 is unreleased and not published to npm; the package refuses
-publication until a release path is separately authorized ([RELEASING.md](RELEASING.md)). A
-passing test shows that Catalog plans correctly. It does not show that a client loads the
-result. The content under `data/` is candidate data, not yet admitted ([data](#data)).
+**Status.** The package carries the temporary prerelease version 0.0.0-dev.1; 0.1.0 is
+unreleased. It is not published to npm and refuses publication until a release path is
+separately authorized ([RELEASING.md](RELEASING.md)). A passing test shows that Catalog plans
+correctly. It does not show that a client loads the result. The content under `data/` is
+candidate data, not yet admitted ([data](#data)).
 
 ## Terms
 
@@ -113,13 +114,13 @@ Catalog item one disposition and lists the known limits.
 ## Install
 
 Catalog needs Node `>=26.12.1 <27`. Its one runtime dependency besides `yaml` is
-`@aihq/scan@0.1.0`, which is not on the npm registry yet. Until it is, install the Scan
-tarball kept in this repository (`vendor/aihq-scan-0.1.0.tgz`, sha256
-`52f040b1e09dd4015d5c88b9b98b59d177626bf449f1e819448411552de59bcd`) together with a Catalog
+`@aihq/scan@0.0.0-dev.1`, which is not on the npm registry yet. Until it is, install the Scan
+tarball kept in this repository (`vendor/aihq-scan-0.0.0-dev.1.tgz`, sha256
+`4f1368c9b89d4055d71f6dc788d0838300f80e39603273cfd663ce1d7ff508c0`) together with a Catalog
 tarball you built:
 
 ```sh
-npm install --ignore-scripts ./aihq-scan-0.1.0.tgz ./aihq-catalog-0.1.0.tgz
+npm install --ignore-scripts ./aihq-scan-0.0.0-dev.1.tgz ./aihq-catalog-0.0.0-dev.1.tgz
 ```
 
 Catalog uses only `scanKeyOf` from `@aihq/scan/contracts`, so content scan keys and Scan's

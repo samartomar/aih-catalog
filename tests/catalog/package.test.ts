@@ -12,8 +12,8 @@ import * as source from "../../src/catalog/source.js";
 const root = resolve(import.meta.dirname, "../..");
 const manifest = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
 const ENTRY_POINTS = ["contracts", "node", "producer", "reader", "source"];
-const SCAN_TARBALL = "vendor/aihq-scan-0.1.0.tgz";
-const SCAN_SHA256 = "52f040b1e09dd4015d5c88b9b98b59d177626bf449f1e819448411552de59bcd";
+const SCAN_TARBALL = "vendor/aihq-scan-0.0.0-dev.1.tgz";
+const SCAN_SHA256 = "4f1368c9b89d4055d71f6dc788d0838300f80e39603273cfd663ce1d7ff508c0";
 
 /** The local npm CLI next to this Node; never npx. */
 function npmCli(): string {
@@ -94,14 +94,14 @@ describe("the package exposes exactly the five entry points", () => {
       });
     expect(manifest.main).toBeUndefined();
     expect(manifest.bin).toBeUndefined();
-    expect(manifest.version).toBe("0.1.0");
+    expect(manifest.version).toBe("0.0.0-dev.1");
   });
 
   it("ships no local-path dependency; development resolves Scan from the vendored tarball", () => {
     const shipped = { ...manifest.dependencies, ...manifest.optionalDependencies };
     for (const [name, spec] of Object.entries(shipped))
       expect(String(spec), name).not.toMatch(/^(?:file:|link:|\.|\/|git|https?:)/);
-    expect(manifest.dependencies["@aihq/scan"]).toBe("0.1.0");
+    expect(manifest.dependencies["@aihq/scan"]).toBe("0.0.0-dev.1");
     expect(manifest.bundleDependencies ?? manifest.bundledDependencies).toBeUndefined();
     expect(manifest.devDependencies["@aihq/scan"]).toBe(`file:${SCAN_TARBALL}`);
     const tarball = readFileSync(join(root, SCAN_TARBALL));
@@ -111,7 +111,7 @@ describe("the package exposes exactly the five entry points", () => {
       expect(readFileSync(join(root, name), "utf8"), name).toContain(SCAN_SHA256);
     const lock = JSON.parse(readFileSync(join(root, "package-lock.json"), "utf8"));
     const locked = lock.packages["node_modules/@aihq/scan"];
-    expect(locked.version).toBe("0.1.0");
+    expect(locked.version).toBe("0.0.0-dev.1");
     expect(locked.resolved).toBe(`file:${SCAN_TARBALL}`);
     expect(locked.integrity).toBe(
       `sha512-${createHash("sha512").update(tarball).digest("base64")}`,
@@ -123,7 +123,7 @@ describe("the package exposes exactly the five entry points", () => {
     // while every consumer gets the same version.
     const lock = JSON.parse(readFileSync(join(root, "package-lock.json"), "utf8"));
     for (const [name, spec] of Object.entries(manifest.dependencies as Record<string, string>)) {
-      expect(spec, name).toMatch(/^\d+\.\d+\.\d+$/);
+      expect(spec, name).toMatch(/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?$/);
       expect(lock.packages[`node_modules/${name}`]?.version, name).toBe(spec);
     }
   });

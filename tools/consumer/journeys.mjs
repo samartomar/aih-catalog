@@ -1702,7 +1702,7 @@ function commonFolder(paths, kind) {
     const pkg = JSON.parse(
       readFileSync(join(process.cwd(), "node_modules/@aihq/catalog/package.json"), "utf8"),
     );
-    assert.equal(pkg.version, "0.1.0");
+    assert.equal(pkg.version, "0.0.0-dev.1");
     assert.notEqual(commits.before.commit, commits.after.commit);
   });
   const planAt = (folder, commit) => {
@@ -2269,7 +2269,7 @@ missingProof.push(
   "This packed-consumer check does not verify production scan admission; separate matching trusted-evidence verification is required.",
   "Recipe publication: no recipe is published with a real data commit; the journeys write their recipes and use the drafted ones in the port report.",
   "Extensions routes: aih-extensions declares no per-client routes, so no Extensions base recipe exists.",
-  "Registry install: @aihq/scan 0.1.0 is not on the npm registry; consumers install the vendored tarball.",
+  "Registry install: @aihq/scan 0.0.0-dev.1 is not on the npm registry; consumers install the vendored tarball.",
   ...(network
     ? []
     : [

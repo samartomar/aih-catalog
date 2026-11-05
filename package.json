@@ -1,6 +1,6 @@
 {
   "name": "@aihq/catalog",
-  "version": "0.1.0",
+  "version": "0.0.0-dev.1",
   "description": "Read AI content sources, identify their items, check them and plan deterministic installations for nine AI clients.",
   "repository": {
     "type": "git",
@@ -67,11 +67,11 @@
     "prepublishOnly": "node tools/refuse-publication.mjs"
   },
   "dependencies": {
-    "@aihq/scan": "0.1.0",
+    "@aihq/scan": "0.0.0-dev.1",
     "yaml": "2.9.1"
   },
   "devDependencies": {
-    "@aihq/scan": "file:vendor/aihq-scan-0.1.0.tgz",
+    "@aihq/scan": "file:vendor/aihq-scan-0.0.0-dev.1.tgz",
     "@biomejs/biome": "2.5.1",
     "@types/node": "26.1.1",
     "@vitest/coverage-v8": "4.1.11",

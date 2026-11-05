@@ -13,9 +13,9 @@ workflow actions are pinned. CI runs the same command, then `npm audit --audit-l
 and `git diff --check`.
 
 `@aihq/scan` is the one dependency Catalog adds. The package depends on the exact version
-`0.1.0`. Until Scan is on the npm registry, this repository installs that version from
-`vendor/aihq-scan-0.1.0.tgz` (sha256
-`52f040b1e09dd4015d5c88b9b98b59d177626bf449f1e819448411552de59bcd`): the development
+`0.0.0-dev.1`. Until Scan is on the npm registry, this repository installs that version from
+`vendor/aihq-scan-0.0.0-dev.1.tgz` (sha256
+`4f1368c9b89d4055d71f6dc788d0838300f80e39603273cfd663ce1d7ff508c0`): the development
 dependency of the same name points at the tarball, npm prefers it inside this repository, and
 the lockfile records its integrity. The sha256 is written in three places: here, in
 [README.md](README.md#install) and as `SCAN_SHA256` in `tests/catalog/package.test.ts`, which

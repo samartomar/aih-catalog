@@ -19,4 +19,4 @@ only the versions it implements and returns `unsupported-version` for another ve
 own format; it never ignores fields it does not know. A format change publishes its new
 schema and fixtures together with the reader that reads it.
 
-The package stays at 0.1.0 until its first release ([RELEASING.md](RELEASING.md)).
+The package carries the temporary prerelease version 0.0.0-dev.1 until 0.1.0, its first release, is adopted ([RELEASING.md](RELEASING.md)).
