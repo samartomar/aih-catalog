@@ -15,13 +15,30 @@
       "version": "1.19.5"
     }
   ],
+  "configFiles": {
+    "project": [
+      "opencode.jsonc",
+      ".opencode/opencode.json",
+      ".opencode/opencode.jsonc"
+    ],
+    "user": [
+      ".config/opencode/opencode.json",
+      ".config/opencode/opencode.jsonc"
+    ]
+  },
   "disableBuiltIn": "not-documented",
   "id": "opencode",
   "inputReferences": {
     "file": "unknown",
-    "mcp-argv": "unknown",
-    "mcp-env": "unknown",
-    "mcp-header": "unknown"
+    "mcp-argv": {
+      "syntax": "{env:<name>}"
+    },
+    "mcp-env": {
+      "syntax": "{env:<name>}"
+    },
+    "mcp-header": {
+      "syntax": "{env:<name>}"
+    }
   },
   "links": {
     "skill": "documented"
@@ -143,5 +160,5 @@
       }
     ]
   },
-  "version": 3
+  "version": 4
 }

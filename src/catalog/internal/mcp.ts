@@ -269,7 +269,8 @@ export function literalProblem(
   declared: readonly string[],
   syntaxes: readonly string[],
 ): string | undefined {
-  const openers = new Set(["${"]);
+  // `${` and OpenCode's `{env:`/`{file:` are refused on every client, recorded or not.
+  const openers = new Set(["${", "{env:", "{file:"]);
   for (const syntax of syntaxes) {
     const opener = syntax.slice(0, syntax.indexOf("<name>"));
     if (opener.length > 0) openers.add(opener);

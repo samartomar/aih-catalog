@@ -26,6 +26,11 @@
       "version": "0.72.0"
     }
   ],
+  "configFiles": {
+    "user": [
+      ".copilot/config.json"
+    ]
+  },
   "disableBuiltIn": "not-documented",
   "editionPlaces": {
     "hook": {
@@ -285,5 +290,5 @@
       "disable-model-invocation": true
     }
   },
-  "version": 4
+  "version": 5
 }

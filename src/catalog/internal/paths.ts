@@ -24,13 +24,18 @@ const isPortableSegment = (segment: string): boolean =>
   !hasControl(segment) &&
   !segment.endsWith(".") &&
   !segment.endsWith(" ") &&
-  !DEVICE.test(segment);
+  !DEVICE.test(segment) &&
+  // A Git folder at any depth, in any case, and a Windows 8.3 short name, which can alias
+  // another name (Git's core.protectNTFS rule).
+  segment.toLowerCase() !== ".git" &&
+  !/~[0-9]/.test(segment);
 
 /**
- * True for a canonical, portable source-relative POSIX path: non-empty segments, no `.`/`..`,
- * no leading slash, and no segment that some supported file system would refuse or read as
- * another name (a backslash, drive colon, `<>"|?*`, a control character, a trailing dot or
- * space, or a Windows device name). Anything else is a `path-escape`.
+ * True for a canonical, portable source-relative POSIX path: non-empty segments, no `.`, `..`
+ * or `.git` segment, no leading slash, and no segment that some supported file system would
+ * refuse or read as another name (a backslash, drive colon, `<>"|?*`, a control character, a
+ * trailing dot or space, a Windows device name or an 8.3 short name such as `PROGRA~1`).
+ * Anything else is a `path-escape`.
  */
 export function isSafeRelativePath(path: unknown): path is string {
   if (typeof path !== "string" || path.length === 0 || path.length > 4096) return false;

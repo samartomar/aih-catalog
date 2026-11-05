@@ -7,7 +7,7 @@
  * plans.
  */
 import type { Invalid, Kind, Problem, Refused } from "../contracts.js";
-import { kinds } from "../contracts.js";
+import { kinds, toolProfiles } from "../contracts.js";
 import { type AiSetupChange, CELLS, type Cell, qualificationProblems } from "./ai-setup.js";
 import {
   AUTHORED_FRAMEWORK,
@@ -42,6 +42,7 @@ import {
   type PluginVerify,
   type ProvidedKind,
   profileProblems,
+  SCOPES,
   type Scope,
   type ToolProfile,
   type UserOnlyFallbackEntry,
@@ -1152,23 +1153,62 @@ const sortedSet = (values: Iterable<string>) => [...new Set(values)].sort(compar
  * MCP files, local-plugin and built-in switch-off settings, shared rule files, the VS Code
  * folder-overlap setting and hook edition folders (folders end in `/`).
  */
-function configSurfaces(profiles: readonly ToolProfile[], scope: Scope): Set<string> {
+function configSurfaces(profiles: readonly ToolProfile[]): Set<string> {
   const found = new Set<string>();
   const add = (path: string | undefined) => {
     if (path !== undefined) found.add(clashKey(path));
   };
-  for (const profile of profiles) {
-    add(profile.places.mcp?.[scope]?.file);
-    for (const entry of profile.localPlugins?.[scope]?.register ?? []) add(entry.file);
-    const disable = profile.disableBuiltIn;
-    if (typeof disable === "object" && disable.setting?.root === scope) add(disable.setting.file);
-    for (const place of Object.values(profile.places.rule?.[scope] ?? {}))
-      if (typeof place === "object") add(place.file);
-    if (scope === "project") add(profile.skillFolderOverlap?.merge.file);
-    const hooks = profile.editionPlaces?.hook?.[scope];
-    if (hooks !== undefined) add(hooks.endsWith("/") ? hooks : `${hooks}/`);
-  }
+  // Every shipped client's surfaces at both scopes, not only the planned ones': a file one
+  // client places must never land on another client's configuration.
+  for (const profile of [...shippedProfiles(), ...profiles])
+    for (const scope of SCOPES) {
+      for (const file of profile.configFiles?.[scope] ?? []) add(file);
+      add(profile.places.mcp?.[scope]?.file);
+      for (const entry of profile.localPlugins?.[scope]?.register ?? []) add(entry.file);
+      const disable = profile.disableBuiltIn;
+      if (typeof disable === "object" && disable.setting?.root === scope) add(disable.setting.file);
+      for (const place of Object.values(profile.places.rule?.[scope] ?? {}))
+        if (typeof place === "object") add(place.file);
+      if (scope === "project") add(profile.skillFolderOverlap?.merge.file);
+      const hooks = profile.editionPlaces?.hook?.[scope];
+      if (hooks !== undefined) add(hooks.endsWith("/") ? hooks : `${hooks}/`);
+    }
+  add(".github/workflows/");
   return found;
+}
+
+let shipped: readonly ToolProfile[] | undefined;
+/** The shipped tool profiles, read once. */
+function shippedProfiles(): readonly ToolProfile[] {
+  shipped ??= Object.values(toolProfiles).map((text) => JSON.parse(text) as ToolProfile);
+  return shipped;
+}
+
+/** Folders shared by every kind of client or user data: never a bundle root. */
+const SHARED_ROOTS = new Set(["", ".config/", ".github/", ".local/", ".local/share/"]);
+
+/**
+ * Whether `root` is a folder of a client's own, where a bundle may go: the parent of a
+ * shipped or planned client's skills folder, or its own bundle root. Never the project or
+ * home root, nor a folder all programs share such as `.config/` or `.github/`.
+ */
+function isClientRoot(root: string, framework: string, profiles: readonly ToolProfile[]): boolean {
+  if (SHARED_ROOTS.has(clashKey(root))) return false;
+  for (const profile of [...shippedProfiles(), ...profiles])
+    for (const scope of SCOPES) {
+      const fixed = profile.bundleRoot?.[scope];
+      if (fixed !== undefined && fixed.replaceAll("<framework>", framework) === root) return true;
+      const place = profile.places.skill?.[scope];
+      if (place === undefined) continue;
+      const templates = typeof place === "string" ? [place] : [place.otherwise, ...place.reuse];
+      if (
+        templates.some(
+          (template) => rootOf(folderPath(fill(template, "x")), "skills/<name>/", "x") === root,
+        )
+      )
+        return true;
+    }
+  return false;
 }
 
 /**
@@ -1178,6 +1218,7 @@ function configSurfaces(profiles: readonly ToolProfile[], scope: Scope): Set<str
 function onConfigSurface(path: string, surfaces: ReadonlySet<string>): boolean {
   const key = clashKey(path);
   if (surfaces.has(key)) return true;
+  if (key.split("/").includes(".git")) return true;
   for (const surface of surfaces) if (surface.endsWith("/") && key.startsWith(surface)) return true;
   const segments = key.split("/");
   return (
@@ -1220,6 +1261,8 @@ function placeBundles(
     const root = rootOf((entry.unit as { path: string }).path, bundle.layout, entry.installName);
     const known = rootsOf(entry.profile.id).get(bundle.id);
     if (root === undefined) fail(entry, "the skill folder does not end in the bundle layout");
+    else if (!isClientRoot(root, entry.framework, profiles))
+      fail(entry, `the bundle root ${quote(root)} is not a folder of the client's own`);
     else if (known !== undefined && known.root !== root)
       fail(entry, "the client would place the bundle at two roots");
     else if (known !== undefined) known.items.add(entry.item.id);
@@ -1235,6 +1278,10 @@ function placeBundles(
       const root = templateRoot(entry.profile, bundle, entry.framework, scope);
       if (root === undefined) {
         fail(entry, `the client has no ${scope} place for the bundle's root`);
+        continue;
+      }
+      if (!isClientRoot(root, entry.framework, profiles)) {
+        fail(entry, `the bundle root ${quote(root)} is not a folder of the client's own`);
         continue;
       }
       known = { bundle, root, items: new Set() };
@@ -1256,7 +1303,7 @@ function placeBundles(
 
   // A bundle file never lands on a file or folder a planned client reads as configuration: the
   // bundle is not placed for that client.
-  const surfaces = configSurfaces(profiles, scope);
+  const surfaces = configSurfaces(profiles);
   let blocked = served;
   for (const [cli, map] of roots)
     for (const [id, placed] of map) {

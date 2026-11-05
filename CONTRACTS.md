@@ -100,6 +100,7 @@ has one, and its fallback files become one-line launchers; skills without a bund
 unchanged); how arguments are passed; the agent file format; rule scopes; hook events; the
 MCP entry fields and tool restrictions; native input-reference syntax per surface; plugin
 installs and their pin behaviour; local-plugin folders and registration; bundle roots; the
+configuration files it reads that no other section names (`configFiles`); the
 built-ins the client already provides and how one is switched off; and `checkedWith`, the
 client versions and dates the facts were checked against. A kind the client cannot take is
 listed in `unsupported` with its reason. A section the client lacks is left out, and a plan
@@ -223,14 +224,18 @@ values; a secret never has a value in content or a plan.
 - **MCP entries.** A package starts only through its registry's runner (`npx` for npm,
   `uvx` for PyPI), `npx` taking only `-y`/`--yes` and `uvx` no runner argument, and its
   identifier follows the registry's package-name grammar. A remote is https unless it runs on
-  this machine. No literal in an entry holds `${` or the client's own reference syntax, every
+  this machine. No literal in an entry holds `${`, `{env:`, `{file:` or the client's own
+  reference syntax, every
   input marker names a declared input, and `env` (an item's, a recipe's or a server input)
   never sets a variable that changes how the runtime loads code, such as `NODE_OPTIONS`,
   `LD_PRELOAD`, `PYTHONPATH`, `PATH` or package-manager configuration. Such an entry is
   `unavailable` (`unsupported-server`) or the content is `invalid`.
-- **Bundles.** A bundle file never lands on a file or folder a planned client reads as
-  configuration (its MCP file, settings, shared rule file or a `hooks` folder); the bundle's
-  items are then `unavailable` there (`no-bundle-place`).
+- **Bundles.** A bundle's root is a folder of a client's own (the parent of a client's skills
+  folder, or its `bundleRoot`), never the project or home root or a shared folder such as
+  `.config/` or `.github/`. A bundle file never lands on a file or folder any shipped client
+  reads as configuration, at either scope (its MCP file, `configFiles`, settings, shared
+  rule file, a `hooks` folder, `.github/workflows/` or a `.git` folder). Otherwise the
+  bundle's items are `unavailable` there (`no-bundle-place`).
 - **Catalog's own content.** The `aih` framework and source belong to the library: supplied
   content that claims them, or two supplied contents of one framework, are `invalid`.
 - **Shared user-only folders.** Clients that flag user-only skills and share one skill folder

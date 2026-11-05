@@ -598,6 +598,7 @@ const toolProfile: Schema = {
         ),
       ),
       bundleRoot: byScope(pattern("<framework>.*/$", 512)),
+      configFiles: byScope(list(text(512), 1)),
       bundleWarnings: list(text(64)),
       skillFolderOverlap: record({
         folders: { ...list(pattern("/$", 512)), minItems: 2, maxItems: 2 },

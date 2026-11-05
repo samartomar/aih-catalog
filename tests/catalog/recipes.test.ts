@@ -448,7 +448,7 @@ describe("planning a native plugin route", () => {
       framework: "sp",
       clis: ["copilot"],
       scanned: false,
-      render: { name: "plugin-marketplace", profile: "copilot", version: 4, plugin: "sp", commit },
+      render: { name: "plugin-marketplace", profile: "copilot", version: 5, plugin: "sp", commit },
     });
     // Kimi's pin is not held and OpenCode pins only in a project: both take the items route.
     expect(plan.warnings).toEqual([

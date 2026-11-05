@@ -42,7 +42,11 @@ describe("the nine shipped tool profiles", () => {
 
   it("declares native input references only where evidenced", () => {
     expect(profile("claude-code").inputReferences["mcp-env"]).toEqual({ syntax: "$" + "{<name>}" });
-    for (const id of NINE.filter((candidate) => candidate !== "claude-code")) {
+    // Cursor's mcp.json and OpenCode's config documents expand these forms themselves.
+    expect(profile("cursor").inputReferences["mcp-env"]).toEqual({ syntax: "$" + "{env:<name>}" });
+    expect(profile("opencode").inputReferences["mcp-env"]).toEqual({ syntax: "{env:<name>}" });
+    const recorded = ["claude-code", "cursor", "opencode"];
+    for (const id of NINE.filter((candidate) => !recorded.includes(candidate))) {
       expect(profile(id).inputReferences["mcp-env"], id).toBe("unknown");
     }
   });

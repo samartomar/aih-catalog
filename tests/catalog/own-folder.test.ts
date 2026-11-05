@@ -187,7 +187,7 @@ describe("one own folder for Claude, Kiro and Antigravity", () => {
     });
     if (result.status !== "ok") throw new Error(JSON.stringify(result));
     expect(result.profiles).toEqual([
-      { id: "antigravity", version: 4 },
+      { id: "antigravity", version: 5 },
       { id: "claude-code", version: 5 },
       { id: "kiro", version: 7 },
     ]);

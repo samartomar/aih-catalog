@@ -17,6 +17,12 @@
       "version": "3.27.12"
     }
   ],
+  "configFiles": {
+    "user": [
+      ".cursor/mcp.json",
+      ".cursor/cli-config.json"
+    ]
+  },
   "disableBuiltIn": "not-documented",
   "hookEvents": {
     "pre-tool-use": "preToolUse",
@@ -25,9 +31,15 @@
   "id": "cursor",
   "inputReferences": {
     "file": "unknown",
-    "mcp-argv": "unknown",
-    "mcp-env": "unknown",
-    "mcp-header": "unknown"
+    "mcp-argv": {
+      "syntax": "${env:<name>}"
+    },
+    "mcp-env": {
+      "syntax": "${env:<name>}"
+    },
+    "mcp-header": {
+      "syntax": "${env:<name>}"
+    }
   },
   "links": {
     "skill": "not-documented"
@@ -190,5 +202,5 @@
       "disable-model-invocation": true
     }
   },
-  "version": 3
+  "version": 4
 }

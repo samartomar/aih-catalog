@@ -208,6 +208,11 @@ export interface ToolProfile {
    * flag, keeps bundles in `.kiro/aih/<framework>/`, started only through launchers.
    */
   readonly bundleRoot?: Readonly<Partial<Record<Scope, string>>>;
+  /**
+   * Configuration files and folders (ending in `/`) the client reads that no other section
+   * names, such as a user-wide MCP file: nothing Catalog places ever lands on them.
+   */
+  readonly configFiles?: Readonly<Partial<Record<Scope, readonly string[]>>>;
   /** Warning codes a plan carries when it places a bundle for this client. */
   readonly bundleWarnings?: readonly string[];
   /** Copilot: when both shared skill folders are planned, VS Code is told to read one. */
@@ -265,6 +270,7 @@ const TOP = [
   "plugins",
   "localPlugins",
   "bundleRoot",
+  "configFiles",
   "bundleWarnings",
   "skillFolderOverlap",
   "provides",
@@ -743,6 +749,16 @@ export function profileProblems(value: unknown): Problem[] {
         routeTemplate(entry, true) && String(entry).includes("<framework>"),
         path,
         "a folder template with <framework>",
+      ),
+    );
+  if (value.configFiles !== undefined)
+    byScope(value.configFiles, "/configFiles", problems, (entry, path) =>
+      problems.check(
+        Array.isArray(entry) &&
+          entry.length > 0 &&
+          entry.every((file) => isSafeRelativePath(String(file).replace(/[/]$/, ""))),
+        path,
+        "a list of safe file or folder paths",
       ),
     );
   if (value.bundleWarnings !== undefined)

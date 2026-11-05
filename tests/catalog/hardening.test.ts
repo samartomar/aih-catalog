@@ -19,6 +19,7 @@ async function bundled(
   id: string,
   tree: Record<string, string>,
   include: readonly string[],
+  layout = "skills/<name>/",
 ): Promise<Content> {
   const read = readLocalSource(folder(tree, id));
   if (read.status !== "ok") throw new Error(JSON.stringify(read));
@@ -28,7 +29,7 @@ async function bundled(
     read.source,
     read.files,
     found.items.map((item) => ({ ...item, bundle: `${id}.runtime` })),
-    { framework: id, bundles: [{ id: `${id}.runtime`, layout: "skills/<name>/", include }] },
+    { framework: id, bundles: [{ id: `${id}.runtime`, layout, include }] },
   );
   if (built.status !== "ok") throw new Error(JSON.stringify(built));
   return built.content;
@@ -83,6 +84,10 @@ describe("portable paths", () => {
       "docs/NUL.md",
       "com1/x.md",
       "docs/lpt9.txt",
+      ".git/config",
+      "skills/tidy/.GIT/hooks/pre-commit",
+      "PROGRA~1/x.md",
+      "docs/guide~2.md",
     ]) {
       const result = findItems([{ path, mode: "100644", sha256: sha("x") }], {
         framework: FRAMEWORK,
@@ -400,6 +405,15 @@ describe("MCP literals and remotes", () => {
       ],
       ["env", serverJson(), { env: { WEATHER_HOME: `${EXPAND}HOME}` } }],
       ["url", remoteJson(`https://weather.example/${EXPAND}env:TOKEN}/mcp`), {}],
+      // OpenCode's own forms, refused on every client.
+      ["opencode env", serverJson(), { env: { WEATHER_HOME: "{env:HOME}" } }],
+      [
+        "opencode file",
+        serverJson((server) => {
+          server.packages[0].packageArguments = [{ type: "positional", value: "{file:~/.ssh/id}" }];
+        }),
+        {},
+      ],
     ];
     for (const [name, text, extra] of cases) {
       const plan = planServer(await serverContent(text, extra));
@@ -827,5 +841,72 @@ describe("a skill's own files", () => {
     expect(
       await buildContent(read.source, read.files, items, { framework: FRAMEWORK }),
     ).toMatchObject({ status: "invalid" });
+  });
+});
+
+const GUIDE = "Guide.\n";
+
+describe("bundle roots and other clients' configuration", () => {
+  const cases = [
+    { cli: "opencode", scope: "user", layout: "opencode/skills/<name>/", file: "git/config" },
+    { cli: "cursor", scope: "user", layout: "skills/<name>/", file: "mcp.json" },
+    { cli: "codex", scope: "project", layout: "skills/<name>/", file: "mcp_config.json" },
+    { cli: "copilot", scope: "project", layout: "skills/<name>/", file: "workflows/ci.yml" },
+    { cli: "kimi", scope: "user", layout: "skills/<name>/", file: "mcp.json" },
+  ] as const;
+
+  it("never places a bundle file on any shipped client's configuration or outside a client's own folder", async () => {
+    for (const { cli, scope, layout, file } of cases) {
+      const content = await bundled(
+        "alpha",
+        {
+          "skills/start/SKILL.md": startSkill("alpha", "guide.md"),
+          "docs/guide.md": GUIDE,
+          [file]: GUIDE,
+        },
+        ["docs/", file],
+        layout,
+      );
+      const plan = planInstall(["alpha.skill.start"], [content], [profile(cli)], {
+        scope,
+        data: null,
+      }) as Plan;
+      const where = `${cli} ${scope} ${file}`;
+      expect(plan.status, where).toBe("incomplete");
+      expect(plan.unavailable, where).toContainEqual(
+        expect.objectContaining({ item: "alpha.skill.start", cli, reason: "no-bundle-place" }),
+      );
+      const paths = plan.plan.flatMap((step) => ("path" in step ? [step.path] : []));
+      expect(
+        paths.some((path) => path.endsWith(file)),
+        where,
+      ).toBe(false);
+    }
+  });
+
+  it("keeps a bundle in the client's own folder", async () => {
+    const content = await bundled(
+      "alpha",
+      { "skills/start/SKILL.md": startSkill("alpha", "guide.md"), "docs/guide.md": GUIDE },
+      ["docs/"],
+    );
+    for (const [cli, scope, path] of [
+      ["opencode", "user", ".config/opencode/docs/guide.md"],
+      ["codex", "project", ".agents/docs/guide.md"],
+      ["claude-code", "project", ".claude/docs/guide.md"],
+    ] as const) {
+      const plan = planInstall(["alpha.skill.start"], [content], [profile(cli)], {
+        scope,
+        data: null,
+      }) as Plan;
+      expect(
+        plan.unavailable.filter((entry) => entry.reason === "no-bundle-place"),
+        cli,
+      ).toEqual([]);
+      expect(
+        plan.plan.some((step) => "path" in step && step.path === path),
+        cli,
+      ).toBe(true);
+    }
   });
 });
