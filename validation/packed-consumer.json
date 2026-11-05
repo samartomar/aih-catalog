@@ -1,7 +1,7 @@
 {
   "candidate": {
     "package": "@aihq/catalog@0.1.0",
-    "sourceCommit": "6d0137f1eaf26c27573dd07306904eb6bd6e23b2",
+    "sourceCommit": "d59aafb8625737749fc418441458dd498d64a873",
     "sourceClean": true,
     "file": "aihq-catalog-0.1.0.tgz",
     "sha256": "6eed779def25a5e8d82d0c63119db74e733bec8ba55171f25e14b251b04816e2",
@@ -20,7 +20,7 @@
   "inputs": {
     "data": {
       "kind": "git",
-      "commit": "6d0137f1eaf26c27573dd07306904eb6bd6e23b2",
+      "commit": "d59aafb8625737749fc418441458dd498d64a873",
       "subpath": "data",
       "files": 100,
       "sha256": "e3390830dc36ca3329f7713103318e6f638ade08c09d46f5a07095ba70452799",
@@ -28,7 +28,7 @@
     },
     "port-report": {
       "kind": "git",
-      "commit": "6d0137f1eaf26c27573dd07306904eb6bd6e23b2",
+      "commit": "d59aafb8625737749fc418441458dd498d64a873",
       "subpath": "port-report",
       "files": 4,
       "sha256": "77872aeed57c6fec16f33e83f7e98fb22d277290a4d2e6278b2fb06b7d72a45b",
@@ -36,7 +36,7 @@
     },
     "tests/fixtures": {
       "kind": "git",
-      "commit": "6d0137f1eaf26c27573dd07306904eb6bd6e23b2",
+      "commit": "d59aafb8625737749fc418441458dd498d64a873",
       "subpath": "tests/fixtures",
       "files": 169,
       "sha256": "e6881a0497f82fbc9830092389aa1f78931256e6c21d4e568048ae6b5f637259",
@@ -131,7 +131,7 @@
       ],
       "pending": [],
       "plans": {
-        "superpowers-user": "092350c8e15c77556dc5379e0ecab7740127f95f8f44df0272ad7efee7d843bf"
+        "superpowers-user": "3b5db0feee2f10ee1f0074da6ef619708fd1756ce2c9b8260d82c36e80a1ef65"
       }
     },
     {
@@ -174,7 +174,7 @@
         "Status incomplete (the journey states no status): 78 path references, 0 unavailable item/client pairs, 0 clashes."
       ],
       "plans": {
-        "ecc-kiro": "be2ca41664154b2e7ddf68d60c11859ac843d789100b41cba7afe8987b428155"
+        "ecc-kiro": "0dbaaa93744e58d18dc238b993d58c8049a0d79a044a762e4dc0424c47c0e286"
       }
     },
     {
@@ -383,14 +383,14 @@
         "With dsh the plan is ok; the journey states no status for that variant (completeness does not force clients the upstream does not install on, while a selected agent a client cannot take blocks)."
       ],
       "plans": {
-        "egm-project": "166d4d7fb2e117f344f90e6ca45a99643155c141c25b9113957046eac54339b4"
+        "egm-project": "4c318913c85c855492701437c98ed34b7e88730f437704c11e075c30e496cae1"
       }
     },
     {
       "id": 12,
       "title": "Tool trio on linux-x64: acquire, settings, MCP config, no installer; ok once qualified",
       "basis": "candidate-data",
-      "outcome": "open",
+      "outcome": "pending",
       "checks": [
         {
           "name": "real data: the qualified configured-fixture combination plans ok",
@@ -413,17 +413,15 @@
           "status": "passed"
         },
         {
-          "name": "Serena's context files are in the plan",
-          "status": "open",
-          "reason": "the Serena AI setup declares no settings files: it launches with Serena's built-in contexts per client (claude-code, codex, copilot-cli, antigravity, else ide); no Catalog context file has been authored, so authored context files (or accepting the built-in contexts) are needed",
-          "detail": "Serena's AI setup declares no context files: it starts with its built-in contexts per client"
+          "name": "Serena selects its packaged upstream context and tools interface for each supported client",
+          "status": "passed"
         }
       ],
       "pending": [
         "Clean first-time installation remains unproven: the real qualification covers configured-fixture direct MCP sessions with Serena ide context and a separately prepared Python language server. Source-built wheels require caller artifact custody; consumer transport, auxiliary runtime provisioning and named-client loading are separate proof."
       ],
       "plans": {
-        "trio-linux-x64": "609a57c88ae87e371e86a3b24583dbaf253c39479d1ba51cc6d728628a68472e"
+        "trio-linux-x64": "9170de12db7a81178f3f092c9cc74156f28847cd293e78f17f1744c4a9633b4b"
       }
     },
     {
