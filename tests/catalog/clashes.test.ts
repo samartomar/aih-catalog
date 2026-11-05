@@ -22,6 +22,8 @@ import {
   outDir,
   placements,
   profile,
+  published,
+  publishedAddress,
   sha,
   sortKeys,
   type TreeEntry,
@@ -142,7 +144,7 @@ async function pinned(
   if (fetched.status !== "ok") throw new Error(JSON.stringify(fetched));
   const found = findItems(fetched.files, { framework: id });
   if (found.status !== "ok") throw new Error(JSON.stringify(found));
-  const built = await buildContent(fetched.source, fetched.files, found.items, {
+  const built = await buildContent(published(fetched.source), fetched.files, found.items, {
     framework: id,
     ...(plugins ? { plugins } : {}),
   });
@@ -150,7 +152,7 @@ async function pinned(
   return {
     content: built.content,
     files: fetched.files,
-    pin: { repository: upstream.path, commit: upstream.commits[0] as string },
+    pin: { repository: publishedAddress(upstream.path), commit: upstream.commits[0] as string },
   };
 }
 
@@ -523,8 +525,6 @@ describe("items a route installs without placing them", () => {
           path: "/",
           plugin: "sp",
           commit: sp.pin.commit,
-          marketplace: "https://example.invalid/sp-marketplace",
-          marketplaceName: "sp-marketplace",
         },
       },
       members: [

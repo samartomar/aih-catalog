@@ -19,7 +19,7 @@ import {
   type RuleScope,
 } from "./model.js";
 import { basenameOf, dirnameOf, quote } from "./paths.js";
-import { EXACT_VERSION } from "./source-link.js";
+import { packageProblem } from "./server.js";
 
 export type Fields = { name: string; description: string } & Record<string, unknown>;
 /** Fields plus the inputs the files declare (MCP) and the markers they use. */
@@ -136,10 +136,24 @@ export function skillFile(files: readonly { sourcePath: string; cli?: string }[]
   return only?.sourcePath.endsWith(".md") ? { file: only, command: true } : undefined;
 }
 
+/** The first general file of a skill outside the folder of its `SKILL.md`, if any. */
+export function skillFilesOutside(
+  files: readonly { sourcePath: string; cli?: string }[],
+): string | undefined {
+  const found = skillFile(files);
+  if (found === undefined || found.command) return undefined;
+  const root = dirnameOf(found.file.sourcePath);
+  return files.find(
+    (file) => file.cli === undefined && root !== "" && !file.sourcePath.startsWith(`${root}/`),
+  )?.sourcePath;
+}
+
 function readSkill(item: DiscoveredItem, bytesOf: BytesOf): Read | string {
   const found = skillFile(item.files);
   if (found === undefined) return "a skill needs a SKILL.md, or one Markdown command file";
   const path = found.file.sourcePath;
+  const outside = skillFilesOutside(item.files);
+  if (outside !== undefined) return `${outside}: a skill's files sit under its SKILL.md folder`;
   const read = markdown(path, bytesOf);
   if (typeof read === "string") return read;
   const { split, frontmatter } = read;
@@ -166,6 +180,9 @@ function readRule(item: DiscoveredItem, bytesOf: BytesOf): Read | string {
   if (rule === undefined || item.files.length !== 1) return "a rule is exactly one file";
   const read = markdown(rule.sourcePath, bytesOf);
   if (typeof read === "string") return read;
+  // A rule can become a block in a shared Markdown file, whose blocks these markers delimit.
+  if (decodeText(bytesOf(rule.sourcePath))?.includes(BLOCK_MARKER))
+    return `${rule.sourcePath}: a rule never holds Catalog's block marker ${BLOCK_MARKER}`;
   const name = basenameOf(rule.sourcePath).replace(/\.md$/, "");
   if (!nameOk(name)) return badName(rule.sourcePath, name);
   const description = read.frontmatter.description ?? firstLine(read.split.body);
@@ -176,6 +193,9 @@ function readRule(item: DiscoveredItem, bytesOf: BytesOf): Read | string {
   const language = languageOf(rule.sourcePath);
   return { fields: { name, description, scope, ...(language ? { language } : {}) } };
 }
+
+/** The text that starts each of Catalog's blocks in a shared Markdown file. */
+export const BLOCK_MARKER = "<!-- aih:";
 
 /** An agent is one Markdown file in Claude's format: frontmatter fields, the body is the prompt. */
 function readAgent(item: DiscoveredItem, bytesOf: BytesOf): Read | string {
@@ -391,12 +411,8 @@ function readMcp(item: DiscoveredItem, bytesOf: BytesOf): Read | string {
     for (const [index, entry] of packages.entries()) {
       const where = `${at}/packages/${index}`;
       const pkg = entry as Record<string, unknown>;
-      if (typeof pkg?.registryType !== "string" || typeof pkg.identifier !== "string")
-        return `${where}: a package needs registryType and identifier`;
-      if (typeof pkg.version !== "string" || !EXACT_VERSION.test(pkg.version))
-        return `${where}: a package needs an exact version, not a range, latest or none`;
-      if (/@(?:latest|[\^~><=*])|@$/.test(pkg.identifier) || pkg.identifier.includes("@latest"))
-        return `${where}: the identifier carries a mutable version`;
+      const problem = packageProblem(pkg);
+      if (problem) return `${where}: ${problem}`;
       for (const problem of [
         declare(pkg.environmentVariables, `${where}/environmentVariables`),
         argumentsOf(pkg.runtimeArguments, `${where}/runtimeArguments`),

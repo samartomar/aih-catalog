@@ -237,6 +237,7 @@ function readAiSetup(
       item.aiSetup,
       `${id}/aiSetup`,
       item.files.map((file) => file.sourcePath),
+      typeof item.name === "string" ? item.name : undefined,
     ),
   );
   if (problems.length > 0) return problems;
@@ -275,6 +276,9 @@ function namespacedReferences(
 }
 
 const textOf = (bytes: Uint8Array): string => decodeText(bytes) ?? "";
+
+/** Kinds whose files the model reads as instructions: a secret is never placed in them. */
+const MODEL_READ: ReadonlySet<string> = new Set(["skill", "rule", "agent", "document"]);
 
 /** Checks authored inputs against what the files declare and use. */
 function requirementsFor(
@@ -320,6 +324,8 @@ function requirementsFor(
         return `the placeholder of ${name} names no file of the item`;
       if (!textOf(bytesOf(sourcePath)).includes(marker))
         return `the placeholder of ${name} does not occur in ${sourcePath}`;
+      if (entry.isSecret && MODEL_READ.has(item.kind))
+        return `the secret input ${name} would be written into a file the model reads`;
     }
   }
   if (Object.keys(inputs).length === 0 && authored === undefined) return undefined;

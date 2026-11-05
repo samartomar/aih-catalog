@@ -312,7 +312,8 @@ describe("representative plans of the remaining families", () => {
       expect.objectContaining({
         cli: "claude-code",
         plugin: "example-skills",
-        marketplace: PINS.anthropic[0],
+        marketplace: { root: "project", path: ".aihq/marketplaces/claude-code/anthropic" },
+        marketplaceName: "aihq-anthropic",
         commit: PINS.anthropic[1],
         // Claude clones the whole marketplace folder, not the plugin's skill list.
         scanKey: record?.folderScanKey,
@@ -340,7 +341,10 @@ describe("representative plans of the remaining families", () => {
     const result = plan("anthropic-document-skills", ["claude-code", "codex"]);
     expect(result).toMatchObject({ status: "ok", clashes: [], unavailable: [] });
     const fetched = fetches(result.plan);
-    expect(placements(result.plan)).toEqual([]);
+    // The only placement is Claude's pinned marketplace; every skill file is fetched.
+    expect(placements(result.plan).map((step) => step.op === "write" && step.path)).toEqual([
+      ".aihq/marketplaces/claude-code/anthropic/.claude-plugin/marketplace.json",
+    ]);
     expect(fetched.length).toBeGreaterThan(100);
     expect(fetched.every((step) => step.scanned === false && step.clis.includes("codex"))).toBe(
       true,

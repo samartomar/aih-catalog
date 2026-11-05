@@ -22,6 +22,7 @@ import {
   WHEEL,
 } from "./model.js";
 import { isSafeRelativePath } from "./paths.js";
+import { isLoaderVariable } from "./server.js";
 
 /** The six platform cells. */
 export const CELLS = [
@@ -268,6 +269,78 @@ function checkSettings(value: unknown, path: string, problems: Problems, files?:
     });
 }
 
+const programName = (program: string) => program.toLowerCase().replace(/.(?:exe|cmd|bat|ps1)$/, "");
+
+/**
+ * True when `[executable, ...argv]` starts with one of the upstream installers the record lists
+ * under `doNotRun`: a plan never runs those, whether as the server launch or as a setting.
+ */
+export function startsInstaller(
+  executable: string,
+  argv: readonly string[],
+  doNotRun: readonly (readonly string[])[],
+): boolean {
+  const run = [executable, ...argv];
+  return doNotRun.some(
+    (installer) =>
+      installer.length > 0 &&
+      installer.length <= run.length &&
+      installer.every((part, index) =>
+        index === 0 ? programName(part) === programName(run[0] as string) : part === run[index],
+      ),
+  );
+}
+
+/** Settings commands (each argv the installer runs) that start a `doNotRun` installer. */
+export function settingsRunProblems(
+  settings: unknown,
+  executable: string,
+  doNotRun: readonly (readonly string[])[],
+  path: string,
+): Problem[] {
+  const found: Problem[] = [];
+  if (!isRecord(settings) || !Array.isArray(settings.commands)) return found;
+  settings.commands.forEach((command, at) => {
+    if (!isRecord(command)) return;
+    const runs: [string, unknown][] = [
+      ["argv", command.argv],
+      ["readback/argv", isRecord(command.readback) ? command.readback.argv : undefined],
+      ["restore/argv", isRecord(command.restore) ? command.restore.argv : undefined],
+    ];
+    for (const [key, argv] of runs)
+      if (isArgv(argv) && startsInstaller(executable, argv, doNotRun))
+        found.push({
+          path: `${path}/commands/${at}/${key}`,
+          message: "the command starts an installer the AI setup never runs (doNotRun)",
+        });
+  });
+  return found;
+}
+
+/** The folder an AI setup's settings files are written in, from either root. */
+export const settingsFolder = (name: string) => `.aihq/ai-setup/${name}/settings/`;
+
+/**
+ * Settings files outside the AI setup's own settings folder: a settings file never lands on a
+ * client's configuration or beside the acquired program.
+ */
+export function settingsFileProblems(settings: unknown, name: string, path: string): Problem[] {
+  const found: Problem[] = [];
+  if (!isRecord(settings) || !Array.isArray(settings.files)) return found;
+  settings.files.forEach((file, at) => {
+    if (
+      isRecord(file) &&
+      typeof file.path === "string" &&
+      !file.path.startsWith(settingsFolder(name))
+    )
+      found.push({
+        path: `${path}/files/${at}/path`,
+        message: `a settings file is written under ${settingsFolder(name)}`,
+      });
+  });
+  return found;
+}
+
 /**
  * Shape problems of an item's `aiSetup` record. `files` are the item's own source paths, which
  * settings files must name.
@@ -276,6 +349,7 @@ export function aiSetupProblems(
   value: unknown,
   path: string,
   files: readonly string[] = [],
+  name?: string,
 ): Problem[] {
   const problems = new Problems();
   if (!isRecord(value)) return [{ path, message: "aiSetup must be an object" }];
@@ -342,9 +416,11 @@ export function aiSetupProblems(
         );
       if (entry.url !== undefined)
         problems.check(
-          isString(entry.url, 2048) && entry.url.startsWith("https://"),
+          isString(entry.url, 2048) &&
+            entry.url.startsWith("https://") &&
+            !/^https:\/\/[^/?#]*@/.test(entry.url),
           `${where}/url`,
-          "an https URL",
+          "an https URL with no credentials",
         );
       problems.check(isSha(entry.sha256), `${where}/sha256`, "the artifact's sha256");
       problems.check(isCount(entry.bytes), `${where}/bytes`, "the artifact's byte count");
@@ -407,6 +483,33 @@ export function aiSetupProblems(
     `${path}/doNotRun`,
     "doNotRun lists argv lists",
   );
+  if (
+    typeof value.executable === "string" &&
+    Array.isArray(value.doNotRun) &&
+    value.doNotRun.every(isArgv) &&
+    isRecord(launch)
+  ) {
+    const doNotRun = value.doNotRun as string[][];
+    const launches: [string, unknown][] = [
+      [`${path}/launch/args`, launch.args],
+      ...Object.entries(isRecord(launch.clis) ? launch.clis : {}).map(
+        ([cli, args]): [string, unknown] => [`${path}/launch/clis/${cli}`, args],
+      ),
+    ];
+    for (const [where, args] of launches)
+      if (isArgv(args) && startsInstaller(value.executable, args, doNotRun))
+        problems.add(where, "the launch starts an installer the AI setup never runs (doNotRun)");
+    for (const problem of settingsRunProblems(
+      value.settings,
+      value.executable,
+      doNotRun,
+      `${path}/settings`,
+    ))
+      problems.add(problem.path, problem.message);
+  }
+  if (name !== undefined)
+    for (const problem of settingsFileProblems(value.settings, name, `${path}/settings`))
+      problems.add(problem.path, problem.message);
   problems.check(
     Array.isArray(value.qualifications) &&
       value.qualifications.every(isSha) &&
@@ -468,6 +571,13 @@ function toolSettingProblems(value: Record_, path: string, problems: Problems): 
       `${path}/env`,
       "env maps variable names to text values (never a secret)",
     );
+  if (isRecord(value.env))
+    for (const name of Object.keys(value.env))
+      if (isLoaderVariable(name))
+        problems.add(
+          `${path}/env/${name}`,
+          "env never sets a variable that changes how the runtime loads code",
+        );
 }
 
 /** Problems of an `mcp` item's own settings fields (enabledTools … env). */

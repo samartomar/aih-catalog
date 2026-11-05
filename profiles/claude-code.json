@@ -164,8 +164,9 @@
         "<scope>"
       ]
     ],
+    "marketplaceFolder": ".aihq/marketplaces/claude-code/<framework>/",
     "pin": "holds",
-    "pinForm": "marketplace",
+    "pinForm": "local-marketplace",
     "remove": [
       [
         "claude",
@@ -319,5 +320,5 @@
       "disable-model-invocation": true
     }
   },
-  "version": 4
+  "version": 5
 }

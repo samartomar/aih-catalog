@@ -348,7 +348,9 @@ const egmRecipe = (routes: Record<string, string>): Recipe =>
     routes,
     plugins: Object.fromEntries(
       Object.entries({
-        "claude-code": { marketplace: "egm" },
+        // Claude's native install uses a marketplace the plan writes; a local plugin
+        // registers the name EGM's marketplace declares.
+        "claude-code": routes["claude-code"] === "plugin" ? {} : { marketplace: "egm" },
         codex: { marketplace: EGM_UPSTREAM.repository },
         antigravity: {},
       })
@@ -362,9 +364,7 @@ const egmRecipe = (routes: Record<string, string>): Recipe =>
             commit: EGM_UPSTREAM.commit,
             ...extra,
             // The name EGM's marketplace files declare, for an install by name.
-            ...(routes[cli] === "plugin" && cli !== "antigravity"
-              ? { marketplaceName: "egm" }
-              : {}),
+            ...(routes[cli] === "plugin" && cli === "codex" ? { marketplaceName: "egm" } : {}),
           },
         ]),
     ),

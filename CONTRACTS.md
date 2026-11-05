@@ -48,7 +48,8 @@ loopback http.
 One framework's content: `framework {id, name}`, `sources`, `items`, and optionally `bundles`
 and `plugins`.
 
-- **Sources** are `git` (repository and exact commit, optional subpath), `npm` (package and
+- **Sources** are `git` (an https repository address such as `https://<host>/<owner>/<repo>`,
+  with no credentials, query or fragment; exact commit; optional subpath), `npm` (package and
   exact version), `local` (no machine path is recorded) or `authored` (files Catalog or you
   wrote). Each source lists its `notices` (licence and notice files, with the folder each
   covers) and may restrict them to some items with `noticesFor`.
@@ -116,12 +117,14 @@ licence, keywords) beside a `recipe.json`. A recipe is a `base` or `add-on` for 
 framework (an add-on lists the recipes it `requires`) or a `combination` of frameworks. It
 records the upstream `content` pin, a `route` per client (clients it does not name use
 `items`), the `plugins` and `setup` programs those routes need (a `plugin` route on a client
-that installs `<plugin>@<marketplace-name>`, such as Claude Code or Codex, also names the
+that installs `<plugin>@<marketplace-name>` from a marketplace it adds, such as Codex, also names the
 `marketplaceName` its marketplace declares, which the `plugin` step carries), the kinds each
 items route installs (`clis`), `members` and choice `options`, `namePrefix`, built-in `overrides`, AI setup
 changes, combination `qualifications` per cell, and the Catalog `data` commit it was written
 against. `planRecipe` refuses any other data commit (`data-mismatch`) and content at any other
-pin (`content-mismatch`).
+pin (`content-mismatch`). Every pin (content, setup and data) names an https repository
+address, as a Git source does. A `plugin` route's `marketplace` is an https URL or
+`owner/repo`; a `local-plugin` route's is the kebab-case name its copied folder declares.
 
 ### Qualification
 
@@ -172,7 +175,7 @@ choice still uses.
 | `write` | writes a file: a copy of the recorded source file, or the bytes `renderStep` gives for its `render` |
 | `link` | links a client folder to a shared user-scope version folder; skills whose relative paths reach a sibling skill are copied in place instead, with a `copied-for-references` warning, since a linked folder resolves `..` inside its version folder |
 | `merge` | sets one keyed entry in a structured file (JSON, TOML or a Markdown block), keeping the rest |
-| `plugin` | installs a native plugin at the recorded commit with the client's own commands |
+| `plugin` | installs a native plugin at the recorded commit with the client's own commands. Where a client adds a marketplace at its current head (Claude Code, Copilot CLI), the plan first writes its own marketplace with the plugin pinned by commit and the step names it as `{ root, path }`; a step that can still install another commit says `pin: "unverified"` |
 | `upstream-setup` | runs an upstream setup program, only after the user approves it |
 | `tool-command` | runs an AI setup's settings command after approval, then its readback. The installer runs the readback first and keeps its output as the prior value; removal runs `restore` with that value in place of `<prior>` and checks the readback shows it again |
 | `upstream-installer` | runs an upstream installer the user explicitly chose instead of a managed setup |
@@ -192,7 +195,7 @@ values; a secret never has a value in content or a plan.
 - **Built-ins.** A placed name that a client already provides is a `built-in` clash unless a
   recipe override, a prefix, a caller-chosen name or leaving the item out resolves it.
 - **Clashes.** Two different placements at one path or key are a clash; the plan drops the
-  conflicting steps and lists them. A merge into a nested key, a write over a merged file or
+  conflicting steps and lists them. Paths that differ only in case or Unicode form are one path. A merge into a nested key, a write over a merged file or
   a placement under a link, and a file over a client's size limit, are clashes too.
 - **Duplicates.** When a plan mixes frameworks, items sharing an install name or a content
   identity are listed as facts, with no winner chosen. The plan places Catalog's authored
@@ -212,7 +215,24 @@ values; a secret never has a value in content or a plan.
 - **AI setups.** A selected AI setup needs a platform `cell` and a supplied, matching
   `qualified` record; otherwise it is `unavailable` (`no-qualification` or `not-qualified` with
   the cause). Its MCP item is then `unavailable` (`no-qualification`) for each client too: an
-  MCP entry never names a program the plan does not acquire.
+  MCP entry never names a program the plan does not acquire. Neither its launch nor a
+  settings command (its own or a recipe's) may start an installer it lists under `doNotRun`,
+  and its settings files are written only under `.aihq/ai-setup/<name>/settings/`. A
+  `tool-command` carries the `qualification` that ran it; one from a recipe's replacement
+  settings carries none.
+- **MCP entries.** A package starts only through its registry's runner (`npx` for npm,
+  `uvx` for PyPI), `npx` taking only `-y`/`--yes` and `uvx` no runner argument, and its
+  identifier follows the registry's package-name grammar. A remote is https unless it runs on
+  this machine. No literal in an entry holds `${` or the client's own reference syntax, every
+  input marker names a declared input, and `env` (an item's, a recipe's or a server input)
+  never sets a variable that changes how the runtime loads code, such as `NODE_OPTIONS`,
+  `LD_PRELOAD`, `PYTHONPATH`, `PATH` or package-manager configuration. Such an entry is
+  `unavailable` (`unsupported-server`) or the content is `invalid`.
+- **Bundles.** A bundle file never lands on a file or folder a planned client reads as
+  configuration (its MCP file, settings, shared rule file or a `hooks` folder); the bundle's
+  items are then `unavailable` there (`no-bundle-place`).
+- **Catalog's own content.** The `aih` framework and source belong to the library: supplied
+  content that claims them, or two supplied contents of one framework, are `invalid`.
 - **Shared user-only folders.** Clients that flag user-only skills and share one skill folder
   take one combined render with every client's flag. A client with no user-only flag cannot
   share that folder; it is `unavailable` there (`user-only-shared-place`), launchers included.

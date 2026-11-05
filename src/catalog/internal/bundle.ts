@@ -40,8 +40,31 @@ export interface PathReference {
 /** The layouts Catalog places: a skill folder below the root. */
 export const BUNDLE_LAYOUT = /^(?:[a-z0-9][a-z0-9_-]*\/)*<name>\/$/;
 
-const segmentPattern = (pattern: string): RegExp =>
-  new RegExp(`^${pattern.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replaceAll("*", "[^/]*")}$`);
+/**
+ * Whether one path segment matches one pattern segment, where `*` stands for any run of
+ * characters. Greedy matching with a single resume point keeps this linear in the lengths, so
+ * a pattern with many stars cannot make matching slow.
+ */
+function segmentMatches(pattern: string, text: string): boolean {
+  let p = 0;
+  let t = 0;
+  let star = -1;
+  let resume = 0;
+  while (t < text.length) {
+    if (p < pattern.length && pattern[p] === "*") {
+      star = p++;
+      resume = t;
+    } else if (p < pattern.length && pattern[p] === text[t]) {
+      p++;
+      t++;
+    } else if (star !== -1) {
+      p = star + 1;
+      t = ++resume;
+    } else return false;
+  }
+  while (p < pattern.length && pattern[p] === "*") p++;
+  return p === pattern.length;
+}
 
 /**
  * A pattern is a relative path whose segments may use `*` inside one segment (no `**`), or a
@@ -64,7 +87,7 @@ export function matchesInclude(pattern: string, path: string): boolean {
   const have = path.split("/");
   return (
     want.length === have.length &&
-    want.every((part, index) => segmentPattern(part).test(have[index] as string))
+    want.every((part, index) => segmentMatches(part, have[index] as string))
   );
 }
 

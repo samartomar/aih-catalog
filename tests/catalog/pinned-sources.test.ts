@@ -16,6 +16,8 @@ import {
   gitRepository,
   outDir,
   profile,
+  published,
+  publishedAddress,
   sha,
   sortKeys,
   utf8,
@@ -44,7 +46,9 @@ async function contentFrom(fetched: Awaited<ReturnType<typeof fetchSource>>, fra
   if (fetched.status !== "ok") throw new Error(JSON.stringify(fetched));
   const found = findItems(fetched.files, { framework });
   if (found.status !== "ok") throw new Error(JSON.stringify(found));
-  const built = await buildContent(fetched.source, fetched.files, found.items, { framework });
+  const built = await buildContent(published(fetched.source), fetched.files, found.items, {
+    framework,
+  });
   if (built.status !== "ok") throw new Error(JSON.stringify(built));
   return { found, built };
 }
@@ -107,7 +111,7 @@ describe("fetching a pinned Git source", () => {
       {
         id: "pack",
         kind: "git",
-        repository: upstream.path,
+        repository: publishedAddress(upstream.path),
         commit,
         subpath: "pack",
         notices: [{ sourcePath: "LICENSE", sha256: sha(LICENSE), covers: "/" }],

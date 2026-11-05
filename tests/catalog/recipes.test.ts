@@ -21,6 +21,8 @@ import {
   outDir,
   placements,
   profile,
+  published,
+  publishedAddress,
   sha,
   sortKeys,
   type TreeEntry,
@@ -153,7 +155,7 @@ async function pinnedContent(
     ...found.items.map((item) => ({ ...item, ...build.authored?.[item.id] })),
     ...hooks,
   ];
-  const built = await buildContent(fetched.source, fetched.files, items, {
+  const built = await buildContent(published(fetched.source), fetched.files, items, {
     framework,
     ...(build.plugins ? { plugins: build.plugins } : {}),
   });
@@ -162,7 +164,7 @@ async function pinnedContent(
   if (reread.status !== "ok") throw new Error(JSON.stringify(reread));
   return {
     content: reread.content as Content,
-    repository: upstream.path,
+    repository: publishedAddress(upstream.path),
     commit: upstream.commits[0] as string,
     files: fetched.files,
   };
@@ -347,7 +349,6 @@ const SP_TREE: Record<string, string> = {
   "skills/brainstorming/SKILL.md": skill("brainstorming"),
   "skills/debugging/SKILL.md": skill("debugging"),
 };
-const MARKETPLACE = "https://example.invalid/sp-marketplace";
 
 async function superpowers(routes: Record<string, string>) {
   const pinned = await pinnedContent("sp", SP_TREE, { plugins: ["/"] });
@@ -359,7 +360,7 @@ async function superpowers(routes: Record<string, string>) {
         cli,
         cli === "claude-code"
           ? routes[cli] === "plugin"
-            ? { ...entry, marketplace: MARKETPLACE, marketplaceName: "sp-dev" }
+            ? entry
             : { ...entry, marketplace: "sp-dev" }
           : cli === "codex"
             ? { ...entry, marketplace: pinned.repository, marketplaceName: "sp-dev" }
@@ -421,7 +422,14 @@ describe("planning a native plugin route", () => {
       verify: "none",
     };
     expect(plan.plan.filter((step) => step.op === "plugin")).toEqual([
-      { ...common, cli: "claude-code", marketplace: MARKETPLACE, marketplaceName: "sp-dev" },
+      // Claude, like Copilot, installs from a marketplace the plan writes with the plugin
+      // pinned by sha: a marketplace it adds by URL is cloned at its current head.
+      {
+        ...common,
+        cli: "claude-code",
+        marketplace: { root: "user", path: ".aihq/marketplaces/claude-code/sp" },
+        marketplaceName: "aihq-sp",
+      },
       { ...common, cli: "codex", marketplace: repository, marketplaceName: "sp-dev" },
       {
         ...common,
@@ -529,9 +537,12 @@ describe("planning a native plugin route", () => {
       ["scope-fallback", "codex", "items"],
       ["scope-fallback", "copilot", "items"],
     ]);
+    // Only Claude's own pinned marketplace is written, in the project; Copilot fell back.
     expect(
-      plan.plan.some((step) => step.op === "write" && step.path.startsWith(".aihq/marketplaces")),
-    ).toBe(false);
+      plan.plan
+        .filter((step) => step.op === "write" && step.path.startsWith(".aihq/marketplaces"))
+        .map((step) => [(step as WriteStep).root, (step as WriteStep).path]),
+    ).toEqual([["project", ".aihq/marketplaces/claude-code/sp/.claude-plugin/marketplace.json"]]);
   });
 
   it("requires the marketplace's declared name where the client installs <plugin>@<marketplace-name>", async () => {
@@ -562,7 +573,13 @@ describe("planning a native plugin route", () => {
     const local = { ...document, routes: { "claude-code": "local-plugin" } };
     const named = {
       ...local,
-      plugins: { "claude-code": { ...document.plugins["claude-code"], marketplace: "sp-dev" } },
+      plugins: {
+        "claude-code": {
+          ...document.plugins["claude-code"],
+          marketplace: "sp-dev",
+          marketplaceName: "sp-dev",
+        },
+      },
     };
     expect(readRecipe(encode(PLUGIN), encode(named))).toMatchObject({
       status: "invalid",

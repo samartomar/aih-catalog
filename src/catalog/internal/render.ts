@@ -11,7 +11,7 @@
  * ignore markers that are not theirs, so the folder's bytes are the same for all of them.
  */
 import { parseDocument, stringify } from "yaml";
-import { isRecord } from "./check.js";
+import { isRecord, ownValue } from "./check.js";
 import {
   applyEdit,
   decodeText,
@@ -109,10 +109,10 @@ export function agentTools(
   if (tools === undefined || tools.length === 0 || policy === "keep") return {};
   if (policy === "none" || policy === undefined)
     return { unrestricted: "the client's agent file has no tool list" };
-  const unknown = tools.filter((tool) => policy[tool] === undefined);
+  const unknown = tools.filter((tool) => ownValue(policy, tool) === undefined);
   if (unknown.length > 0)
     return { unrestricted: `no evidenced native name for ${unknown.join(", ")}` };
-  return { tools: tools.map((tool) => policy[tool] as string) };
+  return { tools: tools.map((tool) => ownValue(policy, tool) as string) };
 }
 
 /** The edit a render makes, or a reason the render does not apply to this item and profile. */
@@ -248,7 +248,7 @@ export function editFor(
   for (const marker of markers)
     if (marker !== "none" && "frontmatter" in marker)
       for (const [key, value] of Object.entries(marker.frontmatter)) {
-        if (key in set && canonicalJson(set[key]) !== canonicalJson(value))
+        if (Object.hasOwn(set, key) && canonicalJson(set[key]) !== canonicalJson(value))
           return { reason: `the sharing clients set ${key} differently` };
         set[key] = value;
       }
@@ -291,9 +291,13 @@ export function tomlString(text: string): string {
 }
 
 function merged(base: unknown, add: Readonly<Record<string, unknown>>): Record<string, unknown> {
-  const out: Record<string, unknown> = isRecord(base) ? { ...base } : {};
+  // A null-prototype object: a key such as `__proto__` stays an ordinary key.
+  const out: Record<string, unknown> = Object.assign(
+    Object.create(null),
+    isRecord(base) ? base : {},
+  );
   for (const [key, value] of Object.entries(add))
-    out[key] = isRecord(value) ? merged(out[key], value) : value;
+    out[key] = isRecord(value) ? merged(ownValue(out, key), value) : value;
   return out;
 }
 
@@ -436,8 +440,19 @@ export function namedBundles(
   return named;
 }
 
+/** A Markdown code span holding exactly `text`, fenced past any backticks it holds. */
+export function codeSpan(text: string): string {
+  const longest = Math.max(0, ...[...text.matchAll(/`+/g)].map((run) => run[0].length));
+  const fence = "`".repeat(longest + 1);
+  const pad = text.startsWith("`") || text.endsWith("`") ? " " : "";
+  return `${fence}${pad}${text}${pad}${fence}`;
+}
+
+/** Plain Markdown text that shows `text` as it is: its punctuation escaped. */
+const plainText = (text: string): string => text.replaceAll(/[\\`*_[\]<>]/g, "\\$&");
+
 const listed = (names: readonly string[]): string => {
-  const quoted = names.map((name) => `\`${name}\``);
+  const quoted = names.map(codeSpan);
   return quoted.length <= 1
     ? (quoted[0] ?? "")
     : `${quoted.slice(0, -1).join(", ")} and ${quoted[quoted.length - 1]}`;
@@ -455,9 +470,9 @@ export function bundleRootBytes(
   frontmatter?: Readonly<Record<string, unknown>>,
 ): Uint8Array {
   const lines = bundles.map((bundle) => {
-    const root = bundle.root === "" ? "the project root" : `\`${shown(bundle.root, scope)}\``;
+    const root = bundle.root === "" ? "the project root" : codeSpan(shown(bundle.root, scope));
     const skills = `${shown(bundle.root, scope)}${bundle.layout.replace(/<name>\/$/, "")}`;
-    return `- ${bundle.framework}: its skills in \`${skills}\` and its agents read ${listed(bundle.folders.map((folder) => `${folder}/`))} relative to ${root}.`;
+    return `- ${plainText(bundle.framework)}: its skills in ${codeSpan(skills)} and its agents read ${listed(bundle.folders.map((folder) => `${folder}/`))} relative to ${root}.`;
   });
   const text = [
     "# Bundle roots",

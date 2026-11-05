@@ -461,12 +461,9 @@ describe("representative plans of the ported frameworks", () => {
     };
     const skills = superpowers.items.filter((item) => item.kind === "skill").map((item) => item.id);
     const plugins = {
-      // Each marketplace's declared name, from its own marketplace.json.
-      "claude-code": {
-        ...entry,
-        marketplace: "https://github.com/obra/superpowers-marketplace",
-        marketplaceName: "superpowers-marketplace",
-      },
+      // Claude installs through a pinned marketplace the plan writes; Codex names the
+      // marketplace's declared name, from its own marketplace.json.
+      "claude-code": entry,
       codex: { ...entry, marketplace: PINS.superpowers[0], marketplaceName: "superpowers-dev" },
       copilot: entry,
     };

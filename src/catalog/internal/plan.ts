@@ -15,13 +15,21 @@ import {
   DUPLICATE_RESOLVER,
   DUPLICATES_REPORT,
 } from "./authored.js";
-import { isRecord } from "./check.js";
+import { isRecord, ownValue } from "./check.js";
 import { installRelative } from "./identity.js";
 import { canonicalJson } from "./json.js";
-import { applySettings, lowerServer, lowerTool, restricts, serverSettings } from "./mcp.js";
+import {
+  applySettings,
+  literalProblem,
+  lowerServer,
+  lowerTool,
+  restricts,
+  serverSettings,
+} from "./mcp.js";
 import { type Bundle, type Content, INSTALL_NAME, type Item, type ItemFile } from "./model.js";
 import {
   basenameOf,
+  clashKey,
   compareCodeUnits,
   dirnameOf,
   isSafeRelativePath,
@@ -48,6 +56,7 @@ import {
   type RenderName,
   scopeKeyOf,
 } from "./render.js";
+import { isRepositoryAddress } from "./repository.js";
 import { sha256Hex } from "./sha256.js";
 import {
   type AcquireStep,
@@ -220,6 +229,11 @@ export interface PluginStep {
   readonly commit: string;
   readonly scanKey: string;
   readonly verify: PluginVerify;
+  /**
+   * `unverified` where the client installs from a marketplace it adds unpinned, so nothing
+   * checks that the installed plugin is the one at `commit`.
+   */
+  readonly pin?: "unverified";
 }
 
 /** An upstream setup program: the installer clones, shows the exact command and runs it only after approval. */
@@ -583,14 +597,14 @@ function place(
     };
   const unsupported = profile.unsupported?.[item.kind];
   if (unsupported !== undefined) return { reason: "unsupported-kind", detail: unsupported };
-  const edition = item.editions?.[profile.id];
+  const edition = ownValue(item.editions, profile.id);
   const own = item.files.filter((file) => file.cli === undefined || file.cli === profile.id);
 
   if (item.kind === "hook") {
     if (edition === undefined)
       return { reason: "no-edition", detail: "a hook is placed only from its upstream edition" };
     const event = item.event as string;
-    if (profile.hookEvents !== undefined && profile.hookEvents[event] === undefined)
+    if (profile.hookEvents !== undefined && ownValue(profile.hookEvents, event) === undefined)
       return { reason: "no-hook-event", detail: `the client has no ${event} event` };
   }
   if (edition !== undefined && item.kind !== "skill") {
@@ -815,6 +829,14 @@ function place(
       if ("reason" in lowered) return { reason: "unsupported-server", detail: lowered.reason };
       const settings = applySettings(lowered.entry, serverSettings(item, launch), profile.mcpFile);
       if ("reason" in settings) return { reason: "unsupported-server", detail: settings.reason };
+      const literal = literalProblem(
+        settings.entry,
+        Object.keys(item.requirements?.inputs ?? {}),
+        Object.values(profile.inputReferences).flatMap((reference) =>
+          typeof reference === "object" ? [reference.syntax] : [],
+        ),
+      );
+      if (literal !== undefined) return { reason: "unsupported-server", detail: literal };
       const rootPaths = (lowered as { rootPaths?: readonly RootPath[] }).rootPaths ?? [];
       return [
         placed({
@@ -929,7 +951,7 @@ function combined(members: readonly Placed[], scope: Scope): Unit | undefined {
         member.item.id !== item.id ||
         member.installName !== installName ||
         member.unit.shape !== "folder" ||
-        item.editions?.[member.profile.id] !== undefined,
+        ownValue(item.editions, member.profile.id) !== undefined,
     )
   )
     return undefined;
@@ -1126,6 +1148,44 @@ function templateRoot(
 const sortedSet = (values: Iterable<string>) => [...new Set(values)].sort(compareCodeUnits);
 
 /**
+ * The files and folders the planned clients read as configuration at this scope, by clash key:
+ * MCP files, local-plugin and built-in switch-off settings, shared rule files, the VS Code
+ * folder-overlap setting and hook edition folders (folders end in `/`).
+ */
+function configSurfaces(profiles: readonly ToolProfile[], scope: Scope): Set<string> {
+  const found = new Set<string>();
+  const add = (path: string | undefined) => {
+    if (path !== undefined) found.add(clashKey(path));
+  };
+  for (const profile of profiles) {
+    add(profile.places.mcp?.[scope]?.file);
+    for (const entry of profile.localPlugins?.[scope]?.register ?? []) add(entry.file);
+    const disable = profile.disableBuiltIn;
+    if (typeof disable === "object" && disable.setting?.root === scope) add(disable.setting.file);
+    for (const place of Object.values(profile.places.rule?.[scope] ?? {}))
+      if (typeof place === "object") add(place.file);
+    if (scope === "project") add(profile.skillFolderOverlap?.merge.file);
+    const hooks = profile.editionPlaces?.hook?.[scope];
+    if (hooks !== undefined) add(hooks.endsWith("/") ? hooks : `${hooks}/`);
+  }
+  return found;
+}
+
+/**
+ * Whether a planned path is configuration a client runs or loads: a listed surface or a file
+ * below a listed folder, any `settings*.json` file, or anything in a `hooks` folder.
+ */
+function onConfigSurface(path: string, surfaces: ReadonlySet<string>): boolean {
+  const key = clashKey(path);
+  if (surfaces.has(key)) return true;
+  for (const surface of surfaces) if (surface.endsWith("/") && key.startsWith(surface)) return true;
+  const segments = key.split("/");
+  return (
+    /^settings[^/]*\.json$/.test(segments.at(-1) ?? "") || segments.slice(0, -1).includes("hooks")
+  );
+}
+
+/**
  * Places each client's runtime bundles: the root files once per root at their upstream paths,
  * copied as one unit at both scopes, the launchers of user-only bundle skills, and the
  * bundle-root rule in each client's always-on rule place.
@@ -1193,6 +1253,31 @@ function placeBundles(
       dropped.add(entry);
     }
   }
+
+  // A bundle file never lands on a file or folder a planned client reads as configuration: the
+  // bundle is not placed for that client.
+  const surfaces = configSurfaces(profiles, scope);
+  let blocked = served;
+  for (const [cli, map] of roots)
+    for (const [id, placed] of map) {
+      const hit = placed.bundle.files
+        .map((file) => `${placed.root}${file.sourcePath}`)
+        .find((path) => onConfigSurface(path, surfaces));
+      if (hit === undefined) continue;
+      map.delete(id);
+      blocked = blocked.filter((entry) => entry.cli !== cli || !placed.items.has(entry.item));
+      for (const entry of resolved)
+        if (entry.profile.id === cli && entry.bundle?.id === id) {
+          unavailable.push({
+            item: entry.item.id,
+            cli,
+            reason: "no-bundle-place",
+            detail: `the bundle file ${quote(hit)} would land on the client's configuration`,
+          });
+          dropped.add(entry);
+        }
+    }
+  served.splice(0, served.length, ...blocked);
 
   const writes: WriteStep[] = [];
   const groups = new Map<string, { placed: PlacedBundle; items: Set<string>; clis: Set<string> }>();
@@ -1354,7 +1439,7 @@ function siblingReferences(placed: readonly Placed[]): Map<string, Set<string>> 
   };
   for (const entry of folders) {
     const cli = entry.profile.id;
-    const edition = entry.item.editions?.[cli] !== undefined ? cli : undefined;
+    const edition = ownValue(entry.item.editions, cli) !== undefined ? cli : undefined;
     for (const reference of entry.item.pathReferences ?? []) {
       if (reference.cli !== edition) continue;
       const from = installedAt(entry, reference.sourcePath);
@@ -1438,7 +1523,8 @@ function referencesOf(
     sourcePath: string,
     path: string,
   ) => {
-    const own = edition === undefined ? item.files : (item.editions?.[edition]?.files ?? []);
+    const own =
+      edition === undefined ? item.files : (ownValue(item.editions, edition)?.files ?? []);
     const file = own.find((candidate) => candidate.sourcePath === sourcePath);
     if (file === undefined || file.derivedFrom !== undefined) return false;
     const files = installed.get(cli);
@@ -1463,7 +1549,7 @@ function referencesOf(
         item.bundle === undefined ? undefined : bundles.roots.get(cli)?.get(item.bundle);
       // A client that takes its edition places the edition's files, so only their mentions
       // count there; every other client places the item's own files.
-      const edition = item.editions?.[cli] !== undefined ? cli : undefined;
+      const edition = ownValue(item.editions, cli) !== undefined ? cli : undefined;
       for (const reference of item.pathReferences ?? []) {
         if (reference.cli !== edition) continue;
         if (placed?.bundle.files.some((file) => file.sourcePath === reference.path)) continue;
@@ -1686,16 +1772,48 @@ function duplicatesOf(
 }
 
 /** Problems of the supplied contents and profiles, shared by both planners. */
+/**
+ * Supplied contents each name their own framework, and none claims Catalog's: the `aih`
+ * framework and source id belong to the library, whose own content is always used.
+ */
+export function suppliedFrameworkProblems(contents: readonly Content[]): Problem[] {
+  const problems: Problem[] = [];
+  const seen = new Set<string>();
+  for (const [index, content] of contents.entries()) {
+    const id = content?.framework?.id;
+    if (id === AUTHORED_FRAMEWORK)
+      problems.push({
+        path: `contents/${index}/framework/id`,
+        message: "the aih framework is Catalog's own",
+      });
+    else if (typeof id === "string" && seen.has(id))
+      problems.push({
+        path: `contents/${index}/framework/id`,
+        message: "the framework is supplied twice",
+      });
+    if (typeof id === "string") seen.add(id);
+    for (const [at, source] of (Array.isArray(content?.sources) ? content.sources : []).entries())
+      if (source?.id === AUTHORED_FRAMEWORK && id !== AUTHORED_FRAMEWORK)
+        problems.push({
+          path: `contents/${index}/sources/${at}/id`,
+          message: "the aih source is Catalog's own",
+        });
+  }
+  return problems;
+}
+
 export function inputProblems(
   contents: readonly Content[],
   profiles: readonly ToolProfile[],
 ): Problem[] {
   const problems: Problem[] = [];
   if (!Array.isArray(contents)) problems.push({ path: "contents", message: "contents is a list" });
-  else
+  else {
     for (const [index, content] of contents.entries())
       for (const problem of contentProblems(content))
         problems.push({ path: `contents/${index}${problem.path}`, message: problem.message });
+    problems.push(...suppliedFrameworkProblems(contents));
+  }
   if (!Array.isArray(profiles) || profiles.length === 0)
     problems.push({ path: "profiles", message: "plan for at least one profile" });
   else {
@@ -1712,8 +1830,7 @@ export function inputProblems(
 export const isDataPin = (data: unknown): data is { repository: string; commit: string } =>
   isRecord(data) &&
   Object.keys(data).sort().join() === "commit,repository" &&
-  typeof data.repository === "string" &&
-  data.repository.length > 0 &&
+  isRepositoryAddress(data.repository) &&
   typeof data.commit === "string" &&
   /^[0-9a-f]{40}$/.test(data.commit);
 
@@ -2552,10 +2669,32 @@ export function planCore(input: CoreInput): PlanResult {
       });
   }
   clashes.push(...limitClashes(sortedProfiles, mergeUnits, bundles.merges, input.contents, scope));
+  // Two spellings of one path (case or Unicode form) name one file on a case-insensitive or
+  // normalising file system: they clash.
+  const spelled = [
+    ...finalWrites.map((step) => ({ root: step.root, path: step.path, step })),
+    ...links.map((step) => ({ root: step.root, path: step.path, step })),
+    ...merges.map((step) => ({ root: step.root, path: step.file, step })),
+  ];
+  for (const members of group(spelled, (entry) => `${entry.root} ${clashKey(entry.path)}`)) {
+    const first = members[0] as (typeof spelled)[number];
+    if (members.every((entry) => entry.path === first.path)) continue;
+    clashes.push({
+      root: first.root,
+      path: first.path,
+      reason: "different-content",
+      items: union(
+        ...members.map(({ step }) =>
+          step.item ? [step.item] : "items" in step ? (step.items ?? []) : [],
+        ),
+      ),
+      clis: union(...members.map(({ step }) => step.clis)),
+    });
+  }
   // Never write through a planned link.
   for (const link of links)
     for (const step of finalWrites)
-      if (step.root === link.root && step.path.startsWith(`${link.path}/`))
+      if (step.root === link.root && clashKey(step.path).startsWith(`${clashKey(link.path)}/`))
         clashes.push({
           root: link.root,
           path: step.path,

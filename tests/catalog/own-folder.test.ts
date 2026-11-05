@@ -40,7 +40,7 @@ describe("planning an installation from your own folder", () => {
     expect(plan).toEqual({
       status: "ok",
       data: null,
-      profiles: [{ id: "claude-code", version: 4 }],
+      profiles: [{ id: "claude-code", version: 5 }],
       plan: [
         {
           op: "write",
@@ -188,7 +188,7 @@ describe("one own folder for Claude, Kiro and Antigravity", () => {
     if (result.status !== "ok") throw new Error(JSON.stringify(result));
     expect(result.profiles).toEqual([
       { id: "antigravity", version: 4 },
-      { id: "claude-code", version: 4 },
+      { id: "claude-code", version: 5 },
       { id: "kiro", version: 7 },
     ]);
     expect(

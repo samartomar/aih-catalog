@@ -6,9 +6,10 @@
  */
 import { formats, kinds, type Problem } from "../contracts.js";
 import { type AiSetupChange, aiSetupChangeProblems, CELLS } from "./ai-setup.js";
-import { isRecord, isText, Problems, type Record_, TEXT_LIMITS } from "./check.js";
+import { isRecord, isText, ownValue, Problems, type Record_, TEXT_LIMITS } from "./check.js";
 import { FRAMEWORK_ID, INSTALL_NAME, OBJECT_ID, SHA256 } from "./model.js";
 import { isSafeRelativePath } from "./paths.js";
+import { isMarketplaceAddress, isRepositoryAddress } from "./repository.js";
 
 export const ROUTES = ["plugin", "local-plugin", "setup", "items"] as const;
 export type Route = (typeof ROUTES)[number];
@@ -117,7 +118,11 @@ function checkPin(value: unknown, path: string, problems: Problems, commit = OBJ
     return;
   }
   problems.keys(value, path, ["repository", "commit"], ["repository", "commit"]);
-  problems.check(isString(value.repository), `${path}/repository`, "a repository is required");
+  problems.check(
+    isRepositoryAddress(value.repository),
+    `${path}/repository`,
+    "an https repository address is required",
+  );
   problems.check(
     typeof value.commit === "string" && commit.test(value.commit),
     `${path}/commit`,
@@ -225,7 +230,7 @@ export function recipeProblems(value: unknown): Problem[] {
         "plugin, local-plugin, setup or items",
       );
     }
-  const routeOf = (cli: string) => routes?.[cli];
+  const routeOf = (cli: string) => ownValue(routes as Record_ | undefined, cli);
 
   if (value.plugins !== undefined) {
     if (!isRecord(value.plugins)) problems.add("/plugins", "plugins maps clients to plugins");
@@ -262,8 +267,18 @@ export function recipeProblems(value: unknown): Problem[] {
           `${path}/commit`,
           "an exact commit id is required",
         );
+        // A native install reads its marketplace from an address; a local plugin registers
+        // the name its copied folder declares.
         if (entry.marketplace !== undefined)
-          problems.check(isString(entry.marketplace), `${path}/marketplace`, "a string");
+          problems.check(
+            routeOf(cli) === "local-plugin"
+              ? isString(entry.marketplace, 64) && INSTALL_NAME.test(entry.marketplace)
+              : isMarketplaceAddress(entry.marketplace),
+            `${path}/marketplace`,
+            routeOf(cli) === "local-plugin"
+              ? "a kebab-case marketplace name"
+              : "an https URL or owner/repo",
+          );
         if (entry.marketplaceName !== undefined) {
           problems.check(
             isString(entry.marketplaceName, 64) && INSTALL_NAME.test(entry.marketplaceName),

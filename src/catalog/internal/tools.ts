@@ -17,6 +17,8 @@ import type {
   Settings,
   Wheel,
 } from "./ai-setup.js";
+import { settingsFileProblems, settingsRunProblems } from "./ai-setup.js";
+import { ownValue } from "./check.js";
 import { canonicalDocument } from "./json.js";
 import type { Content, Item } from "./model.js";
 import { compareCodeUnits } from "./paths.js";
@@ -61,7 +63,8 @@ export interface AcquireStep {
 export interface ToolCommandStep {
   readonly op: "tool-command";
   readonly aiSetup: string;
-  readonly qualification: string;
+  /** The qualification that ran this command: absent for a recipe's own settings. */
+  readonly qualification?: string;
   readonly executable: { readonly root: "user"; readonly path: string };
   readonly argv: readonly string[];
   readonly readback: { readonly argv: readonly string[]; readonly expected: string };
@@ -307,12 +310,31 @@ export function toolProblems(input: ToolInput): Problem[] {
         message: "the AI setup lists no upstream installer",
       });
   }
-  for (const id of Object.keys(input.changes ?? {}))
-    if (input.byId.get(id)?.item.kind !== "ai-setup" || !input.selection.includes(id))
+  for (const [id, change] of Object.entries(input.changes ?? {})) {
+    const item = input.byId.get(id)?.item;
+    if (item?.kind !== "ai-setup" || !input.selection.includes(id)) {
       problems.push({
         path: `recipe/aiSetup/${id}`,
         message: "names an AI setup the recipe installs",
       });
+      continue;
+    }
+    if (change.settings === undefined) continue;
+    // A recipe's settings are held to the item's own rules: no installer the record never
+    // runs, files only in the setup's settings folder, and only files the item has.
+    const setup = item.aiSetup as AiSetup;
+    const at = `recipe/aiSetup/${id}/settings`;
+    problems.push(
+      ...settingsRunProblems(change.settings, setup.executable, setup.doNotRun, at),
+      ...settingsFileProblems(change.settings, item.name, at),
+    );
+    for (const [index, file] of change.settings.files.entries())
+      if (!item.files.some((entry) => entry.sourcePath === file.sourcePath))
+        problems.push({
+          path: `${at}/files/${index}/sourcePath`,
+          message: "names no file of the AI setup",
+        });
+  }
   return problems;
 }
 
@@ -395,7 +417,7 @@ export function planTools(input: ToolInput): ToolPlan {
     const program = distribution ? programPath(setup, distribution, cell) : undefined;
     const into = `.aihq/ai-setup/${item.name}/${setup.version}/${cell}/`;
     const path = program === undefined ? undefined : `${into}${program}`;
-    const change = input.changes?.[id];
+    const change = ownValue(input.changes, id);
     if (setup.mcpItem !== undefined) {
       plan.implied.push(setup.mcpItem);
       // The path is added only once the artifact is acquired: an MCP entry never names a
@@ -493,11 +515,13 @@ export function planTools(input: ToolInput): ToolPlan {
       scanned: false,
     });
     const settings: Settings = change?.settings ?? setup.settings;
+    // The qualification ran the setup's own settings; a recipe's replacement is not covered.
+    const qualified = change?.settings === undefined;
     for (const command of settings.commands)
       plan.commands.push({
         op: "tool-command",
         aiSetup: id,
-        qualification: choice.sha256,
+        ...(qualified ? { qualification: choice.sha256 } : {}),
         executable: { root: "user", path },
         argv: command.argv,
         readback: command.readback,
@@ -506,7 +530,15 @@ export function planTools(input: ToolInput): ToolPlan {
       });
     for (const file of settings.files) {
       const source = item.files.find((entry) => entry.sourcePath === file.sourcePath);
-      if (source === undefined) continue;
+      if (source === undefined) {
+        plan.unavailable.push({
+          item: id,
+          cell: cell as Cell,
+          reason: "not-described",
+          detail: `the settings file ${JSON.stringify(file.sourcePath)} is not a file of the AI setup`,
+        });
+        continue;
+      }
       plan.writes.push({
         op: "write",
         root: file.root,

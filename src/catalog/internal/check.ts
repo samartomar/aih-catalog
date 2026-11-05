@@ -48,3 +48,13 @@ export class Problems {
       if (value[key] === undefined) this.add(`${path}/${key}`, "required field is missing");
   }
 }
+
+/**
+ * The value a record holds under its own `key`, never one inherited from `Object.prototype`
+ * (`constructor`, `toString`, `__proto__`): lookups by names from content, recipes or profiles.
+ */
+export const ownValue = <Value>(
+  record: Readonly<Record<string, Value>> | undefined | null,
+  key: string,
+): Value | undefined =>
+  record !== undefined && record !== null && Object.hasOwn(record, key) ? record[key] : undefined;

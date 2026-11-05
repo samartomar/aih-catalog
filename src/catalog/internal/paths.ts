@@ -1,14 +1,47 @@
 import { type LimitName, limits, type RefusalCode, type Refused } from "../contracts.js";
 
+/** Characters Windows reserves in a file name. */
+const RESERVED = /[\\:<>"|?*]/;
+
+/** True when the text holds a control character (C0 or DEL). */
+const hasControl = (text: string): boolean => {
+  for (let index = 0; index < text.length; index++) {
+    const code = text.charCodeAt(index);
+    if (code < 0x20 || code === 0x7f) return true;
+  }
+  return false;
+};
+
+/** Names Windows reserves for devices, with or without an extension. */
+const DEVICE = /^(?:con|prn|aux|nul|conin\$|conout\$|com[0-9¹²³]|lpt[0-9¹²³])(?:\.|$)/i;
+
+/** True for a segment every supported file system can hold under that exact name. */
+const isPortableSegment = (segment: string): boolean =>
+  segment !== "" &&
+  segment !== "." &&
+  segment !== ".." &&
+  !RESERVED.test(segment) &&
+  !hasControl(segment) &&
+  !segment.endsWith(".") &&
+  !segment.endsWith(" ") &&
+  !DEVICE.test(segment);
+
 /**
- * True for a canonical source-relative POSIX path: non-empty segments, no `.`/`..`, no
- * leading slash, no backslash, drive letter or NUL. Anything else is a `path-escape`.
+ * True for a canonical, portable source-relative POSIX path: non-empty segments, no `.`/`..`,
+ * no leading slash, and no segment that some supported file system would refuse or read as
+ * another name (a backslash, drive colon, `<>"|?*`, a control character, a trailing dot or
+ * space, or a Windows device name). Anything else is a `path-escape`.
  */
 export function isSafeRelativePath(path: unknown): path is string {
   if (typeof path !== "string" || path.length === 0 || path.length > 4096) return false;
-  if (path.includes("\\") || path.includes("\0") || /^[A-Za-z]:/.test(path)) return false;
-  return path.split("/").every((segment) => segment !== "" && segment !== "." && segment !== "..");
+  return path.split("/").every(isPortableSegment);
 }
+
+/**
+ * The key two paths clash under on a case-insensitive or normalising file system: Unicode
+ * NFC, then case-folded.
+ */
+export const clashKey = (path: string): string => path.normalize("NFC").toUpperCase().toLowerCase();
 
 /** Input quoted in a reason, cut at the published bound. */
 export function quote(text: string): string {

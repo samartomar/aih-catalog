@@ -86,5 +86,7 @@ export function installRelative(
       ? "SKILL.md"
       : basenameOf(file.sourcePath);
   const root = dirnameOf(found.file.sourcePath);
-  return root === "" ? file.sourcePath : file.sourcePath.slice(root.length + 1);
+  if (root === "") return file.sourcePath;
+  // A file outside the skill's folder has no install path: the empty path never plans.
+  return file.sourcePath.startsWith(`${root}/`) ? file.sourcePath.slice(root.length + 1) : "";
 }

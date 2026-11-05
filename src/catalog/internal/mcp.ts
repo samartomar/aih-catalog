@@ -5,10 +5,12 @@
  * reference.
  */
 import type { AiSetupChange } from "./ai-setup.js";
+import { ownValue } from "./check.js";
 import { inputMarkers } from "./kinds.js";
 import type { Item } from "./model.js";
 import type { Binding, RootPath } from "./plan.js";
 import type { McpFields } from "./profile.js";
+import { isRegistry, packageProblem, type Registry, RUNNERS } from "./server.js";
 import type { ToolLaunch } from "./tools.js";
 
 interface Argument {
@@ -32,12 +34,6 @@ interface Remote {
   readonly headers?: readonly { readonly name: string }[];
 }
 
-/** The package runners the Registry names for npm and PyPI packages, with their pin form. */
-const RUNNERS: Readonly<Record<string, { command: string; spec: (pkg: Package) => string }>> = {
-  npm: { command: "npx", spec: (pkg) => `${pkg.identifier}@${pkg.version}` },
-  pypi: { command: "uvx", spec: (pkg) => `${pkg.identifier}==${pkg.version}` },
-};
-
 const pointer = (...segments: string[]) =>
   segments.map((segment) => `/${segment.replaceAll("~", "~0").replaceAll("/", "~1")}`).join("");
 
@@ -58,14 +54,27 @@ export function lowerServer(
   const bind = (input: string, at: Binding["at"]): Binding => ({ item: item.id, input, at });
   const pkg = server.packages?.find(
     (candidate) =>
-      RUNNERS[candidate.registryType] && (candidate.transport?.type ?? "stdio") === "stdio",
+      isRegistry(candidate.registryType) && (candidate.transport?.type ?? "stdio") === "stdio",
   );
   if (pkg !== undefined) {
     const stdio = fields.stdio;
     if (stdio === undefined) return { reason: "the client describes no local (stdio) server form" };
-    const runner = RUNNERS[pkg.registryType] as (typeof RUNNERS)[string];
-    const command = pkg.runtimeHint ?? runner.command;
-    const args = [...argv(pkg.runtimeArguments), runner.spec(pkg), ...argv(pkg.packageArguments)];
+    const problem = packageProblem(pkg);
+    if (problem) return { reason: problem };
+    const runner = RUNNERS[pkg.registryType as Registry];
+    // Only the registry's own runner, with only the flags it needs, ever starts a package.
+    if (pkg.runtimeHint !== undefined && pkg.runtimeHint !== runner.command)
+      return { reason: `a ${pkg.registryType} package starts only through ${runner.command}` };
+    const flags = argv(pkg.runtimeArguments);
+    const flag = flags.find((value) => !runner.flags.includes(value));
+    if (flag !== undefined)
+      return { reason: `${runner.command} takes no runner argument ${JSON.stringify(flag)}` };
+    const command = runner.command;
+    const args = [
+      ...flags,
+      runner.spec(pkg.identifier, pkg.version),
+      ...argv(pkg.packageArguments),
+    ];
     const entry: Record<string, unknown> = { ...(stdio.set ?? {}) };
     if (stdio.argv !== undefined) entry[stdio.argv] = [command, ...args];
     else {
@@ -87,6 +96,8 @@ export function lowerServer(
     return { reason: "the server has no npm or PyPI stdio package and no remote" };
   const form = fields.remote?.[remote.type];
   if (form === undefined) return { reason: `the client describes no ${remote.type} remote form` };
+  const unsafe = remoteUrlProblem(remote.url);
+  if (unsafe !== undefined) return { reason: unsafe };
   const entry: Record<string, unknown> = { ...(form.set ?? {}), [form.url]: remote.url };
   const inputs: Binding[] = inputMarkers(remote.url).map((marker) =>
     bind(marker, { pointer: pointer(form.url) }),
@@ -132,7 +143,7 @@ export function lowerTool(
   const stdio = fields.stdio;
   if (stdio === undefined) return { reason: "the client describes no local (stdio) server form" };
   const path = launch.path as string;
-  const args = [...(launch.clis?.[cli] ?? launch.args)];
+  const args = [...(ownValue(launch.clis, cli) ?? launch.args)];
   const entry: Record<string, unknown> = { ...(stdio.set ?? {}) };
   let at: string;
   if (stdio.argv !== undefined) {
@@ -211,3 +222,64 @@ export function applySettings(
 export const restricts = (settings: AiSetupChange, fields: McpFields | undefined): boolean =>
   (settings.enabledTools !== undefined && fields?.tools?.enabled !== undefined) ||
   (settings.disabledTools !== undefined && fields?.tools?.disabled !== undefined);
+
+/** The hosts that name this machine: a remote there may be plain http. */
+const LOOPBACK = /^(?:localhost|127(?:\.\d{1,3}){3}|\[::1\])$/i;
+
+/**
+ * Why a remote server's URL cannot be written, or undefined: it is https, or http on this
+ * machine. Input markers stand for one path or host segment while it is checked.
+ */
+export function remoteUrlProblem(url: string): string | undefined {
+  let parsed: URL;
+  try {
+    parsed = new URL(url.replaceAll(/\{[A-Za-z_][A-Za-z0-9_-]*\}/g, "x"));
+  } catch {
+    return "the remote URL is not a URL";
+  }
+  if (parsed.username !== "" || parsed.password !== "") return "the remote URL carries credentials";
+  if (parsed.protocol === "https:") return undefined;
+  if (parsed.protocol === "http:" && LOOPBACK.test(parsed.hostname)) return undefined;
+  return "a remote server is reached over https unless it runs on this machine";
+}
+
+/** Every string an entry holds, keys and values, with its JSON Pointer. */
+function* strings(value: unknown, at = ""): Generator<[string, string]> {
+  if (typeof value === "string") yield [at, value];
+  else if (Array.isArray(value))
+    for (const [index, entry] of value.entries()) yield* strings(entry, `${at}/${index}`);
+  else if (value !== null && typeof value === "object")
+    for (const [key, entry] of Object.entries(value)) {
+      const next = pointerJoin(at, key);
+      yield [next, key];
+      yield* strings(entry, next);
+    }
+}
+const pointerJoin = (at: string, key: string) =>
+  `${at}/${key.replaceAll("~", "~0").replaceAll("/", "~1")}`;
+
+/**
+ * Why an MCP entry's literal text cannot be written, or undefined. No literal (command,
+ * argument, URL, header or env name and value) may hold `${` or the client's own reference
+ * syntax, which the client would expand from the user's environment; Catalog's own input
+ * markers are the only references, and each names an input the item declares.
+ */
+export function literalProblem(
+  entry: Record<string, unknown>,
+  declared: readonly string[],
+  syntaxes: readonly string[],
+): string | undefined {
+  const openers = new Set(["${"]);
+  for (const syntax of syntaxes) {
+    const opener = syntax.slice(0, syntax.indexOf("<name>"));
+    if (opener.length > 0) openers.add(opener);
+  }
+  for (const [at, text] of strings(entry)) {
+    const opener = [...openers].find((candidate) => text.includes(candidate));
+    if (opener !== undefined)
+      return `the entry text at ${at} holds ${JSON.stringify(opener)}, which the client would expand`;
+    const stray = inputMarkers(text).find((marker) => !declared.includes(marker));
+    if (stray !== undefined) return `the marker {${stray}} at ${at} names no declared input`;
+  }
+  return undefined;
+}

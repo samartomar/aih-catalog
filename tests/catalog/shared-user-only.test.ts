@@ -124,7 +124,7 @@ describe("a user-only skill in a folder several clients share", () => {
     expect(step(result, ".agents/skills/release/SKILL.md").render).toEqual({
       name: "shared-skill",
       profiles: [
-        { id: "codex", version: 4 },
+        { id: "codex", version: 5 },
         { id: "cursor", version: 3 },
         { id: "dsh", version: 2 },
         { id: "kimi", version: 4 },
@@ -232,7 +232,7 @@ describe("a user-only skill in a folder several clients share", () => {
     // The version key covers the combined render record, and so every participating profile.
     const item = built.items.find((candidate) => candidate.id === id("release"));
     const profiles = [
-      { id: "codex", version: 4 },
+      { id: "codex", version: 5 },
       { id: "kimi", version: 4 },
     ];
     const facts = {

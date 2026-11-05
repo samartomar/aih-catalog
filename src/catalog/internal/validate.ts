@@ -7,6 +7,7 @@ import { aiSetupProblems, MCP_SETTINGS, mcpSettingProblems } from "./ai-setup.js
 import { BUNDLE_LAYOUT, isIncludePattern, matchesInclude } from "./bundle.js";
 import { isRecord, isText, Problems, type Record_, TEXT_LIMITS } from "./check.js";
 import { behaviourSha256, contentSha256, kindFieldNames } from "./identity.js";
+import { BLOCK_MARKER, skillFilesOutside } from "./kinds.js";
 import {
   FRAMEWORK_ID,
   ID_SEGMENT,
@@ -20,6 +21,8 @@ import {
   SHA256,
 } from "./model.js";
 import { isSafeRelativePath } from "./paths.js";
+import { isRepositoryAddress } from "./repository.js";
+import { serverProblem } from "./server.js";
 import { EXACT_VERSION } from "./source-link.js";
 
 const isString = (value: unknown, max: number = TEXT_LIMITS.document): value is string =>
@@ -72,6 +75,9 @@ function checkIdList(value: unknown, path: string, problems: Problems): void {
 }
 
 /** Shape problems of a content document; empty when the record is well formed. */
+/** Control characters and line or paragraph separators: never in a one-line name. */
+const UNPRINTABLE = /[\p{Cc}\p{Zl}\p{Zp}]/u;
+
 export function contentProblems(value: unknown): Problem[] {
   const problems = new Problems();
   if (!isRecord(value)) return [{ path: "", message: "content must be an object" }];
@@ -93,6 +99,9 @@ export function contentProblems(value: unknown): Problem[] {
     else frameworkId = framework.id;
     if (!isString(framework.name, 200))
       problems.add("/framework/name", "name must be 1–200 characters");
+    // The name is written into shared Markdown: one printable line.
+    else if (UNPRINTABLE.test(framework.name) || framework.name.includes(BLOCK_MARKER))
+      problems.add("/framework/name", "name is one printable line");
   }
   const sourceIds = new Set<string>();
   if (!Array.isArray(value.sources)) problems.add("/sources", "sources must be a list");
@@ -137,8 +146,8 @@ export function contentProblems(value: unknown): Problem[] {
             problems.add(`${path}/${key}`, `a ${String(source.kind)} source has no ${key}`);
       };
       if (source.kind === "git") {
-        if (!isString(source.repository, 2048))
-          problems.add(`${path}/repository`, "a git source needs its repository");
+        if (!isRepositoryAddress(source.repository))
+          problems.add(`${path}/repository`, "a git source needs its https repository address");
         if (typeof source.commit !== "string" || !OBJECT_ID.test(source.commit))
           problems.add(`${path}/commit`, "a git source needs an exact commit id");
         absent(["package", "version"]);
@@ -290,8 +299,13 @@ export function contentProblems(value: unknown): Problem[] {
       if (item.kind === "rule") checkScope(item.scope, `${path}/scope`, problems);
       else if (item.scope !== undefined) problems.add(`${path}/scope`, "only rules have a scope");
       checkKindFields(item, path, problems);
+      if (item.kind === "skill" && Array.isArray(item.files)) {
+        const outside = skillFilesOutside(item.files.filter(isRecord) as never);
+        if (outside !== undefined)
+          problems.add(`${path}/files`, `${outside} sits outside the skill's SKILL.md folder`);
+      }
       if (item.requirements !== undefined)
-        checkRequirements(item.requirements, `${path}/requirements`, problems);
+        checkRequirements(item.requirements, `${path}/requirements`, problems, item.kind);
       if (item.editions !== undefined)
         checkEditions(item.editions, `${path}/editions`, sourceIds, problems);
       if (item.references !== undefined)
@@ -562,6 +576,10 @@ function checkKindFields(item: Record_, path: string, problems: Problems): void 
     const server = item.server;
     if (!isRecord(server) || !isString(server.name, 256) || !isString(server.description, 1024))
       problems.add(`${path}/server`, "an MCP item records its server name and description");
+    else {
+      const problem = serverProblem(server);
+      if (problem) problems.add(`${path}/server${problem.path}`, problem.message);
+    }
   }
   for (const field of ["event", "matcher", "handler"]) own("hook", field);
   if (item.kind === "hook") {
@@ -579,6 +597,7 @@ function checkKindFields(item: Record_, path: string, problems: Problems): void 
       Array.isArray(item.files)
         ? item.files.map((file) => (isRecord(file) ? String(file.sourcePath) : ""))
         : [],
+      typeof item.name === "string" ? item.name : undefined,
     ))
       problems.add(problem.path, problem.message);
   const settings = MCP_SETTINGS.filter((key) => own("mcp", key) && item[key] !== undefined);
@@ -587,7 +606,10 @@ function checkKindFields(item: Record_, path: string, problems: Problems): void 
       problems.add(problem.path, problem.message);
 }
 
-function checkRequirements(value: unknown, path: string, problems: Problems): void {
+/** Kinds whose files the model reads as instructions: a secret is never placed in them. */
+const MODEL_READ: ReadonlySet<unknown> = new Set(["skill", "rule", "agent", "document"]);
+
+function checkRequirements(value: unknown, path: string, problems: Problems, kind?: unknown): void {
   if (
     !isRecord(value) ||
     !isRecord(value.inputs) ||
@@ -617,6 +639,8 @@ function checkRequirements(value: unknown, path: string, problems: Problems): vo
       problems.add(at, "an input is { description, isRequired, isSecret, default?, placeholder? }");
     else if (input.isSecret === true && input.default !== undefined)
       problems.add(`${at}/default`, "a secret input never carries a value");
+    else if (input.isSecret === true && input.placeholder !== undefined && MODEL_READ.has(kind))
+      problems.add(`${at}/placeholder`, "a secret is never written into a file the model reads");
   }
 }
 
