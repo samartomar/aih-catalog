@@ -1277,3 +1277,17 @@ describe("a recipe's settings files for an AI setup", () => {
     });
   });
 });
+
+describe("an AI setup's distribution URL", () => {
+  it("refuses a URL that carries credentials", async () => {
+    const [distribution] = KIT_SETUP.distributions;
+    for (const url of [
+      "https://user:secret@example.invalid/kit.whl",
+      "https://token@example.invalid/kit.whl",
+    ])
+      await expect(
+        kitContent({ ...KIT_SETUP, distributions: [{ ...distribution, url }] }),
+        url,
+      ).rejects.toThrow(/url/);
+  });
+});

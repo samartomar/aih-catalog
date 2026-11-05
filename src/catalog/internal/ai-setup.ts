@@ -416,9 +416,11 @@ export function aiSetupProblems(
         );
       if (entry.url !== undefined)
         problems.check(
-          isString(entry.url, 2048) && entry.url.startsWith("https://"),
+          isString(entry.url, 2048) &&
+            entry.url.startsWith("https://") &&
+            !/^https:\/\/[^/?#]*@/.test(entry.url),
           `${where}/url`,
-          "an https URL",
+          "an https URL with no credentials",
         );
       problems.check(isSha(entry.sha256), `${where}/sha256`, "the artifact's sha256");
       problems.check(isCount(entry.bytes), `${where}/bytes`, "the artifact's byte count");
