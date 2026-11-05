@@ -352,3 +352,85 @@ describe("MCP launch fields", () => {
     }
   });
 });
+
+/** Builds one MCP item from `text` with authored `extra` fields: its content, or throws. */
+async function serverContent(text: string, extra: Record<string, unknown> = {}) {
+  const read = readLocalSource(folder({ "mcp/weather/server.json": text }));
+  if (read.status !== "ok") throw new Error(JSON.stringify(read));
+  const found = findItems(read.files, { framework: FRAMEWORK });
+  if (found.status !== "ok") throw new Error(JSON.stringify(found));
+  const built = await buildContent(
+    read.source,
+    read.files,
+    found.items.map((item) => ({ ...item, ...extra })),
+    { framework: FRAMEWORK },
+  );
+  if (built.status !== "ok") throw new Error(JSON.stringify(built));
+  return built.content;
+}
+
+const remoteJson = (url: string, headers: Fields[] = []) =>
+  `${JSON.stringify({
+    name: "io.example/weather",
+    description: "Weather lookups.",
+    remotes: [{ type: "streamable-http", url, headers }],
+  })}\n`;
+
+/** The opener a client expands from the environment, spelled so it is plainly data. */
+const EXPAND = "${";
+
+describe("MCP literals and remotes", () => {
+  it("refuses literal text the client would expand as a reference", async () => {
+    const cases: [string, string, Record<string, unknown>][] = [
+      [
+        "argument",
+        serverJson((server) => {
+          server.packages[0].packageArguments = [
+            { type: "positional", value: `${EXPAND}env:HOME}/data` },
+          ];
+        }),
+        {},
+      ],
+      ["env", serverJson(), { env: { WEATHER_HOME: `${EXPAND}HOME}` } }],
+      ["url", remoteJson(`https://weather.example/${EXPAND}env:TOKEN}/mcp`), {}],
+    ];
+    for (const [name, text, extra] of cases) {
+      const plan = planServer(await serverContent(text, extra));
+      expect(plan.status, name).toBe("incomplete");
+      expect(plan.unavailable, name).toMatchObject([
+        { item: WEATHER, cli: "claude-code", reason: "unsupported-server" },
+      ]);
+    }
+  });
+
+  it("keeps declared inputs as bindings", async () => {
+    const text = serverJson((server) => {
+      server.packages[0].packageArguments = [
+        {
+          type: "named",
+          name: "--region",
+          value: "{REGION}",
+          variables: { REGION: { description: "Region", isRequired: true } },
+        },
+      ];
+    });
+    const plan = planServer(await serverContent(text));
+    expect(plan.status).toBe("ok");
+  });
+
+  it("refuses a remote server that is not https, unless it is on this machine", async () => {
+    for (const url of ["http://weather.example/mcp", "ftp://weather.example/mcp"]) {
+      const plan = planServer(await serverContent(remoteJson(url)));
+      expect(plan.unavailable, url).toMatchObject([
+        { item: WEATHER, cli: "claude-code", reason: "unsupported-server" },
+      ]);
+    }
+    for (const url of [
+      "http://localhost:18801/mcp",
+      "http://127.0.0.1:8080/mcp",
+      "http://[::1]:8080/mcp",
+      "https://weather.example/mcp",
+    ])
+      expect(planServer(await serverContent(remoteJson(url))).status, url).toBe("ok");
+  });
+});

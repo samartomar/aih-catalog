@@ -18,7 +18,14 @@ import {
 import { isRecord } from "./check.js";
 import { installRelative } from "./identity.js";
 import { canonicalJson } from "./json.js";
-import { applySettings, lowerServer, lowerTool, restricts, serverSettings } from "./mcp.js";
+import {
+  applySettings,
+  literalProblem,
+  lowerServer,
+  lowerTool,
+  restricts,
+  serverSettings,
+} from "./mcp.js";
 import { type Bundle, type Content, INSTALL_NAME, type Item, type ItemFile } from "./model.js";
 import {
   basenameOf,
@@ -816,6 +823,14 @@ function place(
       if ("reason" in lowered) return { reason: "unsupported-server", detail: lowered.reason };
       const settings = applySettings(lowered.entry, serverSettings(item, launch), profile.mcpFile);
       if ("reason" in settings) return { reason: "unsupported-server", detail: settings.reason };
+      const literal = literalProblem(
+        settings.entry,
+        Object.keys(item.requirements?.inputs ?? {}),
+        Object.values(profile.inputReferences).flatMap((reference) =>
+          typeof reference === "object" ? [reference.syntax] : [],
+        ),
+      );
+      if (literal !== undefined) return { reason: "unsupported-server", detail: literal };
       const rootPaths = (lowered as { rootPaths?: readonly RootPath[] }).rootPaths ?? [];
       return [
         placed({
