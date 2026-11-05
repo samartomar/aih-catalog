@@ -358,9 +358,11 @@ async function superpowers(routes: Record<string, string>) {
       .map(([cli]) => [
         cli,
         cli === "claude-code"
-          ? { ...entry, marketplace: routes[cli] === "plugin" ? MARKETPLACE : "sp-dev" }
+          ? routes[cli] === "plugin"
+            ? { ...entry, marketplace: MARKETPLACE, marketplaceName: "sp-dev" }
+            : { ...entry, marketplace: "sp-dev" }
           : cli === "codex"
-            ? { ...entry, marketplace: pinned.repository }
+            ? { ...entry, marketplace: pinned.repository, marketplaceName: "sp-dev" }
             : entry,
       ]),
   );
@@ -419,8 +421,8 @@ describe("planning a native plugin route", () => {
       verify: "none",
     };
     expect(plan.plan.filter((step) => step.op === "plugin")).toEqual([
-      { ...common, cli: "claude-code", marketplace: MARKETPLACE },
-      { ...common, cli: "codex", marketplace: repository },
+      { ...common, cli: "claude-code", marketplace: MARKETPLACE, marketplaceName: "sp-dev" },
+      { ...common, cli: "codex", marketplace: repository, marketplaceName: "sp-dev" },
       {
         ...common,
         cli: "copilot",
@@ -530,6 +532,42 @@ describe("planning a native plugin route", () => {
     expect(
       plan.plan.some((step) => step.op === "write" && step.path.startsWith(".aihq/marketplaces")),
     ).toBe(false);
+  });
+
+  it("requires the marketplace's declared name where the client installs <plugin>@<marketplace-name>", async () => {
+    const { content, document } = await superpowers({ "claude-code": "plugin", codex: "plugin" });
+    const { marketplaceName: _name, ...unnamed } = document.plugins.codex as Record<
+      string,
+      unknown
+    >;
+    const read = recipeOf({ ...document, plugins: { ...document.plugins, codex: unnamed } });
+    const result = planRecipe(
+      read.recipe,
+      [content],
+      ["claude-code", "codex"].map(profile),
+      {},
+      { scope: "user", source: RECIPE_SOURCE },
+    );
+    expect(result).toEqual({
+      status: "invalid",
+      problems: [
+        {
+          path: "recipe/plugins/codex/marketplaceName",
+          message:
+            "codex installs <plugin>@<marketplace-name>: name the marketplace's declared name",
+        },
+      ],
+    });
+    // Only a plugin route installs from a named marketplace.
+    const local = { ...document, routes: { "claude-code": "local-plugin" } };
+    const named = {
+      ...local,
+      plugins: { "claude-code": { ...document.plugins["claude-code"], marketplace: "sp-dev" } },
+    };
+    expect(readRecipe(encode(PLUGIN), encode(named))).toMatchObject({
+      status: "invalid",
+      problems: [{ path: "/plugins/claude-code/marketplaceName" }],
+    });
   });
 
   it("reports a plugin folder the content does not record as missing", async () => {

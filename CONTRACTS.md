@@ -109,8 +109,10 @@ A recipe is a Git plugin: an Agent Plugins `plugin.json` (name, version, descrip
 licence, keywords) beside a `recipe.json`. A recipe is a `base` or `add-on` for one
 framework (an add-on lists the recipes it `requires`) or a `combination` of frameworks. It
 records the upstream `content` pin, a `route` per client (clients it does not name use
-`items`), the `plugins` and `setup` programs those routes need, the kinds each items route
-installs (`clis`), `members` and choice `options`, `namePrefix`, built-in `overrides`, AI setup
+`items`), the `plugins` and `setup` programs those routes need (a `plugin` route on a client
+that installs `<plugin>@<marketplace-name>`, such as Claude Code or Codex, also names the
+`marketplaceName` its marketplace declares, which the `plugin` step carries), the kinds each
+items route installs (`clis`), `members` and choice `options`, `namePrefix`, built-in `overrides`, AI setup
 changes, combination `qualifications` per cell, and the Catalog `data` commit it was written
 against. `planRecipe` refuses any other data commit (`data-mismatch`) and content at any other
 pin (`content-mismatch`).

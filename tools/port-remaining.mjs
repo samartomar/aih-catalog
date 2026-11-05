@@ -412,6 +412,13 @@ async function egm(work) {
     ),
     bundle: "egm.runtime",
   }));
+  // The name its Codex marketplace declares, which `codex plugin add <plugin>@<name>` takes.
+  const marketplaceName = JSON.parse(
+    textOf(
+      files.find((file) => file.path === ".agents/plugins/marketplace.json") ??
+        fail("no Codex marketplace"),
+    ),
+  ).name;
   const built = await build({ kind: "git", ...PINS.egm }, files, items, {
     framework: { id: "egm", name: "Elephant-Goldfish Model" },
     bundles: [
@@ -423,7 +430,7 @@ async function egm(work) {
     ],
     plugins: [{ path: "/", include: [...PACK_SHARED, ...PACK_HOSTS, ...MARKETPLACES] }],
   });
-  return { built, found, files, extraFiles: [] };
+  return { built, found, files, extraFiles: [], marketplaceName };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -715,6 +722,7 @@ function recipes(results) {
     plugin,
     commit: PINS.anthropic.commit,
     marketplace: PINS.anthropic.repository,
+    marketplaceName: results.anthropic.marketplace.name,
   });
   const pluginItems = (plugin) =>
     results.anthropic.marketplace.plugins
@@ -813,6 +821,7 @@ function recipes(results) {
             plugin: "egm",
             commit: PINS.egm.commit,
             marketplace: PINS.egm.repository,
+            marketplaceName: results.egm.marketplaceName,
           },
         },
       },

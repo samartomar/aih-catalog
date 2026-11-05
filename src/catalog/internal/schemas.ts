@@ -659,6 +659,7 @@ const recipe: Schema = {
             plugin: pattern(INSTALL_NAME, 64),
             commit: pattern(OBJECT_ID),
             marketplace: text(2048),
+            marketplaceName: pattern(INSTALL_NAME, 64),
           },
           ["source", "path", "plugin", "commit"],
         ),

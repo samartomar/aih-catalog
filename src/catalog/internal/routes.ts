@@ -514,8 +514,25 @@ function lowerPlugin(
         message: `${cli} installs a plugin from a named marketplace`,
       });
     marketplace = entry.marketplace;
+    // The install names the plugin by the name its marketplace declares, which only the recipe
+    // knows: Catalog does not read the upstream marketplace file.
+    if (
+      (install.install ?? []).some((argv) => argv.some((arg) => arg.includes("<marketplace-name>")))
+    ) {
+      if (entry.marketplaceName === undefined)
+        lowered.problems.push({
+          path: `${at}Name`,
+          message: `${cli} installs <plugin>@<marketplace-name>: name the marketplace's declared name`,
+        });
+      marketplaceName = entry.marketplaceName;
+    }
   } else if (entry.marketplace !== undefined)
     lowered.problems.push({ path: at, message: `${cli} takes no marketplace for its plugin` });
+  if (install.pinForm !== "marketplace" && entry.marketplaceName !== undefined)
+    lowered.problems.push({
+      path: `${at}Name`,
+      message: `${cli} takes no marketplace name for its plugin`,
+    });
   if (install.pinForm === "local-marketplace") {
     const path = fill(install.marketplaceFolder as string, { framework }).slice(0, -1);
     const render: MarketplaceRender = {

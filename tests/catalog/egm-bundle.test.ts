@@ -355,7 +355,17 @@ const egmRecipe = (routes: Record<string, string>): Recipe =>
         .filter(([cli]) => routes[cli] === "plugin" || routes[cli] === "local-plugin")
         .map(([cli, extra]) => [
           cli,
-          { source: "egm", path: "/", plugin: "egm", commit: EGM_UPSTREAM.commit, ...extra },
+          {
+            source: "egm",
+            path: "/",
+            plugin: "egm",
+            commit: EGM_UPSTREAM.commit,
+            ...extra,
+            // The name EGM's marketplace files declare, for an install by name.
+            ...(routes[cli] === "plugin" && cli !== "antigravity"
+              ? { marketplaceName: "egm" }
+              : {}),
+          },
         ]),
     ),
     members: ALL.map((item) => ({ item, preTicked: true })),

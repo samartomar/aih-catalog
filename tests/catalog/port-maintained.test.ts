@@ -461,8 +461,13 @@ describe("representative plans of the ported frameworks", () => {
     };
     const skills = superpowers.items.filter((item) => item.kind === "skill").map((item) => item.id);
     const plugins = {
-      "claude-code": { ...entry, marketplace: "https://github.com/obra/superpowers-marketplace" },
-      codex: { ...entry, marketplace: PINS.superpowers[0] },
+      // Each marketplace's declared name, from its own marketplace.json.
+      "claude-code": {
+        ...entry,
+        marketplace: "https://github.com/obra/superpowers-marketplace",
+        marketplaceName: "superpowers-marketplace",
+      },
+      codex: { ...entry, marketplace: PINS.superpowers[0], marketplaceName: "superpowers-dev" },
       copilot: entry,
     };
     return recipe({

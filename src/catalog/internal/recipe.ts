@@ -24,7 +24,8 @@ export interface Pin {
  * The upstream plugin a `plugin` or `local-plugin` route installs: the plugin folder `path`
  * (`/` for the whole source) of content source `source` at `commit`, and the plugin's name.
  * `marketplace` is where a native install finds it (a URL or repository) or, for a local
- * plugin, the name of the marketplace the copied folder declares.
+ * plugin, the name of the marketplace the copied folder declares. `marketplaceName` is the name
+ * that marketplace declares, for a client that installs `<plugin>@<marketplace-name>`.
  */
 export interface RecipePlugin {
   readonly source: string;
@@ -32,6 +33,7 @@ export interface RecipePlugin {
   readonly plugin: string;
   readonly commit: string;
   readonly marketplace?: string;
+  readonly marketplaceName?: string;
 }
 
 /** An upstream setup program, run by the installer only after the user approves it. */
@@ -236,13 +238,16 @@ export function recipeProblems(value: unknown): Problem[] {
           "only a plugin or local-plugin route names a plugin",
         );
         if (!isRecord(entry)) {
-          problems.add(path, "a plugin is { source, path, plugin, commit, marketplace? }");
+          problems.add(
+            path,
+            "a plugin is { source, path, plugin, commit, marketplace?, marketplaceName? }",
+          );
           continue;
         }
         problems.keys(
           entry,
           path,
-          ["source", "path", "plugin", "commit", "marketplace"],
+          ["source", "path", "plugin", "commit", "marketplace", "marketplaceName"],
           ["source", "path", "plugin", "commit"],
         );
         problems.check(isId(entry.source), `${path}/source`, "a content source id");
@@ -259,6 +264,18 @@ export function recipeProblems(value: unknown): Problem[] {
         );
         if (entry.marketplace !== undefined)
           problems.check(isString(entry.marketplace), `${path}/marketplace`, "a string");
+        if (entry.marketplaceName !== undefined) {
+          problems.check(
+            isString(entry.marketplaceName, 64) && INSTALL_NAME.test(entry.marketplaceName),
+            `${path}/marketplaceName`,
+            "a kebab-case marketplace name",
+          );
+          problems.check(
+            routeOf(cli) === "plugin",
+            `${path}/marketplaceName`,
+            "only a plugin route installs from a named marketplace",
+          );
+        }
       }
   }
   if (value.setup !== undefined) {

@@ -2953,6 +2953,7 @@
         "claude-code": {
           "commit": "34040c9c568585f6929bedeaad110ad08f079624",
           "marketplace": "https://github.com/anthropics/skills",
+          "marketplaceName": "anthropic-agent-skills",
           "path": "/",
           "plugin": "academy-guide",
           "source": "anthropic"
@@ -3035,6 +3036,7 @@
         "claude-code": {
           "commit": "34040c9c568585f6929bedeaad110ad08f079624",
           "marketplace": "https://github.com/anthropics/skills",
+          "marketplaceName": "anthropic-agent-skills",
           "path": "/",
           "plugin": "example-skills",
           "source": "anthropic"
@@ -3057,6 +3059,7 @@
         "claude-code": {
           "commit": "34040c9c568585f6929bedeaad110ad08f079624",
           "marketplace": "https://github.com/anthropics/skills",
+          "marketplaceName": "anthropic-agent-skills",
           "path": "/",
           "plugin": "claude-api",
           "source": "anthropic"
@@ -3087,6 +3090,7 @@
         "claude-code": {
           "commit": "34040c9c568585f6929bedeaad110ad08f079624",
           "marketplace": "https://github.com/anthropics/skills",
+          "marketplaceName": "anthropic-agent-skills",
           "path": "/",
           "plugin": "discernment-nudge",
           "source": "anthropic"
@@ -3129,6 +3133,7 @@
         "claude-code": {
           "commit": "34040c9c568585f6929bedeaad110ad08f079624",
           "marketplace": "https://github.com/anthropics/skills",
+          "marketplaceName": "anthropic-agent-skills",
           "path": "/",
           "plugin": "document-skills",
           "source": "anthropic"
@@ -3232,6 +3237,7 @@
         "codex": {
           "commit": "403d8881d62022490637d740657b33f01e321ea8",
           "marketplace": "https://github.com/google/elephant-goldfish-model",
+          "marketplaceName": "egm",
           "path": "/",
           "plugin": "egm",
           "source": "egm"

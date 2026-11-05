@@ -524,6 +524,7 @@ describe("items a route installs without placing them", () => {
           plugin: "sp",
           commit: sp.pin.commit,
           marketplace: "https://example.invalid/sp-marketplace",
+          marketplaceName: "sp-marketplace",
         },
       },
       members: [
