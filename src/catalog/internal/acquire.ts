@@ -4,19 +4,24 @@
  * checked out. npm packages are packed (downloaded) with scripts disabled and unpacked in
  * memory as data. Upstream code is never run, and links and special files are never followed.
  */
-import { spawn } from "node:child_process";
+import { type ChildProcess, spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   accessSync,
   constants,
+  type Dirent,
+  lstatSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
+  rmSync,
   statSync,
   writeFileSync,
 } from "node:fs";
 import { devNull } from "node:os";
 import { delimiter, isAbsolute, join, resolve } from "node:path";
+import type { Readable, Writable } from "node:stream";
 import { gunzipSync } from "node:zlib";
 import { type Invalid, limits, type Refused } from "../contracts.js";
 import { type GitSource, type NpmSource, OBJECT_ID, type SourceFile } from "./model.js";
@@ -110,41 +115,193 @@ export function npmProgram(
 
 type Run = { readonly code: number | null; readonly stdout: Buffer; readonly stderr: string };
 
-/** Runs one program with exactly `args`, collecting at most `maxBytes` of stdout. */
+/** Why a run was stopped before it finished. */
+type Stopped = "too-large" | "not-started" | "timed-out" | "disk-full";
+
+/** Fixed bounds on one fetch: its total running time and the disk its work folder may use. */
+export interface Bounds {
+  readonly timeoutMs?: number;
+  readonly diskBytes?: number;
+}
+const DEFAULT_TIMEOUT_MS = 10 * 60 * 1000;
+/** Room for a packed download several times the size of the largest source. */
+const DEFAULT_DISK_BYTES = 4 * limits.sourceBytes;
+const DISK_POLL_MS = 100;
+
+/** The bytes under `folder`, counted until they pass `limit`. Links are never followed. */
+function diskUse(folder: string, limit: number): number {
+  let total = 0;
+  const pending = [folder];
+  while (pending.length > 0 && total <= limit) {
+    const current = pending.pop() as string;
+    let entries: Dirent[];
+    try {
+      entries = readdirSync(current, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const entry of entries) {
+      const path = join(current, entry.name);
+      if (entry.isDirectory()) pending.push(path);
+      else
+        try {
+          total += lstatSync(path).size;
+        } catch {
+          // Removed while it was counted.
+        }
+    }
+  }
+  return total;
+}
+
+/** Stops a program and every program it started. */
+function stopTree(child: ChildProcess): void {
+  if (child.pid === undefined) return;
+  if (process.platform === "win32") {
+    const taskkill = join(process.env.SystemRoot ?? "C:\\Windows", "System32", "taskkill.exe");
+    try {
+      spawn(taskkill, ["/pid", String(child.pid), "/t", "/f"], {
+        stdio: "ignore",
+        shell: false,
+        windowsHide: true,
+      }).on("error", () => child.kill("SIGKILL"));
+    } catch {
+      child.kill("SIGKILL");
+    }
+  } else {
+    try {
+      process.kill(-child.pid, "SIGKILL");
+    } catch {
+      child.kill("SIGKILL");
+    }
+  }
+}
+
+/** One fetch's limits as every run of it sees them: one deadline and one disk budget. */
+interface Budget {
+  readonly deadline: number;
+  readonly folder: string;
+  readonly diskBytes: number;
+}
+
+function budget(folder: string, bounds: Bounds): Budget {
+  return {
+    deadline: Date.now() + (bounds.timeoutMs ?? DEFAULT_TIMEOUT_MS),
+    folder,
+    diskBytes: bounds.diskBytes ?? DEFAULT_DISK_BYTES,
+  };
+}
+
+/**
+ * Runs one program with exactly `args` and no shell, collecting at most `maxBytes` of stdout.
+ * The program and everything it started are stopped at the budget's deadline or once the work
+ * folder holds more than the budget's disk bytes.
+ */
 function run(
   program: string,
   args: readonly string[],
-  options: { cwd: string; env: NodeJS.ProcessEnv; input?: string; maxBytes: number },
-): Promise<Run | "too-large" | "not-started"> {
+  options: { env: NodeJS.ProcessEnv; input?: string; maxBytes: number; budget: Budget },
+): Promise<Run | Stopped> {
   return new Promise((done) => {
-    const child = spawn(program, args, {
-      cwd: options.cwd,
-      env: options.env,
-      stdio: ["pipe", "pipe", "pipe"],
-      shell: false,
-      windowsHide: true,
-    });
+    const { budget: limit } = options;
+    const remaining = limit.deadline - Date.now();
+    if (remaining <= 0) return done("timed-out");
+    let child: ChildProcess & { stdout: Readable; stderr: Readable; stdin: Writable };
+    try {
+      child = spawn(program, args, {
+        cwd: limit.folder,
+        env: options.env,
+        stdio: ["pipe", "pipe", "pipe"],
+        shell: false,
+        windowsHide: true,
+        detached: process.platform !== "win32",
+      }) as typeof child;
+    } catch {
+      return done("not-started");
+    }
     const chunks: Buffer[] = [];
     let size = 0;
     let stderr = "";
-    let over = false;
+    let stopped: Stopped | null = null;
+    let settled = false;
+    const finish = (result: Run | Stopped) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      clearInterval(poll);
+      clearTimeout(grace);
+      done(result);
+    };
+    let grace: NodeJS.Timeout | undefined;
+    const stop = (why: Stopped) => {
+      if (stopped !== null) return;
+      stopped = why;
+      stopTree(child);
+      // A program whose children keep its output open is not waited on for long.
+      grace = setTimeout(() => {
+        child.stdout.destroy();
+        child.stderr.destroy();
+        finish(why);
+      }, 5000);
+    };
+    const timer = setTimeout(() => stop("timed-out"), remaining);
+    const poll = setInterval(() => {
+      if (diskUse(limit.folder, limit.diskBytes) > limit.diskBytes) stop("disk-full");
+    }, DISK_POLL_MS);
     child.stdout.on("data", (chunk: Buffer) => {
       size += chunk.byteLength;
-      if (size > options.maxBytes) {
-        over = true;
-        child.kill();
-      } else chunks.push(chunk);
+      if (size > options.maxBytes) stop("too-large");
+      else chunks.push(chunk);
     });
     child.stderr.on("data", (chunk: Buffer) => {
       if (stderr.length < 4096) stderr += chunk.toString("utf8");
     });
-    child.on("error", () => done("not-started"));
-    child.on("close", (code) =>
-      done(over ? "too-large" : { code, stdout: Buffer.concat(chunks), stderr }),
-    );
+    child.on("error", () => finish(stopped ?? "not-started"));
+    child.on("close", (code) => {
+      if (stopped === null && diskUse(limit.folder, limit.diskBytes) > limit.diskBytes)
+        stopped = "disk-full";
+      finish(stopped ?? { code, stdout: Buffer.concat(chunks), stderr });
+    });
     child.stdin.on("error", () => undefined);
     child.stdin.end(options.input ?? "");
   });
+}
+
+/** The refusal for a run that was stopped, or null when it ran to the end. */
+function stoppedRefusal(result: Run | Stopped, what: string): Refused | null {
+  switch (result) {
+    case "not-started":
+      return refused("fetch-failed", `${what} could not be started`);
+    case "timed-out":
+      return refused("fetch-failed", `${what} did not finish in the time allowed`);
+    case "disk-full":
+      return refused(
+        "limit",
+        "the download needs more disk than allowed for the sourceBytes limit",
+        "sourceBytes",
+      );
+    default:
+      return null;
+  }
+}
+
+/** Runs `body` in a fresh work folder inside `outDir`, removing the folder afterwards. */
+async function inWorkFolder<T>(
+  outDir: unknown,
+  prefix: string,
+  body: (work: string) => Promise<T>,
+): Promise<T | Refused> {
+  const work = workFolder(outDir, prefix);
+  if (typeof work !== "string") return work;
+  try {
+    return await body(work);
+  } finally {
+    try {
+      rmSync(work, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+    } catch {
+      // A folder that cannot be removed now is left for its owner; the result stands.
+    }
+  }
 }
 
 const firstLine = (text: string): string => text.trim().split("\n")[0]?.slice(0, 200) ?? "";
@@ -245,26 +402,34 @@ function repositoryArgument(repository: string): string {
 export async function acquireGit(
   candidate: GitCandidate,
   outDir: string,
+  bounds: Bounds = {},
 ): Promise<AcquireResult<GitSource>> {
   const problem = gitCandidateProblem(candidate);
   if (problem !== null)
     return { status: "invalid", problems: [{ path: "candidate", message: problem }] };
-  const work = workFolder(outDir, "git-");
-  if (typeof work !== "string") return work;
+  return inWorkFolder(outDir, "git-", (work) => fetchGit(candidate, work, bounds));
+}
+
+async function fetchGit(
+  candidate: GitCandidate,
+  work: string,
+  bounds: Bounds,
+): Promise<AcquireResult<GitSource>> {
   // Beside the bare repository, inside the same owned work folder.
   const emptyConfig = join(work, "aihq-empty.gitconfig");
   try {
     writeFileSync(emptyConfig, "");
   } catch {
-    return refused("unreadable", `the outDir ${quote(outDir)} cannot be written`);
+    return refused("unreadable", "the outDir cannot be written");
   }
   const env = gitEnvironment(emptyConfig);
   const program = findProgram("git");
   if (program === null) return refused("fetch-failed", "git could not be started");
+  const limit = budget(work, bounds);
   const git = (args: readonly string[], options: { input?: string; maxBytes?: number } = {}) =>
     run(program, ["-C", work, ...GIT_OPTIONS, ...args], {
-      cwd: work,
       env,
+      budget: limit,
       maxBytes: options.maxBytes ?? 1024 * 1024,
       ...(options.input === undefined ? {} : { input: options.input }),
     });
@@ -272,14 +437,11 @@ export async function acquireGit(
   const init = await run(
     program,
     [...GIT_OPTIONS, "init", "--quiet", "--bare", "--template=", work],
-    {
-      cwd: work,
-      env,
-      maxBytes: 64 * 1024,
-    },
+    { env, budget: limit, maxBytes: 64 * 1024 },
   );
-  if (init === "not-started") return refused("fetch-failed", "git could not be started");
-  if (init === "too-large" || init.code !== 0)
+  const initStopped = stoppedRefusal(init, "git");
+  if (initStopped !== null) return initStopped;
+  if (init === "too-large" || typeof init !== "object" || init.code !== 0)
     return refused("fetch-failed", "a working Git repository could not be created");
 
   const wanted = candidate.ref ?? "HEAD";
@@ -293,7 +455,9 @@ export async function acquireGit(
     repositoryArgument(candidate.repository),
     wanted,
   ]);
-  if (fetched === "not-started" || fetched === "too-large" || fetched.code !== 0) {
+  const fetchStopped = stoppedRefusal(fetched, "git");
+  if (fetchStopped !== null) return fetchStopped;
+  if (typeof fetched !== "object" || fetched.code !== 0) {
     const detail = typeof fetched === "object" ? `: ${firstLine(fetched.stderr)}` : "";
     return refused(
       "fetch-failed",
@@ -301,6 +465,8 @@ export async function acquireGit(
     );
   }
   const head = await git(["rev-parse", "--verify", "--end-of-options", "FETCH_HEAD^{commit}"]);
+  const headStopped = stoppedRefusal(head, "git");
+  if (headStopped !== null) return headStopped;
   const commit = typeof head === "object" && head.code === 0 ? head.stdout.toString().trim() : "";
   if (!OBJECT_ID.test(commit))
     return refused("fetch-failed", `${quote(wanted)} does not name a commit`);
@@ -312,6 +478,8 @@ export async function acquireGit(
 
   const treeish = candidate.subpath === undefined ? commit : `${commit}:${candidate.subpath}`;
   const type = await git(["cat-file", "-t", "--end-of-options", treeish]);
+  const typeStopped = stoppedRefusal(type, "git");
+  if (typeStopped !== null) return typeStopped;
   const typeName = typeof type === "object" && type.code === 0 ? type.stdout.toString().trim() : "";
   if (typeName === "")
     return refused("not-found", `${quote(candidate.subpath ?? "/")} is not in ${commit}`);
@@ -325,7 +493,9 @@ export async function acquireGit(
     maxBytes: limits.sourceEntries * 4300,
   });
   if (listing === "too-large") return limitRefusal("sourceEntries", "the source entry count");
-  if (listing === "not-started" || listing.code !== 0)
+  const listingStopped = stoppedRefusal(listing, "git");
+  if (listingStopped !== null) return listingStopped;
+  if (typeof listing !== "object" || listing.code !== 0)
     return refused("fetch-failed", `the tree of ${commit} could not be read`);
 
   const regular: { path: string; mode: "100644" | "100755"; oid: string; size: number }[] = [];
@@ -372,7 +542,9 @@ export async function acquireGit(
       maxBytes: total + regular.length * 128,
     });
     if (batch === "too-large") return limitRefusal("sourceBytes", "the source byte total");
-    if (batch === "not-started" || batch.code !== 0)
+    const batchStopped = stoppedRefusal(batch, "git");
+    if (batchStopped !== null) return batchStopped;
+    if (typeof batch !== "object" || batch.code !== 0)
       return refused("fetch-failed", `the files of ${commit} could not be read`);
     let offset = 0;
     for (const file of regular) {
@@ -404,11 +576,15 @@ const TAR_OVERHEAD = limits.sourceEntries * 1536 + 1024 * 1024;
  * `npm pack --ignore-scripts`, which runs no package code. The tarball is checked against
  * the integrity npm verified, unpacked in memory and held to the source limits.
  */
-export async function acquireNpm(
-  candidate: NpmCandidate,
-  outDir: string,
-  registry?: string,
-): Promise<AcquireResult<NpmSource> & { readonly integrity?: string }> {
+export interface NpmOptions extends Bounds {
+  readonly outDir: string;
+  readonly registry?: string;
+}
+
+type NpmResult = AcquireResult<NpmSource> & { readonly integrity?: string };
+
+export async function acquireNpm(candidate: NpmCandidate, options: NpmOptions): Promise<NpmResult> {
+  const registry = options?.registry;
   const name = candidate.package;
   const parsed =
     typeof name === "string"
@@ -439,8 +615,18 @@ export async function acquireNpm(
       status: "invalid",
       problems: [{ path: "registry", message: "the registry must be an http(s) URL" }],
     };
-  const work = workFolder(outDir, "npm-");
-  if (typeof work !== "string") return work;
+  return inWorkFolder(options?.outDir, "npm-", (work) =>
+    fetchNpm(candidate, name, work, registry, options),
+  );
+}
+
+async function fetchNpm(
+  candidate: NpmCandidate,
+  name: string,
+  work: string,
+  registry: string | undefined,
+  bounds: Bounds,
+): Promise<NpmResult> {
   const spec = `${name}@${candidate.version ?? candidate.range ?? "latest"}`;
   const env: NodeJS.ProcessEnv = { ...process.env, npm_config_ignore_scripts: "true" };
   for (const key of Object.keys(env))
@@ -467,10 +653,11 @@ export async function acquireNpm(
       ...(registry === undefined ? [] : ["--registry", registry]),
     ],
     // npm's report lists every packed entry, so it is allowed room for a full-size source.
-    { cwd: work, env, maxBytes: 64 * 1024 * 1024 },
+    { env, budget: budget(work, bounds), maxBytes: 64 * 1024 * 1024 },
   );
-  if (packed === "not-started") return refused("fetch-failed", "npm could not be started");
-  if (packed === "too-large" || packed.code !== 0) {
+  const packStopped = stoppedRefusal(packed, "npm");
+  if (packStopped !== null) return packStopped;
+  if (typeof packed !== "object" || packed.code !== 0) {
     const detail = typeof packed === "object" ? `: ${firstLine(packed.stderr)}` : "";
     return refused("fetch-failed", `${quote(spec)} could not be fetched${detail}`);
   }

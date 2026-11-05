@@ -215,7 +215,7 @@ export async function fetchSource(
     case "git":
       return acquireGit(candidate, options?.outDir);
     case "npm":
-      return acquireNpm(candidate, options?.outDir, options?.registry);
+      return acquireNpm(candidate, options);
     default:
       return {
         status: "invalid",
