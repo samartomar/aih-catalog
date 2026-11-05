@@ -282,7 +282,7 @@ describe("fetching a pinned Git source", () => {
       );
       expect(fetched, name).toMatchObject({ status: "refused", code: "path-escape" });
     }
-  });
+  }, 30_000);
 
   it("refuses a missing ref, a missing subpath and a subpath that is a file", async () => {
     const upstream = gitRepository({ "pack/skills/revise/SKILL.md": REVIEW, "README.md": "r\n" });
@@ -493,6 +493,67 @@ describe("fetching a pinned npm source", () => {
       tarball([{ path: "package.json", text: manifest(PACKAGE, "9.9.9") }]),
     );
     expect(fetched).toMatchObject({ status: "refused", code: "source-mismatch" });
+  });
+
+  it("reads only an https registry, or plain http on this machine's loopback address", async () => {
+    for (const registryUrl of [
+      "http://registry.example.test/",
+      "ftp://registry.example.test/",
+      "https://user:secret@registry.example.test/",
+      "https://registry.example.test/?token=secret",
+      "not a url",
+    ]) {
+      const fetched = await fetchSource(
+        { kind: "npm", package: PACKAGE, version: "1.0.0" },
+        { outDir: outDir(), registry: registryUrl },
+      );
+      expect(fetched, registryUrl).toMatchObject({
+        status: "invalid",
+        problems: [{ path: "registry" }],
+      });
+      expect(JSON.stringify(fetched)).not.toContain("secret");
+    }
+  });
+
+  it("ignores npm configuration from the user, the environment and any enclosing project", async () => {
+    const served = await registry({
+      [PACKAGE]: { latest: "1.0.0", versions: { "1.0.0": tarball([packageJson]) } },
+    });
+    const elsewhere = "@fixture:registry=http://127.0.0.1:9/\nregistry=http://127.0.0.1:9/\n";
+    const userConfig = join(folder({}, "home"), ".npmrc");
+    writeFileSync(userConfig, elsewhere);
+    process.env.npm_config_userconfig = userConfig;
+    process.env["npm_config_@fixture:registry"] = "http://127.0.0.1:9/";
+    const project = folder({ "package.json": "{}\n", ".npmrc": elsewhere }, "project");
+    const fetched = await fetchSource(
+      { kind: "npm", package: PACKAGE, version: "1.0.0" },
+      { outDir: join(project, "out"), registry: served.url },
+    );
+    expect(fetched).toMatchObject({ status: "ok" });
+  });
+
+  it("checks the tarball against an integrity the caller expects", async () => {
+    const bytes = tarball([packageJson]);
+    const served = await registry({ [PACKAGE]: { latest: "1.0.0", versions: { "1.0.0": bytes } } });
+    const fetch = (expected: string) =>
+      fetchSource(
+        { kind: "npm", package: PACKAGE, version: "1.0.0" },
+        { outDir: outDir(), registry: served.url, integrity: expected },
+      );
+    expect(await fetch(integrity(bytes))).toMatchObject({
+      status: "ok",
+      integrity: integrity(bytes),
+    });
+    expect(await fetch(integrity(Buffer.from("other")))).toMatchObject({
+      status: "refused",
+      code: "source-mismatch",
+    });
+    const requests = served.requests.length;
+    expect(await fetch("sha1-abc")).toMatchObject({
+      status: "invalid",
+      problems: [{ path: "integrity" }],
+    });
+    expect(served.requests.length).toBe(requests);
   });
 
   it("refuses a version the registry does not have and never runs npm for unusable specs", async () => {

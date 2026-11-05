@@ -189,6 +189,15 @@ export type FetchSourceResult =
   | Refused
   | Invalid;
 
+export interface FetchSourceOptions {
+  /** The folder fetch work happens in; each fetch uses a new folder inside it and removes it. */
+  readonly outDir: string;
+  /** The npm registry: an https URL, or plain http on a loopback address. */
+  readonly registry?: string;
+  /** For npm: the sha512 integrity the tarball must have. */
+  readonly integrity?: string;
+}
+
 /**
  * Reads the source a `parseSourceLink` candidate names. A local folder is read with
  * `readLocalSource` (a leading `~` is the home folder). A Git candidate is fetched at its
@@ -200,7 +209,7 @@ export type FetchSourceResult =
  */
 export async function fetchSource(
   candidate: SourceCandidate,
-  options: { readonly outDir: string; readonly registry?: string },
+  options: FetchSourceOptions,
 ): Promise<FetchSourceResult> {
   switch (candidate?.kind) {
     case "local": {

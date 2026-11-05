@@ -606,20 +606,50 @@ async function fetchGit(
 /** Room for tar headers and padding around the unpacked source byte limit. */
 const TAR_OVERHEAD = limits.sourceEntries * 1536 + 1024 * 1024;
 
-/**
- * Resolves an npm spec to one exact version and downloads its published tarball with
- * `npm pack --ignore-scripts`, which runs no package code. The tarball is checked against
- * the integrity npm verified, unpacked in memory and held to the source limits.
- */
 export interface NpmOptions extends Bounds {
   readonly outDir: string;
+  /** An https registry URL, or plain http on a loopback address. */
   readonly registry?: string;
+  /** The sha512 integrity the tarball must have, when the caller already knows it. */
+  readonly integrity?: string;
 }
 
 type NpmResult = AcquireResult<NpmSource> & { readonly integrity?: string };
 
+const DEFAULT_REGISTRY = "https://registry.npmjs.org/";
+const LOOPBACK = new Set(["127.0.0.1", "localhost", "[::1]"]);
+const INTEGRITY = /^sha512-[A-Za-z0-9+/]{86}==$/;
+
+/** A registry URL npm may read: https, or http on this machine only; no credentials. */
+function registryProblem(registry: unknown): string | null {
+  let url: URL;
+  try {
+    url = new URL(String(registry));
+  } catch {
+    return "the registry is not a URL";
+  }
+  if (url.username !== "" || url.password !== "") return "the registry URL carries credentials";
+  if (url.search !== "" || url.hash !== "") return "the registry URL has a query or fragment";
+  if (url.protocol === "https:") return null;
+  if (url.protocol === "http:" && LOOPBACK.has(url.hostname.toLowerCase())) return null;
+  return "the registry must be an https URL (plain http only on a loopback address)";
+}
+
+const invalid = (path: string, message: string): Invalid => ({
+  status: "invalid",
+  problems: [{ path, message }],
+});
+
+/**
+ * Resolves an npm spec to one exact version and downloads its published tarball with
+ * `npm pack --ignore-scripts`, which runs no package code. npm reads no user, global, project
+ * or environment configuration: only the given registry (the public registry by default). The
+ * tarball is checked against the integrity npm verified and any integrity the caller expects,
+ * unpacked in memory and held to the source limits.
+ */
 export async function acquireNpm(candidate: NpmCandidate, options: NpmOptions): Promise<NpmResult> {
-  const registry = options?.registry;
+  const registry = options?.registry ?? DEFAULT_REGISTRY;
+  const expected = options?.integrity;
   const name = candidate.package;
   const parsed =
     typeof name === "string"
@@ -637,21 +667,14 @@ export async function acquireNpm(candidate: NpmCandidate, options: NpmOptions): 
     parsed.kind !== "npm" ||
     parsed.package !== name ||
     (candidate.version !== undefined && parsed.version !== candidate.version)
-  ) {
-    return {
-      status: "invalid",
-      problems: [
-        { path: "candidate", message: "the npm package name, version or range is not usable" },
-      ],
-    };
-  }
-  if (registry !== undefined && !/^https?:\/\/[^\s]+$/.test(registry))
-    return {
-      status: "invalid",
-      problems: [{ path: "registry", message: "the registry must be an http(s) URL" }],
-    };
+  )
+    return invalid("candidate", "the npm package name, version or range is not usable");
+  const problem = registryProblem(registry);
+  if (problem !== null) return invalid("registry", problem);
+  if (expected !== undefined && (typeof expected !== "string" || !INTEGRITY.test(expected)))
+    return invalid("integrity", "the expected integrity must be a sha512 integrity");
   return inWorkFolder(options?.outDir, "npm-", (work) =>
-    fetchNpm(candidate, name, work, registry, options),
+    fetchNpm(candidate, name, work, registry, expected, options),
   );
 }
 
@@ -659,17 +682,23 @@ async function fetchNpm(
   candidate: NpmCandidate,
   name: string,
   work: string,
-  registry: string | undefined,
+  registry: string,
+  expected: string | undefined,
   bounds: Bounds,
 ): Promise<NpmResult> {
   const spec = `${name}@${candidate.version ?? candidate.range ?? "latest"}`;
-  const env: NodeJS.ProcessEnv = { ...process.env, npm_config_ignore_scripts: "true" };
-  for (const key of Object.keys(env))
-    if (
-      /^npm_(?:lifecycle|package)_/i.test(key) ||
-      /^npm_config_(?:script_shell|node_options)$/i.test(key)
-    )
-      delete env[key];
+  // No npm setting comes from the environment; npm is configured only by its arguments.
+  const env: NodeJS.ProcessEnv = {};
+  for (const [key, value] of Object.entries(process.env)) if (!/^npm_/i.test(key)) env[key] = value;
+  // Two empty files: npm refuses one file loaded as both its user and its global config.
+  const userConfig = join(work, "aihq-user.npmrc");
+  const globalConfig = join(work, "aihq-global.npmrc");
+  try {
+    writeFileSync(userConfig, "");
+    writeFileSync(globalConfig, "");
+  } catch {
+    return refused("unreadable", "the outDir cannot be written");
+  }
   const npm = npmProgram(env);
   if (npm === null) return refused("fetch-failed", "npm could not be started");
   const packed = await run(
@@ -680,12 +709,19 @@ async function fetchNpm(
       spec,
       "--json",
       "--ignore-scripts",
+      "--userconfig",
+      userConfig,
+      "--globalconfig",
+      globalConfig,
+      "--prefix",
+      work,
       "--pack-destination",
       work,
       "--cache",
       join(work, ".cache"),
       "--prefer-online",
-      ...(registry === undefined ? [] : ["--registry", registry]),
+      "--registry",
+      registry,
     ],
     // npm's report lists every packed entry, so it is allowed room for a full-size source.
     { env, budget: budget(work, bounds), maxBytes: 64 * 1024 * 1024 },
@@ -729,6 +765,11 @@ async function fetchNpm(
   const digest = `sha512-${createHash("sha512").update(tarball).digest("base64")}`;
   if (digest !== integrity)
     return refused("source-mismatch", `the tarball of ${quote(spec)} differs from its integrity`);
+  if (expected !== undefined && digest !== expected)
+    return refused(
+      "source-mismatch",
+      `the tarball of ${quote(spec)} differs from the expected integrity`,
+    );
   let unpacked: Buffer;
   try {
     unpacked = gunzipSync(tarball, { maxOutputLength: limits.sourceBytes + TAR_OVERHEAD });
