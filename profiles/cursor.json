@@ -18,9 +18,14 @@
     }
   ],
   "configFiles": {
+    "project": [
+      ".cursor/cli.json",
+      ".cursor/hooks.json"
+    ],
     "user": [
-      ".cursor/mcp.json",
-      ".cursor/cli-config.json"
+      ".cursor/cli-config.json",
+      ".cursor/hooks.json",
+      ".cursor/mcp.json"
     ]
   },
   "disableBuiltIn": "not-documented",
@@ -202,5 +207,5 @@
       "disable-model-invocation": true
     }
   },
-  "version": 4
+  "version": 5
 }

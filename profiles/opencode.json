@@ -17,13 +17,28 @@
   ],
   "configFiles": {
     "project": [
-      "opencode.jsonc",
       ".opencode/opencode.json",
-      ".opencode/opencode.jsonc"
+      ".opencode/opencode.jsonc",
+      ".opencode/plugin/",
+      ".opencode/plugins/",
+      ".opencode/tool/",
+      ".opencode/tools/",
+      ".opencode/tui.json",
+      ".opencode/tui.jsonc",
+      "opencode.jsonc",
+      "tui.json",
+      "tui.jsonc"
     ],
     "user": [
       ".config/opencode/opencode.json",
-      ".config/opencode/opencode.jsonc"
+      ".config/opencode/opencode.jsonc",
+      ".config/opencode/package.json",
+      ".config/opencode/plugin/",
+      ".config/opencode/plugins/",
+      ".config/opencode/tool/",
+      ".config/opencode/tools/",
+      ".config/opencode/tui.json",
+      ".config/opencode/tui.jsonc"
     ]
   },
   "disableBuiltIn": "not-documented",
@@ -160,5 +175,5 @@
       }
     ]
   },
-  "version": 4
+  "version": 5
 }

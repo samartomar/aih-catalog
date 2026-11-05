@@ -125,9 +125,9 @@ describe("a user-only skill in a folder several clients share", () => {
       name: "shared-skill",
       profiles: [
         { id: "codex", version: 5 },
-        { id: "cursor", version: 4 },
+        { id: "cursor", version: 5 },
         { id: "dsh", version: 2 },
-        { id: "kimi", version: 5 },
+        { id: "kimi", version: 6 },
       ],
       installName: "release",
     });
@@ -233,7 +233,7 @@ describe("a user-only skill in a folder several clients share", () => {
     const item = built.items.find((candidate) => candidate.id === id("release"));
     const profiles = [
       { id: "codex", version: 5 },
-      { id: "kimi", version: 5 },
+      { id: "kimi", version: 6 },
     ];
     const facts = {
       behaviourSha256: item?.behaviourSha256,

@@ -28,7 +28,15 @@
   ],
   "configFiles": {
     "user": [
-      ".copilot/config.json"
+      ".copilot/config.json",
+      ".copilot/copilot-instructions.md",
+      ".copilot/extensions/",
+      ".copilot/installed-plugins/",
+      ".copilot/instructions/",
+      ".copilot/lsp-config.json",
+      ".copilot/permissions-config.json",
+      ".copilot/providers.json",
+      ".copilot/settings.json"
     ]
   },
   "disableBuiltIn": "not-documented",
@@ -290,5 +298,5 @@
       "disable-model-invocation": true
     }
   },
-  "version": 5
+  "version": 6
 }

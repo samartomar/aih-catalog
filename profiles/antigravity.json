@@ -22,9 +22,16 @@
     }
   ],
   "configFiles": {
+    "project": [
+      ".agents/hooks.json",
+      ".agents/plugins/"
+    ],
     "user": [
-      ".gemini/antigravity/mcp_config.json",
-      ".gemini/settings.json"
+      ".gemini/antigravity-cli/keybindings.json",
+      ".gemini/antigravity-cli/settings.json",
+      ".gemini/config/hooks.json",
+      ".gemini/config/mcp_config.json",
+      ".gemini/config/plugins/"
     ]
   },
   "disableBuiltIn": "not-documented",
@@ -203,5 +210,5 @@
       "disable-model-invocation": true
     }
   },
-  "version": 5
+  "version": 6
 }

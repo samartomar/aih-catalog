@@ -100,7 +100,8 @@ has one, and its fallback files become one-line launchers; skills without a bund
 unchanged); how arguments are passed; the agent file format; rule scopes; hook events; the
 MCP entry fields and tool restrictions; native input-reference syntax per surface; plugin
 installs and their pin behaviour; local-plugin folders and registration; bundle roots; the
-configuration files it reads that no other section names (`configFiles`); the
+configuration files and folders (entries ending in `/`) it reads or loads code from that no
+other section names (`configFiles`); the
 built-ins the client already provides and how one is switched off; and `checkedWith`, the
 client versions and dates the facts were checked against. A kind the client cannot take is
 listed in `unsupported` with its reason. A section the client lacks is left out, and a plan
