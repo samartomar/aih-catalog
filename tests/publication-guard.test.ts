@@ -72,4 +72,38 @@ describe("publication guard", () => {
       rmSync(fixture, { recursive: true, force: true });
     }
   });
+  it("still refuses an npm publish under the repository's own npm configuration", () => {
+    const fixture = mkdtempSync(join(tmpdir(), "aih-catalog-publish-npmrc-"));
+    try {
+      mkdirSync(join(fixture, "tools"));
+      copyFileSync(
+        resolve(root, "tools/refuse-publication.mjs"),
+        join(fixture, "tools/refuse-publication.mjs"),
+      );
+      copyFileSync(resolve(root, ".npmrc"), join(fixture, ".npmrc"));
+      writeFileSync(
+        join(fixture, "package.json"),
+        JSON.stringify({
+          name: "aih-catalog-publish-fixture",
+          version: "1.0.0",
+          private: false,
+          scripts: { prepublishOnly: manifest().scripts.prepublishOnly },
+        }),
+      );
+      // A dry run: the lifecycle refuses before npm contacts any registry.
+      const refusal = spawnSync(process.execPath, [npmCli(), "publish", "--dry-run"], {
+        cwd: fixture,
+        encoding: "utf8",
+        env: Object.fromEntries(
+          Object.entries(isolatedNpmEnvironment()).filter(
+            ([key]) => !/^npm_config_(?:ignore_scripts|strict_allow_scripts)$/i.test(key),
+          ),
+        ),
+      });
+      expect(refusal.status, refusal.stderr).toBe(1);
+      expect(refusal.stderr).toContain("publication is blocked");
+    } finally {
+      rmSync(fixture, { recursive: true, force: true });
+    }
+  });
 });

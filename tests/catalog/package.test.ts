@@ -1,6 +1,15 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import {
+  copyFileSync,
+  existsSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
 import { basename, isAbsolute, join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import * as contracts from "../../src/catalog/contracts.js";
@@ -30,6 +39,15 @@ function npmCli(): string {
     )
       return candidate;
   throw new Error("unable to resolve a local npm-cli.js");
+}
+
+/** npm run exports its own script settings; the fixture's copied .npmrc must decide instead. */
+function withoutScriptSettings(): NodeJS.ProcessEnv {
+  return Object.fromEntries(
+    Object.entries(process.env).filter(
+      ([key]) => !/^npm_config_(?:ignore_scripts|allow_scripts|strict_allow_scripts)$/i.test(key),
+    ),
+  );
 }
 
 /**
@@ -150,6 +168,58 @@ describe("the package exposes exactly the five entry points", () => {
       expect(paths).toContain(`dist/catalog/${name}.d.ts`);
     }
     for (const file of report.files) expect(file.mode & 0o111, file.path).toBe(0);
+  });
+});
+
+describe("the repository's npm configuration", () => {
+  const npmrc = () =>
+    Object.fromEntries(
+      readFileSync(join(root, ".npmrc"), "utf8")
+        .split(/\r?\n/)
+        .filter((line) => line.trim() !== "" && !/^\s*[#;]/.test(line))
+        .map((line) => line.split("=").map((part) => part.trim())),
+    );
+
+  it("fails an install on any dependency install script nobody reviewed", () => {
+    // npm 11.20 (Node 26.12.1) refuses unreviewed dependency scripts under
+    // strict-allow-scripts; reviewed ones are listed in allowScripts, and none is allowed.
+    expect(npmrc()["strict-allow-scripts"]).toBe("true");
+    const lock = JSON.parse(readFileSync(join(root, "package-lock.json"), "utf8"));
+    const withScripts = Object.entries(
+      lock.packages as Record<string, { hasInstallScript?: boolean }>,
+    )
+      .filter(([path, entry]) => path !== "" && entry.hasInstallScript === true)
+      .map(([path]) => path.slice(path.lastIndexOf("node_modules/") + "node_modules/".length))
+      .sort();
+    expect(Object.keys(manifest.allowScripts ?? {}).sort()).toEqual(withScripts);
+    for (const name of withScripts) expect(manifest.allowScripts[name], name).toBe(false);
+  });
+
+  it("keeps the package's own lifecycle scripts, so packing builds first", () => {
+    // ignore-scripts would also skip prepack (a tarball without dist) and prepublishOnly.
+    expect(npmrc()["ignore-scripts"]).toBeUndefined();
+    const fixture = mkdtempSync(join(tmpdir(), "aih-catalog-npmrc-"));
+    try {
+      copyFileSync(join(root, ".npmrc"), join(fixture, ".npmrc"));
+      writeFileSync(
+        join(fixture, "package.json"),
+        JSON.stringify({
+          name: "npmrc-fixture",
+          version: "1.0.0",
+          private: true,
+          scripts: { prepack: "node -e \"require('fs').writeFileSync('built','')\"" },
+        }),
+      );
+      const packed = spawnSync(process.execPath, [npmCli(), "pack", "--dry-run"], {
+        cwd: fixture,
+        encoding: "utf8",
+        env: withoutScriptSettings(),
+      });
+      expect(packed.status, packed.stderr).toBe(0);
+      expect(existsSync(join(fixture, "built"))).toBe(true);
+    } finally {
+      rmSync(fixture, { recursive: true, force: true });
+    }
   });
 });
 
