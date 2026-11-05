@@ -1109,3 +1109,29 @@ describe("agent files that carry client settings", () => {
     }
   });
 });
+
+describe("a caller's own bundle root", () => {
+  it("holds a supplied profile's bundle root to the reading folders", async () => {
+    const content = await bundled(
+      "alpha",
+      { "skills/start/SKILL.md": startSkill("alpha", "guide.md"), "scripts/run.md": GUIDE },
+      ["scripts/"],
+    );
+    const kiro = profile("kiro");
+    const own = {
+      ...kiro,
+      bundleRoot: { project: ".kiro/own/<framework>/", user: ".kiro/own/<framework>/" },
+    };
+    const plan = planInstall(["alpha.skill.start"], [content], [own], {
+      scope: "project",
+      data: null,
+    }) as Plan;
+    expect(plan.unavailable).toContainEqual(
+      expect.objectContaining({
+        item: "alpha.skill.start",
+        cli: "kiro",
+        reason: "no-bundle-place",
+      }),
+    );
+  });
+});

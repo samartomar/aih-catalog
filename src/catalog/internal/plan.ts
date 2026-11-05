@@ -1197,7 +1197,8 @@ const inReadingFolder = (sourcePath: string): boolean =>
 
 /**
  * Whether a bundle root is a folder Catalog owns rather than a client's: under `.aihq/`, or
- * the client's own `bundleRoot` for this framework (Kiro's `.kiro/aih/<framework>/`).
+ * the shipped profile's own `bundleRoot` for this framework (Kiro's `.kiro/aih/<framework>/`).
+ * A supplied profile's changed `bundleRoot` is a client folder like any other.
  */
 function isCatalogRoot(
   root: string,
@@ -1207,7 +1208,10 @@ function isCatalogRoot(
   resolved: readonly Placed[],
 ): boolean {
   if (root.startsWith(".aihq/")) return true;
-  const fixed = profile.bundleRoot?.[scope];
+  const fixed = shippedProfiles().find((candidate) => candidate.id === profile.id)?.bundleRoot?.[
+    scope
+  ];
+  if (fixed !== profile.bundleRoot?.[scope]) return false;
   if (fixed === undefined) return false;
   const frameworks = new Set(
     resolved.filter((entry) => entry.bundle?.id === bundle.id).map((entry) => entry.framework),

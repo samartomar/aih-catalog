@@ -5,7 +5,7 @@
  * listed in `unsupported` with the reason, never invented.
  */
 import { formats, kinds, type Problem } from "../contracts.js";
-import { isRecord, isText, Problems, TEXT_LIMITS } from "./check.js";
+import { isRecord, isText, Problems, type Record_, TEXT_LIMITS } from "./check.js";
 import type { Frontmatter } from "./frontmatter.js";
 import { FRAMEWORK_ID } from "./model.js";
 import { isSafeRelativePath } from "./paths.js";
@@ -792,7 +792,30 @@ export function profileProblems(value: unknown): Problem[] {
   }
   if (value.provides !== undefined) checkProvides(value.provides, problems);
   if (value.disableBuiltIn !== undefined) checkDisableBuiltIn(value.disableBuiltIn, problems);
+  checkCatalogFolder(value, problems);
   return problems.list;
+}
+
+/**
+ * `.aihq/` is Catalog's own folder, which the planner trusts with any bundle layout: no
+ * profile puts a client's skills or a bundle root there.
+ */
+function checkCatalogFolder(value: Record_, problems: Problems): void {
+  const inCatalog = (template: unknown) =>
+    typeof template === "string" && template.toLowerCase().startsWith(".aihq/");
+  const places = isRecord(value.places) ? value.places : {};
+  const skill = isRecord(places.skill) ? places.skill : {};
+  for (const [scope, place] of Object.entries(skill)) {
+    const templates = isRecord(place)
+      ? [place.otherwise, ...(Array.isArray(place.reuse) ? place.reuse : [])]
+      : [place];
+    if (templates.some(inCatalog))
+      problems.add(`/places/skill/${scope}`, "a client's skills never sit in Catalog's .aihq/");
+  }
+  const roots = isRecord(value.bundleRoot) ? value.bundleRoot : {};
+  for (const [scope, root] of Object.entries(roots))
+    if (inCatalog(root))
+      problems.add(`/bundleRoot/${scope}`, "a bundle root never sits in Catalog's .aihq/");
 }
 
 function checkProvides(value: unknown, problems: Problems): void {

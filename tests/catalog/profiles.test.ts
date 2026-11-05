@@ -104,6 +104,35 @@ describe("the nine shipped tool profiles", () => {
       ),
     ).toMatchObject({ status: "invalid" });
   });
+
+  it("refuses a profile that puts skills or bundles in Catalog's own folder", () => {
+    const bytes = readFileSync(join(profilesFolder, "codex.json"));
+    const value = JSON.parse(new TextDecoder().decode(bytes));
+    const encode = (document: unknown) =>
+      new TextEncoder().encode(`${JSON.stringify(sortKeys(document), null, 2)}\n`);
+    for (const change of [
+      { places: { ...value.places, skill: { project: ".aihq/skills/<name>/" } } },
+      {
+        places: {
+          ...value.places,
+          skill: {
+            project: { reuse: [".aihq/x/skills/<name>/"], otherwise: ".agents/skills/<name>/" },
+          },
+        },
+      },
+      {
+        places: {
+          ...value.places,
+          skill: { user: { reuse: [], otherwise: ".AIHQ/skills/<name>/" } },
+        },
+      },
+      { bundleRoot: { project: ".aihq/bundles/<framework>/" } },
+    ])
+      expect(
+        readToolProfile(encode({ ...value, ...change })),
+        JSON.stringify(change),
+      ).toMatchObject({ status: "invalid" });
+  });
 });
 
 function sortKeys(value: unknown): unknown {
