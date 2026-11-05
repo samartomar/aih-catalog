@@ -1004,6 +1004,42 @@ describe("refusals, unsupported kinds and custom profiles", () => {
     });
   });
 
+  it("binds a declared rule placeholder on the merge that writes the rule's block", async () => {
+    const tree = { ...TREE, "rules/always.md": "# Always\n\nCall {{API_URL}} first.\n" };
+    const read = readLocalSource(folder(tree));
+    if (read.status !== "ok") throw new Error(JSON.stringify(read));
+    const found = findItems(read.files, { framework: FRAMEWORK });
+    if (found.status !== "ok") throw new Error(JSON.stringify(found));
+    const always = id("rule", "always");
+    const requirements = {
+      inputs: {
+        API_URL: {
+          description: "Service URL",
+          isRequired: true,
+          isSecret: false,
+          placeholder: { sourcePath: "rules/always.md", marker: "{{API_URL}}" },
+        },
+      },
+    };
+    const items = found.items.map((item) =>
+      item.id === always ? { ...item, requirements } : item,
+    );
+    const built = await buildContent(read.source, read.files, items, { framework: FRAMEWORK });
+    if (built.status !== "ok") throw new Error(JSON.stringify(built));
+    const plan = planInstall([always], [built.content], [profile("codex")], {
+      scope: "project",
+      data: null,
+    });
+    if (plan.status !== "ok") throw new Error(JSON.stringify(plan));
+    const merge = plan.plan.find(
+      (candidate) => candidate.op === "merge" && candidate.key === always,
+    ) as MergeStep;
+    expect(merge.file).toBe("AGENTS.md");
+    expect(merge.inputs).toEqual([
+      { item: always, input: "API_URL", at: { placeholder: "{{API_URL}}" } },
+    ]);
+  });
+
   it("gives byte-identical plans for identical input in any order", async () => {
     const first = await mixed();
     const second = await mixed();

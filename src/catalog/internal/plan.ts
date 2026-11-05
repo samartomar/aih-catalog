@@ -280,6 +280,7 @@ export type UnavailableReason =
   | "not-described"
   | "unsupported-kind"
   | "no-user-only"
+  | "user-only-shared-place"
   | "no-edition"
   | "no-edition-place"
   | "no-hook-event"
@@ -803,7 +804,10 @@ function place(
       if (edition !== undefined)
         return { reason: "not-implemented", detail: "MCP editions are not implemented yet" };
       if (launch !== undefined && launch.path === undefined)
-        return { reason: "no-qualification", detail: "its AI setup has no artifact for the cell" };
+        return {
+          reason: "no-qualification",
+          detail: "its AI setup is not acquired for the cell: no qualified artifact",
+        };
       const lowered =
         launch === undefined
           ? lowerServer(item, profile.mcpFile)
@@ -943,6 +947,37 @@ function combined(members: readonly Placed[], scope: Scope): Unit | undefined {
     outputs,
     linkable: profiles.every((profile) => profile.links.skill === "documented"),
   };
+}
+
+/**
+ * The placements without those of clients that have no user-only flag where a user-only skill's
+ * folder is shared with clients that flag it; each removed one is reported unavailable.
+ */
+function withoutUnflaggedSharers(
+  resolved: readonly Placed[],
+  unavailable: Unavailable[],
+): Placed[] {
+  const removed = new Set<Placed>();
+  const folders = resolved.filter(
+    (entry) => entry.unit.shape === "folder" && entry.item.kind === "skill" && entry.item.userOnly,
+  );
+  for (const members of group(folders, (entry) => (entry.unit as { path: string }).path)) {
+    const unflagged = members.filter((member) => member.profile.userOnly === "none");
+    const flagged = members.filter((member) => member.profile.userOnly !== "none");
+    if (unflagged.length === 0 || flagged.length === 0) continue;
+    const path = (members[0]?.unit as { path: string }).path;
+    const by = union(flagged.map((member) => member.profile.id)).join(", ");
+    for (const member of unflagged) {
+      removed.add(member);
+      unavailable.push({
+        item: member.item.id,
+        cli: member.profile.id,
+        reason: "user-only-shared-place",
+        detail: `${path} is shared with ${by}, which flag the skill user-only; this client has no user-only flag, so plan it for this client without them`,
+      });
+    }
+  }
+  return resolved.filter((entry) => !removed.has(entry));
 }
 
 function commonFolder(paths: readonly string[]): string {
@@ -2275,6 +2310,11 @@ export function planCore(input: CoreInput): PlanResult {
     resolved.push(own);
   }
 
+  // A client with no user-only flag cannot share a user-only skill's folder with clients that
+  // flag it: the folder would need the flags for them and none for it. It is unavailable there
+  // (with its launchers), and the flagging clients keep their combined render.
+  resolved = withoutUnflaggedSharers(resolved, unavailable);
+
   // Runtime bundles: each client's bundle root is the parent of its bundle skill folders (or the
   // profile's own bundle root); agents whose folder is the bundle's are read from the bundle.
   const bundles = placeBundles(resolved, profiles, scope);
@@ -2349,7 +2389,8 @@ export function planCore(input: CoreInput): PlanResult {
         : {}),
       item: first.item.id,
       clis,
-      ...(unit.inputs ? { inputs: unit.inputs } : {}),
+      // A structured entry's bindings are the unit's; a Markdown block's are its output's.
+      ...((unit.inputs ?? entry?.inputs) ? { inputs: unit.inputs ?? entry?.inputs } : {}),
       ...(unit.rootPaths ? { rootPaths: unit.rootPaths } : {}),
     });
   }

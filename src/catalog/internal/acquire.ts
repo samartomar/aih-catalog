@@ -6,7 +6,7 @@
  */
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdirSync, mkdtempSync, readFileSync, statSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { devNull } from "node:os";
 import { isAbsolute, join, resolve } from "node:path";
 import { gunzipSync } from "node:zlib";
@@ -113,14 +113,17 @@ const GIT_OPTIONS = [
   "protocol.file.allow=always",
 ] as const;
 
-/** The process environment without Git's own variables and without system or user config. */
-function gitEnvironment(): NodeJS.ProcessEnv {
+/**
+ * The process environment without Git's own variables and without system or user config. The
+ * user config is an empty file the caller owns: Git for Windows refuses the null device there.
+ */
+function gitEnvironment(emptyConfig: string): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = {};
   for (const [key, value] of Object.entries(process.env)) if (!/^GIT_/i.test(key)) env[key] = value;
   return {
     ...env,
     GIT_CONFIG_NOSYSTEM: "1",
-    GIT_CONFIG_GLOBAL: devNull,
+    GIT_CONFIG_GLOBAL: emptyConfig,
     GIT_TERMINAL_PROMPT: "0",
     GIT_PROTOCOL_FROM_USER: "0",
   };
@@ -171,7 +174,10 @@ export async function acquireGit(
     return { status: "invalid", problems: [{ path: "candidate", message: problem }] };
   const work = workFolder(outDir, "git-");
   if (typeof work !== "string") return work;
-  const env = gitEnvironment();
+  // Beside the bare repository, inside the same owned work folder.
+  const emptyConfig = join(work, "aihq-empty.gitconfig");
+  writeFileSync(emptyConfig, "");
+  const env = gitEnvironment(emptyConfig);
   const git = (args: readonly string[], options: { input?: string; maxBytes?: number } = {}) =>
     run("git", ["-C", work, ...GIT_OPTIONS, ...args], {
       cwd: work,

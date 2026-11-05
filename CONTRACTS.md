@@ -203,7 +203,11 @@ values; a secret never has a value in content or a plan.
   `items` with a warning; the scope never changes.
 - **AI setups.** A selected AI setup needs a platform `cell` and a supplied, matching
   `qualified` record; otherwise it is `unavailable` (`no-qualification` or `not-qualified` with
-  the cause).
+  the cause). Its MCP item is then `unavailable` (`no-qualification`) for each client too: an
+  MCP entry never names a program the plan does not acquire.
+- **Shared user-only folders.** Clients that flag user-only skills and share one skill folder
+  take one combined render with every client's flag. A client with no user-only flag cannot
+  share that folder; it is `unavailable` there (`user-only-shared-place`), launchers included.
 
 ## Limits
 

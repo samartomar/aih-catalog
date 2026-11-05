@@ -256,6 +256,15 @@ describe("the trio on Linux x64", () => {
         qualifications: records,
       }),
     );
-    expect(other.unavailable).toMatchObject([{ reason: "not-qualified", cause: "unknown" }]);
+    expect(other.unavailable).toEqual([
+      expect.objectContaining({ reason: "not-qualified", cause: "unknown" }),
+      expect.objectContaining({
+        item: "cbm.mcp.codebase-memory-mcp",
+        cli: "codex",
+        reason: "no-qualification",
+      }),
+    ]);
+    // No MCP entry names the program the plan does not acquire.
+    expect(other.plan.some((step) => step.op === "merge")).toBe(false);
   });
 });

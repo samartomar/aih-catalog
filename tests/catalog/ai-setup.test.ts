@@ -21,6 +21,12 @@ import { folder, profile, sha, sortKeys } from "./helpers.js";
 
 const COMMIT = "3".repeat(40);
 const h = (char: string) => char.repeat(64);
+/** The MCP item of an AI setup the plan does not acquire: it never names the missing program. */
+const UNACQUIRED_MCP = expect.objectContaining({
+  item: "kit.mcp.kit-graph",
+  cli: "codex",
+  reason: "no-qualification",
+});
 
 const SERVER = JSON.stringify({
   name: "io.example/kit-graph",
@@ -457,6 +463,7 @@ describe("which qualification an AI setup uses", () => {
       expect(acquired(plan)).toEqual([]);
       expect(plan.unavailable).toEqual([
         expect.objectContaining({ item: "kit.ai-setup.kit-graph", cell: "linux-x64", ...expected }),
+        UNACQUIRED_MCP,
       ]);
       expect(plan.unavailable[0]?.cli).toBeUndefined();
     }
@@ -487,18 +494,23 @@ describe("which qualification an AI setup uses", () => {
           cause: "blocked",
           detail: "pyyaml has no wheel for 3.15",
         }),
+        UNACQUIRED_MCP,
       ]);
     }
     const latest = await toolPlan([older, newer, unknown]);
     expect(latest.unavailable).toEqual([
       expect.objectContaining({ item: "kit.ai-setup.kit-graph", cause: "unknown" }),
+      UNACQUIRED_MCP,
     ]);
   });
 
   it("ignores a qualified record the item does not accept, and a record for no artifact's cell", async () => {
     const record = kitQualification();
     const unreferenced = await toolPlan([], [record]);
-    expect(unreferenced.unavailable).toMatchObject([{ reason: "no-qualification" }]);
+    expect(unreferenced.unavailable).toEqual([
+      expect.objectContaining({ reason: "no-qualification" }),
+      UNACQUIRED_MCP,
+    ]);
     const arm = await toolPlan(
       [kitQualification({ cell: "windows-arm64" })],
       undefined,
@@ -724,8 +736,9 @@ describe("a native archive and an npm artifact", () => {
         }),
       );
       if (!ok) {
-        expect(plan.unavailable).toMatchObject([
-          { reason: "not-qualified", cause: "artifact-mismatch" },
+        expect(plan.unavailable).toEqual([
+          expect.objectContaining({ reason: "not-qualified", cause: "artifact-mismatch" }),
+          UNACQUIRED_MCP,
         ]);
         continue;
       }
@@ -937,6 +950,7 @@ describe("a combination recipe", () => {
         reason: "not-qualified",
         cause: "artifact-mismatch",
       }),
+      UNACQUIRED_MCP,
     ]);
   });
 
@@ -997,7 +1011,10 @@ describe("a new qualification in a data commit", () => {
       );
     const old = plan(before, DATA_A, [blocked]);
     expect(old.status).toBe("incomplete");
-    expect(old.unavailable).toMatchObject([{ reason: "not-qualified", cause: "blocked" }]);
+    expect(old.unavailable).toEqual([
+      expect.objectContaining({ reason: "not-qualified", cause: "blocked" }),
+      UNACQUIRED_MCP,
+    ]);
     const updated = plan(after, DATA_B, [blocked, qualified]);
     expect(updated.status).toBe("ok");
     expect(updated.data).toEqual(DATA_B);

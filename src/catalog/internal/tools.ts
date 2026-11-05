@@ -77,7 +77,7 @@ export interface UpstreamInstallerStep {
 /** How a managed tool's MCP item starts: the acquired executable and its arguments. */
 export interface ToolLaunch {
   readonly aiSetup: string;
-  /** The executable from the user root, or undefined when the cell has no artifact. */
+  /** The executable from the user root, or undefined unless the plan acquires the artifact. */
   readonly path?: string;
   readonly args: readonly string[];
   readonly clis?: Readonly<Record<string, readonly string[]>>;
@@ -393,9 +393,10 @@ export function planTools(input: ToolInput): ToolPlan {
     const change = input.changes?.[id];
     if (setup.mcpItem !== undefined) {
       plan.implied.push(setup.mcpItem);
+      // The path is added only once the artifact is acquired: an MCP entry never names a
+      // program the plan does not install.
       plan.launches.set(setup.mcpItem, {
         aiSetup: id,
-        ...(path !== undefined ? { path } : {}),
         args: setup.launch.args,
         ...(setup.launch.clis ? { clis: setup.launch.clis } : {}),
         ...(change ? { change } : {}),
@@ -459,6 +460,10 @@ export function planTools(input: ToolInput): ToolPlan {
       { artifact: unknown }
     >;
     const { cells: _cells, ...artifact } = distribution;
+    if (setup.mcpItem !== undefined) {
+      const launch = plan.launches.get(setup.mcpItem) as ToolLaunch;
+      plan.launches.set(setup.mcpItem, { ...launch, path });
+    }
     plan.acquires.push({
       op: "acquire",
       aiSetup: id,

@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -215,6 +216,24 @@ describe("fetching a pinned Git source", () => {
     expect(existsSync(marker)).toBe(false);
     if (fetched.status !== "ok") return;
     expect(fetched.files.find((file) => file.path === "install.sh")?.mode).toBe("100755");
+  });
+
+  it("isolates user config with an empty file, which Git for Windows accepts where it refuses the null device", async () => {
+    // A Git that, like Git for Windows 2.55 with \\.\nul, refuses the null device as user config.
+    const real = execFileSync("sh", ["-c", "command -v git"], { encoding: "utf8" }).trim();
+    const bin = folder({}, "bin");
+    writeFileSync(
+      join(bin, "git"),
+      `#!/bin/sh\nif [ "$GIT_CONFIG_GLOBAL" = /dev/null ] || [ -s "$GIT_CONFIG_GLOBAL" ] || [ ! -f "$GIT_CONFIG_GLOBAL" ]; then echo "fatal: unable to access '$GIT_CONFIG_GLOBAL'" >&2; exit 128; fi\nexec '${real}' "$@"\n`,
+      { mode: 0o755 },
+    );
+    const upstream = gitRepository({ "skills/revise/SKILL.md": REVIEW });
+    process.env.PATH = `${bin}:${process.env.PATH}`;
+    const fetched = await fetchSource(
+      { kind: "git", repository: `file://${upstream.path}` },
+      { outDir: outDir() },
+    );
+    expect(fetched.status).toBe("ok");
   });
 
   it("lists links and submodules without following them", async () => {

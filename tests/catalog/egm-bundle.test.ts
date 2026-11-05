@@ -8,6 +8,7 @@ import {
   planRecipe,
   type Recipe,
   renderStep,
+  type WriteStep,
 } from "../../src/catalog/reader.js";
 import { findItems } from "../../src/catalog/source.js";
 import {
@@ -796,5 +797,32 @@ describe("bundles from two frameworks", () => {
     expect(steps.some((step) => "path" in step && step.path === ".agents/docs/codex.md")).toBe(
       true,
     );
+  });
+
+  it("keeps the flagged .agents/skills folder and makes OpenCode, which has no flag, unavailable there", async () => {
+    const { content } = await egmContent();
+    const clis = ["antigravity", "codex", "cursor", "dsh", "kimi", "opencode"];
+    const plan = planInstall(
+      ["egm.skill.egm-review"],
+      [content],
+      clis.map((cli) => profile(cli)),
+      { scope: "project", data: null },
+    ) as Plan;
+    expect(plan.clashes).toEqual([]);
+    expect(plan.unavailable).toContainEqual(
+      expect.objectContaining({
+        item: "egm.skill.egm-review",
+        cli: "opencode",
+        reason: "user-only-shared-place",
+      }),
+    );
+    const steps = placements(plan.plan);
+    const skill = steps.find(
+      (step) => "path" in step && step.path === ".agents/skills/egm-review/SKILL.md",
+    ) as WriteStep;
+    expect(skill.render?.name).toBe("shared-skill");
+    expect(skill.clis).toEqual(["antigravity", "codex", "cursor", "dsh", "kimi"]);
+    // OpenCode's launcher would start a skill the shared folder does not give it.
+    expect(steps.some((step) => "path" in step && step.path.startsWith(".opencode/"))).toBe(false);
   });
 });
