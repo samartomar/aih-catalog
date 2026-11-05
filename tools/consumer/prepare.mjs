@@ -4,6 +4,8 @@
  * port report and pinned upstream fixtures from the Catalog repository's Git history at the
  * packed commit (a local Git source), plus, with `network`, real upstream pins. It also
  * computes Git's own tree hashes for journey 13 with `git write-tree`, independently of Scan.
+ * The local repositories are sources the harness itself names, as a person would type them, so
+ * they are fetched with `fromUser`; `fetchSource` reads no local repository without it.
  * Prints one JSON object: the input identities.
  */
 import { execFileSync } from "node:child_process";
@@ -45,10 +47,10 @@ function materialise(folder, files) {
   return { files: listing.length, sha256: sha(listing.join("\n")) };
 }
 
-async function fetchInto(name, candidate) {
+async function fetchInto(name, candidate, { fromUser = false } = {}) {
   const outDir = mkdtempSync(join(tmpdir(), "aih-catalog-fetch-"));
   try {
-    const result = await fetchSource(candidate, { outDir });
+    const result = await fetchSource(candidate, { outDir, fromUser });
     if (result.status !== "ok")
       throw new Error(`${name}: ${JSON.stringify(result).slice(0, 1000)}`);
     const identity = materialise(join(inputs, name), result.files);
@@ -60,7 +62,11 @@ async function fetchInto(name, candidate) {
 
 const identity = {};
 for (const subpath of ["data", "port-report", "tests/fixtures"])
-  identity[subpath] = await fetchInto(subpath, { kind: "git", repository, ref: commit, subpath });
+  identity[subpath] = await fetchInto(
+    subpath,
+    { kind: "git", repository, ref: commit, subpath },
+    { fromUser: true },
+  );
 for (const source of Object.values(identity)) {
   if (source.commit !== commit) throw new Error(`fetched ${source.commit}, wanted ${commit}`);
   delete source.repository; // a machine path: the commit identifies the source
@@ -179,7 +185,7 @@ try {
       try {
         const result = await fetchSource(
           { kind: "git", repository: repo, ref, subpath: "data" },
-          { outDir },
+          { outDir, fromUser: true },
         );
         if (result.status !== "ok")
           throw new Error(`journey 14 ${name}: ${JSON.stringify(result)}`);

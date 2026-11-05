@@ -2244,10 +2244,10 @@ const regression = (id, title, basis) => journey(id, title, basis);
   await r.check(
     "unsafe paths and links in a local source are refused or listed, never followed",
     async () => {
-      const result = await node.fetchSource(
-        { kind: "local", path: join(work, "does-not-exist") },
-        { outDir: work },
-      );
+      const missing = { kind: "local", path: join(work, "does-not-exist") };
+      // A local folder is read only when the person typed it.
+      assert.equal((await node.fetchSource(missing, { outDir: work })).status, "invalid");
+      const result = await node.fetchSource(missing, { outDir: work, fromUser: true });
       assert.equal(result.status, "refused");
       const escaped = findItems(
         [{ path: "../escape/SKILL.md", mode: "100644", sha256: "0".repeat(64) }],
